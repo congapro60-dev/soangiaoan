@@ -1,4 +1,4 @@
-import { Award, BookOpenCheck, ClipboardList, NotebookPen } from 'lucide-react';
+import { Award, BookOpenCheck, CalendarCheck, ClipboardList, NotebookPen } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { hs1Average, type StudentScoreView } from '../../../../lib/classroom/scoreBook';
 
@@ -51,7 +51,8 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
   const moet = scores?.exams.moet ?? [];
   const tds = scores?.exams.tds ?? [];
   const hs1 = scores?.hs1 ?? [];
-  const hs1Avg = hs1Average(hs1);
+  const hs1Avg = scores?.average ?? hs1Average(hs1);
+  const stats = scores?.homework;
   const homeworkAvg = homework.length === 0
     ? null
     : round2(homework.reduce((sum, item) => sum + item.score / item.maxScore * 10, 0) / homework.length);
@@ -80,17 +81,26 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
 
         <Card
           icon={<NotebookPen className="h-4 w-4 text-blue-600" />}
-          title="Điểm hệ số 1"
+          title="Điểm có hệ số"
           summary={hs1Avg !== null && <span className={`text-xs font-black ${scoreColor(hs1Avg)}`}>TB {hs1Avg}/10</span>}
         >
-          {hs1.length === 0 ? <Empty>Chưa có điểm hệ số 1.</Empty> : (
-            <ul>{hs1.map((mark, index) => <Row key={`${mark.label}-${index}`} label={mark.label} sub={ngayVn(mark.date)} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
+          {hs1.length === 0 ? <Empty>Chưa có điểm.</Empty> : (
+            <ul>{hs1.map((mark, index) => <Row key={`${mark.label}-${index}`} label={mark.label} sub={`${ngayVn(mark.date)} · HS${mark.weight ?? 1}`} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
+          )}
+        </Card>
+
+        <Card icon={<CalendarCheck className="h-4 w-4 text-emerald-600" />} title="Chuyên cần & TB bài tập về nhà">
+          {!stats || stats.total === 0 ? <Empty>Chưa có bài nào đến hạn để tính.</Empty> : (
+            <ul>
+              <Row label="Chuyên cần" sub={`${stats.submitted}/${stats.total} bài đã nộp`} value={<span className={scoreColor(stats.attendance ?? 0)}>{stats.attendance}</span>} />
+              <Row label="TB mọi bài tập về nhà" sub={`${stats.graded} bài có điểm`} value={stats.average === null ? <span className="text-slate-300">—</span> : <span className={scoreColor(stats.average)}>{stats.average}</span>} />
+            </ul>
           )}
         </Card>
 
         <Card icon={<ClipboardList className="h-4 w-4 text-violet-600" />} title="Thi định kì (thang 10)">
           {moet.length === 0 ? <Empty>Chưa có điểm thi định kì.</Empty> : (
-            <ul>{moet.map(mark => <Row key={mark.label} label={mark.label} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
+            <ul>{moet.map(mark => <Row key={mark.label} label={mark.label} sub={scores?.examWeights?.[mark.label] ? `HS${scores.examWeights[mark.label]}` : undefined} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
           )}
         </Card>
 
