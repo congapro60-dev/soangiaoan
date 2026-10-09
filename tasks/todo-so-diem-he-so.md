@@ -21,11 +21,11 @@ Cột sổ điểm có thêm 2 trường (tương thích ngược: thiếu = nh�
 4. TB môn = Σ(hệ số × điểm) / Σ(hệ số của các cột HS đó đã có điểm).
 
 ## Các bước
-1. [ ] `scoreBook.ts`: thêm `weight`, `source`, hàm thuần `resolveColumnScores` + `weightedAverage` + test (TDD) → verify: `npx vitest run scoreBook`
-2. [ ] `_score-book.ts`: nhận/kiểm `weight`, `source`; action mới `linkAssignmentColumn`; resolve điểm khi đọc (giáo viên + học sinh + `_parent-self-report`) → verify: test API + `npx tsc --noEmit`
-3. [ ] `Hs1Mark` thêm `weight`; `parentReportBuilder` / `StudentScoreBoard` / `gradeBookExport` hiện "HS2" và TB có trọng số → verify: test builder + build
-4. [ ] `ScoreBookPanel`: nút "Đưa bài đã nộp lên sổ" (chọn bài → chọn hệ số → xem trước điểm cả lớp → lưu); đổi hệ số / ghi đè ô / gỡ liên kết; cột liên kết có biểu tượng móc xích → verify: chạy app, thao tác thật
-5. [ ] `npm run build` không lỗi TS; ghi bài học vào `tasks/lessons.md` nếu có sai sót.
+1. [x] `scoreBook.ts`: thêm `weight`, `source`, hàm thuần `resolveColumnScores` + `weightedAverage` + test (TDD) → verify: `npx vitest run scoreBook`
+2. [x] `_score-book.ts`: nhận/kiểm `weight`, `source`; action mới `linkAssignmentColumn`; resolve điểm khi đọc (giáo viên + học sinh + `_parent-self-report`) → verify: test API + `npx tsc --noEmit`
+3. [x] `Hs1Mark` thêm `weight`; `parentReportBuilder` / `StudentScoreBoard` / `gradeBookExport` hiện "HS2" và TB có trọng số → verify: test builder + build
+4. [x] `ScoreBookPanel`: nút "Đưa bài đã nộp lên sổ" (chọn bài → chọn hệ số → xem trước điểm cả lớp → lưu); đổi hệ số / ghi đè ô / gỡ liên kết; cột liên kết có biểu tượng móc xích → verify: chạy app, thao tác thật
+5. [x] `npm run build` không lỗi TS; ghi bài học vào `tasks/lessons.md` nếu có sai sót.
 
 ## Quyết định đã chốt với giáo viên
 - Bài nộp lại nhiều lần: lấy lượt nộp mới nhất có điểm.
