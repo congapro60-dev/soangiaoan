@@ -8,6 +8,7 @@ import { allocateByCount, buildBillingCsv, type BillingLine } from '../../lib/ad
 import { modelLabel, PRICE_SOURCES, usdToVnd } from '../../lib/admin/aiPricing';
 import { ClassSetupPanel } from '../features/admin/ClassSetupPanel';
 import { AiBillingAdminPanel } from '../features/admin/AiBillingAdminPanel';
+import { GeminiKeyPoolPanel } from '../features/admin/GeminiKeyPoolPanel';
 
 const vnd = (n: number) => `${Math.round(n).toLocaleString('vi-VN')} đ`;
 const num = (n: number) => Math.round(n).toLocaleString('vi-VN');
@@ -279,6 +280,7 @@ export const AdminTab = () => {
           <ClassSetupPanel overview={overview} onChanged={async () => { setOverview(await loadAdminOverview()); }} />
 
           {/* 6–10. Ví AI: khoá chung, tài khoản nhận tiền, mã giảm giá, số dư, sao kê */}
+          <GeminiKeyPoolPanel />
           <AiBillingAdminPanel teachers={overview.users} />
         </>
       )}

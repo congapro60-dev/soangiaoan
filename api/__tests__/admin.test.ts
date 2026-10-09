@@ -110,6 +110,13 @@ describe('trang quản trị', () => {
     expect((await call({ action: 'adminOverview' })).statusCode).toBe(403);
   });
 
+  it('danh sách khoá Gemini: người không phải admin KHÔNG xem/thêm/xoá được (khoá là bí mật)', async () => {
+    h.claims = { ...ADMIN, email: 'someone@gmail.com' };
+    for (const action of ['adminGeminiKeys', 'adminSaveGeminiKey', 'adminDeleteGeminiKey']) {
+      expect((await call({ action, key: 'x', id: 'x' })).statusCode).toBe(403);
+    }
+  });
+
   it('tổng quan: giáo viên chi tiết, học sinh ẩn danh chỉ đếm; lượt AI chia trước/sau bộ đếm', async () => {
     const res = await call({ action: 'adminOverview' });
     expect(res.statusCode).toBe(200);
