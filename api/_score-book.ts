@@ -63,7 +63,7 @@ const loadHomeworkInputs = async (
   };
   const [assignmentSnap, uploadSnap, onlineSnap] = await Promise.all([
     db.collection('assignments').where('classId', '==', classId).select('title', 'createdAt', 'dueAt', 'periodicTest', 'targetStudentIds').get(),
-    scoped('submissions').select('assignmentId', 'studentId', 'createdAt', 'grade.score', 'grade.maxScore', 'grade.awaitingClarification').get(),
+    scoped('submissions').select('assignmentId', 'studentId', 'createdAt', 'grade.score', 'grade.maxScore', 'grade.awaitingClarification', 'grade.teacherApproved').get(),
     scoped('examSubmissions').select('assignmentId', 'studentId', 'status', 'startedAt', 'submittedAt', 'totalScore', 'maxScore', 'grade.score', 'grade.maxScore').get(),
   ]);
 
@@ -85,7 +85,10 @@ const loadHomeworkInputs = async (
     const data = doc.data();
     if (typeof data.assignmentId !== 'string' || typeof data.studentId !== 'string') continue;
     const grade = isRecord(data.grade) ? data.grade : null;
-    const score = grade && grade.awaitingClarification !== true ? numOf(grade.score) : null;
+    // Cổng học sinh / phụ huynh (`studentId` có) chỉ nhận điểm ĐÃ DUYỆT: điểm máy chấm chưa được thầy cô duyệt (kể cả bài còn
+    // câu chờ em xác nhận) không được lọt ra qua điểm trung bình hay bảng điểm. Giáo viên vẫn thấy mọi điểm đã chấm.
+    const visible = grade && (studentId ? grade.teacherApproved === true : grade.awaitingClarification !== true);
+    const score = visible ? numOf(grade.score) : null;
     entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.createdAt), score, maxScore: grade ? numOf(grade.maxScore) ?? 0 : 0 });
   }
   for (const doc of onlineSnap.docs) {

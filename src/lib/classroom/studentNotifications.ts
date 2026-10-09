@@ -68,10 +68,22 @@ const feedFromSubmission = (
       id: `${submission.id}:clarify`,
       kind: 'graded',
       title: 'Máy cần em xác nhận vài câu',
-      body: `Bài "${ten}" còn vài câu máy đọc chưa chắc. Em mở trang chủ, trả lời ở khung màu vàng để có điểm nhé.`,
+      body: `Bài "${ten}" còn vài câu máy đọc chưa chắc. Em mở trang chủ, trả lời ở khung màu vàng rồi chờ thầy cô duyệt nhé.`,
       at: gradedAt || updatedAt,
       assignmentId: submission.assignmentId || undefined,
       needsAction: true,
+    };
+  }
+
+  // Máy / thầy cô đã chấm nhưng CHƯA duyệt: em không đọc được điểm hay nhận xét — chỉ báo "đã nộp, chờ thầy cô duyệt".
+  if (submission.status === 'graded' && submission.grade && submission.grade.teacherApproved !== true) {
+    return {
+      id: `${submission.id}:pending-approval`,
+      kind: 'submitted',
+      title: 'Chờ thầy cô duyệt',
+      body: `Bài "${ten}" em đã nộp xong. Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.`,
+      at: gradedAt || updatedAt,
+      assignmentId: submission.assignmentId || undefined,
     };
   }
 

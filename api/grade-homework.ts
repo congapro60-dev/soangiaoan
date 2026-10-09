@@ -107,7 +107,6 @@ import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 import { reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
-import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
 /**
@@ -352,7 +351,6 @@ const attemptHomeworkGrade = async (
   studentText: string,
   apiKey: string,
   retryCount: 0 | 1,
-  isStudentActor: boolean,
   transcription: string,
   timeoutMs: number,
   afterRecitation = false,
@@ -416,8 +414,9 @@ const attemptHomeworkGrade = async (
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
     gradedAt: now,
-    teacherApproved: isStudentActor,
-    approvalSource: isStudentActor ? 'student_ai' as const : 'teacher' as const,
+    // Mọi lượt chấm bằng máy (kể cả bài học sinh tự nộp) đều CHƯA duyệt: học sinh chỉ thấy điểm sau khi thầy cô duyệt
+    // (hoặc máy tự duyệt sau 60 phút khi lớp bật). Học sinh chỉ được hỏi lại câu máy đọc chưa chắc.
+    teacherApproved: false,
     ...(gradingRecovery ? { gradingRecovery } : {}),
     ...(transcription ? { transcription } : {}),
   };
@@ -552,14 +551,14 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, isStudentActor, transcription, conLaiMs());
+      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, conLaiMs());
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
       // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
       // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
       if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
       attempt = await attemptHomeworkGrade(
-        gradeCtx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs(),
+        gradeCtx, images, studentText, apiKey, 1, transcription, conLaiMs(),
         error instanceof GeminiResponseError && error.kind === 'recitation',
       );
     }
@@ -571,7 +570,9 @@ const gradeOneSubmission = async (
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
     // Ném lỗi để nhánh catch giữ nguyên điểm cũ nếu có, hoặc để status='error' khi chưa từng có điểm.
     // Lớp bật "hỏi lại học sinh" thì KHÔNG chặn cả bài: từng câu chưa chắc sẽ được hỏi lại em (gõ đáp án / chụp lại câu đó).
-    const clarified = await applyClarification(db, previous, reconciled, isStudentActor);
+    // Hỏi lại em ở lượt chấm ĐẦU TIÊN của bài, bất kể ai bấm chấm (em khi vừa nộp, thầy cô "Chấm cả lớp", máy tự chấm sau 60 phút):
+    // câu máy đọc chưa chắc thì chỉ em trả lời được. Chấm lại về sau (đã có điểm cũ) do thầy cô quyết định, không hỏi lại.
+    const clarified = await applyClarification(db, previous, reconciled, isStudentActor || !hadPreviousGrade);
     if (clarified.asked === 0 && isReadTooUncertain(reconciled.questionResults)) {
       throw new Error(UNCERTAIN_READ_MESSAGE);
     }
@@ -596,28 +597,15 @@ const gradeOneSubmission = async (
     );
     if (!committed.committed) return { success: false };
 
-    // Còn câu chờ em làm rõ → điểm còn tạm: chưa ghi vào hồ sơ học tập (sẽ ghi khi em xong, xem `_clarify.ts`).
-    if (isStudentActor && awaitsClarification(grade.questionResults)) {
-      return { success: true };
-    }
-    // If student self-grade succeeded, sync evidence (auto-approval)
-    if (isStudentActor) {
+    // Lượt chấm mới CHƯA duyệt (cả bài học sinh tự nộp): chưa ghi vào hồ sơ học tập, và nếu bài từng có minh chứng cũ thì gỡ đi.
+    // Minh chứng chỉ được ghi khi thầy cô duyệt (hoặc máy tự duyệt sau 60 phút).
+    if (hadPreviousGrade) {
       try {
-        await syncApprovedGradeEvidence(db, {
-          submissionId,
-          assignmentId: previous.assignmentId,
-          grade,
-          owner: {
-            studentId: previous.studentId,
-            classId: previous.classId,
-            teacherId: previous.teacherId,
-          },
-          now,
-          approved: true,
-        });
-      } catch (syncError) {
-        // Sync failed but grade is committed and approved — record pending marker (best-effort)
-        const errorMessage = syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại';
+        await removeSubmissionGradeEvidence(db, previous, now);
+      } catch (cleanupError) {
+        // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
+        // Record actionable marker for teacher (not exposed to students)
+        const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
         try {
           await db.runTransaction(async transaction => {
             const latestSnapshot = await transaction.get(claim.ref);
@@ -626,29 +614,7 @@ const gradeOneSubmission = async (
             }
           });
         } catch {
-          // Best-effort: don't overwrite successful response
-        }
-        return { success: true, syncPending: true, syncError: errorMessage };
-      }
-    } else {
-      // Teacher AI regrade: new grade is NOT approved, remove old evidence if any (best-effort)
-      if (hadPreviousGrade) {
-        try {
-          await removeSubmissionGradeEvidence(db, previous, now);
-        } catch (cleanupError) {
-          // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
-          // Record actionable marker for teacher (not exposed to students)
-          const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
-          try {
-            await db.runTransaction(async transaction => {
-              const latestSnapshot = await transaction.get(claim.ref);
-              if (latestSnapshot.exists) {
-                transaction.update(claim.ref, { evidenceSyncError: errorMessage });
-              }
-            });
-          } catch {
-            // Best-effort: marker write failure must not overwrite successful response
-          }
+          // Best-effort: marker write failure must not overwrite successful response
         }
       }
     }
@@ -925,6 +891,11 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const mode: HomeworkGradingMode = isTeacher && !isOwnerStudent ? requestedMode : 'quick';
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
+  }
+  // Máy chỉ quét bài MỘT lần ngay khi em nộp. Đã có kết quả thì em không gọi lại được: gọi lại sẽ xoá các câu em đã xác nhận
+  // và cho em dò xem máy chưa chắc câu nào qua mỗi lượt. Muốn đọc lại thì thầy cô bấm chấm lại, hoặc em nộp ảnh bổ sung (lượt mới).
+  if (isOwnerStudent && !isTeacher && submission.grade) {
+    return res.status(403).json({ error: 'Máy đã đọc bài này rồi. Em chờ thầy cô duyệt, hoặc nộp ảnh bổ sung nếu cần.' });
   }
 
   // Khoá AI thuộc giáo viên chủ lớp. Học sinh nộp đúng lúc khoá bị chặn: bài nằm chờ, giáo viên được báo.

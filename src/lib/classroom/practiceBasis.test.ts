@@ -10,15 +10,17 @@ const qr = (over: Partial<QuestionResult>): QuestionResult => ({
 describe('căn cứ bài luyện', () => {
   it('lấy lỗi câu sai/đúng một phần, mới nhất trước, gộp lỗi trùng, bỏ câu đúng/bỏ qua theo lệnh GV', () => {
     const mistakes = collectHomeworkMistakes([
-      { assignmentId: 'a1', createdAt: '2026-09-10T02:00:00Z', status: 'graded', grade: { questionResults: [qr({ questionNumber: 'Câu 3' })] } as never },
+      { assignmentId: 'a1', createdAt: '2026-09-10T02:00:00Z', status: 'graded', grade: { teacherApproved: true, questionResults: [qr({ questionNumber: 'Câu 3' })] } as never },
       {
-        assignmentId: 'a2', createdAt: '2026-09-18T02:00:00Z', status: 'graded', grade: { questionResults: [
+        assignmentId: 'a2', createdAt: '2026-09-18T02:00:00Z', status: 'graded', grade: { teacherApproved: true, questionResults: [
           qr({ questionNumber: 'Câu 2' }),
           qr({ questionNumber: 'Câu 4', status: 'partially_correct', errorType: 'Thiếu điều kiện', explanation: 'Quên ĐKXĐ' }),
           qr({ questionNumber: 'Câu 5', status: 'correct' }),
           qr({ questionNumber: 'Câu 6', ignoredByTeacherInstruction: true, errorType: 'Khác', explanation: 'x' }),
         ] } as never,
       },
+      // Bài máy đã chấm nhưng thầy cô chưa duyệt: không lộ lỗi qua bài luyện.
+      { assignmentId: 'a4', createdAt: '2026-09-21T02:00:00Z', status: 'graded', grade: { teacherApproved: false, questionResults: [qr({ errorType: 'Chưa duyệt' })] } as never },
       { assignmentId: 'a3', createdAt: '2026-09-20T02:00:00Z', status: 'grading', grade: { questionResults: [qr({ errorType: 'Chưa chấm xong' })] } as never },
     ], id => ({ a1: 'BTVN Hình', a2: 'BTVN Đại số' }[id] ?? ''));
     expect(mistakes.map(m => m.source)).toEqual(['BTVN Đại số 18/9/2026 · Câu 2', 'BTVN Đại số 18/9/2026 · Câu 4']);

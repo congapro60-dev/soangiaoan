@@ -105,7 +105,8 @@ const toUploadView = (
     maxScore: assignment.maxScore ?? latest?.grade?.maxScore,
     attemptCount: submissions.length,
     latestAttemptAt: latest ? attemptTimestamp(latest) : undefined,
-    provisionalScore: showScore ? finiteScore(latest?.grade?.score) : null,
+    // Điểm chưa duyệt không bao giờ tới học sinh (xem bản chiếu `projectStudentSubmission`), nên không có điểm tạm.
+    provisionalScore: null,
     officialScore: showScore && latest?.grade?.teacherApproved ? finiteScore(latest.grade.score) : null,
     status,
     nextAction: nextActionFor(status),

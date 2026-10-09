@@ -449,7 +449,7 @@ export const StudentPortalPage = () => {
       setChoBaiId('');
       setThanhCong(baiDangCho.grade?.awaitingClarification
         ? 'Máy cần em xác nhận vài câu — em trả lời ở khung màu vàng đầu trang nhé.'
-        : baiDangCho.status === 'graded' ? 'Máy đã chấm xong bài của em — mở mục "Đã chấm" để xem điểm và nhận xét nhé!' : '');
+        : baiDangCho.status === 'graded' ? 'Máy đã đọc xong bài của em. Em chờ thầy cô duyệt rồi xem điểm và nhận xét nhé!' : '');
     }
   }, [choBaiId, submissions]);
 
@@ -528,37 +528,19 @@ export const StudentPortalPage = () => {
         }
       } else {
         const bai = assignments.find(a => a.id === mucTieu);
-        if (bai?.hasAnswerKey) {
-          setBuocNop('');
-          const { isConfirmed } = await Swal.fire({
-            icon: 'success',
-            title: supplementOf ? 'Thầy cô đã nhận ảnh bổ sung ✓' : 'Thầy cô đã nhận bài của em ✓',
-            text: supplementOf
-              ? 'Ảnh cũ và ảnh mới đã được ghép. Em muốn máy chấm lại ngay để xem điểm không? Đóng hộp này cũng không sao — bài vẫn đã nộp, thầy cô sẽ chấm.'
-              : 'Bài đã nộp xong. Em muốn máy chấm ngay để xem điểm không? Đóng hộp này cũng không sao — bài vẫn đã nộp, thầy cô sẽ chấm.',
-            showDenyButton: true,
-            confirmButtonText: 'Xem điểm ngay (máy chấm)',
-            denyButtonText: 'Để thầy cô chấm',
-            confirmButtonColor: '#4f46e5',
-            denyButtonColor: '#64748b',
-            allowOutsideClick: false,
-          });
-          if (isConfirmed) {
-            setBuocNop('Máy đang chấm bài...');
-            try {
-              const ketQua = await gradeOneSubmission(submission.id, 'quick');
-              if (ketQua.pending) setChoBaiId(submission.id);
-              setThanhCong(ketQua.pending
-                ? DANG_CHAM_NGAM
-                : `${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
-            } catch (error) {
-              console.error('Chấm bài giao chưa xong', error);
-              setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
-            }
-          } else {
-            setThanhCong(supplementOf
-              ? `Đã bổ sung ảnh cho "${tenBai}" — lượt mới đang chờ thầy cô chấm lại toàn bộ.`
-              : `Đã nộp "${tenBai}" — bài của em đang chờ thầy cô chấm.`);
+        if (bai) {
+          // Quét bài NGAY lúc nộp (không hỏi em): máy chỉ đọc để tìm chỗ chưa rõ và hỏi lại em. Em KHÔNG thấy điểm —
+          // điểm và nhận xét chỉ hiện sau khi thầy cô duyệt.
+          setBuocNop(supplementOf ? 'Đã bổ sung ảnh! Máy đang đọc lại bài...' : 'Đã nộp! Máy đang đọc bài để xem chỗ nào chưa rõ...');
+          try {
+            const ketQua = await gradeOneSubmission(submission.id, 'quick');
+            if (ketQua.pending) setChoBaiId(submission.id);
+            setThanhCong(ketQua.pending
+              ? DANG_CHAM_NGAM
+              : `Đã nộp "${tenBai}". Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ở đầu trang; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
+          } catch (error) {
+            console.error('Quét bài giao chưa xong', error);
+            setCanhBao('Bài đã nộp thành công nhưng máy chưa đọc được ngay — thầy cô sẽ xử lý giúp em sau.');
           }
         }
         else if (supplementOf) {
@@ -624,7 +606,17 @@ export const StudentPortalPage = () => {
       void Swal.fire({
         icon: 'info',
         title,
-        text: 'Máy cần em xác nhận vài câu em viết chưa rõ. Em kéo lên đầu trang, trả lời xong thì điểm sẽ hiện.',
+        text: 'Máy cần em xác nhận vài câu em viết chưa rõ. Em kéo lên đầu trang để trả lời. Điểm sẽ hiện sau khi thầy cô duyệt.',
+        confirmButtonText: 'Đã hiểu',
+        confirmButtonColor: '#4f46e5',
+      });
+      return;
+    }
+    if (submission?.status === 'graded' && grade && !grade.teacherApproved) {
+      void Swal.fire({
+        icon: 'info',
+        title,
+        text: 'Em đã nộp xong. Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.',
         confirmButtonText: 'Đã hiểu',
         confirmButtonColor: '#4f46e5',
       });

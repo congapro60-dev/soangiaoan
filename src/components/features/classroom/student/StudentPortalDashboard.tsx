@@ -84,7 +84,7 @@ const filterMeta: Array<{ key: FilterKey; label: string }> = [
 
 const statusFilterMatch = (status: StudentAssignmentStatus, filter: FilterKey): boolean => {
   if (filter === 'all') return true;
-  if (filter === 'waiting') return status === 'waiting' || status === 'grading';
+  if (filter === 'waiting') return status === 'waiting' || status === 'grading' || status === 'pending-approval';
   return status === filter;
 };
 
@@ -92,6 +92,7 @@ const statusLabel = (status: StudentAssignmentStatus): string => {
   if (status === 'todo') return 'Chưa nộp';
   if (status === 'retry') return 'Cần nộp lại';
   if (status === 'graded') return 'Đã có nhận xét';
+  if (status === 'pending-approval') return 'Chờ thầy cô duyệt';
   return 'Đang xử lý';
 };
 
@@ -517,9 +518,9 @@ export const StudentPortalDashboard = ({
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100"><GraduationCap className="h-4 w-4 text-slate-500" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-black text-slate-800">Bài tự nộp · {new Date(submission.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : 'graded')}</span>
+                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : submission.grade?.teacherApproved === true ? 'graded' : 'pending-approval')}</span>
                   </span>
-                  {submission.grade && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
+                  {submission.grade?.teacherApproved === true && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
                 </button>
               ))}
             </div>

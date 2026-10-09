@@ -1907,7 +1907,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     bulkRetrySync={() => thuLaiDongBoTatCa(a)}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
-                    Học sinh tự chấm AI thành công → tự động ghi nhận vào hồ sơ (AI tự duyệt). Chấm lại của thầy cô / sửa điểm tay → cần bấm <b>Duyệt điểm</b> mới vào hồ sơ.
+                    Máy quét bài ngay khi học sinh nộp và hỏi lại em câu chưa rõ; em <b>không thấy điểm</b> cho tới khi thầy cô bấm <b>Duyệt điểm</b> (hoặc máy tự duyệt sau 60 phút khi lớp bật). Chỉ bài đã duyệt mới vào hồ sơ và báo cáo.
                   </p>
                     </>
                   )}

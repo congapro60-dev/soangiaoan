@@ -186,6 +186,7 @@ describe('sổ điểm', () => {
     });
 
     it('ghi đè tay thắng điểm tự lấy; xoá ô ghi đè thì quay về điểm tự lấy; chấm lại bài thì sổ đổi theo', async () => {
+      (h.store.submissions.s3.grade as DocData).teacherApproved = true; // học sinh chỉ nhận điểm đã duyệt
       const link = await call({ action: 'linkAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', weight: 1 }] });
       const columnId = (link.payload?.scoreBook as { hs1Columns: Array<{ id: string }> }).hs1Columns[0].id;
       const over = await call({ action: 'saveHs1Column', classId: 'lop-1', columnId, column: { label: 'BTVN tuần 1', date: '2026-09-05', weight: 1 }, scores: { b: 7 } });
@@ -208,7 +209,22 @@ describe('sổ điểm', () => {
       expect((again.payload?.scores as { hs1: DocData[] }).hs1[0]).toMatchObject({ score: 6 });
     });
 
+    it('học sinh KHÔNG thấy điểm bài máy chấm nhưng thầy cô chưa duyệt, dù bài đã liên kết lên sổ', async () => {
+      await call({ action: 'linkAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', weight: 2 }] });
+      h.claims = STUDENT_A;
+      const res = await call({ action: 'studentScoreBook' });
+      const scores = res.payload?.scores as DocData;
+      expect(JSON.stringify(scores.hs1)).not.toContain('8');
+      expect(scores.average ?? null).toBeNull();
+      h.claims = TEACHER;
+      const teacherView = await call({ action: 'teacherScoreBook', classId: 'lop-1' });
+      // Giáo viên vẫn thấy điểm tạm (16/20 → 8/10) trong sổ.
+      const linked = (teacherView.payload?.scoreBook as { auto: { linked: Record<string, Record<string, number>> } }).auto.linked;
+      expect(Object.values(linked).map(column => column.a)).toContain(8);
+    });
+
     it('học sinh chỉ thấy điểm và thống kê của mình, không thấy danh sách bài hay dữ liệu bạn khác', async () => {
+      (h.store.submissions.s2.grade as DocData).teacherApproved = true;
       await call({ action: 'linkAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', weight: 2 }] });
       h.claims = STUDENT_A;
       const res = await call({ action: 'studentScoreBook' });

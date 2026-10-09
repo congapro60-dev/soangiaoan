@@ -18,6 +18,7 @@ interface Props {
 const statusMeta: Record<StudentAssignmentState['status'], { label: string; className: string; icon: typeof Clock3 }> = {
   todo: { label: 'Cần nộp', className: 'bg-indigo-50 text-indigo-700', icon: Camera },
   waiting: { label: 'Đang chờ chấm', className: 'bg-amber-50 text-amber-700', icon: Clock3 },
+  'pending-approval': { label: 'Chờ thầy cô duyệt', className: 'bg-sky-50 text-sky-700', icon: Clock3 },
   grading: { label: 'Đang chấm', className: 'bg-blue-50 text-blue-700', icon: Loader2 },
   retry: { label: 'Cần nộp lại', className: 'bg-red-50 text-red-700', icon: RotateCcw },
   graded: { label: 'Đã chấm', className: 'bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
@@ -107,6 +108,12 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
             <p className="mt-3 flex items-start gap-2 text-sm font-bold text-red-700">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               {STUDENT_GRADING_ERROR_COPY}
+            </p>
+          )}
+          {state.status === 'pending-approval' && (
+            <p className="mt-3 flex items-start gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-sm font-bold leading-6 text-sky-900">
+              <Clock3 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>Em đã nộp xong. Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.</span>
             </p>
           )}
           {state.status === 'graded' && submission?.grade && (

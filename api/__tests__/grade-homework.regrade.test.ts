@@ -276,9 +276,30 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(h.fetch).toHaveBeenCalledTimes(2);
     expect(harness.state.submissions['sub-1']).toMatchObject({
       status: 'graded',
-      grade: expect.objectContaining({ score: 8, teacherApproved: true }),
+      // Học sinh tự nộp cũng KHÔNG được tự duyệt: điểm chỉ tới em sau khi thầy cô duyệt.
+      grade: expect.objectContaining({ score: 8, teacherApproved: false }),
     });
     expect((harness.state.submissions['sub-1'].grade as DocData).transcription).toBeUndefined();
+  });
+
+  it('học sinh chỉ được quét bài một lần: đã có kết quả (chưa duyệt) thì gọi lại bị chặn, không xoá câu em đã xác nhận', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'student-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    harness.state.submissions['sub-1'] = {
+      ...harness.state.submissions['sub-1'],
+      status: 'graded',
+      fileUrls: ['https://storage.test/sub-1.jpg'],
+      grade: { score: 5, maxScore: 10, feedback: '', strengths: [], weaknesses: [], gradedAt: '2026-09-01T00:00:00.000Z', teacherApproved: false },
+    };
+    h.uid = 'student-uid';
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(validGradeJson(9)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(403);
+    expect(h.fetch).not.toHaveBeenCalled();
+    expect(harness.state.submissions['sub-1']).toMatchObject({ grade: expect.objectContaining({ score: 5 }) });
   });
 
   it('co-owner được chấm lại bằng AI trong namespace của chủ lớp', async () => {

@@ -178,7 +178,8 @@ describe('student homework projection (projectStudentSubmission)', () => {
     // Không được lộ evidenceSyncError (teacher-only)
     expect(gradedWithError).not.toHaveProperty('evidenceSyncError');
     // Grade vẫn giữ nguyên
-    expect(gradedWithError!.grade).toMatchObject({ score: 8, teacherApproved: false });
+    // Chưa duyệt: điểm 8 không rời máy chủ, học sinh chỉ biết bài đang chờ duyệt.
+    expect(gradedWithError!.grade).toMatchObject({ score: 0, teacherApproved: false, scoreHidden: true });
   });
 
   it('học sinh thấy errorMessage an toàn khi status error không có grade', async () => {

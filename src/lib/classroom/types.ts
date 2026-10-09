@@ -439,6 +439,8 @@ export interface SubmissionGrade {
   editedByTeacher?: boolean;
   /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
   gradingRecovery?: GradingRecovery;
+  /** Bản chiếu cho HỌC SINH khi bài chưa được duyệt: điểm, nhận xét, kết quả từng câu bị ẩn (chỉ còn câu máy hỏi lại em). */
+  scoreHidden?: boolean;
   /** CHỈ có ở bản chiếu cho học sinh: còn câu chờ em làm rõ → chưa hiện điểm, đáp án, nhận xét. */
   awaitingClarification?: boolean;
   /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */

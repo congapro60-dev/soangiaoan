@@ -238,3 +238,12 @@ Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên
 - Xuất (`portfolioExport.ts`): thêm cột G..L, đặt lại danh sách chọn cột "Thời gian" theo năm học (file mẫu còn ghi tháng 2024–2025). Nút xuất khoá khi còn thay đổi chưa lưu.
 - **QA production bởi Codex (30/09)**: hồ sơ GV (nháp AI, lưu, xuất 2 màu + 9 dòng bổ sung + .xlsx) PASS; hồ sơ HS (PIN, Gợi ý, Lưu) PASS; SSM điểm LO 10Olinda F1 PASS; lịch báo giảng FAIL → đã sửa: sổ ghi "(tiết 5/6)" trong khi tin ghi "Tiết 6/7" vì tds-g10 tiết 17 ("Tiết 1: Định lý cosin") mang nhầm tên bài → `lessonPeriodNumber` ưu tiên "Tiết N" trong nội dung tiết, đếm chuỗi cùng tên chỉ là dự phòng (MOET không ghi). Còn BLOCKED: AI đọc lịch năm học (Sheet trường chặn congapro60@gmail.com — dùng tài khoản trường), fallback 3.8→3.7 chưa gặp 503 thật.
 - Trước QA: chưa E2E trên trình duyệt (trang HS cần phiên HS thật, trang GV cần đăng nhập GV). Đã render test `PortfolioEntryEditor` + test API/lõi. Nghiệm thu: `npx vitest run src/lib/classroom/competency api/__tests__/portfolio.test.ts src/components/features/classroom/PortfolioEntryEditor.test.tsx`.
+
+
+## Học sinh chỉ thấy điểm SAU KHI ĐƯỢC DUYỆT; máy quét bài ngay lúc nộp — 2026-10-09 (chủ dự án chốt)
+- Nộp ảnh bài giao → máy tự quét NGAY (không còn hộp hỏi "xem điểm ngay?"), chỉ để tìm câu chưa rõ và hỏi lại em. Em KHÔNG thấy điểm / nhận xét / kết quả từng câu.
+- Lượt chấm bằng máy luôn `teacherApproved: false` (kể cả bài học sinh tự nộp — đã BỎ `student_ai` tự duyệt). Chỉ thầy cô bấm Duyệt (hoặc tự duyệt sau 60 phút khi lớp bật) mới ghi minh chứng/hồ sơ và hiện điểm cho em.
+- Máy chủ ẩn dữ liệu, không chỉ ẩn ở giao diện: `projectStudentSubmission` (api/classroom.ts) trả `score 0`, `feedback ''`, không `questionResults`, `scoreHidden: true` khi chưa duyệt; `_score-book.ts` (cổng học sinh/phụ huynh) chỉ nhận điểm đã duyệt; bài luyện (`practiceBasis`) chỉ lấy lỗi bài đã duyệt.
+- Hỏi lại em ở lượt chấm ĐẦU TIÊN của bài, bất kể ai bấm chấm (em, "Chấm cả lớp", tự chấm 60 phút); bỏ công tắc lớp `askStudentClarification`.
+- Học sinh chỉ gọi `gradeOne` được MỘT lần (đã có kết quả thì 403) — muốn đọc lại thì nộp ảnh bổ sung.
+- Chưa làm (kiểm toán 09/10): mã đề không đọc được chưa hỏi em; câu bỏ trống bị hỏi nhầm như "chưa đọc được"; đề online chưa ẩn điểm tạm; giao diện nút "Nộp lại" mâu thuẫn chữ ở trạng thái lỗi.

@@ -1089,7 +1089,8 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
     isOpen: true,
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
-    hasAnswerKey: Boolean(answerKey || rubric || answerKeyImages.length > 0),
+    // Bài kiểm tra định kì có đáp án theo từng mã đề (không nằm ở `answerKey` chung) vẫn tính là có đáp án: máy quét bài ngay khi em nộp.
+    hasAnswerKey: Boolean(answerKey || rubric || answerKeyImages.length > 0 || (Array.isArray(data.examVariants) && data.examVariants.length > 0)),
     // Cờ trống (không lộ tên cột sổ điểm): cổng học sinh dùng để KHÔNG hiện điểm AI chấm lại của bài định kì.
     ...(data.periodicTest ? { periodicTest: {} } : {}),
     ...(purpose ? { purpose } : {}),
@@ -1136,13 +1137,20 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
     : undefined;
   // Còn câu máy hỏi lại em: chỉ lộ các câu đang chờ; điểm, đáp án đúng, nhận xét hiện sau khi em làm rõ xong (chống chép đáp án).
   const awaitingClarification = awaitsClarification(fullRows);
-  const questionResults = fullRows && awaitingClarification ? hideWhileAwaitingClarification(fullRows) : fullRows;
+  // Chưa được duyệt (máy chấm xong, hoặc thầy cô chấm nhưng chưa duyệt) → học sinh KHÔNG đọc được điểm, nhận xét, kết quả từng câu;
+  // dữ liệu không rời máy chủ, không chỉ là ẩn ở giao diện. Chỉ còn câu máy hỏi lại em (nếu có).
+  const approved = rawGrade?.teacherApproved === true;
+  const hidden = awaitingClarification || !approved;
+  const questionResults = !fullRows ? undefined
+    : awaitingClarification ? hideWhileAwaitingClarification(fullRows)
+      : approved ? fullRows : undefined;
   const grade: SubmissionGrade | undefined = rawGrade ? {
-    score: awaitingClarification ? 0 : Number(rawGrade.score) || 0,
+    score: hidden ? 0 : Number(rawGrade.score) || 0,
     maxScore: Number(rawGrade.maxScore) || 0,
-    feedback: awaitingClarification ? '' : String(rawGrade.feedback || ''),
-    strengths: !awaitingClarification && Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
-    weaknesses: !awaitingClarification && Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+    feedback: hidden ? '' : String(rawGrade.feedback || ''),
+    strengths: !hidden && Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
+    weaknesses: !hidden && Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+    ...(!approved ? { scoreHidden: true } : {}),
     ...(awaitingClarification ? { awaitingClarification: true } : {}),
     ...(questionResults ? { questionResults } : {}),
     ...(typeof rawGrade.gradedWithoutAnswerKey === 'boolean' ? { gradedWithoutAnswerKey: rawGrade.gradedWithoutAnswerKey } : {}),

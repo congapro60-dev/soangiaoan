@@ -227,7 +227,7 @@ export const ClarifyPanel = ({ items, onChanged }: Props) => {
         <div className="min-w-0">
           <h2 id="clarify-heading" className="text-lg font-black text-slate-900">Máy cần em xác nhận vài câu</h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-amber-900">
-            Máy chưa đọc chắc một số câu trong bài em nộp. Em xác nhận xong thì điểm mới hiện. Em có thể thoát giữa chừng — bài và ảnh vẫn được lưu, lần sau vào em làm tiếp phần còn lại.
+            Máy chưa đọc chắc một số câu trong bài em nộp. Em xác nhận xong rồi chờ thầy cô duyệt thì điểm mới hiện. Em có thể thoát giữa chừng — bài và ảnh vẫn được lưu, lần sau vào em làm tiếp phần còn lại.
           </p>
         </div>
       </div>

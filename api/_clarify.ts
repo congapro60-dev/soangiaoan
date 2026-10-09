@@ -36,17 +36,17 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
 };
 
 /**
- * Bài vừa được MÁY chấm cho học sinh tự nộp: nếu lớp bật tính năng thì đánh dấu các câu chưa chắc để hỏi lại.
- * Không phải học sinh tự chấm, hoặc lớp chưa bật, hoặc không có câu nào chưa chắc → trả nguyên điểm, `asked = 0`.
+ * Bài vừa được MÁY chấm lần đầu: đánh dấu các câu máy đọc chưa chắc để hỏi lại học sinh (luôn bật, không cần công tắc lớp).
+ * `shouldAsk` = false (chấm lại về sau do thầy cô quyết định) hoặc không có câu nào chưa chắc → trả nguyên điểm, `asked = 0`.
  */
 export const applyClarification = async (
   db: Db,
   submission: Pick<SubmissionDoc, 'classId'>,
   grade: SubmissionGrade,
-  isStudentActor: boolean,
+  shouldAsk: boolean,
 ): Promise<{ grade: SubmissionGrade; asked: number }> => {
   const rows = grade.questionResults;
-  if (!isStudentActor || !rows || rows.length === 0) return { grade, asked: 0 };
+  if (!shouldAsk || !rows || rows.length === 0) return { grade, asked: 0 };
   const { rows: marked, asked } = buildClarifyRows(rows);
   return asked === 0 ? { grade, asked: 0 } : { grade: { ...grade, questionResults: marked }, asked };
 };

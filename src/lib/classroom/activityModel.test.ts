@@ -153,7 +153,7 @@ describe('buildStudentActivityViews', () => {
     });
   });
 
-  it('separates an unapproved upload grade as provisional', () => {
+  it('an unapproved upload grade is pending teacher and never exposes a score', () => {
     const views = buildStudentActivityViews({
       studentId: 'student-1',
       assignments: [assignment()],
@@ -171,7 +171,7 @@ describe('buildStudentActivityViews', () => {
     });
 
     expect(views[0]).toMatchObject({
-      provisionalScore: 5,
+      provisionalScore: null,
       officialScore: null,
       status: 'pending_teacher',
     });

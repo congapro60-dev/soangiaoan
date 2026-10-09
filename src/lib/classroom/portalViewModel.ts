@@ -1,6 +1,6 @@
 import type { AssignmentDoc, SubmissionDoc } from './types';
 
-export type StudentAssignmentStatus = 'todo' | 'waiting' | 'grading' | 'retry' | 'graded' | 'self-submitted';
+export type StudentAssignmentStatus = 'todo' | 'waiting' | 'pending-approval' | 'grading' | 'retry' | 'graded' | 'self-submitted';
 export type StudentAssignmentAction = 'submit' | 'status' | 'retry' | 'review';
 
 export interface StudentAssignmentState {
@@ -75,6 +75,16 @@ export const getStudentAssignmentState = (
           action: 'status',
           label: 'Cần em xác nhận',
           detail: 'Máy cần em xác nhận vài câu ở bảng phía trên trang.',
+        };
+      }
+      // Máy hoặc thầy cô đã chấm nhưng CHƯA duyệt: em không đọc được điểm, nhận xét hay kết quả từng câu cho tới khi được duyệt.
+      if (submission.grade?.teacherApproved !== true) {
+        return {
+          status: 'pending-approval',
+          action: 'status',
+          label: 'Chờ thầy cô duyệt',
+          detail: 'Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.',
+          canResubmit: true,
         };
       }
       return {

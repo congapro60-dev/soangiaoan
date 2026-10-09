@@ -480,7 +480,8 @@ describe('POST /api/classroom · studentAssignments', () => {
     };
     const res = await call({ action: 'studentAssignments' });
     expect(res.statusCode).toBe(200);
-    expect(res.payload?.assignments).toEqual([expect.objectContaining({ id: 'kt-1', periodicTest: {}, hasAnswerKey: false })]);
+    // hasAnswerKey chỉ là cờ đúng/sai (có đáp án theo mã đề) để máy quét bài ngay lúc em nộp — không lộ nội dung đáp án.
+    expect(res.payload?.assignments).toEqual([expect.objectContaining({ id: 'kt-1', periodicTest: {}, hasAnswerKey: true })]);
     for (const secret of ['examVariants', 'Đề-mã-1201', 'Câu 1: A', 'Cột-bí-mật']) expect(JSON.stringify(res.payload)).not.toContain(secret);
   });
 
@@ -588,8 +589,12 @@ describe('POST /api/classroom · studentSubmissions', () => {
     const res = await call({ action: 'studentSubmissions' });
 
     expect(res.statusCode).toBe(200);
-    const question = (((res.payload?.submissions as DocData[])[0].grade as DocData).questionResults as DocData[])[0];
-    expect(question).toEqual(expect.objectContaining({ studentAnswer: 'Đáp án của em', expectedAnswer: '', explanation: '' }));
+    // Chưa duyệt: học sinh không nhận điểm, nhận xét, kết quả từng câu — dữ liệu không rời máy chủ.
+    const grade = (res.payload?.submissions as DocData[])[0].grade as DocData;
+    expect(grade).toMatchObject({ score: 0, feedback: '', scoreHidden: true, teacherApproved: false });
+    expect(grade.questionResults).toBeUndefined();
+    expect(JSON.stringify(res.payload)).not.toContain('Kết quả tạm thời');
+    expect(JSON.stringify(res.payload)).not.toContain('Đáp án của em');
     expect(JSON.stringify(res.payload)).not.toContain('Đáp án chuẩn bí mật');
     expect(JSON.stringify(res.payload)).not.toContain('Giải thích nội bộ bí mật');
   });

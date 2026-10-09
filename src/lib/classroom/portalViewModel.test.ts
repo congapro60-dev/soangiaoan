@@ -76,8 +76,14 @@ describe('getStudentAssignmentState', () => {
       strengths: [],
       weaknesses: [],
       gradedAt: '2026-08-22T11:00:00.000Z',
-      teacherApproved: false,
+      teacherApproved: true,
     } }))).toMatchObject({ status: 'graded', action: 'review', canResubmit: true });
+  });
+
+  it('chấm xong nhưng chưa duyệt: học sinh chỉ thấy "chờ thầy cô duyệt", không có nút xem nhận xét', () => {
+    expect(getStudentAssignmentState(assignment, submission({ status: 'graded', grade: {
+      score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], gradedAt: '2026-08-22T11:00:00.000Z', teacherApproved: false, scoreHidden: true,
+    } }))).toMatchObject({ status: 'pending-approval', action: 'status', label: 'Chờ thầy cô duyệt', canResubmit: true });
   });
 
   it('does not offer resubmit for assignments without an attempt or for self-submissions', () => {
