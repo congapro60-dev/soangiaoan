@@ -5,12 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const m = vi.hoisted(() => ({
   callAiRelay: vi.fn(),
   claudeCreate: vi.fn(),
+  geminiRaw: vi.fn(),
 }));
 
 vi.mock('./firebase', () => ({ auth: { currentUser: null } }));
 vi.mock('./aiRelay', async () => {
   const actual = await vi.importActual<typeof import('./aiRelay')>('./aiRelay');
   return { ...actual, callAiRelay: m.callAiRelay };
+});
+vi.mock('./gemini', async () => {
+  const actual = await vi.importActual<typeof import('./gemini')>('./gemini');
+  return { ...actual, callGeminiAIRaw: m.geminiRaw };
 });
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class { messages = { create: m.claudeCreate }; },
@@ -108,5 +113,25 @@ describe('Claude / ChatGPT — đường gọi theo chế độ', () => {
     await callAIStream('x', settings({ selectedProvider: 'openai' }), chunk => chunks.push(chunk));
     expect(chunks).toEqual(['từ ví web']);
     expect(m.callAiRelay).toHaveBeenCalledWith(expect.objectContaining({ provider: 'openai' }));
+  });
+});
+
+describe('Gemini — nhiều khoá riêng trong Cài đặt', () => {
+  const quota = () => new Error('429 RESOURCE_EXHAUSTED: quota exceeded');
+
+  it('khoá đầu hết hạn mức thì dùng khoá thứ hai, KHÔNG đốt ví; hết cả hai mới sang ví (chế độ "cả hai")', async () => {
+    on('both');
+    const own = settings({ geminiApiKey: 'AIza-first', geminiApiKeys: ['AIza-first', 'AIza-second'] });
+    m.geminiRaw.mockImplementation(async (_prompt: string, key: string) => {
+      if (key === 'AIza-first') throw quota();
+      return { text: `từ ${key}`, usage: undefined, truncated: false };
+    });
+    expect(await callAI('x', own)).toBe('từ AIza-second');
+    expect(m.callAiRelay).not.toHaveBeenCalled();
+
+    m.geminiRaw.mockRejectedValue(quota());
+    const both = settings({ geminiApiKey: 'AIza-three', geminiApiKeys: ['AIza-three', 'AIza-four'] });
+    expect(await callAI('x', both)).toBe('từ ví web');
+    expect(m.callAiRelay).toHaveBeenCalledTimes(1);
   });
 });

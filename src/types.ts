@@ -268,6 +268,8 @@ export interface AppData {
     theme: 'light' | 'dark';
     autoSave: boolean;
     geminiApiKey: string;
+    /** Nhiều khoá Gemini (mỗi tài khoản Google một khoá) để gom hạn mức miễn phí; `geminiApiKey` luôn là khoá đầu tiên. Chỉ lưu trong trình duyệt. */
+    geminiApiKeys?: string[];
     claudeApiKey: string;
     openaiApiKey: string;
     selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway';

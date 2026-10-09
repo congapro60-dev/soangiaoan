@@ -27,6 +27,8 @@ import type { ApiProvider } from '../../config/apiLimits';
 import { ProviderCompareTable, ProviderGuideCard } from '../features/settings/ProviderGuide';
 import { useAiModeSnapshot } from '../../lib/ai/aiModeStore';
 import { glmWalletNotice, vendorWalletHint } from '../../lib/ai/aiModeView';
+import { GeminiKeysField } from '../features/settings/GeminiKeysField';
+import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -135,7 +137,7 @@ export const SettingsModal = ({
 
   const handleApiKeyChange = (provider: Provider, value: string) => {
     if (provider === 'gemini') {
-      setData(prev => ({ ...prev, settings: { ...prev.settings, geminiApiKey: value } }));
+      setData(prev => ({ ...prev, settings: { ...prev.settings, ...editingKeysPatch([value, ...keyRowsOf(prev.settings).slice(1)]) } }));
     } else if (provider === 'claude') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, claudeApiKey: value } }));
     } else if (provider === 'grok') {
@@ -313,16 +315,23 @@ export const SettingsModal = ({
                       </div>
                     ) : (
                       <>
-                        <div className="relative">
-                          <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="password"
-                            value={activeApiKey}
-                            onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
-                            placeholder={`Nhập ${providerStyle.label} API Key...`}
-                            className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        {activeTab === 'gemini' ? (
+                          <GeminiKeysField
+                            rows={keyRowsOf(data.settings)}
+                            onChange={rows => setData(prev => ({ ...prev, settings: { ...prev.settings, ...editingKeysPatch(rows) } }))}
                           />
-                        </div>
+                        ) : (
+                          <div className="relative">
+                            <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="password"
+                              value={activeApiKey}
+                              onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
+                              placeholder={`Nhập ${providerStyle.label} API Key...`}
+                              className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
+                            />
+                          </div>
+                        )}
                         <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
                         {walletHint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-4 text-emerald-700">{walletHint}</p>}
                       </>
