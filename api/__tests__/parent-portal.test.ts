@@ -72,6 +72,7 @@ const fakeDb = () => ({
     txChain = run.catch(() => undefined);
     return run;
   },
+  getAll: async (...refs: Array<Record<string, any>>) => Promise.all(refs.map(ref => ref.get())),
   batch: () => {
     const ops: Array<() => Promise<void>> = [];
     return {
@@ -161,6 +162,18 @@ describe('công bố + phụ huynh xem', () => {
     expect(res.payload.reports).toHaveLength(1);
     expect(res.payload.reports[0].input.studentName).toBe('An');
     expect(res.payload.reports[0].title).toContain('tháng 9/2026');
+  });
+
+  it('bản chỉnh tay của giáo viên áp lên báo cáo đã công bố mỗi lần phụ huynh mở; bản hỏng thì dùng bản gốc', async () => {
+    const pins = await setup();
+    const docs = h.store['classes/lop-1/parentReports'];
+    const idA = Object.keys(docs).find(id => docs[id].studentId === 'a')!;
+    docs[idA].overridesJson = JSON.stringify({ studentName: 'An (đã sửa)', teacherComment: 'Thầy nhận xét' });
+    const edited = (await parentCall({ studentId: 'a', pin: pins.a })).payload.reports[0].input;
+    expect(edited.studentName).toBe('An (đã sửa)');
+    expect(edited.teacherComment).toBe('Thầy nhận xét');
+    docs[idA].overridesJson = '{hỏng';
+    expect((await parentCall({ studentId: 'a', pin: pins.a })).payload.reports[0].input.studentName).toBe('An');
   });
 
   it('PIN học sinh hoặc PIN của em khác không vào được; sai bao nhiêu lần cũng KHÔNG bị khoá', async () => {

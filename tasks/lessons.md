@@ -460,3 +460,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Hộp "Sửa điểm" mới gửi lại cả bảng câu; dữ liệu nó nhận từ bản chiếu GV vốn ẩn `expectedAnswer`/`explanation` khi chưa duyệt (chép từ luật bản HS) → bấm Lưu là xoá đáp án thật. Chỉ lộ ra khi QA trên dữ liệu thật, test đơn vị không bắt được vì test dựng dữ liệu đầy đủ.
 - Luật: trước khi cho client GỬI LẠI một object để lưu, đọc bản chiếu (projection) mà client nhận — trường nào bị lọc/ẩn thì máy chủ phải giữ giá trị cũ khi nhận rỗng. Và QA đọc giá trị thật trong ô (không chỉ chụp màn hình) trước khi bấm Lưu.
 
+
+## 2026-10-09 — QA giao diện bằng CSS của bản build
+- Harness QA (esbuild + Playwright) dùng `dist/assets/index-*.css` của `npm run build`: **phải build lại sau mỗi lần thêm class Tailwind mới**, nếu không class mới "không có tác dụng" và ta tưởng nhầm là lỗi bố cục (ca `!w-20`).
+- Ô nhập `w-full` dùng chung thì ô số nhỏ cần lớp cơ sở KHÔNG có `w-full` (tách `FIELD` và `INPUT`), đừng chống bằng `!important`.
+- Chỗ nào cho thầy cô sửa dữ liệu tự động: lưu **chỉ phần đã chỉnh** (overrides) rồi áp lên dữ liệu gốc; nơi lưu cũ không gửi trường mới thì phải GIỮ bản đã lưu, không ghi đè bằng rỗng.

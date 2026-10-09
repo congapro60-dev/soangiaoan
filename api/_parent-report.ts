@@ -10,6 +10,8 @@ import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import { sanitizeReportOverrides, type ReportOverrides } from '../src/lib/classroom/reportOverrides.js';
+import { PARENT_REPORTS_SUB, parentReportDocId } from '../src/lib/classroom/parentAccess.js';
 import { asProgram, stageForPeriod } from '../src/lib/classroom/reportStage.js';
 import {
   aggregateRequirementLines, applyRequirementNotes, mapRequirementQuestions, sanitizeRequirementLines, yccdOptionsForPrompt,
@@ -39,25 +41,28 @@ const callWithinTime = async (call: () => Promise<string>, timeoutMs = AI_TIMEOU
   }
 };
 
+/** Báo cáo "Tổng hợp từ đầu năm" không có kì cụ thể: dùng khoá giả để vẫn lưu được bản chỉnh (loại này không công bố lên cổng). */
+export const ALL_PERIOD_KIND = 'all';
+
 interface NoteKey {
   studentId: string;
-  kind: ReportKind;
+  kind: ReportKind | typeof ALL_PERIOD_KIND;
   from: string;
   to: string;
 }
 
 const readKey = (body: Body): NoteKey | { error: string } => {
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
-  const kind = String(body.kind || '') as ReportKind;
+  const kind = String(body.kind || '') as ReportKind | typeof ALL_PERIOD_KIND;
   const from = String(body.from || '');
   const to = String(body.to || '');
   if (!studentId || studentId.includes('/')) return { error: 'Thiếu học sinh.' };
-  if (!REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
+  if (kind !== ALL_PERIOD_KIND && !REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
   if (!DAY_RE.test(from) || !DAY_RE.test(to) || from > to) return { error: 'Khoảng thời gian không hợp lệ.' };
   return { studentId, kind, from, to };
 };
 
-const noteDocId = (classId: string, key: NoteKey): string => `${classId}_${key.studentId}_${key.kind}_${key.from}_${key.to}`;
+export const noteDocId = (classId: string, key: NoteKey): string => `${classId}_${key.studentId}_${key.kind}_${key.from}_${key.to}`;
 
 export const buildParentCommentPrompt = (factsJson: string): string => [
   'Bạn là giáo viên môn Toán THPT ở Việt Nam, viết NHẬN XÉT gửi phụ huynh trong báo cáo học tập của một học sinh.',
@@ -165,6 +170,10 @@ const cleanComment = (value: unknown): string => (
   typeof value === 'string' ? value.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS) : ''
 );
 
+/** Bản chỉnh đi kèm báo cáo đã công bố: chỉnh tay + nhận xét + dòng yêu cầu cần đạt (cả khi rỗng, để xoá được phía cổng). */
+export const publishedOverridesJson = (note: { text: string; requirements: ParentRequirementLine[]; overrides: ReportOverrides }): string =>
+  JSON.stringify({ ...note.overrides, teacherComment: note.text, requirements: note.requirements });
+
 const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
@@ -175,6 +184,7 @@ const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<v
   res.status(200).json({
     text: typeof data.text === 'string' ? data.text : '',
     requirements: sanitizeRequirementLines(context.classData.grade, data.requirements),
+    overrides: sanitizeReportOverrides(data.overrides, context.classData.grade),
     updatedAt: data.updatedAt ?? null,
   });
 };
@@ -186,11 +196,19 @@ const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, MAX_NOTE_CHARS) : '';
   const requirements = sanitizeRequirementLines(context.classData.grade, body.requirements);
+  // Nơi lưu nhận xét mà không gửi `overrides` (vd. soạn hàng loạt) thì giữ nguyên chỗ thầy cô đã chỉnh tay, không xoá.
+  const noteRef = db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key));
+  const overrides = sanitizeReportOverrides(body.overrides === undefined ? (await noteRef.get()).data()?.overrides : body.overrides, context.classData.grade);
   const updatedAt = new Date().toISOString();
-  await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).set({
-    classId: context.classId, ...key, text, requirements, updatedAt, updatedBy: context.uid,
+  await noteRef.set({
+    classId: context.classId, ...key, text, requirements, overrides, updatedAt, updatedBy: context.uid,
   });
-  res.status(200).json({ text, requirements, updatedAt });
+  // Báo cáo kì này đã công bố cho phụ huynh rồi thì cập nhật luôn: phụ huynh mở lần sau là thấy bản đã sửa, khỏi công bố lại.
+  if (key.kind !== ALL_PERIOD_KIND) {
+    const published = context.classRef.collection(PARENT_REPORTS_SUB).doc(parentReportDocId(key.studentId, key.kind, key.from, key.to));
+    if ((await published.get()).exists) await published.update({ overridesJson: publishedOverridesJson({ text, requirements, overrides }), overridesUpdatedAt: updatedAt });
+  }
+  res.status(200).json({ text, requirements, overrides, updatedAt });
 };
 
 const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {

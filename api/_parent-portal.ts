@@ -14,6 +14,8 @@ import { createPin, hashPin } from './_classroom-core.js';
 import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
 import { handleParentActivityAction, recordParentActivity } from './_parent-activity.js';
 import { handleParentCustomReport } from './_parent-self-report.js';
+import { noteDocId, PARENT_REPORT_NOTES_COL } from './_parent-report.js';
+import { applyReportOverrides, sanitizeReportOverrides } from '../src/lib/classroom/reportOverrides.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
@@ -96,11 +98,18 @@ const handlePublishParentReports = async (db: Db, body: Body, res: VercelRespons
   if (reports.length === 0 || reports.length > MAX_PER_CALL) return void res.status(400).json({ error: `Mỗi lượt công bố 1–${MAX_PER_CALL} báo cáo.` });
 
   const valid = new Set((await studentRows(context.classRef)).map(s => s.studentId));
+  // Bản chỉnh tay đã lưu của từng em đi kèm báo cáo công bố — sửa sau này cập nhật thẳng vào đây (xem handleSaveNote).
+  const grade = context.classData.grade;
+  const noteRefs = reports.map(item => {
+    const id = typeof (item as { studentId?: unknown })?.studentId === 'string' ? (item as { studentId: string }).studentId : '';
+    return db.collection(PARENT_REPORT_NOTES_COL).doc(id && !id.includes('/') ? noteDocId(context.classId, { studentId: id, ...period } as never) : '_none_');
+  });
+  const noteSnaps = noteRefs.length > 0 ? await db.getAll(...noteRefs) : [];
   const now = new Date().toISOString();
   const batch = db.batch();
   let saved = 0;
   const skipped: string[] = [];
-  for (const item of reports) {
+  for (const [index, item] of reports.entries()) {
     const entry = (item && typeof item === 'object' ? item : {}) as { studentId?: unknown; input?: unknown };
     const studentId = typeof entry.studentId === 'string' ? entry.studentId : '';
     const input = entry.input as { period?: { title?: unknown; range?: unknown } } | undefined;
@@ -111,6 +120,8 @@ const handlePublishParentReports = async (db: Db, body: Body, res: VercelRespons
       title: String(input?.period?.title || '').slice(0, 200),
       range: String(input?.period?.range || '').slice(0, 100),
       inputJson: json,
+      // Nhận xét và dòng yêu cầu cần đạt đã nằm trong `input` (máy khách lọc theo học kì); ở đây chỉ kèm phần chỉnh tay.
+      ...(noteSnaps[index]?.exists ? { overridesJson: JSON.stringify(sanitizeReportOverrides(noteSnaps[index].data()?.overrides, grade)) } : {}),
       publishedAt: now,
       publishedBy: context.uid,
     });
@@ -188,6 +199,10 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
       const data = d.data();
       let input: unknown = null;
       try { input = JSON.parse(String(data.inputJson || 'null')); } catch { /* bản hỏng → bỏ */ }
+      // Áp bản chỉnh tay của giáo viên (nếu có) mỗi lần mở: thầy cô sửa là phụ huynh thấy ngay, không cần công bố lại.
+      if (input && typeof data.overridesJson === 'string') {
+        try { input = applyReportOverrides(input as never, JSON.parse(data.overridesJson)); } catch { /* bản chỉnh hỏng → dùng bản gốc */ }
+      }
       return { id: d.id, kind: String(data.kind), from: String(data.from), to: String(data.to), title: String(data.title || ''), range: String(data.range || ''), publishedAt: String(data.publishedAt || ''), input };
     })
     .filter(item => item.input)

@@ -11,6 +11,7 @@ import type { StudentExamScores } from './examScores';
 import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 import type { ParentRequirementLine } from './parentRequirements';
+import type { ReportOverrides } from './reportOverrides';
 import type { ParentActivityEvent, ParentActivityRow, PublishedParentGroup } from './parentAccess';
 
 export interface CreateSupportActivityInput {
@@ -308,6 +309,8 @@ export interface ParentReportNote {
   text: string;
   /** Dòng "kết quả theo yêu cầu cần đạt" (rỗng = báo cáo dùng danh sách chủ đề cũ). */
   requirements: ParentRequirementLine[];
+  /** Chỗ thầy cô chỉnh tay trên báo cáo (chữ, số…) — xem `reportOverrides`. */
+  overrides?: ReportOverrides;
 }
 
 export const loadParentReportNote = (key: ParentReportNoteKey) =>

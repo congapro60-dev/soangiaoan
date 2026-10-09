@@ -17,7 +17,12 @@ const h = vi.hoisted(() => ({
 vi.mock('../_classroom-teacher.js', () => ({
   teacherContext: async (_db: unknown, body: Record<string, unknown>, res: { status: (c: number) => { json: (b: unknown) => void } }) => {
     if (!h.allowed) { res.status(403).json({ error: 'Bạn không thuộc lớp này.' }); return null; }
-    return { uid: 'gv-dong', classId: String(body.classId), classData: { teacherId: 'gv-chu', grade: h.grade } };
+    const base = `classes/${String(body.classId)}`;
+    const classRef = { collection: (sub: string) => ({ doc: (id: string) => ({
+      get: async () => ({ exists: Boolean(h.store[`${base}/${sub}/${id}`]) }),
+      update: async (data: Record<string, unknown>) => { h.store[`${base}/${sub}/${id}`] = { ...h.store[`${base}/${sub}/${id}`], ...data }; },
+    }) }) };
+    return { uid: 'gv-dong', classId: String(body.classId), classRef, classData: { teacherId: 'gv-chu', grade: h.grade } };
   },
 }));
 vi.mock('../_ai-usage.js', () => ({ setAiKeyOwner: (uid: string | null) => { h.owner = uid; } }));
@@ -168,6 +173,24 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     expect((await call({ action: 'saveParentReportNote', ...key, text: '  Nhận xét đã sửa  ' })).body.text).toBe('Nhận xét đã sửa');
     expect((await call({ action: 'parentReportNote', ...key })).body.text).toBe('Nhận xét đã sửa');
     expect((await call({ action: 'parentReportNote', ...key, to: '2026-11-15' })).body.text).toBe('');
+  });
+
+  it('bản chỉnh tay: lưu + đọc lại; báo cáo đã công bố cập nhật ngay, chưa công bố thì không đụng tới; "tổng hợp từ đầu năm" lưu được', async () => {
+    const publishedId = 'classes/lop/parentReports/hs1__gk1__2026-09-01__2026-10-31';
+    h.store[publishedId] = { inputJson: '{}', studentId: 'hs1' };
+    const saved = await call({ action: 'saveParentReportNote', ...key, text: 'Nhận xét', overrides: { overallSummary: ' Thầy viết ', strengths: ['A'], evil: 1, officialCount: 5 } });
+    expect(saved.body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    expect((await call({ action: 'parentReportNote', ...key })).body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    expect(JSON.parse(String(h.store[publishedId].overridesJson))).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5, teacherComment: 'Nhận xét', requirements: [] });
+    // Chưa công bố kì khác: không tạo tài liệu công bố.
+    await call({ action: 'saveParentReportNote', ...key, to: '2026-11-15', text: 'x', overrides: { officialCount: 1 } });
+    expect(h.store['classes/lop/parentReports/hs1__gk1__2026-09-01__2026-11-15']).toBeUndefined();
+    // Lưu lại mà không gửi `overrides` (soạn hàng loạt) thì giữ nguyên chỗ đã chỉnh.
+    await call({ action: 'saveParentReportNote', ...key, text: 'Nhận xét 2' });
+    expect((await call({ action: 'parentReportNote', ...key })).body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    const all = { studentId: 'hs1', kind: 'all', from: '2026-01-01', to: '2026-12-31' };
+    await call({ action: 'saveParentReportNote', ...all, text: '', overrides: { missingCount: 0 } });
+    expect((await call({ action: 'parentReportNote', ...all })).body.overrides).toEqual({ missingCount: 0 });
   });
 
   it('từ chối dữ liệu sai hoặc người ngoài lớp; action khác thì bỏ qua', async () => {

@@ -21,6 +21,8 @@ import { parentActionsForRequirements, requirementsInStage, type ParentRequireme
 import { stageForPeriod } from '../../../lib/classroom/reportStage';
 import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
 import { RequirementLinesEditor } from './RequirementLinesEditor';
+import { ReportOverridesEditor } from './ReportOverridesEditor';
+import { applyReportOverrides, overriddenKeys, type ReportOverrides } from '../../../lib/classroom/reportOverrides';
 
 interface Props {
   classId: string;
@@ -89,6 +91,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   // Kết quả theo yêu cầu cần đạt (AI ghép, giáo viên soát) — lưu cùng nhận xét, theo đúng kì.
   const [yccd, setYccd] = useState<ParentRequirementLine[]>([]);
   const [yccdDaLuu, setYccdDaLuu] = useState<ParentRequirementLine[]>([]);
+  // Chỗ thầy cô chỉnh tay trên báo cáo (chữ, số…); cổng phụ huynh áp cùng bản này nên sửa xong là phụ huynh thấy ngay.
+  const [chinhTay, setChinhTay] = useState<ReportOverrides>({});
+  const [chinhTayDaLuu, setChinhTayDaLuu] = useState<ReportOverrides>({});
   const [dangSoan, setDangSoan] = useState(false);
   const [dangLuuNX, setDangLuuNX] = useState(false);
   const [loiNX, setLoiNX] = useState('');
@@ -124,23 +129,30 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const baoCaoPH = useMemo(() => buildPeriodParentReport({
     studentId, studentName, className, studentCode, classGrade, program: effectiveClassProgram(classId, className), assignments, submissions, profile, scoreView: soDiem,
   }, forAdult ? kyHopLe : null), [classId, studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
-  const parentReport = baoCaoPH.report;
-  const parentCompetency = baoCaoPH.printInput.competency ?? null;
-  const hs1HienThi = baoCaoPH.printInput.hs1 ?? [];
+  // Mọi nơi bên dưới (màn hình, PDF) đọc bản đã áp chỉnh tay; `baoCaoPH.printInput` là bản tự động để so và "về bản tự động".
+  const inputHienThi = useMemo(() => applyReportOverrides(baoCaoPH.printInput, chinhTay), [baoCaoPH, chinhTay]);
+  const parentReport = inputHienThi.report;
+  const parentCompetency = inputHienThi.competency ?? null;
+  const hs1HienThi = inputHienThi.hs1 ?? [];
+  const examsHienThi = inputHienThi.exams ?? { moet: [], tds: [] };
   const khoaNhanXet = kyHopLe ? { classId, studentId, kind: kyHopLe.kind, from: kyHopLe.from, to: kyHopLe.to } : null;
-  const khoaNhanXetStr = khoaNhanXet ? JSON.stringify(khoaNhanXet) : '';
+  // Báo cáo "tổng hợp từ đầu năm" không có kì: dùng khoá giả để vẫn lưu được chỗ chỉnh tay (loại này không công bố lên cổng).
+  const khoaChinh = khoaNhanXet ?? { classId, studentId, kind: 'all', from: '2000-01-01', to: '2099-12-31' };
+  const khoaNhanXetStr = JSON.stringify(khoaChinh);
 
   // Đổi kì → nạp nhận xét đã lưu của đúng kì đó.
   useEffect(() => {
     let huy = false;
     setLoiNX('');
-    const datLai = (text: string, lines: ParentRequirementLine[]) => {
-      setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines);
+    const datLai = (text: string, lines: ParentRequirementLine[], chinh: ReportOverrides) => {
+      setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines); setChinhTay(chinh); setChinhTayDaLuu(chinh);
     };
-    if (!khoaNhanXetStr || !forAdult) { datLai('', []); return; }
-    loadParentReportNote(JSON.parse(khoaNhanXetStr))
-      .then(r => { if (!huy) datLai(r.text, requirementsInStage(r.requirements ?? [], classGrade, stageForPeriod(JSON.parse(khoaNhanXetStr), effectiveClassProgram(classId, className)))); })
-      .catch(() => { if (!huy) datLai('', []); });
+    if (!forAdult) { datLai('', [], {}); return; }
+    const khoa = JSON.parse(khoaNhanXetStr) as typeof khoaChinh;
+    const coKy = khoa.kind !== 'all';
+    loadParentReportNote(khoa)
+      .then(r => { if (!huy) datLai(coKy ? r.text : '', coKy ? requirementsInStage(r.requirements ?? [], classGrade, stageForPeriod(khoa, effectiveClassProgram(classId, className))) : [], r.overrides ?? {}); })
+      .catch(() => { if (!huy) datLai('', [], {}); });
     return () => { huy = true; };
   }, [khoaNhanXetStr, forAdult]);
 
@@ -163,22 +175,23 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     }
   };
   const luuNhanXet = async () => {
-    if (!khoaNhanXet) return;
     setDangLuuNX(true);
     setLoiNX('');
     try {
-      const r = await saveParentReportNote(khoaNhanXet, { text: nhanXet, requirements: yccd });
+      const r = await saveParentReportNote(khoaChinh, { text: nhanXet, requirements: yccd, overrides: chinhTay });
       setNhanXet(r.text);
       setNhanXetDaLuu(r.text);
       setYccd(r.requirements);
       setYccdDaLuu(r.requirements);
+      setChinhTay(r.overrides ?? {});
+      setChinhTayDaLuu(r.overrides ?? {});
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'Chưa lưu được nhận xét.');
     } finally {
       setDangLuuNX(false);
     }
   };
-  const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu);
+  const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu) || JSON.stringify(chinhTay) !== JSON.stringify(chinhTayDaLuu);
   // Cùng một bộ số cho bản giáo viên và bản phụ huynh — hai màn hình không được lệch nhau.
   const chiSoChung = [
     { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
@@ -222,7 +235,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null, branding: brandingForReport(effectiveBranding()) });
+      await exportParentReportToPdf({ ...inputHienThi, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null, branding: brandingForReport(effectiveBranding()) });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -242,21 +255,21 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     {forAdult && (
       <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
         <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
-        {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || hs1HienThi.length > 0) ? (
+        {(examsHienThi.moet.length > 0 || examsHienThi.tds.length > 0 || hs1HienThi.length > 0) ? (
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {soDiem.exams.moet.length > 0 && (
+            {examsHienThi.moet.length > 0 && (
               <div>
                 <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Đánh giá định kì (thang 10)</p>
                 <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                  {soDiem.exams.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                  {examsHienThi.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
                 </ul>
               </div>
             )}
-            {soDiem.exams.tds.length > 0 && (
+            {examsHienThi.tds.length > 0 && (
               <div>
                 <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm theo quý (TDS)</p>
                 <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                  {soDiem.exams.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
+                  {examsHienThi.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
                 </ul>
               </div>
             )}
@@ -375,6 +388,21 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                 )}
               </div>
             )}
+            <details className="rounded-xl border border-violet-100 bg-white p-3" open={overriddenKeys(chinhTay).size > 0 || undefined}>
+              <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm font-black text-violet-950">
+                <PenLine className="h-4 w-4" /> Chỉnh sửa nội dung báo cáo
+                {overriddenKeys(chinhTay).size > 0 && <span className="whitespace-nowrap rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-black text-violet-800">{overriddenKeys(chinhTay).size} chỗ đã chỉnh tay</span>}
+              </summary>
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : chuaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang sửa.' : 'Đã lưu. Báo cáo đã gửi phụ huynh đã cập nhật theo.'}</p>
+                  <button type="button" onClick={() => void luuNhanXet()} disabled={dangLuuNX || !chuaLuu} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">
+                    {dangLuuNX ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Lưu
+                  </button>
+                </div>
+                <ReportOverridesEditor base={baoCaoPH.printInput} value={chinhTay} onChange={setChinhTay} />
+              </div>
+            </details>
           </div>
         )}
         <KpiGrid items={chiSoChung} />
