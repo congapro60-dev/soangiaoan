@@ -60,6 +60,12 @@ const parentScore = (score: number | null, maxScore: number | null): string => (
   score === null || maxScore === null ? '—' : `${score}/${maxScore}`
 );
 
+const KpiGrid = ({ items }: { items: { label: string; value: string }[] }) => (
+  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {items.map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
+  </div>
+);
+
 /**
  * Báo cáo học tập của một học sinh.
  *
@@ -173,7 +179,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     }
   };
   const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu);
-  const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
+  // Cùng một bộ số cho bản giáo viên và bản phụ huynh — hai màn hình không được lệch nhau.
+  const chiSoChung = [
+    { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
+    { label: 'Điểm trung bình', value: parentReport.officialAveragePercent === null ? '—' : `${parentReport.officialAveragePercent.toFixed(1)}%` },
+    { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
+    { label: 'Chưa nộp', value: String(parentReport.missingCount) },
+  ];
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
   const competencyGrade = asCompetencyGrade(classGrade);
@@ -279,14 +291,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             )}
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
-            { label: 'Điểm trung bình', value: parentReport.officialAveragePercent === null ? '—' : `${parentReport.officialAveragePercent.toFixed(1)}%` },
-            { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
-            { label: 'Chưa nộp', value: String(parentReport.missingCount) },
-          ].map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
-        </div>
+        <KpiGrid items={chiSoChung} />
 
         <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
           <p className="mb-1 flex items-center gap-2 text-sm font-black text-indigo-950"><Lightbulb className="h-4 w-4" /> Nhận xét chung về con</p>
@@ -399,18 +404,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Bài hiện hành', value: String(model.currentSubmissions.length) },
-          { label: 'Điểm trung bình', value: diemTB },
-          { label: 'Đã duyệt', value: `${model.approvedSubmissions.length}/${model.gradedSubmissions.length}` },
-        ].map(item => (
-          <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-xs font-bold text-slate-500">{item.label}</p>
-            <p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p>
-          </div>
-        ))}
-      </div>
+      <KpiGrid items={chiSoChung} />
+      {kyHopLe && <p className="text-xs font-semibold text-slate-500">Số liệu trên tính theo {rangeLabel(kyHopLe)} — giống bản phụ huynh.</p>}
 
       {forAdult && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3"><p className="text-sm font-black text-slate-700">Bản giáo viên: có thể xem đầy đủ chi tiết để rà soát.</p><button type="button" onClick={() => setViewMode('parent')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-50">Xem trước bản phụ huynh</button></div>}
 
