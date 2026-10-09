@@ -22,6 +22,7 @@ import type {
   SubmissionDoc,
 } from '../src/lib/classroom/types.js';
 import { buildExamContentSnapshot } from '../src/lib/classroom/activitySnapshot.js';
+import { sanitizeClarify } from '../src/lib/classroom/clarification.js';
 import { sanitizeExamVariants } from '../src/lib/classroom/examVariants.js';
 import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.js';
 import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
@@ -154,6 +155,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
             needsTeacherReview: Boolean(item.needsTeacherReview),
             ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
+            ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
           }))
         : undefined,
       weakTopics: Array.isArray(rawGrade.weakTopics) ? rawGrade.weakTopics.map(String) : [],

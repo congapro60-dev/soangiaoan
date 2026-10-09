@@ -53,3 +53,18 @@ describe('buildManualGradeUpdate', () => {
     expect(update['grade.weaknesses']).toEqual(['nhầm dấu']);
   });
 });
+
+describe('buildManualGradeUpdate · câu máy đang hỏi lại học sinh', () => {
+  it('thầy cô chốt bảng điểm thì câu đang chờ em được đóng lại', () => {
+    const q = (n: string, state: 'open' | 'answered') => ({
+      questionNumber: n, status: 'unreadable' as const, score: 0, maxScore: 1, studentAnswer: '?', expectedAnswer: 'B',
+      errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: true,
+      clarify: { kind: 'mcq' as const, state, reading: '?' },
+    });
+    const update = buildManualGradeUpdate(submission({
+      score: 0, maxScore: 2, feedback: '', strengths: [], weaknesses: [], teacherApproved: false, gradedAt: '2026-10-09T10:00:00.000Z', questionResults: [q('Câu 1', 'open'), q('Câu 2', 'answered')],
+    }), { score: 1, maxScore: 2, feedback: '', weakTopics: [] }, '2026-10-09T12:00:00.000Z');
+    const rows = update['grade.questionResults'] as Array<{ clarify: { state: string } }>;
+    expect(rows.map(r => r.clarify.state)).toEqual(['done', 'answered']);
+  });
+});

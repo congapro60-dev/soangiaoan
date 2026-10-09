@@ -31,8 +31,9 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { countKeyQuestions } from '../../../lib/classroom/examVariants';
-import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
+import { getClassDoc, setClassAutoGrade, setClassClarify } from '../../../lib/classroom/classroomService';
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
+import { clarifyEnabledFor } from '../../../lib/classroom/clarification';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 import { CompetencyTagEditor } from './CompetencyTagEditor';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
@@ -568,13 +569,28 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [tienDoTatCa, setTienDoTatCa] = useState('');
   // Công tắc lớp: bài quá 60 phút chưa chấm/duyệt thì máy tự chấm + tự duyệt (null = chưa đọc được).
   const [tuChamSau60, setTuChamSau60] = useState<boolean | null>(null);
+  // Công tắc lớp: máy chấm xong bài học sinh tự nộp mà câu nào chưa chắc thì hỏi lại chính em (null = chưa đọc được).
+  const [hoiLaiHocSinh, setHoiLaiHocSinh] = useState<boolean | null>(null);
   useEffect(() => {
     let huy = false;
     getClassDoc(classId)
-      .then(lop => { if (!huy) setTuChamSau60(lop ? autoGradeEnabledFor(lop as unknown as Record<string, unknown>) : null); })
-      .catch(() => { if (!huy) setTuChamSau60(null); });
+      .then(lop => {
+        if (huy) return;
+        setTuChamSau60(lop ? autoGradeEnabledFor(lop as unknown as Record<string, unknown>) : null);
+        setHoiLaiHocSinh(lop ? clarifyEnabledFor(lop as unknown as Record<string, unknown>) : null);
+      })
+      .catch(() => { if (!huy) { setTuChamSau60(null); setHoiLaiHocSinh(null); } });
     return () => { huy = true; };
   }, [classId]);
+  const doiHoiLaiHocSinh = async (bat: boolean) => {
+    try {
+      await setClassClarify(classId, bat);
+      setHoiLaiHocSinh(bat);
+      showToast(bat ? 'Đã bật: máy chấm xong bài em tự nộp mà câu nào chưa chắc sẽ hỏi lại em.' : 'Đã tắt: máy không hỏi lại học sinh nữa, câu chưa chắc giữ lại cho thầy cô xem.', 'success');
+    } catch {
+      showToast('Chỉ giáo viên chủ lớp đổi được cài đặt này.', 'error');
+    }
+  };
   const doiTuChamSau60 = async (bat: boolean) => {
     try {
       await setClassAutoGrade(classId, bat);
@@ -1521,6 +1537,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
           <input type="checkbox" checked={tuChamSau60} onChange={event => void doiTuChamSau60(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
           <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài máy đọc chưa chắc vẫn giữ lại cho thầy cô xem).</span>
+        </label>
+      )}
+
+      {hoiLaiHocSinh !== null && (
+        <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
+          <input type="checkbox" checked={hoiLaiHocSinh} onChange={event => void doiHoiLaiHocSinh(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
+          <span><b className="text-slate-800">Máy hỏi lại học sinh câu chưa chắc</b> — chấm xong bài em nộp, câu trắc nghiệm / đúng-sai / trả lời ngắn mà máy đọc chưa chắc thì em tự chọn hoặc gõ lại đáp án (máy chấm lại tại chỗ, không gọi AI thêm). Điểm hiện sau khi em xác nhận hết hoặc bấm "để thầy cô xem".</span>
         </label>
       )}
 

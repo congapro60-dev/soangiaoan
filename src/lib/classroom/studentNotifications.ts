@@ -62,6 +62,19 @@ const feedFromSubmission = (
   const gradedAt = asTime(submission.grade?.gradedAt);
   const updatedAt = asTime(submission.updatedAt) || asTime(submission.createdAt);
 
+  if (submission.status === 'graded' && submission.grade?.awaitingClarification) {
+    // Điểm tạm bị ẩn tới khi em xác nhận xong các câu máy hỏi lại — không báo "đã có kết quả" lúc chưa có điểm.
+    return {
+      id: `${submission.id}:clarify`,
+      kind: 'graded',
+      title: 'Máy cần em xác nhận vài câu',
+      body: `Bài "${ten}" còn vài câu máy đọc chưa chắc. Em mở trang chủ, trả lời ở khung màu vàng để có điểm nhé.`,
+      at: gradedAt || updatedAt,
+      assignmentId: submission.assignmentId || undefined,
+      needsAction: true,
+    };
+  }
+
   if (submission.status === 'graded' && submission.grade) {
     const diem = periodic ? '' : formatScore(submission.grade.score, submission.grade.maxScore);
     const daDuyet = submission.grade.teacherApproved === true;

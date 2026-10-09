@@ -105,6 +105,8 @@ import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 import { reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
+import { applyClarification, handleClarifyAction } from './_clarify.js';
+import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -566,12 +568,14 @@ const gradeOneSubmission = async (
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
     // Ném lỗi để nhánh catch giữ nguyên điểm cũ nếu có, hoặc để status='error' khi chưa từng có điểm.
-    if (isReadTooUncertain(reconciled.questionResults)) {
+    // Lớp bật "hỏi lại học sinh" thì KHÔNG chặn cả bài: từng câu chưa chắc sẽ được hỏi lại em (gõ đáp án / chụp lại câu đó).
+    const clarified = await applyClarification(db, previous, reconciled, isStudentActor);
+    if (clarified.asked === 0 && isReadTooUncertain(reconciled.questionResults)) {
       throw new Error(UNCERTAIN_READ_MESSAGE);
     }
     // Bài định kì: so tổng điểm với điểm giáo viên chấm tay — lệch nhiều thì không tự duyệt (xem needsTeacherCheck).
-    const examCheck = ctx.sheetLabel ? await sheetCheckFor(db, previous, reconciled, ctx.sheetLabel) : null;
-    const grade: SubmissionGrade = examCheck ? { ...reconciled, examCheck } : reconciled;
+    const examCheck = ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null;
+    const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
 
     const now = grade.gradedAt;
 
@@ -590,6 +594,10 @@ const gradeOneSubmission = async (
     );
     if (!committed.committed) return { success: false };
 
+    // Còn câu chờ em làm rõ → điểm còn tạm: chưa ghi vào hồ sơ học tập (sẽ ghi khi em xong, xem `_clarify.ts`).
+    if (isStudentActor && awaitsClarification(grade.questionResults)) {
+      return { success: true };
+    }
     // If student self-grade succeeded, sync evidence (auto-approval)
     if (isStudentActor) {
       try {
@@ -1968,6 +1976,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
+    if (await handleClarifyAction(db, body, res)) return;
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);

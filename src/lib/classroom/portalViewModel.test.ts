@@ -96,3 +96,13 @@ describe('getStudentAssignmentState', () => {
     expect(state.detail).toBe('Không đọc được ảnh');
   });
 });
+
+describe('bài còn chờ em xác nhận', () => {
+  it('không hiện "đã chấm" và không cho nộp bổ sung đè lên các câu đang xác nhận', () => {
+    const state = getStudentAssignmentState(assignment, submission({ status: 'graded', grade: {
+      score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, awaitingClarification: true, gradedAt: '2026-10-09T10:00:00.000Z',
+    } }));
+    expect(state).toMatchObject({ status: 'waiting', label: 'Cần em xác nhận' });
+    expect(state.canResubmit).toBeFalsy();
+  });
+});

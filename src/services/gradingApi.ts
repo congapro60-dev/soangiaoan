@@ -16,7 +16,7 @@ export interface GradeBatchResult {
 
 export type HomeworkGradingMode = 'quick' | 'thorough';
 
-const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult> => {
+const callApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi thử lại.');
 
@@ -27,8 +27,10 @@ const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult>
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
-  return data as GradeBatchResult;
+  return data as T;
 };
+
+const call = (payload: Record<string, unknown>): Promise<GradeBatchResult> => callApi<GradeBatchResult>(payload);
 
 /**
  * Chấm cả lớp. Máy chủ chỉ chấm vài bài mỗi lượt (trần thời gian chạy của Vercel), nên ở đây lặp
@@ -64,6 +66,20 @@ export const gradeAssignmentAll = async (
 /** Chấm một bài — mặc định để server chọn quick; teacher UI có thể yêu cầu thorough. */
 export const gradeOneSubmission = (submissionId: string, mode?: HomeworkGradingMode): Promise<GradeBatchResult> =>
   call({ action: 'gradeOne', submissionId, ...(mode ? { mode } : {}) });
+
+export interface ClarifyAnswersResult {
+  /** Số câu còn chờ em làm rõ sau lượt gửi này; null nếu bài không còn ở trạng thái chấm. */
+  pending: number | null;
+  rejected: Array<{ questionNumber: string; reason: string }>;
+}
+
+/** Học sinh gửi đáp án gõ tay cho các câu máy hỏi lại, hoặc chọn "để thầy cô xem" (skip). Mỗi lượt được lưu ngay. */
+export const submitClarifyAnswers = (
+  submissionId: string,
+  answers: ReadonlyArray<{ questionNumber: string; answer: string }>,
+  skip: readonly string[] = [],
+): Promise<ClarifyAnswersResult> =>
+  callApi<ClarifyAnswersResult>({ action: 'clarifyAnswers', submissionId, answers, skip });
 
 export interface PracticeQuestion {
   id: string;

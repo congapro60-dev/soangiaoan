@@ -192,6 +192,29 @@ export const rescoreQuestion = (
 };
 
 /**
+ * Học sinh gõ lại đáp án của chính mình cho câu máy đọc chưa chắc. Ghi đáp án vào "Em làm", chấm tất định
+ * theo đáp án, viết lại phần giải thích cho khớp. Không chấm được tất định (đáp án chuẩn không theo khuôn,
+ * hoặc đáp án gõ không khớp khuôn) thì GIỮ cờ cho thầy cô — không đoán điểm.
+ */
+export const applyStudentTypedAnswer = (q: QuestionResult, typed: string): QuestionResult => {
+  const result = scoreObjective(q.expectedAnswer, typed);
+  const base: QuestionResult = { ...q, studentAnswer: typed.trim(), confidence: 1 };
+  if (!result) return { ...base, needsTeacherReview: true };
+  const score = round2(q.maxScore * result.fraction);
+  const status = statusFor(result.fraction, typed);
+  return {
+    ...base,
+    score,
+    status,
+    errorType: status === 'correct' ? 'Không có' : status === 'not_attempted' ? 'Chưa trả lời' : 'Chọn chưa đúng đáp án',
+    explanation: `Em tự điền lại đáp án; máy đối chiếu: ${result.detail}.`,
+    correction: status === 'correct' ? '' : q.correction,
+    nextPractice: status === 'correct' ? '' : q.nextPractice,
+    needsTeacherReview: false,
+  };
+};
+
+/**
  * Điểm tổng sau khi bảng câu đổi. Bảng câu đủ thang (tổng điểm tối đa các câu = thang bài) thì
  * tổng = cộng các câu. AI có quy đổi thang (VD câu cộng lại 20, bài chấm trên 10) thì cộng phần
  * chênh theo đúng tỉ lệ quy đổi đó, không bẻ thang của cả bài.
