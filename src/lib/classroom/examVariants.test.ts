@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildDetectExamCodePrompt, buildExtractVariantKeysPrompt, codeFromFileName, countKeyQuestions, docxXmlToText, examMarkLabels, examScoreCheck,
+  buildDetectExamCodePrompt, buildExtractVariantKeysPrompt, codeFromFileName, countKeyQuestions, docxXmlToText, examMarkLabels, examScoreCheck, keyFromMaterial,
   parseDetectedExamCode, parseExtractedVariantKeys, pdfItemsToText, sanitizeExamVariants, splitVariantSources,
 } from './examVariants';
 
@@ -107,7 +107,10 @@ describe('tách các mã đề', () => {
   });
 
   it('không nhận ra mã nào, hoặc không có phần đáp án → báo rõ cho giáo viên', () => {
-    expect(splitVariantSources([{ name: 'de.docx', text: 'Câu 1. Không có mã.' }]).warnings[0]).toContain('Không nhận ra mã đề nào');
+    // Hai đề không mã: không biết đề nào là đề nào → báo, không đoán.
+    const plan = splitVariantSources([{ name: 'de-a.docx', text: 'Câu 1. Đề A.' }, { name: 'de-b.docx', text: 'Câu 1. Đề B.' }]);
+    expect(plan.variants).toEqual([]);
+    expect(plan.warnings[0]).toContain('Không nhận ra mã đề nào');
     expect(splitVariantSources([{ name: 'Mã đề 101.docx', text: 'Câu 1. Đề.' }]).warnings).toEqual(['Không thấy phần ĐÁP ÁN trong các file — dán đáp án vào từng mã trước khi giao.']);
   });
 });
@@ -182,6 +185,40 @@ describe('đọc PDF giữ xuống dòng', () => {
     const at = (str: string, y: number, hasEOL = false) => ({ str, transform: [1, 0, 0, 1, 50, y], hasEOL });
     expect(pdfItemsToText([at('Mã đề', 800), at(' 1201', 800.5), at('Câu 1. Cho', 780), at(' hàm số', 780, true), at('BẢNG ĐÁP ÁN', 700), { str: '' }]))
       .toBe('Mã đề 1201\nCâu 1. Cho hàm số\nBẢNG ĐÁP ÁN');
+  });
+});
+
+describe('một đề duy nhất, không có mã đề', () => {
+  it('một file đề không ghi mã → đề số 1, không cảnh báo; file đáp án đi vào tư liệu, không lẫn vào đề', () => {
+    const plan = splitVariantSources([
+      { name: 'Toan11_GHKI_ThiThu_De01_CAP_NHAT.pdf', text: 'THE DEWEY SCHOOLS\nĐỀ THI THỬ GIỮA HỌC KỲ I\nCâu 1. Đồ thị dưới đây…\nĐề thi thử GHKI Toán 11 - Đề 01 - Trang 1' },
+      { name: 'Đáp án Toán 11 GHKI Đề 01.docx', text: 'Phần I – Câu 1: C' },
+    ]);
+    expect(plan.variants.map(v => [v.code, v.files])).toEqual([['1', ['Toan11_GHKI_ThiThu_De01_CAP_NHAT.pdf']]]);
+    expect(plan.variants[0].sourceText).toContain('Câu 1. Đồ thị');
+    expect(plan.variants[0].sourceText).not.toContain('Phần I – Câu 1: C');
+    expect(plan.answerMaterial).toContain('Phần I – Câu 1: C');
+    expect(plan.answerMaterial).not.toContain('THE DEWEY');
+    expect(plan.warnings).toEqual([]);
+  });
+
+  it('có ít nhất một đề ghi mã thì đề không mã vẫn chỉ là tư liệu (không tự đặt mã)', () => {
+    const plan = splitVariantSources([{ name: 'Mã đề 101.docx', text: 'Câu 1. Đề 101.' }, { name: 'ghi-chu.docx', text: 'Câu 1. Không rõ mã.' }]);
+    expect(plan.variants.map(v => v.code)).toEqual(['101']);
+    expect(plan.answerMaterial).toContain('Phần không ghi mã đề (file "ghi-chu.docx")');
+  });
+});
+
+describe('đáp án soạn sẵn đúng khuôn', () => {
+  const line = (n: number) => `Phần I – Câu ${n}: A`;
+  it('dùng thẳng: bỏ phần mở đầu và nhãn nguồn, dòng nối của câu tự luận ghép vào câu đó', () => {
+    const material = ['--- Phần không ghi mã đề (file "k.docx") ---', 'ĐÁP ÁN – Đề 01', 'Thang điểm: …', line(1), line(2), line(3), line(4),
+      'Phần III – Bài 1 (0,5 điểm): Tập giá trị $[1; 5]$.', 'Vì $-1 \\le \\sin \\le 1$.'].join('\n');
+    expect(keyFromMaterial(material)).toBe([line(1), line(2), line(3), line(4), 'Phần III – Bài 1 (0,5 điểm): Tập giá trị $[1; 5]$.\nVì $-1 \\le \\sin \\le 1$.'].join('\n'));
+  });
+  it('bảng nhiều cột hoặc dưới 5 câu → null (để AI đọc)', () => {
+    expect(keyFromMaterial('Câu | 101 | 102\nPhần I – Câu 1 | A | B\nPhần I – Câu 2 | B | C')).toBeNull();
+    expect(keyFromMaterial([line(1), line(2)].join('\n'))).toBeNull();
   });
 });
 
