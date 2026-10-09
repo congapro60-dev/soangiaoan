@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  aggregateRequirementLines, applyRequirementNotes, buildLessonMap, groupRequirementLines, lessonPriorities, levelOf, parentActionsForRequirements,
+  aggregateRequirementLines, applyRequirementNotes, buildLessonMap, groupLessonsByChapter, groupLessonsByStrand, groupRequirementLines, lessonPriorities, levelOf, parentActionsForRequirements,
   sanitizeRequirementLines, type EvidenceSubmission, type ParentRequirementLine,
 } from './parentRequirements';
 import { yccdForGrade } from '../curriculum/yccdToan';
@@ -189,3 +189,36 @@ describe('bản đồ theo bài SGK', () => {
   });
 });
 
+describe('bản đồ theo chương, tập và mạch', () => {
+  const lessons = buildLessonMap([
+    line('T11.01', 'vung', 5, 90), line('T11.18', 'dang', 5, 60), line('T11.29', 'chua', 5, 30),
+    line('T11.68', 'vung', 5, 85), line('T11.124', 'vung', 5, 85), line('T11.57', 'dang', 5, 60),
+  ]);
+
+  it('mỗi bài biết chương, tập và mạch của nó', () => {
+    const byLesson = Object.fromEntries(lessons.map(lesson => [lesson.lesson, lesson.chapter]));
+    expect(byLesson['Bài 1']).toMatchObject({ tap: 1, code: 'I', strand: 'Đại số' });
+    expect(byLesson['Bài 5']).toMatchObject({ tap: 1, code: 'II', strand: 'Đại số' });
+    expect(byLesson['Bài 10']).toMatchObject({ tap: 1, code: 'IV', strand: 'Hình học' });
+    expect(byLesson['Bài 15']).toMatchObject({ tap: 2, code: 'V', strand: 'Giải tích' });
+    expect(byLesson['Bài 28']).toMatchObject({ tap: 2, code: 'VIII', strand: 'Xác suất' });
+    expect(byLesson['Bài 31–32']).toMatchObject({ tap: 2, code: 'IX', strand: 'Giải tích' });
+  });
+
+  it('"Chương V" lớp 10 là chương Thống kê; mọi bài trong Chương trình đều tra được chương', () => {
+    expect(buildLessonMap([line('T10.62', 'dang', 3, 60)])[0].chapter).toMatchObject({ code: 'V', strand: 'Thống kê' });
+    const all = [...Array(130).keys()].flatMap(n => ['T10', 'T11', 'T12'].map(g => `${g}.${String(n + 1).padStart(2, '0')}`));
+    const unresolved = buildLessonMap(all.map(id => line(id, 'dang', 3, 60))).filter(lesson => !lesson.chapter);
+    expect(unresolved.map(lesson => lesson.lesson)).toEqual([]);
+  });
+
+  it('gom chương liền nhau theo thứ tự sách; tập 1 trước tập 2', () => {
+    expect(groupLessonsByChapter(lessons).map(group => `${group.chapter?.tap}-${group.chapter?.code}`))
+      .toEqual(['1-I', '1-II', '1-IV', '2-V', '2-VIII', '2-IX']);
+  });
+
+  it('tổng quan theo mạch: chỉ mạch có bài, đúng thứ tự Đại số → Giải tích → Hình học → Thống kê → Xác suất', () => {
+    expect(groupLessonsByStrand(lessons).map(group => `${group.strand}:${group.lessons.length}`))
+      .toEqual(['Đại số:2', 'Giải tích:2', 'Hình học:1', 'Xác suất:1']);
+  });
+});
