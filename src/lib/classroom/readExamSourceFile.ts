@@ -26,7 +26,32 @@ export const readExamSourceFile = async (file: File): Promise<VariantSourceFile>
       pages.push(pdfItemsToText(content.items as PdfTextItem[]));
     }
     const text = pages.join('\n').trim();
-    return { name: file.name, text: text.length >= 50 ? text : '' };
+    return text.length >= 50 ? { name: file.name, text, pages } : { name: file.name, text: '' };
   }
   return { name: file.name, text: '' };
+};
+
+/** Số trang tối đa gửi AI khi giải đề MỘT mã (máy chủ cũng chỉ nhận chừng này ảnh). */
+export const MAX_SOLVE_PAGES = 6;
+
+/**
+ * Ảnh các trang PDF của một mã đề — để AI giải đề đọc ĐƯỢC hình, đồ thị, bảng (lớp chữ của PDF Toán làm mất công thức
+ * và không có hình). Đề Word không có ảnh trang → mảng rỗng, AI chỉ có chữ.
+ */
+export const renderVariantPages = async (
+  refs: readonly { file: string; pages: number[] }[],
+  files: ReadonlyMap<string, File>,
+): Promise<{ images: string[]; truncated: boolean }> => {
+  const { pdfToImages } = await import('../../utils/examImportUtils');
+  const images: string[] = [];
+  let truncated = false;
+  for (const ref of refs) {
+    const file = files.get(ref.file);
+    if (!file) continue;
+    const room = MAX_SOLVE_PAGES - images.length;
+    if (room <= 0) { truncated = true; break; }
+    if (ref.pages.length > room) truncated = true;
+    images.push(...await pdfToImages(file, undefined, false, ref.pages.slice(0, room)));
+  }
+  return { images, truncated };
 };

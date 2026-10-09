@@ -26,12 +26,22 @@ export interface ExamVariant {
 export interface VariantSourceFile {
   name: string;
   text: string;
+  /** PDF: chữ từng trang (đúng thứ tự) — để biết trang nào của file gộp thuộc mã nào. */
+  pages?: string[];
+}
+
+/** Các trang (đánh số từ 1) của một file PDF thuộc về một mã đề. */
+export interface VariantPageRef {
+  file: string;
+  pages: number[];
 }
 
 export interface VariantDraft {
   code: string;
   sourceText: string;
   files: string[];
+  /** Trang PDF của đề mã này — để gửi ẢNH các trang cho AI giải đề (đề Toán nhiều hình). Rỗng với đề Word. */
+  pageRefs: VariantPageRef[];
 }
 
 export interface VariantPlan {
@@ -236,6 +246,30 @@ const ANSWER_FILE = /(?:đáp\s*án|dap\s*an|hướng\s*dẫn\s*chấm|huong\s*d
 const clip = (value: string, max: number): string => (value.length > max ? value.slice(0, max) : value);
 
 /**
+ * Mã đề của từng trang PDF: trang có dòng "Mã đề …" (không phải hàng bảng đáp án) đổi mã; trang không ghi mã theo mã
+ * trang trước. Trang đáp án (tiêu đề "ĐÁP ÁN…") không thuộc đề nào và cắt mạch — AI không được thấy trang đáp án
+ * khi giải đề.
+ */
+export const pageCodes = (pages: readonly string[], fileCode: string | null): (string | null)[] => {
+  let current = fileCode;
+  return pages.map(text => {
+    const lines = nfc(text).split(/\r?\n/u).map(line => line.trim());
+    if (lines.some(line => ANSWER_HEADING.test(line))) {
+      current = null;
+      return null;
+    }
+    for (const line of lines) {
+      const codes = [...new Set([...line.matchAll(CODE_HEADER)].map(match => match[1]))];
+      if (codes.length === 1 && !isAnswerRow(line)) {
+        current = codes[0];
+        break;
+      }
+    }
+    return current;
+  });
+};
+
+/**
  * Các file giáo viên thả vào → đề của từng mã + tư liệu đáp án.
  * File gộp: tách theo dòng "Mã đề …". File rời: mã lấy từ tên file, không có thì từ dòng "Mã đề" duy nhất trong file.
  * File không có mã nào (vd "Đáp án.docx") → cả file là tư liệu đáp án.
@@ -244,7 +278,8 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
   const warnings: string[] = [];
   const byCode = new Map<string, VariantDraft>();
   const material: string[] = [];
-  const loose: { file: string; text: string }[] = [];
+  const loose: { file: string; text: string; pageCount: number }[] = [];
+  const pagesByFile: { file: string; codes: (string | null)[] }[] = [];
   for (const file of files) {
     const text = nfc(file.text || '').trim();
     if (!text) {
@@ -253,20 +288,22 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
     }
     const inText = [...new Set([...text.matchAll(CODE_HEADER)].map(match => match[1]))];
     const fileCode = codeFromFileName(file.name) ?? (inText.length === 1 ? inText[0] : null);
-    const blocks = ANSWER_FILE.test(nfc(file.name))
+    const answerFile = ANSWER_FILE.test(nfc(file.name));
+    if (file.pages && !answerFile) pagesByFile.push({ file: file.name, codes: pageCodes(file.pages, fileCode) });
+    const blocks = answerFile
       ? [{ code: fileCode, text, answerOnly: true }]
       : blocksOf(text, fileCode);
     for (const block of blocks) {
       if (!block.answerOnly && !block.code) {
         // Đề không ghi mã: giữ riêng — nếu cả đợt chỉ có MỘT đề như vậy thì đó là đề duy nhất (xem bên dưới).
-        loose.push({ file: file.name, text: block.text.trim() });
+        loose.push({ file: file.name, text: block.text.trim(), pageCount: file.pages?.length ?? 0 });
         continue;
       }
       if (block.answerOnly || !block.code) {
         material.push(`--- ${block.code ? `Phần đáp án nằm sau đề mã ${block.code}` : 'Phần không ghi mã đề'} (file "${file.name}") ---\n${block.text.trim()}`);
         continue;
       }
-      const draft = byCode.get(block.code) ?? { code: block.code, sourceText: '', files: [] };
+      const draft = byCode.get(block.code) ?? { code: block.code, sourceText: '', files: [], pageRefs: [] };
       draft.sourceText = `${draft.sourceText}${draft.sourceText ? '\n' : ''}${block.text.trim()}`;
       if (!draft.files.includes(file.name)) draft.files.push(file.name);
       byCode.set(block.code, draft);
@@ -274,9 +311,23 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
   }
   // Một đề duy nhất, không có mã đề: không bắt giáo viên đặt mã — coi là đề số 1 (chỉ một mã nên chấm khỏi đọc mã trên ảnh).
   if (byCode.size === 0 && loose.length === 1) {
-    byCode.set(SINGLE_VARIANT_CODE, { code: SINGLE_VARIANT_CODE, sourceText: loose[0].text, files: [loose[0].file] });
+    const only = loose[0];
+    byCode.set(SINGLE_VARIANT_CODE, {
+      code: SINGLE_VARIANT_CODE, sourceText: only.text, files: [only.file],
+      pageRefs: only.pageCount > 0 ? [{ file: only.file, pages: Array.from({ length: only.pageCount }, (_, i) => i + 1) }] : [],
+    });
   } else {
     for (const item of loose) material.push(`--- Phần không ghi mã đề (file "${item.file}") ---\n${item.text}`);
+  }
+  // Trang PDF → mã đề (chỉ cho mã đã nhận ra; trang của phần đáp án / không rõ mã bị bỏ).
+  for (const { file, codes } of pagesByFile) {
+    codes.forEach((code, index) => {
+      const draft = code ? byCode.get(code) : undefined;
+      if (!draft) return;
+      const ref = draft.pageRefs.find(item => item.file === file);
+      if (ref) ref.pages.push(index + 1);
+      else draft.pageRefs.push({ file, pages: [index + 1] });
+    });
   }
   const variants = [...byCode.values()]
     .sort((left, right) => left.code.localeCompare(right.code, 'vi', { numeric: true }))

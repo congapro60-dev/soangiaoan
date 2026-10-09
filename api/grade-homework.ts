@@ -1565,6 +1565,7 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     examImageCount: examImages.length,
     maxScore: Number(body.maxScore) || 10,
     gradingInstructions: String(body.gradingInstructions || ''),
+    periodic: body.periodic === true,
   });
   // Giải cả một đề, từng câu kèm các bước — dài hơn hẳn chấm một bài, nên trần phải rộng.
   const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {

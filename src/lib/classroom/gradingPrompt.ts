@@ -898,6 +898,8 @@ export interface SolveExamInput {
   maxScore: number;
   /** Lệnh riêng của giáo viên về phạm vi giải/chấm, lưu cùng bài giao. */
   gradingInstructions?: string;
+  /** Đề kiểm tra định kì: đáp án theo khuôn "Phần I – Câu 1: C", câu khách quan không nêu bước giải. */
+  periodic?: boolean;
 }
 
 /**
@@ -907,6 +909,19 @@ export interface SolveExamInput {
  * câu 5, rồi sai đó còn nhân tiếp vào hồ sơ học tập từng em. Nên prompt bắt AI tự nêu chỗ nó
  * không chắc, để giáo viên biết cần soát kỹ chỗ nào.
  */
+/**
+ * Đề kiểm tra định kì: đáp án phải đúng khuôn để máy đối chiếu từng câu, và câu khách quan chỉ ghi đáp án
+ * (không bước giải) — một bước giải dài cho câu trắc nghiệm chỉ làm loãng đáp án thầy cô phải soát.
+ */
+export const PERIODIC_SOLVE_NOTE = `
+ĐÂY LÀ ĐỀ KIỂM TRA ĐỊNH KÌ — ghi đáp án theo khuôn sau (mỗi câu MỘT dòng, đúng nhãn câu trong đề):
+- Đề chia Phần I/II/III và số câu đánh lại từ đầu mỗi phần: ghi "Phần I – Câu 1: C", "Phần II – Câu 1: a) Đ; b) S; c) Đ; d) S", "Phần III – Bài 1 (0,5 điểm): …".
+- Trắc nghiệm: chỉ MỘT chữ cái in hoa. Đúng/Sai: chỉ "a) Đ; b) S; c) Đ; d) S". Trả lời ngắn: chỉ con số (dấu phẩy thập phân). KHÔNG nêu các bước giải cho ba dạng này.
+- Tự luận: ghi số điểm của bài, các bước chính, đáp số, và chia điểm theo từng bước (vd "0,25 lập luận + 0,25 kết quả"). Giữ công thức bằng LaTeX trong $...$.
+- Câu có hình/đồ thị/bảng: đọc hình trong ảnh để giải. Không đọc chắc số liệu trên hình → ghi "CHƯA CHẮC: ..." và thêm vào "uncertainties".
+- Điểm mỗi câu theo ghi chú trong đề (vd "12 câu/3 điểm" → mỗi câu 0,25; Đúng/Sai thang THPT 0,1 / 0,25 / 0,5 / 1).
+`;
+
 export const buildSolveExamPrompt = (input: SolveExamInput): string => {
   const gradingInstructions = input.gradingInstructions?.trim() || '';
   const lenhPhamVi = gradingInstructions
@@ -924,7 +939,7 @@ ${gradingInstructions.slice(0, 6000)}${gradingInstructions.length > 6000 ? '\n[L
 ${input.examImageCount > 0
     ? `Đề nằm trong ${input.examImageCount} ảnh gửi kèm. Đọc kỹ đề trong ảnh trước khi giải.`
     : `ĐỀ BÀI:\n${input.examText.trim()}`}
-${lenhPhamVi}
+${lenhPhamVi}${input.periodic ? PERIODIC_SOLVE_NOTE : ''}
 ${gradingInstructions
     ? 'Giải TỪNG câu THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, theo thứ tự đề ra. Với mỗi câu được giao:'
     : 'Giải TỪNG câu, theo thứ tự đề ra. Với mỗi câu:'}
