@@ -373,6 +373,10 @@ export interface QuestionClarify {
   photoUrls?: string[];
   /** Mốc lần đổi trạng thái gần nhất — để nhận ra lượt chấm lại bị treo. */
   at?: string;
+  /** Số lần em đã chụp lại câu này (tự luận). */
+  tries?: number;
+  /** Lời nhắn cho em sau lượt chấm lại (vì sao máy vẫn chưa đọc rõ / chưa chấm lại được). */
+  message?: string;
 }
 
 /** Bài kiểm tra định kì — xem `AssignmentDoc.periodicTest`. */

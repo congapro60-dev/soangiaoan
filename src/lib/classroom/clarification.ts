@@ -56,16 +56,12 @@ const trueFalseParts = (q: QuestionResult): string[] | undefined => {
   return ['a', 'b', 'c', 'd'];
 };
 
-/**
- * Đánh dấu các câu máy chưa chắc là `open` để hỏi lại học sinh. Câu đã có `clarify` (đã xử lý) giữ nguyên.
- * Câu tự luận (`photo`) CHƯA hỏi lại ở giai đoạn này (chụp lại từng câu làm ở giai đoạn 2): giữ cờ cho thầy cô như cũ.
- */
+/** Đánh dấu các câu máy chưa chắc là `open` để hỏi lại học sinh. Câu đã có `clarify` (đã xử lý) giữ nguyên. */
 export const buildClarifyRows = (rows: readonly QuestionResult[]): { rows: QuestionResult[]; asked: number } => {
   let asked = 0;
   const next = rows.map(q => {
     if (q.clarify || !isUncertainQuestion(q)) return q;
     const kind = clarifyKindFor(q);
-    if (kind === 'photo') return q;
     asked += 1;
     const parts = kind === 'true_false' ? trueFalseParts(q) : undefined;
     return { ...q, clarify: { kind, state: 'open' as ClarifyState, reading: q.studentAnswer, ...(parts ? { parts } : {}) } };
@@ -156,6 +152,8 @@ export const sanitizeClarify = (raw: unknown): QuestionClarify | undefined => {
     ...(parts.length > 0 ? { parts } : {}),
     ...(photoUrls.length > 0 ? { photoUrls } : {}),
     ...(typeof value.at === 'string' ? { at: value.at } : {}),
+    ...(typeof value.tries === 'number' && Number.isInteger(value.tries) && value.tries > 0 ? { tries: Math.min(value.tries, 99) } : {}),
+    ...(typeof value.message === 'string' && value.message ? { message: value.message.slice(0, 300) } : {}),
   };
 };
 
@@ -179,3 +177,77 @@ export const hideWhileAwaitingClarification = (rows: readonly QuestionResult[]):
     ...(q.clarify ? { clarify: q.clarify } : {}),
   }));
 
+
+// ── Tự luận: em chụp lại đúng bài làm của câu đó ─────────────────────────────
+
+export const MAX_CLARIFY_PHOTOS = 12;
+/** Số lần chụp lại tối đa cho MỘT câu: quá số này chỉ còn "để thầy cô xem" (chặn đốt hạn mức AI). */
+export const MAX_PHOTO_TRIES = 5;
+/** Lượt chấm lại treo quá lâu (máy chủ bị dừng giữa chừng) thì cho chấm lại. */
+export const REGRADE_STALE_MS = 6 * 60 * 1000;
+
+/** Ảnh phải là link Firebase Storage nằm trong thư mục `homework/<uid em>/` — không nhận link lạ (chống mượn ảnh người khác, chống gọi URL tuỳ ý từ máy chủ). */
+export const isOwnClarifyPhotoUrl = (value: unknown, uid: string): boolean => {
+  if (typeof value !== 'string' || !uid || value.length > 2000) return false;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.hostname !== 'firebasestorage.googleapis.com') return false;
+    const match = url.pathname.match(/^\/v0\/b\/[^/]+\/o\/([^/]+)$/);
+    if (!match) return false;
+    const objectPath = decodeURIComponent(match[1]);
+    return objectPath.startsWith(`homework/${uid}/`) && !objectPath.slice(`homework/${uid}/`.length).includes('/') && !objectPath.includes('..');
+  } catch {
+    return false;
+  }
+};
+
+export type PhotoStep = { ok: true; row: QuestionResult } | { ok: false; error: string };
+
+/**
+ * Em gửi ảnh (hoặc bấm "thử lại" khi chưa có ảnh mới) cho một câu tự luận → chuyển sang `regrading`.
+ * Ảnh cũ luôn được giữ, ảnh mới nối thêm; máy chấm lại bằng toàn bộ ảnh của câu.
+ */
+export const startPhotoRegrade = (q: QuestionResult, newUrls: readonly string[], at: string, nowMs: number): PhotoStep => {
+  const clarify = q.clarify;
+  if (!clarify || clarify.kind !== 'photo') return { ok: false, error: 'Câu này không cần chụp lại.' };
+  if (clarify.state === 'regrading') {
+    const started = Date.parse(clarify.at || '');
+    if (Number.isFinite(started) && nowMs - started < REGRADE_STALE_MS) return { ok: false, error: 'Máy đang đọc lại ảnh của câu này, em chờ một chút.' };
+  } else if (clarify.state !== 'open' && clarify.state !== 'photo_saved') {
+    return { ok: false, error: 'Câu này đã xong.' };
+  }
+  const tries = clarify.tries ?? 0;
+  if (newUrls.length > 0 && tries >= MAX_PHOTO_TRIES) {
+    return { ok: false, error: 'Em đã chụp lại câu này nhiều lần rồi. Em bấm "Để thầy cô xem" nhé.' };
+  }
+  const photos = [...new Set([...(clarify.photoUrls ?? []), ...newUrls])].slice(-MAX_CLARIFY_PHOTOS);
+  if (photos.length === 0) return { ok: false, error: 'Em chưa chọn ảnh bài làm của câu này.' };
+  const { message: _drop, ...rest } = clarify;
+  return { ok: true, row: { ...q, clarify: { ...rest, state: 'regrading', photoUrls: photos, at, tries: tries + (newUrls.length > 0 ? 1 : 0) } } };
+};
+
+/** Máy chấm lại xong: đủ chắc → `done` (điểm theo kết quả mới); vẫn chưa chắc → hỏi em chụp lại tiếp (ảnh cũ vẫn giữ). */
+export const finishPhotoRegrade = (q: QuestionResult, regraded: QuestionResult, at: string): QuestionResult => {
+  const clarify = q.clarify;
+  if (!clarify) return q;
+  const { message: _drop, ...rest } = clarify;
+  if (isUncertainQuestion(regraded)) {
+    const exhausted = (clarify.tries ?? 0) >= MAX_PHOTO_TRIES;
+    // Lời cố định, KHÔNG chép lời giải thích của AI sang cho em: nó có thể nói ra đáp án.
+    const hint = 'Máy vẫn chưa đọc rõ ảnh vừa rồi. Em chụp thẳng, đủ sáng, đủ toàn bộ phần bài làm của câu này rồi gửi thêm nhé.';
+    return {
+      ...q,
+      studentAnswer: regraded.studentAnswer || q.studentAnswer,
+      needsTeacherReview: true,
+      clarify: { ...rest, state: 'open', reading: regraded.studentAnswer || clarify.reading, at, message: exhausted ? `${hint} Em bấm "Để thầy cô xem" nhé.` : hint },
+    };
+  }
+  return { ...regraded, needsTeacherReview: false, clarify: { ...rest, state: 'done', at } };
+};
+
+/** Chấm lại lỗi (mạng, khoá AI, máy chủ…): giữ ảnh, cho em bấm thử lại. */
+export const failPhotoRegrade = (q: QuestionResult, at: string): QuestionResult => {
+  const clarify = q.clarify;
+  if (!clarify) return q;
+  return { ...q, clarify: { ...clarify, state: 'photo_saved', at, message: 'Ảnh của em đã được lưu nhưng máy chưa chấm lại được. Em bấm "Thử lại" nhé.' } };
+};

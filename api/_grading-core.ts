@@ -2,6 +2,8 @@
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
 import { acquireCallHoldWaiting, geminiUsageCounts, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
+import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
@@ -314,7 +316,13 @@ const callGeminiRawHeld = async (
     undefined,
     cause,
   );
+  // Khoá chung: thử lần lượt các khoá trong danh sách của chủ dự án (free trước, paid sau), khoá môi trường là chốt cuối.
+  const triedPoolKeys = new Set<string>();
+  let pooled: PooledKey | null = null;
   for (let attempt = 0; ; attempt += 1) {
+    pooled = keyChoice.source !== 'own' && triedPoolKeys.size < POOL_MAX_TRIES_PER_CALL
+      ? await pickFromPool(model, triedPoolKeys)
+      : null;
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
     // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
@@ -329,7 +337,7 @@ const callGeminiRawHeld = async (
     }
     try {
       res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(pooled?.key ?? keyChoice.key)}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -361,6 +369,16 @@ const callGeminiRawHeld = async (
       throw timedOut
         ? timedOutError(error)
         : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.', undefined, error);
+    }
+    if (pooled && !res.ok) {
+      // Khoá trong danh sách bị Google từ chối vì chính khoá (hết hạn mức / hỏng): cho nghỉ rồi thử khoá kế tiếp, không báo lỗi ra ngoài.
+      const detail = await res.clone().text().catch(() => '');
+      const failure = classifyGeminiKeyFailure(res.status, detail);
+      if (failure) {
+        triedPoolKeys.add(pooled.id);
+        await reportPoolKeyFailure(pooled, model, failure, detail);
+        continue;
+      }
     }
     if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
@@ -400,7 +418,9 @@ const callGeminiRawHeld = async (
   await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
     finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
     holdVnd: hold.vnd,
+    ...(keyChoice.source !== 'own' ? { poolKey: pooled ? { id: pooled.id, tier: pooled.tier } : { tier: 'env' as const } } : {}),
   });
+  if (pooled) await reportPoolKeySuccess(pooled);
   console.info('[gemini] gọi xong', {
     model,
     images: images.length,

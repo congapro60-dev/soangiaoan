@@ -16,6 +16,8 @@ import { adminWalletAction } from './_ai-wallet.js';
 /** Giữ export cũ cho test/nơi gọi trước đây. */
 export { parseVcbUsdSell } from './_ai-billing.js';
 import { adminAiAccessView, adminSaveAiAccess } from './_ai-keys.js';
+import { GRADING_MODEL } from './_grading-core.js';
+import { handleGeminiPoolAdmin } from './_gemini-key-pool.js';
 import { classKey } from '../src/lib/admin/classSetup.js';
 import { createJoinCode, findDuplicateJoinCodes } from '../src/lib/classroom/joinCode.js';
 import { AI_USAGE_COL } from './_ai-usage.js';
@@ -311,6 +313,8 @@ export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse)
     res.status(status).json(payload);
     return true;
   }
+  const poolResult = await handleGeminiPoolAdmin(db, action, body, GRADING_MODEL, Boolean(process.env.GRADING_GEMINI_API_KEY || process.env.GEMINI_API_KEY));
+  if (poolResult) { res.status(poolResult.status).json(poolResult.payload); return true; }
   res.status(400).json({ error: `Hành động quản trị không hợp lệ: ${action}` });
   return true;
 };

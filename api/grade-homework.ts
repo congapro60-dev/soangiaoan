@@ -90,6 +90,7 @@ import {
   RECITATION_RETRY_KIND,
   type AnswerKeyFix,
   type ProfileTopic,
+  type QuestionResult,
   type SubmissionDoc,
   type SubmissionGrade,
 } from '../src/lib/classroom/types.js';
@@ -107,6 +108,7 @@ import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 import { reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
+import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -761,6 +763,64 @@ const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Prom
   examVariants: assignment.periodicTest ? sanitizeExamVariants(assignment.examVariants) : [],
   sheetLabel: assignment.periodicTest && typeof assignment.periodicTest.sheetLabel === 'string' ? assignment.periodicTest.sheetLabel : '',
 });
+
+/** Ảnh em chụp lại một câu: chỉ lấy vài ảnh MỚI NHẤT cho gọn và rẻ (ảnh cũ vẫn được giữ trong bài). */
+const MAX_REGRADE_PHOTOS = 6;
+
+/**
+ * Chấm lại MỘT câu tự luận từ ảnh em chụp lại (xem `api/_clarify.ts`). Dùng đúng đề / đáp án / lệnh của bài
+ * như lượt chấm cả bài, nhưng chỉ nhờ AI chấm riêng câu này. Không trừ hạn mức "lượt chấm" của em; số lần chụp
+ * lại mỗi câu đã bị chặn trần ở `startPhotoRegrade`.
+ */
+const regradeClarifiedQuestion = async (
+  db: FirebaseFirestore.Firestore,
+  submission: SubmissionDoc,
+  question: QuestionResult,
+): Promise<QuestionResult> => {
+  setAiKeyOwner(String(submission.teacherId || '') || null);
+  tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+  await ensureGeminiKey(getGradingApiKey());
+
+  let ctx: GradeContext = {
+    answerKey: '', rubric: '', maxScore: 10, assignmentTitle: '', assignmentText: '', gradingInstructions: '',
+    assignmentImages: [], answerKeyImages: [], answerKeyFixes: [], teacherMarkedPaper: false, examVariants: [], sheetLabel: '',
+  };
+  if (submission.assignmentId) {
+    const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
+    if (aSnap.exists) {
+      const a = aSnap.data() as FirebaseFirestore.DocumentData;
+      if (a.teacherId !== submission.teacherId || a.classId !== submission.classId) throw new Error('Bài nộp không khớp với bài đã giao.');
+      ctx = await gradeContextFor(a);
+      if (ctx.examVariants.length > 0 && submission.examCode) ctx = contextForVariant(ctx, submission.examCode);
+    }
+  }
+
+  const urls = (question.clarify?.photoUrls ?? []).slice(-MAX_REGRADE_PHOTOS);
+  const photos = (await Promise.all(urls.map(url => fetchImage(url).catch(() => null)))).filter((img): img is InlineImage => img !== null);
+  if (photos.length === 0) throw new Error('Không đọc được ảnh em chụp lại.');
+
+  const prompt = buildQuestionRegradePrompt({
+    question,
+    answerKey: ctx.answerKey,
+    rubric: ctx.rubric,
+    assignmentTitle: ctx.assignmentTitle,
+    assignmentText: ctx.assignmentText,
+    gradingInstructions: ctx.gradingInstructions,
+    assignmentImageCount: ctx.assignmentImages.length,
+    answerKeyImageCount: ctx.answerKeyImages.length,
+    ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
+  });
+  const raw = await callGeminiVision(
+    prompt,
+    [...ctx.assignmentImages, ...ctx.answerKeyImages, ...photos],
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
+  );
+  const regraded = parseQuestionRegrade(raw, question);
+  if (!regraded) throw new Error('Máy trả kết quả chấm lại không đọc được.');
+  return regraded;
+};
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const startedAt = Date.now();
@@ -1976,7 +2036,10 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
-    if (await handleClarifyAction(db, body, res)) return;
+    if (await handleClarifyAction(db, body, res, {
+      regradeQuestion: (submission, question) => regradeClarifiedQuestion(db, submission, question),
+      runInBackground: chayNgam,
+    })) return;
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);

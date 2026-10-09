@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { AlertTriangle, CheckCircle2, Loader2, MessageCircleQuestion } from 'lucide-react';
-import { canonicalAnswer } from '../../../../lib/classroom/clarification';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Camera, CheckCircle2, Loader2, MessageCircleQuestion } from 'lucide-react';
+import { MAX_PHOTO_TRIES, canonicalAnswer } from '../../../../lib/classroom/clarification';
 import type { QuestionResult, SubmissionDoc } from '../../../../lib/classroom/types';
-import { submitClarifyAnswers } from '../../../../services/gradingApi';
+import { uploadClarifyPhotos } from '../../../../lib/classroom/submissionService';
+import { submitClarifyAnswers, submitClarifyPhotos, type ClarifyAnswersResult, type ClarifyPhotoResult } from '../../../../services/gradingApi';
 
 export interface ClarifyItem {
   submission: SubmissionDoc;
@@ -48,23 +49,32 @@ interface QuestionProps {
   error: string;
   onConfirm: (questionNumber: string, answer: string) => void;
   onSkip: (questionNumber: string) => void;
+  /** Câu tự luận: em chọn/chụp ảnh bài làm của câu này (hoặc bấm "thử lại" khi không kèm ảnh). */
+  onPhotos: (questionNumber: string, files: File[]) => void;
 }
 
-const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSkip }: QuestionProps) => {
+const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSkip, onPhotos }: QuestionProps) => {
   const clarify = question.clarify!;
   const [value, setValue] = useState(() => readDraft(submissionId, question.questionNumber));
   const update = (next: string) => { setValue(next); writeDraft(submissionId, question.questionNumber, next); };
   const ready = canonicalAnswer(clarify.kind, value, clarify.parts).ok;
   const parts = clarify.parts;
   const tf = readTrueFalse(value);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const isPhoto = clarify.kind === 'photo';
+  const regrading = clarify.state === 'regrading';
+  const photoCount = clarify.photoUrls?.length ?? 0;
+  const exhausted = (clarify.tries ?? 0) >= MAX_PHOTO_TRIES;
 
   return (
     <li className="rounded-2xl border border-amber-200 bg-white p-4">
       <p className="text-sm font-black text-slate-900">{question.questionNumber}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
         {clarify.reading ? <>Máy đọc được: <span className="font-black text-slate-700">“{clarify.reading}”</span> — chưa chắc. </> : 'Máy chưa đọc được câu này. '}
-        Em chọn / gõ lại đáp án cho đúng ý em nhé.
+        {isPhoto ? 'Em chụp lại đúng phần bài làm của câu này cho rõ nhé.' : 'Em chọn / gõ lại đáp án cho đúng ý em nhé.'}
       </p>
+      {isPhoto && clarify.message && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-900">{clarify.message}</p>}
+      {isPhoto && photoCount > 0 && <p className="mt-2 text-xs font-bold text-slate-500">Em đã gửi {photoCount} ảnh cho câu này — ảnh được giữ lại, em gửi thêm ảnh mới nếu cần.</p>}
 
       <div className="mt-3">
         {clarify.kind === 'mcq' && (
@@ -112,17 +122,51 @@ const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSki
         )}
       </div>
 
+      {isPhoto && (
+        <div className="mt-3">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={event => {
+              const files = Array.from(event.target.files ?? []);
+              event.target.value = '';
+              if (files.length > 0) onPhotos(question.questionNumber, files);
+            }}
+          />
+          {regrading ? (
+            <p className="flex items-center gap-2 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-black text-indigo-800" role="status">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> Máy đang đọc lại ảnh em chụp… Em chờ ở trang này một chút (thoát cũng không mất ảnh).
+            </p>
+          ) : clarify.state === 'photo_saved' ? (
+            <button type="button" disabled={busy} onClick={() => onPhotos(question.questionNumber, [])} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-50">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Thử lại
+            </button>
+          ) : exhausted ? (
+            <p className="text-xs font-bold leading-5 text-slate-500">Em đã chụp lại câu này nhiều lần rồi — em bấm "Để thầy cô xem" nhé.</p>
+          ) : (
+            <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-50">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} {busy ? 'Đang gửi ảnh…' : photoCount > 0 ? 'Gửi thêm ảnh câu này' : 'Chụp / chọn ảnh câu này'}
+            </button>
+          )}
+        </div>
+      )}
+
       {error && <p className="mt-2 flex items-start gap-1.5 text-xs font-bold text-red-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</p>}
 
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <button
-          type="button"
-          disabled={!ready || busy}
-          onClick={() => onConfirm(question.questionNumber, value)}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Xác nhận câu này
-        </button>
+        {!isPhoto && (
+          <button
+            type="button"
+            disabled={!ready || busy}
+            onClick={() => onConfirm(question.questionNumber, value)}
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Xác nhận câu này
+          </button>
+        )}
         <button
           type="button"
           disabled={busy}
@@ -144,15 +188,25 @@ export const ClarifyPanel = ({ items, onChanged }: Props) => {
   const [busyKey, setBusyKey] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Máy đang chấm lại ảnh ở nền: tự tải lại để kết quả hiện ra mà em không phải bấm gì.
+  const hasRegrading = items.some(({ submission }) => (submission.grade?.questionResults || []).some(q => q.clarify?.state === 'regrading'));
+  const onChangedRef = useRef(onChanged);
+  onChangedRef.current = onChanged;
+  useEffect(() => {
+    if (!hasRegrading) return undefined;
+    const timer = window.setInterval(() => onChangedRef.current(), 4000);
+    return () => window.clearInterval(timer);
+  }, [hasRegrading]);
+
   if (items.length === 0) return null;
 
-  const send = async (submissionId: string, questionNumber: string, run: () => Promise<{ rejected: Array<{ questionNumber: string; reason: string }> }>) => {
+  const send = async (submissionId: string, questionNumber: string, run: () => Promise<ClarifyAnswersResult | ClarifyPhotoResult>) => {
     const key = `${submissionId}:${questionNumber}`;
     setBusyKey(key);
     setErrors(prev => ({ ...prev, [key]: '' }));
     try {
       const result = await run();
-      const rejected = result.rejected.find(item => item.questionNumber === questionNumber || item.questionNumber === '');
+      const rejected = ('rejected' in result ? result.rejected : []).find(item => item.questionNumber === questionNumber || item.questionNumber === '');
       if (rejected) {
         setErrors(prev => ({ ...prev, [key]: rejected.reason }));
       } else {
@@ -196,6 +250,9 @@ export const ClarifyPanel = ({ items, onChanged }: Props) => {
                       error={errors[key] || ''}
                       onConfirm={(questionNumber, answer) => void send(submission.id, questionNumber, () => submitClarifyAnswers(submission.id, [{ questionNumber, answer }]))}
                       onSkip={questionNumber => void send(submission.id, questionNumber, () => submitClarifyAnswers(submission.id, [], [questionNumber]))}
+                      onPhotos={(questionNumber, files) => void send(submission.id, questionNumber, async () => (
+                        submitClarifyPhotos(submission.id, questionNumber, files.length > 0 ? await uploadClarifyPhotos(submission.id, files) : [])
+                      ))}
                     />
                   );
                 })}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyEnabledFor, clarifyKindFor, isUncertainQuestion,
-  pendingClarifyCount, skipClarifyRow,
+  answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyEnabledFor, clarifyKindFor, failPhotoRegrade,
+  finishPhotoRegrade, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
 } from './clarification';
 import type { QuestionResult } from './types';
 
@@ -51,12 +51,12 @@ describe('cách làm rõ từng câu', () => {
       row({ questionNumber: 'Phần II – Câu 1', expectedAnswer: 'a) Đ; b) S; c) Đ; d) S', studentAnswer: 'không rõ', confidence: 0.3 }),
       row({ questionNumber: 'Tự luận – Bài 1', expectedAnswer: 'chứng minh', status: 'unreadable', needsTeacherReview: true }),
     ]);
-    expect(asked).toBe(2);
+    expect(asked).toBe(3);
     expect(rows[0].clarify).toBeUndefined();
     expect(rows[1].clarify).toMatchObject({ kind: 'mcq', state: 'open', reading: 'B hoặc D' });
     expect(rows[2].clarify).toMatchObject({ kind: 'true_false', state: 'open', parts: ['a', 'b', 'c', 'd'] });
-    expect(rows[3].clarify).toBeUndefined(); // tự luận: chưa hỏi chụp lại ở giai đoạn 1
-    expect(pendingClarifyCount(rows)).toBe(2);
+    expect(rows[3].clarify).toMatchObject({ kind: 'photo', state: 'open' });
+    expect(pendingClarifyCount(rows)).toBe(3);
     expect(awaitsClarification(rows)).toBe(true);
     // Gọi lại không đè câu đã xử lý
     const answered = answerClarifyRow(rows[1], 'D', '2026-10-09T00:00:00Z')!;
@@ -121,5 +121,44 @@ describe('áp đáp án em gõ', () => {
     expect(skipped).toMatchObject({ needsTeacherReview: true, clarify: { state: 'skipped' } });
     expect(pendingClarifyCount([skipped])).toBe(0);
     expect(skipClarifyRow(answerClarifyRow(q, 'D', 'T')!, 'T')).toBeNull();
+  });
+});
+
+describe('tự luận: chụp lại từng câu', () => {
+  const essay = (clarify: QuestionResult['clarify']): QuestionResult => row({ questionNumber: 'Tự luận – Bài 1', maxScore: 2, clarify });
+  const url = (uid: string, name = 'a.jpg') => `https://firebasestorage.googleapis.com/v0/b/p.appspot.com/o/${encodeURIComponent(`homework/${uid}/${name}`)}?alt=media&token=t`;
+
+  it('chỉ nhận ảnh trong thư mục của chính em trên Firebase Storage', () => {
+    expect(isOwnClarifyPhotoUrl(url('u1'), 'u1')).toBe(true);
+    expect(isOwnClarifyPhotoUrl(url('u2'), 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl(url('u1/../u2'), 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl('https://evil.example.com/v0/b/p/o/homework%2Fu1%2Fa.jpg', 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl('http://firebasestorage.googleapis.com/v0/b/p/o/homework%2Fu1%2Fa.jpg', 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl(42, 'u1')).toBe(false);
+  });
+
+  it('startPhotoRegrade nối ảnh, đếm lần chụp, chặn khi đang chấm / quá số lần / không có ảnh', () => {
+    const open = essay({ kind: 'photo', state: 'open', reading: '' });
+    const first = startPhotoRegrade(open, ['u1'], '2026-10-09T00:00:00Z', Date.parse('2026-10-09T00:00:00Z'));
+    expect(first).toMatchObject({ ok: true, row: { clarify: { state: 'regrading', photoUrls: ['u1'], tries: 1 } } });
+    const busy = startPhotoRegrade((first as { row: QuestionResult }).row, ['u2'], 'x', Date.parse('2026-10-09T00:01:00Z'));
+    expect(busy.ok).toBe(false);
+    const stale = startPhotoRegrade((first as { row: QuestionResult }).row, [], 'x', Date.parse('2026-10-09T00:10:00Z'));
+    expect(stale).toMatchObject({ ok: true, row: { clarify: { photoUrls: ['u1'], tries: 1 } } });
+    expect(startPhotoRegrade(open, [], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(essay({ kind: 'photo', state: 'open', reading: '', tries: 5 }), ['u'], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(essay({ kind: 'photo', state: 'done', reading: '' }), ['u'], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(row({ clarify: { kind: 'mcq', state: 'open', reading: '' } }), ['u'], 'x', 0).ok).toBe(false);
+  });
+
+  it('finishPhotoRegrade: đủ chắc → done; vẫn mờ → hỏi tiếp bằng lời cố định', () => {
+    const regrading = essay({ kind: 'photo', state: 'regrading', reading: '?', photoUrls: ['u1'], tries: 1, at: 'a' });
+    const sure = finishPhotoRegrade(regrading, row({ score: 2, maxScore: 2, confidence: 0.9, explanation: 'Đúng' }), 'b');
+    expect(sure).toMatchObject({ needsTeacherReview: false, score: 2, clarify: { state: 'done', photoUrls: ['u1'] } });
+    const unsure = finishPhotoRegrade(regrading, row({ status: 'unreadable', needsTeacherReview: true, explanation: 'Đáp án là 7' }), 'b');
+    expect(unsure.clarify).toMatchObject({ state: 'open', photoUrls: ['u1'] });
+    expect(unsure.clarify?.message).not.toContain('7');
+    const failed = failPhotoRegrade(regrading, 'c');
+    expect(failed.clarify).toMatchObject({ state: 'photo_saved', photoUrls: ['u1'] });
   });
 });

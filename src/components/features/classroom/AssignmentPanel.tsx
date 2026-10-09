@@ -1543,7 +1543,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       {hoiLaiHocSinh !== null && (
         <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
           <input type="checkbox" checked={hoiLaiHocSinh} onChange={event => void doiHoiLaiHocSinh(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
-          <span><b className="text-slate-800">Máy hỏi lại học sinh câu chưa chắc</b> — chấm xong bài em nộp, câu trắc nghiệm / đúng-sai / trả lời ngắn mà máy đọc chưa chắc thì em tự chọn hoặc gõ lại đáp án (máy chấm lại tại chỗ, không gọi AI thêm). Điểm hiện sau khi em xác nhận hết hoặc bấm "để thầy cô xem".</span>
+          <span><b className="text-slate-800">Máy hỏi lại học sinh câu chưa chắc</b> — chấm xong bài em nộp, câu trắc nghiệm / đúng-sai / trả lời ngắn mà máy đọc chưa chắc thì em tự chọn hoặc gõ lại đáp án (máy chấm lại tại chỗ, không gọi AI thêm); câu tự luận thì em chụp lại đúng câu đó (máy chấm lại riêng câu ấy, tốn thêm một lượt AI nhỏ mỗi lần chụp). Điểm hiện sau khi em xác nhận hết hoặc bấm "để thầy cô xem".</span>
         </label>
       )}
 

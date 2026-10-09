@@ -12,12 +12,32 @@ import {
   type SubmissionDoc,
 } from './types';
 import type { ExamVariant } from './examVariants';
+import { nenAnhBaiLam } from '../../utils/imageCompress';
 
 const newId = (prefix: string): string => {
   const rand = typeof globalThis.crypto?.randomUUID === 'function'
     ? globalThis.crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return `${prefix}_${rand}`;
+};
+
+/**
+ * Em chụp lại bài làm của MỘT câu tự luận (máy hỏi lại): nén rồi tải lên NGAY, trả về link để gửi cho máy chủ.
+ * Ảnh nằm trong `homework/<uid>/…` như ảnh nộp bài; không xoá ở đâu cả — em thoát giữa chừng vẫn còn.
+ */
+export const uploadClarifyPhotos = async (submissionId: string, files: readonly File[]): Promise<string[]> => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
+  const stamp = Date.now().toString(36);
+  const urls: string[] = [];
+  for (let i = 0; i < files.length; i += 1) {
+    const dataUrl = await nenAnhBaiLam(files[i]);
+    const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
+    const fileRef = ref(storage, `homework/${uid}/${submissionId}-clar-${stamp}-${i}.${mime.split('/')[1] || 'jpg'}`);
+    await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
+    urls.push(await getDownloadURL(fileRef));
+  }
+  return urls;
 };
 
 // ── Giáo viên: giao bài ──────────────────────────────────────────────────────

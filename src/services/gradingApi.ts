@@ -81,6 +81,20 @@ export const submitClarifyAnswers = (
 ): Promise<ClarifyAnswersResult> =>
   callApi<ClarifyAnswersResult>({ action: 'clarifyAnswers', submissionId, answers, skip });
 
+export interface ClarifyPhotoResult {
+  /** Máy đang chấm lại câu ở nền (em chờ hoặc thoát đều được). */
+  regrading?: boolean;
+  pending?: number;
+}
+
+/** Câu tự luận: gửi link ảnh em vừa chụp lại (không kèm ảnh = bấm "thử lại" sau lượt chấm lỗi). Ảnh đã được tải lên Storage trước đó. */
+export const submitClarifyPhotos = (
+  submissionId: string,
+  questionNumber: string,
+  photoUrls: readonly string[] = [],
+): Promise<ClarifyPhotoResult> =>
+  callApi<ClarifyPhotoResult>({ action: 'clarifyPhoto', submissionId, questionNumber, photoUrls });
+
 export interface PracticeQuestion {
   id: string;
   question: string;
