@@ -125,8 +125,9 @@ export const migrateLegacyClasses = async (
   teacherId: string,
   legacy: TeacherClass[],
 ): Promise<MigrationOutcome> => {
-  const existingClassIds = await listTeacherClassIds(teacherId);
-  const plan = planLegacyClassMigration(legacy, teacherId, { existingClassIds });
+  const existingClasses = await listTeacherClasses(teacherId);
+  const existingClassIds = existingClasses.map(item => item.id);
+  const plan = planLegacyClassMigration(legacy, teacherId, { existingClassIds, existingJoinCodes: existingClasses.map(item => item.joinCode).filter(Boolean) });
 
   let batch = writeBatch(db);
   let count = 0;

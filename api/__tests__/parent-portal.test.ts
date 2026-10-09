@@ -26,10 +26,19 @@ const snapOf = (path: string, id: string): Record<string, any> => {
   return { id, exists: data !== undefined, data: () => (data ? structuredClone(data) : undefined), ref: docRef(path, id) };
 };
 
-const queryOf = (path: string, filter?: (data: DocData) => boolean): Record<string, any> => ({
-  where: (field: string, _op: string, value: unknown) => queryOf(path, data => data[field] === value && (!filter || filter(data))),
-  limit: () => queryOf(path, filter),
-  get: async () => { const docs = docsOf(path, filter); return { docs, empty: docs.length === 0, size: docs.length }; },
+const queryOf = (path: string, filter?: (data: DocData) => boolean, order?: { field: string; dir: string }, max?: number): Record<string, any> => ({
+  where: (field: string, _op: string, value: unknown) => queryOf(path, data => data[field] === value && (!filter || filter(data)), order, max),
+  orderBy: (field: string, dir = 'asc') => queryOf(path, filter, { field, dir }, max),
+  limit: (n: number) => queryOf(path, filter, order, n),
+  get: async () => {
+    let docs = docsOf(path, filter);
+    if (order) {
+      const key = (d: Record<string, any>) => String(d.data()?.[order.field] ?? '');
+      docs = [...docs].sort((a, b) => key(a).localeCompare(key(b)) * (order.dir === 'desc' ? -1 : 1));
+    }
+    if (max !== undefined) docs = docs.slice(0, max);
+    return { docs, empty: docs.length === 0, size: docs.length };
+  },
 });
 
 const docRef = (path: string, id: string): Record<string, any> => ({
@@ -38,6 +47,7 @@ const docRef = (path: string, id: string): Record<string, any> => ({
   set: async (data: DocData, options?: { merge?: boolean }) => {
     (h.store[path] ||= {})[id] = options?.merge ? { ...h.store[path]?.[id], ...structuredClone(data) } : structuredClone(data);
   },
+  update: async (data: DocData) => { (h.store[path] ||= {})[id] = { ...h.store[path]?.[id], ...structuredClone(data) }; },
   delete: async () => { delete h.store[path]?.[id]; },
   collection: (sub: string) => collectionRef(`${path}/${id}/${sub}`),
 });
@@ -279,17 +289,35 @@ describe('thống kê hoạt động phụ huynh', () => {
   const issue = async () => Object.fromEntries(((await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>).map(r => [r.studentId, r.pin]));
   const stats = async () => (await call({ action: 'parentActivity', classId: 'lop-1' })).payload.rows as Array<Record<string, any>>;
 
-  it('đếm lần vào, lần sai, lần đổi PIN; em chưa vào vẫn có dòng với số 0', async () => {
+  it('đếm lần vào (chỉ sau khi đặt PIN riêng), lần sai, lần đổi PIN; em chưa vào vẫn có dòng với số 0', async () => {
     const pins = await issue();
     await parentCall({ action: 'parentReports', studentId: 'a', pin: '9999', device: 'mobile' });
-    await parentCall({ action: 'parentReports', studentId: 'a', pin: '9998', device: 'mobile' });
-    await parentCall({ action: 'parentReports', studentId: 'a', pin: pins.a, device: 'mobile' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: pins.a, device: 'mobile' }); // mã tạm: chưa tính là đã vào
+    expect((await stats())[0]).toMatchObject({ loginCount: 0, wrongCount: 1, lastSeenAt: '', online: false });
     await parentCall({ action: 'changeParentPin', studentId: 'a', pin: pins.a, newPin: '2580', device: 'desktop' });
     await parentCall({ action: 'parentReports', studentId: 'a', pin: '2580', device: 'desktop' });
     const [an, binh] = await stats();
-    expect(an).toMatchObject({ name: 'An', loginCount: 2, wrongCount: 2, lastDevice: 'desktop', online: true });
+    expect(an).toMatchObject({ name: 'An', loginCount: 1, wrongCount: 1, lastDevice: 'desktop', online: true });
     expect(an.firstLoginAt).toBeTruthy();
     expect(binh).toMatchObject({ name: 'Bình', loginCount: 0, wrongCount: 0, lastSeenAt: '', online: false });
+  });
+
+  it('đợt dò mã: các lần sai dồn dập chỉ ghi tối đa 1 lần mỗi 2 giây (không nghẽn tài liệu thống kê); sau 2 giây ghi tiếp', async () => {
+    await issue();
+    for (let i = 0; i < 25; i += 1) await parentCall({ action: 'parentReports', studentId: 'a', pin: `x${i % 10}zz` });
+    expect((await stats())[0].wrongCount).toBe(1);
+    h.store['classes/lop-1/parentStats'].a.lastWrongAt = new Date(Date.now() - 5_000).toISOString();
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: 'qqqq' });
+    expect((await stats())[0].wrongCount).toBe(2);
+  });
+
+  it('parentEvent: PIN sai cũng được đếm; mã tạm của thầy cô (chưa đặt PIN riêng) không ghi được sự kiện', async () => {
+    const pins = await issue();
+    expect((await parentCall({ action: 'parentEvent', studentId: 'a', pin: '0001', type: 'ping' })).statusCode).toBe(401);
+    expect((await stats())[0].wrongCount).toBe(1);
+    const gate = await parentCall({ action: 'parentEvent', studentId: 'a', pin: pins.a, type: 'ping' });
+    expect(gate.statusCode).toBe(403);
+    expect((await stats())[0].lastSeenAt).toBe('');
   });
 
   it('dòng thời gian: vào, mở báo cáo, tải PDF, đổi PIN — mới nhất trước; "còn đây" và sai PIN không thành dòng', async () => {
@@ -297,12 +325,15 @@ describe('thống kê hoạt động phụ huynh', () => {
     await parentCall({ action: 'changeParentPin', studentId: 'a', pin: pins.a, newPin: '2580' });
     await parentCall({ action: 'parentReports', studentId: 'a', pin: '2580' });
     await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'open', detail: 'Báo cáo tháng 9/2026' });
+    for (let i = 0; i < 130; i += 1) h.store['classes/lop-1/parentStats/a/events'][`2026-01-01T00:00:${String(i).padStart(3, '0')}_x`] = { type: 'open', at: `2026-01-01T00:00:${String(i).padStart(3, '0')}Z`, device: 'mobile', detail: 'cũ' };
     await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'ping' });
     await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'pdf', detail: 'Báo cáo tháng 9/2026' });
     await parentCall({ action: 'parentReports', studentId: 'a', pin: '0001' });
     const detail = await call({ action: 'parentActivityDetail', classId: 'lop-1', studentId: 'a' });
-    expect(detail.payload.events.map((e: any) => e.type).sort()).toEqual(['login', 'open', 'pdf', 'pinChanged']);
-    expect(detail.payload.events.find((e: any) => e.type === 'open').detail).toBe('Báo cáo tháng 9/2026');
+    // Chỉ trả 100 dòng MỚI NHẤT: 4 sự kiện thật đều còn, phần dư là các dòng cũ nhất bị bỏ.
+    expect(detail.payload.events).toHaveLength(100);
+    expect(detail.payload.events.filter((e: any) => e.detail !== 'cũ').map((e: any) => e.type).sort()).toEqual(['login', 'open', 'pdf', 'pinChanged']);
+    expect(detail.payload.events.find((e: any) => e.type === 'open' && e.detail !== 'cũ').detail).toBe('Báo cáo tháng 9/2026');
     const times = detail.payload.events.map((e: any) => e.at);
     expect([...times].sort().reverse()).toEqual(times);
     expect((await stats())[0]).toMatchObject({ openCount: 1, pdfCount: 1, wrongCount: 1 });
@@ -325,6 +356,11 @@ describe('thống kê hoạt động phụ huynh', () => {
     expect(rows.map(r => r.online)).toEqual([false, true]);
   });
 });
+
+/** Giả lập thời gian trôi qua: lùi mốc dựng của bản đệm để lần gọi kế không vướng giới hạn tần suất. */
+const ageCache = (ms: number) => {
+  for (const doc of Object.values(h.store['classes/lop-1/parentCache'] ?? {})) doc.at = new Date(Date.parse(String(doc.at)) - ms).toISOString();
+};
 
 describe('phụ huynh tự chọn khoảng ngày', () => {
   const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', ...extra });
@@ -359,8 +395,10 @@ describe('phụ huynh tự chọn khoảng ngày', () => {
   });
 
   it('khoảng khác → bài khác; chọn khoảng không có bài thì trả báo cáo trống chứ không lỗi', async () => {
+    ageCache(10_000);
     const nov = await custom({ pin: '2580', from: '2026-11-01', to: '2026-11-30' });
     expect(nov.payload.input.report.results.map((r: any) => r.title)).toEqual(['Xác suất']);
+    ageCache(10_000);
     const empty = await custom({ pin: '2580', from: '2026-01-01', to: '2026-01-31' });
     expect(empty.statusCode).toBe(200);
     expect(empty.payload.input.report.results).toEqual([]);
@@ -386,3 +424,153 @@ describe('phụ huynh tự chọn khoảng ngày', () => {
     expect((await custom({ studentId: 'b', pin: '2580' })).statusCode).toBe(401);
   });
 });
+
+describe('sửa lỗi sau đợt QA 06–07/10', () => {
+  const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', ...extra });
+  const parentCall = (extra: DocData) => call({ idToken: undefined, joinCode: 'ABCD23', ...extra });
+  const graded = (score: number) => ({ score, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-09-20T01:00:00Z' });
+  const onboard = async (studentId = 'a') => {
+    const rows = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
+    const pin = rows.find(r => r.studentId === studentId)!.pin;
+    await parentCall({ action: 'changeParentPin', studentId, pin, newPin: '2580' });
+    return '2580';
+  };
+
+  it('ngày không có thật (tháng 13, 30/02) bị từ chối 400 TRƯỚC khi tải dữ liệu; một ngày không có so sánh "nửa đầu/nửa sau" ngược', async () => {
+    const pin = await onboard();
+    for (const bad of [{ from: '2026-13-45' }, { to: '2026-02-30' }, { from: '2026-00-10' }]) {
+      expect((await custom({ pin, ...bad })).statusCode).toBe(400);
+    }
+    h.store.assignments = { b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Hàm số', type: 'homework', dueAt: '2026-09-19T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z' } };
+    h.store.submissions = { s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-19T01:00:00Z', grade: graded(8) } };
+    const oneDay = await custom({ pin, from: '2026-09-19', to: '2026-09-19' });
+    expect(oneDay.statusCode).toBe(200);
+    expect(oneDay.payload.input.comparison ?? null).toBeNull();
+    expect(oneDay.payload.input.period).toMatchObject({ kind: 'custom', title: 'Báo cáo học tập từ 19/09/2026 đến 19/09/2026' });
+  });
+
+  it('năng lực lọc theo học kì mà khoảng ngày chạm tới: khoảng tháng 9 không liệt kê năng lực của học kì II (mẫu số theo HK I)', async () => {
+    h.store.classes['lop-1'].grade = '10';
+    h.store.assignments = { b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Hàm số bậc hai', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z', competencyTags: [{ competencyId: 'g10-ham-so-bac-hai' }], competencyTagsApproved: true } };
+    h.store.submissions = { s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: graded(8) } };
+    const pin = await onboard();
+    const sept = (await custom({ pin })).payload.input.competency;
+    ageCache(10_000);
+    const whole = (await custom({ pin, from: '2026-09-01', to: '2027-05-31' })).payload.input.competency;
+    expect(sept.total).toBeLessThan(whole.total);
+    expect(sept.items.map((i: any) => i.topic)).not.toContain('Hàm số bậc hai');
+  });
+
+  it('bài giao riêng cho nhóm khác (targetStudentIds) không bị tính "chưa nộp" cho em không thuộc nhóm', async () => {
+    h.store.assignments = {
+      b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Bài cả lớp', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z' },
+      b2: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Bài nhóm B', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z', targetStudentIds: ['b'] },
+    };
+    h.store.submissions = {};
+    const pin = await onboard();
+    const titles = (await custom({ pin })).payload.input.report.results.map((r: any) => r.title);
+    expect(titles).toEqual(['Bài cả lớp']);
+  });
+
+  it('nhận diện trường: chỉ giữ chữ + logo ảnh an toàn; lưu ở tài liệu nhỏ, lần sau không quét báo cáo đã công bố; không chép trường lạ', async () => {
+    const pin = await onboard();
+    await call({ ...PUBLISH, reports: [{ studentId: 'a', input: { ...INPUT('An'), branding: { schoolName: ' Trường A ', teacherName: 'Thầy B', logoDataUrl: 'javascript:alert(1)', evil: '<script>' } } }] });
+    expect(h.store['classes/lop-1/parentConfig'].branding).toMatchObject({ schoolName: 'Trường A', teacherName: 'Thầy B' });
+    expect(h.store['classes/lop-1/parentConfig'].branding).not.toHaveProperty('logoDataUrl');
+    expect(h.store['classes/lop-1/parentConfig'].branding).not.toHaveProperty('evil');
+    h.store['classes/lop-1/parentReports'] = {};
+    expect((await custom({ pin })).payload.input.branding).toEqual({ schoolName: 'Trường A', teacherName: 'Thầy B' });
+  });
+
+  it('báo cáo đã công bố: kì MỚI NHẤT (theo ngày kết thúc) hiện đầu, dù kì cũ vừa được công bố lại', async () => {
+    const pin = await onboard();
+    await call({ ...PUBLISH, from: '2026-10-01', to: '2026-10-31', reports: [{ studentId: 'a', input: INPUT('An') }] });
+    await call({ ...PUBLISH, reports: [{ studentId: 'a', input: INPUT('An') }] }); // công bố lại tháng 9 SAU tháng 10
+    const res = await parentCall({ action: 'parentReports', studentId: 'a', pin });
+    expect(res.payload.reports.map((r: any) => r.to)).toEqual(['2026-10-31', '2026-09-30']);
+  });
+
+  it('thu hồi học sinh / cả lớp gỡ luôn PIN đọc được, thống kê, dòng thời gian, báo cáo đã công bố; tạo lại cùng mã không "sống lại"', async () => {
+    const pin = await onboard();
+    await call({ ...PUBLISH, reports: [{ studentId: 'a', input: INPUT('An') }, { studentId: 'b', input: INPUT('Bình') }] });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin });
+    expect(Object.keys(h.store['classes/lop-1/parentStats/a/events'] ?? {}).length).toBeGreaterThan(0);
+
+    expect((await call({ action: 'revokeStudentAccess', classId: 'lop-1', studentId: 'a' })).statusCode).toBe(200);
+    expect(h.store['classes/lop-1/parentSecrets'].a).toBeUndefined();
+    expect(h.store['classes/lop-1/parentStats'].a).toBeUndefined();
+    expect(Object.keys(h.store['classes/lop-1/parentStats/a/events'] ?? {})).toEqual([]);
+    expect(Object.values(h.store['classes/lop-1/parentReports']).every((r: any) => r.studentId !== 'a')).toBe(true);
+    expect(h.store['classes/lop-1/parentSecrets'].b).toBeDefined();
+    h.store['classes/lop-1/students'].a = { name: 'An' };
+    expect((await parentCall({ action: 'parentReports', studentId: 'a', pin })).statusCode).toBe(409);
+
+    expect((await call({ action: 'revokeClass', classId: 'lop-1' })).statusCode).toBe(200);
+    for (const sub of ['parentSecrets', 'parentReports', 'parentStats', 'parentConfig']) expect(Object.keys(h.store[`classes/lop-1/${sub}`] ?? {})).toEqual([]);
+  });
+});
+
+describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất', () => {
+  const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', pin: '2580', ...extra });
+  const graded = (approvalSource: string) => ({ score: 8, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, approvalSource, gradedAt: '2026-09-20T01:00:00Z' });
+  const seed = (approvalSource = 'teacher') => {
+    h.store.assignments = { b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Hàm số', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z' } };
+    h.store.submissions = { s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: graded(approvalSource) } };
+  };
+  beforeEach(async () => {
+    const rows = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
+    await call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin: rows.find(r => r.studentId === 'a')!.pin, newPin: '2580' });
+  });
+
+  it('cùng khoảng ngày xem lại trong 5 phút → trả bản đã dựng (không đọc lại dữ liệu); quá 5 phút → dựng lại thấy dữ liệu mới', async () => {
+    seed();
+    const first = await custom();
+    expect(first.payload.input.report.results[0]).toMatchObject({ status: 'official', score: 8 });
+    expect(h.store['classes/lop-1/parentCache'].a).toMatchObject({ from: '2026-09-01', to: '2026-09-30' });
+    h.store.submissions.s1.grade.score = 3; // dữ liệu đổi sau khi đã dựng
+    const again = await custom();
+    expect(again.statusCode).toBe(200);
+    expect(again.payload.input.report.results[0].score).toBe(8); // vẫn là bản đệm
+    ageCache(6 * 60_000);
+    expect((await custom()).payload.input.report.results[0].score).toBe(3);
+  });
+
+  it('khoảng KHÁC bấm liên tiếp trong vài giây → 429 (chặn bấm liên tục); sau vài giây thì cho', async () => {
+    seed();
+    expect((await custom()).statusCode).toBe(200);
+    const fast = await custom({ from: '2026-08-01', to: '2026-08-31' });
+    expect(fast.statusCode).toBe(429);
+    expect(fast.payload.error).toContain('đợi vài giây');
+    ageCache(10_000);
+    expect((await custom({ from: '2026-08-01', to: '2026-08-31' })).statusCode).toBe(200);
+  });
+
+  it('thu hồi học sinh gỡ luôn bản đệm báo cáo tự chọn', async () => {
+    seed();
+    await custom();
+    expect(h.store['classes/lop-1/parentCache'].a).toBeDefined();
+    await call({ action: 'revokeStudentAccess', classId: 'lop-1', studentId: 'a' });
+    expect(h.store['classes/lop-1/parentCache'].a).toBeUndefined();
+  });
+});
+
+describe('mã lớp bị dùng chung bởi hai lớp: từ chối, không đoán', () => {
+  beforeEach(() => {
+    h.store.classes['lop-gia'] = { name: 'Lớp trùng mã', teacherId: 'gv-khac', joinCode: 'ABCD23' };
+  });
+
+  it('roster (cổng học sinh) và cổng phụ huynh trả 409 kèm lời nhắn báo thầy cô; mã duy nhất thì vẫn vào', async () => {
+    const roster = await call({ action: 'roster', idToken: undefined, joinCode: 'ABCD23' });
+    expect(roster.statusCode).toBe(409);
+    expect(roster.payload.error).toContain('trùng');
+    const parent = await call({ action: 'parentReports', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin: '2580' });
+    expect(parent.statusCode).toBe(409);
+    expect(parent.payload.error).toContain('trùng');
+    const student = await call({ action: 'login', idToken: 't', joinCode: 'ABCD23', studentId: 'a', pin: '1234' });
+    expect(student.statusCode).toBe(409);
+
+    delete h.store.classes['lop-gia'];
+    expect((await call({ action: 'roster', idToken: undefined, joinCode: 'ABCD23' })).statusCode).toBe(200);
+  });
+});
+

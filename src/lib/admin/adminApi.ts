@@ -44,6 +44,8 @@ export interface AdminOverview {
   aiEventsAfter: Record<string, number>;
   settings: AdminBillingSettings;
   meteringStartDay: string;
+  /** Mã lớp đang bị dùng chung bởi từ hai lớp (đáng lẽ rỗng). */
+  duplicateJoinCodes: Array<{ code: string; classes: Array<{ id: string; name: string; teacherId: string }> }>;
 }
 
 export interface AdminUsage {

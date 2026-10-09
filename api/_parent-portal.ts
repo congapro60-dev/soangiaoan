@@ -15,15 +15,15 @@ import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
 import { handleParentActivityAction, recordParentActivity } from './_parent-activity.js';
 import { handleParentCustomReport } from './_parent-self-report.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
+import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
-  PARENT_INPUT_MAX_CHARS, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, parentReportDocId,
-  PARENT_PIN_RULE, isValidParentPin, normalizeParentPin,
+  PARENT_BRANDING_DOC, PARENT_CACHE_SUB, PARENT_CONFIG_SUB, PARENT_INPUT_MAX_CHARS, PARENT_PIN_RULE, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, PARENT_STATS_SUB,
+  compareParentReports, isSafeDocId, isValidParentPin, normalizeParentPin, parentReportDocId, sanitizeBranding, type ParentPinSetBy,
 } from '../src/lib/classroom/parentAccess.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
 
-const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const KINDS: readonly string[] = REPORT_KINDS.map(item => item.kind);
 const MAX_PER_CALL = 40;
 
@@ -31,7 +31,7 @@ const periodOf = (body: Body): { kind: string; from: string; to: string } | null
   const kind = String(body.kind || '');
   const from = String(body.from || '');
   const to = String(body.to || '');
-  return KINDS.includes(kind) && DAY_RE.test(from) && DAY_RE.test(to) ? { kind, from, to } : null;
+  return KINDS.includes(kind) && isRealDay(from) && isRealDay(to) && from <= to ? { kind, from, to } : null;
 };
 
 const studentRows = async (classRef: FirebaseFirestore.DocumentReference) => {
@@ -62,7 +62,7 @@ const handleIssueParentPins = async (db: Db, body: Body, res: VercelResponse): P
       continue;
     }
     const pin = createPin();
-    batch.set(ref, { studentId: student.studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher', updatedAt: now });
+    batch.set(ref, { studentId: student.studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher' satisfies ParentPinSetBy, updatedAt: now });
     rows.push({ ...student, pin, parentSet: false });
     pending += 1;
     if (pending >= 400) { await batch.commit(); batch = db.batch(); pending = 0; }
@@ -71,17 +71,17 @@ const handleIssueParentPins = async (db: Db, body: Body, res: VercelResponse): P
   res.status(200).json({ joinCode: String(context.classData?.joinCode || ''), className: String(context.classData?.name || ''), rows });
 };
 
-/** Cấp lại PIN phụ huynh cho ĐÚNG một em (quên PIN / bị khoá) — xoá luôn trạng thái khoá. */
+/** Cấp lại PIN phụ huynh cho ĐÚNG một em (quên PIN): PIN ngẫu nhiên 4 số, phụ huynh phải tự đặt PIN riêng ở lần vào kế tiếp. */
 const handleResetParentPin = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
-  if (!studentId || studentId.includes('/') || !(await context.classRef.collection('students').doc(studentId).get()).exists) {
+  if (!isSafeDocId(studentId) || !(await context.classRef.collection('students').doc(studentId).get()).exists) {
     return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp.' });
   }
   const pin = createPin();
   await context.classRef.collection(PARENT_SECRETS_SUB).doc(studentId).set({
-    studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher', updatedAt: new Date().toISOString(),
+    studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher' satisfies ParentPinSetBy, updatedAt: new Date().toISOString(),
   });
   res.status(200).json({ studentId, pin });
 };
@@ -116,7 +116,12 @@ const handlePublishParentReports = async (db: Db, body: Body, res: VercelRespons
     });
     saved += 1;
   }
-  if (saved > 0) await batch.commit();
+  if (saved > 0) {
+    await batch.commit();
+    // Lưu nhận diện trường/GV một lần ở tài liệu nhỏ để báo cáo tự chọn của phụ huynh khỏi phải đọc mọi báo cáo đã công bố chỉ để lấy logo.
+    const branding = reports.map(item => sanitizeBranding((item as { input?: { branding?: unknown } })?.input?.branding)).find(Boolean);
+    if (branding) await context.classRef.collection(PARENT_CONFIG_SUB).doc(PARENT_BRANDING_DOC).set({ ...branding, updatedAt: now });
+  }
   res.status(200).json({ saved, skipped });
 };
 
@@ -157,7 +162,7 @@ const handleUnpublishParentReports = async (db: Db, body: Body, res: VercelRespo
 
 /**
  * Phụ huynh: mã lớp + em + PIN → các báo cáo đã công bố của em (mới nhất trước).
- * Thông báo sai PIN không lộ em nào có PIN hay chưa.
+ * (Chưa cấp PIN trả 409, sai PIN trả 401 — phụ huynh cần biết "nhờ thầy cô cấp mã"; lớp/em không có trả 404.)
  * PIN còn là mã giáo viên cấp (`pinSetBy !== 'parent'`) → `mustChange: true` và CHƯA trả báo cáo nào, tới khi phụ huynh đặt PIN riêng.
  */
 const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -167,14 +172,15 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
   if (!target) return;
   const { classDoc, studentId, studentSnap, secretRef } = target;
   const device = body.device;
-  if (!(await verifyParentPin(secretRef, pin, res, () => recordParentActivity(db, classDoc.ref, studentId, 'wrong', { device })))) return;
-  await recordParentActivity(db, classDoc.ref, studentId, 'login', { device });
+  if (!(await verifyParentPin(db, target, pin, res, { device }))) return;
 
   const studentName = String(studentSnap.data()?.name || '');
   const className = String(classDoc.data().name || '');
   if ((await secretRef.get()).data()?.pinSetBy !== 'parent') {
+    // Mới gõ được mã tạm của thầy cô: chưa tính là "đã vào" (chưa xem gì); lượt vào thật được ghi sau khi đặt PIN riêng.
     return void res.status(200).json({ studentName, className, mustChange: true, reports: [] });
   }
+  await recordParentActivity(db, classDoc.ref, studentId, 'login', { device });
 
   const reports = await classDoc.ref.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get();
   const items = reports.docs
@@ -185,7 +191,7 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
       return { id: d.id, kind: String(data.kind), from: String(data.from), to: String(data.to), title: String(data.title || ''), range: String(data.range || ''), publishedAt: String(data.publishedAt || ''), input };
     })
     .filter(item => item.input)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    .sort(compareParentReports);
   res.status(200).json({ studentName, className, mustChange: false, reports: items });
 };
 
@@ -202,15 +208,15 @@ const handleChangeParentPin = async (db: Db, body: Body, res: VercelResponse): P
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;
   const device = body.device;
-  if (!(await verifyParentPin(target.secretRef, pin, res, () => recordParentActivity(db, target.classDoc.ref, target.studentId, 'wrong', { device })))) return;
+  if (!(await verifyParentPin(db, target, pin, res, { device }))) return;
 
   const now = new Date().toISOString();
-  await target.secretRef.set({ pinHash: hashPin(next), pinPlain: next, pinSetBy: 'parent', pinChangedAt: now, updatedAt: now }, { merge: true });
+  await target.secretRef.set({ pinHash: hashPin(next), pinPlain: next, pinSetBy: 'parent' satisfies ParentPinSetBy, pinChangedAt: now, updatedAt: now }, { merge: true });
   await recordParentActivity(db, target.classDoc.ref, target.studentId, 'pinChanged', { device });
   res.status(200).json({ ok: true });
 };
 
-/** Phụ huynh báo hiệu đang xem (`ping`), mở một báo cáo (`open`, kèm tên) hoặc tải PDF (`pdf`). Cần PIN đã do phụ huynh tự đặt. */
+/** Phụ huynh báo hiệu đang xem (`ping`), mở một báo cáo (`open`, kèm tên) hoặc tải PDF (`pdf`). Cần PIN do phụ huynh TỰ ĐẶT; PIN sai được đếm như mọi đường khác. */
 const handleParentEvent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const pin = body.pin;
   const type = body.type;
@@ -218,9 +224,42 @@ const handleParentEvent = async (db: Db, body: Body, res: VercelResponse): Promi
   if (type !== 'ping' && type !== 'open' && type !== 'pdf') return void res.status(400).json({ error: 'Loại sự kiện không hợp lệ.' });
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;
-  if (!(await verifyParentPin(target.secretRef, pin, res))) return;
+  if (!(await verifyParentPin(db, target, pin, res, { device: body.device, requireParentSet: true }))) return;
   await recordParentActivity(db, target.classDoc.ref, target.studentId, type, { device: body.device, detail: typeof body.detail === 'string' ? body.detail : '' });
   res.status(200).json({ ok: true });
+};
+
+/**
+ * Gỡ dữ liệu cổng phụ huynh khi thu hồi một em (`studentId`) hoặc cả lớp: PIN (kể cả bản đọc được), thống kê + dòng thời gian,
+ * báo cáo đã công bố, và (cả lớp) cấu hình nhận diện. Nếu không gỡ, tạo lại cùng mã học sinh sẽ "sống lại" PIN và báo cáo cũ.
+ */
+export const purgeParentData = async (db: Db, classRef: FirebaseFirestore.DocumentReference, studentId?: string): Promise<number> => {
+  const refs: FirebaseFirestore.DocumentReference[] = [];
+  const pick = (docs: FirebaseFirestore.QueryDocumentSnapshot[]) => docs.forEach(d => refs.push(d.ref));
+  if (studentId) {
+    refs.push(classRef.collection(PARENT_SECRETS_SUB).doc(studentId));
+    refs.push(classRef.collection(PARENT_STATS_SUB).doc(studentId));
+    refs.push(classRef.collection(PARENT_CACHE_SUB).doc(studentId));
+    pick((await classRef.collection(PARENT_STATS_SUB).doc(studentId).collection('events').get()).docs);
+    pick((await classRef.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get()).docs);
+  } else {
+    pick((await classRef.collection(PARENT_SECRETS_SUB).get()).docs);
+    pick((await classRef.collection(PARENT_REPORTS_SUB).get()).docs);
+    pick((await classRef.collection(PARENT_CONFIG_SUB).get()).docs);
+    pick((await classRef.collection(PARENT_CACHE_SUB).get()).docs);
+    const stats = await classRef.collection(PARENT_STATS_SUB).get();
+    for (const stat of stats.docs) pick((await stat.ref.collection('events').get()).docs);
+    pick(stats.docs);
+  }
+  let batch = db.batch();
+  let pending = 0;
+  for (const ref of refs) {
+    batch.delete(ref);
+    pending += 1;
+    if (pending >= 400) { await batch.commit(); batch = db.batch(); pending = 0; }
+  }
+  if (pending > 0) await batch.commit();
+  return refs.length;
 };
 
 export const handleParentPortalAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {

@@ -11,14 +11,27 @@ const deviceKind = (): ParentDevice => {
   return agent ? (/Mobi|Android|iPhone|iPad/i.test(agent) ? 'mobile' : 'desktop') : 'khac';
 };
 
+/** Lỗi từ máy chủ kèm mã trạng thái, để trang biết khi PIN đã bị đổi/đặt lại (401/403/409). */
+export class ParentApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = 'ParentApiError';
+  }
+}
+
 const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
-  const res = await fetch('/api/classroom', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...payload, device: deviceKind() }),
-  });
+  let res: Response;
+  try {
+    res = await fetch('/api/classroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, device: deviceKind() }),
+    });
+  } catch {
+    throw new ParentApiError('Không kết nối được máy chủ. Hãy kiểm tra mạng rồi thử lại.', 0);
+  }
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new ParentApiError(data?.error || `Máy chủ đang bận (mã ${res.status}). Vui lòng thử lại sau ít phút.`, res.status);
   return data as T;
 };
 
@@ -50,7 +63,13 @@ export const changeParentPin = (joinCode: string, studentId: string, pin: string
 export const fetchParentCustomReport = (joinCode: string, studentId: string, pin: string, from: string, to: string): Promise<{ input: ParentReportPrintInput }> =>
   call<{ input: ParentReportPrintInput }>({ action: 'parentCustomReport', joinCode, studentId, pin, from, to });
 
-/** Báo cho thầy cô biết phụ huynh đang xem (`ping`), đã mở báo cáo (`open`) hoặc tải PDF (`pdf`). Lỗi thì bỏ qua — không làm phiền phụ huynh. */
-export const sendParentEvent = (joinCode: string, studentId: string, pin: string, type: 'ping' | 'open' | 'pdf', detail = ''): Promise<unknown> =>
-  call<{ ok: true }>({ action: 'parentEvent', joinCode, studentId, pin, type, detail }).catch(() => null);
+/** Báo cho thầy cô biết phụ huynh đang xem (`ping`), đã mở báo cáo (`open`) hoặc tải PDF (`pdf`). Lỗi mạng thì bỏ qua; `denied` = mã PIN không còn đúng. */
+export const sendParentEvent = async (joinCode: string, studentId: string, pin: string, type: 'ping' | 'open' | 'pdf', detail = ''): Promise<'ok' | 'denied' | 'error'> => {
+  try {
+    await call<{ ok: true }>({ action: 'parentEvent', joinCode, studentId, pin, type, detail });
+    return 'ok';
+  } catch (error) {
+    return error instanceof ParentApiError && [401, 403, 404, 409].includes(error.status) ? 'denied' : 'error';
+  }
+};
 

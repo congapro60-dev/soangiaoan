@@ -46,11 +46,12 @@ export const schoolYearStart = (today: string): number => {
 /** Khoảng điền sẵn khi chọn loại báo cáo — giáo viên sửa theo lịch trường mình. */
 export const defaultPeriod = (kind: ReportKind, today: string, month?: string): ReportPeriod => {
   const sy = schoolYearStart(today);
+  if (kind === 'custom') return { kind, from: `${today.slice(0, 8)}01`, to: today };
   if (kind === 'month') {
     const [y, m] = (month && /^\d{4}-\d{2}$/.test(month) ? month : today.slice(0, 7)).split('-').map(Number);
     return { kind, from: `${y}-${pad(m)}-01`, to: `${y}-${pad(m)}-${pad(lastDayOfMonth(y, m))}` };
   }
-  const ranges: Record<Exclude<ReportKind, 'month'>, [string, string]> = {
+  const ranges: Record<Exclude<ReportKind, 'month' | 'custom'>, [string, string]> = {
     gk1: [`${sy}-09-01`, `${sy}-10-31`],
     ck1: [`${sy}-09-01`, `${sy + 1}-01-15`],
     gk2: [`${sy + 1}-01-16`, `${sy + 1}-03-15`],
@@ -61,16 +62,25 @@ export const defaultPeriod = (kind: ReportKind, today: string, month?: string): 
   return { kind, from, to, ...(kind === 'year' ? { hk2From: `${sy + 1}-01-16` } : {}) };
 };
 
+/** Ngày có thật trên lịch (không nhận 2026-13-45 hay 30/02). */
+export const isRealDay = (day: string): boolean => {
+  if (!DAY_RE.test(day)) return false;
+  const [y, m, d] = day.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
+};
+
 export const periodError = (p: ReportPeriod): string | null => {
-  if (!DAY_RE.test(p.from) || !DAY_RE.test(p.to)) return 'Chọn đủ ngày bắt đầu và ngày kết thúc.';
+  if (!isRealDay(p.from) || !isRealDay(p.to)) return 'Chọn đủ ngày bắt đầu và ngày kết thúc (ngày phải có thật trên lịch).';
   if (p.from > p.to) return 'Ngày bắt đầu phải trước ngày kết thúc.';
-  if (p.kind === 'year' && p.hk2From && (!DAY_RE.test(p.hk2From) || p.hk2From <= p.from || p.hk2From > p.to)) {
+  if (p.kind === 'year' && p.hk2From && (!isRealDay(p.hk2From) || p.hk2From <= p.from || p.hk2From > p.to)) {
     return 'Ngày bắt đầu học kì II phải nằm trong năm học.';
   }
   return null;
 };
 
 export const reportTitle = (p: ReportPeriod): string => {
+  if (p.kind === 'custom') return `Báo cáo học tập từ ${dmy(p.from)} đến ${dmy(p.to)}`;
   if (p.kind === 'month') {
     const [y, m] = p.from.split('-');
     return `Báo cáo học tập tháng ${Number(m)}/${y}`;
@@ -168,6 +178,8 @@ export const periodComparison = (period: ReportPeriod, allResults: readonly Pare
     after = side('Học kì II', allResults, period.hk2From, period.to);
   } else {
     const days = Math.round((Date.parse(`${period.to}T00:00:00Z`) - Date.parse(`${period.from}T00:00:00Z`)) / 86_400_000);
+    // Khoảng một ngày không chia được thành hai nửa — bỏ so sánh thay vì in nhãn ngược "Nửa sau (19/09–18/09)".
+    if (days < 1) return null;
     const mid = addDays(period.from, Math.floor(days / 2));
     before = side(`Nửa đầu (${dmy(period.from)}–${dmy(mid)})`, allResults, period.from, mid);
     after = side(`Nửa sau (${dmy(addDays(mid, 1))}–${dmy(period.to)})`, allResults, addDays(mid, 1), period.to);

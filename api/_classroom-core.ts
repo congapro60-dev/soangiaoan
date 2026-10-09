@@ -105,3 +105,27 @@ export const attemptPin = (
     tx.set(secretRef, { ...nextLockState(lock, ok, now), updatedAt: now.toISOString() }, { merge: true });
     return { status: ok ? 'ok' : 'wrong' };
   });
+
+/** Thông báo khi một mã lớp thuộc từ hai lớp: dừng thay vì đoán lớp nào đúng (đoán sai là cho vào nhầm lớp). */
+export const JOIN_CODE_DUPLICATE_MESSAGE = 'Mã lớp này đang bị trùng với một lớp khác nên tạm thời chưa vào được. Vui lòng báo thầy cô để được cấp mã mới.';
+
+export type JoinCodeLookup =
+  | { status: 'ok'; doc: FirebaseFirestore.QueryDocumentSnapshot }
+  | { status: 'none' }
+  | { status: 'duplicate' };
+
+/**
+ * Tìm lớp theo mã. Mỗi mã phải thuộc đúng MỘT lớp: thấy hai lớp trở lên thì trả `duplicate` (và ghi log để chủ dự án sửa)
+ * chứ không lấy bừa lớp đầu tiên.
+ */
+export const lookupClassByJoinCode = async (db: FirebaseFirestore.Firestore, joinCode: string): Promise<JoinCodeLookup> => {
+  if (joinCode.length < 4) return { status: 'none' };
+  const snap = await db.collection('classes').where('joinCode', '==', joinCode).limit(2).get();
+  if (snap.empty) return { status: 'none' };
+  if (snap.docs.length > 1) {
+    console.error(`[joinCode] mã lớp ${joinCode} đang bị dùng chung bởi nhiều lớp: ${snap.docs.map(d => d.id).join(', ')}`);
+    return { status: 'duplicate' };
+  }
+  return { status: 'ok', doc: snap.docs[0] };
+};
+

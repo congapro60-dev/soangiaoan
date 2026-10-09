@@ -21,10 +21,12 @@ import type {
 } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
+  JOIN_CODE_DUPLICATE_MESSAGE,
   attemptPin,
   createPin,
   hashPin,
   isValidPinShape,
+  lookupClassByJoinCode,
   normalizeJoinCode,
 } from './_classroom-core.js';
 import {
@@ -50,7 +52,7 @@ import { handlePortfolioAction } from './_portfolio.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleAdminLinkAction } from './_admin-link.js';
-import { handleParentPortalAction } from './_parent-portal.js';
+import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
 import { handleStudentAiCostAction } from './_student-ai-cost.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
 
@@ -1005,15 +1007,12 @@ const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Rec
   return res.status(200).json({ deleted: true, deletedFiles });
 };
 
-const findClassByJoinCode = async (db: FirebaseFirestore.Firestore, joinCode: string) => {
-  if (joinCode.length < 4) return null;
-  const snap = await db.collection('classes').where('joinCode', '==', joinCode).limit(1).get();
-  return snap.empty ? null : snap.docs[0];
-};
 
 const handleRoster = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const joinCode = normalizeJoinCode(body.joinCode);
-  const classDoc = await findClassByJoinCode(db, joinCode);
+  const lookup = await lookupClassByJoinCode(db, joinCode);
+  if (lookup.status === 'duplicate') return res.status(409).json({ error: JOIN_CODE_DUPLICATE_MESSAGE });
+  const classDoc = lookup.status === 'ok' ? lookup.doc : null;
   if (!classDoc) return res.status(404).json({ error: 'Không tìm thấy lớp với mã này. Kiểm tra lại mã thầy cô cho.' });
 
   const students = await classDoc.ref.collection('students').get();
@@ -1267,7 +1266,9 @@ const handleLogin = async (db: FirebaseFirestore.Firestore, body: Record<string,
 
   const joinCode = normalizeJoinCode(body.joinCode);
   const studentId = typeof body.studentId === 'string' ? body.studentId : '';
-  const classDoc = await findClassByJoinCode(db, joinCode);
+  const lookup = await lookupClassByJoinCode(db, joinCode);
+  if (lookup.status === 'duplicate') return res.status(409).json({ error: JOIN_CODE_DUPLICATE_MESSAGE });
+  const classDoc = lookup.status === 'ok' ? lookup.doc : null;
   if (!classDoc || !studentId) return res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' });
 
   const studentRef = classDoc.ref.collection('students').doc(studentId);
@@ -1437,6 +1438,8 @@ const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: 
   // Firestore delete trên document không tồn tại vẫn thành công — khỏi kiểm exists từng cái.
   await classSnap.ref.collection('students').doc(studentId).delete();
   await classSnap.ref.collection('studentSecrets').doc(studentId).delete();
+  // PIN phụ huynh (bản đọc được), thống kê và báo cáo đã công bố của em này cũng phải đi theo.
+  await purgeParentData(db, classSnap.ref, studentId);
   // Đếm LẠI sĩ số từ danh sách thật (trước đây xoá không trừ, sĩ số lệch dần — vd 12LoTrinh1 hiện 9, thật 8).
   const remaining = await classSnap.ref.collection('students').get();
   await classSnap.ref.update({ studentCount: remaining.size, updatedAt: new Date().toISOString() });
@@ -1497,6 +1500,8 @@ const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<s
   for (const d of links.docs) { await xoa(d.ref); revokedLinks += 1; }
   await xoa(classSnap.ref);
   if (pending > 0) await batch.commit();
+  // Dữ liệu cổng phụ huynh của cả lớp (PIN đọc được, báo cáo đã công bố, thống kê).
+  await purgeParentData(db, classSnap.ref);
 
   return res.status(200).json({
     revoked: true,

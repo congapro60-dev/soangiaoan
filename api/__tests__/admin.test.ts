@@ -119,6 +119,14 @@ describe('trang quản trị', () => {
     expect(res.payload?.aiEventsAfter).toEqual({ 'gv-hanh': 1 });
     const lop = (res.payload?.classes as DocData[]).find(c => c.id === 'lop-1');
     expect(lop).toMatchObject({ assignmentCount: 1, submissionCount: 1, gradedCount: 1 });
+    expect(res.payload?.duplicateJoinCodes).toEqual([]);
+  });
+
+  it('tổng quan báo mã lớp bị dùng chung bởi hai lớp (mỗi link phải có mã riêng)', async () => {
+    h.store.classes['lop-1'].joinCode = 'ABCD23';
+    h.store.classes['lop-2'] = { name: 'Lớp trùng', teacherId: 'gv-hanh', joinCode: ' abcd23' };
+    const res = await call({ action: 'adminOverview' });
+    expect(res.payload?.duplicateJoinCodes).toMatchObject([{ code: 'ABCD23', classes: [{ id: 'lop-1' }, { id: 'lop-2' }] }]);
   });
 
   it('tiền theo giáo viên: lượt học sinh ẩn danh tính cho GV chủ lớp, chỉ trong khoảng ngày', async () => {

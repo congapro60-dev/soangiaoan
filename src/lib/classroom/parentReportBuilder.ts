@@ -7,7 +7,7 @@ import type { StudentScoreView } from './scoreBook.js';
 import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport.js';
 import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements.js';
 import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes.js';
-import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel.js';
+import { buildStudentCompetencyPortfolio } from './competency/portfolioModel.js';
 import { asCompetencyGrade } from './competency/framework.js';
 import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage.js';
 import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod.js';
@@ -164,20 +164,22 @@ const round1 = (value: number | null): number | null => (value === null ? null :
 /** `period` null = báo cáo chung từ đầu năm như trước. */
 /** `today` (yyyy-mm-dd, giờ VN) để biết kì đã kết thúc chưa — mặc định hôm nay. */
 export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null, today = vnDay(new Date().toISOString())): PeriodParentReport => {
+  // Bài giao riêng cho nhóm khác (targetStudentIds) không phải của em này — không tính "chưa nộp".
+  const assignments = src.assignments.filter(a => !a.targetStudentIds?.length || a.targetStudentIds.includes(src.studentId));
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
-    ? filterForPeriod(period, { assignments: src.assignments, submissions: src.submissions, hs1: hs1All })
-    : { assignments: [...src.assignments], submissions: [...src.submissions], hs1: hs1All };
+    ? filterForPeriod(period, { assignments, submissions: src.submissions, hs1: hs1All })
+    : { assignments: [...assignments], submissions: [...src.submissions], hs1: hs1All };
   // Bài kiểm tra định kì: điểm chính thức đã ở "Điểm thi định kì" (sổ điểm) → không cộng vào số liệu BTVN
   // (điểm TB, xu hướng, từng bài, chưa nộp) và hồ sơ năng lực; chỉ làm căn cứ từng câu cho "Bản đồ theo bài SGK".
-  const periodicIds = new Set(src.assignments.filter(a => a.periodicTest).map(a => a.id));
+  const periodicIds = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
   const homework = <T extends { assignments: readonly AssignmentDoc[]; submissions: readonly SubmissionDoc[] }>(data: T) => ({
     assignments: data.assignments.filter(a => !periodicIds.has(a.id)),
     submissions: data.submissions.filter(s => !s.assignmentId || !periodicIds.has(s.assignmentId)),
   });
   const scopedHomework = homework(scoped);
-  const allHomework = homework(src);
+  const allHomework = homework({ assignments, submissions: src.submissions });
   const report = buildParentSafeReport({ ...base, ...scopedHomework });
 
   let comparison = null;

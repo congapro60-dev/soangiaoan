@@ -391,7 +391,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.teacherActions.map(step => <li key={step}>{step}</li>)}</ul>
           </div>
         </div>
-        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bản này chỉ sử dụng kết quả đã được thầy cô xem và duyệt. Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
+        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
         <button type="button" onClick={inBaoCaoPhuHuynh} disabled={dangXuatPdf} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"><Printer className="h-4 w-4" /> {dangXuatPdf ? 'Đang tạo PDF…' : 'Tải PDF bản phụ huynh'}</button>
       </div>
     );

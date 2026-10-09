@@ -110,6 +110,21 @@ export const AdminTab = () => {
       {notice && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{notice}</p>}
       {!overview && busy === 'overview' && <p className="py-10 text-center text-sm font-semibold text-slate-400">Đang tải dữ liệu quản trị…</p>}
 
+      {overview && (overview.duplicateJoinCodes?.length ?? 0) > 0 && (
+        <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          <p className="font-black">Có mã lớp bị dùng chung — học sinh/phụ huynh của các lớp này đang KHÔNG vào được cổng (máy chủ từ chối thay vì đoán lớp).</p>
+          <ul className="mt-1 list-disc pl-5 text-xs">
+            {overview.duplicateJoinCodes.map(item => (
+              <li key={item.code}><b>{item.code}</b>: {item.classes.map(cls => `${cls.name || cls.id} (${labelOf(cls.teacherId)})`).join(' · ')}</li>
+            ))}
+          </ul>
+          <p className="mt-1 text-xs">Cần đổi mã của một trong các lớp trên (nhắn tôi — Claude — để đổi), rồi gửi lại link mới cho lớp đó.</p>
+        </div>
+      )}
+      {overview && (overview.duplicateJoinCodes?.length ?? 0) === 0 && (
+        <p className="text-[11px] font-semibold text-emerald-700">Mã lớp: đã kiểm {overview.classes.length} lớp, không có mã nào bị dùng chung.</p>
+      )}
+
       {overview && (
         <>
           {/* 1. Người dùng */}
