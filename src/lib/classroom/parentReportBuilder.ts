@@ -223,7 +223,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     canRenThem: report.areasToPractice.slice(0, 6),
     ...(comparison ? { soSanh: { truoc: { ...comparison.before, avgPercent: round1(comparison.before.avgPercent) }, sau: { ...comparison.after, avgPercent: round1(comparison.after.avgPercent) } } } : {}),
     ...(exams && (exams.moet.length > 0 || exams.tds.length > 0) ? { diemThiDinhKi: [...exams.moet.map(m => `${m.label}: ${m.score}/10`), ...exams.tds.map(m => `${m.label}: ${m.score}${m.letter ? ` (${m.letter})` : ''}`)] } : {}),
-    ...(scoped.hs1.length > 0 ? { diemHeSo1: scoped.hs1.map(m => `${m.label}: ${m.score}/10`) } : {}),
+    ...(scoped.hs1.length > 0 ? { diemHeSo1: scoped.hs1.map(m => `${m.label} (HS${m.weight ?? 1}): ${m.score}/10`) } : {}),
     ...(competency && competency.items.length > 0 ? { nangLuc: competency.items.slice(0, 12).map(i => `${i.topic}: ${i.level}`) } : {}),
   };
 

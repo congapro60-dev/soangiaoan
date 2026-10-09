@@ -105,7 +105,7 @@ describe('buildParentReportPrintDoc', () => {
       hs1: [{ label: 'KT 15 phút lần 1', date: '2026-09-20', score: 8 }, { label: 'Miệng', date: '2026-09-22', score: 9.5 }],
     });
     expect(html).toContain('Điểm kiểm tra &amp; thi định kì');
-    expect(html).toContain('Điểm hệ số 1 trên lớp (thang 10) · TB 8.75');
+    expect(html).toContain('Điểm trên lớp (thang 10, có hệ số) · TB 8.75');
     expect(html).toContain('KT 15 phút lần 1');
     expect(html).toContain('20/09/2026');
     expect(html).toContain('9.5/10');

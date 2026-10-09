@@ -420,6 +420,18 @@ export const StudentPortalPage = () => {
     void taiDuLieu();
   }, [stage, phien, taiDuLieu]);
 
+  // Bảng điểm tự cập nhật khi thầy cô chấm xong bài hoặc em nộp bài: làm mới riêng bảng điểm (nhẹ) mỗi 30 giây khi tab đang mở.
+  useEffect(() => {
+    if (stage !== 'dashboard' || !phien) return undefined;
+    const lamMoi = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchStudentScoreBook().then(setScores).catch(() => { /* giữ bảng điểm đang hiện */ });
+    };
+    const timer = window.setInterval(lamMoi, 30_000);
+    document.addEventListener('visibilitychange', lamMoi);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', lamMoi); };
+  }, [stage, phien]);
+
   useEffect(() => {
     if (!choBaiId) return undefined;
     const batDau = Date.now();

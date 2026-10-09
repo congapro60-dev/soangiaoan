@@ -269,7 +269,7 @@ const ddmm = (isoDay: string): string => {
   return d && m && y ? `${d}/${m}/${y}` : isoDay;
 };
 
-/** Mục điểm kiểm tra/thi: MOET (thang 10) + TDS (điểm quý kèm điểm chữ) + hệ số 1 (thang 10, có TB). */
+/** Mục điểm kiểm tra/thi: MOET (thang 10) + TDS (điểm quý kèm điểm chữ) + điểm trên lớp có hệ số (thang 10, có TB). */
 const buildExamSection = (exams: StudentExamScores, hs1: readonly Hs1Mark[]): string => {
   const blocks: string[] = [];
   if (exams.moet.length > 0) {
@@ -283,9 +283,9 @@ const buildExamSection = (exams: StudentExamScores, hs1: readonly Hs1Mark[]): st
     blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm theo quý (hệ TDS)</p>${rows}</div>`);
   }
   if (hs1.length > 0) {
-    const rows = hs1.map(mark => scale10Row(mark.label, mark.score, ddmm(mark.date))).join('');
+    const rows = hs1.map(mark => scale10Row(mark.label, mark.score, `${ddmm(mark.date)} · HS${mark.weight ?? 1}`)).join('');
     const avg = hs1Average(hs1);
-    blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm hệ số 1 trên lớp (thang 10)${avg === null ? '' : ` · TB ${esc(fmtScore(avg))}`}</p>${rows}</div>`);
+    blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm trên lớp (thang 10, có hệ số)${avg === null ? '' : ` · TB ${esc(fmtScore(avg))}`}</p>${rows}</div>`);
   }
   return `<div class="exam-wrap">${blocks.join('')}</div>`;
 };

@@ -262,9 +262,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             )}
             {hs1HienThi.length > 0 && (
               <div>
-                <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(hs1HienThi)}</p>
+                <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm có hệ số (thang 10) · TB {hs1Average(hs1HienThi)}</p>
                 <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                  {hs1HienThi.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                  {hs1HienThi.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label} <span className="text-[11px] font-semibold text-slate-400">HS{mark.weight ?? 1}</span></span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
                 </ul>
               </div>
             )}

@@ -1,6 +1,6 @@
 # Sổ điểm: đưa bài HS đã nộp lên sổ với hệ số 1/2/3
 
-Trạng thái: CHỜ DUYỆT KẾ HOẠCH (chưa viết code).
+Trạng thái: XONG (đã duyệt giả định ngày 2026-10-09; xem mục Kết quả).
 
 ## Hiện trạng (đã đọc code)
 - `src/lib/classroom/scoreBook.ts`: cột HS1 chỉ có `{id,label,date}`; điểm gõ tay `hs1[studentId][columnId]`; TB = trung bình cộng thường.
@@ -27,7 +27,15 @@ Cột sổ điểm có thêm 2 trường (tương thích ngược: thiếu = nh�
 4. [ ] `ScoreBookPanel`: nút "Đưa bài đã nộp lên sổ" (chọn bài → chọn hệ số → xem trước điểm cả lớp → lưu); đổi hệ số / ghi đè ô / gỡ liên kết; cột liên kết có biểu tượng móc xích → verify: chạy app, thao tác thật
 5. [ ] `npm run build` không lỗi TS; ghi bài học vào `tasks/lessons.md` nếu có sai sót.
 
-## Câu hỏi còn mở (đã đặt giả định)
-- Bài nộp lại nhiều lần: lấy bản mới nhất đã duyệt (giả định).
-- Điểm HS tự chấm bằng AI (`student_ai`) không vào sổ chính thức (giả định).
-- Điểm định kì MOET/TDS từ Google Sheet: giữ riêng, không trộn vào TB hệ số (giả định).
+## Quyết định đã chốt với giáo viên
+- Bài nộp lại nhiều lần: lấy lượt nộp mới nhất có điểm.
+- Mọi điểm đã chấm đều vào sổ, không phân biệt ai duyệt (giáo viên tự sửa sau nếu chấm lại).
+- Điểm MOET từ Google Sheet: giáo viên chọn hệ số (Không tính / HS1–3) cho từng mốc; mốc chọn hệ số vào TB. TDS giữ riêng (thang trường không phải thang 10).
+- Thêm 2 cột tự tính: Chuyên cần (tỉ lệ bài đã nộp × 10, làm tròn 1 số lẻ) và TB mọi BTVN. Hai cột này chỉ hiển thị, không vào TB có hệ số.
+- Bài tính vào chuyên cần: bài không phải kiểm tra định kì, đã đến hạn (hoặc không hạn thì sau 24 giờ), hoặc em đã nộp.
+
+## Kết quả
+- Test: 254 file / 2791 test qua; `tsc` (app + api) sạch; `npm run build` qua.
+- Kiểm bằng trình duyệt thật (puppeteer, máy chủ giả): chọn bài + hệ số, TB có hệ số = 6.57 khớp tính tay, bài mới nộp tự hiện sau lần làm mới.
+- "Real-time" = làm mới ngầm mỗi 30 giây khi tab đang mở (giáo viên: sổ điểm; học sinh: bảng điểm) và ngay khi quay lại tab. Không dùng listener Firestore vì mỗi lần tính phải đọc cả lớp (tốn lượt đọc).
+- Chưa kiểm trên Firestore thật (chỉ giả lập) — cần thử một lớp thật sau khi triển khai.

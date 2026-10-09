@@ -8,7 +8,7 @@ import type {
 } from './types';
 import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
 import type { StudentExamScores } from './examScores';
-import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
+import { normalizeScoreBook, type Hs1Weight, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 import type { ParentRequirementLine } from './parentRequirements';
 import type { ParentActivityEvent, ParentActivityRow, PublishedParentGroup } from './parentAccess';
@@ -123,10 +123,25 @@ export const loadScoreBook = async (classId: string): Promise<ScoreBookDoc> => {
 export const saveHs1Column = async (
   classId: string,
   columnId: string | null,
-  column: { label: string; date: string },
+  column: { label: string; date: string; weight?: Hs1Weight },
   scores: Record<string, string>,
 ): Promise<ScoreBookDoc> => {
   const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveHs1Column', classId, columnId, column, scores });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Đưa các bài giao lên sổ thành cột liên kết sống; bài đã có cột thì chỉ đổi hệ số. */
+export const linkAssignmentColumns = async (
+  classId: string,
+  items: Array<{ assignmentId: string; weight: Hs1Weight }>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'linkAssignments', classId, items });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Chọn hệ số cho các mốc thi MOET (mốc vắng trong `weights` = không tính vào điểm trung bình). */
+export const saveExamWeights = async (classId: string, weights: Record<string, Hs1Weight>): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'setExamWeights', classId, weights });
   return normalizeScoreBook(classId, scoreBook);
 };
 

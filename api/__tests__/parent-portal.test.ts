@@ -28,6 +28,7 @@ const snapOf = (path: string, id: string): Record<string, any> => {
 
 const queryOf = (path: string, filter?: (data: DocData) => boolean, order?: { field: string; dir: string }, max?: number): Record<string, any> => ({
   where: (field: string, _op: string, value: unknown) => queryOf(path, data => data[field] === value && (!filter || filter(data)), order, max),
+  select: () => queryOf(path, filter, order, max),
   orderBy: (field: string, dir = 'asc') => queryOf(path, filter, { field, dir }, max),
   limit: (n: number) => queryOf(path, filter, order, n),
   get: async () => {

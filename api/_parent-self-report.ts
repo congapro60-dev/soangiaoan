@@ -10,7 +10,7 @@ import { buildPeriodParentReport } from '../src/lib/classroom/parentReportBuilde
 import { dmy, periodError, type ReportPeriod } from '../src/lib/classroom/reportPeriod.js';
 import { studentScoreView } from '../src/lib/classroom/scoreBook.js';
 import { loadStudentRecordsForClass } from './_classroom-teacher.js';
-import { readBook } from './_score-book.js';
+import { readBookWithAuto } from './_score-book.js';
 import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
 import { recordParentActivity } from './_parent-activity.js';
 
@@ -79,7 +79,7 @@ export const handleParentCustomReport = async (db: Db, body: Body, res: VercelRe
   const student = studentSnap.data() || {};
   const [records, book, profileSnap, branding] = await Promise.all([
     loadStudentRecordsForClass(db, classDoc.id, classData, studentId),
-    readBook(db, classDoc.id),
+    readBookWithAuto(db, classDoc.id, { studentIds: [studentId], onlyStudent: studentId }),
     db.collection(STUDENT_PROFILES_COL).doc(studentId).get(),
     brandingFor(classDoc.ref, studentId),
   ]);
