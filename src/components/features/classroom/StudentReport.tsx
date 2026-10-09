@@ -22,6 +22,8 @@ import { stageForPeriod } from '../../../lib/classroom/reportStage';
 import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
 import { RequirementLinesEditor } from './RequirementLinesEditor';
 import { ReportOverridesEditor } from './ReportOverridesEditor';
+import { groupResultsByWeek, weekTitle, type WeekGroup } from '../../../lib/classroom/reportWeeks';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
 import { applyReportOverrides, overriddenKeys, type ReportOverrides } from '../../../lib/classroom/reportOverrides';
 
 interface Props {
@@ -60,6 +62,14 @@ const parentLevelBadge: Record<CompetencyLevel, string> = {
 
 const parentScore = (score: number | null, maxScore: number | null): string => (
   score === null || maxScore === null ? '—' : `${score}/${maxScore}`
+);
+
+/** Tiêu đề một tuần học: "Tuần 5 · 28/9 – 4/10" + số bài đã có kết quả. Mỗi cụm là một khối, không ngắt giữa chừng. */
+const WeekHeading = ({ group }: { group: WeekGroup }) => (
+  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b-2 border-slate-200 pb-1 pt-2">
+    <p className="whitespace-nowrap text-xs font-black text-indigo-700">{weekTitle(group)}</p>
+    <p className="whitespace-nowrap text-[11px] font-bold text-slate-500">{group.officialCount}/{group.results.length} bài đã có kết quả</p>
+  </div>
 );
 
 const KpiGrid = ({ items }: { items: { label: string; value: string }[] }) => (
@@ -130,7 +140,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     studentId, studentName, className, studentCode, classGrade, program: effectiveClassProgram(classId, className), assignments, submissions, profile, scoreView: soDiem,
   }, forAdult ? kyHopLe : null), [classId, studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
   // Mọi nơi bên dưới (màn hình, PDF) đọc bản đã áp chỉnh tay; `baoCaoPH.printInput` là bản tự động để so và "về bản tự động".
-  const inputHienThi = useMemo(() => applyReportOverrides(baoCaoPH.printInput, chinhTay), [baoCaoPH, chinhTay]);
+  // Tuần học đánh số theo Lịch dạy của giáo viên (lưu trên trình duyệt này); chưa có thì chỉ ghi khoảng ngày của tuần.
+  const weekPlan = useMemo(() => weekPlanFor(teacherId, className), [teacherId, className]);
+  const inputHienThi = useMemo(() => ({ ...applyReportOverrides(baoCaoPH.printInput, chinhTay), weekPlan }), [baoCaoPH, chinhTay, weekPlan]);
   const parentReport = inputHienThi.report;
   const parentCompetency = inputHienThi.competency ?? null;
   const hs1HienThi = inputHienThi.hs1 ?? [];
@@ -199,6 +211,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
     { label: 'Chưa nộp', value: String(parentReport.missingCount) },
   ];
+  // "Bài đã chấm" chia theo tuần học: theo hạn nộp của bài giao, bài tự nộp (không có hạn) theo ngày nộp.
+  const hanBai = new Map(assignments.map(a => [a.id, a.dueAt]));
+  const daChamTheoId = new Map(model.gradedSubmissions.map(s => [s.id, s]));
+  const nhomDaCham = groupResultsByWeek(model.gradedSubmissions.map(s => ({
+    assignmentId: s.id, title: '', status: 'official' as const, score: s.grade?.score ?? null, maxScore: s.grade?.maxScore ?? null,
+    submittedAt: s.createdAt, ...(s.assignmentId && hanBai.get(s.assignmentId) ? { dueAt: hanBai.get(s.assignmentId) } : {}),
+  })), weekPlan);
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
   const competencyGrade = asCompetencyGrade(classGrade);
@@ -412,10 +431,15 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         <div className="rounded-2xl border border-slate-100 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="text-sm font-black text-slate-900">Kết quả theo bài</p><span className="text-xs font-semibold text-slate-500">Xu hướng: {parentReport.progress.trend === 'up' ? 'Tiến bộ' : parentReport.progress.trend === 'down' ? 'Cần theo dõi' : parentReport.progress.trend === 'flat' ? 'Ổn định' : 'Chưa đủ dữ liệu'}</span></div>
           <div className="mt-3 space-y-2">
-            {parentReport.results.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có bài được ghi nhận.</p> : parentReport.results.map(result => (
-              <div key={result.assignmentId} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div><p className="text-sm font-black text-slate-800">{result.title}</p><p className="text-xs font-semibold text-slate-500">{parentStatusLabel[result.status]}</p></div>
-                <span className="text-sm font-black text-slate-800">{parentScore(result.score, result.maxScore)}</span>
+            {parentReport.results.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có bài được ghi nhận.</p> : groupResultsByWeek(parentReport.results, weekPlan).map(group => (
+              <div key={group.monday || 'khong-ngay'} className="space-y-2">
+                {(group.monday !== '' || parentReport.results.length !== group.results.length) && <WeekHeading group={group} />}
+                {group.results.map(result => (
+                  <div key={result.assignmentId} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div><p className="text-sm font-black text-slate-800">{result.title}</p><p className="text-xs font-semibold text-slate-500">{parentStatusLabel[result.status]}</p></div>
+                    <span className="text-sm font-black text-slate-800">{parentScore(result.score, result.maxScore)}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -453,7 +477,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
               Chưa có bài nào được chấm.
             </p>
-          ) : model.gradedSubmissions.map(s => (
+          ) : nhomDaCham.map(group => (
+            <div key={group.monday || 'khong-ngay'} className="space-y-2">
+              <WeekHeading group={group} />
+              {group.results.map(item => {
+                const s = daChamTheoId.get(item.assignmentId);
+                if (!s) return null;
+                return (
             <div key={s.id} className="rounded-2xl border border-slate-100 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-black text-slate-900">{s.grade?.score} / {s.grade?.maxScore}</span>
@@ -470,6 +500,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
               {forAdult && s.grade?.noteForTeacher && (
                 <p className="mt-1 text-xs font-semibold italic leading-5 text-slate-500">Ghi chú: {s.grade.noteForTeacher}</p>
               )}
+            </div>
+                );
+              })}
             </div>
           ))}
         </div>

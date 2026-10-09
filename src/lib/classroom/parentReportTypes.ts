@@ -5,6 +5,7 @@ import type { StudentExamScores } from './examScores.js';
 import type { Hs1Mark } from './scoreBook.js';
 import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod.js';
 import type { ParentRequirementLine } from './parentRequirements.js';
+import type { WeekPlan } from './reportWeeks.js';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
 export interface ParentCompetencyItem {
@@ -45,6 +46,8 @@ export interface ParentReportPrintInput {
   teacherComment?: string;
   /** Kết quả theo yêu cầu cần đạt (giáo viên đã soát). Có thì thay cho danh sách "Điểm mạnh / Cần rèn thêm". */
   requirements?: ParentRequirementLine[] | null;
+  /** Lịch dạy của giáo viên (tuần 1, tuần nghỉ) để chia "Kết quả theo bài" thành tuần học; vắng thì chia theo khoảng ngày. */
+  weekPlan?: WeekPlan | null;
   /** Nhận diện trường/giáo viên ở đầu báo cáo; vắng thì chỉ hiện tiêu đề báo cáo. */
   branding?: { schoolName?: string; teacherName?: string; /** data URL png/jpeg/webp của logo trường */ logoDataUrl?: string } | null;
 }

@@ -5,6 +5,7 @@ import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
 import type { MonthPoint, PeriodComparison } from './reportPeriod';
+import { groupResultsByWeek, weekTitle } from './reportWeeks';
 import { heroSvg, safeLogoDataUrl, sectionIcon, strandIcon, type SectionIconName } from './parentReportArt';
 import {
   buildLessonMap, groupLessonsByChapter, groupLessonsByStrand, groupRequirementLines, lessonPriorities, MIN_REQUIREMENT_EVIDENCE, parentActionsForRequirements, requirementLevelLabel,
@@ -327,18 +328,35 @@ const buildExamSection = (exams: StudentExamScores, hs1: readonly Hs1Mark[]): st
   return `<div class="exam-wrap">${blocks.join('')}</div>`;
 };
 
-/** Mỗi bài một hàng theo phong cách phiếu điểm IB: tên đậm trái · điểm phải · thanh mức bên dưới. */
-const buildSubjectRows = (results: ParentSafeReport['results']): string => {
-  if (results.length === 0) return '<p class="muted">Chưa có bài được ghi nhận.</p>';
-  return results.map(r => {
-    const official = r.status === 'official' && r.score !== null && r.maxScore !== null && r.maxScore > 0;
-    if (official) {
-      const pct = Math.round((r.score as number) / (r.maxScore as number) * 100);
-      const band = scoreBand(pct);
-      return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:${band.color}"></span>${esc(r.title)}</div><div class="subj-grade" style="color:${band.color}">${r.score}/${r.maxScore}</div></div><div class="subj-bar"><span style="width:${pct}%;background:${band.color}"></span></div></div>`;
-    }
-    return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:#cbd5e1"></span>${esc(r.title)}</div><div class="subj-status">${esc(STATUS_LABEL[r.status])}</div></div></div>`;
-  }).join('');
+/** Một bài: tên đậm trái · điểm phải · thanh mức bên dưới (phong cách phiếu điểm IB). */
+const subjectRow = (r: ParentSafeReport['results'][number]): string => {
+  const official = r.status === 'official' && r.score !== null && r.maxScore !== null && r.maxScore > 0;
+  if (official) {
+    const pct = Math.round((r.score as number) / (r.maxScore as number) * 100);
+    const band = scoreBand(pct);
+    return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:${band.color}"></span>${esc(r.title)}</div><div class="subj-grade" style="color:${band.color}">${r.score}/${r.maxScore}</div></div><div class="subj-bar"><span style="width:${pct}%;background:${band.color}"></span></div></div>`;
+  }
+  return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:#cbd5e1"></span>${esc(r.title)}</div><div class="subj-status">${esc(STATUS_LABEL[r.status])}</div></div></div>`;
+};
+
+/**
+ * Kết quả từng bài, chia theo TUẦN HỌC (tuần mới nhất trước; số tuần theo Lịch dạy của giáo viên nếu có).
+ * Trả về [phần đầu: tiêu đề tuần + bài đầu — đi cùng tiêu đề mục, phần còn lại]. Tiêu đề mỗi tuần luôn đi cùng bài đầu của tuần.
+ */
+const buildSubjectBlocks = (results: ParentSafeReport['results'], plan: ParentReportPrintInput['weekPlan']): [string, string] => {
+  if (results.length === 0) return ['<p class="muted">Chưa có bài được ghi nhận.</p>', ''];
+  const weeks = groupResultsByWeek(results, plan);
+  const head = (group: (typeof weeks)[number]) => `<div class="wk-head"><span class="wk-t">${esc(weekTitle(group))}</span><span class="wk-n nw">${group.officialCount}/${group.results.length}&nbsp;bài đã có kết quả</span></div>`;
+  // Mọi bài đều không có ngày (bản ghi rất cũ) → không chia tuần.
+  if (weeks.length === 1 && weeks[0].monday === '') {
+    const rows = weeks[0].results.map(subjectRow);
+    return [rows[0], rows.slice(1).join('')];
+  }
+  const blocks = weeks.map(group => {
+    const rows = group.results.map(subjectRow);
+    return { keep: `<div class="wk-keep">${head(group)}${rows[0]}</div>`, rest: rows.slice(1).join('') };
+  });
+  return [blocks[0].keep, blocks[0].rest + blocks.slice(1).map(block => block.keep + block.rest).join('')];
 };
 
 /** Hai cột so sánh điểm trung bình (trước → sau) + câu kết luận tăng/giảm. */
@@ -440,6 +458,9 @@ const printStyle = `
 #${ROOT_ID} .subj-name .dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
 #${ROOT_ID} .subj-grade { font-weight:800; font-size:17px; white-space:nowrap; }
 #${ROOT_ID} .subj-status { font-size:11.5px; font-weight:700; color:#64748b; background:#f1f5f9; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+#${ROOT_ID} .wk-head { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:2px 12px; margin:14px 0 8px; padding-bottom:5px; border-bottom:2px solid #e2e8f0; }
+#${ROOT_ID} .wk-t { font-size:13px; font-weight:800; color:#4338ca; }
+#${ROOT_ID} .wk-n { font-size:11.5px; font-weight:700; color:#64748b; }
 #${ROOT_ID} .subj-bar { margin-top:8px; height:7px; border-radius:4px; background:#eef2f7; overflow:hidden; }
 #${ROOT_ID} .subj-bar > span { display:block; height:100%; }
 #${ROOT_ID} .exam-wrap { display:flex; flex-wrap:wrap; gap:14px; }
@@ -562,6 +583,7 @@ const webStyle = `
 #${ROOT_ID} .lm-st-n { font-size:14.5px; flex-basis:100px; } #${ROOT_ID} .lm-st-v, #${ROOT_ID} .lm-chap-sum { font-size:13px; } #${ROOT_ID} .lm-chap-name { font-size:16.5px; } #${ROOT_ID} .lm-chap-code, #${ROOT_ID} .lm-chip, #${ROOT_ID} .lm-tap { font-size:12.5px; }
 #${ROOT_ID} .lm-name { font-size:16.5px; } #${ROOT_ID} .lm-note, #${ROOT_ID} .lm-pri li { font-size:15px; } #${ROOT_ID} .lm-pri-p { font-size:14.5px; }
 #${ROOT_ID} .lm-sub, #${ROOT_ID} .lm-meta, #${ROOT_ID} .lm-foot { font-size:13px; } #${ROOT_ID} .lm-legend li { font-size:13.5px; } #${ROOT_ID} .lm-bai, #${ROOT_ID} .lm-lv { font-size:12.5px; }
+#${ROOT_ID} .wk-t { font-size:15px; } #${ROOT_ID} .wk-n { font-size:12.5px; }
 #${ROOT_ID} .lm-card { padding:12px 16px; gap:7px; border-radius:12px; } #${ROOT_ID} .lm-grid { gap:12px; } #${ROOT_ID} .lm-more { margin-top:12px; }
 @media (max-width: 640px) {
   #${ROOT_ID} .lm-legend { flex-direction:column; gap:6px; }
@@ -583,7 +605,7 @@ const styleBlock = (variant: ParentReportVariant): string => (variant === 'web' 
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
 export const buildParentReportPrintDoc = (
-  { report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements, branding }: ParentReportPrintInput,
+  { report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements, branding, weekPlan }: ParentReportPrintInput,
   variant: ParentReportVariant = 'print',
 ): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
@@ -674,9 +696,8 @@ ${hasCompetency ? section('Năng lực Toán học', buildCompetencySection(comp
 
 ${(() => {
     // Danh sách bài có thể dài hơn một trang: chỉ giữ tiêu đề đi cùng bài ĐẦU, phần còn lại chảy tự nhiên.
-    const rows = buildSubjectRows(report.results);
-    const cut = rows.indexOf('<div class="subject">', 1);
-    return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
+    const [first, rest] = buildSubjectBlocks(report.results, weekPlan);
+    return section('Kết quả từng bài', first, rest);
   })()}
 
 <div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
@@ -749,7 +770,7 @@ export async function exportParentReportToPdf(input: ParentReportPrintInput, out
       output,
       filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row', '.lm-card', '.lm-pri', '.lm-legend', '.lm-keep', '.lm-st'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row', '.lm-card', '.lm-pri', '.lm-legend', '.lm-keep', '.lm-st', '.wk-keep'],
       // Số trang không được đè nội dung: lề dưới 20mm, số trang cách mép 6mm (chữ cao ~4.5mm, tới 10.5mm),
       // trang chỉ được giãn thêm 8mm (20−12) — nội dung luôn dừng cách mép ≥ 12mm.
       marginMm: [15, 12, PDF_BOTTOM_MARGIN_MM, 12],

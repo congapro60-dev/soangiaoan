@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { FileArchive, ImagePlus, Loader2, Send, X } from 'lucide-react';
-import { db } from '../../../lib/firebase';
+import { auth, db } from '../../../lib/firebase';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishParentReports, saveParentReportNote } from '../../../lib/classroom/teacherService';
@@ -70,6 +71,8 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
         listSubmissionsForClass(classId, ''),
         loadScoreBook(classId).catch(() => null),
       ]);
+      // Tuần học đánh số theo Lịch dạy của giáo viên (lưu trên trình duyệt này) — đi cùng báo cáo khi công bố.
+      const weekPlan = weekPlanFor(auth.currentUser?.uid ?? '', className);
       const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
       const choCongBo: Array<{ studentId: string; input: unknown }> = [];
@@ -104,7 +107,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             ghi = await draftParentReportComment(key(hs.id), built.facts, chuongTrinh);
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
-          const input = { ...built.printInput, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, stageForPeriod(ky, chuongTrinh)), branding: brandingForReport(nhanDien) };
+          const input = { ...built.printInput, weekPlan, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, stageForPeriod(ky, chuongTrinh)), branding: brandingForReport(nhanDien) };
           if (cheDo === 'zip') {
             zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
           } else {
