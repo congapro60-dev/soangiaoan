@@ -2,7 +2,7 @@ import type { AppData } from '../../../types';
 import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { Award, CalendarRange, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, PenLine, Printer, Save, Sparkles, Target, TrendingUp } from 'lucide-react';
-import { db } from '../../../lib/firebase';
+import { auth, db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
@@ -141,7 +141,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   }, forAdult ? kyHopLe : null), [classId, studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
   // Mọi nơi bên dưới (màn hình, PDF) đọc bản đã áp chỉnh tay; `baoCaoPH.printInput` là bản tự động để so và "về bản tự động".
   // Tuần học đánh số theo Lịch dạy của giáo viên (lưu trên trình duyệt này); chưa có thì chỉ ghi khoảng ngày của tuần.
-  const weekPlan = useMemo(() => weekPlanFor(teacherId, className), [teacherId, className]);
+  const weekPlan = useMemo(() => weekPlanFor(teacherId, className, auth.currentUser?.email), [teacherId, className]);
   const inputHienThi = useMemo(() => ({ ...applyReportOverrides(baoCaoPH.printInput, chinhTay), weekPlan }), [baoCaoPH, chinhTay, weekPlan]);
   const parentReport = inputHienThi.report;
   const parentCompetency = inputHienThi.competency ?? null;

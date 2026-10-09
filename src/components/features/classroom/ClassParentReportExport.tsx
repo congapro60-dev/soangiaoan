@@ -72,7 +72,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
         loadScoreBook(classId).catch(() => null),
       ]);
       // Tuần học đánh số theo Lịch dạy của giáo viên (lưu trên trình duyệt này) — đi cùng báo cáo khi công bố.
-      const weekPlan = weekPlanFor(auth.currentUser?.uid ?? '', className);
+      const weekPlan = weekPlanFor(auth.currentUser?.uid ?? '', className, auth.currentUser?.email);
       const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
       const choCongBo: Array<{ studentId: string; input: unknown }> = [];

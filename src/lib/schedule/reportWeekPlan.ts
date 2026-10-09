@@ -4,6 +4,7 @@
  */
 import type { WeekPlan } from '../classroom/reportWeeks';
 import { fullyOffWeeks, offDatesFrom } from './calendarImport';
+import { isAdminEmail } from '../admin/adminConfig';
 import { loadScheduleState, type ScheduleState, type SchedulePlan } from './schedulePlan';
 
 const norm = (value: string): string => value.normalize('NFC').replace(/\s+/g, '').toLowerCase();
@@ -22,5 +23,12 @@ export const weekPlanFromState = (state: ScheduleState, className: string): Week
   return { week1Monday: plan.week1Monday, skippedWeeks: [...new Set([...plan.skippedWeeks, ...off])].sort() };
 };
 
-/** Chưa có Lịch dạy (hoặc trình duyệt không cho đọc) → null: báo cáo chia tuần theo khoảng ngày. */
-export const weekPlanFor = (uid: string, className: string): WeekPlan | null => (uid ? weekPlanFromState(loadScheduleState(uid), className) : null);
+/** Lịch năm học 2026–2027 của chủ dự án: tuần 1 (W01) bắt đầu thứ Hai 17/08/2026 (xác nhận 09/10/2026, theo file "26-27 School calendar"). */
+export const OWNER_WEEK_PLAN: WeekPlan = { week1Monday: '2026-08-17', skippedWeeks: [] };
+
+/**
+ * Tuần học của giáo viên: theo Lịch dạy đã lập trên máy này; chưa có thì (chủ dự án) dùng lịch năm học trên;
+ * không có gì thì null → báo cáo chia tuần theo khoảng ngày.
+ */
+export const weekPlanFor = (uid: string, className: string, email?: string | null): WeekPlan | null =>
+  (uid ? weekPlanFromState(loadScheduleState(uid), className) : null) ?? (isAdminEmail(email) ? OWNER_WEEK_PLAN : null);
