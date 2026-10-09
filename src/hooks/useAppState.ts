@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { stripLocalOnlyKeys } from '../lib/settingsSecrets';
 import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession, TeacherClass } from '../types';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -116,8 +117,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
             if (docSnap.exists()) {
               const settingsData = docSnap.data();
               if (settingsData.settings) {
-                const { geminiApiKey, claudeApiKey, openaiApiKey, grokApiKey, deepseekApiKey, ...rest } = settingsData.settings;
-                cloudSettings = { ...cloudSettings, ...rest };
+                cloudSettings = { ...cloudSettings, ...stripLocalOnlyKeys(settingsData.settings) };
               }
               cloudAuthorName = settingsData.authorName || '';
               if (Array.isArray(settingsData.classes)) {
@@ -264,7 +264,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     if (user) {
       try {
         // Loại bỏ API Keys trước khi ghi lên Firebase — chỉ lưu cục bộ
-        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, grokApiKey: _k4, deepseekApiKey: _k5, ...settingsToSync } = updated;
+        const settingsToSync = stripLocalOnlyKeys(updated);
         await setDoc(doc(db, 'userSettings', user.uid), { userId: user.uid, settings: settingsToSync, authorName: data.authorName }, { merge: true });
       } catch (e) {
         console.error("Lỗi lưu cài đặt", e);
