@@ -1,3 +1,4 @@
+import { isClarifyPending } from './clarification.js';
 import type { QuestionResult, QuestionResultStatus, SubmissionDoc, SubmissionGrade } from './types.js';
 
 export interface ManualGradeInput {
@@ -75,7 +76,9 @@ export const buildManualGrade = (
     ...(input.teacherNote?.trim() ? { teacherNote: input.teacherNote.trim() } : {}),
     strengths: oldGrade?.strengths || [],
     weaknesses: oldGrade?.weaknesses || [],
-    questionResults: mergeTeacherQuestionResults(oldGrade?.questionResults || [], input.questionResults),
+    // Thầy cô đã chốt bảng điểm: câu nào máy còn đang hỏi lại học sinh thì đóng lại, em không phải trả lời nữa.
+    questionResults: mergeTeacherQuestionResults(oldGrade?.questionResults || [], input.questionResults)
+      .map(q => (isClarifyPending(q) && q.clarify ? { ...q, clarify: { ...q.clarify, state: 'done' as const } } : q)),
     weakTopics: input.weakTopics.map(topic => topic.trim()).filter(Boolean),
     gradedWithoutAnswerKey: oldGrade?.gradedWithoutAnswerKey ?? false,
     ...(oldGrade?.noteForTeacher ? { noteForTeacher: oldGrade.noteForTeacher } : {}),

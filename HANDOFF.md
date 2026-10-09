@@ -1,5 +1,5 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-08
+**Cập nhật:** 2026-10-09
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -9,6 +9,17 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 
 
+
+## Máy hỏi lại học sinh câu chưa chắc — giai đoạn 1 (gõ đáp án) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
+
+Học sinh tự nộp ảnh → máy chấm ngay như cũ; câu máy đọc chưa chắc (`isUncertainQuestion`: unreadable / needsTeacherReview / confidence < 0,6) thì HỎI LẠI chính em thay vì đẩy hết cho thầy cô. **Mặc định TẮT; thầy cô bật theo lớp** (hộp tích "Máy hỏi lại học sinh câu chưa chắc" ở đầu `AssignmentPanel`, trường `classes/{id}.askStudentClarification`). Chủ dự án chốt: thử ở lớp 10Olinda trước; gõ số được cho câu trả lời ngắn; không giới hạn số câu hỏi lại.
+- **Dạng câu** (`src/lib/classroom/clarification.ts`, thuần, dùng chung máy chủ + giao diện): trắc nghiệm → A–D; đúng-sai → Đúng/Sai từng ý (`parts`); trả lời ngắn → gõ một con số. Dạng nhận từ đáp án chuẩn trước, rồi nhãn phần của đề. **Tự luận (`photo`) CHƯA hỏi lại** — giai đoạn 2 (chụp lại từng câu + chấm lại một câu bằng AI) chưa làm; câu tự luận chưa chắc giữ cờ cho thầy cô như cũ.
+- **Luồng:** `gradeOneSubmission` → `applyClarification` (`api/_clarify.ts`) đánh dấu `clarify.state='open'` → học sinh gửi `action: 'clarifyAnswers'` (dispatcher `api/grade-homework.ts`, không tốn thêm hàm Vercel): máy chủ chấm TẤT ĐỊNH bằng `scoreObjective` (không gọi AI), lưu NGAY từng lượt, tính lại điểm; "Để thầy cô xem" = `skipped`, giữ cờ soát. **Chỉ khi hết câu chờ mới `syncApprovedGradeEvidence`** (trước đó điểm còn tạm, không vào hồ sơ học tập).
+- **Chống chép đáp án:** bản chiếu học sinh (`projectStudentSubmission`) của bài còn câu chờ CHỈ gồm các câu chờ, bỏ đáp án đúng / giải thích / điểm / nhận xét, gắn `awaitingClarification`. Cờ này là field chiếu, không lưu trong Firestore. Hai allowlist (`api/classroom.ts`, `api/_classroom-teacher.ts`) đều đã thêm `clarify`.
+- **Không mất việc khi thoát:** mỗi câu lưu ngay trên máy chủ; bản nháp chọn dở lưu localStorage (`smartplan:clarify:<bài>:<câu>`); bài/ảnh không bị xoá. Màn hình sau khi nộp nhắc em chờ ở trang và tự tải lại mỗi 4 giây (tối đa 3 phút) tới khi có kết quả/câu hỏi lại. `ClarifyPanel` hiện đầu cổng học sinh; thẻ bài hiện "Cần em xác nhận", không hiện điểm; chuông thông báo không báo "đã có kết quả" lúc này.
+- **Phía thầy cô:** `QuestionResultsList` ghi "máy đọc chưa chắc… em đã tự điền lại" / "em chọn để thầy cô xem"; thầy cô lưu điểm tay thì mọi câu đang chờ chuyển `done` (`buildManualGrade`).
+- **Rủi ro chưa kiểm được trong sandbox:** `confidence` do AI tự báo — ngưỡng 0,6 có thể hỏi quá nhiều/quá ít; PHẢI thử ảnh thật ở 10Olinda rồi chỉnh. Chưa chạy Gemini thật.
+- Test: `clarification.test.ts` (12), `api/__tests__/clarify.test.ts` (9: chiếu ẩn đáp án, chấm đúng/sai, quyền sở hữu 403/401, đồng bộ minh chứng đúng 1 lần, công tắc lớp), `ClarifyPanel.test.tsx`, bổ sung `portalViewModel`/`studentNotifications`/`manualGrade`; đã thử phá bản chiếu và kiểm quyền, test đều bắt. QA trình duyệt 360px với API giả: 11/11 bước đạt.
 
 ## Mã lớp không được dùng chung (phương án nhẹ B) — 2026-10-08
 

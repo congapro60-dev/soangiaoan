@@ -68,6 +68,15 @@ export const getStudentAssignmentState = (
 
   switch (submission.status) {
     case 'graded':
+      // Máy còn hỏi lại em vài câu: chưa có điểm để xem, và nộp bổ sung lúc này sẽ chấm đè lên các câu em đang xác nhận.
+      if (submission.grade?.awaitingClarification) {
+        return {
+          status: 'waiting',
+          action: 'status',
+          label: 'Cần em xác nhận',
+          detail: 'Máy cần em xác nhận vài câu ở bảng phía trên trang.',
+        };
+      }
       return {
         status: 'graded',
         action: 'review',

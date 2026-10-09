@@ -13,6 +13,7 @@ import { StudentScoreBoard } from './StudentScoreBoard';
 import { StudentCompetencyPortfolio } from './StudentCompetencyPortfolio';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import { PracticeScaffold } from './PracticeScaffold';
+import { ClarifyPanel, type ClarifyItem } from './ClarifyPanel';
 
 const PRACTICE_LEVEL_LABEL: Record<string, { label: string; className: string }> = {
   nhan_biet: { label: 'Nhận biết · Thông hiểu', className: 'bg-emerald-50 text-emerald-700' },
@@ -234,6 +235,13 @@ export const StudentPortalDashboard = ({
       .filter(item => item.kind === 'submission_deleted' && item.assignmentId)
       .map(item => [item.assignmentId as string, item.body] as const),
   ), [notifications]);
+  // Bài (được giao hoặc tự nộp) máy còn hỏi lại em: hiện ngay đầu trang để em không bỏ sót.
+  const clarifyItems = useMemo<ClarifyItem[]>(() => {
+    const titles = new Map(assignments.map(assignment => [assignment.id, assignment.title] as const));
+    return submissions
+      .filter(submission => submission.grade?.awaitingClarification)
+      .map(submission => ({ submission, title: submission.assignmentId ? titles.get(submission.assignmentId) || 'Bài được giao' : 'Bài tự nộp' }));
+  }, [assignments, submissions]);
   const practiceQuestions = practiceSet?.questions ?? [];
   const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
 
@@ -266,6 +274,8 @@ export const StudentPortalDashboard = ({
             camera va tra ve DUNG MOT anh. Bo di thi trinh chon cho phep chup moi lan nhieu tam
             va lay tu thu vien. Nhan them PDF vi nhieu em nop ban scan nhieu trang. */}
         <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
+
+        <ClarifyPanel items={clarifyItems} onChanged={onReload} />
 
         <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
@@ -507,9 +517,9 @@ export const StudentPortalDashboard = ({
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100"><GraduationCap className="h-4 w-4 text-slate-500" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-black text-slate-800">Bài tự nộp · {new Date(submission.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : 'graded')}</span>
+                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : 'graded')}</span>
                   </span>
-                  {submission.grade && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
+                  {submission.grade && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
                 </button>
               ))}
             </div>

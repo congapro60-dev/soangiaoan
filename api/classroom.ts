@@ -15,6 +15,7 @@ import type {
   AnswerKeyFix,
   ProfileTopic,
   StudentActivityExportBundle,
+  QuestionResult,
   StudentAssignmentView,
   SubmissionDoc,
   SubmissionGrade,
@@ -53,6 +54,7 @@ import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleAdminLinkAction } from './_admin-link.js';
 import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
+import { awaitsClarification, hideWhileAwaitingClarification, sanitizeClarify } from '../src/lib/classroom/clarification.js';
 import { handleStudentAiCostAction } from './_student-ai-cost.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
 
@@ -1110,7 +1112,7 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
   const normalizedStatus = (rawStatus === 'error' && hasValidGrade) ? 'graded' :
     (['submitted', 'grading', 'graded', 'error'].includes(rawStatus) ? rawStatus : 'submitted');
 
-  const questionResults = Array.isArray(rawGrade?.questionResults)
+  const fullRows = Array.isArray(rawGrade?.questionResults)
     ? rawGrade.questionResults
       .filter((item: unknown): item is FirebaseFirestore.DocumentData => Boolean(item && typeof item === 'object'))
       .map(item => ({
@@ -1129,14 +1131,19 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
         ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
         ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
         needsTeacherReview: Boolean(item.needsTeacherReview),
-      }))
+        ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
+      } as QuestionResult))
     : undefined;
+  // Còn câu máy hỏi lại em: chỉ lộ các câu đang chờ; điểm, đáp án đúng, nhận xét hiện sau khi em làm rõ xong (chống chép đáp án).
+  const awaitingClarification = awaitsClarification(fullRows);
+  const questionResults = fullRows && awaitingClarification ? hideWhileAwaitingClarification(fullRows) : fullRows;
   const grade: SubmissionGrade | undefined = rawGrade ? {
-    score: Number(rawGrade.score) || 0,
+    score: awaitingClarification ? 0 : Number(rawGrade.score) || 0,
     maxScore: Number(rawGrade.maxScore) || 0,
-    feedback: String(rawGrade.feedback || ''),
-    strengths: Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
-    weaknesses: Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+    feedback: awaitingClarification ? '' : String(rawGrade.feedback || ''),
+    strengths: !awaitingClarification && Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
+    weaknesses: !awaitingClarification && Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+    ...(awaitingClarification ? { awaitingClarification: true } : {}),
     ...(questionResults ? { questionResults } : {}),
     ...(typeof rawGrade.gradedWithoutAnswerKey === 'boolean' ? { gradedWithoutAnswerKey: rawGrade.gradedWithoutAnswerKey } : {}),
     gradedAt: String(rawGrade.gradedAt || ''),

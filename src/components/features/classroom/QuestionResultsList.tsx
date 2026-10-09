@@ -76,6 +76,16 @@ export const QuestionResultsList = ({ results, title = 'Phân tích từng câu'
                 {result.confidence !== undefined && (
                   <p className="text-xs font-semibold text-slate-400">Độ chắc chắn của máy: {Math.round(result.confidence * 100)}%</p>
                 )}
+                {result.clarify?.state === 'answered' && (
+                  <p className="text-xs font-bold leading-5 text-indigo-700 sm:col-span-2">
+                    Máy đọc chưa chắc{result.clarify.reading ? ` (đọc ra “${result.clarify.reading}”)` : ''} nên em đã tự điền lại đáp án câu này.
+                  </p>
+                )}
+                {result.clarify?.state === 'skipped' && (
+                  <p className="text-xs font-bold leading-5 text-indigo-700 sm:col-span-2">
+                    Máy đọc chưa chắc{result.clarify.reading ? ` (đọc ra “${result.clarify.reading}”)` : ''}; em chọn để thầy cô xem câu này.
+                  </p>
+                )}
                 {result.needsTeacherReview && (
                   <p className="flex items-start gap-1.5 text-xs font-bold leading-5 text-amber-700 sm:col-span-2">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />

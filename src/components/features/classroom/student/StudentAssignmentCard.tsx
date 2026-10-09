@@ -37,7 +37,10 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
 const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
 
 export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen }: Props) => {
-  const meta = statusMeta[state.status];
+  const awaitingClarification = Boolean(submission?.grade?.awaitingClarification);
+  const meta = awaitingClarification
+    ? { label: 'Cần em xác nhận', className: 'bg-amber-100 text-amber-800', icon: AlertTriangle }
+    : statusMeta[state.status];
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
   const isOnlineExam = assignment.type === 'exam';

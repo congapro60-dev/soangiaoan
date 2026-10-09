@@ -41,8 +41,13 @@ const MAX_ANH = 10;
 /** File gốc chỉ để giáo viên mở; phần chấm vẫn đi qua ảnh/chữ đã kiểm soát. */
 const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_STUDENT_TEXT_CHARS = 60000;
-/** Máy chủ nhận bài rồi chấm ngầm — không bắt học sinh giữ màn hình cho tới lúc có điểm. */
-const DANG_CHAM_NGAM = 'Máy đã nhận bài và đang chấm. Em cứ tắt máy, lát nữa vào lại mục "Đã chấm" để xem điểm và nhận xét nhé!';
+/**
+ * Máy chủ nhận bài rồi chấm ngầm. Lớp bật "hỏi lại" thì máy có thể cần em xác nhận vài câu viết chưa rõ,
+ * nên nhắc em chờ ở trang; thoát giữa chừng cũng không mất gì (bài, ảnh, câu đã trả lời đều được lưu).
+ */
+const DANG_CHAM_NGAM = 'Máy đã nhận bài và đang chấm — em chờ ở trang này một chút, nếu câu nào chưa rõ máy sẽ hỏi lại em ngay. Em thoát giữa chừng cũng không sao: bài và ảnh đã được lưu, lần sau vào em làm tiếp phần còn lại.';
+const CHO_CHAM_MS = 4000;
+const CHO_CHAM_TOI_DA_MS = 3 * 60 * 1000;
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
@@ -161,6 +166,8 @@ export const StudentPortalPage = () => {
   const [dangNop, setDangNop] = useState('');
   const [buocNop, setBuocNop] = useState('');
   const [thanhCong, setThanhCong] = useState('');
+  /** Bài vừa nộp đang được máy chấm ngầm: trang tự tải lại cho tới khi có kết quả hoặc câu hỏi lại. */
+  const [choBaiId, setChoBaiId] = useState('');
   const [canhBao, setCanhBao] = useState('');
   const [loiDuLieu, setLoiDuLieu] = useState('');
   const [practiceSet, setPracticeSet] = useState<PracticeSetResult | null>(null);
@@ -413,6 +420,27 @@ export const StudentPortalPage = () => {
     void taiDuLieu();
   }, [stage, phien, taiDuLieu]);
 
+  useEffect(() => {
+    if (!choBaiId) return undefined;
+    const batDau = Date.now();
+    const timer = window.setInterval(() => {
+      if (Date.now() - batDau > CHO_CHAM_TOI_DA_MS) { setChoBaiId(''); return; }
+      void taiDuLieu();
+    }, CHO_CHAM_MS);
+    return () => window.clearInterval(timer);
+  }, [choBaiId, taiDuLieu]);
+
+  useEffect(() => {
+    if (!choBaiId) return;
+    const baiDangCho = submissions.find(item => item.id === choBaiId);
+    if (baiDangCho && baiDangCho.status !== 'grading' && baiDangCho.status !== 'submitted') {
+      setChoBaiId('');
+      setThanhCong(baiDangCho.grade?.awaitingClarification
+        ? 'Máy cần em xác nhận vài câu — em trả lời ở khung màu vàng đầu trang nhé.'
+        : baiDangCho.status === 'graded' ? 'Máy đã chấm xong bài của em — mở mục "Đã chấm" để xem điểm và nhận xét nhé!' : '');
+    }
+  }, [choBaiId, submissions]);
+
   const nopBai = async (files: readonly File[]) => {
     if (!phien) return;
     const chon = files.slice(0, MAX_ANH);
@@ -481,7 +509,7 @@ export const StudentPortalPage = () => {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
         try {
           const ketQua = await gradeOneSubmission(submission.id, 'quick');
-          if (ketQua.pending) setThanhCong(DANG_CHAM_NGAM);
+          if (ketQua.pending) { setThanhCong(DANG_CHAM_NGAM); setChoBaiId(submission.id); }
         } catch (error) {
           console.error('Chấm bài tự do chưa xong', error);
           setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
@@ -507,6 +535,7 @@ export const StudentPortalPage = () => {
             setBuocNop('Máy đang chấm bài...');
             try {
               const ketQua = await gradeOneSubmission(submission.id, 'quick');
+              if (ketQua.pending) setChoBaiId(submission.id);
               setThanhCong(ketQua.pending
                 ? DANG_CHAM_NGAM
                 : `${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
@@ -579,6 +608,16 @@ export const StudentPortalPage = () => {
     }
     const title = assignment?.title || 'Bài tự nộp';
     const grade = submission?.grade;
+    if (grade?.awaitingClarification) {
+      void Swal.fire({
+        icon: 'info',
+        title,
+        text: 'Máy cần em xác nhận vài câu em viết chưa rõ. Em kéo lên đầu trang, trả lời xong thì điểm sẽ hiện.',
+        confirmButtonText: 'Đã hiểu',
+        confirmButtonColor: '#4f46e5',
+      });
+      return;
+    }
     const isGraded = submission?.status === 'graded' && grade;
     const isErrorNoGrade = submission?.status === 'error' && !grade;
     const isErrorWithGrade = submission?.status === 'graded' && grade && submission.lastGradingError;

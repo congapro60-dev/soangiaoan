@@ -149,3 +149,13 @@ describe('buildStudentFeed · bài kiểm tra định kì', () => {
   });
 });
 
+
+describe('buildStudentFeed · máy hỏi lại học sinh', () => {
+  it('chưa báo "đã có kết quả/điểm" khi bài còn câu chờ em xác nhận', () => {
+    const awaiting = submission({ status: 'graded', grade: { score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, awaitingClarification: true, gradedAt: '2026-09-09T10:00:00.000Z' } });
+    const [item] = buildStudentFeed({ submissions: [awaiting], assignments, notifications: [] });
+    expect(item.title).toBe('Máy cần em xác nhận vài câu');
+    expect(item.needsAction).toBe(true);
+    expect(item.body).not.toContain('0/10');
+  });
+});

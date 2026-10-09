@@ -349,6 +349,30 @@ export interface QuestionResult {
   needsTeacherReview: boolean;
   /** true khi thầy cô đã soát tay câu này — AI chấm lại không được đè. */
   teacherEdited?: boolean;
+  /** Máy đọc chưa chắc câu này → hỏi lại học sinh (xem `clarification.ts`). Chỉ có khi lớp bật tính năng. */
+  clarify?: QuestionClarify;
+}
+
+/** Câu này học sinh cần giúp máy làm rõ bằng cách nào: chọn/gõ đáp án (khách quan) hay chụp lại bài làm (tự luận). */
+export type ClarifyKind = 'mcq' | 'true_false' | 'short' | 'photo';
+
+/**
+ * `open` chờ học sinh · `answered` học sinh đã gõ đáp án · `photo_saved` ảnh đã lưu, chờ máy chấm lại ·
+ * `regrading` máy đang chấm lại câu từ ảnh mới · `done` đã xong · `skipped` em chọn để thầy cô xem.
+ */
+export type ClarifyState = 'open' | 'answered' | 'photo_saved' | 'regrading' | 'done' | 'skipped';
+
+export interface QuestionClarify {
+  kind: ClarifyKind;
+  state: ClarifyState;
+  /** Máy đã đọc ra gì ở lần chấm đầu (hiện cho em đối chiếu). */
+  reading: string;
+  /** Câu Đúng/Sai nhiều ý: các ý cần chọn ("a","b","c","d"). Chỉ có khi `kind==='true_false'`. */
+  parts?: string[];
+  /** Ảnh em chụp lại cho đúng câu này (tự luận). Không bao giờ bị xoá khi em thoát giữa chừng. */
+  photoUrls?: string[];
+  /** Mốc lần đổi trạng thái gần nhất — để nhận ra lượt chấm lại bị treo. */
+  at?: string;
 }
 
 /** Bài kiểm tra định kì — xem `AssignmentDoc.periodicTest`. */
@@ -411,6 +435,8 @@ export interface SubmissionGrade {
   editedByTeacher?: boolean;
   /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
   gradingRecovery?: GradingRecovery;
+  /** CHỈ có ở bản chiếu cho học sinh: còn câu chờ em làm rõ → chưa hiện điểm, đáp án, nhận xét. */
+  awaitingClarification?: boolean;
   /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */
   transcription?: string;
   /** Bài kiểm tra định kì: đối chiếu với điểm giáo viên trong sổ điểm (khi đã có điểm). */
