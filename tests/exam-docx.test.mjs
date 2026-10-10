@@ -126,7 +126,7 @@ test('PDF grouping measures label-only text item and refuses a combined label/co
 });
 
 test('PDF crop honors per-region horizontal boundary; legacy whole-question strips keep their margin', async () => {
-  const source=readFileSync(new URL('../components/exam/pdf-import.ts',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../components/exam/pdf-import.ts',import.meta.url),'utf8').replace(/\r\n/g, '\n');
   const body=/async crop\(regions\) \{([\s\S]*?)\n    \},\n    destroy/.exec(source)[1];
   const code=ts.transpileModule('(async(regions)=>{'+body+'})',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
   const drawn=[];

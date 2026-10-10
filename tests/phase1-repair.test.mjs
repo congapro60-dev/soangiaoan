@@ -6,17 +6,19 @@ import vm from 'node:vm';
 import {THEMES,createCampaign} from '../lib/campaign.js';
 import {LEGACY_THEME_TITLES} from '../lib/product-content.js';
 
-test('both generators emit seven actual distinct SVGs and preserve vendor assets',async()=>{
- const preserved=['public/katex/katex.min.css',...Object.keys(LEGACY_THEME_TITLES).map(id=>'public/assets/'+THEMES[id].image)];
+test('both generators are stable and keep the painted and 3D-rendered world covers untouched',async()=>{
+ const rendered=['cube','ring','zones','academy','survival','galaxy','maze'].flatMap(id=>[THEMES[id].image,THEMES[id].image.replace('.webp','@2x.webp')]).map(f=>'public/assets/'+f);
+ const preserved=['public/katex/katex.min.css',...Object.keys(LEGACY_THEME_TITLES).map(id=>'public/assets/'+THEMES[id].image),...rendered];
  const before=await Promise.all(preserved.map(p=>readFile(p)));
- const outputs=['public/campaign-data.js','public/feedback.js',...['cube','ring','zones','academy','survival','galaxy','maze'].map(id=>'public/assets/'+THEMES[id].image)];
+ const outputs=['public/campaign-data.js','public/feedback.js'];
  execFileSync(process.execPath,['scripts/generate-world-assets.mjs']);
  const first=await Promise.all(outputs.map(p=>readFile(p,'utf8')));
  execFileSync(process.execPath,['scripts/generate-campaign-assets.mjs']);
  assert.deepEqual(await Promise.all(outputs.map(p=>readFile(p,'utf8'))),first);
  assert.deepEqual(await Promise.all(preserved.map(p=>readFile(p))),before);
- assert.equal(new Set(first.slice(2)).size,7);
- for(const svg of first.slice(2)){assert.match(svg,/<svg[^>]*width="1600" height="900" viewBox="0 0 1600 900"/);assert.match(svg,/<\/svg>/);assert.doesNotMatch(svg,/(?:href=|url\(|<image|<script)/);assert.match(svg,/<polyline/);}
+ const covers=before.slice(-rendered.length);
+ assert.equal(new Set(covers.map(b=>b.toString('base64'))).size,14);
+ for(const b of covers){assert.equal(b.subarray(0,4).toString(),'RIFF');assert.equal(b.subarray(8,12).toString(),'WEBP');}
  for(const [id,title] of Object.entries(LEGACY_THEME_TITLES))assert.equal(createCampaign({theme:title}).theme,id);
  assert.throws(()=>createCampaign({theme:'unknown-world'}));
 });

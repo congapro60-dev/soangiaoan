@@ -5,7 +5,7 @@ import {CATEGORIES,FORMATS} from '../lib/context-questions.js';
 import * as media from '../lib/media-catalog.js';
 const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;');
 for(const [id,t] of Object.entries(PRODUCT_THEMES)){
- if(['modern','historical','future','dewey','pastoral'].includes(id))continue;
+ if(['modern','historical','future','dewey','pastoral'].includes(id)||!t.image.endsWith('.svg'))continue; // painted or 3D-rendered covers (scripts/qa/map3d-cover.mjs) are not regenerated
  const [bg,land,accent]=t.palette,seed=t.terrain.seed;
  const road=t.route.map(([x,y])=>`${x*16},${y*9}`).join(' ');
  let shapes='';

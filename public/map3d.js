@@ -2591,6 +2591,33 @@ function syncStations(next) {
     reset: frameOwn,
     /** Pull back to see the whole road ("Xem cả bản đồ"). */
     overview,
+    /**
+     * Straight-down picture of exactly the playable frame (route 0–100 % on both axes), used as the 2D map image
+     * so the 2D route lines up with the 3D roads. Pupils, dice, clouds, birds and fog are left out. Returns a data URL.
+     */
+    coverShot({ width = 1600, height = 900, type = 'image/webp', quality: q = 0.9 } = {}) {
+      const hidden = [dieGroup, dieBubble, shockRing, ...clouds, ...life.birds, ...[...peers.values()].map((e) => e.group)].filter((o) => o && o.visible);
+      hidden.forEach((o) => { o.visible = false; });
+      const fog = scene.fog;
+      scene.fog = null;
+      const top = new THREE.OrthographicCamera(-WIDTH / 2, WIDTH / 2, DEPTH / 2, -DEPTH / 2, 1, 900);
+      top.position.set(0, 400, 0);
+      top.up.set(0, 0, -1);
+      top.lookAt(0, 0, 0);
+      const size = new THREE.Vector2();
+      renderer.getSize(size);
+      const dpr = renderer.getPixelRatio();
+      renderer.setPixelRatio(1);
+      renderer.setSize(width, height, false);
+      renderer.render(scene, top);
+      const url = renderer.domElement.toDataURL(type, q);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(size.x, size.y, false);
+      scene.fog = fog;
+      hidden.forEach((o) => { o.visible = true; });
+      state.dirty = true;
+      return url;
+    },
     zoom(delta) {
       orbit.dist = clamp(orbit.dist * Math.exp(-delta * 1.4), MIN_DIST, MAX_DIST);
       state.dirty = true;
