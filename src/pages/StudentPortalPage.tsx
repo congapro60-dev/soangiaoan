@@ -31,6 +31,7 @@ import {
   type PracticeSetResult,
 } from '../services/gradingApi';
 import { StudentPortalDashboard } from '../components/features/classroom/student/StudentPortalDashboard';
+import { scoreHiddenFromStudent } from '../lib/classroom/portalViewModel';
 
 /**
  * Tran anh cho MOT lan nop. Moi anh la mot luot doc cua AI nen tra bang tien cua chu du an,
@@ -612,7 +613,7 @@ export const StudentPortalPage = () => {
       });
       return;
     }
-    if (submission?.status === 'graded' && grade && !grade.teacherApproved) {
+    if (submission?.status === 'graded' && grade && scoreHiddenFromStudent(submission)) {
       void Swal.fire({
         icon: 'info',
         title,

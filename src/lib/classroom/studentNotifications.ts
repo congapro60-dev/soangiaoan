@@ -1,4 +1,5 @@
 import type { AssignmentDoc, StudentNotificationDoc, SubmissionDoc } from './types';
+import { scoreHiddenFromStudent } from './portalViewModel';
 
 /**
  * Dòng thời gian thông báo của học sinh.
@@ -76,7 +77,7 @@ const feedFromSubmission = (
   }
 
   // Máy / thầy cô đã chấm nhưng CHƯA duyệt: em không đọc được điểm hay nhận xét — chỉ báo "đã nộp, chờ thầy cô duyệt".
-  if (submission.status === 'graded' && submission.grade && submission.grade.teacherApproved !== true) {
+  if (submission.status === 'graded' && submission.grade && scoreHiddenFromStudent(submission)) {
     return {
       id: `${submission.id}:pending-approval`,
       kind: 'submitted',

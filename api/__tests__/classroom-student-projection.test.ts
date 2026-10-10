@@ -152,6 +152,12 @@ describe('student homework projection (projectStudentSubmission)', () => {
           errorMessage: 'AI provider down',
           createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
         },
+        'sub-self': {
+          id: 'sub-self', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: null,
+          fileUrls: [], note: '', status: 'graded',
+          grade: { score: 6, maxScore: 10, feedback: 'Chấm thử', strengths: [], weaknesses: [], teacherApproved: false, gradedAt: '2026-08-28T08:21:00.000Z', questionResults: [] },
+          createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
+        },
         'sub-3': {
           id: 'sub-3', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
           fileUrls: [], textContent: 'Bài làm 3', note: '', status: 'graded',
@@ -211,5 +217,12 @@ describe('student homework projection (projectStudentSubmission)', () => {
     expect(gradedApproved!.grade).toMatchObject({ score: 9, teacherApproved: true, approvalSource: 'teacher' });
     expect(gradedApproved).not.toHaveProperty('lastGradingError');
     expect(gradedApproved).not.toHaveProperty('evidenceSyncError');
+  });
+
+  it('bài "Chấm thử" (không gắn bài giao) không phải chờ duyệt: em thấy điểm và nhận xét ngay', async () => {
+    const result = await callClassroom({ action: 'studentSubmissions' });
+    const self = (result.payload?.submissions as Doc[]).find(s => s.id === 'sub-self');
+    expect(self!.grade).toMatchObject({ score: 6, feedback: 'Chấm thử', teacherApproved: false });
+    expect(self!.grade).not.toHaveProperty('scoreHidden');
   });
 });

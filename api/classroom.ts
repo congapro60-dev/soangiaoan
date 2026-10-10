@@ -1139,7 +1139,8 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
   const awaitingClarification = awaitsClarification(fullRows);
   // Chưa được duyệt (máy chấm xong, hoặc thầy cô chấm nhưng chưa duyệt) → học sinh KHÔNG đọc được điểm, nhận xét, kết quả từng câu;
   // dữ liệu không rời máy chủ, không chỉ là ẩn ở giao diện. Chỉ còn câu máy hỏi lại em (nếu có).
-  const approved = rawGrade?.teacherApproved === true;
+  // Bài "Chấm thử" (không gắn bài giao, không tính điểm) là để em tự xem đúng/sai → không phải chờ duyệt.
+  const approved = rawGrade?.teacherApproved === true || typeof data.assignmentId !== 'string' || !data.assignmentId;
   const hidden = awaitingClarification || !approved;
   const questionResults = !fullRows ? undefined
     : awaitingClarification ? hideWhileAwaitingClarification(fullRows)

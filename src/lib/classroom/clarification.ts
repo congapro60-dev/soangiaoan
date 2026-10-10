@@ -52,10 +52,16 @@ const trueFalseParts = (q: QuestionResult): string[] | undefined => {
 };
 
 /** Đánh dấu các câu máy chưa chắc là `open` để hỏi lại học sinh. Câu đã có `clarify` (đã xử lý) giữ nguyên. */
+/**
+ * Máy có thấy em viết gì ở câu này không. Không thấy gì (câu bỏ trống, hoặc câu không có trên trang em chụp) thì KHÔNG hỏi
+ * lại: hỏi là cho em làm bù câu chưa làm sau khi đã nộp. Câu đó để thầy cô soát (vẫn giữ cờ cần xem lại).
+ */
+const studentWroteSomething = (q: QuestionResult): boolean => String(q.studentAnswer ?? '').trim() !== '';
+
 export const buildClarifyRows = (rows: readonly QuestionResult[]): { rows: QuestionResult[]; asked: number } => {
   let asked = 0;
   const next = rows.map(q => {
-    if (q.clarify || !isUncertainQuestion(q)) return q;
+    if (q.clarify || !isUncertainQuestion(q) || !studentWroteSomething(q)) return q;
     const kind = clarifyKindFor(q);
     asked += 1;
     const parts = kind === 'true_false' ? trueFalseParts(q) : undefined;

@@ -112,3 +112,13 @@ describe('bài còn chờ em xác nhận', () => {
     expect(state.canResubmit).toBeFalsy();
   });
 });
+
+describe('bài "Chấm thử" (không gắn bài giao)', () => {
+  it('không phải chờ duyệt: em xem được ngay kết quả tự kiểm', async () => {
+    const { scoreHiddenFromStudent } = await import('./portalViewModel');
+    const grade = { score: 7, maxScore: 10, feedback: 'x', strengths: [], weaknesses: [], gradedAt: '2026-10-09T00:00:00.000Z', teacherApproved: false };
+    expect(scoreHiddenFromStudent({ assignmentId: null, grade })).toBe(false);
+    expect(scoreHiddenFromStudent({ assignmentId: 'a1', grade })).toBe(true);
+    expect(scoreHiddenFromStudent({ assignmentId: 'a1', grade: { ...grade, teacherApproved: true } })).toBe(false);
+  });
+});

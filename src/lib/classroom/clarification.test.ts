@@ -56,6 +56,15 @@ describe('cách làm rõ từng câu', () => {
     const answered = answerClarifyRow(rows[1], 'D', '2026-10-09T00:00:00Z')!;
     expect(buildClarifyRows([answered]).rows[0]).toBe(answered);
   });
+
+  it('câu em không viết gì (máy không thấy trên ảnh) → không hỏi lại, kẻo em được làm bù sau khi nộp', () => {
+    const { rows, asked } = buildClarifyRows([
+      row({ questionNumber: 'Phần I – Câu 9', status: 'unreadable', studentAnswer: '', needsTeacherReview: true }),
+      row({ questionNumber: 'Phần I – Câu 10', status: 'unreadable', studentAnswer: '   ', needsTeacherReview: true }),
+    ]);
+    expect(asked).toBe(0);
+    expect(rows.every(item => item.clarify === undefined)).toBe(true);
+  });
 });
 
 describe('chuẩn hoá đáp án em gõ', () => {

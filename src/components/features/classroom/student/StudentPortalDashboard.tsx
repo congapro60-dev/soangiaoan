@@ -3,7 +3,7 @@ import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationC
 import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
 import type { ExamSubmission } from '../../../../types';
 import type { AssignmentDoc, StudentActivityView, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
-import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentState, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import { getStudentAssignmentState, latestSubmissionByAssignment, scoreHiddenFromStudent, type StudentAssignmentState, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
 import { buildStudentProgressSummary, studentActivityNextActionLabel, studentActivityStatusLabel } from '../../../../lib/classroom/studentProgressModel';
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
@@ -518,9 +518,9 @@ export const StudentPortalDashboard = ({
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100"><GraduationCap className="h-4 w-4 text-slate-500" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-black text-slate-800">Bài tự nộp · {new Date(submission.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : submission.grade?.teacherApproved === true ? 'graded' : 'pending-approval')}</span>
+                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : !scoreHiddenFromStudent(submission) ? 'graded' : 'pending-approval')}</span>
                   </span>
-                  {submission.grade?.teacherApproved === true && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
+                  {submission.grade && !scoreHiddenFromStudent(submission) && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
                 </button>
               ))}
             </div>

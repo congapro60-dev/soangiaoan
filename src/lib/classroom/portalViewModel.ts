@@ -46,6 +46,13 @@ export const latestSubmissionByAssignment = (
   return latest;
 };
 
+/**
+ * Điểm của bài này đang bị giấu với học sinh (chưa được duyệt). Bài "Chấm thử" (không gắn bài giao, không tính điểm)
+ * là để em tự xem đúng/sai nên không phải chờ duyệt.
+ */
+export const scoreHiddenFromStudent = (submission: Pick<SubmissionDoc, 'assignmentId' | 'grade'>): boolean =>
+  Boolean(submission.grade) && (submission.grade?.scoreHidden === true || (submission.grade?.teacherApproved !== true && Boolean(submission.assignmentId)));
+
 export const getStudentAssignmentState = (
   assignment: AssignmentDoc | undefined,
   submission?: SubmissionDoc,
@@ -78,7 +85,7 @@ export const getStudentAssignmentState = (
         };
       }
       // Máy hoặc thầy cô đã chấm nhưng CHƯA duyệt: em không đọc được điểm, nhận xét hay kết quả từng câu cho tới khi được duyệt.
-      if (submission.grade?.teacherApproved !== true) {
+      if (scoreHiddenFromStudent(submission)) {
         return {
           status: 'pending-approval',
           action: 'status',
