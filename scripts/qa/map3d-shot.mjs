@@ -19,6 +19,7 @@ const flag = (name, fallback) => {
 const out = flag('out', 'tasks/qa-shots');
 const size = flag('size', '1280x720').split('x').map(Number);
 const demo = flag('demo', '8');
+const mascot = flag('mascot', '');
 const worlds = args.length ? args : ['historical'];
 const base = process.env.MAP_URL || 'http://localhost:5173';
 
@@ -87,7 +88,7 @@ try {
   };
   for (const world of worlds) {
     console.log(world);
-    await c.send('Page.navigate', { url: `${base}/lesson-map.html?demo=${demo}&world=${world}&show=all&debug=1&q=0` });
+    await c.send('Page.navigate', { url: `${base}/lesson-map.html?demo=${demo}&world=${world}&show=all&debug=1&q=0${mascot ? '&mascot=' + mascot : ''}` });
     let ready = false;
     for (let i = 0; i < 120 && !ready; i++) {
       ready = await c.evaluate('!!window.__map3d');
@@ -98,6 +99,7 @@ try {
       continue;
     }
     await sleep(1500);
+    if (mascot) await c.evaluate('window.__map3d.tune({ level: 0 }); true');
     await snap(`${world}-own`);
     await c.evaluate('window.__map3d.overview(); true');
     await snap(`${world}-overview`);

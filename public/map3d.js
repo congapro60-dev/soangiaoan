@@ -13,6 +13,7 @@ import { makeDetailTextures } from './map3d-textures.js';
 import { buildGeometry, makeModels } from './map3d-models.js';
 import { THEMES } from './map3d-themes.js';
 import { KITS } from './map3d-kits.js';
+import { createOwlLayer } from './map3d-owl.js';
 
 const WIDTH = 280; // world units across the playable map (it was 160 x 90: lanes 7 units apart, too tight for 50 pupils)
 const DEPTH = 170;
@@ -178,6 +179,31 @@ export function mount(host, model, options = {}) {
     const interactiveLayer = document.createElement('div');
     interactiveLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1';
     host.appendChild(interactiveLayer);
+  const peerLayer = document.createElement('div');
+  peerLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;touch-action:none;z-index:3';
+  host.appendChild(peerLayer);
+  const peerPointers = new Map();
+  let blockPeerClick = false;
+  function onPeerPointerDown(e) {
+    if (peerPointers.size === 0) blockPeerClick = false;
+    peerPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (peerPointers.size >= 2) blockPeerClick = true;
+  }
+  function onPeerPointerMove(e) {
+    const pt = peerPointers.get(e.pointerId);
+    if (pt && Math.hypot(e.clientX - pt.x, e.clientY - pt.y) > 6) blockPeerClick = true;
+  }
+  function onPeerPointerEnd(e) {
+    peerPointers.delete(e.pointerId);
+  }
+  function onPeerPointerCancel(e) {
+    peerPointers.delete(e.pointerId);
+    blockPeerClick = true;
+  }
+  host.addEventListener('pointerdown', onPeerPointerDown, true);
+  host.addEventListener('pointermove', onPeerPointerMove, true);
+  host.addEventListener('pointerup', onPeerPointerEnd, true);
+  host.addEventListener('pointercancel', onPeerPointerCancel, true);
   const labels = [];
   const stationLabels = new Map();
   function makeLabel(kind, first, second) {
@@ -216,14 +242,75 @@ export function mount(host, model, options = {}) {
     mascotLayer.appendChild(el);
     return el;
   }
+  function makePeerTarget(entry, id) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.peerId = id;
+    btn.setAttribute('aria-label', 'Chọn linh vật ' + (model.peers.findIndex(p => p.id === id) + 1));
+    btn.style.position = 'absolute';
+    btn.style.left = '0';
+    btn.style.top = '0';
+    btn.style.display = 'none';
+    btn.style.willChange = 'transform';
+    btn.style.minWidth = '44px';
+    btn.style.minHeight = '44px';
+    btn.style.background = 'transparent';
+    btn.style.border = '0';
+    btn.style.padding = '0';
+    btn.style.pointerEvents = 'auto';
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if (model.peerSelection !== true || !model.peers.some(p => p.id === id) || entry.targetEl !== btn || state.destroyed) return;
+      if (blockPeerClick && e.detail !== 0) return;
+      model.onPeerSelect?.(id);
+    };
+    peerLayer.appendChild(btn);
+    entry.targetEl = btn;
+    return btn;
+  }
   // "+3": how many more mascots are standing under this one (they would only be a pile on the screen).
   const badges = [];
   function badgeAt(index) {
     let el = badges[index];
+    const isTeacher = model.peerSelection === true;
+    if (el && el.tagName === (isTeacher ? 'DIV' : 'BUTTON')) {
+      el.remove();
+      el = undefined;
+    }
     if (!el) {
-      el = document.createElement('div');
-      el.style.cssText = 'position:absolute;left:0;top:0;display:none;will-change:transform;pointer-events:none;padding:1px 7px;border-radius:999px;background:#f6d481;color:#1b1405;border:2px solid #fff;font:800 12px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.5)';
-      mascotLayer.appendChild(el);
+      el = document.createElement(isTeacher ? 'button' : 'div');
+      if (isTeacher) {
+        el.type = 'button';
+        el.style.minWidth = '44px';
+        el.style.minHeight = '44px';
+        el.style.cursor = 'pointer';
+        el.style.pointerEvents = 'auto';
+        el.onclick = (e) => {
+          e.stopPropagation();
+          if (model.peerSelection !== true || badges[index] !== el || state.destroyed) return;
+          if (blockPeerClick && e.detail !== 0) return;
+          try {
+            const list = JSON.parse(el.dataset.peerIds || '[]');
+            const valid = list.filter((id) => peers.has(id));
+            if (valid.length) model.openPeerChooser?.(valid);
+          } catch {}
+        };
+      } else {
+        el.style.pointerEvents = 'none';
+      }
+      el.style.position = 'absolute';
+      el.style.left = '0';
+      el.style.top = '0';
+      el.style.display = 'none';
+      el.style.willChange = 'transform';
+      el.style.padding = '1px 7px';
+      el.style.borderRadius = '999px';
+      el.style.background = '#f6d481';
+      el.style.color = '#1b1405';
+      el.style.border = '2px solid #fff';
+      el.style.font = '800 12px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif';
+      el.style.boxShadow = '0 1px 4px rgba(0,0,0,.5)';
+      (isTeacher ? peerLayer : mascotLayer).appendChild(el);
       badges[index] = el;
     }
     return el;
@@ -1307,6 +1394,7 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
   // ------------------------------------------------------------------------------------------ mascots
   // ------------------------------------------------------------------------------------------ mascots (HTML, see makeMascot)
   const peers = new Map();
+  const owlLayer = createOwlLayer({ changed: () => { state.dirty = true; }, reduced: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, enabled: options.owlModels !== false });
 
   // One shadow shape for everybody (a pupil only scales it).
   const shadowGeo = new THREE.CircleGeometry(1, 20);
@@ -1357,13 +1445,17 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
     // the name sits under the feet so it never hides the face the pupil chose
     const labelEl = peer.name ? makeLabel(own ? 'own' : 'peer', peer.name) : null;
     scene.add(group);
-    const entry = { group, mascotEl, arrowEl, labelEl, px: 0, lod: 'full', size, own, cell: peer.position, walkFrom: peer.position, walkTo: peer.position, walkT: 1, hop: 0, mascot: peer.mascot, name: peer.name, slot: { u: 0, v: 0 }, off: { u: 0, v: 0 }, fresh: true };
+    const entry = { id: peer.id, group, mascotEl, arrowEl, labelEl, targetEl: null, px: 0, lod: 'full', size, own, cell: peer.position, walkFrom: peer.position, walkTo: peer.position, walkT: 1, hop: 0, mascot: peer.mascot, name: peer.name, slot: { u: 0, v: 0 }, off: { u: 0, v: 0 }, fresh: true };
+    if (model?.peerSelection) makePeerTarget(entry, peer.id);
     standAt(entry, peer.position);
     return entry;
   }
   function disposePeer(entry) {
+    owlLayer.drop(entry);
     scene.remove(entry.group);
     entry.mascotEl.remove();
+    entry.targetEl?.remove();
+    entry.targetEl = null;
     entry.arrowEl?.remove();
     if (entry.labelEl) {
       entry.labelEl.remove();
@@ -1472,10 +1564,17 @@ function syncStations(next) {
         entry = undefined;
       }
       if (!entry) peers.set(peer.id, makePeer(peer));
-      else if (peer.position !== entry.walkTo) {
-        entry.walkFrom = entry.cell;
-        entry.walkTo = peer.position;
-        entry.walkT = 0;
+      else {
+        if (model?.peerSelection && !entry.targetEl) makePeerTarget(entry, peer.id);
+        else if (!model?.peerSelection && entry.targetEl) {
+          entry.targetEl.remove();
+          entry.targetEl = null;
+        }
+        if (peer.position !== entry.walkTo) {
+          entry.walkFrom = entry.cell;
+          entry.walkTo = peer.position;
+          entry.walkT = 0;
+        }
       }
     }
     syncStations(next);
@@ -1910,15 +2009,16 @@ function syncStations(next) {
     orbit.follow = false;
   }
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-  canvas.addEventListener('pointerdown', (event) => {
-    canvas.setPointerCapture(event.pointerId);
+  const onCameraPointerDown = (event) => {
+    if (event.target !== canvas && !peerLayer.contains(event.target)) return;
+    event.target.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, sx: event.clientX, sy: event.clientY, moved: false, pan: event.button === 2 || event.button === 1 || event.shiftKey });
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       gesture = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: orbit.dist, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
     }
-  });
-  canvas.addEventListener('pointermove', (event) => {
+  };
+  const onCameraPointerMove = (event) => {
     const prev = pointers.get(event.pointerId);
     if (!prev) return;
     const cur = { x: event.clientX, y: event.clientY, sx: prev.sx, sy: prev.sy, pan: prev.pan, moved: prev.moved || Math.hypot(event.clientX - prev.sx, event.clientY - prev.sy) > 6 };
@@ -1941,19 +2041,21 @@ function syncStations(next) {
     }
     state.dirty = true;
     options.onViewChange?.();
-  });
+  };
   const release = (event) => {
     const press = pointers.get(event.pointerId);
     pointers.delete(event.pointerId);
     if (pointers.size < 2) gesture = null;
-    if (event.type === 'pointerup' && press && !press.moved && pointers.size === 0 && dice.mode === 'idle' && dice.canRoll) {
+    if (event.target === canvas && event.type === 'pointerup' && press && !press.moved && pointers.size === 0 && dice.mode === 'idle' && dice.canRoll) {
       const rect = canvas.getBoundingClientRect();
       raycaster.setFromCamera(new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1), camera);
       if (raycaster.intersectObjects([dieMesh, dieHalo], false).length) options.onRollRequest?.();
     }
   };
-  canvas.addEventListener('pointerup', release);
-  canvas.addEventListener('pointercancel', release);
+  host.addEventListener('pointerdown', onCameraPointerDown);
+  host.addEventListener('pointermove', onCameraPointerMove);
+  host.addEventListener('pointerup', release);
+  host.addEventListener('pointercancel', release);
   canvas.addEventListener(
     'wheel',
     (event) => {
@@ -2071,13 +2173,15 @@ function syncStations(next) {
       const visible = depth > 0.5 && screen(feet);
       if (!visible) {
         show(entry.mascotEl, false);
+        if (entry.targetEl) show(entry.targetEl, false);
         if (entry.arrowEl) show(entry.arrowEl, false);
         if (entry.labelEl) show(entry.labelEl, false);
         continue;
       }
+      const entryId = entry.id;
       const grow = clamp(camera.position.distanceTo(feet) / (entry.own ? 24 : 34), 1, entry.own ? 3.6 : 2.4);
       const px = Math.max(24, Math.round((entry.size * (entry.own ? 1 : crowdScale) * grow * pxPerUnit) / depth));
-      items.push({ entry, fx: sx, fy: sy, depth, px, lift: (entry.hop * pxPerUnit) / depth });
+      items.push({ entry, id: entryId, fx: sx, fy: sy, depth, px, lift: (entry.hop * pxPerUnit) / depth });
     }
     // the pupil's own mascot first, then the nearest: each one is drawn in full only when it does not sit on top of
     // a mascot already placed; otherwise it becomes a small chip, and when even that would be a pile it is counted
@@ -2103,34 +2207,40 @@ function syncStations(next) {
       return { fraction: sum / area, best };
     };
     const CHIP = 30;
+    const owlCandidates = [];
     crowdStats.full = crowdStats.chips = crowdStats.hidden = 0;
     for (const item of items) {
       const entry = item.entry;
       let size = item.px;
       let lod = 'full';
       let top = Math.round(item.fy - size * 0.95 - item.lift);
-      let rect = { l: item.fx - size / 2, t: top, r: item.fx + size / 2, b: top + size, more: 0 };
+      let rect = { l: item.fx - size / 2, t: top, r: item.fx + size / 2, b: top + size, more: 0, peerIds: [item.id] };
       if (!entry.own) {
         const first = covered(rect);
         if (first.fraction > 0.3) {
           size = Math.min(size, CHIP);
           top = Math.round(item.fy - size * 0.95 - item.lift * (size / item.px));
-          rect = { l: item.fx - size / 2, t: top, r: item.fx + size / 2, b: top + size, more: 0 };
+          rect = { l: item.fx - size / 2, t: top, r: item.fx + size / 2, b: top + size, more: 0, peerIds: [item.id] };
           const second = covered(rect);
           if (second.fraction > 0.5) {
             lod = 'hidden';
-            if (second.best) second.best.more++;
+            if (second.best) {
+              second.best.more++;
+              second.best.peerIds.push(item.id);
+            }
           } else lod = 'chip';
         }
       }
       if (lod === 'hidden') {
         crowdStats.hidden++;
         show(entry.mascotEl, false);
+        if (entry.targetEl) show(entry.targetEl, false);
         if (entry.arrowEl) show(entry.arrowEl, false);
         if (entry.labelEl) show(entry.labelEl, false);
         continue;
       }
       placed.push(rect);
+      if (lod === 'full') owlCandidates.push({ entry, depth: item.depth, height: size * item.depth / pxPerUnit, yaw: orbit.shown.yaw });
       if (lod === 'chip') crowdStats.chips++;
       else crowdStats.full++;
       show(entry.mascotEl, true);
@@ -2146,6 +2256,13 @@ function syncStations(next) {
       }
       entry.mascotEl.style.zIndex = String(Math.round(100000 / item.depth));
       entry.mascotEl.style.transform = 'translate(' + Math.round(item.fx - size / 2) + 'px,' + top + 'px)';
+      if (entry.targetEl) {
+        show(entry.targetEl, true);
+        const hitSize = Math.max(44, size);
+        entry.targetEl.style.width = entry.targetEl.style.height = hitSize + 'px';
+        entry.targetEl.style.zIndex = entry.mascotEl.style.zIndex;
+        entry.targetEl.style.transform = 'translate(' + Math.round(item.fx - hitSize / 2) + 'px,' + Math.round(top + (size - hitSize) / 2) + 'px)';
+      }
       if (entry.arrowEl) {
         show(entry.arrowEl, true);
         entry.arrowEl.style.zIndex = '999999';
@@ -2156,17 +2273,38 @@ function syncStations(next) {
         else show(entry.labelEl, false);
       }
     }
+    const modeled = owlLayer.sync(owlCandidates, quality.level);
+    for (const entry of modeled) show(entry.mascotEl, false);
     let badge = 0;
-    for (const rect of placed) {
+    if (placed.length && model.peerSelection === true) {
+      const hiddenIds = placed.flatMap(rect => rect.peerIds.slice(1));
+      if (hiddenIds.length) {
+        const el = badgeAt(badge++);
+        el.textContent = '+' + hiddenIds.length + ' linh vật';
+        el.setAttribute('aria-label', 'Chọn trong ' + hiddenIds.length + ' linh vật');
+        el.dataset.peerIds = JSON.stringify(hiddenIds);
+        el.style.top = 'auto';
+        el.style.bottom = '12px';
+        el.style.left = '50%';
+        el.style.zIndex = '900000';
+        el.style.transform = 'translateX(-50%)';
+        show(el, true);
+      }
+    } else for (const rect of placed) {
       if (!rect.more) continue;
       const el = badgeAt(badge++);
       el.textContent = '+' + rect.more;
+      el.setAttribute('aria-label', 'Chọn trong ' + rect.more + ' linh vật');
+      delete el.dataset.peerIds;
       show(el, true);
       el.style.zIndex = '900000';
       const span = rect.r - rect.l;
       el.style.transform = 'translate(' + Math.round(rect.l + span * 0.6) + 'px,' + Math.round(rect.t + span * 0.04 - 2) + 'px)';
     }
-    for (let i = badge; i < badges.length; i++) show(badges[i], false);
+    for (let i = badge; i < badges.length; i++) {
+      delete badges[i].dataset.peerIds;
+      show(badges[i], false);
+    }
     for (const plaque of plaques) {
       if (screen(plaque.anchor.getWorldPosition(tmp))) {
         viewPoint.copy(tmp).applyMatrix4(camera.matrixWorldInverse);
@@ -2323,6 +2461,7 @@ function syncStations(next) {
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     updatePeers(dt);
+    if (owlLayer.step(dt)) state.dirty = true;
     updateDice(dt, now);
     if (!reduced && now - lastAmbient > (now - perf.busyAt > 3000 ? 62 : 30)) {
       const ambientDt = Math.min(0.25, (now - lastAmbient) / 1000);
@@ -2481,6 +2620,10 @@ function syncStations(next) {
         });
       }
       if ('scale' in opts) quality.scale = opts.scale;
+      if ('level' in opts && /[?&]debug\b/.test(window.location.search)) {
+        quality.level = clamp(Math.round(opts.level), 0, 2);
+        setShadowQuality();
+      }
       if ('dpr' in opts) {
         quality.cap = opts.dpr;
         resize();
@@ -2519,13 +2662,14 @@ function syncStations(next) {
       return { ms: Math.round(ms * 10) / 10, calls: Math.round(calls), triangles: Math.round(triangles) };
     },
     stats() {
-      return { calibratedMs: Math.round(perf.calibrated * 10) / 10, scale: quality.scale, post: post?.level, trees: placedTrees, houses: houseCount, bridges: bridgeCount, lamps: lampCount, quality: quality.level, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, crowd: { total: peers.size, full: crowdStats.full, chips: crowdStats.chips, hidden: crowdStats.hidden } };
+      return { calibratedMs: Math.round(perf.calibrated * 10) / 10, scale: quality.scale, post: post?.level, trees: placedTrees, houses: houseCount, bridges: bridgeCount, lamps: lampCount, quality: quality.level, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, crowd: { total: peers.size, full: crowdStats.full, chips: crowdStats.chips, hidden: crowdStats.hidden }, owl: owlLayer.stats() };
     },
     destroy() {
       state.destroyed = true;
       document.removeEventListener('visibilitychange', resetPerf);
       cancelAnimationFrame(raf);
       ro?.disconnect();
+      owlLayer.dispose();
       for (const entry of peers.values()) disposePeer(entry);
       scene.traverse((o) => {
         o.geometry?.dispose?.();
@@ -2551,11 +2695,20 @@ function syncStations(next) {
       renderer.forceContextLoss?.();
       canvas.remove();
       labelLayer.remove();
+      peerLayer.remove();
+      host.removeEventListener('pointerdown', onPeerPointerDown, true);
+      host.removeEventListener('pointermove', onPeerPointerMove, true);
+      host.removeEventListener('pointerup', onPeerPointerEnd, true);
+      host.removeEventListener('pointercancel', onPeerPointerCancel, true);
+      host.removeEventListener('pointerdown', onCameraPointerDown);
+      host.removeEventListener('pointermove', onCameraPointerMove);
+      host.removeEventListener('pointerup', release);
+      host.removeEventListener('pointercancel', release);
         interactiveLayer.remove();
       mascotLayer.remove();
     },
   };
-  if (/[?&]debug/.test(window.location.search)) window.__map3d = Object.assign(api, { scene, renderer, camera, quality, perf, orbit, post: () => post });
+  if (/[?&]debug/.test(window.location.search)) window.__map3d = Object.assign(api, { scene, renderer, camera, quality, perf, orbit, post: () => post, owlMode(on) { owlLayer.setEnabled(on); state.dirty = true; } });
   return api;
 }
 

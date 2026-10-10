@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import MathText from "../../components/lesson/MathText";
 import { LessonWorldMap } from "../../components/lesson/LessonWorldMap";
+import { LessonPeerInspector } from "../../components/lesson/LessonPeerInspector";
+import { cockpitLearners } from "../../lib/lesson/cockpit.js";
 import { useLessonSession, formatDuration, LessonProjection } from "../../components/lesson/useLessonSession";
 import { buildLessonProposal } from "../../lib/lesson/proposal.js";
 
@@ -706,6 +708,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [cockpitPanel, setCockpitPanel] = useState<"attention" | "students" | "activity">("attention");
   const [learnerSearch, setLearnerSearch] = useState("");
   const [learnerSort, setLearnerSort] = useState("name");
+  const [peerSelection, setPeerSelection] = useState<{ sessionId: string | null; learnerId: string } | null>(null);
   const [codeCopied, setCodeCopied] = useState<boolean>(false);
   const [isSessionRestored, setIsSessionRestored] = useState<boolean>(false);
 
@@ -1961,6 +1964,11 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const cockpitRoster = Object.values(cockpitView?.roster || {});
   const cockpitPendingCount = Object.values(cockpitView?.openAssessments || {}).filter(item => item.status === "pending").length;
   const cockpitBranches = cockpitView?.branches?.[cockpitView.timeline?.currentActivityId || ""] || {};
+  const selectLearner = (learnerId: string) => setPeerSelection({ sessionId: activeSessionId, learnerId });
+  const selectPeer = (peerId: string) => {
+    const learner = cockpitLearners(cockpitView).find(row => row.peerId === peerId);
+    if (learner) selectLearner(learner.learnerId);
+  };
 
   if (!isSessionRestored) {
     return (
@@ -5342,11 +5350,12 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 const atGate = peers.filter(peer => peer.position >= (cockpitView.map?.gatePosition ?? Infinity)).length;
                 return <>
                   <p className="lesson-muted">{peers.length} linh vật · {atGate} em đã tới cổng · {waiting > 0 ? `${waiting} em chưa chọn linh vật` : "Cả lớp đã chọn linh vật"}</p>
-                  <LessonWorldMap map={cockpitView.map} themeKey={(cockpitView.gamePlan as { theme?: string } | undefined)?.theme} sessionKey={`cockpit-${cockpitView.sessionId || "room"}`} height={520} />
+                  <LessonWorldMap map={cockpitView.map} themeKey={(cockpitView.gamePlan as { theme?: string } | undefined)?.theme} sessionKey={`cockpit-${activeSessionId || "room"}`} height={520} onPeerSelect={selectPeer} />
                 </>;
               })() : <p className="lesson-muted">Bản đồ sẽ hiện khi học sinh vào phòng và chọn linh vật.</p>}
             </div>
             <aside className="cockpit-inspector">
+              <LessonPeerInspector view={cockpitError ? null : cockpitView} selectedLearnerId={peerSelection?.sessionId === activeSessionId ? peerSelection.learnerId : null} onSelectLearner={selectLearner} onClose={() => setPeerSelection(null)} />
               <div className="lesson-tabs cockpit-panel-tabs" role="tablist" aria-label="Theo dõi lớp học">
                 {([
                   ["attention", "Cần chú ý"], ["students", "Học sinh"], ["activity", "Hoạt động"],

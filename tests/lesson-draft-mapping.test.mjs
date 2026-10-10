@@ -367,6 +367,8 @@ function formHarness(fetch = async () => { throw new Error('Unexpected request')
     if (name === 'react') return hooks;
     if (name.endsWith('/MathText')) return { default: ({ text }) => text, __esModule: true };
     if (name.endsWith('/LessonWorldMap')) return { LessonWorldMap: () => null, __esModule: true };
+    if (name.endsWith('/LessonPeerInspector')) return { LessonPeerInspector: () => null, __esModule: true };
+    if (name.endsWith('/lib/lesson/cockpit.js')) return { cockpitLearners: () => [], __esModule: true };
     if (name.endsWith('/useLessonSession')) return { useLessonSession: () => session, formatDuration: String };
     if (name.endsWith('/lib/lesson/proposal.js')) return { buildLessonProposal: () => null, __esModule: true };
     throw new Error(`Unexpected dependency ${name}`);

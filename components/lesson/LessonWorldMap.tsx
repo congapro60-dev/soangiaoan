@@ -55,19 +55,20 @@ interface LessonWorldMapProps {
     phase: 'submitted' | 'review';
   };
   onExamStationSelect?: (qid: string) => void;
+  onPeerSelect?: (peerId: string) => void;
 }
 
 /**
  * The campaign map every pupil, the teacher and the TV look at: the original game's terrain,
  * mascots and gates, drawn by public/lesson-map.html and fed from the lesson session.
  */
-export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect }: LessonWorldMapProps) {
+export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect, onPeerSelect }: LessonWorldMapProps) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const readyRef = useRef(false);
-  const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney } } | null>(null);
-  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect });
+  const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney; peerSelection: boolean } } | null>(null);
+  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect });
   useEffect(() => {
-    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect };
+    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect };
   });
 
   const world = resolveThemeId(themeKey || "modern") || "modern";
@@ -79,9 +80,9 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
   }, []);
 
   useEffect(() => {
-    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice, examJourney } } : null;
+    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice, examJourney, peerSelection: typeof onPeerSelect === 'function' } } : null;
     send();
-  }, [map, world, sessionKey, topInset, dice, examJourney, send]);
+  }, [map, world, sessionKey, topInset, dice, examJourney, onPeerSelect, send]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -96,6 +97,9 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
         const qid = event.data?.payload?.qid;
         const journey = latest.current?.payload?.examJourney;
         if (typeof qid === "string" && journey?.phase === "review" && journey.stations.some(s => s.id === qid)) handlers.current.onExamStationSelect?.(qid);
+      } else if (type === "lesson-map:peer") {
+        const peerId = event.data?.payload?.peerId;
+        if (handlers.current.onPeerSelect && typeof peerId === "string" && latest.current?.payload.map.peers.some(p => p.id === peerId)) handlers.current.onPeerSelect(peerId);
       }
     };
     window.addEventListener("message", onMessage);

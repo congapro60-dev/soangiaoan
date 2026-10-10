@@ -47,8 +47,18 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
   const [guidePending, setGuidePending] = useState(false);
   const [imageReaders, setImageReaders] = useState(0);
   const imageBusy = (delta: number) => setImageReaders((count) => count + delta);
+  const reading = useRef<AbortController | null>(null);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current++; reading.current?.abort(); for (const doc of pdfByCode.current.values()) doc.destroy(); }, []);
 
   const readFile = async (file: File, targetCode = currentCode) => {
+    reading.current?.abort();
+    const controller = new AbortController(); reading.current = controller;
+    const current = ++generation.current;
+    const live = () => current === generation.current && !controller.signal.aborted;
+    const check = () => { if (!live()) throw new DOMException("Đã hủy", "AbortError"); };
+    const previousPdf = pdfByCode.current.get(targetCode);
+    let candidatePdf: LoadedPdf | null = null;
     setError("");
     setStage("reading");
     try {
@@ -57,19 +67,16 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
       let pages: Array<{ height: number }> | undefined;
       let docxParsed: { title: string; durationMin: number | null; warnings: string[]; questions: DraftQuestion[] } | undefined;
       let sourceImages: Array<{ qid: string; mime: string; data: string }> = [];
-      pdfByCode.current.get(targetCode)?.destroy();
-      pdfByCode.current.delete(targetCode);
-      pdf.current = null;
-      if (name.endsWith(".pdf")) {
+      if (name.endsWith(".pdf") || /\.(png|jpe?g)$/.test(name)) {
         setProgress("Đang đọc file PDF…");
-        const loaded = await loadPdf(file, (done, total) => setProgress("Đang đọc trang " + done + "/" + total + "…"));
-        pdf.current = loaded;
-        pdfByCode.current.set(targetCode, loaded);
+        const loaded = await loadPdf(file, (done, total) => { if (live()) setProgress("Đang đọc trang " + done + "/" + total + "…"); }, { signal: controller.signal, onOcrProgress: text => { if (live()) setProgress(text); } });
+        if (!live()) { loaded.destroy(); check(); }
+        candidatePdf = loaded;
         lines = loaded.lines;
         pages = loaded.pages;
       } else if (name.endsWith(".docx")) {
         setProgress("Đang đọc file Word…");
-        const response = await fetch("/api/exams/extract", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file });
+        const response = await fetch("/api/exams/extract", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file, signal: controller.signal });
         if (!response.ok) throw new Error("Không đọc được file Word này. Em thử lưu lại thành PDF rồi chọn file PDF.");
         const extracted = await response.json() as { lines: string[]; parsed?: typeof docxParsed; images?: typeof sourceImages; warnings?: string[] };
         lines = extracted.lines.map((text) => ({ text }));
@@ -80,6 +87,7 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
       } else {
         throw new Error("Chỉ nhận file PDF, Word (.docx) hoặc văn bản (.txt).");
       }
+      check();
       const parsed = docxParsed || parseExamLines(lines, { pages }) as {
         title: string;
         durationMin: number | null;
@@ -88,22 +96,28 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
       };
       const questions: DraftQuestion[] = [];
       for (let i = 0; i < parsed.questions.length; i++) {
+        check();
         const q = parsed.questions[i];
         setProgress("Đang cắt hình câu " + (i + 1) + "/" + parsed.questions.length + "…");
-        const detected = pdf.current ? detectPdfItemRegions(q, pdf.current.lines, pdf.current.pages) as { stemRegions: Region[]; itemRegions: Record<string, Region[]>; reason?: string } : null;
+        const detected = candidatePdf && !candidatePdf.ocrPages.length ? detectPdfItemRegions(q, candidatePdf.lines, candidatePdf.pages) as { stemRegions: Region[]; itemRegions: Record<string, Region[]>; reason?: string } : null;
         const itemUploads: NonNullable<SolutionQuestion["itemUploads"]> = [];
-        if (pdf.current && detected && Object.keys(detected.itemRegions).length) {
+        if (candidatePdf && detected && Object.keys(detected.itemRegions).length) {
           for (const [letter, regions] of Object.entries(detected.itemRegions)) {
-            const data = await pdf.current.crop(regions);
+            const data = await candidatePdf.crop(regions);
             if (!data) throw new Error("Ảnh phương án quá lớn. Chọn vùng nhỏ hơn hoặc dùng file Word.");
             itemUploads.push({ id: crypto.randomUUID(), itemKind: q.type === "mc" ? "option" : "statement", letter, mime: "image/jpeg", data });
           }
         }
         const stemRegions = itemUploads.length ? detected!.stemRegions : q.regions;
-        const image = pdf.current && stemRegions?.length ? await pdf.current.crop(stemRegions) : "";
+        const image = candidatePdf && stemRegions?.length ? await candidatePdf.crop(stemRegions) : "";
+        if (candidatePdf?.ocrPages.length && !image) throw new Error("Không tạo được ảnh câu scan. Thu nhỏ vùng cắt hoặc giảm kích thước trang; không dùng chữ OCR thay công thức.");
         const drawings = sourceImages.filter((asset) => asset.qid === q.id).map((asset) => ({ id: crypto.randomUUID(), mime: asset.mime, data: asset.data }));
-        questions.push({ ...q, id: targetCode + "_q" + (i + 1), key: null, rawText: q.text, text: image ? "" : q.text, image: image || undefined, questionImageId: image ? crypto.randomUUID() : undefined, regions: stemRegions, hasImage: Boolean(image || drawings.length), imageMode: itemUploads.length || drawings.length ? "figure" : image ? "question" : q.imageMode, sourceImages: drawings, itemUploads, shuffleReason: detected?.reason, noShuffle: q.noShuffle === true || Boolean(pdf.current && !itemUploads.length && (q.type === "mc" || q.type === "tf")), choiceImages: q.type === "mc" && itemUploads.length ? Object.fromEntries(itemUploads.map((item) => [item.letter, item.id])) : q.choiceImages, statementImages: q.type === "tf" && itemUploads.length ? Object.fromEntries(itemUploads.map((item) => [item.letter, item.id])) : q.statementImages });
+        questions.push({ ...q, id: targetCode + "_q" + (i + 1), key: null, rawText: q.text, text: image ? "" : q.text, image: image || undefined, questionImageId: image ? crypto.randomUUID() : undefined, regions: stemRegions, hasImage: Boolean(image || drawings.length), imageMode: itemUploads.length || drawings.length ? "figure" : image ? "question" : q.imageMode, sourceImages: drawings, itemUploads, shuffleReason: detected?.reason, noShuffle: q.noShuffle === true || Boolean(candidatePdf && !itemUploads.length && (q.type === "mc" || q.type === "tf")), choiceImages: q.type === "mc" && itemUploads.length ? Object.fromEntries(itemUploads.map((item) => [item.letter, item.id])) : q.choiceImages, statementImages: q.type === "tf" && itemUploads.length ? Object.fromEntries(itemUploads.map((item) => [item.letter, item.id])) : q.statementImages });
       }
+      check();
+      if (candidatePdf) pdfByCode.current.set(targetCode, candidatePdf); else pdfByCode.current.delete(targetCode);
+      previousPdf?.destroy();
+      pdf.current = candidatePdf;
       if (draft && targetCode !== currentCode) setCodeDrafts((codes) => { const previous = codes.length ? codes.map((entry) => entry.code === currentCode ? { ...entry, questions: draft.questions } : entry) : [{ code: currentCode, questions: draft.questions }]; return [...previous.filter((entry) => entry.code !== targetCode), { code: targetCode, questions }]; });
       else if (!codeDrafts.length) setCodeDrafts([{ code: targetCode, questions }]);
       setCurrentCode(targetCode);
@@ -115,14 +129,15 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
         allowLateJoin: true,
         ...(draft ? { title: draft.title, durationMin: draft.durationMin, showResult: draft.showResult, review: draft.review, allowLateJoin: draft.allowLateJoin, shuffleQuestions: draft.shuffleQuestions, shuffleOptions: draft.shuffleOptions, assignment: draft.assignment, showCode: draft.showCode } : {}),
         questions,
-        warnings: parsed.warnings,
+        warnings: [...parsed.warnings, ...(candidatePdf?.ocrPages.length ? ["Đề scan: máy đọc vị trí câu, hãy rà kỹ. Công thức giữ trong ảnh; cần kiểm tra số câu và vùng cắt."] : [])],
       });
       setStage("review");
     } catch (e) {
-      if (targetCode !== currentCode) { pdfByCode.current.get(targetCode)?.destroy(); pdfByCode.current.delete(targetCode); pdf.current = pdfByCode.current.get(currentCode) || null; }
+      candidatePdf?.destroy();
+      if (!live()) return;
       setError(e instanceof Error && !/^[A-Z_]+$/.test(e.message) ? e.message : messageFor(e));
       setStage(draft ? "review" : "pick");
-    }
+    } finally { if (current === generation.current) reading.current = null; }
   };
   useEffect(() => {
     if (!initialFile) return;
@@ -224,12 +239,12 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
         <h2>Tạo bài kiểm tra từ file đề</h2>
         <p>Chọn file đề (PDF hoặc Word). Hệ thống tự tìm các câu, cắt hình từng câu từ file PDF (giữ nguyên công thức và hình vẽ) và tính điểm theo ghi chú đầu mỗi phần. Em chỉ cần điền đáp án và kiểm tra lại.</p>
         <label className={"exam-drop" + (stage === "reading" ? " is-busy" : "")}>
-          <input type="file" accept=".pdf,.docx,.txt,.md" hidden disabled={stage === "reading"} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void readFile(f); }} />
+          <input type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png" hidden disabled={stage === "reading"} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void readFile(f); }} />
           {stage === "reading" ? progress : "📄 Chọn file đề (PDF / Word)"}
         </label>
         {error && <p className="exam-error" role="alert">{error}</p>}
         <p className="exam-note">File được đọc ngay trên máy của em; chỉ phần hình và chữ của từng câu được lưu vào phòng kiểm tra.</p>
-        <button type="button" className="lesson-button lesson-button-outline" onClick={onCancel}>Quay lại</button>
+        <button type="button" className="lesson-button lesson-button-outline" onClick={() => { generation.current++; reading.current?.abort(); reading.current = null; setStage(draft ? "review" : "pick"); if (stage !== "reading") onCancel(); }}>{stage === "reading" ? "Hủy đọc đề" : "Quay lại"}</button>
       </section>
     );
   }

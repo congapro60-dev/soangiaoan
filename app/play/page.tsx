@@ -7,7 +7,7 @@ import LessonThemedRoute, { getSafeWorldMetadata } from "../../components/lesson
 import { LessonMascotChip, LessonMascotPicker } from "../../components/lesson/LessonMascotPicker";
 import { LessonMapStage } from "../../components/lesson/LessonMapStage";
 import { LessonEncounterSheet } from "../../components/lesson/LessonEncounterSheet";
-import { useLessonSession, formatDuration } from "../../components/lesson/useLessonSession";
+import { useLessonSession, formatDuration, type LessonPassportCard } from "../../components/lesson/useLessonSession";
 import { useLessonMedia } from "../../components/lesson/useLessonMedia";
 import "../lessons/lesson.css";
 
@@ -1101,6 +1101,9 @@ export default function PlayPage() {
               🏁 Tiết học đã kết thúc. Cảm ơn em đã tích cực tham gia!
             </div>
           )}
+          {isSessionConcluded && view?.passportCard && (
+            <PassportCard card={view.passportCard} name={view?.passport?.name || ownMapPeer?.name || "Em"} />
+          )}
 
           {/* Media Settings Panel */}
           {showMediaSettings && (
@@ -1455,5 +1458,32 @@ export default function PlayPage() {
         )}
       </LessonEncounterSheet>
     </main>
+  );
+}
+
+const PASSPORT_GROUPS = [
+  { status: "independent", title: "Em tự làm được", icon: "🌟" },
+  { status: "supported", title: "Em làm được khi có hỗ trợ", icon: "🤝" },
+  { status: "next", title: "Bước tiếp theo", icon: "🧭" },
+] as const;
+
+function PassportCard({ card, name }: { card: LessonPassportCard; name: string }) {
+  return (
+    <section className="lesson-card passport-card" aria-label="Hộ chiếu học tập">
+      <p className="passport-card-kicker">Hộ chiếu học tập</p>
+      <h2 className="passport-card-name">{name}</h2>
+      {PASSPORT_GROUPS.map((group) => {
+        const items = card.objectives.filter((item) => item.status === group.status);
+        if (!items.length) return null;
+        return (
+          <div key={group.status} className={`passport-card-group is-${group.status}`}>
+            <h3><span aria-hidden="true">{group.icon}</span> {group.title}</h3>
+            <ul>{items.map((item) => <li key={item.id}>{item.code ? <strong>{item.code}. </strong> : null}{item.statement}</li>)}</ul>
+          </div>
+        );
+      })}
+      <p className="passport-card-next"><strong>Việc nên làm tiếp:</strong> {card.nextStep}</p>
+      <p className="lesson-muted passport-card-note">Thẻ này chỉ của riêng em, không so sánh với bạn. Em có thể chụp lại để giữ.</p>
+    </section>
   );
 }

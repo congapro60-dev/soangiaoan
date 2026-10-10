@@ -130,7 +130,7 @@ test('PDF crop honors per-region horizontal boundary; legacy whole-question stri
   const body=/async crop\(regions\) \{([\s\S]*?)\n    \},\n    destroy/.exec(source)[1];
   const code=ts.transpileModule('(async(regions)=>{'+body+'})',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
   const drawn=[];
-  const crop=vm.runInNewContext(code,{render:async()=>({width:400,height:600}),pages:[{width:200,height:300}],margin:10,SCALE:2,trimBlank(){},document:{createElement:()=>({getContext:()=>({fillRect(){},drawImage(...args){drawn.push(args);}}),toDataURL:()=> 'data:image/jpeg;base64,AAAA'})}});
+  const crop=vm.runInNewContext(code,{clearCanvases(){},render:async()=>({width:400,height:600}),pages:[{width:200,height:300}],margin:10,SCALE:2,trimBlank(){},document:{createElement:()=>({getContext:()=>({fillRect(){},drawImage(...args){drawn.push(args);}}),toDataURL:()=> 'data:image/jpeg;base64,AAAA'})}});
   await crop([{page:1,top:20,bottom:40,left:60}]);
   assert.equal(drawn[0][1],120);
   assert.equal(drawn[0][3],260);

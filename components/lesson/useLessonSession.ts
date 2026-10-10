@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
+export type LessonPassportCard = { objectives: Array<{ id: string; code: string; statement: string; status: "independent" | "supported" | "next" }>; nextStep: string; hints: number };
+
 export type LessonRole = "teacher" | "student" | "presenter";
 
 export interface ClockState {
@@ -77,6 +79,7 @@ export interface LessonProjection {
   branch?: string;
   wallet?: { earned: number; bonus: number };
   passport?: { name?: string; [key: string]: unknown };
+  passportCard?: LessonPassportCard | null;
   [key: string]: unknown;
 }
 

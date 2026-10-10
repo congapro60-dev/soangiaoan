@@ -83,6 +83,23 @@ try {
       await sleep(250);
     }
     await sleep(3500);
+    if (process.env.MAP_COMPARE_OWLS === '1') {
+      for (let i = 0; i < 40 && !(await c.evaluate('window.__map3d.stats().owl.loaded')); i++) await sleep(250);
+      const pairs = [];
+      for (let i = 0; i < 3; i++) {
+        const pair = {};
+        for (const on of i % 2 ? [true, false] : [false, true]) {
+          await c.evaluate(`window.__map3d.owlMode(${on}); window.__map3d.tune({ scale: 1, level: 0 }); true`);
+          await sleep(500);
+          pair[on ? 'owl' : 'cards'] = await c.evaluate('(() => { window.__map3d.bench(10); return { frame: window.__map3d.bench(50), stats: window.__map3d.stats() }; })()');
+        }
+        pairs.push(pair);
+      }
+      const median = values => values.sort((a,b)=>a-b)[1];
+      const cards = median(pairs.map(p=>p.cards.frame.ms)), owl = median(pairs.map(p=>p.owl.frame.ms));
+      console.log(JSON.stringify({ name: s.name, cards, owl, worseningPercent: Math.round((owl/cards-1)*1000)/10, pairs }));
+      continue;
+    }
     const full = await c.evaluate('(() => { window.__map3d.tune({ scale: 1 }); window.__map3d.bench(10); return window.__map3d.bench(30); })()');
     await c.evaluate("window.__spin = true; (function spin() { if (!window.__spin) return; const r = window.__map3d.read(); window.__map3d.look(r.yaw + 0.03, r.pitch); requestAnimationFrame(spin); })(); true");
     await sleep(9000);

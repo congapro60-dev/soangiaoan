@@ -23,32 +23,38 @@ export function GuideImport({ questions, examId, disabled, onApply, onPendingCha
   const [pages, setPages] = useState<Array<{ height: number }>>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [readingBusy, setReadingBusy] = useState(false);
   const [imageReaders, setImageReaders] = useState(0);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
   const pdf = useRef<LoadedPdf | null>(null);
   const generation = useRef(0);
-  useEffect(() => () => { generation.current++; pdf.current?.destroy(); }, []);
+  const reading = useRef<AbortController | null>(null);
+  useEffect(() => () => { generation.current++; reading.current?.abort(); pdf.current?.destroy(); }, []);
   useEffect(() => { onPendingChange?.(busy || Boolean(review)); }, [busy, review, onPendingChange]);
   useEffect(() => () => { onPendingChange?.(false); }, [onPendingChange]);
   const imageBusy = (delta: number) => setImageReaders((count) => count + delta);
 
   const patch = (qid: string, change: Partial<SolutionQuestion>) => setReview((list) => list?.map((q) => q.id === qid ? { ...q, ...change } : q) || null);
   const read = async (file: File) => {
+    reading.current?.abort();
+    const controller = new AbortController(); reading.current = controller;
     const current = ++generation.current;
+    setReadingBusy(true);
     setBusy(true);
     setError("");
+    let loaded: LoadedPdf | null = null;
     try {
       if (file.size > 10 * 1024 * 1024) throw new Error("File tối đa 10 MB.");
       let text = "";
       const extractionWarnings: string[] = [];
-      let loaded: LoadedPdf | null = null;
-      if (/\.pdf$/i.test(file.name)) {
-        loaded = await loadPdf(file, (done, total) => { if (current === generation.current) setProgress("Đang đọc hướng dẫn chấm: trang " + done + "/" + total); });
+      if (/\.(pdf|png|jpe?g)$/i.test(file.name)) {
+        loaded = await loadPdf(file, (done, total) => { if (current === generation.current) setProgress("Đang đọc hướng dẫn chấm: trang " + done + "/" + total); }, { signal: controller.signal, onOcrProgress: text => { if (current === generation.current && !controller.signal.aborted) setProgress(text); } });
+        if (loaded.ocrPages.length) extractionWarnings.push("Hướng dẫn chấm scan: kiểm tra từng đáp án. Lời giải giữ trong ảnh; OCR không xác nhận công thức hoặc thang điểm.");
         text = loaded.lines.map((line) => line.text).join("\n");
       } else if (/\.docx$/i.test(file.name)) {
         setProgress("Đang đọc hướng dẫn chấm Word…");
-        const response = await fetch("/api/exams/extract", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file });
+        const response = await fetch("/api/exams/extract", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file, signal: controller.signal });
         if (!response.ok) throw new Error("Không đọc được file Word. Lưu thành PDF rồi chọn lại.");
         const result = await response.json() as { lines: string[]; warnings?: number | string[] };
         if (!Array.isArray(result.lines)) throw new Error("File Word chưa trả về nội dung hợp lệ.");
@@ -71,19 +77,27 @@ export function GuideImport({ questions, examId, disabled, onApply, onPendingCha
           for (let page = first.page; page <= last.page; page++) {
             const height = loaded.pages[page - 1].height;
             const top = page === first.page ? Math.max(0, first.top - 4) : 20;
-            found[qid].push({ page, top, bottom: Math.min(height, next?.page === page ? Math.max(top + 8, next.top - 4) : height - 20) });
+            found[qid].push({ page, top, bottom: Math.min(height, next?.page === page ? Math.max(top + 8, next.top - 4) : loaded.ocrPages.length ? height : height - 20) });
           }
         }
+      }
+      const reviewed: SolutionQuestion[] = [];
+      for (const q of questions) {
+        const scan = Boolean(loaded?.ocrPages.length);
+        const image = scan && found[q.id]?.length ? await loaded!.crop(found[q.id]) : "";
+        if (scan && found[q.id]?.length && !image) throw new Error("Ảnh lời giải scan quá lớn. Giảm vùng cắt hoặc chia trang rồi thử lại; bản duyệt trước vẫn được giữ.");
+        if (current !== generation.current) { loaded?.destroy(); return; }
+        reviewed.push({ ...q, ...(q.id in parsed.keys ? { key: parsed.keys[q.id] } : {}), ...(q.id in parsed.solutions ? { solution: scan ? "" : parsed.solutions[q.id] } : {}), ...(q.id in parsed.rubrics ? { rubric: scan ? "" : parsed.rubrics[q.id] } : {}), ...(image ? { solutionUploads: [...(q.solutionUploads || []), { id: crypto.randomUUID(), mime: "image/jpeg", data: image }] } : {}) });
       }
       pdf.current?.destroy();
       pdf.current = loaded;
       setPages(loaded?.pages || []);
       setRegions(found);
       setWarnings([...extractionWarnings, ...(parsed.problems || [])]);
-      setReview(questions.map((q) => ({ ...q, ...(q.id in parsed.keys ? { key: parsed.keys[q.id] } : {}), ...(q.id in parsed.solutions ? { solution: parsed.solutions[q.id] } : {}), ...(q.id in parsed.rubrics ? { rubric: parsed.rubrics[q.id] } : {}) })));
+      setReview(reviewed);
       setProgress("Đã nhận " + parsed.applied + " đáp án. Kiểm tra từng câu rồi bấm Áp dụng; thay đổi chưa được lưu vào phòng.");
-    } catch (e) { if (current === generation.current) setError(e instanceof Error && !/^[A-Z_]+$/.test(e.message) ? e.message : messageFor(e)); }
-    finally { if (current === generation.current) setBusy(false); }
+    } catch (e) { loaded?.destroy(); if (current === generation.current) setError(e instanceof Error && !/^[A-Z_]+$/.test(e.message) ? e.message : messageFor(e)); }
+    finally { if (current === generation.current) { reading.current = null; setReadingBusy(false); setBusy(false); } }
   };
   const crop = async (q: SolutionQuestion) => {
     const loaded = pdf.current;
@@ -104,12 +118,13 @@ export function GuideImport({ questions, examId, disabled, onApply, onPendingCha
     } catch (e) { setError(e instanceof Error ? e.message : messageFor(e)); }
     finally { setBusy(false); }
   };
-  const reset = () => { generation.current++; pdf.current?.destroy(); pdf.current = null; setPages([]); setReview(null); setRegions({}); setWarnings([]); setError(""); setProgress(""); };
+  const reset = () => { generation.current++; reading.current?.abort(); pdf.current?.destroy(); pdf.current = null; setBusy(false); setPages([]); setReview(null); setRegions({}); setWarnings([]); setError(""); setProgress(""); };
+  const cancelRead = () => { generation.current++; reading.current?.abort(); reading.current = null; setReadingBusy(false); setBusy(false); setProgress(""); setError(""); };
 
   return (
-    <fieldset disabled={disabled || busy} style={{ border: 0, padding: 0, margin: "16px 0", minWidth: 0 }} data-guide-import>
+    <><fieldset disabled={disabled || busy} style={{ border: 0, padding: 0, margin: "16px 0", minWidth: 0 }} data-guide-import>
       <legend><strong>Tải file hướng dẫn chấm (Word/PDF)</strong></legend>
-      <label className="exam-drop"><input type="file" accept=".pdf,.docx,.txt,.md" disabled={imageReaders > 0} aria-label="File hướng dẫn chấm" onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ""; if (file) void read(file); }} /></label>
+      <label className="exam-drop"><input type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png" disabled={imageReaders > 0} aria-label="File hướng dẫn chấm" onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ""; if (file) void read(file); }} /></label>
       {progress && <p className="exam-note" role="status">{progress}</p>}
       {error && <p className="exam-error" role="alert">{error}</p>}
       {review && <>
@@ -143,6 +158,6 @@ export function GuideImport({ questions, examId, disabled, onApply, onPendingCha
         <button type="button" className="lesson-button lesson-button-primary" disabled={imageReaders > 0 || review.some((q) => (q.solution?.length || 0) > 6000 || (q.rubric?.length || 0) > 2000)} onClick={() => { onApply(review); reset(); }}>Áp dụng hướng dẫn chấm</button>
         <button type="button" className="lesson-button lesson-button-outline" disabled={imageReaders > 0} onClick={reset}>Hủy hướng dẫn chấm</button>
       </>}
-    </fieldset>
+    </fieldset>{readingBusy && <button type="button" className="lesson-button lesson-button-outline" onClick={cancelRead}>Hủy đọc hướng dẫn chấm</button>}</>
   );
 }

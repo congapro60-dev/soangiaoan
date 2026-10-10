@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="/style.css">
 <script type="importmap">{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}</script>
 <style>
+  #lmPeerChooser button{flex-shrink:0}
+  #lmPeerChooser .mascot{width:40px;height:40px;flex:0 0 40px}
   /* The map is the screen. Only a thin layer of controls floats over it. */
   html,body{margin:0;height:100%;background:transparent;overflow:hidden}
   #lessonMap{position:absolute;inset:0}
@@ -128,6 +130,72 @@
     if (!target) return;
     target.postMessage(Object.assign({ type: type }, extra || {}), window.location.origin);
   }
+  function closePeerChooser() {
+    var d = document.getElementById('lmPeerChooser');
+    if (d && d.open) {
+      var f = d._returnFocus;
+      d.close();
+      if (f && typeof f.focus === 'function') f.focus();
+    }
+  }
+  function selectPeer(id) {
+    if (!lastInput || lastInput.peerSelection !== true || typeof id !== 'string') return;
+    var valid = (lastInput.map && lastInput.map.peers || []).some(function(p){ return p && p.id === id; });
+    if (!valid) return;
+    post('lesson-map:peer', { payload: { peerId: id } });
+    closePeerChooser();
+  }
+  function openPeerChooser(ids) {
+    if (!lastInput || lastInput.peerSelection !== true || !Array.isArray(ids)) return;
+    var seen = new Set();
+    var actual = [];
+    var peers = (lastInput.map && lastInput.map.peers) || [];
+    ids.forEach(function(id) {
+      if (typeof id === 'string' && !seen.has(id)) {
+        seen.add(id);
+        for (var i = 0; i < peers.length; i++) {
+          if (peers[i] && peers[i].id === id) { actual.push({ peer: peers[i], index: i }); break; }
+        }
+      }
+    });
+    if (!actual.length) return;
+    var d = document.getElementById('lmPeerChooser');
+    if (!d) {
+      d = document.createElement('dialog');
+      d.id = 'lmPeerChooser';
+      d.setAttribute('aria-label', 'Chọn linh vật');
+      d.style.cssText = 'width:min(92vw,400px);max-height:70vh;padding:12px;box-sizing:border-box;border:1px solid #f6d481;border-radius:12px;background:#0f1b30;color:#fff';
+      d.addEventListener('cancel', function(e) { e.preventDefault(); closePeerChooser(); });
+      document.body.appendChild(d);
+    }
+    d._returnFocus = document.activeElement;
+    d._peerIds = actual.map(function(item) { return item.peer.id; });
+    d._sessionKey = lastInput.sessionKey;
+    d._world = lastInput.world;
+    while (d.firstChild) d.removeChild(d.firstChild);
+    var list = document.createElement('div');
+    list.style.cssText = 'max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px';
+    var t = themeOf(lastInput.world);
+    actual.forEach(function(item) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.peerId = item.peer.id;
+      b.style.cssText = 'min-width:44px;min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer';
+      b.innerHTML = sprite(t, item.peer.mascot) + '<span>Linh vật ' + (item.index + 1) + '</span>';
+      b.onclick = function() { selectPeer(b.dataset.peerId); };
+      list.appendChild(b);
+    });
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Đóng';
+    cancel.style.cssText = 'min-width:44px;min-height:44px;margin-top:8px;width:100%';
+    cancel.onclick = closePeerChooser;
+    d.appendChild(list);
+    d.appendChild(cancel);
+    d.showModal();
+    var first = list.querySelector('button');
+    if (first) first.focus();
+  }
 
   // ---- icons (inline, crisp at any density)
   var ICON_FIND = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>';
@@ -173,6 +241,7 @@
       '</div><div class="lm-pick" id="lmPick" hidden><input type="search" id="lmPickSearch" placeholder="Tìm tên bạn" aria-label="Tìm tên bạn" autocomplete="off"><div class="lm-pick-list" id="lmPickList"></div><button data-action="map-pick-clear">Bỏ chọn hết</button></div></div>' +
       '<div class="lm-row"><span class="lm-label">Ánh sáng</span><button data-action="map-light" aria-pressed="false">Ánh sáng: Ngày</button></div>' +
       (canFull ? '<div class="lm-row"><button data-action="map-expand">⛶ Toàn màn hình</button></div>' : '') +
+      '<a href="/models/CREDITS.md" target="_blank" rel="noopener" style="color:#cdd7ef;font-size:12px">Nguồn linh vật 3D</a>' +
       '<button data-action="map-rotate" class="lm-hidden" disabled>Xoay</button>' +
       '</div>' +
       '<div class="lm-dice" id="lmDice" hidden aria-live="polite"><div class="lm-die-scene" aria-hidden="true"><div class="lm-die" id="lmDie">' + [1, 2, 3, 4, 5, 6].map(dieFaceHtml).join('') + '</div></div><div class="lm-dice-pop" id="lmDicePop"></div></div>' +
@@ -273,6 +342,7 @@
       if (mini) mini.style.display = 'none';
       pilot = mod.mount(host, buildModel(lastInput, themeOf(lastInput.world)), {
         world: lastInput.world,
+        owlModels: !(/[?&]debug\b/.test(window.location.search) && new URLSearchParams(window.location.search).get('owl') === 'off'),
         onFallback: function () { fallbackTo2D('Máy chưa theo kịp 3D nên bản đồ đã về 2D.'); },
         onRollRequest: function () { post('lesson-map:roll'); },
         onDiceDone: function () { post('lesson-map:dice-done'); }
@@ -425,6 +495,9 @@
       spriteUrl: '/assets/' + theme.sprites,
       sprite: function (m) { return sprite(theme, m); },
       phase: function () { return 'Đang trên đường'; },
+      peerSelection: input.peerSelection === true,
+      onPeerSelect: selectPeer,
+      openPeerChooser: openPeerChooser,
       onDrag: function () {}
     };
   }
@@ -540,6 +613,8 @@
 
   function receive(input) {
     if (!input || !input.map || !Array.isArray(input.map.peers) || !campaign || !window.SignalTerrain) return;
+    var chooser = document.getElementById('lmPeerChooser');
+    if (chooser && chooser.open && (input.peerSelection !== true || chooser._sessionKey !== input.sessionKey || chooser._world !== input.world || chooser._peerIds.some(function(id) { return !input.map.peers.some(function(p) { return p.id === id; }); }))) closePeerChooser();
     
     if (input.examJourney) {
       var stations = Array.isArray(input.examJourney.stations) ? input.examJourney.stations : [];
@@ -696,7 +771,7 @@
       DEMO_PEERS.push({
         id: 'demo' + di,
         name: di < DEMO_NAMES.length ? DEMO_NAMES[di] : DEMO_NAMES[di % DEMO_NAMES.length] + ' ' + (Math.floor(di / DEMO_NAMES.length) + 1),
-        mascot: di % 8,
+        mascot: new URLSearchParams(window.location.search).get('mascot') === '1' && di < 2 ? 1 - di : di % 8,
         position: di === 0 && demoCount !== 8 ? 22 : spread,
         own: di === 0
       });

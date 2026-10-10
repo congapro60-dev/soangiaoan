@@ -3785,6 +3785,19 @@
   min-width: 0;
 }
 
+.cockpit-peer-inspector { margin-bottom: 1rem; }
+.cockpit-peer-card { margin-bottom: 1rem; overflow-wrap: anywhere; }
+.cockpit-peer-mascot { display: flex; align-items: center; gap: .5rem; }
+.cockpit-peer-facts { display: grid; grid-template-columns: minmax(100px, 1fr) minmax(0, 1.5fr); gap: .5rem; }
+.cockpit-peer-facts dd { margin: 0; }
+.cockpit-peer-facts dt { color: var(--lesson-text-muted); }
+.cockpit-support-panel { padding: 1rem; border: 1px solid var(--lesson-border); border-radius: var(--lesson-radius); background: var(--lesson-surface); }
+.cockpit-support-threshold { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.cockpit-support-threshold input { width: 76px; }
+.cockpit-support-list { list-style: none; padding: 0; margin: .5rem 0 0; max-height: 240px; overflow: auto; }
+.cockpit-support-list button { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: .4rem; text-align: left; }
+.cockpit-support-list button[aria-pressed="true"] { outline: 2px solid var(--lesson-accent); outline-offset: -2px; }
+
 .cockpit-class-map {
   background: var(--lesson-surface);
   border: 1px solid var(--lesson-border);
@@ -3914,3 +3927,23 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* "3 việc nên làm bây giờ" (teacher cockpit) */
+.cockpit-actions { padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--lesson-border-strong); border-radius: var(--lesson-radius); background: var(--lesson-surface); }
+.cockpit-actions ol { margin: 0.5rem 0 0; padding-left: 1.25rem; display: grid; gap: 0.4rem; }
+.cockpit-action.is-support { color: #fbbf24; }
+.cockpit-action.is-error { color: #fca5a5; }
+.cockpit-action-link { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; text-decoration: underline; cursor: pointer; }
+
+/* Pupil end-of-lesson passport card */
+.passport-card { margin-top: 0.75rem; padding: 1.25rem; border: 2px solid var(--lesson-primary); border-radius: calc(var(--lesson-radius) * 1.5); background: linear-gradient(160deg, var(--lesson-surface) 0%, var(--lesson-bg) 100%); }
+.passport-card-kicker { margin: 0; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lesson-primary); }
+.passport-card-name { margin: 0.25rem 0 0.75rem; font-size: 1.5rem; }
+.passport-card-group { margin: 0.75rem 0; padding: 0.75rem; border-radius: var(--lesson-radius); background: var(--lesson-surface-2); }
+.passport-card-group h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.passport-card-group ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.25rem; }
+.passport-card-group.is-independent { border-left: 4px solid var(--lesson-success); }
+.passport-card-group.is-supported { border-left: 4px solid #fbbf24; }
+.passport-card-group.is-next { border-left: 4px solid var(--lesson-primary); }
+.passport-card-next { margin: 0.75rem 0 0.25rem; }
+.passport-card-note { margin: 0; font-size: 0.85rem; }
