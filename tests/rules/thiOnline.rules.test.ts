@@ -264,8 +264,8 @@ describe('examSubmissions · học sinh làm bài và nộp', () => {
 });
 
 describe('examSubmissions · đọc kết quả', () => {
-  it('24. Đọc bài ĐÃ NỘP qua link kết quả → ALLOW (subId khó đoán là hàng rào)', async () => {
-    await assertSucceeds(getDoc(doc(dbHS(), 'examSubmissions/bai-da-nop')));
+  it('24. Đọc thẳng bài ĐÃ NỘP → DENY (trang kết quả đọc qua máy chủ, máy chủ áp cài đặt hiện điểm)', async () => {
+    await assertFails(getDoc(doc(dbHS(), 'examSubmissions/bai-da-nop')));
   });
 
   it('25. Đọc bài người khác đang làm dở → DENY (chống nhìn bài)', async () => {

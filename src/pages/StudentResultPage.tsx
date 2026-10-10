@@ -9,8 +9,8 @@ import {
   Loader2, CheckCircle2, XCircle, AlertTriangle, Trophy, Clock,
   ChevronDown, ChevronUp,
 } from 'lucide-react';
-import { Exam, ExamSubmission, ExamQuestion } from '../types';
-import { getPublicExamById, getSubmission, getSubmissions } from '../hooks/useExams';
+import { Exam, ExamQuestion } from '../types';
+import { getPublicExamById, getPublicExamResult, type PublicExamResult, type PublicLeaderboardRow } from '../hooks/useExams';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -38,38 +38,25 @@ export const StudentResultPage = () => {
   const autoSubmitted = searchParams.get('auto') === '1';
 
   const [exam, setExam] = useState<Exam | null>(null);
-  const [submission, setSubmission] = useState<ExamSubmission | null>(null);
+  const [submission, setSubmission] = useState<PublicExamResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<ExamSubmission[]>([]);
+  const [leaderboard, setLeaderboard] = useState<PublicLeaderboardRow[]>([]);
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
-    // Lấy bài nộp trước để có examId, rồi tải đề (đã lược đáp án) theo id — hoạt động cả khi đề đã đóng.
-    getSubmission(submissionId)
-      .then(async s => {
-        if (!s) { setError('Không tìm thấy bài làm'); return; }
-        const e = await getPublicExamById(s.examId);
+    // Lấy bài nộp (qua máy chủ, kèm bảng xếp hạng) để có examId, rồi tải đề (đã lược đáp án) theo id — hoạt động cả khi đề đã đóng.
+    getPublicExamResult(submissionId)
+      .then(async result => {
+        if (!result) { setError('Không tìm thấy bài làm'); return; }
+        const e = await getPublicExamById(result.submission.examId);
         if (!e) { setError('Không tìm thấy đề thi'); return; }
-        setExam(e); setSubmission(s);
+        setExam(e); setSubmission(result.submission); setLeaderboard(result.leaderboard);
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [code, submissionId]);
-
-  useEffect(() => {
-    if (!exam) return;
-    getSubmissions(exam.id)
-      .then(subs => {
-        const done = subs
-          .filter(s => s.status !== 'in_progress' && s.totalScore !== undefined)
-          .sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0))
-          .slice(0, 10);
-        setLeaderboard(done);
-      })
-      .catch(() => {});
-  }, [exam]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -95,8 +82,9 @@ export const StudentResultPage = () => {
   // Enforce cấu hình "Hiện kết quả khi nào" của giáo viên
   const showWhen = exam.showResultWhen ?? 'submit';
   const examEnded = exam.endAt ? Date.now() > new Date(exam.endAt).getTime() : false;
-  const canShowScore = showWhen === 'submit'
-    || (showWhen === 'all_done' && (examEnded || submission.status === 'graded'));
+  // Máy chủ là nơi quyết định: đã bỏ điểm thì `resultHidden`, trình duyệt không tự hiện lại được.
+  const canShowScore = !submission.resultHidden && (showWhen === 'submit'
+    || (showWhen === 'all_done' && (examEnded || submission.status === 'graded')));
 
   if (!canShowScore) {
     return (

@@ -125,6 +125,29 @@ export const findPublicExamByCode = (code: string): Promise<Exam | null> =>
 export const getPublicExamById = (id: string): Promise<Exam | null> =>
   fetchPublicExam(`examId=${encodeURIComponent(id)}`);
 
+/** Một dòng bảng xếp hạng trên trang kết quả (máy chủ chỉ trả tên + điểm). */
+export interface PublicLeaderboardRow {
+  id: string;
+  studentName: string;
+  studentClass: string;
+  totalScore: number;
+}
+
+/** Bài làm cho trang kết quả: chưa tới lúc hiện điểm thì máy chủ đã bỏ điểm và đặt `resultHidden`. */
+export type PublicExamResult = ExamSubmission & { resultHidden?: boolean };
+
+/**
+ * Kết quả một bài làm theo link kết quả — đọc qua máy chủ (Firestore chỉ cho giáo viên chủ đề đọc bài làm).
+ * Máy chủ áp cài đặt hiện điểm / xem lại / ẩn bảng xếp hạng của đề. Không có bài → null.
+ */
+export const getPublicExamResult = async (submissionId: string): Promise<{ submission: PublicExamResult; leaderboard: PublicLeaderboardRow[] } | null> => {
+  const res = await fetch(`/api/exam?submissionId=${encodeURIComponent(submissionId)}`);
+  if (res.status === 404) return null;
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Không tải được kết quả (mã lỗi ${res.status})`);
+  return { submission: data.submission as PublicExamResult, leaderboard: Array.isArray(data.leaderboard) ? data.leaderboard : [] };
+};
+
 /**
  * Chấm bài nộp phía server (nguồn tin cậy). Trả điểm/status.
  * Fail-safe: lỗi thì ném — nơi gọi bắt và để bài ở 'submitted'; giáo viên xác minh sau vẫn đúng.
@@ -181,10 +204,6 @@ export const updateSubmission = async (
   await updateDoc(doc(db, 'examSubmissions', id), patch);
 };
 
-export const getSubmission = async (id: string): Promise<ExamSubmission | null> => {
-  const snap = await getDoc(doc(db, 'examSubmissions', id));
-  return snap.exists() ? (snap.data() as ExamSubmission) : null;
-};
 
 export const getExamById = async (id: string): Promise<Exam | null> => {
   const snap = await getDoc(doc(db, 'exams', id));

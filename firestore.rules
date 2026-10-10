@@ -209,7 +209,7 @@ service cloud.firestore {
     //  - create: học sinh nặc danh được tạo bài in_progress với id khó đoán do client sinh
     //  - update: học sinh nặc danh chỉ được sửa bài khi còn in_progress và không đổi định danh bài/đề
     //  - teacher: giáo viên chủ đề được đọc/chấm/cập nhật bài thuộc đề của mình
-    //  - read public: chỉ cho đọc bài đã nộp/chấm theo link kết quả có subId khó đoán; không list được nếu query có thể chứa in_progress
+    //  - read: chỉ giáo viên chủ đề; trang kết quả của thí sinh đọc qua máy chủ
     match /examSubmissions/{subId} {
       function examDoc(examId) {
         return get(/databases/$(database)/documents/exams/$(examId));
@@ -269,7 +269,9 @@ service cloud.firestore {
 
       allow create: if validStudentCreate();
       allow update: if isExamTeacher(resource.data.examId) || validStudentUpdate();
-      allow read: if isExamTeacher(resource.data.examId) || resource.data.status in ['submitted', 'graded'];
+      // Chỉ giáo viên chủ đề đọc trực tiếp. Thí sinh xem kết quả qua máy chủ (GET /api/exam?submissionId=) — máy chủ áp
+      // cài đặt hiện điểm / xem lại và không trả bài trong lớp (điểm bài lớp chỉ hiện ở cổng học sinh sau khi được duyệt).
+      allow read: if isExamTeacher(resource.data.examId);
       allow delete: if isExamTeacher(resource.data.examId);
     }
 

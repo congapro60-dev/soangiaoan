@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp, ArrowLeft,
 } from 'lucide-react';
 import { Exam, ExamSubmission, ExamQuestion } from '../types';
-import { getPublicExamById, getSubmission } from '../hooks/useExams';
+import { getPublicExamById, getPublicExamResult } from '../hooks/useExams';
 
 // ─── Helpers (shared with StudentResultPage) ──────────────────────────────────
 
@@ -40,9 +40,11 @@ export const AnswerReviewPage = () => {
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
     // Bài nộp trước → lấy examId → tải đề đã lược đáp án; đáp án xem lại lấy từ bài nộp đã chấm.
-    getSubmission(submissionId)
-      .then(async s => {
-        if (!s) { setError('Không tìm thấy bài làm'); return; }
+    getPublicExamResult(submissionId)
+      .then(async result => {
+        if (!result) { setError('Không tìm thấy bài làm'); return; }
+        const s = result.submission;
+        if (s.resultHidden) { setError('Chưa tới lúc xem lại bài: giáo viên sẽ công bố kết quả sau.'); return; }
         const e = await getPublicExamById(s.examId);
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(s);

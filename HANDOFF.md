@@ -246,4 +246,6 @@ Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên
 - Máy chủ ẩn dữ liệu, không chỉ ẩn ở giao diện: `projectStudentSubmission` (api/classroom.ts) trả `score 0`, `feedback ''`, không `questionResults`, `scoreHidden: true` khi chưa duyệt; `_score-book.ts` (cổng học sinh/phụ huynh) chỉ nhận điểm đã duyệt; bài luyện (`practiceBasis`) chỉ lấy lỗi bài đã duyệt.
 - Hỏi lại em ở lượt chấm ĐẦU TIÊN của bài, bất kể ai bấm chấm (em, "Chấm cả lớp", tự chấm 60 phút); bỏ công tắc lớp `askStudentClarification`.
 - Học sinh chỉ gọi `gradeOne` được MỘT lần (đã có kết quả thì 403) — muốn đọc lại thì nộp ảnh bổ sung.
-- Chưa làm (kiểm toán 09/10): mã đề không đọc được chưa hỏi em; câu bỏ trống bị hỏi nhầm như "chưa đọc được"; đề online chưa ẩn điểm tạm; giao diện nút "Nộp lại" mâu thuẫn chữ ở trạng thái lỗi.
+- Đã làm (10/10): máy không đọc được mã đề → em chọn mã ghi trên đề (`answerExamCode`, nhãn "HS chọn" ở tab Giao bài); câu em bỏ trống không bị hỏi lại; bài online chưa duyệt không gửi điểm về máy em (`hideUnofficialOnlineScore`); lỗi lượt đọc đầu ghi `errorReason` (photo / exam_code / system) để cổng HS nói đúng việc em cần làm.
+- Trang kết quả đề công khai (`/exam/:code/result/:id`, trang xem lại) đọc bài qua `GET /api/exam?submissionId=`. Máy chủ áp hiện điểm / xem lại / ẩn bảng xếp hạng, và từ chối bài trong lớp. `firestore.rules`: `examSubmissions` chỉ giáo viên chủ đề đọc trực tiếp.
+  **Thứ tự triển khai:** code lên Vercel TRƯỚC, sau đó mới `firebase deploy --only firestore:rules`. Deploy rules trước thì trang kết quả của bản cũ sẽ hỏng.
