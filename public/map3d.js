@@ -175,7 +175,11 @@ export function mount(host, model, options = {}) {
   labelLayer.setAttribute('aria-hidden', 'true');
   labelLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2';
   host.appendChild(labelLayer);
+    const interactiveLayer = document.createElement('div');
+    interactiveLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1';
+    host.appendChild(interactiveLayer);
   const labels = [];
+  const stationLabels = new Map();
   function makeLabel(kind, first, second) {
     const el = document.createElement('div');
     el.style.cssText = 'position:absolute;left:0;top:0;display:none;white-space:nowrap;will-change:transform;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.2;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased';
@@ -193,8 +197,8 @@ export function mount(host, model, options = {}) {
       el.textContent = String(first || '').slice(0, 24);
     }
     labelLayer.appendChild(el);
-    labels.push(el);
-    return el;
+      labels.push(el);
+      return el;
   }
   // A mascot is one cell of the picture sheet drawn as a CSS background, exactly like the flat map does, so it is as
   // sharp as the picture itself and is never softened by the 3D drawing or its anti-aliasing.
@@ -239,7 +243,7 @@ export function mount(host, model, options = {}) {
       el.appendChild(b);
     }
     labelLayer.appendChild(el);
-    return el;
+      return el;
   }
 
   const scene = new THREE.Scene();
@@ -1398,6 +1402,65 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
       });
     }
   }
+function syncStations(next) {
+    const journey = next.examJourney;
+    if (!journey || !journey.stations) {
+      for (const [id, el] of stationLabels) {
+        el.remove();
+        const idx = labels.indexOf(el);
+        if (idx >= 0) labels.splice(idx, 1);
+      }
+      stationLabels.clear();
+      return;
+    }
+    const phase = journey.phase;
+    const selected = journey.selectedStationId;
+    const currentIds = new Set();
+    const len = journey.stations.length;
+    journey.stations.forEach((st, i) => {
+      currentIds.add(st.id);
+      let el = stationLabels.get(st.id);
+      if (!el) {
+        el = document.createElement('button');
+        el.style.cssText = 'position:absolute;left:0;top:0;display:none;will-change:transform;font-family:system-ui;padding:6px 12px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.5);cursor:pointer;pointer-events:auto;white-space:nowrap;border:1px solid rgba(255,255,255,0.2);min-height:44px;min-width:44px;';
+        el.dataset.examStation = st.id;
+        el.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (el.disabled) return;
+          window.parent.postMessage({ type: 'exam-map:select', payload: { qid: st.id } }, window.location.origin);
+        };
+        interactiveLayer.appendChild(el);
+        labels.push(el);
+        stationLabels.set(st.id, el);
+      }
+      el.textContent = st.label;
+      const isSelected = st.id === selected;
+      el.setAttribute('aria-pressed', String(isSelected));
+      el.style.background = isSelected ? '#f6d481' : (st.answered ? 'rgba(40,167,69,0.9)' : 'rgba(8,15,33,0.9)');
+      el.style.color = isSelected ? '#000' : '#fff';
+      if (phase !== 'review') {
+        el.disabled = true;
+        el.style.cursor = 'default';
+        el.style.opacity = '0.5';
+      } else {
+        el.disabled = false;
+        el.style.cursor = 'pointer';
+        el.style.opacity = '1';
+      }
+      // Store cell position for placement
+      const fraction = (i + 1) / Math.max(1, len);
+        el._routeIndex = fraction * (path.length - 1);
+    });
+    for (const [id, el] of stationLabels) {
+      if (!currentIds.has(id)) {
+        el.remove();
+        const idx = labels.indexOf(el);
+        if (idx >= 0) labels.splice(idx, 1);
+        stationLabels.delete(id);
+      }
+    }
+  }
   function syncPeers(next) {
     const seen = new Set();
     for (const peer of next.peers) {
@@ -1415,6 +1478,7 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
         entry.walkT = 0;
       }
     }
+    syncStations(next);
     for (const [id, entry] of peers) {
       if (!seen.has(id)) {
         disposePeer(entry);
@@ -2127,6 +2191,20 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
       show(item.el, true);
       item.el.style.transform = 'translate(' + item.x + 'px,' + item.y + 'px) translate(-50%,' + (item.below ? '6px' : '-100%') + ')';
     }
+    if (path.length > 1 && stationLabels.size) {
+      const lastPath = path.length - 1;
+      for (const el of stationLabels.values()) {
+        const at = clamp(el._routeIndex || 0, 0, lastPath);
+        const lo = Math.min(lastPath - 1, Math.floor(at));
+        const f = at - lo;
+        const a = path[lo], b = path[lo + 1];
+        tmp.x = a.x + (b.x - a.x) * f;
+        tmp.z = a.y + (b.y - a.y) * f;
+        tmp.y = heightAt(tmp.x, tmp.z) + 2;
+        if (screen(tmp)) put(el, tmp, 'center', 1);
+        else show(el, false);
+      }
+    }
     if (dieHint.visible && dieGroup.visible) put(hintEl, dieHint.getWorldPosition(tmp), 'center');
     else show(hintEl, false);
     if (dieBubble.visible && dieBubble.userData.k > 0.03) put(bubbleEl, dieBubble.position, 'above', Math.max(0.05, dieBubble.userData.k));
@@ -2298,6 +2376,7 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
       followSun(s, now);
       scaleBillboards();
       placeLabels(now);
+
       sunGlow.position.copy(camera.position).addScaledVector(SUN_DIR, SKY_R * 0.88);
       frameStamps.push(now);
       if (frameStamps.length > 90) frameStamps.shift();
@@ -2472,6 +2551,7 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
       renderer.forceContextLoss?.();
       canvas.remove();
       labelLayer.remove();
+        interactiveLayer.remove();
       mascotLayer.remove();
     },
   };

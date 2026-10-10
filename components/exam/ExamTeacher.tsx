@@ -1,26 +1,28 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import MathText from "../lesson/MathText";
 import { mascotSpriteStyle } from "../lesson/LessonMascotPicker";
 import { parseAnswerKey } from "../../lib/exam/answer-key.js";
 import { describeKey } from "../../lib/exam/scoring.js";
 import { ExamQuestion, messageFor, teacherGet, teacherImageUrl, teacherPost } from "./client";
 import { ExamImport } from "./ExamImport";
-import { KeyEditor, keyReady } from "./KeyEditor";
+import { KeyEditor, QuestionItemsEditor, SolutionEditor, SolutionImage, SolutionQuestion, keyReady } from "./KeyEditor";
+import { AntiCheatingConfig, AntiCheatingSettings, CodeTabs, ExamCodeDraft, PupilPreview, VariantAssistant, nextExamCode } from "./VariantEditor";
+import { GuideImport } from "./GuideImport";
 
 const SPRITE = "mascots-historical.webp";
 const STATUS_LABEL: Record<string, string> = { draft: "Bản nháp", open: "Đang mở phòng", running: "Đang thi", closed: "Đã kết thúc" };
 const STATUS_BADGE: Record<string, string> = { draft: "lesson-badge-outline", open: "lesson-badge-warning", running: "lesson-badge-success", closed: "lesson-badge-primary" };
 
 interface ExamSummary { id: string; code: string; title: string; status: string; durationMin: number; attempts: number; questionCount: number; createdAt: number }
-interface ExamFull { id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: { showResult?: string; allowLateJoin?: boolean }; questions: ExamQuestion[] }
-interface AttemptRow { id: string; name: string; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; submittedAt: number | null; claimed: boolean }
+interface ExamFull { id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: AntiCheatingConfig & { showResult?: string; allowLateJoin?: boolean; review?: "after_close" | "none" }; codes?: Array<{ code: string | null; questions: SolutionQuestion[] }>; questions: SolutionQuestion[] }
+interface AttemptRow { id: string; name: string; examCode?: string | null; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; submittedAt: number | null; claimed: boolean }
 interface RoomData { serverNow: number; exam: ExamFull; missingKeys: string[]; attempts: AttemptRow[] }
-interface ResultRow { id: string; name: string; mascot: number; tabLeaves: number; submittedAt: number | null; answered: number; total: number; max: number; sections: Record<string, { points: number; max: number }>; essaysToMark: number; perQuestion: Record<string, { p: number; c: boolean | null }> }
+interface ResultRow { id: string; name: string; examCode?: string | null; mascot: number; tabLeaves: number; submittedAt: number | null; answered: number; total: number; max: number; sections: Record<string, { points: number; max: number }>; essaysToMark: number; perQuestion: Record<string, { p: number; c: boolean | null }> }
 interface Stat { answered: number; correct: number; wrong: number; blank: number; avg: number; choices: Record<string, number>; statements: number[] }
-interface ResultsData { exam: ExamFull; rows: ResultRow[]; stats: Record<string, Stat> }
-interface AttemptDetail { attempt: { id: string; name: string }; answers: Record<string, unknown>; manual: Record<string, number>; photos: Array<{ id: string; qid: string }>; exam: ExamFull }
+interface ResultsData { exam: ExamFull; rows: ResultRow[]; stats: Record<string, Stat>; statsByCode?: Record<string, Record<string, Stat>> }
+interface AttemptDetail { attempt: { id: string; name: string; examCode?: string | null }; answers: Record<string, unknown>; manual: Record<string, number>; comments: Record<string, string>; photos: Array<{ id: string; qid: string }>; exam: ExamFull }
 
 const clock = (ms: number) => {
   const total = Math.max(0, Math.ceil(ms / 1000));
@@ -53,7 +55,11 @@ function Picture({ query, alt }: { query: string; alt: string }) {
 function EssayMarker({ examId, attemptId, onSaved }: { examId: string; attemptId: string; onSaved: () => void }) {
   const [detail, setDetail] = useState<AttemptDetail | null>(null);
   const [scores, setScores] = useState<Record<string, string>>({});
+  const [comments, setComments] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState("");
+  const [error, setError] = useState("");
   const [note, setNote] = useState("");
+
   useEffect(() => {
     let alive = true;
     teacherGet<AttemptDetail>("?id=" + examId + "&attempt=" + attemptId)
@@ -61,46 +67,69 @@ function EssayMarker({ examId, attemptId, onSaved }: { examId: string; attemptId
         if (!alive) return;
         setDetail(d);
         setScores(Object.fromEntries(Object.entries(d.manual).map(([k, v]) => [k, String(v)])));
+        setComments(d.comments || {});
       })
-      .catch(() => undefined);
+      .catch((e) => { if (alive) setError(messageFor(e)); });
     return () => {
       alive = false;
     };
   }, [examId, attemptId]);
-  if (!detail) return <p className="exam-note">Đang tải bài làm…</p>;
+  if (!detail) return <p className={error ? "exam-error" : "exam-note"} role={error ? "alert" : "status"}>{error || "Đang tải bài làm…"}</p>;
   const essays = detail.exam.questions.filter((q) => q.type === "essay");
   const save = async (q: ExamQuestion) => {
+    setSaving(q.id);
+    setNote("");
     try {
       const raw = scores[q.id];
-      await teacherPost({ action: "grade", id: examId, attemptId, qid: q.id, score: raw === undefined || raw === "" ? null : Number(raw.replace(",", ".")) });
-      setNote("Đã lưu điểm " + q.label + ".");
+      const score = raw === undefined || raw.trim() === "" ? null : Number(raw.replace(",", "."));
+      if (score !== null && (!Number.isFinite(score) || score < 0 || score > q.points)) { setNote("Điểm phải từ 0 đến " + fmt(q.points) + "."); return; }
+      await teacherPost({ action: "grade", id: examId, attemptId, qid: q.id, score, comment: comments[q.id] || "" });
+      setNote("Đã lưu điểm và nhận xét " + q.label + ".");
       onSaved();
     } catch (e) {
       setNote(messageFor(e));
-    }
+    } finally { setSaving(""); }
   };
   return (
     <div className="exam-marker">
-      <h3>{detail.attempt.name}</h3>
+      <h3>{detail.attempt.name}{detail.attempt.examCode ? " · Mã " + detail.attempt.examCode : ""}</h3>
       {essays.map((q) => {
         const typed = detail.answers[q.id] as { text?: string } | null;
         const shots = detail.photos.filter((p) => p.qid === q.id);
         return (
-          <div key={q.id} className="exam-mark-card">
+          <fieldset key={q.id} className="exam-mark-card" disabled={saving === q.id} style={{ border: 0, minWidth: 0 }} data-essay-mark={q.id}>
             <div className="exam-mark-head"><strong>{q.section ? "Phần " + q.section + " · " : ""}{q.label}</strong><span>tối đa {fmt(q.points)} điểm</span></div>
-            {q.hasImage ? <Picture query={"id=" + examId + "&image=" + q.id} alt={q.label} /> : q.text ? <div className="exam-q-text"><MathText text={q.text} inline={false} /></div> : null}
-            {q.rubric && <p className="exam-note">Thang chấm: {q.rubric}</p>}
-            <div className="exam-shots">{shots.length === 0 && !typed?.text ? <em>Chưa có bài làm.</em> : shots.map((p) => <Picture key={p.id} query={"id=" + examId + "&asset=" + p.id} alt="Ảnh bài làm" />)}</div>
-            {typed?.text && <p className="exam-typed">{typed.text}</p>}
+            {q.text && q.imageMode !== "question" && <MathText text={q.text} inline={false} />}
+            {q.questionImages?.length ? q.questionImages.map((image) => <SolutionImage key={image.id} examId={examId} assetId={image.id} alt={"Hình trong " + q.label} />) : q.hasImage ? <Picture query={"id=" + examId + "&image=" + q.id} alt={q.label} /> : null}
+            <div className="exam-essay-comparison" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 16 }}>
+              <div><h4>Bài làm học sinh</h4>
+                <div className="exam-shots">{shots.length === 0 && !typed?.text ? <em>Chưa có bài làm.</em> : shots.map((p) => <Picture key={p.id} query={"id=" + examId + "&asset=" + p.id} alt="Ảnh bài làm" />)}</div>
+                {typed?.text && <div className="exam-typed"><MathText text={typed.text} inline={false} /></div>}
+              </div>
+              <div><h4>Lời giải và thang chấm</h4>
+                {q.solution ? <MathText text={q.solution} inline={false} /> : <p className="exam-note">Chưa có lời giải mẫu.</p>}
+                {q.solutionImages?.map((asset) => <SolutionImage key={asset.id} examId={examId} assetId={asset.id} alt={"Lời giải " + q.label} />)}
+                {q.rubric && <><h4>Thang chấm</h4><MathText text={q.rubric} inline={false} /></>}
+              </div>
+            </div>
+            {q.rubric?.split(/\r?\n/).map((line, index) => {
+              if (/^\s*(?:Câu|Bài|Phần|Tổng)\b/iu.test(line)) return null;
+              const part = /\(\s*(\d+(?:[.,]\d+)?)\s*(?:đ|điểm)\s*\)\s*$/iu.exec(line);
+              if (!part) return null;
+              const points = Number(part[1].replace(",", "."));
+              if (!Number.isFinite(points) || points <= 0 || points > q.points) return null;
+              return <button type="button" key={index} className="lesson-button lesson-button-outline" title={line} onClick={() => { const previous = Number((scores[q.id] || "0").replace(",", ".")); setScores({ ...scores, [q.id]: String(Math.round(Math.min(q.points, (Number.isFinite(previous) ? previous : 0) + points) * 100) / 100) }); }}>Cộng {fmt(points)} điểm · {line.replace(part[0], "").trim()}</button>;
+            })}
             <div className="exam-score-row">
               <input className="lesson-input" inputMode="decimal" value={scores[q.id] ?? ""} onChange={(e) => setScores({ ...scores, [q.id]: e.target.value })} placeholder="Điểm" aria-label={"Điểm " + q.label} />
               <span>/ {fmt(q.points)}</span>
-              <button type="button" className="lesson-button lesson-button-primary" onClick={() => void save(q)}>Lưu điểm</button>
+              <button type="button" className="lesson-button lesson-button-primary" disabled={Boolean(saving)} onClick={() => void save(q)}>{saving === q.id ? "Đang lưu…" : "Lưu điểm và nhận xét"}</button>
             </div>
-          </div>
+            <label><span>Nhận xét cho học sinh</span><textarea className="lesson-input" rows={2} maxLength={1000} value={comments[q.id] || ""} aria-label={"Nhận xét " + q.label} onChange={(e) => setComments({ ...comments, [q.id]: e.target.value })} /></label>
+          </fieldset>
         );
       })}
-      {note && <p className="exam-note">{note}</p>}
+      {note && <p className="exam-note" role="status">{note}</p>}
     </div>
   );
 }
@@ -117,13 +146,25 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
   const [offset, setOffset] = useState(0);
   const [pick, setPick] = useState("");
   const [copied, setCopied] = useState("");
-  const [edited, setEdited] = useState<ExamQuestion[] | null>(null);
+  const [edited, setEdited] = useState<SolutionQuestion[] | null>(null);
+  const [editedCodes, setEditedCodes] = useState<ExamCodeDraft[] | null>(null);
+  const [selectedCode, setSelectedCode] = useState("101");
+  const [antiCheating, setAntiCheating] = useState<AntiCheatingConfig | null>(null);
+  const [importing, setImporting] = useState<{ code: string; file: File } | null>(null);
+  const [reviewPolicy, setReviewPolicy] = useState<"after_close" | "none" | null>(null);
+  const [guidePending, setGuidePending] = useState(false);
+  const [variantPending, setVariantPending] = useState(false);
+  const [imageReaders, setImageReaders] = useState(0);
+  const imageBusy = (delta: number) => setImageReaders((count) => count + delta);
   const [keyText, setKeyText] = useState("");
   const [note, setNote] = useState("");
+  const loadVersion = useRef(0);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     try {
       const next = await teacherGet<RoomData>("?id=" + id);
+      if (version !== loadVersion.current) return;
       setData(next);
       setOffset(next.serverNow - Date.now());
     } catch (e) {
@@ -196,15 +237,23 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
     if (data.missingKeys.length && !window.confirm("Còn " + data.missingKeys.length + " câu chưa có đáp án nên sẽ không tự chấm được các câu đó. Vẫn bắt đầu?")) return;
     void command("start", { force: data.missingKeys.length > 0 });
   };
-  const questions = edited || exam.questions;
-  const essays = exam.questions.filter((q) => q.type === "essay");
+  const hasCodes = Boolean(exam.codes?.some((code) => code.code !== null));
+  const serverCodes = (exam.codes || [{ code: "101", questions: exam.questions }]).map((code) => ({ ...code, code: code.code || "101" }));
+  const active = (editedCodes || serverCodes).find((code) => code.code === selectedCode) || (editedCodes || serverCodes)[0];
+  const questions = edited || active.questions;
+  const allCodes = (editedCodes || serverCodes).map((code) => code.code === active.code ? { ...code, questions } : code);
+  const patchQuestion = (qid: string, change: Partial<SolutionQuestion>) => setEdited((current) => (current || active.questions).map((q) => q.id === qid ? { ...q, ...change } : q));
+  const essays = serverCodes.flatMap((code) => code.questions).filter((q) => q.type === "essay");
+  const dirty = Boolean(edited || editedCodes || antiCheating || reviewPolicy !== null);
+  const staged = dirty || guidePending || variantPending || imageReaders > 0 || Boolean(importing);
   const online = (a: AttemptRow) => data.serverNow - a.lastSeenAt < 40000;
+  if (importing) return <ExamImport code={importing.code} initialFile={importing.file} onCreated={() => undefined} onCancel={() => setImporting(null)} onImported={(newCode) => { setEditedCodes([...allCodes, newCode]); setEdited(null); setSelectedCode(newCode.code); setImporting(null); setNote("Mã đề mới còn ở bản nháp. Bấm Lưu thay đổi."); }} />;
 
   return (
     <div className="exam-room">
       <header className="exam-card exam-room-head">
         <div>
-          <button type="button" className="exam-back" onClick={onBack}>← Danh sách</button>
+          <button type="button" className="exam-back" disabled={busy || staged} onClick={onBack}>← Danh sách</button>
           <h2>{exam.title}</h2>
           <span className={"lesson-badge " + STATUS_BADGE[exam.status]}>{STATUS_LABEL[exam.status]}</span>
           {exam.status === "running" && <span className={"exam-timer" + (remaining < 300000 ? " is-low" : "")}>{clock(remaining)}</span>}
@@ -216,8 +265,9 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
           <small>{link}</small>
         </div>
         <div className="exam-controls">
-          {exam.status === "draft" && <button type="button" className="lesson-button lesson-button-primary exam-big" disabled={busy} onClick={() => void command("open")}>Mở phòng cho học sinh vào</button>}
-          {(exam.status === "draft" || exam.status === "open") && <button type="button" className="lesson-button lesson-button-success exam-big" disabled={busy} onClick={start}>▶ Bắt đầu tính giờ ({exam.durationMin} phút)</button>}
+          {exam.status === "draft" && <button type="button" className="lesson-button lesson-button-primary exam-big" disabled={busy || staged} onClick={() => void command("open")}>Mở phòng cho học sinh vào</button>}
+          {(exam.status === "draft" || exam.status === "open") && <button type="button" className="lesson-button lesson-button-success exam-big" disabled={busy || staged} onClick={start}>▶ Bắt đầu tính giờ ({exam.durationMin} phút)</button>}
+          {staged && (exam.status === "draft" || exam.status === "open") && <p className="exam-warn">Lưu hoặc hủy bản nháp trước khi mở phòng hoặc bắt đầu tính giờ.</p>}
           {exam.status === "running" && (
             <>
               <button type="button" className="lesson-button lesson-button-outline" disabled={busy} onClick={() => void command("extend", { minutes: 5 })}>+5 phút</button>
@@ -225,6 +275,13 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
             </>
           )}
           {exam.status === "closed" && <a className="lesson-button lesson-button-primary" href={"/api/exams?id=" + id + "&csv=1"}>⬇ Tải bảng điểm (CSV)</a>}
+          <button type="button" data-delete-exam className="lesson-button lesson-button-danger" disabled={busy || staged || exam.status === "running"} onClick={async () => {
+            if (!window.confirm('Xóa phòng “' + exam.title + '” có ' + data.attempts.length + ' bài của học sinh? Toàn bộ bài làm, điểm và ảnh trong phòng sẽ bị xóa. Không thể hoàn tác trong app.')) return;
+            setBusy(true); setError("");
+            try { await teacherPost({ action: "delete", id, confirmTitle: exam.title, confirmAttempts: data.attempts.length }); onBack(); }
+            catch (e) { setError(messageFor(e)); await load(); }
+            finally { setBusy(false); }
+          }}>Xóa phòng</button>
         </div>
         {data.missingKeys.length > 0 && exam.status !== "closed" && <p className="exam-warn">⚠ Còn {data.missingKeys.length} câu chưa có đáp án (mở thẻ &quot;Đề và đáp án&quot; để điền).</p>}
         {error && <p className="exam-error" role="alert">{error}</p>}
@@ -232,7 +289,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
 
       <div className="exam-tabs" role="tablist">
         {([["students", "Học sinh (" + data.attempts.length + ")"], ["marking", "Chấm tự luận"], ["results", "Kết quả"], ["exam", "Đề và đáp án"]] as const).map(([key, label]) => (
-          <button key={key} type="button" role="tab" aria-selected={tab === key} className={"exam-tab" + (tab === key ? " is-on" : "")} onClick={() => setTab(key)}>{label}</button>
+          <button key={key} type="button" role="tab" disabled={(guidePending || variantPending || imageReaders > 0) && tab !== key} aria-selected={tab === key} className={"exam-tab" + (tab === key ? " is-on" : "")} onClick={() => setTab(key)}>{label}</button>
         ))}
       </div>
 
@@ -240,12 +297,15 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
         <section className="exam-card">
           {data.attempts.length === 0 ? <p>Chưa có học sinh nào vào. Đọc mã <strong>{exam.code}</strong> hoặc gửi link cho lớp.</p> : (
             <table className="exam-table">
-              <thead><tr><th>Học sinh</th><th>Tiến độ</th><th>Rời trang</th><th>Trạng thái</th><th /></tr></thead>
+              <thead><tr><th>Học sinh</th><th>Mã đề</th><th>Tiến độ</th><th>Rời trang</th><th>Trạng thái</th><th /></tr></thead>
               <tbody>
-                {data.attempts.map((a) => (
-                  <tr key={a.id}>
+                {data.attempts.map((a) => {
+                  const attemptQuestionCount = serverCodes.find((code) => code.code === a.examCode)?.questions.length ?? exam.questions.length;
+                  return (
+                  <tr key={a.id} data-attempt-id={a.id} data-attempt-code={a.examCode || ""}>
                     <td><span className="lesson-mascot-sprite lesson-mascot-sprite-small" style={mascotSpriteStyle(SPRITE, a.mascot)} role="img" aria-hidden="true" /> {a.name}</td>
-                    <td><div className="exam-bar-mini"><i style={{ width: (exam.questions.length ? (a.answered / exam.questions.length) * 100 : 0) + "%" }} /></div><small>{a.answered}/{exam.questions.length}{a.photos ? " · " + a.photos + " ảnh" : ""}</small></td>
+                    <td>{a.examCode || (exam.settings.assignment === "manual" && exam.status !== "running" && exam.status !== "closed" ? <select className="lesson-input" aria-label={"Mã đề cho " + a.name} value="" onChange={(e) => void act({ action: "assign-code", attemptId: a.id, examCode: e.target.value })}><option value="">Chưa giao</option>{serverCodes.map((code) => <option key={code.code} value={code.code}>{code.code}</option>)}</select> : "101")}</td>
+                    <td><div className="exam-bar-mini"><i style={{ width: Math.min(100, Math.max(0, attemptQuestionCount ? (a.answered / attemptQuestionCount) * 100 : 0)) + "%" }} /></div><small>{a.answered}/{attemptQuestionCount}{a.photos ? " · " + a.photos + " ảnh" : ""}</small></td>
                     <td className={a.tabLeaves >= 3 ? "exam-bad" : ""}>{a.tabLeaves}</td>
                     <td>{a.submittedAt ? <span className="lesson-badge lesson-badge-success">Đã nộp</span> : exam.status !== "running" ? <span className="lesson-badge lesson-badge-outline">Đã vào</span> : online(a) ? <span className="lesson-badge lesson-badge-primary">Đang làm</span> : <span className="lesson-badge lesson-badge-warning">Mất kết nối?</span>}</td>
                     <td className="exam-row-actions">
@@ -253,7 +313,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
                       {a.submittedAt && exam.status === "running" && <button type="button" className="exam-link" onClick={() => void act({ action: "reopen", attemptId: a.id })}>Mở lại bài</button>}
                     </td>
                   </tr>
-                ))}
+                ); })}
               </tbody>
             </table>
           )}
@@ -285,11 +345,11 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
                 <a className="lesson-button lesson-button-outline" href={"/api/exams?id=" + id + "&csv=1"}>⬇ CSV</a>
               </div>
               <table className="exam-table">
-                <thead><tr><th>#</th><th>Học sinh</th><th>Đã làm</th>{[...new Set(results.exam.questions.map((q) => q.section))].map((s) => <th key={s}>Phần {s || "-"}</th>)}<th>Tổng</th><th>Rời trang</th></tr></thead>
+                <thead><tr><th>#</th><th>Học sinh</th><th>Mã đề</th><th>Đã làm</th>{[...new Set(results.exam.questions.map((q) => q.section))].map((s) => <th key={s}>Phần {s || "-"}</th>)}<th>Tổng</th><th>Rời trang</th></tr></thead>
                 <tbody>
                   {results.rows.map((r, i) => (
                     <tr key={r.id}>
-                      <td>{i + 1}</td><td>{r.name}{r.essaysToMark > 0 && <span className="lesson-badge lesson-badge-warning">chưa chấm tự luận</span>}</td><td>{r.answered}/{results.exam.questions.length}</td>
+                      <td>{i + 1}</td><td>{r.name}{r.essaysToMark > 0 && <span className="lesson-badge lesson-badge-warning">chưa chấm tự luận</span>}</td><td>{r.examCode || "101"}</td><td>{r.answered}/{(results.exam.codes?.find((code) => code.code === r.examCode)?.questions || results.exam.questions).length}</td>
                       {[...new Set(results.exam.questions.map((q) => q.section))].map((s) => <td key={s}>{fmt(r.sections[s]?.points ?? 0)}</td>)}
                       <td><strong>{fmt(r.total)}</strong> / {fmt(r.max)}</td><td className={r.tabLeaves >= 3 ? "exam-bad" : ""}>{r.tabLeaves}</td>
                     </tr>
@@ -298,10 +358,12 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
               </table>
               {results.rows.length > 0 && <p className="exam-summary">Điểm trung bình lớp: <strong>{fmt(results.rows.reduce((s, r) => s + r.total, 0) / results.rows.length)}</strong> · cao nhất {fmt(Math.max(...results.rows.map((r) => r.total)))} · thấp nhất {fmt(Math.min(...results.rows.map((r) => r.total)))}</p>}
               <h3>Câu nào học sinh sai nhiều</h3>
+              <label>Mã đề thống kê<select className="lesson-input" aria-label="Mã đề thống kê" value={active.code} onChange={(e) => { if (edited || editedCodes) setEditedCodes(allCodes); setEdited(null); setSelectedCode(e.target.value); }}>{serverCodes.map((code) => <option key={code.code} value={code.code}>{code.code}</option>)}</select></label>
               <ul className="exam-stats">
-                {results.exam.questions.filter((q) => q.type !== "essay").map((q) => {
-                  const s = results.stats[q.id];
-                  const n = results.rows.length || 1;
+                {active.questions.filter((q) => q.type !== "essay").map((q) => {
+                  const s = results.statsByCode?.[active.code]?.[q.id] || results.stats[q.id];
+                  if (!s) return null;
+                  const n = results.rows.filter((row) => (row.examCode || "101") === active.code).length || 1;
                   const pct = Math.round((s.correct / n) * 100);
                   return (
                     <li key={q.id}>
@@ -321,43 +383,87 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
 
       {tab === "exam" && (
         <section className="exam-card">
+          <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           <h3>Đề và đáp án</h3>
+          <CodeTabs codes={allCodes} selected={active.code} locked={data.attempts.length > 0} disabled={busy || guidePending || variantPending || imageReaders > 0} onSelect={(code) => { if (edited || editedCodes) setEditedCodes(allCodes); setEdited(null); setSelectedCode(code); setKeyText(""); }} onDuplicate={async (newCode) => { if (dirty || data.attempts.length) { setNote("Lưu bản nháp trước khi nhân bản; chỉ thêm mã đề khi chưa có học sinh vào."); return; } setBusy(true); try { const next = await teacherPost<RoomData>({ action: "duplicate-code", id, sourceCode: active.code, newCode }); setData(next); setSelectedCode(newCode); } catch (e) { setNote(messageFor(e)); } finally { setBusy(false); } }} onImport={(code, file) => { if (data.attempts.length) { setNote("Đã có học sinh vào nên không thêm mã đề."); return; } setImporting({ code, file }); }} />
+          {data.attempts.length > 0 && <p className="exam-note">Đã có học sinh vào: giữ nguyên mã đề, đề và phương án; vẫn sửa được đáp án, điểm, lời giải.</p>}
+          <fieldset disabled={data.attempts.length > 0 || variantPending || guidePending} style={{ border: 0, padding: 0, minWidth: 0 }}><AntiCheatingSettings settings={antiCheating || exam.settings} count={allCodes.length} onChange={(patch) => setAntiCheating({ ...(antiCheating || exam.settings), ...patch })} /></fieldset>
+          <PupilPreview key={active.code} examId={id} examCode={active.code} disabled={dirty} />
+          <VariantAssistant key={active.code} examId={id} examCode={active.code} questions={questions} disabled={dirty || guidePending || data.attempts.length > 0 || allCodes.length >= 8 || !nextExamCode(allCodes)} onPendingChange={setVariantPending} onCreate={(variants) => { const newCode = nextExamCode(allCodes); if (!newCode || allCodes.length >= 8) return; const cloned = variants.map((q, i) => ({ ...q, id: newCode + "_q" + (i + 1), solutionImages: undefined, questionImages: undefined, choiceImages: undefined, statementImages: undefined })); setEditedCodes([...allCodes, { code: newCode, questions: cloned }]); setEdited(null); setSelectedCode(newCode); setNote("Mã đề từ câu đã duyệt còn ở bản nháp; bấm Lưu thay đổi."); }} />
           <p className="exam-note">Sửa đáp án hoặc điểm bất cứ lúc nào (kể cả sau khi thi): điểm của học sinh tự tính lại. Không đổi được số câu hay loại câu khi đã có học sinh vào.</p>
           <details className="exam-keybox">
             <summary>Dán đáp án cho nhanh</summary>
-            <textarea className="lesson-input" rows={4} value={keyText} onChange={(e) => setKeyText(e.target.value)} placeholder={"PHẦN I\n1.C 2.B 3.B ...\nPHẦN II\nCâu 1: Đ Đ Đ S"} />
-            <button type="button" className="lesson-button lesson-button-primary" onClick={() => {
+            <textarea className="lesson-input" rows={4} disabled={guidePending || variantPending} value={keyText} onChange={(e) => setKeyText(e.target.value)} placeholder={"PHẦN I\n1.C 2.B 3.B ...\nPHẦN II\nCâu 1: Đ Đ Đ S"} />
+            <button type="button" className="lesson-button lesson-button-primary" disabled={guidePending || variantPending} onClick={() => {
               const result = parseAnswerKey(keyText, questions) as { keys: Record<string, unknown>; applied: number; problems: string[] };
               setEdited(questions.map((q) => (q.id in result.keys ? { ...q, key: result.keys[q.id] } : q)));
               setNote("Đã điền " + result.applied + " câu." + (result.problems.length ? " Lưu ý: " + result.problems.slice(0, 3).join(" ") : "") + " Bấm Lưu để áp dụng.");
             }}>Điền đáp án</button>
           </details>
-          {questions.map((q, i) => (
+          <label><span>Lời giải cho học sinh</span><select className="lesson-input" disabled={variantPending} aria-label="Lời giải cho học sinh" value={reviewPolicy ?? exam.settings.review ?? "after_close"} onChange={(e) => setReviewPolicy(e.target.value as "after_close" | "none")}><option value="after_close">Mở khi phòng kết thúc</option><option value="none">Không mở</option></select></label>
+          <GuideImport key={active.code} questions={questions} examId={id} disabled={busy || variantPending || imageReaders > 0} onPendingChange={setGuidePending} onApply={(reviewed) => { setEdited((current) => (current || active.questions).map((q) => { const guide = reviewed.find((x) => x.id === q.id); return guide ? { ...q, key: guide.key, rubric: guide.rubric, solution: guide.solution, solutionUploads: guide.solutionUploads, solutionRemoved: guide.solutionRemoved } : q; })); setNote("Đã áp dụng vào bản nháp. Bấm Lưu thay đổi để lưu vào phòng."); }} />
+          {questions.map((q) => (
             <article key={q.id} className={"exam-qcard" + (keyReady(q) ? "" : " is-missing")}>
+              <fieldset disabled={guidePending || variantPending} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
               <div className="exam-qcard-head"><strong>{q.section ? "Phần " + q.section + " · " : ""}{q.label}</strong><span>{describeKey(q) || "chưa có đáp án"}</span>
-                <label className="exam-points-edit"><input className="lesson-input" type="number" min={0} max={20} step={0.05} value={q.points} onChange={(e) => setEdited(questions.map((x, k) => (k === i ? { ...x, points: Number(e.target.value) } : x)))} /> điểm</label>
+                <label className="exam-points-edit"><input className="lesson-input" type="number" min={0} max={20} step={0.05} value={q.points} onChange={(e) => patchQuestion(q.id, { points: Number(e.target.value) })} /> điểm</label>
               </div>
-              {q.hasImage ? <Picture query={"id=" + id + "&image=" + q.id} alt={q.label} /> : q.text ? <div className="exam-q-text"><MathText text={q.text} inline={false} /></div> : null}
-              <KeyEditor q={q} onChange={(change) => setEdited(questions.map((x, k) => (k === i ? { ...x, ...change } : x)))} />
+              {q.text && q.imageMode !== "question" && <div className="exam-q-text"><MathText text={q.text} inline={false} /></div>}
+              {q.questionImages?.length ? q.questionImages.map((image) => <SolutionImage key={image.id} examId={id} assetId={image.id} alt={"Hình trong " + q.label} />) : q.hasImage ? <Picture query={"id=" + id + "&image=" + q.id} alt={q.label} /> : q.text && q.imageMode === "question" ? <MathText text={q.text} inline={false} /> : null}
+              {q.sourceImages?.map((image) => <img key={image.id} className="exam-teacher-img" src={"data:" + image.mime + ";base64," + image.data} alt={"Hình mới " + q.label} />)}
+              {q.image && <img className="exam-teacher-img" src={"data:image/jpeg;base64," + q.image} alt={"Ảnh đề mới " + q.label} />}
+              <label>Nội dung câu hỏi<textarea className="lesson-input" rows={3} maxLength={4000} disabled={data.attempts.length > 0} value={q.text || ""} aria-label={"Nội dung " + q.label} onChange={(e) => patchQuestion(q.id, { text: e.target.value })} /></label>
+              {(q.hasImage || q.questionImages?.length || q.sourceImages?.length) && <button type="button" className="lesson-button lesson-button-outline" disabled={data.attempts.length > 0} onClick={() => patchQuestion(q.id, { removeQuestionImage: true, hasImage: false, questionImages: [], sourceImages: [] })}>Bỏ hình minh họa (cần sửa đề nếu đề phụ thuộc hình)</button>}
+              <fieldset disabled={data.attempts.length > 0} style={{ border: 0, padding: 0, minWidth: 0 }}><QuestionItemsEditor q={q} onChange={(change) => patchQuestion(q.id, change)} /></fieldset>
+              <KeyEditor q={q} onChange={(change) => patchQuestion(q.id, change)} />
+              <SolutionEditor q={q} examId={id} onBusyChange={imageBusy} onChange={(change) => patchQuestion(q.id, change)} />
+              </fieldset>
             </article>
           ))}
           {note && <p className="exam-note">{note}</p>}
           <div className="exam-sticky">
-            <button type="button" className="lesson-button lesson-button-success exam-big" disabled={!edited || busy} onClick={async () => {
+            <button type="button" className="lesson-button lesson-button-success exam-big" disabled={!dirty || busy || guidePending || variantPending || imageReaders > 0} onClick={async () => {
               setBusy(true);
+              const savingCodes = hasCodes || allCodes.length > 1 ? allCodes.map((code) => ({ ...code, questions: code.questions.map((q, i) => ({ ...q, id: code.code + "_q" + (i + 1) })) })) : allCodes;
+              let pending = savingCodes.flatMap((code) => code.questions.map((q) => ({ ...q })));
               try {
-                await teacherPost({ action: "update", id, exam: { questions: (edited || []).map(({ hasImage, ...rest }) => rest) } });
+                const serialize = (q: SolutionQuestion) => ({ id: q.id, section: q.section, label: q.label, type: q.type, points: q.points, options: q.options, statements: q.statements, choiceText: q.choiceText, statementText: q.statementText, noShuffle: q.noShuffle, imageMode: q.imageMode, key: q.key, text: q.text, rubric: q.rubric, solution: q.solution });
+                await teacherPost({ action: "update", id, exam: { ...(hasCodes || allCodes.length > 1 ? { codes: savingCodes.map((code) => ({ code: code.code, questions: code.questions.map(serialize) })) } : { questions: questions.map(serialize) }), settings: { ...(antiCheating || {}), review: reviewPolicy ?? exam.settings.review ?? "after_close" } } });
+                for (const question of pending) {
+                  if (question.removeQuestionImage) { await teacherPost({ action: "remove-image", id, qid: question.id }); pending = pending.map((q) => q.id === question.id ? { ...q, removeQuestionImage: false } : q); }
+                  if (question.image) await teacherPost({ action: "image", id, qid: question.id, assetId: question.questionImageId, mime: "image/jpeg", data: question.image });
+                  for (const image of question.sourceImages || []) await teacherPost({ action: "image", id, qid: question.id, assetId: image.id, mime: image.mime, data: image.data });
+                  for (const image of question.itemUploads || []) await teacherPost({ action: "item-image", id, qid: question.id, itemKind: image.itemKind, letter: image.letter, assetId: image.id, mime: image.mime, data: image.data });
+                  for (const asset of question.solutionUploads || []) {
+                    const saved = await teacherPost<{ id: string }>({ action: "solution-image", id, qid: question.id, assetId: asset.id, mime: asset.mime, data: asset.data });
+                    pending = pending.map((q) => q.id === question.id ? { ...q, solutionImages: [...(q.solutionImages || []), { id: saved.id, bytes: Math.floor(asset.data.length * 3 / 4) }], solutionUploads: q.solutionUploads?.filter((x) => x.id !== asset.id) } : q);
+                  }
+                  for (const assetId of question.solutionRemoved || []) {
+                    await teacherPost({ action: "remove-solution-image", id, assetId });
+                    pending = pending.map((q) => q.id === question.id ? { ...q, solutionImages: q.solutionImages?.filter((x) => x.id !== assetId), solutionRemoved: q.solutionRemoved?.filter((x) => x !== assetId) } : q);
+                  }
+                }
+                loadVersion.current++;
+                const next = await teacherGet<RoomData>("?id=" + id);
+                setData(next);
                 setEdited(null);
-                setNote("Đã lưu đáp án.");
-                await load();
+                setEditedCodes(null);
+                setAntiCheating(null);
+                setReviewPolicy(null);
+                setNote("Đã lưu đáp án, lời giải và cài đặt.");
                 await loadResults();
               } catch (e) {
-                setNote(messageFor(e));
+                const retryCodes = savingCodes.map((code) => ({ ...code, questions: pending.filter((q) => code.questions.some((original) => original.id === q.id)) }));
+                setEdited(retryCodes.find((code) => code.code === active.code)?.questions || null);
+                setEditedCodes(retryCodes);
+                setNote(messageFor(e) + " Bản nháp được giữ; bấm Lưu thay đổi để thử lại.");
               } finally {
                 setBusy(false);
               }
             }}>Lưu thay đổi</button>
+            {guidePending && <p className="exam-note">Áp dụng hoặc hủy hướng dẫn chấm trước khi lưu.</p>}
           </div>
+          </fieldset>
         </section>
       )}
     </div>

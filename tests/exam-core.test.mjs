@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
-import { checkImage } from '../lib/exam/validate.js';
+import { checkImage, LIMITS, normalizeExamInput, normalizeQuestions } from '../lib/exam/validate.js';
 
 import { scoreQuestion, scoreAttempt, tfRatio, parseNumber, shortMatches, cleanAnswer, describeKey } from '../lib/exam/scoring.js';
 import { parseExamLines, groupPdfLines, sectionType } from '../lib/exam/parse.js';
@@ -13,6 +13,20 @@ const mc = { id: 'q1', type: 'mc', points: 0.25, options: ['A', 'B', 'C', 'D'], 
 const tf = { id: 'q2', type: 'tf', points: 1, statements: ['a', 'b', 'c', 'd'], key: [true, true, true, false], section: 'II' };
 const short = { id: 'q3', type: 'short', points: 0.5, key: { accept: ['1,5', '3/2'] }, section: 'III' };
 const essay = { id: 'q4', type: 'essay', points: 1.5, section: 'III' };
+
+test('teacher solution and essay rubric are normalized and bounded; review defaults after close', () => {
+  const normalized = normalizeQuestions([{ ...mc, solution: 'e\u0301\u0000' + 'x'.repeat(7000) }, { ...essay, rubric: 'r'.repeat(2500) }]);
+  assert.equal(LIMITS.solution, 6000);
+  assert.equal(LIMITS.rubric, 2000);
+  assert.equal(normalized[0].solution.length, 6000);
+  assert.ok(normalized[0].solution.startsWith('éx'));
+  assert.equal(normalized[1].rubric.length, 2000);
+  assert.equal(normalizeQuestions([mc])[0].solution, undefined, 'optional solution remains optional');
+  for (const [review, expected] of [[undefined, 'after_close'], ['none', 'none'], ['after_close', 'after_close'], ['immediate', 'after_close']]) {
+    const exam = normalizeExamInput({ title: 'Bài kiểm tra', durationMin: 45, questions: [mc], settings: { review } });
+    assert.equal(exam.settings.review, expected);
+  }
+});
 
 test('offline answer clearing survives reload and is included in the final submission snapshot', () => {
   const code = ts.transpileModule(readFileSync(new URL('../components/exam/answer-sync.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;

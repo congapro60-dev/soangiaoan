@@ -1,7 +1,83 @@
 "use client";
 
-import React from "react";
-import { ExamQuestion } from "./client";
+import React, { useEffect, useState } from "react";
+import MathText from "../lesson/MathText";
+import { ExamQuestion, teacherImageUrl } from "./client";
+
+export interface SolutionQuestion extends ExamQuestion {
+  sourceImages?: Array<{ id: string; mime: string; data: string }>;
+  itemUploads?: Array<{ id: string; itemKind: "option" | "statement"; letter: string; mime: string; data: string }>;
+  removeQuestionImage?: boolean;
+  questionImageId?: string;
+  image?: string;
+  solutionUploads?: Array<{ id: string; mime: string; data: string }>;
+  solutionRemoved?: string[];
+}
+
+export function QuestionItemsEditor({ q, onChange }: { q: ExamQuestion; onChange: (patch: Partial<ExamQuestion>) => void }) {
+  if (q.type !== "mc" && q.type !== "tf") return null;
+  const labels = q.type === "mc" ? q.options || ["A", "B", "C", "D"] : q.statements || ["a", "b", "c", "d"];
+  const field = q.type === "mc" ? "choiceText" : "statementText";
+  const values = q[field] || {};
+  const wholeImage = q.hasImage && q.imageMode !== "figure" && !Object.keys(q.choiceImages || q.statementImages || {}).length;
+  const missing = wholeImage || labels.some((label) => !values[label]?.trim() && !(q.type === "mc" ? q.choiceImages : q.statementImages)?.[label]);
+  return <details className="exam-keybox"><summary>Phương án / ý đúng-sai tách riêng</summary><p className="exam-note">Công thức trong $...$. Phương án tham chiếu “Cả A và B”, ý tham chiếu “ý a”, “câu trên” nên giữ nguyên thứ tự.</p>{labels.map((label) => <label key={label}><span>{label}{q.type === "mc" ? "." : ")"}</span><textarea className="lesson-input" rows={2} maxLength={2000} value={values[label] || ""} aria-label={(q.type === "mc" ? "Phương án " : "Ý ") + label + " " + q.label} onChange={(e) => onChange({ [field]: { ...values, [label]: e.target.value } })} /><MathText text={values[label] || ""} inline={false} /></label>)}<label className="exam-check"><input type="checkbox" checked={q.noShuffle === true} onChange={(e) => onChange({ noShuffle: e.target.checked })} /><span>Không đảo phương án/ý</span></label>{missing && <p className="exam-warn">Không đảo được: phương án/ý chưa tách đủ hoặc còn nằm trong ảnh cả câu.</p>}</details>;
+}
+
+export function SolutionImage({ examId, assetId, alt }: { examId: string; assetId: string; alt: string }) {
+  const [src, setSrc] = useState("");
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    let url = "";
+    teacherImageUrl("id=" + examId + "&asset=" + assetId).then((made) => {
+      url = made;
+      if (alive) setSrc(made);
+      else URL.revokeObjectURL(made);
+    }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; if (url) URL.revokeObjectURL(url); };
+  }, [examId, assetId]);
+  return src ? <img className="exam-teacher-img" src={src} alt={alt} /> : <p className="exam-note">{failed ? "Không tải được ảnh lời giải." : "Đang tải ảnh lời giải…"}</p>;
+}
+
+/** Stages image changes locally; the room's explicit Save sends them. */
+export function SolutionEditor({ q, examId, onChange, onBusyChange }: { q: SolutionQuestion; examId?: string; onChange: (patch: Partial<SolutionQuestion>) => void; onBusyChange?: (delta: number) => void }) {
+  const [error, setError] = useState("");
+  const [reading, setReading] = useState(false);
+  const addImages = async (files: File[]) => {
+    setError("");
+    setReading(true);
+    onBusyChange?.(1);
+    try {
+      const images: NonNullable<SolutionQuestion["solutionUploads"]> = [];
+      for (const file of files) {
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 525_000) throw new Error("Chỉ nhận ảnh JPG, PNG, WebP tối đa 525 KB. Có thể cắt vùng nhỏ hơn từ PDF.");
+        const data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+          reader.onerror = () => reject(new Error("Không đọc được ảnh. Chọn lại file."));
+          reader.readAsDataURL(file);
+        });
+        images.push({ id: crypto.randomUUID(), mime: file.type, data });
+      }
+      onChange({ solutionUploads: [...(q.solutionUploads || []), ...images] });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không đọc được ảnh.");
+    } finally { setReading(false); onBusyChange?.(-1); }
+  };
+  return (
+    <div className="exam-solution-editor" data-solution-editor={q.id}>
+      <label><span>Lời giải (công thức trong $...$)</span><textarea className="lesson-input" rows={4} maxLength={6000} value={q.solution || ""} onChange={(e) => onChange({ solution: e.target.value })} aria-label={"Lời giải " + q.label} /></label>
+      <div className="exam-shots">
+        {examId && q.solutionImages?.filter((asset) => !q.solutionRemoved?.includes(asset.id)).map((asset) => <div key={asset.id}><SolutionImage examId={examId} assetId={asset.id} alt={"Lời giải " + q.label} /><button type="button" className="lesson-button lesson-button-outline" disabled={reading} onClick={() => onChange({ solutionRemoved: [...(q.solutionRemoved || []), asset.id] })}>Bỏ ảnh lời giải</button></div>)}
+        {q.solutionUploads?.map((asset) => <div key={asset.id}><img className="exam-teacher-img" src={"data:" + asset.mime + ";base64," + asset.data} alt={"Ảnh lời giải mới " + q.label} /><button type="button" className="lesson-button lesson-button-outline" disabled={reading} onClick={() => onChange({ solutionUploads: q.solutionUploads?.filter((x) => x.id !== asset.id), ...(examId ? { solutionRemoved: [...(q.solutionRemoved || []), asset.id] } : {}) })}>Bỏ ảnh mới</button></div>)}
+      </div>
+      <label className="exam-note">Thêm ảnh lời giải <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={reading} aria-label={"Thêm ảnh lời giải " + q.label} onChange={(e) => { const files = Array.from(e.target.files || []); e.target.value = ""; if (files.length) void addImages(files); }} /></label>
+      {reading && <p className="exam-note">Đang đọc ảnh…</p>}
+      {error && <p className="exam-error" role="alert">{error}</p>}
+    </div>
+  );
+}
 
 /** Where the teacher sets the answer key of one question (the key is shown as a short, editable form). */
 export function KeyEditor({ q, onChange }: { q: ExamQuestion; onChange: (patch: Partial<ExamQuestion>) => void }) {
@@ -43,14 +119,14 @@ export function KeyEditor({ q, onChange }: { q: ExamQuestion; onChange: (patch: 
     return (
       <label className="exam-key">
         <span className="exam-key-label">Đáp số</span>
-        <input className="lesson-input" defaultValue={accept.join(" | ")} onBlur={(e) => { const list = e.target.value.split(/\s*[|;]\s*/).map((s) => s.trim()).filter(Boolean); onChange({ key: list.length ? { accept: list } : null }); }} placeholder="Ví dụ: 1,5 | 3/2 (nhiều cách viết, cách nhau bằng dấu |)" />
+        <input key={accept.join(" | ")} className="lesson-input" defaultValue={accept.join(" | ")} aria-label={"Đáp số " + q.label} onBlur={(e) => { const list = e.target.value.split(/\s*[|;]\s*/).map((s) => s.trim()).filter(Boolean); onChange({ key: list.length ? { accept: list } : null }); }} placeholder="Ví dụ: 1,5 | 3/2 (nhiều cách viết, cách nhau bằng dấu |)" />
       </label>
     );
   }
   return (
     <label className="exam-key">
       <span className="exam-key-label">Thang chấm</span>
-      <input className="lesson-input" defaultValue={q.rubric || ""} onBlur={(e) => onChange({ rubric: e.target.value })} placeholder="Ghi chú cách chấm (không bắt buộc). Tự luận do thầy/cô chấm sau khi nộp." />
+      <textarea className="lesson-input" rows={4} maxLength={2000} value={q.rubric || ""} aria-label={"Thang chấm " + q.label} onChange={(e) => onChange({ rubric: e.target.value })} placeholder="Ghi chú cách chấm (không bắt buộc). Tự luận do thầy/cô chấm sau khi nộp." />
     </label>
   );
 }

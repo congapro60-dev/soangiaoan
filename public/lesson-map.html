@@ -403,7 +403,7 @@
 
   function buildModel(input, theme) {
     var total = input.map.totalPosition;
-    var peers = visiblePeers(input).map(function (peer, index) {
+    var peers = (input.examJourney ? input.map.peers.filter(function(p){return p.own;}) : visiblePeers(input)).map(function (peer, index) {
       return { id: peer.id, name: peer.name || ('Linh vật ' + (index + 1)), mascot: peer.mascot, position: cellOf(peer.position, total), score: 0, status: 'active', freezeUntil: 0 };
     });
     var own = input.map.peers.filter(function (peer) { return peer.own; })[0];
@@ -418,6 +418,7 @@
       focus: null,
       spot: null,
       mathCells: [],
+      examJourney: input.examJourney || null,
       places: theme.places,
       community: false,
       now: Date.now(),
@@ -490,8 +491,105 @@
     else flatDice(d);
   }
 
+
+    function renderExamJourney(journey, is3D) {
+      var container = document.getElementById('examJourneyContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'examJourneyContainer';
+        container.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px;max-width:90vw;overflow-x:auto;padding:10px;background:rgba(8,15,33,0.9);border-radius:12px;border:1px solid #f6d481;box-shadow:0 4px 14px rgba(0,0,0,0.5);';
+        document.body.appendChild(container);
+        container.addEventListener('click', function(e) {
+          var btn = e.target.closest('button[data-exam-station]');
+          var journey = lastInput && lastInput.examJourney;
+          if (!btn || btn.disabled || !journey || journey.phase !== 'review' || !journey.stations.some(function(s) { return s.id === btn.dataset.examStation; })) return;
+          window.parent.postMessage({ type: 'exam-map:select', payload: { qid: btn.dataset.examStation } }, window.location.origin);
+        });
+      }
+      if (!journey || is3D) {
+        container.style.display = 'none';
+        return;
+      }
+      var stations = Array.isArray(journey.stations) ? journey.stations : [];
+      var validStations = [];
+      var seenIds = new Set();
+      for (var i = 0; i < stations.length && validStations.length < 80; i++) {
+        var s = stations[i];
+        if (!s || typeof s.id !== 'string' || !s.id || seenIds.has(s.id)) continue;
+        seenIds.add(s.id);
+        validStations.push({ id: s.id, label: String(s.label || '').slice(0, 30), answered: !!s.answered });
+      }
+      var phase = journey.phase === 'review' ? 'review' : 'submitted';
+      container.style.display = 'flex';
+      container.innerHTML = '';
+      for (var j = 0; j < validStations.length; j++) {
+        var st = validStations[j];
+        var btn = document.createElement('button');
+        btn.dataset.examStation = st.id;
+        btn.setAttribute('aria-pressed', String(st.id === journey.selectedStationId));
+        btn.textContent = st.label;
+        btn.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:' + (st.id === journey.selectedStationId ? '#f6d481' : (st.answered ? 'rgba(40,167,69,0.3)' : 'rgba(255,255,255,0.1)')) + ';color:' + (st.id === journey.selectedStationId ? '#000' : '#fff') + ';cursor:pointer;white-space:nowrap;min-height:44px;';
+        if (phase !== 'review') {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'default';
+        }
+        container.appendChild(btn);
+      }
+    }
+
   function receive(input) {
     if (!input || !input.map || !Array.isArray(input.map.peers) || !campaign || !window.SignalTerrain) return;
+    
+    if (input.examJourney) {
+      var stations = Array.isArray(input.examJourney.stations) ? input.examJourney.stations : [];
+      var valid = [];
+      var seen = Object.create(null);
+      var selected = input.examJourney.selectedStationId;
+      var selectedValid = false;
+      for (var i = 0; i < stations.length && valid.length < 80; i++) {
+        var s = stations[i];
+        if (s && typeof s.id === 'string' && s.id.length > 0 && s.id.length <= 100 && !seen[s.id]) {
+          seen[s.id] = true;
+          valid.push({ id: s.id, label: String(s.label || '').slice(0, 30), answered: !!s.answered });
+          if (s.id === selected) selectedValid = true;
+        }
+      }
+      var phase = input.examJourney.phase === 'review' ? 'review' : 'submitted';
+      
+      var clonedInput = Object.assign({}, input);
+      clonedInput.examJourney = {
+        stations: valid,
+        phase: phase,
+        selectedStationId: selectedValid ? selected : null
+      };
+      input = clonedInput;
+
+      var walkKey = input.sessionKey + ':' + phase;
+      if (phase === 'submitted' && window._lmWalked !== walkKey) {
+        var ownPeerIndex = input.map.peers.findIndex(function(p) { return p.own; });
+        if (ownPeerIndex >= 0) {
+          var ownPeer = input.map.peers[ownPeerIndex];
+          var finalPos = ownPeer.position;
+          
+          var newPeers = input.map.peers.slice();
+          newPeers[ownPeerIndex] = Object.assign({}, ownPeer, { position: 0 });
+          input.map = Object.assign({}, input.map, { peers: newPeers });
+          
+          window._lmWalked = walkKey;
+          if (window._lmWalkTimer) clearTimeout(window._lmWalkTimer);
+          window._lmWalkTimer = setTimeout(function() {
+            if (lastInput && lastInput.sessionKey === input.sessionKey && lastInput.world === input.world && lastInput.examJourney && lastInput.examJourney.phase === 'submitted') {
+              var currOwn = lastInput.map.peers.find(function(p) { return p.own; });
+              if (currOwn) {
+                currOwn.position = finalPos;
+                receive(lastInput);
+              }
+            }
+          }, 100);
+        }
+      }
+    }
     lastInput = input;
     root.style.setProperty('--lm-top', (Number(input.topInset) || 0) + 'px');
     var theme = themeOf(input.world);
@@ -503,7 +601,10 @@
       else controller.update(model);
     }
     renderFilterUi(input);
+      var fBtn = document.querySelector('[data-action="map-filter"]');
+      if (fBtn) fBtn.style.display = input.examJourney ? 'none' : '';
     applyDice(input.dice);
+      renderExamJourney(input.examJourney, pilot !== null);
   }
 
   // ---- clicks
@@ -519,7 +620,7 @@
     if (action === 'map-mode') {
       if (button.dataset.mode === '3d') {
         if (lastInput && pilotAvailable(lastInput.world)) { if (!pilot) enterPilot(); }
-        else if (controller) { controller.mode('3d'); setModeButtons('3d'); }
+        else if (controller) { controller.mode('3d'); setModeButtons('3d'); renderExamJourney(lastInput && lastInput.examJourney, true); }
       } else {
         pilotWanted = false; // also cancels a 3D entry that is still loading
         if (pilot) leavePilot(true);

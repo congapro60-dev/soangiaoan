@@ -24,13 +24,26 @@ interface PupilState {
     graceSeconds: number;
     questionCount: number;
     sections: Array<{ section: string; count: number }>;
+    review: "after_close" | "none";
+    examCode?: string;
   };
   attempt: { id: string; name: string; mascot: number; submittedAt: number | null };
   questions: ExamQuestion[];
   answers: Record<string, unknown>;
   photos: Record<string, string[]>;
   finished?: boolean;
-  result?: { total: number; max: number; answered: number; count: number; sections: Record<string, { points: number; max: number }>; essaysPending: boolean } | null;
+  readOnly?: boolean;
+  reviewPin?: string;
+  assignmentPending?: boolean;
+  badges?: string[];
+  result?: { total: number; max: number; answered: number; count: number; essaysPending: boolean } | null;
+  review?: {
+    questions: ExamQuestion[];
+    answers: Record<string, unknown>;
+    manual: Record<string, number | null>;
+    comments: Record<string, string>;
+    items: Record<string, { points: number; max: number; pending: boolean; correct: boolean | null; detail?: { correct: number; total: number; marks: Array<boolean | null> } }>;
+  } | null;
 }
 
 interface Session {
@@ -149,6 +162,103 @@ function Thumb({ token, id, onRemove }: { token: string; id: string; onRemove: (
   );
 }
 
+function ReviewImage({ token, query, alt }: { token: string; query: string; alt: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    loadImage(token, query).then((url) => {
+      if (alive) setSrc(url);
+    }).catch(() => {
+      if (alive) setFailed(true);
+    });
+    return () => { alive = false; };
+  }, [token, query, retry]);
+  return src ? <img className="exam-review-image" src={src} alt={alt} /> : failed ? (
+    <button type="button" className="lesson-button lesson-button-outline" onClick={() => { setFailed(false); setRetry((n) => n + 1); }}>Tải lại {alt.toLowerCase()}</button>
+  ) : <p className="exam-note" role="status">Đang tải {alt.toLowerCase()}…</p>;
+}
+
+const reviewVerdict = (mark: boolean | null | undefined) => mark === true ? "Trả lời đúng" : mark === false ? "Trả lời sai" : "Chưa trả lời";
+const tfAnswer = (value: unknown) => value === true ? "Đúng" : value === false ? "Sai" : "Chưa trả lời";
+
+function QuestionContent({ q, token, zoom }: { q: ExamQuestion; token: string; zoom: number }) {
+  if (q.hasImage && q.imageMode !== "figure") return <QuestionImage key={q.id} token={token} qid={q.id} zoom={zoom} />;
+  return <>
+    <div className="exam-q-text"><MathText text={q.text || ""} inline={false} /></div>
+    {(q.questionImages || []).map((asset, i) => <ReviewImage key={asset.id} token={token} query={"question=" + encodeURIComponent(asset.id)} alt={"Hình minh họa " + (i + 1)} />)}
+  </>;
+}
+
+function ChoiceImage({ token, id, alt }: { token: string; id: string; alt: string }) {
+  const [src, setSrc] = useState("");
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadImage(token, "item=" + encodeURIComponent(id)).then((url) => { if (alive) setSrc(url); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, [token, id]);
+  return src ? <img className="exam-item-image" src={src} alt={alt} /> : <span role="status">{failed ? "Chưa tải được hình. Kiểm tra kết nối rồi mở lại câu này." : "Đang tải hình…"}</span>;
+}
+
+function ReviewQuestion({ q, review, token, photos, zoom }: { q: ExamQuestion; review: NonNullable<PupilState["review"]>; token: string; photos: string[]; zoom: number }) {
+  const answer = review.answers[q.id];
+  const item = review.items[q.id];
+  const shortKey = q.type === "short" && q.key && typeof q.key === "object" ? (q.key as { accept?: string[] }).accept : null;
+  const hasKey = q.type === "mc" ? typeof q.key === "string" && q.key !== "" : q.type === "tf" ? Array.isArray(q.key) && q.key.length > 0 : q.type === "short" ? !!shortKey?.length : false;
+  const essayText = answer && typeof answer === "object" ? String((answer as { text?: string }).text || "") : "";
+  return (
+    <section className="exam-card exam-question exam-review-question" aria-label={"Xem lại " + q.label} aria-live="polite">
+      <div className="exam-q-head">
+        <h2>{q.section ? "Phần " + q.section + " · " : ""}{q.label}</h2>
+        <span className="exam-points">{q.points.toLocaleString("vi-VN")} điểm tối đa</span>
+      </div>
+      <QuestionContent q={q} token={token} zoom={zoom} />
+      {q.type === "essay" ? (
+        <div className="exam-review-answer">
+          <h3>Bài làm của em</h3>
+          {essayText && <div className="exam-typed"><MathText text={essayText} inline={false} /></div>}
+          {photos.map((id, i) => <ReviewImage key={id} token={token} query={"photo=" + encodeURIComponent(id)} alt={"Ảnh bài làm " + (i + 1)} />)}
+          {!essayText && !photos.length && <p>Em chưa gửi bài làm cho câu này.</p>}
+          {review.manual[q.id] == null || item?.pending ? <p className="exam-note" role="status">Đang chờ giáo viên chấm</p> : (
+            <p className="exam-review-points">Điểm giáo viên chấm: <strong>{(item?.points ?? review.manual[q.id]).toLocaleString("vi-VN")} / {q.points.toLocaleString("vi-VN")} điểm</strong></p>
+          )}
+          {review.comments[q.id] && <div className="exam-review-comment"><h3>Nhận xét của giáo viên</h3><p>{review.comments[q.id]}</p></div>}
+        </div>
+      ) : q.type === "tf" ? (
+        <div className="exam-review-answer">
+          <h3>Kết quả từng ý</h3>
+          <div className="exam-review-tf">
+            {(q.statements || ["a", "b", "c", "d"]).map((letter, i) => {
+              const given = Array.isArray(answer) ? answer[i] : null;
+              const key = Array.isArray(q.key) ? q.key[i] : null;
+              const mark = item?.detail?.marks[i];
+              return <div key={letter} className="exam-review-tf-row"><strong>{letter})</strong>{q.statementText?.[letter] && <MathText text={q.statementText[letter]} inline={false} />}{q.statementImages?.[letter] && <ChoiceImage token={token} id={q.statementImages[letter]} alt={"Nội dung ý " + letter} />}<span>Em chọn: {tfAnswer(given)}</span><span>Đáp án đúng: {typeof key === "boolean" ? tfAnswer(key) : "Chưa có đáp án"}</span><b className={hasKey ? mark === true ? "exam-ok-text" : mark === false ? "exam-bad" : "exam-note" : "exam-note"}>{hasKey ? reviewVerdict(mark) : "Chưa có đáp án"}</b></div>;
+            })}
+          </div>
+          {hasKey && item && <p className="exam-review-points">Đúng {item.detail?.correct ?? 0}/{item.detail?.total ?? q.statements?.length ?? 4} ý · <strong>{item.points.toLocaleString("vi-VN")} / {item.max.toLocaleString("vi-VN")} điểm</strong>{(q.statements?.length || 4) === 4 && <small>Thang THPT: đúng 1/2/3/4 ý nhận 10%/25%/50%/100% điểm câu.</small>}</p>}
+        </div>
+      ) : (
+        <div className="exam-review-answer">
+          {q.type === "mc" && (q.choiceText || q.choiceImages) && <div className="exam-review-choices">{(q.options || []).map((letter) => <div key={letter}><strong>{letter}.</strong> <MathText text={q.choiceText?.[letter]} />{q.choiceImages?.[letter] && <ChoiceImage token={token} id={q.choiceImages[letter]} alt={"Nội dung phương án " + letter} />}</div>)}</div>}
+          <h3>Đáp án của em</h3>
+          <MathText text={answer == null || answer === "" ? "Chưa trả lời" : String(answer)} inline={false} />
+          <h3>Đáp án đúng</h3>
+          <MathText text={hasKey ? q.type === "mc" ? String(q.key) : shortKey!.join(" hoặc ") : "Chưa có đáp án"} inline={false} />
+          {hasKey && item && <p className={item.correct === true ? "exam-ok-text" : item.correct === false ? "exam-bad" : "exam-note"}>{reviewVerdict(item.correct)} · {item.points.toLocaleString("vi-VN")} / {item.max.toLocaleString("vi-VN")} điểm</p>}
+        </div>
+      )}
+      <div className="exam-review-solution">
+        <h3>{q.type === "essay" ? "Lời giải mẫu" : "Lời giải"}</h3>
+        {q.solution ? <MathText text={q.solution} inline={false} /> : !(q.solutionImages || []).length && <p className="exam-note">Chưa có lời giải.</p>}
+        {(q.solutionImages || []).map((image, i) => <ReviewImage key={image.id} token={token} query={"solution=" + encodeURIComponent(image.id)} alt={"Ảnh lời giải " + (i + 1)} />)}
+        {q.type === "essay" && q.rubric && <><h3>Hướng dẫn chấm</h3><MathText text={q.rubric} inline={false} /></>}
+      </div>
+    </section>
+  );
+}
+
 /** Shrinks a photo from the phone camera so it uploads quickly even on a weak connection. */
 async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file);
@@ -193,10 +303,12 @@ function Answer({
 }) {
   if (q.type === "mc") {
     return (
-      <div className="exam-options" role="radiogroup" aria-label="Chọn một đáp án">
+      <div className={"exam-options" + (q.choiceText || q.choiceImages ? " exam-options-rich" : "")} role="radiogroup" aria-label="Chọn một đáp án">
         {(q.options || ["A", "B", "C", "D"]).map((letter) => (
           <button key={letter} type="button" role="radio" aria-checked={value === letter} className={"exam-option" + (value === letter ? " is-on" : "")} onClick={() => onChange(value === letter ? null : letter)}>
             {letter}
+            {q.choiceText?.[letter] && <MathText text={q.choiceText[letter]} />}
+            {q.choiceImages?.[letter] && <ChoiceImage token={token} id={q.choiceImages[letter]} alt={"Nội dung phương án " + letter} />}
           </button>
         ))}
       </div>
@@ -207,8 +319,8 @@ function Answer({
     return (
       <div className="exam-tf">
         {(q.statements || ["a", "b", "c", "d"]).map((letter, i) => (
-          <div key={letter} className="exam-tf-row">
-            <span className="exam-tf-letter">{letter})</span>
+          <div key={letter} className={"exam-tf-row" + (q.statementText || q.statementImages ? " exam-tf-row-rich" : "")}>
+            <span className="exam-tf-letter">{letter})</span>{q.statementText?.[letter] && <MathText className="exam-statement-content" text={q.statementText[letter]} inline={false} />}{q.statementImages?.[letter] && <ChoiceImage token={token} id={q.statementImages[letter]} alt={"Nội dung ý " + letter} />}
             {[true, false].map((answer) => (
               <button
                 key={String(answer)}
@@ -293,6 +405,8 @@ export default function ExamPlay() {
   const [confirming, setConfirming] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ code: "", name: "", mascot: 0 });
+  const [reviewLogin, setReviewLogin] = useState(false);
+  const [reviewPinInput, setReviewPinInput] = useState("");
   const [pageOpen, setPageOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [zoom, setZoom] = useState<number>(() => {
@@ -420,6 +534,7 @@ export default function ExamPlay() {
   };
 
   const doSubmit = async () => {
+    if (state?.readOnly) return;
     setBusy(true);
     setError("");
     try {
@@ -449,8 +564,8 @@ export default function ExamPlay() {
       setNow(t);
       if (!state || !token) return;
       const status = state.exam.status;
-      const every = status === "running" ? 15000 : status === "open" ? 4000 : 0;
-      if (every && !state.finished && t - lastPoll.current > every) {
+      const every = status === "open" ? 4000 : status === "running" || status === "closed" ? 15000 : 0;
+      if (every && t - lastPoll.current > every) {
         lastPoll.current = t;
         void refresh(token).catch((e) => {
           if (e instanceof ApiError && e.code === "AUTH_REQUIRED") {
@@ -506,11 +621,23 @@ export default function ExamPlay() {
     });
   };
   const leave = () => {
-    writeSession(null);
+    if (!state?.finished && !state?.attempt.submittedAt && state?.exam.status !== "closed") writeSession(null);
     sync.current?.stop();
     sync.current = null;
     setToken("");
     setState(null);
+  };
+
+  const openReview = async () => {
+    setBusy(true); setError("");
+    try {
+      const result = await pupilPost<{ token: string; readOnly: true }>({ action: "review-join", code: form.code.trim().toUpperCase(), name: form.name.trim(), pin: reviewPinInput.trim().toUpperCase() });
+      writeSession({ code: form.code.trim().toUpperCase(), token: result.token, name: form.name.trim() });
+      setToken(result.token);
+      await refresh(result.token);
+      setReviewPinInput("");
+    } catch (e) { setError(messageFor(e)); }
+    finally { setBusy(false); }
   };
 
   // -------------------------------------------------------------------------------------------- screens
@@ -546,6 +673,12 @@ export default function ExamPlay() {
             {busy ? "Đang vào…" : "Vào phòng"}
           </button>
           <p className="exam-note">Em dùng đúng tên của mình. Nếu lỡ đóng trang, mở lại link này và nhập đúng tên cũ để làm tiếp, bài đã làm vẫn được giữ.</p>
+          <details className="exam-keybox" open={reviewLogin} onToggle={(e) => setReviewLogin(e.currentTarget.open)}>
+            <summary>Xem lại trên thiết bị khác bằng PIN</summary>
+            <p className="exam-note">Chỉ dùng sau khi phòng kết thúc. Nhập mã phòng, đúng tên ở trên và PIN ghi trên hộ chiếu. Phiên này chỉ xem lại bài.</p>
+            <label>PIN xem lại<input className="lesson-input" aria-label="PIN xem lại" value={reviewPinInput} onChange={(e) => setReviewPinInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))} maxLength={8} autoComplete="off" autoCapitalize="characters" /></label>
+            <button type="button" className="lesson-button lesson-button-outline" disabled={busy || form.code.length !== 6 || !form.name.trim() || reviewPinInput.length !== 8} onClick={() => void openReview()}>Mở bài để xem lại</button>
+          </details>
         </section>
       </main>
     );
@@ -554,14 +687,22 @@ export default function ExamPlay() {
   const exam = state.exam;
   const remaining = exam.endsAt ? exam.endsAt - (now + offset) : 0;
 
-  if (state.finished || state.attempt.submittedAt) {
+  if (state.finished || state.attempt.submittedAt || exam.status === "closed") {
     const r = state.result;
+    const review = exam.status === "closed" && exam.review === "after_close" ? state.review : null;
+    const selected = review?.questions[Math.min(index, Math.max(0, review.questions.length - 1))];
     return (
-      <main className="exam-shell">
-        <section className="exam-card exam-done">
+      <main className={"exam-shell" + (review ? " exam-review" : "")}>
+        <section className={"exam-card exam-done" + (review ? " exam-passport-review" : "")}>
+          <p className="exam-kicker">Hộ chiếu kết quả</p>
+          <div className="exam-finish-rail" aria-hidden="true"><span className="lesson-mascot-sprite exam-finish-mascot" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} /><span className="exam-finish-gate">Đích</span></div>
           <span className="lesson-mascot-sprite exam-done-mascot" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} role="img" aria-label={MASCOTS[state.attempt.mascot]} />
-          <h1>Em đã nộp bài</h1>
+          <h1 aria-live="polite">{review ? "Cùng xem lại bài làm" : state.attempt.submittedAt ? "Em đã nộp bài" : "Phòng kiểm tra đã kết thúc"}</h1>
           <p>{state.attempt.name} · {exam.title}</p>
+          {exam.examCode && <p className="exam-note">Mã đề {exam.examCode}</p>}
+          {state.reviewPin && <div className="exam-review-pin"><strong>PIN xem lại: <code>{state.reviewPin}</code></strong><p className="exam-note">Giữ PIN riêng. Sau khi phòng kết thúc, dùng mã phòng, đúng tên và PIN để xem lại trên máy khác.</p></div>}
+          {state.readOnly && <p className="exam-note" role="status">Phiên chỉ xem lại — không sửa hoặc nộp bài.</p>}
+          {!!state.badges?.length && <ul className="exam-badges" aria-label="Huy hiệu hành trình">{state.badges.map((badge) => <li key={badge} className="lesson-badge lesson-badge-primary">{badge}</li>)}</ul>}
           {r ? (
             <div className="exam-result">
               <div className="exam-score">{r.total.toLocaleString("vi-VN")}<small> / {r.max.toLocaleString("vi-VN")} điểm</small></div>
@@ -569,15 +710,37 @@ export default function ExamPlay() {
               {r.essaysPending && <p className="exam-note">Phần tự luận do thầy/cô chấm nên điểm có thể tăng thêm.</p>}
             </div>
           ) : (
-            <p>Thầy/cô sẽ thông báo kết quả sau. Em có thể đóng trang này.</p>
+            <p>Thầy/cô sẽ thông báo kết quả sau.</p>
           )}
+          {exam.status !== "closed" && exam.review === "after_close" && <p className="exam-note" role="status">Lời giải sẽ mở khi phòng kết thúc.</p>}
+          {exam.status === "closed" && exam.review === "none" && <p className="exam-note">Thầy/cô không mở lời giải cho phòng này.</p>}
+          <p className="exam-note">Linh vật và huy hiệu không thay đổi điểm bài làm. Em có thể mở lại trên thiết bị này để xem cập nhật.</p>
+          {!review && <LessonWorldMap themeKey="historical" sessionKey={"exam-submitted-" + exam.code + "-" + state.attempt.id} height={320} map={{ totalPosition: 100, peers: [{ id: "me", name: "Em", mascot: state.attempt.mascot, position: 100, own: true }] }} examJourney={{ stations: [], selectedStationId: null, phase: "submitted" }} />}
           <button type="button" className="lesson-button lesson-button-outline" onClick={leave}>Thoát</button>
         </section>
+        {review && <>
+          <section className="exam-card exam-post-map" aria-label="Hành trình sau kiểm tra"><h2>Hành trình xem lại</h2>
+            <LessonWorldMap themeKey="historical" sessionKey={"exam-review-" + exam.code + "-" + state.attempt.id} height={380}
+              map={{ totalPosition: 100, peers: [{ id: "me", name: "Em", mascot: state.attempt.mascot, position: selected ? (review.questions.indexOf(selected) + 1) / Math.max(1, review.questions.length) * 100 : 100, own: true }] }}
+              examJourney={{ stations: review.questions.map((question) => ({ id: question.id, label: (question.section ? "Phần " + question.section + " · " : "") + question.label, answered: isAnswered(question, review.answers[question.id]) || Boolean(photos[question.id]?.length) })), selectedStationId: selected?.id || null, phase: "review" }}
+              onExamStationSelect={(qid) => { const found = review.questions.findIndex((question) => question.id === qid); if (found >= 0) setIndex(found); }} />
+            <p className="exam-note">Chọn trạm để xem lại. Nếu bản đồ không tải được, dùng lưới câu bên dưới.</p>
+          </section>
+          <nav className="exam-palette exam-review-palette" aria-label="Trạm lời giải">
+            <h2>Trạm lời giải</h2><p className="exam-note">Em có thể chọn bất kỳ câu nào để xem lại.</p>
+            {[...new Set(review.questions.map((q) => q.section))].map((section) => <div key={section} className="exam-palette-group">{section && <b>Phần {section}</b>}<div className="exam-palette-grid">{review.questions.map((q, i) => q.section === section ? <button key={q.id} type="button" className={"exam-station" + (selected?.id === q.id ? " is-here" : "")} aria-label={"Xem lại " + q.label} aria-pressed={selected?.id === q.id} onClick={() => setIndex(i)}>{q.label.replace(/^\D+/, "") || i + 1}</button> : null)}</div></div>)}
+          </nav>
+          {selected && <ReviewQuestion key={selected.id} q={selected} review={review} token={token} photos={photos[selected.id] || []} zoom={zoom} />}
+          <footer className="exam-nav">
+            <button type="button" className="lesson-button lesson-button-outline" disabled={index === 0} onClick={() => setIndex((i) => Math.max(0, i - 1))}>← Câu trước</button>
+            <button type="button" className="lesson-button lesson-button-primary" disabled={index >= review.questions.length - 1} onClick={() => setIndex((i) => Math.min(review.questions.length - 1, i + 1))}>Câu sau →</button>
+          </footer>
+        </>}
       </main>
     );
   }
 
-  if (exam.status === "open" || exam.status === "draft") {
+  if (exam.status === "open" || exam.status === "draft" || state.assignmentPending) {
     return (
       <main className="exam-shell">
         <section className="exam-card exam-wait">
@@ -591,7 +754,7 @@ export default function ExamPlay() {
             <li>Mỗi lần em chọn đáp án, bài được lưu ngay. Có thể đổi đáp án tới khi nộp.</li>
             <li>Không rời khỏi trang này trong lúc làm bài: số lần rời trang được báo cho thầy/cô.</li>
           </ul>
-          <p className="exam-pulse">Đang chờ thầy/cô bắt đầu…</p>
+          <p className="exam-pulse">{state.assignmentPending ? "Chờ thầy/cô phân mã đề…" : "Đang chờ thầy/cô bắt đầu…"}</p>
           <button type="button" className="lesson-button lesson-button-outline" onClick={leave}>Thoát</button>
         </section>
       </main>
@@ -617,6 +780,7 @@ export default function ExamPlay() {
         <span className="lesson-mascot-sprite lesson-mascot-sprite-small" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} role="img" aria-label={MASCOTS[state.attempt.mascot]} />
         <div className="exam-bar-name">
           <strong>{state.attempt.name}</strong>
+          {exam.examCode && <span className="exam-code-label">Mã đề {exam.examCode}</span>}
           <small className={"exam-save is-" + saveState}>{saveState === "saved" ? "✓ Đã lưu" : saveState === "saving" ? "Đang lưu… (" + pendingCount + ")" : "⚠ Chưa lưu được, đang thử lại (" + pendingCount + ")"}</small>
         </div>
         <div className={"exam-timer" + (lowTime ? " is-low" : "")} aria-label="Thời gian còn lại">{clock(remaining)}</div>
@@ -677,7 +841,7 @@ export default function ExamPlay() {
                   <button key={z} type="button" aria-pressed={zoom === z} className={zoom === z ? "is-on" : ""} onClick={() => changeZoom(z)}>{z === 1 ? "Vừa khít" : "×" + z}</button>
                 ))}
               </div>
-              <QuestionImage key={q.id} token={token} qid={q.id} zoom={zoom} />
+              <QuestionContent q={q} token={token} zoom={zoom} />
             </>
           ) : <div className="exam-q-text"><MathText text={q.text || ""} inline={false} /></div>}
           <Answer q={q} value={answers[q.id]} onChange={(v) => setAnswer(q.id, v)} token={token} photos={photos[q.id] || []} onPhoto={(file) => void addPhoto(q.id, file)} onPhotoRemove={(id) => void removePhoto(q.id, id)} uploading={uploading} />

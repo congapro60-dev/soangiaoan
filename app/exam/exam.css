@@ -208,3 +208,43 @@
 .exam-zoom button.is-on { color: var(--lesson-primary-fg); background: var(--lesson-primary); border-color: var(--lesson-primary); font-weight: 700; }
 .exam-map { max-width: 880px; height: 300px; margin: 0 auto 10px; overflow: hidden; border-radius: var(--lesson-radius-lg); border: 1px solid var(--lesson-border); }
 .exam-map-btn { margin-top: 4px; min-height: 36px; padding: 0 12px; font: inherit; font-size: 0.85rem; color: var(--lesson-primary); background: transparent; border: 1px solid var(--lesson-border-strong); border-radius: 999px; cursor: pointer; }
+
+/* post-exam passport and freely selectable review stations */
+.exam-passport-review { max-width: 880px; margin-top: 12px; }
+.exam-passport-review .exam-done-mascot { width: 72px; height: 72px; }
+.exam-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; list-style: none; margin: 12px 0; padding: 0; }
+.exam-finish-rail { position: relative; height: 48px; margin: 16px 28px 12px; border-bottom: 4px solid var(--lesson-success); }
+.exam-finish-mascot { position: absolute; bottom: 0; left: calc(100% - 44px); width: 44px; height: 44px; animation: exam-finish-walk 1.5s ease-out; }
+.exam-finish-gate { position: absolute; right: -22px; bottom: -12px; padding: 2px 8px; background: var(--lesson-surface); border: 1px solid var(--lesson-success); border-radius: 999px; color: var(--lesson-success); font-size: 0.75rem; }
+.exam-review-palette h2 { margin: 0; font-size: 1.1rem; }
+.exam-review-palette .exam-station:focus-visible { outline: 3px solid var(--lesson-primary); outline-offset: 3px; }
+.exam-review-question h2 { font-size: 1.15rem; margin: 0; }
+.exam-review-question h3 { font-size: 1rem; margin: 10px 0 6px; }
+.exam-review-question .math-display, .exam-review-comment p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.exam-review-answer, .exam-review-solution { padding: 10px 12px; margin-top: 12px; border: 1px solid var(--lesson-border); border-radius: var(--lesson-radius); line-height: 1.6; }
+.exam-review-solution { background: var(--lesson-surface-2); }
+.exam-review-image { display: block; max-width: 100%; height: auto; margin: 8px 0; background: #fff; border-radius: 8px; }
+.exam-review-points small { display: block; color: var(--lesson-text-muted); }
+.exam-review-tf { display: grid; gap: 8px; }
+.exam-review-tf-row { display: grid; grid-template-columns: 24px 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 8px; background: var(--lesson-surface-2); border-radius: 8px; }
+@keyframes exam-finish-walk { from { left: 0; } to { left: calc(100% - 44px); } }
+@media (max-width: 640px) {
+  .exam-review-tf-row { grid-template-columns: 24px 1fr; }
+  .exam-review-tf-row > span + span, .exam-review-tf-row > b { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .exam-finish-mascot { animation: none; } }
+.exam-options-rich { display:grid; grid-template-columns:1fr; gap:10px; }
+.exam-options-rich .exam-option { display:flex; align-items:center; gap:14px; padding:14px; text-align:left; min-width:0; }
+.exam-options-rich .math-rendered { flex:1; min-width:0; overflow-wrap:anywhere; }
+.exam-tf-row-rich { flex-wrap:wrap; min-width:0; }
+.exam-tf-row-rich .exam-statement-content { flex-basis:calc(100% - 40px); min-width:0; overflow-wrap:anywhere; }
+.exam-item-image { max-width:100%; height:auto; display:block; }
+.exam-code-label { display:block; color:var(--lesson-text-muted); font-size:12px; }
+.exam-review-tf-row > .math-display, .exam-review-tf-row > .exam-item-image { grid-column:2 / -1; }
+.exam-review-choices { display:grid; gap:10px; margin-bottom:14px; }
+.exam-review-pin { padding:12px; border:1px solid var(--lesson-border-strong); border-radius:12px; margin:12px 0; }
+.exam-review-pin code { font-size:1.15rem; letter-spacing:.12em; user-select:all; }
+.exam-post-map { max-width:880px; padding:12px; }
+.exam-post-map h2 { font-size:1.1rem; margin:0 0 10px; }
+.exam-review { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+.exam-review .exam-nav { background: var(--lesson-bg); }

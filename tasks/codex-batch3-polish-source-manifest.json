@@ -1,0 +1,177 @@
+{
+  "generatedAt": "2026-10-10T08:34:50.2373593Z",
+  "files": [
+    {
+      "path": "app/api/exam-play/route.js",
+      "sha256": "dc50fb176d0c2f4b374e38cc7a8c2eb42fdfb600d703b32f2b025973b6d06cb4"
+    },
+    {
+      "path": "app/api/exams/extract/route.js",
+      "sha256": "8ea323675b81025f8174d286057e73738a35580bd88412cdd0d5ba7ce65762f3"
+    },
+    {
+      "path": "app/api/exams/route.js",
+      "sha256": "2bf4b9ef50192b71a4a5fdccdb81814a0fa9dd7b198e15454aefeaa5abdfd50c"
+    },
+    {
+      "path": "app/exam/exam.css",
+      "sha256": "e1e383dbba4a26d6c1f35f601685a46760d262bd9acd6ac53e1a92ee5c95781c"
+    },
+    {
+      "path": "app/exam/page.tsx",
+      "sha256": "1f666781bbfb60f305bf2d1d07dc24314701610c668ae4a9ac4b5da99aed357f"
+    },
+    {
+      "path": "app/exams/page.tsx",
+      "sha256": "684c2fbaae5f6703684519eb6075e26f1ca778ffd8e7bbc0fc613512d84d5ef9"
+    },
+    {
+      "path": "components/lesson/LessonWorldMap.tsx",
+      "sha256": "4641f13edc513b2069d9fe83d8829cba00a4bf71cc5f08693b032b6c0af158c7"
+    },
+    {
+      "path": "components/exam/ExamImport.tsx",
+      "sha256": "bfed8c28eacc0ae31537c3eca6250ae421424ad9891653cb3ce29a58cbdb30d4"
+    },
+    {
+      "path": "components/exam/ExamPlay.tsx",
+      "sha256": "bdeddb1866b5215d42db025cb05633cbd875151039e1d30ece13bf58ac13d556"
+    },
+    {
+      "path": "components/exam/ExamTeacher.tsx",
+      "sha256": "31f0ed76a8d59d78a84e521b85ff69bd1e2887120fb1759aa8a4022b6917da66"
+    },
+    {
+      "path": "components/exam/GuideImport.tsx",
+      "sha256": "07e464478c60095f216cc9ffe391c980152ba3e66904316c7c1e8936cf981688"
+    },
+    {
+      "path": "components/exam/KeyEditor.tsx",
+      "sha256": "b8d21057af2a50cf8eceb02ea91a5ad5e413f484ffd26d61e31f45cb84ea194a"
+    },
+    {
+      "path": "components/exam/VariantEditor.tsx",
+      "sha256": "8d479ce7cc3bc56aa57aa9ff6df9cae61266248afdb7aa730fa00926527366db"
+    },
+    {
+      "path": "components/exam/answer-sync.ts",
+      "sha256": "df32ccdb4b52c57126f1084a973843a3e253f730d8475325b2d62c6598cfa437"
+    },
+    {
+      "path": "components/exam/client.ts",
+      "sha256": "b8be02de590de62ea2704311b78920ee6e30e80f1cf0a5f43bbb22184e5e9895"
+    },
+    {
+      "path": "components/exam/pdf-import.ts",
+      "sha256": "55a130f4dd46e1453e26628a8d7367e73eb9ca4508a6d1a3ef5528d091609be1"
+    },
+    {
+      "path": "db/schema.ts",
+      "sha256": "70cca38ea73e8e383a97804345889d20951051fa23ce82febb205038c0a0e244"
+    },
+    {
+      "path": "drizzle/0016_exam_review_access.sql",
+      "sha256": "c4fe04b5f2f52381fb117134a16cac2d91248307008ef265f4500030326b15a6"
+    },
+    {
+      "path": "drizzle/meta/0016_snapshot.json",
+      "sha256": "9187ee9fe577a91f2810a4761bf00922af11cfac9c6ec8f072603876d3da2a81"
+    },
+    {
+      "path": "drizzle/meta/_journal.json",
+      "sha256": "63fecfed51bc53bccf3ad88fc1aec262e936b4e93971853fb5151b7b1730cb9a"
+    },
+    {
+      "path": "lib/exam/answer-key.js",
+      "sha256": "2737527a32aae0a0a613b71b1974f97cdb8931e88186c2db700f263e82b27fd2"
+    },
+    {
+      "path": "lib/exam/docx-import.js",
+      "sha256": "2cc9cc038919590bb6d30b7f9b3a4dadc21426be6fb958ff32c9b226b28c60c6"
+    },
+    {
+      "path": "lib/exam/http.js",
+      "sha256": "fb15327ff5adefa7d312c488cf05ee952f75b82ba1e6e825bc1fbebce75b01be"
+    },
+    {
+      "path": "lib/exam/parse.js",
+      "sha256": "0061324b64c7a06a731a4e7a55741446a67e4b31808e853174ec7915c1d2c488"
+    },
+    {
+      "path": "lib/exam/scoring.js",
+      "sha256": "b747d97c0423bc4c1bead17a16ab0ad534f63ba815682697fda9eb0fdd239941"
+    },
+    {
+      "path": "lib/exam/service.js",
+      "sha256": "f9df327f850b9f77f718040395ac19103dd97abf8e9137c49da18f6e03b9034a"
+    },
+    {
+      "path": "lib/exam/shuffle.js",
+      "sha256": "7fa9544e4c0f62274d73cd26dc5a0db5a1618acdd733f3de7e47bc3d6a597a93"
+    },
+    {
+      "path": "lib/exam/validate.js",
+      "sha256": "04a14aedf26b5f70e784ef80fd164fe71612f3033a165170fc4f8050739e8a14"
+    },
+    {
+      "path": "lib/exam/variants.js",
+      "sha256": "6c8a1d6c05b8f3df1b10fe0897a62b6fb379bbfb7c2bcd1b8f1b6ec557edb58b"
+    },
+    {
+      "path": "public/lesson-map.html",
+      "sha256": "9e7fdb40fc2734f94a5413bffb7df0f3cf39f624f1799b19d46145cc709bc25c"
+    },
+    {
+      "path": "public/map3d.js",
+      "sha256": "2e72c83f2db80e6141a1e4bb818b707188be48f282a731ece0fb7b77c32ee25d"
+    },
+    {
+      "path": "scripts/qa/exam-e2e.mjs",
+      "sha256": "59432fa00450acb7b2c290df0ee247e11781e599a7b04c268de45dc98fabb5b8"
+    },
+    {
+      "path": "scripts/qa/exam-shuffle-e2e.mjs",
+      "sha256": "acf52edc30b8d5b191c7d98228756ad32445c8bf20b0fd9e671a3ee765ad8298"
+    },
+    {
+      "path": "tests/exam-core.test.mjs",
+      "sha256": "7bd53aca6779424f304d3952c9094e6ffa1cd161ac0b5f95bf53bcb5f7988022"
+    },
+    {
+      "path": "tests/exam-docx.test.mjs",
+      "sha256": "226aaf173d23ffad2d5470c8cd5b2189411cd5a02c262cc5aabd913b8988abd4"
+    },
+    {
+      "path": "tests/exam-guide.test.mjs",
+      "sha256": "2fe9fe7b2b939a479e8ab59d372d05eb2c03e0a198e25fa499a35973791bd0aa"
+    },
+    {
+      "path": "tests/exam-journey-map.test.mjs",
+      "sha256": "63b4125b5e3971c0db9ac6525383d51cde6fdc21b4eac09a87c778f445d76dac"
+    },
+    {
+      "path": "tests/exam-review-ui.test.mjs",
+      "sha256": "6a90686bf77d69460c94fc7f5efd28bc598dd70554126db4a2d2513ce4bbc902"
+    },
+    {
+      "path": "tests/exam-service.test.mjs",
+      "sha256": "fed153ee31836947cc503fc6080704a4126845356b35cb15ba12bf72aff4b1b0"
+    },
+    {
+      "path": "tests/exam-shuffle.test.mjs",
+      "sha256": "6f80b019832b917f2601547eb3282f100e2ea6616e5208f859ca706e0f9b994c"
+    },
+    {
+      "path": "tests/exam-teacher-ui.test.mjs",
+      "sha256": "6006e38de2dcd33c9905e6cc701923071907ebddab3d48c465327ffb29c54124"
+    },
+    {
+      "path": "tests/exam-variants.test.mjs",
+      "sha256": "1e7c4e0ea35ae3f872586022f9e50574faa2048e75b1e94b89ec4598c21290ed"
+    },
+    {
+      "path": "tests/lesson-map-3d-pilot.test.mjs",
+      "sha256": "76c725419c1ffa172bed1f4a810340e9f8e1b32500f268ab6c8c351da2969239"
+    }
+  ]
+}

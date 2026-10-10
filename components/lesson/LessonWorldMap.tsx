@@ -27,6 +27,12 @@ export interface LessonMapDice {
   seq?: number;
 }
 
+export interface LessonMapExamJourney {
+  stations: { id: string; label: string; answered: boolean }[];
+  selectedStationId?: string | null;
+  phase: "submitted" | "review";
+}
+
 interface LessonWorldMapProps {
   map?: LessonMapProjection | null;
   /** Theme key from the approved game plan; the first world when the room has no plan yet. */
@@ -43,19 +49,25 @@ interface LessonWorldMapProps {
   onRollRequest?: () => void;
   /** The die has landed and its result has been shown. */
   onDiceDone?: () => void;
+  examJourney?: {
+    stations: { id: string; label: string; answered: boolean }[];
+    selectedStationId?: string | null;
+    phase: 'submitted' | 'review';
+  };
+  onExamStationSelect?: (qid: string) => void;
 }
 
 /**
  * The campaign map every pupil, the teacher and the TV look at: the original game's terrain,
  * mascots and gates, drawn by public/lesson-map.html and fed from the lesson session.
  */
-export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone }: LessonWorldMapProps) {
+export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect }: LessonWorldMapProps) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const readyRef = useRef(false);
-  const latest = useRef<{ payload: unknown } | null>(null);
-  const handlers = useRef({ onRollRequest, onDiceDone });
+  const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney } } | null>(null);
+  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect });
   useEffect(() => {
-    handlers.current = { onRollRequest, onDiceDone };
+    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect };
   });
 
   const world = resolveThemeId(themeKey || "modern") || "modern";
@@ -67,9 +79,9 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
   }, []);
 
   useEffect(() => {
-    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice } } : null;
+    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice, examJourney } } : null;
     send();
-  }, [map, world, sessionKey, topInset, dice, send]);
+  }, [map, world, sessionKey, topInset, dice, examJourney, send]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -80,6 +92,11 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
         send();
       } else if (type === "lesson-map:roll") handlers.current.onRollRequest?.();
       else if (type === "lesson-map:dice-done") handlers.current.onDiceDone?.();
+      else if (type === "exam-map:select") {
+        const qid = event.data?.payload?.qid;
+        const journey = latest.current?.payload?.examJourney;
+        if (typeof qid === "string" && journey?.phase === "review" && journey.stations.some(s => s.id === qid)) handlers.current.onExamStationSelect?.(qid);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

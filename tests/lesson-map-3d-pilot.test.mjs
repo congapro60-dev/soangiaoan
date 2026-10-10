@@ -181,7 +181,7 @@ test('3D crowd: pupils on one cell fan out, mascots that would pile up shrink to
   // the choice of which mascots to show lives in the page, so it also thins out the flat map
   for (const mode of ['all', 'near', 'lead', 'pick', 'me']) assert.ok(page.includes(`data-mode="${mode}"`) || page.includes(`'${mode}'`), `filter mode ${mode}`);
   assert.match(page, /function visiblePeers\(input\)/);
-  assert.match(page, /var peers = visiblePeers\(input\)\.map\(/);
+  assert.match(page, /var peers =.*visiblePeers\(input\).*\.map\(/);
   assert.match(page, /Linh vật trên bản đồ/);
   assert.match(page, /Bỏ chọn hết/);
   assert.match(page, /localStorage\.setItem\(FILTER_KEY/);

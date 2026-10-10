@@ -1,0 +1,1376 @@
+{
+  "source": "Toan11_GHKI_4_Dang.docx",
+  "sha256": "11425ee6e09f3cb48cb1762c33690efc68e6c2098015f35f06f4b8fc7e8387ad",
+  "segments": [
+    {
+      "id": "seg-1",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 649,
+        "endOffset": 704,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-2",
+      "kind": "heading",
+      "text": "# THE DEWEY SCHOOLS",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 704,
+        "endOffset": 871,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-3",
+      "kind": "paragraph",
+      "text": "ĐỀ THI THỬ GIỮA HỌC KỲ I - NĂM HỌC 2026-2027\nMÔN TOÁN - KHỐI 11\nThời gian làm bài: 90 phút\nPhiên bản thử nghiệm 4 dạng câu hỏi - Tổng điểm: 10",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 871,
+        "endOffset": 1757,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-4",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 1757,
+        "endOffset": 1835,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-5",
+      "kind": "heading",
+      "text": "## PHẦN I. (12 câu/3 điểm) Trắc nghiệm nhiều phương án lựa chọn",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 1835,
+        "endOffset": 1992,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-6",
+      "kind": "paragraph",
+      "text": "Mỗi câu hỏi chỉ có một phương án đúng.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 1992,
+        "endOffset": 2133,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-7",
+      "kind": "paragraph",
+      "text": "Câu 1. Đồ thị dưới đây là của một hàm số lượng giác. Chu kỳ dương nhỏ nhất của hàm số là bao nhiêu?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 2133,
+        "endOffset": 2457,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-8",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 2457,
+        "endOffset": 3223,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-9",
+      "kind": "paragraph",
+      "text": "A. $2\\pi$\tB. $\\frac{\\pi}{2}$\tC. $\\pi$\tD. $4\\pi$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 3223,
+        "endOffset": 4395,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-10",
+      "kind": "paragraph",
+      "text": "Câu 2. Trên đường tròn lượng giác, điểm $M$ biểu diễn góc $\\alpha =\\frac{5\\pi}{6}+2k\\pi  \\left(k\\in Z\\right)$ như hình vẽ. Giá trị của $cos\\alpha$ bằng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 4395,
+        "endOffset": 5900,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-11",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 5900,
+        "endOffset": 6666,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-12",
+      "kind": "paragraph",
+      "text": "A. $\\frac{\\sqrt{3}}{2}$\tB. $−\\frac{\\sqrt{3}}{2}$\tC. $\\frac{1}{2}$\tD. $−\\frac{1}{2}$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 6666,
+        "endOffset": 8356,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-13",
+      "kind": "paragraph",
+      "text": "Câu 3. Giá trị của biểu thức $P=sin{75}^{∘}cos{15}^{∘}−cos{75}^{∘}sin{15}^{∘}$ bằng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 8356,
+        "endOffset": 9622,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-14",
+      "kind": "paragraph",
+      "text": "A. $\\frac{1}{2}$\tB. $\\frac{\\sqrt{3}}{2}$\tC. $−\\frac{1}{2}$\tD. $−\\frac{\\sqrt{3}}{2}$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 9622,
+        "endOffset": 11312,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-15",
+      "kind": "paragraph",
+      "text": "Câu 4. Trên đoạn $\\left[0;2\\pi\\right]$, đồ thị $y=sinx$ và đường thẳng $y=\\frac{1}{2}$ được biểu diễn như hình. Số nghiệm của phương trình $sinx=\\frac{1}{2}$ trên đoạn đã cho là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 11312,
+        "endOffset": 13056,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-16",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 13056,
+        "endOffset": 13822,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-17",
+      "kind": "paragraph",
+      "text": "A. 1\tB. 2\tC. 3\tD. 4",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 13822,
+        "endOffset": 14856,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-18",
+      "kind": "paragraph",
+      "text": "Câu 5. Tập nghiệm của phương trình $cos\\left(2x−\\frac{\\pi}{3}\\right)=\\frac{1}{2}$ là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 14856,
+        "endOffset": 15837,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-19",
+      "kind": "paragraph",
+      "text": "A. $x=k\\pi$ hoặc $x=\\frac{\\pi}{3}+k\\pi$\tB. $x=\\frac{\\pi}{6}+k\\pi$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 15837,
+        "endOffset": 17100,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-20",
+      "kind": "paragraph",
+      "text": "C. $x=\\pm \\frac{\\pi}{3}+2k\\pi$\tD. $x=\\frac{\\pi}{3}+2k\\pi$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 17100,
+        "endOffset": 18186,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-21",
+      "kind": "paragraph",
+      "text": "Với $k\\in Z$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18186,
+        "endOffset": 18558,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-22",
+      "kind": "paragraph",
+      "text": "Câu 6. Một khán đài có 8 ghế ở hàng đầu. Mỗi hàng sau nhiều hơn hàng ngay trước 3 ghế. Minh họa một số hàng đầu như hình. Số ghế ở hàng thứ 10 là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18558,
+        "endOffset": 18928,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-23",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18928,
+        "endOffset": 19694,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-24",
+      "kind": "paragraph",
+      "text": "A. 32\tB. 35\tC. 38\tD. 41",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 19694,
+        "endOffset": 20732,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-25",
+      "kind": "paragraph",
+      "text": "Câu 7. Cho dãy số",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 20732,
+        "endOffset": 20974,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-26",
+      "kind": "display_math",
+      "text": "$${u}_{n}=\\frac{2n+1}{n+1}  \\left(n\\ge 1\\right).$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 20974,
+        "endOffset": 21866,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-27",
+      "kind": "paragraph",
+      "text": "Khẳng định nào đúng?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 21866,
+        "endOffset": 21989,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-28",
+      "kind": "paragraph",
+      "text": "A. Dãy giảm và bị chặn dưới bởi 1.\tB. Dãy tăng và bị chặn trên bởi 2.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 21989,
+        "endOffset": 22303,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-29",
+      "kind": "paragraph",
+      "text": "C. Dãy tăng và không bị chặn.\tD. Dãy không đổi.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 22303,
+        "endOffset": 22595,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-30",
+      "kind": "paragraph",
+      "text": "Câu 8. Một nhà hát có 20 hàng ghế. Hàng đầu có 12 ghế và mỗi hàng sau nhiều hơn hàng trước 3 ghế. Tổng số ghế của nhà hát bằng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 22595,
+        "endOffset": 22946,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-31",
+      "kind": "paragraph",
+      "text": "A. 750\tB. 780\tC. 810\tD. 840",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 22946,
+        "endOffset": 23988,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-32",
+      "kind": "paragraph",
+      "text": "Câu 9. Hình vuông ${C}_{1}$ có diện tích $64{cm}^{2}$. Với mỗi bước, nối trung điểm bốn cạnh của hình vuông trước để được hình vuông tiếp theo như hình. Tổng diện tích của ${C}_{1},{C}_{2},{C}_{3},{C}_{4}$ bằng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 23988,
+        "endOffset": 25539,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-33",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 25539,
+        "endOffset": 26305,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-34",
+      "kind": "paragraph",
+      "text": "A. $112{cm}^{2}$\tB. $120{cm}^{2}$\tC. $124{cm}^{2}$\tD. $128{cm}^{2}$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 26305,
+        "endOffset": 27867,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-35",
+      "kind": "paragraph",
+      "text": "Câu 10. Cho tứ diện $ABCD$ như hình. Cặp đường thẳng nào dưới đây là hai đường thẳng chéo nhau?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 27867,
+        "endOffset": 28421,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-36",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 28421,
+        "endOffset": 29187,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-37",
+      "kind": "paragraph",
+      "text": "A. $AB$ và $CD$\tB. $AB$ và $AC$\tC. $AD$ và $CD$\tD. $AC$ và $BC$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 29187,
+        "endOffset": 31097,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-38",
+      "kind": "paragraph",
+      "text": "Câu 11. Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành, $O$ là giao điểm hai đường chéo. $M$ là trung điểm của $SC$. Khẳng định nào sau đây đúng?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 31097,
+        "endOffset": 32503,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-39",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 32503,
+        "endOffset": 33269,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-40",
+      "kind": "paragraph",
+      "text": "A. $OM∥SA$\tB. $OM∥SB$\tC. $OM∥SD$\tD. $OM∥AB$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 33269,
+        "endOffset": 34795,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-41",
+      "kind": "paragraph",
+      "text": "Câu 12. Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình thang với $AB∥CD$. Điểm $M$ là trung điểm của $SA$. Giao tuyến của hai mặt phẳng $\\left(MCD\\right)$ và $\\left(SAB\\right)$ là đường thẳng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 34795,
+        "endOffset": 36929,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-42",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 36929,
+        "endOffset": 37695,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-43",
+      "kind": "paragraph",
+      "text": "A. qua $M$ và song song với $AB$.\nB. qua $S$ và song song với $CD$.\nC. $MC$.\nD. $MD$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 37695,
+        "endOffset": 38981,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-44",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 38981,
+        "endOffset": 39007,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-45",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39007,
+        "endOffset": 39085,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-46",
+      "kind": "heading",
+      "text": "## PHẦN II. (4 câu/4 điểm) Trắc nghiệm Đúng - Sai",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39085,
+        "endOffset": 39228,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-47",
+      "kind": "paragraph",
+      "text": "Trong mỗi ý a), b), c), d), thí sinh chọn Đúng hoặc Sai.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39228,
+        "endOffset": 39387,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-48",
+      "kind": "paragraph",
+      "text": "Câu 1. Một vòng quay quan sát có bán kính 20 m, tâm $O$ cao 22 m so với mặt đất. Cabin xuất phát từ vị trí thấp nhất lúc $t=0$ và quay đều, hoàn thành một vòng trong 40 giây.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39387,
+        "endOffset": 40199,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-49",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 40199,
+        "endOffset": 40965,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-50",
+      "kind": "paragraph",
+      "text": "Mô hình độ cao của cabin so với mặt đất là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 40965,
+        "endOffset": 41104,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-51",
+      "kind": "display_math",
+      "text": "$$h\\left(t\\right)=22−20cos\\left(\\frac{\\pi t}{20}\\right) \\left(m\\right).$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 41104,
+        "endOffset": 42135,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-52",
+      "kind": "paragraph",
+      "text": "a) $h\\left(0\\right)=2$ m.\nb) Sau 10 giây, cabin ở độ cao 22 m.\nc) Độ cao lớn nhất của cabin là 42 m.\nd) Trong 40 giây đầu tiên, cabin ở độ cao 22 m đúng một lần.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 42135,
+        "endOffset": 42941,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-53",
+      "kind": "paragraph",
+      "text": "Câu 2. Một khán đài có 25 hàng ghế; hàng đầu có 16 ghế và mỗi hàng sau nhiều hơn hàng trước 2 ghế.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 42941,
+        "endOffset": 43264,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-54",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 43264,
+        "endOffset": 44030,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-55",
+      "kind": "paragraph",
+      "text": "Gọi ${u}_{n}$ là số ghế ở hàng thứ $n$. Xét các khẳng định:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 44030,
+        "endOffset": 44539,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-56",
+      "kind": "paragraph",
+      "text": "a) ${u}_{n}=14+2n$.\nb) Hàng thứ 20 có 54 ghế.\nc) Tổng số ghế của cả 25 hàng là 1000 ghế.\nd) Có đúng 10 hàng có nhiều hơn 50 ghế.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 44539,
+        "endOffset": 45305,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-57",
+      "kind": "paragraph",
+      "text": "Câu 3. Hình vuông ${C}_{1}$ có diện tích $256{cm}^{2}$. Mỗi hình vuông tiếp theo được tạo bằng cách nối trung điểm bốn cạnh của hình trước.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45305,
+        "endOffset": 46146,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-58",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 46146,
+        "endOffset": 46912,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-59",
+      "kind": "paragraph",
+      "text": "Gọi ${S}_{n}$ và ${P}_{n}$ lần lượt là diện tích và chu vi của ${C}_{n}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 46912,
+        "endOffset": 47723,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-60",
+      "kind": "paragraph",
+      "text": "a) $\\left({S}_{n}\\right)$ là một cấp số nhân có công bội $\\frac{1}{2}$.\nb) $\\left({P}_{n}\\right)$ là một cấp số nhân có công bội $\\frac{1}{2}$.\nc) ${S}_{5}=16{cm}^{2}$.\nd) ${S}_{1}+{S}_{2}+{S}_{3}+⋯=512{cm}^{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 47723,
+        "endOffset": 50444,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-61",
+      "kind": "paragraph",
+      "text": "Câu 4. Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành, $O$ là giao điểm hai đường chéo và $M$ là trung điểm của $SC$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 50444,
+        "endOffset": 51822,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-62",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 51822,
+        "endOffset": 52588,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-63",
+      "kind": "paragraph",
+      "text": "a) $O$ là trung điểm của $AC$.\nb) $OM∥SA$.\nc) $OM\\subset \\left(SAC\\right)$.\nd) $OM∥\\left(ABCD\\right)$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 52588,
+        "endOffset": 54269,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-64",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54269,
+        "endOffset": 54295,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-65",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54295,
+        "endOffset": 54368,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-66",
+      "kind": "heading",
+      "text": "## PHẦN III. (3 câu/1,5 điểm) Trả lời ngắn",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54368,
+        "endOffset": 54504,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-67",
+      "kind": "paragraph",
+      "text": "Mỗi câu trả lời đúng được 0,5 điểm. Thí sinh ghi kết quả vào ô trả lời, không cần trình bày lời giải.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54504,
+        "endOffset": 54866,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-68",
+      "kind": "paragraph",
+      "text": "Câu 1. Trên đoạn $\\left[0;2\\pi\\right]$, phương trình $sinx=cosx$ có bao nhiêu nghiệm phân biệt?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54866,
+        "endOffset": 55858,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-69",
+      "kind": "paragraph",
+      "text": "Trả lời: …………………………………………….",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 55858,
+        "endOffset": 56097,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-70",
+      "kind": "paragraph",
+      "text": "Câu 2. Một cấp số cộng có số hạng đầu ${u}_{1}=5$ và công sai $d=3$. Tổng 12 số hạng đầu tiên của cấp số cộng bằng bao nhiêu?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 56097,
+        "endOffset": 56954,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-71",
+      "kind": "paragraph",
+      "text": "Trả lời: …………………………………………….",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 56954,
+        "endOffset": 57193,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-72",
+      "kind": "paragraph",
+      "text": "Câu 3. Cho tứ diện $SABC$. Trên hai cạnh $SA$, $SB$ lần lượt lấy hai điểm $M,N$ thỏa mãn $\\frac{SM}{SA}=\\frac{SN}{SB}=\\frac{2}{5}$. Biết $AB=15$ cm. Tính độ dài đoạn $MN$ (đơn vị: cm).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 57193,
+        "endOffset": 59469,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-73",
+      "kind": "paragraph",
+      "text": "Trả lời: …………………………………………….",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59469,
+        "endOffset": 59708,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-74",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59708,
+        "endOffset": 59734,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-75",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59734,
+        "endOffset": 59796,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-76",
+      "kind": "heading",
+      "text": "## PHẦN IV. (1,5 điểm) Tự luận",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59796,
+        "endOffset": 59920,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-77",
+      "kind": "paragraph",
+      "text": "Bài 1. (0,25 điểm) Tìm tập giá trị của hàm số",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59920,
+        "endOffset": 60196,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-78",
+      "kind": "display_math",
+      "text": "$$y=3+2sin\\left(2x−\\frac{\\pi}{3}\\right).$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60196,
+        "endOffset": 60977,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-79",
+      "kind": "paragraph",
+      "text": "Bài 2. (0,25 điểm) Giải phương trình lượng giác",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60977,
+        "endOffset": 61255,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-80",
+      "kind": "display_math",
+      "text": "$$sin3x+sinx=cosx.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 61255,
+        "endOffset": 61842,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-81",
+      "kind": "paragraph",
+      "text": "Bài 3. (0,75 điểm) Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành. Trên các cạnh $SA,SB$ lấy lần lượt hai điểm $M,N$ sao cho",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 61842,
+        "endOffset": 63284,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-82",
+      "kind": "display_math",
+      "text": "$$\\frac{SM}{SA}=\\frac{SN}{SB}=\\frac{1}{3}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 63284,
+        "endOffset": 64066,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-83",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 64066,
+        "endOffset": 64838,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-84",
+      "kind": "paragraph",
+      "text": "a) Chứng minh $MN∥\\left(ABCD\\right)$.\nb) Xác định giao tuyến của hai mặt phẳng $\\left(MCD\\right)$ và $\\left(SAB\\right)$.\nc) Gọi $P=SD\\cap \\left(MBC\\right)$. Tính tỉ số $\\frac{SP}{PD}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 64838,
+        "endOffset": 66890,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-85",
+      "kind": "paragraph",
+      "text": "Bài 4. (0,25 điểm) Một quỹ học bổng có sẵn 100 triệu đồng. Cuối năm thứ nhất quỹ được bổ sung 10 triệu đồng; từ năm thứ hai trở đi, số tiền bổ sung mỗi năm nhiều hơn năm liền trước 10 triệu đồng. Bỏ qua lãi suất.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 66890,
+        "endOffset": 67327,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-86",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_DRAWING]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 67327,
+        "endOffset": 68093,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-87",
+      "kind": "paragraph",
+      "text": "Hỏi sau ít nhất bao nhiêu năm, tính từ cuối năm thứ nhất, tổng số tiền của quỹ đạt ít nhất 650 triệu đồng?",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68093,
+        "endOffset": 68296,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-88",
+      "kind": "paragraph",
+      "text": "HẾT",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68296,
+        "endOffset": 68425,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-89",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68425,
+        "endOffset": 68451,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-90",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68451,
+        "endOffset": 68477,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    }
+  ],
+  "uncertainties": [
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-1",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 649,
+        "endOffset": 704,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-4",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 1757,
+        "endOffset": 1835,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-8",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 2583,
+        "endOffset": 3211,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-11",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 6026,
+        "endOffset": 6654,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-16",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 13182,
+        "endOffset": 13810,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-23",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 19054,
+        "endOffset": 19682,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-33",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 25665,
+        "endOffset": 26293,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-36",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 28547,
+        "endOffset": 29175,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-39",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 32629,
+        "endOffset": 33257,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-42",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 37055,
+        "endOffset": 37683,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-44",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 38981,
+        "endOffset": 39007,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-45",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39007,
+        "endOffset": 39085,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-49",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 40325,
+        "endOffset": 40953,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-54",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 43390,
+        "endOffset": 44018,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-58",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 46272,
+        "endOffset": 46900,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-62",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 51948,
+        "endOffset": 52576,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-64",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54269,
+        "endOffset": 54295,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-65",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54295,
+        "endOffset": 54368,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-74",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59708,
+        "endOffset": 59734,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-75",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 59734,
+        "endOffset": 59796,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-83",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 64198,
+        "endOffset": 64826,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_drawing",
+      "segmentId": "seg-86",
+      "message": "Drawing element <w:drawing> preserved without silent loss",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 67453,
+        "endOffset": 68081,
+        "line": 2,
+        "tag": "w:drawing"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-89",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68425,
+        "endOffset": 68451,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-90",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68451,
+        "endOffset": 68477,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    }
+  ]
+}

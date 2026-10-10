@@ -8,11 +8,13 @@ export interface PdfLine {
   top: number;
   bottom: number;
   text: string;
+  itemContentX?: number;
 }
 export interface Region {
   page: number;
   top: number;
   bottom: number;
+  left?: number;
 }
 
 interface PdfPageProxy {
@@ -104,16 +106,18 @@ export async function loadPdf(file: File, onProgress: (done: number, total: numb
     pages,
     margin,
     async crop(regions) {
-      const strips: Array<{ canvas: HTMLCanvasElement; sy: number; sh: number }> = [];
+      const strips: Array<{ canvas: HTMLCanvasElement; sx: number; sw: number; sy: number; sh: number }> = [];
       for (const r of regions) {
         const canvas = await render(r.page);
         const sy = Math.max(0, Math.floor(r.top * SCALE));
         const sh = Math.min(canvas.height - sy, Math.ceil((r.bottom - r.top) * SCALE));
-        if (sh > 4) strips.push({ canvas, sy, sh });
+        const sx = Math.floor((r.left ?? margin) * SCALE);
+        const sw = Math.min(canvas.width, Math.floor((pages[r.page - 1].width - margin) * SCALE)) - sx;
+        if (!Number.isFinite(sx) || sx < 0 || sw <= 4) throw new Error("Vùng cắt ngang chưa hợp lệ.");
+        if (sh > 4) strips.push({ canvas, sx, sw, sy, sh });
       }
       if (!strips.length) return "";
-      const sx = Math.floor(margin * SCALE);
-      const width = pages[regions[0].page - 1].width * SCALE - sx * 2;
+      const width = Math.max(...strips.map((s) => s.sw));
       const height = strips.reduce((sum, s) => sum + s.sh, 0) + 12;
       for (const quality of [0.86, 0.74, 0.62]) {
         const out = document.createElement("canvas");
@@ -125,7 +129,7 @@ export async function loadPdf(file: File, onProgress: (done: number, total: numb
         g.fillRect(0, 0, out.width, out.height);
         let y = 6;
         for (const s of strips) {
-          g.drawImage(s.canvas, sx, s.sy, out.width, s.sh, 0, y, out.width, s.sh);
+          g.drawImage(s.canvas, s.sx, s.sy, s.sw, s.sh, 0, y, s.sw, s.sh);
           y += s.sh;
         }
         trimBlank(out);

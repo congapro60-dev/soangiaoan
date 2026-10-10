@@ -99,6 +99,27 @@
       "when": 1791477071943,
       "tag": "0013_exam_rooms",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1791593645554,
+      "tag": "0014_exam_manual_comments",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1791598442611,
+      "tag": "0015_exam_attempt_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1791598442612,
+      "tag": "0016_exam_review_access",
+      "breakpoints": true
     }
   ]
 }

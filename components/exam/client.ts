@@ -9,7 +9,16 @@ export interface ExamQuestion {
   statements?: string[];
   text?: string;
   hasImage?: boolean;
+  imageMode?: "question" | "figure";
+  questionImages?: Array<{ id: string; bytes: number }>;
+  choiceText?: Record<string, string>;
+  statementText?: Record<string, string>;
+  choiceImages?: Record<string, string>;
+  statementImages?: Record<string, string>;
+  noShuffle?: boolean;
   key?: unknown;
+  solution?: string;
+  solutionImages?: Array<{ id: string; bytes: number }>;
   rubric?: string;
 }
 
@@ -66,6 +75,7 @@ export async function teacherImageUrl(query: string): Promise<string> {
 const MESSAGES: Record<string, string> = {
   NETWORK: "Mất kết nối mạng. Em kiểm tra wifi rồi thử lại nhé.",
   AUTH_REQUIRED: "Phiên làm bài không còn hiệu lực. Em vào lại bằng mã phòng và đúng tên cũ.",
+  REVIEW_UNAVAILABLE: "Chưa mở được bài xem lại. Kiểm tra mã phòng, tên và PIN; phòng phải kết thúc và giáo viên cho xem lời giải. Nếu đã thử nhiều lần, chờ 15 phút.",
   ROOM_NOT_FOUND: "Không có phòng với mã này. Em kiểm tra lại mã (6 ký tự).",
   EXAM_NOT_OPEN: "Thầy/cô chưa mở phòng. Em chờ một chút rồi thử lại.",
   EXAM_CLOSED: "Bài kiểm tra đã kết thúc.",
@@ -76,6 +86,16 @@ const MESSAGES: Record<string, string> = {
   ALREADY_SUBMITTED: "Em đã nộp bài rồi.",
   EXAM_NOT_STARTED: "Bài kiểm tra chưa bắt đầu.",
   KEY_MISSING: "Còn câu chưa có đáp án. Điền đáp án rồi mới bắt đầu, hoặc chọn bắt đầu vẫn tiếp tục.",
+  AI_PROVIDER_NOT_CONFIGURED: "Dịch vụ AI chưa được bật hoặc chưa cấu hình. Giáo viên có thể tự tạo mã đề mới.",
+  AI_CONSENT_REQUIRED: "Cần xác nhận nội dung đề và dịch vụ AI trước khi gửi.",
+  SOURCE_CHANGED: "Đề hoặc dịch vụ đã thay đổi. Xem lại nội dung, xác nhận lại trước khi tạo nháp.",
+  VARIANT_NOT_ALLOWED: "Câu có hình hoặc yêu cầu chứng minh chưa hỗ trợ đổi số tự động.",
+  AI_QUOTA_EXCEEDED: "Dịch vụ AI hết hạn mức. Bản đề hiện tại vẫn được giữ.",
+  AI_TIMEOUT: "AI trả lời quá lâu. Đề hiện tại được giữ; thử lại sau.",
+  AI_GENERATION_FAILED: "AI chưa tạo được bản nháp. Đề hiện tại vẫn được giữ.",
+  AI_OUTPUT_TRUNCATED: "Bản nháp AI chưa đầy đủ; chưa được áp dụng.",
+  INVALID_PROPOSAL: "Bản nháp AI chưa hợp lệ; chưa được áp dụng.",
+  PROPOSAL_TOO_LARGE: "Nội dung vượt giới hạn. Chọn ít câu hơn rồi tạo nháp.",
   BAD_STATE: "Việc này không làm được ở trạng thái hiện tại của phòng.",
   QUESTIONS_LOCKED: "Đã có học sinh vào nên không đổi được số câu hay loại câu; chỉ sửa được đáp án và điểm.",
   INVALID_EXAM: "Đề chưa hợp lệ: cần tên, thời gian 5–300 phút và ít nhất một câu.",

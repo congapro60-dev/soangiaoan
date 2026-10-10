@@ -1,0 +1,1916 @@
+{
+  "source": "Huong_dan_cham_Toan11_GHKI_4_dang.docx",
+  "sha256": "38502d5d9e7053f5088ff0d05beda92cdc78f3513ae529988e06d9961d02f37a",
+  "segments": [
+    {
+      "id": "seg-1",
+      "kind": "paragraph",
+      "text": "THE DEWEY SCHOOLS\nĐÁP ÁN – HƯỚNG DẪN CHẤM – BIỂU ĐIỂM\nĐỀ THI THỬ GIỮA HỌC KỲ I – TOÁN 11 – ĐỀ 01\nPHIÊN BẢN THỬ NGHIỆM 4 DẠNG CÂU HỎI\nNăm học 2026–2027 | Thời gian: 90 phút | 10,00 điểm\nDÀNH CHO GIÁO VIÊN – KHÔNG PHÁT KÈM ĐỀ CHO HỌC SINH",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 649,
+        "endOffset": 2601,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-2",
+      "kind": "paragraph",
+      "text": "Căn cứ: File Toan11_GHKI_4_Dang.docx đã chốt. Tài liệu này tách riêng với đề, không thay nội dung hoặc biểu điểm của đề gốc. Riêng Bài 4 tự luận có lưu ý về mốc thời gian.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 2601,
+        "endOffset": 3343,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-3",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 3343,
+        "endOffset": 3411,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-4",
+      "kind": "heading",
+      "text": "## A. CẤU TRÚC VÀ NGUYÊN TẮC CHẤM",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 3411,
+        "endOffset": 3591,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-5",
+      "kind": "table",
+      "text": "| Phần | Hình thức | Số lượng | Điểm tối đa |\n| --- | --- | --- | --- |\n| I | Trắc nghiệm nhiều lựa chọn | 12 câu × 0,25 | 3,00 |\n| II | Trắc nghiệm Đúng/Sai | 4 câu × tối đa 1,00 | 4,00 |\n| III | Trắc nghiệm trả lời ngắn | 3 câu × 0,50 | 1,50 |\n| IV | Tự luận | 4 bài: 0,25 + 0,25 + 0,75 + 0,25 | 1,50 |\n| Tổng |  |  | 10,00 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 3591,
+        "endOffset": 11761,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-6",
+      "kind": "paragraph",
+      "text": "Quy tắc chung. Phần I chỉ cho 0,25 điểm khi chọn đúng một phương án; chọn sai, bỏ trống hoặc chọn nhiều phương án được 0 điểm. Phần III chấm theo kết quả cuối cùng đúng đơn vị (nếu có); không bắt buộc học sinh trình bày cách giải. Phần IV chấp nhận lời giải khác đúng bản chất và hợp lý, không yêu cầu đúng nguyên văn hướng dẫn. Không cộng điểm vượt điểm tối đa của câu.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 11761,
+        "endOffset": 12702,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-7",
+      "kind": "paragraph",
+      "text": "Thang điểm phần II – áp dụng riêng cho từng câu 4 ý:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 12702,
+        "endOffset": 12880,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-8",
+      "kind": "table",
+      "text": "| Số ý đúng trong cùng một câu | 0 | 1 | 2 | 3 | 4 |\n| --- | --- | --- | --- | --- | --- |\n| Điểm của câu | 0,00 | 0,10 | 0,25 | 0,50 | 1,00 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 12880,
+        "endOffset": 17464,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-9",
+      "kind": "paragraph",
+      "text": "Lưu ý: Không tính phần II theo công thức “mỗi ý đúng 0,25”. Đây là quy tắc chấm theo số ý đúng trong cả câu.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 17464,
+        "endOffset": 18157,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-10",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18157,
+        "endOffset": 18183,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-11",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18183,
+        "endOffset": 18261,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-12",
+      "kind": "heading",
+      "text": "## B. PHẦN I – TRẮC NGHIỆM NHIỀU LỰA CHỌN (3,00 ĐIỂM)",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18261,
+        "endOffset": 18461,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-13",
+      "kind": "table",
+      "text": "| Câu | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Đáp án | C | B | B | B | A | B | B | C | B | A | A | A |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18461,
+        "endOffset": 27887,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-14",
+      "kind": "paragraph",
+      "text": "Lời giải kiểm tra từng câu (dành cho giáo viên đối chiếu, không yêu cầu học sinh trình bày):",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 27887,
+        "endOffset": 28191,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-15",
+      "kind": "list",
+      "text": "- Câu 1 – C. Quan sát đồ thị, một chu kỳ đầy đủ ứng với độ dài $\\pi$ trên trục hoành. Vậy chu kỳ dương nhỏ nhất $T=\\pi$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 28191,
+        "endOffset": 28920,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-16",
+      "kind": "list",
+      "text": "- Câu 2 – B. $cos\\alpha =cos\\frac{5\\pi}{6}=−\\frac{\\sqrt{3}}{2}$; cộng $2k\\pi$ không làm thay đổi cos.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 28920,
+        "endOffset": 30095,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-17",
+      "kind": "list",
+      "text": "- Câu 3 – B. Theo công thức sin hiệu:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 30095,
+        "endOffset": 30375,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-18",
+      "kind": "display_math",
+      "text": "$$sin{75}^{∘}cos{15}^{∘}−cos{75}^{∘}sin{15}^{∘}=sin{60}^{∘}=\\frac{\\sqrt{3}}{2}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 30375,
+        "endOffset": 31856,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-19",
+      "kind": "list",
+      "text": "- Câu 4 – B. Trên $\\left[0;2\\pi\\right]$, $sinx=\\frac{1}{2}$ có hai nghiệm $x=\\frac{\\pi}{6}$ và $x=\\frac{5\\pi}{6}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 31856,
+        "endOffset": 33565,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-20",
+      "kind": "list",
+      "text": "- Câu 5 – A. Phương trình tương đương:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 33565,
+        "endOffset": 33846,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-21",
+      "kind": "display_math",
+      "text": "$$2x−\\frac{\\pi}{3}=\\pm \\frac{\\pi}{3}+2k\\pi  \\left(k\\in Z\\right),$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 33846,
+        "endOffset": 34936,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-22",
+      "kind": "list",
+      "text": "- nên $x=k\\pi$ hoặc $x=\\frac{\\pi}{3}+k\\pi$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 34936,
+        "endOffset": 35788,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-23",
+      "kind": "list",
+      "text": "- Câu 6 – B. Dãy số ghế theo cấp số cộng ${u}_{1}=8$, $d=3$; ${u}_{10}=8+9⋅3=35$ (ghế).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 35788,
+        "endOffset": 37118,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-24",
+      "kind": "list",
+      "text": "- Câu 7 – B. ${u}_{n}=\\frac{2n+1}{n+1}=2−\\frac{1}{n+1}$. Vì $\\frac{1}{n+1}$ giảm khi $n$ tăng nên ${u}_{n}$ tăng và ${u}_{n}<2$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 37118,
+        "endOffset": 39248,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-25",
+      "kind": "list",
+      "text": "- Câu 8 – C. ${S}_{20}=\\frac{20}{2}\\left[2⋅12+19⋅3\\right]=810$ (ghế).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 39248,
+        "endOffset": 40294,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-26",
+      "kind": "list",
+      "text": "- Câu 9 – B. Các diện tích lập thành cấp số nhân công bội $\\frac{1}{2}$. Tổng $64+32+16+8=120 {cm}^{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 40294,
+        "endOffset": 41481,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-27",
+      "kind": "list",
+      "text": "- Câu 10 – A. Hai cạnh đối $AB$ và $CD$ của tứ diện không có điểm chung và không đồng phẳng, nên là hai đường thẳng chéo nhau.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 41481,
+        "endOffset": 42230,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-28",
+      "kind": "list",
+      "text": "- Câu 11 – A. Trong tam giác $SAC$, $O$ là trung điểm $AC$ và $M$ là trung điểm $SC$. Đường trung bình $OM∥SA$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 42230,
+        "endOffset": 43672,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-29",
+      "kind": "list",
+      "text": "- Câu 12 – A. $M$ thuộc cả $\\left(MCD\\right)$ và $\\left(SAB\\right)$. Do $CD∥AB$, giao tuyến hai mặt phẳng là đường thẳng qua $M$, song song $CD$ (và $AB$).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 43672,
+        "endOffset": 45575,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-30",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45575,
+        "endOffset": 45601,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-31",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45601,
+        "endOffset": 45678,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-32",
+      "kind": "heading",
+      "text": "## C. PHẦN II – TRẮC NGHIỆM ĐÚNG/SAI (4,00 ĐIỂM)",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45678,
+        "endOffset": 45873,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-33",
+      "kind": "table",
+      "text": "| Câu | Ý a | Ý b | Ý c | Ý d |\n| --- | --- | --- | --- | --- |\n| 1 | Đ | Đ | Đ | S |\n| 2 | Đ | Đ | Đ | S |\n| 3 | Đ | S | Đ | Đ |\n| 4 | Đ | Đ | Đ | S |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45873,
+        "endOffset": 54625,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-34",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54625,
+        "endOffset": 54688,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-35",
+      "kind": "heading",
+      "text": "### Câu 1. Vòng quay quan sát",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54688,
+        "endOffset": 54863,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-36",
+      "kind": "paragraph",
+      "text": "Mô hình $h\\left(t\\right)=22−20cos\\left(\\frac{\\pi t}{20}\\right)$, đơn vị mét.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54863,
+        "endOffset": 55719,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-37",
+      "kind": "list",
+      "text": "- a) Đúng: $h\\left(0\\right)=22−20=2$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 55719,
+        "endOffset": 56413,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-38",
+      "kind": "list",
+      "text": "- b) Đúng: $h\\left(10\\right)=22−20cos\\frac{\\pi}{2}=22$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 56413,
+        "endOffset": 57290,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-39",
+      "kind": "list",
+      "text": "- c) Đúng: Vì $−1\\le cos\\theta \\le 1$ nên ${h}_{max}=22+20=42$ m.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 57290,
+        "endOffset": 58537,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-40",
+      "kind": "list",
+      "text": "- d) Sai: $h\\left(t\\right)=22\\Leftrightarrow cos\\left(\\frac{\\pi t}{20}\\right)=0$. Trong $0\\le t\\le 40$, cabin đạt độ cao 22 m ở $t=10$ và $t=30$, tức hai lần.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 58537,
+        "endOffset": 60474,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-41",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60474,
+        "endOffset": 60500,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-42",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60500,
+        "endOffset": 60561,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-43",
+      "kind": "heading",
+      "text": "### Câu 2. Khán đài 25 hàng",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60561,
+        "endOffset": 60734,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-44",
+      "kind": "paragraph",
+      "text": "Số ghế hàng thứ $n$ là ${u}_{n}=16+2\\left(n−1\\right)=14+2n$, với $1\\le n\\le 25$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60734,
+        "endOffset": 62067,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-45",
+      "kind": "list",
+      "text": "- a) Đúng: Công thức ${u}_{n}=14+2n$ chính xác.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 62067,
+        "endOffset": 62788,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-46",
+      "kind": "list",
+      "text": "- b) Đúng: ${u}_{20}=14+2⋅20=54$ ghế.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 62788,
+        "endOffset": 63545,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-47",
+      "kind": "list",
+      "text": "- c) Đúng: ${u}_{25}=64$ và ${S}_{25}=\\frac{25\\left(16+64\\right)}{2}=1000$ ghế.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 63545,
+        "endOffset": 64779,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-48",
+      "kind": "list",
+      "text": "- d) Sai: ${u}_{n}>50\\Leftrightarrow 14+2n>50\\Leftrightarrow n>18$; chỉ có hàng 19 đến 25, tổng cộng 7 hàng.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 64779,
+        "endOffset": 65877,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-49",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 65877,
+        "endOffset": 65903,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-50",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 65903,
+        "endOffset": 65972,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-51",
+      "kind": "heading",
+      "text": "### Câu 3. Các hình vuông lồng nhau",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 65972,
+        "endOffset": 66153,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-52",
+      "kind": "paragraph",
+      "text": "Mỗi hình vuông mới được tạo từ các trung điểm cạnh nên có diện tích bằng một nửa diện tích trước. Do đó",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 66153,
+        "endOffset": 66560,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-53",
+      "kind": "display_math",
+      "text": "$${S}_{n}=256{\\left(\\frac{1}{2}\\right)}^{n−1}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 66560,
+        "endOffset": 67315,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-54",
+      "kind": "list",
+      "text": "- a) Đúng: $\\left({S}_{n}\\right)$ là cấp số nhân có công bội ${q}_{S}=\\frac{1}{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 67315,
+        "endOffset": 68257,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-55",
+      "kind": "list",
+      "text": "- b) Sai: Cạnh và chu vi giảm theo tỉ số ${q}_{P}=\\frac{1}{\\sqrt{2}}$, không phải $\\frac{1}{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 68257,
+        "endOffset": 69259,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-56",
+      "kind": "list",
+      "text": "- c) Đúng: ${S}_{5}=256{\\left(\\frac{1}{2}\\right)}^{4}=16 {cm}^{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 69259,
+        "endOffset": 70308,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-57",
+      "kind": "list",
+      "text": "- d) Đúng: ${S}_{1}+{S}_{2}+⋯=\\frac{256}{1−1/2}=512 {cm}^{2}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 70308,
+        "endOffset": 71576,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-58",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71576,
+        "endOffset": 71602,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-59",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71602,
+        "endOffset": 71675,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-60",
+      "kind": "heading",
+      "text": "### Câu 4. Hình chóp đáy hình bình hành",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71675,
+        "endOffset": 71860,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-61",
+      "kind": "list",
+      "text": "- a) Đúng: Trong hình bình hành, hai đường chéo cắt nhau tại trung điểm; $O$ là trung điểm $AC$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71860,
+        "endOffset": 72541,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-62",
+      "kind": "list",
+      "text": "- b) Đúng: Trong $△SAC$, $OM$ là đường trung bình nên $OM∥SA$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 72541,
+        "endOffset": 73533,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-63",
+      "kind": "list",
+      "text": "- c) Đúng: $O\\in AC\\subset \\left(SAC\\right)$ và $M\\in SC\\subset \\left(SAC\\right)$ nên $OM\\subset \\left(SAC\\right)$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 73533,
+        "endOffset": 75134,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-64",
+      "kind": "list",
+      "text": "- d) Sai: $O\\in \\left(ABCD\\right)$ còn $M\\notin \\left(ABCD\\right)$, do đó $OM$ cắt mặt phẳng $\\left(ABCD\\right)$ tại $O$, không song song với mặt phẳng ấy.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 75134,
+        "endOffset": 76992,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-65",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 76992,
+        "endOffset": 77018,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-66",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77018,
+        "endOffset": 77044,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-67",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77044,
+        "endOffset": 77122,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-68",
+      "kind": "heading",
+      "text": "## D. PHẦN III – TRẮC NGHIỆM TRẢ LỜI NGẮN (1,50 ĐIỂM)",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77122,
+        "endOffset": 77322,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-69",
+      "kind": "paragraph",
+      "text": "Mỗi câu đúng: 0,50 điểm. Không yêu cầu trình bày lời giải; kết quả sai hoặc không trả lời: 0 điểm.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77322,
+        "endOffset": 77552,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-70",
+      "kind": "table",
+      "text": "| Câu | Kết quả đúng | Điểm |\n| --- | --- | --- |\n| 1 | 2 (nghiệm) | 0,50 |\n| 2 | 258 | 0,50 |\n| 3 | 6 (cm) | 0,50 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77552,
+        "endOffset": 81991,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-71",
+      "kind": "paragraph",
+      "text": "Giải thích dùng để kiểm tra:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 81991,
+        "endOffset": 82145,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-72",
+      "kind": "paragraph",
+      "text": "Câu 1. $sinx=cosx\\Leftrightarrow tanx=1$; trên đoạn $\\left[0;2\\pi\\right]$ có $x=\\frac{\\pi}{4}$ và $x=\\frac{5\\pi}{4}$: 2 nghiệm.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 82145,
+        "endOffset": 84067,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-73",
+      "kind": "paragraph",
+      "text": "Câu 2. Cấp số cộng có ${u}_{1}=5$, $d=3$:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 84067,
+        "endOffset": 84784,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-74",
+      "kind": "display_math",
+      "text": "$${S}_{12}=\\frac{12}{2}\\left(2⋅5+11⋅3\\right)=6⋅43={258}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 84784,
+        "endOffset": 85910,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-75",
+      "kind": "paragraph",
+      "text": "Câu 3. Trong tam giác $SAB$, từ $\\frac{SM}{SA}=\\frac{SN}{SB}=\\frac{2}{5}$ suy ra $MN∥AB$ và",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 85910,
+        "endOffset": 87357,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-76",
+      "kind": "display_math",
+      "text": "$$\\frac{MN}{AB}=\\frac{2}{5} \\Rightarrow  MN=\\frac{2}{5}⋅15={6 cm}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 87357,
+        "endOffset": 88573,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-77",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88573,
+        "endOffset": 88599,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-78",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88599,
+        "endOffset": 88664,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-79",
+      "kind": "heading",
+      "text": "## E. PHẦN IV – TỰ LUẬN (1,50 ĐIỂM)",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88664,
+        "endOffset": 88846,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-80",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88846,
+        "endOffset": 88918,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-81",
+      "kind": "heading",
+      "text": "### Bài 1 (0,25 điểm). Tập giá trị hàm số",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88918,
+        "endOffset": 89105,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-82",
+      "kind": "display_math",
+      "text": "$$y=3+2sin\\left(2x−\\frac{\\pi}{3}\\right).$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 89105,
+        "endOffset": 89892,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-83",
+      "kind": "paragraph",
+      "text": "Do $−1\\le sin\\left(2x−\\frac{\\pi}{3}\\right)\\le 1$ nên $1\\le y\\le 5$. Vì sin đạt cả $−1$ và $1$, tập giá trị là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 89892,
+        "endOffset": 91433,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-84",
+      "kind": "display_math",
+      "text": "$${\\left[1;5\\right]}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 91433,
+        "endOffset": 91890,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-85",
+      "kind": "table",
+      "text": "| Nội dung cần đạt | Điểm |\n| --- | --- |\n| Lập luận từ miền giá trị của sin và kết luận chính xác tập giá trị [1;5]. | 0,25 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 91890,
+        "endOffset": 93658,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-86",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93658,
+        "endOffset": 93684,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-87",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93684,
+        "endOffset": 93761,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-88",
+      "kind": "heading",
+      "text": "### Bài 2 (0,25 điểm). Phương trình lượng giác",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93761,
+        "endOffset": 93953,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-89",
+      "kind": "display_math",
+      "text": "$$sin3x+sinx=cosx.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93953,
+        "endOffset": 94546,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-90",
+      "kind": "paragraph",
+      "text": "Áp dụng công thức biến đổi tổng thành tích:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 94546,
+        "endOffset": 94692,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-91",
+      "kind": "display_math",
+      "text": "$$2sin2xcosx=cosx\\Leftrightarrow cosx \\left(2sin2x−1\\right)=0.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 94692,
+        "endOffset": 95799,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-92",
+      "kind": "paragraph",
+      "text": "Từ đó có ba họ nghiệm:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 95799,
+        "endOffset": 96082,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-93",
+      "kind": "display_math",
+      "text": "$${x=\\frac{\\pi}{2}+k\\pi } hoặc {x=\\frac{\\pi}{12}+k\\pi } hoặc {x=\\frac{5\\pi}{12}+k\\pi },  k\\in Z.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 96082,
+        "endOffset": 97813,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-94",
+      "kind": "table",
+      "text": "| Nội dung cần đạt | Điểm |\n| --- | --- |\n| Biến đổi đúng và tìm đủ ba họ nghiệm với k∈ℤ. | 0,25 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 97813,
+        "endOffset": 99553,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-95",
+      "kind": "paragraph",
+      "text": "Lưu ý chấm: Không được chia cả hai vế cho $cosx$ khi chưa xét trường hợp $cosx=0$, vì sẽ mất họ nghiệm $x=\\frac{\\pi}{2}+k\\pi$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 99553,
+        "endOffset": 100758,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-96",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 100758,
+        "endOffset": 100784,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-97",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 100784,
+        "endOffset": 100862,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-98",
+      "kind": "heading",
+      "text": "### Bài 3 (0,75 điểm). Quan hệ song song trong không gian",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 100862,
+        "endOffset": 101065,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-99",
+      "kind": "paragraph",
+      "text": "Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành; $M\\in SA$, $N\\in SB$ và $\\frac{SM}{SA}=\\frac{SN}{SB}=\\frac{1}{3}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 101065,
+        "endOffset": 102957,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-100",
+      "kind": "paragraph",
+      "text": "Ý a. Chứng minh $MN∥\\left(ABCD\\right)$ (0,25 điểm).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 102957,
+        "endOffset": 103649,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-101",
+      "kind": "paragraph",
+      "text": "Trong tam giác $SAB$, theo định lí Ta-lét đảo, $\\frac{SM}{SA}=\\frac{SN}{SB}$ suy ra $MN∥AB$. Vì $AB\\subset \\left(ABCD\\right)$ và $MN⊄\\left(ABCD\\right)$ nên ${MN∥\\left(ABCD\\right)}$.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 103649,
+        "endOffset": 106125,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-102",
+      "kind": "paragraph",
+      "text": "Ý b. Xác định $\\left(MCD\\right)\\cap \\left(SAB\\right)$ (0,25 điểm).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 106125,
+        "endOffset": 106923,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-103",
+      "kind": "paragraph",
+      "text": "Vì $AB∥CD$ và $MN∥AB$ nên $MN∥CD$. Đi qua điểm $M\\in \\left(MCD\\right)$, đường thẳng song song $CD$ phải nằm trong $\\left(MCD\\right)$; do đó $MN\\subset \\left(MCD\\right)$. Mặt khác $MN\\subset \\left(SAB\\right)$, suy ra",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 106923,
+        "endOffset": 109563,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-104",
+      "kind": "display_math",
+      "text": "$${\\left(MCD\\right)\\cap \\left(SAB\\right)=MN}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 109563,
+        "endOffset": 110322,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-105",
+      "kind": "paragraph",
+      "text": "Ý c. Tính $\\frac{SP}{PD}$, với $P=SD\\cap \\left(MBC\\right)$ (0,25 điểm).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 110322,
+        "endOffset": 111408,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-106",
+      "kind": "paragraph",
+      "text": "Ta có $BC∥AD$. Vì $M\\in \\left(SAD\\right)\\cap \\left(MBC\\right)$ và hai mặt phẳng lần lượt chứa $AD$ và $BC$ là hai đường thẳng song song, giao tuyến là đường thẳng $MP∥AD$. Trong $△SAD$:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 111408,
+        "endOffset": 113379,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-107",
+      "kind": "display_math",
+      "text": "$$\\frac{SP}{SD}=\\frac{SM}{SA}=\\frac{1}{3},  \\frac{PD}{SD}=\\frac{2}{3}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 113379,
+        "endOffset": 114589,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-108",
+      "kind": "paragraph",
+      "text": "Vậy",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 114589,
+        "endOffset": 114695,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-109",
+      "kind": "display_math",
+      "text": "$${\\frac{SP}{PD}=\\frac{1}{2}}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 114695,
+        "endOffset": 115290,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-110",
+      "kind": "table",
+      "text": "| Ý | Nội dung đạt yêu cầu để cho trọn điểm | Điểm |\n| --- | --- | --- |\n| a | Chứng minh MN∥ AB, suy ra MN∥(ABCD). | 0,25 |\n| b | Lập luận được MN thuộc cả hai mặt phẳng, kết luận giao tuyến MN. | 0,25 |\n| c | Xác định MP∥ AD và suy ra SP/PD=1/2. | 0,25 |\n| Tổng |  | 0,75 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 115290,
+        "endOffset": 120643,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-111",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120643,
+        "endOffset": 120669,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-112",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120669,
+        "endOffset": 120747,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-113",
+      "kind": "heading",
+      "text": "### Bài 4 (0,25 điểm). Quỹ học bổng và quy ước mốc thời gian",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120747,
+        "endOffset": 120953,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-114",
+      "kind": "paragraph",
+      "text": "Gọi $n$ là số thứ tự của năm kể từ lúc bắt đầu quỹ (cuối năm thứ nhất tương ứng $n=1$). Cuối năm thứ $n$, quỹ được bổ sung $10n$ triệu đồng. Tổng tiền quỹ vào cuối năm thứ $n$ là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120953,
+        "endOffset": 122288,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-115",
+      "kind": "display_math",
+      "text": "$${T}_{n}=100+10\\left(1+2+⋯+n\\right)=100+5n\\left(n+1\\right) \\left(triệu đồng\\right).$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 122288,
+        "endOffset": 123745,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-116",
+      "kind": "paragraph",
+      "text": "Yêu cầu ${T}_{n}\\ge 650$ tương đương $n\\left(n+1\\right)\\ge 110$. Khi $n=9$, ${T}_{9}=550<650$; khi $n=10$, ${T}_{10}=650$. Vậy quỹ đạt ngưỡng lần đầu vào cuối năm thứ 10.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 123745,
+        "endOffset": 125879,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-117",
+      "kind": "paragraph",
+      "text": "Theo đúng cụm từ “tính từ cuối năm thứ nhất” trong đề, thời gian trôi qua là",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 125879,
+        "endOffset": 126397,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-118",
+      "kind": "display_math",
+      "text": "$${10−1=9 năm}.$$",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 126397,
+        "endOffset": 126915,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-119",
+      "kind": "table",
+      "text": "| Nội dung cần đạt | Điểm |\n| --- | --- |\n| Xác định đúng mốc đạt 650 triệu là cuối năm thứ 10, suy ra 9 năm kể từ cuối năm thứ nhất. | 0,25 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 126915,
+        "endOffset": 128699,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-120",
+      "kind": "paragraph",
+      "text": "Hướng dẫn xử lý đáp án 9/10 năm – quan trọng:",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 128699,
+        "endOffset": 128870,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-121",
+      "kind": "list",
+      "text": "- 9 năm là câu trả lời đúng theo đúng mốc thời gian hỏi trong đề: từ cuối năm thứ nhất đến cuối năm thứ 10.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 128870,
+        "endOffset": 129764,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-122",
+      "kind": "list",
+      "text": "- 10 năm là số thứ tự năm đạt ngưỡng (hoặc khoảng thời gian tính từ khi bắt đầu quỹ), khác với số năm trôi qua từ mốc cuối năm thứ nhất.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 129764,
+        "endOffset": 130572,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-123",
+      "kind": "list",
+      "text": "- Vì đây là đề thử nghiệm và cách diễn đạt có thể dẫn tới hai lối hiểu, đề nghị cho trọn 0,25 điểm đối với bài trả lời “10 năm” nếu có lập luận đúng ${T}_{n}$ và xác định rõ “cuối năm thứ 10”. Không chấp nhận một con số 10 đoán mò không giải thích.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 130572,
+        "endOffset": 132369,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-124",
+      "kind": "list",
+      "text": "- Nếu câu này dùng trong đề kiểm tra chính thức, cần sửa câu dẫn để chỉ có một cách hiểu; ví dụ: “Từ thời điểm cuối năm thứ nhất, cần thêm ít nhất bao nhiêu năm nữa để quỹ đạt 650 triệu đồng?” (đáp án 9).",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 132369,
+        "endOffset": 133231,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-125",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133231,
+        "endOffset": 133257,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-126",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133257,
+        "endOffset": 133283,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "id": "seg-127",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkStart>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133283,
+        "endOffset": 133357,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "id": "seg-128",
+      "kind": "heading",
+      "text": "## F. BẢNG TỔNG HỢP NHANH CHO GIÁO VIÊN",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133357,
+        "endOffset": 133543,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-129",
+      "kind": "table",
+      "text": "| Phần | Nội dung đáp án / biểu điểm | Tổng |\n| --- | --- | --- |\n| I | 1C 2B 3B 4B 5A 6B 7B 8C 9B 10A 11A 12A (mỗi câu 0,25) | 3,00 |\n| II | C1 Đ–Đ–Đ–S; C2 Đ–Đ–Đ–S; C3 Đ–S–Đ–Đ; C4 Đ–Đ–Đ–S (theo số ý đúng) | 4,00 |\n| III | C1 = 2; C2 = 258; C3 = 6 (mỗi câu 0,50) | 1,50 |\n| IV | B1 [1;5] (0,25); B2 ba họ nghiệm (0,25); B3 a/b/c mỗi ý 0,25; B4 9 năm, xử lý linh hoạt 10 năm có lập luận (0,25) | 1,50 |\n| Cộng |  | 10,00 |",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133543,
+        "endOffset": 139978,
+        "line": 2,
+        "tag": "w:tbl"
+      }
+    },
+    {
+      "id": "seg-130",
+      "kind": "paragraph",
+      "text": "Ghi chú cuối: Phiên bản 4 dạng dùng để thử nghiệm cách tổ chức đề; thang điểm giữ đúng file Word gốc. Tất cả hình không gian/đồ thị của đề học sinh được giữ nguyên, tài liệu này không thay thế hay sửa nội dung đề.",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 139978,
+        "endOffset": 140604,
+        "line": 2,
+        "tag": "w:p"
+      }
+    },
+    {
+      "id": "seg-131",
+      "kind": "paragraph",
+      "text": "[UNSUPPORTED_WORD_CONTENT: <w:bookmarkEnd>]",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 140604,
+        "endOffset": 140630,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    }
+  ],
+  "uncertainties": [
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-3",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 3343,
+        "endOffset": 3411,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-10",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18157,
+        "endOffset": 18183,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-11",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 18183,
+        "endOffset": 18261,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-30",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45575,
+        "endOffset": 45601,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-31",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 45601,
+        "endOffset": 45678,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-34",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 54625,
+        "endOffset": 54688,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-41",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60474,
+        "endOffset": 60500,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-42",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 60500,
+        "endOffset": 60561,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-49",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 65877,
+        "endOffset": 65903,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-50",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 65903,
+        "endOffset": 65972,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-58",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71576,
+        "endOffset": 71602,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-59",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 71602,
+        "endOffset": 71675,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-65",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 76992,
+        "endOffset": 77018,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-66",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77018,
+        "endOffset": 77044,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-67",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 77044,
+        "endOffset": 77122,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-77",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88573,
+        "endOffset": 88599,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-78",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88599,
+        "endOffset": 88664,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-80",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 88846,
+        "endOffset": 88918,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-86",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93658,
+        "endOffset": 93684,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-87",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 93684,
+        "endOffset": 93761,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-96",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 100758,
+        "endOffset": 100784,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-97",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 100784,
+        "endOffset": 100862,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-111",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120643,
+        "endOffset": 120669,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-112",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 120669,
+        "endOffset": 120747,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-125",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133231,
+        "endOffset": 133257,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-126",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133257,
+        "endOffset": 133283,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-127",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 133283,
+        "endOffset": 133357,
+        "line": 2,
+        "tag": "w:bookmarkStart"
+      }
+    },
+    {
+      "kind": "unsupported_word_content",
+      "segmentId": "seg-131",
+      "message": "Word content preserved without interpreting fields, symbols, or tracked revision state",
+      "xmlLocation": {
+        "file": "word/document.xml",
+        "startOffset": 140604,
+        "endOffset": 140630,
+        "line": 2,
+        "tag": "w:bookmarkEnd"
+      }
+    }
+  ]
+}
