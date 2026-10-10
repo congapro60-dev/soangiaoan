@@ -1409,9 +1409,21 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   };
 
   // Handle import file change
+  const [typedBrief, setTypedBrief] = useState("");
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    await importSourceFile(file);
+  };
+
+  // Typed "what I want to teach + requirements" goes through the same source pipeline as an uploaded .txt file.
+  const importTypedBrief = async () => {
+    const text = typedBrief.trim();
+    if (!text) return;
+    await importSourceFile(new File([text], "noi-dung-bai-day.txt", { type: "text/plain" }), true);
+  };
+
+  const importSourceFile = async (file: File, typed = false) => {
     sourceOperationRef.current++;
     setGenerationConsentKey("");
     setGenerationJob(null);
@@ -1428,7 +1440,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     const isDocx = lowerName.endsWith(".docx");
     const isPdf = lowerName.endsWith(".pdf");
 
-    if (isDocx || isPdf) {
+    if (isDocx || isPdf || typed) {
       setIsImporting(true);
       try {
         if (file.size > 10 * 1024 * 1024) throw new Error("Tệp vượt quá giới hạn 10 MiB. Chọn tệp nhỏ hơn để nhập.");
@@ -1437,7 +1449,9 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         const safeName = file.name.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 32);
         const requestId = `req_${hashHex.slice(0, 32)}_${safeName}`.slice(0, 80);
 
-        const mime = isDocx
+        const mime = typed
+          ? "text/plain"
+          : isDocx
           ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           : "application/pdf";
 
@@ -2211,6 +2225,27 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 <div style={{ fontSize: "0.85rem", color: "var(--lesson-text-muted)" }}>
                   Hỗ trợ tài liệu nhị phân DOCX, PDF (tối đa 10 MiB) và Markdown (.md), văn bản thuần túy (.txt) &le; 128 KiB. Nguồn tài liệu được lưu trữ bền vững và phân tích an toàn.
                 </div>
+              </div>
+
+              <div className="lesson-typed-brief">
+                <label htmlFor="lesson-typed-brief"><strong>✍️ Hoặc gõ nội dung muốn dạy và yêu cầu</strong></label>
+                <textarea
+                  id="lesson-typed-brief"
+                  className="lesson-textarea"
+                  rows={6}
+                  maxLength={60000}
+                  value={typedBrief}
+                  onChange={(e) => setTypedBrief(e.target.value)}
+                  placeholder={[
+                    "Ví dụ: Toán 11 KNTT, Bài 6 Cấp số cộng, mục 1–2. Tiết hình thành kiến thức 45 phút, lớp 30 em, mỗi em một máy.",
+                    "Yêu cầu cần đạt: nhận biết cấp số cộng, tìm số hạng tổng quát u_n = u_1 + (n-1)d.",
+                    "Muốn có: 1 bài toán thực tế mở đầu, 3 mức câu hỏi, 1 phiếu kiểm tra cuối giờ.",
+                  ].join("\n")}
+                  disabled={isImporting || isLoadingSource}
+                />
+                <button type="button" className="lesson-button lesson-button-primary" disabled={!typedBrief.trim() || isImporting || isLoadingSource} onClick={() => void importTypedBrief()}>
+                  📥 Nhập nội dung đã gõ
+                </button>
               </div>
 
               {(isImporting || isLoadingSource) && (

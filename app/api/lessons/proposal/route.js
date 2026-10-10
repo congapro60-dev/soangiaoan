@@ -1,3 +1,4 @@
+import { loadStoredAI } from '../../../../lib/ai-settings.js';
 import { db, getEnv } from '../../../../lib/storage.js';
 import { resolveIdentity } from '../../../../lib/account-room-access.js';
 import { createLessonSourceService } from '../../../../lib/lesson/source-service.js';
@@ -44,6 +45,7 @@ export async function GET(request) {
   const { user } = resolveIdentity(request, getEnv());
   if (!user) return json({ error: 'AUTH_REQUIRED' }, 401);
   try {
+    await loadStoredAI(db);
     const query = new URL(request.url).searchParams;
     if (query.get('capabilities') === 'true') {
       const config = lessonAIConfig(getEnv());
@@ -66,6 +68,7 @@ export async function POST(request) {
   const { user } = resolveIdentity(request, getEnv());
   if (!user) return json({ error: 'AUTH_REQUIRED' }, 401);
   try {
+    await loadStoredAI(db);
     const body = await readBody(request);
     if (body?.action === 'start') {
       if (Object.keys(body).some(key => !['action', 'sourceId', 'requestId', 'settings'].includes(key)) || typeof body.sourceId !== 'string' || typeof body.requestId !== 'string') throw Error('INVALID_BODY');

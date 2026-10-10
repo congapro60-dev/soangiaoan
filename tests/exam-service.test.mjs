@@ -1020,6 +1020,8 @@ async function examRoutes(env) {
       }, { context, identifier: path });
     } else if (path === resolve('lib/exam/service.js')) {
       vmModule = new SyntheticModule(['createExamService'], function () { this.setExport('createExamService', () => env.service); }, { context, identifier: path });
+    } else if (path === resolve('lib/ai-settings.js')) {
+      vmModule = new SyntheticModule(['loadStoredAI'], function () { this.setExport('loadStoredAI', async () => undefined); }, { context, identifier: path });
     } else if (path === resolve('lib/exam/variants.js')) {
       vmModule = new SyntheticModule(['variantCapabilities', 'variantSource', 'proposeExamVariants'], function () {
         this.setExport('variantCapabilities', () => env.variantCapabilities || { enabled: false, reason: 'AI_PROVIDER_NOT_CONFIGURED' });

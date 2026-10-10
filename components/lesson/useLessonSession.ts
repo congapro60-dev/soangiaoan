@@ -80,6 +80,9 @@ export interface LessonProjection {
   wallet?: { earned: number; bonus: number };
   passport?: { name?: string; [key: string]: unknown };
   passportCard?: LessonPassportCard | null;
+  gateStars?: Array<{ activityId: string; stars: number }>;
+  levelInvite?: boolean;
+  branchSwitchesLeft?: number;
   [key: string]: unknown;
 }
 

@@ -3,12 +3,13 @@ import { resolveIdentity } from '../../../../lib/account-room-access.js';
 import { createLessonSourceService, MAX_SOURCE_BYTES } from '../../../../lib/lesson/source-service.js';
 import { importDocx } from '../../../../lib/lesson/import/docx.js';
 import { importPdf } from '../../../../lib/lesson/import/pdf.js';
+import { importText } from '../../../../lib/lesson/import/text.js';
 
 export const dynamic = 'force-dynamic';
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 const errors = { NOT_FOUND: 404, AUTH_REQUIRED: 401, BODY_TOO_LARGE: 413, INVALID_BODY: 400, INVALID_MIME: 415, INVALID_SIGNATURE: 415, INVALID_REQUEST_ID: 400, REQUEST_ID_CONFLICT: 409, SOURCE_QUOTA_EXCEEDED: 413 };
 const error = e => Object.hasOwn(errors, e?.message) ? json({ error: e.message }, errors[e.message]) : json({ error: 'SOURCE_UNAVAILABLE' }, 503);
-const service = () => createLessonSourceService({ db: db(), bucket: getEnv().LESSON_SOURCES, importDocx, importPdf });
+const service = () => createLessonSourceService({ db: db(), bucket: getEnv().LESSON_SOURCES, importDocx, importPdf, importText });
 const disposition = name => {
   const clean = String(name || 'source').replace(/[\u0000-\u001f\u007f"\\]/g, '_').replace(/[\r\n;]/g, '_').trim() || 'source';
   const fallback = clean.replace(/[^A-Za-z0-9._-]/g, '_').slice(-120) || 'source';

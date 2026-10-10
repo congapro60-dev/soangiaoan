@@ -7,7 +7,7 @@ import LessonThemedRoute, { getSafeWorldMetadata } from "../../components/lesson
 import { LessonMascotChip, LessonMascotPicker } from "../../components/lesson/LessonMascotPicker";
 import { LessonMapStage } from "../../components/lesson/LessonMapStage";
 import { LessonEncounterSheet } from "../../components/lesson/LessonEncounterSheet";
-import { useLessonSession, formatDuration, type LessonPassportCard } from "../../components/lesson/useLessonSession";
+import { useLessonSession, formatDuration, type LessonPassportCard, type LessonProjection } from "../../components/lesson/useLessonSession";
 import { useLessonMedia } from "../../components/lesson/useLessonMedia";
 import "../lessons/lesson.css";
 
@@ -1244,65 +1244,13 @@ export default function PlayPage() {
               <MathText text={view?.currentActivity?.studentAction} inline={false} />
             </div>
 
-            {/* Branch bar */}
-            <div className="play-branch-bar" style={{ marginTop: "1rem" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                <span>
-                  Lộ trình của em: <strong>{view?.branch === "support" ? "Hỗ trợ" : view?.branch === "extension" ? "Mở rộng" : "Nhiệm vụ chính"}</strong>
-                </span>
-                {extensionProj?.authored && !extensionProj.eligible && (
-                  <span style={{ fontSize: "0.75rem", color: "var(--lesson-warning)" }}>
-                    🔒 Nhánh Mở rộng: Cần recheck cá nhân đạt, không dùng gợi ý hay xem đáp án
-                  </span>
-                )}
-              </div>
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-                {view?.branch !== "support" && (
-                  <button
-                    className="lesson-button lesson-button-outline"
-                    style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
-                    onClick={() => dispatchCommand("SELECT_BRANCH", { branch: "support" })}
-                    disabled={isMainInputDisabled}
-                  >
-                    Chuyển sang Hỗ trợ
-                  </button>
-                )}
-                {view?.branch !== "core" && (
-                  <button
-                    className="lesson-button lesson-button-outline"
-                    style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
-                    onClick={() => dispatchCommand("SELECT_BRANCH", { branch: "core" })}
-                    disabled={isMainInputDisabled}
-                  >
-                    Về nhánh Cốt lõi
-                  </button>
-                )}
-                {extensionProj?.authored && view?.branch !== "extension" && (
-                  <button
-                    className="lesson-button lesson-button-outline lesson-branch-extension-btn"
-                    style={{
-                      padding: "0.2rem 0.5rem",
-                      fontSize: "0.75rem",
-                      opacity: extensionProj.eligible ? 1 : 0.6,
-                      cursor: extensionProj.eligible ? "pointer" : "not-allowed",
-                    }}
-                    onClick={() => {
-                      if (extensionProj?.eligible) {
-                        void dispatchCommand("SELECT_BRANCH", { branch: "extension" });
-                      }
-                    }}
-                    disabled={isMainInputDisabled || !extensionProj.eligible}
-                    title={
-                      !extensionProj.eligible
-                        ? "Cần recheck cá nhân đã được xác nhận cho từng mục tiêu; exit vẫn bắt buộc sau phó bản"
-                        : "Thử thách nhánh Mở rộng"
-                    }
-                  >
-                    {extensionProj.eligible ? "🚀 Nhánh Mở rộng" : "🔒 Nhánh Mở rộng (Khóa)"}
-                  </button>
-                )}
-              </div>
-            </div>
+            {/* Level bar ("Đổi mức", plan 19.4) */}
+            <LevelBar
+              view={view}
+              disabled={isMainInputDisabled}
+              extension={extensionProj}
+              onSelect={(branch) => dispatchCommand("SELECT_BRANCH", { branch })}
+            />
           </section>
 
           {/* Group Collaboration Bar (If Activity has Group Mode) */}
@@ -1485,5 +1433,66 @@ function PassportCard({ card, name }: { card: LessonPassportCard; name: string }
       <p className="passport-card-next"><strong>Việc nên làm tiếp:</strong> {card.nextStep}</p>
       <p className="lesson-muted passport-card-note">Thẻ này chỉ của riêng em, không so sánh với bạn. Em có thể chụp lại để giữ.</p>
     </section>
+  );
+}
+
+const LEVELS = [
+  { branch: "support", label: "Mức 1 · Nền tảng", hint: "có gợi ý từng bước" },
+  { branch: "core", label: "Mức 2 · Chuẩn", hint: "" },
+  { branch: "extension", label: "Mức 3 · Thử thách", hint: "" },
+] as const;
+
+const LEVEL_ERRORS: Record<string, string> = {
+  BRANCH_SWITCH_LIMIT: "Em đã đổi mức 2 lần ở chặng này rồi.",
+  BRANCH_DOWN_TOO_SOON: "Hãy thử làm câu ở mức này trước: đổi xuống được sau 1 lần sai hoặc sau 3 phút.",
+  BRANCH_LOCKED: "Mức này chưa mở ở chặng này.",
+};
+
+function LevelBar({ view, disabled, extension, onSelect }: {
+  view: LessonProjection | null;
+  disabled: boolean;
+  extension: { authored?: boolean; eligible?: boolean } | null | undefined;
+  onSelect: (branch: string) => Promise<{ ok?: boolean; code?: string } | undefined>;
+}) {
+  const [note, setNote] = useState("");
+  const current = view?.branch || "core";
+  const activities = (view?.package?.activities || []) as Array<{ id: string }>;
+  const stars = view?.gateStars || [];
+  const choose = async (branch: string) => {
+    setNote("");
+    const res = await onSelect(branch);
+    if (res && res.ok === false) setNote(LEVEL_ERRORS[res.code || ""] || "Chưa đổi được mức, thử lại.");
+  };
+  return (
+    <div className="play-level-bar">
+      <div className="play-level-row">
+        <span>Mức của em: <strong>{LEVELS.find((l) => l.branch === current)?.label || "Mức 2 · Chuẩn"}</strong></span>
+        {typeof view?.branchSwitchesLeft === "number" && <span className="lesson-muted">Còn {view.branchSwitchesLeft} lần đổi mức ở chặng này</span>}
+      </div>
+      <div className="play-level-row" role="group" aria-label="Đổi mức">
+        {LEVELS.filter((l) => l.branch !== current && (l.branch !== "extension" || extension?.authored)).map((l) => {
+          const locked = l.branch === "extension" && !extension?.eligible;
+          return (
+            <button key={l.branch} type="button" className={"lesson-button lesson-button-outline play-level-btn" + (l.branch === "extension" ? " lesson-branch-extension-btn" : "")}
+              disabled={disabled || locked || view?.branchSwitchesLeft === 0}
+              title={locked ? "Mở khi em tự làm đúng câu kiểm tra mức nền, không dùng gợi ý" : l.hint}
+              onClick={() => void choose(l.branch)}>
+              {locked ? "🔒 " : "Đổi sang "}{l.label}
+            </button>
+          );
+        })}
+      </div>
+      {view?.levelInvite && <p className="play-level-invite">🌟 Em làm đúng 2 câu liền không cần gợi ý. Thử Mức 2 nhé?</p>}
+      {note && <p className="play-level-note" role="status">{note}</p>}
+      {stars.length > 0 && (
+        <div className="play-gate-stars" aria-label="Sao từng cổng">
+          {stars.map((g, i) => (
+            <span key={g.activityId} className={"play-gate-star" + (activities[i]?.id === view?.timeline?.currentActivityId ? " is-here" : "")}>
+              Cổng {i + 1}: {"★".repeat(g.stars)}{"☆".repeat(Math.max(0, 4 - g.stars))}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import { db, getEnv, stmt } from '../../../lib/storage.js';
 import { resolveIdentity } from '../../../lib/account-room-access.js';
 import { createExamService } from '../../../lib/exam/service.js';
 import { json, errorResponse, readJson, imageResponse } from '../../../lib/exam/http.js';
+import { loadStoredAI } from '../../../lib/ai-settings.js';
 import { variantCapabilities, variantSource, proposeExamVariants } from '../../../lib/exam/variants.js';
 
 // Teacher side of the exam rooms: create, edit, run, mark and export. Everything needs a signed-in account and only
@@ -13,6 +14,7 @@ const service = () => createExamService({ db: db() });
 async function teacher(request) {
   const { user } = resolveIdentity(request, getEnv());
   if (!user) throw new Error('AUTH_REQUIRED');
+  await loadStoredAI(db);
   await stmt(
     'INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET email=excluded.email,display_name=excluded.display_name',
     user.userId, user.email, user.displayName || user.email, Date.now(),

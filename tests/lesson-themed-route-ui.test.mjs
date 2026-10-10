@@ -605,8 +605,8 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
 
   // 3. Extension button is rendered locked due to server projection
   assert.match(html, /lesson-branch-extension-btn/);
-  assert.match(html, /🔒 Nhánh Mở rộng \(Khóa\)/);
-  assert.match(html, /Cần recheck cá nhân đạt, không dùng gợi ý hay xem đáp án/);
+  assert.match(html, /🔒 Mức 3 · Thử thách/);
+  assert.match(html, /Mở khi em tự làm đúng câu kiểm tra mức nền, không dùng gợi ý/);
 
   // 4. The pupil's own dice position reaches the map stage; dice never touch the wallets above
   assert.match(html, /dice-position:4/);

@@ -2514,3 +2514,76 @@ test('advertisedHints projection for student view: preserves task scope and orde
     assert.equal(taskForm.advertisedHints[i].tier, `H${i + 1}`);
   }
 });
+
+test('Đổi mức: at most 2 self-chosen changes per activity, stepping down waits for a wrong answer or 3 minutes', () => {
+  let session = createLessonSession({ package: fixture, mode: 'preview', sessionId: 's-level', hostId: 'teacher-main', learners: [{ id: 'hs-1', name: 'Học sinh 1' }], now: 1000 });
+  session = reduceLessonSession(session, { eventId: 'e-start', type: 'START', round: 1, revision: 0, payload: {} }, { actor: { role: 'teacher', id: 'teacher-main' }, now: 1000 }).state;
+  while (session.timeline.currentActivityId !== 'act-prac') {
+    session = reduceLessonSession(session, { eventId: `next-${session.revision}`, type: 'NEXT', round: 1, revision: session.revision, payload: {} }, { actor: { role: 'teacher', id: 'teacher-main' }, now: session.clock.lastNow + 100 }).state;
+  }
+  const pupil = (state, branch, dt, id) => reduceLessonSession(state, { eventId: id, type: 'SELECT_BRANCH', round: 1, revision: state.revision, payload: { branch } }, { actor: { role: 'student', id: 'hs-1' }, now: state.clock.lastNow + dt });
+  const toSupport = pupil(session, 'support', 100, 'l1');
+  assert.equal(toSupport.result.ok, true, 'leaving the assigned level is free');
+  const up = pupil(toSupport.state, 'core', 100, 'l2');
+  assert.equal(up.result.ok, true);
+  const tooSoon = pupil(up.state, 'support', 100, 'l3');
+  assert.equal(tooSoon.result.code, 'BRANCH_SWITCH_LIMIT', 'two changes used');
+  const after = pupil(toSupport.state, 'core', 100, 'l2b');
+  const down = pupil(after.state, 'support', 100, 'l3b');
+  assert.equal(down.result.code, 'BRANCH_SWITCH_LIMIT');
+  assert.equal(serializeForStudent(after.state, 'hs-1').branchSwitchesLeft, 0);
+  const same = pupil(session, 'core', 100, 'l0');
+  assert.equal(same.result.ok, false);
+});
+
+test('stars per gate: best own correct answer by level, +1 without hints; invitation after 2 clean answers in support', () => {
+  let session = createLessonSession({ package: fixture, mode: 'preview', sessionId: 's-stars', hostId: 'teacher-main', learners: [{ id: 'hs-1', name: 'Học sinh 1' }], now: 1000 });
+  const activity = session.package.activities[0];
+  const task = session.package.tasks.find((t) => activity.taskIds?.includes(t.id));
+  session.timeline.currentActivityId = activity.id;
+  session.branches[activity.id] = { 'hs-1': 'support' };
+  session.submissions = {
+    a: { submissionId: 'a', learnerId: 'hs-1', activityId: activity.id, taskId: task.id, at: 1, ok: true, assessmentStatus: 'assessed' },
+    b: { submissionId: 'b', learnerId: 'hs-1', activityId: activity.id, taskId: task.id, at: 2, ok: true, assessmentStatus: 'assessed' },
+  };
+  const view = serializeForStudent(session, 'hs-1');
+  const level = { support: 1, extension: 3 }[task.branch] || 2;
+  assert.equal(view.gateStars.find((g) => g.activityId === activity.id).stars, level + 1);
+  assert.equal(view.levelInvite, true);
+  session.passports['hs-1'].supportHistory = [{ taskId: task.id, tier: 'H1', at: 1 }];
+  const helped = serializeForStudent(session, 'hs-1');
+  assert.equal(helped.gateStars.find((g) => g.activityId === activity.id).stars, level);
+  assert.equal(helped.levelInvite, false);
+});
+
+test('legacy branch switches preserve privacy and downgrade waits through teacher pause', () => {
+  let state = createLessonSession({ package: fixture, mode: 'preview', sessionId: 's-pause-level', hostId: 'qa-host', learners: [{ id: 'a', name: 'Synthetic A' }, { id: 'b', name: 'Synthetic B' }], now: 1000 });
+  const teacher = { role: 'teacher', id: 'qa-host' }, pupil = { role: 'student', id: 'a' };
+  const command = (type, actor, payload = {}, dt = 100) => {
+    const next = reduceLessonSession(state, { eventId: 'qa-' + state.revision + '-' + type, type, round: state.round, revision: state.revision, payload }, { actor, now: state.clock.lastNow + dt });
+    if (next.result.ok) state = next.state;
+    return next.result;
+  };
+  assert.equal(command('START', teacher).ok, true);
+  while (state.timeline.currentActivityId !== 'act-prac') assert.equal(command('NEXT', teacher).ok, true);
+  const activityId = state.timeline.currentActivityId;
+  state.branches[activityId] = { a: 'support', b: 'core' };
+  const task = fixture.tasks.find(t => fixture.activities.find(a => a.id === activityId).taskIds.includes(t.id));
+  state.submissions = { b: { submissionId: 'b', learnerId: 'b', activityId, taskId: task.id, at: 100, ok: true, assessmentStatus: 'assessed' } };
+  state.branchSwitches = { [activityId]: { b: 2 } };
+  const passports = JSON.stringify(state.passports);
+  const view = serializeForStudent(state, 'a');
+  assert.equal(view.branchSwitchesLeft, 2);
+  assert.equal(view.levelInvite, false);
+  assert.ok(view.gateStars.every(g => g.stars === 0));
+  assert.equal(JSON.stringify(state.passports), passports);
+  delete state.branchSwitches;
+  assert.equal(command('SELECT_BRANCH', pupil, { branch: 'core' }).ok, true);
+  assert.equal(command('SELECT_BRANCH', pupil, { branch: 'support' }).code, 'BRANCH_DOWN_TOO_SOON');
+  assert.equal(command('PAUSE', teacher).ok, true);
+  assert.equal(command('RESUME', teacher, {}, 180000).ok, true);
+  assert.equal(command('SELECT_BRANCH', pupil, { branch: 'support' }).code, 'BRANCH_DOWN_TOO_SOON');
+  const active = state.clock.lastNow - state.clock.activityStartedAt - state.clock.activityPausedMs;
+  assert.equal(command('SELECT_BRANCH', pupil, { branch: 'support' }, 180000 - active).ok, true, 'exactly three active minutes opens downgrade');
+  assert.equal(serializeForStudent(state, 'a').branchSwitchesLeft, 0);
+});

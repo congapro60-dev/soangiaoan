@@ -130,7 +130,7 @@ test('3D text: names and gate plaques are real HTML text over the canvas, not pi
   assert.match(scene, /function makePill\(/);
   assert.doesNotMatch(scene, /spriteTex|entry\.body|entry\.ghost/);
   // the pieces are placed in every drawn frame, after the camera and billboards are final
-  assert.ok(scene.indexOf('scaleBillboards();\n      placeLabels(now);') > 0);
+  assert.match(scene, /scaleBillboards\(\);\r?\n      placeLabels\(now\);/);
 });
 
 test('3D world: the landscape is open (no mountain wall) and goes on far beyond the map, but the pupil can only pan inside the play area', async () => {

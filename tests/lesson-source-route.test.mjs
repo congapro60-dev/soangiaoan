@@ -6,6 +6,7 @@ import {resolve,dirname} from 'node:path';
 import {createLessonSourceService} from '../lib/lesson/source-service.js';
 import {importDocx} from '../lib/lesson/import/docx.js';
 import {importPdf} from '../lib/lesson/import/pdf.js';
+import {importText} from '../lib/lesson/import/text.js';
 import {zipSync,strToU8} from 'fflate';
 
 const database=new DatabaseSync(':memory:');
@@ -20,7 +21,7 @@ const context=createContext({Date,crypto:globalThis.crypto,Request,Response,URL,
 const env={LESSON_SOURCES:bucket};const cache=new Map();
 // Supply D1's prepare/bind interface, not an empty database object.
 const d1={prepare:sql=>({bind:(...args)=>stmt(sql,...args)})};
-async function moduleAt(path){if(cache.has(path))return cache.get(path);let mod;const normalized=path.replaceAll('\\','/');if(resolve(path)===resolve('lib/storage.js'))mod=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',stmt);this.setExport('db',()=>({}));this.setExport('getEnv',()=>env);},{context,identifier:path});else if(resolve(path)===resolve('lib/account-room-access.js'))mod=new SyntheticModule(['resolveIdentity'],function(){this.setExport('resolveIdentity',(req)=>{const id=req.headers.get('x-test-user');return {user:id?{userId:id,email:id+'@test'}:null,isRootUser:false};});},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/docx.js'))mod=new SyntheticModule(['importDocx'],function(){this.setExport('importDocx',({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'docx',bytes:bytes.byteLength,originalName,segments:[{text:'DOCX'}],uncertainties:[]}));},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/pdf.js'))mod=new SyntheticModule(['importPdf'],function(){this.setExport('importPdf',async({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'pdf',bytes:bytes.byteLength,originalName,segments:[],uncertainties:[{code:'OCR_REQUIRED',pageNumber:1}]}));},{context,identifier:path});else mod=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,mod);return mod;}
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let mod;const normalized=path.replaceAll('\\','/');if(resolve(path)===resolve('lib/storage.js'))mod=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',stmt);this.setExport('db',()=>({}));this.setExport('getEnv',()=>env);},{context,identifier:path});else if(resolve(path)===resolve('lib/account-room-access.js'))mod=new SyntheticModule(['resolveIdentity'],function(){this.setExport('resolveIdentity',(req)=>{const id=req.headers.get('x-test-user');return {user:id?{userId:id,email:id+'@test'}:null,isRootUser:false};});},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/text.js'))mod=new SyntheticModule(['importText'],function(){this.setExport('importText',importText);},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/docx.js'))mod=new SyntheticModule(['importDocx'],function(){this.setExport('importDocx',({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'docx',bytes:bytes.byteLength,originalName,segments:[{text:'DOCX'}],uncertainties:[]}));},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/pdf.js'))mod=new SyntheticModule(['importPdf'],function(){this.setExport('importPdf',async({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'pdf',bytes:bytes.byteLength,originalName,segments:[],uncertainties:[{code:'OCR_REQUIRED',pageNumber:1}]}));},{context,identifier:path});else mod=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,mod);return mod;}
 const storagePath=resolve('lib/storage.js');
 cache.set(storagePath,new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',stmt);this.setExport('db',()=>d1);this.setExport('getEnv',()=>env);},{context,identifier:storagePath}));
 const entry=await moduleAt(resolve('app/api/lessons/sources/route.js'));await entry.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await entry.evaluate();const route=entry.namespace;
@@ -69,6 +70,21 @@ const doc=await api.upload(upload);assert.equal(doc.status,'ready');assert.equal
 assert.equal(doc.extraction.text,parsed.text);
 assert.deepEqual(doc.extraction.segments[0].xmlLocation,parsed.segments[0].xmlLocation);
 assert.deepEqual(await api.get('teacher-a',doc.id),doc);
+// Typed lesson briefs (text/plain) go through the same storage and become a ready source only when importText is wired.
+const brief=new TextEncoder().encode('Toán 11 KNTT, Bài 6 Cấp số cộng, mục 1.\nYêu cầu cần đạt: nhận biết cấp số cộng.');
+await assert.rejects(api.upload({ownerAccountId:'teacher-a',requestId:'typed-off',originalName:'noi-dung.txt',mime:'text/plain',bytes:brief}),/INVALID_MIME/);
+const apiText=createLessonSourceService({db:d1,bucket,importDocx,importPdf,importText});
+const typed=await apiText.upload({ownerAccountId:'teacher-a',requestId:'typed-brief',originalName:'noi-dung.txt',mime:'text/plain',bytes:brief});
+assert.equal(typed.status,'ready');assert.match(typed.extraction.segments.map(s=>s.text).join(' '),/Cấp số cộng/);
+for (const [variant, text] of [['nfd', 'Toán 11: nhận biết dãy số.'.normalize('NFD')], ['bom', '\ufeffToán 11: nhận biết dãy số.']]) {
+  const bytes = new TextEncoder().encode(text);
+  const source = await apiText.upload({ownerAccountId:'teacher-a',requestId:'typed-'+variant,originalName:'x.txt',mime:'text/plain',bytes});
+  assert.equal(source.status, 'ready');
+  assert.equal(source.extraction.sha256, source.sha256, variant + ' must preserve the source hash used by proposal validation');
+  assert.equal(source.extraction.bytes, bytes.length);
+  assert.deepEqual((await apiText.downloadOriginal('teacher-a', source.id)).bytes, bytes);
+}
+await assert.rejects(apiText.upload({ownerAccountId:'teacher-a',requestId:'typed-bad',originalName:'x.txt',mime:'text/plain',bytes:new Uint8Array([0xff,0xfe,0x00])}),/INVALID_SIGNATURE/);
 const originalRequest = id => new Request(`https://x.test/api/lessons/sources?id=${id}&download=original`, {headers: {'x-test-user': 'teacher-a'}});
 const download = await route.GET(originalRequest(doc.id));
 assert.equal(download.status, 200);
