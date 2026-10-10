@@ -105,6 +105,12 @@ describe('student online projection', () => {
             questionResults: [{ questionNumber: 'Câu 1', status: 'correct', score: 8, maxScore: 10, studentAnswer: 'A', expectedAnswer: 'B', explanation: 'Nội bộ', errorType: '', correction: '', nextPractice: '', needsTeacherReview: false }],
           },
         },
+        provisional: {
+          studentId: 'student-1', classId: 'class-1', assignmentId: 'assignment-2', examId: 'exam-2',
+          status: 'graded', startedAt: '2026-08-27T08:00:00.000Z', submittedAt: '2026-08-27T08:20:00.000Z',
+          totalScore: 6, maxScore: 10, gradeState: 'provisional', gradingSource: 'ai',
+          grade: { score: 6, maxScore: 10, feedback: 'AI tạm', strengths: [], weaknesses: [], teacherApproved: false, gradedAt: '2026-08-27T08:21:00.000Z', questionResults: [] },
+        },
         outsider: { studentId: 'student-2', classId: 'class-1', assignmentId: 'assignment-1', status: 'graded', startedAt: '2026-08-28T08:00:00.000Z' },
       },
     };
@@ -115,8 +121,12 @@ describe('student online projection', () => {
     const result = await callOnline({ action: 'studentOnlineSubmissions' });
     expect(result.statusCode).toBe(200);
     const submissions = result.payload?.submissions as Doc[];
-    expect(submissions).toHaveLength(1);
+    expect(submissions).toHaveLength(2);
     expect(submissions[0]).toEqual(expect.objectContaining({ id: 'own', totalScore: 8, gradeState: 'official' }));
+    // Điểm AI tạm (chưa duyệt): điểm và kết quả không rời máy chủ, em chỉ biết bài đang chờ duyệt.
+    expect(submissions[1]).toEqual(expect.objectContaining({ id: 'provisional', gradeState: 'provisional', status: 'graded' }));
+    expect(submissions[1]).not.toHaveProperty('totalScore');
+    expect(submissions[1]).not.toHaveProperty('grade');
     expect(submissions[0].answers).toEqual([]);
     expect(submissions[0].grade).toEqual(expect.objectContaining({ feedback: 'Em đã tiến bộ.' }));
     expect(submissions[0].grade).not.toHaveProperty('noteForTeacher');
@@ -150,6 +160,21 @@ describe('student homework projection (projectStudentSubmission)', () => {
           id: 'sub-2', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
           fileUrls: [], textContent: 'Bài làm 2', note: '', status: 'error',
           errorMessage: 'AI provider down',
+          createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
+        },
+        'sub-photo': {
+          id: 'sub-photo', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
+          fileUrls: [], note: '', status: 'error', errorReason: 'photo', errorMessage: 'Không đọc được bài làm (lỗi thô)',
+          createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
+        },
+        'sub-photo-cu': {
+          id: 'sub-photo-cu', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
+          fileUrls: [], note: '', status: 'error', errorMessage: 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai.',
+          createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
+        },
+        'sub-code': {
+          id: 'sub-code', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
+          fileUrls: [], note: '', status: 'error', errorReason: 'exam_code', examCodeAsk: ['101', '102'], errorMessage: 'Máy chưa đọc được mã đề (cho GV)',
           createdAt: '2026-08-28T08:00:00.000Z', updatedAt: '2026-08-28T08:21:00.000Z',
         },
         'sub-self': {
@@ -195,8 +220,22 @@ describe('student homework projection (projectStudentSubmission)', () => {
     const errorNoGrade = submissions.find(s => s.id === 'sub-2');
     expect(errorNoGrade).toBeDefined();
     expect(errorNoGrade!.status).toBe('error');
-    expect(errorNoGrade!.errorMessage).toBe('Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.');
+    expect(errorNoGrade!.errorMessage).toBe('Bài đã được nhận nhưng máy chưa đọc xong. Em không cần nộp lại; thầy cô sẽ xử lý giúp em.');
+    expect(errorNoGrade!.errorReason).toBe('system');
     expect(errorNoGrade).not.toHaveProperty('grade');
+  });
+
+  it('lỗi ảnh chưa rõ → bảo em chụp lại; chưa đọc được mã đề → gửi các mã để em chọn; không lộ câu gốc cho GV', async () => {
+    const result = await callClassroom({ action: 'studentSubmissions' });
+    const submissions = result.payload?.submissions as Doc[];
+    const photo = submissions.find(s => s.id === 'sub-photo')!;
+    expect(photo).toMatchObject({ errorReason: 'photo' });
+    expect(String(photo.errorMessage)).toMatch(/chụp lại/);
+    expect(photo).not.toHaveProperty('examCodeAsk');
+    expect(submissions.find(s => s.id === 'sub-photo-cu')).toMatchObject({ errorReason: 'photo' });
+    const code = submissions.find(s => s.id === 'sub-code')!;
+    expect(code).toMatchObject({ errorReason: 'exam_code', examCodeAsk: ['101', '102'] });
+    expect(String(code.errorMessage)).toMatch(/Em chọn đúng mã đề/);
   });
 
   it('học sinh KHÔNG thấy evidenceSyncError (teacher/internal-only)', async () => {

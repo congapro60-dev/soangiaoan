@@ -172,6 +172,8 @@ const claimSubmissionForGrading = async (
       status: 'grading',
       gradingRunId,
       errorMessage: '',
+      errorReason: '',
+      examCodeAsk: [],
       aiBlocked: false,
       updatedAt: claimedAt,
     });
@@ -646,9 +648,14 @@ const gradeOneSubmission = async (
     const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
     const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
     const newLastGradingErrorRaw = rawMessage;
+    // Lí do lỗi cho cổng học sinh (không lộ lỗi thô): ảnh chưa rõ → em chụp lại; chưa đọc được mã đề → em chọn mã ghi trên đề.
+    const errorReason = safeMessage === UNREADABLE_EXAM_CODE_MESSAGE ? 'exam_code'
+      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE ? 'photo' : 'system';
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
+      ...(hadPreviousGrade ? {} : { errorReason }),
+      ...(!hadPreviousGrade && errorReason === 'exam_code' ? { examCodeAsk: ctx.examVariants.map(variant => variant.code) } : {}),
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
@@ -860,6 +867,36 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     recovered: recovered.size,
     remaining: Math.max(0, hopLe.length - graded - failed) + recovered.size,
   });
+};
+
+/**
+ * Máy chưa đọc được mã đề trên bài: em chọn mã ghi trên tờ đề của em (chỉ trong các mã của bài), rồi máy đọc tiếp ngay.
+ * Mã em chọn được ghi là "HS chọn" để thầy cô soát; thầy cô vẫn đổi được như cũ.
+ */
+const handleAnswerExamCode = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+  const submissionId = typeof body.submissionId === 'string' ? body.submissionId : '';
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (!submissionId || !examCode) return res.status(422).json({ error: 'Thiếu bài nộp hoặc mã đề.' });
+  const ref = db.collection('submissions').doc(submissionId);
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
+  if (!link) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới chọn được mã đề.' });
+  const verdict = await db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists) return 'missing';
+    const current = snap.data() as FirebaseFirestore.DocumentData;
+    if (link.studentId !== current.studentId || link.classId !== current.classId || link.teacherId !== current.teacherId) return 'forbidden';
+    const options = Array.isArray(current.examCodeAsk) ? current.examCodeAsk.map(String) : [];
+    if (current.status !== 'error' || current.grade || !options.includes(examCode)) return 'stale';
+    transaction.update(ref, { examCode, examCodeSource: 'student', examCodeAsk: [], errorReason: '', updatedAt: new Date().toISOString() });
+    return 'ok';
+  });
+  if (verdict === 'missing') return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
+  if (verdict === 'forbidden') return res.status(403).json({ error: 'Bài nộp không thuộc tài khoản học sinh này.' });
+  if (verdict === 'stale') return res.status(409).json({ error: 'Bài này không còn chờ em chọn mã đề. Em tải lại trang nhé.' });
+  return handleGradeOne(db, body, res);
 };
 
 const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -2007,6 +2044,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
+    if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);
     if (await handleClarifyAction(db, body, res, {
       regradeQuestion: (submission, question) => regradeClarifiedQuestion(db, submission, question),
       runInBackground: chayNgam,

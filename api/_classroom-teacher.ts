@@ -189,7 +189,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     ...(errorMessage ? { errorMessage } : {}),
     ...(typeof data.evidenceSyncError === 'string' && data.evidenceSyncError ? { evidenceSyncError: data.evidenceSyncError } : {}),
     ...(typeof data.examCode === 'string' && data.examCode ? { examCode: data.examCode } : {}),
-    ...(data.examCodeSource === 'ai' || data.examCodeSource === 'teacher' ? { examCodeSource: data.examCodeSource } : {}),
+    ...(data.examCodeSource === 'ai' || data.examCodeSource === 'teacher' || data.examCodeSource === 'student' ? { examCodeSource: data.examCodeSource } : {}),
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;

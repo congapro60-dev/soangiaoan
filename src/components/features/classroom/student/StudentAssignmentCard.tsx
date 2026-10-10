@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw, BookOpen } from 'lucide-react';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import { QuestionResultsList } from '../QuestionResultsList';
@@ -13,6 +14,8 @@ interface Props {
   uploading: boolean;
   onUpload: (assignmentId: string, supplementOf?: string) => void;
   onOpen: (assignment: AssignmentDoc, submission?: SubmissionDoc) => void;
+  /** Em chọn mã đề khi máy chưa đọc được; ném lỗi (câu tiếng Việt) nếu chưa gửi được. */
+  onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
 }
 
 const statusMeta: Record<StudentAssignmentState['status'], { label: string; className: string; icon: typeof Clock3 }> = {
@@ -35,13 +38,28 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
   return { label, className: 'text-slate-500' };
 };
 
-const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
-
-export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen }: Props) => {
+export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen, onAnswerExamCode }: Props) => {
+  const [dangGuiMa, setDangGuiMa] = useState('');
+  const [loiMa, setLoiMa] = useState('');
+  const examCodes = submission?.status === 'error' ? submission.examCodeAsk ?? [] : [];
+  const chonMa = async (code: string) => {
+    if (!submission || dangGuiMa) return;
+    setDangGuiMa(code);
+    setLoiMa('');
+    try {
+      await onAnswerExamCode(submission.id, code);
+    } catch (error) {
+      setLoiMa(error instanceof Error ? error.message : 'Chưa gửi được mã đề. Em thử lại nhé.');
+    } finally {
+      setDangGuiMa('');
+    }
+  };
   const awaitingClarification = Boolean(submission?.grade?.awaitingClarification);
   const meta = awaitingClarification
     ? { label: 'Cần em xác nhận', className: 'bg-amber-100 text-amber-800', icon: AlertTriangle }
-    : statusMeta[state.status];
+    : submission?.status === 'error' && submission.errorReason === 'exam_code'
+      ? { label: 'Cần em chọn mã đề', className: 'bg-amber-100 text-amber-800', icon: AlertTriangle }
+      : statusMeta[state.status];
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
   const isOnlineExam = assignment.type === 'exam';
@@ -104,11 +122,32 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
               </div>
             </div>
           )}
-          {state.status === 'retry' && (
-            <p className="mt-3 flex items-start gap-2 text-sm font-bold text-red-700">
+          {submission?.status === 'error' && state.detail && (
+            <p className={`mt-3 flex items-start gap-2 text-sm font-bold leading-6 ${state.status === 'retry' ? 'text-red-700' : 'text-amber-800'}`}>
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              {STUDENT_GRADING_ERROR_COPY}
+              <span>{state.detail}</span>
             </p>
+          )}
+          {examCodes.length > 0 && (
+            <div className="mt-2 rounded-2xl bg-amber-50 px-4 py-3">
+              <p className="text-xs font-black text-amber-900">Mã đề trên tờ đề của em là:</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {examCodes.map(code => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => void chonMa(code)}
+                    disabled={Boolean(dangGuiMa)}
+                    className="inline-flex min-h-11 min-w-16 items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-white px-4 text-sm font-black text-amber-900 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {dangGuiMa === code && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {code}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-5 text-amber-800">Chọn đúng mã in trên đề. Thầy cô sẽ soát lại mã em chọn.</p>
+              {loiMa && <p className="mt-1 text-xs font-bold text-red-700">{loiMa}</p>}
+            </div>
           )}
           {state.status === 'pending-approval' && (
             <p className="mt-3 flex items-start gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-sm font-bold leading-6 text-sky-900">
@@ -155,7 +194,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
               disabled={uploading}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              <Camera className="h-4 w-4" /> {canSupplement ? 'Bổ sung ảnh và chấm lại' : 'Bổ sung ảnh'}
+              <Camera className="h-4 w-4" /> Bổ sung ảnh
             </button>
           )}
         </div>

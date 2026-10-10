@@ -24,6 +24,7 @@ import { buildStudentFeed } from '../lib/classroom/studentNotifications';
 import type { StudentNotificationDoc } from '../lib/classroom/types';
 import { appendPendingFiles, removePendingFile } from '../lib/classroom/uploadQueue';
 import {
+  answerExamCode,
   fetchPractice,
   gradeOneSubmission,
   submitPractice,
@@ -596,6 +597,16 @@ export const StudentPortalPage = () => {
     void nopBai(pendingFiles);
   };
 
+  // Em chọn mã đề khi máy chưa đọc được: máy đọc tiếp ngay, điểm vẫn chờ thầy cô duyệt.
+  const chonMaDe = async (submissionId: string, examCode: string) => {
+    const ketQua = await answerExamCode(submissionId, examCode);
+    if (ketQua.pending) setChoBaiId(submissionId);
+    setThanhCong(ketQua.pending
+      ? DANG_CHAM_NGAM
+      : `Đã nhận mã đề ${examCode}. Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ở đầu trang; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
+    await taiDuLieu();
+  };
+
   const moChiTiet = (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => {
     if (assignment?.type === 'exam') {
       navigate(`/lop/${encodeURIComponent(joinCode)}/exam/${encodeURIComponent(assignment.id)}`);
@@ -714,6 +725,7 @@ export const StudentPortalPage = () => {
       onRemovePendingFile={xoaAnhCho}
       onSubmitPendingFiles={nopAnhCho}
       onOpenAssignment={moChiTiet}
+      onAnswerExamCode={chonMaDe}
       onSignOut={() => void dangXuat()}
       onReload={() => void taiDuLieu()}
       onLoadPractice={() => void layBaiLuyen()}

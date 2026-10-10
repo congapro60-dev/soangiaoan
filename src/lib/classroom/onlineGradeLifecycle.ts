@@ -389,6 +389,25 @@ export const removeOnlineGrade = (source: OnlineGradeSource, questions: ExamQues
 };
 
 /**
+ * Kết quả bài online đã chính thức (thầy cô duyệt). Bài cũ chưa có vòng đời (không có gradeState) mà đã 'graded' coi là chính thức,
+ * khớp `activityModel`.
+ */
+export const isOnlineAttemptOfficial = (attempt: Pick<ExamSubmission, 'status' | 'gradeState' | 'grade'>): boolean =>
+  attempt.gradeState === 'official'
+  || attempt.grade?.teacherApproved === true
+  || (!attempt.gradeState && attempt.status === 'graded');
+
+/**
+ * Bản gửi học sinh: chưa chính thức (điểm AI tạm, chờ thầy cô duyệt) thì điểm và kết quả từng câu KHÔNG rời máy chủ —
+ * em chỉ biết bài đang chờ duyệt, giống bài nộp ảnh.
+ */
+export const hideUnofficialOnlineScore = (attempt: ExamSubmission): ExamSubmission => {
+  if (isOnlineAttemptOfficial(attempt)) return attempt;
+  const { totalScore: _totalScore, grade: _grade, ...rest } = attempt;
+  return rest;
+};
+
+/**
  * Projection kết quả gửi cho học sinh. Đáp án/mốc chấm và ghi chú nội bộ chỉ
  * xuất hiện sau khi đề cho phép xem lại; không dựa vào việc ẩn ở UI.
  */

@@ -60,6 +60,7 @@ interface Props {
   onRemovePendingFile: (index: number) => void;
   onSubmitPendingFiles: () => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
+  onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
   /** Dòng thời gian thông báo đã gộp sẵn ở trang cha. */
   notifications: readonly StudentFeedItem[];
   notificationsLastSeenAt: string | null;
@@ -145,6 +146,7 @@ export const StudentPortalDashboard = ({
   onRemovePendingFile,
   onSubmitPendingFiles,
   onOpenAssignment,
+  onAnswerExamCode,
   notifications,
   notificationsLastSeenAt,
   onNotificationsOpened,
@@ -497,6 +499,7 @@ export const StudentPortalDashboard = ({
                   uploading={uploadingId !== ''}
                   onUpload={onChooseImage}
                   onOpen={onOpenAssignment}
+                  onAnswerExamCode={onAnswerExamCode}
                 />
               ))}
             </div>

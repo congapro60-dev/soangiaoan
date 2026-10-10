@@ -202,6 +202,32 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
       errorMessage: 'Máy chưa đọc được mã đề trên ảnh bài làm. Thầy cô chọn mã đề cho bài này rồi chấm lại.',
     });
     expect(harness.state.submissions['sub-1'].grade).toBeUndefined();
+    // Lượt đọc đầu: hỏi lại em mã đề (chỉ trong các mã của bài).
+    expect(harness.state.submissions['sub-1']).toMatchObject({ errorReason: 'exam_code', examCodeAsk: ['1201', '1202'] });
+  });
+
+  it('em chọn mã đề máy chưa đọc được → máy đọc tiếp ngay theo mã đó, ghi "HS chọn"; mã lạ / bài người khác bị chặn', async () => {
+    const harness = seed({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['1201', '1202'] });
+    harness.state.studentLinks = {
+      'hs-uid': { studentId: 'hs-1', classId: 'lop-12', teacherId: 'gv-1' },
+      'hs-khac': { studentId: 'hs-2', classId: 'lop-12', teacherId: 'gv-1' },
+    };
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
+
+    h.uid = 'hs-khac';
+    expect((await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '1202' })).statusCode).toBe(403);
+    h.uid = 'hs-uid';
+    expect((await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '9999' })).statusCode).toBe(409);
+    expect(prompts).toHaveLength(0);
+
+    const result = await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '1202' });
+    expect([200, 202]).toContain(result.statusCode);
+    await vi.waitFor(() => expect(harness.state.submissions['sub-1'].status).toBe('graded'));
+    expect(prompts[0]).toContain('MÃ ĐỀ CỦA BÀI NÀY: 1202');
+    expect(harness.state.submissions['sub-1']).toMatchObject({ examCode: '1202', examCodeSource: 'student', examCodeAsk: [] });
+    // Đã có kết quả → không chọn lại được nữa.
+    expect((await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '1201' })).statusCode).toBe(409);
   });
 
   it('thầy cô đã chọn mã → không đọc lại trên ảnh, chấm theo mã đã chọn', async () => {

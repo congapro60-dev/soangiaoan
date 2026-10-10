@@ -473,3 +473,5 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - QA thật trên production (mạng đã mở `vercel.app`): Chromium tự đi proxy hay lỗi khi tải song song → cho Playwright `route` MỌI yêu cầu qua `fetch` của Node (`NODE_USE_ENV_PROXY=1`).
 - Luật mới "ẩn điểm khi chưa duyệt" phải xét cả các luồng KHÔNG có GV duyệt (bài "Chấm thử" tự nộp, không có `assignmentId`) — không thì luồng đó mất điểm hẳn.
 - AI thật đánh "không đọc được" cả những câu không có trên ảnh. Hỏi lại câu em chưa viết gì = cho em làm bù sau khi nộp. Chỉ hỏi lại khi máy có đọc ra chữ (`studentAnswer` khác rỗng).
+- Một câu báo lỗi dùng chung cho mọi loại lỗi ("em chưa cần nộp lại") mà nút lại ghi "Nộp lại" là tự mâu thuẫn. Máy chủ phải ghi LÍ DO lỗi (`errorReason`: ảnh / mã đề / hệ thống), cổng HS dựa vào đó mà nói đúng việc em cần làm. Dữ liệu cũ chưa có lí do thì nhận theo câu báo lỗi cũ.
+- "Chưa duyệt thì HS không thấy điểm" phải áp cho MỌI loại bài (ảnh, online), và phải áp ở projection máy chủ, không chỉ ẩn trên giao diện.

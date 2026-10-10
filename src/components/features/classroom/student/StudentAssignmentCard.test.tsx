@@ -12,7 +12,7 @@ const submission = (grade: Partial<NonNullable<SubmissionDoc['grade']>>): Submis
 } as SubmissionDoc);
 
 const render = (sub: SubmissionDoc) => renderToStaticMarkup(
-  <StudentAssignmentCard assignment={assignment} submission={sub} state={getStudentAssignmentState(assignment, sub)} uploading={false} onUpload={() => undefined} onOpen={() => undefined} />,
+  <StudentAssignmentCard assignment={assignment} submission={sub} state={getStudentAssignmentState(assignment, sub)} uploading={false} onUpload={() => undefined} onOpen={() => undefined} onAnswerExamCode={async () => undefined} />,
 );
 
 describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => {
@@ -29,5 +29,29 @@ describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => 
     expect(html).toContain('8/10 điểm');
     expect(html).toContain('Em làm tốt');
     expect(html).not.toContain('Chờ thầy cô duyệt');
+  });
+
+  it('máy chưa đọc được mã đề: hiện nút chọn từng mã, không bảo em nộp lại', () => {
+    const html = render({ ...submission({}), status: 'error', grade: undefined, errorReason: 'exam_code', examCodeAsk: ['101', '102'], errorMessage: 'Em chọn đúng mã đề ghi trên tờ đề để máy đọc tiếp.' });
+    expect(html).toContain('Cần em chọn mã đề');
+    expect(html).toContain('Mã đề trên tờ đề của em là');
+    expect(html).toMatch(/>101<\/button>/);
+    expect(html).toMatch(/>102<\/button>/);
+    expect(html).not.toContain('Nộp lại');
+  });
+
+  it('lỗi hệ thống: báo em không cần nộp lại, nút không ghi "Nộp lại"; ảnh chưa rõ mới ghi "Nộp lại ảnh"', () => {
+    const system = render({ ...submission({}), status: 'error', grade: undefined, errorReason: 'system', errorMessage: 'Em không cần nộp lại; thầy cô sẽ xử lý giúp em.' });
+    expect(system).toContain('Em không cần nộp lại');
+    expect(system).not.toMatch(/>\s*Nộp lại/);
+    const photo = render({ ...submission({}), status: 'error', grade: undefined, errorReason: 'photo', errorMessage: 'Em chụp lại rõ hơn rồi nộp lại nhé.' });
+    expect(photo).toContain('Nộp lại ảnh');
+    expect(photo).toContain('Em chụp lại rõ hơn');
+  });
+
+  it('nút phụ chỉ ghi "Bổ sung ảnh" (không hứa "chấm lại" khi điểm còn chờ duyệt)', () => {
+    const html = render(submission({ scoreHidden: true }));
+    expect(html).toContain('Bổ sung ảnh');
+    expect(html).not.toContain('chấm lại');
   });
 });

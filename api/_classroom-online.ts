@@ -21,6 +21,7 @@ import {
   approveOnlineGrade,
   buildAutomaticOnlineGrade,
   applyAiOnlineGradeSuggestion,
+  hideUnofficialOnlineScore,
   projectOnlineGradeForStudent,
   removeOnlineGrade,
   OnlineGradeValidationError,
@@ -347,7 +348,7 @@ const loadAttemptContext = async (
   return { context, attemptRef, attempt: { id: attemptId, ...attempt } as StoredOnlineAttempt };
 };
 
-const attemptProjection = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt): ExamSubmission => safeAttempt(id, {
+const attemptProjection = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt): ExamSubmission => hideUnofficialOnlineScore(safeAttempt(id, {
   ...attempt,
   examId: context.examRef.id,
   examCode: asString(context.exam.code),
@@ -357,7 +358,7 @@ const attemptProjection = (context: StudentOnlineContext, id: string, attempt: S
   studentId: context.link.studentId,
   assignmentId: context.assignmentRef.id,
   maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? 0,
-}, context.exam.allowReview === true);
+}, context.exam.allowReview === true));
 
 const onlineResponse = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt) => ({
   assignment: assignmentProjection(context.assignmentRef.id, context.assignment),
@@ -383,12 +384,12 @@ const readRelevantAttempts = async (
       && attempt.assignmentId === assignmentId);
 };
 
-/** Projection gọn cho dashboard học sinh; không trả answer text hay ghi chú chấm nội bộ. */
+/** Projection gọn cho dashboard học sinh; không trả answer text, ghi chú chấm nội bộ, hay điểm chưa được duyệt. */
 const studentOnlineAttemptProjection = (
   id: string,
   data: FirebaseFirestore.DocumentData,
   link: VerifiedStudentLink,
-): ExamSubmission => ({
+): ExamSubmission => hideUnofficialOnlineScore({
   id,
   examId: asString(data.examId),
   examCode: '',

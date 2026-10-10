@@ -67,6 +67,10 @@ export const gradeAssignmentAll = async (
 export const gradeOneSubmission = (submissionId: string, mode?: HomeworkGradingMode): Promise<GradeBatchResult> =>
   call({ action: 'gradeOne', submissionId, ...(mode ? { mode } : {}) });
 
+/** Máy chưa đọc được mã đề: em chọn mã ghi trên tờ đề của em, máy đọc tiếp bài ngay. */
+export const answerExamCode = (submissionId: string, examCode: string): Promise<GradeBatchResult> =>
+  call({ action: 'answerExamCode', submissionId, examCode });
+
 export interface ClarifyAnswersResult {
   /** Số câu còn chờ em làm rõ sau lượt gửi này; null nếu bài không còn ở trạng thái chấm. */
   pending: number | null;

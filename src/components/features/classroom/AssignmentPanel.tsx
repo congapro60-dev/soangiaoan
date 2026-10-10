@@ -373,7 +373,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               {maDe && maDe.length > 1 && (
                 <label
                   className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-bold ${s.examCode ? 'bg-sky-50 text-sky-800' : 'bg-rose-50 text-rose-700'}`}
-                  title={s.examCodeSource === 'teacher' ? 'Thầy cô đã chọn mã này' : s.examCode ? 'Mã AI đọc trên bài — chọn lại nếu sai rồi chấm lại' : 'Chưa có mã đề — chọn mã rồi chấm lại'}
+                  title={s.examCodeSource === 'teacher' ? 'Thầy cô đã chọn mã này' : s.examCodeSource === 'student' ? 'Máy không đọc được mã, học sinh tự chọn — soát lại trên bài rồi chọn lại nếu sai' : s.examCode ? 'Mã AI đọc trên bài — chọn lại nếu sai rồi chấm lại' : 'Chưa có mã đề — chọn mã rồi chấm lại'}
                 >
                   Mã đề
                   <select
@@ -387,6 +387,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     {maDe.map(code => <option key={code} value={code}>{code}</option>)}
                   </select>
                   {s.examCodeSource === 'ai' && <span className="font-semibold text-sky-600">AI đọc</span>}
+                  {s.examCodeSource === 'student' && <span className="font-semibold text-amber-700">HS chọn</span>}
                 </label>
               )}
             </div>

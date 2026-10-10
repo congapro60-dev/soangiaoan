@@ -503,7 +503,14 @@ export interface SubmissionDoc {
   evidenceSyncError?: string;
   /** Bài nhiều mã đề: mã của bài này — AI đọc trên ảnh, hoặc giáo viên chọn khi AI không đọc được. Chỉ máy chủ ghi. */
   examCode?: string;
-  examCodeSource?: 'ai' | 'teacher';
+  examCodeSource?: 'ai' | 'teacher' | 'student';
+  /** Máy chưa đọc được mã đề ở lượt đọc đầu: các mã của bài để em chọn mã ghi trên tờ đề. Rỗng = không hỏi. */
+  examCodeAsk?: string[];
+  /**
+   * Lí do lượt đọc đầu chưa xong (status 'error', chưa có điểm): 'photo' = ảnh chưa rõ, em chụp lại;
+   * 'exam_code' = em chọn mã đề; 'system' = lỗi hệ thống, em không cần làm gì. Chỉ máy chủ ghi.
+   */
+  errorReason?: 'photo' | 'exam_code' | 'system';
   createdAt: string;
   updatedAt: string;
 }

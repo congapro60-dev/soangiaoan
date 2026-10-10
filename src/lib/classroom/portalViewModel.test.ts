@@ -64,8 +64,14 @@ describe('getStudentAssignmentState', () => {
     expect(getStudentAssignmentState(assignment, submission({ status: 'grading' })).canResubmit).toBeFalsy();
   });
 
-  it('turns a failed attempt into an explicit retry state', () => {
-    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorMessage: 'Ảnh bị mờ' }))).toMatchObject({ status: 'retry', action: 'retry' });
+  it('ảnh chưa rõ → bảo em nộp lại ảnh; chưa đọc được mã đề → em chọn mã, không nộp lại; lỗi hệ thống → em không cần làm gì', () => {
+    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'photo', errorMessage: 'Ảnh bị mờ' })))
+      .toMatchObject({ status: 'retry', action: 'retry', label: 'Nộp lại ảnh' });
+    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['101', '102'], errorMessage: 'chọn mã' })))
+      .toMatchObject({ status: 'waiting', action: 'status', detail: 'chọn mã' });
+    const system = getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'system', errorMessage: 'Em không cần nộp lại' }));
+    expect(system).toMatchObject({ status: 'waiting', action: 'status', detail: 'Em không cần nộp lại' });
+    expect(system.label).not.toMatch(/Nộp lại/);
   });
 
   it('shows the graded result and review action, still allowing a fresh attempt', () => {
@@ -96,7 +102,7 @@ describe('getStudentAssignmentState', () => {
   });
 
   it('does not turn a failed submission into an empty state', () => {
-    const state = getStudentAssignmentState(assignment, submission({ status: 'error', errorMessage: 'Không đọc được ảnh' }));
+    const state = getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'photo', errorMessage: 'Không đọc được ảnh' }));
 
     expect(state.status).toBe('retry');
     expect(state.detail).toBe('Không đọc được ảnh');

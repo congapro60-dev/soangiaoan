@@ -107,11 +107,30 @@ export const getStudentAssignmentState = (
         label: 'Đang chấm',
       };
     case 'error':
+      // Máy chưa đọc được mã đề: em chọn mã ghi trên tờ đề ngay trên thẻ bài, không phải nộp lại.
+      if (submission.errorReason === 'exam_code') {
+        return {
+          status: 'waiting',
+          action: 'status',
+          label: 'Xem trạng thái',
+          detail: submission.errorMessage,
+        };
+      }
+      // Chỉ khi ẢNH chưa rõ mới bảo em nộp lại; lỗi hệ thống thì em không cần làm gì, thầy cô xử lý.
+      if (submission.errorReason === 'photo') {
+        return {
+          status: 'retry',
+          action: 'retry',
+          label: 'Nộp lại ảnh',
+          detail: submission.errorMessage,
+        };
+      }
       return {
-        status: 'retry',
-        action: 'retry',
-        label: 'Nộp lại',
+        status: 'waiting',
+        action: 'status',
+        label: 'Xem trạng thái',
         detail: submission.errorMessage,
+        canResubmit: true,
       };
     case 'submitted':
     default:

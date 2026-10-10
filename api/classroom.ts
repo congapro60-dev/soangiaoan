@@ -607,7 +607,7 @@ const handleSetSubmissionExamCode = async (
     : [];
   if (!codes.includes(examCode)) return res.status(422).json({ error: `Mã đề phải là một trong: ${codes.join(', ') || '(bài này không có mã đề)'}.` });
   if (submission.status === 'grading') return res.status(409).json({ error: 'Bài đang được chấm, thử lại sau ít phút.' });
-  await submissionRef.update({ examCode, examCodeSource: 'teacher', updatedAt: new Date().toISOString() });
+  await submissionRef.update({ examCode, examCodeSource: 'teacher', examCodeAsk: [], updatedAt: new Date().toISOString() });
   return res.status(200).json({ examCode });
 };
 
@@ -1183,11 +1183,28 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
     // Expose separate error information based on data presence, not status
     // This ensures lastGradingError surfaces even when status='graded'
     ...(hasValidGrade && studentLastGradingError ? { lastGradingError: studentLastGradingError } : {}),
-    ...(normalizedStatus === 'error' && !hasValidGrade ? { errorMessage: 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.' } : {}),
+    ...(normalizedStatus === 'error' && !hasValidGrade ? studentErrorFields(data) : {}),
     // evidenceSyncError is teacher/internal-only; never exposed to students
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;
+};
+
+/**
+ * Lượt đọc đầu chưa xong (chưa có điểm): nói rõ em cần làm gì, không lộ lỗi thô. Ảnh chưa rõ → chụp lại;
+ * chưa đọc được mã đề → em chọn mã ghi trên đề (chỉ các mã của bài); lỗi hệ thống → em không cần làm gì.
+ */
+const studentErrorFields = (data: FirebaseFirestore.DocumentData): Partial<SubmissionDoc> => {
+  const examCodeAsk = Array.isArray(data.examCodeAsk) ? data.examCodeAsk.map(String).filter(Boolean) : [];
+  if (examCodeAsk.length > 0) {
+    return { errorReason: 'exam_code', examCodeAsk, errorMessage: 'Máy chưa đọc được mã đề trên bài của em. Em chọn đúng mã đề ghi trên tờ đề để máy đọc tiếp.' };
+  }
+  // Bài lỗi từ trước khi có `errorReason`: nhận theo câu báo lỗi ảnh của máy chấm.
+  const legacyPhoto = !data.errorReason && /^(Không đọc được bài làm|AI đọc chưa rõ bài này)/.test(String(data.errorMessage || ''));
+  if (data.errorReason === 'photo' || legacyPhoto) {
+    return { errorReason: 'photo', errorMessage: 'Máy chưa đọc rõ ảnh bài của em. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại nhé.' };
+  }
+  return { errorReason: 'system', errorMessage: 'Bài đã được nhận nhưng máy chưa đọc xong. Em không cần nộp lại; thầy cô sẽ xử lý giúp em.' };
 };
 
 const handleStudentAssignments = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
