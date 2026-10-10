@@ -64,7 +64,7 @@ export const RequirementLinesEditor = ({ lines, onChange }: Props) => {
                 {group.chapter ? (
                   <>
                     <span className="whitespace-nowrap font-black uppercase tracking-wide text-indigo-700">Tập {group.chapter.tap} · Chương {group.chapter.code}</span>
-                    <span className="min-w-0 flex-1 font-black text-slate-900">{group.chapter.name}</span>
+                    <span className="order-last basis-full font-black text-slate-900 sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">{group.chapter.name}</span>
                     <span className="whitespace-nowrap rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-black text-indigo-800">{group.chapter.strand}</span>
                     <span className="whitespace-nowrap text-[11px] font-bold text-slate-500">{vungText(group.lessons)}</span>
                   </>
@@ -86,7 +86,7 @@ export const RequirementLinesEditor = ({ lines, onChange }: Props) => {
           <p className="border-b border-slate-200 pb-1 text-xs font-black text-indigo-900">{group.strand} · {group.topic}</p>
           <ul className="divide-y divide-dashed divide-slate-200">
             {group.rows.map(({ line, item }) => (
-              <li key={line.id} className="flex items-start gap-2 py-2">
+              <li key={line.id} className="flex flex-wrap items-start gap-2 py-2 sm:flex-nowrap">
                 <select
                   value={line.level}
                   onChange={event => update(line.id, { level: event.target.value as RequirementLevel })}
@@ -95,7 +95,7 @@ export const RequirementLinesEditor = ({ lines, onChange }: Props) => {
                 >
                   {REQUIREMENT_LEVELS.map(option => <option key={option.level} value={option.level}>{option.label}</option>)}
                 </select>
-                <div className="min-w-0 flex-1">
+                <div className="order-last min-w-0 basis-full sm:order-none sm:basis-auto sm:flex-1">
                   <p className="text-sm font-semibold text-slate-800">{item.text}</p>
                   <input
                     value={line.note}
@@ -106,7 +106,7 @@ export const RequirementLinesEditor = ({ lines, onChange }: Props) => {
                   />
                   <p className="mt-0.5 text-[11px] font-semibold text-slate-400">Căn cứ: {line.evidence} câu · đạt {Math.round(line.percent)}% · SGK Kết nối tri thức <span className="whitespace-nowrap">{sgkWhere(item.id, item.sgk)}</span></p>
                 </div>
-                <button type="button" onClick={() => remove(line.id)} className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label={`Bỏ yêu cầu ${item.id}`} title="Bỏ dòng này (AI ghép sai)">
+                <button type="button" onClick={() => remove(line.id)} className="ml-auto rounded-lg p-1 sm:ml-0 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label={`Bỏ yêu cầu ${item.id}`} title="Bỏ dòng này (AI ghép sai)">
                   <X className="h-4 w-4" />
                 </button>
               </li>

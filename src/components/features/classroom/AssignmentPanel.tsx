@@ -1641,8 +1641,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 return (
             <div key={a.id} className="rounded-3xl border border-slate-100">
               <div className="flex flex-wrap items-center gap-3 p-4">
-                <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
-                  <p className="truncate font-black text-slate-900">{a.title}</p>
+                <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 basis-full text-left sm:basis-0">
+                  <p className="break-words font-black text-slate-900 sm:truncate">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
                     {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.periodicTest
                       ? `kiểm tra định kì · ${a.examVariants?.length ?? 0} mã đề${a.periodicTest.sheetLabel ? ` · đối chiếu cột “${a.periodicTest.sheetLabel}”` : ''}`

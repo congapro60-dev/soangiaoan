@@ -215,7 +215,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const hanBai = new Map(assignments.map(a => [a.id, a.dueAt]));
   const daChamTheoId = new Map(model.gradedSubmissions.map(s => [s.id, s]));
   const nhomDaCham = groupResultsByWeek(model.gradedSubmissions.map(s => ({
-    assignmentId: s.id, title: '', status: 'official' as const, score: s.grade?.score ?? null, maxScore: s.grade?.maxScore ?? null,
+    // Tiêu đề tuần đếm "bài đã có kết quả" = bài đã duyệt; bài máy chấm nhưng chưa duyệt không tính.
+    assignmentId: s.id, title: '', status: s.grade?.teacherApproved ? 'official' as const : 'pending' as const, score: s.grade?.score ?? null, maxScore: s.grade?.maxScore ?? null,
     submittedAt: s.createdAt, ...(s.assignmentId && hanBai.get(s.assignmentId) ? { dueAt: hanBai.get(s.assignmentId) } : {}),
   })), weekPlan);
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');

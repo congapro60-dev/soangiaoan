@@ -465,3 +465,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Harness QA (esbuild + Playwright) dùng `dist/assets/index-*.css` của `npm run build`: **phải build lại sau mỗi lần thêm class Tailwind mới**, nếu không class mới "không có tác dụng" và ta tưởng nhầm là lỗi bố cục (ca `!w-20`).
 - Ô nhập `w-full` dùng chung thì ô số nhỏ cần lớp cơ sở KHÔNG có `w-full` (tách `FIELD` và `INPUT`), đừng chống bằng `!important`.
 - Chỗ nào cho thầy cô sửa dữ liệu tự động: lưu **chỉ phần đã chỉnh** (overrides) rồi áp lên dữ liệu gốc; nơi lưu cũ không gửi trường mới thì phải GIỮ bản đã lưu, không ghi đè bằng rỗng.
+
+## 2026-10-10 — QA giao diện trên trình duyệt
+- Mạng của container chặn `*.vercel.app` và CDP của TinyFish: không lái trình duyệt đám mây trực tiếp được. Cách làm được: (1) TinyFish `run_web_automation` để kiểm sơ bộ trang production (không đăng nhập); (2) chạy `vite preview` bản build thật + Playwright chặn `fetch /api/*` bằng dữ liệu mẫu (cổng phụ huynh không dùng Firebase nên chạy trọn luồng được); (3) màn giáo viên/học sinh dùng Firestore trực tiếp → dựng harness esbuild thay `lib/firebase`, `firebase/firestore`, các service bằng stub.
+- `innerText` không lấy chữ trong `<details>` đang đóng, và chữ `uppercase` trả về dạng HOA → mở `details` và so khớp không phân biệt hoa thường trước khi kết luận "thiếu".
+- Khung phẳng `flex` + `min-w-0 flex-1` chung hàng với nhiều nút → trên điện thoại cột chữ bị ép còn vài chữ một dòng. Cho phần chữ `basis-full` ở điện thoại (`sm:basis-auto/0`), nút xuống hàng dưới.
