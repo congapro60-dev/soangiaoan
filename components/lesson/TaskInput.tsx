@@ -15,6 +15,8 @@ export interface TaskInputProps {
       options?: Array<{ id: string; label: string }>;
       representations?: Array<{ id: string; label: string }>;
       cards?: Array<{ id: string; label: string }>;
+      items?: Array<{ id: string; label: string }>;
+      categories?: Array<{ id: string; label: string }>;
     };
     evaluation?: {
       checkerId?: string;
@@ -46,7 +48,9 @@ export interface TaskInputProps {
   onGroupSubmit?: (answer: unknown) => Promise<void> | void;
   groupProduct?: {
     answer: unknown;
-    ok: boolean;
+    ok: boolean | null;
+    assessmentStatus?: string;
+    feedback?: string;
     submittedBy: string;
     at: number;
   } | null;
@@ -74,12 +78,15 @@ export function TaskInput({
   groupContributions = [],
   currentLearnerId,
 }: TaskInputProps) {
+  const inputId = React.useId();
   const schema = task.inputSchema || {};
   const evalData = task.evaluation || {};
   const checkerId = evalData.checkerId || "";
   const taskType = task.type || "closed";
 
   // Determine input flavor
+  const isOrdering = checkerId === "ordering_exact";
+  const isClassification = checkerId === "classification_exact";
   const isRepresentationMatch =
     checkerId === "representation_match" ||
     (Array.isArray(schema.representations) && Array.isArray(schema.cards));
@@ -89,6 +96,8 @@ export function TaskInput({
     (schema.type === "multi_choice" && Array.isArray(schema.options));
 
   const isSingleChoice =
+    !isOrdering &&
+    !isClassification &&
     !isRepresentationMatch &&
     !isMultiChoice &&
     (checkerId === "choice_exact" || Array.isArray(schema.options));
@@ -100,15 +109,17 @@ export function TaskInput({
     (checkerId === "numeric_exact" || schema.type === "numeric");
 
   // Initial answer calculation
+  const privateThought = isGroupMode && initialDraft && typeof initialDraft === "object" && !Array.isArray(initialDraft) && typeof (initialDraft as {thought?:unknown}).thought === "string";
   const getInitialAnswer = () => {
     if (submission?.answer !== undefined && submission?.answer !== null) {
       return submission.answer;
     }
-    if (initialDraft !== undefined && initialDraft !== null) {
-      return initialDraft;
+    if (initialDraft !== undefined && initialDraft !== null && !privateThought) {
+      return isGroupMode && (isRepresentationMatch || isClassification) && typeof initialDraft !== "object" ? {} : initialDraft;
     }
     if (isMultiChoice) return [];
-    if (isRepresentationMatch) return {};
+    if (isOrdering) return (schema.items || []).map(item => item.id);
+    if (isRepresentationMatch || isClassification) return {};
     return "";
   };
 
@@ -152,11 +163,13 @@ export function TaskInput({
       if (isComposingRef.current) return;
       if (submission?.answer !== undefined && submission.answer !== null) {
         setValue(submission.answer);
-      } else if (initialDraft !== undefined && initialDraft !== null) {
-        setValue(initialDraft);
+      } else if (initialDraft !== undefined && initialDraft !== null && !privateThought) {
+        setValue(isGroupMode && (isRepresentationMatch || isClassification) && typeof initialDraft !== "object" ? {} : initialDraft);
       } else if (isMultiChoice) {
         setValue([]);
-      } else if (isRepresentationMatch) {
+      } else if (isOrdering) {
+        setValue((schema.items || []).map(item => item.id));
+      } else if (isRepresentationMatch || isClassification) {
         setValue({});
       } else {
         setValue("");
@@ -167,9 +180,14 @@ export function TaskInput({
     return () => window.clearTimeout(timer);
   }, [
     initialDraft,
+    privateThought,
     isDirty,
     isMultiChoice,
+    isGroupMode,
+    isOrdering,
+    isClassification,
     isRepresentationMatch,
+    schema.items,
     submission?.answer,
     submission?.submissionId,
     task.id,
@@ -199,7 +217,16 @@ export function TaskInput({
 
   // Group discussion state
   const [groupTab, setGroupTab] = useState<"contribute" | "submit">("contribute");
-  const [contributionText, setContributionText] = useState("");
+  const [contributionText, setContributionText] = useState(privateThought ? (initialDraft as {thought:string}).thought : "");
+  const thoughtEditorRef = useRef({taskId:task.id,dirty:false});
+  useEffect(()=>{
+    const changed=thoughtEditorRef.current.taskId!==task.id;
+    if(!changed&&thoughtEditorRef.current.dirty)return;
+    thoughtEditorRef.current={taskId:task.id,dirty:false};
+    const timer=window.setTimeout(()=>setContributionText(privateThought?(initialDraft as {thought:string}).thought:""),0);
+    return()=>window.clearTimeout(timer);
+  },[task.id,initialDraft,privateThought]);
+  const [groupError,setGroupError]=useState("");
   const [isSendingContrib, setIsSendingContrib] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [isOpeningHint, setIsOpeningHint] = useState(false);
@@ -207,11 +234,11 @@ export function TaskInput({
   const handleSendContribution = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contributionText.trim() || isSendingContrib || disabled) return;
-    setIsSendingContrib(true);
+    setIsSendingContrib(true);setGroupError("");
     try {
       await onGroupContribute?.(contributionText.trim());
       setContributionText("");
-    } finally {
+    } catch { setGroupError("Chưa gửi được ý kiến. Nội dung vẫn giữ; kiểm tra mạng rồi thử lại."); } finally {
       setIsSendingContrib(false);
     }
   };
@@ -243,6 +270,18 @@ export function TaskInput({
 
   // Check if answer is provided and valid
   const hasAnswer = () => {
+    if (isOrdering) {
+      const items = schema.items || [];
+      return items.length > 0 && Array.isArray(value) && value.length === items.length &&
+        new Set(value).size === items.length && value.every(id => items.some(item => item.id === id));
+    }
+    if (isClassification) {
+      const items = schema.items || [], categories = schema.categories || [];
+      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+      const mapping = value as Record<string, string>;
+      return items.length > 0 && Object.keys(mapping).length === items.length && items.every(item =>
+        categories.some(category => category.id === mapping[item.id]));
+    }
     if (isRepresentationMatch) {
       if (!value || typeof value !== "object") return false;
       const reps = schema.representations || [];
@@ -268,6 +307,7 @@ export function TaskInput({
   if (isGroupMode) {
     return (
       <div className="task-group-container">
+        {groupError&&<p role="alert">{groupError}</p>}
         <div className="task-group-tabs" role="tablist">
           <button
             type="button"
@@ -326,15 +366,15 @@ export function TaskInput({
             </div>
 
             <form onSubmit={handleSendContribution} className="task-contrib-form">
-              <label htmlFor="group-contrib-input" className="task-label">
+              <label htmlFor={`${inputId}-contrib`} className="task-label">
                 Ý kiến đóng góp của em:
               </label>
               <textarea
-                id="group-contrib-input"
+                id={`${inputId}-contrib`}
                 rows={2}
                 disabled={disabled || isSendingContrib}
                 value={contributionText}
-                onChange={(e) => setContributionText(e.target.value)}
+                onChange={(e) => {thoughtEditorRef.current.dirty=true;setContributionText(e.target.value);}}
                 placeholder="Nhập lập luận, công thức hoặc ý kiến xây dựng bài..."
                 className="task-textarea"
                 maxLength={4000}
@@ -359,7 +399,7 @@ export function TaskInput({
                 }`}
               >
                 <strong>Trạng thái sản phẩm nhóm:</strong>{" "}
-                {groupProduct.ok
+                {groupProduct.assessmentStatus === "pending" ? "Chờ GV đánh giá" : groupProduct.ok
                   ? "✓ Nhóm đã hoàn thành chính xác nhiệm vụ!"
                   : "Đã nộp bài, đang ghi nhận kết quả."}
                 <small className="task-muted-block">
@@ -454,6 +494,58 @@ export function TaskInput({
   }
 
   function renderInputFields() {
+    if (isOrdering) {
+      const items = schema.items || [];
+      const orderedIds: string[] = Array.isArray(value) ? value as string[] : [];
+      const move = (index: number, direction: number) => {
+        if (disabled || index + direction < 0 || index + direction >= orderedIds.length) return;
+        const next = [...orderedIds];
+        [next[index], next[index + direction]] = [next[index + direction], next[index]];
+        handleValueChange(next);
+      };
+      return (
+        <fieldset className="task-fieldset" disabled={disabled}>
+          <legend className="task-legend">Sắp xếp các bước theo thứ tự:</legend>
+          <ol className="task-rep-list">
+            {orderedIds.map((id, index) => {
+              const item = items.find(item => item.id === id);
+              return item ? (
+                <li key={id} className="task-rep-row">
+                  <div className="task-rep-label"><MathText text={item.label} /></div>
+                  <div className="task-rep-control">
+                    <button type="button" className="task-button task-button-secondary" aria-label={`Đưa bước ${index + 1} lên`} disabled={disabled || index === 0} onClick={() => move(index, -1)}>Lên</button>
+                    <button type="button" className="task-button task-button-secondary" aria-label={`Đưa bước ${index + 1} xuống`} disabled={disabled || index === orderedIds.length - 1} onClick={() => move(index, 1)}>Xuống</button>
+                  </div>
+                </li>
+              ) : null;
+            })}
+          </ol>
+        </fieldset>
+      );
+    }
+
+    if (isClassification) {
+      const items = schema.items || [], categories = schema.categories || [];
+      const mapping = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, string> : {};
+      return (
+        <fieldset className="task-fieldset" disabled={disabled}>
+          <legend className="task-legend">Phân loại từng mục vào nhóm phù hợp:</legend>
+          <div className="task-rep-list">
+            {items.map(item => (
+              <div key={item.id} className="task-rep-row">
+                <label htmlFor={`task-classify-${inputId}-${item.id}`} className="task-rep-label"><MathText text={item.label} /></label>
+                <select id={`task-classify-${inputId}-${item.id}`} className="task-select" disabled={disabled} value={mapping[item.id] || ""}
+                  onChange={event => { if (!disabled) handleValueChange({ ...mapping, [item.id]: event.target.value }); }}>
+                  <option value="">-- Chọn nhóm --</option>
+                  {categories.map(category => <option key={category.id} value={category.id}>{category.label.replace(/\$/g, "")}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+        </fieldset>
+      );
+    }
+
     if (isSingleChoice) {
       const options = schema.options || [];
       return (
@@ -469,7 +561,7 @@ export function TaskInput({
                 >
                   <input
                     type="radio"
-                    name={`task-choice-${task.id}`}
+                    name={`task-choice-${inputId}`}
                     value={opt.id}
                     checked={checked}
                     onChange={() => handleValueChange(opt.id)}
@@ -503,7 +595,7 @@ export function TaskInput({
                 >
                   <input
                     type="checkbox"
-                    name={`task-multichoice-${task.id}`}
+                    name={`task-multichoice-${inputId}`}
                     value={opt.id}
                     checked={checked}
                     onChange={(e) => {
@@ -537,7 +629,7 @@ export function TaskInput({
       return (
         <div className="task-rep-match-container">
           <p className="task-instruction">
-            Ghép từng cách biểu diễn ở cột bên trái với thẻ công thức/quy luật tương ứng:
+            Ghép mỗi mục với thẻ phù hợp:
           </p>
           <div className="task-rep-list">
             {reps.map((rep) => {
@@ -560,7 +652,7 @@ export function TaskInput({
                         });
                       }}
                     >
-                      <option value="">-- Chọn thẻ biểu diễn tương ứng --</option>
+                      <option value="">-- Chọn thẻ phù hợp --</option>
                       {cards.map((card) => (
                         <option key={card.id} value={card.id}>
                           {card.label.replace(/\$/g, "")}
@@ -585,11 +677,11 @@ export function TaskInput({
     if (isNumeric) {
       return (
         <div className="task-input-field">
-          <label htmlFor={`task-numeric-${task.id}`} className="task-label">
+          <label htmlFor={`task-numeric-${inputId}`} className="task-label">
             Kết quả số học:
           </label>
           <input
-            id={`task-numeric-${task.id}`}
+            id={`task-numeric-${inputId}`}
             type="text"
             inputMode="text"
             disabled={disabled}
@@ -627,11 +719,11 @@ export function TaskInput({
           </div>
         )}
 
-        <label htmlFor={`task-open-${task.id}`} className="task-label">
+        <label htmlFor={`task-open-${inputId}`} className="task-label">
           {taskType === "reflection" ? "Bài suy ngẫm & Liên hệ:" : "Lời giải và lập luận của em:"}
         </label>
         <textarea
-          id={`task-open-${task.id}`}
+          id={`task-open-${inputId}`}
           rows={6}
           disabled={disabled}
           value={typeof value === "string" ? value : String(value ?? "")}

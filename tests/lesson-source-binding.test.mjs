@@ -44,7 +44,7 @@ test('uploaded source refs bind exact immutable source snapshots on save and app
   assert.equal(assoc.source_sha256, sha);
   assert.equal(assoc.extraction_revision, 'p5-binary-1');
   assert.equal(assoc.extraction_hash, extractionHash);
-  const approved = await service.approvePackage({ actorAccountId: 'owner', id: saved.row.rowId, parentHash: saved.row.contentHash, version: '1.0.1', sourceReviewAck: [sourceRef] });
+  const approved = await service.approvePackage({ actorAccountId: 'owner', id: saved.row.rowId, parentHash: saved.row.contentHash, version: '1.0.1', sourceReviewAck: [{...sourceRef,numericReviewConfirmed:true}] });
   assoc = database.prepare('SELECT * FROM lesson_package_sources WHERE package_row_id=?').get(approved.row.rowId);
   assert.equal(assoc.source_id, sourceId);
   assert.equal(assoc.package_hash, approved.row.contentHash);

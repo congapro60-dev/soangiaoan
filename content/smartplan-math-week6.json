@@ -1,0 +1,1139 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "smartplan-math-week6",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "week": 6,
+  "sourceYear": "2026-2027",
+  "curriculumAuthority": "teacher_review_required",
+  "reviewRequirements": [
+    "GV đối soát lời giải và độ phù hợp mục tiêu trước dùng.",
+    "PPCT2026-2027 có objectives trống; không tự gán mã T11.xx.",
+    "Unitplan có nhãn2025-2026 khác PPCT và DOCX2026-2027; chưa dùng làm nguồn chính thức.",
+    "Các đáp án dạng gợi ý/chưa hoàn chỉnh giữ nguyên để GV hoàn thiện; không tự chấm máy."
+  ],
+  "lessons": [
+    {
+      "id": "sp-g11-w6-p34",
+      "grade": 11,
+      "week": 6,
+      "period": 34,
+      "title": "Giải phương trình lượng giác tanx = m, cotx = m",
+      "focus": "Phương trình cơ bản của tan và cot, kèm điều kiện xác định",
+      "formulas": [
+        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
+        "\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
+        "x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}",
+        "x\\ne k\\pi\\ \\text{đối với cot}"
+      ],
+      "examples": [
+        {
+          "question": "Giải $\\tan x=1$.",
+          "solution": "Vì $\\tan\\frac\\pi4=1$ nên $x=\\frac\\pi4+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Giải $\\cot(2x-\\frac\\pi4)=-1$.",
+          "solution": "Đặt $2x-\\frac\\pi4=-\\frac\\pi4+k\\pi$; suy ra $x=\\frac{k\\pi}{2}$, đồng thời kiểm tra điều kiện xác định của cot.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giải $\\tan x=\\sqrt3$.",
+          "answer": "$x=\\frac\\pi3+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Giải $\\cot x=-1$.",
+          "answer": "$x=-\\frac\\pi4+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.",
+          "answer": "$2x+\\frac\\pi4=\\frac\\pi3+k\\pi$ nên $x=\\frac\\pi{24}+\\frac{k\\pi}{2}$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.",
+          "answer": "$3x=\\frac\\pi6+k\\pi$; lọc được $x=\\frac\\pi{18},\\frac{7\\pi}{18},\\frac{13\\pi}{18}$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Giải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.",
+          "answer": "Đặt $t=\\tan x$. Khi $\\tan(\\frac\\pi4-x)=\\frac{1-t}{1+t}$, ta được $t+\\frac{1-t}{1+t}=2$ hay $t^2-2t-1=0$. Suy ra $t=1+\\sqrt2$ hoặc $t=1-\\sqrt2$, rồi đối chiếu điều kiện xác định.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Phản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.",
+          "answer": "Sai; tan và cot có chu kỳ $\\pi$ nên nghiệm phải là $x=\\frac\\pi4+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Giải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.",
+          "solution": "$x=\\frac{2\\pi}3,\\frac{5\\pi}3$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Nêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "solution": "$2x-\\frac\\pi3\\ne k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Dùng k2π thay cho kπ.",
+        "Bỏ điều kiện xác định của tan/cot.",
+        "Không lọc nghiệm theo khoảng sau khi chia hệ số góc."
+      ],
+      "status": "draft",
+      "kind": "formation",
+      "selfChoice": false,
+      "guidingQuestion": "Vì sao phương trình tan x = m và cot x = m chỉ có duy nhất một họ nghiệm với chu kỳ kπ?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p34-must",
+          "level": "must",
+          "statement": "Tôi có thể viết đúng công thức nghiệm chu kỳ kπ của phương trình lượng giác cơ bản tan x = m.",
+          "provenance": {
+            "sourceId": "sp-docx-p34",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p34-should",
+          "level": "should",
+          "statement": "Tôi có thể tìm điều kiện xác định để giải hoàn chỉnh phương trình tan u(x) = m.",
+          "provenance": {
+            "sourceId": "sp-docx-p34",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p34-could",
+          "level": "could",
+          "statement": "Tôi có thể giải thích sự khác biệt về chu kỳ của phương trình tan đối với phương trình sin.",
+          "provenance": {
+            "sourceId": "sp-docx-p34",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:439 / d(11,6,34)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p34",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p34_Phuong_trinh_luong_giac_co_ban_G11W6.docx",
+          "hash": "1961edaa4a47eca5b00e94f3c177a18b0db2f9d985f6c33614bb9d81729b5eba",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 34",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p35",
+      "grade": 11,
+      "week": 6,
+      "period": 35,
+      "title": "Luyện tập phương trình lượng giác",
+      "focus": "Trộn bốn dạng sin, cos, tan, cot và lọc nghiệm trên khoảng",
+      "formulas": [
+        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
+        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
+        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
+        "\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi"
+      ],
+      "examples": [
+        {
+          "question": "Giải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.",
+          "solution": "$x=\\frac\\pi6,\\frac{5\\pi}6$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Giải $\\tan(2x-\\frac\\pi6)=1$.",
+          "solution": "$2x-\\frac\\pi6=\\frac\\pi4+k\\pi$ nên $x=\\frac{5\\pi}{24}+\\frac{k\\pi}{2}$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giải $\\cos x=0$.",
+          "answer": "$x=\\frac\\pi2+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Giải $\\cot x=\\sqrt3$.",
+          "answer": "$x=\\frac\\pi6+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.",
+          "answer": "$2x=\\frac\\pi6+2k\\pi$ hoặc $2x=\\frac{5\\pi}6+2k\\pi$; trong khoảng đã cho, $x=\\frac\\pi{12},\\frac{5\\pi}{12}$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\cos(x-\\frac\\pi3)=-\\frac12$.",
+          "answer": "$x=\\pi+2k\\pi$ hoặc $x=-\\frac\\pi3+2k\\pi$, $k\\in\\mathbb Z$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Giải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.",
+          "answer": "$x=-\\frac{2\\pi}3,\\frac\\pi3$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Tạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.",
+          "answer": "Sin lặp lại sau $2\\pi$, cot lặp lại sau $\\pi$; phải lọc theo từng điều kiện xác định.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Trong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.",
+          "solution": "$x=\\pm\\alpha+2k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Một nghiệm của $\\tan x=1$ là gì?",
+          "solution": "$x=\\frac\\pi4$; họ nghiệm đầy đủ là $x=\\frac\\pi4+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Lọc nghiệm ngoài khoảng.",
+        "Trộn chu kỳ của tan/cot với sin/cos.",
+        "Quên điều kiện xác định khi biến đổi."
+      ],
+      "status": "draft",
+      "kind": "practice",
+      "selfChoice": false,
+      "guidingQuestion": "Làm thế nào để phân loại nhanh và lọc chính xác các nghiệm lượng giác trên một đoạn cho trước?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p35-must",
+          "level": "must",
+          "statement": "Tôi có thể lựa chọn chính xác công thức nghiệm tương ứng cho cả 4 dạng phương trình lượng giác cơ bản.",
+          "provenance": {
+            "sourceId": "sp-docx-p35",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p35-should",
+          "level": "should",
+          "statement": "Tôi có thể giải phương trình lượng giác kèm lọc các nghiệm nằm trong một đoạn cho trước.",
+          "provenance": {
+            "sourceId": "sp-docx-p35",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p35-could",
+          "level": "could",
+          "statement": "Tôi có thể phân tích các sai sót phổ biến khi lọc nghiệm phương trình lượng giác trên đoạn.",
+          "provenance": {
+            "sourceId": "sp-docx-p35",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:459 / d(11,6,35)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p35",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p35_Phuong_trinh_luong_giac_co_ban_G11W6.docx",
+          "hash": "fb7979dc7f7803eda76caaf5f3357146ff3f16c2bc04797be7d6a1bd36cc504e",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 35",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p36",
+      "grade": 11,
+      "week": 6,
+      "period": 36,
+      "title": "Ôn tập chương I — giá trị và hàm số lượng giác",
+      "focus": "Hệ thống hóa dấu, chu kỳ, tập xác định, tập giá trị và đồ thị",
+      "formulas": [
+        "\\sin^2x+\\cos^2x=1",
+        "\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)",
+        "\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)",
+        "\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x"
+      ],
+      "examples": [
+        {
+          "question": "Xác định tập giá trị và chu kỳ của $y=2\\sin x-1$.",
+          "solution": "Tập giá trị là $[-3;1]$, chu kỳ $2\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Xét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.",
+          "solution": "$\\cos x$ là hàm chẵn; $\\tan x$ là hàm lẻ trên tập xác định của nó.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nêu tập xác định của $y=\\tan x$.",
+          "answer": "$\\mathbb R\\setminus\\{\\frac\\pi2+k\\pi\\}$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Tập giá trị của $y=3\\cos x+2$ là gì?",
+          "answer": "$[-1;5]$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Tìm GTLN, GTNN của $y=2\\sin x-\\cos x$.",
+          "answer": "Biên độ $\\sqrt5$; giá trị lớn nhất $\\sqrt5$ và nhỏ nhất $-\\sqrt5$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\tan x=\\sqrt3$ và ghi tập xác định.",
+          "answer": "$x=\\frac\\pi3+k\\pi$; các nghiệm đều thuộc tập xác định của tan.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Dựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.",
+          "answer": "Tăng trên $[0;\\frac\\pi2]$, giảm trên $[\\frac\\pi2;\\frac{3\\pi}2]$, tăng trên $[\\frac{3\\pi}2;2\\pi]$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Giải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.",
+          "answer": "Vì có thể xảy ra $\\cos x=0$; phải xét điều kiện và trường hợp riêng trước khi chia.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tập giá trị của $y=\\sin x+2$ là gì?",
+          "solution": "$[1;3]$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Nêu một lỗi khi vẽ đồ thị tan.",
+          "solution": "Quên các tiệm cận đứng $x=\\frac\\pi2+k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Nhầm tập xác định với tập giá trị.",
+        "Bỏ điều kiện mẫu khác không.",
+        "Đọc sai chiều biến thiên trên một chu kỳ."
+      ],
+      "status": "draft",
+      "kind": "practice",
+      "selfChoice": false,
+      "guidingQuestion": "Làm thế nào để hệ thống hóa tập xác định, tập giá trị, chu kỳ và đồ thị của bốn hàm số lượng giác cơ bản?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p36-must",
+          "level": "must",
+          "statement": "Tôi có thể nêu đúng tập xác định cùng tập giá trị của 4 hàm số lượng giác cơ bản.",
+          "provenance": {
+            "sourceId": "sp-docx-p36",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p36-should",
+          "level": "should",
+          "statement": "Tôi có thể tìm giá trị lớn nhất cùng giá trị nhỏ nhất của hàm số lượng giác biến đổi đơn giản.",
+          "provenance": {
+            "sourceId": "sp-docx-p36",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p36-could",
+          "level": "could",
+          "statement": "Tôi có thể phân tích tính đối xứng của hàm lượng giác trong các mô hình dao động tự nhiên theo mùa.",
+          "provenance": {
+            "sourceId": "sp-docx-p36",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:479 / d(11,6,36)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p36",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p36_On_tap_chuong_I_G11W6.docx",
+          "hash": "7b1a22daa0ac7d804234a6323c06701055070ac985d44b3cb778d156b36f3b28",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 36",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p37",
+      "grade": 11,
+      "week": 6,
+      "period": 37,
+      "title": "Ôn tập chương I — phương trình lượng giác",
+      "focus": "Giải phương trình lượng giác cơ bản và phương trình đưa về dạng cơ bản",
+      "formulas": [
+        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
+        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
+        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
+        "\\sin^2x+\\cos^2x=1"
+      ],
+      "examples": [
+        {
+          "question": "Giải $2\\sin x-1=0$.",
+          "solution": "Đưa về $\\sin x=\\frac12$, nghiệm $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Giải $2\\cos^2x-3\\cos x+1=0$.",
+          "solution": "Đặt $t=\\cos x$. Có $t=1$ hoặc $t=\\frac12$, rồi giải hai phương trình cos tương ứng.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giải $\\sin x=0$.",
+          "answer": "$x=k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Giải $\\cos x=-\\frac12$.",
+          "answer": "$x=\\frac{2\\pi}3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.",
+          "answer": "$x=\\frac\\pi6,\\frac{11\\pi}6$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\sin 2x=\\cos x$.",
+          "answer": "Dùng $\\sin2x=2\\sin x\\cos x$; được $\\cos x(2\\sin x-1)=0$ và xét hai trường hợp.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Giải $\\cos 2x+\\cos x=0$.",
+          "answer": "Dùng $\\cos2x=2\\cos^2x-1$ để đưa về phương trình bậc hai theo $\\cos x$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Lập bảng tiêu chí giải một phương trình lượng giác.",
+          "answer": "Bước 1: điều kiện; bước 2: biến đổi; bước 3: công thức nghiệm; bước 4: lọc khoảng; bước 5: thử lại.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Giải nhanh $\\cos x=1$.",
+          "solution": "$x=2k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Với phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "solution": "Chỉ nhận $t\\in[-1;1]$, sau đó giải phương trình lượng giác tương ứng và kiểm tra điều kiện.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Bỏ điều kiện khi đặt ẩn phụ.",
+        "Nhận nghiệm t ngoài đoạn [-1;1].",
+        "Không thử lại nghiệm sau nhiều bước biến đổi."
+      ],
+      "status": "draft",
+      "kind": "practice",
+      "selfChoice": false,
+      "guidingQuestion": "Làm thế nào để nhận dạng và chọn phép biến đổi thích hợp đưa phương trình lượng giác về dạng cơ bản?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p37-must",
+          "level": "must",
+          "statement": "Tôi có thể quy đổi các phương trình lượng giác đưa được về dạng cơ bản bậc nhất đối với một hàm số.",
+          "provenance": {
+            "sourceId": "sp-docx-p37",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p37-should",
+          "level": "should",
+          "statement": "Tôi có thể giải phương trình bậc hai đối với một hàm số lượng giác bằng phương pháp đặt ẩn phụ.",
+          "provenance": {
+            "sourceId": "sp-docx-p37",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p37-could",
+          "level": "could",
+          "statement": "Tôi có thể lựa chọn công thức biến đổi lượng giác tối ưu để hạ bậc phương trình.",
+          "provenance": {
+            "sourceId": "sp-docx-p37",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:499 / d(11,6,37)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p37",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p37_On_tap_chuong_I_G11W6.docx",
+          "hash": "9957511790d0d45b43bef055a41918f9d491d55643d44f6ee68f3206b72aa10e",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 37",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p38",
+      "grade": 11,
+      "week": 6,
+      "period": 38,
+      "title": "Dãy số",
+      "focus": "Nhận biết dãy số và ba cách cho dãy",
+      "formulas": [
+        "u_n=f(n)",
+        "u_1=a,\\ u_{n+1}=g(u_n)",
+        "u_n=\\frac{2n+1}{n+1}",
+        "u_{n+1}=u_n+3"
+      ],
+      "examples": [
+        {
+          "question": "Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.",
+          "solution": "$u_1=\\frac32$, $u_2=\\frac53$, $u_3=\\frac74$; chỉ số $n$ là đầu vào của công thức.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.",
+          "solution": "$u_1=1,u_2=4,u_3=7,u_4=10,u_5=13$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính $u_4$ của $u_n=2n-1$.",
+          "answer": "$u_4=7$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Viết truy hồi của dãy $2,5,8,11,\\ldots$.",
+          "answer": "$u_1=2,\\ u_{n+1}=u_n+3$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Tìm $u_5$ của $u_n=\\frac{n}{n+1}$.",
+          "answer": "$u_5=\\frac56$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Cho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.",
+          "answer": "$u_2=3,u_3=5$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Đổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.",
+          "answer": "Dạng mới làm rõ dãy tiến gần $2$ và hỗ trợ xét bị chặn/tính giới hạn.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Nêu khác biệt giữa $n$ và $u_n$.",
+          "answer": "$n$ là chỉ số; $u_n$ là giá trị của số hạng tại chỉ số đó. Không được đồng nhất hai đại lượng.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Số hạng thứ 10 của dãy $u_n=3n-2$ là gì?",
+          "solution": "$u_{10}=28$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Dãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "solution": "$u_1=1, u_{n+1}=u_n+3$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Nhầm chỉ số n với giá trị u_n.",
+        "Tính sai số hạng đầu khi chuyển từ truy hồi.",
+        "Dùng công thức tổng quát cho n = 0 dù dãy bắt đầu từ n = 1."
+      ],
+      "status": "draft",
+      "kind": "formation",
+      "selfChoice": false,
+      "guidingQuestion": "Dãy số khác hàm số thông thường ở điểm nào và làm sao để biểu diễn các số hạng của dãy số?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p38-must",
+          "level": "must",
+          "statement": "Tôi có thể tính đúng các số hạng đầu tiên của một dãy số khi biết công thức số hạng tổng quát.",
+          "provenance": {
+            "sourceId": "sp-docx-p38",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p38-should",
+          "level": "should",
+          "statement": "Tôi có thể biểu diễn dãy số dưới dạng bảng giá trị trên mặt phẳng tọa độ.",
+          "provenance": {
+            "sourceId": "sp-docx-p38",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p38-could",
+          "level": "could",
+          "statement": "Tôi có thể dự đoán công thức số hạng tổng quát từ các số hạng cụ thể của dãy số.",
+          "provenance": {
+            "sourceId": "sp-docx-p38",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:519 / d(11,6,38)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p38",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p38_Day_so_G11W6.docx",
+          "hash": "dc5aaa85950073da35962bf14d7f4b006fc2adee9fb1d22047fa9cbc8cdd1265",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 38",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p39",
+      "grade": 11,
+      "week": 6,
+      "period": 39,
+      "title": "Dãy số tăng, giảm, bị chặn",
+      "focus": "Xét đơn điệu và bị chặn bằng hiệu hoặc tỉ số",
+      "formulas": [
+        "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng}",
+        "u_{n+1}-u_n<0\\Longrightarrow (u_n)\\ \\text{giảm}",
+        "0<u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn trên}",
+        "m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}"
+      ],
+      "examples": [
+        {
+          "question": "Xét tính tăng giảm của $u_n=\\frac{n}{n+1}$.",
+          "solution": "Ta có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Chứng minh $u_n=\\frac{n}{n+1}$ bị chặn.",
+          "solution": "Với $n\\ge1$, $0<\\frac{n}{n+1}<1$; dãy bị chặn dưới bởi $0$ và trên bởi $1$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Điền dấu của $u_{n+1}-u_n$ nếu dãy tăng.",
+          "answer": "Hiệu dương: $u_{n+1}-u_n>0$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Dãy $u_n=\\frac1n$ tăng hay giảm?",
+          "answer": "Giảm vì $u_{n+1}<u_n$ với $n\\ge1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh $u_n=\\frac{2n+1}{n+1}$ tăng.",
+          "answer": "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Tìm một cận trên của $u_n=\\frac{n}{n+1}$.",
+          "answer": "Cận trên $1$ vì $u_n<1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Xét $u_n=(-1)^n$ bằng hiệu.",
+          "answer": "Không đơn điệu vì các số hạng luân phiên $-1,1$; nhưng bị chặn bởi $-1$ và $1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "answer": "Dấu của mẫu làm đổi chiều bất đẳng thức và tỉ số có thể không phản ánh đơn điệu; dùng hiệu an toàn hơn.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Dãy $u_n=\\frac{n}{n+1}$ có cận trên đơn giản nào?",
+          "solution": "$1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Một dãy luân phiên $-1,1$ có đơn điệu không?",
+          "solution": "Không, nhưng bị chặn.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Dùng tỉ số khi số hạng có thể âm.",
+        "Chứng minh hiệu dương nhưng quên n thuộc miền chỉ số.",
+        "Nhầm bị chặn với hội tụ."
+      ],
+      "status": "draft",
+      "kind": "formation",
+      "selfChoice": false,
+      "guidingQuestion": "Làm thế nào để chứng minh một dãy số là dãy tăng và bị chặn bằng phương pháp xét hiệu số?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p39-must",
+          "level": "must",
+          "statement": "Tôi có thể phát biểu đúng định nghĩa tính đơn điệu cùng tính bị chặn của dãy số.",
+          "provenance": {
+            "sourceId": "sp-docx-p39",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p39-should",
+          "level": "should",
+          "statement": "Tôi có thể chứng minh tính tăng giảm của một dãy số phân thức cụ thể bằng phương pháp xét hiệu.",
+          "provenance": {
+            "sourceId": "sp-docx-p39",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p39-could",
+          "level": "could",
+          "statement": "Tôi có thể phân tích hạn chế của phương pháp xét tỉ số khi dãy số có thể nhận giá trị âm.",
+          "provenance": {
+            "sourceId": "sp-docx-p39",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:539 / d(11,6,39)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p39",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p39_Day_so_G11W6.docx",
+          "hash": "c351762971700415be314b502a1410cffa50282dc87cc3cfcb0ae3358f95f45f",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 39",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p40",
+      "grade": 11,
+      "week": 6,
+      "period": 40,
+      "title": "Củng cố dãy số và tính đơn điệu",
+      "focus": "Phân mức bài tập về dãy số, tăng giảm và bị chặn",
+      "formulas": [
+        "u_n=f(n)",
+        "u_{n+1}-u_n",
+        "m\\le u_n\\le M",
+        "u_n=2-\\frac1{n+1}"
+      ],
+      "examples": [
+        {
+          "question": "Xét $u_n=2-\\frac1n$.",
+          "solution": "Vì $u_{n+1}-u_n=\\frac1{n(n+1)}>0$, dãy tăng và $u_n<2$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Tìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.",
+          "solution": "Với $n\\ge1$, $\\frac23\\le u_n<1$; dãy bị chặn và đạt cận dưới tại $n=1$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính $u_2$ của $u_n=2-\\frac1n$.",
+          "answer": "$u_2=\\frac32$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Nêu tiêu chí hiệu để dãy giảm.",
+          "answer": "$u_{n+1}-u_n<0$ với mọi $n$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh $u_n=\\frac{n+1}{n+2}$ tăng.",
+          "answer": "$u_{n+1}-u_n=\\frac1{(n+2)(n+3)}>0$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Tìm cận của $u_n=1+\\frac{(-1)^n}{n}$.",
+          "answer": "Với $n\\ge1$, $0\\le u_n\\le2$ là một cận đơn giản.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Phân tích một dãy không đơn điệu nhưng bị chặn.",
+          "answer": "Dùng $u_n=(-1)^n$; hiệu đổi dấu nhưng $-1\\le u_n\\le1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Viết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.",
+          "answer": "Tính hiệu/tỉ số để kết luận đơn điệu; sau đó dựng bất đẳng thức hai phía để kết luận bị chặn.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Với $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?",
+          "solution": "Dương, nên dãy tăng.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Cận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "solution": "Không đạt với $n$ hữu hạn vì $u_n<1$.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Không tách hai yêu cầu đơn điệu và bị chặn.",
+        "Dùng kết luận vượt quá yêu cầu khi đề chỉ hỏi bị chặn.",
+        "Bỏ điều kiện n ≥ 1 trong bất đẳng thức."
+      ],
+      "status": "draft",
+      "kind": "practice",
+      "selfChoice": true,
+      "guidingQuestion": "Làm thế nào để tách phần nguyên và đánh giá chính xác khoảng chặn của một dãy số phân thức?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p40-must",
+          "level": "must",
+          "statement": "Tôi có thể phân loại chính xác các dãy số cơ bản thành nhóm tăng hoặc nhóm giảm.",
+          "provenance": {
+            "sourceId": "sp-docx-p40",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p40-should",
+          "level": "should",
+          "statement": "Tôi có thể biến đổi đại số tách phần nguyên để tìm cận chặn của một dãy số phân thức.",
+          "provenance": {
+            "sourceId": "sp-docx-p40",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p40-could",
+          "level": "could",
+          "statement": "Tôi có thể xây dựng quy trình hai nhánh hoàn chỉnh để khảo sát toàn diện một dãy số bất kỳ.",
+          "provenance": {
+            "sourceId": "sp-docx-p40",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:559 / d(11,6,40)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p40",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p40_Cung_co_day_so_va_tinh_don_dieu_G11W6.docx",
+          "hash": "46913f02a7cc86c0924ce896cd541d5983f4733296910c44c3ed7af0a55c4b5d",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 40",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    },
+    {
+      "id": "sp-g11-w6-p41",
+      "grade": 11,
+      "week": 6,
+      "period": 41,
+      "title": "Phối hợp giá trị lượng giác, phương trình lượng giác và dãy số",
+      "focus": "Tiết tự chọn tổng hợp ba mạch kiến thức",
+      "formulas": [
+        "\\sin^2x+\\cos^2x=1",
+        "\\tan x=\\frac{\\sin x}{\\cos x}",
+        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
+        "u_{n+1}-u_n"
+      ],
+      "examples": [
+        {
+          "question": "Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.",
+          "solution": "Chọn $x=\\frac\\pi6$; thay vào sin được $\\frac12$ đúng.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.",
+          "solution": "Ta có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng; đồng thời $0<u_n<1$, nên $1$ là một cận trên.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.",
+          "answer": "$1$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "NB",
+          "question": "Giải $\\tan x=0$.",
+          "answer": "$x=k\\pi$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Giải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.",
+          "answer": "$x=\\frac\\pi6,\\frac{5\\pi}6,\\frac{7\\pi}6,\\frac{11\\pi}6$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "TH",
+          "question": "Xét $u_n=\\frac n{n+1}$ tăng bằng hiệu.",
+          "answer": "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Thiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.",
+          "answer": "Ví dụ đặt $x_n=\\frac\\pi6+2n\\pi$; kiểm tra công thức, miền chỉ số và chu kỳ.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "level": "VD",
+          "question": "Nêu cách kiểm tra chéo một lời giải hỗn hợp.",
+          "answer": "Kiểm công thức bằng thế giá trị; kiểm dãy bằng hiệu; đọc lại ký hiệu và điều kiện ở từng mạch.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Chọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.",
+          "solution": "Một công thức đúng và một phép kiểm cụ thể, không chỉ ghi “đã kiểm tra”.",
+          "sourceRef": "GV tự thiết kế"
+        },
+        {
+          "question": "Nêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "solution": "Chu kỳ lặp của hàm; chỉ số xác định vị trí của số hạng.",
+          "sourceRef": "GV tự thiết kế"
+        }
+      ],
+      "mistakes": [
+        "Trộn biến x với chỉ số n.",
+        "Dùng kết luận của một mạch cho mạch khác.",
+        "Không chỉ ra phép kiểm cụ thể."
+      ],
+      "status": "draft",
+      "kind": "practice",
+      "selfChoice": true,
+      "guidingQuestion": "Làm thế nào để phối hợp công cụ lượng giác và công cụ dãy số trong việc giải quyết bài toán chu kỳ tuần hoàn?",
+      "objectives": [
+        {
+          "id": "sp-g11-w6-p41-must",
+          "level": "must",
+          "statement": "Tôi có thể tính đúng nghiệm lượng giác cùng số hạng của dãy nghiệm tương ứng.",
+          "provenance": {
+            "sourceId": "sp-docx-p41",
+            "locator": "word/document.xml / I.2 / Must",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p41-should",
+          "level": "should",
+          "statement": "Tôi có thể vận dụng kỹ năng xét tính tăng giảm của dãy số trong phân tích các đại lượng nghiệm tuần hoàn.",
+          "provenance": {
+            "sourceId": "sp-docx-p41",
+            "locator": "word/document.xml / I.2 / Should",
+            "verification": "teacher_review_required"
+          }
+        },
+        {
+          "id": "sp-g11-w6-p41-could",
+          "level": "could",
+          "statement": "Tôi có thể thiết kế một bài toán mở tích hợp giữa lượng giác với dãy số kèm hướng dẫn chấm chi tiết.",
+          "provenance": {
+            "sourceId": "sp-docx-p41",
+            "locator": "word/document.xml / I.2 / Could",
+            "verification": "teacher_review_required"
+          }
+        }
+      ],
+      "sourceRefs": [
+        {
+          "id": "sp-structured",
+          "kind": "external",
+          "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:579 / d(11,6,41)",
+          "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+          "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+          "verification": "teacher_review_required"
+        },
+        {
+          "id": "sp-docx-p41",
+          "kind": "external",
+          "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p41_Luyen_tap_phoi_hop_gia_tri_luong_giac_phuong_trinh_luong_giac_va_day_so_G11W6.docx",
+          "hash": "7e1ae79f263621f3d6bce273e33c828e3acd6a29700f226a3ca9f3abca1d15e7",
+          "label": "Giáo án Ban Toán 11 — tuần 6, tiết 41",
+          "verification": "teacher_review_required"
+        }
+      ],
+      "sourceYear": "2026-2027",
+      "importNotes": [
+        "LaTeX lấy từ structuredTS; không nối phẳng OMML để lấy phân số.",
+        "NB/TH/VD là mức câu hỏi gốc, không tự ánh xạ Must/Should/Could."
+      ]
+    }
+  ],
+  "contentHash": "63d28f0eebbd7f91690ae4de43a45d87646384967d3373652b8b899a827c0093"
+}

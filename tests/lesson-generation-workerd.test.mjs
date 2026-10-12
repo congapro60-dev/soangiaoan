@@ -31,7 +31,7 @@ test('generation runs real workerd D1/R2 with one provider call and durable relo
     "try {",
     "if(url.pathname==='/upload') return Response.json({source:await sourceService.upload({ownerAccountId:owner,requestId:'upload',originalName:'source.docx',mime:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',bytes:new Uint8Array(await request.arrayBuffer())}),runtime:navigator.userAgent});",
     "const input=request.method==='POST'?await request.json():{};",
-    "const job=url.pathname==='/start'?await jobs.start({ownerAccountId:owner,sourceId:input.sourceId,requestId:input.requestId,settings:{slotMinutes:40,subject:'math',grade:11},model:'test-model'}):url.pathname==='/run'?await jobs.run({ownerAccountId:owner,id:input.id,aiConsent:input.aiConsent}):await jobs.get({ownerAccountId:owner,id:url.searchParams.get('id')});",
+    "const job=url.pathname==='/start'?await jobs.start({ownerAccountId:owner,sourceId:input.sourceId,requestId:input.requestId,settings:{slotMinutes:40,subject:'math',grade:11},model:'test-model'}):url.pathname==='/run'?await jobs.run({ownerAccountId:owner,id:input.id,aiConsent:input.aiConsent}):url.pathname==='/latest'?await jobs.latest({ownerAccountId:owner,sourceId:url.searchParams.get('sourceId')}):await jobs.get({ownerAccountId:owner,id:url.searchParams.get('id')});",
     "return Response.json({job,runtime:navigator.userAgent});",
     "}catch(error){return Response.json({error:error.message},{status:400});}}};"
   ].join('\n');
@@ -56,6 +56,8 @@ test('generation runs real workerd D1/R2 with one provider call and durable relo
     assert.equal(fresh.job.result.package.id, 'proposal-' + id);
     assert.equal(fresh.job.result.package.sourceRefs[0].hash, uploaded.source.sha256);
     assert.equal(fresh.job.result.package.sourceRefs[0].verification, 'teacher_review_required');
+    const restored=await(await mf.dispatchFetch('https://test/latest?owner=teacher-a&sourceId='+uploaded.source.id)).json();assert.deepEqual(restored,fresh);
+    assert.equal((await(await mf.dispatchFetch('https://test/latest?owner=teacher-b&sourceId='+uploaded.source.id)).json()).error,'NOT_FOUND');
     assert.equal(Number((await db.prepare("SELECT value FROM system_settings WHERE key='generationCalls'").first()).value), 1);
     assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM lesson_generation_jobs').first()).n, 1);
     assert.equal((await (await mf.dispatchFetch('https://test/get?owner=teacher-b&id=' + id)).json()).error, 'NOT_FOUND');

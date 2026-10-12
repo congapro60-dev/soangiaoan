@@ -15,7 +15,7 @@ export function createOwlLayer({ load, changed, reduced = false, enabled = true 
   function disposeTemplate(tmpl) {
     if (!tmpl || templateDisposed) return;
     templateDisposed = true;
-    const geoms = new Set(), mats = new Set();
+    const geoms = new Set(), mats = new Set(), textures = new Set();
     tmpl.scene.traverse(node => {
       if (node.geometry) geoms.add(node.geometry);
       if (node.material) {
@@ -24,14 +24,18 @@ export function createOwlLayer({ load, changed, reduced = false, enabled = true 
       }
     });
     geoms.forEach(g => g.dispose());
-    mats.forEach(m => m.dispose());
+    mats.forEach(m => {
+      for (const value of Object.values(m)) if (value?.isTexture) textures.add(value);
+      m.dispose();
+    });
+    textures.forEach(t => t.dispose());
   }
 
   function ensureLoading() {
     if (template || loading || loadError || disposed) return;
     loading = true;
     const loader = load ? load() : import('./vendor/three/addons/loaders/GLTFLoader.js')
-      .then(m => new m.GLTFLoader().loadAsync('/models/mascot-owl.glb'));
+      .then(m => new m.GLTFLoader().loadAsync('/models/mascot-gobkit-a.glb'));
     loader.then(gltf => {
       loading = false;
       if (disposed) {
@@ -41,7 +45,7 @@ export function createOwlLayer({ load, changed, reduced = false, enabled = true 
       template = gltf;
       box.setFromObject(template.scene);
       box.getCenter(center);
-      origHeight = (box.max.y - box.min.y) || 1;
+      origHeight = Math.max(box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z) || 1;
       changed?.();
     }).catch(() => {
       loading = false;

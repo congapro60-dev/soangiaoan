@@ -1,0 +1,1520 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p38",
+  "version": "1.0.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P38-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:519 / d(11,6,38)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p38",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p38_Day_so_G11W6.docx",
+      "hash": "dc5aaa85950073da35962bf14d7f4b006fc2adee9fb1d22047fa9cbc8cdd1265",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 38",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Dãy số khác hàm số thông thường ở điểm nào và làm sao để biểu diễn các số hạng của dãy số?",
+  "prerequisites": [
+    "Đọc ký hiệu, miền xác định và phép biến đổi đã học."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p38-must",
+      "code": "SP-G11-W6-P38-MUST",
+      "level": "must",
+      "statement": "Tôi có thể tính đúng các số hạng đầu tiên của một dãy số khi biết công thức số hạng tổng quát.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p38",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p38-should",
+      "code": "SP-G11-W6-P38-SHOULD",
+      "level": "should",
+      "statement": "Tôi có thể biểu diễn dãy số dưới dạng bảng giá trị trên mặt phẳng tọa độ.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p38",
+        "sourceLocator": "word/document.xml / I.2 / Should",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p38-could",
+      "code": "SP-G11-W6-P38-COULD",
+      "level": "could",
+      "statement": "Tôi có thể dự đoán công thức số hạng tổng quát từ các số hạng cụ thể của dãy số.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p38",
+        "sourceLocator": "word/document.xml / I.2 / Could",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "act-w6p38-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-experience"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-experience"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-pre-0",
+        "task-w6p38-pre-1",
+        "task-w6p38-pre-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-pre-0",
+        "ev-task-w6p38-pre-1",
+        "ev-task-w6p38-pre-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-pre-0",
+        "hint-task-w6p38-pre-1",
+        "hint-task-w6p38-pre-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 6,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Mỗi em ghi ý riêng; nhóm thảo luận bài mẫu; GV kết nối với quy tắc.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-formation"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-formation"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-support",
+        "task-w6p38-core",
+        "task-w6p38-refute"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-refute"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-support",
+        "hint-task-w6p38-core",
+        "hint-task-w6p38-refute"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-recheck-0",
+        "task-w6p38-recheck-1",
+        "task-w6p38-recheck-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-recheck-0",
+        "ev-task-w6p38-recheck-1",
+        "ev-task-w6p38-recheck-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-recheck-0",
+        "hint-task-w6p38-recheck-1",
+        "hint-task-w6p38-recheck-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-extension"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-exit-0",
+        "task-w6p38-exit-1",
+        "task-w6p38-exit-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-exit-0",
+        "ev-task-w6p38-exit-1",
+        "ev-task-w6p38-exit-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-exit-0",
+        "hint-task-w6p38-exit-1",
+        "hint-task-w6p38-exit-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 1,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [
+        "task-w6p38-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p38-reflection"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p38-reflection"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p38-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "taskIds": [],
+      "participation": "whole_class",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-w6p38-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "activityId": "act-w6p38-experience",
+      "participation": "individual",
+      "prompt": "Quan sát bài mẫu: Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Nêu quy tắc em dự đoán sẽ dùng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác."
+          ],
+          "lookFor": [
+            "$u_1=\\frac32$, $u_2=\\frac53$, $u_3=\\frac74$; chỉ số $n$ là đầu vào của công thức.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p38-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-experience",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-pre-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "activityId": "act-w6p38-precheck",
+      "participation": "individual",
+      "prompt": "Tính u_1 của u_n=2n−1, n≥1.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-pre-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác."
+          ],
+          "lookFor": [
+            "Thay chỉ số đúng, phân số chính xác.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p38-pre-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-pre-0",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-pre-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "activityId": "act-w6p38-precheck",
+      "participation": "individual",
+      "prompt": "Điểm số hạng thứ n có hai tọa độ nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-pre-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ."
+          ],
+          "lookFor": [
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p38-pre-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-pre-1",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-pre-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-precheck",
+      "participation": "individual",
+      "prompt": "Bốn số hạng có đảm bảo một công thức duy nhất không?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-pre-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p38-pre-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-pre-2",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-formation",
+      "participation": "group",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Sau đó thảo luận: Bốn số hạng có đảm bảo một công thức duy nhất không?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ bài phân thức đầu, lập bảng ba chỉ số và ghi/vẽ điểm(n; u_n). Từ1, 4, 7, 10 dự đoán công thức dưới giả định tăng thêm3; nói rõ dự đoán không duy nhất.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác.",
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ.",
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "$u_1=\\frac32$, $u_2=\\frac53$, $u_3=\\frac74$; chỉ số $n$ là đầu vào của công thức.\n$u_1=1, u_2=4, u_3=7, u_4=10, u_5=13$.\nDự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Từ bài phân thức đầu, lập bảng ba chỉ số và ghi/vẽ điểm(n; u_n). Từ1, 4, 7, 10 dự đoán công thức dưới giả định tăng thêm3; nói rõ dự đoán không duy nhất. GV yêu cầu lập luận hoặc sản phẩm cụ thể theo từng mục tiêu."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p38-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-formation",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should"
+      ],
+      "activityId": "act-w6p38-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Tính $u_4$ của $u_n=2n-1$. Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác.",
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ."
+          ],
+          "lookFor": [
+            "$u_4=7$.\n$u_1=\\frac32$, $u_2=\\frac53$, $u_3=\\frac74$; chỉ số $n$ là đầu vào của công thức.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Tính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p38-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-support",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should"
+      ],
+      "activityId": "act-w6p38-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Giả sử mỗi bước của dãy tiếp tục tăng thêm3. Viết truy hồi của dãy $2, 5, 8, 11, \\ldots$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Ghi điều kiện, giải đầy đủ và thử lại.\nTính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác.",
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ."
+          ],
+          "lookFor": [
+            "Theo giả định tiếp tục tăng thêm3, $u_1=2, \\ u_{n+1}=u_n+3$.\n$u_1=1, u_2=4, u_3=7, u_4=10, u_5=13$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Tính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p38-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-core",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-refute",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-practice",
+      "participation": "individual",
+      "prompt": "Chọn và sửa một lỗi: Nhầm chỉ số n với giá trị u_n. Tính sai số hạng đầu khi chuyển từ truy hồi. Dùng công thức tổng quát cho n = 0 dù dãy bắt đầu từ n = 1. Sau đó giải thích: Bốn số hạng có đảm bảo một công thức duy nhất không?\nDự đoán quy luật1, 4, 7, 10 theo giả định thêm3; kiểm bốn vị trí và nêu giới hạn dự đoán.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-refute"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p38-refute"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-refute",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-recheck-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "activityId": "act-w6p38-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Với $u_n=\\frac{2n+1}{n+1}$, $n\\ge1$, tính $u_1, u_2, u_3$; ghi phép thay n.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-recheck-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác."
+          ],
+          "lookFor": [
+            "3/2, 5/3, 7/4.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p38-recheck-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-recheck-0",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-recheck-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "activityId": "act-w6p38-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Với $u_n=2n-1$, $n\\ge1$, lập bảng n=1, 2, 3 và ghi/vẽ ba điểm (n; u_n). Phân biệt chỉ số và giá trị.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-recheck-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ."
+          ],
+          "lookFor": [
+            "(1; 1), (2; 3), (3; 5); hoành độ n, chỉ số; tung độu_n, giá trị; điểm rời rạc, không phải toàn hàm trênR.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p38-recheck-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-recheck-1",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-recheck-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Từ2, 5, 8, 11, dự đoán công thức nếu quy luật tăng thêm3 tiếp tục; kiểm bốn vị trí và nêu giới hạn dự đoán.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-recheck-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "u_n=3n−1 theo giả định; khớp1..4; dữ liệu hữu hạn không xác định duy nhất toàn dãy.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p38-recheck-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-recheck-2",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng: Đổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích. Nêu điều kiện/giả định và kiểm kết quả. Từ ba số hạng đầu, nêu một dự đoán về công thức rồi dùng công thức đã cho để kiểm chứng. Giải thích vì sao các số hạng hữu hạn không xác định duy nhất cả dãy.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Biến đổi(2n+1)/(n+1)=2−1/(n+1) đúng, ghi miền chỉ số.",
+            "Dùng dạng mới giải thích u_n<2 và tiến gần2 khi n tăng; không suy bằng2 tại n hữu hạn.",
+            "Nêu dự đoán có kiểm chứng và giới hạn của việc suy cả dãy từ hữu hạn số hạng."
+          ],
+          "lookFor": [
+            "Với n≥1, 2n+1=2(n+1)−1 nên u_n=2−1/(n+1); 3/2≤u_n<2, phần trừ tiến về0 khi n tăng.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Không coi một dự đoán khớp ba số hạng là công thức duy nhất; có thể thêm hạng chứa(n−1)(n−2)(n−3) để giữ ba số hạng đầu nhưng đổi các số hạng sau."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p38-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-extension",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-exit-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "activityId": "act-w6p38-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Cho $u_n=3n-2$, $n\\ge1$. Tính ba số hạng đầu và số hạng thứ10.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-exit-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác."
+          ],
+          "lookFor": [
+            "1, 4, 7; u_10=28.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p38-exit-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-exit-0",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-exit-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "activityId": "act-w6p38-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Với $u_n=\\frac n{n+1}$, $n\\ge1$, lập bảng n=1, 2, 3 và ghi/vẽ điểm. Vì sao biểu diễn rời rạc?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-exit-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ."
+          ],
+          "lookFor": [
+            "(1; 1/2), (2; 2/3), (3; 3/4); chỉ số nguyên dương, không có mọi giá trị thực ở giữa.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p38-exit-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-exit-1",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-exit-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Từ1, 4, 7, 10, dự đoán công thức nếu mỗi bước tăng3; kiểm u_4 và giải thích vì sao phải nêu giả định.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-exit-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "u_n=3n−2, u_4=10; chỉ dự đoán dưới giả định quy luật tiếp tục, không duy nhất từ bốn số hạng.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p38-exit-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-exit-2",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p38-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "activityId": "act-w6p38-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một điều kiện hoặc phép kiểm em sẽ giữ; khai báo trung thực nếu đã dùng gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p38-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thay chỉ số đúng, phân số chính xác.",
+            "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ.",
+            "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+          ],
+          "lookFor": [
+            "Phản tỉnh gắn với bài; không tính mastery.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p38-reflection"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p38/adapted-reflection",
+          "quote": "$u_n=f(n)$\n$u_1=a,\\ u_{n+1}=g(u_n)$\n$u_n=\\frac{2n+1}{n+1}$\n$u_{n+1}=u_n+3$\nCho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.\nCho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.\nTính $u_4$ của $u_n=2n-1$.\nViết truy hồi của dãy $2,5,8,11,\\ldots$.\nTìm $u_5$ của $u_n=\\frac{n}{n+1}$.\nCho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.\nĐổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.\nNêu khác biệt giữa $n$ và $u_n$.\nSố hạng thứ 10 của dãy $u_n=3n-2$ là gì?\nDãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-task-w6p38-experience",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-pre-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-pre-0",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-pre-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-pre-1",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-pre-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-pre-2",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-formation",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-support",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-support",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-core",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-core",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-refute",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-refute",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-recheck-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-recheck-0",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-recheck-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-recheck-1",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-recheck-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-recheck-2",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-extension",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-exit-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-exit-0",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-exit-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-exit-1",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-exit-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-exit-2",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p38-reflection",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p38-reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-task-w6p38-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-experience"
+    },
+    {
+      "id": "ev-task-w6p38-pre-0",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-pre-0"
+    },
+    {
+      "id": "ev-task-w6p38-pre-1",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-pre-1"
+    },
+    {
+      "id": "ev-task-w6p38-pre-2",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-pre-2"
+    },
+    {
+      "id": "ev-task-w6p38-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-formation"
+    },
+    {
+      "id": "ev-task-w6p38-refute",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-refute"
+    },
+    {
+      "id": "ev-task-w6p38-recheck-0",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-recheck-0"
+    },
+    {
+      "id": "ev-task-w6p38-recheck-1",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-recheck-1"
+    },
+    {
+      "id": "ev-task-w6p38-recheck-2",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-recheck-2"
+    },
+    {
+      "id": "ev-task-w6p38-exit-0",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-exit-0"
+    },
+    {
+      "id": "ev-task-w6p38-exit-1",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p38-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-exit-1"
+    },
+    {
+      "id": "ev-task-w6p38-exit-2",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p38-exit-2"
+    },
+    {
+      "id": "ev-task-w6p38-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p38-must",
+        "sp-g11-w6-p38-should",
+        "sp-g11-w6-p38-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p38-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Thay chỉ số đúng, phân số chính xác.",
+      "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ.",
+      "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
+    ],
+    "lookFor": [
+      "GV chấm lời giải mở trước xác nhận đạt.",
+      "Câu điều chỉnh từ nguồn cần GV duyệt; không lấy đúng nhóm làm đạt cá nhân."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "8aa9cd6b2ef8904d048a9a2721ae799489d37bb6b5ad24d36b4e28815897f03e"
+}

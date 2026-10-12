@@ -1,0 +1,835 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p37-must-only",
+  "version": "1.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P37-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:499 / d(11,6,37)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p37",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p37_On_tap_chuong_I_G11W6.docx",
+      "hash": "9957511790d0d45b43bef055a41918f9d491d55643d44f6ee68f3206b72aa10e",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 37",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Quy đổi một phương trình tuyến tính theo sin hoặc cos về dạng cơ bản như thế nào?",
+  "prerequisites": [
+    "Biến đổi phương trình bậc nhất và viết nghiệm sin/cos của góc đặc biệt."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p37-must",
+      "code": "SP-G11-W6-P37-MUST",
+      "level": "must",
+      "statement": "Tôi có thể quy đổi các phương trình lượng giác đưa được về dạng cơ bản bậc nhất đối với một hàm số.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p37",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m37-act-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-experience"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m37-experience"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-pre",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-pre"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-pre"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-formation"
+      ],
+      "teacherLookFor": "Chốt công thức/khái niệm Must; sản phẩm nhóm chỉ dùng phản hồi.",
+      "supportIds": [
+        "hint-m37-formation"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-support",
+        "m37-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Mỗi em làm đúng một bài theo làn hỗ trợ hoặc chuẩn.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m37-support",
+        "hint-m37-core"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-recheck"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-recheck"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Em đủ điều kiện theo assessed Must mới làm một câu ngắn; em chưa đủ tiếp tục luyện Must.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m37-extension"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-exit"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-exit"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [
+        "m37-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Ghi một chỗ cần luyện tiếp ở Must; khai báo trung thực trợ giúp.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m37-reflection"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m37-act-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV dùng thời gian còn lại theo tình hình; không thêm mục tiêu.",
+      "expectedProduct": "Thời gian dự phòng; không thêm bằng chứng đạt.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m37-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-experience",
+      "participation": "individual",
+      "prompt": "Quy đổi và giải $2\\sin x-1=0$ trên $\\mathbb R$. Nêu bước cô lập sinx trước công thức nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Trả lời đúng phần Must được hỏi ở câu này."
+          ],
+          "lookFor": [
+            "sinx=1/2; x=π/6+2kπ hoặc5π/6+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-m37-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-experience",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-pre",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-pre",
+      "participation": "individual",
+      "prompt": "Quy đổi $3\\cos x-1=0$ về phương trình cơ bản theo một hàm. Chưa cần viết nghiệm góc.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-pre"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Trả lời đúng phần Must được hỏi ở câu này."
+          ],
+          "lookFor": [
+            "cosx=1/3 sau khi cộng1 và chia3."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 3,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-pre",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-formation",
+      "participation": "group",
+      "prompt": "Mỗi em ghi bước riêng. Nhóm quy đổi rồi giải $2\\cos x-1=0$ trênR. Viết đủ họ nghiệm; không dùng ẩn phụ bậc hai hoặc lọc đoạn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "cosx=1/2; x=±π/3+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-m37-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-formation",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Quy đổi và giải $5\\sin x=0$ trênR. Ghi phép chia và họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "sinx=0; x=kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m37-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-support",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Quy đổi và giải $2\\cos x+2=0$ trênR. Ghi từng phép biến đổi rồi họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "cosx=−1; x=π+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m37-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-core",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-recheck",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-recheck",
+      "participation": "individual",
+      "prompt": "Bài độc lập mới: Quy đổi rồi giải $4\\sin x-2\\sqrt2=0$ trên $\\mathbb R$. Tự viết phép biến đổi và mọi họ nghiệm, k nguyên; không chọn sẵn phương trình tương đương.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-recheck"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "sinx=√2/2; x=π/4+2kπ hoặc3π/4+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-recheck",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng Must, một câu ngắn: Quy đổi và giải $7\\sin x-7=0$ trênR.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "sinx=1; x=π/2+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m37-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-extension",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-exit",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Quy đổi rồi giải $3\\cos x+\\frac32=0$ trên $\\mathbb R$. Tự viết phép biến đổi và đủ họ nghiệm với k nguyên.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-exit"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+            "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+            "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+          ],
+          "lookFor": [
+            "cosx=−1/2; x=2π/3+2kπ hoặc4π/3+2kπ, k∈Z; tương đương±2π/3+2kπ."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-exit",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m37-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "m37-act-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một phần của Must em còn cần luyện; khai báo trung thực nếu đã dùng gợi ý hoặc trợ giúp.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m37-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu một điều còn cần luyện ở Must.",
+            "Khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Chỉ phản tư; không tính mastery."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 2,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/must-only-adapted/m37-reflection",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m37-experience",
+      "tier": "H1",
+      "text": "Dùng cùng phép cộng/trừ/chia hợp lệ ở hai vế để cô lập một hàm. Sau khi quy đổi, chọn công thức nghiệm đúng cho hàm đó và ghi tham số nguyên.",
+      "taskId": "m37-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m37-formation",
+      "tier": "H1",
+      "text": "Dùng cùng phép cộng/trừ/chia hợp lệ ở hai vế để cô lập một hàm. Sau khi quy đổi, chọn công thức nghiệm đúng cho hàm đó và ghi tham số nguyên.",
+      "taskId": "m37-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m37-support",
+      "tier": "H1",
+      "text": "Dùng cùng phép cộng/trừ/chia hợp lệ ở hai vế để cô lập một hàm. Sau khi quy đổi, chọn công thức nghiệm đúng cho hàm đó và ghi tham số nguyên.",
+      "taskId": "m37-support",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m37-core",
+      "tier": "H1",
+      "text": "Dùng cùng phép cộng/trừ/chia hợp lệ ở hai vế để cô lập một hàm. Sau khi quy đổi, chọn công thức nghiệm đúng cho hàm đó và ghi tham số nguyên.",
+      "taskId": "m37-core",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m37-extension",
+      "tier": "H1",
+      "text": "Dùng cùng phép cộng/trừ/chia hợp lệ ở hai vế để cô lập một hàm. Sau khi quy đổi, chọn công thức nghiệm đúng cho hàm đó và ghi tham số nguyên.",
+      "taskId": "m37-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m37-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m37-experience"
+    },
+    {
+      "id": "ev-m37-pre",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m37-pre"
+    },
+    {
+      "id": "ev-m37-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "m37-formation"
+    },
+    {
+      "id": "ev-m37-recheck",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m37-recheck"
+    },
+    {
+      "id": "ev-m37-exit",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m37-exit"
+    },
+    {
+      "id": "ev-m37-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m37-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Thực hiện biến đổi tương đương để cô lập một hàm lượng giác.",
+      "Viết đủ họ nghiệm của phương trình cơ bản, k∈Z.",
+      "GV đọc phép quy đổi và kết luận; không chấm nhận diện thay thực hiện biến đổi."
+    ],
+    "lookFor": [
+      "Chỉ ghi đạt Must khi có cả recheck và exit cá nhân độc lập; nội dung Should/Could làm ở phần sau.",
+      "Gói mới là draft cần GV đối soát nguồn, đáp án, định dạng và thời lượng."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "69c8039cfaf2d4d2937bf983177be0abff0dd02616f646e1d61ad6270adff3dd"
+}

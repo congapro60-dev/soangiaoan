@@ -25,6 +25,12 @@ const teacher=(action,body={})=>post(action,body,'',rootH);
 const teacherGet=(kind,id)=>get(kind,id,'',rootH);
 const admin=crypto.randomUUID()+crypto.randomUUID(),id=crypto.randomUUID();
 const room=(await teacher('create-room',{id,adminKey:admin,title:'Test room'})).data.room;
+const info=await post('room-info',{code:room.code});assert.equal(info.status,200);assert.equal(info.data.kind,'game');assert.equal(info.data.durationMs,1800000);
+assert.equal(/token|admin_hash|answerKey|seed/.test(JSON.stringify(info.data)),false);
+const lessonRoomId=crypto.randomUUID(),lessonRoomCode='A0F891';database.prepare("INSERT INTO rooms(id,code,admin_hash,title,created,mode,owner_account_id) VALUES(?,?,?,?,?,'lesson',?)").run(lessonRoomId,lessonRoomCode,'hidden','Lesson entry QA',Date.now(),testEnv.SITE_OWNER_USER_ID);
+const lessonInfo=await post('room-info',{code:lessonRoomCode});assert.equal(lessonInfo.data.kind,'lesson');assert.equal(lessonInfo.data.joinPath,'/play');
+assert.equal((await post('join',{code:lessonRoomCode,name:'Cannot authenticate by name'})).status,400);assert.equal(database.prepare('SELECT COUNT(*) AS n FROM teams WHERE room_id=?').get(lessonRoomId).n,0);
+for(const [rule,durationMs] of [['duel',375000],['zones',300000],['survival',180000]]){const config={rule,participation:'pairs',playMode:'teams',theme:'modern',topics:['sets'],grade:10,minLevel:0,maxLevel:0,stationMax:0};const match=await teacher('create-room',{id:crypto.randomUUID(),adminKey:crypto.randomUUID()+crypto.randomUUID(),title:'Rule '+rule,campaign:config});assert.equal(match.status,200,JSON.stringify(match.data));const actual=await post('room-info',{code:match.data.room.code});assert.equal(actual.data.campaign.rule,rule);assert.equal(actual.data.campaign.participation,'pairs');assert.equal(actual.data.durationMs,durationMs);assert.equal(/seed|roster|token|admin_hash|answerKey/.test(JSON.stringify(actual.data)),false);}
 const otherId=crypto.randomUUID(),otherAdmin=crypto.randomUUID()+crypto.randomUUID();
 await teacher('create-room',{id:otherId,adminKey:otherAdmin,title:'Other room'});
 const team=(await post('join',{code:room.code,name:'Đội A'})).data.session;

@@ -1,0 +1,1520 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p34",
+  "version": "1.0.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P34-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:439 / d(11,6,34)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p34",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p34_Phuong_trinh_luong_giac_co_ban_G11W6.docx",
+      "hash": "1961edaa4a47eca5b00e94f3c177a18b0db2f9d985f6c33614bb9d81729b5eba",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 34",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Vì sao phương trình tan x = m và cot x = m chỉ có duy nhất một họ nghiệm với chu kỳ kπ?",
+  "prerequisites": [
+    "Đọc ký hiệu, miền xác định và phép biến đổi đã học."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p34-must",
+      "code": "SP-G11-W6-P34-MUST",
+      "level": "must",
+      "statement": "Tôi có thể viết đúng công thức nghiệm chu kỳ kπ của phương trình lượng giác cơ bản tan x = m.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p34",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p34-should",
+      "code": "SP-G11-W6-P34-SHOULD",
+      "level": "should",
+      "statement": "Tôi có thể tìm điều kiện xác định để giải hoàn chỉnh phương trình tan u(x) = m.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p34",
+        "sourceLocator": "word/document.xml / I.2 / Should",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p34-could",
+      "code": "SP-G11-W6-P34-COULD",
+      "level": "could",
+      "statement": "Tôi có thể giải thích sự khác biệt về chu kỳ của phương trình tan đối với phương trình sin.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p34",
+        "sourceLocator": "word/document.xml / I.2 / Could",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "act-w6p34-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-experience"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-experience"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-pre-0",
+        "task-w6p34-pre-1",
+        "task-w6p34-pre-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-pre-0",
+        "ev-task-w6p34-pre-1",
+        "ev-task-w6p34-pre-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-pre-0",
+        "hint-task-w6p34-pre-1",
+        "hint-task-w6p34-pre-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 6,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Mỗi em ghi ý riêng; nhóm thảo luận bài mẫu; GV kết nối với quy tắc.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-formation"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-formation"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-support",
+        "task-w6p34-core",
+        "task-w6p34-refute"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-refute"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-support",
+        "hint-task-w6p34-core",
+        "hint-task-w6p34-refute"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-recheck-0",
+        "task-w6p34-recheck-1",
+        "task-w6p34-recheck-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-recheck-0",
+        "ev-task-w6p34-recheck-1",
+        "ev-task-w6p34-recheck-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-recheck-0",
+        "hint-task-w6p34-recheck-1",
+        "hint-task-w6p34-recheck-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-extension"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-exit-0",
+        "task-w6p34-exit-1",
+        "task-w6p34-exit-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-exit-0",
+        "ev-task-w6p34-exit-1",
+        "ev-task-w6p34-exit-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-exit-0",
+        "hint-task-w6p34-exit-1",
+        "hint-task-w6p34-exit-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 1,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [
+        "task-w6p34-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p34-reflection"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p34-reflection"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p34-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "taskIds": [],
+      "participation": "whole_class",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-w6p34-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "activityId": "act-w6p34-experience",
+      "participation": "individual",
+      "prompt": "Quan sát bài mẫu: Giải $\\tan x=1$. Nêu quy tắc em dự đoán sẽ dùng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên."
+          ],
+          "lookFor": [
+            "Vì $\\tan\\frac\\pi4=1$ nên $x=\\frac\\pi4+k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p34-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-experience",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-pre-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "activityId": "act-w6p34-precheck",
+      "participation": "individual",
+      "prompt": "Nêu cấu trúc họ nghiệm tan x = m.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-pre-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên."
+          ],
+          "lookFor": [
+            "Góc đại diện, mọi nghiệm với k nguyên.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p34-pre-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-pre-0",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-pre-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "activityId": "act-w6p34-precheck",
+      "participation": "individual",
+      "prompt": "Điều kiện nào cần kiểm trước khi giải tan u(x) = m?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-pre-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Điều kiện xác định và kiểm tất cả nghiệm."
+          ],
+          "lookFor": [
+            "Điều kiện xác định và kiểm tất cả nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p34-pre-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-pre-1",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-pre-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-precheck",
+      "participation": "individual",
+      "prompt": "Chu kỳ nghiệm tan khác sin như thế nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-pre-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p34-pre-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-pre-2",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-formation",
+      "participation": "group",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Giải $\\tan x=1$. Giải $\\cot(2x-\\frac\\pi4)=-1$. Sau đó thảo luận: Chu kỳ nghiệm tan khác sin như thế nào?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nViết miền xác định cho tan/cot trước giải; đối chiếu chu kỳ π của tan với2π và hai họ nghiệm của sin.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên.",
+            "Điều kiện xác định và kiểm tất cả nghiệm.",
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Vì $\\tan\\frac\\pi4=1$ nên $x=\\frac\\pi4+k\\pi$.\nĐặt $2x-\\frac\\pi4=-\\frac\\pi4+k\\pi$; suy ra $x=\\frac{k\\pi}{2}$, đồng thời kiểm tra điều kiện xác định của cot.\nSo sánh số họ và chu kỳ, không bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Viết miền xác định cho tan/cot trước giải; đối chiếu chu kỳ π của tan với2π và hai họ nghiệm của sin. GV yêu cầu lập luận hoặc sản phẩm cụ thể theo từng mục tiêu."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p34-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-formation",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should"
+      ],
+      "activityId": "act-w6p34-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Giải $\\tan x=\\sqrt3$. Giải $\\tan x=1$. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nVới bài tan, viết điều kiện góc khác π/2+kπ và kiểm mọi nghiệm; nêu một lý do về chu kỳ.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên.",
+            "Điều kiện xác định và kiểm tất cả nghiệm."
+          ],
+          "lookFor": [
+            "$x=\\frac\\pi3+k\\pi$.\nVì $\\tan\\frac\\pi4=1$ nên $x=\\frac\\pi4+k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Với bài tan, viết điều kiện góc khác π/2+kπ và kiểm mọi nghiệm; nêu một lý do về chu kỳ. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p34-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-support",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should"
+      ],
+      "activityId": "act-w6p34-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Giải $\\cot x=-1$. Giải $\\cot(2x-\\frac\\pi4)=-1$. Ghi điều kiện, giải đầy đủ và thử lại.\nĐiều kiện tương ứng từng bài: với cot x, x≠kπ; với cot(2x−π/4), 2x−π/4≠kπ. Kiểm nghiệm theo đúng góc của bài, không áp đồng thời điều kiện của hai bài khác nhau.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên.",
+            "Điều kiện xác định và kiểm tất cả nghiệm."
+          ],
+          "lookFor": [
+            "$x=-\\frac\\pi4+k\\pi$.\nĐặt $2x-\\frac\\pi4=-\\frac\\pi4+k\\pi$; suy ra $x=\\frac{k\\pi}{2}$, đồng thời kiểm tra điều kiện xác định của cot.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Điều kiện tương ứng từng bài: với cot x, x≠kπ; với cot(2x−π/4), 2x−π/4≠kπ. Kiểm nghiệm theo đúng góc của bài, không áp đồng thời điều kiện của hai bài khác nhau. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p34-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-core",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-refute",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-practice",
+      "participation": "individual",
+      "prompt": "Chọn và sửa một lỗi: Dùng k2π thay cho kπ. Bỏ điều kiện xác định của tan/cot. Không lọc nghiệm theo khoảng sau khi chia hệ số góc. Sau đó giải thích: Chu kỳ nghiệm tan khác sin như thế nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-refute"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p34-refute"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-refute",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-recheck-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "activityId": "act-w6p34-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $\\tan x=\\sqrt3$ trên $\\mathbb R$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-recheck-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên."
+          ],
+          "lookFor": [
+            "$x=\\frac\\pi3+k\\pi$, $k\\in\\mathbb Z$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p34-recheck-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-recheck-0",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-recheck-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "activityId": "act-w6p34-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $\\tan(2x+\\frac\\pi4)=\\sqrt3$; ghi điều kiện xác định và kiểm nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-recheck-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Điều kiện xác định và kiểm tất cả nghiệm."
+          ],
+          "lookFor": [
+            "$2x+\\frac\\pi4\\ne\\frac\\pi2+k\\pi$; $x=\\frac\\pi{24}+\\frac{k\\pi}{2}$, k nguyên, thỏa điều kiện.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p34-recheck-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-recheck-1",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-recheck-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Lời giải $\\tan x=1$ chỉ lấy $\\frac\\pi4+2k\\pi$. Chỉ ra nghiệm thiếu; đối chiếu số họ và chu kỳ với $\\sin x=\\frac12$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-recheck-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Thiếu $\\frac\\pi4+(2k+1)\\pi$; tan có họ $\\frac\\pi4+k\\pi$. Sin hai họ $\\frac\\pi6+2k\\pi$, $\\frac{5\\pi}6+2k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p34-recheck-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-recheck-2",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng: Giải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định. Nêu điều kiện/giả định và kiểm kết quả. So sánh chu kỳ hàm tan (π) với hàm sin (2π); giải thích vì sao mỗi họ nghiệm tan viết với kπ. Có thể gộp hai họ nghiệm của bài thành một họ có bước π/2; không coi π luôn là chu kỳ tối thiểu của tập nghiệm chung.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu miền xác định của hai hàm tan và điều kiện t≠−1.",
+            "Đặt t=tan x, biến đổi t²−2t−1=0 đúng.",
+            "Trở về hai họ nghiệm x, kiểm miền và k nguyên.",
+            "So sánh chu kỳ hàm tan với hàm sin; phân biệt mỗi họ nghiệm và tập nghiệm hợp nhất."
+          ],
+          "lookFor": [
+            "Đặt $t=\\tan x$. Khi $\\tan(\\frac\\pi4-x)=\\frac{1-t}{1+t}$, ta được $t+\\frac{1-t}{1+t}=2$ hay $t^2-2t-1=0$. Suy ra $t=1+\\sqrt2$ hoặc $t=1-\\sqrt2$, rồi đối chiếu điều kiện xác định. Nghiệm đầy đủ: x=3π/8+kπ hoặc x=−π/8+kπ, k nguyên. Miền loại x=π/2+kπ và x=−π/4+kπ. Hai họ cũng có thể gộp x=−π/8+kπ/2, k nguyên.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p34-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-extension",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-exit-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "activityId": "act-w6p34-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $\\tan x=-\\sqrt3$ trên $\\mathbb R$; chọn một góc đại diện khác và kiểm tính tương đương.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-exit-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên."
+          ],
+          "lookFor": [
+            "$x=-\\frac\\pi3+k\\pi$, tương đương $\\frac{2\\pi}3+k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p34-exit-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-exit-0",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-exit-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "activityId": "act-w6p34-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $\\tan(3x)=1$ trên $\\mathbb R$; ghi điều kiện xác định và kiểm nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-exit-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Điều kiện xác định và kiểm tất cả nghiệm."
+          ],
+          "lookFor": [
+            "$3x\\ne\\frac\\pi2+k\\pi$; $x=\\frac\\pi{12}+\\frac{k\\pi}{3}$, k nguyên, đều hợp lệ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p34-exit-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-exit-1",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-exit-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: So sánh đầy đủ nghiệm $\\tan x=\\sqrt3$ và $\\sin x=\\frac{\\sqrt3}{2}$. Vì sao không áp dụng một họ chu kỳ π cho sin?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-exit-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Tan: $\\frac\\pi3+k\\pi$; sin: $\\frac\\pi3+2k\\pi$ hoặc $\\frac{2\\pi}3+2k\\pi$. Đối xứng sin tạo hai họ; chu kỳ hàm2π.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p34-exit-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-exit-2",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p34-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "activityId": "act-w6p34-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một điều kiện hoặc phép kiểm em sẽ giữ; khai báo trung thực nếu đã dùng gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p34-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Góc đại diện, mọi nghiệm với k nguyên.",
+            "Điều kiện xác định và kiểm tất cả nghiệm.",
+            "So sánh số họ và chu kỳ, không bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Phản tỉnh gắn với bài; không tính mastery.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p34-reflection"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p34/adapted-reflection",
+          "quote": "$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}$\n$x\\ne k\\pi\\ \\text{đối với cot}$\nGiải $\\tan x=1$.\nGiải $\\cot(2x-\\frac\\pi4)=-1$.\nGiải $\\tan x=\\sqrt3$.\nGiải $\\cot x=-1$.\nGiải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.\nGiải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.\nGiải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.\nPhản biện lời giải dùng chu kỳ $2\\pi$ cho $\\tan x=1$.\nGiải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.\nNêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-task-w6p34-experience",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-pre-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-pre-0",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-pre-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-pre-1",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-pre-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-pre-2",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-formation",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-support",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-support",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-core",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-core",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-refute",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-refute",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-recheck-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-recheck-0",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-recheck-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-recheck-1",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-recheck-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-recheck-2",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-extension",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-exit-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-exit-0",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-exit-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-exit-1",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-exit-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-exit-2",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p34-reflection",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p34-reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-task-w6p34-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-experience"
+    },
+    {
+      "id": "ev-task-w6p34-pre-0",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-pre-0"
+    },
+    {
+      "id": "ev-task-w6p34-pre-1",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-pre-1"
+    },
+    {
+      "id": "ev-task-w6p34-pre-2",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-pre-2"
+    },
+    {
+      "id": "ev-task-w6p34-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-formation"
+    },
+    {
+      "id": "ev-task-w6p34-refute",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-refute"
+    },
+    {
+      "id": "ev-task-w6p34-recheck-0",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-recheck-0"
+    },
+    {
+      "id": "ev-task-w6p34-recheck-1",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-recheck-1"
+    },
+    {
+      "id": "ev-task-w6p34-recheck-2",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-recheck-2"
+    },
+    {
+      "id": "ev-task-w6p34-exit-0",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-exit-0"
+    },
+    {
+      "id": "ev-task-w6p34-exit-1",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p34-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-exit-1"
+    },
+    {
+      "id": "ev-task-w6p34-exit-2",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p34-exit-2"
+    },
+    {
+      "id": "ev-task-w6p34-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p34-must",
+        "sp-g11-w6-p34-should",
+        "sp-g11-w6-p34-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p34-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Góc đại diện, mọi nghiệm với k nguyên.",
+      "Điều kiện xác định và kiểm tất cả nghiệm.",
+      "So sánh số họ và chu kỳ, không bỏ nghiệm."
+    ],
+    "lookFor": [
+      "GV chấm lời giải mở trước xác nhận đạt.",
+      "Câu điều chỉnh từ nguồn cần GV duyệt; không lấy đúng nhóm làm đạt cá nhân."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "ff7ceb26897e78db8c67efca3cb704a01279b593b13d88a75fb4de11f9cfa13e"
+}

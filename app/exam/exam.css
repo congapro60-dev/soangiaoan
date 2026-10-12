@@ -248,3 +248,27 @@
 .exam-post-map h2 { font-size:1.1rem; margin:0 0 10px; }
 .exam-review { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
 .exam-review .exam-nav { background: var(--lesson-bg); }
+
+/* Individual readable scale comes only from the authenticated pupil projection. */
+.exam-shell[style] .exam-q-text,
+.exam-shell[style] .exam-statement-content,
+.exam-shell[style] .exam-note,
+.exam-shell[style] .exam-error,
+.exam-shell[style] .exam-review-answer,
+.exam-shell[style] .exam-question .lesson-input,
+.exam-shell[style] .exam-card li,
+.exam-shell[style] .exam-card label > span {
+  font-size: calc(1rem * var(--exam-text-scale, 1));
+  overflow-wrap: anywhere;
+}
+.exam-shell[style] .exam-option { font-size: calc(1.5rem * var(--exam-text-scale, 1)); overflow-wrap: anywhere; min-width: 0; }
+.exam-shell[style] .exam-tf-btn { font-size: calc(1.05rem * var(--exam-text-scale, 1)); }
+.exam-shell[style] .exam-tf-letter { font-size: calc(1.1rem * var(--exam-text-scale, 1)); width: auto; }
+.exam-shell[style] .exam-statement-content { min-width: 0; }
+.exam-shell[style] .exam-question .lesson-input { width: 100%; max-width: 100%; }
+.exam-accommodation { margin-top: 16px; }
+.exam-accommodation fieldset { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; border: 0; padding: 0; min-width: 0; }
+.exam-accommodation label { flex: 1 1 160px; }
+.exam-accommodation input, .exam-accommodation select { min-height: 44px; }
+
+.exam-accommodation-open { min-height: 44px; white-space: normal; }

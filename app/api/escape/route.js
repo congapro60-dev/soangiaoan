@@ -2,7 +2,7 @@ import { COMMUNITY_CELL, individual, communityOf, gameNow, communityActive, crea
 import { ARENA_CELL, COMBAT_ACTIONS, createArenaEvent, arenaEntries, arenaAnswer, arenaCombat, publicArena, settleArena, arenaPhase } from '../../../lib/arena-community.js';
 import { checkContext } from '../../../lib/context-questions.js';
 import { createCampaign, campaignPublic, numericAnswer, modeConfig } from '../../../lib/campaign.js';
-import {createGame, reduce as reduceMode} from '../../../lib/mode-engine/index.js';
+import {createGame, reduce as reduceMode, RULES as modeRules} from '../../../lib/mode-engine/index.js';
 import {projectMode} from '../../../lib/mode-runtime.js';
 import {serializePublic as modePublic} from '../../../lib/mode-engine/serialize.js';
 import { stationLogic } from '../../../lib/station-logic.js';
@@ -124,11 +124,13 @@ function returnMarkers(roster) {
 async function settle(s, room, data, arena) { let { c, entries } = data || await communityData(room); if (c)
     settleCommunity(s, room, entries); let { a, entries: arenaRows } = arena || await arenaData(room); if (a)
     settleArena(s, room, a, arenaRows); }
+function roomDuration(room){const rule=roomCampaign(room)?.rule,limits=Object.hasOwn(modeRules,rule)?modeRules[rule].constants:null;if(limits?.duration)return limits.duration;return limits?.rounds&&limits?.roundMs?limits.rounds*limits.roundMs:G.DURATION;}
 async function publicState(s, room, revision = 0) {
-    if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {id:s.id,name:s.name,status:room.started?'active':'waiting',round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
+    const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room)};
+    if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {...roomInfo,id:s.id,name:s.name,status:room.started?'active':'waiting',round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
     const i=taskIndex(s);if(i<5&&s.status==='active')recoveryFor(s,i);
     let v=G.variant(s.seed),recovery=supportView(s,i);
-    return {recovery,supportPolicy:s.campaign?.supportPolicy||'competitive',drafts:s.drafts||{},community:await communityView(room,s.id),arena:await arenaView(room,s.id),race:racePublic(s),round:s.round||1,levels:s.levels||null,score:s.effects?.wallet??s.score??0,effects:s.effects||null,puzzles:s.levels?s.levels.map((l,j)=>{if(l===null)return null;const p=safePuzzle(puzzle(s,j,l));if(j===i&&recovery?.assisted)p.points=recovery.points;return p;}):null,revision,version:s.version,id:s.id,name:s.name,status:s.status,start:s.start,end:s.end,solved:s.solved,hints:s.hints,wrong:s.wrong,penalty:s.penalty,cooldown:s.cooldown,events:s.events,variant:v,room:room.code,hintTexts:s.hints.map((levels,j)=>(s.levels&&s.levels[j]!==null?levelHints(puzzle(s,j,s.levels[j])):hints(j,v)).slice(0,levels.length))};
+    return {...roomInfo,recovery,supportPolicy:s.campaign?.supportPolicy||'competitive',drafts:s.drafts||{},community:await communityView(room,s.id),arena:await arenaView(room,s.id),race:racePublic(s),round:s.round||1,levels:s.levels||null,score:s.effects?.wallet??s.score??0,effects:s.effects||null,puzzles:s.levels?s.levels.map((l,j)=>{if(l===null)return null;const p=safePuzzle(puzzle(s,j,l));if(j===i&&recovery?.assisted)p.points=recovery.points;return p;}):null,revision,version:s.version,id:s.id,name:s.name,status:s.status,start:s.start,end:s.end,solved:s.solved,hints:s.hints,wrong:s.wrong,penalty:s.penalty,cooldown:s.cooldown,events:s.events,variant:v,room:room.code,hintTexts:s.hints.map((levels,j)=>(s.levels&&s.levels[j]!==null?levelHints(puzzle(s,j,s.levels[j])):hints(j,v)).slice(0,levels.length))};
 }
 function levelHints(p) {
     return ['Đọc từng điều kiện và đánh dấu dữ kiện đã biết. Chưa cần đoán đáp án.',
@@ -292,7 +294,7 @@ export async function GET(req) { try {
             const mode=projectMode(room,Date.now());
             team.mode=mode?{...modeView(room,saved,true),objective:mode.ruleState.players[saved.modeUnit]||null,history:JSON.parse(room.race).modeRequests?.eventHistory?.filter(e=>e.unitId===saved.modeUnit)||[],answers:Object.values(mode.challenges).filter(q=>q.unitId===saved.modeUnit)}:null;
         }
-        return reply({ community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
+        return reply({ community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, durationMs:roomDuration(room), mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
     }
     return fail('Yêu cầu không hợp lệ.');
 }
@@ -405,12 +407,13 @@ export async function POST(req) {
         }
         if (b.action === 'room-info') {
             let code = String(b.code || '').trim().toUpperCase();
-            if (!/^[A-Z2-9]{6}$/.test(code))
+            if (!/^[A-Z0-9]{6}$/.test(code))
                 return fail('Mã phòng chưa đúng.');
             let room = await stmt('SELECT * FROM rooms WHERE code = ? AND deleted_at IS NULL', code).first();
             if (!room)
                 return fail('Mã phòng chưa đúng. Kiểm tra mã giáo viên cung cấp.');
-            return reply({ campaign: campaignPublic(roomCampaign(room)) });
+            if(room.mode==='lesson')return reply({kind:'lesson',joinPath:'/play',campaign:null});
+            return reply({kind:'game',durationMs:roomDuration(room),campaign:campaignPublic(roomCampaign(room))});
         }
         if (b.action === 'join') {
             let name = String(b.name || '').trim().slice(0, 40), code = String(b.code || '').trim().toUpperCase();
@@ -419,6 +422,7 @@ export async function POST(req) {
             let room = await stmt('SELECT * FROM rooms WHERE code = ? AND deleted_at IS NULL', code).first();
             if (!room)
                 return fail('Mã phòng chưa đúng. Kiểm tra mã giáo viên cung cấp.');
+            if(room.mode==='lesson')return fail('Phòng này là tiết học. Vào mục tiết học bằng hồ sơ học sinh hoặc mã thiết bị do giáo viên cấp.');
             let count = await stmt('SELECT COUNT(*) AS n FROM teams WHERE room_id = ? AND removed_at IS NULL', room.id).first();
             if (count.n >= 40)
                 return fail('Phòng đã đủ 40 nhóm.');

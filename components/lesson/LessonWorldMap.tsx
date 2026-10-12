@@ -14,6 +14,12 @@ export interface LessonMapPeer {
 export interface LessonMapProjection {
   totalPosition: number;
   peers: LessonMapPeer[];
+  activityIds?: string[];
+  gateStars?: { activityId: string; stars: number }[];
+  revisitGates?: { id: string; title: string }[];
+  revisitEnabled?: boolean;
+  ownBranch?: 'support' | 'core' | 'extension';
+  availableBranches?: ('support' | 'core' | 'extension')[];
 }
 
 /** What the die on the map is doing. The map draws it; the page decides when it rolls and what it shows. */
@@ -56,19 +62,21 @@ interface LessonWorldMapProps {
   };
   onExamStationSelect?: (qid: string) => void;
   onPeerSelect?: (peerId: string) => void;
+  onGateSelect?: (activityId: string) => void;
+  onSelectBranch?: (branch: 'support' | 'core' | 'extension') => void;
 }
 
 /**
  * The campaign map every pupil, the teacher and the TV look at: the original game's terrain,
  * mascots and gates, drawn by public/lesson-map.html and fed from the lesson session.
  */
-export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect, onPeerSelect }: LessonWorldMapProps) {
+export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch }: LessonWorldMapProps) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const readyRef = useRef(false);
-  const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney; peerSelection: boolean } } | null>(null);
-  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect });
+  const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney; peerSelection: boolean; branchSelection?: boolean } } | null>(null);
+  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch });
   useEffect(() => {
-    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect };
+    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch };
   });
 
   const world = resolveThemeId(themeKey || "modern") || "modern";
@@ -80,9 +88,9 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
   }, []);
 
   useEffect(() => {
-    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice, examJourney, peerSelection: typeof onPeerSelect === 'function' } } : null;
+    latest.current = map ? { payload: { map, world, sessionKey, topInset, dice, examJourney, peerSelection: typeof onPeerSelect === 'function', ...(onSelectBranch ? { branchSelection: true } : {}) } } : null;
     send();
-  }, [map, world, sessionKey, topInset, dice, examJourney, onPeerSelect, send]);
+  }, [map, world, sessionKey, topInset, dice, examJourney, onPeerSelect, onSelectBranch, send]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -100,6 +108,18 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
       } else if (type === "lesson-map:peer") {
         const peerId = event.data?.payload?.peerId;
         if (handlers.current.onPeerSelect && typeof peerId === "string" && latest.current?.payload.map.peers.some(p => p.id === peerId)) handlers.current.onPeerSelect(peerId);
+      } else if (type === "lesson-map:branch") {
+        const branch = event.data?.payload?.branch;
+        const payload = latest.current?.payload;
+        const personal = payload?.map;
+        if (!payload?.examJourney && personal?.peers.some(peer => peer.own) &&
+          ['support', 'core', 'extension'].includes(branch) && personal.availableBranches?.includes(branch)) handlers.current.onSelectBranch?.(branch);
+      } else if (type === "lesson-map:gate") {
+        const activityId = event.data?.payload?.activityId;
+        const payload = latest.current?.payload;
+        const personal = payload?.map;
+        if (!payload?.examJourney && personal?.revisitEnabled === true && personal.peers.some(peer => peer.own) &&
+          typeof activityId === "string" && personal.activityIds?.includes(activityId) && personal.revisitGates?.some(gate => gate.id === activityId)) handlers.current.onGateSelect?.(activityId);
       }
     };
     window.addEventListener("message", onMessage);

@@ -1,0 +1,1615 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-sequences-p2",
+  "version": "1.0.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P39-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:539 / d(11,6,39)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p39",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p39_Day_so_G11W6.docx",
+      "hash": "c351762971700415be314b502a1410cffa50282dc87cc3cfcb0ae3358f95f45f",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 39",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào để chứng minh một dãy số là dãy tăng và bị chặn bằng phương pháp xét hiệu số?",
+  "prerequisites": [
+    "Tính số hạng từ công thức với chỉ số n ≥ 1.",
+    "Biến đổi phân thức và quy tắc đổi chiều bất đẳng thức."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p39-must",
+      "code": "SP-G11-W6-P39-MUST",
+      "level": "must",
+      "statement": "Tôi có thể phát biểu đúng định nghĩa tính đơn điệu cùng tính bị chặn của dãy số.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p39",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p39-should",
+      "code": "SP-G11-W6-P39-SHOULD",
+      "level": "should",
+      "statement": "Tôi có thể chứng minh tính tăng giảm của một dãy số phân thức cụ thể bằng phương pháp xét hiệu.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p39",
+        "sourceLocator": "word/document.xml / I.2 / Should",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p39-could",
+      "code": "SP-G11-W6-P39-COULD",
+      "level": "could",
+      "statement": "Tôi có thể phân tích hạn chế của phương pháp xét tỉ số khi dãy số có thể nhận giá trị âm.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p39",
+        "sourceLocator": "word/document.xml / I.2 / Could",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "p2-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-observe"
+      ],
+      "participation": "whole_class",
+      "studentAction": "Quan sát ba số hạng đầu và dự đoán; ghi rõ đây chỉ là dự đoán.",
+      "expectedProduct": "Dự đoán cá nhân về tăng, giảm và bị chặn.",
+      "evidenceIds": [
+        "ev-p2-observe"
+      ],
+      "teacherLookFor": "Không chốt tính chất cho mọi n chỉ từ vài giá trị.",
+      "supportIds": [
+        "hint-p2-observe"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 4,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-pre-definition",
+        "p2-pre-fraction",
+        "p2-pre-ratio"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm ba câu đầu vào cá nhân.",
+      "expectedProduct": "Ý nghĩ riêng về dấu hiệu, phân thức và tỉ số.",
+      "evidenceIds": [
+        "ev-p2-pre-definition",
+        "ev-p2-pre-fraction",
+        "ev-p2-pre-ratio"
+      ],
+      "teacherLookFor": "Chưa tính mastery từ precheck.",
+      "supportIds": [
+        "hint-p2-pre-definition",
+        "hint-p2-pre-fraction",
+        "hint-p2-pre-ratio"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-group-proof"
+      ],
+      "participation": "group",
+      "studentAction": "Mỗi em viết ý riêng; nhóm trình bày hiệu, khoảng chặn và hạn chế của tỉ số. GV ghi định nghĩa chuẩn.",
+      "expectedProduct": "Lời giải nhóm kèm miền n ≥ 1.",
+      "evidenceIds": [
+        "ev-p2-group-proof"
+      ],
+      "teacherLookFor": "Hỏi lại một em giải thích bước lập luận; nhóm đúng không thay bằng chứng cá nhân.",
+      "supportIds": [
+        "hint-p2-group-proof"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-support",
+        "p2-core-proof",
+        "p2-practice-ratio"
+      ],
+      "participation": "individual",
+      "studentAction": "Chọn nhánh hỗ trợ hoặc chuẩn; làm cá nhân rồi giải thích một lỗi dùng tỉ số.",
+      "expectedProduct": "Bài làm cá nhân, bước so sánh hoặc chứng minh.",
+      "evidenceIds": [
+        "ev-p2-core-proof",
+        "ev-p2-practice-ratio"
+      ],
+      "teacherLookFor": "Đọc điều kiện dấu trước khi nhân bất đẳng thức.",
+      "supportIds": [
+        "hint-p2-support",
+        "hint-p2-core-proof",
+        "hint-p2-practice-ratio"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-recheck-definition",
+        "p2-recheck-proof",
+        "p2-recheck-ratio"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm lại ba câu mới độc lập; GV chấm lời giải mở trước ghi nhận.",
+      "expectedProduct": "Định nghĩa và hai lập luận cá nhân.",
+      "evidenceIds": [
+        "ev-p2-recheck-definition",
+        "ev-p2-recheck-proof",
+        "ev-p2-recheck-ratio"
+      ],
+      "teacherLookFor": "Không gợi ý trong bài kiểm tra lại nếu dùng làm bằng chứng độc lập.",
+      "supportIds": [
+        "hint-p2-recheck-definition",
+        "hint-p2-recheck-proof",
+        "hint-p2-recheck-ratio"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-extension-proof"
+      ],
+      "participation": "individual",
+      "studentAction": "Nếu đủ điều kiện sau recheck, khảo sát dãy luân phiên; em khác hoàn thiện bài tại chỗ.",
+      "expectedProduct": "Nhận xét hai mặt đơn điệu và bị chặn.",
+      "evidenceIds": [],
+      "teacherLookFor": "Không mở nhánh từ điểm nhóm.",
+      "supportIds": [
+        "hint-p2-extension-proof"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-exit-definition",
+        "p2-exit-proof",
+        "p2-exit-ratio"
+      ],
+      "participation": "individual",
+      "studentAction": "Nộp ba câu cuối tiết độc lập.",
+      "expectedProduct": "Bằng chứng cá nhân mới cho từng mục tiêu.",
+      "evidenceIds": [
+        "ev-p2-exit-definition",
+        "ev-p2-exit-proof",
+        "ev-p2-exit-ratio"
+      ],
+      "teacherLookFor": "GV đọc bài mở; câu chờ chấm chưa tính đạt.",
+      "supportIds": [
+        "hint-p2-exit-definition",
+        "hint-p2-exit-proof",
+        "hint-p2-exit-ratio"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 1,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [
+        "p2-reflect"
+      ],
+      "participation": "individual",
+      "studentAction": "Viết một điều kiện cần kiểm trước khi dùng tỉ số.",
+      "expectedProduct": "Cam kết kiểm dấu và miền chỉ số.",
+      "evidenceIds": [
+        "ev-p2-reflect"
+      ],
+      "teacherLookFor": "Phản tỉnh không tính mastery.",
+      "supportIds": [
+        "hint-p2-reflect"
+      ],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    },
+    {
+      "id": "p2-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "taskIds": [],
+      "participation": "whole_class",
+      "studentAction": "GV sửa một lỗi còn chung hoặc giữ thời gian dự phòng.",
+      "expectedProduct": "Một bước lời giải được sửa.",
+      "evidenceIds": [],
+      "teacherLookFor": "Không thay bài exit bằng việc kết luận nhóm.",
+      "supportIds": [],
+      "transition": "GV xem bằng chứng trước khi chuyển hoạt động."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "p2-observe",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "p2-experience",
+      "participation": "individual",
+      "prompt": "Với $u_n=\\frac{n}{n+1}$, $n\\ge1$, ba số hạng đầu có thứ tự nào? Đây là dự đoán, chưa phải chứng minh cho mọi $n$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-observe"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "up",
+          "down",
+          "same"
+        ],
+        "answerKey": "up"
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-p2-observe"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/examples/0",
+          "quote": "Xét tính tăng giảm của $u_n=\\frac{n}{n+1}$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "up",
+            "label": "Tăng dần"
+          },
+          {
+            "id": "down",
+            "label": "Giảm dần"
+          },
+          {
+            "id": "same",
+            "label": "Bằng nhau"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-pre-definition",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "p2-precheck",
+      "participation": "individual",
+      "prompt": "Để chứng minh dãy tăng bằng hiệu, cần kiểm dấu của $u_{n+1}-u_n$ trên phạm vi nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-pre-definition"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "all",
+          "first"
+        ],
+        "answerKey": "all"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-p2-pre-definition"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "all",
+            "label": "Mọi chỉ số n thuộc miền dãy"
+          },
+          {
+            "id": "first",
+            "label": "Chỉ ba chỉ số đầu"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-pre-fraction",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "activityId": "p2-precheck",
+      "participation": "individual",
+      "prompt": "Với $u_n=\\frac{n}{n+1}$, tính $u_1$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-pre-fraction"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "half",
+          "two"
+        ],
+        "answerKey": "half"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-p2-pre-fraction"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/examples/0",
+          "quote": "Xét tính tăng giảm của $u_n=\\frac{n}{n+1}$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "half",
+            "label": "$\\frac12$"
+          },
+          {
+            "id": "two",
+            "label": "$2$"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-pre-ratio",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-precheck",
+      "participation": "individual",
+      "prompt": "Với $u_n=(-1)^n$, em có thể kết luận dãy tăng chỉ từ $\\frac{u_{n+1}}{u_n}<1$ không? Viết điều kiện cần kiểm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-pre-ratio"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nhận ra số hạng có thể âm."
+          ],
+          "lookFor": [
+            "Cần xét dấu khi nhân với mẫu; chưa coi đây là chứng minh."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-p2-pre-ratio"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/5",
+          "quote": "Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-group-proof",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-formation",
+      "participation": "group",
+      "prompt": "Mỗi em ghi ý riêng trước khi nhóm thảo luận. Với $u_n=\\frac{n}{n+1}$, $n\\ge1$, tính hiệu và chứng minh bị chặn. Đối chiếu với $v_n=(-1)^n$: vì sao hiệu đáng tin hơn việc dùng tỉ số mà bỏ qua dấu?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-group-proof"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Tính hiệu đúng với mọi n ≥ 1.",
+            "Chứng minh bất đẳng thức hai phía.",
+            "Phân tích dấu và tỉ số của dãy luân phiên."
+          ],
+          "lookFor": [
+            "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$; $0<u_n<1$.",
+            "Với $v_n$, hiệu luân phiên dấu; không đơn điệu nhưng $-1\\le v_n\\le1$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-p2-group-proof"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/examples+exercises4-5",
+          "quote": "Xét tính tăng giảm của $u_n=\\frac{n}{n+1}$. Chứng minh $u_n=\\frac{n}{n+1}$ bị chặn. Xét $u_n=(-1)^n$ bằng hiệu. Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-support",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should"
+      ],
+      "activityId": "p2-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Với $u_n=\\frac1n$, $n\\ge1$, so sánh $u_2$ và $u_1$. Sau đó kiểm tra hiệu tổng quát.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "less",
+          "more",
+          "equal"
+        ],
+        "answerKey": "less"
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-p2-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/1",
+          "quote": "Dãy $u_n=\\frac1n$ tăng hay giảm?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true,
+        "practiceVariants": [
+          {
+            "prompt": "Với $u_n=\\frac1n$, $n\\ge1$, so sánh $u_3$ và $u_2$.",
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "less",
+                "more",
+                "equal"
+              ],
+              "answerKey": "less"
+            },
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "less",
+                  "label": "$u_3<u_2$"
+                },
+                {
+                  "id": "more",
+                  "label": "$u_3>u_2$"
+                },
+                {
+                  "id": "equal",
+                  "label": "$u_3=u_2$"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "less",
+            "label": "$u_2<u_1$"
+          },
+          {
+            "id": "more",
+            "label": "$u_2>u_1$"
+          },
+          {
+            "id": "equal",
+            "label": "$u_2=u_1$"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-core-proof",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should"
+      ],
+      "activityId": "p2-practice",
+      "participation": "individual",
+      "prompt": "Chứng minh $u_n=\\frac{2n+1}{n+1}$ tăng. Với $n\\ge1$, trình bày phép quy đồng và một khoảng chặn cho dãy.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-core-proof"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đồng đúng và chứng minh dấu hiệu.",
+            "Nêu được cận dưới và cận trên."
+          ],
+          "lookFor": [
+            "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$.",
+            "$u_n=2-\\frac1{n+1}$; $\\frac32\\le u_n<2$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-p2-core-proof"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/2",
+          "quote": "Chứng minh $u_n=\\frac{2n+1}{n+1}$ tăng.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-practice-ratio",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-practice",
+      "participation": "individual",
+      "prompt": "Một lời giải nói: với $u_n=(-1)^n$, tỉ số liên tiếp bằng $-1<1$ nên dãy giảm. Chỉ ra bước sai bằng cách xét hai hiệu liên tiếp.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-practice-ratio"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chỉ ra điều kiện số hạng dương bị bỏ qua.",
+            "Tính hai hiệu trái dấu để bác kết luận giảm."
+          ],
+          "lookFor": [
+            "$u_2-u_1=2$, $u_3-u_2=-2$; hiệu đổi dấu.",
+            "Không nhân bất đẳng thức với mẫu âm mà giữ nguyên chiều."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-p2-practice-ratio"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/4-5",
+          "quote": "Xét $u_n=(-1)^n$ bằng hiệu. Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-recheck-definition",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "p2-recheck",
+      "participation": "individual",
+      "prompt": "Chọn mọi phát biểu đúng cho dãy có miền $n\\ge1$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-recheck-definition"
+      ],
+      "evaluation": {
+        "checkerId": "multi_choice_exact",
+        "options": [
+          "up",
+          "bounded",
+          "first"
+        ],
+        "answerKey": [
+          "up",
+          "bounded"
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-p2-recheck-definition"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "up",
+            "label": "Dãy tăng khi hiệu liên tiếp dương với mọi n."
+          },
+          {
+            "id": "bounded",
+            "label": "Bị chặn khi có m, M sao cho m ≤ u_n ≤ M với mọi n."
+          },
+          {
+            "id": "first",
+            "label": "Ba số hạng đầu tăng đủ chứng minh cả dãy tăng."
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-recheck-proof",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "activityId": "p2-recheck",
+      "participation": "individual",
+      "prompt": "Bài độc lập: Với $u_n=\\frac{2n+1}{n+1}$, $n\\ge1$, hãy chứng minh dãy tăng và bị chặn. Viết rõ hiệu và bất đẳng thức tổng quát.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-recheck-proof"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hiệu được biến đổi đúng, dương với mọi n ≥ 1.",
+            "Chặn cả hai phía bằng lập luận tổng quát."
+          ],
+          "lookFor": [
+            "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$.",
+            "$u_n=2-\\frac1{n+1}$; $\\frac32\\le u_n<2$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-p2-recheck-proof"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/2",
+          "quote": "Chứng minh $u_n=\\frac{2n+1}{n+1}$ tăng.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-recheck-ratio",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-recheck",
+      "participation": "individual",
+      "prompt": "Bài độc lập: Với $v_n=(-1)^n$, tính $v_2/v_1$ và $v_3/v_2$. Hai tỉ số giống nhau có đủ kết luận dãy giảm không? Nêu hai hiệu để giải thích.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-recheck-ratio"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hai tỉ số đều bằng −1.",
+            "Hai hiệu trái dấu nên dãy không đơn điệu.",
+            "Giải thích phải kiểm dấu số hạng trước dùng tỉ số."
+          ],
+          "lookFor": [
+            "$v_2/v_1=v_3/v_2=-1$ nhưng $v_2-v_1=2$, $v_3-v_2=-2$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-p2-recheck-ratio"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/4-5",
+          "quote": "Xét $u_n=(-1)^n$ bằng hiệu. Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-extension-proof",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng: khảo sát $u_n=(-1)^n$ bằng hiệu và khoảng chặn; giải thích tại sao bị chặn không đồng nghĩa với đơn điệu.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hiệu trái dấu, khoảng chặn đúng.",
+            "Phân biệt hai định nghĩa."
+          ],
+          "lookFor": [
+            "$-1\\le u_n\\le1$; dãy không đơn điệu."
+          ]
+        }
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-p2-extension-proof"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/4",
+          "quote": "Xét $u_n=(-1)^n$ bằng hiệu.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-exit-definition",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "p2-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết: Chọn mọi kết luận đúng đã có lập luận cho mọi $n\\ge1$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-exit-definition"
+      ],
+      "evaluation": {
+        "checkerId": "multi_choice_exact",
+        "options": [
+          "decrease",
+          "bound",
+          "mono"
+        ],
+        "answerKey": [
+          "decrease",
+          "bound"
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-p2-exit-definition"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/1+4",
+          "quote": "Dãy $u_n=\\frac1n$ tăng hay giảm? Xét $u_n=(-1)^n$ bằng hiệu.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "decrease",
+            "label": "Dãy 1/n giảm vì hiệu bằng −1/[n(n+1)] < 0."
+          },
+          {
+            "id": "bound",
+            "label": "Dãy (−1)^n bị chặn vì mọi số hạng thuộc [−1;1]."
+          },
+          {
+            "id": "mono",
+            "label": "Mọi dãy bị chặn đều tăng hoặc giảm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2-exit-proof",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "activityId": "p2-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Với $u_n=\\frac1n$, $n\\ge1$, chứng minh dãy giảm và bị chặn. Không chỉ liệt kê vài số hạng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-exit-proof"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đồng hiệu đúng và kết luận giảm cho mọi n.",
+            "Nêu khoảng chặn có căn cứ."
+          ],
+          "lookFor": [
+            "$u_{n+1}-u_n=-\\frac1{n(n+1)}<0$; $0<u_n\\le1$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-p2-exit-proof"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/1",
+          "quote": "Dãy $u_n=\\frac1n$ tăng hay giảm?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-exit-ratio",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Với $w_n=-n$, $n\\ge1$, tỉ số $w_{n+1}/w_n=(n+1)/n>1$. Có được kết luận dãy tăng không? Viết hiệu và giải thích lỗi.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-exit-ratio"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Không kết luận tăng từ tỉ số khi số hạng âm.",
+            "Hiệu bằng −1 nên dãy giảm.",
+            "Nhân với số âm cần đổi chiều bất đẳng thức."
+          ],
+          "lookFor": [
+            "$w_{n+1}-w_n=-(n+1)+n=-1<0$; tất cả $w_n<0$."
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-p2-exit-ratio"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/5",
+          "quote": "Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    },
+    {
+      "id": "p2-reflect",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "activityId": "p2-reflection",
+      "participation": "individual",
+      "prompt": "Em sẽ kiểm điều kiện nào trước khi dùng tỉ số số hạng liên tiếp? Ghi trung thực nếu đã xem gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-p2-reflect"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu dấu số hạng và mẫu khác không.",
+            "Khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Phản tỉnh để lựa chọn phương pháp, không dùng làm bằng chứng đạt mục tiêu."
+          ]
+        }
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc điều kiện, phép biến đổi và kết luận theo rubric; không suy đạt từ sản phẩm nhóm.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-p2-reflect"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/5",
+          "quote": "Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      },
+      "inputSchema": {
+        "maxLength": 3000
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-p2-observe",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-observe",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-pre-definition",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-pre-definition",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-pre-fraction",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-pre-fraction",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-pre-ratio",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-pre-ratio",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-group-proof",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-group-proof",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-support",
+      "tier": "H1",
+      "text": "Thay chỉ số vào công thức, rồi quy đồng hai phân số liên tiếp.",
+      "taskId": "p2-support",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-core-proof",
+      "tier": "H1",
+      "text": "Viết số hạng tiếp theo, quy đồng hiệu; tách biểu thức thành một số nguyên trừ phân số.",
+      "taskId": "p2-core-proof",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-practice-ratio",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-practice-ratio",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-recheck-definition",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-recheck-definition",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-recheck-proof",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-recheck-proof",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-recheck-ratio",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-recheck-ratio",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-extension-proof",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-extension-proof",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-exit-definition",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-exit-definition",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-exit-proof",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-exit-proof",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-exit-ratio",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-exit-ratio",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    },
+    {
+      "id": "hint-p2-reflect",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số, ghi điều kiện cần kiểm và chọn quy tắc phù hợp trước khi kết luận.",
+      "taskId": "p2-reflect",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ đọc dữ kiện, không thay lời giải của em."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-p2-observe",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-observe"
+    },
+    {
+      "id": "ev-p2-pre-definition",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-pre-definition"
+    },
+    {
+      "id": "ev-p2-pre-fraction",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-pre-fraction"
+    },
+    {
+      "id": "ev-p2-pre-ratio",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-pre-ratio"
+    },
+    {
+      "id": "ev-p2-group-proof",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should",
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "p2-group-proof"
+    },
+    {
+      "id": "ev-p2-core-proof",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must",
+        "sp-g11-w6-p39-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-core-proof"
+    },
+    {
+      "id": "ev-p2-practice-ratio",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-practice-ratio"
+    },
+    {
+      "id": "ev-p2-recheck-definition",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-recheck-definition"
+    },
+    {
+      "id": "ev-p2-recheck-proof",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-recheck-proof"
+    },
+    {
+      "id": "ev-p2-recheck-ratio",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-recheck-ratio"
+    },
+    {
+      "id": "ev-p2-exit-definition",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-exit-definition"
+    },
+    {
+      "id": "ev-p2-exit-proof",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p39-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-exit-proof"
+    },
+    {
+      "id": "ev-p2-exit-ratio",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "p2-exit-ratio"
+    },
+    {
+      "id": "ev-p2-reflect",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p39-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "p2-reflect"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Nêu đúng định nghĩa và miền n ≥ 1.",
+      "Chứng minh dấu hiệu u_(n+1) − u_n cho mọi chỉ số.",
+      "Phân biệt đơn điệu với bị chặn; giải thích điều kiện dùng tỉ số."
+    ],
+    "lookFor": [
+      "Lời giải dùng lập luận tổng quát, không thay bằng bảng vài số hạng.",
+      "Không lấy sản phẩm nhóm, điểm game hoặc câu có trợ giúp làm mastery cá nhân."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "5782d42bcc78593c5617022c2d964e5a3440f039252abbb81115eca48d893c7d"
+}

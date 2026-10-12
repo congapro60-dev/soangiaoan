@@ -1,0 +1,978 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p35-must-only",
+  "version": "1.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P35-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:459 / d(11,6,35)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p35",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p35_Phuong_trinh_luong_giac_co_ban_G11W6.docx",
+      "hash": "fb7979dc7f7803eda76caaf5f3357146ff3f16c2bc04797be7d6a1bd36cc504e",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 35",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Công thức nào phù hợp với từng dạng sin, cos, tan, cot?",
+  "prerequisites": [
+    "Đọc ký hiệu họ nghiệm, góc radian và k nguyên."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p35-must",
+      "code": "SP-G11-W6-P35-MUST",
+      "level": "must",
+      "statement": "Tôi có thể lựa chọn chính xác công thức nghiệm tương ứng cho cả 4 dạng phương trình lượng giác cơ bản.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p35",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m35-act-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-experience"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m35-experience"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-pre",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-pre"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-pre"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-formation"
+      ],
+      "teacherLookFor": "Chốt công thức/khái niệm Must; sản phẩm nhóm chỉ dùng phản hồi.",
+      "supportIds": [
+        "hint-m35-formation"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-support",
+        "m35-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Mỗi em làm đúng một bài theo làn hỗ trợ hoặc chuẩn.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m35-support",
+        "hint-m35-core"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-recheck"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-recheck"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Em đủ điều kiện theo assessed Must mới làm một câu ngắn; em chưa đủ tiếp tục luyện Must.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m35-extension"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-exit"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-exit"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [
+        "m35-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Ghi một chỗ cần luyện tiếp ở Must; khai báo trung thực trợ giúp.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m35-reflection"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m35-act-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV dùng thời gian còn lại theo tình hình; không thêm mục tiêu.",
+      "expectedProduct": "Thời gian dự phòng; không thêm bằng chứng đạt.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m35-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-experience",
+      "participation": "individual",
+      "prompt": "Với $\\sin x=\\sin\\alpha$, $\\cos x=\\cos\\alpha$, em dự đoán cùng một công thức có áp dụng cho cả hai không? Chỉ nêu công thức phù hợp mỗi dạng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Trả lời đúng phần Must được hỏi ở câu này."
+          ],
+          "lookFor": [
+            "Sin: α+2kπ hoặcπ−α+2kπ. Cos:±α+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-m35-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-experience",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-pre",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-pre",
+      "participation": "individual",
+      "prompt": "Cho α=π/6. Chọn công thức nghiệm cho cả bốn phương trình; k∈Z. Một công thức có thể dùng cho nhiều phương trình.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-pre"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "f1",
+          "b": "f2",
+          "c": "f3",
+          "d": "f3"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$\\sin x=\\sin\\alpha$"
+          },
+          {
+            "id": "b",
+            "label": "$\\cos x=\\cos\\alpha$"
+          },
+          {
+            "id": "c",
+            "label": "$\\tan x=\\tan\\alpha$"
+          },
+          {
+            "id": "d",
+            "label": "$\\cot x=\\cot\\alpha$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "f2",
+            "label": "$x=\\pm(\\pi/6)+2k\\pi$"
+          },
+          {
+            "id": "f3",
+            "label": "$x=\\pi/6+k\\pi$"
+          },
+          {
+            "id": "f1",
+            "label": "$x=\\pi/6+2k\\pi$ hoặc $x=\\pi-(\\pi/6)+2k\\pi$"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 3,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-pre",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-formation",
+      "participation": "group",
+      "prompt": "Mỗi em ghi ý riêng rồi nhóm lập bảng lựa chọn cho bốn dạng sinx=sinα, cosx=cosα, tanx=tanα, cotx=cotα; α làm các vế xác định. Tan/cot có thể dùng cùng họ; không lấy bảng nhóm làm mastery.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Lựa chọn đúng công thức cho cả sin, cos, tan, cot.",
+            "Checker chỉ kiểm phép chọn các thẻ đã soạn, không chấm lời giải hoặc lọc khoảng."
+          ],
+          "lookFor": [
+            "Sin α+2kπ hoặcπ−α+2kπ; cos±α+2kπ; tan/cotα+kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-m35-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-formation",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-support",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: α=π/4. Ghép cả bốn dạng với công thức nghiệm phù hợp; cùng một công thức có thể được dùng lại.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "f1",
+          "b": "f2",
+          "c": "f3",
+          "d": "f3"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$\\sin x=\\sin\\alpha$"
+          },
+          {
+            "id": "b",
+            "label": "$\\cos x=\\cos\\alpha$"
+          },
+          {
+            "id": "c",
+            "label": "$\\tan x=\\tan\\alpha$"
+          },
+          {
+            "id": "d",
+            "label": "$\\cot x=\\cot\\alpha$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "f2",
+            "label": "$x=\\pm(\\pi/4)+2k\\pi$"
+          },
+          {
+            "id": "f3",
+            "label": "$x=\\pi/4+k\\pi$"
+          },
+          {
+            "id": "f1",
+            "label": "$x=\\pi/4+2k\\pi$ hoặc $x=\\pi-(\\pi/4)+2k\\pi$"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m35-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-support",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-core",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: α=π/3. Lựa chọn công thức cho cả bốn dạng; ghi nhớ k∈Z và không lọc theo đoạn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "f1",
+          "b": "f2",
+          "c": "f3",
+          "d": "f3"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$\\sin x=\\sin\\alpha$"
+          },
+          {
+            "id": "b",
+            "label": "$\\cos x=\\cos\\alpha$"
+          },
+          {
+            "id": "c",
+            "label": "$\\tan x=\\tan\\alpha$"
+          },
+          {
+            "id": "d",
+            "label": "$\\cot x=\\cot\\alpha$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "f2",
+            "label": "$x=\\pm(\\pi/3)+2k\\pi$"
+          },
+          {
+            "id": "f3",
+            "label": "$x=\\pi/3+k\\pi$"
+          },
+          {
+            "id": "f1",
+            "label": "$x=\\pi/3+2k\\pi$ hoặc $x=\\pi-(\\pi/3)+2k\\pi$"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m35-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-core",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-recheck",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-recheck",
+      "participation": "individual",
+      "prompt": "Bài độc lập mới: α=π/8. Chọn công thức nghiệm tương ứng cho cả bốn phương trình, k∈Z. Một thẻ có thể dùng nhiều lần; không có gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-recheck"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "f1",
+          "b": "f2",
+          "c": "f3",
+          "d": "f3"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$\\sin x=\\sin\\alpha$"
+          },
+          {
+            "id": "b",
+            "label": "$\\cos x=\\cos\\alpha$"
+          },
+          {
+            "id": "c",
+            "label": "$\\tan x=\\tan\\alpha$"
+          },
+          {
+            "id": "d",
+            "label": "$\\cot x=\\cot\\alpha$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "f2",
+            "label": "$x=\\pm(\\pi/8)+2k\\pi$"
+          },
+          {
+            "id": "f3",
+            "label": "$x=\\pi/8+k\\pi$"
+          },
+          {
+            "id": "f1",
+            "label": "$x=\\pi/8+2k\\pi$ hoặc $x=\\pi-(\\pi/8)+2k\\pi$"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-recheck",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng Must, một câu ngắn: α=π/2. Chọn công thức phù hợp cho sinx=sinα và cosx=cosα; hai họ sin có thể trùng, chỉ chọn dạng công thức hợp lệ.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Lựa chọn đúng công thức cho cả sin, cos, tan, cot.",
+            "Checker chỉ kiểm phép chọn các thẻ đã soạn, không chấm lời giải hoặc lọc khoảng."
+          ],
+          "lookFor": [
+            "Sinα+2kπ hoặcπ−α+2kπ (hai họ trùng); cos±α+2kπ, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m35-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-extension",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-exit",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Chọn họ nghiệm trênR cho bốn phương trình sinx=0, cosx=0, tanx=−√3, cotx=−√3; k∈Z. Mỗi phương trình cần một lựa chọn đúng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-exit"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "s": "f1",
+          "c": "f2",
+          "t": "f3",
+          "q": "f4"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "s",
+            "label": "$\\sin x=0$"
+          },
+          {
+            "id": "c",
+            "label": "$\\cos x=0$"
+          },
+          {
+            "id": "t",
+            "label": "$\\tan x=-\\sqrt3$"
+          },
+          {
+            "id": "q",
+            "label": "$\\cot x=-\\sqrt3$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "f3",
+            "label": "$x=-\\pi/3+k\\pi$"
+          },
+          {
+            "id": "f1",
+            "label": "$x=k\\pi$"
+          },
+          {
+            "id": "f4",
+            "label": "$x=-\\pi/6+k\\pi$"
+          },
+          {
+            "id": "f2",
+            "label": "$x=\\pi/2+k\\pi$"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-exit",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m35-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "activityId": "m35-act-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một phần của Must em còn cần luyện; khai báo trung thực nếu đã dùng gợi ý hoặc trợ giúp.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m35-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu một điều còn cần luyện ở Must.",
+            "Khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Chỉ phản tư; không tính mastery."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Lựa chọn công thức theo thẻ hữu hạn; không coi checker đã chấm lập luận.",
+      "minutes": 2,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p35/must-only-adapted/m35-reflection",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\nGiải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$.\nGiải $\\tan(2x-\\frac\\pi6)=1$.\nGiải $\\cos x=0$.\nGiải $\\cot x=\\sqrt3$.\nGiải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.\nGiải $\\cos(x-\\frac\\pi3)=-\\frac12$.\nGiải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$.\nTạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.\nTrong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.\nMột nghiệm của $\\tan x=1$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m35-experience",
+      "tier": "H1",
+      "text": "Nhận diện tên hàm ở vế trái; phân biệt cấu trúc các họ và bước lặp. Một thẻ có thể phù hợp nhiều phương trình.",
+      "taskId": "m35-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m35-formation",
+      "tier": "H1",
+      "text": "Nhận diện tên hàm ở vế trái; phân biệt cấu trúc các họ và bước lặp. Một thẻ có thể phù hợp nhiều phương trình.",
+      "taskId": "m35-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m35-support",
+      "tier": "H1",
+      "text": "Nhận diện tên hàm ở vế trái; phân biệt cấu trúc các họ và bước lặp. Một thẻ có thể phù hợp nhiều phương trình.",
+      "taskId": "m35-support",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m35-core",
+      "tier": "H1",
+      "text": "Nhận diện tên hàm ở vế trái; phân biệt cấu trúc các họ và bước lặp. Một thẻ có thể phù hợp nhiều phương trình.",
+      "taskId": "m35-core",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m35-extension",
+      "tier": "H1",
+      "text": "Nhận diện tên hàm ở vế trái; phân biệt cấu trúc các họ và bước lặp. Một thẻ có thể phù hợp nhiều phương trình.",
+      "taskId": "m35-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m35-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m35-experience"
+    },
+    {
+      "id": "ev-m35-pre",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m35-pre"
+    },
+    {
+      "id": "ev-m35-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "m35-formation"
+    },
+    {
+      "id": "ev-m35-recheck",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m35-recheck"
+    },
+    {
+      "id": "ev-m35-exit",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m35-exit"
+    },
+    {
+      "id": "ev-m35-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p35-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m35-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Lựa chọn đúng công thức cho cả sin, cos, tan, cot.",
+      "Checker chỉ kiểm phép chọn các thẻ đã soạn, không chấm lời giải hoặc lọc khoảng."
+    ],
+    "lookFor": [
+      "Chỉ ghi đạt Must khi có cả recheck và exit cá nhân độc lập; nội dung Should/Could làm ở phần sau.",
+      "Gói mới là draft cần GV đối soát nguồn, đáp án, định dạng và thời lượng."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "e6425dcab7e4c3271d57a889adfaee634bc80db675522bf56e7c7cd2e8acea9b"
+}

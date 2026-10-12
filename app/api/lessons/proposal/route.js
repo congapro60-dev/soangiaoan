@@ -11,10 +11,10 @@ import { lessonAIConfig, generateLessonCandidate } from '../../../../lib/lesson/
 
 export const dynamic = 'force-dynamic';
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
-const statuses = { AUTH_REQUIRED: 401, INVALID_QUERY: 400, INVALID_BODY: 400, INVALID_PROPOSAL: 400, INVALID_PROPOSAL_CITATIONS: 400, INVALID_SLOT_MINUTES: 400, INVALID_SETTINGS: 400, INVALID_REQUEST_ID: 400, INVALID_MODEL: 400, PROPOSAL_TOO_LARGE: 413, NOT_FOUND: 404, SOURCE_NOT_READY: 409, REQUEST_ID_CONFLICT: 409, SOURCE_CHANGED: 409, SOURCE_STORAGE_UNAVAILABLE: 503, SOURCE_INTEGRITY_MISMATCH: 503, GENERATION_QUOTA_EXCEEDED: 429, AI_PROVIDER_NOT_CONFIGURED: 503, AI_CONSENT_REQUIRED: 409, AI_QUOTA_EXCEEDED: 503, AI_TIMEOUT: 504, AI_OUTCOME_UNKNOWN: 409, AI_GENERATION_FAILED: 503 };
+const statuses = { AUTH_REQUIRED: 401, INVALID_QUERY: 400, INVALID_BODY: 400, INVALID_PROPOSAL: 400, INVALID_PROPOSAL_CITATIONS: 400, INVALID_SLOT_MINUTES: 400, INVALID_SETTINGS: 400, INVALID_REQUEST_ID: 400, INVALID_MODEL: 400, PROPOSAL_TOO_LARGE: 413, NOT_FOUND: 404, SOURCE_NOT_READY: 409, REQUEST_ID_CONFLICT: 409, SOURCE_CHANGED: 409, SCOPE_SOURCE_MISMATCH: 409, SOURCE_STORAGE_UNAVAILABLE: 503, SOURCE_INTEGRITY_MISMATCH: 503, GENERATION_QUOTA_EXCEEDED: 429, AI_PROVIDER_NOT_CONFIGURED: 503, AI_CONSENT_REQUIRED: 409, AI_QUOTA_EXCEEDED: 503, AI_TIMEOUT: 504, AI_OUTCOME_UNKNOWN: 409, AI_GENERATION_FAILED: 503 };
 const error = issue => Object.hasOwn(statuses, issue?.message) ? json({ error: issue.message }, statuses[issue.message]) : json({ error: 'LESSON_PROPOSAL_UNAVAILABLE' }, 503);
 const service = () => createLessonSourceService({ db: db(), bucket: getEnv().LESSON_SOURCES, importDocx, importPdf });
-const jobs = () => createLessonGenerationService({ db: db(), sourceService: service(), generate: input => generateLessonCandidate(input, { env: getEnv() }) });
+const jobs = () => createLessonGenerationService({ db: db(), sourceService: service(), providerEndpoint: lessonAIConfig(getEnv())?.endpoint, generate: input => generateLessonCandidate(input, { env: getEnv() }) });
 async function verifyExtractionHash(extraction, expectedHash) {
   const bytes = new TextEncoder().encode(JSON.stringify(extraction));
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
@@ -55,6 +55,7 @@ export async function GET(request) {
     if (jobId) return json({ job: await jobs().get({ ownerAccountId: user.userId, id: jobId }) });
     const sourceId = query.get('sourceId');
     if (!sourceId) throw Error('INVALID_QUERY');
+    if (query.get('latest') === 'true') return json({ job: await jobs().latest({ ownerAccountId: user.userId, sourceId }) });
     const source = await service().get(user.userId, sourceId);
     if (source.status !== 'ready' || !source.extraction || !source.extractionHash || !source.parserRevision) throw Error('SOURCE_NOT_READY');
     await verifyExtractionHash(source.extraction, source.extractionHash);
@@ -70,6 +71,12 @@ export async function POST(request) {
   try {
     await loadStoredAI(db);
     const body = await readBody(request);
+    if (body?.action === 'consent') {
+      if (Object.keys(body).some(key => !['action', 'sourceId', 'settings'].includes(key)) || typeof body.sourceId !== 'string') throw Error('INVALID_BODY');
+      const config = lessonAIConfig(getEnv());
+      if (!config) throw Error('AI_PROVIDER_NOT_CONFIGURED');
+      return json({ ...await jobs().consent({ ownerAccountId: user.userId, sourceId: body.sourceId, settings: body.settings, model: config.model }), generation: { model: config.model, providerHost: new URL(config.endpoint).host } });
+    }
     if (body?.action === 'start') {
       if (Object.keys(body).some(key => !['action', 'sourceId', 'requestId', 'settings'].includes(key)) || typeof body.sourceId !== 'string' || typeof body.requestId !== 'string') throw Error('INVALID_BODY');
       const config = lessonAIConfig(getEnv());

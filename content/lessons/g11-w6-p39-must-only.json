@@ -1,0 +1,1073 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p39-must-only",
+  "version": "0.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P39-Must-review-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:539 / d(11,6,39)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p39",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p39_Day_so_G11W6.docx",
+      "hash": "c351762971700415be314b502a1410cffa50282dc87cc3cfcb0ae3358f95f45f",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 39",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Định nghĩa tăng, giảm và bị chặn yêu cầu điều kiện nào đúng với mọi chỉ số?",
+  "prerequisites": [
+    "So sánh số thực, ký hiệu bất đẳng thức và lượng từ mọi n.",
+    "Chỉ số n bắt đầu từ1; phân biệt u_n với n."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p39-must",
+      "code": "SP-G11-W6-P39-MUST",
+      "level": "must",
+      "statement": "Tôi có thể phát biểu đúng định nghĩa tính đơn điệu cùng tính bị chặn của dãy số.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p39",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m39-act-0",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-observe"
+      ],
+      "participation": "individual",
+      "studentAction": "Dự đoán điều kiện liên tiếp; không lấy vài số hạng để kết luận mọi n.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-observe"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-observe"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-1",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-pre"
+      ],
+      "participation": "individual",
+      "studentAction": "Chẩn đoán lượng từ và hai phía của khoảng chặn.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-pre"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-pre"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-2",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-learn"
+      ],
+      "participation": "individual",
+      "studentAction": "GV ghi định nghĩa chuẩn; mỗi em hoàn thiện định nghĩa tăng, giảm, bị chặn bằng thẻ.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-learn"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-learn"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-3",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-support",
+        "m39-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Chọn một nhánh hỗ trợ hoặc chuẩn, nhận diện điều kiện định nghĩa theo làn.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-support",
+        "hint-m39-core"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-4",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-recheck-definitions"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm một nhiệm vụ mới cá nhân gồm đủ ba định nghĩa; dùng trợ giúp thì không độc lập.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-recheck-definitions"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-recheck-definitions"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-5",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Chỉ em qua Must recheck độc lập được làm bài định nghĩa thử thách; em khác tiếp tục luyện.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-extension"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-6",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-exit-definitions"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bảng tình huống định nghĩa mới, độc lập; đây là bằng chứng thứ hai.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-exit-definitions"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [
+        "hint-m39-exit-definitions"
+      ],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-7",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [
+        "m39-reflect"
+      ],
+      "participation": "individual",
+      "studentAction": "Viết trung thực trợ giúp đã dùng và một điều kiện cần giữ.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [
+        "ev-m39-reflect"
+      ],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    },
+    {
+      "id": "m39-act-8",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV dành quỹ dự phòng cho một lỗi hoặc thiết bị.",
+      "expectedProduct": "Đáp án theo đúng điều kiện và lượng từ của định nghĩa.",
+      "evidenceIds": [],
+      "teacherLookFor": "Không lấy kết quả nhóm, hint hoặc pending làm bằng chứng tự làm; không suy mastery chứng minh từ lựa chọn định nghĩa.",
+      "supportIds": [],
+      "transition": "GV dùng quỹ chuyển hoạt động2phút riêng, không tính hai lần vào reserve."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m39-observe",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-0",
+      "participation": "individual",
+      "prompt": "Em thấy ba số hạng đầu tăng. Muốn phát biểu dãy tăng theo định nghĩa, cần quan hệ liên tiếp đúng ở phạm vi nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-observe"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "b"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Chỉ ba số hạng đã thấy"
+          },
+          {
+            "id": "b",
+            "label": "Mọi chỉ số liên tiếp thuộc miền dãy"
+          },
+          {
+            "id": "c",
+            "label": "Chỉ chỉ số cuối cùng"
+          },
+          {
+            "id": "d",
+            "label": "Một chỉ số bất kỳ"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m39-observe"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-pre",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-1",
+      "participation": "individual",
+      "prompt": "Định nghĩa bị chặn hai phía cần điều kiện nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-pre"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "c"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Mỗi số hạng có cận khác nhau tùy n"
+          },
+          {
+            "id": "b",
+            "label": "Chỉ cần ba số hạng đầu có cận"
+          },
+          {
+            "id": "c",
+            "label": "Có hai cận cố định m,M áp dụng cho mọi n"
+          },
+          {
+            "id": "d",
+            "label": "Chỉ cần dãy tăng"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m39-pre"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-learn",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-2",
+      "participation": "individual",
+      "prompt": "Sau khi GV ghi định nghĩa, ghép mỗi điều kiện với tên phù hợp. Chỉ dùng điều kiện đã nêu; đây không phải bài chứng minh một công thức dãy.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-learn"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "learn-up": "up",
+          "learn-down": "down",
+          "learn-bound": "bounded",
+          "learn-three": "insufficient"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "learn-up",
+            "label": "Với mọi $n\\ge1$, $u_{n+1}>u_n$."
+          },
+          {
+            "id": "learn-down",
+            "label": "Với mọi $n\\ge1$, $u_{n+1}<u_n$."
+          },
+          {
+            "id": "learn-bound",
+            "label": "Có $m,M$ cố định sao cho $m\\le u_n\\le M$ với mọi $n\\ge1$."
+          },
+          {
+            "id": "learn-three",
+            "label": "Chỉ biết ba số hạng đầu tăng."
+          }
+        ],
+        "categories": [
+          {
+            "id": "up",
+            "label": "Tăng"
+          },
+          {
+            "id": "down",
+            "label": "Giảm"
+          },
+          {
+            "id": "bounded",
+            "label": "Bị chặn hai phía"
+          },
+          {
+            "id": "insufficient",
+            "label": "Chưa đủ điều kiện"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m39-learn"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-support",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-3",
+      "participation": "individual",
+      "prompt": "Nhánh tiếp sức: chọn dòng ghép đúng cả hai tên tăng/giảm theo định nghĩa với mọi n.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "a"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tăng: u_(n+1)>u_n; giảm: u_(n+1)<u_n"
+          },
+          {
+            "id": "b",
+            "label": "Tăng: u_(n+1)<u_n; giảm: u_(n+1)>u_n"
+          },
+          {
+            "id": "c",
+            "label": "Tăng: u_(n+1)=u_n; giảm: u_(n+1)>u_n"
+          },
+          {
+            "id": "d",
+            "label": "Tăng và giảm đều chỉ kiểm ba số hạng đầu"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m39-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-core",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-3",
+      "participation": "individual",
+      "prompt": "Nhánh khám phá: chọn phát biểu chính xác về bị chặn hai phía.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "d"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Chỉ cần có cận trên cố định"
+          },
+          {
+            "id": "b",
+            "label": "Chỉ cần có cận dưới cố định"
+          },
+          {
+            "id": "c",
+            "label": "Dãy phải tăng trước khi xét bị chặn"
+          },
+          {
+            "id": "d",
+            "label": "Có cận dưới m và cận trên M cố định cho mọi số hạng"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m39-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-recheck-definitions",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-4",
+      "participation": "individual",
+      "prompt": "Kiểm tra cá nhân: hoàn thiện ba định nghĩa bằng cách chọn đúng tên cho toàn bộ điều kiện. Tên có thể lặp; một điều kiện chưa đủ không được nhận là định nghĩa.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-recheck-definitions"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "r-decrease": "down",
+          "r-two-bounds": "bounded",
+          "r-increase": "up",
+          "r-onlyupper": "insufficient"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "r-decrease",
+            "label": "Mọi $n\\ge1$ đều có $a_n>a_{n+1}$."
+          },
+          {
+            "id": "r-two-bounds",
+            "label": "Tồn tại hai số thực $L,U$ không phụ thuộc n, với $L\\le a_n\\le U$ cho mọi n."
+          },
+          {
+            "id": "r-increase",
+            "label": "Mọi $n\\ge1$ đều có $a_n<a_{n+1}$."
+          },
+          {
+            "id": "r-onlyupper",
+            "label": "Chỉ biết có $U$ cố định sao cho $a_n\\le U$ với mọi n; chưa biết cận dưới."
+          }
+        ],
+        "categories": [
+          {
+            "id": "up",
+            "label": "Tăng"
+          },
+          {
+            "id": "down",
+            "label": "Giảm"
+          },
+          {
+            "id": "bounded",
+            "label": "Bị chặn hai phía"
+          },
+          {
+            "id": "insufficient",
+            "label": "Chưa đủ điều kiện"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m39-recheck-definitions"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-extension",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-5",
+      "participation": "individual",
+      "prompt": "Nhánh thử thách tùy chọn: mệnh đề nào đúng về quan hệ giữa định nghĩa đơn điệu và bị chặn? Không cần chứng minh một công thức dãy cụ thể.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "c"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Bị chặn luôn đồng nghĩa với tăng"
+          },
+          {
+            "id": "b",
+            "label": "Bị chặn luôn đồng nghĩa với giảm"
+          },
+          {
+            "id": "c",
+            "label": "Đơn điệu và bị chặn là hai tính chất khác nhau, phải kiểm theo từng định nghĩa"
+          },
+          {
+            "id": "d",
+            "label": "Có cận trên luôn đủ bị chặn hai phía"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m39-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/exercises/1+4",
+          "quote": "Dãy $u_n=\\frac1n$ tăng hay giảm? Xét $u_n=(-1)^n$ bằng hiệu.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-exit-definitions",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-6",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: ghép ba tình huống dưới đây với tên tính chất đúng theo định nghĩa. Tình huống thiếu điều kiện phải chọn chưa đủ; không dùng kết quả recheck.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-exit-definitions"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "e-bounds": "bounded",
+          "e-falling": "down",
+          "e-rising": "up",
+          "e-three": "insufficient"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "e-bounds",
+            "label": "Một dãy $(b_n)$ thỏa $-2\\le b_n\\le5$ với mọi $n\\ge1$. Chỉ xét tính bị chặn hai phía."
+          },
+          {
+            "id": "e-falling",
+            "label": "Mọi chỉ số n đều thỏa $b_{n+1}-b_n<0$. Chỉ xét tính giảm."
+          },
+          {
+            "id": "e-rising",
+            "label": "Mọi chỉ số n đều thỏa $b_{n+1}-b_n>0$. Chỉ xét tính tăng."
+          },
+          {
+            "id": "e-three",
+            "label": "Chỉ biết $b_1<b_2<b_3$; chưa biết quan hệ ở các chỉ số sau."
+          }
+        ],
+        "categories": [
+          {
+            "id": "up",
+            "label": "Tăng"
+          },
+          {
+            "id": "down",
+            "label": "Giảm"
+          },
+          {
+            "id": "bounded",
+            "label": "Bị chặn hai phía"
+          },
+          {
+            "id": "insufficient",
+            "label": "Chưa đủ điều kiện"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Checker kiểm lựa chọn/hoàn thiện định nghĩa; không chấm lời giải chứng minh hoặc phân tích tỉ số.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m39-exit-definitions"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m39-reflect",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "activityId": "m39-act-7",
+      "participation": "individual",
+      "prompt": "Nêu một điều kiện trong định nghĩa em sẽ không bỏ qua; khai báo trung thực nếu đã dùng trợ giúp.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m39-reflect"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Tự nhận xét cụ thể và trung thực."
+          ],
+          "lookFor": [
+            "Không dùng lời tự nhận xét làm mastery định nghĩa."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 1000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Phản tỉnh không đánh giá độc lập.",
+      "minutes": 1,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p39/formulas/0+3",
+          "quote": "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng} m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m39-observe",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-observe",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-pre",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-pre",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-learn",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-learn",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-support",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-support",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-core",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-core",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-recheck-definitions",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-recheck-definitions",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-extension",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    },
+    {
+      "id": "hint-m39-exit-definitions",
+      "tier": "H1",
+      "text": "Đọc kỹ lượng từ, dấu so sánh và việc cận có cố định với mọi chỉ số hay không. Đối chiếu từng phần với định nghĩa.",
+      "taskId": "m39-exit-definitions",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi thao tác đọc điều kiện, không cho định nghĩa hay đáp án."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m39-observe",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m39-observe"
+    },
+    {
+      "id": "ev-m39-pre",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m39-pre"
+    },
+    {
+      "id": "ev-m39-learn",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m39-learn"
+    },
+    {
+      "id": "ev-m39-recheck-definitions",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m39-recheck-definitions"
+    },
+    {
+      "id": "ev-m39-exit-definitions",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m39-exit-definitions"
+    },
+    {
+      "id": "ev-m39-reflect",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p39-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m39-reflect"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Nêu đúng tăng, giảm theo quan hệ hai số hạng liên tiếp cho mọi chỉ số.",
+      "Nêu đúng bị chặn trên/dưới/hai phía với cận cố định cho mọi chỉ số."
+    ],
+    "lookFor": [
+      "Chỉ đo kiến thức định nghĩa; chọn đúng không đồng nghĩa đã chứng minh một dãy phân thức đơn điệu.",
+      "Không ghi đạt Should hoặc Could của bài gốc. Phân tích hiệu/tỉ số và chứng minh là phần tiết khác hoặc do GV đọc, ngoài scope này.",
+      "GV duyệt việc hoàn thiện định nghĩa bằng thẻ có đo đủ động từ phát biểu của mục tiêu hay không; chưa có nghiệm thu lớp thật."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "84acbfc8061866aab575d55fbe9a57e1d341540544159d85b92f3a2af4283887"
+}

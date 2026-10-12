@@ -127,3 +127,14 @@ test('proposal errors never log source text or provider details', async () => {
     assert.deepEqual(logs, []);
   } finally { context.console = priorConsole; }
 });
+
+test('latest draft GET forwards authenticated owner and source, returns null, never runs a provider', async()=>{
+ let received,calls=0;
+ const route=await routeWith(()=>source,{generationImpl:{latest:async input=>{received=input;return null;},run:async()=>{calls++;throw Error('UNEXPECTED_RUN');}}});
+ const url='https://test/api/lessons/proposal?latest=true&sourceId=src-1';
+ assert.equal((await route.GET(new Request(url))).status,401);
+ const response=await route.GET(new Request(url,{headers:{'x-test-user':'teacher-a'}}));
+ assert.equal(response.status,200);assert.deepEqual(await response.json(),{job:null});
+ assert.deepEqual(JSON.parse(JSON.stringify(received)),{ownerAccountId:'teacher-a',sourceId:'src-1'});assert.equal(calls,0);
+ assert.equal((await route.GET(new Request('https://test/api/lessons/proposal?latest=true',{headers:{'x-test-user':'teacher-a'}}))).status,400);
+});

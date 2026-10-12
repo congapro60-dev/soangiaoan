@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p41-must-only",
+  "version": "0.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P41-Must-review-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:579 / d(11,6,41)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p41",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p41_Luyen_tap_phoi_hop_gia_tri_luong_giac_phuong_trinh_luong_giac_va_day_so_G11W6.docx",
+      "hash": "7e1ae79f263621f3d6bce273e33c828e3acd6a29700f226a3ca9f3abca1d15e7",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 41",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào tìm đủ nghiệm lượng giác rồi tính đúng các số hạng đầu của dãy nghiệm đã chỉ định?",
+  "prerequisites": [
+    "Công thức nghiệm cơ bản của sin, cos, tan; k thuộc tập số nguyên.",
+    "Phân biệt toàn bộ tập nghiệm với một dãy con theo n bắt đầu từ 1."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p41-must",
+      "code": "SP-G11-W6-P41-MUST",
+      "level": "must",
+      "statement": "Tôi có thể tính đúng nghiệm lượng giác cùng số hạng của dãy nghiệm tương ứng.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p41",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m41-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-observe"
+      ],
+      "participation": "individual",
+      "studentAction": "Em dự đoán rồi kiểm tra kết quả đơn giản; giáo viên nghe cách hiểu ban đầu.",
+      "expectedProduct": "Một kết quả chẩn đoán, không dùng làm mastery.",
+      "evidenceIds": [
+        "ev-m41-observe"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-observe"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-pre-a",
+        "m41-pre-b"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm hai câu ngắn để giáo viên nhận diện lỗi kiến thức nền.",
+      "expectedProduct": "Hai kết quả chẩn đoán, chưa dùng làm mastery.",
+      "evidenceIds": [
+        "ev-m41-pre-a",
+        "ev-m41-pre-b"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-pre-a",
+        "hint-m41-pre-b"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-learn"
+      ],
+      "participation": "individual",
+      "studentAction": "Giáo viên hướng dẫn cách kiểm kết quả; em làm bài mẫu và ghi phép kiểm trong vở.",
+      "expectedProduct": "Kết quả bài mẫu và phần giải thích trong vở để giáo viên quan sát.",
+      "evidenceIds": [
+        "ev-m41-learn"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-learn"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-support",
+        "m41-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Em chọn nhánh hỗ trợ hoặc chuẩn; làm một nhiệm vụ theo làn, ghi phép kiểm vào vở.",
+      "expectedProduct": "Một bộ kết quả theo làn, không yêu cầu làm cả hai nhánh.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-core",
+        "hint-m41-support-1",
+        "hint-m41-support-2",
+        "hint-m41-support-3",
+        "hint-m41-support-4"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-recheck-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm đề mới cá nhân; không mở gợi ý hoặc xem lời giải nếu muốn giữ bằng chứng độc lập.",
+      "expectedProduct": "Trọn bộ kết quả do checker server đánh giá; không chấm chứng minh.",
+      "evidenceIds": [
+        "ev-m41-recheck-three"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-recheck-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-extension-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em đã qua recheck độc lập được làm thêm một bài Must trong 2 phút; các em còn lại tiếp tục luyện theo giáo viên.",
+      "expectedProduct": "Kết quả luyện thêm tùy chọn, không có bằng chứng mastery mới.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-extension-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-exit-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm đề mới cá nhân; không mở gợi ý hoặc xem lời giải nếu muốn giữ bằng chứng độc lập.",
+      "expectedProduct": "Trọn bộ kết quả do checker server đánh giá; không chấm chứng minh.",
+      "evidenceIds": [
+        "ev-m41-exit-three"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m41-exit-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [
+        "m41-reflect"
+      ],
+      "participation": "individual",
+      "studentAction": "Ghi trung thực có dùng trợ giúp không và một lỗi thay chỉ số cần tránh.",
+      "expectedProduct": "Lời tự nhận xét ngắn.",
+      "evidenceIds": [
+        "ev-m41-reflect"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m41-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV xử lý một lỗi phổ biến hoặc thiết bị; không lấy quỹ này để hứa chấm đủ150lời giải.",
+      "expectedProduct": "Phép thay chỉ số được sửa hoặc thời gian dự phòng.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m41-observe",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-experience",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\sin x=0$. Với $n\\ge1$, lấy dãy nghiệm $x_n=(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-observe"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "b"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=2k\\pi$; dãy: $x_n=(n-1)\\pi$; ba số hạng: $(0;\\pi;2\\pi)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=(n-1)\\pi$; ba số hạng: $(0;\\pi;2\\pi)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=n\\pi$; ba số hạng: $(\\pi;2\\pi;3\\pi)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=(n-1)\\pi$; ba số hạng: $(0;2\\pi;4\\pi)$."
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m41-observe"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-observe",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-pre-a",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-precheck",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\tan x=1$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac\\pi4+(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-pre-a"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "c"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=\\frac\\pi4+2k\\pi$; dãy: $x_n=\\frac\\pi4+(n-1)\\pi$; ba số hạng: $(\\frac\\pi4;\\frac{5\\pi}4;\\frac{9\\pi}4)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=\\frac\\pi4+k\\pi$; dãy: $x_n=\\frac\\pi4+n\\pi$; ba số hạng: $(\\frac{5\\pi}4;\\frac{9\\pi}4;\\frac{13\\pi}4)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=\\frac\\pi4+k\\pi$; dãy: $x_n=\\frac\\pi4+(n-1)\\pi$; ba số hạng: $(\\frac\\pi4;\\frac{5\\pi}4;\\frac{9\\pi}4)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=-\\frac\\pi4+k\\pi$; dãy: $x_n=\\frac\\pi4+(n-1)\\pi$; ba số hạng: $(\\frac\\pi4;\\frac{5\\pi}4;\\frac{9\\pi}4)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-m41-pre-a"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-pre-a",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-pre-b",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-precheck",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\sin x=1$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac\\pi2+2(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-pre-b"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "a"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac\\pi2+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi2;\\frac{5\\pi}2;\\frac{9\\pi}2)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=\\frac\\pi2+k\\pi$; dãy: $x_n=\\frac\\pi2+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi2;\\frac{5\\pi}2;\\frac{9\\pi}2)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac\\pi2+2n\\pi$; ba số hạng: $(\\frac{5\\pi}2;\\frac{9\\pi}2;\\frac{13\\pi}2)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac\\pi2+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi2;\\frac{3\\pi}2;\\frac{5\\pi}2)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-m41-pre-b"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-pre-b",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-learn",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-formation",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\cos x=\\frac12$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac\\pi3+2(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-learn"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "d"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=\\frac\\pi3+2k\\pi$; dãy: $x_n=\\frac\\pi3+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi3;\\frac{7\\pi}3;\\frac{13\\pi}3)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=\\frac\\pi3+k\\pi$; dãy: $x_n=\\frac\\pi3+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi3;\\frac{7\\pi}3;\\frac{13\\pi}3)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=\\frac\\pi3+2k\\pi$ hoặc $x=-\\frac\\pi3+2k\\pi$; dãy: $x_n=\\frac\\pi3+2n\\pi$; ba số hạng: $(\\frac{7\\pi}3;\\frac{13\\pi}3;\\frac{19\\pi}3)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=\\frac\\pi3+2k\\pi$ hoặc $x=-\\frac\\pi3+2k\\pi$; dãy: $x_n=\\frac\\pi3+2(n-1)\\pi$; ba số hạng: $(\\frac\\pi3;\\frac{7\\pi}3;\\frac{13\\pi}3)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m41-learn"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-learn",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-support",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-practice",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\tan x=0$. Với $n\\ge1$, lấy dãy nghiệm $x_n=n\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "b"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=2k\\pi$; dãy: $x_n=n\\pi$; ba số hạng: $(\\pi;2\\pi;3\\pi)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=n\\pi$; ba số hạng: $(\\pi;2\\pi;3\\pi)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=(n-1)\\pi$; ba số hạng: $(0;\\pi;2\\pi)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=k\\pi$; dãy: $x_n=n\\pi$; ba số hạng: $(\\pi;3\\pi;5\\pi)$."
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": true,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m41-support-1",
+        "hint-m41-support-2",
+        "hint-m41-support-3",
+        "hint-m41-support-4"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-support",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-core",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-practice",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\sin x=-\\frac12$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac{7\\pi}6+2(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "c"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=-\\frac\\pi6+2k\\pi$; dãy: $x_n=\\frac{7\\pi}6+2(n-1)\\pi$; ba số hạng: $(\\frac{7\\pi}6;\\frac{19\\pi}6;\\frac{31\\pi}6)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=-\\frac\\pi6+k\\pi$; dãy: $x_n=\\frac{7\\pi}6+2(n-1)\\pi$; ba số hạng: $(\\frac{7\\pi}6;\\frac{19\\pi}6;\\frac{31\\pi}6)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=-\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{7\\pi}6+2k\\pi$; dãy: $x_n=\\frac{7\\pi}6+2(n-1)\\pi$; ba số hạng: $(\\frac{7\\pi}6;\\frac{19\\pi}6;\\frac{31\\pi}6)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=-\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{7\\pi}6+2k\\pi$; dãy: $x_n=\\frac{7\\pi}6+2n\\pi$; ba số hạng: $(\\frac{19\\pi}6;\\frac{31\\pi}6;\\frac{43\\pi}6)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m41-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-core",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-recheck-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-recheck",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\cos x=-\\frac12$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac{2\\pi}3+2(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-recheck-three"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "a"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=\\frac{2\\pi}3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$; dãy: $x_n=\\frac{2\\pi}3+2(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{8\\pi}3;\\frac{14\\pi}3)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=\\frac{2\\pi}3+2k\\pi$; dãy: $x_n=\\frac{2\\pi}3+2(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{8\\pi}3;\\frac{14\\pi}3)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=\\frac{2\\pi}3+k\\pi$; dãy: $x_n=\\frac{2\\pi}3+2(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{8\\pi}3;\\frac{14\\pi}3)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=\\frac{2\\pi}3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$; dãy: $x_n=\\frac{2\\pi}3+2n\\pi$; ba số hạng: $(\\frac{8\\pi}3;\\frac{14\\pi}3;\\frac{20\\pi}3)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m41-recheck-three"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-recheck-three",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-extension-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-extension",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\sin x=-1$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac{3\\pi}2+2(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "b"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=-\\frac\\pi2+k\\pi$; dãy: $x_n=\\frac{3\\pi}2+2(n-1)\\pi$; ba số hạng: $(\\frac{3\\pi}2;\\frac{7\\pi}2;\\frac{11\\pi}2)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=-\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac{3\\pi}2+2(n-1)\\pi$; ba số hạng: $(\\frac{3\\pi}2;\\frac{7\\pi}2;\\frac{11\\pi}2)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=-\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac{3\\pi}2+2n\\pi$; ba số hạng: $(\\frac{7\\pi}2;\\frac{11\\pi}2;\\frac{15\\pi}2)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=-\\frac\\pi2+2k\\pi$; dãy: $x_n=\\frac{3\\pi}2+2(n-1)\\pi$; ba số hạng: $(\\frac{3\\pi}2;\\frac{5\\pi}2;\\frac{7\\pi}2)$."
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m41-extension-three"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-extension-three",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-exit-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-exit",
+      "participation": "individual",
+      "prompt": "Trên $\\mathbb R$, giải $\\tan x=-\\sqrt3$. Với $n\\ge1$, lấy dãy nghiệm $x_n=\\frac{2\\pi}3+(n-1)\\pi$. Chọn gói đúng gồm tập nghiệm đầy đủ, công thức dãy đã chỉ định và ba số hạng đầu. Trong mọi phương án, $k\\in\\mathbb Z$. Ghi phép kiểm vào vở; máy chỉ kiểm kết quả chọn.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-exit-three"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "d"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tập nghiệm: $x=-\\frac\\pi3+2k\\pi$; dãy: $x_n=\\frac{2\\pi}3+(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{5\\pi}3;\\frac{8\\pi}3)$."
+          },
+          {
+            "id": "b",
+            "label": "Tập nghiệm: $x=-\\frac\\pi3+k\\pi$; dãy: $x_n=\\frac{2\\pi}3+n\\pi$; ba số hạng: $(\\frac{5\\pi}3;\\frac{8\\pi}3;\\frac{11\\pi}3)$."
+          },
+          {
+            "id": "c",
+            "label": "Tập nghiệm: $x=\\frac\\pi3+k\\pi$; dãy: $x_n=\\frac{2\\pi}3+(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{5\\pi}3;\\frac{8\\pi}3)$."
+          },
+          {
+            "id": "d",
+            "label": "Tập nghiệm: $x=-\\frac\\pi3+k\\pi$; dãy: $x_n=\\frac{2\\pi}3+(n-1)\\pi$; ba số hạng: $(\\frac{2\\pi}3;\\frac{5\\pi}3;\\frac{8\\pi}3)$."
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m41-exit-three"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-exit-three",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m41-reflect",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "m41-reflection",
+      "participation": "individual",
+      "prompt": "Em đã kiểm đủ tập nghiệm, dãy con và ba số hạng như thế nào? Khai báo trợ giúp nếu có; phần tự nhận xét không làm bằng chứng mastery.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m41-reflect"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu thao tác hoặc lỗi cụ thể; khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Lời tự nhận xét không dùng làm bằng chứng tính đúng hoặc độc lập."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 1000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/must-only-adapted/m41-reflect",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m41-observe",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-observe",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-pre-a",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-pre-a",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-pre-b",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-pre-b",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-learn",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-learn",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-core",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-core",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-recheck-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-recheck-three",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-extension-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-extension-three",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-exit-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m41-exit-three",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-support-1",
+      "tier": "H1",
+      "text": "Đọc phương trình và miền nghiệm trước; xác định chu kỳ của công thức nghiệm phù hợp.",
+      "taskId": "m41-support",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-support-2",
+      "tier": "H2",
+      "text": "Phân biệt tập nghiệm với k thuộc tập số nguyên và dãy đã chỉ định với n bắt đầu từ 1.",
+      "taskId": "m41-support",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 2,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-support-3",
+      "tier": "H3",
+      "text": "Thay lần lượt n bằng 1, 2, 3 vào đúng dãy con; giữ hệ số của pi trong từng kết quả.",
+      "taskId": "m41-support",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 3,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m41-support-4",
+      "tier": "H4",
+      "text": "Đối chiếu từng gói theo ba phần riêng: đủ họ nghiệm, đúng dãy đã chỉ định, đủ ba số hạng. Một phần đúng chưa đủ chọn cả gói.",
+      "taskId": "m41-support",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 4,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m41-observe",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m41-observe"
+    },
+    {
+      "id": "ev-m41-pre-a",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m41-pre-a"
+    },
+    {
+      "id": "ev-m41-pre-b",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m41-pre-b"
+    },
+    {
+      "id": "ev-m41-learn",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m41-learn"
+    },
+    {
+      "id": "ev-m41-recheck-three",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m41-recheck-three"
+    },
+    {
+      "id": "ev-m41-exit-three",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m41-exit-three"
+    },
+    {
+      "id": "ev-m41-reflect",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m41-reflect"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Chọn đúng đồng thời tập nghiệm đầy đủ, dãy nghiệm đã chỉ định và cả ba số hạng đầu."
+    ],
+    "lookFor": [
+      "Checker kiểm một gói hữu hạn đã authored; không chấm biểu thức đại số tự do hoặc chứng minh.",
+      "Chọn đúng một dãy con không được xem là đã nêu đủ toàn bộ nghiệm. Lập luận, thiết kế bài toán và rubric chưa là mục tiêu của draft này."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "6a72cad11cafff543c119e983c8fba797426bec5423d9cd92fb4669979c79955"
+}

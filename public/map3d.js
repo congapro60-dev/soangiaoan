@@ -1047,6 +1047,33 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
   }
 
   // road cells and lanterns
+  const laneLines = [];
+  let laneKey = '';
+  function syncLanePaths(next) {
+    const cells = (next.lessonGates || []).map(gate => gate.cell);
+    const enabled = Boolean(next.own && next.ownBranch && !next.examJourney && cells.length);
+    const key = enabled ? cells.join(',') : '';
+    if (key === laneKey) return;
+    laneKey = key;
+    for (const line of laneLines) { scene.remove(line); line.geometry.dispose(); line.material.dispose(); }
+    laneLines.length = 0;
+    if (!enabled || !window.SignalTerrain?.sampleLessonLane) return;
+    // ponytail: two guide lines share the existing terrain; widen roads only after device QA.
+    for (const branch of ['support', 'extension']) {
+      const points = [];
+      for (let cell = 0; cell <= path.length - 1; cell += .25) {
+        const point = toWorld(window.SignalTerrain.sampleLessonLane(next.route, cell, branch, cells));
+        points.push(new THREE.Vector3(point.x, roadY(point.x, point.y) + .35, point.y));
+      }
+      const color = new THREE.Color(theme.guide?.color ?? 0xffd36a);
+      if (branch === 'support') color.lerp(new THREE.Color(theme.palette.roadA), .3);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color, transparent: true, opacity: .85, depthWrite: false }));
+      line.userData.noAO = true;
+      scene.add(line);
+      laneLines.push(line);
+    }
+  }
+  syncLanePaths(model);
   const pads = instanced(models.pad, vcMat(), path.length, false);
   const checks = instanced(models.padCheck, vcMat(), GATES.length, false);
   let padCount = 0;
@@ -1126,11 +1153,21 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
     const plaque = new THREE.Object3D();
     plaque.position.set(0, 7.6 * scale, 0);
     g.add(plaque);
-    plaques.push({ anchor: plaque, el: makeLabel('gate', String(index + 1).padStart(2, '0'), places[index] || 'Cổng ' + (index + 1)) });
+    plaques.push({ cell, index, anchor: plaque, el: makeLabel('gate', String(index + 1).padStart(2, '0'), places[index] || 'Cổng ' + (index + 1)) });
     g.position.copy(p);
     scene.add(g);
     gateGroups.push(g);
   });
+  function syncGatePlaques(next) {
+    const gates = next.lessonGates || [];
+    for (const plaque of plaques) {
+      const matches = gates.filter(gate => gate.cell === plaque.cell);
+      const gate = matches.length === 1 ? matches[0] : null;
+      plaque.el.children[0].textContent = gate ? `Cổng ${gate.index}` : gates.length ? '' : String(plaque.index + 1).padStart(2, '0');
+      plaque.el.children[1].textContent = gate ? '★'.repeat(gate.stars) || '0 sao' : places[plaque.index] || (gates.length ? 'Mốc cảnh quan' : `Cổng ${plaque.index + 1}`);
+    }
+  }
+  syncGatePlaques(model);
 
   // bridges where the road crosses water, and the ferry pier at the first gate
   const woodMat = vcMat({ roughness: 0.85 });
@@ -1415,8 +1452,10 @@ transformed.z += cos(uTime * 1.2 + iw.y * 0.31 + iw.x * 0.17) * 0.15 * sw;`,
     const len = Math.hypot(dx, dz) || 1;
     const tx = dx / len;
     const tz = dz / len;
-    const x = lerp(a.x, b.x, f) - tz * entry.off.u + tx * entry.off.v;
-    const z = lerp(a.y, b.y, f) + tx * entry.off.u + tz * entry.off.v;
+    const lane = entry.own && model.ownBranch && !model.examJourney && window.SignalTerrain?.sampleLessonLane
+      ? toWorld(window.SignalTerrain.sampleLessonLane(model.route, at, model.ownBranch, (model.lessonGates || []).map(gate => gate.cell))) : null;
+    const x = (lane ? lane.x : lerp(a.x, b.x, f)) - tz * entry.off.u + tx * entry.off.v;
+    const z = (lane ? lane.y : lerp(a.y, b.y, f)) + tx * entry.off.u + tz * entry.off.v;
     entry.group.position.set(x, roadY(x, z), z);
   }
 
@@ -1586,6 +1625,7 @@ function syncStations(next) {
     }
     assignSlots();
     for (const entry of peers.values()) {
+      if (entry.own) standAt(entry, entry.cell);
       if (!entry.fresh) continue;
       entry.fresh = false;
       entry.off.u = entry.slot.u;
@@ -2577,6 +2617,8 @@ function syncStations(next) {
       state.model = next;
       model = next;
       syncPeers(next);
+      syncGatePlaques(next);
+      syncLanePaths(next);
     },
     resize,
     /** Drives the die: {phase: 'idle' | 'rolling' | 'landed', face, steps, canRoll}. */

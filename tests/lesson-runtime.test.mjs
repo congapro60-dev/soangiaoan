@@ -769,7 +769,7 @@ test('grouping: role selection, auto-assignment, contributions and group product
     { id: 'hs-4', name: 'Phạm Thị Dung' }
   ];
 
-  let session = createLessonSession({
+  let session = createLessonSession({ groupPolicyVersion: 0,
     package: fixture,
     mode: 'preview',
     sessionId: 's1',
@@ -895,7 +895,7 @@ test('grouping: role selection, auto-assignment, contributions and group product
 });
 
 test('a later wrong group retry cannot overwrite an already-correct shared product', () => {
-  let session = createLessonSession({
+  let session = createLessonSession({ groupPolicyVersion: 0,
     package: fixture,
     mode: 'preview',
     sessionId: 'group-product-stable',
@@ -920,7 +920,7 @@ test('a later wrong group retry cannot overwrite an already-correct shared produ
 });
 
 test('group closed submission rejects a missing checker and revealed group work earns no reward', () => {
-  let session = createLessonSession({ package: fixture, mode: 'preview', sessionId: 'group-reveal', hostId: 'teacher-main', learners: [{ id: 'hs-1' }, { id: 'hs-2' }, { id: 'hs-3' }, { id: 'hs-4' }], rewardPolicy: { groupCorrect: 30 }, now: 1000 });
+  let session = createLessonSession({ groupPolicyVersion: 0, package: fixture, mode: 'preview', sessionId: 'group-reveal', hostId: 'teacher-main', learners: [{ id: 'hs-1' }, { id: 'hs-2' }, { id: 'hs-3' }, { id: 'hs-4' }], rewardPolicy: { groupCorrect: 30 }, now: 1000 });
   const teacher = { role: 'teacher', id: 'teacher-main' };
   const student = { role: 'student', id: 'hs-1' };
   session = reduceLessonSession(session, { eventId: 'start', type: 'START', round: 1, revision: 0, payload: {} }, { actor: teacher, now: 1000 }).state;
@@ -1893,7 +1893,7 @@ test('repro 3: own group products and contributions are exposed to own group mem
     { id: 'hs-1', name: 'Học sinh 1' },
     { id: 'hs-2', name: 'Học sinh 2' }
   ];
-  let session = createLessonSession({
+  let session = createLessonSession({ groupPolicyVersion: 0,
     package: fixture,
     mode: 'preview',
     sessionId: 's-repro-3',
@@ -2322,7 +2322,7 @@ test('isolation: own group product and contributions visible ONLY to own group, 
     { id: 'hs-5', name: 'Học sinh 5' },
     { id: 'hs-6', name: 'Học sinh 6' }
   ];
-  let session = createLessonSession({
+  let session = createLessonSession({ groupPolicyVersion: 0,
     package: fixture,
     mode: 'preview',
     sessionId: 's-iso',

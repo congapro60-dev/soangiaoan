@@ -44,6 +44,12 @@ test('Studio can select the current authored pilot when saved packages already e
   assert.equal(state.IsLoadingStudio, false);
 });
 
+test('Studio selects an authored source draft without treating it as an approved saved record',async()=>{
+ const state={},bindings=studioBindings(state);const pkg=JSON.parse(await readFile(new URL('../content/lessons/g11-sequences-p2.json',import.meta.url),'utf8'));
+ bindings.fetch=async url=>{assert.equal(url,'/api/lesson-content?id=g11-sequences-p2');return{ok:true,json:async()=>({package:pkg})};};
+ await handler('handleSelectPackage',bindings)(null,'g11-sequences-p2');assert.equal(state.CurrentPackage.id,pkg.id);assert.equal(state.SelectedRecord,null);assert.equal(state.EditedPackage.status,'draft');assert.equal(state.ApprovedPlan,null);
+});
+
 test('Studio preview budget exposes optional extension minutes', () => {
   assert.match(source, /tùy chọn\/phó bản/);
   assert.match(source, /optionalMinutes/);
@@ -371,6 +377,17 @@ function formHarness(fetch = async () => { throw new Error('Unexpected request')
     if (name.endsWith('/lib/lesson/cockpit.js')) return { cockpitLearners: () => [], __esModule: true };
     if (name.endsWith('/useLessonSession')) return { useLessonSession: () => session, formatDuration: String };
     if (name.endsWith('/lib/lesson/proposal.js')) return { buildLessonProposal: () => null, __esModule: true };
+    if (name.endsWith("/ClassRosterPanel")) return { ClassRosterPanel: () => null };
+    if (name.endsWith("/ContentScopePicker")) return { ContentScopePicker: () => null };
+    if (name.endsWith("lesson-catalogue.json")) return { default: { lessons: [] } };
+    if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
+    if (name.endsWith("/TeacherGroupAssessment")) return { TeacherGroupAssessment: () => null };
+    if (name.endsWith("/StructuredQuestionEditor")) return { StructuredQuestionEditor: () => null };
+    if (name.endsWith("/lib/lesson/values.js")) return { REFLECTION_PROMPTS: {} };
+    if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
+    if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
+    if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
+    if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
     throw new Error(`Unexpected dependency ${name}`);
   } });
   function expand(node) {
@@ -620,7 +637,7 @@ function generationBindings(state = {}, store = new Map()) {
     importSourceMeta: { id: 'source-a', status: 'ready', sha256: 'a'.repeat(64), parserRevision: 'parser-1', extractionHash: 'b'.repeat(64) },
     aiConsentKey: 'consent-1', generationConsentKey: 'consent-1', generationProviderHost: 'provider.example',
     setGenerationProviderHost: value => { state.ProviderHost = value; }, setGenerationConsentKey: value => { state.ConsentKey = value; },
-    generationJob: null, generationSettings: { subject: 'math', grade: 11, slotMinutes: 40 },
+    scopeConsent: null, generationJob: null, generationSettings: { subject: 'math', grade: 11, slotMinutes: 40 },
     generationBusyRef: { current: false }, sourceOperationRef: { current: 0 },
     sessionStorage: { getItem: key => store.get(key) || null, setItem: (key,value) => store.set(key,value), removeItem: key => store.delete(key) },
     setGenerationJob: value => { state.GenerationJob = value; },
@@ -740,4 +757,9 @@ test('approval blocks unreviewed adapted numbers and sends explicit numeric revi
   bindings.checkedNumericAcks['source\u0000source.md'] = true;
   await approve();
   assert.deepEqual(sent.sourceReviewAck, [{ id: 'source', locator: 'source.md', numericReviewConfirmed: true }]);
+});
+
+test('teacher board assessment preserves server nonMastery flag automatically',async()=>{
+ const sent=[];const state={};const bindings={...studioBindings(state),assessCriteriaMet:true,assessFeedback:'Đúng trên bảng',assessNonMastery:false,cockpitView:{openAssessments:{board:{nonMastery:true}}},dispatchCommand:async(type,payload)=>{sent.push({type,payload});return{ok:true};},setAssessingSubId(){},setAssessFeedback(){},setAssessNonMastery(){}};
+ const submit=handler('handleSubmitAssessment',bindings);await submit('board');assert.equal(sent[0].payload.nonMastery,true);
 });

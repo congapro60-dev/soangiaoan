@@ -530,6 +530,17 @@ test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load
         };
       }
       if (name.endsWith(".css")) return {};
+      if (name.endsWith("/ClassRosterPanel")) return { ClassRosterPanel: () => null };
+      if (name.endsWith("/ContentScopePicker")) return { ContentScopePicker: () => null };
+      if (name.endsWith("lesson-catalogue.json")) return { default: { lessons: [] } };
+      if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
+      if (name.endsWith("/SessionRules")) return { SessionRules: () => null };
+      if (name.endsWith("/TutorPanel")) return { TutorPanel: () => null };
+      if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
+      if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
+      if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
+      if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
+      if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
       throw new Error(`Unexpected import in PlayPage: ${name}`);
     },
   });
@@ -641,6 +652,8 @@ test("PresenterPage UI renders visible Bật phản hồi button and TV layout",
         };
       }
       if (name.endsWith(".css")) return {};
+      if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
+      if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
       throw new Error(`Unexpected import in PresenterPage: ${name}`);
     },
   });
@@ -657,3 +670,4 @@ test("PresenterPage UI renders visible Bật phản hồi button and TV layout",
   // 3. Safe anonymity: no learner identity leaks
   assert.match(html, /Không hiển thị thông tin cá nhân học sinh/);
 });
+

@@ -18,6 +18,12 @@ function outline() {
     uncertainties: []
   };
 }
+test('multi-scope section links survive outline assembly on objectives and tasks only as metadata',()=>{
+ const input=outline();input.objectives[0].scopeSectionId='lesson/section';for(const activity of input.activities)for(const task of activity.tasks)task.scopeSectionId='lesson/section';
+ const result=assembleLessonOutline(input,{slotMinutes:40,subject:'math',grade:11});
+ assert.equal(result.package.objectives[0].metadata.scopeSectionId,'lesson/section');assert.ok(result.package.tasks.every(task=>task.metadata.scopeSectionId==='lesson/section'));assert.equal('scopeSectionId' in result.package.tasks[0],false);
+ for(const bad of ['',[],{},null,128]){const changed=outline();changed.objectives[0].scopeSectionId=bad;assert.throws(()=>assembleLessonOutline(changed,{slotMinutes:40,subject:'math',grade:11}),/INVALID_PROPOSAL/);}
+});
 
 test('outline assembler creates reciprocal references, evidence and free hints without inventing answers', () => {
   const input = outline(), before = JSON.stringify(input);

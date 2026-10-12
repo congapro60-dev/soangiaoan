@@ -1,4 +1,12 @@
 "use client";
+import { TeacherGroupAssessment } from "../../components/lesson/TeacherGroupAssessment";
+import { TeacherLessonTools } from "../../components/lesson/TeacherLessonTools";
+import { LeaguePanel } from "../../components/lesson/LeaguePanel";
+import { ClassRosterPanel } from "../../components/lesson/ClassRosterPanel";
+import { StructuredQuestionEditor } from "../../components/lesson/StructuredQuestionEditor";
+import { REFLECTION_PROMPTS } from "../../lib/lesson/values.js";
+import { ContentScopePicker, type ScopeRequest } from "../../components/lesson/ContentScopePicker";
+import lessonCatalogue from "../../content/lesson-catalogue.json";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import MathText from "../../components/lesson/MathText";
@@ -333,10 +341,11 @@ interface LessonGenerationJob {
   id: string;
   sourceId: string;
   sourceSha256: string;
+  parserRevision: string;
   extractionHash: string;
   status: string;
   errorCode?: string;
-  result?: { package?: LessonPackage; validation?: { ok?: boolean; errors?: Array<{ code?: string; message?: string }> }; requiresTeacherReview?: boolean };
+  result?: { package?: LessonPackage; validation?: { ok?: boolean; errors?: Array<{ code?: string; path?: string; message?: string }> }; requiresTeacherReview?: boolean };
 }
 
 interface UnsupportedFormatInfo {
@@ -471,9 +480,9 @@ export function filterCockpitRoster<T extends { name: string; present: boolean }
     .sort((a, b) => (sort === "absent" ? Number(a.present) - Number(b.present) : 0) || a.name.localeCompare(b.name, "vi"));
 }
 
-export function getAIConsentKey(sourceId: string | null, source: LessonSourceMetadata | null, settings: { grade: number; subject: string; slotMinutes: number }, providerHost: string): string {
+export function getAIConsentKey(sourceId: string | null, source: LessonSourceMetadata | null, settings: { grade: number; subject: string; slotMinutes: number; scope?: ScopeRequest }, providerHost: string): string {
   if (!providerHost || !sourceId || source?.id !== sourceId || source.status !== "ready" || !source.sha256 || !source.parserRevision || !source.extractionHash) return "";
-  return JSON.stringify([sourceId, source.sha256, source.parserRevision, source.extractionHash, settings.grade, settings.subject, settings.slotMinutes, providerHost]);
+  return JSON.stringify([sourceId, source.sha256, source.parserRevision, source.extractionHash, settings.grade, settings.subject, settings.slotMinutes, providerHost, ...(settings.scope ? [JSON.stringify("selections" in settings.scope?{selections:settings.scope.selections.map(item=>({lessonId:item.lessonId,sectionIds:[...item.sectionIds].sort()})).sort((a,b)=>a.lessonId.localeCompare(b.lessonId))}:{lessonId:settings.scope.lessonId,sectionIds:[...settings.scope.sectionIds].sort()})] : [])]);
 }
 
 export function LessonAIConsentPanel({ providerHost, extraction, settings, confirmed, disabled, onChange }: {
@@ -718,7 +727,10 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
 
   // Studio state
   const [packages, setPackages] = useState<PackageRecord[]>([]);
+  const [authoredLibrary,setAuthoredLibrary]=useState<Array<{id:string;title:string;period:number}>>([]);
+  useEffect(()=>{let active=true;void fetch("/api/lesson-content",{cache:"no-store"}).then(async response=>{if(!response.ok)return;const data=await response.json() as {lessons?:Array<{id:string;title:string;period:number}>};if(active&&Array.isArray(data.lessons))setAuthoredLibrary(data.lessons);}).catch(()=>{});return()=>{active=false;};},[]);
   const [selectedRecord, setSelectedRecord] = useState<PackageRecord | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState("");
   const [currentPackage, setCurrentPackage] = useState<LessonPackage | null>(null);
   const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(true);
   const [studioStatus, setStudioStatus] = useState<string>("");
@@ -747,13 +759,16 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [importProposal, setImportProposal] = useState<LessonProposal | null>(null);
   const [generationJob, setGenerationJob] = useState<LessonGenerationJob | null>(null);
   const [isStartingGeneration, setIsStartingGeneration] = useState(false);
-  const [generationSettings, setGenerationSettings] = useState({ slotMinutes: 40, subject: "math", grade: 11 });
+  const [generationSettings, setGenerationSettings] = useState<{slotMinutes:number;subject:string;grade:number;scope?:ScopeRequest}>({ slotMinutes: 40, subject: "math", grade: 11 });
+  const [scopeConsent, setScopeConsent] = useState<Record<string, unknown> | null>(null);
+  const [scopeLabels, setScopeLabels] = useState<string[]>([]);
   const [generationProviderHost, setGenerationProviderHost] = useState("");
   const [generationConsentKey, setGenerationConsentKey] = useState("");
   const generationExtraction = importSourceMeta?.extraction?.sha256 === importSourceMeta?.sha256 ? importSourceMeta?.extraction || null : importExtraction?.sha256 === importSourceMeta?.sha256 ? importExtraction : null;
   const aiConsentKey = generationExtraction ? getAIConsentKey(importSourceId, importSourceMeta, generationSettings, generationProviderHost) : "";
   const generationBusyRef = useRef(false);
   const sourceOperationRef = useRef(0);
+  const scopeRequestRef = useRef(0);
   const [sourceIdInput, setSourceIdInput] = useState<string>("");
   const [isLoadingSource, setIsLoadingSource] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -982,6 +997,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       } catch { /* Polling can continue without persisted job identity. */ }
       setStudioStatus("✓ Đã xếp hàng tạo bản nháp AI. Hệ thống sẽ giữ bản nguồn và không tự phê duyệt.");
       const runResponse = await fetch("/api/lessons/proposal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "run", id: data.job.id, aiConsent: {
+        ...((generationSettings.scope && scopeConsent) ? scopeConsent : {}),
         confirmed: true, sourceId: importSourceId, sourceSha256: importSourceMeta.sha256,
         parserRevision: importSourceMeta.parserRevision, extractionHash: importSourceMeta.extractionHash,
       } }) });
@@ -995,7 +1011,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       generationBusyRef.current = false;
       setIsStartingGeneration(false);
     }
-  }, [aiConsentKey, generationConsentKey, generationProviderHost, generationJob, generationSettings, importSourceId, importSourceMeta, importSourceStatus, user.userId]);
+  }, [aiConsentKey, generationConsentKey, generationProviderHost, generationJob, generationSettings, scopeConsent, importSourceId, importSourceMeta, importSourceStatus, user.userId]);
 
   useEffect(() => {
     if (!importProposal || importSourceStatus !== "ready") return;
@@ -1038,11 +1054,12 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     let active = true;
     const timer = window.setTimeout(async () => {
       try {
-        const stored = JSON.parse(sessionStorage.getItem("lesson-generation:" + user.userId + ":" + importSourceId) || "null") as { id?: string; hash?: string } | null;
-        if (!stored?.id || stored.hash !== importSourceMeta.extractionHash) return;
-        const response = await fetch("/api/lessons/proposal?jobId=" + encodeURIComponent(stored.id), { cache: "no-store" });
+        let stored: { id?: string; hash?: string } | null = null;
+        try { stored = JSON.parse(sessionStorage.getItem("lesson-generation:" + user.userId + ":" + importSourceId) || "null"); } catch { /* Server recovery also works when browser storage is unavailable. */ }
+        const query = typeof stored?.id === "string" && stored.id && stored.hash === importSourceMeta.extractionHash ? "jobId=" + encodeURIComponent(stored.id) : "latest=true&sourceId=" + encodeURIComponent(importSourceId);
+        const response = await fetch("/api/lessons/proposal?" + query, { cache: "no-store" });
         const data = (await response.json()) as { job?: LessonGenerationJob };
-        if (active && response.ok && data.job) setGenerationJob(data.job);
+        if (active && response.ok && data.job?.sourceId === importSourceId && data.job.extractionHash === importSourceMeta.extractionHash && data.job.sourceSha256 === importSourceMeta.sha256 && data.job.parserRevision === importSourceMeta.parserRevision) setGenerationJob(current => current?.sourceId === importSourceId ? current : data.job!);
       } catch { /* Manual creation also reloads a job by its saved request identity. */ }
     }, 0);
     return () => { active = false; window.clearTimeout(timer); };
@@ -1050,7 +1067,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
 
   const handleApplyGenerationResult = useCallback(() => {
     const pkg = generationJob?.result?.package;
-    if (!pkg || generationJob.status !== "needs_review" || pkg.status !== "needs_review" || generationJob.sourceId !== importSourceId || generationJob.extractionHash !== importSourceMeta?.extractionHash || generationJob.sourceSha256 !== importSourceMeta.sha256) return;
+    if (!pkg || generationJob.status !== "needs_review" || pkg.status !== "needs_review" || generationJob.sourceId !== importSourceId || generationJob.extractionHash !== importSourceMeta?.extractionHash || generationJob.sourceSha256 !== importSourceMeta.sha256 || generationJob.parserRevision !== importSourceMeta.parserRevision) return;
     activePackageFetchIdRef.current = null;
     activeDirectorFetchIdRef.current = null;
     setSelectedRecord(null);
@@ -1180,7 +1197,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   }, [loadStudio]);
 
   // Select package from list
-  const handleSelectPackage = async (rec: PackageRecord | null) => {
+  const handleSelectPackage = async (rec: PackageRecord | null, authoredId?:string) => {
     const targetRowId = rec?.row_id || "";
     const requestId = `${targetRowId}-${Date.now()}-${Math.random()}`;
     activePackageFetchIdRef.current = requestId;
@@ -1205,7 +1222,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     setStudioStatus("");
     setLaunchMode("preview");
     try {
-      const res = await fetch(targetRowId ? `/api/lessons?kind=get&id=${targetRowId}` : "/api/lessons?kind=pilot", { cache: "no-store" });
+      const res = await fetch(authoredId?`/api/lesson-content?id=${encodeURIComponent(authoredId)}`:targetRowId ? `/api/lessons?kind=get&id=${targetRowId}` : "/api/lessons?kind=pilot", { cache: "no-store" });
       if (!res.ok) throw new Error("Không thể tải chi tiết bài học.");
       const rawData = await res.json();
       if (activePackageFetchIdRef.current !== requestId || draftRevisionRef.current !== revision) return;
@@ -1795,6 +1812,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         requestId,
       };
 
+      if (selectedClassId) body.classId = selectedClassId;
       if (launchMode === "live") {
         if (!approvedPlan) throw new Error("PLAN_REQUIRED");
         body.packageVersion = selectedRecord.version;
@@ -1961,7 +1979,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       submissionId,
       criteriaMet: assessCriteriaMet,
       feedback: assessFeedback.trim() || undefined,
-      nonMastery: assessNonMastery,
+      nonMastery: assessNonMastery || cockpitView?.openAssessments?.[submissionId]?.nonMastery === true,
     });
     if (res.ok) {
       setAssessingSubId(null);
@@ -2069,6 +2087,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
             </div>
           )}
 
+          <details className="lesson-card" style={{ padding: "1rem", marginBottom: "1rem" }}><summary>Lớp, tổ và hộ chiếu cộng dồn</summary><ClassRosterPanel onSelectClass={setSelectedClassId} /><LeaguePanel classId={selectedClassId} sessionId={activeSessionId || undefined} /></details>
+          {currentPackage && <ContentScopePicker<LessonPackage> catalogue={lessonCatalogue} packageId={currentPackage.id} packageKey={String(currentPackage.contentHash || currentPackage.id)} packageObjectives={currentPackage.objectives || []} onPreview={async selection => { const response = await fetch("/api/lessons/scope", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ package: currentPackage, selection }) }); return response.json(); }} onRequestScope={async scope => { const request=++scopeRequestRef.current,sourceRevision=sourceOperationRef.current; setScopeConsent(null);setScopeLabels([]);setGenerationConsentKey(""); const settings={...generationSettings,scope}; setGenerationSettings(settings); if(!importSourceId){setImportError("Nhập giáo án hoặc nội dung muốn dạy trước khi soạn phần bài này.");setStudioSubTab("import");return;} const response=await fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings})});const data=await response.json() as {aiConsent?:Record<string,unknown>;scope?:{sections?:Array<{title:string}>};generation?:{providerHost:string};error?:string};if(request!==scopeRequestRef.current||sourceRevision!==sourceOperationRef.current)return;if(!response.ok||!data.aiConsent){setImportError(data.error||"Chưa đối soát được phạm vi đã chọn với nguồn.");return;}setScopeConsent(data.aiConsent);setScopeLabels(data.scope?.sections?.map(section=>section.title)||[]);setGenerationProviderHost(data.generation?.providerHost||generationProviderHost);setStudioSubTab("import"); }} onSelect={draft => { setCurrentPackage(draft); setEditedPackage(draft); setSelectedRecord(null); setStudioSubTab("edit"); }} />}
           {/* Action Header Bar */}
           <div className="cockpit-toolbar">
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -2079,13 +2099,15 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 id="package-select"
                 className="lesson-select"
                 style={{ width: "min(260px, 100%)" }}
-                value={selectedRecord?.row_id || ""}
+                value={selectedRecord?.row_id || (authoredLibrary.some(item=>item.id===currentPackage?.id)?"source:"+currentPackage?.id:"")}
                 onChange={(e) => {
+                  if(e.target.value.startsWith("source:")){void handleSelectPackage(null,e.target.value.slice(7));return;}
                   const target = packages.find((p) => p.row_id === e.target.value);
                   if (target || !e.target.value) void handleSelectPackage(target || null);
                 }}
               >
                 <option value="">Bài mẫu Dãy số — phiên bản hiện hành</option>
+                {authoredLibrary.map(item=><option key={item.id} value={"source:"+item.id}>{item.title} — Tiết {item.period}, nháp cần GV duyệt</option>)}
                 {packages.map((p) => (
                   <option key={p.row_id} value={p.row_id}>
                     {p.package_id} (v{p.version}) - [{getTeacherDisplay(p.status)}]
@@ -2197,6 +2219,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                     🎬 Tạo đề xuất tự động
                   </button>
                 )}
+                {!importProposal && generationJob?.sourceId === importSourceId && generationJob.status === "needs_review" && generationJob.result?.package && <button type="button" className="lesson-button lesson-button-success" disabled={isLoadingSource || isImporting} onClick={handleApplyGenerationResult}>Mở bản nháp AI đã lưu</button>}
               </div>
 
               {/* File input / dropzone */}
@@ -2288,9 +2311,9 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                     </div>
                   )}
                   <div className="lesson-inline-actions" style={{ marginTop: "0.85rem" }}>
-                    <label>Môn <select className="lesson-select" value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { setGenerationConsentKey(""); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }}><option value="math">Toán</option><option value="literature">Ngữ văn</option><option value="english">Tiếng Anh</option></select></label>
-                    <label>Lớp <select className="lesson-select" value={generationSettings.grade} disabled={isStartingGeneration} onChange={event => { setGenerationConsentKey(""); setGenerationSettings({ ...generationSettings, grade: Number(event.target.value) }); }}><option value={10}>10</option><option value={11}>11</option><option value={12}>12</option></select></label>
-                    <label>Phút <input className="lesson-input" type="number" min={1} max={240} value={generationSettings.slotMinutes} disabled={isStartingGeneration} onChange={event => { setGenerationConsentKey(""); setGenerationSettings({ ...generationSettings, slotMinutes: Number(event.target.value) }); }} /></label>
+                    <label>Môn <select className="lesson-select" value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }}><option value="math">Toán</option><option value="literature">Ngữ văn</option><option value="english">Tiếng Anh</option></select></label>
+                    <label>Lớp <select className="lesson-select" value={generationSettings.grade} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, grade: Number(event.target.value) }); }}><option value={10}>10</option><option value={11}>11</option><option value={12}>12</option></select></label>
+                    <label>Phút <input className="lesson-input" type="number" min={1} max={240} value={generationSettings.slotMinutes} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, slotMinutes: Number(event.target.value) }); }} /></label>
                     <button
                       type="button"
                       className="lesson-button lesson-button-primary"
@@ -2310,8 +2333,9 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       </button>
                     )}
                   </div>
+                  {scopeLabels.length>0&&<p>Chỉ soạn phần đã chọn: {scopeLabels.join("; ")}. Các phần khác nằm ngoài bản nháp này.</p>}
                   <LessonAIConsentPanel providerHost={generationProviderHost} extraction={generationExtraction} settings={generationSettings}
-                    confirmed={Boolean(aiConsentKey && generationConsentKey === aiConsentKey)} disabled={!aiConsentKey || isStartingGeneration}
+                    confirmed={Boolean(aiConsentKey && generationConsentKey === aiConsentKey)} disabled={!aiConsentKey || isStartingGeneration || Boolean(generationSettings.scope && !scopeConsent)}
                     onChange={confirmed => setGenerationConsentKey(confirmed ? aiConsentKey : "")} />
                   {generationJob?.status === "failed" && (
                     <div className="task-status-banner task-status-failed" style={{ marginTop: "0.75rem" }}>
@@ -2387,7 +2411,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       <div className="task-status-banner task-status-failed" style={{ marginTop: "0.75rem" }}>
                         Bản nháp AI cần sửa {generationJob.result.validation.errors?.length || 0} lỗi trước khi lưu.
                         <ul style={{ margin: "0.4rem 0 0 1rem" }}>
-                          {(generationJob.result.validation.errors || []).slice(0, 8).map((issue, index) => <li key={index}><code>{issue.code || "VALIDATION"}</code>: {issue.message || "Cần rà soát"}</li>)}
+                          {(generationJob.result.validation.errors || []).slice(0, 8).map((issue, index) => <li key={index}><code>{issue.code || "VALIDATION"}</code>{issue.path && <> · <code>{issue.path}</code></>}: {issue.message || "Cần rà soát"}</li>)}
                         </ul>
                       </div>
                     )}
@@ -3657,6 +3681,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                                         evaluation: { checkerId: "text_normalized_exact", answerKey: "" },
                                         inputSchema: undefined,
                                       };
+                                    } else if (["ordering_exact","classification_exact"].includes(nextChecker)) {
+                                      next[idx]={...next[idx],evaluation:{checkerId:nextChecker,answerKey:nextChecker==="ordering_exact"?[]:{}},inputSchema:{items:[],...(nextChecker==="classification_exact"?{categories:[]}: {})}};
                                     } else if (nextChecker === "representation_match") {
                                       next[idx] = {
                                         ...next[idx],
@@ -3694,6 +3720,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                                   <option value="numeric_exact">Số học chính xác</option>
                                   <option value="text_normalized_exact">Văn bản chuẩn hóa</option>
                                   <option value="representation_match">Ghép thẻ biểu diễn</option>
+                                  <option value="ordering_exact">Sắp xếp thứ tự</option>
+                                  <option value="classification_exact">Phân loại theo nhóm</option>
                                 </select>
                               </div>
                             </div>
@@ -3912,6 +3940,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                               </div>
                             )}
 
+                            {["ordering_exact","classification_exact"].includes(t.evaluation?.checkerId || "") && <StructuredQuestionEditor key={t.id+":"+t.evaluation?.checkerId} task={t} onChange={(inputSchema,answerKey)=>{const next=[...(editedPackage.tasks||[])];next[idx]={...t,inputSchema,evaluation:{...t.evaluation,answerKey}};setEditedPackage({...editedPackage,tasks:next});}} />}
                             {/* Representation Match Editor */}
                             {isRepMatch && (
                               <MatchEditor task={t} onChange={(task) => {
@@ -3923,6 +3952,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                           </div>
                         )}
 
+                        {t.type === "reflection" && <label>Chọn mẫu phản tư<select className="lesson-select" value="" onChange={event=>{const prompts=(REFLECTION_PROMPTS as Record<string,string[]>)[event.target.value];if(!prompts)return;const next=[...(editedPackage.tasks||[])];next[idx]={...t,prompt:prompts.join("\n")};setEditedPackage({...editedPackage,tasks:next});}}><option value="">Giữ lời hỏi hiện tại</option>{Object.entries({"before-now":"Trước – giờ", "real-world-kolb":"Trải nghiệm thực tế", "ai-disclosure":"Kiểm tra gợi ý AI", "check-news":"Kiểm chứng tin tức", "cross-perspective":"Hai góc nhìn", "see-think-wonder":"Thấy – nghĩ – thắc mắc"}).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>}
+                        {Array.isArray(t.metadata?.practiceVariants) && <details className="lesson-sub-card"><summary>Câu biến thể luyện lại cần giáo viên đối soát</summary>{(t.metadata.practiceVariants as Array<{prompt:string;evaluation?:{answerKey?:unknown;rubric?:{criteria?:string[];lookFor?:string[]}};masteryEvidence?:boolean}>).map((variant,i)=><section key={i}><h4>Biến thể {i+1}</h4><MathText text={variant.prompt}/><p>Đáp án hoặc biểu hiện: {JSON.stringify(variant.evaluation?.answerKey || variant.evaluation?.rubric?.lookFor)}</p><p>{variant.masteryEvidence?"Có thể bổ sung minh chứng cá nhân sau kiểm tra độc lập; không tăng số bài bằng cách làm lại cùng họ câu hỏi.":"Luyện và tăng sao; không tự ghi thành thạo."}</p></section>)}</details>}
                         {/* Open / Reflection Task Rubric Setup */}
                         {isOpenOrReflect && (
                           <div className="lesson-sub-card">
@@ -4870,7 +4901,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       </p>
                     </div>
                     <div>
-                      <strong>Phân bổ thời lượng:</strong> {currentPackage.budget?.slotMinutes ?? 40} phút ({currentPackage.budget?.coreMinutes ?? 36}p cốt lõi, {currentPackage.budget?.optionalMinutes ?? 0}p tùy chọn/phó bản, {currentPackage.budget?.reserveMinutes ?? 4}p dự phòng).
+                      <strong>Phân bổ thời lượng:</strong> {currentPackage.budget?.slotMinutes ?? 40} phút ({currentPackage.budget?.coreMinutes ?? 36}p cốt lõi, {currentPackage.budget?.optionalMinutes ?? 0}p tùy chọn/phó bản, {currentPackage.budget?.transitionMinutes ?? 0}p chuyển hoạt động, {currentPackage.budget?.reserveMinutes ?? 4}p dự phòng).
                     </div>
                   </div>
 
@@ -5238,6 +5269,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       {/* Cockpit View */}
       {activeTab === "cockpit" && (
         <section className="lesson-cockpit">
+          {cockpitView && <TeacherGroupAssessment products={(cockpitView.groupProducts || {}) as React.ComponentProps<typeof TeacherGroupAssessment>["products"]} tasks={(cockpitView.tasks || []) as unknown as React.ComponentProps<typeof TeacherGroupAssessment>["tasks"]} onCommand={dispatchCommand} disabled={isCockpitBusy} />}
+          {activeSessionId && cockpitView && <TeacherLessonTools sessionId={activeSessionId} members={Object.entries(cockpitView.roster || {}).filter(([,member])=>member.present!==false).map(([learnerId,member])=>({learnerId,name:member.name}))} tasks={((cockpitView.tasks || []).filter(task=>task.activityId===cockpitView.timeline?.currentActivityId)) as Array<{id:string;prompt?:string}>} event={cockpitView.classEvent} tutors={cockpitView.tutors} valueBadges={cockpitView.valueBadges as import("../../components/lesson/TeacherLessonTools").ValueBadgeMap} qualityReport={cockpitView.qualityReport as import("../../components/lesson/TeacherLessonTools").LessonQualityReport} onCommand={dispatchCommand}/>}
           {cockpitError && (
             <div className="task-status-banner task-status-error" style={{ marginBottom: "1rem" }}>
               {cockpitError}
@@ -5405,6 +5438,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
               </div>
           <div id="cockpit-panel-activity" role="tabpanel" aria-labelledby="cockpit-tab-activity" hidden={cockpitPanel !== "activity"}>
           {/* Lôi Đài Ngũ Ấn Cockpit Monitor */}
+          {Object.keys(cockpitView?.roster || {}).length > 100 && <p role="status">Phòng trên 100 học sinh: theo dõi độ trễ mạng; dùng máy nhóm nếu thiết bị chậm.</p>}
           {Boolean(cockpitView?.arena) && (
             <div className="lesson-card arena-cockpit-card" style={{ marginBottom: "1.5rem", borderLeft: "4px solid #f59e0b" }}>
               <div className="lesson-card-header">
@@ -5519,6 +5553,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 taskId: string;
                 answer: unknown;
                 status: string;
+                nonMastery?: boolean;
+                practiceTask?: LessonTask;
               }>;
               const pendingList = openList.filter((a) => a.status === "pending");
 
@@ -5545,6 +5581,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                         </summary>
 
                         <div style={{ background: "var(--lesson-surface)", padding: "0.75rem", borderRadius: "6px", marginBottom: "0.75rem" }}>
+                          {item.practiceTask && <section><strong>Đề luyện đã nộp:</strong><MathText text={item.practiceTask.prompt || ""}/><p>Tiêu chí: {item.practiceTask.evaluation?.rubric?.criteria?.join("; ")}</p></section>}
+                          {item.nonMastery && <p>Bài giáo viên ghi hộ: ghi nhận có hỗ trợ, không cấp thành thạo độc lập.</p>}
                           <strong>Bài làm của học sinh:</strong>
                           <p style={{ margin: "0.25rem 0 0 0" }}>
                             {typeof item.answer === "object" ? JSON.stringify(item.answer) : String(item.answer ?? "")}
@@ -5703,3 +5741,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     </main>
   );
 }
+
+
+
+

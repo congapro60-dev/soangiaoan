@@ -42,7 +42,7 @@ export async function GET(request) {
       await account(user);
       return json(await api.getSession({ id, accountId: user.userId, presenterViewer: true }));
     }
-    if (bearer) return json(await api.getSession({ id, learnerToken: bearer }));
+    if (bearer) return json(await api.getSession({ id, learnerToken: bearer, actingLearnerId: q.get('actingLearnerId') || undefined }));
     if (!user) return fail('AUTH_REQUIRED', 401); await account(user);
     return json(await api.getSession({ id, accountId: user.userId }));
   } catch (error) { return fail(error.message || 'SESSION_UNAVAILABLE', error.message === 'NOT_FOUND' ? 404 : 403); }
@@ -55,13 +55,13 @@ export async function POST(request) {
   const auth = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
   try {
     const api = service();
-    if (input.action === 'join') return json(await api.joinSession({ code: input.code, name: input.name, token: auth || undefined }));
-    if (input.action === 'event' && auth) return json(await api.event({ sessionId: input.id, learnerToken: auth, event: input.event }));
+    if (input.action === 'join') return json(await api.joinSession({ code: input.code, name: input.name, classToken: input.classToken, token: auth || undefined }));
+    if (input.action === 'event' && auth) return json(await api.event({ sessionId: input.id, learnerToken: auth, actingLearnerId: input.actingLearnerId, event: input.event }));
     if (!user) return fail('AUTH_REQUIRED', 401); await account(user);
-    if (input.action === 'create') return json(await api.createSession({ ownerAccountId: user.userId, isRoot: isRootUser, packageRowId: input.packageRowId, packageVersion: input.packageVersion, packageHash: input.packageHash, planRowId: input.planRowId, planHash: input.planHash, mode: input.mode, title: input.title, requestId: input.requestId }));
+    if (input.action === 'create') return json(await api.createSession({ ownerAccountId: user.userId, classId: input.classId, isRoot: isRootUser, packageRowId: input.packageRowId, packageVersion: input.packageVersion, packageHash: input.packageHash, planRowId: input.planRowId, planHash: input.planHash, mode: input.mode, title: input.title, requestId: input.requestId }));
     if (input.action === 'event') return json(await api.event({ sessionId: input.id, accountId: user.userId, event: input.event }));
     if (input.action === 'tick') return json(await api.tick({ id: input.id, accountId: user.userId, isRoot: isRootUser, round: input.round, revision: input.revision, eventId: input.eventId }));
     if (input.action === 'rotate-presenter') return json(await api.rotatePresenter({ id: input.id, accountId: user.userId, isRoot: isRootUser, revision: input.revision }));
     return fail('INVALID_ACTION');
-  } catch (error) { return fail(error.message || 'SESSION_UNAVAILABLE', error.status || (error.message?.includes('CONFLICT') ? 409 : error.message === 'FORBIDDEN' ? 403 : 400)); }
+  } catch (error) { return fail(error.message || 'SESSION_UNAVAILABLE', error.status || (error.message?.includes('CONFLICT') || error.message === 'PROFILE_ALREADY_JOINED' ? 409 : ['FORBIDDEN', 'DEVICE_UNAVAILABLE'].includes(error.message) ? 403 : 400)); }
 }

@@ -36,6 +36,8 @@ export async function POST(request) {
         return json(await api.join({ code: body.code, name: body.name, token: token || body.token, mascot: body.mascot }));
       case 'answer':
         return json(await api.saveAnswer({ token, qid: body.qid, value: body.value, seq: body.seq }));
+      case 'integrity':
+        return json(await api.acknowledgeIntegrity({ token, integrity: body.integrity }));
       case 'submit':
         return json(await api.submit({ token, answers: body.answers }));
       case 'tab':

@@ -134,6 +134,10 @@ async function pageHarness() {
   const timers = new Map();
   const sent = [];
   const models = [];
+  const laneRow = element();
+  laneRow.hidden = false;
+  laneRow.querySelectorAll = () => [];
+  nodes.set('lmLanes', laneRow);
   let seq = 0;
   const terrainController = { update: (model) => models.push(model), destroy: noop, frame: noop, mode: noop };
   const ctx = vm.createContext({
@@ -147,7 +151,7 @@ async function pageHarness() {
     visiblePeers: (input) => input.map.peers, cellOf: (p) => p,
     setTimeout: (fn) => { timers.set(++seq, fn); return seq; }, clearTimeout: (id) => timers.delete(id),
   });
-  vm.runInContext(['buildModel', 'mount', 'renderExamJourney', 'receive'].map((n) => sourceNode(source, n)).join('\n'), ctx);
+  vm.runInContext(['buildModel', 'mount', 'renderLanes', 'renderExamJourney', 'receive'].map((n) => sourceNode(source, n)).join('\n'), ctx);
   return { ctx, timers, sent, nodes, models, flush: () => { const pending = [...timers.values()]; timers.clear(); pending.forEach((fn) => fn()); } };
 }
 
@@ -177,6 +181,8 @@ test('Exam journey: receive sanitizes metadata and forwards it to the actual mod
   assert.deepEqual(plain(models.at(-1).examJourney), result);
   assert.deepEqual(plain(models.at(-1).peers).map((p) => p.id), ['own']);
   assert.equal(payload.map.peers[0].position, 100);
+  assert.equal(models.at(-1).ownBranch, null);
+  assert.equal(ctx.document.getElementById('lmLanes').hidden, true, 'exam journey never offers branch selection');
 });
 
 test('Exam journey: valid IDs including object property names survive; duplicates and invalid selection do not', async () => {

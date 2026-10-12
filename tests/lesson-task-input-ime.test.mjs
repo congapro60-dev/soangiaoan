@@ -11,6 +11,7 @@ test('Vietnamese composition keeps local text during pending hydration and saves
   const hooks = [], effects = [], timers = new Map(), saved = [];
   let cursor = 0, timerId = 0;
   const mockReact = { ...React,
+    useId() { cursor++; return "ime-input"; },
     useState(initial) { const i = cursor++; if (!(i in hooks)) hooks[i] = typeof initial === 'function' ? initial() : initial; return [hooks[i], value => { hooks[i] = typeof value === 'function' ? value(hooks[i]) : value; }]; },
     useRef(initial) { const i = cursor++; return hooks[i] ||= { current: initial }; },
     useEffect(callback) { cursor++; effects.push(callback); },

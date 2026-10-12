@@ -1,0 +1,828 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p36-must-only",
+  "version": "1.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P36-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:479 / d(11,6,36)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p36",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p36_On_tap_chuong_I_G11W6.docx",
+      "hash": "7b1a22daa0ac7d804234a6323c06701055070ac985d44b3cb778d156b36f3b28",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 36",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Miền xác định khác tập giá trị của bốn hàm lượng giác ở điểm nào?",
+  "prerequisites": [
+    "Phân biệt đầu vào x với giá trị hàm; hiểu tập số thực và k nguyên."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p36-must",
+      "code": "SP-G11-W6-P36-MUST",
+      "level": "must",
+      "statement": "Tôi có thể nêu đúng tập xác định cùng tập giá trị của 4 hàm số lượng giác cơ bản.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p36",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m36-act-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-experience"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m36-experience"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-pre",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-pre"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-pre"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Thực hiện nhiệm vụ Must theo GV; ghi ý cá nhân trước trao đổi.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-formation"
+      ],
+      "teacherLookFor": "Chốt công thức/khái niệm Must; sản phẩm nhóm chỉ dùng phản hồi.",
+      "supportIds": [
+        "hint-m36-formation"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-support",
+        "m36-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Mỗi em làm đúng một bài theo làn hỗ trợ hoặc chuẩn.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m36-support",
+        "hint-m36-core"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-recheck"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-recheck"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Em đủ điều kiện theo assessed Must mới làm một câu ngắn; em chưa đủ tiếp tục luyện Must.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [
+        "hint-m36-extension"
+      ],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-exit"
+      ],
+      "participation": "individual",
+      "studentAction": "Tự làm câu độc lập, không mở bảng mẫu hoặc gợi ý; không bật reveal. Bài mở giữ chờ GV chấm.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-exit"
+      ],
+      "teacherLookFor": "Đánh giá đúng từng em; bài mở chờ GV đọc. Không reveal/hint khi đánh giá, bài đã assisted không tính độc lập.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [
+        "m36-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Ghi một chỗ cần luyện tiếp ở Must; khai báo trung thực trợ giúp.",
+      "expectedProduct": "Một sản phẩm ngắn đúng yêu cầu Must của bước hiện tại.",
+      "evidenceIds": [
+        "ev-m36-reflection"
+      ],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    },
+    {
+      "id": "m36-act-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV dùng thời gian còn lại theo tình hình; không thêm mục tiêu.",
+      "expectedProduct": "Thời gian dự phòng; không thêm bằng chứng đạt.",
+      "evidenceIds": [],
+      "teacherLookFor": "Quan sát lỗi theo Must; không suy mastery từ nhóm hay vị trí bản đồ.",
+      "supportIds": [],
+      "transition": "Phân bổ tổng2phút chuyển bước ngoài hoạt động; GV không hứa mọi bài mở đã chấm trong tiết."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m36-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-experience",
+      "participation": "individual",
+      "prompt": "Khi nhìn y=tanx, câu “x nào được dùng?” hỏi miền hay giá trị? Nêu tập xác định và tập giá trị của tanx bằng lời hoặc ký hiệu.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Trả lời đúng phần Must được hỏi ở câu này."
+          ],
+          "lookFor": [
+            "Đầu vào x hỏi miền xác định. Tan: D=R\\{π/2+kπ}, tập giá trịR."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-m36-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-experience",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-pre",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-pre",
+      "participation": "individual",
+      "prompt": "Nêu tập xác định và tập giá trị của sinx và cotx; phân biệt x với y.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-pre"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Trả lời đúng phần Must được hỏi ở câu này."
+          ],
+          "lookFor": [
+            "Sin: D=R, giá trị[−1;1]. Cot: D=R\\{kπ}, giá trịR; k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 3,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-pre",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-formation",
+      "participation": "group",
+      "prompt": "Mỗi em ghi ý riêng. Nhóm lập bảng hai cột miền xác định/tập giá trị cho sinx, cosx, tanx, cotx. Giải thích nhãn cột bằng đầu vào và đầu ra; GV chốt bảng mẫu.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Sin/cos: D=R, tập giá trị[−1;1]. Tan: D=R\\{π/2+kπ}, tập giá trịR. Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-m36-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-formation",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Tự hoàn thiện bảng sin, cos, tan, cot với cả miền xác định và tập giá trị. Ghi điều kiện để các tỉ số lượng giác có nghĩa trước khi điền; không dùng bảng mẫu làm bài độc lập.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Sin/cos: D=R, tập giá trị[−1;1]. Tan: D=R\\{π/2+kπ}, tập giá trịR. Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m36-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-support",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Viết bảng theo thứ tự cot, cos, tan, sin; mỗi hàng có miền xác định và tập giá trị. Đọc lại xem có ô nào đổi nhầm miền với giá trị.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Sin/cos: D=R, tập giá trị[−1;1]. Tan: D=R\\{π/2+kπ}, tập giá trịR. Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 9,
+      "hintIds": [
+        "hint-m36-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-core",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-recheck",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-recheck",
+      "participation": "individual",
+      "prompt": "Bài độc lập: Không mở bảng mẫu. Tự viết tập xác định và tập giá trị của tanx, sinx, cotx, cosx theo thứ tự này. Đủ tám thuộc tính, ghi k nguyên trong tập loại; viết tự do, GV đọc.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-recheck"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Sin/cos: D=R, tập giá trị[−1;1]. Tan: D=R\\{π/2+kπ}, tập giá trịR. Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-recheck",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng Must, một câu ngắn: Một bảng ghi cot có tập giá trị[−1;1]. Em viết lại tập xác định và tập giá trị đúng của cotx.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m36-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-extension",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-exit",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Sửa tám ô sai của bảng sau, viết lại đủ miền và giá trị từng hàm. Sin: D=R\\{π/2+kπ}, giá trịR. Cos: D=R\\{0}, giá trị[0;1]. Tan: D=R, giá trị[−1;1]. Cot: D=R\\{π/2+kπ}, giá trị[0;+∞). Ghi miền k; tự viết, không mở bảng mẫu.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-exit"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+            "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+          ],
+          "lookFor": [
+            "Sin/cos: D=R, tập giá trị[−1;1]. Tan: D=R\\{π/2+kπ}, tập giá trịR. Cot: D=R\\{kπ}, tập giá trịR, k∈Z."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 5,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-exit",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m36-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "activityId": "m36-act-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một phần của Must em còn cần luyện; khai báo trung thực nếu đã dùng gợi ý hoặc trợ giúp.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m36-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu một điều còn cần luyện ở Must.",
+            "Khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Chỉ phản tư; không tính mastery."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 4000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "GV đọc câu trả lời tự viết; không chuyển công thức tương đương hoặc chứng minh thành chọn đáp án.",
+      "minutes": 2,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p36/must-only-adapted/m36-reflection",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)$\n$\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)$\n$\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x$\nXác định tập giá trị và chu kỳ của $y=2\\sin x-1$.\nXét tính chẵn lẻ của $y=\\cos x$ và $y=\\tan x$.\nNêu tập xác định của $y=\\tan x$.\nTập giá trị của $y=3\\cos x+2$ là gì?\nTìm GTLN, GTNN của $y=2\\sin x-\\cos x$.\nGiải $\\tan x=\\sqrt3$ và ghi tập xác định.\nDựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.\nGiải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.\nTập giá trị của $y=\\sin x+2$ là gì?\nNêu một lỗi khi vẽ đồ thị tan.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m36-experience",
+      "tier": "H1",
+      "text": "Kiểm tên hai cột: đầu vào được phép và đầu ra có thể nhận. Với hàm dạng tỉ số, kiểm mẫu khác không; viết tập loại bằng tham số nguyên.",
+      "taskId": "m36-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m36-formation",
+      "tier": "H1",
+      "text": "Kiểm tên hai cột: đầu vào được phép và đầu ra có thể nhận. Với hàm dạng tỉ số, kiểm mẫu khác không; viết tập loại bằng tham số nguyên.",
+      "taskId": "m36-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m36-support",
+      "tier": "H1",
+      "text": "Kiểm tên hai cột: đầu vào được phép và đầu ra có thể nhận. Với hàm dạng tỉ số, kiểm mẫu khác không; viết tập loại bằng tham số nguyên.",
+      "taskId": "m36-support",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m36-core",
+      "tier": "H1",
+      "text": "Kiểm tên hai cột: đầu vào được phép và đầu ra có thể nhận. Với hàm dạng tỉ số, kiểm mẫu khác không; viết tập loại bằng tham số nguyên.",
+      "taskId": "m36-core",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    },
+    {
+      "id": "hint-m36-extension",
+      "tier": "H1",
+      "text": "Kiểm tên hai cột: đầu vào được phép và đầu ra có thể nhận. Với hàm dạng tỉ số, kiểm mẫu khác không; viết tập loại bằng tham số nguyên.",
+      "taskId": "m36-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc phương pháp đọc/làm, không ghi đáp án của bài."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m36-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m36-experience"
+    },
+    {
+      "id": "ev-m36-pre",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m36-pre"
+    },
+    {
+      "id": "ev-m36-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "m36-formation"
+    },
+    {
+      "id": "ev-m36-recheck",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m36-recheck"
+    },
+    {
+      "id": "ev-m36-exit",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m36-exit"
+    },
+    {
+      "id": "ev-m36-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p36-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m36-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Nêu đúng tập xác định cả bốn hàm, k nguyên trong tập loại.",
+      "Nêu đúng tập giá trị cả bốn hàm; không nhầm miền với giá trị."
+    ],
+    "lookFor": [
+      "Chỉ ghi đạt Must khi có cả recheck và exit cá nhân độc lập; nội dung Should/Could làm ở phần sau.",
+      "Gói mới là draft cần GV đối soát nguồn, đáp án, định dạng và thời lượng."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "dd3e35ef7acc5ca6f1674758dc4347d82916a5da9719b90aa08322cde5b6036f"
+}

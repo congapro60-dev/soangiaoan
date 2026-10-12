@@ -26,6 +26,10 @@
   .lm-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .lm-btn:hover{background:rgba(24,38,70,.85)}
   .lm-btn:focus-visible,.lm-menu button:focus-visible{outline:3px solid #f6d481;outline-offset:2px}
+  #lmGates button:focus-visible{outline:3px solid #f6d481;outline-offset:2px}
+  #lmLanes .lm-lanes>button{min-height:44px;min-width:44px}
+  .lm-lanes>button:disabled{opacity:.5;cursor:default}
+  #lmLanes[hidden]{display:none}
   .lm-btn[aria-expanded="true"]{background:#f6d481;color:#1b1405;border-color:#fff3c9}
   .lm-menu{position:absolute;z-index:7;top:calc(var(--lm-top,0px) + 10px);right:64px;width:min(300px,calc(100vw - 84px));max-height:calc(100% - var(--lm-top,0px) - 24px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:rgba(8,15,33,.94);border:1px solid rgba(255,255,255,.22);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:#eef1f7;font-size:14px}
   .lm-menu[hidden]{display:none}
@@ -119,6 +123,24 @@
     });
   }
   function themeOf(world) { return campaign.themes[world] || campaign.themes.modern; }
+  function selectBranch(branch) {
+    var input = lastInput, map = input && input.map;
+    if (!input || input.examJourney || input.branchSelection !== true || !map || !map.peers.some(function(p){return p.own;}) ||
+      ['support','core','extension'].indexOf(branch) < 0 || !Array.isArray(map.availableBranches) || map.availableBranches.indexOf(branch) < 0) return;
+    post('lesson-map:branch', { payload: { branch: branch } });
+  }
+  function renderLanes(input) {
+    var row = document.getElementById('lmLanes');
+    if (!row) return;
+    var map = input.map, personal = !input.examJourney && map.ownBranch && map.peers.some(function(p){return p.own;});
+    row.hidden = !personal;
+    if (!personal) return;
+    row.querySelectorAll('[data-branch]').forEach(function(button){
+      var branch = button.dataset.branch;
+      button.setAttribute('aria-pressed', String(branch === map.ownBranch));
+      button.disabled = input.branchSelection !== true || !Array.isArray(map.availableBranches) || map.availableBranches.indexOf(branch) < 0;
+    });
+  }
   function sprite(theme, mascot) {
     var m = Number(mascot) || 0;
     return '<span class="mascot" style="background-image:url(\'/assets/' + esc(theme.sprites) + '\');--mx:' + ((m % 4) * 100 / 3) + '%;--my:' + (Math.floor(m / 4) * 100) + '%" aria-label="' + esc(theme.mascots[m]) + '" role="img"></span>';
@@ -144,6 +166,62 @@
     if (!valid) return;
     post('lesson-map:peer', { payload: { peerId: id } });
     closePeerChooser();
+  }
+  function gateAllowed(input, id) {
+    var map = input && input.map;
+    return !!(map && !input.examJourney && map.revisitEnabled === true && typeof id === 'string' &&
+      map.peers.some(function(peer) { return peer.own; }) && Array.isArray(map.activityIds) && map.activityIds.indexOf(id) >= 0 &&
+      Array.isArray(map.revisitGates) && map.revisitGates.some(function(gate) { return gate.id === id; }));
+  }
+  function selectGate(id) {
+    if (gateAllowed(lastInput, id)) post('lesson-map:gate', { payload: { activityId: id } });
+  }
+  function renderGatePicker(input) {
+    var picker = document.getElementById('lmGates');
+    var gates = buildModel(input, {}).lessonGates;
+    if (!picker && !gates.length) return;
+    if (!picker) {
+      picker = document.createElement('div');
+      picker.id = 'lmGates';
+      picker.setAttribute('role', 'group');
+      picker.setAttribute('aria-label', 'Sao từng cổng của em');
+      picker.style.cssText = 'position:absolute;z-index:6;left:10px;right:64px;bottom:58px;display:flex;gap:6px;overflow-x:auto;padding:4px;max-width:calc(100% - 84px);background:rgba(8,15,33,.8);border-radius:12px';
+      root.appendChild(picker);
+    }
+    picker.hidden = !gates.length;
+    picker.style.display = gates.length ? 'flex' : 'none';
+    var previous = new Map();
+    Array.prototype.forEach.call(picker.children, function(button) { previous.set(button.dataset.activityId, button); });
+    gates.forEach(function(gate, index) {
+      var button = previous.get(gate.activityId);
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.activityId = gate.activityId;
+        button.style.cssText = 'min-width:44px;min-height:44px;flex-shrink:0;padding:6px 10px;border:1px solid #f6d481;border-radius:8px;background:#112038;color:#fff;font:600 13px system-ui;cursor:pointer';
+        button.onclick = function() { selectGate(button.dataset.activityId); };
+      }
+      var stars = '★'.repeat(gate.stars);
+      button.textContent = 'Cổng ' + gate.index + ' · ' + (stars || '0 sao');
+      button.setAttribute('aria-label', 'Cổng ' + gate.index + ', ' + gate.stars + ' sao');
+      button.disabled = !gateAllowed(input, gate.activityId);
+      button.style.opacity = button.disabled ? '.65' : '1';
+      if (picker.children[index] !== button) picker.insertBefore(button, picker.children[index] || null);
+      previous.delete(gate.activityId);
+    });
+    previous.forEach(function(button) { button.remove(); });
+  }
+  function syncFlatGateStars(model) {
+    Array.prototype.forEach.call(document.querySelectorAll('.gate-pin'), function(pin) {
+      if (!model.lessonGates.length) { delete pin.dataset.lessonGateId; return; }
+      var matches = model.lessonGates.filter(function(gate) { return gate.cell === Number(pin.dataset.cell); });
+      var gate = matches.length === 1 ? matches[0] : null;
+      var number = pin.querySelector('.pin-symbol'), detail = pin.querySelector('.pin-label small');
+      if (number) number.textContent = gate ? String(gate.index).padStart(2, '0') : '';
+      if (detail) detail.textContent = gate ? 'Cổng ' + gate.index + ' · ' + ('★'.repeat(gate.stars) || '0 sao') : 'Mốc cảnh quan';
+      pin.dataset.lessonGateId = gate ? gate.activityId : '';
+      pin.setAttribute('aria-label', gate ? 'Cổng ' + gate.index + ', ' + gate.stars + ' sao' : 'Mốc cảnh quan');
+    });
   }
   function openPeerChooser(ids) {
     if (!lastInput || lastInput.peerSelection !== true || !Array.isArray(ids)) return;
@@ -228,6 +306,7 @@
       '<button class="lm-btn" data-action="map-menu" aria-expanded="false" aria-controls="lmMenu" title="Tùy chọn bản đồ" aria-label="Tùy chọn bản đồ">' + ICON_MENU + '</button>' +
       '</div>' +
       '<div class="lm-menu" id="lmMenu" hidden>' +
+      '<div class="lm-row" id="lmLanes" hidden><span class="lm-label">Lối đi của em · cùng cổng kiểm tra</span><div class="lm-seg lm-lanes"><button data-action="map-branch" data-branch="support" aria-label="Đường tiếp sức — hỗ trợ">Tiếp sức</button><button data-action="map-branch" data-branch="core" aria-label="Đường khám phá — chuẩn">Khám phá</button><button data-action="map-branch" data-branch="extension" aria-label="Đường thử thách — mở rộng">Thử thách</button></div></div>' +
       '<div class="lm-row"><span class="lm-label">Kiểu xem</span><div class="lm-seg"><button data-action="map-mode" data-mode="2d" aria-pressed="true">2D phẳng</button><button data-action="map-mode" data-mode="3d" aria-pressed="false">3D</button></div></div>' +
       '<div class="lm-row lm-only3d lm-hidden"><span class="lm-label">Góc nhìn</span><div class="lm-seg"><button data-action="map-view" data-view="1">Sau lưng</button><button data-action="map-view" data-view="2">Chéo</button><button data-action="map-view" data-view="3">Ngang</button><button data-action="map-view" data-view="4">Từ trên</button></div></div>' +
       '<div class="lm-row lm-only3d lm-hidden"><span class="lm-label">Một ngón kéo để</span><div class="lm-seg"><button data-action="map-drag" data-drag="orbit" aria-pressed="true">Xoay quanh</button><button data-action="map-drag" data-drag="pan" aria-pressed="false">Di chuyển</button></div></div>' +
@@ -477,6 +556,13 @@
       return { id: peer.id, name: peer.name || ('Linh vật ' + (index + 1)), mascot: peer.mascot, position: cellOf(peer.position, total), score: 0, status: 'active', freezeUntil: 0 };
     });
     var own = input.map.peers.filter(function (peer) { return peer.own; })[0];
+    var ids = own && !input.examJourney && Array.isArray(input.map.activityIds) ? input.map.activityIds : [];
+    var stars = Array.isArray(input.map.gateStars) ? input.map.gateStars : [];
+    var lessonGates = ids.map(function(id, index) {
+      var earned = stars.find(function(item) { return item.activityId === id; });
+      return { activityId: id, index: index + 1, cell: cellOf(index + 1, ids.length),
+        stars: earned && Number.isFinite(earned.stars) ? Math.max(0, Math.min(4, Math.floor(earned.stars))) : 0 };
+    });
     return {
       key: input.sessionKey + ':' + input.world,
       image: '/assets/' + theme.image,
@@ -490,6 +576,9 @@
       mathCells: [],
       examJourney: input.examJourney || null,
       places: theme.places,
+      lessonGates: lessonGates,
+      ownBranch: own && !input.examJourney && ['support','core','extension'].indexOf(input.map.ownBranch) >= 0 ? input.map.ownBranch : null,
+      laneColor: theme.palette && theme.palette[2],
       community: false,
       now: Date.now(),
       spriteUrl: '/assets/' + theme.sprites,
@@ -676,6 +765,14 @@
       else controller.update(model);
     }
     renderFilterUi(input);
+    renderLanes(input);
+    if (!input.examJourney) {
+      renderGatePicker(input);
+      if (!pilot) syncFlatGateStars(buildModel(input, theme));
+    } else {
+      var lessonPicker = document.getElementById('lmGates');
+      if (lessonPicker) { lessonPicker.hidden = true; lessonPicker.style.display = 'none'; }
+    }
       var fBtn = document.querySelector('[data-action="map-filter"]');
       if (fBtn) fBtn.style.display = input.examJourney ? 'none' : '';
     applyDice(input.dice);
@@ -687,6 +784,8 @@
     var button = event.target.closest('[data-action]');
     if (!button || (!controller && !pilot)) return;
     var action = button.dataset.action;
+    if (action === 'map-branch') { selectBranch(button.dataset.branch); return; }
+    if (action === 'map-spot' && button.dataset.lessonGateId) { selectGate(button.dataset.lessonGateId); return; }
     if (action === 'map-menu') { setMenuOpen(document.getElementById('lmMenu').hidden); return; }
     if (action === 'map-chip') { setMenuOpen(true); return; }
     if (action === 'map-filter') { filter.mode = button.dataset.mode; applyFilterChange(); return; }

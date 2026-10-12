@@ -91,6 +91,8 @@ export async function POST(request) {
         return json(await api.removeSolutionImage({ ...base, assetId: body.assetId }));
       case 'control':
         return json(await api.control({ ...base, action: body.command, minutes: body.minutes, force: body.force === true }));
+      case 'accommodation':
+        return json(await api.setAccommodation({ ...base, attemptId: body.attemptId, expectedRevision: body.expectedRevision, extraMinutes: body.extraMinutes, textScale: body.textScale }));
       case 'grade':
         return json(await api.grade({ ...base, attemptId: body.attemptId, qid: body.qid, score: body.score, comment: body.comment }));
       case 'release':

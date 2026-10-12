@@ -120,6 +120,34 @@
       "when": 1791598442612,
       "tag": "0016_exam_review_access",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1791714282925,
+      "tag": "0017_lesson_classes",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1791716145555,
+      "tag": "0018_lesson_leagues",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1791716177839,
+      "tag": "0019_lesson_devices",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1791770760044,
+      "tag": "0020_exam_accommodations",
+      "breakpoints": true
     }
   ]
 }

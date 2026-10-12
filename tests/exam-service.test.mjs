@@ -21,6 +21,8 @@ function makeDb(beforeWrite = () => {}, applyComments = true) {
   if (applyComments && existsSync(shuffleMigration)) database.exec(readFileSync(shuffleMigration, 'utf8'));
   const reviewMigration = new URL('../drizzle/0016_exam_review_access.sql', import.meta.url);
   if (applyComments && existsSync(reviewMigration)) for (const part of readFileSync(reviewMigration, 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  const accommodationsMigration = new URL('../drizzle/0020_exam_accommodations.sql', import.meta.url);
+  if (applyComments && existsSync(accommodationsMigration)) for (const part of readFileSync(accommodationsMigration, 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
   database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('teacher-1', 't1@test', 'Thầy', 1);
   database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('teacher-2', 't2@test', 'Cô', 1);
   let tail = Promise.resolve();
@@ -355,9 +357,113 @@ function setup(startAt = 1_000_000, beforeWrite) {
 
 async function openExam(env, extra = {}) {
   const created = await env.service.createExam({ ownerAccountId: 'teacher-1', requestId: 'request-' + Math.random().toString(36).slice(2, 12), input: { ...input, ...extra } });
+  // Existing lifecycle fixtures represent rooms created before integrity policy v1.
+  if (extra.settings?.integrityPolicyVersion !== 1) env.database.prepare("UPDATE exams SET settings_json=json_remove(settings_json,'$.integrityPolicyVersion') WHERE id=?").run(created.exam.id);
   await env.service.control({ ownerAccountId: 'teacher-1', examId: created.exam.id, action: 'open' });
   return created.exam;
 }
+
+test('new exams enforce integrity v1; client settings cannot disable it; old room edits remain exempt', async () => {
+  const env = setup();
+  const { exam } = await env.service.createExam({ ownerAccountId: 'teacher-1', requestId: 'integrity-create', input: { ...input, settings: { ...input.settings, integrityPolicyVersion: 0 } } });
+  assert.equal(exam.settings.integrityPolicyVersion, 1);
+  await env.service.updateExam({ ownerAccountId: 'teacher-1', examId: exam.id, input: { settings: { integrityPolicyVersion: 0 } } });
+  assert.equal(JSON.parse(env.database.prepare('SELECT settings_json FROM exams WHERE id=?').get(exam.id).settings_json).integrityPolicyVersion, 1);
+  env.database.prepare("UPDATE exams SET settings_json=json_remove(settings_json,'$.integrityPolicyVersion') WHERE id=?").run(exam.id);
+  await env.service.updateExam({ ownerAccountId: 'teacher-1', examId: exam.id, input: { title: 'Legacy revised' } });
+  assert.equal(JSON.parse(env.database.prepare('SELECT settings_json FROM exams WHERE id=?').get(exam.id).settings_json).integrityPolicyVersion ?? 0, 0);
+});
+
+test('new pupil cannot see questions or answer/photo/submit before own truthful acknowledgement', async () => {
+  const env = setup(), exam = await openExam(env, { settings: { ...input.settings, integrityPolicyVersion: 1 } });
+  const pupil = await env.service.join({ code: exam.code, name: 'Integrity' });
+  await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
+  const state = await env.service.getState(pupil);
+  assert.deepEqual(state.integrity, { required: true, confirmed: false });
+  assert.deepEqual(state.questions, []);
+  for (const action of [
+    () => env.service.saveAnswer({ ...pupil, qid: 'q1', value: 'C', seq: 1, confirmed: true }),
+    () => env.service.savePhoto({ ...pupil, qid: 'q5', mime: 'image/jpeg', data: jpeg }),
+    () => env.service.deletePhoto({ ...pupil, id: 'fake' }),
+    () => env.service.submit({ ...pupil, answers: { q1: 'C' }, integrity: { confirmed: true } }),
+  ]) await assert.rejects(action, /INTEGRITY_REQUIRED/);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 0);
+  for (const body of [{ confirmed: false, usedAI: false }, { confirmed: true }, { confirmed: true, usedAI: 'false' }, { confirmed: true, usedAI: false, confirmedAt: 1 }]) await assert.rejects(() => env.service.acknowledgeIntegrity({ ...pupil, integrity: body }), /INVALID_BODY/);
+  await assert.rejects(() => env.service.acknowledgeIntegrity({ token: 'invalid-token'.repeat(3), integrity: { confirmed: true, usedAI: false } }), /AUTH_REQUIRED/);
+  const before = JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json);
+  const confirmed = await env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: true } });
+  assert.deepEqual(confirmed.integrity, { required: true, confirmed: true, usedAI: true, confirmedAt: env.clock.t });
+  assert.equal(confirmed.questions.length, questions.length);
+  const after = JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json); delete after.integrity; assert.deepEqual(after, before);
+  await env.service.saveAnswer({ ...pupil, qid: 'q1', value: 'C', seq: 1 });
+  assert.equal((await env.service.getState(pupil)).answers.q1, 'C');
+  const recorded = env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json;
+  env.clock.t += 1000;
+  await env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: true } });
+  assert.equal(env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json, recorded);
+  await assert.rejects(() => env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: false } }), /INTEGRITY_LOCKED/);
+});
+
+test('integrity acknowledgement CAS rejects revocation, closing, changed shuffle, stale conflicting acknowledgement', async () => {
+  for (const mutation of ['UPDATE exam_attempts SET token_hash=NULL', "UPDATE exams SET status='closed'", "UPDATE exam_attempts SET view_json=json_set(view_json,'$.race',1)", "UPDATE exam_attempts SET view_json=json_set(view_json,'$.integrity',json('{\"version\":1,\"confirmedAt\":1000000,\"usedAI\":true}'))"]) {
+    let armed = false;
+    const env = setup(1_000_000, (sql, database) => { if (armed && sql.startsWith('UPDATE exam_attempts SET view_json=json_set')) { armed = false; database.exec(mutation); } });
+    const exam = await openExam(env, { settings: { ...input.settings, integrityPolicyVersion: 1 } });
+    const pupil = await env.service.join({ code: exam.code, name: 'Race' });
+    await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
+    armed = true;
+    await assert.rejects(() => env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: false } }), /AUTH_REQUIRED|EXAM_ENDED|BAD_STATE|INTEGRITY_LOCKED|INTEGRITY_REQUIRED/);
+    const view = JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json);
+    assert.notEqual(view.integrity?.usedAI, false);
+  }
+});
+
+test('integrity revocation at answer/photo/submit SQL boundary cannot save or seal; auto deadline seals without inventing acknowledgement', async () => {
+  for (const action of ['answer', 'photo', 'delete-photo', 'submit']) {
+    let armed = false;
+    const env = setup(1_000_000, (sql, database) => { if (armed && /^(INSERT INTO exam_answers|INSERT INTO exam_assets|DELETE FROM exam_assets|UPDATE exam_attempts SET submitted_at=)/.test(sql)) { armed = false; database.exec("UPDATE exam_attempts SET view_json=json_remove(view_json,'$.integrity')"); } });
+    const exam = await openExam(env, { settings: { ...input.settings, integrityPolicyVersion: 1 } });
+    const pupil = await env.service.join({ code: exam.code, name: 'Boundary' });
+    await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
+    await env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: false } });
+    const photo = await env.service.savePhoto({ ...pupil, qid: 'q5', mime: 'image/jpeg', data: jpeg });
+    armed = true;
+    const attempt = () => action === 'answer' ? env.service.saveAnswer({ ...pupil, qid: 'q1', value: 'C', seq: 1 }) : action === 'photo' ? env.service.savePhoto({ ...pupil, qid: 'q5', mime: 'image/jpeg', data: jpeg }) : action === 'delete-photo' ? env.service.deletePhoto({ ...pupil, id: photo.id }) : env.service.submit({ ...pupil, answers: { q1: 'C' } });
+    await assert.rejects(attempt, /INTEGRITY_REQUIRED/);
+    assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 0);
+    assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_assets').get().n, 1);
+    assert.equal(env.database.prepare('SELECT submitted_at FROM exam_attempts').get().submitted_at, null);
+    env.clock.t = env.database.prepare('SELECT ends_at FROM exams').get().ends_at + 36_000;
+    assert.equal((await env.service.getState(pupil)).finished, true);
+    assert.equal(JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts').get().view_json).integrity, undefined);
+    assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_assets').get().n, 1);
+  }
+});
+
+test('integrity HTTP action authenticates own bearer, handles concurrent replays and preserves shuffled grading', async () => {
+  const env = setup();
+  const exam = await openExam(env, { ...codesInput, settings: { ...codesInput.settings, integrityPolicyVersion: 1 } });
+  const pupil = await env.service.join({ code: exam.code, name: 'Acknowledgement HTTP' });
+  const other = await env.service.join({ code: exam.code, name: 'Other pupil' });
+  await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
+  const routes = await examRoutes(env);
+  const post = (body, token) => routes.pupil.POST(new Request('https://exam.test/api/exam-play', { method: 'POST', headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(body) }));
+  const request = { action: 'integrity', integrity: { confirmed: true, usedAI: false } };
+  assert.equal((await post(request)).status, 401);
+  assert.equal((await post({ action: 'answer', qid: '101_q1', value: 'A', seq: 1, confirmed: true }, pupil.token)).status, 409);
+  assert.equal((await post({ ...request, integrity: { confirmed: true, usedAI: false, confirmedAt: 1 } }, pupil.token)).status, 400);
+  const before = JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts WHERE id=?').get(pupil.attemptId).view_json);
+  const responses = await Promise.all([post(request, pupil.token), post(request, pupil.token)]);
+  assert.ok(responses.every(response => response.status === 200));
+  assert.equal((await env.service.getState(other)).integrity.confirmed, false);
+  const stored = JSON.parse(env.database.prepare('SELECT view_json FROM exam_attempts WHERE id=?').get(pupil.attemptId).view_json); delete stored.integrity; assert.deepEqual(stored, before);
+  const selected = exam.codes.find(code => code.code === env.database.prepare('SELECT exam_code FROM exam_attempts WHERE id=?').get(pupil.attemptId).exam_code);
+  const canonical = selected.questions[0], display = toDisplayAnswer(canonical, canonical.key, before);
+  await env.service.submit({ ...pupil, answers: { [canonical.id]: display } });
+  assert.equal(env.database.prepare('SELECT value_json FROM exam_answers WHERE attempt_id=? AND qid=?').get(pupil.attemptId, canonical.id).value_json, JSON.stringify(canonical.key));
+  assert.equal((await post(request, pupil.token)).status, 409);
+  assert.equal((await env.service.getAttempt({ ownerAccountId: 'teacher-1', examId: exam.id, attemptId: pupil.attemptId })).attempt.integrity.confirmed, true);
+});
 
 test('creating an exam is idempotent per request and rejects nonsense', async () => {
   const env = setup();
@@ -413,6 +519,7 @@ test('the room starts only with an answer key, and the key never reaches a pupil
   let state = await env.service.getState({ token: pupil.token });
   assert.deepEqual(state.questions, [], 'no questions before the start');
   await env.service.control({ ownerAccountId: 'teacher-1', examId: created.exam.id, action: 'start' });
+  await env.service.acknowledgeIntegrity({ token: pupil.token, integrity: { confirmed: true, usedAI: false } });
   state = await env.service.getState({ token: pupil.token });
   assert.equal(state.questions.length, 5);
   const wire = JSON.stringify(state);
@@ -1443,8 +1550,8 @@ test('HTTP review login is unauthenticated, errors are uniformly 403, review wri
   assert.equal(response.status, 200);
   const review = await response.json();
   assert.deepEqual(Object.keys(review).sort(), ['readOnly', 'token']);
-  for (const action of ['answer', 'submit', 'tab', 'mascot', 'photo', 'photo-delete', 'join']) {
-    const result = await postPupil({ action, ...env.login }, review.token);
+  for (const action of ['answer', 'submit', 'tab', 'mascot', 'photo', 'photo-delete', 'join', 'integrity']) {
+    const result = await postPupil({ action, ...env.login, ...(action === 'integrity' ? { integrity: { confirmed: true, usedAI: false } } : {}) }, review.token);
     assert.equal(result.status, 401);
     assert.deepEqual(await result.json(), { error: 'AUTH_REQUIRED' });
   }
@@ -1459,4 +1566,155 @@ test('HTTP review login is unauthenticated, errors are uniformly 403, review wri
   const deleted = await postTeacher(deletion, 'teacher-1');
   assert.equal(deleted.status, 200);
   assert.deepEqual(await deleted.json(), { ok: true });
+});
+
+test('individual accommodation keeps only that pupil active after class deadline; all writes obey personal deadline', async () => {
+  const env = await reviewFixture();
+  const other = await env.service.join({ code: env.exam.code, name: 'Other pupil' });
+  const base = { ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 10, textScale: 1.5 };
+  const adjusted = await env.service.setAccommodation(base);
+  assert.equal(adjusted.attempts.find(a => a.id === base.attemptId).extraMinutes, 10);
+  const end = env.database.prepare('SELECT ends_at FROM exams').get().ends_at;
+  env.clock.t = end + 36_000;
+  const extended = await env.service.getState(env.joined);
+  assert.equal(extended.exam.status, 'running');
+  assert.equal(extended.exam.endsAt, end + 600_000);
+  assert.equal(extended.attempt.textScale, 1.5);
+  assert.equal(extended.finished, false);
+  const ordinary = await env.service.getState(other);
+  assert.equal(ordinary.finished, true);
+  assert.equal(ordinary.attempt.textScale, 1);
+  assert.equal(ordinary.exam.endsAt, end);
+  assert.equal(ordinary.review, undefined, 'answers hidden until all pupils finish');
+  await assert.rejects(() => env.service.join({ code: env.exam.code, name: 'Too late while extended' }), /EXAM_ENDED|EXAM_CLOSED/);
+  await env.service.saveAnswer({ ...env.joined, qid: 'q1', value: 'C', seq: 1 });
+  await env.service.savePhoto({ ...env.joined, qid: 'q5', mime: 'image/jpeg', data: jpeg });
+  env.clock.t = end + 630_001;
+  await assert.rejects(() => env.service.saveAnswer({ ...env.joined, qid: 'q1', value: 'A', seq: 2 }), /EXAM_ENDED/);
+  await assert.rejects(() => env.service.submit({ ...env.joined, answers: { q1: 'A' } }), /EXAM_ENDED/);
+  await assert.rejects(() => env.service.savePhoto({ ...env.joined, qid: 'q5', mime: 'image/jpeg', data: jpeg }), /EXAM_ENDED/);
+  env.clock.t += 5000;
+  assert.equal((await env.service.getState(env.joined)).exam.status, 'closed');
+  assert.equal(env.database.prepare('SELECT value_json FROM exam_answers WHERE qid=\'q1\'').get().value_json, '"C"');
+});
+
+test('accommodation bounds, ownership, CAS and exact retry do not double-add minutes', async () => {
+  const env = await reviewFixture();
+  const base = { ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 5, textScale: 1.25 };
+  await assert.rejects(() => env.service.setAccommodation({ ...base, ownerAccountId: 'teacher-2' }), /NOT_FOUND/);
+  for (const extraMinutes of [-1, 61, 1.5, '5', NaN]) await assert.rejects(() => env.service.setAccommodation({ ...base, extraMinutes }), /INVALID_BODY/);
+  for (const textScale of [0, 2.5, NaN, '1.5']) await assert.rejects(() => env.service.setAccommodation({ ...base, textScale }), /INVALID_BODY/);
+  const out = await Promise.allSettled([env.service.setAccommodation(base), env.service.setAccommodation({ ...base, extraMinutes: 7 })]);
+  assert.equal(out.filter(r => r.status === 'fulfilled').length, 1);
+  const row = env.database.prepare('SELECT * FROM exam_attempts').get();
+  const retry = { ...base, extraMinutes: row.extra_minutes };
+  await env.service.setAccommodation(retry);
+  assert.equal(env.database.prepare('SELECT accommodation_revision FROM exam_attempts').get().accommodation_revision, 1);
+  await assert.rejects(() => env.service.setAccommodation({ ...base, extraMinutes: 12 }), /ACCOMMODATION_CHANGED/);
+  await env.service.setAccommodation({ ...retry, expectedRevision: 1, extraMinutes: 12 });
+  await assert.rejects(() => env.service.setAccommodation(retry), /ACCOMMODATION_CHANGED/);
+});
+
+test('accommodation cannot reopen expired/submitted attempts or a manually closed room', async () => {
+  for (const kind of ['expired', 'submitted', 'manual-close']) {
+    const env = await reviewFixture();
+    const base = { ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 10, textScale: 2 };
+    if (kind === 'submitted') await env.service.submit(env.joined);
+    if (kind === 'manual-close') await env.service.control({ ...base, action: 'close' });
+    if (kind === 'expired') env.clock.t = env.database.prepare('SELECT ends_at FROM exams').get().ends_at + 30_001;
+    await assert.rejects(() => env.service.setAccommodation(base), /BAD_STATE/);
+    assert.equal(env.database.prepare('SELECT extra_minutes FROM exam_attempts').get().extra_minutes, 0);
+  }
+  const env = await reviewFixture();
+  await env.service.setAccommodation({ ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 60, textScale: 2 });
+  await env.service.control({ ownerAccountId: 'teacher-1', examId: env.exam.id, action: 'close' });
+  assert.equal((await env.service.getState(env.joined)).finished, true);
+  await assert.rejects(() => env.service.saveAnswer({ ...env.joined, qid: 'q1', value: 'C' }), /EXAM_ENDED/);
+});
+
+test('individual accommodation write guards room closure and token release races', async () => {
+  for (const mutation of ["UPDATE exams SET status='closed'", 'UPDATE exam_attempts SET token_hash=NULL']) {
+    let armed = false;
+    const env = await reviewFixture((sql, database) => {
+      if (armed && sql.startsWith('INSERT INTO exam_answers')) { armed = false; database.exec(mutation); }
+    });
+    await env.service.setAccommodation({ ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 5, textScale: 1.5 });
+    env.clock.t = env.database.prepare('SELECT ends_at FROM exams').get().ends_at + 40_000;
+    armed = true;
+    await assert.rejects(() => env.service.saveAnswer({ ...env.joined, qid: 'q1', value: 'C' }), /EXAM_ENDED|AUTH_REQUIRED/);
+    assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 0);
+  }
+});
+
+test('accommodation teacher route enforces owner and does not accept pupil body authority', async () => {
+  const env = await reviewFixture();
+  const route = (await examRoutes(env)).teacher;
+  const body = { action: 'accommodation', id: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 5, textScale: 1.5, ownerAccountId: 'teacher-1' };
+  const post = (user) => route.POST(new Request('https://exam.test/api/exams', { method: 'POST', headers: { 'content-type': 'application/json', ...(user ? { 'x-test-user': user } : {}) }, body: JSON.stringify(body) }));
+  assert.equal((await post('')).status, 401);
+  assert.equal((await post('teacher-2')).status, 404);
+  assert.equal((await post('teacher-1')).status, 200);
+  assert.equal((await post('teacher-1')).status, 200);
+  assert.equal(env.database.prepare('SELECT extra_minutes FROM exam_attempts').get().extra_minutes, 5);
+});
+
+test('0020 append migration preserves legacy rows and constrains minute/font/revision values in SQLite', () => {
+  const { database } = makeDb(undefined, false);
+  for (const name of ['0014_exam_manual_comments.sql', '0015_exam_attempt_views.sql', '0016_exam_review_access.sql']) for (const part of readFileSync(new URL('../drizzle/' + name, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  database.exec("INSERT INTO exams(id,owner_account_id,code,title,status,duration_min,settings_json,questions_json,created_at,updated_at) VALUES('old','teacher-1','OLD123','Old','open',45,'{}','[]',1,1)");
+  database.exec("INSERT INTO exam_attempts(id,exam_id,name,name_key,token_hash,joined_at,last_seen_at,view_json) VALUES('old-pupil','old','An','an','old-hash',1,2,'{}')");
+  database.exec("INSERT INTO exam_answers(attempt_id,qid,value_json,seq,updated_at) VALUES('old-pupil','q1','\"C\"',3,4)");
+  const before = database.prepare('SELECT * FROM exam_attempts').get();
+  const answer = database.prepare('SELECT * FROM exam_answers').get();
+  for (const part of readFileSync(new URL('../drizzle/0020_exam_accommodations.sql', import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  const after = database.prepare('SELECT * FROM exam_attempts').get();
+  assert.equal(after.extra_minutes, 0); assert.equal(after.text_scale, 1); assert.equal(after.accommodation_revision, 0);
+  for (const key of ['extra_minutes', 'text_scale', 'accommodation_revision']) delete after[key];
+  assert.deepEqual(after, before); assert.deepEqual(database.prepare('SELECT * FROM exam_answers').get(), answer);
+  for (const update of ['extra_minutes=-1', 'extra_minutes=61', 'extra_minutes=0.5', "extra_minutes='invalid'", 'text_scale=1.2', 'text_scale=0', 'text_scale=2.1', 'accommodation_revision=-1', 'accommodation_revision=1.5']) assert.throws(() => database.exec('UPDATE exam_attempts SET ' + update), /CHECK constraint/);
+  assert.throws(() => database.exec("INSERT INTO exam_attempts(id,exam_id,name,name_key,joined_at,last_seen_at) VALUES('bad','missing','B','b',1,2)"), /FOREIGN KEY/);
+  const previous = JSON.parse(readFileSync(new URL('../drizzle/meta/0019_snapshot.json', import.meta.url), 'utf8'));
+  const next = JSON.parse(readFileSync(new URL('../drizzle/meta/0020_snapshot.json', import.meta.url), 'utf8'));
+  assert.equal(next.prevId, previous.id);
+  for (const key of ['extra_minutes', 'text_scale', 'accommodation_revision']) delete next.tables.exam_attempts.columns[key];
+  for (const key of ['exam_attempt_extra_minutes', 'exam_attempt_text_scale', 'exam_attempt_accommodation_revision']) delete next.tables.exam_attempts.checkConstraints[key];
+  assert.deepEqual(next.tables, previous.tables);
+});
+
+test('personal extension permits integrity and manual submission past common end; teacher font remains pupil-scoped', async () => {
+  const env = setup();
+  const exam = await openExam(env, { settings: { ...input.settings, integrityPolicyVersion: 1 } });
+  const pupil = await env.service.join({ code: exam.code, name: 'Extended' });
+  const other = await env.service.join({ code: exam.code, name: 'Regular' });
+  await env.service.setAccommodation({ ownerAccountId: 'teacher-1', examId: exam.id, attemptId: pupil.attemptId, expectedRevision: 0, extraMinutes: 8, textScale: 2 });
+  await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
+  env.clock.t = env.database.prepare('SELECT ends_at FROM exams').get().ends_at + 40_000;
+  const own = await env.service.acknowledgeIntegrity({ ...pupil, integrity: { confirmed: true, usedAI: false } });
+  assert.equal(own.questions.length, questions.length);
+  assert.equal(own.attempt.textScale, 2);
+  assert.equal(own.attempt.extraMinutes, 8);
+  assert.equal((await env.service.getState(other)).attempt.textScale, 1);
+  assert.equal((await env.service.submit({ ...pupil, answers: { q1: 'C' } })).finished, true);
+  await assert.rejects(() => env.service.join({ code: exam.code, name: 'Too late' }), /EXAM_ENDED|EXAM_CLOSED/);
+});
+
+test('accommodation read/write race cannot revive closure or submitted pupil; expiry shrink wins save precheck', async () => {
+  for (const mutation of ["UPDATE exams SET status='closed'", 'UPDATE exam_attempts SET submitted_at=123']) {
+    let armed = false;
+    const env = await reviewFixture((sql, database) => {
+      if (armed && sql.startsWith('UPDATE exam_attempts SET extra_minutes=')) { armed = false; database.exec(mutation); }
+    });
+    armed = true;
+    await assert.rejects(() => env.service.setAccommodation({ ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 5, textScale: 2 }), /BAD_STATE/);
+    assert.equal(env.database.prepare('SELECT extra_minutes FROM exam_attempts').get().extra_minutes, 0);
+  }
+  let armed = false;
+  const env = await reviewFixture((sql, database) => {
+    if (armed && sql.startsWith('INSERT INTO exam_answers')) { armed = false; database.exec('UPDATE exam_attempts SET extra_minutes=0'); }
+  });
+  await env.service.setAccommodation({ ownerAccountId: 'teacher-1', examId: env.exam.id, attemptId: env.joined.attemptId, expectedRevision: 0, extraMinutes: 5, textScale: 1 });
+  env.clock.t = env.database.prepare('SELECT ends_at FROM exams').get().ends_at + 40_000;
+  armed = true;
+  await assert.rejects(() => env.service.saveAnswer({ ...env.joined, qid: 'q1', value: 'C' }), /EXAM_ENDED/);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 0);
 });

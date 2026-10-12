@@ -8,6 +8,7 @@ import { createPackageDraft, hashPackage } from '../lib/lesson/schema.js';
 import { pilotDraft } from '../lib/lesson/director.js';
 import { createGameAdapter } from '../lib/lesson/game-adapter.js';
 import { reduceLessonSession, createLessonSession } from '../lib/lesson/runtime.js';
+import {packLessonState,unpackLessonState} from '../lib/lesson/state-storage.js';
 import {
   createLessonService,
   normalizeLearnerName,
@@ -45,6 +46,49 @@ function realDb() {
 test('lesson service exports durable package/session operations', () => {
   assert.equal(typeof createLessonService, 'function');
   assert.equal(typeof normalizeLearnerName, 'function');
+});
+
+test('service persists compact tutor audit, hydrates own views, preserves it across CAS writes and fails closed on corrupt storage',async()=>{
+ const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner-1@example.invalid','Owner',1);
+ const service=createLessonService({db,now:()=>1000});
+ const saved=await service.savePackage({ownerAccountId:'owner-1',package:structuredClone(lessonFixture)});
+ const room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Audit QA',requestId:'audit-qa'});
+ const a=await service.joinSession({code:room.session.code,name:'A',token:'A'.repeat(43)}),b=await service.joinSession({code:room.session.code,name:'B',token:'B'.repeat(43)});
+ const read=()=>JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state);
+ const raw=read(),history=[{id:'pair',tutorId:a.learnerId,recipientId:b.learnerId,activityId:'past',branch:'core',taskIds:['task-prac-core-calc'],status:'reward_revoked',requestedAt:1,acceptedAt:2,rewardedAt:3,revokedAt:4,revokedBy:'owner-1',extraAudit:{reason:'kept'}}];
+ raw.tutors={needs:{},history};database.prepare('UPDATE lesson_sessions SET state=? WHERE id=?').run(JSON.stringify(packLessonState(raw)),room.session.id);
+ const own=await service.getSession({id:room.session.id,learnerToken:'A'.repeat(43)});assert.equal(own.view.tutor.history[0].status,'reward_revoked');assert.equal(own.view.tutor.history[0].peerName,'B');
+ const teacher=await service.getSession({id:room.session.id,accountId:'owner-1'});assert.deepEqual(teacher.view.tutors.history,history);
+ const outcome=await service.event({sessionId:room.session.id,accountId:'owner-1',event:{type:'START',payload:{},eventId:'audit-start',round:teacher.view.round,revision:teacher.view.revision}});assert.equal(outcome.result.ok,true);
+ assert.equal(read().tutors,undefined);assert.deepEqual(unpackLessonState(read()).tutors.history,history);
+ const corrupt=read();corrupt.lessonExtrasCompressed.data='corrupt';database.prepare('UPDATE lesson_sessions SET state=? WHERE id=?').run(JSON.stringify(corrupt),room.session.id);
+ await assert.rejects(()=>service.getSession({id:room.session.id,accountId:'owner-1'}),/INVALID_LESSON_STORAGE/);database.close();
+});
+
+test('buzzer transport binds the pupil, rebases stale classroom revisions and preserves claim expiry on replay',async()=>{
+ const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner-1@example.invalid','Owner',1);
+ let time=1000;const service=createLessonService({db,now:()=>time});const pkg=structuredClone(lessonFixture);pkg.budget.reserveMinutes=3;pkg.budget.slotMinutes+=1;pkg.activities.find(a=>a.budgetRole==='reserve').minutes=3;pkg.contentHash=hashPackage(pkg);
+ const saved=await service.savePackage({ownerAccountId:'owner-1',package:pkg}),room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Buzz QA',requestId:'buzz-qa'});
+ await service.joinSession({code:room.session.code,name:'A',token:'A'.repeat(43)});await service.joinSession({code:room.session.code,name:'B',token:'B'.repeat(43)});
+ const host=async(type,payload={})=>{const own=await service.getSession({id:room.session.id,accountId:'owner-1'});return service.event({sessionId:room.session.id,accountId:'owner-1',event:{type,payload,eventId:'host-'+type,activityId:own.view.timeline.currentActivityId,round:own.view.round,revision:own.view.revision}});};
+ await host('START');await host('CLASS_EVENT_OPEN',{type:'buzzer',durationMs:180000,seed:1});
+ const view=(await service.getSession({id:room.session.id,learnerToken:'A'.repeat(43)})).view;
+ const event={type:'CLASS_EVENT_BUZZ',payload:{eventId:view.classEvent.id,step:0,requestId:'buzz-press'},eventId:'buzz-envelope',round:view.round,revision:view.revision,activityId:view.timeline.currentActivityId};
+ await service.event({sessionId:room.session.id,learnerToken:'B'.repeat(43),event:{...event,eventId:'other-buzz',payload:{...event.payload,requestId:'other-press'}}});
+ const first=await service.event({sessionId:room.session.id,learnerToken:'A'.repeat(43),event});assert.equal(first.result.ok,true);assert.equal(first.view.classEvent.own.buzzer.pressed,true);assert.ok(first.view.classEvent.own.task);
+ time+=1000;const replay=await service.event({sessionId:room.session.id,learnerToken:'A'.repeat(43),event});assert.equal(replay.result.replay,true);assert(replay.view.classEvent.own.buzzer.remainingMs<first.view.classEvent.own.buzzer.remainingMs);
+ await assert.rejects(()=>service.event({sessionId:room.session.id,learnerToken:'C'.repeat(43),event}),/FORBIDDEN/);database.close();
+});
+
+test('durable state deduplicates assessed review records but keeps pending work readable by the legacy Worker',async()=>{
+ const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner-1@example.invalid','Owner',1);
+ const service=createLessonService({db,now:()=>1000}),saved=await service.savePackage({ownerAccountId:'owner-1',package:structuredClone(lessonFixture)}),room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Review QA',requestId:'review-qa'});
+ const raw=JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state);
+ for(const id of ['assessed','pending']){const sub={submissionId:id,learnerId:'a',taskId:'task-recheck-19',activityId:'act-recheck',answer:'Exact original answer',at:9,ok:id==='assessed',assessmentStatus:id};raw.submissions[id]=sub;raw.openAssessments[id]={submissionId:id,learnerId:sub.learnerId,taskId:sub.taskId,activityId:sub.activityId,answer:sub.answer,createdAt:sub.at,status:id,feedback:'Keep feedback',extraAudit:'Keep audit'};}
+ const expected=structuredClone(raw.openAssessments);database.prepare('UPDATE lesson_sessions SET state=? WHERE id=?').run(JSON.stringify(raw),room.session.id);
+ await service.event({sessionId:room.session.id,accountId:'owner-1',event:{type:'START',payload:{},eventId:'review-start',round:raw.round,revision:raw.revision}});
+ const stored=JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state);assert.equal(stored.openAssessments.assessed.answer,undefined);assert.equal(stored.openAssessments.assessed.learnerId,undefined);assert.deepEqual(stored.openAssessments.pending,expected.pending);
+ assert.deepEqual((await service.getSession({id:room.session.id,accountId:'owner-1'})).view.openAssessments,expected);database.close();
 });
 
 test('lesson package hash is persisted before save and duplicate versions are rejected', async () => {
@@ -244,7 +288,7 @@ test('simultaneous submissions to one session are processed in turn without wast
   await service.event({ sessionId: room.session.id, accountId: 'owner-1', event: { eventId: 'start', type: 'START', round: 1, revision: teacher.revision, payload: {} } });
   const view = (await service.getSession({ id: room.session.id, accountId: 'owner-1' })).view;
   batches = 0;
-  await Promise.all(learners.map((learner, i) => service.event({
+  await Promise.all(learners.map((learner, i) => createLessonService({db:counted,now:()=>1000}).event({
     sessionId: room.session.id,
     learnerToken: learner.token,
     event: { eventId: `turn-${i}`, type: 'SUBMIT', round: 1, revision: view.revision, activityId: view.timeline.currentActivityId, payload: { taskId: view.tasks[0].id, answer: 'opt_finite_seat' } }
@@ -261,7 +305,7 @@ test('simultaneous joins are processed in turn without wasted retries', async ()
   const saved = await service.savePackage({ ownerAccountId: 'owner-1', package: structuredClone(lessonFixture) });
   const room = await service.createSession({ ownerAccountId: 'owner-1', packageRowId: saved.row.rowId, mode: 'preview', title: 'Queue joins', requestId: 'queue-joins' });
   batches = 0;
-  await Promise.all(Array.from({ length: 12 }, (_, i) => service.joinSession({ code: room.session.code, name: `Student ${i + 1}`, token: String.fromCharCode(65 + i).repeat(43) })));
+  await Promise.all(Array.from({ length: 12 }, (_, i) => createLessonService({db:counted,now:()=>1000}).joinSession({ code: room.session.code, name: `Student ${i + 1}`, token: String.fromCharCode(65 + i).repeat(43) })));
   assert.equal(batches, 12);
 });
 
@@ -311,7 +355,7 @@ test('approved plans bind exact package tuple, reject live preview, and remain a
   const service = createLessonService({ db, now: () => 1000 });
   const pkg = structuredClone(lessonFixture);
   const saved = await service.savePackage({ ownerAccountId: 'owner-1', package: pkg });
-  const packageApproval = await service.approvePackage({ actorAccountId: 'owner-1', id: saved.row.rowId, parentHash: saved.row.contentHash, version: '1.0.1', sourceReviewAck: pkg.sourceRefs });
+  const packageApproval = await service.approvePackage({ actorAccountId: 'owner-1', id: saved.row.rowId, parentHash: saved.row.contentHash, version: '1.0.1', sourceReviewAck: pkg.sourceRefs.map(source=>({...source,numericReviewConfirmed:true})) });
   const draft = pilotDraft({ package: { ...packageApproval.package, rowId: packageApproval.row.rowId } });
   const approved = await service.approvePlan({ actorAccountId: 'owner-1', packageRowId: packageApproval.row.rowId, packageVersion: packageApproval.row.version, packageHash: packageApproval.row.contentHash, planHash: draft.plan.contentHash, sourceReview: packageApproval.package.sourceRefs });
   assert.equal(approved.plan.status, 'approved');
@@ -527,7 +571,7 @@ test('regression: approved plan session safe gamePlan has adapter route/checkpoi
     id: saved.row.rowId,
     parentHash: saved.row.contentHash,
     version: '1.0.1',
-    sourceReviewAck: pkg.sourceRefs
+    sourceReviewAck: pkg.sourceRefs.map(source=>({...source,numericReviewConfirmed:true}))
   });
   const boundPackage = { ...packageApproval.package, rowId: packageApproval.row.rowId };
   const draft = pilotDraft({ package: boundPackage });
@@ -682,4 +726,15 @@ test('regression: approved plan session safe gamePlan has adapter route/checkpoi
   database.prepare("UPDATE lesson_sessions SET plan_hash='corrupted-hash' WHERE id=?").run(createdLive.session.id);
   database.exec('PRAGMA foreign_keys=ON');
   await assert.rejects(() => service.getSession({ id: createdLive.session.id, accountId: 'owner-1' }), /PLAN_TUPLE_MISMATCH/);
+});
+
+test('durable state stores each own answer once and reload restores the learner passport without dropping paid rewards',async()=>{
+ const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner@test','Owner',1);
+ const service=createLessonService({db,now:()=>1000});const saved=await service.savePackage({ownerAccountId:'owner-1',package:structuredClone(lessonFixture)});const room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Footprint',requestId:'footprint-test'});
+ const token='Q'.repeat(43),pupil=await service.joinSession({code:room.session.code,name:'Own',token});let own=(await service.getSession({id:room.session.id,accountId:'owner-1'})).view;
+ await service.event({sessionId:room.session.id,accountId:'owner-1',event:{type:'START',payload:{},eventId:'footprint-start',round:own.round,revision:own.revision}});own=(await service.getSession({id:room.session.id,learnerToken:token})).view;
+ await service.event({sessionId:room.session.id,learnerToken:token,event:{type:'SUBMIT',payload:{taskId:own.tasks[0].id,answer:'opt_finite_seat'},activityId:own.timeline.currentActivityId,eventId:'footprint-submit',round:own.round,revision:own.revision}});
+ const state=JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state);
+ assert.equal(state.passports[pupil.learnerId].submissions[0].answer,undefined);assert.equal(Object.values(state.submissions)[0].answer,'opt_finite_seat');assert.equal(Object.keys(state.rewardLedger).length,0);
+ const restored=await service.getSession({id:room.session.id,learnerToken:token});assert.equal(restored.view.passport.submissions[0].answer,'opt_finite_seat');assert.equal(Object.keys(restored.view.passport.submissions).length,1);
 });

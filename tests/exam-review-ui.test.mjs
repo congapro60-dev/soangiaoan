@@ -16,7 +16,7 @@ const base = extra => ({
 });
 
 function harness(state, selected = 0) {
-  const hooks = [false, state, 'pupil-token', state.answers, state.photos, selected], refs = [], effects = [], polls = [], images = [];
+  const hooks = [false, state, 'pupil-token', state.answers, state.photos, selected], refs = [], effects = [], polls = [], images = [], posts = [];
   const storage = new Map([['exam-session', JSON.stringify({ code: state.exam.code, token: 'pupil-token', name: state.attempt.name })]]), removed = [];
   let cursor = 0, refCursor = 0;
   let remote = state;
@@ -34,7 +34,7 @@ function harness(state, selected = 0) {
       if (name.endsWith('/MathText')) return { __esModule: true, default: ({ text }) => React.createElement('span', null, text) };
       if (name.endsWith('/LessonMascotPicker')) return { mascotSpriteStyle: () => ({}) };
       if (name.endsWith('/LessonWorldMap')) return { LessonWorldMap: () => React.createElement('iframe', {title:'Hành trình sau kiểm tra'}) };
-      if (name === './client') return { ApiError: class extends Error {}, pupilGet: async token => { polls.push(token); return remote; }, pupilImageUrl: async (token, query) => { images.push({ token, query }); return 'blob:' + query; } };
+      if (name === './client') return { ApiError: class extends Error {}, pupilGet: async token => { polls.push(token); return remote; }, pupilPost: async (body, token) => { posts.push({ body, token }); return remote; }, pupilImageUrl: async (token, query) => { images.push({ token, query }); return 'blob:' + query; } };
       return {};
     },
   });
@@ -46,8 +46,32 @@ function harness(state, selected = 0) {
     for (const child of React.Children.toArray(node.props?.children)) { const found = find(child, predicate); if (found) return found; }
     return null;
   };
-  return { html, tree, find, refs, effects, polls, images, hooks, storage, removed, leave: () => exports.leave(), setRemote(next) { remote = next; } };
+  return { html, tree, find, refs, effects, polls, images, posts, hooks, storage, removed, leave: () => exports.leave(), setRemote(next) { remote = next; } };
 }
+
+test('new running exam opens on two unchecked integrity disclosures; server acknowledgement required before questions', async () => {
+  const state = base({ finished: false, attempt: { ...base().attempt, submittedAt: null }, questions: [], integrity: { required: true, confirmed: false } });
+  const h = harness(state), checks = [];
+  let tree = h.tree();
+  h.find(tree, node => { if (node.type === 'input' && node.props.type === 'checkbox') checks.push(node); return false; });
+  assert.equal(checks.length, 2); assert.ok(checks.every(node => node.props.checked === false));
+  let button = h.find(tree, node => node.type === 'button' && node.props.children === 'Xác nhận và mở bài');
+  assert.equal(button.props.disabled, true);
+  await button.props.onClick(); assert.equal(h.posts.length, 0);
+  assert.doesNotMatch(h.html(), /exam-question|Nộp bài/);
+  checks[0].props.onChange({ target: { checked: true } });
+  checks[1].props.onChange({ target: { checked: true } });
+  tree = h.tree(); button = h.find(tree, node => node.type === 'button' && node.props.children === 'Xác nhận và mở bài');
+  assert.equal(button.props.disabled, false);
+  // A stale response still lacking the server marker cannot open any questions.
+  await button.props.onClick(); await new Promise(setImmediate);
+  assert.equal(h.posts[0].token, 'pupil-token');
+  assert.equal(JSON.stringify(h.posts[0].body), JSON.stringify({ action: 'integrity', integrity: { confirmed: true, usedAI: true } }));
+  assert.match(h.html(), /Làm bài trung thực/);
+  state.exam.endsAt = Date.now() - 1000;
+  h.tree(); h.effects[3](); h.refs[2].current(); await new Promise(setImmediate);
+  assert.ok(!h.posts.some(post => post.body.action === 'submit'), 'unacknowledged deadline cannot send a submission');
+});
 
 test('early submission shows only passport, server badges and total; policy none makes no solution promise', () => {
   const html = harness(base()).html();

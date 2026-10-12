@@ -586,6 +586,14 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
         __esModule: true
       };
       if (name.endsWith('.css')) return {};
+      if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
+      if (name.endsWith("/SessionRules")) return { SessionRules: () => null };
+      if (name.endsWith("/TutorPanel")) return { TutorPanel: () => null };
+      if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
+      if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
+      if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
+      if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
+      if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
       throw new Error(`Unexpected import: ${name}`);
     }
   });
@@ -679,6 +687,11 @@ test('PresenterPage integrates LessonThemedRoute TV projection with approved the
         __esModule: true
       };
       if (name.endsWith('.css')) return {};
+      if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
+      if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
+      if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
+      if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
+      if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
       throw new Error(`Unexpected import: ${name}`);
     }
   });
@@ -694,3 +707,4 @@ test('PresenterPage integrates LessonThemedRoute TV projection with approved the
   assert.match(html, /campaign-future\.webp/);
   assert.match(html, /BÃI HẠ CÁNH/);
 });
+

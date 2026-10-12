@@ -27,10 +27,11 @@ interface PupilState {
     review: "after_close" | "none";
     examCode?: string;
   };
-  attempt: { id: string; name: string; mascot: number; submittedAt: number | null };
+  attempt: { id: string; name: string; mascot: number; submittedAt: number | null; textScale?: number; extraMinutes?: number };
   questions: ExamQuestion[];
   answers: Record<string, unknown>;
   photos: Record<string, string[]>;
+  integrity?: { required: boolean; confirmed: boolean; usedAI?: boolean; confirmedAt?: number };
   finished?: boolean;
   readOnly?: boolean;
   reviewPin?: string;
@@ -403,6 +404,8 @@ export default function ExamPlay() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [integrityConfirmed, setIntegrityConfirmed] = useState(false);
+  const [integrityUsedAI, setIntegrityUsedAI] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ code: "", name: "", mascot: 0 });
   const [reviewLogin, setReviewLogin] = useState(false);
@@ -433,7 +436,7 @@ export default function ExamPlay() {
     setState(next);
     setOffset(next.serverNow - Date.now());
     setPhotos(next.photos || {});
-    if (next.exam.status === "running" && !next.finished) {
+    if (next.exam.status === "running" && !next.finished && !(next.integrity?.required && !next.integrity.confirmed)) {
       if (!sync.current) {
         sync.current = new AnswerSync({
           token: tokenNow,
@@ -524,6 +527,7 @@ export default function ExamPlay() {
   };
 
   const setAnswer = (qid: string, value: unknown) => {
+    if (state?.integrity?.required && !state.integrity.confirmed) return;
     setAnswers((prev) => {
       const next = { ...prev };
       if (value === null || value === undefined) delete next[qid];
@@ -534,7 +538,7 @@ export default function ExamPlay() {
   };
 
   const doSubmit = async () => {
-    if (state?.readOnly) return;
+    if (state?.readOnly || (state?.integrity?.required && !state.integrity.confirmed)) return;
     setBusy(true);
     setError("");
     try {
@@ -575,9 +579,12 @@ export default function ExamPlay() {
           }
         });
       }
-      if (status === "running" && !state.finished && state.exam.endsAt && t + offset >= state.exam.endsAt && !submitting.current) {
+      if (status === "running" && !state.finished && !(state.integrity?.required && !state.integrity.confirmed) && state.exam.endsAt && t + offset >= state.exam.endsAt && !submitting.current) {
         submitting.current = true;
-        void doSubmit();
+        void refresh(token).then((fresh) => {
+          if (!fresh.finished && fresh.exam.endsAt && fresh.serverNow >= fresh.exam.endsAt) return doSubmit();
+          submitting.current = false;
+        }).catch(() => { submitting.current = false; });
       }
     };
   });
@@ -626,6 +633,18 @@ export default function ExamPlay() {
     sync.current = null;
     setToken("");
     setState(null);
+    setIntegrityConfirmed(false);
+    setIntegrityUsedAI(false);
+  };
+
+  const acknowledgeIntegrity = async () => {
+    if (!integrityConfirmed || busy) return;
+    setBusy(true); setError("");
+    try {
+      const next = await pupilPost<PupilState>({ action: "integrity", integrity: { confirmed: true, usedAI: integrityUsedAI } }, token);
+      applyState(next, token);
+    } catch (e) { setError(messageFor(e)); }
+    finally { setBusy(false); }
   };
 
   const openReview = async () => {
@@ -685,6 +704,7 @@ export default function ExamPlay() {
   }
 
   const exam = state.exam;
+  const readableStyle = { "--exam-text-scale": state.attempt.textScale || 1 } as React.CSSProperties;
   const remaining = exam.endsAt ? exam.endsAt - (now + offset) : 0;
 
   if (state.finished || state.attempt.submittedAt || exam.status === "closed") {
@@ -692,7 +712,7 @@ export default function ExamPlay() {
     const review = exam.status === "closed" && exam.review === "after_close" ? state.review : null;
     const selected = review?.questions[Math.min(index, Math.max(0, review.questions.length - 1))];
     return (
-      <main className={"exam-shell" + (review ? " exam-review" : "")}>
+      <main className={"exam-shell" + (review ? " exam-review" : "")} style={readableStyle}>
         <section className={"exam-card exam-done" + (review ? " exam-passport-review" : "")}>
           <p className="exam-kicker">Hộ chiếu kết quả</p>
           <div className="exam-finish-rail" aria-hidden="true"><span className="lesson-mascot-sprite exam-finish-mascot" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} /><span className="exam-finish-gate">Đích</span></div>
@@ -742,7 +762,7 @@ export default function ExamPlay() {
 
   if (exam.status === "open" || exam.status === "draft" || state.assignmentPending) {
     return (
-      <main className="exam-shell">
+      <main className="exam-shell exam-wait" style={readableStyle}>
         <section className="exam-card exam-wait">
           <span className="lesson-mascot-sprite exam-wait-mascot" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} role="img" aria-label={MASCOTS[state.attempt.mascot]} />
           <p className="exam-kicker">Phòng {exam.code}</p>
@@ -756,6 +776,30 @@ export default function ExamPlay() {
           </ul>
           <p className="exam-pulse">{state.assignmentPending ? "Chờ thầy/cô phân mã đề…" : "Đang chờ thầy/cô bắt đầu…"}</p>
           <button type="button" className="lesson-button lesson-button-outline" onClick={leave}>Thoát</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (state.integrity?.required && !state.integrity.confirmed) {
+    return (
+      <main className="exam-shell exam-integrity" style={readableStyle}>
+        <section className="exam-card exam-wait" aria-labelledby="exam-integrity-title">
+          <p className="exam-kicker">Phòng {exam.code} · Còn {clock(remaining)}</p>
+          <h1 id="exam-integrity-title">Làm bài trung thực</h1>
+          <p>Em làm bài theo hướng dẫn của thầy/cô, tự chịu trách nhiệm về bài làm và khai báo đúng sự hỗ trợ đã sử dụng.</p>
+          <label className="exam-note" style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 44 }}>
+            <input type="checkbox" checked={integrityUsedAI} onChange={(e) => setIntegrityUsedAI(e.target.checked)} />
+            <span>Em đã dùng AI liên quan đến bài kiểm tra này.</span>
+          </label>
+          <label className="exam-note" style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 44 }}>
+            <input type="checkbox" checked={integrityConfirmed} onChange={(e) => setIntegrityConfirmed(e.target.checked)} />
+            <span>Em đã đọc và xác nhận lời khai trên là đúng.</span>
+          </label>
+          {error && <p className="lesson-error" role="alert">{error}</p>}
+          <button type="button" className="lesson-button lesson-button-primary" disabled={busy || !integrityConfirmed || remaining <= 0} onClick={() => void acknowledgeIntegrity()}>{busy ? "Đang ghi nhận…" : "Xác nhận và mở bài"}</button>
+          <p className="exam-note">Đồng hồ vẫn tính theo giờ chung của phòng. Nếu cần sửa lời xác nhận, em báo thầy/cô.</p>
+          <button type="button" className="lesson-button lesson-button-outline" disabled={busy} onClick={leave}>Thoát</button>
         </section>
       </main>
     );
@@ -775,7 +819,7 @@ export default function ExamPlay() {
   }
 
   return (
-    <main className="exam-shell exam-running">
+    <main className="exam-shell exam-running" style={readableStyle}>
       <header className="exam-bar">
         <span className="lesson-mascot-sprite lesson-mascot-sprite-small" style={mascotSpriteStyle(SPRITE, state.attempt.mascot)} role="img" aria-label={MASCOTS[state.attempt.mascot]} />
         <div className="exam-bar-name">

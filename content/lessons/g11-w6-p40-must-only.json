@@ -1,0 +1,1215 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p40-must-only",
+  "version": "0.1.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P40-Must-review-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:559 / d(11,6,40)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p40",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p40_Cung_co_day_so_va_tinh_don_dieu_G11W6.docx",
+      "hash": "46913f02a7cc86c0924ce896cd541d5983f4733296910c44c3ed7af0a55c4b5d",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 40",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào phân loại đúng dãy tăng, dãy giảm và nhận ra dãy không đơn điệu?",
+  "prerequisites": [
+    "Chỉ số n là số nguyên dương, bắt đầu từ 1.",
+    "So sánh hai số hạng liên tiếp; một vài giá trị thử không thay chứng minh tổng quát."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p40-must",
+      "code": "SP-G11-W6-P40-MUST",
+      "level": "must",
+      "statement": "Tôi có thể phân loại chính xác các dãy số cơ bản thành nhóm tăng hoặc nhóm giảm.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p40",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 34,
+    "reserveMinutes": 2,
+    "transitionMinutes": 2,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "m40-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-observe"
+      ],
+      "participation": "individual",
+      "studentAction": "Em dự đoán rồi kiểm tra kết quả đơn giản; giáo viên nghe cách hiểu ban đầu.",
+      "expectedProduct": "Một kết quả chẩn đoán, không dùng làm mastery.",
+      "evidenceIds": [
+        "ev-m40-observe"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-observe"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-pre-a",
+        "m40-pre-b"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm hai câu ngắn để giáo viên nhận diện lỗi kiến thức nền.",
+      "expectedProduct": "Hai kết quả chẩn đoán, chưa dùng làm mastery.",
+      "evidenceIds": [
+        "ev-m40-pre-a",
+        "ev-m40-pre-b"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-pre-a",
+        "hint-m40-pre-b"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-learn"
+      ],
+      "participation": "individual",
+      "studentAction": "Giáo viên hướng dẫn cách kiểm kết quả; em làm bài mẫu và ghi phép kiểm trong vở.",
+      "expectedProduct": "Kết quả bài mẫu và phần giải thích trong vở để giáo viên quan sát.",
+      "evidenceIds": [
+        "ev-m40-learn"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-learn"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 9,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-support",
+        "m40-core"
+      ],
+      "participation": "individual",
+      "studentAction": "Em chọn nhánh hỗ trợ hoặc chuẩn; làm một nhiệm vụ theo làn, ghi phép kiểm vào vở.",
+      "expectedProduct": "Một bộ kết quả theo làn, không yêu cầu làm cả hai nhánh.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-core",
+        "hint-m40-support-1",
+        "hint-m40-support-2",
+        "hint-m40-support-3",
+        "hint-m40-support-4"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-recheck-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm đề mới cá nhân; không mở gợi ý hoặc xem lời giải nếu muốn giữ bằng chứng độc lập.",
+      "expectedProduct": "Trọn bộ kết quả do checker server đánh giá; không chấm chứng minh.",
+      "evidenceIds": [
+        "ev-m40-recheck-three"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-recheck-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-extension-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em đã qua recheck độc lập được làm thêm một bài Must trong 2 phút; các em còn lại tiếp tục luyện theo giáo viên.",
+      "expectedProduct": "Kết quả luyện thêm tùy chọn, không có bằng chứng mastery mới.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-extension-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-exit-three"
+      ],
+      "participation": "individual",
+      "studentAction": "Em làm đề mới cá nhân; không mở gợi ý hoặc xem lời giải nếu muốn giữ bằng chứng độc lập.",
+      "expectedProduct": "Trọn bộ kết quả do checker server đánh giá; không chấm chứng minh.",
+      "evidenceIds": [
+        "ev-m40-exit-three"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [
+        "hint-m40-exit-three"
+      ],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [
+        "m40-reflect"
+      ],
+      "participation": "individual",
+      "studentAction": "Ghi trung thực có dùng trợ giúp không và một lỗi thay chỉ số cần tránh.",
+      "expectedProduct": "Lời tự nhận xét ngắn.",
+      "evidenceIds": [
+        "ev-m40-reflect"
+      ],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    },
+    {
+      "id": "m40-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "taskIds": [],
+      "participation": "individual",
+      "studentAction": "GV xử lý một lỗi phổ biến hoặc thiết bị; không lấy quỹ này để hứa chấm đủ150lời giải.",
+      "expectedProduct": "Phép thay chỉ số được sửa hoặc thời gian dự phòng.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đánh giá kết quả của đúng mục tiêu Must; không suy đạt Should/Could hoặc đã chứng minh từ đáp án đóng.",
+      "supportIds": [],
+      "transition": "Dùng quỹ chuyển hoạt động 2 phút riêng; không cộng lại vào phút làm bài."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "m40-observe",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-experience",
+      "participation": "individual",
+      "prompt": "Với $n\\ge1$, phân loại ba dãy sau. Tính vài số hạng để dự đoán; giáo viên sẽ hướng dẫn cách kiểm kết luận.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-observe"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "inc",
+          "b": "dec",
+          "c": "non"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=3n+1$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=12-2n$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=2+(-1)^n$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m40-observe"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-observe",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-pre-a",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-precheck",
+      "participation": "individual",
+      "prompt": "Với $n\\ge1$, nếu $u_{n+1}>u_n$ với mọi n thì chọn cách phân loại đúng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-pre-a"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "b"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Giảm"
+          },
+          {
+            "id": "b",
+            "label": "Tăng"
+          },
+          {
+            "id": "c",
+            "label": "Không đơn điệu"
+          },
+          {
+            "id": "d",
+            "label": "Chưa thể kết luận"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-m40-pre-a"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-pre-a",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-pre-b",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-precheck",
+      "participation": "individual",
+      "prompt": "Dãy $v_n=(-1)^n$, $n\\ge1$, đổi giữa -1 và 1. Chọn cách phân loại đúng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-pre-b"
+      ],
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "answerKey": "c"
+      },
+      "inputSchema": {
+        "options": [
+          {
+            "id": "a",
+            "label": "Tăng"
+          },
+          {
+            "id": "b",
+            "label": "Giảm"
+          },
+          {
+            "id": "c",
+            "label": "Không đơn điệu"
+          },
+          {
+            "id": "d",
+            "label": "Vừa tăng vừa giảm"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-m40-pre-b"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-pre-b",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-learn",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-formation",
+      "participation": "individual",
+      "prompt": "Với $n\\ge1$, phân loại từng dãy. Ghi cách kiểm trong vở; giáo viên quan sát, máy chỉ kiểm bộ phân loại.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-learn"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "inc",
+          "b": "dec",
+          "c": "non"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=\\frac{n}{n+2}$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=4+\\frac1n$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=(-1)^n$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m40-learn"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-learn",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-support",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: với $n\\ge1$, phân loại đủ ba dãy. Tính ba số hạng đầu rồi trao đổi cách kiểm với giáo viên.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "inc",
+          "b": "dec",
+          "c": "non"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=2n+3$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=9-n$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=3+(-1)^n$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": true,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m40-support-1",
+        "hint-m40-support-2",
+        "hint-m40-support-3",
+        "hint-m40-support-4"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-support",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-core",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: với $n\\ge1$, phân loại đủ ba dãy; ghi phép kiểm vào vở.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "inc",
+          "b": "dec",
+          "c": "non"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=\\frac{2n+1}{n+1}$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=3+\\frac2{n+1}$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=\\frac{(-1)^n}{n+1}$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-m40-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-core",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-recheck-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại mới, làm cá nhân: với $n\\ge1$, phân loại đủ ba dãy. Máy kiểm kết quả; phần chứng minh không được chấm tự động.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-recheck-three"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "dec",
+          "b": "non",
+          "c": "inc"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=7+\\frac4{n+1}$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=(-1)^n+\\frac1{n+2}$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=5-\\frac3{n+2}$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m40-recheck-three"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-recheck-three",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-extension-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-extension",
+      "participation": "individual",
+      "prompt": "Luyện thêm 2 phút: với $n\\ge1$, phân loại dãy $w_n=2-\\frac1{n+3}$. Đây vẫn là kết quả Must, chưa đánh giá chứng minh.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "inc"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$w_n=2-\\frac1{n+3}$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-m40-extension-three"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-extension-three",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-exit-three",
+      "type": "closed",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết mới, làm cá nhân: với $n\\ge1$, phân loại đủ ba dãy; nộp trọn bộ kết quả.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-exit-three"
+      ],
+      "evaluation": {
+        "checkerId": "classification_exact",
+        "answerKey": {
+          "a": "non",
+          "b": "inc",
+          "c": "dec"
+        }
+      },
+      "inputSchema": {
+        "items": [
+          {
+            "id": "a",
+            "label": "$a_n=2(-1)^n+\\frac1n$"
+          },
+          {
+            "id": "b",
+            "label": "$b_n=\\frac{3n+2}{n+2}$"
+          },
+          {
+            "id": "c",
+            "label": "$c_n=\\frac{n+4}{n+1}$"
+          }
+        ],
+        "categories": [
+          {
+            "id": "inc",
+            "label": "Tăng"
+          },
+          {
+            "id": "dec",
+            "label": "Giảm"
+          },
+          {
+            "id": "non",
+            "label": "Không đơn điệu"
+          }
+        ]
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 4,
+      "hintIds": [
+        "hint-m40-exit-three"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-exit-three",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "m40-reflect",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "activityId": "m40-reflection",
+      "participation": "individual",
+      "prompt": "Em đã tránh được lỗi phân loại nào? Ghi trung thực nếu dùng gợi ý, AI hoặc người khác giúp. Phần này không thay bằng chứng làm bài độc lập.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-m40-reflect"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu thao tác hoặc lỗi cụ thể; khai báo trợ giúp trung thực."
+          ],
+          "lookFor": [
+            "Lời tự nhận xét không dùng làm bằng chứng tính đúng hoặc độc lập."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 1000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Chỉ kiểm kết quả thuộc mục tiêu Must. Lập luận và chứng minh trong vở do giáo viên xem; không dùng đáp án chọn để xác nhận đã chứng minh.",
+      "minutes": 1,
+      "hintIds": [],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p40/must-only-adapted/m40-reflect",
+          "quote": "$u_n=f(n)$\n$u_{n+1}-u_n$\n$m\\le u_n\\le M$\n$u_n=2-\\frac1{n+1}$\nXét $u_n=2-\\frac1n$.\nTìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$.\nTính $u_2$ của $u_n=2-\\frac1n$.\nNêu tiêu chí hiệu để dãy giảm.\nChứng minh $u_n=\\frac{n+1}{n+2}$ tăng.\nTìm cận của $u_n=1+\\frac{(-1)^n}{n}$.\nPhân tích một dãy không đơn điệu nhưng bị chặn.\nViết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.\nVới $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?\nCận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-m40-observe",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-observe",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-pre-a",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-pre-a",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-pre-b",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-pre-b",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-learn",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-learn",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-core",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-core",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-recheck-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-recheck-three",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-extension-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-extension-three",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-exit-three",
+      "tier": "H1",
+      "text": "Đọc lại miền chỉ số và yêu cầu của từng phần. Kiểm tra từng lựa chọn bằng dữ kiện đề; chưa vội chọn từ một dấu hiệu riêng lẻ.",
+      "taskId": "m40-exit-three",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-support-1",
+      "tier": "H1",
+      "text": "Tính hai số hạng đầu, ghi rõ chỉ số của mỗi số. Chưa kết luận từ một cặp.",
+      "taskId": "m40-support",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-support-2",
+      "tier": "H2",
+      "text": "So sánh các số hạng liên tiếp ở vài vị trí. Nếu chiều so sánh thay đổi, xét lại lựa chọn tăng hoặc giảm.",
+      "taskId": "m40-support",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 2,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-support-3",
+      "tier": "H3",
+      "text": "Đối chiếu từng dãy với ba tiêu chí: mọi bước tăng, mọi bước giảm hoặc không giữ được một chiều.",
+      "taskId": "m40-support",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 3,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    },
+    {
+      "id": "hint-m40-support-4",
+      "tier": "H4",
+      "text": "Lập bảng riêng cho mỗi dãy, kiểm đủ từng dòng rồi chọn cả bộ phân loại. Không dùng lời giải vừa xem làm bằng chứng độc lập.",
+      "taskId": "m40-support",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "order": 4,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi cách kiểm tra, không nêu lựa chọn đúng. Mở gợi ý làm bằng chứng mất tính độc lập."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-m40-observe",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m40-observe"
+    },
+    {
+      "id": "ev-m40-pre-a",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m40-pre-a"
+    },
+    {
+      "id": "ev-m40-pre-b",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m40-pre-b"
+    },
+    {
+      "id": "ev-m40-learn",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m40-learn"
+    },
+    {
+      "id": "ev-m40-recheck-three",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m40-recheck-three"
+    },
+    {
+      "id": "ev-m40-exit-three",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "m40-exit-three"
+    },
+    {
+      "id": "ev-m40-reflect",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p40-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "m40-reflect"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Phân loại đúng toàn bộ dãy được cho, kể cả phương án không đơn điệu."
+    ],
+    "lookFor": [
+      "Checker xác nhận trọn bộ phân loại; giáo viên xem phép kiểm trong vở khi cần.",
+      "Mục tiêu nguồn chỉ yêu cầu phân loại. Chứng minh bằng hiệu, cận và xây quy trình thuộc phần khác, chưa được đánh giá đạt ở draft này."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "3dbcb980ea4f491ca3a7d2fc357414d9e03770f2021badc7c8460a2c2c11b161"
+}

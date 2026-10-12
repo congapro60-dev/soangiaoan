@@ -6,6 +6,7 @@ import LessonThemedRoute from "../../components/lesson/LessonThemedRoute";
 import { LessonWorldMap } from "../../components/lesson/LessonWorldMap";
 import { useLessonSession, formatDuration } from "../../components/lesson/useLessonSession";
 import { useLessonMedia } from "../../components/lesson/useLessonMedia";
+import { ClassEventPanel } from "../../components/lesson/ClassEventPanel";
 import "../lessons/lesson.css";
 
 interface PresenterTask {
@@ -514,6 +515,8 @@ export default function PresenterPage() {
           currentPhase={view?.currentActivity?.phase}
           variant="presenter"
         />
+
+        {view?.classEvent && <ClassEventPanel view={view.classEvent} />}
 
         {Boolean(view?.arena) ? (
           <LessonArenaPresenterPanel

@@ -135,3 +135,55 @@ test('student progress uses the assigned code question count and clamps the bar'
   assert.deepEqual(evaluate(12), { count: 15, width: '80%' });
   assert.equal(evaluate(30).width, '100%');
 });
+
+async function accommodationSaveFixture({ failure = false } = {}) {
+  const source = fs.readFileSync(new URL('../components/exam/AccommodationEditor.tsx', import.meta.url), 'utf8');
+  const body = /const save = async \(\) => \{([\s\S]*?)\n  \};/.exec(source)[1];
+  const calls = [], messages = [], busy = [];
+  const save = vm.runInNewContext('(async () => {' + body + '})', {
+    examId: 'own-room', attempt: { id: 'own-pupil', accommodationRevision: 4 }, extraMinutes: '10', textScale: 1.5,
+    Number, setBusy: v => busy.push(v), setError: v => messages.push(v), messageFor: () => 'Retry; draft kept',
+    teacherPost: async payload => { calls.push(payload); if (failure) throw Error('NETWORK'); return { exam: { id: 'own-room' } }; },
+    onSaved: () => calls.push({ saved: true }),
+  });
+  await save();
+  return { calls, messages, busy };
+}
+
+test('individual accommodation editor submits absolute values and viewed revision, retains draft on failure', async () => {
+  const ok = await accommodationSaveFixture();
+  assert.deepEqual(JSON.parse(JSON.stringify(ok.calls[0])), { action: 'accommodation', id: 'own-room', attemptId: 'own-pupil', expectedRevision: 4, extraMinutes: 10, textScale: 1.5 });
+  assert.equal(ok.calls.length, 2);
+  assert.deepEqual(ok.busy, [true, false]);
+  const failed = await accommodationSaveFixture({ failure: true });
+  assert.equal(failed.calls.length, 1);
+  assert.equal(failed.messages.at(-1), 'Retry; draft kept');
+  assert.deepEqual(failed.busy, [true, false]);
+});
+
+test('font accommodation applies own server projection to running, waiting, integrity and review readable content', () => {
+  const play = fs.readFileSync(new URL('../components/exam/ExamPlay.tsx', import.meta.url), 'utf8');
+  assert.match(play, /const readableStyle = \{ "--exam-text-scale": state.attempt.textScale \|\| 1 \}/);
+  for (const className of ['exam-running', 'exam-review', 'exam-wait', 'exam-integrity']) {
+    assert.ok(play.split(/\r?\n/).some(line => line.includes('<main') && line.includes(className) && line.includes('style={readableStyle}')), className);
+  }
+  const css = fs.readFileSync(new URL('../app/exam/exam.css', import.meta.url), 'utf8');
+  for (const selector of ['.exam-q-text', '.exam-statement-content', '.exam-option', '.exam-tf-btn', '.lesson-input', '.exam-note']) {
+    assert.ok(css.slice(css.indexOf('/* Individual readable')).includes(selector), selector);
+  }
+  assert.match(css, /calc\(1rem \* var\(--exam-text-scale, 1\)\)/);
+  assert.match(css, /overflow-wrap: anywhere/);
+});
+
+test('timer refetches authoritative deadline before auto-submit so fresh individual extension stays open', async () => {
+  const source = fs.readFileSync(new URL('../components/exam/ExamPlay.tsx', import.meta.url), 'utf8');
+  const body = /void refresh\(token\)\.then\(\(fresh\) => \{([\s\S]*?)\}\)\.catch\(\(\) => \{ submitting.current = false; \}\);/.exec(source)[1];
+  for (const fresh of [{ finished: false, serverNow: 1000, exam: { endsAt: 2000 } }, { finished: false, serverNow: 2000, exam: { endsAt: 2000 } }, { finished: true, serverNow: 3000, exam: { endsAt: 2000 } }]) {
+    let submitted = 0;
+    const submitting = { current: true };
+    const apply = vm.runInNewContext('(fresh) => {' + body + '}', { doSubmit: () => { submitted++; }, submitting });
+    await apply(fresh);
+    assert.equal(submitted, !fresh.finished && fresh.serverNow >= fresh.exam.endsAt ? 1 : 0);
+    if (!submitted) assert.equal(submitting.current, false);
+  }
+});

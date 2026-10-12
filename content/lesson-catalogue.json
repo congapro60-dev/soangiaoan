@@ -1,0 +1,490 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-kntt-chapters-1-2",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculum": "Toán 11 Kết nối tri thức với cuộc sống",
+  "uncertainties": [
+    "TEXTBOOK_SECTIONS_UNVERIFIED",
+    "OBJECTIVES_UNKNOWN_EXCEPT_PILOT",
+    "SOURCE_YEAR_CONFLICT",
+    "TASK_LEVELS_INCOMPLETE"
+  ],
+  "sources": [
+    {
+      "id": "smartplan-ppct-g11",
+      "locator": "src/data/ppct/tds-g11.json",
+      "schoolYear": "2026 - 2027",
+      "sha256": "16e761e92615221a02c2c3e74403daa433fb113adb0c89da55aaf1b6dc8121fc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "smartplan-unitplan-g11",
+      "locator": "src/data/unitplan/tds-g11.json",
+      "sourceDocument": "Dis_Toán 11 Kế-hoạch-học-phần-I năm 25-26.docx",
+      "sha256": "1e07e9a05567ded2b0563a122a2871ce4edce239c82feb81042ebc5f6f88cadb",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sequences-pilot",
+      "locator": "content/lessons/g11-sequences-p1.json",
+      "version": "1.1.0",
+      "contentHash": "f72211ca3f24e16fb297fbc7d894ec0be3ac91e64345c227eeb2c1fc6de15241",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "g11-trig-values",
+      "title": "Giá trị lượng giác của góc lượng giác",
+      "chapter": 1,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-1",
+          "title": "Tiết 1: Góc lượng giác. Đơn vị đo góc và độ dài cung tròn",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 1: Góc lượng giác. Đơn vị đo góc và độ dài cung tròn\nTrigonometric values of trigonometric angles",
+          "sourceRows": [
+            "tds-g11-1"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-1",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-2",
+          "title": "Tiết 2: Giá trị lượng giác của góc lượng giác",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 2: Giá trị lượng giác của góc lượng giác\nTrigonometric values of trigonometric angles",
+          "sourceRows": [
+            "tds-g11-2"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-2",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-3",
+          "title": "Tiết 3: Quan hệ giữa các giá trị lượng giác",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 3: Quan hệ giữa các giá trị lượng giác",
+          "sourceRows": [
+            "tds-g11-3"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-3",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-5",
+          "title": "Tiết 4: Giá trị lượng giác của hai góc đối nhau, hai góc phụ nhau.",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 4: Giá trị lượng giác của hai góc đối nhau, hai góc phụ nhau.\nTrigonometric values of trigonometric angles",
+          "sourceRows": [
+            "tds-g11-5"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-5",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-6",
+          "title": "Tiết 5: Giá trị lượng giác của hai góc bù nhau, hai góc hơn kém nhau pi.",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 5: Giá trị lượng giác của hai góc bù nhau, hai góc hơn kém nhau pi.\nTrigonometric values of trigonometric angles",
+          "sourceRows": [
+            "tds-g11-6"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-6",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-7",
+          "title": "Tiết 6: Luyện tập",
+          "sourceTitle": "Giá trị lượng giác của góc lượng giác",
+          "sourceText": "Tiết 6: Luyện tập\nTrigonometric values of trigonometric angles",
+          "sourceRows": [
+            "tds-g11-7"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-7",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-trig-formulas",
+      "title": "Công thức lượng giác",
+      "chapter": 1,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-8",
+          "title": "Tiết 1: Công thức cộng",
+          "sourceTitle": "Công thức lượng giác",
+          "sourceText": "Tiết 1: Công thức cộng\nTrigonometric formulas",
+          "sourceRows": [
+            "tds-g11-8"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-8",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-13",
+          "title": "Tiết 2: Công thức nhân đôi, công thức hạ bậc",
+          "sourceTitle": "Công thức lượng giác",
+          "sourceText": "Tiết 2: Công thức nhân đôi, công thức hạ bậc\nTrigonometric formulas",
+          "sourceRows": [
+            "tds-g11-13"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-13",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-14",
+          "title": "Tiết 3: Công thức biến đổi tích thành tổng, tổng thành tích",
+          "sourceTitle": "Công thức lượng giác",
+          "sourceText": "Tiết 3: Công thức biến đổi tích thành tổng, tổng thành tích\nTrigonometric formulas",
+          "sourceRows": [
+            "tds-g11-14"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-14",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-15",
+          "title": "Tiết 4: Luyện tập",
+          "sourceTitle": "Công thức lượng giác",
+          "sourceText": "Tiết 4: Luyện tập\nTrigonometric formulas",
+          "sourceRows": [
+            "tds-g11-15"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-15",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-trig-functions",
+      "title": "Hàm số lượng giác",
+      "chapter": 1,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-16",
+          "title": "Tiết 1: Định nghĩa hàm số lượng giác, tìm tập xác định, tập giá trị của hàm số lượng giác",
+          "sourceTitle": "Hàm số lượng giác",
+          "sourceText": "Tiết 1: Định nghĩa hàm số lượng giác, tìm tập xác định, tập giá trị của hàm số lượng giác\nTrigonometric functions",
+          "sourceRows": [
+            "tds-g11-16"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-16",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-21",
+          "title": "Tiết 2: Hàm số chẵn, hàm số lẻ, hàm số tuần hoàn",
+          "sourceTitle": "Hàm số lượng giác",
+          "sourceText": "Tiết 2: Hàm số chẵn, hàm số lẻ, hàm số tuần hoàn\nTrigonometric functions",
+          "sourceRows": [
+            "tds-g11-21"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-21",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-22",
+          "title": "Tiết 3: Đồ thị và tính chất của hàm số sin và cos",
+          "sourceTitle": "Hàm số lượng giác",
+          "sourceText": "Tiết 3: Đồ thị và tính chất của hàm số sin và cos\nTrigonometric functions",
+          "sourceRows": [
+            "tds-g11-22"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-22",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-23",
+          "title": "Tiết 4: Đồ thị và tính chất của hàm số tan và cot",
+          "sourceTitle": "Hàm số lượng giác",
+          "sourceText": "Tiết 4: Đồ thị và tính chất của hàm số tan và cot\nTrigonometric functions",
+          "sourceRows": [
+            "tds-g11-23"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-23",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-trig-equations",
+      "title": "Phương trình lượng giác cơ bản",
+      "chapter": 1,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-26",
+          "title": "Tiết 1: Giải phương trình lượng giác sinx=m",
+          "sourceTitle": "Phương trình lượng giác cơ bản",
+          "sourceText": "Tiết 1: Giải phương trình lượng giác sinx=m\nBasic trigonometric equations",
+          "sourceRows": [
+            "tds-g11-26"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-26",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-27",
+          "title": "Tiết 2: Giải phương trình lượng giác cosx=m",
+          "sourceTitle": "Phương trình lượng giác cơ bản",
+          "sourceText": "Tiết 2: Giải phương trình lượng giác cosx=m\nBasic trigonometric equations",
+          "sourceRows": [
+            "tds-g11-27"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-27",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-34",
+          "title": "Tiết 3: Giải phương trình lượng giác tanx=m, cotx=m",
+          "sourceTitle": "Phương trình lượng giác cơ bản",
+          "sourceText": "Tiết 3: Giải phương trình lượng giác tanx=m, cotx=m\nBasic trigonometric equations",
+          "sourceRows": [
+            "tds-g11-34"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-34",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-35",
+          "title": "Tiết 4: Luyện tập",
+          "sourceTitle": "Phương trình lượng giác cơ bản",
+          "sourceText": "Tiết 4: Luyện tập\nBasic trigonometric equations",
+          "sourceRows": [
+            "tds-g11-35"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-35",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-sequences",
+      "title": "Dãy số",
+      "chapter": 2,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": "g11-sequences-p1",
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11",
+        "sequences-pilot"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-38",
+          "title": "Tiết 1: Dãy số",
+          "sourceTitle": "\"Dãy số",
+          "sourceText": "Tiết 1: Dãy số\nNumber sequences\"",
+          "sourceRows": [
+            "tds-g11-38"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-38",
+          "objectiveCodes": [
+            "T11.18",
+            "T11.19"
+          ],
+          "knowledge": [
+            {
+              "id": "obj-t11-18",
+              "title": "Nhận biết dãy số hữu hạn và vô hạn; phân biệt số thứ tự n và số hạng u_n trong mô hình thực tế.",
+              "objectiveCodes": [
+                "T11.18"
+              ],
+              "types": [
+                {
+                  "id": "obj-t11-18-tasks",
+                  "title": "Nhận biết dãy số hữu hạn và vô hạn; phân biệt số thứ tự n và số hạng u_n trong mô hình thực tế.",
+                  "taskLevels": {
+                    "must": [
+                      "task-exp-predict",
+                      "task-pre-finite-inf",
+                      "task-form-distinguish-n-un",
+                      "task-prac-error-hunt",
+                      "task-recheck-18",
+                      "task-exit-ticket"
+                    ],
+                    "should": [],
+                    "could": []
+                  },
+                  "contextTags": [
+                    "Trải nghiệm thực tế"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "obj-t11-19",
+              "title": "Nhận biết và chuyển đổi giữa 4 cách cho một dãy số: liệt kê các số hạng, công thức tổng quát, hệ thức truy hồi, diễn đạt bằng lời.",
+              "objectiveCodes": [
+                "T11.19"
+              ],
+              "types": [
+                {
+                  "id": "obj-t11-19-tasks",
+                  "title": "Nhận biết và chuyển đổi giữa 4 cách cho một dãy số: liệt kê các số hạng, công thức tổng quát, hệ thức truy hồi, diễn đạt bằng lời.",
+                  "taskLevels": {
+                    "must": [
+                      "task-pre-three-terms",
+                      "task-form-four-rep",
+                      "task-prac-error-hunt",
+                      "task-prac-support-tab",
+                      "task-recheck-19",
+                      "task-exit-ticket"
+                    ],
+                    "should": [
+                      "task-prac-core-calc"
+                    ],
+                    "could": [
+                      "task-prac-ext-rules"
+                    ]
+                  },
+                  "contextTags": [
+                    "Trải nghiệm thực tế"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tds-g11-39",
+          "title": "Tiết 2: Dãy số tăng, giảm, bị chặn",
+          "sourceTitle": "Dãy số",
+          "sourceText": "Tiết 2: Dãy số tăng, giảm, bị chặn\nNumber sequences",
+          "sourceRows": [
+            "tds-g11-39"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-39",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-arithmetic",
+      "title": "Cấp số cộng",
+      "chapter": 2,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-42",
+          "title": "Tiết 1: Định nghĩa và công thức tổng quát của CSC",
+          "sourceTitle": "Cấp số cộng",
+          "sourceText": "Tiết 1: Định nghĩa và công thức tổng quát của CSC\nArithmetic sequences",
+          "sourceRows": [
+            "tds-g11-42"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-42",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-43",
+          "title": "Tiết 2: Tổng n số hạng đầu tiên của CSC",
+          "sourceTitle": "Cấp số cộng",
+          "sourceText": "Tiết 2: Tổng n số hạng đầu tiên của CSC\nArithmetic sequences",
+          "sourceRows": [
+            "tds-g11-43"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-43",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    },
+    {
+      "id": "g11-geometric",
+      "title": "Cấp số nhân",
+      "chapter": 2,
+      "status": "draft",
+      "curriculumVerification": "teacher_review_required",
+      "packageId": null,
+      "sourceIds": [
+        "smartplan-ppct-g11",
+        "smartplan-unitplan-g11"
+      ],
+      "sections": [
+        {
+          "id": "tds-g11-44",
+          "title": "Tiết 1: Định nghĩa và công thức số hạng tổng quát của CSN",
+          "sourceTitle": "Cấp số nhân",
+          "sourceText": "Tiết 1: Định nghĩa và công thức số hạng tổng quát của CSN\nGeometric sequences",
+          "sourceRows": [
+            "tds-g11-44"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-44",
+          "objectiveCodes": [],
+          "knowledge": []
+        },
+        {
+          "id": "tds-g11-45",
+          "title": "Tiết 2: Tổng của n số hạng đầu tiên của CSN",
+          "sourceTitle": "Cấp số nhân",
+          "sourceText": "Tiết 2: Tổng của n số hạng đầu tiên của CSN\nGeometric sequences",
+          "sourceRows": [
+            "tds-g11-45"
+          ],
+          "locator": "src/data/ppct/tds-g11.json#lessons/tds-g11-45",
+          "objectiveCodes": [],
+          "knowledge": []
+        }
+      ]
+    }
+  ]
+}

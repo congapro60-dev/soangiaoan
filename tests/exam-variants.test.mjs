@@ -82,3 +82,4 @@ test('provider response caps, invalid IDs and duplicate drafts fail closed', asy
   await assert.rejects(() => proposeExamVariants(input, { env, fetchImpl: async () => new Response('x'.repeat(300000)) }), /PROPOSAL_TOO_LARGE/);
   await assert.rejects(() => proposeExamVariants(input, { env, fetchImpl: async () => { throw Error('secret-provider-key=abc'); } }), (error) => error.message === 'AI_GENERATION_FAILED');
 });
+

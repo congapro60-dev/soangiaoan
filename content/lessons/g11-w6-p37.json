@@ -1,0 +1,1517 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p37",
+  "version": "1.0.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P37-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:499 / d(11,6,37)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p37",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p37_On_tap_chuong_I_G11W6.docx",
+      "hash": "9957511790d0d45b43bef055a41918f9d491d55643d44f6ee68f3206b72aa10e",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 37",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào để nhận dạng và chọn phép biến đổi thích hợp đưa phương trình lượng giác về dạng cơ bản?",
+  "prerequisites": [
+    "Đọc ký hiệu, miền xác định và phép biến đổi đã học."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p37-must",
+      "code": "SP-G11-W6-P37-MUST",
+      "level": "must",
+      "statement": "Tôi có thể quy đổi các phương trình lượng giác đưa được về dạng cơ bản bậc nhất đối với một hàm số.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p37",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p37-should",
+      "code": "SP-G11-W6-P37-SHOULD",
+      "level": "should",
+      "statement": "Tôi có thể giải phương trình bậc hai đối với một hàm số lượng giác bằng phương pháp đặt ẩn phụ.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p37",
+        "sourceLocator": "word/document.xml / I.2 / Should",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p37-could",
+      "code": "SP-G11-W6-P37-COULD",
+      "level": "could",
+      "statement": "Tôi có thể lựa chọn công thức biến đổi lượng giác tối ưu để hạ bậc phương trình.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p37",
+        "sourceLocator": "word/document.xml / I.2 / Could",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "act-w6p37-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-experience"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-experience"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-pre-0",
+        "task-w6p37-pre-1",
+        "task-w6p37-pre-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-pre-0",
+        "ev-task-w6p37-pre-1",
+        "ev-task-w6p37-pre-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-pre-0",
+        "hint-task-w6p37-pre-1",
+        "hint-task-w6p37-pre-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 6,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Mỗi em ghi ý riêng; nhóm thảo luận bài mẫu; GV kết nối với quy tắc.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-formation"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-formation"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-support",
+        "task-w6p37-core",
+        "task-w6p37-refute"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-refute"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-support",
+        "hint-task-w6p37-core",
+        "hint-task-w6p37-refute"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-recheck-0",
+        "task-w6p37-recheck-1",
+        "task-w6p37-recheck-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-recheck-0",
+        "ev-task-w6p37-recheck-1",
+        "ev-task-w6p37-recheck-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-recheck-0",
+        "hint-task-w6p37-recheck-1",
+        "hint-task-w6p37-recheck-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-extension"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-exit-0",
+        "task-w6p37-exit-1",
+        "task-w6p37-exit-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-exit-0",
+        "ev-task-w6p37-exit-1",
+        "ev-task-w6p37-exit-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-exit-0",
+        "hint-task-w6p37-exit-1",
+        "hint-task-w6p37-exit-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 1,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [
+        "task-w6p37-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p37-reflection"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p37-reflection"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p37-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "taskIds": [],
+      "participation": "whole_class",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-w6p37-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "act-w6p37-experience",
+      "participation": "individual",
+      "prompt": "Quan sát bài mẫu: Giải $2\\sin x-1=0$. Nêu quy tắc em dự đoán sẽ dùng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm."
+          ],
+          "lookFor": [
+            "Đưa về $\\sin x=\\frac12$, nghiệm $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p37-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-experience",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-pre-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "act-w6p37-precheck",
+      "participation": "individual",
+      "prompt": "Quy 2sinx−1=0 về dạng nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-pre-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm."
+          ],
+          "lookFor": [
+            "Quy đổi đúng và viết mọi họ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p37-pre-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-pre-0",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-pre-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "activityId": "act-w6p37-precheck",
+      "participation": "individual",
+      "prompt": "Nếu đặt t=cosx, cần điều kiện gì?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-pre-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ."
+          ],
+          "lookFor": [
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p37-pre-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-pre-1",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-pre-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-precheck",
+      "participation": "individual",
+      "prompt": "Công thức nào hạ bậc cos2x theo cosx?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-pre-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p37-pre-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-pre-2",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-formation",
+      "participation": "group",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Giải $2\\sin x-1=0$. Giải $2\\cos^2x-3\\cos x+1=0$. Sau đó thảo luận: Công thức nào hạ bậc cos2x theo cosx?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nViết đầy đủ nghiệm bài bậc hai sau khi tìm t. So sánh lựa chọn công thức đưa cos2x+cosx về một ẩn cosx; tránh chia mất nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm.",
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ.",
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Đưa về $\\sin x=\\frac12$, nghiệm $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.\nĐặt $t=\\cos x$. Có $t=1$ hoặc $t=\\frac12$, rồi giải hai phương trình cos tương ứng.\nChọn công thức giảm số hàm/bậc, không chia bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Viết đầy đủ nghiệm bài bậc hai sau khi tìm t. So sánh lựa chọn công thức đưa cos2x+cosx về một ẩn cosx; tránh chia mất nghiệm. GV yêu cầu lập luận hoặc sản phẩm cụ thể theo từng mục tiêu."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p37-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-formation",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should"
+      ],
+      "activityId": "act-w6p37-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Giải $\\sin x=0$. Giải $2\\sin x-1=0$. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nQuy bài mẫu về dạng cơ bản hoặc đặt t phù hợp, ghi điều kiện t∈[−1; 1], trở về x và viết mọi họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm.",
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ."
+          ],
+          "lookFor": [
+            "$x=k\\pi$.\nĐưa về $\\sin x=\\frac12$, nghiệm $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Quy bài mẫu về dạng cơ bản hoặc đặt t phù hợp, ghi điều kiện t∈[−1; 1], trở về x và viết mọi họ nghiệm. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p37-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-support",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should"
+      ],
+      "activityId": "act-w6p37-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Giải $\\cos x=-\\frac12$. Giải $2\\cos^2x-3\\cos x+1=0$. Ghi điều kiện, giải đầy đủ và thử lại.\nQuy bài mẫu về dạng cơ bản hoặc đặt t phù hợp, ghi điều kiện t∈[−1; 1], trở về x và viết mọi họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm.",
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ."
+          ],
+          "lookFor": [
+            "$x=\\frac{2\\pi}3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$.\nĐặt $t=\\cos x$. Có $t=1$ hoặc $t=\\frac12$, rồi giải hai phương trình cos tương ứng.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Quy bài mẫu về dạng cơ bản hoặc đặt t phù hợp, ghi điều kiện t∈[−1; 1], trở về x và viết mọi họ nghiệm. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p37-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-core",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-refute",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-practice",
+      "participation": "individual",
+      "prompt": "Chọn và sửa một lỗi: Bỏ điều kiện khi đặt ẩn phụ. Nhận nghiệm t ngoài đoạn [-1; 1]. Không thử lại nghiệm sau nhiều bước biến đổi. Sau đó giải thích: Công thức nào hạ bậc cos2x theo cosx?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-refute"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p37-refute"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-refute",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-recheck-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "act-w6p37-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $2\\cos x-\\sqrt3=0$ trên $[0; 2\\pi]$; trình bày bước quy đổi.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-recheck-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm."
+          ],
+          "lookFor": [
+            "cosx=√3/2; π/6, 11π/6.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p37-recheck-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-recheck-0",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-recheck-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "activityId": "act-w6p37-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $2\\cos^2x-3\\cos x+1=0$ trênR bằng ẩn phụ; viết mọi họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-recheck-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ."
+          ],
+          "lookFor": [
+            "t=cosx∈[−1; 1], t=1/2 hoặc1; $x=\\pm\\frac\\pi3+2k\\pi$ hoặc2kπ, k nguyên.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p37-recheck-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-recheck-1",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-recheck-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $\\cos2x+\\cos x=0$; giải thích vì sao chọn công thức hạ bậc theo cosx.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-recheck-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "cos2x=2cos²x−1; t=cosx được2t²+t−1=0, t=1/2 hoặc−1; $x=\\pm\\frac\\pi3+2k\\pi$ hoặcπ+2kπ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p37-recheck-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-recheck-2",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng: Giải $\\cos 2x+\\cos x=0$. Nêu điều kiện/giả định và kiểm kết quả.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Dùng $\\cos2x=2\\cos^2x-1$ để đưa về phương trình bậc hai theo $\\cos x$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p37-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-extension",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-exit-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "activityId": "act-w6p37-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $3\\sin x-\\frac32=0$ trênR; nêu mọi họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-exit-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm."
+          ],
+          "lookFor": [
+            "sinx=1/2; $x=\\frac\\pi6+2k\\pi$ hoặc $\\frac{5\\pi}6+2k\\pi$.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p37-exit-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-exit-0",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-exit-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "activityId": "act-w6p37-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $2\\sin^2x-3\\sin x+1=0$ trênR bằng ẩn phụ; kiểm tập giá trị t.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-exit-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ."
+          ],
+          "lookFor": [
+            "t=sinx∈[−1; 1], t=1 hoặc1/2; x=π/2+2kπ, π/6+2kπ, 5π/6+2kπ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p37-exit-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-exit-1",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-exit-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $\\sin2x=\\cos x$. Chọn công thức biến đổi; giải thích vì sao chia ngay cho cosx có thể mất nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-exit-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "cosx(2sinx−1)=0; x=π/2+kπ hoặcπ/6+2kπ hoặc5π/6+2kπ. Chia cosx làm mất cosx=0.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p37-exit-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-exit-2",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p37-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "activityId": "act-w6p37-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một điều kiện hoặc phép kiểm em sẽ giữ; khai báo trung thực nếu đã dùng gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p37-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Quy đổi đúng và viết mọi họ nghiệm.",
+            "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ.",
+            "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+          ],
+          "lookFor": [
+            "Phản tỉnh gắn với bài; không tính mastery.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p37-reflection"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p37/adapted-reflection",
+          "quote": "$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi$\n$\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi$\n$\\sin^2x+\\cos^2x=1$\nGiải $2\\sin x-1=0$.\nGiải $2\\cos^2x-3\\cos x+1=0$.\nGiải $\\sin x=0$.\nGiải $\\cos x=-\\frac12$.\nGiải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.\nGiải $\\sin 2x=\\cos x$.\nGiải $\\cos 2x+\\cos x=0$.\nLập bảng tiêu chí giải một phương trình lượng giác.\nGiải nhanh $\\cos x=1$.\nVới phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-task-w6p37-experience",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-pre-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-pre-0",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-pre-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-pre-1",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-pre-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-pre-2",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-formation",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-support",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-support",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-core",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-core",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-refute",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-refute",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-recheck-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-recheck-0",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-recheck-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-recheck-1",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-recheck-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-recheck-2",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-extension",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-exit-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-exit-0",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-exit-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-exit-1",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-exit-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-exit-2",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p37-reflection",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p37-reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-task-w6p37-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-experience"
+    },
+    {
+      "id": "ev-task-w6p37-pre-0",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-pre-0"
+    },
+    {
+      "id": "ev-task-w6p37-pre-1",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-pre-1"
+    },
+    {
+      "id": "ev-task-w6p37-pre-2",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-pre-2"
+    },
+    {
+      "id": "ev-task-w6p37-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-formation"
+    },
+    {
+      "id": "ev-task-w6p37-refute",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-refute"
+    },
+    {
+      "id": "ev-task-w6p37-recheck-0",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-recheck-0"
+    },
+    {
+      "id": "ev-task-w6p37-recheck-1",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-recheck-1"
+    },
+    {
+      "id": "ev-task-w6p37-recheck-2",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-recheck-2"
+    },
+    {
+      "id": "ev-task-w6p37-exit-0",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-exit-0"
+    },
+    {
+      "id": "ev-task-w6p37-exit-1",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p37-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-exit-1"
+    },
+    {
+      "id": "ev-task-w6p37-exit-2",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p37-exit-2"
+    },
+    {
+      "id": "ev-task-w6p37-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p37-must",
+        "sp-g11-w6-p37-should",
+        "sp-g11-w6-p37-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p37-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Quy đổi đúng và viết mọi họ nghiệm.",
+      "Ẩn phụ với điều kiện[−1; 1], trở lại x đầy đủ.",
+      "Chọn công thức giảm số hàm/bậc, không chia bỏ nghiệm."
+    ],
+    "lookFor": [
+      "GV chấm lời giải mở trước xác nhận đạt.",
+      "Câu điều chỉnh từ nguồn cần GV duyệt; không lấy đúng nhóm làm đạt cá nhân."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "cde971e343cef1b73fa529b5540912ff0e6af4b91965fcb29d333aa4111def66"
+}

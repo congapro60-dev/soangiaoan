@@ -32,6 +32,24 @@ async function fixture({ generate = async () => candidate(), clock = () => 1000 
   return { database, service, sourceService };
 }
 
+test('latest saved draft recovers by owner and exact source snapshot without provider calls or writes', async () => {
+  let calls=0;
+  const {database,service}=await fixture({generate:async()=>{calls++;return candidate();}});
+  assert.equal(await service.latest({ownerAccountId:'teacher',sourceId:source.id}),null);
+  const input={ownerAccountId:'teacher',sourceId:source.id,settings:{slotMinutes:40,subject:'math',grade:11},model:'local-model'};
+  const job=await service.start({...input,requestId:'saved'});
+  const done=await service.run({ownerAccountId:'teacher',id:job.id,aiConsent});
+  await service.start({...input,requestId:'queued-new'});
+  const before=database.prepare('SELECT * FROM lesson_generation_jobs ORDER BY id').all();
+  assert.deepEqual(await service.latest({ownerAccountId:'teacher',sourceId:source.id}),done);
+  assert.equal(calls,1);
+  assert.deepEqual(database.prepare('SELECT * FROM lesson_generation_jobs ORDER BY id').all(),before);
+  await assert.rejects(()=>service.latest({ownerAccountId:'other',sourceId:source.id}),/NOT_FOUND/);
+  await assert.rejects(()=>service.latest({sourceId:source.id}),/AUTH_REQUIRED/);
+  database.prepare('UPDATE lesson_generation_jobs SET extraction_hash=? WHERE id=?').run('c'.repeat(64),job.id);
+  assert.equal(await service.latest({ownerAccountId:'teacher',sourceId:source.id}),null);
+});
+
 test('queued generation requires fresh consent for its exact source before provider access', async () => {
   let calls = 0;
   const { database, service } = await fixture({ generate: async () => { calls++; return candidate(); } });
@@ -217,7 +235,7 @@ test('an otherwise valid repair cannot silently replace objectives, hints, branc
     assert.equal(done.result.validation.ok, false);
     assert.deepEqual(done.result.package.objectives, first.package.objectives);
     assert.deepEqual(done.result.package.hints, first.package.hints);
-    assert.deepEqual(done.result.package.tasks.map(({ metadata, ...task }) => { assert.ok(metadata.sourceCitation); return task; }), first.package.tasks.map(task => ({ ...task, sourceRefs: [source.id] })));
+    assert.deepEqual(done.result.package.tasks.map(({ metadata, ...task }) => { assert.ok(metadata.sourceCitation); return task; }), first.package.tasks.map(({ metadata: _metadata, ...task }) => ({ ...task, sourceRefs: [source.id] })));
     assert.deepEqual(done.result.citations, first.citations);
     assert.ok(done.result.uncertainties.includes('AI_REPAIR_CONTENT_CHANGED'));
     assert.equal(calls, 2);

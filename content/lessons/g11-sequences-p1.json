@@ -3,7 +3,7 @@
   "id": "g11-sequences-p1",
   "version": "1.1.0",
   "status": "needs_review",
-  "contentHash": "e445d4729afca398ea2296e2b6c284ac50174f4d4b6729f52f036fba42884b74",
+  "contentHash": "f72211ca3f24e16fb297fbc7d894ec0be3ac91e64345c227eeb2c1fc6de15241",
   "subject": "math",
   "grade": 11,
   "curriculumRefs": [
@@ -330,7 +330,40 @@
         "hint-exp-1"
       ],
       "branch": "shared",
-      "sequenceType": "finite"
+      "sequenceType": "finite",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Một hội trường có đúng 12 hàng ghế, mỗi hàng có một số ghế. Dãy số ghế của 12 hàng trong hội trường là hữu hạn hay vô hạn?",
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "opt_finite_seat",
+                "opt_infinite_seat"
+              ],
+              "answerKey": "opt_finite_seat"
+            },
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "opt_finite_seat",
+                  "label": "Dãy số hữu hạn (hội trường thực tế chỉ có 25 hàng ghế)"
+                },
+                {
+                  "id": "opt_infinite_seat",
+                  "label": "Dãy số vô hạn (hàng ghế tiếp diễn mãi mãi không dừng)"
+                }
+              ]
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-exp-predict",
+          "quote": "Hội trường thành phố có 25 hàng ghế ($1 \\le n \\le 25$), hàng đầu có 18 ghế ($u_1 = 18$), mỗi hàng sau thêm 2 ghế. Trong thực tế, dãy số ghế này là dãy hữu hạn hay vô hạn?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-pre-finite-inf",
@@ -375,7 +408,40 @@
         "hint-pre-1"
       ],
       "branch": "shared",
-      "sequenceType": "infinite"
+      "sequenceType": "infinite",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Xét (A) dãy có đúng 14 hàng ghế, n = 1, ..., 14 và (B) quy luật có một số hạng với mọi n nguyên dương. Mô hình nào là dãy số vô hạn?",
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "opt_A",
+                  "label": "Mô hình A: Dãy 25 hàng ghế hội trường với $1 \\le n \\le 25$"
+                },
+                {
+                  "id": "opt_B",
+                  "label": "Mô hình B: Quy luật số ghế tiếp diễn mãi mãi với $n \\in \\mathbb{N}^*$"
+                }
+              ]
+            },
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "opt_A",
+                "opt_B"
+              ],
+              "answerKey": "opt_B"
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-pre-finite-inf",
+          "quote": "Xét hai mô hình: (A) Dãy số ghế thực tế 25 hàng ($1 \\le n \\le 25$) và (B) Quy luật số ghế tiếp diễn mãi mãi ($n \\in \\mathbb{N}^*$). Mô hình nào là dãy số vô hạn?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-pre-three-terms",
@@ -473,7 +539,40 @@
         "hint-form18-4"
       ],
       "branch": "shared",
-      "sequenceType": "finite"
+      "sequenceType": "finite",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Một dãy có a_5 = 27. Trong ký hiệu này, 5 và 27 lần lượt biểu thị gì?",
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "opt_n_index_un_value",
+                  "label": "$n$ là chỉ số thứ tự của hàng ghế; $u_n$ là số lượng ghế ở hàng thứ $n$"
+                },
+                {
+                  "id": "opt_n_value_un_index",
+                  "label": "$n$ là số lượng ghế của hàng; $u_n$ là chỉ số thứ tự của hàng ghế"
+                }
+              ]
+            },
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "opt_n_index_un_value",
+                "opt_n_value_un_index"
+              ],
+              "answerKey": "opt_n_index_un_value"
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-form-distinguish-n-un",
+          "quote": "Trong ký hiệu dãy số $u_n$, phân biệt ý nghĩa: $n$ là gì và $u_n$ là gì?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-form-four-rep",
@@ -550,7 +649,67 @@
         "explicit",
         "recurrence",
         "verbal"
-      ]
+      ],
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Em tự ghép bốn cách biểu diễn của dãy 6 số hạng có a_1 = 4, mỗi bước thêm 3.",
+            "inputSchema": {
+              "representations": [
+                {
+                  "id": "rep_list",
+                  "label": "Cách 1: Liệt kê các số hạng"
+                },
+                {
+                  "id": "rep_explicit",
+                  "label": "Cách 2: Công thức số hạng tổng quát"
+                },
+                {
+                  "id": "rep_recurrence",
+                  "label": "Cách 3: Hệ thức truy hồi"
+                },
+                {
+                  "id": "rep_verbal",
+                  "label": "Cách 4: Diễn đạt bằng lời"
+                }
+              ],
+              "cards": [
+                {
+                  "id": "card_list_18_20_22",
+                  "label": "4, 7, 10, 13, 16, 19"
+                },
+                {
+                  "id": "card_explicit_formula",
+                  "label": "a_n = 3n + 1 với 1 <= n <= 6"
+                },
+                {
+                  "id": "card_recurrence_rel",
+                  "label": "a_1 = 4; a_n = a_(n-1) + 3 với 2 <= n <= 6"
+                },
+                {
+                  "id": "card_verbal_desc",
+                  "label": "Dãy có 6 số hạng, số hạng đầu bằng 4, mỗi bước thêm 3"
+                }
+              ]
+            },
+            "evaluation": {
+              "checkerId": "representation_match",
+              "answerKey": {
+                "rep_list": "card_list_18_20_22",
+                "rep_explicit": "card_explicit_formula",
+                "rep_recurrence": "card_recurrence_rel",
+                "rep_verbal": "card_verbal_desc"
+              }
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-form-four-rep",
+          "quote": "Ghép 4 cách biểu diễn của dãy số ghế ($u_1=18, u_n=18+2(n-1)=2n+16, 1 \\le n \\le 25$): liệt kê, công thức tổng quát, hệ thức truy hồi và diễn đạt bằng lời.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-prac-error-hunt",
@@ -607,7 +766,25 @@
         "hint-supp-1"
       ],
       "branch": "support",
-      "representation": "recurrence"
+      "representation": "recurrence",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Cho dãy số số ghế theo quy luật u_1 = 18, u_n = u_(n-1) + 2 với n ≥ 2. Tính số ghế ở hàng 4.",
+            "evaluation": {
+              "checkerId": "numeric_exact",
+              "answerKey": 24
+            },
+            "inputSchema": {}
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-prac-support-tab",
+          "quote": "Nhánh Hỗ trợ: Cho hệ thức truy hồi $u_1 = 18, u_n = u_{n-1} + 2$ ($n \\ge 2$). Tính số ghế của hàng 2 ($u_2$):",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-prac-core-calc",
@@ -655,7 +832,45 @@
         "hint-core-1"
       ],
       "branch": "core",
-      "representation": "explicit"
+      "representation": "explicit",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Cho dãy số u_n = 18 + 2(n - 1) với 1 ≤ n ≤ 25. Cặp (u_5, u_10) bằng bao nhiêu?",
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "a",
+                "b",
+                "c"
+              ],
+              "answerKey": "a"
+            },
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "a",
+                  "label": "(26; 36)"
+                },
+                {
+                  "id": "b",
+                  "label": "(28; 38)"
+                },
+                {
+                  "id": "c",
+                  "label": "(24; 34)"
+                }
+              ]
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-prac-core-calc",
+          "quote": "Nhánh Chuẩn: Với công thức $u_n = 18 + 2(n-1)$ ($1 \\le n \\le 25$), tính số ghế hàng thứ 7 ($u_7$) và hàng thứ 25 ($u_{25}$): Chọn cặp giá trị đúng:",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-prac-ext-rules",
@@ -682,7 +897,25 @@
         "hint-ext-1"
       ],
       "branch": "extension",
-      "representation": "explicit"
+      "representation": "explicit",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Hai quy luật có ba số hạng đầu 6, 9, 12. Cho v_n = 6 + 3(n-1) + (n-1)(n-2)(n-3), tính v_4 rồi so sánh với u_n = 6 + 3(n-1).",
+            "inputSchema": {},
+            "evaluation": {
+              "checkerId": "numeric_exact",
+              "answerKey": 21
+            }
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-prac-ext-rules",
+          "quote": "Mật Cảnh Tinh Anh: Hai quy luật cùng có ba số hạng đầu 18, 20, 22. Với $v_n=18+2(n-1)+(n-1)(n-2)(n-3)$, tính $v_4$ rồi đối chiếu quy luật $u_n=18+2(n-1)$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-recheck-18",
@@ -727,7 +960,65 @@
         "hint-recheck-1"
       ],
       "branch": "shared",
-      "sequenceType": "infinite"
+      "sequenceType": "infinite",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Kiểm tra lại T11.18: Dãy a_n = 3n + 2 với mọi n nguyên dương là hữu hạn hay vô hạn?",
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "opt_recheck_finite",
+                "opt_recheck_infinite"
+              ],
+              "answerKey": "opt_recheck_infinite"
+            },
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "opt_recheck_finite",
+                  "label": "Dãy số hữu hạn (tập chỉ số bị chặn trên)"
+                },
+                {
+                  "id": "opt_recheck_infinite",
+                  "label": "Dãy số vô hạn (tập chỉ số là $\\mathbb{N}^*$ vô tận)"
+                }
+              ]
+            },
+            "masteryEvidence": true
+          },
+          {
+            "prompt": "Kiểm tra lại T11.18: Một dãy b_n = 2n chỉ được xác định với n = 1, 2, ..., 18. Dãy hữu hạn hay vô hạn?",
+            "evaluation": {
+              "checkerId": "choice_exact",
+              "options": [
+                "opt_recheck_finite",
+                "opt_recheck_infinite"
+              ],
+              "answerKey": "opt_recheck_finite"
+            },
+            "inputSchema": {
+              "options": [
+                {
+                  "id": "opt_recheck_finite",
+                  "label": "Dãy số hữu hạn (tập chỉ số bị chặn trên)"
+                },
+                {
+                  "id": "opt_recheck_infinite",
+                  "label": "Dãy số vô hạn (tập chỉ số là $\\mathbb{N}^*$ vô tận)"
+                }
+              ]
+            },
+            "masteryEvidence": true
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-recheck-18",
+          "quote": "Kiểm tra cá nhân T11.18: Dãy số $u_n = \\frac{1}{n}$ với $n \\in \\mathbb{N}^*$ là dãy số hữu hạn hay vô hạn?",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-recheck-19",
@@ -769,7 +1060,34 @@
         "explicit",
         "recurrence",
         "verbal"
-      ]
+      ],
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Kiểm tra lại T11.19: Dãy số v_n có v_1 = 5, mỗi số hạng sau tăng 2 (n >= 1). Viết bốn cách cho dãy số: liệt kê bốn số hạng đầu, công thức tổng quát, hệ thức truy hồi có điều kiện chỉ số, diễn đạt bằng lời; đối chiếu v_1, v_2, v_3 giữa các cách.",
+            "inputSchema": {},
+            "evaluation": {
+              "rubric": {
+                "criteria": [
+                  "Viết đúng bốn cách biểu diễn với điều kiện chỉ số",
+                  "Kiểm chứng ba số hạng đầu giữa công thức tổng quát và truy hồi"
+                ],
+                "lookFor": [
+                  "5, 7, 9, 11; v_n = 2n + 3 (n >= 1); v_1 = 5, v_n = v_(n-1) + 2 (n >= 2); mỗi bước thêm 2.",
+                  "Ba số hạng 5, 7, 9 nhất quán."
+                ]
+              }
+            },
+            "masteryEvidence": true
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-recheck-19",
+          "quote": "Kiểm tra cá nhân độc lập T11.19: Cho bài toán que tính mới: Hình 1 cần 4 que tính, mỗi hình tiếp theo ghép thêm 3 que tính ($w_1 = 4$). (1) Hãy viết đủ 4 cách cho dãy số que tính $w_n$ (liệt kê ít nhất 4 số hạng đầu, công thức số hạng tổng quát, hệ thức truy hồi kèm điều kiện chỉ số, diễn đạt bằng lời). (2) Thực hiện phép kiểm chứng tính tương đương giữa công thức tổng quát và hệ thức truy hồi bằng cách tính cụ thể $w_1, w_2, w_3$.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-exit-ticket",
@@ -806,7 +1124,34 @@
       "hintIds": [
         "hint-exit-1"
       ],
-      "branch": "shared"
+      "branch": "shared",
+      "metadata": {
+        "practiceVariants": [
+          {
+            "prompt": "Vé ra cửa mới: (1) Với a_n = 2n + 1, n = 1, ..., 9, nêu số số hạng và giải thích dãy hữu hạn. (2) Cho b_1 = 6, mỗi bước tăng 4, n >= 1; viết bốn cách cho dãy b_n rồi đối chiếu ba số hạng đầu.",
+            "inputSchema": {},
+            "evaluation": {
+              "rubric": {
+                "criteria": [
+                  "Nhận diện hữu hạn theo miền chỉ số",
+                  "Bốn cách biểu diễn cùng một dãy số và kiểm chứng nhất quán"
+                ],
+                "lookFor": [
+                  "Dãy a có 9 số hạng, tập chỉ số bị chặn.",
+                  "6, 10, 14, 18; b_n = 4n + 2 (n >= 1); b_1 = 6, b_n = b_(n-1) + 4 (n >= 2); bằng lời mỗi bước thêm 4."
+                ]
+              }
+            },
+            "masteryEvidence": true
+          }
+        ],
+        "sourceCitation": {
+          "segmentId": "task-exit-ticket",
+          "quote": "Phiếu Exit Ticket: (1) Nêu sự khác biệt giữa chỉ số $n$ và số hạng $u_n$. (2) Nêu một cách cho dãy số mà em nắm vững nhất kèm ví dụ minh họa và kiểm chứng.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
     },
     {
       "id": "task-reserve-deepen",
@@ -1054,7 +1399,7 @@
     {
       "id": "hint-core-1",
       "tier": "H1",
-      "text": "Thay n = 7: u_7 = 18 + 2 * (7 - 1) = 18 + 2 * 6 = 30; thay n = 25: u_25 = 18 + 2 * 24 = 66.",
+      "text": "Thay lần lượt n = 7 và n = 25 vào công thức. Tính phần trong ngoặc trước, rồi nhân và cộng; tự đối chiếu hai kết quả với các phương án.",
       "taskId": "task-prac-core-calc",
       "objectiveIds": [
         "obj-t11-19"

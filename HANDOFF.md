@@ -1,4 +1,14 @@
 # HANDOFF — signal-station-site
+## Latest checkpoint — R6, 12/10/2026
+
+Read `tasks/plan-hoan-thien-game-va-day-hoc.md` final R6 checkbox sections and `tasks/codex-r6-report.md`. R1–R6 remain unpublished; only Gemini hotfix nativeversion6 is public. No broadreleaseapproval, no V7 changes, no real pupil data.
+
+Current isolatedcandidate `.sites-runtime/takeover-candidate-20261011`:1138/1138/typecheck/lint/build0;393existingwarnings;161files byte-match `codex-r1-r6-source-manifest.json`. EntrySHA e403e74b37fa1f91604a4991a832ffb0e6346428d1afad2f67beb0ffcb5be258. Final native219HTTP passed. N150900audit600receipts actual307requests `codex-r6-load-final-e403e74.json` PASS;453HINT/ASSESS/GETstress `codex-r6-load-assess-final-e403e74-retry.json` PASS. FirstcapHOLD113/150 and firstfinalstress socketHOLD retained, not overwritten.
+
+Backend stores compressed tutor/event/mode extras using nativezlib, hydrates atloadSession; assessedopenAssessment exactduplicates hydratefromcanonicalsubmissions, pending fullyreadable byoldc370. Rollbacksource checks/crossreviewPASS. Frontend buzzerown30active-secondclaim,no pointsforpress;duel2issueddeviceactorpanes;TaskInputReact.useId prevents duplicate DOMIDs/radionames. Business task.id staysunchanged.
+
+Gemini real productionQA: source4cf5c49d-ba9e-45b6-8afc-cac2fa01a37c, jobe60537fd-00c0-4093-bd74-2f85c2107dd6 returnsneeds_review40min2objectives5activities10tasks.2ERR_SOURCE_NUMERIC_MISMATCH held; openedform unsaved/unapproved; no class opened/key read. `codex-r6-ai-live-evidence.json` +redactedUIsnapshot. This isbasicversion6generation, notR3multiscope. Next: teacherprovenance/math/year/timebox review,physicaldevices/classroom acceptance, separateownerbroadreleaseapproval+nativemigration/publishQA. Do not mark wholeplan19DONE or bypassvalidator tocreatefakeapproval.
+
 ## 2026-10-08 — current source download checkpoint
 
 - Repo/branch unchanged; all dirty WIP preserved. No commit/push/deploy/remote migration.
@@ -155,3 +165,34 @@ Phase 0 baseline verified before this implementation. Phase 3 pure contracts are
 - Added missing integration test: provider-format lesson-outline-v1 → generation service → native assembler → existing validator → owner-scoped needs_review persistence. This catches the earlier wiring defect that isolated tests missed.
 - Current full gate: npm test 500/500, typecheck/lint/build/diff-check pass. No deploy.
 - Next: live candidate evidence + repair preservation, valid AI draft, OCR/browser rehearsal/production remain required; full goal is not complete.
+
+## Codex continuation 12/10/2026 — Gemini published, R1–R5 local
+
+Authoritative status: `tasks/plan-hoan-thien-game-va-day-hoc.md`, final sections. Native Site Gemini-only version6 succeeded, owner UI connection passed, stored key preserved. User approval covers that hotfix only. R1–R5 remain unpublished; V7 unchanged.
+
+Local candidate `.sites-runtime/takeover-candidate-20261011`:1118/1118, typecheck/lint/build exit0 (393 existing warnings);152 scoped files byte-match manifest `tasks/codex-r1-r5-source-manifest.json`. R5 independent Gemini Pro PASS: `tasks/codex-r5-review.json`.27 focused tests prove scene/combo/relay absence/Jeopardy;18 tutor checks include actual projection regression for literal-answer hint. P1 hint now guides calculation; content hash/catalogue refreshed. Existing immutable saved packages/sessions unchanged.
+
+Actual compiled Worker R1 native219HTTP/5stages PASS `tasks/codex-r1-runtime.json`; migration0017–0020 backupcopy/oldWorker/A10CAS PASS `tasks/codex-r1-migration-2026-10-12T06-05-02-219Z.json`. Failed intermediate migration cleanup artifact retained: cannot delete immutable package, harness now retains synthetic owner/package locally only. No production mutations or external AI calls in these checks.
+
+CUA synthetic tutor consent, Jeopardy20point choice/answer, personal3lane server switch/3D, newSurf10point/combo×1 verified. SceneSurf and lanecontrols375px verified; screenshots `tasks/qa-takeover/r5-surf-native-375.jpg` and `r4-native-lanes-375.jpg`. No all-scene/all-world/physical-device claim.
+
+Next technical blocker: `tasks/codex-r1-load.json` read-only estimate HOLD_CAPACITY. N150 baseline1,333,791bytes; Jeopardy plus900tutorhistory1,667,652>1,572,864cap. No cap raised or history deleted. Need source-preserving audit storage/explicit reachable-limit proof, then fresh compiledWorker HTTP150. Estimate adds fresh Jeopardy, not completed answer receipts; do not certify headroom from it.
+
+Other remaining contracts: actual separate buzzer interaction, shared-device two-player duel; full source→Gemini→draft→validator real-provider QA; authoredMath/year ownerreview and physical classroom/device acceptance.8Week6 drafts/80questions do not complete Toán10–12 library. Do not mark fullplan19DONE. Child agents hit ChatGPT429 via503/reset~25min; GeminiFlash+Pro alive. Parent completed verification directly, raw failures retained. Preserve all WIP; no broadpublication/commit/push authorized.
+
+## Codex continuation 12/10/2026 — R7 login / room rules verified local
+
+Supersedes obsolete R1–R5 capacity/blocker snapshot above. Read sharedplan finalR6/R7 sections first. R6 capacity/buzzer/two-pane verified at e403e74; R7 finalWorker62b3ed5d0a7e66ae77dd6b9806a8bf0bd7855f29ab2e7b11a9b1bc9674a16840,1154PASS/typecheck/lint/build0,394warnings.172sourcefiles byte-match. No broadrelease/commit/push; version6 production Gemini-only, V7 config protected.
+
+Landing now no fixed30min/universalgroupcopy; public room metadata chooses world/rule/participation/duration. Valid lessonhexcode0/1 routes toPIN flow; legacynamejoin rejected lesson. Briefing9rules once;375s exact6m15s. Map/shared SessionRules showscanonical rule,44pxdetails; teacherUI change campaign/group→merchant/individual updates sharedwithoutreload.375CSS mascot2columns removes396overflow→360. ReviewGemini finalCSS/alphabetPASS; CUA screenshots+hashboundevidence in tasks/codex-r7-browser-evidence.json.
+
+Math5draft fixes/sourcehashes verified59checks/8packages/80exactquotes; all8stilldraft. Remaining F03teacher workload/timebox,2Gemini source_numeric citations,year/source/physicaldevices/3Dvisualacceptance; nofullplanDONE. Report tasks/codex-r7-report.md; sharedchecklist tasks/plan-hoan-thien-game-va-day-hoc.md.
+
+## R8 continuation —12/10/2026
+Read tasks/codex-r8-report.md andsharedplanfinalR8.175manifest,1171PASS/typecheck/lint/build0,394warnings;finalWorker33c9b281/treebe2e2529 native219+CUArestorePASS0external. Serverlatest owner/sourceSHA/parser/extractionhash readsneeds_review only;UI cachegone/malformed fallbackserver/cancel/newjobraceguard. Citationnumeric-onlygenuinequote broadening allowedsameentity/segment/source;countguardrejectsaddedhint/citation. Gemini recheckPASS afteractualRED/GREEN findings;rawreviewretained.
+Production6Gemini-onlyunchanged;R1–R8unreleased/V7protected. Actualjob2numericerrors stillHOLDfullcandidate:DBresulttruncated/browsersdirectAPIblocked. Do notfakecitationrepair orautoapprove. F03timeboxaudit7gói900manualper150,week6900;Must-onlyrecommendation ownerquestionpending. ReviewpilotP38 prepared separately ifavailable;8drafts unchanged. User approval needed onlybroadpublication/humanpedagogicalchoice,notroutinecodeQA. Reuse sharedplanfinalR8checkbox; no resetstashcommitpush.
+
+## R9 owner scope decision and local completion —12/10/2026
+UserchoseadditionalMust-onlyvariants,Should/Couldlater.8new content/lessons/g11-w6-p34..41-must-only.json,1exactoriginalMustobjectiveeach,8fulloriginalunchanged/sourceTS/DOCXhashes retained. Catalogue16labelled rows;40=34core+2optional+2transition+2reserve;UIpreviewnowdisplaystransition. P34/36/37manual2masterytasks/em;35/38/39/40/41finiteonlyselectedMust, noautoproof/formatapprovalclaims.2independentevidence,assistance/pendinggates unchanged/tested.
+1172PASS/typecheck/lint/build0 (394warnings),183manifestbytematch;Gemini8math+cataloguebudgetPASS currenthashes. ExactfinalWorkerc3b1250d/tree949dd809 native219/CUA16choices/P38/P34/375PASS0external. Report tasks/codex-r9-report.md;sharedplanfinalR9checkboxcurrent. R8restore/quote-onlyrepair readybutnotdeployed;historicalGemini2numericissuesstillHOLDfullcandidate.
+Next:concretebroadreleaseownerapproval,thenbackup/sourceworkflow/migration/nativepublish/postdeploysameSitepreservekey/classes/V7. BeforefullgoalDONE needhistoricalAIcandidateresolution,teacherformat/source/year/timebox,realdevices/classroom/3Dvisualacceptance. R6load150hashseparate remainsbounded fixturecapproof,notR9repeat. Allnewpackagesdraft/teacher_review_required. Do notconfuseMustscopeauthorizationwithcontentapproval/publication.

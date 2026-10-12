@@ -1,0 +1,1514 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-w6-p41",
+  "version": "1.0.0",
+  "status": "draft",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "SmartPlan-BanToan-G11-W6-P41-draft"
+  ],
+  "sourceRefs": [
+    {
+      "id": "sp-structured",
+      "kind": "external",
+      "locator": "giao an manus tao/_qa/ban_toan_rebuild/banToanContent.ts:579 / d(11,6,41)",
+      "hash": "aea0f73b2164b78d8a62ecd40bf01ee43c528bf4e68918120120f4843fdef8fc",
+      "label": "SmartPlan Ban Toán — dữ liệu cấu trúc",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "sp-docx-p41",
+      "kind": "external",
+      "locator": "giao an manus tao/TDS/Khoi 11/Tuan 06/g11_w6_p41_Luyen_tap_phoi_hop_gia_tri_luong_giac_phuong_trinh_luong_giac_va_day_so_G11W6.docx",
+      "hash": "7e1ae79f263621f3d6bce273e33c828e3acd6a29700f226a3ca9f3abca1d15e7",
+      "label": "Giáo án Ban Toán 11 — tuần 6, tiết 41",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào để phối hợp công cụ lượng giác và công cụ dãy số trong việc giải quyết bài toán chu kỳ tuần hoàn?",
+  "prerequisites": [
+    "Đọc ký hiệu, miền xác định và phép biến đổi đã học."
+  ],
+  "objectives": [
+    {
+      "id": "sp-g11-w6-p41-must",
+      "code": "SP-G11-W6-P41-MUST",
+      "level": "must",
+      "statement": "Tôi có thể tính đúng nghiệm lượng giác cùng số hạng của dãy nghiệm tương ứng.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p41",
+        "sourceLocator": "word/document.xml / I.2 / Must",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p41-should",
+      "code": "SP-G11-W6-P41-SHOULD",
+      "level": "should",
+      "statement": "Tôi có thể vận dụng kỹ năng xét tính tăng giảm của dãy số trong phân tích các đại lượng nghiệm tuần hoàn.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p41",
+        "sourceLocator": "word/document.xml / I.2 / Should",
+        "verification": "teacher_review_required"
+      }
+    },
+    {
+      "id": "sp-g11-w6-p41-could",
+      "code": "SP-G11-W6-P41-COULD",
+      "level": "could",
+      "statement": "Tôi có thể thiết kế một bài toán mở tích hợp giữa lượng giác với dãy số kèm hướng dẫn chấm chi tiết.",
+      "prerequisiteIds": [],
+      "metadata": {
+        "canonicalCodeVerified": false,
+        "sourceId": "sp-docx-p41",
+        "sourceLocator": "word/document.xml / I.2 / Could",
+        "verification": "teacher_review_required"
+      }
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "act-w6p41-experience",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-experience"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-experience"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-experience"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-precheck",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-pre-0",
+        "task-w6p41-pre-1",
+        "task-w6p41-pre-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-pre-0",
+        "ev-task-w6p41-pre-1",
+        "ev-task-w6p41-pre-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-pre-0",
+        "hint-task-w6p41-pre-1",
+        "hint-task-w6p41-pre-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-formation",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 6,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-formation"
+      ],
+      "participation": "group",
+      "studentAction": "Mỗi em ghi ý riêng; nhóm thảo luận bài mẫu; GV kết nối với quy tắc.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-formation"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-formation"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-practice",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-support",
+        "task-w6p41-core",
+        "task-w6p41-refute"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-refute"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-support",
+        "hint-task-w6p41-core",
+        "hint-task-w6p41-refute"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-recheck-0",
+        "task-w6p41-recheck-1",
+        "task-w6p41-recheck-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-recheck-0",
+        "ev-task-w6p41-recheck-1",
+        "ev-task-w6p41-recheck-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-recheck-0",
+        "hint-task-w6p41-recheck-1",
+        "hint-task-w6p41-recheck-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-extension"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-extension"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-exit-0",
+        "task-w6p41-exit-1",
+        "task-w6p41-exit-2"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài mới cá nhân; nộp để GV chấm trước xác nhận đạt.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-exit-0",
+        "ev-task-w6p41-exit-1",
+        "ev-task-w6p41-exit-2"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-exit-0",
+        "hint-task-w6p41-exit-1",
+        "hint-task-w6p41-exit-2"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-reflection",
+      "phase": "reflection",
+      "budgetRole": "core",
+      "minutes": 1,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [
+        "task-w6p41-reflection"
+      ],
+      "participation": "individual",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [
+        "ev-task-w6p41-reflection"
+      ],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [
+        "hint-task-w6p41-reflection"
+      ],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    },
+    {
+      "id": "act-w6p41-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "taskIds": [],
+      "participation": "whole_class",
+      "studentAction": "Thực hiện nhiệm vụ theo điều hành GV; khai báo trợ giúp nếu đã dùng.",
+      "expectedProduct": "Bài làm có dữ kiện, quy tắc, kết luận và phép kiểm.",
+      "evidenceIds": [],
+      "teacherLookFor": "Đọc lập luận từng em; không dùng sản phẩm nhóm thay mastery cá nhân.",
+      "supportIds": [],
+      "transition": "GV đọc bằng chứng và điều chỉnh trước chuyển bước."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-w6p41-experience",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "act-w6p41-experience",
+      "participation": "individual",
+      "prompt": "Quan sát bài mẫu: Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Nêu quy tắc em dự đoán sẽ dùng.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-experience"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng."
+          ],
+          "lookFor": [
+            "Chọn $x=\\frac\\pi6$; thay vào sin được $\\frac12$ đúng.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p41-experience"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-experience",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-pre-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "act-w6p41-precheck",
+      "participation": "individual",
+      "prompt": "Nêu và kiểm một nghiệm sinx=1/2.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-pre-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu một nghiệm và thay vào kiểm chứng."
+          ],
+          "lookFor": [
+            "Ví dụ x=π/6 vì sin(π/6)=1/2; chấp nhận nghiệm khác được kiểm đúng. Không yêu cầu đủ họ nghiệm ở câu này."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p41-pre-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-pre-0",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-pre-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "activityId": "act-w6p41-precheck",
+      "participation": "individual",
+      "prompt": "Hiệu của x_n=π/6+2nπ là bao nhiêu?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-pre-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Tính đúng hiệu hai số hạng liên tiếp."
+          ],
+          "lookFor": [
+            "x_(n+1)−x_n=2π, là bước giữa hai nghiệm trong một họ theo chu kỳsin."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p41-pre-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-pre-1",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-pre-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-precheck",
+      "participation": "individual",
+      "prompt": "Bài ghép lượng giác và dãy cần nêu những miền nào?",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-pre-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu miền biến lượng giác và miền chỉ số dãy."
+          ],
+          "lookFor": [
+            "Nêu x thuộc miền khảo sát và điều kiện xác định của hàm lượng giác; n là số nguyên dương hoặc tập chỉ số hữu hạn được cho."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p41-pre-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-pre-2",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-formation",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-formation",
+      "participation": "group",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Sau đó thảo luận: Bài ghép lượng giác và dãy cần nêu những miền nào?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ sinx=1/2 chọn dãy x_n=π/6+2(n−1)π, n≥1; tính x_2 và hiệu. Nhóm hoàn thiện mẫu bài mở gồm miền n, yêu cầu tính số hạng, xét tăng/giảm, đáp án và ba tiêu chí chấm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-formation"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ.",
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Chọn $x=\\frac\\pi6$; thay vào sin được $\\frac12$ đúng.\nTa có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng; đồng thời $0<u_n<1$, nên $1$ là một cận trên.\nBài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Từ sinx=1/2 chọn dãy x_n=π/6+2(n−1)π, n≥1; tính x_2 và hiệu. Nhóm hoàn thiện mẫu bài mở gồm miền n, yêu cầu tính số hạng, xét tăng/giảm, đáp án và ba tiêu chí chấm. GV yêu cầu lập luận hoặc sản phẩm cụ thể theo từng mục tiêu."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p41-formation"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-formation",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-support",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should"
+      ],
+      "activityId": "act-w6p41-practice",
+      "participation": "individual",
+      "prompt": "Nhánh hỗ trợ: Tính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$. Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTừ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ."
+          ],
+          "lookFor": [
+            "$1$.\nChọn $x=\\frac\\pi6$; thay vào sin được $\\frac12$ đúng.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Từ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p41-support"
+      ],
+      "branch": "support",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-support",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-core",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should"
+      ],
+      "activityId": "act-w6p41-practice",
+      "participation": "individual",
+      "prompt": "Nhánh chuẩn: Giải $\\tan x=0$. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Ghi điều kiện, giải đầy đủ và thử lại.\nTừ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ."
+          ],
+          "lookFor": [
+            "$x=k\\pi$.\nTa có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng; đồng thời $0<u_n<1$, nên $1$ là một cận trên.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng.",
+            "Từ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm. GV đọc lời giải và đối chiếu quy tắc."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 6,
+      "hintIds": [
+        "hint-task-w6p41-core"
+      ],
+      "branch": "core",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-core",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-refute",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-practice",
+      "participation": "individual",
+      "prompt": "Chọn và sửa một lỗi: Trộn biến x với chỉ số n. Dùng kết luận của một mạch cho mạch khác. Không chỉ ra phép kiểm cụ thể. Sau đó giải thích: Bài ghép lượng giác và dãy cần nêu những miền nào?\nHoàn thiện một mẫu bài mở với dãy nghiệm sinx=1/2: miền n, tính một số hạng, xét hiệu, đáp án và ba tiêu chí chấm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-refute"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p41-refute"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-refute",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-recheck-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "act-w6p41-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $\\sin x=\\frac12$ trênR. Chọn $x_n=\\frac\\pi6+2(n-1)\\pi$, n≥1; tính $x_1, x_2, x_3$.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-recheck-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng."
+          ],
+          "lookFor": [
+            "Đủ hai họπ/6+2kπ, 5π/6+2kπ; dãy chọnπ/6, 13π/6, 25π/6, chỉ thuộc một họ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p41-recheck-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-recheck-0",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-recheck-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "activityId": "act-w6p41-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Với dãy nghiệm $x_n=\\frac\\pi6+2n\\pi$, n≥1, chứng minh tăng bằng hiệu, liên hệ chu kỳ sin.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-recheck-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ."
+          ],
+          "lookFor": [
+            "Hiệu2π>0, mỗi bước thêm một chu kỳ, tất cả thuộc cùng họ sinx=1/2.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p41-recheck-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-recheck-1",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-recheck-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-recheck",
+      "participation": "individual",
+      "prompt": "Bài kiểm tra lại độc lập: Thiết kế bài mở về $\\sin x=\\frac12$ và dãy con nghiệm: miền n, yêu cầu tính số hạng, xét tăng/giảm. Viết đáp án mẫu, rubric ba tiêu chí cụ thể.\nTrong thời gian ngắn, viết theo khung bốn dòng: miền/công thức; yêu cầu; đáp án mẫu; ba tiêu chí chấm. Bài hoàn chỉnh có thể dùng thời gian dự phòng theo GV.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-recheck-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Mẫu x_n=π/6+2(n−1)π, n≥1; x_2=13π/6; hiệu2π>0.Rubric: nghiệm hợp lệ, công thức/chỉ số đúng, chứng minh hiệu. Chấp nhận bài khác hợp lệ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p41-recheck-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-recheck-2",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-extension",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-extension",
+      "participation": "individual",
+      "prompt": "Nhánh mở rộng: Thiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$. Nêu điều kiện/giả định và kiểm kết quả.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Ví dụ đặt $x_n=\\frac\\pi6+2n\\pi$; kiểm tra công thức, miền chỉ số và chu kỳ.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p41-extension"
+      ],
+      "branch": "extension",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-extension",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-exit-0",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "activityId": "act-w6p41-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $\\tan x=0$ trênR. Chọn dãy không âm $y_n=(n-1)\\pi$, n≥1; tính ba số hạng đầu và kiểm.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-exit-0"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng."
+          ],
+          "lookFor": [
+            "x=kπ, k nguyên; dãy0, π, 2π thỏa, tập con không gồm nghiệm âm.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p41-exit-0"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-exit-0",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-exit-1",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "activityId": "act-w6p41-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Với dãy nghiệm $y_n=n\\pi$, n≥1 của tanx=0, chứng minh tăng; so sánh khoảng cách với một họ sinx=1/2.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-exit-1"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ."
+          ],
+          "lookFor": [
+            "Hiệuπ>0, chu kỳtanπ; khác2π của một họ sinx=1/2, không trộn thứ tự hai họ sin.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-task-w6p41-exit-1"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-exit-1",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-exit-2",
+      "type": "open",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-exit",
+      "participation": "individual",
+      "prompt": "Phiếu cuối tiết độc lập: Thiết kế bài mở khác về $\\tan x=0$: chọn dãy nghiệm, miền n, tính một số hạng, chứng minh tăng/giảm. Viết đáp án mẫu, hướng dẫn chấm ba tiêu chí.\nTrong thời gian ngắn, viết theo khung bốn dòng: miền/công thức; yêu cầu; đáp án mẫu; ba tiêu chí chấm. Bài hoàn chỉnh có thể dùng thời gian dự phòng theo GV.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-exit-2"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Mẫu y_n=nπ, n≥1; y_3=3π; hiệuπ>0.Rubric: nghiệm/miền hợp lệ, tính đúng, chứng minh hiệu.Chấp nhận dãy giảm nếu nhất quán.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-task-w6p41-exit-2"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-exit-2",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    },
+    {
+      "id": "task-w6p41-reflection",
+      "type": "reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "activityId": "act-w6p41-reflection",
+      "participation": "individual",
+      "prompt": "Nêu một điều kiện hoặc phép kiểm em sẽ giữ; khai báo trung thực nếu đã dùng gợi ý.",
+      "sourceRefs": [
+        "sp-structured"
+      ],
+      "evidenceIds": [
+        "ev-task-w6p41-reflection"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
+            "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ.",
+            "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+          ],
+          "lookFor": [
+            "Phản tỉnh gắn với bài; không tính mastery.",
+            "GV kiểm đầy đủ điều kiện và lập luận; chấp nhận cách giải khác đúng."
+          ]
+        }
+      },
+      "inputSchema": {
+        "maxLength": 6000
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bài mở kiểm lập luận; hướng dẫn chấm dành cho GV, em tự viết lời giải.",
+      "minutes": 1,
+      "hintIds": [
+        "hint-task-w6p41-reflection"
+      ],
+      "branch": "shared",
+      "metadata": {
+        "sourceCitation": {
+          "segmentId": "sp-g11-w6-p41/adapted-reflection",
+          "quote": "$\\sin^2x+\\cos^2x=1$\n$\\tan x=\\frac{\\sin x}{\\cos x}$\n$\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$\n$u_{n+1}-u_n$\nGiải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị.\nXét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$.\nTính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.\nGiải $\\tan x=0$.\nGiải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.\nXét $u_n=\\frac n{n+1}$ tăng bằng hiệu.\nThiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.\nNêu cách kiểm tra chéo một lời giải hỗn hợp.\nChọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.\nNêu một điểm khác giữa chu kỳ và chỉ số dãy.",
+          "origin": "adapted"
+        },
+        "numericReviewRequired": true
+      }
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-task-w6p41-experience",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-experience",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-pre-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-pre-0",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-pre-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-pre-1",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-pre-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-pre-2",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-formation",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-formation",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-support",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-support",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-core",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-core",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-refute",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-refute",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-recheck-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-recheck-0",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-recheck-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-recheck-1",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-recheck-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-recheck-2",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-extension",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-extension",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-exit-0",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-exit-0",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-exit-1",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-exit-1",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-exit-2",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-exit-2",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    },
+    {
+      "id": "hint-task-w6p41-reflection",
+      "tier": "H1",
+      "text": "Gạch chân miền và dữ kiện; chọn công thức liên quan, viết bước làm và thử lại.",
+      "taskId": "task-w6p41-reflection",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Định hướng đọc yêu cầu; không cho kết luận."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-task-w6p41-experience",
+      "kind": "initialThinking",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-experience"
+    },
+    {
+      "id": "ev-task-w6p41-pre-0",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-pre-0"
+    },
+    {
+      "id": "ev-task-w6p41-pre-1",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-pre-1"
+    },
+    {
+      "id": "ev-task-w6p41-pre-2",
+      "kind": "precheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-pre-2"
+    },
+    {
+      "id": "ev-task-w6p41-formation",
+      "kind": "group_product",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-formation"
+    },
+    {
+      "id": "ev-task-w6p41-refute",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-refute"
+    },
+    {
+      "id": "ev-task-w6p41-recheck-0",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-recheck-0"
+    },
+    {
+      "id": "ev-task-w6p41-recheck-1",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-recheck-1"
+    },
+    {
+      "id": "ev-task-w6p41-recheck-2",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-recheck-2"
+    },
+    {
+      "id": "ev-task-w6p41-exit-0",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-exit-0"
+    },
+    {
+      "id": "ev-task-w6p41-exit-1",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p41-should"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-exit-1"
+    },
+    {
+      "id": "ev-task-w6p41-exit-2",
+      "kind": "exit",
+      "objectiveIds": [
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-w6p41-exit-2"
+    },
+    {
+      "id": "ev-task-w6p41-reflection",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "sp-g11-w6-p41-must",
+        "sp-g11-w6-p41-should",
+        "sp-g11-w6-p41-could"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-w6p41-reflection"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
+      "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ.",
+      "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
+    ],
+    "lookFor": [
+      "GV chấm lời giải mở trước xác nhận đạt.",
+      "Câu điều chỉnh từ nguồn cần GV duyệt; không lấy đúng nhóm làm đạt cá nhân."
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  },
+  "contentHash": "78d490bd978b4b2cb7bef6475553ec62a7e48a359d65580615f84e5282b21d4b"
+}

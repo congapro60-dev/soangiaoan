@@ -9,6 +9,7 @@ import { ExamQuestion, messageFor, teacherGet, teacherImageUrl, teacherPost } fr
 import { ExamImport } from "./ExamImport";
 import { KeyEditor, QuestionItemsEditor, SolutionEditor, SolutionImage, SolutionQuestion, keyReady } from "./KeyEditor";
 import { AntiCheatingConfig, AntiCheatingSettings, CodeTabs, ExamCodeDraft, PupilPreview, VariantAssistant, nextExamCode } from "./VariantEditor";
+import { AccommodationEditor } from "./AccommodationEditor";
 import { GuideImport } from "./GuideImport";
 
 const SPRITE = "mascots-historical.webp";
@@ -16,8 +17,8 @@ const STATUS_LABEL: Record<string, string> = { draft: "Bản nháp", open: "Đan
 const STATUS_BADGE: Record<string, string> = { draft: "lesson-badge-outline", open: "lesson-badge-warning", running: "lesson-badge-success", closed: "lesson-badge-primary" };
 
 interface ExamSummary { id: string; code: string; title: string; status: string; durationMin: number; attempts: number; questionCount: number; createdAt: number }
-interface ExamFull { id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: AntiCheatingConfig & { showResult?: string; allowLateJoin?: boolean; review?: "after_close" | "none" }; codes?: Array<{ code: string | null; questions: SolutionQuestion[] }>; questions: SolutionQuestion[] }
-interface AttemptRow { id: string; name: string; examCode?: string | null; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; submittedAt: number | null; claimed: boolean }
+interface ExamFull { id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: AntiCheatingConfig & { showResult?: string; graceSeconds?: number; allowLateJoin?: boolean; review?: "after_close" | "none" }; codes?: Array<{ code: string | null; questions: SolutionQuestion[] }>; questions: SolutionQuestion[] }
+interface AttemptRow { id: string; name: string; examCode?: string | null; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; submittedAt: number | null; claimed: boolean; endsAt: number | null; extraMinutes: number; textScale: number; accommodationRevision: number }
 interface RoomData { serverNow: number; exam: ExamFull; missingKeys: string[]; attempts: AttemptRow[] }
 interface ResultRow { id: string; name: string; examCode?: string | null; mascot: number; tabLeaves: number; submittedAt: number | null; answered: number; total: number; max: number; sections: Record<string, { points: number; max: number }>; essaysToMark: number; perQuestion: Record<string, { p: number; c: boolean | null }> }
 interface Stat { answered: number; correct: number; wrong: number; blank: number; avg: number; choices: Record<string, number>; statements: number[] }
@@ -158,6 +159,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
   const imageBusy = (delta: number) => setImageReaders((count) => count + delta);
   const [keyText, setKeyText] = useState("");
   const [note, setNote] = useState("");
+  const [supportAttemptId, setSupportAttemptId] = useState("");
   const loadVersion = useRef(0);
 
   const load = useCallback(async () => {
@@ -309,6 +311,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
                     <td className={a.tabLeaves >= 3 ? "exam-bad" : ""}>{a.tabLeaves}</td>
                     <td>{a.submittedAt ? <span className="lesson-badge lesson-badge-success">Đã nộp</span> : exam.status !== "running" ? <span className="lesson-badge lesson-badge-outline">Đã vào</span> : online(a) ? <span className="lesson-badge lesson-badge-primary">Đang làm</span> : <span className="lesson-badge lesson-badge-warning">Mất kết nối?</span>}</td>
                     <td className="exam-row-actions">
+                      <button type="button" className="exam-link exam-accommodation-open" aria-expanded={supportAttemptId === a.id} disabled={exam.status === "closed" || a.submittedAt !== null || (exam.status === "running" && a.endsAt !== null && now + offset > a.endsAt + 1000 * (exam.settings.graceSeconds ?? 0))} onClick={() => setSupportAttemptId(supportAttemptId === a.id ? "" : a.id)}>Hỗ trợ riêng{a.extraMinutes ? " · +" + a.extraMinutes + " phút" : ""}{a.textScale !== 1 ? " · " + a.textScale * 100 + "%" : ""}</button>
                       {a.claimed && <button type="button" className="exam-link" title="Cho học sinh vào lại từ thiết bị khác" onClick={() => { if (window.confirm("Cho " + a.name + " vào lại từ thiết bị khác? Thiết bị cũ sẽ mất quyền làm bài.")) void act({ action: "release", attemptId: a.id }); }}>Cho vào lại</button>}
                       {a.submittedAt && exam.status === "running" && <button type="button" className="exam-link" onClick={() => void act({ action: "reopen", attemptId: a.id })}>Mở lại bài</button>}
                     </td>
@@ -317,6 +320,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
               </tbody>
             </table>
           )}
+          {data.attempts.filter((a) => a.id === supportAttemptId).map((a) => <AccommodationEditor key={a.id + ":" + a.accommodationRevision} examId={id} attempt={a} disabled={exam.status === "closed" || a.submittedAt !== null || (exam.status === "running" && a.endsAt !== null && now + offset > a.endsAt + 1000 * (exam.settings.graceSeconds ?? 0))} onSaved={() => { void load(); }} />)}
         </section>
       )}
 
