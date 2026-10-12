@@ -71,6 +71,13 @@ test('connection test sends one tiny request with the bearer key and maps HTTP e
   assert.deepEqual(await testAI({}), { ok: false, status: 'NOT_CONFIGURED' });
 });
 
+test('edge fetch accepts manual redirect mode and never forwards the saved bearer across a redirect',async()=>{
+ setStoredAIConfig({enabled:true,endpoint:GEMINI_ENDPOINT,model:'gemini-flash-latest',key:'SYNTHETIC_EDGE_KEY_1234'});
+ const edge=async(_url,init)=>{if(init.redirect==='error')throw new TypeError('Invalid redirect value at edge');assert.equal(init.redirect,'manual');return{ok:true,status:200};};
+ assert.deepEqual(await testAI({},edge),{ok:true,status:'OK'});
+ assert.deepEqual(await testAI({},async(_url,init)=>{assert.equal(init.redirect,'manual');return{ok:false,status:307};}),{ok:false,status:'HTTP_307'});setStoredAIConfig(null);
+});
+
 test('a slow read that began before clear or save never restores an older key (ticket ordering)', async () => {
   setStoredAIConfig(null);
   const db = fakeDb();

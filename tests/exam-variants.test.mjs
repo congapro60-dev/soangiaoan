@@ -68,7 +68,7 @@ test('provider uses exact approved model, returns checked local drafts and never
   let sent;
   const result = await proposeExamVariants({ source: selected, model: 'model-a', aiConsent: consent(selected) }, { env, fetchImpl: async (url, init) => { sent = { url, init, body: JSON.parse(init.body) }; return reply({ questions: [candidate] }); } });
   assert.equal(sent.body.model, 'model-a');
-  assert.equal(sent.init.redirect, 'error');
+  assert.equal(sent.init.redirect, 'manual');
   assert.match(sent.body.messages[0].content, /dữ liệu/);
   assert.equal(result.questions[0].check.status, 'checked');
   assert.doesNotMatch(JSON.stringify(result), /test-secret/);
