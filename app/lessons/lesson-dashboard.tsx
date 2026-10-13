@@ -5,6 +5,9 @@ import { recommendTeacherSetup, normalizeTeacherSetup } from "../../lib/lesson/t
 import { TeacherLessonTools } from "../../components/lesson/TeacherLessonTools";
 import { LeaguePanel } from "../../components/lesson/LeaguePanel";
 import { ClassRosterPanel } from "../../components/lesson/ClassRosterPanel";
+import LessonContentLibrary from "../../components/lesson/LessonContentLibrary";
+import {containsDraftRemoval} from "../../lib/lesson/draft-undo.js";
+import {LESSON_PURPOSES,matchesCreationSettings} from "../../lib/lesson/creation-context.js";
 import { StructuredQuestionEditor } from "../../components/lesson/StructuredQuestionEditor";
 import { REFLECTION_PROMPTS } from "../../lib/lesson/values.js";
 import { ContentScopePicker, type ScopeRequest } from "../../components/lesson/ContentScopePicker";
@@ -19,6 +22,7 @@ import { useLessonSession, formatDuration, LessonProjection } from "../../compon
 import { buildLessonProposal } from "../../lib/lesson/proposal.js";
 
 export interface LessonDashboardProps {
+  creation?: {purpose:string;source:string;grade:number;minutes:number;packageId:string|null}|null;
   user: {
     userId: string;
     displayName: string;
@@ -340,6 +344,7 @@ interface LessonProposal {
 }
 
 interface LessonGenerationJob {
+  settings?: {grade:number;subject:string;slotMinutes:number;purpose?:string;scope?:ScopeRequest};
   id: string;
   sourceId: string;
   sourceSha256: string;
@@ -482,9 +487,9 @@ export function filterCockpitRoster<T extends { name: string; present: boolean }
     .sort((a, b) => (sort === "absent" ? Number(a.present) - Number(b.present) : 0) || a.name.localeCompare(b.name, "vi"));
 }
 
-export function getAIConsentKey(sourceId: string | null, source: LessonSourceMetadata | null, settings: { grade: number; subject: string; slotMinutes: number; scope?: ScopeRequest }, providerHost: string): string {
+export function getAIConsentKey(sourceId: string | null, source: LessonSourceMetadata | null, settings: { grade: number; subject: string; slotMinutes: number; scope?: ScopeRequest;purpose?:string }, providerHost: string): string {
   if (!providerHost || !sourceId || source?.id !== sourceId || source.status !== "ready" || !source.sha256 || !source.parserRevision || !source.extractionHash) return "";
-  return JSON.stringify([sourceId, source.sha256, source.parserRevision, source.extractionHash, settings.grade, settings.subject, settings.slotMinutes, providerHost, ...(settings.scope ? [JSON.stringify("selections" in settings.scope?{selections:settings.scope.selections.map(item=>({lessonId:item.lessonId,sectionIds:[...item.sectionIds].sort()})).sort((a,b)=>a.lessonId.localeCompare(b.lessonId))}:{lessonId:settings.scope.lessonId,sectionIds:[...settings.scope.sectionIds].sort()})] : [])]);
+  return JSON.stringify([sourceId, source.sha256, source.parserRevision, source.extractionHash, settings.grade, settings.subject, settings.slotMinutes, providerHost, ...(settings.purpose?[settings.purpose]:[]), ...(settings.scope ? [JSON.stringify("selections" in settings.scope?{selections:settings.scope.selections.map(item=>({lessonId:item.lessonId,sectionIds:[...item.sectionIds].sort()})).sort((a,b)=>a.lessonId.localeCompare(b.lessonId))}:{lessonId:settings.scope.lessonId,sectionIds:[...settings.scope.sectionIds].sort()})] : [])]);
 }
 
 export function LessonAIConsentPanel({ providerHost, extraction, settings, confirmed, disabled, onChange }: {
@@ -705,7 +710,7 @@ function saveImportSourceSession(sourceId: string | null) {
   }
 }
 
-export default function LessonDashboard({ user }: LessonDashboardProps) {
+export default function LessonDashboard({ user, creation = null }: LessonDashboardProps) {
   const draftRevisionRef = useRef(0);
   const savingRef = useRef(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -719,19 +724,20 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [cockpitMenuOpen, setCockpitMenuOpen] = useState<boolean>(false);
   const [cockpitPanel, setCockpitPanel] = useState<"attention" | "students" | "activity">("attention");
   const [learnerSearch, setLearnerSearch] = useState("");
+  const [removeLearnerId, setRemoveLearnerId] = useState<string | null>(null);
   const [learnerSort, setLearnerSort] = useState("name");
   const [peerSelection, setPeerSelection] = useState<{ sessionId: string | null; learnerId: string } | null>(null);
   const [codeCopied, setCodeCopied] = useState<boolean>(false);
   const [isSessionRestored, setIsSessionRestored] = useState<boolean>(false);
 
   // Studio sub-tab: Preview vs Director vs Edit vs Import
-  const [studioSubTab, setRawStudioSubTab] = useState<"preview" | "director" | "edit" | "import">("preview");
+  const [studioSubTab, setRawStudioSubTab] = useState<"preview" | "director" | "edit" | "import">(creation?.source === "import" ? "import" : "preview");
   const isEditing = studioSubTab === "edit";
 
   // Studio state
   const [packages, setPackages] = useState<PackageRecord[]>([]);
   const [authoredLibrary,setAuthoredLibrary]=useState<Array<{id:string;title:string;period:number}>>([]);
-  useEffect(()=>{let active=true;void fetch("/api/lesson-content",{cache:"no-store"}).then(async response=>{if(!response.ok)return;const data=await response.json() as {lessons?:Array<{id:string;title:string;period:number}>};if(active&&Array.isArray(data.lessons))setAuthoredLibrary(data.lessons);}).catch(()=>{});return()=>{active=false;};},[]);
+  useEffect(()=>{if(creation)return;let active=true;void fetch("/api/lesson-content",{cache:"no-store"}).then(async response=>{if(!response.ok)return;const data=await response.json() as {lessons?:Array<{id:string;title:string;period:number}>};if(active&&Array.isArray(data.lessons))setAuthoredLibrary(data.lessons);}).catch(()=>{});return()=>{active=false;};},[creation]);
   const [selectedRecord, setSelectedRecord] = useState<PackageRecord | null>(null);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [attendance,setAttendance]=useState<{classId:string;members:Array<{id:string;name:string;revoked?:boolean}>;selected:string[]}>({classId:"",members:[],selected:[]});
@@ -740,12 +746,19 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [setupDraft,setSetupDraft]=useState<{key:string;value:TeacherSetup}|null>(null);
   const setupKey=JSON.stringify([selectedRecord?.row_id||null,currentPackage?.id,currentPackage?.version,currentPackage?.contentHash,currentPackage?.sourceRefs]);
   const teacherSetup=(setupDraft?.key===setupKey?setupDraft.value:recommendTeacherSetup(currentPackage)) as TeacherSetup;
-  const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(true);
+  const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(creation?.source==='library');
   const [studioStatus, setStudioStatus] = useState<string>("");
   const [editedPackage, setRawEditedPackage] = useState<LessonPackage | null>(null);
+  const [undoDraft, setUndoDraft] = useState<LessonPackage | null>(null);
+  const editedPackageRef = useRef<LessonPackage | null>(null);
   const setEditedPackage = useCallback((pkg: LessonPackage | null) => {
+    const before = editedPackageRef.current;
+    if (pkg && before && pkg.id === before.id && containsDraftRemoval(before,pkg)) setUndoDraft(JSON.parse(JSON.stringify(before)) as LessonPackage);
+    if (!pkg || pkg.id !== before?.id) setUndoDraft(null);
     draftRevisionRef.current++;
-    setRawEditedPackage(pkg ? syncPackageBidirectionalLinks(pkg) : null);
+    const next = pkg ? syncPackageBidirectionalLinks(pkg) : null;
+    editedPackageRef.current = next;
+    setRawEditedPackage(next);
   }, []);
   const [mappingJson, setRawMappingJson] = useState<string | null>(null);
   const setMappingJson = (value: string | null) => {
@@ -767,13 +780,26 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [importProposal, setImportProposal] = useState<LessonProposal | null>(null);
   const [generationJob, setGenerationJob] = useState<LessonGenerationJob | null>(null);
   const [isStartingGeneration, setIsStartingGeneration] = useState(false);
-  const [generationSettings, setGenerationSettings] = useState<{slotMinutes:number;subject:string;grade:number;scope?:ScopeRequest}>({ slotMinutes: 40, subject: "math", grade: 11 });
+  const [generationSettings, setGenerationSettings] = useState<{slotMinutes:number;subject:string;grade:number;scope?:ScopeRequest;purpose?:string}>({ slotMinutes: creation?.minutes||40, subject: "math", grade: creation?.grade||11, ...(creation?{purpose:creation.purpose}:{}) });
   const [scopeConsent, setScopeConsent] = useState<Record<string, unknown> | null>(null);
   const [scopeLabels, setScopeLabels] = useState<string[]>([]);
   const [generationProviderHost, setGenerationProviderHost] = useState("");
   const [generationConsentKey, setGenerationConsentKey] = useState("");
   const generationExtraction = importSourceMeta?.extraction?.sha256 === importSourceMeta?.sha256 ? importSourceMeta?.extraction || null : importExtraction?.sha256 === importSourceMeta?.sha256 ? importExtraction : null;
   const aiConsentKey = generationExtraction ? getAIConsentKey(importSourceId, importSourceMeta, generationSettings, generationProviderHost) : "";
+  useEffect(() => {
+    if(!generationSettings.purpose || !importSourceId || importSourceStatus !== "ready")return;
+    const abort=new AbortController(), epoch=sourceOperationRef.current;
+    const timer=window.setTimeout(()=>{
+      void fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings:generationSettings}),signal:abort.signal}).then(async response=>{
+        const data=await response.json() as {aiConsent?:Record<string,unknown>;generation?:{providerHost:string};error?:string};
+        if(abort.signal.aborted||sourceOperationRef.current!==epoch)return;
+        if(!response.ok||!data.aiConsent){setScopeConsent(null);setImportError(data.error==="AI_PROVIDER_NOT_CONFIGURED"?"Cấu hình kết nối AI trước khi soạn bài.":"Chưa xác nhận được cấu hình bài soạn. Thử lại sau khi kiểm tra nguồn.");return;}
+        setScopeConsent(data.aiConsent);setGenerationProviderHost(data.generation?.providerHost||"");
+      }).catch(()=>{if(!abort.signal.aborted&&sourceOperationRef.current===epoch){setScopeConsent(null);setImportError("Chưa xác nhận được cấu hình bài soạn. Kiểm tra kết nối rồi thử lại.");}});
+    },0);
+    return()=>{abort.abort();window.clearTimeout(timer);};
+  },[generationSettings,importSourceId,importSourceStatus,importSourceMeta?.sha256,importSourceMeta?.extractionHash,importSourceMeta?.parserRevision]);
   const generationBusyRef = useRef(false);
   const sourceOperationRef = useRef(0);
   const scopeRequestRef = useRef(0);
@@ -864,6 +890,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   useEffect(() => {
     const abort=new AbortController();
     const timer=window.setTimeout(()=>{
+      if(creation){setActiveSessionId(null);setCreatedSessionData(null);setIsSessionRestored(true);return;}
       const requested=new URLSearchParams(window.location.search).get("session");
       if(requested){
         if(!/^[A-Za-z0-9_-]{1,70}$/.test(requested)){setIsSessionRestored(true);return;}
@@ -873,12 +900,14 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       const restoredCode=sessionStorage.getItem("active_teacher_session_code");if(restoredId&&restoredCode)setCreatedSessionData(current=>current??{id:restoredId,code:restoredCode});setIsSessionRestored(true);
     },0);
     return()=>{abort.abort();window.clearTimeout(timer);};
-  }, []);
+  }, [creation]);
 
   const fetchSourceById = useCallback(async (targetId: string) => {
     const trimmedId = (targetId || "").trim();
     if (!trimmedId) return;
-    sourceOperationRef.current++;
+    // eslint-disable-next-line react-hooks/immutability -- Event-time epoch invalidates any older source request.
+    const sourceEpoch = ++sourceOperationRef.current;
+    setScopeConsent(null);
     setGenerationConsentKey("");
     setGenerationJob(null);
     setIsLoadingSource(true);
@@ -889,6 +918,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         cache: "no-store",
       });
       const data = (await res.json()) as { source?: LessonSourceMetadata; error?: string };
+      if (sourceEpoch !== sourceOperationRef.current) return;
       if (!res.ok) {
         if (res.status === 404 || res.status === 401) {
           saveImportSourceSession(null);
@@ -927,10 +957,11 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         setStudioStatus(`Nguồn học liệu đang ở trạng thái: ${getTeacherDisplay(src.status)}`);
       }
     } catch (err: unknown) {
+      if (sourceEpoch !== sourceOperationRef.current) return;
       const msg = err instanceof Error ? err.message : "Không thể tải nguồn học liệu.";
       setImportError(msg);
     } finally {
-      setIsLoadingSource(false);
+      if (sourceEpoch === sourceOperationRef.current) setIsLoadingSource(false);
     }
   }, []);
 
@@ -1008,7 +1039,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       } catch { /* Polling can continue without persisted job identity. */ }
       setStudioStatus("✓ Đã xếp hàng tạo bản nháp AI. Hệ thống sẽ giữ bản nguồn và không tự phê duyệt.");
       const runResponse = await fetch("/api/lessons/proposal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "run", id: data.job.id, aiConsent: {
-        ...((generationSettings.scope && scopeConsent) ? scopeConsent : {}),
+        ...(((generationSettings.scope || generationSettings.purpose) && scopeConsent) ? scopeConsent : {}),
         confirmed: true, sourceId: importSourceId, sourceSha256: importSourceMeta.sha256,
         parserRevision: importSourceMeta.parserRevision, extractionHash: importSourceMeta.extractionHash,
       } }) });
@@ -1070,13 +1101,14 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         const query = typeof stored?.id === "string" && stored.id && stored.hash === importSourceMeta.extractionHash ? "jobId=" + encodeURIComponent(stored.id) : "latest=true&sourceId=" + encodeURIComponent(importSourceId);
         const response = await fetch("/api/lessons/proposal?" + query, { cache: "no-store" });
         const data = (await response.json()) as { job?: LessonGenerationJob };
-        if (active && response.ok && data.job?.sourceId === importSourceId && data.job.extractionHash === importSourceMeta.extractionHash && data.job.sourceSha256 === importSourceMeta.sha256 && data.job.parserRevision === importSourceMeta.parserRevision) setGenerationJob(current => current?.sourceId === importSourceId ? current : data.job!);
+        if (active && response.ok && data.job?.sourceId === importSourceId && data.job.extractionHash === importSourceMeta.extractionHash && data.job.sourceSha256 === importSourceMeta.sha256 && data.job.parserRevision === importSourceMeta.parserRevision && (!creation||matchesCreationSettings(data.job.settings,generationSettings))) setGenerationJob(current => current?.sourceId === importSourceId ? current : data.job!);
       } catch { /* Manual creation also reloads a job by its saved request identity. */ }
     }, 0);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [importSourceId, importSourceMeta, user.userId]);
+  }, [importSourceId, importSourceMeta, user.userId,creation,generationSettings]);
 
   const handleApplyGenerationResult = useCallback(() => {
+    if(creation&&!matchesCreationSettings(generationJob?.settings,generationSettings)){setImportError("Bản nháp này khác loại tiết, khối hoặc thời lượng đã chọn. Tạo bản nháp mới theo cấu hình hiện tại.");return;}
     const pkg = generationJob?.result?.package;
     if (!pkg || generationJob.status !== "needs_review" || pkg.status !== "needs_review" || generationJob.sourceId !== importSourceId || generationJob.extractionHash !== importSourceMeta?.extractionHash || generationJob.sourceSha256 !== importSourceMeta.sha256 || generationJob.parserRevision !== importSourceMeta.parserRevision) return;
     activePackageFetchIdRef.current = null;
@@ -1093,20 +1125,22 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     setEditedPackage(pkg);
     setStudioSubTab("edit");
     setStudioStatus("✓ Đã đưa bản nháp AI vào biểu mẫu. Vẫn cần rà soát lỗi, nguồn, mục tiêu và đáp án trước khi lưu.");
-  }, [generationJob, importSourceId, importSourceMeta, setEditedPackage, setStudioSubTab]);
+  }, [generationJob, importSourceId, importSourceMeta, setEditedPackage, setStudioSubTab,creation,generationSettings]);
 
   useEffect(() => {
     let active = true;
     const timer = window.setTimeout(() => {
+      if(creation)return;
       try {
         if (typeof window !== "undefined" && window.sessionStorage) {
           const storedId = window.sessionStorage.getItem(SESSION_SOURCE_ID_KEY);
           if (storedId) {
+            const sourceEpoch = sourceOperationRef.current;
             setSourceIdInput(storedId);
             setIsLoadingSource(true);
             fetch(`/api/lessons/sources?id=${encodeURIComponent(storedId)}`, { cache: "no-store" })
               .then(async (res) => {
-                if (!active) return;
+                if (!active || sourceEpoch !== sourceOperationRef.current) return;
                 if (!res.ok) {
                   if (res.status === 404 || res.status === 401) {
                     saveImportSourceSession(null);
@@ -1114,7 +1148,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   return;
                 }
                 const data = (await res.json()) as { source?: LessonSourceMetadata };
-                if (!active || !data?.source) return;
+                if (!active || sourceEpoch !== sourceOperationRef.current || !data?.source) return;
                 const src = data.source;
                 setImportSourceId(src.id);
                 setImportSourceStatus(src.status);
@@ -1126,7 +1160,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
               })
               .catch(() => {})
               .finally(() => {
-                if (active) setIsLoadingSource(false);
+                if (active && sourceEpoch === sourceOperationRef.current) setIsLoadingSource(false);
               });
           }
         }
@@ -1138,7 +1172,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       active = false;
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [creation]);
 
   // Cockpit assessments evaluation state
   const [assessingSubId, setAssessingSubId] = useState<string | null>(null);
@@ -1162,28 +1196,19 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       if (!selectInitial || draftRevisionRef.current !== revision) return;
       activePackageFetchIdRef.current = fetchSessionId;
 
-      if (pkgList.length > 0) {
-        const first = pkgList[0];
+      if (creation?.source === "library") {
+        const first = pkgList.find(record => record.row_id === creation.packageId);
+        if(!first)throw Error("Học liệu đã chọn không còn khả dụng. Chọn lại trong màn khởi tạo.");
         setSelectedRecord(first);
         const getRes = await fetch(`/api/lessons?kind=get&id=${first.row_id}`, { cache: "no-store" });
         if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
+        if(!getRes.ok){setSelectedRecord(null);throw Error("Không mở được học liệu đã chọn. Chọn lại nội dung hoặc kiểm tra quyền truy cập.");}
         if (getRes.ok) {
           const normalized = normalizeLessonResponse(await getRes.json());
           if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
           setSelectedRecord(normalized.row || first);
           setCurrentPackage(normalized.lesson);
-          setEditedPackage(JSON.parse(JSON.stringify(normalized.lesson)));
-          setLaunchTitle(normalized.lesson.essentialQuestion?.slice(0, 60) || normalized.lesson.id);
-        }
-      } else {
-        // Fallback to pilot
-        const pilotRes = await fetch("/api/lessons?kind=pilot", { cache: "no-store" });
-        if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
-        if (pilotRes.ok) {
-          const normalized = normalizeLessonResponse(await pilotRes.json());
-          if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
-          setSelectedRecord(null);
-          setCurrentPackage(normalized.lesson);
+          if(creation?.source==='library')setGenerationSettings(current=>({...current,grade:normalized.lesson.grade||current.grade,slotMinutes:normalized.lesson.budget?.slotMinutes||current.slotMinutes}));
           setEditedPackage(JSON.parse(JSON.stringify(normalized.lesson)));
           setLaunchTitle(normalized.lesson.essentialQuestion?.slice(0, 60) || normalized.lesson.id);
         }
@@ -1194,21 +1219,29 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
         setStudioStatus(msg);
       }
     } finally {
-      if (selectInitial && (activePackageFetchIdRef.current === fetchSessionId || (activePackageFetchIdRef.current === null && activeListFetchIdRef.current === fetchSessionId))) {
+      if (selectInitial && activeListFetchIdRef.current === fetchSessionId) {
         setIsLoadingStudio(false);
       }
     }
-  }, [setEditedPackage]);
+  }, [setEditedPackage,creation]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadStudio(true);
+      const isNewImport=creation?.source==='import';
+      const hasSession=new URLSearchParams(window.location.search).has('session');
+      void loadStudio(!isNewImport&&!hasSession);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadStudio]);
+  }, [loadStudio,creation]);
 
   // Select package from list
   const handleSelectPackage = async (rec: PackageRecord | null, authoredId?:string) => {
+    if(!rec&&!authoredId){
+      if(creation)return;
+      activePackageFetchIdRef.current=null;setSelectedRecord(null);setCurrentPackage(null);setEditedPackage(null);setStudioSubTab("preview");
+      const requestId=`pilot-${Date.now()}-${Math.random()}`;activePackageFetchIdRef.current=requestId;setIsLoadingStudio(true);
+      try{const response=await fetch("/api/lessons?kind=pilot",{cache:"no-store"});if(!response.ok)throw Error("Không tải được bài mẫu.");const normalized=normalizeLessonResponse(await response.json());if(activePackageFetchIdRef.current!==requestId)return;setCurrentPackage(normalized.lesson);setEditedPackage(JSON.parse(JSON.stringify(normalized.lesson)));setLaunchTitle(normalized.lesson.essentialQuestion?.slice(0,60)||normalized.lesson.id);}catch(error){if(activePackageFetchIdRef.current===requestId)setStudioStatus(error instanceof Error?error.message:"Không tải được bài mẫu.");}finally{if(activePackageFetchIdRef.current===requestId)setIsLoadingStudio(false);}return;
+    }
     const targetRowId = rec?.row_id || "";
     const requestId = `${targetRowId}-${Date.now()}-${Math.random()}`;
     activePackageFetchIdRef.current = requestId;
@@ -1233,13 +1266,14 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     setStudioStatus("");
     setLaunchMode("preview");
     try {
-      const res = await fetch(authoredId?`/api/lesson-content?id=${encodeURIComponent(authoredId)}`:targetRowId ? `/api/lessons?kind=get&id=${targetRowId}` : "/api/lessons?kind=pilot", { cache: "no-store" });
+      const res = await fetch(authoredId&&authoredId!=="__pilot__"?`/api/lesson-content?id=${encodeURIComponent(authoredId)}`:authoredId==="__pilot__"?"/api/lessons?kind=pilot":`/api/lessons?kind=get&id=${targetRowId}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Không thể tải chi tiết bài học.");
       const rawData = await res.json();
       if (activePackageFetchIdRef.current !== requestId || draftRevisionRef.current !== revision) return;
       const { lesson, row } = normalizeLessonResponse(rawData);
       setSelectedRecord(row || rec);
       setCurrentPackage(lesson);
+      if(creation?.source==='library')setGenerationSettings(current=>({...current,grade:lesson.grade||current.grade,slotMinutes:lesson.budget?.slotMinutes||current.slotMinutes}));
       setEditedPackage(JSON.parse(JSON.stringify(lesson)));
       setLaunchTitle(lesson.essentialQuestion?.slice(0, 60) || lesson.id);
     } catch (err: unknown) {
@@ -1452,6 +1486,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   };
 
   const importSourceFile = async (file: File, typed = false) => {
+    // eslint-disable-next-line react-hooks/immutability -- Event-time epoch cancels source restore/job responses for the old input.
     sourceOperationRef.current++;
     setGenerationConsentKey("");
     setGenerationJob(null);
@@ -1661,8 +1696,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       id: `pkg-${importExtraction.sha256.slice(0, 8)}`,
       version: "1.0.0-draft",
       status: "draft",
-      subject: "math",
-      grade: 11,
+      subject: generationSettings.subject,
+      grade: generationSettings.grade,
       curriculumRefs: [],
       sourceRefs: [
         {
@@ -1678,7 +1713,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       prerequisites: [],
       objectives: [], // strictly empty: do NOT invent LO
       budget: {
-        slotMinutes: 40,
+        slotMinutes: generationSettings.slotMinutes,
         coreMinutes: 0,
         reserveMinutes: 0,
         optionalMinutes: 0,
@@ -2029,12 +2064,13 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       <header className="lesson-header"><a className="lesson-button lesson-button-outline" href="/hosts">Trang Giáo viên</a>
         <div>
           <p className="lesson-kicker">HỆ THỐNG QUẢN TRỊ BÀI DẠY VÀ LỚP HỌC</p>
-          <h1 className="lesson-title">Bài học: Dãy số Toán 11</h1>
+          <h1 className="lesson-title">{currentPackage ? (currentPackage.essentialQuestion || currentPackage.id) : "Soạn tiết học"}</h1>
+          {creation && <p>{LESSON_PURPOSES[creation.purpose as keyof typeof LESSON_PURPOSES]} · Lớp {currentPackage?.grade||creation.grade} · {currentPackage?.budget?.slotMinutes||creation.minutes} phút{creation.source==='library'?' · Lấy theo học liệu đã chọn; muốn thay mục tiêu hoặc nội dung, đưa giáo án vào soạn mới.':''}</p>}
         </div>
         <div className="lesson-identity">
           <span>Giáo viên: <strong>{user.displayName}</strong></span>
           <span className="lesson-badge lesson-badge-primary">Chủ phòng</span>
-          {activeTab === "studio" && <a className="lesson-button lesson-button-outline" href="/exams">Kiểm tra</a>}
+          {activeTab === "studio" && <><a className="lesson-button lesson-button-outline" href="/lessons/new">Khởi tạo tiết mới</a><a className="lesson-button lesson-button-outline" href="/exams">Kiểm tra</a></>}
           {activeSessionId && activeTab === "studio" && (
             <button
               className="lesson-button lesson-button-outline"
@@ -2049,6 +2085,20 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       {/* Main Studio View */}
       {activeTab === "studio" && (
         <section className="lesson-studio">
+          {undoDraft && <section className="lesson-card" aria-label="Hoàn tác xóa trong bản soạn"><p>Khôi phục bản soạn trước lần xóa gần nhất. Các chỉnh sửa sau lần xóa cũng trở về trạng thái đó.</p><button type="button" className="lesson-button lesson-button-outline" onClick={() => { draftRevisionRef.current++; const restored=syncPackageBidirectionalLinks(undoDraft); editedPackageRef.current=restored; setRawEditedPackage(restored); setUndoDraft(null); }}>Hoàn tác xóa trong bản soạn</button><button type="button" className="lesson-button lesson-button-outline" onClick={()=>setUndoDraft(null)}>Bỏ hoàn tác</button></section>}
+          <LessonContentLibrary onRemoved={(kind, id) => {
+            if (kind === "package") {
+              setPackages(current => current.filter(record => record.row_id !== id));
+              if (selectedRecord?.row_id === id) { setSelectedRecord(null); setCurrentPackage(null); setEditedPackage(null); setApprovedPlan(null); }
+            }
+            if (kind === "plan" && approvedPlan?.planRowId === id) setApprovedPlan(null);
+            if (kind === "source" && (importSourceId === id || sourceIdInput.trim() === id)) {
+              // eslint-disable-next-line react-hooks/immutability -- Deletion invalidates late source/job responses.
+              sourceOperationRef.current++;
+              saveImportSourceSession(null); setSourceIdInput(""); setImportSourceId(null); setImportSourceMeta(null); setImportSourceStatus(null); setIsLoadingSource(false); setImportExtraction(null); setImportProposal(null); setGenerationJob(null); setScopeConsent(null);
+            }
+            if (kind === "job" && generationJob?.id === id) { sourceOperationRef.current++; setGenerationJob(null); setImportProposal(null); }
+          }} />
           {/* Navigation Bar */}
           <div className="lesson-tabs" role="tablist">
             <button
@@ -2113,14 +2163,16 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 id="package-select"
                 className="lesson-select"
                 style={{ width: "min(260px, 100%)" }}
-                value={selectedRecord?.row_id || (authoredLibrary.some(item=>item.id===currentPackage?.id)?"source:"+currentPackage?.id:"")}
+                value={selectedRecord?.row_id || (authoredLibrary.some(item=>item.id===currentPackage?.id)?"source:"+currentPackage?.id:currentPackage?.id==="g11-sequences-p1"&&!creation?"__pilot__":"")}
                 onChange={(e) => {
                   if(e.target.value.startsWith("source:")){void handleSelectPackage(null,e.target.value.slice(7));return;}
+                  if(e.target.value==="__pilot__"){void handleSelectPackage(null,"__pilot__");return;}
                   const target = packages.find((p) => p.row_id === e.target.value);
-                  if (target || !e.target.value) void handleSelectPackage(target || null);
+                  if (target) void handleSelectPackage(target);
                 }}
               >
-                <option value="">Bài mẫu Dãy số — phiên bản hiện hành</option>
+                <option value="" disabled>Chọn học liệu</option>
+                {!creation&&<option value="__pilot__">Bài mẫu Dãy số (chọn để tải)</option>}
                 {authoredLibrary.map(item=><option key={item.id} value={"source:"+item.id}>{item.title} — Tiết {item.period}, nháp cần GV duyệt</option>)}
                 {packages.map((p) => (
                   <option key={p.row_id} value={p.row_id}>
@@ -2190,11 +2242,11 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 <span className="lesson-badge lesson-badge-outline">Nhập học liệu</span>
               </div>
               <p className="task-muted-block" style={{ marginBottom: "1.25rem" }}>
-                Tải lên tệp tài liệu nhị phân DOCX / PDF lưu trữ bền vững qua R2/D1 hoặc tệp Markdown / văn bản thuần túy. Trích xuất phân đoạn văn bản nguyên gốc, tính toán mã băm SHA-256 bảo đảm tính toàn vẹn và đối soát công thức toán học KaTeX. Hệ thống không tự ý sinh mục tiêu bài học (LO), nhiệm vụ, đáp án hay gọi AI/lưu trữ tự động.
+                Tải giáo án DOCX, PDF, Markdown hoặc gõ nội dung muốn dạy. Thầy cô kiểm tra nội dung đã đọc, chọn soạn bằng AI hoặc tự biên tập, rồi duyệt bài trước khi mở phòng.
               </p>
 
               {/* Opaque Source ID Lookup & Reload Bar */}
-              <div className="lesson-source-lookup-bar" style={{ marginBottom: "1.25rem", display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+              <details style={{marginBottom:"1rem"}}><summary>Mở lại nguồn đã nhập trước</summary><div className="lesson-source-lookup-bar" style={{ marginBottom: "1.25rem", display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                 <input
                   type="text"
                   placeholder="Nhập mã nguồn học liệu để tải lại..."
@@ -2236,7 +2288,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   </button>
                 )}
                 {!importProposal && generationJob?.sourceId === importSourceId && generationJob.status === "needs_review" && generationJob.result?.package && <button type="button" className="lesson-button lesson-button-success" disabled={isLoadingSource || isImporting} onClick={handleApplyGenerationResult}>Mở bản nháp AI đã lưu</button>}
-              </div>
+              </div></details>
 
               {/* File input / dropzone */}
               <div
@@ -2262,7 +2314,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   {importFile ? `Đã chọn tệp: ${importFile.name}` : "Nhấn để chọn tệp giáo án (.docx, .pdf, .md, .txt)"}
                 </div>
                 <div style={{ fontSize: "0.85rem", color: "var(--lesson-text-muted)" }}>
-                  Hỗ trợ tài liệu nhị phân DOCX, PDF (tối đa 10 MiB) và Markdown (.md), văn bản thuần túy (.txt) &le; 128 KiB. Nguồn tài liệu được lưu trữ bền vững và phân tích an toàn.
+                  DOCX, PDF tối đa 10 MB; Markdown và văn bản tối đa 128 KB. Kiểm tra lại công thức và nội dung sau khi nhập.
                 </div>
               </div>
 
@@ -2330,6 +2382,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                     <label>Môn <select className="lesson-select" value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }}><option value="math">Toán</option><option value="literature">Ngữ văn</option><option value="english">Tiếng Anh</option></select></label>
                     <label>Lớp <select className="lesson-select" value={generationSettings.grade} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, grade: Number(event.target.value) }); }}><option value={10}>10</option><option value={11}>11</option><option value={12}>12</option></select></label>
                     <label>Phút <input className="lesson-input" type="number" min={1} max={240} value={generationSettings.slotMinutes} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, slotMinutes: Number(event.target.value) }); }} /></label>
+                    {generationSettings.purpose&&!scopeConsent&&<button type="button" className="lesson-button lesson-button-outline" disabled={isStartingGeneration||!importSourceId||importSourceStatus!=="ready"} onClick={()=>{setGenerationConsentKey("");setGenerationSettings({...generationSettings});}}>Kiểm tra lại kết nối AI và cấu hình</button>}
                     <button
                       type="button"
                       className="lesson-button lesson-button-primary"
@@ -2351,7 +2404,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   </div>
                   {scopeLabels.length>0&&<p>Chỉ soạn phần đã chọn: {scopeLabels.join("; ")}. Các phần khác nằm ngoài bản nháp này.</p>}
                   <LessonAIConsentPanel providerHost={generationProviderHost} extraction={generationExtraction} settings={generationSettings}
-                    confirmed={Boolean(aiConsentKey && generationConsentKey === aiConsentKey)} disabled={!aiConsentKey || isStartingGeneration || Boolean(generationSettings.scope && !scopeConsent)}
+                    confirmed={Boolean(aiConsentKey && generationConsentKey === aiConsentKey)} disabled={!aiConsentKey || isStartingGeneration || Boolean((generationSettings.scope || generationSettings.purpose) && !scopeConsent)}
                     onChange={confirmed => setGenerationConsentKey(confirmed ? aiConsentKey : "")} />
                   {generationJob?.status === "failed" && (
                     <div className="task-status-banner task-status-failed" style={{ marginTop: "0.75rem" }}>
@@ -5747,6 +5800,11 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                           >
                             Xem minh chứng
                           </button>
+                          {learner.present && cockpitView?.status !== "concluded" && (removeLearnerId === learner.id ? <div role="group" aria-label={`Xác nhận gỡ ${learner.name}`}>
+                            <p>Gỡ {learner.name} khỏi tiết? Em tạm dừng tham gia; hồ sơ lớp và bài đã làm được giữ. Em có thể vào lại bằng thông tin đăng nhập hợp lệ.</p>
+                            <button type="button" className="lesson-button lesson-button-outline" disabled={isCockpitBusy} onClick={() => { void dispatchCommand("LEAVE_LEARNER", {learnerId: learner.id}); setRemoveLearnerId(null); }}>Xác nhận gỡ</button>
+                            <button type="button" className="lesson-button lesson-button-outline" disabled={isCockpitBusy} onClick={() => setRemoveLearnerId(null)}>Hủy</button>
+                          </div> : <button type="button" className="lesson-button lesson-button-outline" disabled={isCockpitBusy} onClick={() => setRemoveLearnerId(learner.id)}>Gỡ khỏi tiết</button>)}
                         </td>
                       </tr>
                     );

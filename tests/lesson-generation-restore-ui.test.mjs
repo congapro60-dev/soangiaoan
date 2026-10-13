@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {matchesCreationSettings} from '../lib/lesson/creation-context.js';
 const source=readFileSync(new URL('../app/lessons/lesson-dashboard.tsx',import.meta.url),'utf8');
 const ast=ts.createSourceFile('dashboard.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 let effect;
@@ -11,7 +12,7 @@ assert.ok(effect);
 const js=ts.transpileModule(effect,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText.trim().replace(/;$/,'');
 async function restore({stored=null,job={id:'saved',sourceId:'source',extractionHash:'extract',sourceSha256:'sha',parserRevision:'parser'},cancel=false,newJob=null}={}){
  let timer,resolve,cleanup,state=null;const requests=[],updates=[];
- const context={importSourceId:'source',importSourceMeta:{extractionHash:'extract',sha256:'sha',parserRevision:'parser'},user:{userId:'teacher'},sessionStorage:{getItem:()=>stored},window:{setTimeout:fn=>{timer=fn;return 1;},clearTimeout(){}},fetch:async url=>{requests.push(url);return new Promise(done=>{resolve=()=>done({ok:true,json:async()=>({job})});});},setGenerationJob:job=>{state=typeof job==='function'?job(state):job;updates.push(state);},encodeURIComponent};
+ const context={creation:null,generationSettings:{subject:'math',grade:11,slotMinutes:40},matchesCreationSettings,importSourceId:'source',importSourceMeta:{extractionHash:'extract',sha256:'sha',parserRevision:'parser'},user:{userId:'teacher'},sessionStorage:{getItem:()=>stored},window:{setTimeout:fn=>{timer=fn;return 1;},clearTimeout(){}},fetch:async url=>{requests.push(url);return new Promise(done=>{resolve=()=>done({ok:true,json:async()=>({job})});});},setGenerationJob:job=>{state=typeof job==='function'?job(state):job;updates.push(state);},encodeURIComponent};
  cleanup=vm.runInNewContext('('+js+')()',context);const pending=timer();state=newJob;if(cancel)cleanup();resolve?.();await pending;return{requests,updates,state};
 }
 test('closed-tab recovery requests latest saved source draft; matching session keeps in-flight job',async()=>{

@@ -488,6 +488,7 @@ export async function POST(req) {
             let room = await adminAuth(req, b.id, b.action);
             if (!room)
                 return fail('Chỉ giáo viên quản lý phòng mới được thực hiện thao tác này.', 403);
+            if (['delete-room','remove-team'].includes(b.action) && !resolveIdentity(req,getEnv()).user) return fail('Chuyển phòng cũ vào tài khoản giáo viên trước khi xóa để có thể khôi phục từ Thùng rác.',409,'CLAIM_REQUIRED');
             if (!Number.isInteger(b.revision) || typeof b.requestId !== 'string' || b.requestId.length > 70)
                 return fail('Thiếu phiên bản phòng hoặc mã thao tác.');
             if (['reset-room', 'delete-room'].includes(b.action) && b.confirmCode !== room.code)
@@ -495,6 +496,11 @@ export async function POST(req) {
             if (b.action === 'remove-team' && (typeof b.teamId !== 'string' || b.teamId.length > 60))
                 return fail('Thiếu đội cần xóa.');
             const controlKey=JSON.stringify({requestId:b.requestId,fingerprint:fingerprint({action:b.action,teamId:b.teamId??null,revision:b.revision,confirmCode:b.confirmCode??null})});
+            const caller = resolveIdentity(req, getEnv());
+            const roles = b.action === 'delete-room' ? "'owner'" : "'owner','cohost'";
+            const authorization = caller.isRootUser ? {sql:'1=1',args:[]} : room.owner_account_id == null
+                ? {sql:'owner_account_id IS NULL AND admin_hash=?',args:[await hash(bearer(req))]}
+                : {sql:`owner_account_id=? AND NOT EXISTS(SELECT 1 FROM system_hosts WHERE account_id=? AND revoked_at IS NOT NULL) AND (owner_account_id=? OR EXISTS(SELECT 1 FROM room_memberships WHERE room_id=rooms.id AND account_id=? AND role IN (${roles}) AND revoked_at IS NULL))`,args:[room.owner_account_id,caller.user?.userId,caller.user?.userId,caller.user?.userId]};
             if (room.control_key === controlKey)
                 return reply({ ok: true, action: b.action, replay: true });
             let priorControl;try{priorControl=JSON.parse(room.control_key||'null');}catch{priorControl=null;}
@@ -510,13 +516,16 @@ export async function POST(req) {
                     mode=reduceMode(mode,{type:'leave',learnerId:member.id,round:mode.round,requestId:`remove:${commit}:${member.id}`},{gameNow:mode.gameNow,pause:mode.paused}).state;
                 race.modeState=mode;race.modeCommit=commit;
                 const results=await db().batch([
-                    stmt('UPDATE rooms SET race=?,revision=revision+1,control_key=? WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM teams WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL)',JSON.stringify(race),controlKey,room.id,b.revision,room.round,target.id,room.id,target.revision),
-                    stmt("UPDATE teams SET removed_at=?,revision=revision+1 WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND round=? AND deleted_at IS NULL AND json_extract(race,'$.modeCommit')=?)",Date.now(),target.id,room.id,target.revision,room.id,room.round,commit)
+                    stmt(`UPDATE rooms SET race=?,revision=revision+1,control_key=? WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM teams WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL) AND ${authorization.sql}`,JSON.stringify(race),controlKey,room.id,b.revision,room.round,target.id,room.id,target.revision,...authorization.args),
+                    stmt("UPDATE teams SET removed_at=?,revision=revision+1 WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND round=? AND deleted_at IS NULL AND json_extract(race,'$.modeCommit')=?)",Date.now(),target.id,room.id,target.revision,room.id,room.round,commit),
+                    ...(resolveIdentity(req,getEnv()).user ? [stmt("INSERT INTO site_trash(kind,object_id,owner_account_id,deleted_at,data) SELECT 'game-team',t.id,?,t.removed_at,? FROM teams t JOIN rooms r ON r.id=t.room_id WHERE t.id=? AND r.control_key=? AND t.removed_at IS NOT NULL ON CONFLICT(kind,object_id) DO UPDATE SET deleted_at=excluded.deleted_at,data=excluded.data,owner_account_id=excluded.owner_account_id",resolveIdentity(req,getEnv()).user.userId,JSON.stringify({title:JSON.parse(target.data).name||'Đội chơi',roomId:room.id,roomRevision:b.revision+1,race:room.race}),target.id,controlKey)] : [])
                 ]);
                 if(results[0].meta.changes!==1||results[1].meta.changes!==1)return fail('Phòng vừa thay đổi.',409,'REVISION_MISMATCH');
                 return reply({ok:true,action:b.action});
             }
-            const queries=managementStatements(stmt,b.action,{roomId:room.id,revision:b.revision,requestId:controlKey,teamId:b.teamId,now:Date.now()});
+            const queries=managementStatements(stmt,b.action,{roomId:room.id,revision:b.revision,requestId:controlKey,teamId:b.teamId,now:Date.now(),authorization});
+            if (b.action === 'delete-room' && caller.user) queries.push(stmt("INSERT INTO site_trash(kind,object_id,owner_account_id,deleted_at,data) SELECT 'room',id,?,deleted_at,? FROM rooms WHERE id=? AND control_key=? AND deleted_at IS NOT NULL ON CONFLICT(kind,object_id) DO UPDATE SET owner_account_id=excluded.owner_account_id,deleted_at=excluded.deleted_at,data=excluded.data",caller.user.userId,JSON.stringify({title:room.title,code:room.code,revision:b.revision+1,mode:room.mode}),room.id,controlKey));
+            if (b.action === 'remove-team' && caller.user) queries.push(stmt("INSERT INTO site_trash(kind,object_id,owner_account_id,deleted_at,data) SELECT 'game-team',t.id,?,t.removed_at,json_object('title',json_extract(t.data,'$.name'),'roomId',t.room_id,'roomRevision',r.revision,'race',r.race) FROM teams t JOIN rooms r ON r.id=t.room_id WHERE t.id=? AND r.control_key=? AND t.removed_at IS NOT NULL ON CONFLICT(kind,object_id) DO UPDATE SET deleted_at=excluded.deleted_at,data=excluded.data,owner_account_id=excluded.owner_account_id",caller.user.userId,b.teamId,controlKey));
             if(b.action==='reset-room')queries.push(stmt("UPDATE teams SET data=json_remove(data,'$.modeUnit') WHERE room_id=? AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND control_key=? AND deleted_at IS NULL)",room.id,room.id,controlKey));
             let results = await db().batch(queries);
             if (!results[0].meta.changes)

@@ -13,6 +13,8 @@ export const dynamic = 'force-dynamic';
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 const statuses = { AUTH_REQUIRED: 401, INVALID_QUERY: 400, INVALID_BODY: 400, INVALID_PROPOSAL: 400, INVALID_PROPOSAL_CITATIONS: 400, INVALID_SLOT_MINUTES: 400, INVALID_SETTINGS: 400, INVALID_REQUEST_ID: 400, INVALID_MODEL: 400, PROPOSAL_TOO_LARGE: 413, NOT_FOUND: 404, SOURCE_NOT_READY: 409, REQUEST_ID_CONFLICT: 409, SOURCE_CHANGED: 409, SCOPE_SOURCE_MISMATCH: 409, SOURCE_STORAGE_UNAVAILABLE: 503, SOURCE_INTEGRITY_MISMATCH: 503, GENERATION_QUOTA_EXCEEDED: 429, AI_PROVIDER_NOT_CONFIGURED: 503, AI_CONSENT_REQUIRED: 409, AI_QUOTA_EXCEEDED: 503, AI_TIMEOUT: 504, AI_OUTCOME_UNKNOWN: 409, AI_GENERATION_FAILED: 503 };
 const error = issue => Object.hasOwn(statuses, issue?.message) ? json({ error: issue.message }, statuses[issue.message]) : json({ error: 'LESSON_PROPOSAL_UNAVAILABLE' }, 503);
+statuses.CONFIRM_REQUIRED = 409;
+statuses.GENERATION_RUNNING = 409;
 const service = () => createLessonSourceService({ db: db(), bucket: getEnv().LESSON_SOURCES, importDocx, importPdf });
 const jobs = () => createLessonGenerationService({ db: db(), sourceService: service(), providerEndpoint: lessonAIConfig(getEnv())?.endpoint, generate: input => generateLessonCandidate(input, { env: getEnv() }) });
 async function verifyExtractionHash(extraction, expectedHash) {
@@ -45,6 +47,7 @@ export async function GET(request) {
   const { user } = resolveIdentity(request, getEnv());
   if (!user) return json({ error: 'AUTH_REQUIRED' }, 401);
   try {
+    if (new URL(request.url).searchParams.get('kind') === 'list') return json({ jobs: await jobs().list(user.userId) });
     await loadStoredAI(db);
     const query = new URL(request.url).searchParams;
     if (query.get('capabilities') === 'true') {
@@ -69,8 +72,16 @@ export async function POST(request) {
   const { user } = resolveIdentity(request, getEnv());
   if (!user) return json({ error: 'AUTH_REQUIRED' }, 401);
   try {
-    await loadStoredAI(db);
     const body = await readBody(request);
+    if (body?.action === 'restore') {
+      if (Object.keys(body).some(key => !['action', 'id'].includes(key))) throw Error('INVALID_BODY');
+      return json(await jobs().restore({ ownerAccountId: user.userId, id: body.id }));
+    }
+    if (body?.action === 'delete') {
+      if (Object.keys(body).some(key => !['action', 'id', 'confirmId'].includes(key))) throw Error('INVALID_BODY');
+      return json(await jobs().remove({ ownerAccountId: user.userId, id: body.id, confirmId: body.confirmId }));
+    }
+    await loadStoredAI(db);
     if (body?.action === 'consent') {
       if (Object.keys(body).some(key => !['action', 'sourceId', 'settings'].includes(key)) || typeof body.sourceId !== 'string') throw Error('INVALID_BODY');
       const config = lessonAIConfig(getEnv());

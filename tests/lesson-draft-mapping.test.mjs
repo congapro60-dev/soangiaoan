@@ -9,6 +9,8 @@ import { hashPackage, MANDATORY_FORBIDDEN_SOURCES } from '../lib/lesson/schema.j
 import { validateLessonPackage } from '../lib/lesson/validate.js';
 import { createLessonService } from '../lib/lesson/service.js';
 import * as teacherSetup from '../lib/lesson/teacher-setup.js';
+import {containsDraftRemoval} from '../lib/lesson/draft-undo.js';
+import {LESSON_PURPOSES,matchesCreationSettings} from '../lib/lesson/creation-context.js';
 
 const source = await readFile(new URL('../app/lessons/lesson-dashboard.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('dashboard.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -33,13 +35,16 @@ const plain = value => JSON.parse(JSON.stringify(value));
 
 test('Studio can select the current authored pilot when saved packages already exist', async () => {
   const state = {}, bindings = studioBindings(state);
+  bindings.creation=null;bindings.setCurrentPackage=value=>{state.CurrentPackage=value;};
+  bindings.setSelectedRecord=value=>{state.SelectedRecord=value;};bindings.setEditedPackage=value=>{state.EditedPackage=value;};bindings.setLaunchTitle=value=>{state.LaunchTitle=value;};
+  bindings.setIsLoadingStudio=value=>{state.IsLoadingStudio=value;};bindings.setStudioStatus=value=>{state.StudioStatus=value;};
   const pilot = JSON.parse(await readFile(new URL('../content/lessons/g11-sequences-p1.json', import.meta.url), 'utf8'));
   bindings.fetch = async url => {
     assert.equal(url, '/api/lessons?kind=pilot');
     return { ok: true, json: async () => ({ package: pilot }) };
   };
-  await handler('handleSelectPackage', bindings)(null);
-  assert.equal(state.SelectedRecord, null);
+  await handler('handleSelectPackage', bindings)(null,'__pilot__');
+  assert.ok(state.SelectedRecord == null);
   assert.equal(state.CurrentPackage.version, pilot.version);
   assert.equal(state.EditedPackage.contentHash, pilot.contentHash);
   assert.equal(state.IsLoadingStudio, false);
@@ -60,6 +65,8 @@ function studioBindings(state = {}) {
   const bindings = {
     draftRevisionRef: { current: 0 }, savingRef: { current: false }, mappingJson: null,
     importSourceId: null, importSourceMeta: null,
+    creation:null,generationSettings:{subject:'math',grade:11,slotMinutes:40},
+    setGenerationSettings:()=>{},
     activePackageFetchIdRef: { current: null }, activeDirectorFetchIdRef: { current: null }, activeListFetchIdRef: { current: null },
     syncPackageBidirectionalLinks: syncLinks,
     sourceNeedsNumericReview: handler('sourceNeedsNumericReview', {}), checkedNumericAcks: {},
@@ -72,6 +79,23 @@ function studioBindings(state = {}) {
   bindings.setStudioSubTab = value => { bindings.draftRevisionRef.current++; state.StudioSubTab = value; };
   return bindings;
 }
+
+test('creation import loads no package while saved choice loads only the explicit row',async()=>{
+ for(const creation of [
+  {source:'import',purpose:'formation',grade:10,minutes:40,packageId:null},
+  {source:'library',purpose:'review',grade:11,minutes:80,packageId:'chosen-row'},
+ ]){
+  const state={},bindings=studioBindings(state),calls=[];bindings.creation=creation;bindings.useCallback=fn=>fn;bindings.setPackages=value=>{state.Packages=value;};
+  bindings.normalizeLessonResponse=value=>value;
+  bindings.setSelectedRecord=value=>{state.SelectedRecord=value;};bindings.setCurrentPackage=value=>{state.CurrentPackage=value;};
+  bindings.setIsLoadingStudio=value=>{state.IsLoadingStudio=value;};bindings.setStudioStatus=value=>{state.StudioStatus=value;};
+  bindings.setLaunchTitle=value=>{state.LaunchTitle=value;};
+  bindings.fetch=async url=>{calls.push(url);if(url==='/api/lessons?kind=list')return{ok:true,json:async()=>({packages:[{row_id:'other-row'},{row_id:'chosen-row'}]})};assert.equal(url,'/api/lessons?kind=get&id=chosen-row');return{ok:true,json:async()=>({row:{row_id:'chosen-row'},lesson:{id:'selected',grade:11,budget:{slotMinutes:80}}})};};
+  await handler('loadStudio',bindings)(true);
+  assert.deepEqual(calls,creation.source==='import'?['/api/lessons?kind=list']:['/api/lessons?kind=list','/api/lessons?kind=get&id=chosen-row']);
+  if(creation.source==='import')assert.equal(state.CurrentPackage,undefined);else assert.equal(state.CurrentPackage.id,'selected');
+ }
+});
 
 test('sync removes deleted and reassigned reciprocal links without mutating the draft', () => {
   const draft = {
@@ -381,6 +405,9 @@ function formHarness(fetch = async () => { throw new Error('Unexpected request')
     if (name.endsWith('/useLessonSession')) return { useLessonSession: () => session, formatDuration: String };
     if (name.endsWith('/lib/lesson/proposal.js')) return { buildLessonProposal: () => null, __esModule: true };
     if (name.endsWith("/ClassRosterPanel")) return { ClassRosterPanel: () => null };
+    if (name.endsWith("/LessonContentLibrary")) return { default: () => null, __esModule: true };
+    if (name.endsWith('/lib/lesson/draft-undo.js')) return {containsDraftRemoval};
+    if (name.endsWith('/lib/lesson/creation-context.js')) return {LESSON_PURPOSES,matchesCreationSettings};
     if (name.endsWith("/ContentScopePicker")) return { ContentScopePicker: () => null };
     if (name.endsWith("lesson-catalogue.json")) return { default: { lessons: [] } };
     if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
@@ -557,6 +584,7 @@ test('stale saves cannot overwrite a selected package, imported draft, edited dr
 test('list refresh survives selection but initial detail and loading cannot replace an imported draft', async () => {
   for (const stage of ['list', 'detail', 'failure']) {
     const pending = deferred(), state = {}, bindings = studioBindings(state);
+    bindings.creation={source:'library',packageId:'old',purpose:'formation',grade:11,minutes:40};
     bindings.setPackages = value => { state.Packages = value; };
     bindings.useCallback = fn => fn;
     bindings.fetch = async url => {

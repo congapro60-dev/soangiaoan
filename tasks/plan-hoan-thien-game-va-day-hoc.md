@@ -1339,12 +1339,12 @@ R12chốtlocal13/10:
 R13 tiến độ: tích hợp đã xong; 1221 tests/109 HTTP đạt trên ứng viên trung gian. QA 375 phát hiện lề body 8px gây cuộn trang và nút hidden bị CSS hiển thị; đã sửa. Build cuối đang kiểm lại, chưa đóng R13.4. Review Flash 03:17 PASS; map menu bổ sung sau đó cần kiểm lại. Không phát hành.
 
 R13 nghiệm thu local: 1222 tests; 39 UI +52 map checks sau chỉnh cuối; typecheck/build đạt; lint 0 lỗi/392 cảnh báo cũ, scoped 0. 201 source byte-match. Native 109 HTTP trên hash cuối 31f903ab69b2a63eae3aa93b3abd902adadc8250d189f3af57d88011fe0dd653; cùng hash máy chủ browser QA. Gemini Flash core/map PASS 0 findings. CUA 375: trang 812/812, 1 câu, nháp 23 qua Next/Back, footer trong màn hình, Escape trả Menu; cổng 2D chạm mở riêng câu luyện. Broad CUA trước hai chỉnh cuối gồm 3D thẻ 2/3, nhận 1 mảnh, pause/giữ nháp, máy chung tách người; không gắn nhầm hash cuối. Báo cáo `tasks/codex-r13-report.md`, bằng chứng `tasks/codex-r13-evidence.json`.
-- [ ] Lỗi học liệu cũ ngoài R13: biến thể 12 hàng nhưng label 25 hàng, `content/lessons/g11-sequences-p1.json:337/350`; chưa sửa, chờ chủ hệ thống duyệt riêng.
+- [x] R14 đã sửa lỗi học liệu cũ: biến thể12hàng/label12, `content/lessons/g11-sequences-p1.json:337/350`; chưa sửa, chờ chủ hệ thống duyệt riêng.
 - [x] Chủ hệ thống duyệt phát hành R10–R13 ngày13/10: “Phát hành trước đi đã, còn lỗi nào thì ghi vào plan để lần sau sửa tiếp”. Đã phát hành native version8 thành công lúc11:19:53 ngày13/10/2026.
 
 ## Backlog sau phát hành R10–R13 (chủ hệ thống cho để lượt sau)
-- [ ] Sửa label biến thể 12/25 hàng tại `content/lessons/g11-sequences-p1.json:337/350`, giữ checker/đáp án hữu hạn; duyệt học liệu trước khi đưa vào lớp thật.
-- [ ] Đối soát hai citation số trong nháp Gemini lịch sử; chưa coi nháp đó được duyệt.
+- [x] Đã sửa label biến thể12/25 ở R14 tại `content/lessons/g11-sequences-p1.json:337/350`, giữ checker/đáp án hữu hạn; duyệt học liệu trước khi đưa vào lớp thật.
+- [x] Đã đối soát2citations và lưu bản sửa riêng R14; nháp gốc giữ nguyên, bản sửa vẫn Bản thảo/cầnGVduyệt.
 - [ ] Duyệt nguồn/năm học/định dạng học liệu; nghiệm thu 150HS/40phút và điện thoại/iPad/TV thật.
 - [ ] Duyệt thẩm mỹ3D; cổng3Dcanvas vẫn cảnh quan, chọn bằng menuHTML.
 - [ ] Nếu cần giữ nháp chưa lưu qua đổi người/đóngtab trên máy chung, thiết kế riêng; R13 giữ nháp Next/Back và đóngpopup trong cùng người.
@@ -1371,4 +1371,63 @@ R14 owner đã duyệt sửa/phát hành; code và QA hoàn tất, đang phát h
 - [x] HS1ôcode,trảrouteđúng,gamehỏitênsaucode,lessonPINinline/canonicalname/noChatGPT;badPIN/staleresponseguards;GVstudentlink/copy,TV2/2+boardreceiptCUA.
 - [x] Sửa label12/25 chỉbiếnthể,học liệu/hashcatalogueđồngbộ;comma4+intlistspacescorrect,decimal/thousands/rationalgiữ.
 - [x] 1246fulltests/typecheck/build/lint0errors392warnings;214sourcebyte-match;c043014aWorker/native265HTTPbao150actualpreregister/D1cap/v7rollback;Gemini auth/citationPASS0.
-- [ ] Nativepublish/postdeploy/citationhistoricmanualsave/Claudehandofffinal.
+- [x] Nativepublishv10/postdeploy/citationhistoricmanualsave/Claudehandofffinal.
+
+### R14 hoàn tất phát hành —13/10/2026
+- [x] Owner duyệt3lần bổ sung; nativeversion9triểnkhailuồngGV/HS; version10bổsungbảnsửanguồnriêng+safeguards. Latestversion10succeeded13:55:58VN, deploymentappgdep_6acdd5e10adc81919ae82611ce0a14ae, URL https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site
+- [x] Finalcommit859daa2b1accc15fb949ccc1c090697f7f434574, workerb7045ae44ebf25d1ba2a946721a7e7245760b2b211e95a67afda6726437dcf38;214manifest/685sourcebyte-match;1247tests/typecheck/build0;265nativeHTTPbaoactual150selectedpreregister/D1cap/v7rollback. DeltaGeminiFlashPASS0;manualjobowner/source/flagsguardtestsPASS. Initiallint0/392oldwarnings;finalscopedlint0.
+- [x] ProductionGV3choices/HS1code/setup4selectors; no realclass/session/HSQAdata created, noAIcalls/key/accesschanges,env2kept,errorlogs5min0.
+- [x] Lỗi12/25variant corrected/hashcatalogue02959de8; comma4+integerlistspacedmatchingfixed,decimal/thousands/rational/inventednumberguardskept.
+- [x] Hai lỗi historicalAI citations resolved by explicitmanualreviewcopy: row4e432764-299d-4a78-bdca-6824be827aea/package review-b30ca071-4eda-4631-b7b5-8453c6ea0fef/v1.0.0-draft.2024. Tasks1-2quote genuinecontext, task1-2and3-1adapted becausederivedindex4/distractorsnotliteral source; prompt/options/answerunchanged. Everytaskflag numericReviewRequiredtrue; lineageownerjob/sourcehash checkedserver. BrowserSavePASS; originaljobunchangedboundedprojection; notapproved.
+- [x] Report/evidence/HANDOFF/lessons cập nhật. Spec tasks/codex-r14-teacher-student-entry-plan.md; evidence tasks/codex-r14-release-evidence.json.
+- [ ] GV duyệt bản nháp/mục tiêu/đáp án/nguồn và thời lượng trước dùng chính thức. Năm2026–2027 củaPPCT/DOCXđãxácminh;Unitplan25–26lànguồnkhác,khôngtựđổinhãn hoặcapprove.
+- [ ] Nghiệm thu150HS40phúttrênthiếtbịlớpthật,thẩmmỹ3D. Đây là bằng chứng thực tế, không lỗi code có thể tự đánh dấu xong.
+
+### R15 — hồ sơ học tập GV và tích hợp GiaoAnDewey (đề nghị13/10)
+- [x] Audit dữ liệu từngHS: D1 profile/evidence/session +ownpassport đãcó; teacherlongitudinaldashboard/syncGiaoAnDeweychưacó. Báo cáo tasks/codex-learning-records-integration-audit-20261013.md.
+- [ ] DashboardGV theoHS/mục tiêu/xuyên tiết, bài/câu/nhận xét/hint/status/chờchấm và đềxuất bước học tiếp cóGVduyệt.
+- [ ] MappinggameclassMemberId↔schoolstudentId, teacherChatGPT↔FirebaseUID, objectiveCode↔objectiveId; khôngghéptên.
+- [ ] ExportJSON/CSVchuẩn vàimportGiaoAnDewey; sau mới one-way server sync/APIpermissions/idempotency/sourceversion/revocation/retention.
+- [ ] QAowner/cross-class/cross-HS, giữpending/privatefeedback/studentprojection; khônggộpsao/điểmnhóm thànhmastery.
+R15 đã được yêu cầu lập kế hoạch; chưa được triển khai hoặc phát hành.
+
+### R15 kế hoạch triển khai — 13/10/2026
+- [x] Lập kế hoạch chi tiết `tasks/codex-r15-learning-records-plan.md`; kiểm source Site và bộ nhận adaptive/Rules bên GiaoAnDewey.
+- [x] Ghi rủi ro cần kiểm trước tích hợp: mã mục tiêu/task trùng xuyên gói, preview qua đường hộ chiếu, ID chỉ theo lớp/GV, bộ nhận adaptive chưa đủ bằng chứng xác thực và chống nhập lặp.
+- [ ] R15.1: minh chứng đúng và Hồ sơ học tập GV xuyên tiết, phân quyền server, truy vấn có giới hạn.
+- [ ] R15.2: kế hoạch học tiếp theo minh chứng, GV sửa/duyệt; không lấy điểm game hay mảnh Khám phá làm năng lực.
+- [ ] R15.3: xác minh runtime đích GiaoAnDewey, mapping GV/HS/mục tiêu, JSON xuất/nhập có xem trước/chống trùng/thu hồi; CSV chỉ báo cáo.
+- [ ] R15.4: đồng bộ một chiều có xác thực hai đầu, retry/revision/retention và pilot một lớp.
+- [ ] Duyệt phạm vi triển khai R15; kiểm thử, review và duyệt phát hành từng đợt theo19.9.
+Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch chỉ sửa tài liệu; chưa code, migration, đồng bộ hoặc phát hành. Các gate lớp thật và học liệu R14 giữ nguyên.
+
+### R16 — chủ hệ thống yêu cầu xóa toàn bộ đối tượng tạo/thêm, 13/10
+- [x] R15 giữ lại để sau; hiện rà lifecycle toàn Site và ghi `tasks/codex-r16-delete-lifecycle-plan.md`.
+- [x] Xác nhận thiếu màn khởi tạo tiết, tiêu đề Dãy số hardcode; game Link không điều hướng khi click nhưng URL trực tiếp có form. Copy quyền/legacy khó hiểu.
+- [x] Dọn đúng 5 phòng QA localhost theo ID, soft-delete có SQLite backup; production không sửa. Bằng chứng `tasks/codex-r16-qa-cleanup.json`. Server local đã dừng, chưa kiểm UI reload.
+- [ ] Nút xóa phòng/tiết, lớp/HS/nhóm/giải, giáo án/nguồn/kịch bản/lượt AI, đề/mã đề/câu/bài/ảnh; quyền dùng Thu hồi. API kiểm quyền và xác nhận.
+- [ ] Test/regression/typecheck/lint/build/review độc lập/browser; báo cáo và bàn giao.
+- [ ] Màn khởi tạo chọn hình thành kiến thức/luyện tập/ôn tập/kiểm tra, học liệu từ đầu; xử lý riêng sau phần Xóa theo yêu cầu trả lời trước.
+- [ ] Phát hành R16 sau duyệt scoped; chưa lấy duyệt R14 làm duyệt R16.
+
+### R16 hoàn tất local — yêu cầu bổ sung Thùng rác
+- [x] Chủ hệ thống chốt: dữ liệu đã lưu vào Thùng rác trên Site, Khôi phục khi cần; bản soạn chưa lưu Hoàn tác. Không tự xóa vĩnh viễn.
+- [x] Các phòng/tiết/đội/HS trong tiết; lớp/HS/nhóm/giải/lớp/lượt; giáo án/nguồn/kịch bản/job; đề/mã đề/câu/bài/ảnh có Trash/restore. Quyền và ghi nhận dùng Thu hồi/Đặt lại hiện hữu, không tự cấp lại.
+- [x] /trash owner-only metadata/50mục mỗi trang +khôi phục xácnhận; linkednative; library5mục; inlineconfirm/cancel; giữprovenance/quota/sourcehash và tiến độ khác.
+- [x] Review auth-revoke/CAS/restoreABA/Undoeditedtext/index +source-late-response sửa vàtest; lowGemini recheckdomain/examPASS; highGeminitimeoutkhôngPASS.
+- [x] 1309tests/typecheck/buildPASS,lint0/418warnings;432sourcebyte-match,Worker9dd4b39294eb58d6e5fc5d9201c6f8d72986bda288b3a2bf3040bf8bc79efdee;native166HTTP/7trashchecks0external.
+- [x] CUA syntheticroomdelete→Trash→restorePASS; /hostsTrashlinkfinalPASS; oldQA5dọnID+backup, allnewQAroomsactive0. Không dữliệu lớp thật/production bịxóa.
+- [x] Báo cáo `tasks/codex-r16-report.md`; HANDOFF/todo/lessons cập nhật; migrations0021/0022 vàsnapshots có.
+- [ ] Màn khởi tạo tiết Hình thành kiến thức/Luyện tập/Ôn tập/Kiểm tra, nguồn nội dung từ đầu: chưa triển khai, không tự đánh dấu xong.
+- [ ] Chủ hệ thống duyệt scoped phát hành R16; cần kiểm rollout/rollback và productionQA. R15 giữ nguyên kế hoạch.
+
+### R17 — khởi tạo4loại tiết học, hoàn tất local13/10
+- [x] Chủ hệ thống giao làm màn khởi tạo. Spec/checklist `tasks/codex-r17-lesson-creation-plan.md`; R15 giữ lại.
+- [x] /hostsTổchứctiết→/lessons/new:4loại/khôngpreselect/2bước; thưviệnchỉGETsauchọn,explicitrow; nhậpnguồnmới chưa bài/khôngpilot. Họcliệunames/readable,grade/timegốcreadonly.
+- [x] NewStudio grade/minutes/purpose/header đúng; khôngrestoreoldsource/session; blankloadingfixed; oldsessiondeepquerygiữ. Khối/thờilượngthủcông đúngnewsettings.
+- [x] Kiểmtra /exams?setup=new&minutes... mởnhậpđề; minutespropvalid5–240,khôngfakegradefield. Phòngthi cũ /exams?idgiữ.
+- [x] Purposeformation/practice/review serverwhitelist,jobsettings,prompt,consentfingerprint; legacyunscopedunchanged. Recovery/applymatchsettings,sourcehashguard/retryUI,khôngautoduyệt/noguessmathsources.
+- [x] 1328fulltests/47focused cuối,typecheck/build0,lint0/421warnings;438sourcebyte-match/Workera5b15b02c87ecca3653e23f6c58bc8d88cbcf97ee0f89b6f2d6235144fc75bc6. Native178HTTP/8creation+7trash0external.
+- [x] CUAhost→4choices→review12/80blankimport;librarychosenpackageoriginal41min;exam80new;375fourchoices+CTAvisible. CleanupnewQAroomsactive0/failedfixturescleaned.
+- [x] Reports/HANDOFF/todo/lessons cập nhật; independentreviews+GeminiFlashlowcompactPASS. Highreviewtimeoutunknown, initialcontradictoryreviewnotPASS.
+- [ ] Chủ hệ thống duyệt scopedpublishR16+R17 và productionQA/rollback; chưa phát hành. R15 và gate lớp thật/học liệuR14 vẫn riêng.

@@ -21,6 +21,7 @@ function dbFixture() {
   database.exec(`
     PRAGMA foreign_keys=ON;
     CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL);
+    CREATE TABLE lesson_content_deletions(kind TEXT,object_id TEXT,owner_account_id TEXT,deleted_at INTEGER,PRIMARY KEY(kind,object_id));
     CREATE TABLE lesson_packages(row_id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,package_id TEXT NOT NULL,version TEXT NOT NULL,content_hash TEXT NOT NULL,status TEXT NOT NULL,data TEXT NOT NULL,parent_row_id TEXT,created_at INTEGER NOT NULL,UNIQUE(owner_account_id,package_id,version),UNIQUE(row_id,version,content_hash));
     CREATE TABLE lesson_approvals(id TEXT PRIMARY KEY,package_row_id TEXT NOT NULL,actor_account_id TEXT NOT NULL,reviewed_parent_hash TEXT NOT NULL,approved_hash TEXT NOT NULL,source_ack TEXT NOT NULL,created_at INTEGER NOT NULL);
     CREATE TABLE lesson_sources(id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,request_id TEXT NOT NULL,request_fingerprint TEXT NOT NULL,original_name TEXT NOT NULL,mime TEXT NOT NULL,bytes INTEGER NOT NULL,sha256 TEXT NOT NULL,status TEXT NOT NULL,parser_revision TEXT NOT NULL,extraction_hash TEXT,error_code TEXT,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);

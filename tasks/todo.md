@@ -228,3 +228,35 @@ Report tasks/codex-r9-report.md;authoritative sharedplanfinalR9.
 - [ ] Studentcodefirst/profilePINinline/joinlinks.
 - [ ] Focused/full/native/CUA/reviews/build/release/checklist.
 Spec tasks/codex-r14-teacher-student-entry-plan.md.
+
+## R14 chốt13/10
+- [x] GVentry/lessonlinks/world-device/selectedclassroster/HSsimplePIN/code/teacherlinks.
+- [x]12/25+commalist+manualsourcecopy/ownerjob/sourceflagsguard.
+- [x]1247tests/typecheck/build/native265/actual150/GeminiPASS/nativev10/postdeploy.
+- [x]HistoricalAI correctednewdraft savedrow4e432764;originalkept,noapproval.
+- [ ] HumanGV/class/device/sourceyear/3Dvisualacceptance theo plan, không lỗi code để tự duyệt.
+
+## R15 — kế hoạch hồ sơ học tập và kết nối GiaoAnDewey
+- [x] Audit source và lập `tasks/codex-r15-learning-records-plan.md`; cập nhật plan chung/HANDOFF.
+- [ ] Duyệt phạm vi triển khai; khuyến nghị R15.1–R15.2 trước.
+- [ ] R15.1 Hồ sơ GV xuyên tiết và kiểm tính đúng/phân quyền minh chứng.
+- [ ] R15.2 Kế hoạch học tiếp có minh chứng và GV duyệt.
+- [ ] R15.3 Xác minh hệ nhận, ghép định danh/mục tiêu, xuất nhập JSON có xem trước/chống trùng.
+- [ ] R15.4 Đồng bộ một chiều, thu hồi và pilot; kiểm thử/review/duyệt phát hành từng đợt.
+Lượt này chỉ lập kế hoạch, chưa sửa code hoặc dữ liệu HS.
+
+## R16 — Xóa, Thùng rác và Hoàn tác
+- [x] Rà toàn bộ lifecycle; thêm các đường thiếu và Trash/restore cho saved data; Undo unsaved theo chủ hệ thống chốt.
+- [x] Sửa gameentry/nativeTrashlinks, copy quyền/legacy; dọn QA đúngID+backup.
+- [x] 1309fullPASS,45lastUI+12rootfinal;typecheck/build/lint0;review/native166/CUAsynthetic/432byte-match.
+- [x] Report/HANDOFF/plan chung/lessons cập nhật; QA mới cleanupactive0.
+- [ ] Màn khởi tạo chọn4loại tiết +nội dung, chưa sửa.
+- [ ] Duyệt scopedpublishR16/migrations/rollback/productionQA. R15 giữ kế hoạch.
+
+## R17 — màn khởi tạo bốn loại tiết
+- [x] Wizard4loại/2bước/auth/khôngtựDãy số; explicitlibrary hoặcimportnew.
+- [x] Studio giữpurpose/grade/time, nooldsource/session; examnew80durationprop.
+- [x] Purposeprompt/serverconsent/recoverysettings, nguồn/duyệtgiữ.
+- [x] 1328full/47focused/typecheck/build/lint0;438manifest/native178/CUA375/reviews/cleanup0.
+- [x] Report/HANDOFF/plan chung/lessons cập nhật.
+- [ ] Chủ hệ thống duyệt phát hành scopedR16+R17,QAproduction/rollback. R15giữ.

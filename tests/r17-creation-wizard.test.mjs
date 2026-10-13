@@ -1,0 +1,162 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+
+const source = readFileSync(new URL('../components/lesson/LessonCreationWizard.tsx', import.meta.url), 'utf8');
+const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText;
+const rows = [{ row_id: 'row-a', package_id: 'lesson-geometry', title: 'Hình học', grade: 10, slotMinutes: 80, version: '2', status: 'approved' }, { row_id: 'row-b', package_id: 'lesson-arithmetic', version: '1', status: 'draft' }];
+
+function harness(response = { ok: true, json: async () => ({ packages: rows }) }) {
+  const states = [], effects = [], pending = [], calls = [];
+  let stateIndex = 0, effectIndex = 0;
+  const exports = {};
+  vm.runInNewContext(code, { exports, React, URLSearchParams, fetch: async (...args) => { calls.push(args); return response; }, require: name => {
+    assert.equal(name, 'react');
+    return { ...React, useState(initial) {
+      const index = stateIndex++;
+      if (!(index in states)) states[index] = initial;
+      return [states[index], value => { states[index] = typeof value === 'function' ? value(states[index]) : value; }];
+    }, useEffect(callback, deps) {
+      const index = effectIndex++, previous = effects[index];
+      if (!previous || deps.some((value, i) => value !== previous.deps[i])) pending.push(() => {
+        previous?.cleanup?.();
+        effects[index] = { deps, cleanup: callback() };
+      });
+    } };
+  } });
+  function render() {
+    stateIndex = effectIndex = 0;
+    const tree = exports.default();
+    pending.splice(0).forEach(effect => effect());
+    return tree;
+  }
+  return { render, calls, destination: exports.lessonCreationDestination };
+}
+
+function elements(node) {
+  if (Array.isArray(node)) return node.flatMap(elements);
+  if (!node || typeof node !== 'object' || !node.props) return [];
+  return [node, ...elements(node.props.children)];
+}
+const byLabel = (tree, label) => elements(tree).find(node => node.type === 'button' && renderToStaticMarkup(node).includes(label));
+const byId = (tree, id) => elements(tree).find(node => node.props.id === id);
+function stepTwo(h, purpose) {
+  byLabel(h.render(), purpose).props.onClick();
+  byLabel(h.render(), 'Tiếp tục').props.onClick();
+  return h.render();
+}
+const settle = () => new Promise(resolve => setImmediate(resolve));
+
+test('new entry requires authenticated teacher and uses existing lesson styles', () => {
+  const page = readFileSync(new URL('../app/lessons/new/page.tsx', import.meta.url), 'utf8');
+  assert.match(page, /await requireChatGPTUser\("\/lessons\/new"\)/);
+  assert.match(page, /import "\.\.\/lesson.css"/);
+});
+
+test('initial rendered wizard offers four choices, no preselection or content calls', () => {
+  const h = harness(), tree = h.render(), html = renderToStaticMarkup(tree);
+  for (const title of ['Hình thành kiến thức', 'Luyện tập', 'Ôn tập', 'Kiểm tra']) assert(html.includes(title));
+  assert.equal(elements(tree).filter(node => node.props['aria-pressed'] === true).length, 0);
+  assert.equal(byLabel(tree, 'Tiếp tục').props.disabled, true);
+  assert.match(html, /href="\/hosts"/);
+  assert.doesNotMatch(html, /Dãy số|creation-package|creation-minutes/);
+  assert.deepEqual(h.calls, []);
+});
+
+test('each lesson purpose continues to explicit import source with selected grade and minutes', () => {
+  for (const [label, purpose] of [['Hình thành kiến thức', 'formation'], ['Luyện tập', 'practice'], ['Ôn tập', 'review']]) {
+    const h = harness();
+    let tree = stepTwo(h, label);
+    assert.equal(byLabel(tree, 'Tiếp tục soạn nội dung').props.disabled, true);
+    byLabel(tree, 'Đưa giáo án hoặc ý tưởng vào').props.onClick();
+    tree = h.render();
+    byId(tree, 'creation-grade').props.onChange({ target: { value: '12' } });
+    byId(tree, 'creation-minutes').props.onChange({ target: { value: '80' } });
+    tree = h.render();
+    const target = elements(tree).find(node => node.type === 'a' && node.props.href.startsWith('/lessons?')).props.href;
+    assert.equal(target, `/lessons?setup=new&purpose=${purpose}&source=import&grade=12&minutes=80`);
+    assert.deepEqual(h.calls, []);
+  }
+});
+
+test('library fetch is explicit, selection remains empty until teacher picks saved row', async () => {
+  const h = harness();
+  byLabel(stepTwo(h, 'Luyện tập'), 'Chọn từ thư viện').props.onClick();
+  h.render();
+  await settle();
+  let tree = h.render();
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0][0], '/api/lessons?kind=list');
+  assert.equal(h.calls[0][1].cache, 'no-store');
+  assert.equal(byId(tree, 'creation-package').props.value, '');
+  assert.equal(byLabel(tree, 'Tiếp tục soạn nội dung').props.disabled, true);
+  assert.match(renderToStaticMarkup(tree), /Hình học · 2 · Đã duyệt/);
+  assert.match(renderToStaticMarkup(tree), /lesson-arithmetic · 1 · Bản nháp/);
+  byId(tree, 'creation-package').props.onChange({ target: { value: 'row-b' } });
+  tree = h.render();
+  assert(elements(tree).some(node => node.type === 'a' && node.props.href === '/lessons?setup=new&purpose=practice&source=library&package=row-b&grade=11&minutes=40'));
+  byId(tree, 'creation-package').props.onChange({ target: { value: 'unlisted' } });
+  assert.equal(byLabel(h.render(), 'Tiếp tục soạn nội dung').props.disabled, true);
+});
+
+test('saved metadata supplies original grade and duration with readonly controls', async () => {
+  const h = harness();
+  byLabel(stepTwo(h, 'Ôn tập'), 'Chọn từ thư viện').props.onClick();
+  h.render(); await settle();
+  byId(h.render(), 'creation-package').props.onChange({ target: { value: 'row-a' } });
+  const tree = h.render();
+  assert.equal(byId(tree, 'creation-grade').props.value, '10');
+  assert.equal(byId(tree, 'creation-grade').props.disabled, true);
+  assert.equal(byId(tree, 'creation-minutes').props.value, '80');
+  assert.equal(byId(tree, 'creation-minutes').props.disabled, true);
+  assert(elements(tree).some(node => node.type === 'a' && node.props.href === '/lessons?setup=new&purpose=review&source=library&package=row-a&grade=10&minutes=80'));
+  assert.match(renderToStaticMarkup(tree), /Học liệu đã lưu giữ nguyên nội dung/);
+  byLabel(tree, 'Đưa giáo án hoặc ý tưởng vào').props.onClick();
+  assert.equal(byId(h.render(), 'creation-grade').props.disabled, false);
+  assert.equal(byId(h.render(), 'creation-minutes').props.disabled, false);
+});
+
+test('exam goes to exam editor, without lesson package or import requirement', () => {
+  const h = harness(), tree = stepTwo(h, 'Kiểm tra');
+  assert(elements(tree).some(node => node.type === 'a' && node.props.href === '/exams?setup=new&minutes=40'));
+  assert.equal(byId(tree,'creation-grade'),undefined);
+  assert.doesNotMatch(renderToStaticMarkup(tree), /Chọn từ thư viện|Đưa giáo án hoặc ý tưởng vào/);
+  assert.deepEqual(h.calls, []);
+});
+
+test('duration validation rejects decimals, zero and overlimit before navigation', () => {
+  const h = harness();
+  stepTwo(h, 'Luyện tập');
+  byLabel(h.render(), 'Đưa giáo án hoặc ý tưởng vào').props.onClick();
+  for (const minutes of ['0', '1', '4', '-1', '1.5', '241', '', 'NaN']) {
+    byId(h.render(), 'creation-minutes').props.onChange({ target: { value: minutes } });
+    const tree = h.render();
+    assert.equal(byId(tree, 'creation-minutes').props['aria-invalid'], true);
+    assert.equal(byLabel(tree, 'Tiếp tục soạn nội dung').props.disabled, true);
+  }
+  for (const minutes of ['5', '20', '40', '80', '240']) assert(h.destination('review', 'import', '10', minutes, ''));
+});
+
+test('fixed destinations whitelist purpose, grade, source and package IDs', () => {
+  const h = harness();
+  for (const args of [['evil', 'import', '11', '40', ''], ['practice', 'evil', '11', '40', ''], ['review', 'import', '9', '40', ''], ['practice', 'library', '11', '40', '']]) assert.equal(h.destination(...args), null);
+  assert.equal(h.destination('formation', 'library', '10', '40', 'row&next=https://bad.test'), null);
+  assert.equal(h.destination('formation', 'library', '10', '40', 'row-safe_1'), '/lessons?setup=new&purpose=formation&source=library&package=row-safe_1&grade=10&minutes=40');
+});
+
+test('library errors retry, empty library explains import route, back preserves choice', async () => {
+  for (const [response, text] of [[{ ok: false }, 'Không tải được thư viện'], [{ ok: true, json: async () => ({ packages: [] }) }, 'Thư viện chưa có học liệu']]) {
+    const h = harness(response);
+    byLabel(stepTwo(h, 'Ôn tập'), 'Chọn từ thư viện').props.onClick();
+    h.render(); await settle();
+    const tree = h.render();
+    assert(renderToStaticMarkup(tree).includes(text));
+    assert.equal(byLabel(tree, 'Tiếp tục soạn nội dung').props.disabled, true);
+    byLabel(tree, 'Quay lại').props.onClick();
+    assert.equal(byLabel(h.render(), 'Ôn tập').props['aria-pressed'], true);
+  }
+});

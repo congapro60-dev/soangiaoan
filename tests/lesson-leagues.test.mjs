@@ -13,11 +13,13 @@ function setup(beforeWrite = () => {}) {
   database.exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL);
     CREATE TABLE lesson_packages(row_id TEXT PRIMARY KEY,content_hash TEXT NOT NULL,status TEXT NOT NULL,data TEXT NOT NULL);
+    CREATE TABLE rooms(id TEXT PRIMARY KEY,owner_account_id TEXT,deleted_at INTEGER);
     CREATE TABLE lesson_sessions(id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,package_row_id TEXT NOT NULL,package_hash TEXT NOT NULL,state TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL);
     CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,learner_id TEXT NOT NULL,name TEXT NOT NULL,token_hash TEXT NOT NULL,present INTEGER NOT NULL DEFAULT 1);
     INSERT INTO accounts VALUES('teacher-1','t1@test','Teacher',1),('teacher-2','t2@test','Teacher',1);
     INSERT INTO lesson_packages VALUES('pkg','approved-hash','approved','{}');`);
-  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql']) for (const part of readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql', '0021_lesson_content_deletions.sql', '0022_site_trash.sql']) for (const part of readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  database.exec("ALTER TABLE lesson_sessions ADD room_id TEXT DEFAULT 'room'; INSERT INTO rooms VALUES('room','teacher-1',NULL),('other-room','teacher-2',NULL);");
   const prepare = sql => ({ bind: (...args) => ({ first: async () => { if (/^(UPDATE|INSERT|DELETE)/.test(sql)) beforeWrite(sql, database); return database.prepare(sql).get(...args) ?? null; }, all: async () => ({ results: database.prepare(sql).all(...args) }), run: async () => { beforeWrite(sql, database); return { meta: { changes: Number(database.prepare(sql).run(...args).changes) } }; } }) });
   let tail = Promise.resolve();
   const db = { prepare, batch: statements => { const result = tail.then(async () => { database.exec('BEGIN'); try { const out = []; for (const statement of statements) out.push(await statement.run()); database.exec('COMMIT'); return out; } catch (error) { database.exec('ROLLBACK'); throw error; } }); tail = result.catch(() => {}); return result; } };
@@ -34,6 +36,7 @@ async function classroom(env, id, scores, teacher = owner) {
   }
   const state = { status: 'active', roster, gameWallets: { learners: wallets }, submissions: { PRIVATE: { answer: 'SECRET ANSWER', ok: true } }, passports: { PRIVATE: { mastery: 999999 } } };
   env.database.prepare('INSERT INTO lesson_sessions(id,owner_account_id,package_row_id,package_hash,state,revision,status,class_id) VALUES(?,?,?,?,?,?,?,?)').run(id, teacher, 'pkg', 'approved-hash', JSON.stringify(state), 1, 'active', cls.id);
+  if (teacher !== owner) env.database.prepare('UPDATE lesson_sessions SET room_id=? WHERE id=?').run('other-room',id);
   for (const [index, member] of members.entries()) env.database.prepare('INSERT INTO lesson_learners(id,session_id,learner_id,name,token_hash,class_member_id) VALUES(?,?,?,?,?,?)').run('row-' + id + index, id, 'learner-' + id + index, member.member.name, 'private-token-' + id + index, member.member.id);
   return { cls, state, members, sessionId: id };
 }

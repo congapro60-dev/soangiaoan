@@ -12,6 +12,7 @@ const migration = readFileSync(new URL('../drizzle/0013_exam_rooms.sql', import.
 
 function makeDb(beforeWrite = () => {}, applyComments = true) {
   const database = new DatabaseSync(':memory:');
+  database.exec("CREATE TABLE site_trash(kind TEXT,object_id TEXT,owner_account_id TEXT,deleted_at INTEGER,data TEXT NOT NULL DEFAULT '{}',PRIMARY KEY(kind,object_id))");
   database.exec('PRAGMA foreign_keys=ON');
   database.exec('CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL)');
   for (const part of migration.split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
@@ -187,7 +188,7 @@ test('concurrent valid review joins keep cap and never touch original participat
 test('delete batch rolls back timestamp and children on failure; concurrent requests delete once', async () => {
   let armed = false;
   const env = await reviewFixture((sql) => {
-    if (armed && sql.startsWith('DELETE FROM exam_assets')) { armed = false; throw new Error('synthetic transaction failure'); }
+    if (armed && sql.startsWith('INSERT INTO site_trash')) { armed = false; throw new Error('synthetic transaction failure'); }
   });
   await env.service.control({ ownerAccountId: 'teacher-1', examId: env.exam.id, action: 'close' });
   const { reviewPin } = await env.service.getState(env.joined);
@@ -201,7 +202,8 @@ test('delete batch rolls back timestamp and children on failure; concurrent requ
   assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_attempts').get().n, 1);
   const outcomes = await Promise.allSettled([env.service.deleteExam(args), env.service.deleteExam(args)]);
   assert.equal(outcomes.filter(outcome => outcome.status === 'fulfilled').length, 1);
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exams').get().n, 0);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exams').get().n, 1);
+  assert.equal((await env.service.listExams('teacher-1')).exams.length, 0);
 });
 
 test('delete refuses a new attempt or running transition immediately before authorization', async () => {
@@ -300,7 +302,7 @@ test('session insertion rechecks policy and release', async () => {
   }
 });
 
-test('owner delete rejects running, wrong owner, stale confirmations; deletes all children with FK on', async () => {
+test('owner delete rejects running, wrong owner, stale confirmations; retains children in recoverable trash with FK on', async () => {
   const env = await reviewFixture();
   const base = { ownerAccountId: 'teacher-1', examId: env.exam.id, confirmTitle: env.exam.title, confirmAttempts: 1 };
   await assert.rejects(() => env.service.deleteExam(base), /BAD_STATE/);
@@ -317,13 +319,13 @@ test('owner delete rejects running, wrong owner, stale confirmations; deletes al
     await assert.rejects(() => env.service.deleteExam({ ...base, ...change }), /BAD_STATE|NOT_FOUND/);
   }
   assert.deepEqual(await env.service.deleteExam(base), { ok: true });
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_review_sessions').get().n, 0);
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 1);
-  assert.equal(env.database.prepare('SELECT attempt_id FROM exam_answers').get().attempt_id, otherAttempt.attemptId);
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_assets').get().n, 1);
-  assert.equal(env.database.prepare('SELECT id FROM exam_assets').get().id, 'foreign-image');
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_attempts').get().n, 1);
-  assert.equal(env.database.prepare('SELECT id FROM exam_attempts').get().id, otherAttempt.attemptId);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_review_sessions').get().n, 1);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_answers').get().n, 2);
+  assert.equal((await env.service.getAttempt({ ownerAccountId: 'teacher-1', examId: other.id, attemptId: otherAttempt.attemptId })).attempt.id, otherAttempt.attemptId);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_assets').get().n, 2);
+  assert.equal((await env.service.teacherAsset({ ownerAccountId: 'teacher-1', examId: other.id, assetId: 'foreign-image' })).data, jpeg);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exam_attempts').get().n, 2);
+  assert.equal((await env.service.getExam({ ownerAccountId: 'teacher-1', examId: other.id })).attempts[0].id, otherAttempt.attemptId);
   assert.equal(env.database.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.equal(env.database.prepare('PRAGMA foreign_key_check').all().length, 0);
   await assert.rejects(() => env.service.getState(review), /AUTH_REQUIRED/);
@@ -345,7 +347,8 @@ test('delete latch handles zero attempts and stale nonzero-to-zero/title races',
   const exam = await openExam(env);
   await assert.rejects(() => env.service.deleteExam({ ownerAccountId: 'teacher-1', examId: exam.id, confirmTitle: exam.title, confirmAttempts: 1 }), /BAD_STATE/);
   await env.service.deleteExam({ ownerAccountId: 'teacher-1', examId: exam.id, confirmTitle: exam.title, confirmAttempts: 0 });
-  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exams').get().n, 0);
+  assert.equal(env.database.prepare('SELECT COUNT(*) AS n FROM exams').get().n, 1);
+  assert.equal((await env.service.listExams('teacher-1')).exams.length, 0);
 });
 
 function setup(startAt = 1_000_000, beforeWrite) {
@@ -421,7 +424,7 @@ test('integrity acknowledgement CAS rejects revocation, closing, changed shuffle
 test('integrity revocation at answer/photo/submit SQL boundary cannot save or seal; auto deadline seals without inventing acknowledgement', async () => {
   for (const action of ['answer', 'photo', 'delete-photo', 'submit']) {
     let armed = false;
-    const env = setup(1_000_000, (sql, database) => { if (armed && /^(INSERT INTO exam_answers|INSERT INTO exam_assets|DELETE FROM exam_assets|UPDATE exam_attempts SET submitted_at=)/.test(sql)) { armed = false; database.exec("UPDATE exam_attempts SET view_json=json_remove(view_json,'$.integrity')"); } });
+    const env = setup(1_000_000, (sql, database) => { if (armed && /^(INSERT INTO exam_answers|INSERT INTO exam_assets|INSERT INTO site_trash|DELETE FROM exam_assets|UPDATE exam_attempts SET submitted_at=)/.test(sql)) { armed = false; database.exec("UPDATE exam_attempts SET view_json=json_remove(view_json,'$.integrity')"); } });
     const exam = await openExam(env, { settings: { ...input.settings, integrityPolicyVersion: 1 } });
     const pupil = await env.service.join({ code: exam.code, name: 'Boundary' });
     await env.service.control({ ownerAccountId: 'teacher-1', examId: exam.id, action: 'start' });
@@ -606,7 +609,7 @@ test('submitted answer and photos stay sealed even when an earlier request passe
   for (const action of ['answer', 'photo', 'delete-photo', 'submit']) {
     let armed = false;
     const env = setup(1_000_000, (sql, database) => {
-      if (!armed || !/^(INSERT INTO exam_answers|INSERT INTO exam_assets|DELETE FROM exam_assets)/.test(sql)) return;
+      if (!armed || !/^(INSERT INTO exam_answers|INSERT INTO exam_assets|INSERT INTO site_trash|DELETE FROM exam_assets)/.test(sql)) return;
       armed = false;
       database.exec('UPDATE exam_attempts SET submitted_at=999999');
     });
@@ -880,7 +883,8 @@ test('question pictures and answer photos: stored, shown only when allowed, essa
   assert.equal((await env.service.pupilAsset({ token: pupil.token, photoId: photo.id })).data, jpeg);
   await env.service.deletePhoto({ token: pupil.token, id: photo.id });
   assert.equal((await env.service.getState({ token: pupil.token })).photos.q5, undefined);
-  for (let i = 0; i < 12; i++) await env.service.savePhoto({ token: pupil.token, qid: 'q5', mime: 'image/jpeg', data: jpeg });
+  // Retained trash still occupies the 12-photo storage budget.
+  for (let i = 0; i < 11; i++) await env.service.savePhoto({ token: pupil.token, qid: 'q5', mime: 'image/jpeg', data: jpeg });
   await assert.rejects(() => env.service.savePhoto({ token: pupil.token, qid: 'q5', mime: 'image/jpeg', data: jpeg }), /TOO_MANY_PHOTOS/);
 });
 
@@ -1519,7 +1523,7 @@ test('review state and asset reads recheck policy after their initial authentica
       ...env.db,
       prepare: (sql) => ({ bind: (...args) => {
         const statement = env.db.prepare(sql).bind(...args);
-        const trigger = assetRead ? sql.startsWith('SELECT qid,kind,mime,data FROM exam_assets') : sql.startsWith('SELECT qid,value_json,manual_score,manual_comment FROM exam_answers');
+        const trigger = assetRead ? /^SELECT qid,kind,mime,data FROM (?:exam_assets|\(SELECT rowid)/.test(sql) : sql.startsWith('SELECT qid,value_json,manual_score,manual_comment FROM exam_answers');
         return {
           ...statement,
           first: async () => { const result = await statement.first(); if (armed && trigger) { armed = false; env.database.exec("UPDATE exams SET settings_json=json_set(settings_json,'$.review','none')"); } return result; },

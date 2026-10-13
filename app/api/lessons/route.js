@@ -14,6 +14,7 @@ const actor = (request) => resolveIdentity(request, getEnv());
 const RECOGNIZED_POST_ERRORS = Object.assign(Object.create(null), {
   BODY_TOO_LARGE: 413,
   INVALID_BODY: 400,
+  CONFIRM_REQUIRED: 409,
   AUTH_REQUIRED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
@@ -63,6 +64,8 @@ export async function GET(request) {
   try {
     await account(user); const q = new URL(request.url).searchParams; const kind = q.get('kind') || 'list'; const api = service();
     if (kind === 'list') return json({ packages: await api.listPackages({ actorAccountId: user.userId, isRoot: isRootUser }) });
+    if (kind === 'library') return json({ packages: await api.listPackages({ actorAccountId: user.userId }) });
+    if (kind === 'plans') return json({ plans: await api.listPlans({ ownerAccountId: user.userId }) });
     if (kind === 'get' && q.get('id')) return json({ package: await api.getPackage({ actorAccountId: user.userId, isRoot: isRootUser, id: q.get('id') }) });
     if (kind === 'director' && q.get('id')) return json(await api.getDirectorDraft({ actorAccountId: user.userId, isRoot: isRootUser, id: q.get('id') }));
     if (kind === 'pilot') {
@@ -93,6 +96,8 @@ export async function POST(request) {
     }
 
     const api = service();
+    if (input.action === 'restore' && Object.keys(input).every(key => ['action', 'kind', 'id'].includes(key))) return json(await api.restoreContent({ ownerAccountId: user.userId, kind: input.kind, id: input.id }));
+    if (input.action === 'delete' && Object.keys(input).every(key => ['action', 'kind', 'id', 'confirmId'].includes(key))) return json(await api.removeContent({ ownerAccountId: user.userId, kind: input.kind, id: input.id, confirmId: input.confirmId }));
     if (input.action === 'save' && Object.keys(input).every(key => ['action', 'package'].includes(key))) return json(await api.savePackage({ ownerAccountId: user.userId, package: input.package }));
     if (input.action === 'approve' && Object.keys(input).every(key => ['action', 'id', 'parentHash', 'version', 'sourceReviewAck', 'notes'].includes(key))) return json(await api.approvePackage({ actorAccountId: user.userId, isRoot: isRootUser, id: input.id, parentHash: input.parentHash, version: input.version, sourceReviewAck: input.sourceReviewAck, notes: input.notes }));
     if (input.action === 'approve-plan' && Object.keys(input).length === 6 && Object.keys(input).every(key => ['action', 'packageRowId', 'packageVersion', 'packageHash', 'planHash', 'sourceReview'].includes(key))) return json(await api.approvePlan({ actorAccountId: user.userId, isRoot: isRootUser, packageRowId: input.packageRowId, packageVersion: input.packageVersion, packageHash: input.packageHash, planHash: input.planHash, sourceReview: input.sourceReview }));

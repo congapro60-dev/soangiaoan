@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import MathText from "../lesson/MathText";
 import { mascotSpriteStyle } from "../lesson/LessonMascotPicker";
 import { parseAnswerKey } from "../../lib/exam/answer-key.js";
+import {parseExamCreation} from "../../lib/lesson/creation-context.js";
 import { describeKey } from "../../lib/exam/scoring.js";
 import { ExamQuestion, messageFor, teacherGet, teacherImageUrl, teacherPost } from "./client";
 import { ExamImport } from "./ExamImport";
@@ -17,8 +18,8 @@ const STATUS_LABEL: Record<string, string> = { draft: "Bản nháp", open: "Đan
 const STATUS_BADGE: Record<string, string> = { draft: "lesson-badge-outline", open: "lesson-badge-warning", running: "lesson-badge-success", closed: "lesson-badge-primary" };
 
 interface ExamSummary { id: string; code: string; title: string; status: string; durationMin: number; attempts: number; questionCount: number; createdAt: number }
-interface ExamFull { id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: AntiCheatingConfig & { showResult?: string; graceSeconds?: number; allowLateJoin?: boolean; review?: "after_close" | "none" }; codes?: Array<{ code: string | null; questions: SolutionQuestion[] }>; questions: SolutionQuestion[] }
-interface AttemptRow { id: string; name: string; examCode?: string | null; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; submittedAt: number | null; claimed: boolean; endsAt: number | null; extraMinutes: number; textScale: number; accommodationRevision: number }
+interface ExamFull { contentRevision: string; id: string; code: string; title: string; status: "draft" | "open" | "running" | "closed"; durationMin: number; startedAt: number | null; endsAt: number | null; settings: AntiCheatingConfig & { showResult?: string; graceSeconds?: number; allowLateJoin?: boolean; review?: "after_close" | "none" }; codes?: Array<{ code: string | null; questions: SolutionQuestion[] }>; questions: SolutionQuestion[] }
+interface AttemptRow { id: string; name: string; examCode?: string | null; mascot: number; answered: number; photos: number; tabLeaves: number; joinedAt: number; lastSeenAt: number; contentRevision: string; submittedAt: number | null; claimed: boolean; endsAt: number | null; extraMinutes: number; textScale: number; accommodationRevision: number }
 interface RoomData { serverNow: number; exam: ExamFull; missingKeys: string[]; attempts: AttemptRow[] }
 interface ResultRow { id: string; name: string; examCode?: string | null; mascot: number; tabLeaves: number; submittedAt: number | null; answered: number; total: number; max: number; sections: Record<string, { points: number; max: number }>; essaysToMark: number; perQuestion: Record<string, { p: number; c: boolean | null }> }
 interface Stat { answered: number; correct: number; wrong: number; blank: number; avg: number; choices: Record<string, number>; statements: number[] }
@@ -160,6 +161,10 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
   const [keyText, setKeyText] = useState("");
   const [note, setNote] = useState("");
   const [supportAttemptId, setSupportAttemptId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{ label: string; message: string; body: Record<string, unknown> } | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [removedDraftCode, setRemovedDraftCode] = useState<ExamCodeDraft | null>(null);
+  const [removedDraftImage, setRemovedDraftImage] = useState<{ qid: string; patch: Partial<SolutionQuestion> } | null>(null);
   const loadVersion = useRef(0);
 
   const load = useCallback(async () => {
@@ -248,6 +253,11 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
   const essays = serverCodes.flatMap((code) => code.questions).filter((q) => q.type === "essay");
   const dirty = Boolean(edited || editedCodes || antiCheating || reviewPolicy !== null);
   const staged = dirty || guidePending || variantPending || imageReaders > 0 || Boolean(importing);
+  const removePart = (body: Record<string, unknown>, label: string) => {
+    if (staged) { setNote("Lưu thay đổi hoặc hủy bản nháp trước khi xóa."); return; }
+    setDeleteConfirmation("");
+    setPendingDelete({ label, message: 'Xóa “' + label + '” khỏi phòng “' + exam.title + '”? Câu hỏi, ảnh và lời giải của phần này được giữ trong Thùng rác. Có thể khôi phục trong Thùng rác của giáo viên.', body: { ...body, expectedContentRevision: exam.contentRevision } });
+  };
   const online = (a: AttemptRow) => data.serverNow - a.lastSeenAt < 40000;
   if (importing) return <ExamImport code={importing.code} initialFile={importing.file} onCreated={() => undefined} onCancel={() => setImporting(null)} onImported={(newCode) => { setEditedCodes([...allCodes, newCode]); setEdited(null); setSelectedCode(newCode.code); setImporting(null); setNote("Mã đề mới còn ở bản nháp. Bấm Lưu thay đổi."); }} />;
 
@@ -277,15 +287,37 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
             </>
           )}
           {exam.status === "closed" && <a className="lesson-button lesson-button-primary" href={"/api/exams?id=" + id + "&csv=1"}>⬇ Tải bảng điểm (CSV)</a>}
-          <button type="button" data-delete-exam className="lesson-button lesson-button-danger" disabled={busy || staged || exam.status === "running"} onClick={async () => {
-            if (!window.confirm('Xóa phòng “' + exam.title + '” có ' + data.attempts.length + ' bài của học sinh? Toàn bộ bài làm, điểm và ảnh trong phòng sẽ bị xóa. Không thể hoàn tác trong app.')) return;
-            setBusy(true); setError("");
-            try { await teacherPost({ action: "delete", id, confirmTitle: exam.title, confirmAttempts: data.attempts.length }); onBack(); }
-            catch (e) { setError(messageFor(e)); await load(); }
-            finally { setBusy(false); }
+          <button type="button" data-delete-exam className="lesson-button lesson-button-danger" disabled={busy || staged || exam.status === "running"} onClick={() => {
+            setDeleteConfirmation("");
+            setPendingDelete({ label: exam.title, message: 'Xóa phòng “' + exam.title + '” có ' + data.attempts.length + ' bài của học sinh? Phòng và toàn bộ bài làm chuyển vào Thùng rác. Có thể khôi phục trong Thùng rác của giáo viên.', body: { action: "delete", confirmTitle: exam.title, confirmAttempts: data.attempts.length } });
           }}>Xóa phòng</button>
         </div>
+        {pendingDelete && <form className="exam-card" aria-label="Xác nhận xóa trong phòng kiểm tra" onSubmit={async (event) => {
+          event.preventDefault();
+          if (deleteConfirmation !== pendingDelete.label || busy || (staged && pendingDelete.body.action !== "draft-code")) return;
+          if (pendingDelete.body.action === "draft-code") {
+            const remaining = allCodes.filter((entry) => entry.code !== pendingDelete.body.examCode);
+            if (!remaining.length) return;
+            setRemovedDraftCode(allCodes.find((entry) => entry.code === pendingDelete.body.examCode) || null);
+            setEditedCodes(remaining); setEdited(null); setSelectedCode(remaining[0].code); setPendingDelete(null); setDeleteConfirmation(""); return;
+          }
+          setBusy(true); setError("");
+          try {
+            await teacherPost({ ...pendingDelete.body, id });
+            setPendingDelete(null); setDeleteConfirmation("");
+            if (pendingDelete.body.action === "delete") { onBack(); return; }
+            await load(); if (results) await loadResults();
+          } catch (e) { setError(messageFor(e)); await load(); }
+          finally { setBusy(false); }
+        }}>
+          <p>{pendingDelete.message}</p>
+          <label>Nhập chính xác: <strong>{pendingDelete.label}</strong><input autoFocus className="lesson-input" value={deleteConfirmation} disabled={busy} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
+          <button type="submit" className="lesson-button lesson-button-danger" disabled={busy || deleteConfirmation !== pendingDelete.label || (staged && pendingDelete.body.action !== "draft-code")}>Xác nhận xóa</button>{" "}
+          <button type="button" className="lesson-button lesson-button-outline" disabled={busy} onClick={() => { setPendingDelete(null); setDeleteConfirmation(""); }}>Hủy xóa</button>
+        </form>}
         {data.missingKeys.length > 0 && exam.status !== "closed" && <p className="exam-warn">⚠ Còn {data.missingKeys.length} câu chưa có đáp án (mở thẻ &quot;Đề và đáp án&quot; để điền).</p>}
+        <a className="lesson-button lesson-button-outline" href="/trash">Thùng rác</a>
+        {removedDraftCode && <button type="button" className="lesson-button lesson-button-outline" disabled={busy || allCodes.some((entry) => entry.code === removedDraftCode.code)} onClick={() => { setEditedCodes([...allCodes, removedDraftCode]); setEdited(null); setSelectedCode(removedDraftCode.code); setRemovedDraftCode(null); }}>Hoàn tác bỏ mã đề nháp</button>}
         {error && <p className="exam-error" role="alert">{error}</p>}
       </header>
 
@@ -313,6 +345,10 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
                     <td className="exam-row-actions">
                       <button type="button" className="exam-link exam-accommodation-open" aria-expanded={supportAttemptId === a.id} disabled={exam.status === "closed" || a.submittedAt !== null || (exam.status === "running" && a.endsAt !== null && now + offset > a.endsAt + 1000 * (exam.settings.graceSeconds ?? 0))} onClick={() => setSupportAttemptId(supportAttemptId === a.id ? "" : a.id)}>Hỗ trợ riêng{a.extraMinutes ? " · +" + a.extraMinutes + " phút" : ""}{a.textScale !== 1 ? " · " + a.textScale * 100 + "%" : ""}</button>
                       {a.claimed && <button type="button" className="exam-link" title="Cho học sinh vào lại từ thiết bị khác" onClick={() => { if (window.confirm("Cho " + a.name + " vào lại từ thiết bị khác? Thiết bị cũ sẽ mất quyền làm bài.")) void act({ action: "release", attemptId: a.id }); }}>Cho vào lại</button>}
+                      <button type="button" className="exam-link" disabled={busy || exam.status === "running"} onClick={() => {
+                        setDeleteConfirmation("");
+                        setPendingDelete({ label: a.name, message: 'Xóa bài của “' + a.name + '” trong phòng “' + exam.title + '”? Bài làm chuyển vào Thùng rác; quyền xem lại hiện tại hết hiệu lực. Có thể khôi phục trong Thùng rác của giáo viên.', body: { action: "remove-attempt", attemptId: a.id, confirmName: a.name, expectedLastSeenAt: a.lastSeenAt, expectedSubmittedAt: a.submittedAt, expectedContentRevision: a.contentRevision } });
+                      }}>Xóa bài học sinh</button>
                       {a.submittedAt && exam.status === "running" && <button type="button" className="exam-link" onClick={() => void act({ action: "reopen", attemptId: a.id })}>Mở lại bài</button>}
                     </td>
                   </tr>
@@ -389,7 +425,11 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
         <section className="exam-card">
           <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           <h3>Đề và đáp án</h3>
-          <CodeTabs codes={allCodes} selected={active.code} locked={data.attempts.length > 0} disabled={busy || guidePending || variantPending || imageReaders > 0} onSelect={(code) => { if (edited || editedCodes) setEditedCodes(allCodes); setEdited(null); setSelectedCode(code); setKeyText(""); }} onDuplicate={async (newCode) => { if (dirty || data.attempts.length) { setNote("Lưu bản nháp trước khi nhân bản; chỉ thêm mã đề khi chưa có học sinh vào."); return; } setBusy(true); try { const next = await teacherPost<RoomData>({ action: "duplicate-code", id, sourceCode: active.code, newCode }); setData(next); setSelectedCode(newCode); } catch (e) { setNote(messageFor(e)); } finally { setBusy(false); } }} onImport={(code, file) => { if (data.attempts.length) { setNote("Đã có học sinh vào nên không thêm mã đề."); return; } setImporting({ code, file }); }} />
+          <CodeTabs codes={allCodes} selected={active.code} locked={data.attempts.length > 0 || exam.status === "running" || exam.status === "closed"} disabled={busy || guidePending || variantPending || imageReaders > 0} onSelect={(code) => { if (edited || editedCodes) setEditedCodes(allCodes); setEdited(null); setSelectedCode(code); setKeyText(""); }} onDuplicate={async (newCode) => { if (dirty || data.attempts.length) { setNote("Lưu bản nháp trước khi nhân bản; chỉ thêm mã đề khi chưa có học sinh vào."); return; } setBusy(true); try { const next = await teacherPost<RoomData>({ action: "duplicate-code", id, sourceCode: active.code, newCode }); setData(next); setSelectedCode(newCode); } catch (e) { setNote(messageFor(e)); } finally { setBusy(false); } }} onRemove={(code) => {
+            if (editedCodes && !serverCodes.some((entry) => entry.code === code)) {
+              setDeleteConfirmation(""); setPendingDelete({ label: "Mã đề " + code, message: 'Bỏ mã đề ' + code + ' khỏi bản nháp “' + exam.title + '”?', body: { action: "draft-code", examCode: code } }); return;
+            }
+            void removePart({ action: "remove-code", examCode: code, confirmLabel: code }, "Mã đề " + code); }} onImport={(code, file) => { if (data.attempts.length) { setNote("Đã có học sinh vào nên không thêm mã đề."); return; } setImporting({ code, file }); }} />
           {data.attempts.length > 0 && <p className="exam-note">Đã có học sinh vào: giữ nguyên mã đề, đề và phương án; vẫn sửa được đáp án, điểm, lời giải.</p>}
           <fieldset disabled={data.attempts.length > 0 || variantPending || guidePending} style={{ border: 0, padding: 0, minWidth: 0 }}><AntiCheatingSettings settings={antiCheating || exam.settings} count={allCodes.length} onChange={(patch) => setAntiCheating({ ...(antiCheating || exam.settings), ...patch })} /></fieldset>
           <PupilPreview key={active.code} examId={id} examCode={active.code} disabled={dirty} />
@@ -411,19 +451,26 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
               <fieldset disabled={guidePending || variantPending} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
               <div className="exam-qcard-head"><strong>{q.section ? "Phần " + q.section + " · " : ""}{q.label}</strong><span>{describeKey(q) || "chưa có đáp án"}</span>
                 <label className="exam-points-edit"><input className="lesson-input" type="number" min={0} max={20} step={0.05} value={q.points} onChange={(e) => patchQuestion(q.id, { points: Number(e.target.value) })} /> điểm</label>
+                <button type="button" className="lesson-button lesson-button-danger" disabled={staged || data.attempts.length > 0 || exam.status === "running" || exam.status === "closed" || questions.length <= 1} onClick={() => void removePart({ action: "remove-question", examCode: hasCodes ? active.code : null, qid: q.id, confirmLabel: q.label }, q.label)}>Xóa câu</button>
               </div>
               {q.text && q.imageMode !== "question" && <div className="exam-q-text"><MathText text={q.text} inline={false} /></div>}
-              {q.questionImages?.length ? q.questionImages.map((image) => <SolutionImage key={image.id} examId={id} assetId={image.id} alt={"Hình trong " + q.label} />) : q.hasImage ? <Picture query={"id=" + id + "&image=" + q.id} alt={q.label} /> : q.text && q.imageMode === "question" ? <MathText text={q.text} inline={false} /> : null}
+              {q.questionImages?.length ? q.questionImages.map((image, index) => <div key={image.id}><SolutionImage examId={id} assetId={image.id} alt={"Hình trong " + q.label} /><button type="button" className="lesson-button lesson-button-outline" disabled={staged || data.attempts.length > 0 || exam.status === "running" || exam.status === "closed"} onClick={() => {
+                setDeleteConfirmation(""); setPendingDelete({ label: q.label + " · Hình " + (index + 1), message: 'Xóa hình ' + (index + 1) + ' của “' + q.label + '” trong phòng “' + exam.title + '”? Có thể khôi phục trong Thùng rác của giáo viên.', body: { action: "remove-image", qid: q.id, assetId: image.id } });
+              }}>Xóa hình {index + 1}</button></div>) : q.hasImage ? <Picture query={"id=" + id + "&image=" + q.id} alt={q.label} /> : q.text && q.imageMode === "question" ? <MathText text={q.text} inline={false} /> : null}
               {q.sourceImages?.map((image) => <img key={image.id} className="exam-teacher-img" src={"data:" + image.mime + ";base64," + image.data} alt={"Hình mới " + q.label} />)}
               {q.image && <img className="exam-teacher-img" src={"data:image/jpeg;base64," + q.image} alt={"Ảnh đề mới " + q.label} />}
               <label>Nội dung câu hỏi<textarea className="lesson-input" rows={3} maxLength={4000} disabled={data.attempts.length > 0} value={q.text || ""} aria-label={"Nội dung " + q.label} onChange={(e) => patchQuestion(q.id, { text: e.target.value })} /></label>
-              {(q.hasImage || q.questionImages?.length || q.sourceImages?.length) && <button type="button" className="lesson-button lesson-button-outline" disabled={data.attempts.length > 0} onClick={() => patchQuestion(q.id, { removeQuestionImage: true, hasImage: false, questionImages: [], sourceImages: [] })}>Bỏ hình minh họa (cần sửa đề nếu đề phụ thuộc hình)</button>}
-              <fieldset disabled={data.attempts.length > 0} style={{ border: 0, padding: 0, minWidth: 0 }}><QuestionItemsEditor q={q} onChange={(change) => patchQuestion(q.id, change)} /></fieldset>
+              {(q.hasImage || q.questionImages?.length || q.sourceImages?.length) && <button type="button" className="lesson-button lesson-button-outline" disabled={data.attempts.length > 0} onClick={() => { setRemovedDraftImage({ qid: q.id, patch: { removeQuestionImage: q.removeQuestionImage, hasImage: q.hasImage, questionImages: q.questionImages, sourceImages: q.sourceImages } }); patchQuestion(q.id, { removeQuestionImage: true, hasImage: false, questionImages: [], sourceImages: [] }); }}>Bỏ hình minh họa (cần sửa đề nếu đề phụ thuộc hình)</button>}
+              <fieldset disabled={data.attempts.length > 0} style={{ border: 0, padding: 0, minWidth: 0 }}><QuestionItemsEditor q={q} examId={id} onChange={(change) => patchQuestion(q.id, change)} onRemoveImage={(itemKind, letter, assetId) => {
+                if (staged) { setNote("Lưu bản nháp trước khi xóa ảnh."); return; }
+                setDeleteConfirmation(""); setPendingDelete({ label: q.label + " · Ảnh " + letter, message: 'Xóa ảnh ' + letter + ' của “' + q.label + '” trong phòng “' + exam.title + '”? Có thể khôi phục trong Thùng rác của giáo viên.', body: { action: "remove-item-image", qid: q.id, itemKind, letter, assetId } });
+              }} /></fieldset>
               <KeyEditor q={q} onChange={(change) => patchQuestion(q.id, change)} />
               <SolutionEditor q={q} examId={id} onBusyChange={imageBusy} onChange={(change) => patchQuestion(q.id, change)} />
               </fieldset>
             </article>
           ))}
+          {removedDraftImage && <button type="button" className="lesson-button lesson-button-outline" disabled={busy} onClick={() => { patchQuestion(removedDraftImage.qid, removedDraftImage.patch); setRemovedDraftImage(null); }}>Hoàn tác bỏ hình (chưa bấm Lưu)</button>}
           {note && <p className="exam-note">{note}</p>}
           <div className="exam-sticky">
             <button type="button" className="lesson-button lesson-button-success exam-big" disabled={!dirty || busy || guidePending || variantPending || imageReaders > 0} onClick={async () => {
@@ -454,6 +501,7 @@ function ExamRoom({ id, onBack }: { id: string; onBack: () => void }) {
                 setEditedCodes(null);
                 setAntiCheating(null);
                 setReviewPolicy(null);
+                setRemovedDraftImage(null); setRemovedDraftCode(null);
                 setNote("Đã lưu đáp án, lời giải và cài đặt.");
                 await loadResults();
               } catch (e) {
@@ -480,7 +528,11 @@ export default function ExamTeacher({ user }: { user: { displayName: string } })
   const [view, setView] = useState<"list" | "new" | "room">("list");
   const [id, setId] = useState("");
   const [exams, setExams] = useState<ExamSummary[] | null>(null);
+  const [deletingId, setDeletingId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<ExamSummary | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [error, setError] = useState("");
+  const [creationMinutes,setCreationMinutes]=useState<number|undefined>(undefined);
 
   const loadList = useCallback(async () => {
     try {
@@ -492,11 +544,15 @@ export default function ExamTeacher({ user }: { user: { displayName: string } })
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const wanted = new URLSearchParams(window.location.search).get("id");
+      const query=new URLSearchParams(window.location.search);
+      const setup=parseExamCreation(query),validSetup=setup!==null;
+      const wanted = validSetup?null:query.get("id");
       if (wanted) {
         setId(wanted);
         setView("room");
       }
+      else if(setup){setCreationMinutes(setup.minutes);setView('new');}
+      else if(query.has('setup'))window.history.replaceState(null,"","/exams");
       void loadList();
     }, 0);
     return () => window.clearTimeout(timer);
@@ -521,7 +577,7 @@ export default function ExamTeacher({ user }: { user: { displayName: string } })
           <h1 className="lesson-title">Phòng kiểm tra</h1>
           <p className="exam-note">Xin chào {user.displayName}. Tải file đề lên, học sinh vào bằng mã phòng và làm bài trên điện thoại hoặc máy tính; bài được lưu ngay từng câu.</p>
         </div>
-        <a className="lesson-button lesson-button-outline" href="/lessons">Tiết học</a>
+        <a className="lesson-button lesson-button-outline" href="/lessons">Tiết học</a><a className="lesson-button lesson-button-outline" href="/trash">Thùng rác</a>
       </header>
       {view === "list" && (
         <section className="exam-list">
@@ -534,13 +590,26 @@ export default function ExamTeacher({ user }: { user: { displayName: string } })
                   <div><strong>{e.title}</strong><br /><small>{e.questionCount} câu · {e.durationMin} phút · {e.attempts} học sinh · mã <b>{e.code}</b></small></div>
                   <span className={"lesson-badge " + STATUS_BADGE[e.status]}>{STATUS_LABEL[e.status]}</span>
                   <button type="button" className="lesson-button lesson-button-primary" onClick={() => openRoom(e.id)}>Mở</button>
+                  <button type="button" className="lesson-button lesson-button-danger" disabled={Boolean(deletingId) || e.status === "running"} onClick={() => { setDeleteConfirmation(""); setPendingDelete(e); }}>Xóa phòng</button>
                 </li>
               ))}
             </ul>
           )}
+          {pendingDelete && <form className="exam-card" aria-label="Xác nhận xóa phòng kiểm tra" onSubmit={async (event) => {
+            event.preventDefault(); if (deleteConfirmation !== pendingDelete.title || deletingId) return;
+            setDeletingId(pendingDelete.id); setError("");
+            try { await teacherPost({ action: "delete", id: pendingDelete.id, confirmTitle: pendingDelete.title, confirmAttempts: pendingDelete.attempts }); setPendingDelete(null); setDeleteConfirmation(""); await loadList(); }
+            catch (error) { setError(messageFor(error)); await loadList(); }
+            finally { setDeletingId(""); }
+          }}>
+            <p>Xóa phòng “{pendingDelete.title}” có {pendingDelete.attempts} bài của học sinh? Phòng và toàn bộ bài làm chuyển vào Thùng rác. Có thể khôi phục trong Thùng rác của giáo viên.</p>
+            <label>Nhập chính xác: <strong>{pendingDelete.title}</strong><input autoFocus className="lesson-input" value={deleteConfirmation} disabled={Boolean(deletingId)} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
+            <button type="submit" className="lesson-button lesson-button-danger" disabled={Boolean(deletingId) || deleteConfirmation !== pendingDelete.title}>Xác nhận xóa</button>{" "}
+            <button type="button" className="lesson-button lesson-button-outline" disabled={Boolean(deletingId)} onClick={() => { setPendingDelete(null); setDeleteConfirmation(""); }}>Hủy xóa</button>
+          </form>}
         </section>
       )}
-      {view === "new" && <ExamImport onCancel={toList} onCreated={openRoom} />}
+      {view === "new" && <ExamImport onCancel={toList} onCreated={openRoom} initialDurationMin={creationMinutes} />}
       {view === "room" && <ExamRoom id={id} onBack={toList} />}
     </div>
   );

@@ -22,6 +22,8 @@ function realDb() {
   database.exec('PRAGMA foreign_keys=ON');
   database.exec(`
     CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL);
+    CREATE TABLE lesson_content_deletions(kind TEXT,object_id TEXT,owner_account_id TEXT,deleted_at INTEGER,PRIMARY KEY(kind,object_id));
+    CREATE TABLE site_trash(kind TEXT,object_id TEXT,owner_account_id TEXT,deleted_at INTEGER,data TEXT,PRIMARY KEY(kind,object_id));
     CREATE TABLE rooms(id TEXT PRIMARY KEY,code TEXT UNIQUE NOT NULL,admin_hash TEXT NOT NULL,title TEXT NOT NULL,created INTEGER NOT NULL,revision INTEGER NOT NULL DEFAULT 0,mode TEXT NOT NULL,owner_account_id TEXT,deleted_at INTEGER);
     CREATE TABLE room_memberships(room_id TEXT NOT NULL,account_id TEXT NOT NULL,role TEXT NOT NULL,granted_at INTEGER NOT NULL,granted_by TEXT,revoked_at INTEGER,UNIQUE(room_id,account_id));
     CREATE TABLE system_hosts(account_id TEXT PRIMARY KEY,role TEXT NOT NULL,created_at INTEGER NOT NULL,revoked_at INTEGER);

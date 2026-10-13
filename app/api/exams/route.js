@@ -55,12 +55,18 @@ export async function POST(request) {
     switch (body.action) {
       case 'delete':
         return json(await api.deleteExam({ ...base, confirmTitle: body.confirmTitle, confirmAttempts: body.confirmAttempts }));
+      case 'remove-attempt':
+        return json(await api.removeAttempt({ ...base, attemptId: body.attemptId, confirmName: body.confirmName, expectedLastSeenAt: body.expectedLastSeenAt, expectedSubmittedAt: body.expectedSubmittedAt, expectedContentRevision: body.expectedContentRevision }));
       case 'create':
         return json(await api.createExam({ ownerAccountId: owner, requestId: body.requestId, input: body.exam }), 201);
       case 'update':
         return json(await api.updateExam({ ...base, input: body.exam || {} }));
       case 'duplicate-code':
         return json(await api.duplicateCode({ ...base, sourceCode: body.sourceCode, newCode: body.newCode }));
+      case 'remove-question':
+      case 'remove-code':
+        if (body.action === 'remove-question' && (typeof body.qid !== 'string' || !body.qid.trim())) throw new Error('INVALID_BODY');
+        return json(await api.removeExamPart({ ...base, examCode: body.examCode, qid: body.action === 'remove-question' ? body.qid : undefined, confirmLabel: body.confirmLabel, expectedContentRevision: body.expectedContentRevision }));
       case 'image':
         return json(await api.saveQuestionImage({ ...base, qid: body.qid, mime: body.mime, data: body.data, assetId: body.assetId }));
       case 'item-image':
@@ -84,7 +90,9 @@ export async function POST(request) {
         return json(await proposeExamVariants({ source, model: body.model, aiConsent: body.aiConsent }, { env: getEnv() }));
       }
       case 'remove-image':
-        return json(await api.removeQuestionImage({ ...base, qid: body.qid }));
+        return json(await api.removeQuestionImage({ ...base, qid: body.qid, assetId: body.assetId }));
+      case 'remove-item-image':
+        return json(await api.removeItemImage({ ...base, qid: body.qid, itemKind: body.itemKind, letter: body.letter, assetId: body.assetId }));
       case 'solution-image':
         return json(await api.saveSolutionImage({ ...base, qid: body.qid, mime: body.mime, data: body.data, assetId: body.assetId }));
       case 'remove-solution-image':

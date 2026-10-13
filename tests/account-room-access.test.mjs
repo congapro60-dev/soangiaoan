@@ -28,6 +28,7 @@ for (const file of [
   '0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql',
 ]) database.exec(await readFile(resolve('drizzle', file), 'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
+database.exec(await readFile(resolve('drizzle/0022_site_trash.sql'),'utf8'));
 
 function stmt(sql, ...params) {
   const q = database.prepare(sql);

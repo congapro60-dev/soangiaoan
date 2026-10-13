@@ -32,6 +32,7 @@ export function AccommodationEditor({ examId, attempt, disabled, onSaved }: {
       <fieldset disabled={disabled || busy}>
         <label>Tổng phút thêm (0–60)<input className="lesson-input" type="number" min={0} max={60} step={1} value={extraMinutes} onChange={(e) => setExtraMinutes(e.target.value)} /></label>
         <label>Cỡ chữ<select className="lesson-input" value={textScale} onChange={(e) => setTextScale(Number(e.target.value))}>{[1, 1.25, 1.5, 1.75, 2].map((scale) => <option key={scale} value={scale}>{scale * 100}%</option>)}</select></label>
+        <button className="lesson-button lesson-button-outline" type="button" onClick={() => { setExtraMinutes("0"); setTextScale(1); }}>Bỏ hỗ trợ riêng (bấm Lưu để áp dụng)</button>
         <button className="lesson-button lesson-button-primary" type="button" disabled={extraMinutes.trim() === "" || !Number.isInteger(Number(extraMinutes)) || Number(extraMinutes) < 0 || Number(extraMinutes) > 60} onClick={() => void save()}>{busy ? "Đang lưu…" : "Lưu hỗ trợ riêng"}</button>
       </fieldset>
       {error && <p className="exam-error" role="alert">{error}</p>}

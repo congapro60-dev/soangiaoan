@@ -103,7 +103,7 @@ const MESSAGES: Record<string, string> = {
   QUESTIONS_LOCKED: "Đã có học sinh vào nên không đổi được số câu hay loại câu; chỉ sửa được đáp án và điểm.",
   INVALID_EXAM: "Đề chưa hợp lệ: cần tên, thời gian 5–300 phút và ít nhất một câu.",
   INVALID_IMAGE: "Ảnh không đọc được hoặc quá lớn.",
-  TOO_MANY_PHOTOS: "Đã đủ số ảnh tối đa cho bài làm.",
+  TOO_MANY_PHOTOS: "Đã đủ số ảnh tối đa cho bài làm, gồm cả ảnh giữ trong Thùng rác. Báo giáo viên để khôi phục ảnh cần dùng.",
   BODY_TOO_LARGE: "Dữ liệu quá lớn.",
   EXAM_UNAVAILABLE: "Hệ thống đang bận, thử lại sau ít giây.",
 };

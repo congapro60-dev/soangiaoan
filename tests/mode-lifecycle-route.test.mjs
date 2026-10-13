@@ -6,6 +6,7 @@ import {resolve,dirname} from 'node:path';
 const database=new DatabaseSync(':memory:');
 for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
+database.exec(await readFile(resolve('drizzle/0022_site_trash.sql'),'utf8'));
 function stmt(sql,...params){const q=database.prepare(sql);return {first:()=>q.get(...params)??null,all:()=>({results:q.all(...params)}),run:()=>({meta:{changes:Number(q.run(...params).changes)}})};}
 const testEnv={SITE_OWNER_EMAIL:'root@mode.test',SITE_OWNER_USER_ID:'root-mode-id'};
 let beforeBatch = null;

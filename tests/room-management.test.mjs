@@ -6,7 +6,9 @@ import {resolve,dirname} from 'node:path';
 const database=new DatabaseSync(':memory:');
 for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
-function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};};
+database.exec(await readFile(resolve('drizzle/0022_site_trash.sql'),'utf8'));
+let beforeWrite = () => {};
+function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{beforeWrite(sql);const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};};
 const testEnv={SITE_OWNER_EMAIL:'root@mgmt.test',SITE_OWNER_USER_ID:'root-mgmt-id'};
 const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}}),getEnv:()=>testEnv};
 // Seed root account + system_host so create-room identity auth works.
@@ -29,6 +31,11 @@ const info=await post('room-info',{code:room.code});assert.equal(info.status,200
 assert.equal(/token|admin_hash|answerKey|seed/.test(JSON.stringify(info.data)),false);
 const lessonRoomId=crypto.randomUUID(),lessonRoomCode='A0F891';database.prepare("INSERT INTO rooms(id,code,admin_hash,title,created,mode,owner_account_id) VALUES(?,?,?,?,?,'lesson',?)").run(lessonRoomId,lessonRoomCode,'hidden','Lesson entry QA',Date.now(),testEnv.SITE_OWNER_USER_ID);
 const lessonInfo=await post('room-info',{code:lessonRoomCode});assert.equal(lessonInfo.status,400,'Orphan lesson room cannot route pupils into a missing session');
+assert.equal((await post('delete-room',{id:lessonRoomId,revision:0,confirmCode:lessonRoomCode})).status,403);
+assert.equal((await teacher('delete-room',{id:lessonRoomId,revision:0,confirmCode:'WRONG'})).status,400);
+assert.equal((await teacher('delete-room',{id:lessonRoomId,revision:1,confirmCode:lessonRoomCode})).status,409);
+assert.equal((await teacher('delete-room',{id:lessonRoomId,revision:0,confirmCode:lessonRoomCode})).status,200);
+assert(database.prepare('SELECT deleted_at FROM rooms WHERE id=?').get(lessonRoomId).deleted_at,'Lesson rooms use the same guarded removal');
 assert.equal((await post('join',{code:lessonRoomCode,name:'Cannot authenticate by name'})).status,400);assert.equal(database.prepare('SELECT COUNT(*) AS n FROM teams WHERE room_id=?').get(lessonRoomId).n,0);
 for(const [rule,durationMs] of [['duel',375000],['zones',300000],['survival',180000]]){const config={rule,participation:'pairs',playMode:'teams',theme:'modern',topics:['sets'],grade:10,minLevel:0,maxLevel:0,stationMax:0};const match=await teacher('create-room',{id:crypto.randomUUID(),adminKey:crypto.randomUUID()+crypto.randomUUID(),title:'Rule '+rule,campaign:config});assert.equal(match.status,200,JSON.stringify(match.data));const actual=await post('room-info',{code:match.data.room.code});assert.equal(actual.data.campaign.rule,rule);assert.equal(actual.data.campaign.participation,'pairs');assert.equal(actual.data.durationMs,durationMs);assert.equal(/seed|roster|token|admin_hash|answerKey/.test(JSON.stringify(actual.data)),false);}
 const otherId=crypto.randomUUID(),otherAdmin=crypto.randomUUID()+crypto.randomUUID();
@@ -76,3 +83,10 @@ assert.equal((await teacherGet('board',id)).status,410);
 assert.equal((await post('join',{code:room.code,name:'New team'})).status,400);
 assert.equal((await teacherGet('board',otherId)).status,200);
 console.log('Room-management integration passed: permissions, reset, retry, stale rounds, removal, name reuse, room closure, and room isolation.');
+const revokedOwner={ 'oai-authenticated-user-id':'race-owner', 'oai-authenticated-user-email':'race-owner@example.invalid' };
+const raceId=crypto.randomUUID();
+const raceRoom=(await post('create-room',{id:raceId,adminKey:crypto.randomUUID()+crypto.randomUUID(),title:'Delete authority race'},'',revokedOwner)).data.room;
+database.prepare("INSERT INTO system_hosts(account_id,role,created_at) VALUES(?,'host',?)").run('race-owner',Date.now());
+beforeWrite = sql => { if (sql.startsWith('UPDATE rooms SET deleted_at=')) { beforeWrite=()=>{};database.prepare('UPDATE system_hosts SET revoked_at=? WHERE account_id=?').run(Date.now(),'race-owner'); } };
+assert.equal((await post('delete-room',{id:raceId,revision:0,confirmCode:raceRoom.code},'',revokedOwner)).status,409,'Host revoked during deletion cannot mutate after authorization');
+assert.equal(database.prepare('SELECT deleted_at FROM rooms WHERE id=?').get(raceId).deleted_at,null);

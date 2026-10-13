@@ -31,7 +31,7 @@ interface Draft extends AntiCheatingConfig {
 const TYPE_LABEL: Record<ExamQuestion["type"], string> = { mc: "Chọn 1 đáp án", tf: "Đúng/Sai", short: "Trả lời ngắn", essay: "Tự luận" };
 const NUDGE = 8;
 
-export function ExamImport({ onCreated, onCancel, onImported, initialFile, code = "101" }: { onCreated: (examId: string) => void; onCancel: () => void; onImported?: (code: ExamCodeDraft) => void; initialFile?: File; code?: string }) {
+export function ExamImport({ onCreated, onCancel, onImported, initialFile, initialDurationMin, code = "101" }: { onCreated: (examId: string) => void; onCancel: () => void; onImported?: (code: ExamCodeDraft) => void; initialFile?: File; initialDurationMin?:number; code?: string }) {
   const [stage, setStage] = useState<"pick" | "reading" | "review" | "saving">("pick");
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
@@ -42,6 +42,8 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
   const pdfByCode = useRef(new Map<string, LoadedPdf>());
   const [currentCode, setCurrentCode] = useState(code);
   const [codeDrafts, setCodeDrafts] = useState<ExamCodeDraft[]>([]);
+  const [pendingDeleteCode, setPendingDeleteCode] = useState("");
+  const [removedDraft, setRemovedDraft] = useState<{ question?: DraftQuestion; index?: number; patch?: Partial<DraftQuestion>; code?: ExamCodeDraft } | null>(null);
   const creation = useRef<{ requestId: string; examId?: string }>({ requestId: "" });
   const [createdId, setCreatedId] = useState("");
   const [guidePending, setGuidePending] = useState(false);
@@ -123,7 +125,7 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
       setCurrentCode(targetCode);
       setDraft({
         title: parsed.title || file.name.replace(/\.[^.]+$/, ""),
-        durationMin: parsed.durationMin || 45,
+        durationMin: Number.isInteger(initialDurationMin)&&initialDurationMin!>=5&&initialDurationMin!<=240?initialDurationMin!:parsed.durationMin||45,
         showResult: "score",
         review: "after_close",
         allowLateJoin: true,
@@ -259,7 +261,17 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
       <fieldset disabled={stage === "saving"} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <div className="exam-card">
         <h2>Kiểm tra lại đề</h2>
-        {!onImported && <CodeTabs codes={allCodes} selected={currentCode} disabled={staging || stage === "saving" || Boolean(createdId)} onSelect={(selected) => { setCodeDrafts(allCodes); const chosen = allCodes.find((entry) => entry.code === selected); if (chosen) { setCurrentCode(selected); setDraft({ ...draft, questions: chosen.questions as DraftQuestion[] }); pdf.current = pdfByCode.current.get(selected) || null; } }} onDuplicate={(target) => { const cloned = draft.questions.map((q, i) => ({ ...q, id: target + "_q" + (i + 1), questionImageId: q.image ? crypto.randomUUID() : undefined, sourceImages: q.sourceImages?.map((image) => ({ ...image, id: crypto.randomUUID() })), solutionUploads: q.solutionUploads?.map((image) => ({ ...image, id: crypto.randomUUID() })), itemUploads: q.itemUploads?.map((image) => ({ ...image, id: crypto.randomUUID() })), solutionImages: undefined, solutionRemoved: undefined })); setCodeDrafts([...allCodes, { code: target, questions: cloned }]); setCurrentCode(target); setDraft({ ...draft, questions: cloned }); pdf.current = null; }} onImport={(target, file) => void readFile(file, target)} />}
+        {!onImported && <CodeTabs codes={allCodes} selected={currentCode} disabled={staging || stage === "saving" || Boolean(createdId)} onSelect={(selected) => { setCodeDrafts(allCodes); const chosen = allCodes.find((entry) => entry.code === selected); if (chosen) { setCurrentCode(selected); setDraft({ ...draft, questions: chosen.questions as DraftQuestion[] }); pdf.current = pdfByCode.current.get(selected) || null; } }} onDuplicate={(target) => { const cloned = draft.questions.map((q, i) => ({ ...q, id: target + "_q" + (i + 1), questionImageId: q.image ? crypto.randomUUID() : undefined, sourceImages: q.sourceImages?.map((image) => ({ ...image, id: crypto.randomUUID() })), solutionUploads: q.solutionUploads?.map((image) => ({ ...image, id: crypto.randomUUID() })), itemUploads: q.itemUploads?.map((image) => ({ ...image, id: crypto.randomUUID() })), solutionImages: undefined, solutionRemoved: undefined })); setCodeDrafts([...allCodes, { code: target, questions: cloned }]); setCurrentCode(target); setDraft({ ...draft, questions: cloned }); pdf.current = null; }} onRemove={setPendingDeleteCode} onImport={(target, file) => void readFile(file, target)} />}
+        {pendingDeleteCode && <div className="exam-card" role="group" aria-label="Xác nhận bỏ mã đề bản nháp"><p>Bỏ mã đề {pendingDeleteCode} khỏi bản nháp “{draft.title}”?</p><button type="button" className="lesson-button lesson-button-danger" disabled={staging || Boolean(createdId)} onClick={() => {
+          const remaining = allCodes.filter((entry) => entry.code !== pendingDeleteCode); if (!remaining.length) return;
+          const selected = remaining[0]; setRemovedDraft({ code: allCodes.find((entry) => entry.code === pendingDeleteCode) });
+          setCodeDrafts(remaining); setCurrentCode(selected.code); setDraft({ ...draft, questions: selected.questions as DraftQuestion[] }); pdf.current = pdfByCode.current.get(selected.code) || null; setPendingDeleteCode("");
+        }}>Xác nhận bỏ mã đề</button>{" "}<button type="button" className="lesson-button lesson-button-outline" onClick={() => setPendingDeleteCode("")}>Hủy xóa</button></div>}
+        {removedDraft && <button type="button" className="lesson-button lesson-button-outline" disabled={staging || Boolean(createdId)} onClick={() => {
+          if (removedDraft.code) { if (allCodes.some((entry) => entry.code === removedDraft.code!.code)) return; setCodeDrafts([...allCodes, removedDraft.code]); setCurrentCode(removedDraft.code.code); setDraft({ ...draft, questions: removedDraft.code.questions as DraftQuestion[] }); pdf.current = pdfByCode.current.get(removedDraft.code.code) || null; }
+          else if (removedDraft.question) { const questions = [...draft.questions]; if (removedDraft.patch) { const index = questions.findIndex((entry) => entry.id === removedDraft.question!.id); if (index < 0) return; questions[index] = { ...questions[index], ...removedDraft.patch }; } else questions.splice(removedDraft.index || 0, 0, removedDraft.question); setDraft({ ...draft, questions }); }
+          setRemovedDraft(null);
+        }}>Hoàn tác bỏ khỏi bản nháp</button>}
         {!onImported && <AntiCheatingSettings settings={draft} count={allCodes.length} onChange={(settings) => setDraft({ ...draft, ...settings })} />}
         <div className="exam-grid">
           <label><span>Tên bài kiểm tra</span><input className="lesson-input" value={draft.title} maxLength={120} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
@@ -289,11 +301,12 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
               {(Object.keys(TYPE_LABEL) as Array<ExamQuestion["type"]>).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
             </select>
             <label className="exam-points-edit"><input className="lesson-input" type="number" min={0} max={20} step={0.05} value={q.points} onChange={(e) => patch(q.id, { points: Number(e.target.value) })} /> điểm</label>
-            <button type="button" className="lesson-button lesson-button-outline" disabled={Boolean(createdId) || guidePending || imageReaders > 0 || draft.questions.some((question) => question.busy)} onClick={() => setDraft({ ...draft, questions: draft.questions.filter((_, k) => k !== i) })} title="Bỏ câu này (nhận nhầm)">Bỏ</button>
+            <button type="button" className="lesson-button lesson-button-outline" disabled={Boolean(createdId) || guidePending || imageReaders > 0 || draft.questions.some((question) => question.busy)} onClick={() => { setRemovedDraft({ question: q, index: i }); setDraft({ ...draft, questions: draft.questions.filter((_, k) => k !== i) }); }} title="Bỏ câu này (nhận nhầm)">Bỏ</button>
           </div>
           {q.image ? (
             <div className="exam-crop">
               <img src={"data:image/jpeg;base64," + q.image} alt={q.label} />
+              <button type="button" className="lesson-button lesson-button-outline" disabled={Boolean(createdId) || staging} onClick={() => { setRemovedDraft({ question: q, patch: { image: q.image, hasImage: q.hasImage, imageMode: q.imageMode, text: q.text } }); patch(q.id, { image: undefined, hasImage: Boolean(q.sourceImages?.length), text: q.text || q.rawText || "", imageMode: "figure" }); }}>Bỏ ảnh câu hỏi</button>
               <div className="exam-crop-tools" aria-label="Chỉnh vùng cắt">
                 <span>Cắt lại:</span>
                 <button type="button" disabled={q.busy} onClick={() => void nudge(i, "top", -NUDGE)}>Thêm phía trên</button>
@@ -306,10 +319,9 @@ export function ExamImport({ onCreated, onCancel, onImported, initialFile, code 
             <label className="exam-rawtext"><span>Nội dung câu hỏi (viết công thức trong $...$)</span><textarea className="lesson-input" rows={4} value={q.text || ""} onChange={(e) => patch(q.id, { text: e.target.value })} /><MathText text={q.text || ""} inline={false} /></label>
           )}
           <KeyEditor q={q} onChange={(change) => patch(q.id, change as Partial<DraftQuestion>)} />
-          <QuestionItemsEditor q={q} onChange={(change) => patch(q.id, change)} />
+          <QuestionItemsEditor q={q} locked={Boolean(createdId) || staging} onChange={(change) => patch(q.id, change)} />
           {q.shuffleReason && <p className="exam-warn">Không đảo được từ PDF: {q.shuffleReason}</p>}
-          {q.itemUploads?.map((image) => <figure key={image.id}><figcaption>{image.letter}{image.itemKind === "option" ? "." : ")"}</figcaption><img className="exam-teacher-img" src={"data:" + image.mime + ";base64," + image.data} alt={"Phương án " + image.letter + " " + q.label} /></figure>)}
-          {q.sourceImages?.map((image) => <img key={image.id} className="exam-teacher-img" src={"data:" + image.mime + ";base64," + image.data} alt={"Hình trong " + q.label} />)}
+          {q.sourceImages?.map((image) => <div key={image.id}><img className="exam-teacher-img" src={"data:" + image.mime + ";base64," + image.data} alt={"Hình trong " + q.label} /><button type="button" className="lesson-button lesson-button-outline" disabled={Boolean(createdId) || staging} onClick={() => { setRemovedDraft({ question: q, patch: { sourceImages: q.sourceImages, hasImage: q.hasImage } }); patch(q.id, { sourceImages: q.sourceImages?.filter((entry) => entry.id !== image.id), hasImage: Boolean(q.image || (q.sourceImages?.length || 0) > 1) }); }}>Bỏ hình minh họa</button></div>)}
           <SolutionEditor q={q} examId={createdId || undefined} onBusyChange={imageBusy} onChange={(change) => patch(q.id, change)} />
           </fieldset>
         </article>

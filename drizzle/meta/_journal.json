@@ -148,6 +148,20 @@
       "when": 1791770760044,
       "tag": "0020_exam_accommodations",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1791876000000,
+      "tag": "0021_lesson_content_deletions",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1791879600000,
+      "tag": "0022_site_trash",
+      "breakpoints": true
     }
   ]
 }

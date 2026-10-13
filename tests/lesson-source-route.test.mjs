@@ -11,6 +11,8 @@ import {zipSync,strToU8} from 'fflate';
 
 const database=new DatabaseSync(':memory:');
 for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql','0008_striped_wallflower.sql','0009_approved_session_plans.sql','0010_lesson_sources.sql','0011_unknown_sebastian_shaw.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+database.exec('CREATE TABLE lesson_content_deletions(kind TEXT,object_id TEXT,owner_account_id TEXT,deleted_at INTEGER,PRIMARY KEY(kind,object_id));');
+database.exec(await readFile(resolve('drizzle','0012_lesson_generation_jobs.sql'),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
 database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run('teacher-a','a@test','A',1);
 database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run('teacher-b','b@test','B',1);
@@ -20,7 +22,7 @@ const bucket={async put(key,value,options={}){if(options.onlyIf?.etagDoesNotMatc
 const context=createContext({Date,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,TextDecoder,console});
 const env={LESSON_SOURCES:bucket};const cache=new Map();
 // Supply D1's prepare/bind interface, not an empty database object.
-const d1={prepare:sql=>({bind:(...args)=>stmt(sql,...args)})};
+const d1={prepare:sql=>({bind:(...args)=>stmt(sql,...args)}),batch:async statements=>{database.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());database.exec('COMMIT');return results;}catch(error){database.exec('ROLLBACK');throw error;}}};
 async function moduleAt(path){if(cache.has(path))return cache.get(path);let mod;const normalized=path.replaceAll('\\','/');if(resolve(path)===resolve('lib/storage.js'))mod=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',stmt);this.setExport('db',()=>({}));this.setExport('getEnv',()=>env);},{context,identifier:path});else if(resolve(path)===resolve('lib/account-room-access.js'))mod=new SyntheticModule(['resolveIdentity'],function(){this.setExport('resolveIdentity',(req)=>{const id=req.headers.get('x-test-user');return {user:id?{userId:id,email:id+'@test'}:null,isRootUser:false};});},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/text.js'))mod=new SyntheticModule(['importText'],function(){this.setExport('importText',importText);},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/docx.js'))mod=new SyntheticModule(['importDocx'],function(){this.setExport('importDocx',({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'docx',bytes:bytes.byteLength,originalName,segments:[{text:'DOCX'}],uncertainties:[]}));},{context,identifier:path});else if(normalized.endsWith('/lib/lesson/import/pdf.js'))mod=new SyntheticModule(['importPdf'],function(){this.setExport('importPdf',async({bytes,originalName})=>({ok:true,status:'needs_review',sha256:'pdf',bytes:bytes.byteLength,originalName,segments:[],uncertainties:[{code:'OCR_REQUIRED',pageNumber:1}]}));},{context,identifier:path});else mod=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,mod);return mod;}
 const storagePath=resolve('lib/storage.js');
 cache.set(storagePath,new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',stmt);this.setExport('db',()=>d1);this.setExport('getEnv',()=>env);},{context,identifier:storagePath}));
@@ -144,3 +146,13 @@ for(const table of ['lesson_sources','lesson_package_sources']){
   assert.deepEqual(database.prepare(`PRAGMA index_list(${table})`).all().filter(x=>x.origin==='c').map(x=>x.name).sort(),Object.keys(snapshot.tables[table].indexes).sort());
 }
 console.log('Source regressions: streaming limits, private reload, real DOCX/corrupt PDF, retained failures, R2 retry and migration metadata passed.');
+
+const deletion = (input, user = 'teacher-a') => new Request('https://x.test/api/lessons/sources', { method: 'DELETE', headers: { 'content-type': 'application/json', ...(user ? { 'x-test-user': user } : {}) }, body: JSON.stringify(input) });
+const removeInput = { id: first.id, confirmName: first.originalName };
+assert.equal((await route.DELETE(deletion(removeInput, ''))).status, 401);
+assert.equal((await route.DELETE(deletion(removeInput, 'teacher-b'))).status, 404);
+assert.equal((await route.DELETE(deletion({ ...removeInput, ownerAccountId: 'teacher-b' }))).status, 400);
+assert.equal((await route.DELETE(deletion({ ...removeInput, confirmName: 'wrong' }))).status, 409);
+assert.equal((await route.DELETE(deletion(removeInput))).status, 200);
+assert.equal((await route.GET(new Request(`https://x.test/api/lessons/sources?id=${first.id}`, { headers: { 'x-test-user': 'teacher-a' } }))).status, 404);
+assert.equal(objects.has(`lesson-source/${first.id}/original`), true);

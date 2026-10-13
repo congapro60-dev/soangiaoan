@@ -138,3 +138,16 @@ test('latest draft GET forwards authenticated owner and source, returns null, ne
  assert.deepEqual(JSON.parse(JSON.stringify(received)),{ownerAccountId:'teacher-a',sourceId:'src-1'});assert.equal(calls,0);
  assert.equal((await route.GET(new Request('https://test/api/lessons/proposal?latest=true',{headers:{'x-test-user':'teacher-a'}}))).status,400);
 });
+
+test('job removal uses signed-in owner, rejects injected authority and avoids provider calls', async () => {
+  let removed, providerCalls = 0;
+  const route = await routeWith(() => source, { generationImpl: { remove: async input => { removed = input; return { ok: true, retained: true }; }, list: async owner => [{ id: owner + '-draft' }], run: async () => { providerCalls++; } } });
+  const make = (body, signedIn = true) => new Request('https://test/api/lessons/proposal', { method: 'POST', headers: { 'content-type': 'application/json', ...(signedIn ? { 'x-test-user': 'teacher-a' } : {}) }, body: JSON.stringify(body) });
+  const input = { action: 'delete', id: 'job-1', confirmId: 'job-1' };
+  assert.equal((await route.POST(make(input, false))).status, 401);
+  assert.equal((await route.POST(make({ ...input, ownerAccountId: 'other' }))).status, 400);
+  assert.equal((await route.POST(make(input))).status, 200);
+  assert.deepEqual(JSON.parse(JSON.stringify(removed)), { ownerAccountId: 'teacher-a', id: 'job-1', confirmId: 'job-1' });
+  assert.deepEqual(await (await route.GET(new Request('https://test/api/lessons/proposal?kind=list', { headers: { 'x-test-user': 'teacher-a' } }))).json(), { jobs: [{ id: 'teacher-a-draft' }] });
+  assert.equal(providerCalls, 0);
+});

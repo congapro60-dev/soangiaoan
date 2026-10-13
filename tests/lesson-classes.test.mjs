@@ -12,14 +12,16 @@ function setup(beforeWrite = () => {}) {
   database.exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL);
     CREATE TABLE lesson_packages(row_id TEXT PRIMARY KEY,content_hash TEXT NOT NULL,status TEXT NOT NULL,data TEXT NOT NULL);
+    CREATE TABLE rooms(id TEXT PRIMARY KEY,owner_account_id TEXT,deleted_at INTEGER);
     CREATE TABLE lesson_sessions(id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,package_row_id TEXT NOT NULL,package_hash TEXT NOT NULL,state TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,learner_id TEXT NOT NULL,name TEXT NOT NULL,token_hash TEXT NOT NULL);
     INSERT INTO accounts VALUES('teacher-1','t1@test','Teacher',1),('teacher-2','t2@test','Teacher',1);
     INSERT INTO lesson_sessions VALUES('legacy','teacher-1','legacy-pkg','legacy-hash','{}',0);
     INSERT INTO lesson_learners VALUES('legacy-learner','legacy','learner-1','Old','legacy-token');`);
+  database.exec("ALTER TABLE lesson_sessions ADD room_id TEXT DEFAULT 'room'; INSERT INTO rooms VALUES('room','teacher-1',NULL);");
   const oldSession = database.prepare('SELECT * FROM lesson_sessions').get();
   const oldLearner = database.prepare('SELECT * FROM lesson_learners').get();
-  for (const part of migration().split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  for (const part of (migration() + '\n' + readFileSync(new URL('../drizzle/0022_site_trash.sql', import.meta.url), 'utf8')).split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
   const prepare = sql => ({ bind: (...values) => ({
     first: async () => { if (/^(UPDATE|INSERT|DELETE)/.test(sql)) beforeWrite(sql, database); return database.prepare(sql).get(...values) ?? null; },
     all: async () => ({ results: database.prepare(sql).all(...values) }),
