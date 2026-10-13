@@ -1430,4 +1430,15 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] 1328fulltests/47focused cuối,typecheck/build0,lint0/421warnings;438sourcebyte-match/Workera5b15b02c87ecca3653e23f6c58bc8d88cbcf97ee0f89b6f2d6235144fc75bc6. Native178HTTP/8creation+7trash0external.
 - [x] CUAhost→4choices→review12/80blankimport;librarychosenpackageoriginal41min;exam80new;375fourchoices+CTAvisible. CleanupnewQAroomsactive0/failedfixturescleaned.
 - [x] Reports/HANDOFF/todo/lessons cập nhật; independentreviews+GeminiFlashlowcompactPASS. Highreviewtimeoutunknown, initialcontradictoryreviewnotPASS.
-- [ ] Chủ hệ thống duyệt scopedpublishR16+R17 và productionQA/rollback; chưa phát hành. R15 và gate lớp thật/học liệuR14 vẫn riêng.
+- [x] Chủ hệ thống duyệt “Phát hành đi và sau đó làm R15”. R16+R17 đã publish native v11; deployment succeeded 13/10/2026 12:39:26Z, source `6497efca4c188bb2524899e7757b328d82ef687a`. Production CUA `/lessons`→wizard4loại, bước2 Luyện tập và `/hosts`→Thùng rác đạt; không tạo/xóa dữ liệu lớp thật. Evidence `tasks/codex-r16-r17-production-release.json`.
+
+### R15 bắt đầu triển khai — 13/10/2026
+- [x] Chủ hệ thống giao làm R15 sau publish. Đọc plan đã lưu, contract `tasks/codex-r15-implementation-contract.md`; R15.1–2 trước, xuất file Site tiếp theo.
+- [x] Xác minh bộ nhận GiaoAnDewey production READY tại SHA `a7b7f93b6accf679ed90dbf1c91f1201fa8ce8e3`; roster `classes/{classId}/students/{studentId}`, server-only evidence. Không lấy adaptive cũ/Downloads dirty làm nguồn đích.
+- [x] Backend: namespace mục tiêu, preview/withdrawal/regrade, compact dashboard có phân trang, backfill bounded, kế hoạch GV sửa/duyệt/version/Trash. Migration0023 additive; số task/variant lặp không tăng thành thạo.
+- [x] UI: Hồ sơ học tập tại /hosts; chọn lớp/thời gian, 50HS/trang, timeline, bản nháp/duyệt và xuất JSON/CSV; không đưa nút vào HUD HS. KaTeX stylesheet riêng; pending không thành0điểm.
+- [x] R15.2 gợi ý bài cá nhân nguyên văn từ học liệu đã duyệt: HS thiếu minh chứng dùng chẩn đoán/kiểm tra lại; hỗ trợ/cốt lõi/mở rộng theo minh chứng. Mục tiêu chưa ghép xuyên bài giữ namespace; phần chưa có học liệu nêu GV bổ sung.
+- [x] R15.3 bộ nhận local trong checkout cô lập `C:/Users/ADMIN/.codex/worktrees/r15-game-records-receiver/smart-lesson-plan-ai`, source productiona7b7f93, branchcodex/r15-game-learning-receiver. JSON xem trước/ghépID/duyệt/revision/chốngtrùng/thu hồi/khôi phụcCAS; minh chứng ngoài server-only, không tự đổi điểm/năng lực. Full2889/2889, focused59, FirestoreAdmin2+Rules4, build/typecheckPASS; Gemini review cuốiPASS. CUA panel thật/API giả đạt nhập→thu hồi→khôi phục; không thay chứng cứ phân quyền account thật.
+- [x] Kiểm thử quyền/source/CAS, fixture150×20, finalfull1359, typecheck/buildPASS, full/scopedlint0errors, Gemini finalPASS0; actualWorker/D1/R2/CUA desktop375/KaTeX/history/Trash/export/bàichẩndoán. Report codex-r15-report.md. Receiverfull2889+59focused+Admin2+Rules4 vàpanelmockCUA; khôngaccountproductionclaim.
+- [ ] Phát hành R15 sau lựa chọn chủ hệ thống theo19.9; lựa chọn đã hỏi async. R16/R17productionv11 giữ nguyên. Lớp thật/HS thật/pilot/retention vàR15.4 vẫn mở.
+- [ ] Nhập GiaoAnDewey/sync: cần mapping được GV duyệt, receiver/server+Rules QA và pilot; chưa chuyển dữ liệu thật. Không đánh dấu R15 toàn bộ hoàn tất khi mới có Site/export.

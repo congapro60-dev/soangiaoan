@@ -15,7 +15,7 @@ function setup(beforeWrite = () => {}, beforeRead = () => {}) {
     CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT,learner_id TEXT,name TEXT,token_hash TEXT,present INTEGER DEFAULT 1);
     INSERT INTO accounts VALUES('teacher'),('other');
     INSERT INTO lesson_packages VALUES('pkg','hash','approved','{}');`);
-  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql', '0021_lesson_content_deletions.sql', '0022_site_trash.sql']) {
+  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql', '0021_lesson_content_deletions.sql', '0022_site_trash.sql', '0023_r15_learning_records.sql']) {
     for (const sql of readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (sql.trim()) database.exec(sql);
   }
   database.exec("ALTER TABLE lesson_sessions ADD room_id TEXT DEFAULT 'room'; INSERT INTO rooms VALUES('room','teacher',NULL);");

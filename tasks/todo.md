@@ -259,4 +259,12 @@ Lượt này chỉ lập kế hoạch, chưa sửa code hoặc dữ liệu HS.
 - [x] Purposeprompt/serverconsent/recoverysettings, nguồn/duyệtgiữ.
 - [x] 1328full/47focused/typecheck/build/lint0;438manifest/native178/CUA375/reviews/cleanup0.
 - [x] Report/HANDOFF/plan chung/lessons cập nhật.
-- [ ] Chủ hệ thống duyệt phát hành scopedR16+R17,QAproduction/rollback. R15giữ.
+- [x] Chủ hệ thống duyệt; native v11R16+R17 production succeeded; CUA wizard/hosts/Trash PASS. Evidence codex-r16-r17-production-release.json.
+
+## R15 triển khai theo lệnh13/10
+- [x] Kế hoạch/contract/receiver production source xác minh; bắt đầu backend và UI độc lập.
+- [x] R15.1 namespace/compact teacher records/backfill/permissions/performance local.
+- [x] R15.2 teacher draft/edit/approve/version/stale/Trash + bài cá nhân đã duyệt theo mục tiêu.
+- [x] Site JSON/CSV export; bộ nhận Dewey cô lập manualmapping/preview/import/Trash/revisions;2889full/59focused/Admin2/Rules4/buildPASS. Chưa phát hành, chưa pilot tài khoản thật.
+- [x] FinalSite1359/receiver2889/typecheck/build/reviewGemini0/Worker+D1+R2/browserreport; checklistchung/HANDOFFcậpnhật.
+- [ ] Chủ hệ thống chọnreleaseR15; pilotGV/HSthật/canonicalobjectivemapping/retention/R15.4sync chưahoàn tất.

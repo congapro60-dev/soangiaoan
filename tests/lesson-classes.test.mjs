@@ -3,14 +3,16 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { createContext, SourceTextModule, SyntheticModule } from 'node:vm';
+import {exportLearningRecords,learningRecordsCsv} from '../lib/lesson/learning-record-export.js';
 import { resolveIdentity } from '../lib/account-room-access.js';
 import { createLessonClassService } from '../lib/lesson/class-service.js';
 
 const migration = () => readFileSync(new URL('../drizzle/0017_lesson_classes.sql', import.meta.url), 'utf8');
-function setup(beforeWrite = () => {}) {
+function setup(beforeWrite = () => {}, beforeRead = () => {}) {
   const database = new DatabaseSync(':memory:');
   database.exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL,display_name TEXT,created_at INTEGER NOT NULL);
+    CREATE TABLE system_hosts(account_id TEXT PRIMARY KEY,revoked_at INTEGER);
     CREATE TABLE lesson_packages(row_id TEXT PRIMARY KEY,content_hash TEXT NOT NULL,status TEXT NOT NULL,data TEXT NOT NULL);
     CREATE TABLE rooms(id TEXT PRIMARY KEY,owner_account_id TEXT,deleted_at INTEGER);
     CREATE TABLE lesson_sessions(id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,package_row_id TEXT NOT NULL,package_hash TEXT NOT NULL,state TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0);
@@ -21,10 +23,10 @@ function setup(beforeWrite = () => {}) {
   database.exec("ALTER TABLE lesson_sessions ADD room_id TEXT DEFAULT 'room'; INSERT INTO rooms VALUES('room','teacher-1',NULL);");
   const oldSession = database.prepare('SELECT * FROM lesson_sessions').get();
   const oldLearner = database.prepare('SELECT * FROM lesson_learners').get();
-  for (const part of (migration() + '\n' + readFileSync(new URL('../drizzle/0022_site_trash.sql', import.meta.url), 'utf8')).split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  for (const part of (migration() + '\n' + readFileSync(new URL('../drizzle/0018_lesson_leagues.sql', import.meta.url), 'utf8') + '\n' + readFileSync(new URL('../drizzle/0021_lesson_content_deletions.sql', import.meta.url), 'utf8') + '\n' + readFileSync(new URL('../drizzle/0022_site_trash.sql', import.meta.url), 'utf8') + '\n' + readFileSync(new URL('../drizzle/0023_r15_learning_records.sql', import.meta.url), 'utf8')).split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
   const prepare = sql => ({ bind: (...values) => ({
     first: async () => { if (/^(UPDATE|INSERT|DELETE)/.test(sql)) beforeWrite(sql, database); return database.prepare(sql).get(...values) ?? null; },
-    all: async () => ({ results: database.prepare(sql).all(...values) }),
+    all: async () => { beforeRead(sql,database); return {results:database.prepare(sql).all(...values)}; },
     run: async () => { beforeWrite(sql, database); return { meta: { changes: Number(database.prepare(sql).run(...values).changes) } }; }
   }) });
   let tail = Promise.resolve();
@@ -175,9 +177,10 @@ async function route(env) {
   const storage = new SyntheticModule(['db', 'stmt', 'getEnv'], function() { this.setExport('db', () => env.db); this.setExport('stmt', (sql, ...args) => env.db.prepare(sql).bind(...args)); this.setExport('getEnv', () => ({ SITE_OWNER_USER_ID: 'root', SITE_OWNER_EMAIL: 'root@test' })); }, { context });
   const identity = new SyntheticModule(['resolveIdentity'], function() { this.setExport('resolveIdentity', resolveIdentity); }, { context });
   const classes = new SyntheticModule(['createLessonClassService'], function() { this.setExport('createLessonClassService', () => env.service); }, { context });
+  const exportModule = new SyntheticModule(['exportLearningRecords','learningRecordsCsv'],function(){this.setExport('exportLearningRecords',exportLearningRecords);this.setExport('learningRecordsCsv',learningRecordsCsv);},{context});
   const http = new SourceTextModule(readFileSync(new URL('../lib/exam/http.js', import.meta.url), 'utf8'), { context });
   const api = new SourceTextModule(readFileSync(new URL('../app/api/lesson-classes/route.js', import.meta.url), 'utf8'), { context });
-  await api.link(specifier => specifier.endsWith('storage.js') ? storage : specifier.endsWith('account-room-access.js') ? identity : specifier.endsWith('class-service.js') ? classes : http);
+  await api.link(specifier => specifier.endsWith('learning-record-export.js') ? exportModule : specifier.endsWith('storage.js') ? storage : specifier.endsWith('account-room-access.js') ? identity : specifier.endsWith('class-service.js') ? classes : http);
   await api.evaluate(); return api.namespace;
 }
 const teacherHeaders = id => ({ 'oai-authenticated-user-id': id, 'oai-authenticated-user-email': id === 'root' ? 'root@test' : id + '@test' });
@@ -251,7 +254,7 @@ test('Should ability is separate from mastery task count; a new package version 
   state.passports['learner-a'].supportHistory.push({ taskId: 'practice' });
   env.database.prepare('UPDATE lesson_sessions SET state=?,revision=2 WHERE id=?').run(JSON.stringify(state), 'lesson-v2');
   await env.service.syncSessionEvidence({ ownerAccountId: owner, sessionId: 'lesson-v2' });
-  assert.equal((await env.service.getPassport(joined)).passport.objectives[0].status, 'minimum_mastery');
+  assert.equal((await env.service.getPassport(joined)).passport.objectives.find(o=>o.packageHash==='new-hash').status, 'minimum_mastery');
 });
 
 test('pending, reflection, group and assisted core tasks never satisfy the independent Should indicator', async () => {
@@ -293,7 +296,7 @@ test('own passport lazily reconciles all linked server sessions without writing 
   assert.equal(env.database.prepare('SELECT MAX(synced_at) AS n FROM lesson_class_evidence').get().n, written, 'unchanged mirrored records are not rewritten');
 });
 
-test('lazy passport tolerates a moving snapshot, flags pending evidence and rejects revocation during its server write', async () => {
+test('lazy passport rejects a moving snapshot and revocation during its server write', async () => {
   let mode;
   const env = setup((sql, database) => {
     if (!mode || !sql.startsWith('INSERT INTO lesson_class_evidence')) return;
@@ -305,8 +308,7 @@ test('lazy passport tolerates a moving snapshot, flags pending evidence and reje
   const joined = await env.service.joinClass(credentials);
   evidenceFixture(env, classroom, first, second);
   mode = 'revision';
-  const pending = await env.service.getPassport(joined);
-  assert.equal(pending.passportSyncPending, true); assert.equal(pending.passport.objectives.length, 0);
+  await assert.rejects(env.service.getPassport(joined),/EVIDENCE_SNAPSHOT_CHANGED/);
   assert.equal((await env.service.getPassport(joined)).passport.objectives[0].status, 'standard_mastery');
   env.database.exec('DELETE FROM lesson_class_evidence');
   mode = 'revoke';
@@ -314,3 +316,19 @@ test('lazy passport tolerates a moving snapshot, flags pending evidence and reje
 });
 
 test('published approved-source sessions still reconcile own evidence',async()=>{const env=setup();const {classroom,first,second,credentials}=await roster(env);evidenceFixture(env,classroom,first,second);env.database.exec("UPDATE lesson_packages SET status='published'");const own=await env.service.joinClass(credentials);assert.equal(own.passport.objectives[0].independentCount,2);});
+
+
+test('R15 HTTP teacher records GET is read-only, pupil token cannot select record/export, incorrect teacher forbidden',async()=>{
+ const env=setup(),{classroom,first,second,credentials}=await roster(env);evidenceFixture(env,classroom,first,second);await env.service.syncSessionEvidence({ownerAccountId:owner,sessionId:'lesson-1'});const api=await route(env),url='https://test/api/lesson-classes?id='+classroom.id;
+ const get=(suffix,headers=teacherHeaders(owner))=>api.GET(new Request(url+suffix,{headers}));
+ const records=await get('&action=records');assert.equal(records.status,200);assert.equal((await records.json()).members.length,2);assert.equal((await get('&action=records&limit=51')).status,400);assert.equal((await get('&action=records',teacherHeaders('teacher-2'))).status,404);
+ const joined=await env.service.joinClass(credentials);for(const action of ['records','record','records-export'])assert.equal((await get('&action='+action+'&memberId='+first.member.id,{authorization:'Bearer '+joined.token,...teacherHeaders(owner)})).status,401);
+ const detail=await get('&action=record&memberId='+first.member.id);assert.equal(detail.status,200);assert.equal(Array.isArray((await detail.json()).plans),true);
+ const exportResponse=await get('&action=records-export&format=json');assert.equal(exportResponse.status,200);assert.match(exportResponse.headers.get('Content-Disposition'),/learning-records.json/);assert.equal(exportResponse.headers.get('X-Content-Type-Options'),'nosniff');
+});
+
+test('R15 pupil passport rejects package withdrawal/draft/content and preview changes during evidence read',async()=>{
+ for(const mutation of ["UPDATE lesson_packages SET status='draft'","UPDATE lesson_packages SET content_hash='changed'","INSERT INTO lesson_content_deletions VALUES('package','pkg','teacher-1',1)","UPDATE lesson_sessions SET state=json_set(state,'$.mode','preview'),revision=revision+1 WHERE id='lesson-1'"]){
+  let armed=false;const env=setup(()=>{},(sql,database)=>{if(armed&&sql.startsWith('SELECT e.* FROM lesson_class_evidence')){armed=false;database.exec(mutation);}}),{classroom,first,second,credentials}=await roster(env);evidenceFixture(env,classroom,first,second);const joined=await env.service.joinClass(credentials);armed=true;await assert.rejects(env.service.getPassport(joined),/EVIDENCE_SNAPSHOT_CHANGED/);
+ }
+});

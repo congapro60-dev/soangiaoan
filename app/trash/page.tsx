@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import '../hosts/hosts.css';
 type Item={kind:string;id:string;title:string;deletedAt:number};
-const labels:Record<string,string>={room:'Phòng / tiết học','game-team':'Đội chơi','lesson-learner':'HS trong tiết',package:'Học liệu',source:'Giáo án / ý tưởng',job:'Bản nháp AI',plan:'Kịch bản',class:'Lớp','class-team':'Nhóm','class-member':'Hồ sơ HS',league:'Giải liên lớp','league-class':'Lớp trong giải','league-round':'Lượt trong giải',exam:'Phòng kiểm tra',exam_attempt:'Bài làm',exam_asset:'Hình ảnh',exam_structure:'Câu hỏi / mã đề'};
+const labels:Record<string,string>={room:'Phòng / tiết học','game-team':'Đội chơi','lesson-learner':'HS trong tiết',package:'Học liệu',source:'Giáo án / ý tưởng',job:'Bản nháp AI',plan:'Kịch bản','learning-plan':'Kế hoạch học tiếp',class:'Lớp','class-team':'Nhóm','class-member':'Hồ sơ HS',league:'Giải liên lớp','league-class':'Lớp trong giải','league-round':'Lượt trong giải',exam:'Phòng kiểm tra',exam_attempt:'Bài làm',exam_asset:'Hình ảnh',exam_structure:'Câu hỏi / mã đề'};
 const messages:Record<string,string>={AUTH_REQUIRED:'Đăng nhập giáo viên để xem Thùng rác.',NOT_FOUND:'Mục đã khôi phục hoặc bạn không có quyền.',RESTORE_CONFLICT:'Dữ liệu đã thay đổi. Tải lại trước khi khôi phục.',SOURCE_NOT_READY:'Khôi phục nguồn giáo án trước, rồi khôi phục bản nháp AI.',RESTORE_PARENT_REQUIRED:'Khôi phục lớp/giải hoặc phòng liên quan trước.'};
 export default function Trash(){
  const [items,setItems]=useState<Item[]>([]),[next,setNext]=useState<number|null>(null),[busy,setBusy]=useState(false),[note,setNote]=useState(''),[chosen,setChosen]=useState<Item|null>(null);

@@ -35,6 +35,7 @@ export async function POST(request){
     else if(body.kind==='lesson-learner')result=await createLessonService({db:database}).restoreTrashLearner(args);
     else if(body.kind==='source')result=await createLessonSourceService({db:database}).restore(args);
     else if(body.kind==='job')result=await createLessonGenerationService({db:database,sourceService:createLessonSourceService({db:database,bucket:getEnv().LESSON_SOURCES})}).restore(args);
+    else if(body.kind==='learning-plan')result=await createLessonClassService({db:database}).restorePlan(args);
     else if(['class','class-team','class-member'].includes(body.kind))result=await createLessonClassService({db:database}).restoreTrash(args);
     else if(['league','league-class','league-round'].includes(body.kind))result=await createLessonLeagueService({db:database}).restoreTrash(args);
     else if(['exam','exam_attempt','exam_asset','exam_structure'].includes(body.kind))result=await createExamService({db:database}).restoreTrash(args);

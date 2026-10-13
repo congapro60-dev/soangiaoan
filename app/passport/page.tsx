@@ -7,9 +7,9 @@ import MathText from "../../components/lesson/MathText";
 import "../lessons/lesson.css";
 
 export const CLASS_PASSPORT_TOKEN_KEY = "lesson_class_passport_token";
-type Passport = { leagues?:Array<{id:string;title:string}>; sessions?:Array<{id:string;status:string;storyEnding?:string}>; class: { id: string; title: string; code: string }; member: { id: string; name: string; code: string }; passport: { tutorHistory?:Array<{id:string;recipientName:string;at:number;revokedAt?:number}>; values?:Array<{valueId:string;reason:string;revokedAt?:number}>;reflections?:Array<{reflection:string;submittedAt:number}>; objectives: Array<{ code: string; statement: string; status: string; independentCount: number; supportedCount: number }> } };
+type Passport = { leagues?:Array<{id:string;title:string}>; sessions?:Array<{id:string;status:string;storyEnding?:string}>; class: { id: string; title: string; code: string }; member: { id: string; name: string; code: string }; passport: { tutorHistory?:Array<{id:string;recipientName:string;at:number;revokedAt?:number}>; values?:Array<{valueId:string;reason:string;revokedAt?:number}>;reflections?:Array<{reflection:string;submittedAt:number}>; objectives: Array<{ key?: string; code: string; statement: string; status: string; independentCount: number; supportedCount: number }> } };
 type Reply = Partial<Passport> & { error?: string; token?: string };
-const STATUS: Record<string, string> = { no_evidence: "Chưa có minh chứng", needs_support: "Cần luyện thêm", supported: "Đang luyện / đã làm với hỗ trợ", minimum_mastery: "Tự làm được mức cơ bản", standard_mastery: "Tự làm được mức chuẩn" };
+const STATUS: Record<string, string> = { pending: "Chờ giáo viên chấm", no_evidence: "Chưa có minh chứng", needs_support: "Cần luyện thêm", supported: "Đang luyện / đã làm với hỗ trợ", minimum_mastery: "Tự làm được mức cơ bản", standard_mastery: "Tự làm được mức chuẩn" };
 
 export default function PassportPage() {
   const [classCode, setClassCode] = useState("");
@@ -76,7 +76,7 @@ export default function PassportPage() {
         <h2>{passport.member.name} · {passport.class.title}</h2>
         <p>Mã học sinh: {passport.member.code}</p>
         {passport.passport.objectives.length === 0 ? <p>Chưa có minh chứng từ các tiết học. Khi hoàn thành bài cá nhân được đánh giá, hộ chiếu sẽ ghi lại tiến bộ của em.</p> : <ul>
-          {passport.passport.objectives.map(objective => <li key={objective.code} style={{ marginBottom: 16 }}>
+          {passport.passport.objectives.map(objective => <li key={objective.key || objective.code} style={{ marginBottom: 16 }}>
             <strong>{objective.code} · <MathText text={objective.statement}/></strong><br />
             {STATUS[objective.status] || STATUS.no_evidence} · {objective.independentCount} bài tự làm · {objective.supportedCount} bài có hỗ trợ
           </li>)}

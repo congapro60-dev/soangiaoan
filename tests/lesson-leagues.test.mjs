@@ -18,7 +18,7 @@ function setup(beforeWrite = () => {}) {
     CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,learner_id TEXT NOT NULL,name TEXT NOT NULL,token_hash TEXT NOT NULL,present INTEGER NOT NULL DEFAULT 1);
     INSERT INTO accounts VALUES('teacher-1','t1@test','Teacher',1),('teacher-2','t2@test','Teacher',1);
     INSERT INTO lesson_packages VALUES('pkg','approved-hash','approved','{}');`);
-  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql', '0021_lesson_content_deletions.sql', '0022_site_trash.sql']) for (const part of readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
+  for (const file of ['0017_lesson_classes.sql', '0018_lesson_leagues.sql', '0021_lesson_content_deletions.sql', '0022_site_trash.sql', '0023_r15_learning_records.sql']) for (const part of readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8').split('--> statement-breakpoint')) if (part.trim()) database.exec(part);
   database.exec("ALTER TABLE lesson_sessions ADD room_id TEXT DEFAULT 'room'; INSERT INTO rooms VALUES('room','teacher-1',NULL),('other-room','teacher-2',NULL);");
   const prepare = sql => ({ bind: (...args) => ({ first: async () => { if (/^(UPDATE|INSERT|DELETE)/.test(sql)) beforeWrite(sql, database); return database.prepare(sql).get(...args) ?? null; }, all: async () => ({ results: database.prepare(sql).all(...args) }), run: async () => { beforeWrite(sql, database); return { meta: { changes: Number(database.prepare(sql).run(...args).changes) } }; } }) });
   let tail = Promise.resolve();
