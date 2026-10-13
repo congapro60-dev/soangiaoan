@@ -28,6 +28,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
+import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { countKeyQuestions } from '../../../lib/classroom/examVariants';
@@ -111,7 +112,7 @@ interface SubmissionViewFile {
 
 const isImageSubmissionFile = (file: SubmissionViewFile): boolean => file.kind === 'image' || file.mimeType?.startsWith('image/') === true;
 
-const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionViewFile[]; studentName: string }) => {
+const SubmissionImageViewer = ({ images, studentName, grade }: { images: SubmissionViewFile[]; studentName: string; grade?: SubmissionDoc['grade'] }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -165,9 +166,10 @@ const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionView
               <p className="min-w-0 truncate text-sm font-black">Bài làm của {studentName} · Ảnh {selectedIndex + 1}/{images.length}</p>
               <button type="button" onClick={() => setSelectedIndex(null)} aria-label="Đóng trình xem ảnh" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"><X className="h-5 w-5" /></button>
             </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center gap-2 p-3 sm:gap-4 sm:p-5">
+            <div className="flex min-h-0 flex-1 items-start justify-center gap-2 overflow-y-auto p-3 sm:gap-4 sm:p-5">
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.max(0, index - 1))} disabled={selectedIndex === 0} aria-label="Ảnh trước" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-6 w-6" /></button>
-              <img src={selectedImage.url} alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} className="max-h-[calc(100vh-10rem)] max-w-[calc(100vw-7rem)] object-contain" />
+              <div className="min-w-0 flex-1"><SubmissionPhotoReview key={selectedImage.url} imageUrl={selectedImage.url}
+                alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} questionResults={grade?.questionResults ?? []} teacherView approved={grade?.teacherApproved} /></div>
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.min(images.length - 1, index + 1))} disabled={selectedIndex === images.length - 1} aria-label="Ảnh sau" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-6 w-6" /></button>
             </div>
             <p className="border-t border-white/10 px-4 py-2 text-center text-xs font-semibold text-slate-400">Dùng nút Trước/Sau hoặc phím ← → · Esc để đóng</p>
@@ -396,14 +398,17 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               <div className="space-y-3 rounded-2xl bg-slate-50 mx-3 mb-3 p-3">
                 {(s.attachments && s.attachments.length > 0) || s.fileUrls.length > 0 ? (
                   (() => {
-                    const files: SubmissionViewFile[] = s.attachments && s.attachments.length > 0
+                    const originalFiles: SubmissionViewFile[] = s.attachments && s.attachments.length > 0
                       ? s.attachments
                       : s.fileUrls.map((url, i) => ({ name: `Tệp ${i + 1}`, url, kind: 'image' }));
+                    const clarifyPhotos = s.grade?.questionResults?.flatMap(result => result.clarify?.photoUrls ?? []) ?? [];
+                    const files = [...originalFiles, ...[...new Set(clarifyPhotos)].filter(url => !originalFiles.some(file => file.url === url))
+                      .map((url, index) => ({ name: `Ảnh chụp lại ${index + 1}`, url, kind: 'image' }))];
                     const images = files.filter(isImageSubmissionFile);
                     const otherFiles = files.filter(file => !isImageSubmissionFile(file));
                     return (
                       <>
-                        <SubmissionImageViewer images={images} studentName={ten} />
+                        <SubmissionImageViewer images={images} studentName={ten} grade={s.grade} />
                         {otherFiles.length > 0 && <div className="flex flex-wrap gap-2">
                           {otherFiles.map(file => (
                             <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">

@@ -14,6 +14,7 @@ interface Props {
   items: readonly ClarifyItem[];
   /** Đã gửi xong một lượt: tải lại dữ liệu để câu vừa xác nhận biến khỏi danh sách. */
   onChanged: () => void;
+  pollingExternally?: boolean;
 }
 
 const draftKey = (submissionId: string, questionNumber: string) => `smartplan:clarify:${submissionId}:${questionNumber}`;
@@ -184,7 +185,7 @@ const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSki
  * Bảng "Máy cần em xác nhận": câu máy đọc chưa chắc trong bài em vừa nộp. Mỗi câu xác nhận được LƯU NGAY lên máy chủ —
  * em thoát giữa chừng thì lần sau vào thấy đúng những câu còn lại, bài và ảnh không bị xoá.
  */
-export const ClarifyPanel = ({ items, onChanged }: Props) => {
+export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Props) => {
   const [busyKey, setBusyKey] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -193,10 +194,10 @@ export const ClarifyPanel = ({ items, onChanged }: Props) => {
   const onChangedRef = useRef(onChanged);
   onChangedRef.current = onChanged;
   useEffect(() => {
-    if (!hasRegrading) return undefined;
+    if (!hasRegrading || pollingExternally) return undefined;
     const timer = window.setInterval(() => onChangedRef.current(), 4000);
     return () => window.clearInterval(timer);
-  }, [hasRegrading]);
+  }, [hasRegrading, pollingExternally]);
 
   if (items.length === 0) return null;
 

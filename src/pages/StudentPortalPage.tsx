@@ -17,7 +17,9 @@ import {
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
-import { fetchRoster, fetchStudentAssignments, fetchStudentOnlineSubmissions, fetchStudentScoreBook, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { fetchRoster, fetchStudentScoreBook, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
+import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import { layThongBaoHocSinh, submitHomework } from '../lib/classroom/submissionService';
 import { buildStudentFeed } from '../lib/classroom/studentNotifications';
@@ -154,11 +156,12 @@ export const StudentPortalPage = () => {
   const [chosenId, setChosenId] = useState('');
   const [pin, setPin] = useState('');
   const [phien, setPhien] = useState<Phien | null>(null);
+  const sessionRef = useRef(phien); sessionRef.current = phien;
   const [loi, setLoi] = useState('');
   const [dangGoi, setDangGoi] = useState(false);
 
   const [assignments, setAssignments] = useState<StudentAssignmentView[]>([]);
-  const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
+  const [submissions, setSubmissions] = useState<StudentWorkspaceSubmission[]>([]);
   const [onlineSubmissions, setOnlineSubmissions] = useState<ExamSubmission[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [scores, setScores] = useState<StudentScoreView | null>(null);
@@ -218,6 +221,7 @@ export const StudentPortalPage = () => {
 
   // Phiên ẩn danh còn sống thì vào thẳng dashboard, khỏi bắt nhập lại mã lớp mỗi lần mở.
   useEffect(() => {
+    let active = true;
     const unsub = onAuthStateChanged(auth, async user => {
       if (!user || !user.isAnonymous) {
         setStage(joinCodeParam ? 'dang-tai' : 'nhap-ma-lop');
@@ -227,6 +231,7 @@ export const StudentPortalPage = () => {
 
       try {
         const linkSnap = await getDoc(doc(db, STUDENT_LINKS_COL, user.uid));
+        if (!active || auth.currentUser?.uid !== user.uid) return;
         if (!linkSnap.exists()) {
           setStage('nhap-ma-lop');
           if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
@@ -237,6 +242,7 @@ export const StudentPortalPage = () => {
           getDoc(doc(db, CLASSES_COL, link.classId)),
           getDoc(doc(db, CLASSES_COL, link.classId, 'students', link.studentId)),
         ]);
+        if (!active || auth.currentUser?.uid !== user.uid) return;
         setPhien({
           studentId: link.studentId,
           classId: link.classId,
@@ -246,10 +252,10 @@ export const StudentPortalPage = () => {
         });
         setStage('dashboard');
       } catch {
-        setStage('nhap-ma-lop');
+        if (active && auth.currentUser?.uid === user.uid) setStage('nhap-ma-lop');
       }
     });
-    return () => unsub();
+    return () => { active = false; unsub(); };
   }, [joinCodeParam, moLop]);
 
   const dangNhap = async () => {
@@ -268,6 +274,7 @@ export const StudentPortalPage = () => {
   };
 
   const dangXuat = async () => {
+    sessionRef.current = null;
     await signOut(auth);
     if (phien) clearStoredPractice(phien);
     setPhien(null);
@@ -362,21 +369,22 @@ export const StudentPortalPage = () => {
 
   const taiDuLieu = useCallback(async () => {
     if (!phien) return;
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
     setDangTaiDu(true);
     try {
-      const [bai, nop, baiOnline, hoSo, thongBao, soDiem] = await Promise.all([
-        fetchStudentAssignments(),
-        fetchStudentSubmissions(),
-        fetchStudentOnlineSubmissions(),
+      const [workspace, hoSo, thongBao, soDiem] = await Promise.all([
+        fetchStudentWorkspace(),
         getDoc(doc(db, STUDENT_PROFILES_COL, phien.studentId)),
         // Chuông hỏng không được làm hỏng cả màn hình bài tập.
         layThongBaoHocSinh().catch(() => [] as StudentNotificationDoc[]),
         // Bảng điểm cũng vậy: lỗi thì ẩn điểm thi, không chặn việc nộp bài.
         fetchStudentScoreBook().catch(() => null),
       ]);
-      setAssignments(bai);
-      setSubmissions(nop);
-      setOnlineSubmissions(baiOnline);
+      if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
+      setAssignments(workspace.assignments);
+      setSubmissions(workspace.submissions);
+      setOnlineSubmissions(workspace.onlineSubmissions);
       setProfile(hoSo.exists() ? (hoSo.data() as StudentProfileDoc) : null);
       setNotifications(thongBao);
       setScores(soDiem);
@@ -386,6 +394,7 @@ export const StudentPortalPage = () => {
       if (stored) {
         try {
           const savedPractice = await fetchPractice(stored.setId, stored.attemptId);
+          if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
           setPracticeSet(savedPractice);
           setPracticeAnswers(stored.answers);
           setPracticeAttempt(savedPractice.attempt || null);
@@ -393,6 +402,7 @@ export const StudentPortalPage = () => {
             writeStoredPractice(phien, { ...stored, attemptId: savedPractice.attempt.attemptId });
           }
         } catch (error) {
+          if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
           const status = (error as { status?: number })?.status;
           // Chỉ xoá con trỏ khi server xác nhận set không còn/không thuộc phiên; lỗi mạng phải
           // giữ lại để lần tải sau còn cơ hội khôi phục bài và câu trả lời đang viết.
@@ -408,10 +418,11 @@ export const StudentPortalPage = () => {
         }
       }
     } catch (error) {
+      if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
       console.error('Không tải được dữ liệu cổng học sinh', error);
       setLoiDuLieu('Không tải được dữ liệu từ máy chủ. Kiểm tra kết nối mạng rồi bấm thử lại nhé.');
     } finally {
-      setDangTaiDu(false);
+      if (auth.currentUser?.uid === uid && sessionRef.current === phien) setDangTaiDu(false);
     }
   }, [phien]);
 
@@ -422,27 +433,44 @@ export const StudentPortalPage = () => {
     void taiDuLieu();
   }, [stage, phien, taiDuLieu]);
 
+  const refreshWorkspace = useCallback(async () => {
+    const current = sessionRef.current; const uid = auth.currentUser?.uid;
+    if (!current || !uid) return;
+    const workspace = await fetchStudentWorkspace();
+    if (sessionRef.current !== current || auth.currentUser?.uid !== uid) return;
+    setAssignments(workspace.assignments); setSubmissions(workspace.submissions); setOnlineSubmissions(workspace.onlineSubmissions);
+  }, []);
+
   // Bảng điểm tự cập nhật khi thầy cô chấm xong bài hoặc em nộp bài: làm mới riêng bảng điểm (nhẹ) mỗi 30 giây khi tab đang mở.
   useEffect(() => {
     if (stage !== 'dashboard' || !phien) return undefined;
     const lamMoi = () => {
       if (document.visibilityState !== 'visible') return;
-      fetchStudentScoreBook().then(setScores).catch(() => { /* giữ bảng điểm đang hiện */ });
+      const current = sessionRef.current; const uid = auth.currentUser?.uid;
+      fetchStudentScoreBook().then(result => { if (current && current === sessionRef.current && uid === auth.currentUser?.uid) setScores(result); }).catch(() => { /* giữ bảng điểm đang hiện */ });
+      void refreshWorkspace().catch(() => { /* Giữ index và bản nháp khi mất mạng. */ });
     };
     const timer = window.setInterval(lamMoi, 30_000);
     document.addEventListener('visibilitychange', lamMoi);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', lamMoi); };
-  }, [stage, phien]);
+  }, [stage, phien, refreshWorkspace]);
+
+  const hasPendingWork = submissions.some(item => item.clarificationRegrading);
+  useEffect(() => {
+    if (stage !== 'dashboard' || !hasPendingWork || choBaiId) return undefined;
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void refreshWorkspace().catch(() => {}); }, CHO_CHAM_MS);
+    return () => window.clearInterval(timer);
+  }, [stage, hasPendingWork, choBaiId, refreshWorkspace]);
 
   useEffect(() => {
     if (!choBaiId) return undefined;
     const batDau = Date.now();
     const timer = window.setInterval(() => {
       if (Date.now() - batDau > CHO_CHAM_TOI_DA_MS) { setChoBaiId(''); return; }
-      void taiDuLieu();
+      void refreshWorkspace().catch(() => {});
     }, CHO_CHAM_MS);
     return () => window.clearInterval(timer);
-  }, [choBaiId, taiDuLieu]);
+  }, [choBaiId, refreshWorkspace]);
 
   useEffect(() => {
     if (!choBaiId) return;
@@ -450,7 +478,7 @@ export const StudentPortalPage = () => {
     if (baiDangCho && baiDangCho.status !== 'grading' && baiDangCho.status !== 'submitted') {
       setChoBaiId('');
       setThanhCong(baiDangCho.grade?.awaitingClarification
-        ? 'Máy cần em xác nhận vài câu — em trả lời ở khung màu vàng đầu trang nhé.'
+        ? 'Máy cần em xác nhận vài câu — em trả lời ngay trong bài vừa nộp nhé.'
         : baiDangCho.status === 'graded' ? 'Máy đã đọc xong bài của em. Em chờ thầy cô duyệt rồi xem điểm và nhận xét nhé!' : '');
     }
   }, [choBaiId, submissions]);
@@ -539,7 +567,7 @@ export const StudentPortalPage = () => {
             if (ketQua.pending) setChoBaiId(submission.id);
             setThanhCong(ketQua.pending
               ? DANG_CHAM_NGAM
-              : `Đã nộp "${tenBai}". Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ở đầu trang; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
+              : `Đã nộp "${tenBai}". Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ngay trong bài đó; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
           } catch (error) {
             console.error('Quét bài giao chưa xong', error);
             setCanhBao('Bài đã nộp thành công nhưng máy chưa đọc được ngay — thầy cô sẽ xử lý giúp em sau.');
@@ -603,7 +631,7 @@ export const StudentPortalPage = () => {
     if (ketQua.pending) setChoBaiId(submissionId);
     setThanhCong(ketQua.pending
       ? DANG_CHAM_NGAM
-      : `Đã nhận mã đề ${examCode}. Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ở đầu trang; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
+      : `Đã nhận mã đề ${examCode}. Máy đã đọc xong — nếu có chỗ chưa rõ, máy sẽ hỏi em ngay trong bài đó; còn lại em chờ thầy cô duyệt rồi xem điểm nhé.`);
     await taiDuLieu();
   };
 
@@ -618,7 +646,7 @@ export const StudentPortalPage = () => {
       void Swal.fire({
         icon: 'info',
         title,
-        text: 'Máy cần em xác nhận vài câu em viết chưa rõ. Em kéo lên đầu trang để trả lời. Điểm sẽ hiện sau khi thầy cô duyệt.',
+        text: 'Máy cần em xác nhận vài câu em viết chưa rõ. Em trả lời ngay trong phần xác nhận của bài này. Điểm sẽ hiện sau khi thầy cô duyệt.',
         confirmButtonText: 'Đã hiểu',
         confirmButtonColor: '#4f46e5',
       });
@@ -725,6 +753,7 @@ export const StudentPortalPage = () => {
       onRemovePendingFile={xoaAnhCho}
       onSubmitPendingFiles={nopAnhCho}
       onOpenAssignment={moChiTiet}
+      onLoadDetail={fetchStudentAssignmentDetail}
       onAnswerExamCode={chonMaDe}
       onSignOut={() => void dangXuat()}
       onReload={() => void taiDuLieu()}

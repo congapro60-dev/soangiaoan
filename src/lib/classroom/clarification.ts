@@ -8,7 +8,7 @@
  * Chống chép đáp án: câu còn chờ làm rõ KHÔNG được lộ đáp án đúng / giải thích / điểm cho học sinh.
  */
 import { READ_CONFIDENCE_FLOOR } from './submissionSelection.js';
-import { applyStudentTypedAnswer, parseExpectedAnswer } from './questionRescore.js';
+import { applyStudentTypedAnswer, isBlankAnswer, parseExpectedAnswer } from './questionRescore.js';
 import type { ClarifyKind, ClarifyState, QuestionClarify, QuestionResult } from './types.js';
 
 /** Câu máy đọc chưa chắc: không đọc được, tự đánh dấu cần soát, hoặc độ chắc dưới ngưỡng (cùng tiêu chí `hasUncertainRead`). */
@@ -56,12 +56,20 @@ const trueFalseParts = (q: QuestionResult): string[] | undefined => {
  * Máy có thấy em viết gì ở câu này không. Không thấy gì (câu bỏ trống, hoặc câu không có trên trang em chụp) thì KHÔNG hỏi
  * lại: hỏi là cho em làm bù câu chưa làm sau khi đã nộp. Câu đó để thầy cô soát (vẫn giữ cờ cần xem lại).
  */
-const studentWroteSomething = (q: QuestionResult): boolean => String(q.studentAnswer ?? '').trim() !== '';
+export const hasStudentWriting = (q: Pick<QuestionResult, 'studentAnswer' | 'status' | 'ignoredByTeacherInstruction'>): boolean => {
+  const answer = String(q.studentAnswer ?? '').trim();
+  return q.status !== 'not_attempted' && q.ignoredByTeacherInstruction !== true && !isBlankAnswer(answer)
+    && !/^[\s[(]*(?:bỏ trống|để trống|không (?:đọc rõ|làm|trả lời)|chưa (?:làm|trả lời)|unreadable|blank|not attempted)(?:$|[\s\]):,.])/iu.test(answer);
+};
+
+/** Historical pending placeholders are not new tasks for the student; their grade stays hidden. */
+export const isActionableClarifyQuestion = (q: Pick<QuestionResult, 'studentAnswer' | 'status' | 'ignoredByTeacherInstruction' | 'clarify'>): boolean =>
+  hasStudentWriting(q) && Boolean(q.clarify && ['open', 'photo_saved'].includes(q.clarify.state));
 
 export const buildClarifyRows = (rows: readonly QuestionResult[]): { rows: QuestionResult[]; asked: number } => {
   let asked = 0;
   const next = rows.map(q => {
-    if (q.clarify || !isUncertainQuestion(q) || !studentWroteSomething(q)) return q;
+    if (q.clarify || !isUncertainQuestion(q) || !hasStudentWriting(q)) return q;
     const kind = clarifyKindFor(q);
     asked += 1;
     const parts = kind === 'true_false' ? trueFalseParts(q) : undefined;
@@ -163,7 +171,7 @@ export const sanitizeClarify = (raw: unknown): QuestionClarify | undefined => {
  * KHÔNG đáp án đúng, giải thích, điểm, nhận xét. Hết câu chờ thì bản chiếu bình thường (không qua hàm này).
  */
 export const hideWhileAwaitingClarification = (rows: readonly QuestionResult[]): QuestionResult[] =>
-  rows.filter(isClarifyPending).map(q => ({
+  rows.filter(q => isClarifyPending(q) && hasStudentWriting(q)).map(q => ({
     questionNumber: q.questionNumber,
     status: 'unreadable' as const,
     score: 0,
@@ -224,7 +232,8 @@ export const startPhotoRegrade = (q: QuestionResult, newUrls: readonly string[],
   const photos = [...new Set([...(clarify.photoUrls ?? []), ...newUrls])].slice(-MAX_CLARIFY_PHOTOS);
   if (photos.length === 0) return { ok: false, error: 'Em chưa chọn ảnh bài làm của câu này.' };
   const { message: _drop, ...rest } = clarify;
-  return { ok: true, row: { ...q, clarify: { ...rest, state: 'regrading', photoUrls: photos, at, tries: tries + (newUrls.length > 0 ? 1 : 0) } } };
+  const { photoMarks: _oldMarks, ...reading } = q;
+  return { ok: true, row: { ...reading, clarify: { ...rest, state: 'regrading', photoUrls: photos, at, tries: tries + (newUrls.length > 0 ? 1 : 0) } } };
 };
 
 /** Máy chấm lại xong: đủ chắc → `done` (điểm theo kết quả mới); vẫn chưa chắc → hỏi em chụp lại tiếp (ảnh cũ vẫn giữ). */

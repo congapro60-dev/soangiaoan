@@ -172,6 +172,27 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     h.uid = 'gv-1';
   });
 
+  it('HS không chọn mã hoặc gọi chấm trực tiếp khi bài đóng; không đổi bài, không gọi AI', async () => {
+    const harness = seed({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['1201', '1202'] }, { isOpen: false });
+    harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-12', teacherId: 'gv-1' } };
+    h.db = makeDb(harness); h.uid = 'hs-uid';
+    const original = structuredClone(harness.state.submissions['sub-1']);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
+    expect((await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '1202' })).statusCode).toBe(409);
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(409);
+    expect(harness.state.submissions['sub-1']).toEqual(original);
+    expect(prompts).toHaveLength(0);
+    expect(h.fetch).not.toHaveBeenCalled();
+  });
+
+  it('GV vẫn chấm bài đóng theo mã đã chọn', async () => {
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher' }, { isOpen: false });
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' })).statusCode).toBe(200);
+    expect(prompts).toHaveLength(1);
+  });
+
   it('AI đọc mã đề trên ảnh → chấm theo đúng đề + đáp án của mã đó, dặn bỏ qua nét chấm của giáo viên; lưu mã', async () => {
     const harness = seed();
     h.db = makeDb(harness);

@@ -3,6 +3,7 @@
  * Thuần: dựng câu lệnh + đọc kết quả. Gọi AI nằm ở `api/grade-homework.ts`.
  */
 import { parseLooseJson } from '../../utils/jsonRepair.js';
+import { sanitizePhotoMarks } from './photoMarks.js';
 import type { QuestionResult, QuestionResultStatus } from './types.js';
 
 export interface QuestionRegradeInput {
@@ -88,5 +89,8 @@ export const parseQuestionRegrade = (raw: string, old: QuestionResult): Question
     // Em không làm câu này (not_attempted) là kết quả hợp lệ, không phải "chưa chắc".
     needsTeacherReview: parsed.needsTeacherReview === true || status === 'unreadable' || (!studentAnswer && status !== 'not_attempted'),
   };
+  delete next.photoMarks;
+  const photoMarks = sanitizePhotoMarks(parsed.photoMarks, next);
+  if (photoMarks.length) next.photoMarks = photoMarks;
   return next;
 };

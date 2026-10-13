@@ -142,6 +142,34 @@ const seed = (): Harness => {
 
 describe('POST /api/classroom · teacher projection (submissions)', () => {
   beforeEach(() => { h.uid = 'gv-1'; });
+  it('teacher projection preserves explicit mark removal and hides any corrupt surviving marks', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, questionResults: [{
+      questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'x=3',
+      expectedAnswer: 'x=2', needsTeacherReview: false, photoMarksCleared: true,
+      photoMarks: [{ imageIndex: 1, imageUrl: 'https://storage.test/homework/sub-1.jpg', x: .1, y: .1, width: .2, height: .1, confidence: .95 }],
+    }] };
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1' });
+    expect(result.statusCode).toBe(200);
+    const grade = ((result.payload!.submissions as DocData[])[0].grade as DocData);
+    expect((grade.questionResults as DocData[])[0]).toMatchObject({ photoMarksCleared: true });
+    expect((grade.questionResults as DocData[])[0]).not.toHaveProperty('photoMarks');
+  });
+  it('teacher sees valid bound marks before approval, including clarification photos; foreign URLs dropped', async () => {
+    const harness = seed();
+    const own = 'https://storage.test/homework/sub-1.jpg';
+    const extra = 'https://storage.test/homework/clarify.jpg';
+    const mark = { imageIndex: 1, x: .1, y: .1, width: .2, height: .1, confidence: .95 };
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: false, questionResults: [{
+      questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'x=3',
+      expectedAnswer: 'x=2', needsTeacherReview: false, clarify: { kind: 'photo', state: 'done', reading: '', photoUrls: [extra] },
+      photoMarks: [{ ...mark, imageUrl: own }, { ...mark, imageUrl: extra }, { ...mark, imageUrl: 'https://foreign' }],
+    }] };
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1' });
+    expect(result.statusCode).toBe(200);
+    const grade = ((result.payload!.submissions as DocData[])[0].grade as DocData);
+    expect((grade.questionResults as DocData[])[0].photoMarks).toEqual([{ ...mark, imageUrl: own }, { ...mark, imageUrl: extra }]);
+  });
 
   it('giáo viên thấy lastGradingError raw khi status graded có grade hợp lệ', async () => {
     const harness = seed();

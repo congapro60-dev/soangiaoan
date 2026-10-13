@@ -199,6 +199,8 @@ export const rescoreQuestion = (
 export const applyStudentTypedAnswer = (q: QuestionResult, typed: string): QuestionResult => {
   const result = scoreObjective(q.expectedAnswer, typed);
   const base: QuestionResult = { ...q, studentAnswer: typed.trim(), confidence: 1 };
+  // Đáp án gõ lại không có tọa độ trên ảnh cũ.
+  delete base.photoMarks;
   if (!result) return { ...base, needsTeacherReview: true };
   const score = round2(q.maxScore * result.fraction);
   const status = statusFor(result.fraction, typed);
@@ -259,6 +261,7 @@ export const applyAnswerKeyFixes = (rows: QuestionResult[], fixes: AnswerKeyFix[
     if (expectedAnswer === undefined || expectedAnswer.trim() === q.expectedAnswer.trim()) return q;
     changed = true;
     const withKey = { ...q, expectedAnswer };
+    delete withKey.photoMarks;
     const rescored = rescoreQuestion(withKey, 'teacher');
     if (rescored) return { ...rescored, needsTeacherReview: false };
     needsReview += 1;
@@ -274,7 +277,13 @@ export const applyAnswerKeyFixes = (rows: QuestionResult[], fixes: AnswerKeyFix[
 export const keepTeacherEditedRows = (rows: QuestionResult[], previous: QuestionResult[] | undefined): QuestionResult[] => {
   const locked = new Map((previous || []).filter(q => q.teacherEdited).map(q => [questionKey(q.questionNumber), q]));
   if (locked.size === 0) return rows;
-  return rows.map(q => locked.get(questionKey(q.questionNumber)) || q);
+  return rows.map(q => {
+    const old = locked.get(questionKey(q.questionNumber));
+    if (!old) return q;
+    if (!old.photoMarks || old.studentAnswer === q.studentAnswer) return old;
+    const { photoMarks: _stale, ...rest } = old;
+    return rest;
+  });
 };
 
 /**

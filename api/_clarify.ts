@@ -111,10 +111,15 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
   const ref = db.collection('submissions').doc(submissionId);
   const rejected: Rejected[] = [];
   let outcome: Outcome | null = null;
+  let closed = false;
   await db.runTransaction(async transaction => {
     const snap = await transaction.get(ref);
     if (!snap.exists) return;
     const current = { id: submissionId, ...snap.data() } as SubmissionDoc;
+    if (current.assignmentId && (await transaction.get(db.collection('assignments').doc(current.assignmentId))).data()?.isOpen === false) {
+      closed = true;
+      return;
+    }
     const grade = current.grade;
     if (current.status !== 'graded' || !grade?.questionResults) {
       rejected.push({ questionNumber: '', reason: 'Bài chưa chấm xong hoặc đã đổi — em tải lại trang rồi thử lại.' });
@@ -149,6 +154,8 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
     outcome = { grade: nextGrade, before, after, previous: current };
   });
 
+  if (closed) return void res.status(409).json({ error: 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.' });
+
   const done = outcome as Outcome | null;
   await syncIfFinished(db, submissionId, done);
   res.status(200).json({ pending: done ? done.after : null, rejected });
@@ -176,6 +183,10 @@ const handleClarifyPhoto = async (db: Db, body: Body, res: VercelResponse, deps:
     const snap = await transaction.get(ref);
     if (!snap.exists) { refusal = 'Không tìm thấy bài nộp.'; return; }
     const current = { id: submissionId, ...snap.data() } as SubmissionDoc;
+    if (current.assignmentId && (await transaction.get(db.collection('assignments').doc(current.assignmentId))).data()?.isOpen === false) {
+      refusal = 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.';
+      return;
+    }
     const rows = current.grade?.questionResults;
     const index = rows ? rows.findIndex(q => q.questionNumber === questionNumber) : -1;
     if (current.status !== 'graded' || !current.grade || !rows || index < 0) { refusal = 'Bài chưa chấm xong hoặc đã đổi — em tải lại trang rồi thử lại.'; return; }

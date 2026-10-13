@@ -119,6 +119,31 @@ describe('student clarification · clarifyAnswers', () => {
   beforeEach(() => { h.uid = 'student-uid-1'; h.sync.mockClear(); h.db = makeDb(seed()); });
   const store = () => (h.db as { collection: (n: string) => { doc: (i: string) => { get: () => Promise<{ data: () => Doc }> } } }).collection('submissions').doc('sub-1').get().then(s => s.data());
 
+  it('bài đã đóng: không đổi đáp án hoặc skip; bài tự nộp vẫn xử lý được', async () => {
+    const data = seed();
+    data.assignments = { 'asg-1': { isOpen: false } };
+    h.db = makeDb(data);
+    const original = structuredClone(data.submissions['sub-1']);
+    const result = await call({ submissionId: 'sub-1', answers: [{ questionNumber: 'Phần I – Câu 2', answer: 'D' }], skip: ['Phần II – Câu 1'] });
+    expect(result.statusCode).toBe(409);
+    expect(data.submissions['sub-1']).toEqual(original);
+    expect(h.sync).not.toHaveBeenCalled();
+    data.submissions['sub-1'].assignmentId = null;
+    expect((await call({ submissionId: 'sub-1', answers: [{ questionNumber: 'Phần I – Câu 2', answer: 'D' }] })).statusCode).toBe(200);
+  });
+
+  it('đóng bài ngay trước transaction cũng từ chối, không chỉ dựa vào lần đọc quyền', async () => {
+    const data = seed(); data.assignments = { 'asg-1': { isOpen: true } };
+    const db = makeDb(data);
+    h.db = { ...db, runTransaction: async (work: Parameters<typeof db.runTransaction>[0]) => {
+      data.assignments['asg-1'].isOpen = false;
+      return db.runTransaction(work);
+    } };
+    const original = structuredClone(data.submissions['sub-1']);
+    expect((await call({ submissionId: 'sub-1', skip: ['Phần I – Câu 2'] })).statusCode).toBe(409);
+    expect(data.submissions['sub-1']).toEqual(original);
+  });
+
   it('đáp án đúng được chấm tại chỗ, lưu ngay, điểm tính lại; chưa đủ câu thì chưa đồng bộ minh chứng', async () => {
     const result = await call({ submissionId: 'sub-1', answers: [{ questionNumber: 'Phần I – Câu 2', answer: 'd' }] });
     expect(result.handled).toBe(true);
@@ -212,6 +237,19 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
   beforeEach(() => {
     h.uid = 'student-uid-1'; h.sync.mockClear(); deps.regradeQuestion.mockReset(); deps.runInBackground.mockReset(); deps.runInBackground.mockReturnValue(false);
     h.db = makeDb(seedEssay());
+  });
+
+  it('bài đã đóng: không lưu ảnh hoặc gọi AI, không nhận retry', async () => {
+    const data = seedEssay(); data.assignments = { 'asg-1': { isOpen: false } };
+    h.db = makeDb(data);
+    const original = structuredClone(data.submissions['sub-1']);
+    for (const photoUrls of [[photo()], []]) {
+      expect((await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls }, 'clarifyPhoto')).statusCode).toBe(409);
+    }
+    expect(data.submissions['sub-1']).toEqual(original);
+    expect(deps.regradeQuestion).not.toHaveBeenCalled();
+    expect(deps.runInBackground).not.toHaveBeenCalled();
+    expect(h.sync).not.toHaveBeenCalled();
   });
 
   it('ảnh lưu ngay vào câu rồi máy chấm lại riêng câu đó; đủ chắc → xong, tính lại điểm, đồng bộ minh chứng', async () => {

@@ -22,6 +22,21 @@ import {
   toPublicPracticeQuestions,
 } from './gradingPrompt';
 
+describe('photo marks grading contract', () => {
+  it('numbers student images independently of question and answer images', () => {
+    const prompt = buildHomeworkGradingPrompt({ answerKey: 'A', maxScore: 10, assignmentImageCount: 2, answerKeyImageCount: 1, studentImageCount: 3 });
+    expect(prompt).toContain('imageIndex 1..3');
+    expect(prompt).toContain('photoMarks');
+    expect(prompt).toContain('0.85');
+  });
+  it('keeps optional valid geometry, rejects bad geometry and all model URLs', () => {
+    const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+    const result = parseHomeworkGrade(JSON.stringify({ score: 0, maxScore: 1, questionResults: [{ questionNumber: 'Câu 1',
+      status: 'incorrect', studentAnswer: 'x=2', photoMarks: [{ ...mark, imageUrl: 'https://foreign' }, { ...mark, width: 9 }] }] }), 1, false);
+    expect(result.questionResults[0].photoMarks).toEqual([mark]);
+  });
+});
+
 describe('buildHomeworkGradingPrompt', () => {
   it('đưa đáp án thầy cô đã sửa vào prompt và dặn khuôn trắc nghiệm / Đúng-Sai / ô tẩy', () => {
     const prompt = buildHomeworkGradingPrompt({

@@ -59,7 +59,7 @@ export const StudentCompetencyPortfolio = () => {
     }
   };
 
-  if (state === 'loading') return null;
+  if (state === 'loading') return <p role="status" className="flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Đang tải hồ sơ năng lực…</p>;
   if (state === 'error' || !grade) {
     return state === 'error' ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">Hồ sơ năng lực: {error}</p> : null;
   }
@@ -100,7 +100,7 @@ export const StudentCompetencyPortfolio = () => {
                         <PortfolioEntryEditor competency={c} entry={entry} role="student" months={months}
                           onChange={next => setEntries(prev => ({ ...prev, [c.id]: next }))} />
                         <button type="button" disabled={!dirty || saving === c.id} onClick={() => void save(c.id)}
-                          className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50">
+                          className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50">
                           {saving === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} {dirty ? 'Lưu' : 'Đã lưu'}
                         </button>
                       </div>

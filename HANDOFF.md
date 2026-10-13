@@ -5,6 +5,23 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Đang triển khai — luồng HS và trình bày toán — 14/10/2026
+
+- Người dùng duyệt sửa toàn bộ rồi **commit/push main**; chỉnh rõ không yêu cầu deploy/promote thủ công.
+  Luôn ghi tiến độ chung để Claude phối hợp qua MCP bridge. Vercel có thể tự deploy theo Git integration.
+- Nguồn chuẩn: `tasks/student-workspace-redesign-plan.md`; checklist đang chạy ở đầu `tasks/todo.md`.
+- Worktree: `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`; nhánh `codex/student-submitted-photos`.
+- Giữ WIP ảnh đã nộp/bút đỏ; không reset hoặc ghi đè. Trước nhận file: đọc checklist chủ sở hữu và git status.
+- Phạm vi: 5 mục HS, danh sách gọn/tìm/lọc/phân trang, clarify đúng bài, dữ liệu cả năm, báo cáo đã công bố,
+  lời chữa theo ý/bước và công thức khối. Không đổi đáp án/điểm đã duyệt vì dàn trang.
+- Bridge kiểm 14/10: chưa có phiên Claude Desktop đang kết nối; không gửi sang phiên tên gần giống.
+  Luồng Codex đã bind: `01a123b1-a378-73b1-9aa4-685e5b67efaa`; Claude có thể tìm peer `codex-01a123b1`.
+- Cổng push main: test quyền/hành vi, full suite, lint app/API, build, Rules emulator, review độc lập,
+  QA trình duyệt điện thoại/iPad; xác minh origin/main đúng commit. Deployment tự động/QA production ghi riêng.
+- Trạng thái: source xong, browser390/820/430/1024/1366 đạt, Rules303/303, lint/build đạt, review native+Gemini PASS.
+  Full suite cuối2931/2931 (275 files),exit0; test22 lần scrypt timeout15s, không đổi authentication.
+  Bằng chứng/check/giới hạn: tasks/qa-student-workspace-20261014.md; cổng push passed, đang commit/push main.
+
 
 
 
@@ -249,3 +266,23 @@ Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên
 - Đã làm (10/10): máy không đọc được mã đề → em chọn mã ghi trên đề (`answerExamCode`, nhãn "HS chọn" ở tab Giao bài); câu em bỏ trống không bị hỏi lại; bài online chưa duyệt không gửi điểm về máy em (`hideUnofficialOnlineScore`); lỗi lượt đọc đầu ghi `errorReason` (photo / exam_code / system) để cổng HS nói đúng việc em cần làm.
 - Trang kết quả đề công khai (`/exam/:code/result/:id`, trang xem lại) đọc bài qua `GET /api/exam?submissionId=`. Máy chủ áp hiện điểm / xem lại / ẩn bảng xếp hạng, và từ chối bài trong lớp. `firestore.rules`: `examSubmissions` chỉ giáo viên chủ đề đọc trực tiếp.
   **Thứ tự triển khai:** code lên Vercel TRƯỚC, sau đó mới `firebase deploy --only firestore:rules`. Deploy rules trước thì trang kết quả của bản cũ sẽ hỏng.
+  **Codex 10/10 đã triển khai:** production `a7b7f93`, deployment `dpl_DErfLFfEcSED2fTHaTVpdjUZquHP` READY; xác minh API mới trên tên miền chính rồi deploy Rules vào `smartplan-ai-14200` (exit 0). Sau triển khai: trang chủ 200, API mã bài không tồn tại 404 đúng thông báo, đọc Firestore không đăng nhập 403. Chưa QA lại với phiên GV/HS thật. Build còn diagnostic TS2339 tại `api/generate-simulation.ts:232`; runtime probe có DEP0169. Bài nộp thử giữ nguyên.
+
+## HS xem ảnh đã nộp — 13/10/2026, local chưa phát hành
+
+Nhánh `codex/student-submitted-photos`: mục "Xem bài đã nộp" độc lập với điểm/duyệt;
+ảnh tải khi mở, link cỡ lớn, lịch sử nộp của chính HS, bài tự nộp và bài thuộc đề đã đóng.
+Không đổi API/Rules/quyền GV. 13 test đạt; lint/build exit 0; QA dữ liệu mẫu desktop/390px đạt;
+review Gemini vòng cuối PASS. API cũ giới hạn 50 lượt, chunk chính khoảng 1,49MB còn vượt ngưỡng QA;
+chưa production QA, commit/push/deploy. Chi tiết `tasks/student-submitted-photos.md`.
+Ý tưởng chấm bút đỏ chỉ nghiên cứu: `tasks/red-pen-photo-research.md`.
+
+## Bút đỏ tự động — 14/10/2026, đã tích hợp cục bộ
+
+Chủ dự án duyệt thử ảnh thật rồi yêu cầu tích hợp. `QuestionResult.photoMarks` nhận vùng lỗi ngay trong lượt Vision hiện có,
+server gắn exact URL sau lọc file lỗi/PDF; confidence >=0,85, tối đa3/câu, không đánh câu đúng/trống/mờ.
+GV xem trước và bỏ dấu sai qua hộp Sửa điểm (giữ điểm); tombstone sống qua chấm lại. HS nhận dấu chỉ khi teacherApproved
+và hết clarification. Viewer SVG phủ ảnh gốc, chạm lời chữa, zoom/ẩn dấu/44px; cả ảnh bổ sung được gắn đúng URL.
+Không thêm dependency, endpoint hay lượt gọi AI. 2.897 test tổng + 1 test gỡ dấu bổ sung, Rules303, lint app/API và build đạt.
+QA browser component thật/ảnh fixture ba khối đạt; review native + Gemini vòng2 không còn blocker.
+CHƯA kiểm định AI mới định vị trên lô ảnh thật, chưa production QA/commit/push/deploy. Chi tiết `tasks/red-pen-implementation.md`.

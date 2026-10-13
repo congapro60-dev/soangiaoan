@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { SubmissionDoc } from './types';
-import { buildManualGradeUpdate } from './manualGrade';
+import { buildManualGradeUpdate, mergeTeacherQuestionResults } from './manualGrade';
+
+describe('manual photo marks', () => {
+  const old = { questionNumber: 'Câu 1', status: 'incorrect' as const, score: 0, maxScore: 1, studentAnswer: 'x=2',
+    expectedAnswer: 'x=3', errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: false,
+    photoMarks: [{ imageIndex: 1, imageUrl: 'https://own', x: .1, y: .1, width: .2, height: .1, confidence: .9 }] };
+  it('preserves marks on score and correction edits; ignores arbitrary client marks', () => {
+    expect(mergeTeacherQuestionResults([old], [{ ...old, score: .5, correction: 'Sửa dấu', photoMarks: [{ ...old.photoMarks[0], imageUrl: 'https://foreign' }] }])[0].photoMarks).toEqual(old.photoMarks);
+  });
+  it('drops old coordinates on changed reading or status, and honors explicit removal', () => {
+    for (const change of [{ studentAnswer: 'x=4' }, { status: 'correct' }, { photoMarks: [] }]) {
+      expect(mergeTeacherQuestionResults([old], [{ ...old, ...change }])[0].photoMarks).toBeUndefined();
+    }
+    expect(mergeTeacherQuestionResults([old], [{ ...old, photoMarks: [] }])[0].teacherEdited).toBeUndefined();
+    expect(mergeTeacherQuestionResults([old], [{ ...old, photoMarks: [] }])[0].photoMarksCleared).toBe(true);
+  });
+});
 
 const submission = (grade?: SubmissionDoc['grade']): SubmissionDoc => ({
   id: 'sub-1',

@@ -2,6 +2,7 @@ import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type { CompetencyTag } from './competency/framework.js';
 import { repairLatexEscapes, type PracticeMistake } from './practiceBasis.js';
+import { sanitizePhotoMarks } from './photoMarks.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -17,6 +18,16 @@ import type {
  * số bố cục form Toán — sửa một chỗ, người dùng vẫn thấy sai ở chỗ kia.
  */
 
+const FEEDBACK_LAYOUT = String.raw`
+TRÌNH BÀY LỜI CHỮA (feedbackForStudent, explanation, correction):
+- Mỗi đoạn một ý, dòng trống giữa các đoạn. Tách lời dẫn khỏi phép tính; chỉ đánh số bước khi có nhiều bước.
+- Công thức ngắn dùng $...$; chuỗi biến đổi dài dùng khối $$ trên dòng riêng, căn dấu bằng bằng \\begin{aligned}...\\end{aligned}.
+- Mỗi dòng một bước tính, ngắt tại dấu bằng/suy ra; giữ nguyên dấu, số hạng, điều kiện và đơn vị. Không dồn chuỗi tính vào câu văn.
+- Ví dụ bố cục (chuỗi JSON phải escape backslash và xuống dòng đúng):
+  Công của lực là tích vô hướng.\n\n$$\n\\begin{aligned}\nA &= \\vec{F}\\cdot\\overrightarrow{AB}\\\\\n&= 2\\cdot4+1\\cdot(-2)+3\\cdot1\\\\\n&= 9\\,\\mathrm{J}\n\\end{aligned}\n$$
+- Dùng \\frac, \\sqrt, chỉ số/mũ và vectơ đúng cấu trúc. Viết gọn theo chế độ chấm; không tự thêm bước/nhận định khi thiếu bằng chứng.
+`;
+
 export interface HomeworkGradingInput {
   /** Đáp án chuẩn dạng văn bản. Rỗng = tầng 3: không có đề, AI phải tự đọc đề trong ảnh. */
   answerKey: string;
@@ -28,6 +39,8 @@ export interface HomeworkGradingInput {
   answerKeyImageCount?: number;
   /** Số ảnh đề của giáo viên gửi trước đáp án và bài làm. */
   assignmentImageCount?: number;
+  /** Số ảnh bài HS thực sự gửi Vision, không tính đề/đáp án. */
+  studentImageCount?: number;
   /** Chữ rút từ file đề của giáo viên, dùng làm nguồn tham chiếu chung. */
   assignmentText?: string;
   /** Lệnh riêng của giáo viên về phạm vi và cách chấm. */
@@ -92,6 +105,15 @@ const KHONG_CO_DAP_AN = `KHÔNG có đáp án chuẩn kèm theo. Hãy ưu tiên 
 nếu không có thì em học sinh phải chụp cả đề lẫn bài làm trong ảnh.
 Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu với bài làm của em.
 Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
+
+export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageCount: number): string => studentImageCount > 0
+  ? `DẤU ĐỎ TRÊN ẢNH BÀI LÀM (field tùy chọn photoMarks của mỗi câu, cùng lượt chấm này):
+- Bỏ qua ${referenceImageCount} ảnh ĐỀ/ĐÁP ÁN đầu tiên. Các ảnh HS còn lại có imageIndex 1..${studentImageCount}, theo thứ tự gửi; không dùng số thứ tự ảnh chung.
+- Chỉ incorrect/partially_correct có nét HS thực sự viết, không đánh dấu câu đúng, bỏ trống, không đọc rõ hoặc bỏ qua theo lệnh GV. Không khoanh nét chữa cũ của GV.
+- Tối đa 3 vùng lỗi chính/câu. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
+- Chỉ trả khi chắc vị trí confidence >= 0.85; không chắc thì photoMarks: [], giữ lời chữa dạng chữ. Không đoán vị trí, không chọn URL, không viết imageUrl.
+- Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.`
+  : 'Không có ảnh bài HS: không trả photoMarks.';
 
 export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
   const soAnhDe = input.assignmentImageCount ?? 0;
@@ -217,6 +239,8 @@ KHÔNG dùng chữ này, mà tổng hợp chung theo chủ đề từ weakTopics
 - Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
 
 
+${FEEDBACK_LAYOUT}
+${buildPhotoMarksPrompt(input.studentImageCount ?? 0, soAnhDe + soAnhDapAn)}
 CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
 {
   "score": 0.0,
@@ -250,6 +274,7 @@ Chỉ trả về JSON thuần, không có code fence và không có lời dẫn 
 Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feedbackForStudent", "noteForTeacher", "strengths", "weaknesses", "weakTopics" và "questionResults" cùng đầy đủ field của từng câu.
 Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
 Không đưa raw output lỗi của lần trước vào câu trả lời.
+${FEEDBACK_LAYOUT}
 Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
 `;
 
@@ -303,6 +328,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
         ));
       const confidenceValue = Number(q.confidence);
 
+      const photoMarks = sanitizePhotoMarks(q.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
       return {
         questionNumber,
         status,
@@ -317,6 +343,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
         confidence: Number.isFinite(confidenceValue) ? clamp(confidenceValue, 0, 1) : undefined,
         ignoredByTeacherInstruction,
         needsTeacherReview,
+        ...(photoMarks.length ? { photoMarks } : {}),
       } as QuestionResult;
     })
     .filter((item): item is QuestionResult => item !== null);
@@ -508,6 +535,7 @@ const parseStrictQuestionResult = (
       : contractError(`questionResults[${index}].ignoredByTeacherInstruction phải là boolean`);
   }
 
+  const photoMarks = sanitizePhotoMarks(record.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
   return {
     questionNumber,
     status,
@@ -522,6 +550,7 @@ const parseStrictQuestionResult = (
     ...(hasConfidence ? { confidence } : {}),
     ...(hasIgnoredByTeacherInstruction ? { ignoredByTeacherInstruction } : {}),
     needsTeacherReview,
+    ...(photoMarks.length ? { photoMarks } : {}),
   };
 };
 
@@ -1246,6 +1275,7 @@ CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học si
 - Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
 
 
+${FEEDBACK_LAYOUT}
 TUYỆT ĐỐI KHÔNG:
 - Không thêm nhận định mà giáo viên không nêu. Không tự suy ra em yếu chỗ khác.
 - Không nhắc tới việc nhận xét này do máy viết hay đã được sửa.

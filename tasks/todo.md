@@ -1,3 +1,45 @@
+# Checklist chung Codex / Claude — 14/10/2026
+
+Nguồn chuẩn: `tasks/student-workspace-redesign-plan.md`; quyền triển khai + commit/push main đã có.
+Người dùng chỉnh rõ: “push lên main”, không deploy/promote thủ công. Theo dõi Git integration nếu tự triển khai.
+Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, nhánh `codex/student-submitted-photos`.
+Đọc HANDOFF.md trước khi phối hợp; không nhận file có writer đang chạy.
+
+- [x] Kế hoạch được duyệt, giữ toàn bộ WIP ảnh/bút đỏ; ghi quyền phát hành.
+- [x] Backend index/detail/report đúng quyền, toàn bộ lịch sử; writer backend đóng băng; tests35+46 và10 mới nhất đạt.
+- [x] UI 5 mục, bài gọn, search/filter/paging20, clarify đúng bài; writer UI chốt guard phiên, QA browser còn lại.
+- [x] Lời chữa/math có ý/bước, aligned; root; tests137/137, tiếp tục QA trực quan.
+- [x] Test toàn bộ2931/2931 (275 files), lint app/API, build; Rules303/303 (8 files); exit0.
+- [x] QA browser390/430/820/1024/1366 +300/500; review native/Gemini PASS, không finding chặn.
+- [ ] Commit/push main; xác minh origin/main đúng commit. Nếu Git integration tự deploy, ghi trạng thái và QA riêng.
+- [ ] Cập nhật bằng chứng/release/checklist/HANDOFF để Claude tiếp quản.
+
+Bridge chưa có phiên sống. Canary: ChatGPT cx/gpt-6-luna OK; Claude 429 (reset dự kiến 05:59 ICT); Gemini ag/pro 404, gc/pro 403. UI/backend native Codex; review khác hãng đang chờ khả dụng.
+
+Review đã đóng: identity snapshot TRƯỚC live merge; nested report sai kiểu/enum bị từ chối;
+nhãn pending chỉ blank chờ GV; closed mutation bị chặn server. Math giữ bảng/trích dẫn/danh sách và dấu câu.
+
+QA cập nhật: browser fixture thật 390/820 đã đạt nav/paging/search/date/scoped clarify/draft/upload/report/math,
+không tràn ngang. Reviewer native source PASS, Gemini UI PASS + backend adjudication PASS (finding sai được đối chiếu source/test).
+Full suite2920 đạt trước guard đóng bài; bản cuối2931/2931 đã đạt. Một test22 lần scrypt timeout5s khi tải cao;
+riêng test đó36/36 đạt,2821ms. Chỉ tăng timeout test đó15s, không sửa mã xác thực hoặc bỏ kiểm quyền.
+Cổng push main: passed; source đóng băng, origin/main=a7b7f93 như base, đang commit/push fast-forward.
+
+# Tiep quan phat hanh 2026-10-10
+
+- [x] Xac minh phien Claude qua URL trong commit a7b7f93; HEAD va origin/main trung nhau.
+- [x] Build production dung a7b7f93; kiem API tren giaoandewey.vercel.app truoc khi deploy Rules.
+- [x] Deploy chi firestore:rules vao smartplan-ai-14200; kiem lai API va quyen doc cong khai.
+- [x] Ghi bang chung phat hanh; giu nguyen bai nop thu va du lieu lop.
+
+Ket qua: deployment dpl_DErfLFfEcSED2fTHaTVpdjUZquHP READY, target production,
+commit a7b7f93b6accf679ed90dbf1c91f1201fa8ce8e3. Firebase deploy exit 0.
+Sau deploy: trang chu HTTP 200; API submissionId khong ton tai HTTP 404 dung thong bao;
+doc truc tiep Firestore khong dang nhap HTTP 403 PERMISSION_DENIED.
+Gioi han: chua kiem thu lai bang phien GV/HS that; khong chay lai unit/emulator suite.
+Build Vercel READY nhung log co TS2339 tai api/generate-simulation.ts:232 (HoldResult.reason).
+Runtime probe co canh bao DEP0169 url.parse(); khong coi log hoan toan sach.
+
 # Kế hoạch 2026-10-06: Báo cáo PH — khối "Bản đồ theo bài SGK"
 
 Chủ dự án duyệt bản mẫu: mỗi bài SGK một thẻ màu, "Ưu tiên ôn trước", chú thích mỗi mức một dòng;

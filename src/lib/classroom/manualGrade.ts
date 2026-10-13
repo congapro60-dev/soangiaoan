@@ -1,4 +1,5 @@
 import { isClarifyPending } from './clarification.js';
+import { projectPhotoMarks } from './photoMarks.js';
 import type { QuestionResult, QuestionResultStatus, SubmissionDoc, SubmissionGrade } from './types.js';
 
 export interface ManualGradeInput {
@@ -53,9 +54,17 @@ export const mergeTeacherQuestionResults = (
     };
     const changed = next.score !== old.score || next.status !== old.status
       || next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer;
+    // Client chỉ được bỏ dấu; đổi phần đọc/status/đáp án làm tọa độ cũ không còn đáng tin.
+    const removedByTeacher = Array.isArray(raw.photoMarks) && raw.photoMarks.length === 0;
+    if (removedByTeacher) next.photoMarksCleared = true;
+    const clearMarks = removedByTeacher
+      || next.studentAnswer !== old.studentAnswer || next.status !== old.status || next.expectedAnswer !== old.expectedAnswer;
+    const marks = clearMarks ? [] : projectPhotoMarks(next, (old.photoMarks || []).flatMap(m => m.imageUrl ? [m.imageUrl] : []));
+    delete next.photoMarks;
+    if (marks.length) next.photoMarks = marks;
     return changed || old.teacherEdited
       ? { ...next, teacherEdited: true, needsTeacherReview: false }
-      : old;
+      : clearMarks || old.photoMarks ? next : old;
   });
 };
 

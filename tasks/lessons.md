@@ -475,3 +475,15 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - AI thật đánh "không đọc được" cả những câu không có trên ảnh. Hỏi lại câu em chưa viết gì = cho em làm bù sau khi nộp. Chỉ hỏi lại khi máy có đọc ra chữ (`studentAnswer` khác rỗng).
 - Một câu báo lỗi dùng chung cho mọi loại lỗi ("em chưa cần nộp lại") mà nút lại ghi "Nộp lại" là tự mâu thuẫn. Máy chủ phải ghi LÍ DO lỗi (`errorReason`: ảnh / mã đề / hệ thống), cổng HS dựa vào đó mà nói đúng việc em cần làm. Dữ liệu cũ chưa có lí do thì nhận theo câu báo lỗi cũ.
 - "Chưa duyệt thì HS không thấy điểm" phải áp cho MỌI loại bài (ảnh, online), và phải áp ở projection máy chủ, không chỉ ẩn trên giao diện.
+# 2026-10-10 - Doi chieu dung phien khi tiep quan
+- URL Claude cloud khong dong nghia voi phien Desktop cung repo. Phai doi chieu dung session URL, tieu de hoac metadata commit truoc khi ke thua; khong dung ten phien gan giong lam bang chung.
+
+## 2026-10-14 — Lời chữa phải ngắt theo ý và bước toán học
+- Người dùng chỉ ra phần chữa bút đỏ nối lời dẫn và chuỗi phép tính thành một dòng dài, ngắt tùy chiều rộng.
+- Có KaTeX không đồng nghĩa lời giải dễ đọc. Tách lời dẫn, lý do, bước sửa; chuỗi biến đổi dài dùng khối toán căn dấu bằng, giữ nguyên nội dung và ký hiệu.
+- Kiểm ảnh thật ở điện thoại/iPad, không chỉ test renderer có tồn tại. Không chữa bằng break-all, thu chữ hoặc regex tự cắt công thức.
+- Tài liệu yêu cầu PDF/Word chỉ là tham khảo khi người dùng nói chọn lọc: lấy nguyên tắc toán/ngắt dòng, không mở rộng sang công cụ in/xuất tài liệu.
+
+## 2026-10-14 — Chốt đúng đích tích hợp
+- Người dùng làm rõ “phát hành” trong luồng này là push lên main. Ghi commit/push main trong checklist, không suy thành deploy/promote thủ công.
+- Nếu Vercel tự triển khai theo Git integration, theo dõi riêng; không gọi push thành bằng chứng deployment đã xong.

@@ -188,6 +188,32 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     process.env.GRADING_GEMINI_API_KEY = 'test-key';
     h.uid = 'gv-1';
   });
+  it.each([false, true])('binds marks to sent student photos after PDF/fetch failures; preserves removal=%s', async cleared => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/missing.jpg', 'https://storage.test/original.pdf', 'https://storage.test/actual.jpg'];
+    const mark = { imageIndex: 1, imageUrl: 'https://foreign', x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+    const row = { questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 10, studentAnswer: 'x=3', expectedAnswer: 'x=2',
+      errorType: 'Sai dấu', explanation: 'Sai', correction: 'Đổi dấu', nextPractice: 'Luyện', confidence: .95, needsTeacherReview: false, photoMarks: [mark] };
+    if (cleared) harness.state.submissions['sub-1'].grade = { ...oldGrade, questionResults: [{ ...row, photoMarks: [], photoMarksCleared: true }] };
+    h.db = makeDb(harness);
+    const promptTexts: string[] = [];
+    h.fetch = vi.fn(async (url: unknown, init?: { body?: unknown }) => {
+      if (String(url).endsWith('missing.jpg')) return { ok: false };
+      if (String(url).endsWith('original.pdf')) return { ...makeImageResponse(), headers: { get: () => 'application/pdf' } };
+      if (String(url).endsWith('actual.jpg')) return makeImageResponse();
+      const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
+      promptTexts.push(String(request.contents?.[0]?.parts?.find(p => typeof p.text === 'string')?.text));
+      return makeGeminiResponse(JSON.stringify({ ...JSON.parse(validGradeJson(0)), questionResults: [row] }));
+    });
+    vi.stubGlobal('fetch', h.fetch);
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(result.statusCode).toBe(200);
+    const rows = (harness.state.submissions['sub-1'].grade as DocData).questionResults as DocData[];
+    if (cleared) expect(rows[0]).toMatchObject({ photoMarksCleared: true });
+    expect(rows[0].photoMarks).toEqual(cleared ? undefined : [{ ...mark, imageUrl: 'https://storage.test/actual.jpg' }]);
+    expect(promptTexts).toHaveLength(1);
+    expect(promptTexts[0]).toContain('imageIndex 1..1');
+  });
 
   it('AI chấm lại lưu grade cũ vào history và kết quả mới chưa duyệt', async () => {
     const harness = seed();

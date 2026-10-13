@@ -195,6 +195,17 @@ describe('student homework projection (projectStudentSubmission)', () => {
         },
       },
     };
+    const mark = { imageIndex: 1, imageUrl: 'https://own/photo.jpg', x: .1, y: .1, width: .2, height: .1, confidence: .95 };
+    const markedRow = { questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'x=2',
+      expectedAnswer: 'x=3', errorType: 'Sai', explanation: 'Sai dấu', correction: 'Đổi dấu', nextPractice: 'Luyện', needsTeacherReview: false,
+      photoMarks: [mark, { ...mark, imageUrl: 'https://foreign/photo.jpg' }] };
+    for (const id of ['sub-1', 'sub-3', 'sub-self']) {
+      store.submissions[id].fileUrls = [mark.imageUrl];
+      (store.submissions[id].grade as Doc).questionResults = [markedRow];
+    }
+    store.submissions['sub-pending'] = { ...store.submissions['sub-3'], id: 'sub-pending', grade: {
+      ...(store.submissions['sub-3'].grade as Doc), questionResults: [{ ...markedRow,
+        clarify: { kind: 'mcq', state: 'open', reading: 'B' } }] } };
     h.db = makeDb(store);
   });
 
@@ -263,5 +274,15 @@ describe('student homework projection (projectStudentSubmission)', () => {
     const self = (result.payload?.submissions as Doc[]).find(s => s.id === 'sub-self');
     expect(self!.grade).toMatchObject({ score: 6, feedback: 'Chấm thử', teacherApproved: false });
     expect(self!.grade).not.toHaveProperty('scoreHidden');
+  });
+  it('marks require actual teacher approval, own evidence and completed clarification, including Chấm thử', async () => {
+    const result = await callClassroom({ action: 'studentSubmissions' });
+    const submissions = result.payload?.submissions as Doc[];
+    const approved = submissions.find(s => s.id === 'sub-3')!.grade as Doc;
+    expect((approved.questionResults as Doc[])[0].photoMarks).toEqual([expect.objectContaining({ imageUrl: 'https://own/photo.jpg' })]);
+    for (const id of ['sub-1', 'sub-self', 'sub-pending']) {
+      const grade = submissions.find(s => s.id === id)!.grade as Doc;
+      expect(JSON.stringify(grade)).not.toContain('photoMarks');
+    }
   });
 });

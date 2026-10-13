@@ -1,4 +1,5 @@
 import type { VercelResponse } from '@vercel/node';
+import { projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import {
   canLeaveClass,
@@ -154,6 +155,9 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
             ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
             needsTeacherReview: Boolean(item.needsTeacherReview),
+            ...(item.photoMarksCleared === true ? { photoMarksCleared: true } : {}),
+            ...(projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
+              ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
             ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
             ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
           }))

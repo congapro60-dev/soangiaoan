@@ -162,6 +162,12 @@ export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFix
                   <NhanXetMarkdown>{q.explanation}</NhanXetMarkdown>
                 </div>
               )}
+              {Boolean(q.photoMarks?.length) && (
+                <button type="button" className="mt-2 min-h-11 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-700"
+                  onClick={() => onChange(rows.map((row, i) => i === index ? { ...row, photoMarks: [] } : row))}>
+                  Bỏ dấu đỏ {q.questionNumber} (giữ điểm)
+                </button>
+              )}
             </div>
           );
         })}

@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
@@ -56,6 +57,7 @@ import { handleAdminLinkAction } from './_admin-link.js';
 import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
 import { awaitsClarification, hideWhileAwaitingClarification, sanitizeClarify } from '../src/lib/classroom/clarification.js';
 import { handleStudentAiCostAction } from './_student-ai-cost.js';
+import { handleStudentWorkspaceAction } from './_student-workspace.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
 
 /**
@@ -1051,7 +1053,7 @@ const safeEnum = <T extends string>(value: unknown, allowed: readonly T[]): T | 
   return (allowed as readonly string[]).includes(text) ? text as T : undefined;
 };
 
-const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentData): StudentAssignmentView => {
+export const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentData): StudentAssignmentView => {
   const attachments = (Array.isArray(data.attachments) ? data.attachments : [])
     .filter((item: unknown): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
     .map(item => ({
@@ -1086,7 +1088,7 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
     ...(data.dueAt ? { dueAt: String(data.dueAt) } : {}),
     ...(Number.isFinite(Number(data.maxScore)) ? { maxScore: Number(data.maxScore) } : {}),
     attachments,
-    isOpen: true,
+    isOpen: data.isOpen !== false,
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
     // Bài kiểm tra định kì có đáp án theo từng mã đề (không nằm ở `answerKey` chung) vẫn tính là có đáp án: máy quét bài ngay khi em nộp.
@@ -1103,7 +1105,7 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
   };
 };
 
-const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
+export const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
   const rawStatus = String(data.status || 'submitted');
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
   const hasValidGrade = rawGrade && typeof rawGrade.score === 'number' && typeof rawGrade.maxScore === 'number';
@@ -1132,6 +1134,8 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
         ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
         ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
         needsTeacherReview: Boolean(item.needsTeacherReview),
+        ...(rawGrade?.teacherApproved === true && projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
+          ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
         ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
       } as QuestionResult))
     : undefined;
@@ -1630,6 +1634,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleStudentAiCostAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
+    if (await handleStudentWorkspaceAction(db, body, res, { projectStudentAssignment, projectStudentSubmission })) return;
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
     if (action === 'studentSubmissions') return await handleStudentSubmissions(db, body, res);
     if (action === 'studentNotifications') return await handleStudentNotifications(db, body, res);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyKindFor, failPhotoRegrade,
-  finishPhotoRegrade, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
+  finishPhotoRegrade, hasStudentWriting, isActionableClarifyQuestion, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
 } from './clarification';
 import type { QuestionResult } from './types';
 
@@ -11,6 +11,28 @@ const row = (patch: Partial<QuestionResult> = {}): QuestionResult => ({
 });
 
 describe('câu máy đọc chưa chắc', () => {
+  it('không hỏi câu trống/placeholder, nhưng vẫn hỏi phần bài làm thực sự đọc được', () => {
+    for (const studentAnswer of ['', 'Bỏ trống', '(Bỏ trống: không thấy bài)', 'Không đọc rõ nét chữ', 'chưa làm', 'not attempted']) {
+      const q = row({ studentAnswer, status: 'unreadable', clarify: { kind: 'photo', state: 'open', reading: studentAnswer } });
+      expect(hasStudentWriting(q)).toBe(false);
+      expect(isActionableClarifyQuestion(q)).toBe(false);
+      expect(buildClarifyRows([{ ...q, clarify: undefined }]).asked).toBe(0);
+      expect(awaitsClarification([q])).toBe(true);
+    }
+    const q = row({ studentAnswer: 'B hoặc D', status: 'unreadable', clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+    expect(isActionableClarifyQuestion(q)).toBe(true);
+    expect(isActionableClarifyQuestion({ ...q, clarify: { ...q.clarify!, state: 'photo_saved' } })).toBe(true);
+    expect(isActionableClarifyQuestion({ ...q, clarify: { ...q.clarify!, state: 'regrading' } })).toBe(false);
+    expect(hasStudentWriting({ ...q, status: 'not_attempted' })).toBe(false);
+    expect(hasStudentWriting({ ...q, ignoredByTeacherInstruction: true })).toBe(false);
+  });
+  it('typed clarification and new photos clear marks from old evidence', () => {
+    const photoMarks = [{ imageIndex: 1, imageUrl: 'https://old', x: .1, y: .1, width: .2, height: .1, confidence: .95 }];
+    const typed = row({ status: 'incorrect', photoMarks, clarify: { kind: 'mcq', state: 'open', reading: 'B' } });
+    expect(answerClarifyRow(typed, 'C', 'T')!.photoMarks).toBeUndefined();
+    const step = startPhotoRegrade({ ...typed, clarify: { kind: 'photo', state: 'open', reading: 'B' } }, ['https://new'], 'T', 0);
+    expect(step.ok && step.row.photoMarks).toBeUndefined();
+  });
   it('không đọc được / tự đánh dấu cần soát / độ chắc thấp → chưa chắc; rõ ràng → không; câu bỏ qua theo lệnh GV → không', () => {
     expect(isUncertainQuestion(row())).toBe(false);
     expect(isUncertainQuestion(row({ status: 'unreadable' }))).toBe(true);

@@ -255,6 +255,49 @@ export const sanitizeDisplayText = (value: string | undefined | null): string =>
   return result;
 };
 
+/** ponytail: chỉ chia chuỗi dấu bằng ở cấp ngoài; công thức phức tạp giữ nguyên, prompt phải tạo aligned. */
+export const formatFeedbackMath = (value: string): string => {
+  const tokens = tokenizeMath(sanitizeDisplayText(value));
+  return tokens.map((token, index) => {
+    if (token.type !== 'math' || token.content.length < 60
+      || /\\(?:begin|end|left|right|Rightarrow|Leftrightarrow)|[&\r\n]|\\\\|[<>!]=|==/.test(token.content)
+      || /[À-ỹ]|[a-zA-Z]{3}/.test(token.content.replace(/\\[a-zA-Z]+/g, ''))) {
+      return joinTokens([token]);
+    }
+    const parts: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < token.content.length; i++) {
+      const char = token.content[i];
+      if ('{(['.includes(char)) depth++;
+      if ('})]'.includes(char)) depth--;
+      if (depth < 0) return joinTokens([token]);
+      if (depth === 0 && ',;|'.includes(char) && token.content[i - 1] !== '\\') return joinTokens([token]);
+      if (char === '=' && depth === 0) {
+        parts.push(token.content.slice(start, i).trim());
+        start = i + 1;
+      }
+    }
+    parts.push(token.content.slice(start).trim());
+    if (depth || parts.length < 3 || parts.some(part => !part)) return joinTokens([token]);
+    const previous = tokens[index - 1];
+    const line = previous?.type === 'text' ? previous.content.split('\n').at(-1) || '' : '';
+    if (line.includes('|') || line.trimStart().startsWith('>')) return joinTokens([token]);
+    const next = tokens[index + 1];
+    if (next?.type === 'text' && /^\.(?:\s|$)/.test(next.content)) {
+      parts[parts.length - 1] += '.';
+      next.content = next.content.slice(1);
+    }
+    const prefix = line.match(/^(\s*)(?:[-*+]|\d+[.)])\s+/);
+    const indent = prefix ? ' '.repeat(prefix[0].length) : line.match(/^\s*/)?.[0] || '';
+    const block = '$$\n\\begin{aligned}\n'
+      + parts[0] + ' &= ' + parts[1]
+      + parts.slice(2).map(part => '\\\\\n&= ' + part).join('')
+      + '\n\\end{aligned}\n$$';
+    return '\n\n' + block.split('\n').map(line => indent + line).join('\n') + '\n\n' + indent;
+  }).join('');
+};
+
 /**
  * Chuyển chuỗi có $…$ thành PLAIN TEXT gần đúng cho nơi không chạy MathJax
  * (tiêu đề panel builder — lỗi F9): gỡ delimiter, đổi caret/lệnh phổ biến sang unicode.

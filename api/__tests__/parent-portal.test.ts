@@ -206,7 +206,7 @@ describe('công bố + phụ huynh xem', () => {
     const ok = await parentCall({ studentId: 'b', pin: pins.b });
     expect(ok.statusCode).toBe(200);
     expect(ok.payload.reports).toHaveLength(1);
-  });
+  }, 15_000); // 22 lần scrypt thật: máy CI/QA tải cao cần đủ thời gian; giữ toàn bộ kiểm quyền.
 
   it('chưa cấp PIN → 409; lớp/em không có → 404; PIN sai dạng (không đủ 4 ký tự / có dấu cách) → 400', async () => {
     expect((await parentCall({ studentId: 'a', pin: '1234' })).statusCode).toBe(409);
@@ -337,12 +337,18 @@ describe('thống kê hoạt động phụ huynh', () => {
   });
 
   it('đợt dò mã: các lần sai dồn dập chỉ ghi tối đa 1 lần mỗi 2 giây (không nghẽn tài liệu thống kê); sau 2 giây ghi tiếp', async () => {
-    await issue();
-    for (let i = 0; i < 25; i += 1) await parentCall({ action: 'parentReports', studentId: 'a', pin: `x${i % 10}zz` });
-    expect((await stats())[0].wrongCount).toBe(1);
-    h.store['classes/lop-1/parentStats'].a.lastWrongAt = new Date(Date.now() - 5_000).toISOString();
-    await parentCall({ action: 'parentReports', studentId: 'a', pin: 'qqqq' });
-    expect((await stats())[0].wrongCount).toBe(2);
+    // Máy QA tải cao có thể xử lý 25 lượt lâu hơn 2 giây; kiểm cửa sổ bằng đồng hồ tất định.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await issue();
+      for (let i = 0; i < 25; i += 1) await parentCall({ action: 'parentReports', studentId: 'a', pin: `x${i % 10}zz` });
+      expect((await stats())[0].wrongCount).toBe(1);
+      vi.setSystemTime(Date.now() + 5_000);
+      await parentCall({ action: 'parentReports', studentId: 'a', pin: 'qqqq' });
+      expect((await stats())[0].wrongCount).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('parentEvent: PIN sai cũng được đếm; mã tạm của thầy cô (chưa đặt PIN riêng) không ghi được sự kiện', async () => {

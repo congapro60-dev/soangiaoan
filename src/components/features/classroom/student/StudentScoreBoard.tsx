@@ -1,5 +1,5 @@
 import { Award, BookOpenCheck, CalendarCheck, ClipboardList, NotebookPen } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { hs1Average, type StudentScoreView } from '../../../../lib/classroom/scoreBook';
 
 export interface HomeworkScore {
@@ -51,7 +51,16 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
   const moet = scores?.exams.moet ?? [];
   const tds = scores?.exams.tds ?? [];
   const hs1 = scores?.hs1 ?? [];
-  const hs1Avg = scores?.average ?? hs1Average(hs1);
+  const hs1Avg = scores?.average !== undefined ? scores.average : hs1Average(hs1);
+  const [query, setQuery] = useState('');
+  const [homeworkPage, setHomeworkPage] = useState(1);
+  const [markPage, setMarkPage] = useState(1);
+  const matches = (value: string) => value.toLocaleLowerCase('vi-VN').includes(query.trim().toLocaleLowerCase('vi-VN'));
+  const shownHomework = homework.filter(item => matches(item.title));
+  const shownMarks = hs1.filter(item => matches(item.label));
+  const safeHomeworkPage = Math.min(homeworkPage, Math.max(1, Math.ceil(shownHomework.length / 20)));
+  const safeMarkPage = Math.min(markPage, Math.max(1, Math.ceil(shownMarks.length / 20)));
+  const pageControls = (page: number, count: number, update: (next: number) => void) => count > 20 && <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500"><span>{count} mục · Trang {page}/{Math.ceil(count / 20)}</span><div className="flex gap-2"><button type="button" aria-label="Điểm trang trước" disabled={page === 1} onClick={() => update(page - 1)} className="min-h-11 rounded-lg border border-slate-200 px-3 disabled:opacity-40">Trước</button><button type="button" aria-label="Điểm trang sau" disabled={page * 20 >= count} onClick={() => update(page + 1)} className="min-h-11 rounded-lg border border-slate-200 px-3 disabled:opacity-40">Sau</button></div></div>;
   const stats = scores?.homework;
   const homeworkAvg = homework.length === 0
     ? null
@@ -65,18 +74,21 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
           <h2 id="student-scores-heading" className="mt-1 text-xl font-black text-slate-900">Bảng điểm của em</h2>
         </div>
       </div>
+      <label className="mt-3 block"><span className="sr-only">Tìm bài hoặc cột điểm</span><input value={query} onChange={event => { setQuery(event.target.value); setHomeworkPage(1); setMarkPage(1); }} placeholder="Tìm bài hoặc cột điểm…" className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base" /></label>
+      <p className="mt-2 text-xs leading-5 text-slate-500">Điểm trung bình giữ theo toàn bộ sổ; tìm kiếm chỉ lọc danh sách.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <Card
           icon={<BookOpenCheck className="h-4 w-4 text-emerald-600" />}
           title="Bài tập về nhà & đề online"
           summary={homeworkAvg !== null && <span className={`text-xs font-black ${scoreColor(homeworkAvg)}`}>TB {homeworkAvg}/10</span>}
         >
-          {homework.length === 0 ? <Empty>Chưa có bài được thầy cô duyệt điểm.</Empty> : (
-            <ul>{homework.map(item => {
+          {shownHomework.length === 0 ? <Empty>Chưa có bài được thầy cô duyệt điểm.</Empty> : (
+            <ul>{shownHomework.slice((safeHomeworkPage - 1) * 20, safeHomeworkPage * 20).map(item => {
               const out10 = item.score / item.maxScore * 10;
               return <Row key={item.id} label={item.title} value={<span className={scoreColor(out10)}>{item.score}/{item.maxScore}</span>} />;
             })}</ul>
           )}
+          {pageControls(safeHomeworkPage, shownHomework.length, setHomeworkPage)}
         </Card>
 
         <Card
@@ -84,9 +96,10 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
           title="Điểm có hệ số"
           summary={hs1Avg !== null && <span className={`text-xs font-black ${scoreColor(hs1Avg)}`}>TB {hs1Avg}/10</span>}
         >
-          {hs1.length === 0 ? <Empty>Chưa có điểm.</Empty> : (
-            <ul>{hs1.map((mark, index) => <Row key={`${mark.label}-${index}`} label={mark.label} sub={`${ngayVn(mark.date)} · HS${mark.weight ?? 1}`} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
+          {shownMarks.length === 0 ? <Empty>Chưa có điểm.</Empty> : (
+            <ul>{shownMarks.slice((safeMarkPage - 1) * 20, safeMarkPage * 20).map((mark, index) => <Row key={`${mark.label}-${index}`} label={mark.label} sub={`${ngayVn(mark.date)} · HS${mark.weight ?? 1}`} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
           )}
+          {pageControls(safeMarkPage, shownMarks.length, setMarkPage)}
         </Card>
 
         <Card icon={<CalendarCheck className="h-4 w-4 text-emerald-600" />} title="Chuyên cần & TB bài tập về nhà">
@@ -100,13 +113,13 @@ export const StudentScoreBoard = ({ scores, homework }: Props) => {
 
         <Card icon={<ClipboardList className="h-4 w-4 text-violet-600" />} title="Thi định kì (thang 10)">
           {moet.length === 0 ? <Empty>Chưa có điểm thi định kì.</Empty> : (
-            <ul>{moet.map(mark => <Row key={mark.label} label={mark.label} sub={scores?.examWeights?.[mark.label] ? `HS${scores.examWeights[mark.label]}` : undefined} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
+            <ul>{moet.filter(mark => matches(mark.label)).map(mark => <Row key={mark.label} label={mark.label} sub={scores?.examWeights?.[mark.label] ? `HS${scores.examWeights[mark.label]}` : undefined} value={<span className={scoreColor(mark.score)}>{mark.score}</span>} />)}</ul>
           )}
         </Card>
 
         <Card icon={<Award className="h-4 w-4 text-indigo-600" />} title="Điểm theo quý (TDS)">
           {tds.length === 0 ? <Empty>Chưa có điểm quý.</Empty> : (
-            <ul>{tds.map(mark => <Row key={mark.label} label={mark.label} value={<span className="text-indigo-700">{mark.score}{mark.letter && <span className="ml-1.5 rounded bg-indigo-50 px-1.5 text-xs">{mark.letter}</span>}</span>} />)}</ul>
+            <ul>{tds.filter(mark => matches(mark.label)).map(mark => <Row key={mark.label} label={mark.label} value={<span className="text-indigo-700">{mark.score}{mark.letter && <span className="ml-1.5 rounded bg-indigo-50 px-1.5 text-xs">{mark.letter}</span>}</span>} />)}</ul>
           )}
         </Card>
       </div>

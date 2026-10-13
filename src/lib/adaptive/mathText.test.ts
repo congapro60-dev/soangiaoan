@@ -1,5 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { assertClean, repairMathDeep, repairMathString, sanitizeDisplayText, stripInlineMarkdown, toPlainText } from './mathText';
+import { assertClean, formatFeedbackMath, repairMathDeep, repairMathString, sanitizeDisplayText, stripInlineMarkdown, toPlainText } from './mathText';
+
+describe('formatFeedbackMath — chỉ dàn lại phép biến đổi xác định', () => {
+  it('giữ nguyên dấu câu trong bảng và trích dẫn', () => {
+    const formula = '$A = \\vec{F}\\cdot\\overrightarrow{AB} = 2\\cdot4+1\\cdot(-2)+3\\cdot1 = 9$';
+    for (const text of ['| Cách sửa | ' + formula + '. |', '> ' + formula + '. Tiếp tục.']) {
+      expect(formatFeedbackMath(text)).toBe(text);
+    }
+  });
+  it('giữ dấu bằng trong ngoặc, không biến các phương trình độc lập thành chuỗi', () => {
+    const independent = '$abcdefgh=12345678901234567890,ijklmnop=12345678901234567890,qrstuvwx=3$';
+    expect(formatFeedbackMath(independent)).toBe(independent);
+    const nested = '$A=\\frac{1}{2}\\cdot(x=2)+12345678901234567890=12345678901234567890$';
+    expect(formatFeedbackMath(nested)).toContain('\\frac{1}{2}\\cdot(x=2)+12345678901234567890');
+    expect(formatFeedbackMath(nested).match(/&=/g)).toHaveLength(2);
+  });
+
+  it('giữ công thức trong mục Markdown, không cắt danh sách sau khi dàn thành khối', () => {
+    const out = formatFeedbackMath('- Thay số: $A=\\vec{F}\\cdot\\overrightarrow{AB}=2\\cdot4+1\\cdot(-2)+3\\cdot1=9$.\n- Kiểm tra đơn vị.');
+    expect(out).toContain('\n  $$');
+    expect(out).toContain('\n- Kiểm tra đơn vị.');
+  });
+});
 
 /**
  * Golden strings — LẤY TỪ CHUỖI LỖI THẬT trong QA đợt 9 (BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md).

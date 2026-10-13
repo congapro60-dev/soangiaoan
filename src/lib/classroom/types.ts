@@ -322,6 +322,17 @@ export type QuestionResultStatus =
   | 'unreadable'
   | 'not_attempted';
 
+/** Vùng lỗi trên ảnh gốc; URL do máy chủ gắn từ ảnh bài làm thực sự gửi AI. */
+export interface PhotoMark {
+  imageIndex: number;
+  imageUrl?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
 /** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
 export interface QuestionResult {
   /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
@@ -343,6 +354,9 @@ export interface QuestionResult {
   nextPractice: string;
   /** 0..1; chỉ có khi AI tự đánh giá được độ chắc chắn. */
   confidence?: number;
+  photoMarks?: PhotoMark[];
+  /** Thầy cô đã bỏ dấu câu này; chấm lại không tự gắn lại. */
+  photoMarksCleared?: boolean;
   /** true khi phần này được bỏ qua có chủ đích theo lệnh riêng của giáo viên. */
   ignoredByTeacherInstruction?: boolean;
   /** true khi giáo viên cần xem lại vì dữ liệu mờ, thiếu hoặc AI không chắc. */

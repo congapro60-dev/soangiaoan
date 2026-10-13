@@ -1,28 +1,34 @@
-import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationCap, Info, Loader2, LogOut, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react';
+import { type ChangeEventHandler, type RefObject, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ArrowLeft, BarChart3, BookOpen, BookOpenCheck, Camera, CheckCircle2, ChevronLeft, ChevronRight, FileText, Info, Loader2, LogOut, NotebookPen, RefreshCw, Search, Sparkles, Target, TrendingUp, X } from 'lucide-react';
 import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
 import type { ExamSubmission } from '../../../../types';
 import type { AssignmentDoc, StudentActivityView, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
-import { getStudentAssignmentState, latestSubmissionByAssignment, scoreHiddenFromStudent, type StudentAssignmentState, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
-import { buildStudentProgressSummary, studentActivityNextActionLabel, studentActivityStatusLabel } from '../../../../lib/classroom/studentProgressModel';
+import type { StudentAssignmentDetail, StudentWorkspaceSubmission } from '../../../../lib/classroom/studentWorkspace';
+import { getStudentAssignmentState, latestSubmissionByAssignment, scoreHiddenFromStudent, type StudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
+import { buildStudentProgressSummary } from '../../../../lib/classroom/studentProgressModel';
+import { isActionableClarifyQuestion } from '../../../../lib/classroom/clarification';
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
+import { vnDay } from '../../../../lib/classroom/reportPeriod';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
+import { StudentSubmittedWork } from './StudentSubmittedWork';
 import { StudentNotificationBell } from './StudentNotificationBell';
 import { StudentAiCostChip } from './StudentAiCostChip';
 import { StudentScoreBoard } from './StudentScoreBoard';
 import { StudentCompetencyPortfolio } from './StudentCompetencyPortfolio';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { QuestionResultsList } from '../QuestionResultsList';
 import { PracticeScaffold } from './PracticeScaffold';
-import { ClarifyPanel, type ClarifyItem } from './ClarifyPanel';
+import { ClarifyPanel } from './ClarifyPanel';
+import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
+import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
+
+const StudentPublishedReports = lazy(() => import('./StudentPublishedReports').then(module => ({ default: module.StudentPublishedReports })));
 
 const PRACTICE_LEVEL_LABEL: Record<string, { label: string; className: string }> = {
   nhan_biet: { label: 'Nhận biết · Thông hiểu', className: 'bg-emerald-50 text-emerald-700' },
   van_dung: { label: 'Vận dụng', className: 'bg-blue-50 text-blue-700' },
   van_dung_cao: { label: 'Vận dụng cao', className: 'bg-violet-50 text-violet-700' },
 };
-import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
-import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
-
 interface SessionInfo {
   studentId: string;
   studentName: string;
@@ -60,6 +66,7 @@ interface Props {
   onRemovePendingFile: (index: number) => void;
   onSubmitPendingFiles: () => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
+  onLoadDetail: (assignmentId: string | null, submissionId?: string) => Promise<StudentAssignmentDetail>;
   onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
   /** Dòng thời gian thông báo đã gộp sẵn ở trang cha. */
   notifications: readonly StudentFeedItem[];
@@ -73,314 +80,189 @@ interface Props {
   onDismissSuccess: () => void;
 }
 
-type FilterKey = 'all' | 'todo' | 'waiting' | 'retry' | 'graded';
-
-const filterMeta: Array<{ key: FilterKey; label: string }> = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'todo', label: 'Cần nộp' },
-  { key: 'waiting', label: 'Đang chờ chấm' },
-  { key: 'retry', label: 'Cần nộp lại' },
-  { key: 'graded', label: 'Đã chấm' },
-];
-
-const statusFilterMatch = (status: StudentAssignmentStatus, filter: FilterKey): boolean => {
-  if (filter === 'all') return true;
-  if (filter === 'waiting') return status === 'waiting' || status === 'grading' || status === 'pending-approval';
-  return status === filter;
-};
-
-const statusLabel = (status: StudentAssignmentStatus): string => {
-  if (status === 'todo') return 'Chưa nộp';
-  if (status === 'retry') return 'Cần nộp lại';
-  if (status === 'graded') return 'Đã có nhận xét';
-  if (status === 'pending-approval') return 'Chờ thầy cô duyệt';
-  return 'Đang xử lý';
-};
-
+type Section = 'assignments' | 'scores' | 'stats' | 'competencies' | 'reports';
+type FilterKey = 'all' | 'action' | 'waiting' | 'graded';
+const sections = [
+  { key: 'assignments', label: 'Bài tập', icon: BookOpen },
+  { key: 'scores', label: 'Sổ điểm', icon: NotebookPen },
+  { key: 'stats', label: 'Thống kê', icon: BarChart3 },
+  { key: 'competencies', label: 'Năng lực', icon: Target },
+  { key: 'reports', label: 'Báo cáo', icon: FileText },
+] as const;
+const PAGE_SIZE = 20;
+const buttonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-indigo-300 focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-50';
+const dayLabel = (date?: string) => date && Number.isFinite(Date.parse(date)) ? new Date(date).toLocaleDateString('vi-VN') : 'Chưa có ngày';
 const onlineAssignmentState = (activity?: StudentActivityView): StudentAssignmentState => {
-  if (!activity || activity.status === 'not_started') {
-    return { status: 'todo', action: 'submit', label: 'Làm bài online' };
-  }
-  if (activity.status === 'in_progress') {
-    return { status: 'waiting', action: 'status', label: 'Tiếp tục làm', detail: 'Bài đang được lưu dở.' };
-  }
-  if (activity.status === 'error') {
-    return { status: 'retry', action: 'retry', label: 'Thử lại', detail: 'Lượt làm trước chưa hoàn tất.' };
-  }
-  if (activity.status === 'official') {
-    return { status: 'graded', action: 'review', label: 'Xem kết quả' };
-  }
-  if (activity.status === 'grading') {
-    return { status: 'grading', action: 'status', label: 'Đang chấm' };
-  }
+  if (!activity || activity.status === 'not_started') return { status: 'todo', action: 'submit', label: 'Chưa làm' };
+  if (activity.status === 'in_progress') return { status: 'waiting', action: 'status', label: 'Đang làm dở' };
+  if (activity.status === 'official') return { status: 'graded', action: 'review', label: 'Đã có điểm' };
+  if (activity.status === 'pending_teacher') return { status: 'pending-approval', action: 'status', label: 'Chờ thầy cô duyệt' };
   return { status: 'waiting', action: 'status', label: 'Chờ kết quả' };
 };
-
-export const StudentPortalDashboard = ({
-  session,
-  assignments,
-  submissions,
-  onlineSubmissions,
-  profile,
-  scores,
-  loading,
-  uploadingId,
-  uploadStep,
-  successMessage,
-  warningMessage,
-  actionError,
-  dataError,
-  practiceSet,
-  practiceAnswers,
-  practiceAttempt,
-  loadingPractice,
-  submittingPractice,
-  practiceError,
-  uploadRef,
-  pendingFiles,
-  pendingAssignmentTitle,
-  maxPendingFiles,
-  onFileChange,
-  onChooseImage,
-  onAddMoreImages,
-  onRemovePendingFile,
-  onSubmitPendingFiles,
-  onOpenAssignment,
-  onAnswerExamCode,
-  notifications,
-  notificationsLastSeenAt,
-  onNotificationsOpened,
-  onSignOut,
-  onReload,
-  onLoadPractice,
-  onPracticeAnswerChange,
-  onSubmitPractice,
-  onDismissSuccess,
-}: Props) => {
-  const [filter, setFilter] = useState<FilterKey>('all');
-  // Khối "đang chờ nộp" nằm ở đầu trang; học sinh bấm bổ sung ảnh ở thẻ bài giữa/dưới trang nên
-  // chọn xong không thấy gì trên điện thoại. Cuộn khối đó vào tầm mắt ngay khi có tệp được chọn.
-  const pendingSectionRef = useRef<HTMLElement>(null);
-  const soTepChoNop = pendingFiles.length;
-  useEffect(() => {
-    if (soTepChoNop > 0) {
-      pendingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [soTepChoNop]);
-  const pendingPreviewUrls = useMemo(() => pendingFiles.map(file => (
-    file.type.startsWith('image/') && typeof URL.createObjectURL === 'function'
-      ? URL.createObjectURL(file)
-      : null
-  )), [pendingFiles]);
-  useEffect(() => () => {
-    pendingPreviewUrls.forEach(url => {
-      if (url) URL.revokeObjectURL(url);
-    });
-  }, [pendingPreviewUrls]);
-  const latest = useMemo(() => latestSubmissionByAssignment(submissions), [submissions]);
-  const progressSummary = useMemo(() => buildStudentProgressSummary({
-    studentId: session.studentId,
-    assignments,
-    submissions,
-    examSubmissions: onlineSubmissions,
-    profile,
-  }), [assignments, onlineSubmissions, profile, session.studentId, submissions]);
-  const activityByAssignment = useMemo(() => new Map(
-    progressSummary.assignmentActivities
-      .filter(activity => Boolean(activity.assignmentId))
-      .map(activity => [activity.assignmentId as string, activity]),
-  ), [progressSummary.assignmentActivities]);
-  const rows = useMemo(() => assignments.map(assignment => {
+export const studentClarificationQuestions = (submission?: SubmissionDoc, assignment?: AssignmentDoc) => assignment?.isOpen === false ? [] : (submission?.grade?.questionResults ?? []).filter(question =>
+  isActionableClarifyQuestion(question) || question.clarify?.state === 'regrading',
+);
+export interface WorkspaceRow {
+  id: string;
+  title: string;
+  assignment?: AssignmentDoc;
+  submission?: SubmissionDoc;
+  state: StudentAssignmentState;
+  clarificationCount: number;
+  score: number | null;
+  maxScore: number;
+  attempts: number;
+  date: string;
+  statDate: string;
+}
+/** The index contains the full scoped year; pagination never changes the totals. */
+export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc[], submissions: SubmissionDoc[], onlineSubmissions: ExamSubmission[]): WorkspaceRow[] => {
+  const own = submissions.filter(submission => submission.studentId === studentId);
+  const latest = latestSubmissionByAssignment(own);
+  const activities = buildStudentProgressSummary({ studentId, assignments, submissions: own, examSubmissions: onlineSubmissions }).assignmentActivities;
+  const activityMap = new Map(activities.map(activity => [activity.assignmentId, activity]));
+  const assigned = new Set(assignments.map(assignment => assignment.id));
+  const rows = assignments.filter(assignment => !assignment.targetStudentIds?.length || assignment.targetStudentIds.includes(studentId)).map(assignment => {
     const submission = latest.get(assignment.id);
-    return assignment.type === 'exam'
-      ? { assignment, submission: undefined, state: onlineAssignmentState(activityByAssignment.get(assignment.id)) }
-      : { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
-  }), [activityByAssignment, assignments, latest]);
-  const visibleRows = useMemo(() => rows.filter(row => statusFilterMatch(row.state.status, filter)), [filter, rows]);
-  const homeworkScores = useMemo(() => progressSummary.officialActivities.flatMap(activity => (
-    activity.officialScore !== null && typeof activity.maxScore === 'number' && activity.maxScore > 0
-      ? [{ id: activity.id, title: activity.title, score: activity.officialScore, maxScore: activity.maxScore }]
-      : []
-  )), [progressSummary.officialActivities]);
-  const selfSubmissions = useMemo(() => submissions
-    .filter(submission => !submission.assignmentId)
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt)), [submissions]);
-  const scoredAverage = progressSummary.officialAveragePercent === null
-    ? '—'
-    : `${progressSummary.officialAveragePercent.toFixed(1)}%`;
-  const progress = Math.round(progressSummary.completionRate * 100);
+    const activity = activityMap.get(assignment.id);
+    const state = assignment.type === 'exam' ? onlineAssignmentState(activity) : getStudentAssignmentState(assignment, submission);
+    const clarificationCount = assignment.isOpen !== false && submission?.grade?.awaitingClarification
+      ? ((submission as StudentWorkspaceSubmission).clarificationCount ?? studentClarificationQuestions(submission, assignment).filter(isActionableClarifyQuestion).length) : 0;
+    const score = assignment.periodicTest ? null : assignment.type === 'exam' ? activity?.officialScore ?? null
+      : submission?.grade?.teacherApproved && !submission.grade.awaitingClarification && !scoreHiddenFromStudent(submission) ? submission.grade.score : null;
+    return { id: assignment.id, title: assignment.title, assignment, submission,
+      state: clarificationCount === 0 && submission?.grade?.awaitingClarification ? { ...state, label: (submission as StudentWorkspaceSubmission).clarificationRegrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát' } : assignment.isOpen === false && !submission && state.status === 'todo' ? { ...state, label: 'Đã đóng' } : state,
+      clarificationCount, score, maxScore: activity?.maxScore ?? submission?.grade?.maxScore ?? assignment.maxScore ?? 10,
+      attempts: assignment.type === 'exam' ? activity?.attemptCount ?? 0 : own.filter(item => item.assignmentId === assignment.id).length,
+      date: assignment.createdAt, statDate: submission?.createdAt || activity?.latestAttemptAt || assignment.createdAt };
+  });
+  const selfAttempts = own.filter(submission => !submission.assignmentId || !assigned.has(submission.assignmentId));
+  const byId = new Map(selfAttempts.map(item => [item.id, item]));
+  const roots = new Map<string, SubmissionDoc[]>();
+  for (const submission of selfAttempts) {
+    let root = submission; const seen = new Set([root.id]);
+    while (root.supplementOf && byId.has(root.supplementOf) && !seen.has(root.supplementOf)) { root = byId.get(root.supplementOf)!; seen.add(root.id); }
+    roots.set(root.id, [...(roots.get(root.id) ?? []), submission]);
+  }
+  const self = [...roots.values()].map(attempts => { const submission = [...attempts].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]; return ({
+    id: `submission:${submission.id}`, title: submission.assignmentId ? 'Bài đã nộp (đề đã đóng)' : 'Chấm thử · Bài tự nộp',
+    submission, state: { status: 'self-submitted' as const, action: 'review' as const, label: submission.grade?.awaitingClarification ? ((submission as StudentWorkspaceSubmission).clarificationCount ? 'Cần xác nhận' : (submission as StudentWorkspaceSubmission).clarificationRegrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát') : submission.status === 'grading' ? 'Đang chấm' : 'Đã nộp' },
+    clarificationCount: submission.grade?.awaitingClarification ? (submission as StudentWorkspaceSubmission).clarificationCount ?? studentClarificationQuestions(submission).filter(isActionableClarifyQuestion).length : 0,
+    score: null, maxScore: 10, attempts: attempts.length, date: submission.createdAt, statDate: submission.createdAt,
+  }); });
+  return [...rows, ...self].sort((a, b) => Number(workspaceNeedsAction(b)) - Number(workspaceNeedsAction(a)) || (b.date || '').localeCompare(a.date || ''));
+};
+export const workspaceNeedsAction = (row: WorkspaceRow): boolean => (row.assignment?.isOpen !== false && (row.clarificationCount > 0 || row.submission?.errorReason === 'exam_code'))
+  || Boolean(row.assignment?.isOpen !== false && row.assignment && (row.state.status === 'todo' || row.state.status === 'retry'));
+export const filterWorkspaceRows = (rows: readonly WorkspaceRow[], query: string, filter: FilterKey, from: string, to: string, statistics = false): WorkspaceRow[] => {
+  const needle = query.trim().toLocaleLowerCase('vi-VN');
+  return rows.filter(row => {
+    const day = vnDay(statistics ? row.statDate : row.date);
+    const statusMatches = filter === 'all' || (filter === 'action' ? workspaceNeedsAction(row)
+      : filter === 'graded' ? row.score !== null : ['waiting', 'grading', 'pending-approval'].includes(row.state.status));
+    return (!needle || row.title.toLocaleLowerCase('vi-VN').includes(needle)) && statusMatches
+      && (!from || day >= from) && (!to || day <= to);
+  });
+};
+const Pagination = ({ page, count, onPage }: { page: number; count: number; onPage: (page: number) => void }) => {
+  const total = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  return <div className="mt-3 flex items-center justify-between gap-2 text-sm text-slate-500">
+    <span>{count} kết quả · Trang {page}/{total}</span>
+    <div className="flex gap-2"><button type="button" className={buttonClass} aria-label="Trang trước" disabled={page <= 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4" /></button>
+    <button type="button" className={buttonClass} aria-label="Trang sau" disabled={page >= total} onClick={() => onPage(page + 1)}><ChevronRight className="h-4 w-4" /></button></div>
+  </div>;
+};
+export const StudentPortalDashboard = (props: Props) => {
+  const { session, assignments, submissions, onlineSubmissions, profile, scores, loading, uploadingId, uploadStep,
+    successMessage, warningMessage, actionError, dataError, practiceSet, practiceAnswers, practiceAttempt,
+    loadingPractice, submittingPractice, practiceError, uploadRef, pendingFiles, pendingAssignmentTitle, maxPendingFiles,
+    onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment,
+    onAnswerExamCode, notifications, notificationsLastSeenAt, onNotificationsOpened, onSignOut, onReload,
+    onLoadPractice, onPracticeAnswerChange, onSubmitPractice, onDismissSuccess, onLoadDetail } = props;
+  const [section, setSection] = useState<Section>('assignments');
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const [query, setQuery] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [statsPage, setStatsPage] = useState(1);
+  const [statsFrom, setStatsFrom] = useState('');
+  const [statsTo, setStatsTo] = useState('');
+  const [showPractice, setShowPractice] = useState(false);
+  const [visitedCompetencies, setVisitedCompetencies] = useState(false);
+  const [opened, setOpened] = useState<WorkspaceRow | null>(null);
+  const [detail, setDetail] = useState<StudentAssignmentDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
+  const requestId = useRef(0);
+  const pendingSectionRef = useRef<HTMLElement>(null);
+  const rows = useMemo(() => buildWorkspaceRows(session.studentId, assignments, submissions, onlineSubmissions), [session.studentId, assignments, submissions, onlineSubmissions]);
+  const visibleRows = useMemo(() => filterWorkspaceRows(rows, query, filter, from, to), [rows, query, filter, from, to]);
+  const safePage = Math.min(page, Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE)));
+  const statisticalRows = useMemo(() => filterWorkspaceRows(rows.filter(row => row.assignment), '', 'all', statsFrom, statsTo, true).sort((a, b) => (b.statDate || '').localeCompare(a.statDate || '')), [rows, statsFrom, statsTo]);
+  const safeStatsPage = Math.min(statsPage, Math.max(1, Math.ceil(statisticalRows.length / PAGE_SIZE)));
+  const official = statisticalRows.filter(row => row.score !== null && row.maxScore > 0);
+  const average = official.length ? official.reduce((sum, row) => sum + row.score! / row.maxScore * 10, 0) / official.length : null;
+  const homeworkScores = rows.flatMap(row => row.score !== null && row.maxScore > 0 ? [{ id: row.id, title: row.title, score: row.score, maxScore: row.maxScore }] : []);
+  const loadDetail = useCallback(async (row: WorkspaceRow, keep = false) => {
+    const ticket = ++requestId.current;
+    if (!keep) setDetail(null);
+    setDetailError(''); setDetailLoading(true);
+    try {
+      const result = await onLoadDetail(row.assignment?.id ?? null, row.assignment ? undefined : row.submission?.id);
+      if (ticket === requestId.current) setDetail(result);
+    } catch (error) {
+      if (ticket === requestId.current) setDetailError(error instanceof Error ? error.message : 'Chưa tải được bài. Kiểm tra mạng rồi thử lại.');
+    } finally { if (ticket === requestId.current) setDetailLoading(false); }
+  }, [onLoadDetail]);
+  const openRow = (row: WorkspaceRow) => {
+    setSection('assignments'); setShowPractice(false); setOpened(row);
+    void loadDetail(row);
+    window.scrollTo?.({ top: 0, behavior: 'smooth' });
+  };
+  const reloadDetail = () => { onReload(); if (openedRef.current) void loadDetail(openedRef.current, true); };
+  // Refresh loaded work after the full lightweight index changes; no image/question fetch for unopened work.
+  const openedRef = useRef(opened); openedRef.current = opened;
+  useEffect(() => () => { ++requestId.current; }, []);
+  useEffect(() => { if (openedRef.current) void loadDetail(openedRef.current, true); }, [submissions, onlineSubmissions, loadDetail]);
+  const chooseSection = (next: Section) => { setSection(next); if (next === 'competencies') setVisitedCompetencies(true); window.scrollTo?.({ top: 0 }); };
+  const soTepChoNop = pendingFiles.length;
+  useEffect(() => { if (soTepChoNop > 0) pendingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [soTepChoNop]);
+  const pendingPreviewUrls = useMemo(() => pendingFiles.map(file => file.type.startsWith('image/') && typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : null), [pendingFiles]);
+  useEffect(() => () => { pendingPreviewUrls.forEach(url => { if (url) URL.revokeObjectURL(url); }); }, [pendingPreviewUrls]);
+  const ownDetail = detail?.submissions.filter(item => item.studentId === session.studentId) ?? [];
+  const detailAssignment = detail?.assignment;
+  const detailLatest = detailAssignment ? latestSubmissionByAssignment(ownDetail).get(detailAssignment.id) : [...ownDetail].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  const clarify = studentClarificationQuestions(detailLatest, detailAssignment);
+  const clarifyItems = detailLatest?.grade?.awaitingClarification && clarify.length ? [{ submission: { ...detailLatest, grade: { ...detailLatest.grade, questionResults: clarify } }, title: detailAssignment?.title || 'Bài tự nộp' }] : [];
+  const detailState = detailAssignment?.type === 'exam' ? onlineAssignmentState(buildStudentProgressSummary({ studentId: session.studentId, assignments: [detailAssignment], examSubmissions: detail?.onlineSubmissions }).assignmentActivities[0]) : getStudentAssignmentState(detailAssignment, detailLatest);
+  if (detailLatest?.grade?.awaitingClarification && !clarify.some(isActionableClarifyQuestion)) { detailState.label = clarify.some(question => question.clarify?.state === 'regrading') ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát'; }
+  if (detailAssignment?.isOpen === false) { detailState.canResubmit = false; if (detailState.action === 'submit' || detailState.action === 'retry') { detailState.action = 'status'; detailState.label = 'Bài đã đóng'; } }
+  if (detailState.detail?.includes('phía trên trang')) detailState.detail = 'Em mở phần xác nhận ngay trong bài này.';
   const legacyTopics = profile?.topics || [];
-  const weakTopics = progressSummary.weakTopics.length > 0
-    ? progressSummary.weakTopics
-    : legacyTopics.filter(topic => topic.level === 'weak').map(topic => topic.topic);
-  const strongTopics = progressSummary.strongTopics.length > 0
-    ? progressSummary.strongTopics
-    : legacyTopics.filter(topic => topic.level === 'solid').map(topic => topic.topic);
+  const weakTopics = legacyTopics.filter(topic => topic.level === 'weak' || topic.level === 'developing').map(topic => topic.topic);
+  const strongTopics = legacyTopics.filter(topic => topic.level === 'solid').map(topic => topic.topic);
   const skillCards = buildStudentSkillCards(profile?.skills);
   const hasProfileData = skillCards.length > 0 || legacyTopics.length > 0;
-  const counts = useMemo(() => ({
-    all: rows.length,
-    todo: rows.filter(row => row.state.status === 'todo').length,
-    waiting: rows.filter(row => row.state.status === 'waiting' || row.state.status === 'grading').length,
-    retry: rows.filter(row => row.state.status === 'retry').length,
-    graded: rows.filter(row => row.state.status === 'graded').length,
-  }), [rows]);
-  // Việc CẦN LÀM ngay: bài chưa nộp trước, rồi tới bài cần nộp lại. Đây là hành động chính của
-  // trang — làm nổi bật để HS không bấm nhầm nút "chấm thử" tưởng là nộp bài.
-  const viecCanLam = useMemo(
-    () => rows.find(row => row.state.status === 'todo') || rows.find(row => row.state.status === 'retry') || null,
-    [rows],
-  );
-  // Bài vừa bị thầy cô xoá thì quay về "Cần nộp"; kèm luôn lời nhắc ngay trên thẻ bài để em
-  // không phải mở chuông mới hiểu vì sao bài biến mất.
-  const deletedNotices = useMemo(() => new Map(
-    notifications
-      .filter(item => item.kind === 'submission_deleted' && item.assignmentId)
-      .map(item => [item.assignmentId as string, item.body] as const),
-  ), [notifications]);
-  // Bài (được giao hoặc tự nộp) máy còn hỏi lại em: hiện ngay đầu trang để em không bỏ sót.
-  const clarifyItems = useMemo<ClarifyItem[]>(() => {
-    const titles = new Map(assignments.map(assignment => [assignment.id, assignment.title] as const));
-    return submissions
-      .filter(submission => submission.grade?.awaitingClarification)
-      .map(submission => ({ submission, title: submission.assignmentId ? titles.get(submission.assignmentId) || 'Bài được giao' : 'Bài tự nộp' }));
-  }, [assignments, submissions]);
   const practiceQuestions = practiceSet?.questions ?? [];
   const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
-
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-10">
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 font-black text-white shadow-md shadow-indigo-200">
-            {session.studentName.charAt(0) || '?'}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-black leading-tight text-slate-900">{session.studentName}</p>
-            <p className="truncate text-xs font-semibold text-slate-400">{session.className}</p>
-          </div>
-          <StudentAiCostChip />
-          <StudentNotificationBell
-            items={notifications}
-            lastSeenAt={notificationsLastSeenAt}
-            onOpened={onNotificationsOpened}
-            onSelectAssignment={assignmentId => onOpenAssignment(assignments.find(item => item.id === assignmentId), latestSubmissionByAssignment(submissions).get(assignmentId))}
-          />
-          <button type="button" onClick={onSignOut} title="Đăng xuất" aria-label="Đăng xuất" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
-            <LogOut className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-5 px-4 pt-5 sm:px-6 sm:pt-7">
-        {/* KHONG dat capture="environment": tren dien thoai capture THANG multiple, may mo thang
-            camera va tra ve DUNG MOT anh. Bo di thi trinh chon cho phep chup moi lan nhieu tam
-            va lay tu thu vien. Nhan them PDF vi nhieu em nop ban scan nhieu trang. */}
-        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
-
-        <ClarifyPanel items={clarifyItems} onChanged={onReload} />
-
-        <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
-          <h1 className="mt-2 break-words text-2xl font-black tracking-tight sm:text-3xl">Hôm nay em cần làm gì?</h1>
-
-          {viecCanLam ? (
-            <div className="mt-4 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 sm:p-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-indigo-300">
-                {viecCanLam.state.status === 'retry' ? 'Cần nộp lại' : 'Việc cần làm ngay'}
-              </p>
-              <p className="mt-1 break-words text-lg font-black leading-6">{viecCanLam.assignment.title}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-300">{viecCanLam.state.label}</p>
-              <button
-                type="button"
-                onClick={() => onChooseImage(viecCanLam.assignment.id)}
-                disabled={uploadingId !== ''}
-                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 py-3 text-base font-black text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-400 disabled:opacity-60 sm:w-auto"
-              >
-                {uploadingId === viecCanLam.assignment.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
-                {uploadingId === viecCanLam.assignment.id ? 'Đang xử lý...' : 'Chụp & nộp bài này'}
-              </button>
-              {counts.todo + counts.retry > 1 && (
-                <p className="mt-2 text-xs font-semibold text-slate-400">Còn {counts.todo + counts.retry - 1} bài nữa cần làm — cuộn xuống danh sách bên dưới.</p>
-              )}
-            </div>
-          ) : (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />
-              <p className="text-sm font-bold text-slate-100">Em đã nộp hết bài được giao. Làm tốt lắm!</p>
-            </div>
-          )}
-
-          {/* Nút PHỤ, cố ý nhỏ/nhạt hơn hẳn nút nộp: HS hay bấm nhầm nút này tưởng là nộp bài.
-              Đây chỉ là chấm thử để tự kiểm, KHÔNG tính điểm và KHÔNG phải nộp. */}
-          <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:gap-3">
-            <button
-              type="button"
-              onClick={() => onChooseImage(null)}
-              disabled={uploadingId !== ''}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/10 disabled:opacity-60"
-            >
-              {uploadingId === 'tu-do' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {uploadingId === 'tu-do' ? 'Đang xử lý...' : 'Chấm thử (không tính điểm)'}
-            </button>
-            <span className="text-xs font-medium text-slate-400">Chụp bài cho AI xem thử đúng/sai trước — KHÔNG phải nộp bài.</span>
-          </div>
-        </section>
-
-        <section className="grid grid-cols-3 gap-2 sm:gap-4" aria-label="Tóm tắt tiến độ">
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-xl font-black text-indigo-700 sm:text-2xl">{progress}%</p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Đã xử lý</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-xl font-black text-emerald-600 sm:text-2xl">{scoredAverage}</p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm đã duyệt</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-xl font-black text-slate-900 sm:text-2xl">{progressSummary.officialCount}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Đã chấm</p>
-          </div>
-        </section>
-
-        <section aria-labelledby="student-progress-heading">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Theo dõi quá trình</p>
-              <h2 id="student-progress-heading" className="mt-1 text-xl font-black text-slate-900">Tiến trình học của em</h2>
-            </div>
-            <span className="text-xs font-bold text-slate-400">{progressSummary.assignmentCount} bài được giao</span>
-          </div>
-          {progressSummary.timeline.length === 0 ? (
-            <div className="mt-3 rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-8 text-center shadow-sm">
-              <Clock3 className="mx-auto mb-2 h-7 w-7 text-slate-300" />
-              <p className="text-sm font-semibold text-slate-500">Chưa có hoạt động học tập để hiển thị.</p>
-            </div>
-          ) : (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {progressSummary.timeline.slice(0, 6).map(item => (
-                <article key={item.id} className="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="min-w-0 break-words text-sm font-black leading-5 text-slate-900">{item.title}</h3>
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${item.official ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {studentActivityStatusLabel(item.status)}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-slate-500">
-                    {item.score !== null && item.maxScore !== null && <span>{item.score}/{item.maxScore} điểm</span>}
-                    <span>{item.attemptCount} lượt làm</span>
-                    <span>{studentActivityNextActionLabel(item.nextAction)}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-          {progressSummary.nextAction && (
-            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-bold leading-6 text-indigo-800">
-              Việc tiếp theo: <span className="font-black">{progressSummary.nextAction.title}</span> · {studentActivityNextActionLabel(progressSummary.nextAction.nextAction)}.
-            </p>
-          )}
-        </section>
-
+  const navigation = <nav aria-label="Không gian học tập" className="mx-auto grid max-w-5xl grid-cols-5 gap-1 px-2 py-1.5">
+    {sections.map(({ key, label, icon: Icon }) => <button key={key} type="button" aria-current={section === key ? 'page' : undefined} onClick={() => chooseSection(key)} className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[11px] font-bold focus-visible:outline-2 focus-visible:outline-indigo-600 md:min-h-11 md:flex-row md:gap-2 md:text-sm ${section === key ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-slate-50'}`}><Icon className="h-5 w-5 shrink-0" /><span>{label}</span></button>)}
+  </nav>;
+  return <div className="min-h-screen bg-slate-50 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2 sm:px-6">
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-slate-900">{session.studentName}</p><p className="truncate text-xs text-slate-500">{session.className}</p></div>
+        <StudentAiCostChip />
+        <StudentNotificationBell items={notifications} lastSeenAt={notificationsLastSeenAt} onOpened={onNotificationsOpened} onSelectAssignment={id => { const row = rows.find(item => item.assignment?.id === id); if (row) openRow(row); }} />
+        <button type="button" onClick={onReload} aria-label="Làm mới" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
+        <button type="button" onClick={onSignOut} aria-label="Đăng xuất" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><LogOut className="h-4 w-4" /></button>
+      </div>
+      <div className="hidden border-t border-slate-100 md:block">{navigation}</div>
+    </header>
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">{navigation}</div>
+    <main className="mx-auto max-w-5xl space-y-4 px-4 pt-4 sm:px-6">
+      <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
         {uploadStep && (
           <div className="flex items-start gap-3 rounded-2xl bg-indigo-600 px-4 py-3 text-white shadow-lg shadow-indigo-200" role="status" aria-live="polite">
             <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
@@ -415,7 +297,7 @@ export const StudentPortalDashboard = ({
               <span className="inline-flex shrink-0 items-center rounded-full bg-rose-600 px-3 py-1.5 text-xs font-black text-white">Chưa gửi</span>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4" role="list" aria-label="Các tệp đang chờ nộp">
+            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5" role="list" aria-label="Các tệp đang chờ nộp">
               {pendingFiles.map((file, index) => {
                 const previewUrl = pendingPreviewUrls[index];
                 return (
@@ -429,7 +311,7 @@ export const StudentPortalDashboard = ({
                     </div>
                     <div className="flex items-center gap-2 p-2">
                       <p className="min-w-0 flex-1 truncate text-[11px] font-bold text-slate-600" title={file.name}>Trang {index + 1}</p>
-                      <button type="button" onClick={() => onRemovePendingFile(index)} disabled={uploadingId !== ''} aria-label={`Xóa tệp ${index + 1}`} className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><X className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => onRemovePendingFile(index)} disabled={uploadingId !== ''} aria-label={`Xóa tệp ${index + 1}`} className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><X className="h-4 w-4" /></button>
                     </div>
                   </div>
                 );
@@ -449,91 +331,59 @@ export const StudentPortalDashboard = ({
           </section>
         )}
 
-        <section aria-labelledby="assignments-heading">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Việc cần làm</p>
-              <h2 id="assignments-heading" className="mt-1 text-xl font-black text-slate-900 sm:text-2xl">Bài tập của em</h2>
-            </div>
-            <span className="text-xs font-bold text-slate-400">{assignments.length} bài được giao</span>
-          </div>
 
-          <div className="mt-4 overflow-x-auto pb-1" role="tablist" aria-label="Lọc trạng thái bài tập">
-            <div className="flex min-w-max gap-2">
-              {filterMeta.map(item => (
-                <button
-                  type="button"
-                  key={item.key}
-                  role="tab"
-                  aria-selected={filter === item.key}
-                  onClick={() => setFilter(item.key)}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-black transition ${filter === item.key ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700'}`}
-                >
-                  {item.label}
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] ${filter === item.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{counts[item.key]}</span>
-                </button>
-              ))}
+      {section === 'assignments' && !opened && !showPractice && <section aria-labelledby="assignments-heading">
+        <div className="flex flex-wrap items-center justify-between gap-2"><h1 id="assignments-heading" className="text-xl font-black text-slate-900">Bài tập của em</h1>
+          <div className="flex gap-2"><button type="button" className={buttonClass} onClick={() => setShowPractice(true)}>Luyện tập</button><button type="button" className={buttonClass} disabled={uploadingId !== ''} onClick={() => onChooseImage(null)}><Camera className="h-4 w-4" />Chấm thử</button></div>
+        </div>
+        <p className="mt-1 text-sm text-slate-500">{rows.filter(workspaceNeedsAction).length} bài cần xử lý · Chấm thử không tính điểm chính thức.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2"><label className="relative"><span className="sr-only">Tìm bài tập</span><Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm tên bài…" className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-base" /></label>
+          <label><span className="sr-only">Trạng thái bài tập</span><select value={filter} onChange={event => { setFilter(event.target.value as FilterKey); setPage(1); }} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base"><option value="all">Tất cả trạng thái</option><option value="action">Cần xử lý</option><option value="waiting">Chờ chấm / Chờ GV</option><option value="graded">Đã có điểm</option></select></label>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2"><label className="min-w-0 text-xs text-slate-500">Ngày giao từ<input aria-label="Ngày giao từ" type="date" value={from} onChange={event => { setFrom(event.target.value); setPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-sm" /></label><label className="min-w-0 text-xs text-slate-500">Đến ngày<input aria-label="Ngày giao đến" type="date" value={to} onChange={event => { setTo(event.target.value); setPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-sm" /></label></div>
+        {from && to && from > to && <p role="alert" className="mt-2 text-sm text-red-700">Ngày bắt đầu phải trước ngày kết thúc.</p>}
+        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          {visibleRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map(row => <button type="button" key={row.id} onClick={() => openRow(row)} className="flex min-h-16 w-full items-center gap-3 border-b border-slate-100 px-3 py-3 text-left last:border-b-0 hover:bg-indigo-50" data-assignment-row={row.id}>
+            <div className="min-w-0 flex-1"><span className="block break-words text-sm font-bold leading-5 text-slate-900">{row.title}</span>
+              <span className="mt-1 block text-xs text-slate-500">{row.assignment?.isOpen === false ? 'Đã đóng · ' : ''}{row.assignment?.dueAt ? `Hạn ${dayLabel(row.assignment.dueAt)}` : dayLabel(row.date)} · {row.state.label}</span>
+              {row.clarificationCount > 0 && <span className="mt-1 inline-block rounded-lg bg-amber-50 px-2 py-1 text-xs font-bold text-amber-800">Cần xác nhận {row.clarificationCount} câu</span>}
+              {row.assignment?.isOpen !== false && row.submission?.errorReason === 'exam_code' && <span className="mt-1 block text-xs font-bold text-amber-800">Cần chọn mã đề</span>}
             </div>
-          </div>
-
-          {loading && assignments.length === 0 && submissions.length === 0 ? (
-            <div className="mt-3 space-y-3" aria-label="Đang tải bài tập">
-              <div className="h-40 animate-pulse rounded-[1.5rem] bg-white ring-1 ring-slate-100" />
-              <div className="h-40 animate-pulse rounded-[1.5rem] bg-white ring-1 ring-slate-100" />
-            </div>
-          ) : visibleRows.length === 0 ? (
-            <div className="mt-3 rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
-              <CheckCircle2 className="mx-auto mb-3 h-9 w-9 text-emerald-400" />
-              <p className="font-black text-slate-800">{filter === 'all' ? 'Chưa có bài tập nào.' : 'Không có bài ở trạng thái này.'}</p>
-              <p className="mt-1 text-sm font-medium text-slate-500">Khi có bài mới hoặc cần em thao tác, thầy cô sẽ giao trong lớp này.</p>
-            </div>
-          ) : (
-            <div className="mt-3 space-y-3">
-              {visibleRows.map(row => (
-                <StudentAssignmentCard
-                  key={row.assignment.id}
-                  assignment={row.assignment}
-                  submission={row.submission}
-                  state={row.state}
-                  deletedNotice={row.state.status === 'todo' ? deletedNotices.get(row.assignment.id) : undefined}
-                  uploading={uploadingId !== ''}
-                  onUpload={onChooseImage}
-                  onOpen={onOpenAssignment}
-                  onAnswerExamCode={onAnswerExamCode}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {selfSubmissions.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Ngoài bài được giao</p>
-                <h2 className="mt-1 text-xl font-black text-slate-900">Bài em tự chấm</h2>
-              </div>
-              <span className="text-xs font-bold text-slate-400">{selfSubmissions.length} lượt</span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {selfSubmissions.slice(0, 3).map(submission => (
-                <button type="button" key={submission.id} onClick={() => onOpenAssignment(undefined, submission)} className="flex min-h-11 w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100"><GraduationCap className="h-4 w-4 text-slate-500" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-black text-slate-800">Bài tự nộp · {new Date(submission.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span className="mt-0.5 block text-xs font-bold text-slate-400">{submission.grade?.awaitingClarification ? 'Cần em xác nhận' : statusLabel(submission.status === 'error' ? 'retry' : submission.status === 'submitted' ? 'waiting' : submission.status === 'grading' ? 'grading' : !scoreHiddenFromStudent(submission) ? 'graded' : 'pending-approval')}</span>
-                  </span>
-                  {submission.grade && !scoreHiddenFromStudent(submission) && !submission.grade.awaitingClarification && <span className="text-sm font-black text-emerald-700">{submission.grade.score}/{submission.grade.maxScore}</span>}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <StudentScoreBoard scores={scores} homework={homeworkScores} />
-
-        <StudentCompetencyPortfolio />
-
+            {row.score !== null && <span className="shrink-0 text-sm font-black text-emerald-700">{row.score}/{row.maxScore}</span>}
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+          </button>)}
+          {visibleRows.length === 0 && <p className="p-5 text-sm text-slate-500">{loading ? 'Đang tải bài tập…' : 'Không có bài phù hợp. Thử đổi bộ lọc.'}</p>}
+        </div>
+        <Pagination page={safePage} count={visibleRows.length} onPage={setPage} />
+      </section>}
+      {opened && <section hidden={section !== 'assignments'} aria-label="Chi tiết bài tập" className="space-y-3">
+        <button type="button" className={buttonClass} onClick={() => { ++requestId.current; setOpened(null); setDetail(null); setDetailError(''); }}><ArrowLeft className="h-4 w-4" />Danh sách bài tập</button>
+        <h1 className="break-words text-xl font-black text-slate-900">{opened.title}</h1>
+        {detailLoading && <p role="status" className="flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Đang tải bài…</p>}
+        {detailError && <div className="rounded-xl bg-red-50 p-3"><p role="alert" className="text-sm text-red-700">{detailError}</p><button type="button" className={`${buttonClass} mt-2`} onClick={() => void loadDetail(opened, true)}>Thử tải lại</button></div>}
+        {detail && <>
+          {detailAssignment ? <StudentAssignmentCard assignment={detailAssignment} submission={detailLatest} submissions={ownDetail} state={detailState}
+            detailView uploading={uploadingId !== ''} onUpload={onChooseImage} onOpen={onOpenAssignment} onAnswerExamCode={onAnswerExamCode}
+            deletedNotice={!detailLatest ? notifications.find(item => item.kind === 'submission_deleted' && item.assignmentId === detailAssignment.id)?.body : undefined} />
+          : <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-sm text-slate-500">Chấm thử không tính điểm chính thức.</p><StudentSubmittedWork submissions={ownDetail} />
+            {detailLatest?.grade && !scoreHiddenFromStudent(detailLatest) && !detailLatest.grade.awaitingClarification && <div className="mt-3 space-y-2"><NhanXetMarkdown>{detailLatest.grade.feedback}</NhanXetMarkdown><QuestionResultsList results={detailLatest.grade.questionResults} compact /></div>}
+          </div>}
+          {detailAssignment?.isOpen === false && detailLatest?.grade?.awaitingClarification && <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-600">Bài đã đóng. Em xem lại bài đã nộp; phần cần xác nhận đang chờ thầy cô soát.</p>}
+          {detailAssignment?.isOpen !== false && clarifyItems.length > 0 && <ClarifyPanel items={clarifyItems} onChanged={reloadDetail} pollingExternally />}
+        </>}
+      </section>}
+      {section === 'scores' && <StudentScoreBoard scores={scores} homework={homeworkScores} />}
+      {section === 'stats' && <section aria-labelledby="student-statistics-heading" className="space-y-3">
+        <h1 id="student-statistics-heading" className="text-xl font-black text-slate-900">Thống kê từng bài</h1>
+        <p className="text-sm leading-6 text-slate-500">Theo ngày nộp của lượt mới nhất; bài chưa nộp dùng ngày giao. Điểm AI phân tích bài thi định kì không thay điểm chính thức trong sổ.</p>
+        <div className="grid grid-cols-2 gap-2"><label className="min-w-0 text-xs text-slate-500">Từ ngày<input aria-label="Thống kê từ ngày" type="date" value={statsFrom} onChange={event => { setStatsFrom(event.target.value); setStatsPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 px-2 text-sm" /></label><label className="min-w-0 text-xs text-slate-500">Đến ngày<input aria-label="Thống kê đến ngày" type="date" value={statsTo} onChange={event => { setStatsTo(event.target.value); setStatsPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 px-2 text-sm" /></label></div>
+        <div className="grid grid-cols-3 gap-2" aria-label="Tổng toàn bộ kết quả lọc"><div className="rounded-xl bg-white p-3"><p className="text-xl font-black">{statisticalRows.length}</p><p className="text-xs text-slate-500">Bài được giao</p></div><div className="rounded-xl bg-white p-3"><p className="text-xl font-black">{official.length}</p><p className="text-xs text-slate-500">Đã có điểm</p></div><div className="rounded-xl bg-white p-3"><p className="text-xl font-black">{average === null ? '—' : `${average.toFixed(1)}/10`}</p><p className="text-xs text-slate-500">TB bài có điểm</p></div></div>
+        <p className="text-xs text-slate-500">TB các bài trong khoảng chọn; điểm TB có hệ số chính thức xem tại Sổ điểm.</p>
+        {official.length >= 2 && <figure className="rounded-xl bg-white p-3"><figcaption className="mb-2 text-sm font-bold text-slate-700">Xu hướng 12 bài có điểm gần nhất</figcaption><div className="flex h-24 items-end gap-1" aria-label="Xu hướng điểm">{[...official].slice(0, 12).reverse().map(row => <div key={row.id} className="min-w-0 flex-1"><div className="rounded-t bg-indigo-500" style={{ height: `${Math.max(2, row.score! / row.maxScore * 70)}px` }} /><p className="mt-1 text-center text-[10px] text-slate-600" title={row.title}>{(row.score! / row.maxScore * 10).toFixed(1)}</p></div>)}</div><p className="mt-2 text-xs text-slate-500">Từ cũ đến mới · thang 10</p></figure>}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{statisticalRows.slice((safeStatsPage - 1) * PAGE_SIZE, safeStatsPage * PAGE_SIZE).map(row => <button type="button" key={row.id} onClick={() => openRow(row)} className="flex min-h-16 w-full items-center gap-3 border-b border-slate-100 p-3 text-left last:border-b-0 hover:bg-indigo-50"><span className="min-w-0 flex-1"><span className="block break-words text-sm font-bold">{row.title}</span><span className="mt-1 block text-xs text-slate-500">{dayLabel(row.statDate)} · {row.attempts} lượt · {row.assignment?.periodicTest ? 'Phân tích bài thi · Điểm tại Sổ điểm' : row.state.label}{row.attempts === 0 ? ' · Ngày giao' : ''}</span></span><span className="shrink-0 text-sm font-bold text-emerald-700">{row.score === null ? '—' : `${row.score}/${row.maxScore}`}</span><ChevronRight className="h-4 w-4 text-slate-400" /></button>)}{!statisticalRows.length && <p className="p-4 text-sm text-slate-500">Chưa có bài trong khoảng này.</p>}</div>
+        <Pagination page={safeStatsPage} count={statisticalRows.length} onPage={setStatsPage} />
+      </section>}
+      {visitedCompetencies && <div hidden={section !== 'competencies'} className="space-y-4"><StudentCompetencyPortfolio />
         <section>
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -587,6 +437,9 @@ export const StudentPortalDashboard = ({
           )}
         </section>
 
+      </div>}
+      {section === 'reports' && <Suspense fallback={<p role="status" className="text-sm text-slate-500">Đang mở báo cáo…</p>}><StudentPublishedReports /></Suspense>}
+      {section === 'assignments' && showPractice && <div className="space-y-3"><button type="button" className={buttonClass} onClick={() => setShowPractice(false)}><ArrowLeft className="h-4 w-4" />Danh sách bài tập</button>
         <section>
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -668,7 +521,7 @@ export const StudentPortalDashboard = ({
             )}
           </div>
         </section>
-      </main>
-    </div>
-  );
+      </div>}
+    </main>
+  </div>;
 };

@@ -9,6 +9,13 @@ const old: QuestionResult = {
 };
 
 describe('chấm lại một câu từ ảnh chụp lại', () => {
+  it('replaces optional marks instead of copying old coordinates onto new photos', () => {
+    const mark = { imageIndex: 1, x: .1, y: .1, width: .2, height: .1, confidence: .9 };
+    const stale = { ...old, photoMarks: [{ ...mark, imageUrl: 'https://old' }] };
+    const raw = { status: 'incorrect', score: 0, studentAnswer: 'x=3' };
+    expect(parseQuestionRegrade(JSON.stringify(raw), stale)?.photoMarks).toBeUndefined();
+    expect(parseQuestionRegrade(JSON.stringify({ ...raw, photoMarks: [{ ...mark, imageUrl: 'https://foreign' }] }), stale)?.photoMarks).toEqual([mark]);
+  });
   it('câu lệnh chỉ nhắm đúng một câu, nói rõ thứ tự ảnh, không đưa đáp án cũ máy đọc làm căn cứ', () => {
     const prompt = buildQuestionRegradePrompt({
       question: old, answerKey: 'Bài 1: x = 2', rubric: '', assignmentTitle: 'Kiểm tra', assignmentText: '', gradingInstructions: '',

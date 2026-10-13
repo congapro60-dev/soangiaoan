@@ -15,11 +15,10 @@ import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
 import { handleParentActivityAction, recordParentActivity } from './_parent-activity.js';
 import { handleParentCustomReport } from './_parent-self-report.js';
 import { noteDocId, PARENT_REPORT_NOTES_COL } from './_parent-report.js';
-import { applyReportOverrides, sanitizeReportOverrides } from '../src/lib/classroom/reportOverrides.js';
-import { mergeLiveInput } from '../src/lib/classroom/parentReportLive.js';
+import { sanitizeReportOverrides } from '../src/lib/classroom/reportOverrides.js';
 import { asProgram } from '../src/lib/classroom/reportStage.js';
-import type { ReportPeriod } from '../src/lib/classroom/reportPeriod.js';
-import { buildLiveReport, loadLiveSource } from './_parent-live.js';
+import { loadLiveSource } from './_parent-live.js';
+import { publishedReportInput } from './_published-report.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
@@ -211,18 +210,7 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
   const items = reports.docs
     .map(d => {
       const data = d.data();
-      let input: unknown = null;
-      try { input = JSON.parse(String(data.inputJson || 'null')); } catch { /* bản hỏng → bỏ */ }
-      if (input && live && data.live === true) {
-        try {
-          const period: ReportPeriod = { kind: data.kind, from: data.from, to: data.to, ...(typeof data.hk2From === 'string' ? { hk2From: data.hk2From } : {}) };
-          input = mergeLiveInput(input as never, buildLiveReport(live, period, asProgram(data.program)).printInput);
-        } catch (error) { console.error('[parent-portal] không dựng lại được báo cáo, dùng bản đã công bố:', error); }
-      }
-      // Áp bản chỉnh tay của giáo viên (nếu có) mỗi lần mở: thầy cô sửa là phụ huynh thấy ngay, không cần công bố lại.
-      if (input && typeof data.overridesJson === 'string') {
-        try { input = applyReportOverrides(input as never, JSON.parse(data.overridesJson)); } catch { /* bản chỉnh hỏng → dùng bản gốc */ }
-      }
+      const input = publishedReportInput(data, live);
       return { id: d.id, kind: String(data.kind), from: String(data.from), to: String(data.to), title: String(data.title || ''), range: String(data.range || ''), publishedAt: String(data.publishedAt || ''), input };
     })
     .filter(item => item.input)

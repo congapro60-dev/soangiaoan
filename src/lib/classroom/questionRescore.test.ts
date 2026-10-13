@@ -26,6 +26,16 @@ const q = (over: Partial<QuestionResult>): QuestionResult => ({
   ...over,
 });
 
+describe('photo mark lifecycle during rescoring', () => {
+  const photoMarks = [{ imageIndex: 1, imageUrl: 'https://own', x: .1, y: .1, width: .2, height: .1, confidence: .9 }];
+  it('drops marks after answer-key correction or changed machine reading of teacher-edited row', () => {
+    const old = q({ studentAnswer: 'B', expectedAnswer: 'A', photoMarks, teacherEdited: true });
+    expect(applyAnswerKeyFixes([old], [{ questionNumber: 'Câu 1', expectedAnswer: 'C', fixedAt: '2026-10-14T00:00:00Z' }]).rows[0].photoMarks).toBeUndefined();
+    expect(keepTeacherEditedRows([q({ studentAnswer: 'C' })], [old])[0].photoMarks).toBeUndefined();
+    expect(keepTeacherEditedRows([q({ studentAnswer: 'B' })], [old])[0].photoMarks).toEqual(photoMarks);
+  });
+});
+
 describe('parseExpectedAnswer', () => {
   it.each([
     ['C', 'mcq'],
