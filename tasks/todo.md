@@ -11,8 +11,8 @@ Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, nhánh `co
 - [x] Lời chữa/math có ý/bước, aligned; root; tests137/137, tiếp tục QA trực quan.
 - [x] Test toàn bộ2931/2931 (275 files), lint app/API, build; Rules303/303 (8 files); exit0.
 - [x] QA browser390/430/820/1024/1366 +300/500; review native/Gemini PASS, không finding chặn.
-- [ ] Commit/push main; xác minh origin/main đúng commit. Nếu Git integration tự deploy, ghi trạng thái và QA riêng.
-- [ ] Cập nhật bằng chứng/release/checklist/HANDOFF để Claude tiếp quản.
+- [x] Commit/push main: source7c88a50d4765fdcbbf6c8384aa97194c41ea6ab9; git ls-remote xác nhận đúng SHA, push exit0.
+- [x] Cập nhật bằng chứng/checklist/HANDOFF để Claude tiếp quản. Commit tiếp chỉ chốt tài liệu, source không đổi.
 
 Bridge chưa có phiên sống. Canary: ChatGPT cx/gpt-6-luna OK; Claude 429 (reset dự kiến 05:59 ICT); Gemini ag/pro 404, gc/pro 403. UI/backend native Codex; review khác hãng đang chờ khả dụng.
 
@@ -23,7 +23,8 @@ QA cập nhật: browser fixture thật 390/820 đã đạt nav/paging/search/da
 không tràn ngang. Reviewer native source PASS, Gemini UI PASS + backend adjudication PASS (finding sai được đối chiếu source/test).
 Full suite2920 đạt trước guard đóng bài; bản cuối2931/2931 đã đạt. Một test22 lần scrypt timeout5s khi tải cao;
 riêng test đó36/36 đạt,2821ms. Chỉ tăng timeout test đó15s, không sửa mã xác thực hoặc bỏ kiểm quyền.
-Cổng push main: passed; source đóng băng, origin/main=a7b7f93 như base, đang commit/push fast-forward.
+Cổng push main: passed; base a7b7f93, push fast-forward7c88a50 đã xác minh. API Typecheck/Quality Gate đang chạy trên GitHub.
+Không gọi deploy/promote thủ công. QA production phiên mới / độ đúng AI định vị là việc còn lại, không coi push là đã QA production.
 
 # Tiep quan phat hanh 2026-10-10
 

@@ -168,7 +168,7 @@ Rủi ro cao cần kiểm: quyền HS đúng lớp/GV, không leak dữ liệu c
 - [x] UI điều hướng gọn/bảng bài/chi tiết bài/clarify đúng bài; nối lại bút đỏ và ảnh đã nộp.
 - [x] Trình bày lời chữa theo ý/bước, công thức khối căn dấu bằng; QA trực quan điện thoại/iPad.
 - [x] QA300/500 fixture, source review độc lập và Gemini PASS; bằng chứng tasks/qa-student-workspace-20261014.md.
-- [ ] Full suite cuối + commit/push main; origin/main phải đúng commit đã kiểm.
+- [x] Full suite2931/2931 + commit/push main7c88a50; git ls-remote đúng SHA7c88a50d4765fdcbbf6c8384aa97194c41ea6ab9.
 - [ ] QA HS/GV production phiên mới nếu Git integration tự triển khai; ghi rõ không có pending thật hiện tại.
 
 Đã được phép commit/push main sau kiểm; không deploy/promote thủ công. QA không tự đổi PIN, nộp hoặc duyệt bài thật để tạo dữ liệu thử.

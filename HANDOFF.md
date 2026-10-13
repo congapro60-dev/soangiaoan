@@ -20,7 +20,9 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
   QA trình duyệt điện thoại/iPad; xác minh origin/main đúng commit. Deployment tự động/QA production ghi riêng.
 - Trạng thái: source xong, browser390/820/430/1024/1366 đạt, Rules303/303, lint/build đạt, review native+Gemini PASS.
   Full suite cuối2931/2931 (275 files),exit0; test22 lần scrypt timeout15s, không đổi authentication.
-  Bằng chứng/check/giới hạn: tasks/qa-student-workspace-20261014.md; cổng push passed, đang commit/push main.
+  Bằng chứng/check/giới hạn: tasks/qa-student-workspace-20261014.md; cổng push passed.
+  Source đã push main: 7c88a50d4765fdcbbf6c8384aa97194c41ea6ab9, ls-remote đúng SHA, push exit0.
+  Commit tiếp chỉ chốt tài liệu. GitHub CI đang chạy; không deploy/promote thủ công. QA production/AI localization còn lại.
 
 
 

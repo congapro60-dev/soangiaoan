@@ -56,6 +56,10 @@ C:/Users/ADMIN/.codex/visualizations/2026/10/10/01a123b1-a378-73b1-9aa4-685e5b67
 
 ## Giới hạn
 
+Main đã push source7c88a50d4765fdcbbf6c8384aa97194c41ea6ab9; ls-remote xác nhận đúng SHA, exit0.
+API Typecheck và Quality Gate trên GitHub đang chạy lúc ghi kết quả; deployment/QA production chưa được xác nhận.
+Tài liệu bàn giao chốt ở commit tiếp, không thay source đã kiểm.
+
 Production vẫn a7b7f93 khi khảo sát. HS Lê Trung Đức và Trần Phúc Minh hiện không có pending thật;
 scoped clarify được chứng minh bằng source/fixture, không tự tạo câu hỏi thật.
 AI định vị dấu mới trên lô ảnh thật chưa được đo; ảnh đã chấm cũ không tự có dấu nếu chưa chấm lại.
