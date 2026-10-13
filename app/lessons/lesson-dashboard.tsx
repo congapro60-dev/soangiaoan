@@ -2136,6 +2136,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   <button className="lesson-button lesson-button-primary" disabled={isSavingDraft} onClick={handleSaveDraft}>
                     Lưu bản thảo mới
                   </button>
+                  {editedPackage?.id.startsWith("proposal-")&&<button type="button" className="lesson-button lesson-button-outline" onClick={()=>{const originalId=editedPackage.id;setEditedPackage({...editedPackage,id:"review-"+crypto.randomUUID(),status:"needs_review",tasks:(editedPackage.tasks||[]).map(task=>({...task,metadata:{...task.metadata,manualReviewOf:originalId,numericReviewRequired:true}}))});setStudioStatus("Đã tạo bản sửa riêng từ nháp AI. Bản gốc giữ nguyên; lưu bản này và đối soát nguồn, dữ kiện trước khi duyệt.");}}>Tạo bản sửa nguồn riêng</button>}
+
                   <button className="lesson-button lesson-button-outline" onClick={() => setStudioSubTab("preview")}>
                     Hủy chỉnh sửa
                   </button>
