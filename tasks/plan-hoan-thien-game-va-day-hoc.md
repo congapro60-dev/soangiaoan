@@ -1310,7 +1310,7 @@ R11chốt13/10:
 - [x] CUAactualfinal16MathML/9subscript/0error/375scroll360;matchingselect/preview233pxIDkept;standard9notationpreviewfraction/root/vector/integral/trig/matrix/cases/alignedPASSwithlocalSSR/CSS,inline369cuộn310. Desktop/375screenshotskept;oldwrapped/collapsedselectorimagesnotfinalproof.
 - [x] IndependentFlashhighPASS0findings/currentfullhash. GeminiPro503twiceunknownquota; rawreviewretained. FalseBLOCKEDtruncatedCSSinputexcerptadjudicated/recheckedcompleterule. `codex-r11-math-layout-recheck-flash-2026-10-13T01-20-16-547Z.json`.
 - [x] Report/evidence/HANDOFF/todo/lessonsupdated `tasks/codex-r11-report.md`, `codex-r11-evidence.json`. Previewtab37seededreward3/3typeset. Khóa/dữliệuHS/V7/productionversion7untouched.
-- [ ] OwnerduyệtpháthànhR10+R11theo19.9;humanclass/GVsourceyear/format/timebox150/2oldAIcitation/realdevices3Dvisualremainseparate.
+- [x] Owner duyệt và đã phát hành R10+R11 cùng R12–R13 tại version8 ngày13/10. Các gate lớp thật/nguồn/năm/thiết bị/citation ở backlog riêng vẫn chưa xong.
 
 #### R12 — owner sửa trải nghiệm Khám phá và hướng dẫn GV13/10
 - [x] Owner chốt Khámpháđọcvuithưgiãn,khôngcâuhỏi/nhiệm vụ;sourceadminkhôngchoHS. GợiýGVphảitrướclaunch,cónútsetuptoànbài vàchỉnhtaysau.
@@ -1327,7 +1327,7 @@ R12chốtlocal13/10:
 - [x] CUAHSread0form/admin,false/1fragmentwithoutchoice/desktop375scroll360client305/MathML;CUAGVproposal/manual/launchcreatedroom5190BEdatafake/reloadserverconfigKhoBáuCánhândigital-media/noevent/windowclosed. Preview39reading3/3explicitseeded.
 - [x] MainindependentGeminiFlashhighPASS0findings/currentcode. SecondaryattemptsClaude2x503/Pro503/FlashboundarytimeoutunknownnotPASS;additionalreviewdepthdegraded,releaseevidenceexplicit.
 - [x] report/evidence/HANDOFF/todo/lessonsupdated `tasks/codex-r12-report.md`,`codex-r12-evidence.json`. R10mechanicmathgreen≠UXsưphạm;R12supersedesoldreflectionstudentdesign.
-- [ ] R10–R12publicationowner19.9;additionalproviderreviewifrequired;humanclass/GVsourceyear/format/timebox150/2oldAIcitation/realdevices3Dvisualremain.
+- [x] R10–R12 đã phát hành cùng R13 tại version8 ngày13/10. Review bổ sung nếu cần và các gate lớp thật/nguồn/năm/thiết bị/citation giữ backlog.
 
 #### R13 — một câu/thẻ mỗi popup, map bớt nút
 - [x] Owner yêu cầu giảmrốiHUD/giảmscroll/NextBack/2D3D;spec `tasks/codex-r13-game-ui-plan.md`. R12bỏquestionsKhámpháđãxong,ảnhold khôngcoilàregressionbackend.
@@ -1340,7 +1340,7 @@ R13 tiến độ: tích hợp đã xong; 1221 tests/109 HTTP đạt trên ứng 
 
 R13 nghiệm thu local: 1222 tests; 39 UI +52 map checks sau chỉnh cuối; typecheck/build đạt; lint 0 lỗi/392 cảnh báo cũ, scoped 0. 201 source byte-match. Native 109 HTTP trên hash cuối 31f903ab69b2a63eae3aa93b3abd902adadc8250d189f3af57d88011fe0dd653; cùng hash máy chủ browser QA. Gemini Flash core/map PASS 0 findings. CUA 375: trang 812/812, 1 câu, nháp 23 qua Next/Back, footer trong màn hình, Escape trả Menu; cổng 2D chạm mở riêng câu luyện. Broad CUA trước hai chỉnh cuối gồm 3D thẻ 2/3, nhận 1 mảnh, pause/giữ nháp, máy chung tách người; không gắn nhầm hash cuối. Báo cáo `tasks/codex-r13-report.md`, bằng chứng `tasks/codex-r13-evidence.json`.
 - [ ] Lỗi học liệu cũ ngoài R13: biến thể 12 hàng nhưng label 25 hàng, `content/lessons/g11-sequences-p1.json:337/350`; chưa sửa, chờ chủ hệ thống duyệt riêng.
-- [x] Chủ hệ thống duyệt phát hành R10–R13 ngày13/10: “Phát hành trước đi đã, còn lỗi nào thì ghi vào plan để lần sau sửa tiếp”. Đang phát hành; chưa ghi deployed tới khi native thành công.
+- [x] Chủ hệ thống duyệt phát hành R10–R13 ngày13/10: “Phát hành trước đi đã, còn lỗi nào thì ghi vào plan để lần sau sửa tiếp”. Đã phát hành native version8 thành công lúc11:19:53 ngày13/10/2026.
 
 ## Backlog sau phát hành R10–R13 (chủ hệ thống cho để lượt sau)
 - [ ] Sửa label biến thể 12/25 hàng tại `content/lessons/g11-sequences-p1.json:337/350`, giữ checker/đáp án hữu hạn; duyệt học liệu trước khi đưa vào lớp thật.
@@ -1348,3 +1348,27 @@ R13 nghiệm thu local: 1222 tests; 39 UI +52 map checks sau chỉnh cuối; typ
 - [ ] Duyệt nguồn/năm học/định dạng học liệu; nghiệm thu 150HS/40phút và điện thoại/iPad/TV thật.
 - [ ] Duyệt thẩm mỹ3D; cổng3Dcanvas vẫn cảnh quan, chọn bằng menuHTML.
 - [ ] Nếu cần giữ nháp chưa lưu qua đổi người/đóngtab trên máy chung, thiết kế riêng; R13 giữ nháp Next/Back và đóngpopup trong cùng người.
+
+### Kết quả phát hành R10–R13 —13/10/2026
+- [x] Native version8 succeeded, deployment `appgdep_6acdb1514148819199d46d4c3204d1dc`. URL https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site
+- [x] Source commit `35309a54dbaaa47ac7c06c1dbc219017c3cd6f55`; worker `31f903ab69b2a63eae3aa93b3abd902adadc8250d189f3af57d88011fe0dd653`;201 scoped/681 source byte-match.
+- [x] Production landing và Studio tải được; có gợi ý setup trước mở phòng, tùy chỉnh tay thu gọn, kết nối AI còn bật. Không tạo lớp/HS/phòng thật để QA. Worker error logs5phút0events.
+- [x] Public/accessrevision2/environmentrevision2 giữ nguyên. Version7 retained rollback; R10–R13 khôngthêm migrationD1so v7.
+- [x] Lỗi12/25hàng và các mục còn lại giữ trong backlog phía trên, theo yêu cầu chủ hệ thống. Không tiếp tục sửa trong lần phát hành này.
+Bằng chứng `tasks/codex-r10-r13-release-evidence.json`; báo cáo `tasks/codex-r10-r13-release-report.md`. Các ghi chú “chưa phát hành” ở R10–R13 phía trên là lịch sử trước lần này.
+
+### R14 — điểm vào giáo viên và chọn cách tổ chức, audit13/10
+- [x] Owner phản ánh /hosts không có chỗ chọn cáchhost; kiểm production/source. Báo cáo `tasks/codex-host-ux-audit-20261013.md`.
+- [x] Đã sửa nhận định audit: lesson_sessions tạo rooms mode lesson. Lỗi là thiếu sessionId/link đúng; R14 nối đúng phiên, ACL giữ nguyên. Root không cần tự mời host.
+- [x] Thiết kế điểm vào nhìn thấy ngay: Tổ chức tiết học / Tạo phòng game / Quản lý quyền; hướng dẫn rõ trong trạng thái chưa có phòng.
+- [x] Bộ chọn trước mở tiết: bài/phạm vi,thế giới,luật,hình thức,thiết bị A/B/C riêng; gợi ý trước, chỉnh tay sau. Không đổi nội dung/đáp án hoặc mở học liệu chưa duyệt.
+- [x] Danh sách phiên gộp game và tiết học, phân loại rõ, mở đúng route/giữ phân quyền. Không trộn room-cap40 của game với lesson-cap150.
+- [x] QA toàn hành trình từ trang vào tới tạo phiên/cockpit/TV/HS; thông tin hữu dụng, không jargon Root/Revision/legacy mặc định.
+R14 owner đã duyệt sửa/phát hành; code và QA hoàn tất, đang phát hành native. HS code-first và PIN inline đã thêm theo yêu cầu13/10.
+
+### R14 nghiệm thu trước phát hành
+- [x] GV3điểmvào,phiênlesson/gameđúngroute;world12/rules9/deviceA-B-Cvisible;rosterB/Cmanualselectedclassatomic.
+- [x] HS1ôcode,trảrouteđúng,gamehỏitênsaucode,lessonPINinline/canonicalname/noChatGPT;badPIN/staleresponseguards;GVstudentlink/copy,TV2/2+boardreceiptCUA.
+- [x] Sửa label12/25 chỉbiếnthể,học liệu/hashcatalogueđồngbộ;comma4+intlistspacescorrect,decimal/thousands/rationalgiữ.
+- [x] 1246fulltests/typecheck/build/lint0errors392warnings;214sourcebyte-match;c043014aWorker/native265HTTPbao150actualpreregister/D1cap/v7rollback;Gemini auth/citationPASS0.
+- [ ] Nativepublish/postdeploy/citationhistoricmanualsave/Claudehandofffinal.

@@ -290,14 +290,14 @@ test('service polling rehydrates durable history and uses server wall without wr
   const stored = JSON.stringify(durable);
   const database = new DatabaseSync(':memory:');
   database.exec(`
-    CREATE TABLE rooms(id TEXT,owner_account_id TEXT,deleted_at INTEGER);
+    CREATE TABLE rooms(id TEXT,owner_account_id TEXT,deleted_at INTEGER,code TEXT);
     CREATE TABLE room_memberships(room_id TEXT,account_id TEXT,role TEXT,revoked_at INTEGER);
     CREATE TABLE system_hosts(account_id TEXT,revoked_at INTEGER);
     CREATE TABLE lesson_packages(row_id TEXT,version TEXT,content_hash TEXT,data TEXT);
     CREATE TABLE lesson_session_plans(row_id TEXT,plan_hash TEXT,package_row_id TEXT,package_version TEXT,package_hash TEXT,data TEXT);
     CREATE TABLE lesson_sessions(id TEXT,room_id TEXT,package_row_id TEXT,package_version TEXT,package_hash TEXT,plan_row_id TEXT,plan_hash TEXT,owner_account_id TEXT,state TEXT,revision INTEGER);
   `);
-  database.prepare('INSERT INTO rooms VALUES(?,?,NULL)').run('gate-room', teacher.id);
+  database.prepare('INSERT INTO rooms(id,owner_account_id,deleted_at) VALUES(?,?,NULL)').run('gate-room', teacher.id);
   database.prepare('INSERT INTO lesson_packages VALUES(?,?,?,?)').run('package-row', pkg.version, hashPackage(pkg), JSON.stringify(pkg));
   database.prepare('INSERT INTO lesson_sessions VALUES(?,?,?,?,?,NULL,NULL,?,?,?)').run(
     room.state.id, 'gate-room', 'package-row', pkg.version, hashPackage(pkg), teacher.id, stored, room.state.revision);

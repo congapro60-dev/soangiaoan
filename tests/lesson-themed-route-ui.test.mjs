@@ -8,7 +8,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { PRODUCT_THEMES, resolveThemeId } from '../lib/product-content.js';
 import { createLessonSession } from '../lib/lesson/runtime.js';
-import { serializeForStudent, serializeForPresenter } from '../lib/lesson/serialize.js';
+import { serializeForStudent, serializeForPresenter, serializeForTeacher } from '../lib/lesson/serialize.js';
+import { storyCue } from '../lib/lesson/story-cues.js';
 
 // Transpile LessonThemedRoute.tsx for Node VM testing
 const themedRouteSrc = await readFile(
@@ -597,7 +598,8 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
       if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
       if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
       if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
-      throw new Error(`Unexpected import: ${name}`);
+        if (name === "next/link") return { default: ({href, children}) => React.createElement("a", {href}, children), __esModule: true };
+        throw new Error(`Unexpected import: ${name}`);
     }
   });
 
@@ -711,3 +713,21 @@ test('PresenterPage integrates LessonThemedRoute TV projection with approved the
   assert.match(html, /BÃI HẠ CÁNH/);
 });
 
+
+test('world override changes presentation and safe DTOs without changing approved package or plan', () => {
+  const state=createLessonSession({package:baseFixture,mode:'preview',sessionId:'world-choice',hostId:'teacher-1',learners:[{id:'learner-1',name:'A'}],now:1000});
+  state.gamePlan={theme:'modern',contentHash:'APPROVED_HASH',story:{title:'Approved city story',goal:'Approved city goal'},activityPlans:[{id:'a',order:1,phase:'experience',minutes:2,mapSegment:{coreGate:true}}],checkpoints:[{id:'gate',objectiveCodes:['T11.18']}]};
+  state.teacherSetup={worldTheme:'historical',deviceMode:'B',integrationIds:['digital-privacy'],event:{type:'buzzer',minutes:3},privateMarker:'PRIVATE_SETUP'};
+  const before=JSON.stringify({package:state.package,gamePlan:state.gamePlan});
+  for(const view of [serializeForStudent(state,'learner-1'),serializeForPresenter(state),serializeForTeacher(state)]) {
+    assert.equal(view.worldTheme,'historical');assert.equal(view.deviceMode,'B');assert.equal(view.gamePlan.theme,'modern');assert.equal(view.gamePlan.contentHash,'APPROVED_HASH');
+  }
+  const student=serializeForStudent(state,'learner-1'),presenter=serializeForPresenter(state);
+  assert.equal(student.teacherSetup,undefined);assert.equal(presenter.teacherSetup,undefined);assert.doesNotMatch(JSON.stringify([student,presenter]),/PRIVATE_SETUP/);
+  assert.equal(student.storyCue,storyCue({theme:'historical',phase:state.package.activities[state.timeline.activityIndex].phase}));
+  const html=renderToStaticMarkup(React.createElement(LessonThemedRoute,{gamePlan:student.gamePlan,worldTheme:student.worldTheme}));
+  assert.ok(html.includes(PRODUCT_THEMES.historical.title));assert.ok(html.includes(PRODUCT_THEMES.historical.goal));assert.doesNotMatch(html,/Approved city story/);
+  assert.equal(JSON.stringify({package:state.package,gamePlan:state.gamePlan}),before);
+  state.teacherSetup.worldTheme='__proto__';state.teacherSetup.deviceMode='D';
+  assert.equal(serializeForPresenter(state).worldTheme,'modern');assert.equal(serializeForPresenter(state).deviceMode,undefined);
+});

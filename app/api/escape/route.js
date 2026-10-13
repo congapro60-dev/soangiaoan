@@ -412,7 +412,7 @@ export async function POST(req) {
             let room = await stmt('SELECT * FROM rooms WHERE code = ? AND deleted_at IS NULL', code).first();
             if (!room)
                 return fail('Mã phòng chưa đúng. Kiểm tra mã giáo viên cung cấp.');
-            if(room.mode==='lesson')return reply({kind:'lesson',joinPath:'/play',campaign:null});
+            if(room.mode==='lesson'){const session=await stmt('SELECT class_id FROM lesson_sessions WHERE room_id=? AND owner_account_id=?',room.id,room.owner_account_id).first();if(!session)return fail('Phòng học chưa sẵn sàng. Hỏi giáo viên để nhận mã mới.');return reply({kind:'lesson',joinPath:'/play',needsProfile:Boolean(session.class_id),campaign:null});}
             return reply({kind:'game',durationMs:roomDuration(room),campaign:campaignPublic(roomCampaign(room))});
         }
         if (b.action === 'join') {

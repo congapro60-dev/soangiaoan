@@ -217,3 +217,14 @@ Report tasks/codex-r9-report.md;authoritative sharedplanfinalR9.
 - [x] Report/evidence/plan chung/HANDOFF/lessons cập nhật.
 - [ ] Owner duyệt sửa học liệu 12/25 hàng ngoài UI.
 - [ ] Owner duyệt phát hành R10–R13 theo19.9; QA lớp thật/citation/year/3Dvisual riêng.
+
+## Phát hành R10–R13
+- [x] Ownerduyệt; nativeversion8succeeded13/10; landing/StudiosetupQAproductionPASS;public/env2giữ.
+- [x] Checklist/Claudehandoff/report/evidence/backlogcậpnhật.
+- [ ] Sửa học liệu12/25hàng và các gate nguồn/năm/AIcitations/lớpthật theo backlog, lượt sau.
+
+## R14 owner approved fix+release
+- [ ] Teacherentry/sessionroutes/world-device/logistics.
+- [ ] Studentcodefirst/profilePINinline/joinlinks.
+- [ ] Focused/full/native/CUA/reviews/build/release/checklist.
+Spec tasks/codex-r14-teacher-student-entry-plan.md.

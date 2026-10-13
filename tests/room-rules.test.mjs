@@ -19,6 +19,6 @@ test('unbound room has general entry guidance; lesson, pairs and grouped devices
 test('legacy frontend loads rule helpers, landing has no fixed duration and briefing is room-bound',()=>{
  const source=readFileSync(new URL('../public/app.js',import.meta.url),'utf8'),page=readFileSync(new URL('../app/page.tsx',import.meta.url),'utf8');
  assert.match(page,/session-rules\.js/);assert.match(source,/SignalRoomRules/);
- const landing=source.slice(source.indexOf('function landing()'),source.indexOf('function briefing()'));assert.doesNotMatch(landing,/30 PHÚT|Theo nhóm: chung một thiết bị/);assert.match(landing,/\/play|Vào tiết học/);
+ const landing=source.slice(source.indexOf('function landing()'),source.indexOf('function briefing()'));assert.doesNotMatch(landing,/30 PHÚT|Theo nhóm: chung một thiết bị/);assert.match(landing,/Mã phòng của em|Tiếp tục/);assert.match(source,/info.kind==='lesson'.*\/play\?code=/);
  const body=source.slice(source.indexOf('function rulesBody()'),source.indexOf('function rulesDialog()'));assert.match(body,/mode.*rule|currentRoomRules/);
 });

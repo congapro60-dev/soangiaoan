@@ -43,3 +43,5 @@
 13/10: OwnerchênhiễuHUDbuttonvàscrollnhiềucâu. CópopupkhôngđồngnghĩaUXgọn: kiểmdefaultscreenbuttoncount/stackedauxpanels/tasklist. Onequestion/cardvisible,NextBacknavigationonly,hiddenmountedinputsdraftbeforedebouncekept. Matchingpartsonechecker giữ1task. 2D/3DsameaccessibleUIcanonicalIDs; khônglấyviewportpagewidthPASSthayvisiblecontentfit. Longcontentlocal scrollpreferred overclipping/tinyfont.
 
 13/10 R13: QA màn nhỏ phải đo scrollHeight/clientHeight sau animation, kiểm nút footer luôn thấy; SSR/screenshot lúc transition không đủ. CSS .lesson-button có display làm hidden trigger xuất hiện: cần quy tắc [hidden] rõ ràng. Menu opener bị unmount khi mở dialog phải có focus fallback. Review model là đầu vào: đối chiếu repro; không nhân đôi CTA hoặc bỏ actor key gây lộ nháp giữa HS chỉ để làm xanh review.
+
+13/10: owner không tìm được cách host từ /hosts. Không coi QA popup/map/setup là QA end-to-end vai GV. Kiểm trang vào → chọn tổ chức → bài/map/luật/hình thức/thiết bị → tạo phiên → điều hành. “Quản lý host” phải phân biệt quyền giáo viên với tổ chức tiết; danh sách rooms không được mô tả như mọi lesson_sessions. Hình thức nhóm không đồng nghĩa thiết bị chung.

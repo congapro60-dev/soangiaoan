@@ -544,6 +544,7 @@ test("PlayPage keeps audio opt-in and separate wallet in utilities menu without 
       if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
       if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
       if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
+      if (name === "next/link") return { default: ({href, children}) => React.createElement("a", {href}, children), __esModule: true };
       throw new Error(`Unexpected import in PlayPage: ${name}`);
     },
   });

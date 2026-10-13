@@ -734,6 +734,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   useEffect(()=>{let active=true;void fetch("/api/lesson-content",{cache:"no-store"}).then(async response=>{if(!response.ok)return;const data=await response.json() as {lessons?:Array<{id:string;title:string;period:number}>};if(active&&Array.isArray(data.lessons))setAuthoredLibrary(data.lessons);}).catch(()=>{});return()=>{active=false;};},[]);
   const [selectedRecord, setSelectedRecord] = useState<PackageRecord | null>(null);
   const [selectedClassId, setSelectedClassId] = useState("");
+  const [attendance,setAttendance]=useState<{classId:string;members:Array<{id:string;name:string;revoked?:boolean}>;selected:string[]}>({classId:"",members:[],selected:[]});
+
   const [currentPackage, setCurrentPackage] = useState<LessonPackage | null>(null);
   const [setupDraft,setSetupDraft]=useState<{key:string;value:TeacherSetup}|null>(null);
   const setupKey=JSON.stringify([selectedRecord?.row_id||null,currentPackage?.id,currentPackage?.version,currentPackage?.contentHash,currentPackage?.sourceRefs]);
@@ -795,6 +797,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   // Modals
   const [isApproveOpen, setIsApproveOpen] = useState<boolean>(false);
   const [isLaunchOpen, setIsLaunchOpen] = useState<boolean>(false);
+  useEffect(()=>{const abort=new AbortController();if(!selectedClassId)return;void fetch("/api/lesson-classes?id="+encodeURIComponent(selectedClassId),{cache:"no-store",signal:abort.signal}).then(r=>{if(!r.ok)throw Error();return r.json() as Promise<{members?:Array<{id:string;name:string;revoked?:boolean}>}>;}).then(data=>{if(!abort.signal.aborted)setAttendance({classId:selectedClassId,members:(data.members||[]).filter((m:{revoked?:boolean})=>!m.revoked),selected:[]});}).catch(()=>{});return()=>abort.abort();},[selectedClassId,isLaunchOpen]);
   const [checkedSourceAcks, setCheckedSourceAcks] = useState<Record<string, boolean>>({});
   const [checkedNumericAcks, setCheckedNumericAcks] = useState<Record<string, boolean>>({});
   const [approvalNotes, setApprovalNotes] = useState<string>("");
@@ -859,15 +862,17 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   });
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const restoredId = sessionStorage.getItem("active_teacher_session");
-      setActiveSessionId(restoredId);
-      // The room code is only handed out when the room is created, so it is kept for the cockpit to show again.
-      const restoredCode = sessionStorage.getItem("active_teacher_session_code");
-      if (restoredId && restoredCode) setCreatedSessionData((current) => current ?? { id: restoredId, code: restoredCode });
-      setIsSessionRestored(true);
-    }, 0);
-    return () => window.clearTimeout(timer);
+    const abort=new AbortController();
+    const timer=window.setTimeout(()=>{
+      const requested=new URLSearchParams(window.location.search).get("session");
+      if(requested){
+        if(!/^[A-Za-z0-9_-]{1,70}$/.test(requested)){setIsSessionRestored(true);return;}
+        void fetch("/api/lesson-sessions?id="+encodeURIComponent(requested),{cache:"no-store",signal:abort.signal}).then(async response=>{const data=await response.json() as {view?:{role?:string;roomCode?:string}};if(!response.ok||data.view?.role!=="teacher")throw Error();if(abort.signal.aborted)return;setActiveSessionId(requested);setCreatedSessionData({id:requested,code:data.view?.roomCode||""});setRawActiveTab("cockpit");sessionStorage.setItem("active_teacher_session",requested);sessionStorage.removeItem("active_teacher_session_code");}).catch(()=>{if(!abort.signal.aborted)setPlanApprovalStatus("Không mở được tiết học này. Kiểm tra quyền hoặc chọn lại từ trang Giáo viên.");}).finally(()=>{if(!abort.signal.aborted)setIsSessionRestored(true);});return;
+      }
+      const restoredId=sessionStorage.getItem("active_teacher_session");setActiveSessionId(restoredId);
+      const restoredCode=sessionStorage.getItem("active_teacher_session_code");if(restoredId&&restoredCode)setCreatedSessionData(current=>current??{id:restoredId,code:restoredCode});setIsSessionRestored(true);
+    },0);
+    return()=>{abort.abort();window.clearTimeout(timer);};
   }, []);
 
   const fetchSourceById = useCallback(async (targetId: string) => {
@@ -1820,6 +1825,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       };
 
       if (selectedClassId) body.classId = selectedClassId;
+      if(teacherSetup.deviceMode!=="A"&&teacherSetup.deviceMode){if(!selectedClassId||attendance.classId!==selectedClassId||!attendance.selected.length)throw Error("CLASS_ATTENDANCE_REQUIRED");body.classMemberIds=attendance.selected;}
       if (launchMode === "live") {
         if (!approvedPlan) throw new Error("PLAN_REQUIRED");
         body.packageVersion = selectedRecord.version;
@@ -2020,7 +2026,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   return (
     <main className="lesson-shell lesson-teacher-shell">
       {/* Top Header */}
-      <header className="lesson-header">
+      <header className="lesson-header"><a className="lesson-button lesson-button-outline" href="/hosts">Trang Giáo viên</a>
         <div>
           <p className="lesson-kicker">HỆ THỐNG QUẢN TRỊ BÀI DẠY VÀ LỚP HỌC</p>
           <h1 className="lesson-title">Bài học: Dãy số Toán 11</h1>
@@ -2094,7 +2100,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
             </div>
           )}
 
-          <details className="lesson-card" style={{ padding: "1rem", marginBottom: "1rem" }}><summary>Lớp, tổ và hộ chiếu cộng dồn</summary><ClassRosterPanel onSelectClass={setSelectedClassId} /><LeaguePanel classId={selectedClassId} sessionId={activeSessionId || undefined} /></details>
+          <details open={teacherSetup.deviceMode==='B'||teacherSetup.deviceMode==='C'} className="lesson-card" style={{ padding: "1rem", marginBottom: "1rem" }}><summary>Lớp, tổ và hộ chiếu cộng dồn</summary><ClassRosterPanel onSelectClass={setSelectedClassId} /><LeaguePanel classId={selectedClassId} sessionId={activeSessionId || undefined} /></details>
           {currentPackage&&<TeacherSetupPanel lesson={currentPackage as unknown as Record<string,unknown>} value={teacherSetup} onChange={value=>setSetupDraft({key:setupKey,value})}/>}
           {currentPackage && <ContentScopePicker<LessonPackage> catalogue={lessonCatalogue} packageId={currentPackage.id} packageKey={String(currentPackage.contentHash || currentPackage.id)} packageObjectives={currentPackage.objectives || []} onPreview={async selection => { const response = await fetch("/api/lessons/scope", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ package: currentPackage, selection }) }); return response.json(); }} onRequestScope={async scope => { const request=++scopeRequestRef.current,sourceRevision=sourceOperationRef.current; setScopeConsent(null);setScopeLabels([]);setGenerationConsentKey(""); const settings={...generationSettings,scope}; setGenerationSettings(settings); if(!importSourceId){setImportError("Nhập giáo án hoặc nội dung muốn dạy trước khi soạn phần bài này.");setStudioSubTab("import");return;} const response=await fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings})});const data=await response.json() as {aiConsent?:Record<string,unknown>;scope?:{sections?:Array<{title:string}>};generation?:{providerHost:string};error?:string};if(request!==scopeRequestRef.current||sourceRevision!==sourceOperationRef.current)return;if(!response.ok||!data.aiConsent){setImportError(data.error||"Chưa đối soát được phạm vi đã chọn với nguồn.");return;}setScopeConsent(data.aiConsent);setScopeLabels(data.scope?.sections?.map(section=>section.title)||[]);setGenerationProviderHost(data.generation?.providerHost||generationProviderHost);setStudioSubTab("import"); }} onSelect={draft => { setCurrentPackage(draft); setEditedPackage(draft); setSelectedRecord(null); setStudioSubTab("edit"); }} />}
           {/* Action Header Bar */}
@@ -3597,6 +3603,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                           </div>
                         )}
 
+                        {t.metadata?.sourceCitation&&<details className="lesson-sub-card" data-source-citation={t.id}><summary>Nguồn của câu {idx+1}</summary><p>Giữ trích dẫn đúng tài liệu gốc. Câu có dữ kiện hoặc phương án tự soạn cần ghi rõ điều chỉnh từ nguồn và được giáo viên duyệt.</p><p>Đoạn nguồn: {t.metadata.sourceCitation.segmentId}</p><label>Trích dẫn nguồn của câu {idx+1}<textarea className="lesson-textarea" rows={4} maxLength={16000} value={t.metadata.sourceCitation.quote} onChange={event=>{const next=[...(editedPackage.tasks||[])];next[idx]={...t,metadata:{...t.metadata,sourceCitation:{...t.metadata!.sourceCitation!,quote:event.target.value}}};setEditedPackage({...editedPackage,status:"needs_review",tasks:next});}}/></label><label>Cách dùng nguồn của câu {idx+1}<select className="lesson-select" value={t.metadata.sourceCitation.origin} onChange={event=>{const next=[...(editedPackage.tasks||[])];next[idx]={...t,metadata:{...t.metadata,numericReviewRequired:event.target.value!=="source",sourceCitation:{...t.metadata!.sourceCitation!,origin:event.target.value}}};setEditedPackage({...editedPackage,status:"needs_review",tasks:next});}}><option value="source">Theo dữ kiện trong nguồn</option><option value="adapted">Điều chỉnh từ nguồn, có phần tự soạn</option><option value="generated">Tự soạn, cần đối soát</option></select></label></details>}
                         <div className="lesson-field-group">
                           <label>Đề bài / Yêu cầu nhiệm vụ:</label>
                           <textarea
@@ -5170,6 +5177,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+                      <a className="lesson-button lesson-button-success" href={"/?code="+encodeURIComponent(createdSessionData.code)} target="_blank" rel="noopener">Mở trang học sinh</a>
+                      <button className="lesson-button lesson-button-outline" onClick={()=>void navigator.clipboard.writeText(window.location.origin+"/?code="+encodeURIComponent(createdSessionData.code)).then(()=>setPlanApprovalStatus("Đã sao chép liên kết học sinh.")).catch(()=>setPlanApprovalStatus("Chưa sao chép được. Mở trang học sinh và chép địa chỉ."))}>Sao chép liên kết học sinh</button>
                       <button
                         className="lesson-button lesson-button-primary"
                         onClick={() => launchPresenterWithHandshake(createdSessionData.id)}
@@ -5238,6 +5247,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       )}
                     </div>
 
+                    {teacherSetup.deviceMode!=="A"&&<section className="lesson-card" style={{padding:12}} aria-label="Học sinh tham gia bằng thiết bị chung hoặc bảng"><h3>Chọn học sinh tham gia tiết này</h3><p>Thầy cô chọn lớp ở mục “Lớp, tổ và hộ chiếu cộng dồn”, rồi đánh dấu các em có mặt. Không cần mỗi em đăng nhập trên máy riêng.</p>{(!selectedClassId||attendance.classId!==selectedClassId)&&<p role="status">Chưa chọn lớp hoặc đang tải danh sách.</p>}{attendance.classId===selectedClassId&&attendance.members.map(member=><label key={member.id} style={{display:"block",minHeight:44}}><input type="checkbox" checked={attendance.selected.includes(member.id)} onChange={event=>setAttendance(current=>({...current,selected:event.target.checked?[...current.selected,member.id]:current.selected.filter(id=>id!==member.id)}))}/> {member.name}</label>)}<p>Đã chọn {attendance.classId===selectedClassId?attendance.selected.length:0} em.</p></section>}
                     <section aria-label="Xác nhận thiết lập phòng"><h3>Thiết lập sẽ dùng khi mở phòng</h3><TeacherSetupSummary value={teacherSetup}/><p>Đây là cấu hình tổ chức trò chơi; nội dung và tiêu chí học tập đã duyệt giữ nguyên.</p></section>
                     <div style={{ marginBottom: "1.5rem" }}>
                       <label htmlFor="launch-title" className="task-label">Tiêu đề tiết học:</label>
@@ -5262,7 +5272,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       <button
                         className="lesson-button lesson-button-primary"
                         onClick={handleCreateSession}
-                        disabled={isCreatingSession || (launchMode === "live" && !canLaunchLive)}
+                        disabled={isCreatingSession || (launchMode === "live" && !canLaunchLive) || Boolean(teacherSetup.deviceMode&&teacherSetup.deviceMode!=="A"&&(!selectedClassId||attendance.classId!==selectedClassId||!attendance.selected.length))}
                       >
                         {isCreatingSession ? "Đang tạo..." : "Bắt đầu tạo phòng"}
                       </button>
@@ -5314,6 +5324,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       {codeCopied ? "Đã chép" : <>Mã phòng <strong>{createdSessionData.code}</strong></>}
                     </button>
                   )}
+                  {createdSessionData?.code&&<a className="lesson-button lesson-button-outline" href={"/?code="+encodeURIComponent(createdSessionData.code)} target="_blank" rel="noopener">Trang học sinh</a>}
                   <span className="cockpit-count">{present}/{rosterList.length} em có mặt</span>
                 </div>
 
@@ -5325,7 +5336,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                   )}
 
                   {status === "waiting" && (
-                    <button className="lesson-button lesson-button-success" onClick={() => dispatchCommand("START")} disabled={isCockpitBusy}>
+                    <button className="lesson-button lesson-button-success" onClick={() => dispatchCommand("START")} disabled={isCockpitBusy||present===0}>
                       ▶️ Bắt đầu tiết học
                     </button>
                   )}
@@ -5427,7 +5438,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 const atGate = peers.filter(peer => peer.position >= (cockpitView.map?.gatePosition ?? Infinity)).length;
                 return <>
                   <p className="lesson-muted">{peers.length} linh vật · {atGate} em đã tới cổng · {waiting > 0 ? `${waiting} em chưa chọn linh vật` : "Cả lớp đã chọn linh vật"}</p>
-                  <LessonWorldMap map={cockpitView.map} themeKey={(cockpitView.gamePlan as { theme?: string } | undefined)?.theme} sessionKey={`cockpit-${activeSessionId || "room"}`} height={520} onPeerSelect={selectPeer} />
+                  <LessonWorldMap map={cockpitView.map} themeKey={cockpitView.worldTheme||(cockpitView.gamePlan as { theme?: string } | undefined)?.theme} sessionKey={`cockpit-${activeSessionId || "room"}`} height={520} onPeerSelect={selectPeer} />
                 </>;
               })() : <p className="lesson-muted">Bản đồ sẽ hiện khi học sinh vào phòng và chọn linh vật.</p>}
             </div>

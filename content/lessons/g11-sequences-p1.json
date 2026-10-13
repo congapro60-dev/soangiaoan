@@ -3,7 +3,7 @@
   "id": "g11-sequences-p1",
   "version": "1.1.0",
   "status": "needs_review",
-  "contentHash": "3508d925b7ac007de51986546f81784b694193b930772378b209ffc947b14027",
+  "contentHash": "02959de88bddf5d5c596bb8b87b9d9166a5e77e5810a3e966ba3073757a9c1fc",
   "subject": "math",
   "grade": 11,
   "curriculumRefs": [
@@ -347,7 +347,7 @@
               "options": [
                 {
                   "id": "opt_finite_seat",
-                  "label": "Dãy số hữu hạn (hội trường thực tế chỉ có 25 hàng ghế)"
+                  "label": "Dãy số hữu hạn (hội trường thực tế chỉ có 12 hàng ghế)"
                 },
                 {
                   "id": "opt_infinite_seat",

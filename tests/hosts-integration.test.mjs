@@ -7,7 +7,7 @@ import ts from 'typescript';
 import {test} from 'node:test';
 
 const database = new DatabaseSync(':memory:');
-for (const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql']) database.exec(await readFile(resolve('drizzle', file), 'utf8'));
+for(const entry of JSON.parse(await readFile(resolve('drizzle/meta/_journal.json'),'utf8')).entries)database.exec(await readFile(resolve('drizzle',entry.tag+'.sql'),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
 function stmt(sql, ...params) { const query = database.prepare(sql); return {first: () => query.get(...params) ?? null, all: () => ({results: query.all(...params)}), run: () => ({meta: {changes: Number(query.run(...params).changes)}})}; }
 const storage = {stmt, db: () => ({batch: queries => { database.exec('BEGIN'); try { const result = queries.map(query => query.run()); database.exec('COMMIT'); return result; } catch (error) { database.exec('ROLLBACK'); throw error; } }})};
@@ -260,3 +260,34 @@ test('body with lying content-length but large actual body is rejected', async (
 });
 
 console.log('Hosts integration: identity, scoped invites, wrong identity, expiry/revoke, same-clock receipt contention, isolation, claim audit, forged-stored-root regression, sameclock lifecycle, and body-size checks loaded.');
+
+
+test('room list joins only the matching lesson owner without widening room access or leaking session data', async () => {
+  const room = 'r14-lesson-room';
+  const session = 'r14-lesson-session';
+  const member = {id: 'r14-cohost', email: 'r14-cohost@example.test'};
+  database.prepare('INSERT INTO accounts(id,email,created_at) VALUES(?,?,?)').run(member.id, member.email, clock);
+  database.prepare('INSERT INTO lesson_packages(row_id,owner_account_id,package_id,version,content_hash,status,data,created_at) VALUES(?,?,?,?,?,?,?,?)').run('r14-package', users.owner.id, 'package', '1', 'r14-hash', 'approved', 'PRIVATE_SOURCE', clock);
+  const addRoom = (id, mode) => database.prepare('INSERT INTO rooms(id,code,admin_hash,title,created,revision,mode,owner_account_id) VALUES(?,?,?,?,?,?,?,?)').run(id, id.slice(-6).toUpperCase(), 'PRIVATE_ADMIN_HASH', id, clock, 0, mode, users.owner.id);
+  const addSession = (id, roomId, owner) => database.prepare('INSERT INTO lesson_sessions(id,room_id,package_row_id,package_version,package_hash,owner_account_id,state,revision,status,mutation_nonce,presenter_token_hash,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, roomId, 'r14-package', '1', 'r14-hash', owner, 'PRIVATE_SESSION_STATE', 0, 'waiting', 'PRIVATE_NONCE', 'PRIVATE_PRESENTER_HASH', clock, clock);
+  addRoom(room, 'lesson');
+  addSession(session, room, users.owner.id);
+  database.prepare('INSERT INTO room_memberships(room_id,account_id,role,granted_at,granted_by) VALUES(?,?,?,?,?)').run(room, member.id, 'cohost', clock, users.owner.id);
+  for (const actor of [users.owner, users.root, member]) {
+    const response = await get(actor, 'kind=rooms');
+    assert.equal(response.status, 200);
+    const found = response.data.rooms.find(r => r.id === room);
+    assert.equal(found.lessonSessionId, session);
+    assert.equal(found.mode, 'lesson');
+    assert.equal(Object.keys(found).some(k => /hash|state|source|nonce|token/i.test(k)), false);
+    assert.equal(JSON.stringify(response.data).includes('PRIVATE_'), false);
+  }
+  assert.equal((await get(users.other, 'kind=rooms')).data.rooms.some(r => r.id === room), false);
+  database.prepare('UPDATE room_memberships SET revoked_at=? WHERE room_id=? AND account_id=?').run(clock + 1, room, member.id);
+  assert.equal((await get(member, 'kind=rooms')).data.rooms.some(r => r.id === room), false);
+  addRoom('r14-wrong-owner', 'lesson'); addSession('r14-hidden-session', 'r14-wrong-owner', users.root.id);
+  addRoom('r14-game-room', 'legacy'); addSession('r14-game-session', 'r14-game-room', users.owner.id);
+  addRoom('r14-long-id-room', 'lesson'); addSession('x'.repeat(71), 'r14-long-id-room', users.owner.id);
+  const ownerRooms = (await get(users.owner, 'kind=rooms')).data.rooms;
+  for (const id of ['r14-wrong-owner', 'r14-game-room', 'r14-long-id-room']) assert.equal(ownerRooms.find(r => r.id === id).lessonSessionId, null);
+});

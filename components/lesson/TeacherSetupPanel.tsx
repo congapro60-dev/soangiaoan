@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
-import { recommendTeacherSetup, teacherSetupReasons, teacherSetupAvailability, normalizeTeacherSetup, RULE_LABELS, EVENT_LABELS, INTEGRATION_LABELS } from "../../lib/lesson/teacher-setup.js";
+import { recommendTeacherSetup, teacherSetupReasons, teacherSetupAvailability, normalizeTeacherSetup, RULE_LABELS, EVENT_LABELS, INTEGRATION_LABELS, WORLD_LABELS, DEVICE_LABELS } from "../../lib/lesson/teacher-setup.js";
 
-export type TeacherSetup = {rule:string;participation:string;explorationEnabled:boolean;revisitEnabled:boolean;integrationIds:string[];aiPolicy:string;event:{type:string;minutes:number}};
+export type TeacherSetup = {worldTheme?:string;deviceMode?:'A'|'B'|'C';rule:string;participation:string;explorationEnabled:boolean;revisitEnabled:boolean;integrationIds:string[];aiPolicy:string;event:{type:string;minutes:number}};
 const rules:Record<string,string>=RULE_LABELS;
 const participation:Record<string,string>={individual:"Cá nhân",pairs:"Cặp đôi",group:"Theo nhóm"};
 const events:Record<string,string>=EVENT_LABELS;
 export function TeacherSetupSummary({value}:{value:TeacherSetup}) {
- return <p>{rules[value.rule]||value.rule} · {participation[value.participation]||value.participation} · Khám phá {value.explorationEnabled?"bật":"tắt"} · Luyện lại {value.revisitEnabled?"bật":"tắt"} · {value.integrationIds.length} tích hợp · AI {value.aiPolicy==="off"?"tắt":value.aiPolicy==="hints"?"gợi ý":"kiểm tra"} · {value.event.type!=="none"?`${events[value.event.type]} ${value.event.minutes} phút (GV mở khi phù hợp)`:"Không dự kiến sự kiện"}</p>;
+ return <p>{value.worldTheme&&WORLD_LABELS[value.worldTheme]}{value.worldTheme?" · ":""}{value.deviceMode&&DEVICE_LABELS[value.deviceMode]}{value.deviceMode?" · ":""}{rules[value.rule]||value.rule} · {participation[value.participation]||value.participation} · Khám phá {value.explorationEnabled?"bật":"tắt"} · Luyện lại {value.revisitEnabled?"bật":"tắt"} · {value.integrationIds.length} tích hợp · AI {value.aiPolicy==="off"?"tắt":value.aiPolicy==="hints"?"gợi ý":"kiểm tra"} · {value.event.type!=="none"?`${events[value.event.type]} ${value.event.minutes} phút (GV mở khi phù hợp)`:"Không dự kiến sự kiện"}</p>;
 }
 export function TeacherSetupPanel({lesson,value,onChange}:{lesson:Record<string,unknown>;value:TeacherSetup;onChange:(value:TeacherSetup)=>void}) {
  const recommended=recommendTeacherSetup(lesson) as TeacherSetup;
@@ -18,9 +18,14 @@ export function TeacherSetupPanel({lesson,value,onChange}:{lesson:Record<string,
  <p>Gợi ý từ nội dung và thời lượng bài đang chọn. Thầy cô có thể chỉnh lại rồi xác nhận khi mở phòng.</p>
  <ul>{teacherSetupReasons(lesson,value).map((reason:string,index:number)=><li key={index}>{reason}</li>)}</ul>
  <button type="button" className="lesson-button" style={{minHeight:44}} onClick={()=>onChange(recommended)}>Gợi ý thiết lập cả bài</button>
- <details><summary style={{minHeight:44,cursor:"pointer"}}>Tự chỉnh thiết lập</summary>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,margin:"16px 0"}}>
+ <label>Thế giới<select className="lesson-select" value={value.worldTheme||"modern"} onChange={e=>change({worldTheme:e.target.value})}>{Object.entries(WORLD_LABELS).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
  <label>Luật chơi<select className="lesson-select" value={value.rule} onChange={e=>change({rule:e.target.value})}>{Object.entries(rules).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
  <label>Hình thức<select className="lesson-select" value={value.participation} onChange={e=>change({participation:e.target.value})}>{Object.entries(participation).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+ <label>Thiết bị học sinh<select className="lesson-select" value={value.deviceMode||"A"} onChange={e=>change({deviceMode:e.target.value as 'A'|'B'|'C'})}>{Object.entries(DEVICE_LABELS).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+ </div>
+ <p>Thiết bị chỉ quyết định cách vào lớp; không thay đổi câu hỏi hoặc kiểm tra cá nhân.</p>
+ <details><summary style={{minHeight:44,cursor:"pointer"}}>Tùy chọn nâng cao</summary>
  <label style={{display:"block",minHeight:44}}><input type="checkbox" checked={value.explorationEnabled} disabled={!availability.explorationSupported} onChange={e=>change({explorationEnabled:e.target.checked})}/> Khám phá để đọc thư giãn</label>
  <label style={{display:"block",minHeight:44}}><input type="checkbox" checked={value.revisitEnabled} onChange={e=>change({revisitEnabled:e.target.checked})}/> Cho luyện lại cổng</label>
  <p>Chọn tối đa hai tích hợp phù hợp với bài.</p>

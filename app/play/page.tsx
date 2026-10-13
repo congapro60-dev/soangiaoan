@@ -9,6 +9,7 @@ import { QuestionPager } from "../../components/lesson/QuestionPager";
 import { SessionRules } from "../../components/lesson/SessionRules";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import MathText from "../../components/lesson/MathText";
 import TaskInput from "../../components/lesson/TaskInput";
 import LessonThemedRoute, { getSafeWorldMetadata } from "../../components/lesson/LessonThemedRoute";
@@ -676,11 +677,126 @@ function getOrCreateBearer(code: string, name: string): { token: string; request
   return { token, requestId };
 }
 
+type JoinedLesson = {sessionId: string; learnerId: string; token: string};
+type ClassCredential = {token: string; member: {id: string; name: string}};
+
+function StudentJoinForm({initialCode, initialError, onJoined}: {initialCode: string; initialError?: string | null; onJoined: (value: JoinedLesson) => void}) {
+  const [code, setCode] = useState(initialCode);
+  const [name, setName] = useState("");
+  const [classCode, setClassCode] = useState("");
+  const [memberCode, setMemberCode] = useState("");
+  const [pin, setPin] = useState("");
+  const [room, setRoom] = useState<{code: string; kind: "lesson" | "game"; needsProfile: boolean} | null>(null);
+  const [credential, setCredential] = useState<ClassCredential | null>(null);
+  const [checking, setChecking] = useState(/^[A-Za-z0-9]{6}$/.test(initialCode));
+  const [lookupAttempt, setLookupAttempt] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(initialError || "");
+  const epoch = useRef(0);
+  const cleanCode = code.trim().toUpperCase();
+  useEffect(() => {
+    const requestEpoch = ++epoch.current, controller = new AbortController();
+    if (!/^[A-Z0-9]{6}$/.test(cleanCode)) return () => controller.abort();
+    // ponytail: one public room lookup; shared-device entry keeps its separate signed link.
+    void (async () => {
+      try {
+        const response = await fetch("/api/escape", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: "room-info", code: cleanCode}), signal: controller.signal});
+        const data = await response.json() as {kind?: string; needsProfile?: boolean};
+        if (controller.signal.aborted || requestEpoch !== epoch.current) return;
+        if (!response.ok || data.kind !== "lesson" && data.kind !== "game" || data.kind === "lesson" && typeof data.needsProfile !== "boolean") throw Error("ROOM_UNAVAILABLE");
+        setRoom({code: cleanCode, kind: data.kind, needsProfile: data.needsProfile === true});
+        let saved: string | null = null;
+        try { saved = sessionStorage.getItem("lesson_class_passport_token"); } catch { /* Login remains available. */ }
+        if (data.needsProfile === true && saved) {
+          const check = await fetch("/api/lesson-classes", {headers: {Authorization: `Bearer ${saved}`}, cache: "no-store", signal: controller.signal});
+          const profile = await check.json() as {member?: {id: string; name: string}};
+          if (controller.signal.aborted || requestEpoch !== epoch.current) return;
+          if (check.ok && typeof profile.member?.id === "string" && typeof profile.member?.name === "string") setCredential({token: saved, member: profile.member});
+          else if (check.status === 401 || check.status === 403) { sessionStorage.removeItem("lesson_class_passport_token"); setError("Phiên hồ sơ đã hết hạn. Nhập lại mã và PIN thầy cô cấp."); }
+          else throw Error("CLASS_UNAVAILABLE");
+        }
+      } catch {
+        if (!controller.signal.aborted && requestEpoch === epoch.current) { setRoom(null); setError("Chưa kiểm tra được phòng. Kiểm tra mã và mạng, rồi bấm Thử lại."); }
+      } finally { if (!controller.signal.aborted && requestEpoch === epoch.current) setChecking(false); }
+    })();
+    return () => controller.abort();
+  }, [cleanCode, lookupAttempt]);
+
+  const changeCode = (value: string) => {
+    epoch.current++; setCode(value.toUpperCase()); setRoom(null); setCredential(null); setPin(""); setError(""); setChecking(/^[A-Za-z0-9]{6}$/.test(value.trim()));
+  };
+  const join = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (busy || checking) return;
+    if (!room || room.code !== cleanCode) { setError("Nhập mã phòng 6 ký tự thầy cô cung cấp."); return; }
+    if (room.kind === "game") { window.location.assign(`/?code=${encodeURIComponent(cleanCode)}`); return; }
+    if (!room.needsProfile && (!name.trim() || name.trim().length > 40)) { setError("Nhập họ và tên, tối đa 40 ký tự."); return; }
+    if (room.needsProfile && !credential && (!/^[A-Z0-9]{6}$/.test(classCode.trim()) || !/^[A-Z0-9]{6}$/.test(memberCode.trim()) || !/^[A-Z0-9]{8}$/.test(pin.trim()))) { setError("Nhập mã lớp, mã học sinh 6 ký tự và PIN 8 ký tự thầy cô cấp."); return; }
+    const requestEpoch = epoch.current;
+    setBusy(true); setError("");
+    try {
+      let profile = credential;
+      if (room.needsProfile && !profile) {
+        const response = await fetch("/api/lesson-classes", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: "join", classCode: classCode.trim(), memberCode: memberCode.trim(), pin: pin.trim()})});
+        const data = await response.json() as {token?: string; member?: {id: string; name: string}; error?: string};
+        if (requestEpoch !== epoch.current) return;
+        if (!response.ok || typeof data.token !== "string" || typeof data.member?.id !== "string" || typeof data.member?.name !== "string") throw Error(data.error || "CLASS_UNAVAILABLE");
+        profile = {token: data.token, member: data.member}; setCredential(profile); setPin("");
+        try { sessionStorage.setItem("lesson_class_passport_token", data.token); } catch { /* Use verified credential in memory. */ }
+      }
+      const cleanName = profile?.member.name || name.trim();
+      const {token, requestId} = getOrCreateBearer(cleanCode, profile ? `member:${profile.member.id}` : cleanName);
+      const response = await fetch("/api/lesson-sessions", {method: "POST", headers: {"Content-Type": "application/json", Authorization: `Bearer ${token}`}, body: JSON.stringify({action: "join", code: cleanCode, name: cleanName, requestId, ...(profile ? {classToken: profile.token} : {})})});
+      const data = await response.json() as {error?: string; projection?: {id: string}; learnerId?: string};
+      if (requestEpoch !== epoch.current) return;
+      if (!response.ok) throw Error(data.error || "JOIN_UNAVAILABLE");
+      if (typeof data.projection?.id !== "string" || !data.projection.id || typeof data.learnerId !== "string" || !data.learnerId) throw Error("JOIN_UNAVAILABLE");
+      sessionStorage.setItem("lesson_active_session_id", data.projection.id); sessionStorage.setItem("lesson_active_learner_id", data.learnerId); sessionStorage.setItem("lesson_active_token", token);
+      onJoined({sessionId: data.projection.id, learnerId: data.learnerId, token});
+    } catch (failure) {
+      if (requestEpoch !== epoch.current) return;
+      const message = failure instanceof Error ? failure.message : "";
+      const messages: Record<string, string> = {
+        CLASS_LOGIN_UNAVAILABLE: "Mã lớp, mã học sinh hoặc PIN chưa đúng hoặc đã bị thu hồi. Hỏi thầy cô; nếu đã thử sai 5 lần, chờ 15 phút.",
+        AUTH_REQUIRED: "Phiên hồ sơ đã hết hạn. Nhập lại mã và PIN thầy cô cấp.",
+        FORBIDDEN: "Hồ sơ này chưa được phép vào phòng. Kiểm tra đúng lớp hoặc hỏi thầy cô.",
+        NOT_FOUND: "Không tìm thấy phòng. Kiểm tra mã thầy cô cung cấp.",
+        NAME_TAKEN: "Đã có bạn dùng tên này. Thêm tên đệm rồi thử lại.",
+        LEARNER_IDENTITY_MISMATCH: "Dùng đúng hồ sơ hoặc tên lúc trước trên thiết bị này.",
+        JOIN_CONFLICT: "Lớp đang đông. Bấm Vào phòng lại sau vài giây.",
+      };
+      if (message === "AUTH_REQUIRED" || message === "FORBIDDEN" && room.needsProfile) { setCredential(null); sessionStorage.removeItem("lesson_class_passport_token"); }
+      setError(messages[message] || "Chưa vào được phòng. Kiểm tra mạng rồi thử lại.");
+    } finally { if (requestEpoch === epoch.current) setBusy(false); }
+  };
+  return <main className="lesson-shell" style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+    <section className="lesson-card" style={{maxWidth: 460, width: "100%"}}>
+      <p className="lesson-kicker">HỌC SINH</p><h1 style={{fontSize: "1.5rem"}}>Vào phòng</h1>
+      <p>Nhập mã phòng thầy cô cung cấp. Thông tin cần nhập sẽ hiện bên dưới.</p>
+      <form onSubmit={join} aria-busy={busy || checking} style={{display: "grid", gap: 12}}>
+        <label htmlFor="room-code-input">Mã phòng</label>
+        <input id="room-code-input" className="lesson-input" autoComplete="off" autoCapitalize="characters" maxLength={6} pattern="[A-Za-z0-9]{6}" required value={code} disabled={busy} onChange={event => changeCode(event.target.value)} placeholder="6 ký tự" />
+        {checking && <p role="status">Đang kiểm tra phòng…</p>}
+        {room?.kind === "lesson" && (room.needsProfile ? credential ? <div><p>Vào bằng hồ sơ <strong>{credential.member.name}</strong>.</p><button type="button" className="lesson-button lesson-button-outline" disabled={busy} onClick={() => {setCredential(null); setPin(""); sessionStorage.removeItem("lesson_class_passport_token");}}>Đổi học sinh</button></div> : <>
+          <label htmlFor="join-class-code">Mã lớp</label><input id="join-class-code" className="lesson-input" autoComplete="off" autoCapitalize="characters" maxLength={6} pattern="[A-Za-z0-9]{6}" required disabled={busy} value={classCode} onChange={event => setClassCode(event.target.value.toUpperCase())} />
+          <label htmlFor="join-member-code">Mã học sinh</label><input id="join-member-code" className="lesson-input" autoComplete="off" autoCapitalize="characters" maxLength={6} pattern="[A-Za-z0-9]{6}" required disabled={busy} value={memberCode} onChange={event => setMemberCode(event.target.value.toUpperCase())} />
+          <label htmlFor="join-pin">PIN riêng</label><input id="join-pin" className="lesson-input" type="password" autoComplete="off" autoCapitalize="characters" maxLength={8} pattern="[A-Za-z0-9]{8}" required disabled={busy} value={pin} onChange={event => setPin(event.target.value.toUpperCase())} />
+          <p className="lesson-muted">Dùng thông tin thầy cô cấp; không cần tài khoản ChatGPT.</p>
+        </> : <><label htmlFor="student-name-input">Họ và tên</label><input id="student-name-input" className="lesson-input" autoComplete="name" maxLength={40} required disabled={busy} value={name} onChange={event => setName(event.target.value)} /></>)}
+        {room?.kind === "game" && <p>Phòng game đã sẵn sàng. Bấm Vào phòng để chọn tên.</p>}
+        {error && <p role="alert" className="task-status-banner task-status-error">{error}</p>}
+        {!room && !checking && /^[A-Z0-9]{6}$/.test(cleanCode) && <button type="button" className="lesson-button lesson-button-outline" onClick={() => {setChecking(true); setError(""); setLookupAttempt(value => value + 1);}}>Thử lại</button>}
+        <button type="submit" className="lesson-button" disabled={busy || checking || !room}>{busy ? "Đang vào phòng…" : "Vào phòng"}</button>
+      </form>
+      <details style={{marginTop: 16}}><summary>Dùng chung thiết bị?</summary><p>Làm theo hướng dẫn thầy cô. Nếu thầy cô cấp liên kết thiết bị dùng chung, mở liên kết đó để mỗi bạn có phần làm bài riêng.</p></details>
+      <p><Link href="/">Về trang chính</Link></p>
+    </section>
+  </main>;
+}
+
 export default function PlayPage() {
   const [code, setCode] = useState<string>("");
 
-  const [name, setName] = useState<string>("");
-  const [isJoining, setIsJoining] = useState<boolean>(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -694,10 +810,12 @@ export default function PlayPage() {
       const codeParam = params.get("code");
       try {
         const restoredSessionId=sessionStorage.getItem("lesson_active_session_id");
-        setSessionId(restoredSessionId);
-        if(!restoredSessionId&&codeParam&&/^[A-Za-z0-9]{6}$/.test(codeParam))setCode(current=>current||codeParam.toUpperCase());
-        setLearnerId(sessionStorage.getItem("lesson_active_learner_id"));
-        setBearerToken(sessionStorage.getItem("lesson_active_token"));
+        if(codeParam&&/^[A-Za-z0-9]{6}$/.test(codeParam)) setCode(current => current || codeParam.toUpperCase());
+        else {
+          setSessionId(restoredSessionId);
+          setLearnerId(sessionStorage.getItem("lesson_active_learner_id"));
+          setBearerToken(sessionStorage.getItem("lesson_active_token"));
+        }
       } catch {
         setJoinError("Trình duyệt đang chặn lưu phiên. Cho phép lưu phiên để vào lại phòng trên thiết bị này.");
       } finally {
@@ -735,77 +853,6 @@ export default function PlayPage() {
     role: "student",
   });
 
-  // Handle Join
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanCode = code.trim().toUpperCase();
-    const cleanName = name.trim();
-
-    if (!cleanCode || cleanCode.length !== 6) {
-      setJoinError("Mã phòng phải gồm 6 ký tự.");
-      return;
-    }
-    if (!cleanName || cleanName.length > 40) {
-      setJoinError("Vui lòng nhập họ và tên (tối đa 40 ký tự).");
-      return;
-    }
-
-    setIsJoining(true);
-    setJoinError(null);
-
-    try {
-      const { token, requestId } = getOrCreateBearer(cleanCode, cleanName);
-      const res = await fetch("/api/lesson-sessions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          action: "join",
-          ...(sessionStorage.getItem("lesson_class_passport_token") ? { classToken: sessionStorage.getItem("lesson_class_passport_token") } : {}),
-          code: cleanCode,
-          name: cleanName,
-          requestId,
-        }),
-      });
-
-      const data = (await res.json()) as {
-        error?: string;
-        projection?: { id: string };
-        learnerId?: string;
-      };
-
-      if (!res.ok) {
-        throw new Error(data.error || "Không thể vào phòng học.");
-      }
-
-      const returnedSessionId = data.projection?.id || "";
-      const returnedLearnerId = data.learnerId || "";
-
-      sessionStorage.setItem("lesson_active_session_id", returnedSessionId);
-      sessionStorage.setItem("lesson_active_learner_id", returnedLearnerId);
-      sessionStorage.setItem("lesson_active_token", token);
-
-      setSessionId(returnedSessionId);
-      setLearnerId(returnedLearnerId);
-      setBearerToken(token);
-    } catch (err: unknown) {
-      const code = err instanceof Error ? err.message : "";
-      const joinMessages: Record<string, string> = {
-        NOT_FOUND: "Không tìm thấy phòng với mã này. Em kiểm tra lại mã 6 ký tự nhé.",
-        NAME_TAKEN: "Đã có bạn dùng tên này trong lớp. Em thêm tên đệm hoặc một chữ cái (ví dụ \"Nguyễn Văn An B\") rồi thử lại.",
-        LEARNER_IDENTITY_MISMATCH: "Thiết bị này đã vào lớp bằng một tên khác. Em dùng đúng tên lúc trước hoặc hỏi thầy cô.",
-        FORBIDDEN: "Em không vào lại phòng này được (đã rời lớp hoặc thầy cô đã gỡ). Hãy hỏi thầy cô.",
-        JOIN_CONFLICT: "Lớp đang rất đông. Em bấm \"Tham gia lớp học\" lại sau vài giây nhé.",
-        INVALID_BODY: "Mã phòng hoặc tên chưa hợp lệ. Em kiểm tra lại nhé.",
-      };
-      setJoinError(joinMessages[code] || (code && /^[A-Z_]+$/.test(code) ? "Chưa vào được phòng học. Em thử lại hoặc hỏi thầy cô." : code) || "Lỗi kết nối tới máy chủ.");
-    } finally {
-      setIsJoining(false);
-    }
-  };
-
   const handleLeave = () => {
     sessionStorage.removeItem("lesson_active_session_id");
     sessionStorage.removeItem("lesson_active_learner_id");
@@ -832,7 +879,7 @@ export default function PlayPage() {
   const arenaPhase = (view?.arena as PublicArenaProjection | undefined)?.phase;
   const isMainInputDisabled = isInputDisabled || Boolean(arenaPhase && arenaPhase !== 'done');
   const ownMapPeer = view?.map?.peers.find((peer) => peer.own);
-  const worldMeta = getSafeWorldMetadata((view?.gamePlan as { theme?: string } | undefined)?.theme);
+  const worldMeta = getSafeWorldMetadata(view?.worldTheme||(view?.gamePlan as { theme?: string } | undefined)?.theme);
 
   // The first picture of a room is the map alone. After that, a new activity, the lesson starting or the arena
   // opening brings the task pop-up up by itself; the pupil can always close it to look at the map.
@@ -885,76 +932,10 @@ export default function PlayPage() {
     );
   }
 
-  // If not joined, show Clean Code + Name Join form
   if (!sessionId || !bearerToken) {
-    return (
-      <main className="lesson-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="lesson-card" style={{ maxWidth: 460, width: "100%" }}>
-          <p className="lesson-kicker">LỚP HỌC TOÁN 11</p>
-          <h1 className="lesson-title" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-            Tham gia phòng học
-          </h1>
-
-          <div className="play-notice-banner" style={{ marginBottom: "1.5rem" }}>
-            <strong>Lưu ý thiết bị dùng chung:</strong> Ứng dụng ghi nhận minh chứng cá nhân theo từng tài khoản.
-            Nếu dùng chung thiết bị, học sinh cần đăng ký và làm bài theo lượt để đảm bảo chuẩn đầu ra.
-          </div>
-
-          {joinError && (
-            <div className="task-status-banner task-status-error" style={{ marginBottom: "1rem" }}>
-              {joinError}
-            </div>
-          )}
-
-          <p><a href="/passport">Vào hồ sơ lớp bằng mã và PIN trước khi tham gia phòng đã gắn lớp.</a></p>
-        <form onSubmit={handleJoin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div>
-              <label htmlFor="room-code-input" className="task-label">
-                Mã phòng học (6 ký tự):
-              </label>
-              <input
-                id="room-code-input"
-                type="text"
-                required
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="Ví dụ: A1B2C3"
-                className="lesson-input"
-                style={{ fontSize: "1.25rem", letterSpacing: "2px", fontWeight: "bold" }}
-                disabled={isJoining}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="student-name-input" className="task-label">
-                Họ và tên của em:
-              </label>
-              <input
-                id="student-name-input"
-                type="text"
-                required
-                maxLength={40}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ví dụ: Nguyễn Văn An"
-                className="lesson-input"
-                disabled={isJoining}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isJoining || !code.trim() || !name.trim()}
-              className="lesson-button lesson-button-primary"
-              style={{ marginTop: "0.5rem", padding: "0.75rem" }}
-            >
-              {isJoining ? "Đang kết nối..." : "Tham gia lớp học"}
-            </button>
-          </form>
-        </div>
-      </main>
-    );
+    return <StudentJoinForm initialCode={code} initialError={joinError} onJoined={({sessionId: id, learnerId: learner, token}) => {
+      setSessionId(id); setLearnerId(learner); setBearerToken(token);
+    }} />;
   }
 
   const tasksList = (view?.tasks || []) as StudentTask[];
@@ -975,7 +956,7 @@ export default function PlayPage() {
         fullscreen
         topInset={HUD_HEIGHT+8}
         map={view?.map}
-        themeKey={(view?.gamePlan as { theme?: string } | undefined)?.theme}
+        themeKey={view?.worldTheme||(view?.gamePlan as { theme?: string } | undefined)?.theme}
         sessionKey={sessionId || "preview"}
         disabled={isMainInputDisabled}
         onArrive={handleArrive}
@@ -1335,7 +1316,7 @@ export default function PlayPage() {
 
           {/* Themed Route Map & World Context */}
           <details><summary>Lộ trình và câu chuyện</summary><LessonThemedRoute
-            gamePlan={view?.gamePlan}
+            worldTheme={view?.worldTheme} gamePlan={view?.gamePlan}
             currentActivityIndex={view?.timeline?.activityIndex}
             currentPhase={view?.currentActivity?.phase}
             variant="student"

@@ -24,6 +24,9 @@ export interface TimelineState {
 }
 
 export interface LessonProjection {
+  roomCode?:string;
+  worldTheme?:string;
+  deviceMode?:"A"|"B"|"C";
   exploration?: import("./ExplorationPanel").ExplorationView;
   id?: string;
   learnerId?: string;

@@ -50,6 +50,7 @@ export interface PublicGamePlanProjection {
 
 export interface LessonThemedRouteProps {
   gamePlan?: PublicGamePlanProjection | unknown | null;
+  worldTheme?: string;
   currentActivityIndex?: number;
   currentPhase?: string;
   variant?: "student" | "presenter";
@@ -181,6 +182,7 @@ export function getSafeWorldMetadata(themeKey?: string): SafeWorldMetadata {
 
 export function LessonThemedRoute({
   gamePlan,
+  worldTheme,
   currentActivityIndex = 0,
   currentPhase,
   variant = "student",
@@ -189,6 +191,7 @@ export function LessonThemedRoute({
 }: LessonThemedRouteProps) {
   const [imgError, setImgError] = useState<boolean>(false);
   const plan = gamePlan as PublicGamePlanProjection | null | undefined;
+  const selectedWorld = typeof worldTheme === "string" && Object.hasOwn(PRODUCT_THEMES, worldTheme) ? worldTheme : undefined;
 
   // Neutral Package-Only Preview state (no approved/active gamePlan or theme)
   if (!plan || !plan.theme) {
@@ -224,7 +227,7 @@ export function LessonThemedRoute({
     );
   }
 
-  const world = getSafeWorldMetadata(plan.theme || plan.map);
+  const world = getSafeWorldMetadata(selectedWorld || plan.theme || plan.map);
   const activityPlans = Array.isArray(plan.activityPlans) ? plan.activityPlans : [];
   const totalActivities = Math.max(1, activityPlans.length);
   const activeIndex = Math.max(0, Math.min(totalActivities - 1, currentActivityIndex));
@@ -259,8 +262,8 @@ export function LessonThemedRoute({
 
   const displayCover = imgError ? "/assets/campaign-historical.webp" : world.coverImage;
   const companionMascot = world.mascots[0] || "Linh vật";
-  const storyTitle = plan.story?.title || world.title;
-  const storyGoal = plan.story?.goal || world.goal || world.story;
+  const storyTitle = selectedWorld && selectedWorld !== plan.theme ? world.title : plan.story?.title || world.title;
+  const storyGoal = selectedWorld && selectedWorld !== plan.theme ? world.goal || world.story : plan.story?.goal || world.goal || world.story;
 
   return (
     <section

@@ -54,7 +54,7 @@ test('group machine starts with no pupils selected and issues only explicit chec
   const token = byId(tree, 'lesson-device-token');
   assert.equal(token.props.type, 'password'); assert.equal(token.props.readOnly, true); assert.equal(token.props.value, 'PRIVATE_DEVICE_TOKEN');
   assert.equal(nodes(tree, node => node.children.includes('PRIVATE_DEVICE_TOKEN')).length, 0);
-  assert.ok(nodes(tree, node => node.type === 'a' && node.props.href === '/shared').length);
+  assert.ok(nodes(tree, node => node.type === 'a' && node.props.href === '/shared?session=room').length);
 });
 
 test('observed badge is listed only for selected pupil and revoke requires a recorded reason', async () => {

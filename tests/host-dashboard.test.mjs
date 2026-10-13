@@ -3,6 +3,9 @@ import test from "node:test";
 import {readFileSync} from "node:fs";
 import {createContext, runInContext} from "node:vm";
 import ts from "typescript";
+import * as React from "react";
+import * as jsxRuntime from "react/jsx-runtime";
+import {renderToStaticMarkup} from "react-dom/server";
 
 const source = readFileSync("app/hosts/host-dashboard.tsx", "utf8");
 const transpiled = ts.transpile(source, {
@@ -16,7 +19,7 @@ function createMockContext(hash = '#invite=1234567890123456789012345678901234567
   const storage = {};
   const context = createContext({
     exports: {},
-    require: (id) => ({}),
+    require: () => ({}),
     console: { log: (msg) => logs.push(msg) },
     window: {
       location: { hash, pathname: '/hosts', search: '' },
@@ -69,4 +72,47 @@ test("host UI sends the API contract without bearer tokens", () => {
   assert.equal(result.action, "create-invite");
   assert.equal(result.expectedEmail, "test@test.com");
   assert.equal(result.role, "host");
+});
+
+
+test("teacher dashboard routes lessons separately and denies unsupported lesson observers", () => {
+  const {context} = createMockContext();
+  const destination = context.exports.roomDestination;
+  const identity = {isRoot: false, revoked: false};
+  const lesson = {id: 'room-lesson', mode: 'lesson', lessonSessionId: 'session-a/b', role: 'owner'};
+  assert.equal(destination(lesson, identity), '/lessons?session=session-a%2Fb');
+  assert.equal(destination({...lesson, role: 'cohost'}, identity), '/lessons?session=session-a%2Fb');
+  assert.equal(destination({...lesson, role: 'observer'}, identity), null);
+  assert.equal(destination({...lesson, role: 'observer'}, {isRoot: true, revoked: false}), '/lessons?session=session-a%2Fb');
+  assert.equal(destination({...lesson, lessonSessionId: null}, identity), null);
+  assert.equal(destination(lesson, {...identity, revoked: true}), null);
+  assert.equal(destination({id: 'game/a', mode: 'legacy', role: 'observer'}, identity), '/?view=teacher&room=game%2Fa');
+});
+
+
+test("teacher entry visibly offers organization choices while permission forms start collapsed", () => {
+  const identity = {user: null, isRoot: false, configured: true, systemRole: "host", revoked: false};
+  const rooms = [{id: 'room-a', code: 'ABCDEF', title: 'Lesson A', mode: 'lesson', role: 'owner', lessonSessionId: 'session-a'}, {id: 'room-b', code: 'BCD234', title: 'Game B', mode: 'legacy', role: 'observer'}, {id: 'room-c', code: 'CDF345', title: 'Lesson C', mode: 'lesson', role: 'observer', lessonSessionId: 'session-c'}];
+  let stateIndex = 0;
+  const context = createContext({exports: {}, require: id => {
+    if (id === 'react') return {...React, useState: initial => [stateIndex++ === 0 ? identity : stateIndex === 2 ? rooms : initial, () => {}], useRef: value => ({current: value}), useEffect: () => {}};
+    if (id === 'react/jsx-runtime') return jsxRuntime;
+    if (id === 'next/link') return {default: props => React.createElement('a', props)};
+    throw Error(id);
+  }});
+  runInContext(ts.transpileModule(source, {compilerOptions: {jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.CommonJS}}).outputText, context);
+  const markup = renderToStaticMarkup(context.exports.default({user: {displayName: 'Teacher', email: 'teacher@example.test'}}));
+  const nav = markup.match(/<nav[\s\S]*?<\/nav>/)[0];
+  for (const label of ['Tổ chức tiết học', 'Tạo phòng game', 'Quản lý quyền giáo viên']) assert(nav.includes(label));
+  assert(nav.includes('href="/lessons"'));
+  assert(nav.includes('href="/?view=teacher"'));
+  assert(nav.includes('href="#host-permissions"'));
+  assert.match(markup, /<details id="host-permissions" class="hosts-permissions hosts-section">/);
+  assert(markup.includes('href="/lessons?session=session-a"'));
+  assert(markup.includes('href="/?view=teacher&amp;room=room-b"'));
+  assert(!markup.includes('href="/lessons?session=session-c"'));
+  assert(markup.includes('Tiết học chưa hỗ trợ màn hình quan sát viên.'));
+  assert(markup.includes('Lời mời host toàn cục'));
+  identity.isRoot = true; stateIndex = 0;
+  assert(renderToStaticMarkup(context.exports.default({user: {displayName: 'Root', email: 'root@example.test'}})).includes('Nhận phòng legacy'));
 });

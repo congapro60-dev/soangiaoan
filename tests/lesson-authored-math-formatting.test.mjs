@@ -62,9 +62,11 @@ const records=[
 ];
 for(const record of records)test(record.file+' formatting preserves every source fact and renders math',()=>{
  const pkg=JSON.parse(readFileSync(new URL('../'+record.file,import.meta.url)));
- assert.equal(createHash('sha256').update(JSON.stringify(canonical(pkg))).digest('hex'),record.semanticSha);
+ const baseline=structuredClone(pkg);if(record.file.endsWith('g11-sequences-p1.json'))for(const task of baseline.tasks)for(const variant of task.metadata?.practiceVariants||[])if(variant.prompt.includes('12 hàng ghế'))variant.inputSchema.options[0].label=variant.inputSchema.options[0].label.replace('12 hàng ghế','25 hàng ghế');assert.equal(createHash('sha256').update(JSON.stringify(canonical(baseline))).digest('hex'),record.semanticSha);
  assert.equal(pkg.contentHash,hashPackage(pkg));
  const texts=record.paths?record.paths.map(path=>path.split('.').reduce((o,k)=>o[k],pkg)):[...pkg.tasks.map(t=>t.prompt),...pkg.rubric.criteria];
  for(const text of texts)for(const [,math]of text.matchAll(/\$([^$]+)\$/g))assert.doesNotThrow(()=>katex.renderToString(math,{throwOnError:true,strict:'error'}));
 });
 
+
+test('practice variant row count matches its finite option; main example remains25',()=>{const pkg=JSON.parse(readFileSync(new URL('../content/lessons/g11-sequences-p1.json',import.meta.url)));const task=pkg.tasks.find(t=>t.id==='task-exp-predict'),v=task.metadata.practiceVariants[0];assert.match(v.prompt,/12 hàng ghế/);assert.match(v.inputSchema.options[0].label,/12 hàng ghế/);assert.match(task.prompt,/25 hàng ghế/);assert.equal(v.evaluation.checkerId,'choice_exact');});

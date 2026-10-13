@@ -504,7 +504,7 @@ export default function PresenterPage() {
         {/* Campaign map for the whole class: mascots only, no names */}
         <LessonWorldMap
           map={view?.map}
-          themeKey={(view?.gamePlan as { theme?: string } | undefined)?.theme}
+          themeKey={view?.worldTheme || (view?.gamePlan as { theme?: string } | undefined)?.theme}
           sessionKey={sessionId || "tv"}
           height={640}
         />
@@ -512,6 +512,7 @@ export default function PresenterPage() {
         {/* Themed Route Map Projection */}
         <LessonThemedRoute
           gamePlan={view?.gamePlan}
+          worldTheme={view?.worldTheme}
           currentActivityIndex={view?.timeline?.activityIndex}
           currentPhase={view?.currentActivity?.phase}
           variant="presenter"

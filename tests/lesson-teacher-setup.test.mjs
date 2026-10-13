@@ -47,11 +47,20 @@ test('strict setup boundary rejects forged keys, prototypes, IDs and excessive b
  for(const edit of [{admin:true},{rule:'constructor'},{rule:['campaign']},{participation:'whole_class'},{integrationIds:['__proto__']},{integrationIds:['ai','ai']},{event:{type:'buzzer',minutes:5}},{event:{type:'none',minutes:3,autoOpen:true}},{aiPolicy:'answers'}])assert.throws(()=>normalizeTeacherSetup({...good,...edit},pkg),/INVALID_TEACHER_SETUP/);
  assert.throws(()=>normalizeTeacherSetup(Object.assign(Object.create({admin:true}),good),pkg),/INVALID_TEACHER_SETUP/);
 });
+test('world and device choices accept canonical values; legacy seven fields stay unchanged',()=>{
+ const good=recommendTeacherSetup(pkg);assert.equal(good.worldTheme,'modern');assert.equal(good.deviceMode,'A');
+ const legacy={...good};delete legacy.worldTheme;delete legacy.deviceMode;
+ assert.equal(Object.keys(legacy).length,7);assert.deepEqual(normalizeTeacherSetup(legacy,pkg),legacy);
+ assert.deepEqual(normalizeTeacherSetup({...legacy,worldTheme:undefined,deviceMode:undefined},pkg),legacy);
+ for(const edit of [{worldTheme:'__proto__'},{worldTheme:'constructor'},{worldTheme:'history'},{worldTheme:[]},{deviceMode:'D'},{deviceMode:'a'},{deviceMode:null}])assert.throws(()=>normalizeTeacherSetup({...good,...edit},pkg),/INVALID_TEACHER_SETUP/);
+ for(const deviceMode of ['A','B','C'])assert.equal(normalizeTeacherSetup({...good,worldTheme:'historical',deviceMode},pkg).deviceMode,deviceMode);
+});
 test('atomic create stores setup, fingerprints changes, owner authorization, GET never reapplies',async()=>{
  const {db,database}=realDb();try{
  database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner@example.invalid','Owner',1);
  const service=createLessonService({db,now:()=>1000}),saved=await service.savePackage({ownerAccountId:'owner-1',package:structuredClone(pkg)});
- const setup={...recommendTeacherSetup(pkg),rule:'treasure',participation:'individual'},input={ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Setup',requestId:'setup',teacherSetup:setup};
+ const setup={...recommendTeacherSetup(pkg),rule:'treasure',participation:'individual'};delete setup.worldTheme;delete setup.deviceMode;
+ const input={ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Setup',requestId:'setup',teacherSetup:setup};
  validateSessionBody({action:'create',packageRowId:saved.row.rowId,mode:'preview',title:'Setup',requestId:'setup',teacherSetup:setup});
  const created=await service.createSession(input);assert.equal((await service.createSession(input)).replay,true);
  await assert.rejects(()=>service.createSession({...input,teacherSetup:{...setup,revisitEnabled:false}}),/REQUEST_ID_CONFLICT/);
@@ -72,14 +81,19 @@ test('approved room starts selected rule and keeps setup private; legacy room st
  const approved=await service.approvePackage({actorAccountId:'owner-1',id:saved.row.rowId,parentHash:saved.row.contentHash,version:'1.0.1',sourceReviewAck:pkg.sourceRefs.map(s=>({...s,numericReviewConfirmed:true}))});
  const draft=pilotDraft({package:{...approved.package,rowId:approved.row.rowId}});
  const plan=await service.approvePlan({actorAccountId:'owner-1',packageRowId:approved.row.rowId,packageVersion:approved.row.version,packageHash:approved.row.contentHash,planHash:draft.plan.contentHash,sourceReview:approved.package.sourceRefs});
- const input={ownerAccountId:'owner-1',packageRowId:approved.row.rowId,packageVersion:approved.row.version,packageHash:approved.row.contentHash,planRowId:plan.row.rowId,planHash:plan.row.planHash,mode:'live',title:'Setup',requestId:'live',teacherSetup:{...recommendTeacherSetup(pkg),rule:'treasure',participation:'individual'}};
+ const input={ownerAccountId:'owner-1',packageRowId:approved.row.rowId,packageVersion:approved.row.version,packageHash:approved.row.contentHash,planRowId:plan.row.rowId,planHash:plan.row.planHash,mode:'live',title:'Setup',requestId:'live',teacherSetup:{...recommendTeacherSetup(pkg),worldTheme:'historical',rule:'treasure',participation:'individual'}};
+ const approvedBefore=database.prepare('SELECT data,plan_hash FROM lesson_session_plans WHERE row_id=?').get(plan.row.rowId);
  await assert.rejects(()=>service.createSession({...input,packageHash:'stale'}),/PACKAGE_TUPLE_MISMATCH/);
  const room=await service.createSession(input);await service.joinSession({code:room.session.code,name:'A',token:'A'.repeat(43)});
- let view=(await service.getSession({id:room.session.id,accountId:'owner-1'})).view;assert.deepEqual(view.teacherSetup,input.teacherSetup);
+ let view=(await service.getSession({id:room.session.id,accountId:'owner-1'})).view;assert.deepEqual(view.teacherSetup,input.teacherSetup);assert.equal(view.worldTheme,'historical');assert.equal(view.deviceMode,'A');assert.equal(view.gamePlan.theme,draft.plan.theme);
+ await assert.rejects(()=>service.createSession({...input,teacherSetup:{...input.teacherSetup,worldTheme:'future'}}),/REQUEST_ID_CONFLICT/);
  await service.event({sessionId:room.session.id,accountId:'owner-1',event:{type:'START',payload:{},eventId:'start',round:view.round,revision:view.revision}});
  view=(await service.getSession({id:room.session.id,accountId:'owner-1'})).view;assert.equal(view.lessonMode.rule,'treasure');assert.equal(view.lessonMode.participation,'individual');
  assert.equal((await service.getSession({id:room.session.id,learnerToken:'A'.repeat(43)})).view.teacherSetup,undefined);
  assert.equal((await service.getSession({id:room.session.id,presenterToken:room.presenterToken})).view.teacherSetup,undefined);
+ assert.equal((await service.getSession({id:room.session.id,learnerToken:'A'.repeat(43)})).view.worldTheme,'historical');
+ assert.equal((await service.getSession({id:room.session.id,presenterToken:room.presenterToken})).view.worldTheme,'historical');
+ assert.deepEqual(database.prepare('SELECT data,plan_hash FROM lesson_session_plans WHERE row_id=?').get(plan.row.rowId),approvedBefore);
  const legacy={...input};delete legacy.teacherSetup;const old=await service.createSession({...legacy,requestId:'old'});assert.equal((await service.getSession({id:old.session.id,accountId:'owner-1'})).view.teacherSetup,undefined);
  }finally{database.close();}
 });

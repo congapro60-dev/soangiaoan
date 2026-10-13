@@ -1,10 +1,11 @@
 "use client";
 
 import {useEffect, useRef, useState, type FormEvent} from "react";
+import Link from "next/link";
 import type {ChatGPTUser} from "../chatgpt-auth";
 
 type Identity = {user: ChatGPTUser; isRoot: boolean; configured: boolean; systemRole: string | null; revoked: boolean};
-type Room = {id: string; code: string; title: string; role: string | null; revision: number};
+type Room = {id: string; code: string; title: string; role: string | null; revision: number; mode?: string; lessonSessionId?: string | null};
 type Invite = {id: string; expectedEmail: string; role: string; roomId: string | null; expiresAt: number; acceptedAt: number | null; revokedAt: number | null; token?: string};
 type Member = {accountId: string; email: string | null; displayName: string | null; role: string; grantedAt: number; revokedAt: number | null};
 type SystemHost = {accountId: string; email: string | null; displayName: string | null; role: string; createdAt: number; createdBy: string | null; revokedAt: number | null};
@@ -69,6 +70,12 @@ async function hostRequest<T extends JsonRecord>(method: "GET" | "POST", params:
   return payload as T;
 }
 
+export function roomDestination(room: Room, identity: {isRoot: boolean; revoked: boolean}) {
+  if (identity.revoked && !identity.isRoot) return null;
+  if (room.mode === "lesson") return room.lessonSessionId && (identity.isRoot || room.role === "owner" || room.role === "cohost") ? `/lessons?session=${encodeURIComponent(room.lessonSessionId)}` : null;
+  return `/?view=teacher&room=${encodeURIComponent(room.id)}`;
+}
+
 function roleLabel(role: string | null | undefined) { return (({root: "Root", host: "Host hệ thống", owner: "Chủ phòng", cohost: "Đồng host", observer: "Quan sát viên"} as Record<string, string>)[role || ""] || "Chủ tài khoản"); }
 
 export default function HostDashboard({user}: {user: ChatGPTUser}) {
@@ -90,6 +97,7 @@ export default function HostDashboard({user}: {user: ChatGPTUser}) {
   const initialized = useRef(false);
   const selection = useRef(0);
   const notice = useRef<HTMLParagraphElement>(null);
+  const permissions = useRef<HTMLDetailsElement>(null);
 
   async function refresh() {
     try {
@@ -108,6 +116,7 @@ export default function HostDashboard({user}: {user: ChatGPTUser}) {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+    if (window.location.hash === "#host-permissions" && permissions.current) permissions.current.open = true;
     const token = consumeInviteFragment(window.location, window.history);
     locked.current = true;
     setBusy(true);
@@ -135,6 +144,11 @@ export default function HostDashboard({user}: {user: ChatGPTUser}) {
     finally { locked.current = false; setBusy(false); notice.current?.focus(); }
   }
   async function openRoom(room: Room) {
+    if (permissions.current) {
+      permissions.current.open = true;
+      permissions.current.scrollIntoView({block: "start"});
+      permissions.current.querySelector("summary")?.focus();
+    }
     const request = ++selection.current;
     setSelected(room); setMembers([]); setInvites([]); setRoomRole("observer");
     if (identity?.revoked || !(identity?.isRoot || room.role === "owner")) return;
@@ -147,12 +161,24 @@ export default function HostDashboard({user}: {user: ChatGPTUser}) {
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); void act(inviteAction(email, "host"), "Đã tạo lời mời host trong 24 giờ. Sao chép và gửi riêng cho người nhận."); }
   function submitRoom(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!selected) return; void act(inviteAction(roomEmail, roomRole, selected.id), "Đã tạo lời mời cho phòng trong 24 giờ."); }
 
-  return <main className="hosts-shell"><header className="hosts-header"><div><p className="hosts-kicker">QUẢN TRỊ HỆ THỐNG</p><h1>Quản lý host</h1></div><div className="hosts-identity"><a className="hosts-button" href="/lessons">Giáo án</a><strong>{user.displayName}</strong><span>{user.email}</span><span className="hosts-badge">{roleLabel(identity?.isRoot ? "root" : identity?.systemRole)}</span></div></header><p className="hosts-status" role="status" aria-live="polite">{status}</p>
+  return <main className="hosts-shell">
+    <header className="hosts-header"><div><p className="hosts-kicker">KHÔNG GIAN GIÁO VIÊN</p><h1>Giáo viên</h1><p className="hosts-muted">Chọn cách tổ chức, rồi mở phòng của lớp.</p></div><div className="hosts-identity"><Link className="hosts-button" href="/">Trang học sinh</Link><strong>{user.displayName}</strong><span>{user.email}</span><span className="hosts-badge">{roleLabel(identity?.isRoot ? "root" : identity?.systemRole)}</span></div></header>
+    <nav className="hosts-entry" aria-label="Chọn cách tổ chức">
+      <a className="hosts-card hosts-entry-choice" href="/lessons"><strong>Tổ chức tiết học</strong><span>Chọn giáo án, nhận gợi ý thiết lập, mở tiết học.</span></a>
+      <Link className="hosts-card hosts-entry-choice" href="/?view=teacher"><strong>Tạo phòng game</strong><span>Chọn thế giới, luật và hình thức luyện tập.</span></Link>
+      <a className="hosts-card hosts-entry-choice" href="#host-permissions" onClick={() => { if (permissions.current) permissions.current.open = true; }}><strong>Quản lý quyền giáo viên</strong><span>Mời giáo viên, phân quyền, nhận phòng cũ.</span></a>
+    </nav>
+    <p ref={notice} tabIndex={-1} className="hosts-status" role="status" aria-live="polite">{status}</p>
+    <section className="hosts-card hosts-section"><h2>Phiên của tôi</h2><p className="hosts-muted">Tiết học và phòng game đã tạo hoặc được giao.</p>{rooms.length === 0 ? <div><p>Chưa có phiên được giao.</p><div className="hosts-actions"><a className="hosts-button hosts-button-primary" href="/lessons">Tổ chức tiết học</a><Link className="hosts-button" href="/?view=teacher">Tạo phòng game</Link></div></div> : <ul className="hosts-list">{rooms.map(room => {
+      const destination = roomDestination(room, identity);
+      return <li key={room.id}><span><strong>{room.title || room.code}</strong><small>{room.mode === "lesson" ? "Tiết học" : "Phòng game"} · {room.code} · {roleLabel(room.role)}</small></span><div className="hosts-actions">{!identity.revoked && (identity.isRoot || room.role === "owner") && <button className="hosts-button" onClick={() => void openRoom(room)}>Quản lý thành viên</button>}{destination ? <a className="hosts-button hosts-button-primary" href={destination}>{room.mode === "lesson" ? "Mở tiết học" : "Mở phòng game"}</a> : <span className="hosts-muted">{identity.revoked ? "Quyền đã bị thu hồi." : room.role === "observer" ? "Tiết học chưa hỗ trợ màn hình quan sát viên." : "Chưa có liên kết tiết học hợp lệ."}</span>}</div></li>;
+    })}</ul>}</section>
+    <details ref={permissions} id="host-permissions" className="hosts-permissions hosts-section"><summary>Quản lý quyền giáo viên</summary><div className="hosts-permissions-body">
     {!identity?.configured && <section className="hosts-warning"><strong>Root chưa được cấu hình.</strong><p>Thiết lập đồng thời <code>SITE_OWNER_EMAIL</code> và <code>SITE_OWNER_USER_ID</code> trên server để cấp host toàn cục. Người truy cập đầu tiên không tự động trở thành root.</p></section>}
-    <section className="hosts-grid"><section className="hosts-card"><h2>Lời mời host toàn cục</h2><p className="hosts-muted">Chỉ root được cấp host. Không gửi email tự động.</p><form onSubmit={submit}><label>Email người nhận<input required type="email" value={email} onChange={e => setEmail(e.target.value)} /></label><button disabled={busy || !identity?.isRoot} className="hosts-button hosts-button-primary">Tạo lời mời 24 giờ</button></form>{link && <div className="hosts-result"><label>Liên kết thủ công<input readOnly value={link} onFocus={e => e.currentTarget.select()} /></label><button className="hosts-button" onClick={() => void navigator.clipboard?.writeText(link)}>Sao chép liên kết</button><small>Gửi riêng liên kết này cho người nhận. Lời mời hết hạn sau 24 giờ.</small></div>}{identity?.isRoot && <ul className="hosts-list">{hosts.invites.map(i => <li key={i.id}><span>{i.expectedEmail} · {roleLabel(i.role)}</span><button className="hosts-button hosts-button-danger" disabled={busy || !!i.revokedAt} onClick={() => void act({action: "revoke-invite", inviteId: i.id}, "Đã thu hồi lời mời.")}>Thu hồi</button></li>)}</ul>}</section>
-      <section className="hosts-card"><h2>Phòng được giao</h2><p className="hosts-muted">Chủ phòng quản lý thành viên. Đồng host hỗ trợ điều hành; quan sát viên chỉ theo dõi.</p>{rooms.length === 0 ? <p>Chưa có phòng được giao.</p> : <ul className="hosts-list">{rooms.map(room => <li key={room.id}><span><strong>{room.title || room.code}</strong><small>{room.code} · {roleLabel(room.role)}</small></span>{!identity.revoked && (identity.isRoot || room.role === "owner") && <button className="hosts-button" onClick={() => void openRoom(room)}>Quản lý thành viên</button>}<a className="hosts-button" href={`/?view=teacher&room=${room.id}`} target="_blank" rel="noopener">Mở phòng</a></li>)}</ul>}</section></section>
+    <section className="hosts-card"><h2>Lời mời host toàn cục</h2><p className="hosts-muted">Chỉ root được cấp host. Không gửi email tự động.</p><form onSubmit={submit}><label>Email người nhận<input required type="email" value={email} onChange={e => setEmail(e.target.value)} /></label><button disabled={busy || !identity?.isRoot} className="hosts-button hosts-button-primary">Tạo lời mời 24 giờ</button></form>{link && <div className="hosts-result"><label>Liên kết thủ công<input readOnly value={link} onFocus={e => e.currentTarget.select()} /></label><button className="hosts-button" onClick={() => void navigator.clipboard?.writeText(link)}>Sao chép liên kết</button><small>Gửi riêng liên kết này cho người nhận. Lời mời hết hạn sau 24 giờ.</small></div>}{identity?.isRoot && <ul className="hosts-list">{hosts.invites.map(i => <li key={i.id}><span>{i.expectedEmail} · {roleLabel(i.role)}</span><button className="hosts-button hosts-button-danger" disabled={busy || !!i.revokedAt} onClick={() => void act({action: "revoke-invite", inviteId: i.id}, "Đã thu hồi lời mời.")}>Thu hồi</button></li>)}</ul>}</section>
     {identity?.isRoot && <section className="hosts-card hosts-section"><h2>Host hiện tại</h2><ul className="hosts-list">{hosts.hosts.map(host => <li key={host.accountId}><span>{host.email || host.accountId} · {roleLabel(host.role)}</span><button className="hosts-button hosts-button-danger" disabled={busy} onClick={() => void act({action: "revoke-system-host", accountId: host.accountId}, "Đã thu hồi host.")}>Thu hồi</button></li>)}</ul></section>}
-    {selected && <section className="hosts-card hosts-section"><div className="hosts-section-heading"><div><p className="hosts-kicker">QUẢN LÝ PHÒNG</p><h2>{selected.title || selected.code}</h2></div><button className="hosts-button" onClick={() => setSelected(null)}>Đóng</button></div><p className="hosts-muted">Mời đồng host hỗ trợ điều hành. Quan sát viên chỉ theo dõi phòng.</p><form onSubmit={submitRoom} className="hosts-inline-form"><label>Email<input required type="email" value={roomEmail} onChange={e => setRoomEmail(e.target.value)} /></label><label>Vai trò<select value={roomRole} onChange={e => setRoomRole(e.target.value)}><option value="observer">Quan sát viên</option><option value="cohost">Đồng host</option>{identity.isRoot && <option value="owner">Chủ phòng</option>}</select></label><button disabled={busy} className="hosts-button hosts-button-primary">Mời vào phòng</button></form><div className="hosts-two-col"><div><h3>Thành viên</h3><ul className="hosts-list">{members.map(member => <li key={member.accountId}><span>{member.displayName || member.email} · {roleLabel(member.role)}</span><button className="hosts-button hosts-button-danger" onClick={() => void act({action: "revoke-membership", roomId: selected.id, accountId: member.accountId, grantedAt: member.grantedAt}, "Đã thu hồi thành viên.")}>Thu hồi</button></li>)}</ul></div><div><h3>Lời mời</h3><ul className="hosts-list">{invites.map(invite => <li key={invite.id}><span>{invite.expectedEmail} · {roleLabel(invite.role)}</span><button className="hosts-button hosts-button-danger" onClick={() => void act({action: "revoke-invite", inviteId: invite.id}, "Đã thu hồi lời mời.")}>Thu hồi</button></li>)}</ul></div></div></section>}
+    {selected && <section className="hosts-card hosts-section"><div className="hosts-section-heading"><div><p className="hosts-kicker">QUẢN LÝ PHÒNG</p><h2>{selected.title || selected.code}</h2></div><button className="hosts-button" onClick={() => setSelected(null)}>Đóng</button></div><p className="hosts-muted">Mời đồng host hỗ trợ điều hành. Quan sát viên chỉ theo dõi phòng game; tiết học chưa hỗ trợ màn hình quan sát viên.</p><form onSubmit={submitRoom} className="hosts-inline-form"><label>Email<input required type="email" value={roomEmail} onChange={e => setRoomEmail(e.target.value)} /></label><label>Vai trò<select value={roomRole} onChange={e => setRoomRole(e.target.value)}><option value="observer">Quan sát viên</option><option value="cohost">Đồng host</option>{identity.isRoot && <option value="owner">Chủ phòng</option>}</select></label><button disabled={busy} className="hosts-button hosts-button-primary">Mời vào phòng</button></form><div className="hosts-two-col"><div><h3>Thành viên</h3><ul className="hosts-list">{members.map(member => <li key={member.accountId}><span>{member.displayName || member.email} · {roleLabel(member.role)}</span><button className="hosts-button hosts-button-danger" onClick={() => void act({action: "revoke-membership", roomId: selected.id, accountId: member.accountId, grantedAt: member.grantedAt}, "Đã thu hồi thành viên.")}>Thu hồi</button></li>)}</ul></div><div><h3>Lời mời</h3><ul className="hosts-list">{invites.map(invite => <li key={invite.id}><span>{invite.expectedEmail} · {roleLabel(invite.role)}</span><button className="hosts-button hosts-button-danger" onClick={() => void act({action: "revoke-invite", inviteId: invite.id}, "Đã thu hồi lời mời.")}>Thu hồi</button></li>)}</ul></div></div></section>}
     {identity?.isRoot && <section className="hosts-card hosts-section"><h2>Nhận phòng legacy</h2><p className="hosts-warning">Chỉ dùng khi di chuyển phòng cũ. Sau khi nhận, mã quản trị cũ tự mất hiệu lực. Bạn quản lý phòng bằng tài khoản.</p><form onSubmit={e => { e.preventDefault(); if (window.confirm("Nhận phòng cũ vào tài khoản? Mã quản trị cũ sẽ mất hiệu lực.")) void act({action: "claim-room", ...claim, revision: Number(claim.revision)}, "Đã nhận phòng. Mã quản trị cũ đã mất hiệu lực."); }} className="hosts-inline-form"><label>Room ID<input required value={claim.roomId} onChange={e => setClaim({...claim, roomId: e.target.value})} /></label><label>Revision<input required inputMode="numeric" value={claim.revision} onChange={e => setClaim({...claim, revision: e.target.value})} /></label><label>Mã quản trị cũ<input required type="password" value={claim.adminKey} onChange={e => setClaim({...claim, adminKey: e.target.value})} /></label><button disabled={busy} className="hosts-button hosts-button-danger">Nhận phòng legacy</button></form></section>}
+    </div></details>
   </main>;
 }
