@@ -3,7 +3,7 @@
   "id": "g11-sequences-p1",
   "version": "1.1.0",
   "status": "needs_review",
-  "contentHash": "f72211ca3f24e16fb297fbc7d894ec0be3ac91e64345c227eeb2c1fc6de15241",
+  "contentHash": "3508d925b7ac007de51986546f81784b694193b930772378b209ffc947b14027",
   "subject": "math",
   "grade": 11,
   "curriculumRefs": [
@@ -37,7 +37,7 @@
       "id": "obj-t11-18",
       "code": "T11.18",
       "level": "must",
-      "statement": "Nhận biết dãy số hữu hạn và vô hạn; phân biệt số thứ tự n và số hạng u_n trong mô hình thực tế.",
+      "statement": "Nhận biết dãy số hữu hạn và vô hạn; phân biệt số thứ tự $n$ và số hạng $u_n$ trong mô hình thực tế.",
       "prerequisiteIds": []
     },
     {
@@ -121,11 +121,11 @@
       ],
       "participation": "individual",
       "studentAction": "Phân tích bảng dữ liệu để phân biệt số thứ tự hàng $n$ và số lượng ghế $u_n$.",
-      "expectedProduct": "Khẳng định n là chỉ số thứ tự, u_n là giá trị phần tử.",
+      "expectedProduct": "Khẳng định $n$ là chỉ số thứ tự, $u_n$ là giá trị phần tử.",
       "evidenceIds": [
         "ev-form-18"
       ],
-      "teacherLookFor": "Không nhầm lẫn giữa chỉ số n và giá trị u_n.",
+      "teacherLookFor": "Không nhầm lẫn giữa chỉ số $n$ và giá trị $u_n$.",
       "supportIds": [
         "hint-form18-1",
         "hint-form18-2",
@@ -173,7 +173,7 @@
       ],
       "participation": "individual",
       "studentAction": "Phát hiện lỗi sai công thức $18+2n$, sau đó giải quyết nhiệm vụ theo nhánh phân hóa.",
-      "expectedProduct": "Kết quả sửa lỗi và các giá trị tính toán u_7=30, u_25=66.",
+      "expectedProduct": "Kết quả sửa lỗi và các giá trị tính toán $u_7=30$, $u_{25}=66$.",
       "evidenceIds": [
         "ev-prac-reasoning"
       ],
@@ -251,7 +251,7 @@
         "task-exit-ticket"
       ],
       "participation": "individual",
-      "studentAction": "Hoàn thành phiếu exit ticket: phân biệt n và u_n, nêu một biểu diễn và tự đánh giá.",
+      "studentAction": "Hoàn thành phiếu exit ticket: phân biệt $n$ và $u_n$, nêu một biểu diễn và tự đánh giá.",
       "expectedProduct": "Phiếu tự đánh giá và phản tư cá nhân.",
       "evidenceIds": [
         "ev-exit-mastery"
@@ -279,7 +279,7 @@
       "evidenceIds": [
         "ev-reserve-obs"
       ],
-      "teacherLookFor": "Hiểu mối liên hệ u_n = u(n).",
+      "teacherLookFor": "Hiểu mối liên hệ $u_n = u(n)$.",
       "supportIds": [
         "hint-reserve-1"
       ],
@@ -485,7 +485,7 @@
       },
       "isCore": true,
       "requiresFullScaffold": false,
-      "supportRationale": "Tính trực tiếp: u_1=18, u_2=18+2=20, u_3=20+2=22.",
+      "supportRationale": "Tính trực tiếp: $u_1=18$, $u_2=18+2=20$, $u_3=20+2=22$.",
       "minutes": 3,
       "hintIds": [
         "hint-pre-2"
@@ -530,7 +530,7 @@
       },
       "isCore": true,
       "requiresFullScaffold": true,
-      "supportRationale": "Phân biệt chỉ số n và giá trị u_n qua giàn giáo 4 tầng.",
+      "supportRationale": "Phân biệt chỉ số $n$ và giá trị $u_n$ qua giàn giáo 4 tầng.",
       "minutes": 7,
       "hintIds": [
         "hint-form18-1",
@@ -733,7 +733,7 @@
       },
       "isCore": true,
       "requiresFullScaffold": false,
-      "supportRationale": "Với n=1 công thức 18+2n cho ra 20 thay vì 18, vì vậy công thức đúng phải là u_n = 18 + 2(n-1) = 2n + 16.",
+      "supportRationale": "Với $n=1$ công thức $18+2n$ cho ra 20 thay vì 18, vì vậy công thức đúng phải là $u_n = 18 + 2(n-1) = 2n + 16$.",
       "minutes": 3,
       "hintIds": [
         "hint-hunt-1"
@@ -760,7 +760,7 @@
       },
       "isCore": false,
       "requiresFullScaffold": false,
-      "supportRationale": "u_2 = u_1 + 2 = 18 + 2 = 20.",
+      "supportRationale": "$u_2 = u_1 + 2 = 18 + 2 = 20$.",
       "minutes": 5,
       "hintIds": [
         "hint-supp-1"
@@ -826,7 +826,7 @@
       },
       "isCore": true,
       "requiresFullScaffold": false,
-      "supportRationale": "u_7 = 18 + 2(7 - 1) = 30; u_{25} = 18 + 2(25 - 1) = 66.",
+      "supportRationale": "$u_7 = 18 + 2(7 - 1) = 30$; $u_{25} = 18 + 2(25 - 1) = 66$.",
       "minutes": 5,
       "hintIds": [
         "hint-core-1"
@@ -891,7 +891,7 @@
       },
       "isCore": false,
       "requiresFullScaffold": false,
-      "supportRationale": "v_4 = 18 + 2(3) + 3*2*1 = 24 + 6 = 30.",
+      "supportRationale": "$v_4 = 18 + 2(3) + 3*2*1 = 24 + 6 = 30$.",
       "minutes": 2,
       "hintIds": [
         "hint-ext-1"
@@ -1296,7 +1296,7 @@
     {
       "id": "hint-form18-2",
       "tier": "H2",
-      "text": "Ví dụ với hàng thứ 3 có 22 ghế: vị trí 3 là n, số lượng 22 là u_3.",
+      "text": "Ví dụ với hàng thứ 3 có 22 ghế: vị trí 3 là $n$, số lượng 22 là $u_3$.",
       "taskId": "task-form-distinguish-n-un",
       "objectiveIds": [
         "obj-t11-18"
@@ -1313,7 +1313,7 @@
     {
       "id": "hint-form18-3",
       "tier": "H3",
-      "text": "Quy ước Toán học: chỉ số viết dưới n biểu thị thứ tự phần tử; u_n là giá trị của phần tử thứ n.",
+      "text": "Quy ước Toán học: chỉ số viết dưới $n$ biểu thị thứ tự phần tử; $u_n$ là giá trị của phần tử thứ $n$.",
       "taskId": "task-form-distinguish-n-un",
       "objectiveIds": [
         "obj-t11-18"
@@ -1330,7 +1330,7 @@
     {
       "id": "hint-form18-4",
       "tier": "H4",
-      "text": "Chọn phương án chỉ rõ n là số thứ tự hàng ghế, u_n là số ghế của hàng đó.",
+      "text": "Chọn phương án chỉ rõ $n$ là số thứ tự hàng ghế, $u_n$ là số ghế của hàng đó.",
       "taskId": "task-form-distinguish-n-un",
       "objectiveIds": [
         "obj-t11-18"
@@ -1347,7 +1347,7 @@
     {
       "id": "hint-form19-1",
       "tier": "H1",
-      "text": "Đối chiếu thẻ công thức u_n = 18 + 2(n-1) với dạng tổng quát, u_1=18; u_n=u_{n-1}+2 với dạng truy hồi.",
+      "text": "Đối chiếu thẻ công thức $u_n = 18 + 2(n-1)$ với dạng tổng quát, $u_1=18$; $u_n=u_{n-1}+2$ với dạng truy hồi.",
       "taskId": "task-form-four-rep",
       "objectiveIds": [
         "obj-t11-19"
@@ -1382,7 +1382,7 @@
     {
       "id": "hint-supp-1",
       "tier": "H1",
-      "text": "Áp dụng hệ thức truy hồi với n = 2: u_2 = u_1 + 2 = 18 + 2.",
+      "text": "Áp dụng hệ thức truy hồi với $n = 2$: $u_2 = u_1 + 2 = 18 + 2$.",
       "taskId": "task-prac-support-tab",
       "objectiveIds": [
         "obj-t11-19"
@@ -1450,7 +1450,7 @@
     {
       "id": "hint-recheck-2",
       "tier": "H1",
-      "text": "Với hình 1 có 4 que và mỗi hình sau thêm 3 que: w_1 = 4, w_2 = 4 + 3 = 7, w_3 = 7 + 3 = 10.",
+      "text": "Với hình 1 có 4 que và mỗi hình sau thêm 3 que: $w_1 = 4$, $w_2 = 4 + 3 = 7$, $w_3 = 7 + 3 = 10$.",
       "taskId": "task-recheck-19",
       "objectiveIds": [
         "obj-t11-19"
@@ -1485,7 +1485,7 @@
     {
       "id": "hint-reserve-1",
       "tier": "H1",
-      "text": "Mỗi số tự nhiên n được đặt tương ứng với một số thực u_n duy nhất.",
+      "text": "Mỗi số tự nhiên $n$ được đặt tương ứng với một số thực $u_n$ duy nhất.",
       "taskId": "task-reserve-deepen",
       "objectiveIds": [
         "obj-t11-19"
@@ -1639,7 +1639,7 @@
       "Chuyển đổi thành thạo giữa 4 cách biểu diễn dãy số"
     ],
     "lookFor": [
-      "Phân biệt n và u_n; giải thích được miền chỉ số",
+      "Phân biệt $n$ và $u_n$; giải thích được miền chỉ số",
       "Lập được công thức tổng quát và hệ thức truy hồi đúng"
     ]
   },

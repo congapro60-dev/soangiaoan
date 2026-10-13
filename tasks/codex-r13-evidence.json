@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-10-13T03:44:59.565Z",
+  "result": "PASS_LOCAL_R13_UI",
+  "productionTouched": false,
+  "worker": {
+    "buildRoot": "C:\\Users\\ADMIN\\.codex\\worktrees\\6dec\\signal-station-site\\.sites-runtime\\takeover-candidate-20261011",
+    "entrySha256": "31f903ab69b2a63eae3aa93b3abd902adadc8250d189f3af57d88011fe0dd653",
+    "treeSha256": "f7ab0ffde1a708fc8e675737cef4539b946264bcb07274ab8672cae84b9fe5d6",
+    "modules": 118,
+    "runtime": "actual compiled candidate in workerd/D1/R2"
+  },
+  "sourceFiles": 201,
+  "allSourceHashesMatch": true,
+  "checks": {
+    "fullTests": 1222,
+    "finalFocusedUI": 39,
+    "finalFocusedMap": 52,
+    "nativeHTTP": 109,
+    "typecheck": true,
+    "build": true,
+    "lintErrors": 0,
+    "existingWarnings": 392,
+    "scopedLintWarnings": 0,
+    "finalCUA": "tasks/codex-r13-browser-final-checks.json",
+    "broaderCUA": "tasks/codex-r13-browser-checks.json",
+    "broaderRuntimeFinalHashNotClaimed": true
+  },
+  "reviews": [
+    {
+      "artifact": "tasks/codex-r13-final-review-2026-10-13T03-46-09-298Z.json",
+      "model": "ag/gemini-3.8-flash-high",
+      "verdict": "pass",
+      "limitations": [
+        "R13.4 CUA automated run and screenshot manifest pending sign-off before production tag",
+        "Native dialog and DOM inert baseline requires modern mobile web engines (Safari iOS 15.4+, Chrome 102+)"
+      ]
+    },
+    {
+      "artifact": "tasks/codex-r13-map-final-review-2026-10-13T03-42-36-186Z.json",
+      "model": "ag/gemini-3.8-flash-high",
+      "verdict": "pass",
+      "limitations": [
+        "3D plaques decorative; gate and discovery selections route through accessible HTML menu",
+        "Exam journey bar operates as 2D DOM overlay; hidden during active 3D mode"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "tasks/qa-takeover/r13-approved-candidate-question-375.png",
+      "sha256": "4fdc7a0499627ee572ba8e14ab4f35602fb2320c61ab987ab2ad2c659b85a834",
+      "finalHash": true
+    },
+    {
+      "path": "tasks/qa-takeover/r13-approved-candidate-menu-375.png",
+      "sha256": "772aef3f0f8422e5366dee1828cbc6c09fdb1918ccca88a931fe2b1f7ba184cf",
+      "finalHash": true
+    },
+    {
+      "path": "tasks/qa-takeover/r13-approved-candidate-question-desktop.png",
+      "sha256": "e8f6d765366c4caeb01bfce85acc2e69922caf4147bce9efc1c6c59d4a2c1652",
+      "finalHash": true
+    },
+    {
+      "path": "tasks/qa-takeover/r13-final-exploration-3d-375.png",
+      "sha256": "bf73d40f63662062cac4d9cb83a75cb9ff9e85368a80fbbf7759d96c4ae18ed2",
+      "finalHash": false
+    },
+    {
+      "path": "tasks/qa-takeover/r13-final-map-3d-375.png",
+      "sha256": "d91992d006dc8526bdfe3edeb5504531703b8e6217d2d050bd99b535c3cbe901",
+      "finalHash": false
+    },
+    {
+      "path": "tasks/qa-takeover/r13-final-shared-question.png",
+      "sha256": "4061f42bb44d6072432826a80f6f0bc5ac949dde6e75d2ad1bb98b0119de26f8",
+      "finalHash": false
+    }
+  ],
+  "limits": [
+    "Local synthetic data only, not production/real devices/150-pupil classroom acceptance.",
+    "Shared unsent drafts across actor switch/tab close not claimed; actor identity resets remain existing behavior.",
+    "Pre-existing content variant 12 rows vs option 25 rows at g11-sequences-p1.json:337/350 remains unmodified; owner approval needed before content correction.",
+    "3D canvas gate plaques decorative; accessible HTML menu selects gates/cards.",
+    "R10-R13 publication requires owner approval under shared plan19.9."
+  ]
+}

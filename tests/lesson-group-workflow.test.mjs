@@ -113,7 +113,7 @@ test('teacher group panel presents submitted product/rubric/pending controls and
   const source = await readFile(new URL('../components/lesson/TeacherGroupAssessment.tsx', import.meta.url), 'utf8');
   const component = { exports: {} };
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  vm.runInNewContext(code, { module: component, exports: component.exports, require: () => React });
+  vm.runInNewContext(code, { module: component, exports: component.exports, require: name => { if(name === "react") return React; if(name === "./MathText") return { __esModule: true, default: ({text}) => React.createElement("span", null, text) }; throw Error("Unexpected import: " + name); } });
   const room = openClassroom(); submitOpen(room);
   const html = renderToStaticMarkup(React.createElement(component.exports.TeacherGroupAssessment, { products: room.state.groupProducts, tasks: room.state.package.tasks, onCommand() {} }));
   assert.match(html, /Bốn cách cho cùng một dãy số/); assert.match(html, /Giải thích đủ bốn biểu diễn/);

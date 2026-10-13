@@ -1,5 +1,7 @@
 "use client";
 import { TeacherGroupAssessment } from "../../components/lesson/TeacherGroupAssessment";
+import { TeacherSetupPanel, TeacherSetupSummary, type TeacherSetup } from "../../components/lesson/TeacherSetupPanel";
+import { recommendTeacherSetup, normalizeTeacherSetup } from "../../lib/lesson/teacher-setup.js";
 import { TeacherLessonTools } from "../../components/lesson/TeacherLessonTools";
 import { LeaguePanel } from "../../components/lesson/LeaguePanel";
 import { ClassRosterPanel } from "../../components/lesson/ClassRosterPanel";
@@ -659,11 +661,12 @@ function MatchEditor({ task, onChange }: { task: LessonTask; onChange: (task: Le
           const answerKey = { ...(task.evaluation?.answerKey as Record<string, string> || {}) };
           if (e.target.value) answerKey[item.id] = e.target.value; else delete answerKey[item.id];
           onChange({ ...task, evaluation: { ...task.evaluation, answerKey } });
-        }}><option value="">Chưa chọn</option>{(task.inputSchema?.cards || []).map((card) => <option key={card.id} value={card.id}>{card.id}: {card.label}</option>)}</select></label>}
+        }}><option value="">Chưa chọn</option>{(task.inputSchema?.cards || []).map((card) => <option key={card.id} value={card.id}>{card.id}</option>)}</select></label>}
         <button type="button" className="lesson-button lesson-button-outline" onClick={() => onChange(editMatchItem(task, field, index, null))}>Xóa</button>
       </div>)}
       <button type="button" className="lesson-button lesson-button-outline" onClick={() => onChange(editMatchItem(task, field, task.inputSchema?.[field]?.length || 0, { id: "", label: "" }))}>Thêm {field === "representations" ? "biểu diễn" : "thẻ"}</button>
     </fieldset>)}
+    <ul aria-label="Nội dung các thẻ đáp án">{(task.inputSchema?.cards || []).map(card=><li key={card.id}><strong>{card.id}: </strong><MathText text={card.label}/></li>)}</ul>
   </div>;
 }
 
@@ -732,6 +735,9 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
   const [selectedRecord, setSelectedRecord] = useState<PackageRecord | null>(null);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [currentPackage, setCurrentPackage] = useState<LessonPackage | null>(null);
+  const [setupDraft,setSetupDraft]=useState<{key:string;value:TeacherSetup}|null>(null);
+  const setupKey=JSON.stringify([selectedRecord?.row_id||null,currentPackage?.id,currentPackage?.version,currentPackage?.contentHash,currentPackage?.sourceRefs]);
+  const teacherSetup=(setupDraft?.key===setupKey?setupDraft.value:recommendTeacherSetup(currentPackage)) as TeacherSetup;
   const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(true);
   const [studioStatus, setStudioStatus] = useState<string>("");
   const [editedPackage, setRawEditedPackage] = useState<LessonPackage | null>(null);
@@ -1804,7 +1810,8 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     setIsCreatingSession(true);
     try {
       const requestId = `req-create-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const body: Record<string, string> = {
+      const body: Record<string, unknown> = {
+        teacherSetup: normalizeTeacherSetup(teacherSetup,currentPackage),
         action: "create",
         packageRowId: selectedRecord.row_id,
         mode: launchMode,
@@ -2088,6 +2095,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
           )}
 
           <details className="lesson-card" style={{ padding: "1rem", marginBottom: "1rem" }}><summary>Lớp, tổ và hộ chiếu cộng dồn</summary><ClassRosterPanel onSelectClass={setSelectedClassId} /><LeaguePanel classId={selectedClassId} sessionId={activeSessionId || undefined} /></details>
+          {currentPackage&&<TeacherSetupPanel lesson={currentPackage as unknown as Record<string,unknown>} value={teacherSetup} onChange={value=>setSetupDraft({key:setupKey,value})}/>}
           {currentPackage && <ContentScopePicker<LessonPackage> catalogue={lessonCatalogue} packageId={currentPackage.id} packageKey={String(currentPackage.contentHash || currentPackage.id)} packageObjectives={currentPackage.objectives || []} onPreview={async selection => { const response = await fetch("/api/lessons/scope", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ package: currentPackage, selection }) }); return response.json(); }} onRequestScope={async scope => { const request=++scopeRequestRef.current,sourceRevision=sourceOperationRef.current; setScopeConsent(null);setScopeLabels([]);setGenerationConsentKey(""); const settings={...generationSettings,scope}; setGenerationSettings(settings); if(!importSourceId){setImportError("Nhập giáo án hoặc nội dung muốn dạy trước khi soạn phần bài này.");setStudioSubTab("import");return;} const response=await fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings})});const data=await response.json() as {aiConsent?:Record<string,unknown>;scope?:{sections?:Array<{title:string}>};generation?:{providerHost:string};error?:string};if(request!==scopeRequestRef.current||sourceRevision!==sourceOperationRef.current)return;if(!response.ok||!data.aiConsent){setImportError(data.error||"Chưa đối soát được phạm vi đã chọn với nguồn.");return;}setScopeConsent(data.aiConsent);setScopeLabels(data.scope?.sections?.map(section=>section.title)||[]);setGenerationProviderHost(data.generation?.providerHost||generationProviderHost);setStudioSubTab("import"); }} onSelect={draft => { setCurrentPackage(draft); setEditedPackage(draft); setSelectedRecord(null); setStudioSubTab("edit"); }} />}
           {/* Action Header Bar */}
           <div className="cockpit-toolbar">
@@ -3883,7 +3891,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                                                 setEditedPackage({ ...editedPackage, tasks: next });
                                               }}
                                             />
-                                            <span>{o.id}: {o.label}</span>
+                                            <span>{o.id}: <MathText text={o.label}/></span>
                                           </label>
                                         );
                                       })}
@@ -3953,7 +3961,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                         )}
 
                         {t.type === "reflection" && <label>Chọn mẫu phản tư<select className="lesson-select" value="" onChange={event=>{const prompts=(REFLECTION_PROMPTS as Record<string,string[]>)[event.target.value];if(!prompts)return;const next=[...(editedPackage.tasks||[])];next[idx]={...t,prompt:prompts.join("\n")};setEditedPackage({...editedPackage,tasks:next});}}><option value="">Giữ lời hỏi hiện tại</option>{Object.entries({"before-now":"Trước – giờ", "real-world-kolb":"Trải nghiệm thực tế", "ai-disclosure":"Kiểm tra gợi ý AI", "check-news":"Kiểm chứng tin tức", "cross-perspective":"Hai góc nhìn", "see-think-wonder":"Thấy – nghĩ – thắc mắc"}).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>}
-                        {Array.isArray(t.metadata?.practiceVariants) && <details className="lesson-sub-card"><summary>Câu biến thể luyện lại cần giáo viên đối soát</summary>{(t.metadata.practiceVariants as Array<{prompt:string;evaluation?:{answerKey?:unknown;rubric?:{criteria?:string[];lookFor?:string[]}};masteryEvidence?:boolean}>).map((variant,i)=><section key={i}><h4>Biến thể {i+1}</h4><MathText text={variant.prompt}/><p>Đáp án hoặc biểu hiện: {JSON.stringify(variant.evaluation?.answerKey || variant.evaluation?.rubric?.lookFor)}</p><p>{variant.masteryEvidence?"Có thể bổ sung minh chứng cá nhân sau kiểm tra độc lập; không tăng số bài bằng cách làm lại cùng họ câu hỏi.":"Luyện và tăng sao; không tự ghi thành thạo."}</p></section>)}</details>}
+                        {Array.isArray(t.metadata?.practiceVariants) && <details className="lesson-sub-card"><summary>Câu biến thể luyện lại cần giáo viên đối soát</summary>{(t.metadata.practiceVariants as Array<{prompt:string;evaluation?:{answerKey?:unknown;rubric?:{criteria?:string[];lookFor?:string[]}};masteryEvidence?:boolean}>).map((variant,i)=><section key={i}><h4>Biến thể {i+1}</h4><MathText text={variant.prompt}/><p>Đáp án hoặc biểu hiện: {typeof variant.evaluation?.answerKey === "string" ? <MathText text={variant.evaluation.answerKey}/> : variant.evaluation?.answerKey ? JSON.stringify(variant.evaluation.answerKey) : variant.evaluation?.rubric?.lookFor?.map((text,index)=><React.Fragment key={index}>{index>0?"; ":""}<MathText text={text}/></React.Fragment>)}</p><p>{variant.masteryEvidence?"Có thể bổ sung minh chứng cá nhân sau kiểm tra độc lập; không tăng số bài bằng cách làm lại cùng họ câu hỏi.":"Luyện và tăng sao; không tự ghi thành thạo."}</p></section>)}</details>}
                         {/* Open / Reflection Task Rubric Setup */}
                         {isOpenOrReflect && (
                           <div className="lesson-sub-card">
@@ -5024,10 +5032,10 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                           <strong>Hành động của HS:</strong> <MathText text={act.studentAction} />
                         </p>
                         <p style={{ margin: "0.25rem 0", color: "var(--lesson-text-muted)", fontSize: "0.875rem" }}>
-                          <strong>Sản phẩm kỳ vọng:</strong> {act.expectedProduct}
+                          <strong>Sản phẩm kỳ vọng:</strong> <MathText text={act.expectedProduct}/>
                         </p>
                         <p style={{ margin: "0.25rem 0", color: "var(--lesson-text-muted)", fontSize: "0.875rem" }}>
-                          <strong>Tiêu chí GV quan sát:</strong> {act.teacherLookFor}
+                          <strong>Tiêu chí GV quan sát:</strong> <MathText text={act.teacherLookFor}/>
                         </p>
                       </div>
                     ))}
@@ -5058,7 +5066,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                             <strong>Tiêu chí đánh giá:</strong>
                             <ul style={{ margin: "0.25rem 0 0 1.25rem", padding: 0 }}>
                               {task.evaluation.rubric.criteria?.map((c: string, i: number) => (
-                                <li key={i}>{c}</li>
+                                <li key={i}><MathText text={c}/></li>
                               ))}
                             </ul>
                           </div>
@@ -5230,6 +5238,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                       )}
                     </div>
 
+                    <section aria-label="Xác nhận thiết lập phòng"><h3>Thiết lập sẽ dùng khi mở phòng</h3><TeacherSetupSummary value={teacherSetup}/><p>Đây là cấu hình tổ chức trò chơi; nội dung và tiêu chí học tập đã duyệt giữ nguyên.</p></section>
                     <div style={{ marginBottom: "1.5rem" }}>
                       <label htmlFor="launch-title" className="task-label">Tiêu đề tiết học:</label>
                       <input
@@ -5270,7 +5279,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
       {activeTab === "cockpit" && (
         <section className="lesson-cockpit">
           {cockpitView && <TeacherGroupAssessment products={(cockpitView.groupProducts || {}) as React.ComponentProps<typeof TeacherGroupAssessment>["products"]} tasks={(cockpitView.tasks || []) as unknown as React.ComponentProps<typeof TeacherGroupAssessment>["tasks"]} onCommand={dispatchCommand} disabled={isCockpitBusy} />}
-          {activeSessionId && cockpitView && <TeacherLessonTools sessionId={activeSessionId} members={Object.entries(cockpitView.roster || {}).filter(([,member])=>member.present!==false).map(([learnerId,member])=>({learnerId,name:member.name}))} tasks={((cockpitView.tasks || []).filter(task=>task.activityId===cockpitView.timeline?.currentActivityId)) as Array<{id:string;prompt?:string}>} event={cockpitView.classEvent} tutors={cockpitView.tutors} valueBadges={cockpitView.valueBadges as import("../../components/lesson/TeacherLessonTools").ValueBadgeMap} qualityReport={cockpitView.qualityReport as import("../../components/lesson/TeacherLessonTools").LessonQualityReport} onCommand={dispatchCommand}/>}
+          {activeSessionId && cockpitView && <TeacherLessonTools key={activeSessionId} currentRule={cockpitView.lessonMode?.rule || (cockpitView.teacherSetup as TeacherSetup|undefined)?.rule || (cockpitView.gamePlan as {rule?:string})?.rule} currentParticipation={cockpitView.lessonMode?.participation || (cockpitView.teacherSetup as TeacherSetup|undefined)?.participation || (cockpitView.gamePlan as {participation?:string})?.participation} currentIntegrations={cockpitView.lessonIntegrations} currentAiPolicy={cockpitView.aiPolicy} teacherSetup={cockpitView.teacherSetup as TeacherSetup|undefined} status={cockpitView.status} exploration={cockpitView.exploration} sessionId={activeSessionId} members={Object.entries(cockpitView.roster || {}).filter(([,member])=>member.present!==false).map(([learnerId,member])=>({learnerId,name:member.name}))} tasks={((cockpitView.tasks || []).filter(task=>task.activityId===cockpitView.timeline?.currentActivityId)) as Array<{id:string;prompt?:string}>} event={cockpitView.classEvent} tutors={cockpitView.tutors} valueBadges={cockpitView.valueBadges as import("../../components/lesson/TeacherLessonTools").ValueBadgeMap} qualityReport={cockpitView.qualityReport as import("../../components/lesson/TeacherLessonTools").LessonQualityReport} onCommand={dispatchCommand}/>}
           {cockpitError && (
             <div className="task-status-banner task-status-error" style={{ marginBottom: "1rem" }}>
               {cockpitError}
@@ -5486,7 +5495,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                 return (
                   <div>
                     <p><strong>Nhiệm vụ của học sinh:</strong> <MathText text={currAct.studentAction} /></p>
-                    <p><strong>Sản phẩm kỳ vọng:</strong> {currAct.expectedProduct}</p>
+                    <p><strong>Sản phẩm kỳ vọng:</strong> <MathText text={currAct.expectedProduct}/></p>
                     {activities[(cockpitView.timeline?.activityIndex || 0) + 1] && <p className="lesson-muted"><strong>Tiếp theo:</strong> {getPhaseDisplay(activities[(cockpitView.timeline?.activityIndex || 0) + 1].phase)} · {activities[(cockpitView.timeline?.activityIndex || 0) + 1].minutes} phút</p>}
                     <details><summary>Tiến trình tiết học</summary><ol className="lesson-checklist">{activities.map((activity, index) => <li key={activity.id} aria-current={index === (cockpitView.timeline?.activityIndex || 0) ? "step" : undefined}>{getPhaseDisplay(activity.phase)} · {activity.minutes} phút</li>)}</ol></details>
 
@@ -5521,7 +5530,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                               </div>
                               {tObj?.evaluation?.answerKey !== undefined && (
                                 <small style={{ color: "var(--lesson-text-muted)" }}>
-                                  Đáp án bài: {JSON.stringify(tObj.evaluation.answerKey)}
+                                  Đáp án bài: {typeof tObj.evaluation.answerKey === "string" ? <MathText text={tObj.evaluation.answerKey}/> : JSON.stringify(tObj.evaluation.answerKey)}
                                 </small>
                               )}
                             </div>
@@ -5581,11 +5590,11 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
                         </summary>
 
                         <div style={{ background: "var(--lesson-surface)", padding: "0.75rem", borderRadius: "6px", marginBottom: "0.75rem" }}>
-                          {item.practiceTask && <section><strong>Đề luyện đã nộp:</strong><MathText text={item.practiceTask.prompt || ""}/><p>Tiêu chí: {item.practiceTask.evaluation?.rubric?.criteria?.join("; ")}</p></section>}
+                          {item.practiceTask && <section><strong>Đề luyện đã nộp:</strong><MathText text={item.practiceTask.prompt || ""}/><p>Tiêu chí: <MathText text={item.practiceTask.evaluation?.rubric?.criteria?.join("; ")}/></p></section>}
                           {item.nonMastery && <p>Bài giáo viên ghi hộ: ghi nhận có hỗ trợ, không cấp thành thạo độc lập.</p>}
                           <strong>Bài làm của học sinh:</strong>
                           <p style={{ margin: "0.25rem 0 0 0" }}>
-                            {typeof item.answer === "object" ? JSON.stringify(item.answer) : String(item.answer ?? "")}
+                            {typeof item.answer === "object" ? JSON.stringify(item.answer) : <MathText text={String(item.answer ?? "")}/>}
                           </p>
                         </div>
 
@@ -5741,6 +5750,7 @@ export default function LessonDashboard({ user }: LessonDashboardProps) {
     </main>
   );
 }
+
 
 
 

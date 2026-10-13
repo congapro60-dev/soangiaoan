@@ -11,6 +11,11 @@ export function PracticePanel({ practice, gates, enabled, busy, onCommand }: {
   busy: boolean;
   onCommand: (type: string, payload: Record<string, unknown>) => Promise<unknown>;
 }) {
+  const [selectedGate, setSelectedGate] = React.useState("");
+  const [selectedBranch, setSelectedBranch] = React.useState("core");
+  const gate = gates?.find(item => item.id === selectedGate) || gates?.[0];
+  const branches = gate?.branches || ["core"];
+  const branch = branches.includes(selectedBranch) ? selectedBranch : branches[0];
   const [error, setError] = React.useState("");
   const command = async (type: string, payload: Record<string, unknown>) => {
     setError("");
@@ -21,7 +26,11 @@ export function PracticePanel({ practice, gates, enabled, busy, onCommand }: {
   return <section className="lesson-card" style={{ padding: "1rem", marginTop: "1rem" }} aria-label="Luyện lại cổng đã qua">
     <h3>Luyện lại cổng đã qua</h3>
     <p>Em thử câu biến thể để tăng sao. Đồng hồ lớp vẫn chạy theo chặng hiện tại; điểm chơi không xác nhận em đã đạt mục tiêu.</p>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>{gates.flatMap((gate, index) => (gate.branches || ["core"]).map(branch=><button className="lesson-button lesson-button-outline" type="button" key={gate.id+branch} disabled={busy || practice?.submission?.assessmentStatus === "pending"} onClick={() => void command("REVISIT", { activityId: gate.id, branch })}>Luyện cổng {gate.number || index + 1} · {branch==="support"?"Nền tảng":branch==="extension"?"Thử thách":"Chuẩn"}</button>))}</div>
+    <div style={{display:"flex",flexWrap:"wrap",gap:".5rem",alignItems:"end"}}>
+      <label>Cổng đã qua<select className="lesson-select" style={{minHeight:44}} value={gate?.id || ""} disabled={busy} onChange={event=>setSelectedGate(event.target.value)}>{gates.map((item,index)=><option key={item.id} value={item.id}>Cổng {item.number || index+1}</option>)}</select></label>
+      <label>Mức luyện<select className="lesson-select" style={{minHeight:44}} value={branch || ""} disabled={busy} onChange={event=>setSelectedBranch(event.target.value)}>{branches.map(value=><option key={value} value={value}>{value==="support"?"Nền tảng":value==="extension"?"Thử thách":"Chuẩn"}</option>)}</select></label>
+      <button className="lesson-button" style={{minHeight:44}} type="button" disabled={busy || !gate || !branch || practice?.submission?.assessmentStatus === "pending"} onClick={()=>{if(gate&&branch)void command("REVISIT",{activityId:gate.id,branch});}}>Mở câu</button>
+    </div>
     {practice && <PracticeInput key={practice.attemptId} practice={practice} busy={busy} onSubmit={(answer,confirmed,usedAI) => command("REVISIT_SUBMIT", { answer, attemptId: practice.attemptId, confirmed, usedAI })} />}
     {error && <p role="status">{error}</p>}
   </section>;

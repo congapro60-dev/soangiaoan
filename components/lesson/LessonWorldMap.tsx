@@ -12,6 +12,7 @@ export interface LessonMapPeer {
 }
 
 export interface LessonMapProjection {
+  discoveryPoints?:Array<{id:string;position:number;cell:number;found:boolean;collected:boolean}>;
   totalPosition: number;
   peers: LessonMapPeer[];
   activityIds?: string[];
@@ -62,6 +63,7 @@ interface LessonWorldMapProps {
   };
   onExamStationSelect?: (qid: string) => void;
   onPeerSelect?: (peerId: string) => void;
+  onExploreCard?: (cardId:string)=>void;
   onGateSelect?: (activityId: string) => void;
   onSelectBranch?: (branch: 'support' | 'core' | 'extension') => void;
 }
@@ -70,13 +72,13 @@ interface LessonWorldMapProps {
  * The campaign map every pupil, the teacher and the TV look at: the original game's terrain,
  * mascots and gates, drawn by public/lesson-map.html and fed from the lesson session.
  */
-export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch }: LessonWorldMapProps) {
+export function LessonWorldMap({ map, themeKey, sessionKey, height, className, topInset = 0, dice, onRollRequest, onDiceDone, examJourney, onExamStationSelect, onPeerSelect, onExploreCard, onGateSelect, onSelectBranch }: LessonWorldMapProps) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const readyRef = useRef(false);
   const latest = useRef<{ payload: { map: LessonMapProjection; world: string; sessionKey: string; topInset: number; dice?: LessonMapDice; examJourney?: LessonMapExamJourney; peerSelection: boolean; branchSelection?: boolean } } | null>(null);
-  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch });
+  const handlers = useRef({ onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onExploreCard, onGateSelect, onSelectBranch });
   useEffect(() => {
-    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onGateSelect, onSelectBranch };
+    handlers.current = { onRollRequest, onDiceDone, onExamStationSelect, onPeerSelect, onExploreCard, onGateSelect, onSelectBranch };
   });
 
   const world = resolveThemeId(themeKey || "modern") || "modern";
@@ -114,6 +116,9 @@ export function LessonWorldMap({ map, themeKey, sessionKey, height, className, t
         const personal = payload?.map;
         if (!payload?.examJourney && personal?.peers.some(peer => peer.own) &&
           ['support', 'core', 'extension'].includes(branch) && personal.availableBranches?.includes(branch)) handlers.current.onSelectBranch?.(branch);
+      } else if (type === "lesson-map:exploration") {
+        const id=event.data?.payload?.cardId,personal=latest.current?.payload.map;
+        if(!latest.current?.payload.examJourney&&typeof id==="string"&&personal?.peers.some(peer=>peer.own)&&personal.discoveryPoints?.some(point=>point.id===id))handlers.current.onExploreCard?.(id);
       } else if (type === "lesson-map:gate") {
         const activityId = event.data?.payload?.activityId;
         const payload = latest.current?.payload;

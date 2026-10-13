@@ -427,7 +427,7 @@ test("mediaReaction resolves theme and educational text without equating speed t
   assert.match(diceReaction.text, /Xúc xắc đã sẵn sàng/);
 });
 
-test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load, and educational disclaimer", async () => {
+test("PlayPage keeps audio opt-in and separate wallet in utilities menu without autoplay", async () => {
   let playSrc = await readFile(new URL("../app/play/page.tsx", import.meta.url), "utf8");
 
   // Initialize state so synchronous SSR renders main view
@@ -448,6 +448,7 @@ test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load
     '[bearerToken, setBearerToken] = useState<string | null>("token-an")'
   );
 
+  playSrc = playSrc.replace('[menuOpen, setMenuOpen] = useState<boolean>(false)', '[menuOpen, setMenuOpen] = useState<boolean>(true)');
   const playJs = ts.transpileModule(playSrc, {
     compilerOptions: {
       target: ts.ScriptTarget.ES2022,
@@ -493,6 +494,7 @@ test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load
     require(name) {
       if (name === "react") return { ...React, default: React, __esModule: true };
       if (name.endsWith("/MathText")) return { default: ({ text }) => text, MathText: ({ text }) => text, __esModule: true };
+      if (name.endsWith("/QuestionPager")) return { QuestionPager: ({items}) => React.createElement("section",null,items[0]?.content) };
       if (name.endsWith("/TaskInput")) return { default: () => null, __esModule: true };
       if (name.endsWith("/LessonThemedRoute")) return { default: () => null, LessonThemedRoute: () => null, getSafeWorldMetadata: () => ({ spriteImage: '/assets/mascots.png', mascots: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] }), __esModule: true };
       if (name.endsWith("/LessonMascotPicker")) return { LessonMascotPicker: () => null, LessonMascotChip: () => null, __esModule: true };
@@ -535,6 +537,7 @@ test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load
       if (name.endsWith("lesson-catalogue.json")) return { default: { lessons: [] } };
       if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
       if (name.endsWith("/SessionRules")) return { SessionRules: () => null };
+      if (name.endsWith("/ExplorationPanel")) return { ExplorationPanel: () => null, LessonAttention: () => null };
       if (name.endsWith("/TutorPanel")) return { TutorPanel: () => null };
       if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
       if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
@@ -549,11 +552,11 @@ test("PlayPage UI renders visible Bật phản hồi button, no autoplay at load
 
   // 1. Explicit visible "Bật phản hồi" button at load (No autoplay)
   assert.match(html, /Bật phản hồi/);
-  assert.match(html, /lesson-media-enable-btn/);
+  assert.match(html, /Tiện ích trò chơi/);
 
   // 2. Wallets are separate (the dice disclaimer now lives in the map stage; see lesson-map-stage-ui.test.mjs)
-  assert.match(html, /🎖️ 20/);
-  assert.match(html, /title="Ví cá nhân độc lập/);
+  assert.match(html, /Ví cá nhân: 20/);
+  assert.doesNotMatch(html, /play-learner-wallet/);
 
   // 3. Static student import: no private answers leaked
   assert.ok(!html.includes("hiddenKey"));

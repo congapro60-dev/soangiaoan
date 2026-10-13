@@ -28,9 +28,10 @@ test('school frameworks keep official names and exact category counts', () => {
   assert.ok(values.EDUFIT_VALUES.every(Object.isFrozen));
 });
 
-test('lesson integrations accept exactly one or two known IDs and reject forged values', () => {
+test('lesson integrations accept zero to two known IDs and reject forged values', () => {
   assert.deepEqual(values.sanitizeLessonIntegrations(['real-world', 'ai']), ['real-world', 'ai']);
-  for (const bad of [null, [], ['real-world', 'ai', 'global-rights'], ['ai', 'ai'], ['unknown'], 'ai', [{ id: 'ai' }], ['__proto__']]) assert.throws(() => values.sanitizeLessonIntegrations(bad), /INVALID_INTEGRATIONS/);
+  assert.deepEqual(values.sanitizeLessonIntegrations([]), []);
+  for (const bad of [null, ['real-world', 'ai', 'global-rights'], ['ai', 'ai'], ['unknown'], 'ai', [{ id: 'ai' }], ['__proto__']]) assert.throws(() => values.sanitizeLessonIntegrations(bad), /INVALID_INTEGRATIONS/);
 });
 
 test('reflection templates cover Visible Thinking, AI disclosure, Kolb and verification', () => {

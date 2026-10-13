@@ -375,7 +375,7 @@
       ],
       "activityId": "act-w6p38-precheck",
       "participation": "individual",
-      "prompt": "Tính u_1 của u_n=2n−1, n≥1.",
+      "prompt": "Tính $u_1$ của $u_n=2n-1$, $n\\ge1$.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -515,7 +515,7 @@
       ],
       "activityId": "act-w6p38-formation",
       "participation": "group",
-      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Sau đó thảo luận: Bốn số hạng có đảm bảo một công thức duy nhất không?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ bài phân thức đầu, lập bảng ba chỉ số và ghi/vẽ điểm(n; u_n). Từ1, 4, 7, 10 dự đoán công thức dưới giả định tăng thêm3; nói rõ dự đoán không duy nhất.",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Sau đó thảo luận: Bốn số hạng có đảm bảo một công thức duy nhất không?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ bài phân thức đầu, lập bảng ba chỉ số và ghi/vẽ điểm$(n; u_n)$. Từ1, 4, 7, 10 dự đoán công thức dưới giả định tăng thêm3; nói rõ dự đoán không duy nhất.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -565,7 +565,7 @@
       ],
       "activityId": "act-w6p38-practice",
       "participation": "individual",
-      "prompt": "Nhánh hỗ trợ: Tính $u_4$ của $u_n=2n-1$. Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương.",
+      "prompt": "Nhánh hỗ trợ: Tính $u_4$ của $u_n=2n-1$. Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1, u_2, u_3$. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTính ba số hạng đầu của một dãy trong bài; lập bảng $n$, $u_n$ và ghi/vẽ ba điểm$(n; u_n)$. Nêu miền chỉ số nguyên dương.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -612,7 +612,7 @@
       ],
       "activityId": "act-w6p38-practice",
       "participation": "individual",
-      "prompt": "Nhánh chuẩn: Giả sử mỗi bước của dãy tiếp tục tăng thêm3. Viết truy hồi của dãy $2, 5, 8, 11, \\ldots$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Ghi điều kiện, giải đầy đủ và thử lại.\nTính ba số hạng đầu của một dãy trong bài; lập bảng n, u_n và ghi/vẽ ba điểm(n; u_n). Nêu miền chỉ số nguyên dương.",
+      "prompt": "Nhánh chuẩn: Giả sử mỗi bước của dãy tiếp tục tăng thêm3. Viết truy hồi của dãy $2, 5, 8, 11, \\ldots$. Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu. Ghi điều kiện, giải đầy đủ và thử lại.\nTính ba số hạng đầu của một dãy trong bài; lập bảng $n$, $u_n$ và ghi/vẽ ba điểm$(n; u_n)$. Nêu miền chỉ số nguyên dương.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -658,7 +658,7 @@
       ],
       "activityId": "act-w6p38-practice",
       "participation": "individual",
-      "prompt": "Chọn và sửa một lỗi: Nhầm chỉ số n với giá trị u_n. Tính sai số hạng đầu khi chuyển từ truy hồi. Dùng công thức tổng quát cho n = 0 dù dãy bắt đầu từ n = 1. Sau đó giải thích: Bốn số hạng có đảm bảo một công thức duy nhất không?\nDự đoán quy luật1, 4, 7, 10 theo giả định thêm3; kiểm bốn vị trí và nêu giới hạn dự đoán.",
+      "prompt": "Chọn và sửa một lỗi: Nhầm chỉ số $n$ với giá trị $u_n$. Tính sai số hạng đầu khi chuyển từ truy hồi. Dùng công thức tổng quát cho $n = 0$ dù dãy bắt đầu từ $n = 1$. Sau đó giải thích: Bốn số hạng có đảm bảo một công thức duy nhất không?\nDự đoán quy luật1, 4, 7, 10 theo giả định thêm3; kiểm bốn vị trí và nêu giới hạn dự đoán.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -750,7 +750,7 @@
       ],
       "activityId": "act-w6p38-recheck",
       "participation": "individual",
-      "prompt": "Bài kiểm tra lại độc lập: Với $u_n=2n-1$, $n\\ge1$, lập bảng n=1, 2, 3 và ghi/vẽ ba điểm (n; u_n). Phân biệt chỉ số và giá trị.",
+      "prompt": "Bài kiểm tra lại độc lập: Với $u_n=2n-1$, $n\\ge1$, lập bảng $n=1, 2, 3$ và ghi/vẽ ba điểm $(n; u_n)$. Phân biệt chỉ số và giá trị.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -935,7 +935,7 @@
       ],
       "activityId": "act-w6p38-exit",
       "participation": "individual",
-      "prompt": "Phiếu cuối tiết độc lập: Với $u_n=\\frac n{n+1}$, $n\\ge1$, lập bảng n=1, 2, 3 và ghi/vẽ điểm. Vì sao biểu diễn rời rạc?",
+      "prompt": "Phiếu cuối tiết độc lập: Với $u_n=\\frac n{n+1}$, $n\\ge1$, lập bảng $n=1, 2, 3$ và ghi/vẽ điểm. Vì sao biểu diễn rời rạc?",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -981,7 +981,7 @@
       ],
       "activityId": "act-w6p38-exit",
       "participation": "individual",
-      "prompt": "Phiếu cuối tiết độc lập: Từ1, 4, 7, 10, dự đoán công thức nếu mỗi bước tăng3; kiểm u_4 và giải thích vì sao phải nêu giả định.",
+      "prompt": "Phiếu cuối tiết độc lập: Từ1, 4, 7, 10, dự đoán công thức nếu mỗi bước tăng3; kiểm $u_4$ và giải thích vì sao phải nêu giả định.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -1489,7 +1489,7 @@
   "rubric": {
     "criteria": [
       "Thay chỉ số đúng, phân số chính xác.",
-      "Bảng khớp điểm(n; u_n), miền rời rạc, không nhầm tọa độ.",
+      "Bảng khớp điểm$(n; u_n)$, miền rời rạc, không nhầm tọa độ.",
       "Dự đoán khớp dữ liệu, đủ giả định, không kết luận duy nhất."
     ],
     "lookFor": [
@@ -1516,5 +1516,5 @@
       "group_score"
     ]
   },
-  "contentHash": "8aa9cd6b2ef8904d048a9a2721ae799489d37bb6b5ad24d36b4e28815897f03e"
+  "contentHash": "0f269e8a9f5ee08cc519b90448309ebd62385683d38a5515ccc13d1882c1faae"
 }

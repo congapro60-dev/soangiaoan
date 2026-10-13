@@ -64,14 +64,17 @@ test('frame bridge accepts only current own eligible gate from the same origin a
 
 test('gate picker retains accessible buttons, current stars and eligibility after polling', () => {
   const root = element(), nodes = new Map(), sent = [];
+  const createElement=()=>{const node=element();node.appendChild=child=>{node.children.push(child);child.parentElement=node;if(child.id)nodes.set(child.id,child);return child;};return node;};
+  const menu=createElement();menu.id="lmMenu";nodes.set(menu.id,menu);
   root.appendChild = child => { root.children.push(child); child.parentElement = root; nodes.set(child.id, child); return child; };
   const context = vm.createContext({ root, lastInput: input(), standaloneDemo: false,
-    document: { getElementById: id => nodes.get(id), createElement: element },
+    document: { getElementById: id => nodes.get(id), createElement },
     window: { parent: { postMessage: data => sent.push(plain(data)) }, location: { origin: 'https://map.test' } },
     visiblePeers: data => data.map.peers, cellOf: (position, total) => Math.round(position / total * 32), sprite: noop, selectPeer: noop, openPeerChooser: noop });
   vm.runInContext(['post', 'buildModel', 'gateAllowed', 'selectGate', 'renderGatePicker'].map(name => sourceNode(script, name)).join('\n'), context);
   context.renderGatePicker(context.lastInput);
   const picker = nodes.get('lmGates'); assert.equal(picker.hidden, false);
+  assert.equal(picker.parentElement.parentElement,menu);assert.equal(picker.parentElement.open,undefined,'gate list starts in collapsed details');
   assert.equal(picker.attributes['aria-label'], 'Sao từng cổng của em');
   assert.equal(picker.children.length, 9);
   const first = picker.children[0]; assert.equal(first.textContent, 'Cổng 1 · ★★★★');

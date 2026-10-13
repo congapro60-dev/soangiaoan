@@ -26,18 +26,40 @@ export function LessonEncounterSheet({ open, title, kicker, onClose, variant = "
     if (!open) return;
     returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     panelRef.current?.focus({ preventScroll: true });
+    const background:Array<{element:HTMLElement;inert:boolean}>=[];
+    let branch:HTMLElement|null=panelRef.current?.parentElement||null;
+    while(branch&&branch!==document.body){
+      for(const sibling of Array.from(branch.parentElement?.children||[])){
+        if(sibling!==branch&&sibling instanceof HTMLElement&&sibling.tagName!=="DIALOG"){
+          background.push({element:sibling,inert:sibling.inert});sibling.inert=true;
+        }
+      }
+      branch=branch.parentElement;
+    }
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if(document.querySelector("dialog[open]"))return;
+      if (event.key === "Escape") {event.preventDefault();onClose();}
+      if(event.key==="Tab"){
+        const items=Array.from(panelRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],summary,[tabindex="0"]')||[]).filter(item=>item.getClientRects().length>0&&!item.closest('[hidden],[inert]'));
+        const first=items[0],last=items.at(-1);
+        if(!first){event.preventDefault();panelRef.current?.focus();}
+        else if(event.shiftKey&&(document.activeElement===first||document.activeElement===panelRef.current)){event.preventDefault();last?.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      returnFocus.current?.focus?.({ preventScroll: true });
+      for(const item of background)item.element.inert=item.inert;
+      if(!document.querySelector("dialog[open]")){
+        const target=(!returnFocus.current||returnFocus.current===document.body||returnFocus.current.isConnected===false)?document.querySelector<HTMLElement>("[data-encounter-trigger]"):returnFocus.current;
+        target?.focus?.({ preventScroll: true });
+      }
     };
   }, [open, onClose]);
 
   return (
-    <div className={`lesson-encounter lesson-encounter-${variant}`} data-open={open ? "true" : "false"} aria-hidden={!open}>
+    <div className={`lesson-encounter lesson-encounter-${variant}`} data-open={open ? "true" : "false"} aria-hidden={!open} inert={!open}>
       <div className="lesson-encounter-backdrop" onClick={onClose} />
       <div
         ref={panelRef}

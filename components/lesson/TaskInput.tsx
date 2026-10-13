@@ -530,6 +530,7 @@ export function TaskInput({
       return (
         <fieldset className="task-fieldset" disabled={disabled}>
           <legend className="task-legend">Phân loại từng mục vào nhóm phù hợp:</legend>
+          <ul aria-label="Các nhóm để phân loại">{categories.map((category,index)=><li key={category.id}>Nhóm {index+1}: <MathText text={category.label}/></li>)}</ul>
           <div className="task-rep-list">
             {items.map(item => (
               <div key={item.id} className="task-rep-row">
@@ -537,7 +538,7 @@ export function TaskInput({
                 <select id={`task-classify-${inputId}-${item.id}`} className="task-select" disabled={disabled} value={mapping[item.id] || ""}
                   onChange={event => { if (!disabled) handleValueChange({ ...mapping, [item.id]: event.target.value }); }}>
                   <option value="">-- Chọn nhóm --</option>
-                  {categories.map(category => <option key={category.id} value={category.id}>{category.label.replace(/\$/g, "")}</option>)}
+                  {categories.map((category,index) => <option key={category.id} value={category.id}>Nhóm {index+1}</option>)}
                 </select>
               </div>
             ))}
@@ -631,6 +632,7 @@ export function TaskInput({
           <p className="task-instruction">
             Ghép mỗi mục với thẻ phù hợp:
           </p>
+          <ul aria-label="Các thẻ để ghép">{cards.map((card,index)=><li key={card.id}>Thẻ {index+1}: <MathText text={card.label}/></li>)}</ul>
           <div className="task-rep-list">
             {reps.map((rep) => {
               const selectedCardId = mapping[rep.id] || "";
@@ -653,16 +655,16 @@ export function TaskInput({
                       }}
                     >
                       <option value="">-- Chọn thẻ phù hợp --</option>
-                      {cards.map((card) => (
+                      {cards.map((card,index) => (
                         <option key={card.id} value={card.id}>
-                          {card.label.replace(/\$/g, "")}
+                          Thẻ {index+1}
                         </option>
                       ))}
                     </select>
 
                     {matchedCard && (
                       <div className="task-matched-preview">
-                        <MathText text={matchedCard.label} inline={true} />
+                        <MathText text={matchedCard.label} inline={false} />
                       </div>
                     )}
                   </div>

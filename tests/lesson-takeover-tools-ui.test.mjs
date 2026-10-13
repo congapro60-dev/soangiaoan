@@ -19,16 +19,23 @@ function ui(file, extra = {}) {
     require(name) { if (name === 'react') return react; if (name.includes('/values')) return { EDUFIT_VALUES, LESSON_INTEGRATIONS };
       if (name.includes('useLessonSession')) return { formatDuration:()=> '1:00',useLessonSession: () => ({ view: extra.view, getRemainingMs: () => 60000 }) };
       if (name.includes('useLessonMedia')) return { useLessonMedia: () => ({ settings: {}, updateSettings() {}, enableMedia() {} }) };
+      if (name.includes('LessonEncounterSheet')) return { LessonEncounterSheet: 'LessonEncounterSheet' };
+      if (name.includes('QuestionPager')) return { QuestionPager: 'QuestionPager' };
       if (name.includes('ClassEventPanel')) return { ClassEventPanel: 'ClassEventPanel' };
       if (name.includes('SharedDevicePanel')) return { BoardResponsePanel: 'BoardResponsePanel' };
       return { __esModule: true, default: 'Component' }; }, ...extra });
   return { render(name, props) { cursor = 0; effects.length = 0; return output[name](props); }, effects, state };
 }
-function nodes(tree, match = () => true) { return !tree || typeof tree !== 'object' ? [] : [...(match(tree) ? [tree] : []), ...(tree.children || []).flatMap(child => nodes(child, match))]; }
+function nodes(tree, match = () => true) { return !tree || typeof tree !== 'object' ? [] : [...(match(tree) ? [tree] : []), ...(tree.children || []).flatMap(child => nodes(child, match)),...(tree.type==='QuestionPager'?(tree.props.items||[]).flatMap(item=>nodes(item.content,match)):[])]; }
 const named = (tree, text) => nodes(tree, node => node.children.includes(text))[0];
 const byId = (tree, id) => nodes(tree, node => node.props.id === id)[0];
 const members = [{ learnerId: 'a', name: 'An' }, { learnerId: 'b', name: 'Bình' }];
 const props = { sessionId: 'room', members, tasks: [{ id: 'q', prompt: 'Câu hỏi' }], onCommand: async () => ({ ok: true }) };
+test('changing rule drafts locally and only Apply dispatches the new mode',async()=>{
+ const commands=[],env=ui('components/lesson/TeacherLessonTools.tsx');const input={...props,currentRule:'campaign',currentParticipation:'individual',onCommand:async(type,payload)=>{commands.push({type,payload});return{ok:true};}};
+ let tree=env.render('TeacherLessonTools',input);nodes(tree,n=>n.type==='select'&&n.props.value==='campaign')[0].props.onChange({target:{value:'treasure'}});assert.equal(commands.length,0);
+ tree=env.render('TeacherLessonTools',input);const button=nodes(tree,n=>n.type==='button'&&n.children.includes('Áp dụng luật và hình thức'))[0];await button.props.onClick();assert.deepEqual(JSON.parse(JSON.stringify(commands)),[{type:'SET_MODE',payload:{rule:'treasure',participation:'individual'}}]);
+});
 
 test('teacher sees named tutor consent history and can revoke a live pair without peer answers',async()=>{
  const commands=[];const env=ui('components/lesson/TeacherLessonTools.tsx');const tree=env.render('TeacherLessonTools',{...props,tutors:{history:[{id:'pair',tutorId:'a',recipientId:'b',status:'active'}]},onCommand:async(type,payload)=>{commands.push({type,payload});return{ok:true};}});
@@ -97,5 +104,29 @@ test('shared group proposal shows authored labels instead of internal answer IDs
  env.render('default');env.state[0]='room';env.state[2]='device';env.state[4]=members;env.state[5]='a';
  const tree=env.render('default');const math=nodes(tree,node=>node.props.text==='Cách liệt kê: 18, 20, 22')[0];
  assert.ok(math);assert.equal(math.props.inline,false);assert.equal(nodes(tree,node=>node.children.some(child=>typeof child==='string'&&child.includes('{"rep"'))).length,0);
+});
+
+test('practice picks gate and branch without commands until explicit open, preserves attempt key',async()=>{
+ const commands=[],env=ui('components/lesson/PracticePanel.tsx'),input={enabled:true,busy:false,gates:[{id:'a',branches:['support','core']},{id:'b',branches:['extension']}],practice:{activityId:'a',attemptId:'same-attempt',task:{id:'q'},assessed:false},onCommand:async(type,payload)=>{commands.push({type,payload});return{ok:true};}};
+ let tree=env.render('PracticePanel',input);const selects=nodes(tree,n=>n.type==='select');selects[0].props.onChange({target:{value:'b'}});assert.equal(commands.length,0);
+ tree=env.render('PracticePanel',input);assert.equal(nodes(tree,n=>n.type==='select')[1].props.value,'extension');assert.ok(nodes(tree,n=>n.props.key==='same-attempt').length);
+ await named(tree,'Mở câu').props.onClick();assert.deepEqual(JSON.parse(JSON.stringify(commands)),[{type:'REVISIT',payload:{activityId:'b',branch:'extension'}}]);
+ tree=env.render('PracticePanel',{...input,practice:{...input.practice,submission:{assessmentStatus:'pending'}}});assert.equal(named(tree,'Mở câu').props.disabled,true);
+});
+
+test('shared event hides but retains question pager and binds cursor to actor/activity/round',()=>{
+ const env=ui('app/shared/page.tsx',{view:{status:'active',round:2,tasks:[{id:'q',prompt:'Own'}],timeline:{currentActivityId:'act'},classEvent:{status:'active',type:'surf'},submissions:{}}});
+ env.render('default');env.state[0]='room';env.state[2]='device';env.state[4]=members;env.state[5]='a';
+ const tree=env.render('default'),pager=nodes(tree,n=>n.type==='QuestionPager')[0];assert.equal(pager.props.identity,'room:a:act:2');assert.equal(pager.props.items.length,1);
+ assert.ok(nodes(tree,n=>n.props.hidden===true&&n.props.style?.display==='none'&&n.children.includes(pager)).length);
+});
+test('shared popup retains tasks while closed, practice replaces ordinary question, pause suppresses popup',()=>{
+ const view={status:'active',round:1,tasks:[{id:'q',prompt:'Own'}],timeline:{currentActivityId:'act'},submissions:{}};
+ const env=ui('app/shared/page.tsx',{view});env.render('default');env.state[0]='room';env.state[2]='device';env.state[4]=members;env.state[5]='a';
+ let tree=env.render('default');assert.equal(nodes(tree,n=>n.type==='LessonEncounterSheet')[0].props.open,false);assert.equal(nodes(tree,n=>n.type==='QuestionPager')[0].props.items.length,1);
+ named(tree,'Mở nhiệm vụ').props.onClick();tree=env.render('default');assert.equal(nodes(tree,n=>n.type==='LessonEncounterSheet')[0].props.open,true);
+ named(tree,'Luyện lại cổng đã qua').props.onClick();tree=env.render('default');const pager=nodes(tree,n=>n.type==='QuestionPager')[0];assert.ok(nodes(tree,n=>n.props.hidden&&n.children.includes(pager)).length);
+ named(tree,'Về câu đang học').props.onClick();tree=env.render('default');assert.ok(nodes(tree,n=>n.props.hidden===false&&n.children.some(child=>child.type==='QuestionPager')).length);
+ view.status='paused';tree=env.render('default');assert.equal(nodes(tree,n=>n.type==='LessonEncounterSheet')[0].props.open,false);assert.equal(nodes(tree,n=>n.type==='QuestionPager')[0].props.items.length,1);
 });
 

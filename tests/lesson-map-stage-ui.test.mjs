@@ -122,3 +122,12 @@ test('encounter sheet: open it is a modal dialog with a title and a way back to 
   assert.match(html, /Nhiệm vụ của cổng/);
   assert.match(html, /Xem bản đồ/);
 });
+
+test('map stage forwards eligible gate selection to the shared 2D/3D frame',async()=>{
+ let received; const {LessonMapStage:Stage}=await load('LessonMapStage.tsx',{'/LessonWorldMap':{LessonWorldMap:props=>{received=props;return null;}}});
+ const callback=()=>{};
+ renderToStaticMarkup(React.createElement(Stage,{sessionKey:'s',map:baseMap(10),disabled:false,onRoll:()=>({ok:true}),onGateSelect:callback}));
+ assert.equal(received.onGateSelect,callback);
+ renderToStaticMarkup(React.createElement(Stage,{sessionKey:'s',map:baseMap(10),disabled:true,onRoll:()=>({ok:true}),onGateSelect:callback}));
+ assert.equal(received.onGateSelect,undefined);
+});

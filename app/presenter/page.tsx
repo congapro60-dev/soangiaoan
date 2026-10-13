@@ -394,6 +394,7 @@ export default function PresenterPage() {
   const isPaused = view?.status === "paused";
   const isConcluded = view?.status === "concluded";
   const tasksList = (view?.tasks || []) as PresenterTask[];
+  if(view?.status==="waiting"||isPaused)return <main className="presenter-shell" style={{display:"grid",placeContent:"center",minHeight:"100dvh",textAlign:"center",padding:24}}><h1>{isPaused?"Cả lớp nhìn lên — trao đổi cùng thầy cô":"Chờ thầy cô bắt đầu"}</h1><p>{isPaused?"Cùng giải thích, kiểm chứng và ghi lại điều vừa học.":"Chuẩn bị vở và bút."}</p></main>;
 
   return (
     <main className={`presenter-shell ${media.settings.reducedMotion ? "lesson-media-reduced-motion" : ""}`}>

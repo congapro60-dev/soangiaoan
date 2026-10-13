@@ -8,6 +8,7 @@ import { importText } from '../lib/lesson/import/text.js';
 import { hashPackage, MANDATORY_FORBIDDEN_SOURCES } from '../lib/lesson/schema.js';
 import { validateLessonPackage } from '../lib/lesson/validate.js';
 import { createLessonService } from '../lib/lesson/service.js';
+import * as teacherSetup from '../lib/lesson/teacher-setup.js';
 
 const source = await readFile(new URL('../app/lessons/lesson-dashboard.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('dashboard.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -372,6 +373,8 @@ function formHarness(fetch = async () => { throw new Error('Unexpected request')
   vm.runInNewContext(js, { exports, fetch, alert: message => { throw new Error(message); }, require(name) {
     if (name === 'react') return hooks;
     if (name.endsWith('/MathText')) return { default: ({ text }) => text, __esModule: true };
+    if (name.endsWith('/lib/lesson/teacher-setup.js')) return teacherSetup;
+    if (name.endsWith('/TeacherSetupPanel')) return {TeacherSetupPanel:()=>null,TeacherSetupSummary:()=>null};
     if (name.endsWith('/LessonWorldMap')) return { LessonWorldMap: () => null, __esModule: true };
     if (name.endsWith('/LessonPeerInspector')) return { LessonPeerInspector: () => null, __esModule: true };
     if (name.endsWith('/lib/lesson/cockpit.js')) return { cockpitLearners: () => [], __esModule: true };

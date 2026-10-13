@@ -24,6 +24,7 @@ export interface TimelineState {
 }
 
 export interface LessonProjection {
+  exploration?: import("./ExplorationPanel").ExplorationView;
   id?: string;
   learnerId?: string;
   learnerName?: string;

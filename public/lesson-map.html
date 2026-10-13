@@ -31,7 +31,7 @@
   .lm-lanes>button:disabled{opacity:.5;cursor:default}
   #lmLanes[hidden]{display:none}
   .lm-btn[aria-expanded="true"]{background:#f6d481;color:#1b1405;border-color:#fff3c9}
-  .lm-menu{position:absolute;z-index:7;top:calc(var(--lm-top,0px) + 10px);right:64px;width:min(300px,calc(100vw - 84px));max-height:calc(100% - var(--lm-top,0px) - 24px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:rgba(8,15,33,.94);border:1px solid rgba(255,255,255,.22);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:#eef1f7;font-size:14px}
+  .lm-menu{position:absolute;z-index:7;top:calc(var(--lm-top,0px) + 10px);right:64px;width:min(300px,calc(100vw - 84px));max-height:calc(100% - var(--lm-top,0px) - 132px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:rgba(8,15,33,.94);border:1px solid rgba(255,255,255,.22);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:#eef1f7;font-size:14px}
   .lm-menu[hidden]{display:none}
   .lm-row{display:flex;flex-direction:column;gap:5px}
   .lm-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#aab6cc}
@@ -185,8 +185,9 @@
       picker.id = 'lmGates';
       picker.setAttribute('role', 'group');
       picker.setAttribute('aria-label', 'Sao từng cổng của em');
-      picker.style.cssText = 'position:absolute;z-index:6;left:10px;right:64px;bottom:58px;display:flex;gap:6px;overflow-x:auto;padding:4px;max-width:calc(100% - 84px);background:rgba(8,15,33,.8);border-radius:12px';
-      root.appendChild(picker);
+      picker.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:4px';
+      var menu=document.getElementById('lmMenu');
+      if(menu){var section=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Các cổng và sao';summary.style.minHeight='44px';section.appendChild(summary);section.appendChild(picker);menu.appendChild(section);}
     }
     picker.hidden = !gates.length;
     picker.style.display = gates.length ? 'flex' : 'none';
@@ -301,11 +302,13 @@
       '<div class="strategy-mini"><canvas class="strategy-minimap" width="192" height="108" tabindex="0" role="button" aria-label="Bản đồ thu nhỏ. Chạm để di chuyển camera; Enter để xem toàn cảnh."></canvas></div>' +
       '<div class="strategy-status" role="status"></div></div>' +
       '<div class="lm-controls" role="toolbar" aria-label="Điều khiển bản đồ">' +
-      (hasOwn ? '<button class="lm-btn" data-action="map-own" title="Tìm linh vật của em" aria-label="Tìm linh vật của em">' + ICON_FIND + '</button>' : '') +
-      '<button class="lm-btn" data-action="map-reset" title="Xem cả bản đồ" aria-label="Xem cả bản đồ">' + ICON_ALL + '</button>' +
       '<button class="lm-btn" data-action="map-menu" aria-expanded="false" aria-controls="lmMenu" title="Tùy chọn bản đồ" aria-label="Tùy chọn bản đồ">' + ICON_MENU + '</button>' +
       '</div>' +
       '<div class="lm-menu" id="lmMenu" hidden>' +
+      '<div class="lm-row">' +
+      (hasOwn ? '<button class="lm-btn" data-action="map-own" title="Tìm linh vật của em" aria-label="Tìm linh vật của em">' + ICON_FIND + '</button>' : '') +
+      '<button class="lm-btn" data-action="map-reset" title="Xem cả bản đồ" aria-label="Xem cả bản đồ">' + ICON_ALL + '</button>' +
+      '</div>' +
       '<div class="lm-row" id="lmLanes" hidden><span class="lm-label">Lối đi của em · cùng cổng kiểm tra</span><div class="lm-seg lm-lanes"><button data-action="map-branch" data-branch="support" aria-label="Đường tiếp sức — hỗ trợ">Tiếp sức</button><button data-action="map-branch" data-branch="core" aria-label="Đường khám phá — chuẩn">Khám phá</button><button data-action="map-branch" data-branch="extension" aria-label="Đường thử thách — mở rộng">Thử thách</button></div></div>' +
       '<div class="lm-row"><span class="lm-label">Kiểu xem</span><div class="lm-seg"><button data-action="map-mode" data-mode="2d" aria-pressed="true">2D phẳng</button><button data-action="map-mode" data-mode="3d" aria-pressed="false">3D</button></div></div>' +
       '<div class="lm-row lm-only3d lm-hidden"><span class="lm-label">Góc nhìn</span><div class="lm-seg"><button data-action="map-view" data-view="1">Sau lưng</button><button data-action="map-view" data-view="2">Chéo</button><button data-action="map-view" data-view="3">Ngang</button><button data-action="map-view" data-view="4">Từ trên</button></div></div>' +
@@ -577,6 +580,7 @@
       examJourney: input.examJourney || null,
       places: theme.places,
       lessonGates: lessonGates,
+      discoveryPoints: own && !input.examJourney && Array.isArray(input.map.discoveryPoints) ? input.map.discoveryPoints.filter(function(p){return p && typeof p.id==='string' && Number.isInteger(p.cell) && p.cell>=0 && p.cell<=32;}).slice(0,3) : [],
       ownBranch: own && !input.examJourney && ['support','core','extension'].indexOf(input.map.ownBranch) >= 0 ? input.map.ownBranch : null,
       laneColor: theme.palette && theme.palette[2],
       community: false,
@@ -766,6 +770,7 @@
     }
     renderFilterUi(input);
     renderLanes(input);
+    renderDiscovery(input);
     if (!input.examJourney) {
       renderGatePicker(input);
       if (!pilot) syncFlatGateStars(buildModel(input, theme));
@@ -779,11 +784,27 @@
       renderExamJourney(input.examJourney, pilot !== null);
   }
 
+  function renderDiscovery(input) {
+    var panel=document.getElementById('lmDiscoveries');
+    if(!panel){panel=document.createElement('div');panel.id='lmDiscoveries';panel.setAttribute('aria-label','Các điểm Khám phá');panel.style.cssText='display:flex;flex-direction:column;gap:4px';var menu=document.getElementById('lmMenu');if(menu){var section=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Sổ tay Khám phá';summary.style.minHeight='44px';section.appendChild(summary);section.appendChild(panel);menu.appendChild(section);}}
+    var discovery=buildModel(input,themeOf(input.world)).discoveryPoints;
+    var signature=JSON.stringify(discovery);
+    if(panel.dataset.signature===signature)return;
+    panel.dataset.signature=signature;
+    panel.replaceChildren();
+    discovery.forEach(function(p,i){var button=document.createElement('button');button.type='button';button.dataset.action='map-explore';button.dataset.cardId=p.id;button.textContent='Khám phá '+(i+1)+' · ô '+p.cell+(p.collected?' · đã nhận':p.found?' · đã gặp':'');button.style.cssText='min-height:44px;background:#172033;color:#fff;border:1px solid #fbbf24;border-radius:8px;padding:6px 10px';panel.appendChild(button);});
+  }
+  function selectDiscovery(id) {
+    var own=lastInput&&lastInput.map.peers.some(function(p){return p.own;});
+    if(own&&!lastInput.examJourney&&Array.isArray(lastInput.map.discoveryPoints)&&lastInput.map.discoveryPoints.some(function(p){return p.id===id;}))post('lesson-map:exploration',{payload:{cardId:id}});
+  }
+
   // ---- clicks
   root.addEventListener('click', function (event) {
     var button = event.target.closest('[data-action]');
     if (!button || (!controller && !pilot)) return;
     var action = button.dataset.action;
+    if (action === 'map-explore') { selectDiscovery(button.dataset.cardId); return; }
     if (action === 'map-branch') { selectBranch(button.dataset.branch); return; }
     if (action === 'map-spot' && button.dataset.lessonGateId) { selectGate(button.dataset.lessonGateId); return; }
     if (action === 'map-menu') { setMenuOpen(document.getElementById('lmMenu').hidden); return; }

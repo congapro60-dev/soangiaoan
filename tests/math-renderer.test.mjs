@@ -117,6 +117,10 @@ test('renderMath produces safe HTML with real KaTeX and htmlAndMathml output', (
   assert.match(html, /x\^2/);
   assert.match(html, /Công thức /);
 });
+test('standard textbook notation renders accessible MathML without syntax errors',()=>{
+ const formulas=[String.raw`\dfrac{a+b}{c}`,String.raw`\sqrt{x^2+1}`,String.raw`x^{n+1}+u_{n-1}`,String.raw`\overrightarrow{AB}`,String.raw`\int_0^1 x^2\,dx`,String.raw`\sin x+\cos x+\tan x`,String.raw`\begin{pmatrix}1&2\\3&4\end{pmatrix}`,String.raw`\begin{cases}x+y=3\\x-y=1\end{cases}`,String.raw`\begin{aligned}u_n&=2n+1\\u_3&=7\end{aligned}`,String.raw`\begin{gathered}a=b\\b=c\end{gathered}`];
+ for(const formula of formulas){const html=renderMath(`$$${formula}$$`,katex);assert.match(html,/katex-display/);assert.match(html,/<math[^>]*display="block"/);assert.doesNotMatch(html,/math-error/);}
+});
 
 test('renderMath escapes text HTML to prevent XSS payloads', () => {
   const payload = '<script>alert("xss")</script><img src=x onerror=alert(1)> $x = 1$ <b>bold</b>';

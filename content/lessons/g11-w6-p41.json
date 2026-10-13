@@ -375,7 +375,7 @@
       ],
       "activityId": "act-w6p41-precheck",
       "participation": "individual",
-      "prompt": "Nêu và kiểm một nghiệm sinx=1/2.",
+      "prompt": "Nêu và kiểm một nghiệm $\\sin x=1/2$.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -420,7 +420,7 @@
       ],
       "activityId": "act-w6p41-precheck",
       "participation": "individual",
-      "prompt": "Hiệu của x_n=π/6+2nπ là bao nhiêu?",
+      "prompt": "Hiệu của $x_n=\\pi/6+2n\\pi$ là bao nhiêu?",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -512,7 +512,7 @@
       ],
       "activityId": "act-w6p41-formation",
       "participation": "group",
-      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Sau đó thảo luận: Bài ghép lượng giác và dãy cần nêu những miền nào?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ sinx=1/2 chọn dãy x_n=π/6+2(n−1)π, n≥1; tính x_2 và hiệu. Nhóm hoàn thiện mẫu bài mở gồm miền n, yêu cầu tính số hạng, xét tăng/giảm, đáp án và ba tiêu chí chấm.",
+      "prompt": "Ghi ý riêng trước trao đổi nhóm. Giải hai bài mẫu: Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Sau đó thảo luận: Bài ghép lượng giác và dãy cần nêu những miền $n$ào?. GV kết nối với mục tiêu; nhóm đúng chưa tính đạt cá nhân.\nTừ $\\sin x=1/2$ chọn dãy $x_n=\\pi/6+2(n-1)\\pi$, $n\\ge1$; tính $x_2$ và hiệu. Nhóm hoàn thiện mẫu bài mở gồm miền n, yêu cầu tính số hạng, xét tăng/giảm, đáp án và ba tiêu chí chấm.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -562,7 +562,7 @@
       ],
       "activityId": "act-w6p41-practice",
       "participation": "individual",
-      "prompt": "Nhánh hỗ trợ: Tính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$. Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTừ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
+      "prompt": "Nhánh hỗ trợ: Tính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$. Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. Ghi dữ kiện → quy tắc → thực hiện → kết luận → phép kiểm.\nTừ $\\sin x=1/2$ chọn dãy nghiệm $x_n=\\pi/6+2(n-1)\\pi$, $n\\ge1$; tính $x_1, x_2$ và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -609,7 +609,7 @@
       ],
       "activityId": "act-w6p41-practice",
       "participation": "individual",
-      "prompt": "Nhánh chuẩn: Giải $\\tan x=0$. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Ghi điều kiện, giải đầy đủ và thử lại.\nTừ sinx=1/2 chọn dãy nghiệm x_n=π/6+2(n−1)π, n≥1; tính x_1, x_2 và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
+      "prompt": "Nhánh chuẩn: Giải $\\tan x=0$. Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. Ghi điều kiện, giải đầy đủ và thử lại.\nTừ $\\sin x=1/2$ chọn dãy nghiệm $x_n=\\pi/6+2(n-1)\\pi$, $n\\ge1$; tính $x_1, x_2$ và hiệu, kết luận tăng. Phân biệt dãy con với toàn bộ hai họ nghiệm.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -655,7 +655,7 @@
       ],
       "activityId": "act-w6p41-practice",
       "participation": "individual",
-      "prompt": "Chọn và sửa một lỗi: Trộn biến x với chỉ số n. Dùng kết luận của một mạch cho mạch khác. Không chỉ ra phép kiểm cụ thể. Sau đó giải thích: Bài ghép lượng giác và dãy cần nêu những miền nào?\nHoàn thiện một mẫu bài mở với dãy nghiệm sinx=1/2: miền n, tính một số hạng, xét hiệu, đáp án và ba tiêu chí chấm.",
+      "prompt": "Chọn và sửa một lỗi: Trộn biến $x$ với chỉ số $n$. Dùng kết luận của một mạch cho mạch khác. Không chỉ ra phép kiểm cụ thể. Sau đó giải thích: Bài ghép lượng giác và dãy cần nêu những miền $n$ào?\nHoàn thiện một mẫu bài mở với dãy nghiệm $\\sin x=1/2$: miền n, tính một số hạng, xét hiệu, đáp án và ba tiêu chí chấm.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -701,7 +701,7 @@
       ],
       "activityId": "act-w6p41-recheck",
       "participation": "individual",
-      "prompt": "Bài kiểm tra lại độc lập: Giải $\\sin x=\\frac12$ trênR. Chọn $x_n=\\frac\\pi6+2(n-1)\\pi$, n≥1; tính $x_1, x_2, x_3$.",
+      "prompt": "Bài kiểm tra lại độc lập: Giải $\\sin x=\\frac12$ trênR. Chọn $x_n=\\frac\\pi6+2(n-1)\\pi$, $n\\ge1$; tính $x_1, x_2, x_3$.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -747,7 +747,7 @@
       ],
       "activityId": "act-w6p41-recheck",
       "participation": "individual",
-      "prompt": "Bài kiểm tra lại độc lập: Với dãy nghiệm $x_n=\\frac\\pi6+2n\\pi$, n≥1, chứng minh tăng bằng hiệu, liên hệ chu kỳ sin.",
+      "prompt": "Bài kiểm tra lại độc lập: Với dãy nghiệm $x_n=\\frac\\pi6+2n\\pi$, $n\\ge1$, chứng minh tăng bằng hiệu, liên hệ chu kỳ sin.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -883,7 +883,7 @@
       ],
       "activityId": "act-w6p41-exit",
       "participation": "individual",
-      "prompt": "Phiếu cuối tiết độc lập: Giải $\\tan x=0$ trênR. Chọn dãy không âm $y_n=(n-1)\\pi$, n≥1; tính ba số hạng đầu và kiểm.",
+      "prompt": "Phiếu cuối tiết độc lập: Giải $\\tan x=0$ trênR. Chọn dãy không âm $y_n=(n-1)\\pi$, $n\\ge1$; tính ba số hạng đầu và kiểm.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -929,7 +929,7 @@
       ],
       "activityId": "act-w6p41-exit",
       "participation": "individual",
-      "prompt": "Phiếu cuối tiết độc lập: Với dãy nghiệm $y_n=n\\pi$, n≥1 của tanx=0, chứng minh tăng; so sánh khoảng cách với một họ sinx=1/2.",
+      "prompt": "Phiếu cuối tiết độc lập: Với dãy nghiệm $y_n=n\\pi$, $n\\ge1$ của $\\tan x=0$, chứng minh tăng; so sánh khoảng cách với một họ $\\sin x=1/2$.",
       "sourceRefs": [
         "sp-structured"
       ],
@@ -1483,7 +1483,7 @@
   "rubric": {
     "criteria": [
       "Đủ nghiệm phương trình, đúng dãy con và tính số hạng.",
-      "Hiệu đúng với mọi n, liên hệ chu kỳ, không trộn họ.",
+      "Hiệu đúng với mọi $n$, liên hệ chu kỳ, không trộn họ.",
       "Bài mở đủ miền/dữ kiện/yêu cầu, đáp án kiểm được, rubric gắn yêu cầu."
     ],
     "lookFor": [
@@ -1510,5 +1510,5 @@
       "group_score"
     ]
   },
-  "contentHash": "78d490bd978b4b2cb7bef6475553ec62a7e48a359d65580615f84e5282b21d4b"
+  "contentHash": "872dee5df77123ca1d3508900ea0b1cf636864bec288bf69c4b635eaf1dd1c2a"
 }

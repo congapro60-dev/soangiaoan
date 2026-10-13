@@ -1,5 +1,8 @@
 "use client";
 import React from "react";
+import MathText from "./MathText";
+import { TeacherSetupSummary, type TeacherSetup } from "./TeacherSetupPanel";
+import type { ExplorationView } from "./ExplorationPanel";
 import { EDUFIT_VALUES, LESSON_INTEGRATIONS } from "../../lib/lesson/values.js";
 import { BoardResponsePanel } from "./SharedDevicePanel";
 import { ClassEventPanel, type ClassEventView } from "./ClassEventPanel";
@@ -18,8 +21,11 @@ export interface LessonQualityReport {
   criteria?: Array<{id:string;status:string}>;
 }
 const CRITERIA: Record<string,string> = {higher_order_question:"Câu hỏi bậc cao",individual_and_group:"Cá nhân và nhóm",reflection:"Phản tư",integration:"Tích hợp",objective_evidence:"Bằng chứng theo mục tiêu"};
-export function TeacherLessonTools({ sessionId, members, tasks, event, valueBadges = {}, qualityReport, tutors, onCommand }: {
+export function TeacherLessonTools({ sessionId, members, tasks, event, valueBadges = {}, qualityReport, tutors, status, exploration, currentRule, currentParticipation, currentIntegrations, currentAiPolicy, teacherSetup, onCommand }: {
   sessionId: string;
+  status?: string;
+  currentRule?:string; currentParticipation?:string; currentIntegrations?:string[]; currentAiPolicy?:string; teacherSetup?:TeacherSetup;
+  exploration?: ExplorationView;
   members: Array<{learnerId:string;name:string}>;
   tasks: Array<{id:string;prompt?:string}>;
   event?: ClassEventView | null;
@@ -29,10 +35,15 @@ export function TeacherLessonTools({ sessionId, members, tasks, event, valueBadg
   onCommand: (type:string,payload:Record<string,unknown>)=>Promise<unknown>;
 }) {
   const [note,setNote]=React.useState("");
-  const [participation,setParticipation]=React.useState("individual");
-  const [eventMinutes,setEventMinutes]=React.useState(3);
-  const [integrations,setIntegrations]=React.useState<string[]>([]);
-  const [aiPolicy,setAIPolicy]=React.useState("off");
+  const [ruleDraft,setRule]=React.useState<string|null>(null);
+  const rule=ruleDraft??currentRule??teacherSetup?.rule??"campaign";
+  const [participationDraft,setParticipation]=React.useState<string|null>(null);
+  const participation=participationDraft??currentParticipation??teacherSetup?.participation??"individual";
+  const [eventMinutes,setEventMinutes]=React.useState(teacherSetup?.event?.minutes||3);
+  const [integrationsDraft,setIntegrations]=React.useState<string[]|null>(null);
+  const integrations=integrationsDraft??currentIntegrations??teacherSetup?.integrationIds??[];
+  const [aiPolicyDraft,setAIPolicy]=React.useState<string|null>(null);
+  const aiPolicy=aiPolicyDraft??currentAiPolicy??teacherSetup?.aiPolicy??"off";
   const [selectedLearner,setSelectedLearner]=React.useState("");
   const [valueId,setValueId]=React.useState(values[0].id);
   const [reason,setReason]=React.useState("");
@@ -46,16 +57,30 @@ export function TeacherLessonTools({ sessionId, members, tasks, event, valueBadg
   const deviceToken=issuedDeviceToken?.sessionId===sessionId?issuedDeviceToken.value:"";
   const selectedDeviceMembers=(deviceMembers.sessionId===sessionId?deviceMembers.ids:[]).filter(id=>members.some(member=>member.learnerId===id));
   const selectedBadges=(valueBadges[selectedLearner]||[]).filter(badge=>!badge.revokedAt);
-  const command=async(type:string,payload:Record<string,unknown>)=>{const result=await onCommand(type,payload) as {ok?:boolean;code?:string};setNote(result?.ok?"Đã cập nhật.":({EVENT_BUDGET_EXCEEDED:"Kế hoạch chưa còn đủ 3 phút dự phòng. Điều chỉnh kế hoạch trước khi mở sự kiện.",CLASS_EVENT_ACTIVE:"Kết thúc sự kiện đang chạy trước khi đổi hoạt động.",EVENT_TASKS_REQUIRED:"Chưa có câu đã duyệt phù hợp với mức của từng em."} as Record<string,string>)[result?.code||""]||"Chưa cập nhật được. Kiểm tra trạng thái tiết học.");};
-  return <details className="lesson-card" style={{padding:"1rem",marginBottom:"1rem"}}><summary>Luật chơi, sự kiện, giá trị và thiết bị lớp</summary>
+  const command=async(type:string,payload:Record<string,unknown>)=>{const result=await onCommand(type,payload) as {ok?:boolean;code?:string};if(result?.ok&&type==="SET_VALUES"){setIntegrations(null);setAIPolicy(null);}if(result?.ok&&type==="SET_MODE"){setParticipation(null);setRule(null);}setNote(result?.ok?"Đã cập nhật.":({EVENT_BUDGET_EXCEEDED:"Kế hoạch chưa còn đủ 3 phút dự phòng. Điều chỉnh kế hoạch trước khi mở sự kiện.",CLASS_EVENT_ACTIVE:"Kết thúc sự kiện đang chạy trước khi đổi hoạt động.",EVENT_TASKS_REQUIRED:"Chưa có câu đã duyệt phù hợp với mức của từng em."} as Record<string,string>)[result?.code||""]||"Chưa cập nhật được. Kiểm tra trạng thái tiết học.");};
+  return <details className="lesson-card" style={{padding:"1rem",marginBottom:"1rem"}}><summary>Điều chỉnh tiết học và thiết bị</summary>
+    <p>Đang dùng: {RULES[(currentRule||teacherSetup?.rule||"campaign") as keyof typeof RULES]} · {({individual:"Cá nhân",pairs:"Cặp đôi",group:"Theo nhóm"} as Record<string,string>)[currentParticipation||teacherSetup?.participation||"individual"]} · Khám phá {exploration?.enabled?"bật":"tắt"}</p>
+    {teacherSetup&&<details><summary>Thiết lập đã chọn trước giờ</summary><TeacherSetupSummary value={teacherSetup}/><p>Sự kiện chỉ là dự kiến; thầy cô quyết định thời điểm mở.</p></details>}
+    <section aria-label="Nhịp dạy và Khám phá"><h3>Nhịp dạy của thầy cô</h3>
+      <button type="button" className="lesson-button" style={{minHeight:44}} disabled={status!=="active"} onClick={()=>void command("PAUSE",{})}>Cả lớp nhìn lên</button>
+      <button type="button" className="lesson-button" style={{minHeight:44}} disabled={status!=="paused"} onClick={()=>void command("RESUME",{})}>Tiếp tục làm bài</button>
+      <p>Hỏi dự đoán trước · Nghe học sinh giải thích · Chốt kiến thức, ghi vở.</p>
+      {exploration?.supported&&<><label style={{display:"flex",gap:8,alignItems:"center",minHeight:44}}><input type="checkbox" checked={exploration.enabled} onChange={event=>void command("EXPLORATION_CONFIG",{enabled:event.target.checked})}/>Bật Khám phá thử</label>
+      <p>Hai phút cộng dồn trong tiết; không cộng thêm giờ học. Mảnh chỉ mở trang trí, không chấm Toán.</p>
+      <button type="button" className="lesson-button" style={{minHeight:44}} disabled={!exploration.canOpen||exploration.open} onClick={()=>void command("EXPLORATION_WINDOW",{open:true})}>Mở Khám phá (còn {Math.ceil((exploration.budgetLeftMs||0)/1000)} giây)</button>
+      <button type="button" className="lesson-button" style={{minHeight:44}} disabled={!exploration.open} onClick={()=>void command("EXPLORATION_WINDOW",{open:false})}>Đóng Khám phá</button></>}
+    </section>
+    {exploration?.supported&&<details><summary>Nội dung và nguồn Khám phá</summary>{exploration.cards?.map(card=><section key={card.id}><h4><MathText text={card.title}/></h4><MathText text={card.body} inline={false}/><p>{card.sourceLabel}</p>{card.sourceUrl&&<a href={card.sourceUrl} target="_blank" rel="noreferrer">Đối chiếu nguồn</a>}</section>)}</details>}
+    <details><summary style={{minHeight:44}}>Luật chơi và hình thức</summary>
     <p>Đổi luật hoặc hình thức sẽ bắt đầu lại tiến độ chơi. Bài học và minh chứng đã nộp vẫn giữ.</p><label>Hình thức chơi<select className="lesson-select" value={participation} onChange={event=>setParticipation(event.target.value)}><option value="individual">Cá nhân</option><option value="pairs">Cặp trong tổ</option><option value="group">Theo tổ cố định</option></select></label>
-    <label>Luật chơi <select className="lesson-select" defaultValue="" onChange={e=>void command("SET_MODE",{rule:e.target.value,participation})}><option value="" disabled>Chọn luật</option>{Object.entries(RULES).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+    <label>Luật chơi <select className="lesson-select" value={rule} onChange={e=>setRule(e.target.value)}>{Object.entries(RULES).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+    <button type="button" className="lesson-button" style={{minHeight:44}} onClick={()=>void command("SET_MODE",{rule,participation})}>Áp dụng luật và hình thức</button>
     <div><button className="lesson-button" onClick={()=>void command("SET_REVISIT",{enabled:true})}>Mở luyện cổng</button><button className="lesson-button" onClick={()=>void command("SET_REVISIT",{enabled:false})}>Tắt luyện cổng</button></div>
-    <h3>Sự kiện lớp</h3><label>Thời lượng sự kiện<select className="lesson-select" value={eventMinutes} onChange={event=>setEventMinutes(Number(event.target.value))}>{[3,4,5].map(minutes=><option key={minutes} value={minutes}>{minutes} phút</option>)}</select></label><p>Chỉ mở khi kế hoạch còn đủ thời gian dự phòng và có câu đã duyệt theo làn.</p><div style={{display:"flex",flexWrap:"wrap",gap:8}}>{Object.entries(EVENTS).map(([type,label])=><button className="lesson-button lesson-button-outline" key={type} onClick={()=>void command("CLASS_EVENT_OPEN",{type,durationMs:eventMinutes*60000,seed:Date.now()%100000})}>{label}</button>)}</div>
+    </details><details><summary style={{minHeight:44}}>Sự kiện lớp</summary><label>Thời lượng sự kiện<select className="lesson-select" value={eventMinutes} onChange={event=>setEventMinutes(Number(event.target.value))}>{[3,4,5].map(minutes=><option key={minutes} value={minutes}>{minutes} phút</option>)}</select></label><p>Chỉ mở khi kế hoạch còn đủ thời gian dự phòng và có câu đã duyệt theo làn.</p><div style={{display:"flex",flexWrap:"wrap",gap:8}}>{Object.entries(EVENTS).map(([type,label])=><button className="lesson-button lesson-button-outline" key={type} onClick={()=>void command("CLASS_EVENT_OPEN",{type,durationMs:eventMinutes*60000,seed:Date.now()%100000})}>{label}</button>)}</div>
     <ClassEventPanel view={event||null} onClose={async()=>{await command("CLASS_EVENT_CLOSE",{});}} />
-    <h3>Chọn 1–2 tích hợp của tiết</h3><div style={{display:"flex",flexWrap:"wrap",gap:8}}>{integrationsCatalogue.map(item=><label key={item.id}><input type="checkbox" checked={integrations.includes(item.id)} disabled={integrations.length===2&&!integrations.includes(item.id)} onChange={e=>setIntegrations(e.target.checked?[...integrations,item.id]:integrations.filter(id=>id!==item.id))}/>{item.name}</label>)}</div>
-    <label>Trạm AI <select className="lesson-select" value={aiPolicy} onChange={e=>setAIPolicy(e.target.value)}><option value="off">Không AI</option><option value="hints">AI gợi ý</option><option value="check">AI kiểm tra</option></select></label><button className="lesson-button" disabled={!integrations.length} onClick={()=>void command("SET_VALUES",{integrationIds:integrations,aiPolicy})}>Lưu tích hợp</button>
-    <h3>Ghi nhận giá trị từ hành vi đã quan sát</h3><label htmlFor="value-learner">Học sinh</label><select id="value-learner" className="lesson-select" value={selectedLearner} onChange={e=>setSelectedLearner(e.target.value)}><option value="">Chọn học sinh</option>{members.map(member=><option key={member.learnerId} value={member.learnerId}>{member.name}</option>)}</select>
+    </details><details><summary style={{minHeight:44}}>Tích hợp và AI</summary><p>Chọn tối đa hai tích hợp của tiết.</p><div style={{display:"flex",flexWrap:"wrap",gap:8}}>{integrationsCatalogue.map(item=><label key={item.id}><input type="checkbox" checked={integrations.includes(item.id)} disabled={integrations.length===2&&!integrations.includes(item.id)} onChange={e=>setIntegrations(e.target.checked?[...integrations,item.id]:integrations.filter(id=>id!==item.id))}/>{item.name}</label>)}</div>
+    <label>Trạm AI <select className="lesson-select" value={aiPolicy} onChange={e=>setAIPolicy(e.target.value)}><option value="off">Không AI</option><option value="hints">AI gợi ý</option><option value="check">AI kiểm tra</option></select></label><button className="lesson-button" onClick={()=>void command("SET_VALUES",{integrationIds:integrations,aiPolicy})}>Lưu tích hợp</button>
+    </details><details><summary style={{minHeight:44}}>Ghi nhận giá trị và hỗ trợ học sinh</summary><h3>Ghi nhận giá trị từ hành vi đã quan sát</h3><label htmlFor="value-learner">Học sinh</label><select id="value-learner" className="lesson-select" value={selectedLearner} onChange={e=>setSelectedLearner(e.target.value)}><option value="">Chọn học sinh</option>{members.map(member=><option key={member.learnerId} value={member.learnerId}>{member.name}</option>)}</select>
     <label>Giá trị <select className="lesson-select" value={valueId} onChange={e=>setValueId(e.target.value)}>{values.map(value=><option key={value.id} value={value.id}>{value.name}</option>)}</select></label><label>Minh chứng đã quan sát <textarea className="lesson-textarea" value={reason} maxLength={500} onChange={e=>setReason(e.target.value)} /></label><button className="lesson-button" disabled={!selectedLearner||!reason.trim()} onClick={()=>void command("VALUE_BADGE",{learnerId:selectedLearner,valueId,evidenceId:"observation-"+Date.now(),reason})}>Ghi nhận huy hiệu</button>
     {selectedLearner&&<><h4>Ghi nhận hiện có</h4>{!selectedBadges.length&&<p>Chưa có ghi nhận cho em này.</p>}
       <label htmlFor="badge-revoke-reason">Lý do thu hồi</label><input id="badge-revoke-reason" className="lesson-input" maxLength={500} value={revokeReason} onChange={event=>setRevokeReason(event.target.value)}/>
@@ -65,17 +90,19 @@ export function TeacherLessonTools({ sessionId, members, tasks, event, valueBadg
       <p>{qualityReport.learners||0} học sinh · {qualityReport.pending||0} bài chờ đánh giá</p>
       <p>Phản tư: {qualityReport.reflection?.completed||0}/{qualityReport.reflection?.total||0}; đóng góp nhóm: {qualityReport.groupContribution?.learners||0}/{qualityReport.groupContribution?.total||0}</p>
       {!qualityReport.objectives?.length&&<p>Chưa có minh chứng theo mục tiêu.</p>}
-      <ul>{qualityReport.objectives?.map(objective=><li key={objective.objectiveId}>{objective.statement}: {objective.withEvidence} em có bài đã đánh giá, {objective.independentMastery} em có bằng chứng tự làm, {objective.supported} em dùng hỗ trợ.</li>)}</ul>
+      <ul>{qualityReport.objectives?.map(objective=><li key={objective.objectiveId}><MathText text={objective.statement}/>: {objective.withEvidence} em có bài đã đánh giá, {objective.independentMastery} em có bằng chứng tự làm, {objective.supported} em dùng hỗ trợ.</li>)}</ul>
       <ul>{qualityReport.criteria?.map(criterion=><li key={criterion.id}>{CRITERIA[criterion.id]||criterion.id}: <span>{criterion.status==="observed"?"Đã quan sát":"Chưa có minh chứng"}</span></li>)}</ul>
     </section>}
-    <h3>Thiết bị dùng chung</h3><p>Chọn đúng các em dùng máy nhóm này.</p><div role="group" aria-label="Chọn học sinh dùng chung máy">{members.map(member=><label key={member.learnerId} htmlFor={"device-member-"+member.learnerId} style={{display:"inline-flex",alignItems:"center",gap:6,minHeight:44,marginRight:12}}><input id={"device-member-"+member.learnerId} type="checkbox" checked={selectedDeviceMembers.includes(member.learnerId)} disabled={deviceBusy} onChange={event=>setDeviceMembers({sessionId,ids:event.target.checked?[...selectedDeviceMembers,member.learnerId]:selectedDeviceMembers.filter(id=>id!==member.learnerId)})}/>{member.name}</label>)}</div>
+    </details><details><summary style={{minHeight:44}}>Thiết bị dùng chung và bảng cá nhân</summary><h3>Thiết bị dùng chung</h3><p>Chọn đúng các em dùng máy nhóm này.</p><div role="group" aria-label="Chọn học sinh dùng chung máy">{members.map(member=><label key={member.learnerId} htmlFor={"device-member-"+member.learnerId} style={{display:"inline-flex",alignItems:"center",gap:6,minHeight:44,marginRight:12}}><input id={"device-member-"+member.learnerId} type="checkbox" checked={selectedDeviceMembers.includes(member.learnerId)} disabled={deviceBusy} onChange={event=>setDeviceMembers({sessionId,ids:event.target.checked?[...selectedDeviceMembers,member.learnerId]:selectedDeviceMembers.filter(id=>id!==member.learnerId)})}/>{member.name}</label>)}</div>
     {!members.length&&<p>Chưa có học sinh đang tham gia; mời các em vào phòng trước khi cấp máy nhóm.</p>}
     <button type="button" className="lesson-button" disabled={!selectedDeviceMembers.length||deviceBusy} onClick={async()=>{setDeviceBusy(true);setDeviceToken(null);try{const response=await fetch("/api/lesson-devices",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"create",sessionId,kind:"B",memberIds:selectedDeviceMembers,requestId:crypto.randomUUID(),ttlMs:4*3600000})});const data=await response.json() as {token?:string;error?:string};if(!response.ok||!data.token)throw Error(data.error||"DEVICE_UNAVAILABLE");setDeviceToken({sessionId,value:data.token});setNote("Đã cấp mã thiết bị; nhập trực tiếp trên máy nhóm.");}catch(error){setNote("Chưa cấp được thiết bị: "+(error instanceof Error?error.message:"thử lại"));}finally{setDeviceBusy(false);}}}>Cấp mã cho máy nhóm</button>
     {deviceToken&&<div><p>Mã phiên: <code>{sessionId}</code> · <a href="/shared" target="_blank" rel="noopener noreferrer">Mở thiết bị nhóm</a></p><label htmlFor="lesson-device-token">Mã thiết bị — chỉ hiện lần cấp này</label><input id="lesson-device-token" className="lesson-input" type="password" readOnly autoComplete="off" value={deviceToken}/><p>Nhập mã trên máy nhóm; thu hồi mã khi đổi nhóm hoặc hết tiết.</p><button type="button" className="lesson-button lesson-button-outline" onClick={()=>setDeviceToken(null)}>Ẩn mã trên máy này</button></div>}
     <button type="button" className="lesson-button lesson-button-outline" disabled={deviceBusy} onClick={async()=>{setDeviceBusy(true);try{const response=await fetch("/api/lesson-devices?sessionId="+encodeURIComponent(sessionId),{cache:"no-store"});const data=await response.json() as {devices?:typeof devices.items};if(!response.ok||!data.devices)throw Error();setDevices({sessionId,items:data.devices});setNote("");}catch{setNote("Chưa tải được danh sách máy đã cấp. Thử lại khi có mạng.");}finally{setDeviceBusy(false);}}}>Xem thiết bị đã cấp</button>
     {devices.sessionId===sessionId&&devices.items.filter(device=>!device.revoked).map((device,index)=><div key={device.id}><p>Máy {index+1} · {device.kind} · hết hạn {new Date(device.expiresAt).toLocaleString("vi-VN")}</p><button type="button" className="lesson-button lesson-button-outline" disabled={deviceBusy} onClick={async()=>{setDeviceBusy(true);try{const response=await fetch("/api/lesson-devices",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"revoke",sessionId,deviceId:device.id})});if(!response.ok)throw Error();setDevices(current=>({...current,items:current.items.filter(item=>item.id!==device.id)}));setDeviceToken(null);setNote("Đã thu hồi mã máy; thiết bị phải xin mã mới để tiếp tục.");}catch{setNote("Chưa thu hồi được mã. Thử lại rồi kiểm tra danh sách máy.");}finally{setDeviceBusy(false);}}}>Thu hồi mã máy {index+1}</button></div>)}
     <h3>Chỉ có TV: ghi câu trả lời trên bảng cá nhân</h3><label>Nhiệm vụ <select className="lesson-select" value={selectedTaskId} onChange={e=>setTaskId(e.target.value)}>{tasks.map(task=><option key={task.id} value={task.id}>{task.prompt?.slice(0,100)||task.id}</option>)}</select></label><BoardResponsePanel members={members} taskId={selectedTaskId} onRecordResponse={async(learnerId,taskId,answer)=>{await command("TEACHER_RESPONSE",{learnerId,taskId,answer});}}/>
+    </details>
     {note&&<p role="status" style={{overflowWrap:"anywhere"}}>{note}</p>}
   </details>;
 }
+
 

@@ -58,7 +58,7 @@ export async function POST(request) {
     if (input.action === 'join') return json(await api.joinSession({ code: input.code, name: input.name, classToken: input.classToken, token: auth || undefined }));
     if (input.action === 'event' && auth) return json(await api.event({ sessionId: input.id, learnerToken: auth, actingLearnerId: input.actingLearnerId, event: input.event }));
     if (!user) return fail('AUTH_REQUIRED', 401); await account(user);
-    if (input.action === 'create') return json(await api.createSession({ ownerAccountId: user.userId, classId: input.classId, isRoot: isRootUser, packageRowId: input.packageRowId, packageVersion: input.packageVersion, packageHash: input.packageHash, planRowId: input.planRowId, planHash: input.planHash, mode: input.mode, title: input.title, requestId: input.requestId }));
+    if (input.action === 'create') return json(await api.createSession({ ownerAccountId: user.userId, classId: input.classId, isRoot: isRootUser, packageRowId: input.packageRowId, packageVersion: input.packageVersion, packageHash: input.packageHash, planRowId: input.planRowId, planHash: input.planHash, mode: input.mode, title: input.title, requestId: input.requestId, teacherSetup: input.teacherSetup }));
     if (input.action === 'event') return json(await api.event({ sessionId: input.id, accountId: user.userId, event: input.event }));
     if (input.action === 'tick') return json(await api.tick({ id: input.id, accountId: user.userId, isRoot: isRootUser, round: input.round, revision: input.revision, eventId: input.eventId }));
     if (input.action === 'rotate-presenter') return json(await api.rotatePresenter({ id: input.id, accountId: user.userId, isRoot: isRootUser, revision: input.revision }));

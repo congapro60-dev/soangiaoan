@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import MathText from "./MathText";
 
 interface GroupProduct {
   groupId: string; taskId: string; proposalHash: string; proposalVersion?: string | number;
@@ -26,16 +27,16 @@ function ProductReview({ product, task, onCommand, disabled }: {
     finally { setSaving(false); }
   }
   return <article style={{ padding: ".75rem", border: "1px solid #cbd5e1", borderRadius: 12 }}>
-    <h3>{product.groupId} · {task?.prompt || product.taskId}</h3>
-    <p>{typeof product.answer === "string" ? product.answer : JSON.stringify(product.answer)}</p>
-    {task?.evaluation?.rubric?.criteria?.length ? <ul>{task.evaluation.rubric.criteria.map((criterion, i) => <li key={i}>{criterion}</li>)}</ul> : <p>Đối chiếu tiêu chí nhiệm vụ trước khi đánh giá.</p>}
+    <h3>{product.groupId} · {task?.prompt ? <MathText text={task.prompt}/> : product.taskId}</h3>
+    <p>{typeof product.answer === "string" ? <MathText text={product.answer}/> : JSON.stringify(product.answer)}</p>
+    {task?.evaluation?.rubric?.criteria?.length ? <ul>{task.evaluation.rubric.criteria.map((criterion, i) => <li key={i}><MathText text={criterion}/></li>)}</ul> : <p>Đối chiếu tiêu chí nhiệm vụ trước khi đánh giá.</p>}
     {product.assessmentStatus === "pending" ? <>
       <label style={{ display: "block" }}>Nhận xét cho nhóm<textarea value={feedback} maxLength={2000} disabled={disabled || saving} onChange={event => setFeedback(event.target.value)} style={{ display: "block", width: "100%", minHeight: 72 }} /></label>
       <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", marginTop: ".5rem" }}>
         <button type="button" className="lesson-button" disabled={disabled || saving} onClick={() => assess(true)} style={{ minHeight: 44 }}>Đạt tiêu chí nhóm</button>
         <button type="button" className="lesson-button lesson-button-outline" disabled={disabled || saving} onClick={() => assess(false)} style={{ minHeight: 44 }}>Cần chỉnh sửa</button>
       </div>
-    </> : <p>{product.ok ? "Đạt tiêu chí nhóm" : "Cần chỉnh sửa"}{product.assessment?.feedback ? ` · ${product.assessment.feedback}` : ""}</p>}
+    </> : <p>{product.ok ? "Đạt tiêu chí nhóm" : "Cần chỉnh sửa"}{product.assessment?.feedback ? <> · <MathText text={product.assessment.feedback}/></> : ""}</p>}
     {error && <p role="alert">{error}</p>}
   </article>;
 }

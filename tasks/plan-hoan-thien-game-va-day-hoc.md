@@ -1248,3 +1248,103 @@ R9 tiến độ:
 - [ ] R9.4final:1172PASS/typecheck/lint/build0,394warnings,183sourcebyte-match;CUA chọnP38hiệnđúng1Must/sourceGVreview/launchdisabled. TìmUIbudgetkhônghiệntransition2; đãsửacopy,buildearlydfb76khôngdùngfinalclaim. Finalbuild/reviewcatalogue+budget/CUA/nativeđangchạy.
 - [x] R9.4final:1172/1172/typecheck/lint/build0,394warnings;183sourcebyte-match;GeminiMath8PASS+catalogue/budgetPASS `tasks/codex-r9-catalogue-gemini-2026-10-12T11-20-31-541Z.json`. CUAfinal chọnP38/P34 Must-only,1LO/sourcepending/launchdisabled/time34+2+2+2/375scroll360PASS;native219HTTP5stagesPASS0external exactentrykhớp `tasks/codex-r9-browser-final-evidence.json` và `codex-r9-native-runtime.json`. Earlydfb76ảnh khôngdùngfinalclaim. Report/HANDOFF đangchốt;nhápGeminiproduction2citation/ownerGV/thiếtbị/3D/release vẫnHOLD.
 - [x] R9report/HANDOFF/todođã cậpnhật `tasks/codex-r9-report.md`;ownerđãduyệtphạmviMust,chưaduệthọcliệu/pháthànhR1–R9. ChecklistpendingcuốiR8/9chỉnêuviệcthậtcònthiếu,khôngfullplanDONE.
+
+#### Phát hành R1–R9 — chủ hệ thống duyệt12/10
+- [x] Owner“phát hành đi”chođúngR1–R9;sitemetadata verified public/owner/version6,khôngđổiaccess/V7/khóa.
+- [x] Migration0017–0020backupcopy/rollbackoldWorkerfreshPASS `tasks/codex-r1-migration-2026-10-12T11-31-00-547Z.json`;migrationcũ0000–0016nộidungkhôngđổi(chỉCRLF/LF). Snapshotpre-release23non-keytables:accounts1,source2,job1;jobcelltruncated vàsystem_settingsomitted nênkhôngclaimfullDBbackup. Nativeversion6savedarchive vẫnrollbacksource.
+- [x] Releasecheckout riêngofficialsite-workflow từversion6commit5a3fd;666source/183scopedbyte-match c3b1250dworker. Pushedcommitc8064b42400f7b5f96b73774b9a3c0bcec1bfc5d. Officialpackagerlần1WindowsC:tarFAIL, retryTAR_OPTIONS=--force-localPASS;622entries/36,739,738bytes/workerexact/sourceprojectcorrect/noenvkeysDB runtime. `tasks/codex-r1-r9-release-archive.json`.
+- [x] ExactfinalWorkerHTTP150reusefixture307HTTPPASS,900history/600receipt/1650sub giữ;state1,516,229bytes/headroom56,635. `tasks/codex-r6-load-r1-r9-release.json`. Khôngcoiseed6310reducercommands làHTTP900/150joinmới. Stress150HINT/150ASSESS/150readđangchạy.
+- [ ] NativeSavedversion/deployment/postdeploylanding/rules/16drafts/AIrestore/source/dataretention;chỉchốtpublishedkhinativesucceeded. Fullhumanclass/device/3D/source/year/mathapprovalkhônggộpvàocodepublication.
+- [x] Stressfinalexactc3b1250d453HTTPPASS:150HINT/150ASSESS/150read +privateclasspassport;900audit/600receipt/1650sub giữnguyên;0errors/0external. `tasks/codex-r6-load-assess-r1-r9-release.json`. Savednativeversion7 `appgprj_6ac8d74b14f8819193caded9533bb337~appgver_a1cf6e3bf0b081918c4c3dee74ae5ae5` commitc8064b4;đangnativepublish,khôngđổiaccess/key/V7.
+- [x] R1–R9 nativepublishedversion7 SUCCEEDED18:47:10VN:deploymentappgdep_6accc8a40fec8191bd73d83f5d1c447f/commitc8064b4/sourceprojectriêng. KhôngSiteV7/accesskeyenvironmentđổi. `tasks/codex-r1-r9-release-evidence.json`,reportcùngprefix.
+- [x] PostdeployCUA landingnew/no30fixed/generalrules;16lessons/8Must1LO/40budget/sourcepending/launchdisabled. KhôiphụcGeminioldjob vàoform/sourcehashkept/noAIcall/saveapprove;2numericerrors giờchỉđúng tasks[1]/[3], IDs task-1-2/task-3-1. Ảnhproductionlanding/ai-restore saved.
+- [x] NativeDBschema34tables,non-secretrowretention(account/source/jobbounded)PASS,newclass/member/device/session/rooms0;recent10minWorkererror0. Fulljobcell/syssettingskhôngclaimbackupfull;khóakhôngđọc/đổi. RootWIP giữ,V7manifestgiữ.
+- [ ] Còn2numericcitationfullquote/origin đốisoát,AIvaliddraft/multi-sourceQA,họcliệuGV/source/year/format/150timebox,physicaldevices/classroom/3Dvisual. KhônggọifullplanDONE. Claudeđọcreportpháthành+checkboxcuối;nativereleaseđãxong khôngdeploylặp.
+
+#### Nghiên cứu Khám phá và vai trò GV — 12/10/2026
+- [x] Đọc ZIP V8.8 từ 00_START_HERE_CODEX.md, guide đầy đủ và companion; coi là tài liệu tham khảo, không chạy lệnh triển khai trong ZIP. Đối chiếu hai folder yêu cầu Toán/dự giờ, ảnh người dùng và source game đã phát hành.
+- [x] Báo cáo `tasks/bao-cao-kham-pha-vai-tro-gv-v88-20261012.md`: Khám phá mở rộng khác hình thành kiến thức và khác thử thách; thẻ dọc đường, nội dung tiếp cận cho tất cả, may mắn chỉ ảnh hưởng mảnh/quà phụ. Có ví dụ xác suất minh họa riêng, không claim xác suất runtime.
+- [x] Có kịch bản GV dẫn dắt 40 phút (34 lõi +2 tùy chọn +4 dự phòng), điểm dừng/chuẩn hóa/vở/recheck, mapping rubric3a–3e theo nguồn thật; phân biệt CIS idea với chuẩn, 1–4/N/A với nửa điểm nội bộ. Không tự chấm GV, không coi game points là mastery.
+- [x] Audit hiện trạng: pause/gate/TV/làn đã có; chưa có album Khám phá, teacherAttention/màn chờ kín theo thiết kế. LOCK không dừng deadline; PAUSE không kéo dài giờ học thực. Đã tìm được mẫu Ban Toán ba cột, chưa có DOCX mới được render/nghiệm thu.
+- [x] Chủ hệ thống yêu cầu “đưa thử vào game và test xem”; R10 pilot triển khai/QA local bên dưới. Không đồng nghĩa duyệt phát hành hoặc ba gate dạy thật.
+
+#### Checklist R10 — chủ hệ thống yêu cầu đưa Khám phá vào game và thử
+- [x] Ownerchoimplementation/QA bảnthử sau nghiêncứu;spec `tasks/codex-r10-exploration-plan.md` frozenpilotDãy số/3thẻ/quàthẩm mỹ/GVwindow120s/attentionpause. Khôngđượclấycodedone=teachready.
+- [x] R10.1 Reducer/role/replay/CAS/ownprivacy/cumulativewindow2min/ROLLfound/3fragments/noacademicreward; domain và95nativeHTTP đạt, actualversion7rollback đạt.
+- [x] R10.2 Mapmarker2D/3D+HUDsổtay/card/teacherwindow/attention/sharedactor/waitblank/draftpreservation/a11y375; CUA tiếp tục13/10PASS.
+- [x] R10.3 Fullgate/source/reviewkhác hãng/load150combined/CUAteacherstudent/API503reconnect/reload/manifest/evidencePASSlocalpilot; khôngOSofflineclaim.
+- [x] R10.4 Handoff/report/previewchủhệthốngxem hoàn tất;pháthànhmớichờduyệtbảncụthể. Version7production/V7/key/HSdata giữnguyên.
+
+R10 cập nhật 13/10 (giờ VN):
+- [x] Code pilot3thẻ/3marker/album/teacherwindow/attention đã tích hợp; khôngAI/schema/dependency mới, không điểm Toán.
+- [x] 1191/1191tests/typecheck/lint/build0;394warnings;189source byte-match. Workerf4dc4dbf/treee55ab6e3. GeminiProrecheckPASS0findings/8sourcehashsame. Rawfinding và adjudication trong report.
+- [x] ExactWorker95nativeHTTP trust/shared/claim/replay/expiry/TV/wait/rewardPASS0external. Reward3/3 từ syntheticfound-mask7 có nhãn; CUA1/3 từROLLkhôngseedfragment.
+- [x] CUA mở giờ/đọc3thẻ/nhận1/3/ví0/markerđãnhận;pausefullnative/focus/Escape/draft23resumePASS. Viewport375x812/scroll360/nút44pxPASS; chưaclaimthẻmở375.
+- [x] Load150combined307+453HTTP/max450fragments/900history/600receipts/1650subPASS. Peak1,541,241<cap1,572,864;headroom31,623;final1,499,991. Retention450/choices cả2pipelinePASS. Khôngcoi6310cachedreducer lànewHTTPjoin.
+- [x] R10.2/R10.3 CUA phần còn lại đã PASS ở lượt tiếp tục13/10 bên dưới. Blocker tab30 trước đây đã hết; giữ báo cáo cũ làm lịch sử, không còn chờ owner đóng confirm.
+- [x] R10.4 report/HANDOFF/checklist/todo đã cậpnhật `tasks/codex-r10-report.md`; ảnhattention/manifest/native/load/reviewretained.
+- [x] Preview/CUA hoàn tất13/10; phát hànhR10 vẫn chờ ownerduyệt19.9 ở checkbox cuối. Local5201/5202fixtureconcluded;khôngdùngproduction/V7/key/HSthật. R1–R9 đãpublishedkhônglặpdeploy.
+
+
+R10 tiếp tục13/10 —ownerchohủyconfirm:
+- [x] Tab30đãđóng/noactivedialog;sổtayhoạtđộnglại. Blocker ởlogtrước đãhết;khôngsửaappcode.
+- [x] CUAconcludedread-only/375opencard+scroll/activekeyboardfocus/Escape/sharedHS1=1HS2=0/universalread/sharedpause/waitsharedTV/reload/2D+3Dmarker/GVclosePASS. 3Dvisualkhôngđượcduyệtbởitestmarker.
+- [x] LocalAPI503giữdraft23,dismissalertđược;restoreAPIrồisubmitaccepted. KhôngclaimOSoffline/unsavedclose-tab.
+- [x] CUAcosmetic3/3ảnh `r10-reward-seeded-demo.png`;explicitseededvisualfixture,khôngdiceprobabilityproof. Nativerewardclaims95checksđãriêng.
+- [x] `tasks/codex-r10-browser-final-evidence.json`10checks/9screenshothashes/189sourceunchanged/Workerf4dc4dbf. Report/HANDOFF/todo supersedeoldCUAHOLD. PASS_LOCAL_PILOT,R10.1–4xongphạmvithử.
+- [ ] PháthànhR10chờownerduyệt19.9;chưađổiSiteproduction/key/V7/HSthật. Giữreviewtab36localhostreward3/3demo. Humanclass/GV/source/year/150timebox/2Geminioldcitation/3Dvisual vẫnriêng.
+
+
+#### R11 — rà soát công thức Toán13/10
+- [x] Owner phát hiện Khám pháu_ntextthô; chỉ sửa typesetting, giữ nội dung/hình/đápán đã duyệt. ReferencePDF/Word không phải yêu cầu tạo export mới.
+- [x] R11.1 Audit math UI/content toàn game/lesson/exam, cần explicitdelimiter+MathText; không regexđoánmath/khôngsửaquotes/input/codemáy.
+- [x] R11.2 RED/GREEN3cards/richfields/standardnotation/MathML/XSS;minimumfixnội dungkhôngđổi.
+- [x] R11.3 fullgate/reviewkháchãng/candidateexact/CUAdesktop375/shared/nativeclaim95/hashmanifest.
+- [x] R11.4 Report/HANDOFF/preview/Claudechecklist;chưareleaseR10+R11.
+Plan `tasks/codex-r11-math-plan.md`. Lỗi này supersedevisualR10math claim; phần mechanicsoldPASSgiữtheohashcũ.
+
+R11chốt13/10:
+- [x] Ownerduyệtđồngloạttypesetting;5packages46fieldsmarkup (18prompts+2rubric+26fields),3staticcards;semanticSHA/hash/source/evalđượckiểm. Cataloguepilothashtrỏbảnmới. Khôngđổiimmutablelivepackages.
+- [x] UIrichfieldsGV/HS/hộchiếu/rubric/feedback+nativeoptionThẻ/NhómreferenceMathText;CSSmathnowrap/scrollsafe+matchingpreviewdướiselect. Input/sourcequotes/JSONkeyskept.
+- [x] 1203/1203fulltest/typecheck/lint/build0/394warnings;192manifestbyte-match. FinalWorker548fcf6e/tree972df01e;95nativeHTTP/combinedcapresave/v7rollbackPASS0external. R10load307+453historykhôngclaimrerunR11.
+- [x] CUAactualfinal16MathML/9subscript/0error/375scroll360;matchingselect/preview233pxIDkept;standard9notationpreviewfraction/root/vector/integral/trig/matrix/cases/alignedPASSwithlocalSSR/CSS,inline369cuộn310. Desktop/375screenshotskept;oldwrapped/collapsedselectorimagesnotfinalproof.
+- [x] IndependentFlashhighPASS0findings/currentfullhash. GeminiPro503twiceunknownquota; rawreviewretained. FalseBLOCKEDtruncatedCSSinputexcerptadjudicated/recheckedcompleterule. `codex-r11-math-layout-recheck-flash-2026-10-13T01-20-16-547Z.json`.
+- [x] Report/evidence/HANDOFF/todo/lessonsupdated `tasks/codex-r11-report.md`, `codex-r11-evidence.json`. Previewtab37seededreward3/3typeset. Khóa/dữliệuHS/V7/productionversion7untouched.
+- [ ] OwnerduyệtpháthànhR10+R11theo19.9;humanclass/GVsourceyear/format/timebox150/2oldAIcitation/realdevices3Dvisualremainseparate.
+
+#### R12 — owner sửa trải nghiệm Khám phá và hướng dẫn GV13/10
+- [x] Owner chốt Khámpháđọcvuithưgiãn,khôngcâuhỏi/nhiệm vụ;sourceadminkhôngchoHS. GợiýGVphảitrướclaunch,cónútsetuptoànbài vàchỉnhtaysau.
+- [x] R12.1 bỏquestions/options/choiceHS,3thẻcâuchuyệnđa chiều/MathText;newREADclaimkhôngbàinộp;privateprovenanceGV.
+- [x] R12.2 đềxuấtsetupfrompackage+onebutton/manualdetails+normalizer/auth/createatomic/START/hydrate/legacyrollback.
+- [x] R12.3 QAaudience/workload+fullgate/review/native/CUAdesktop375/readnostudenttask/teachernewroompersist.
+- [x] R12.4 report/HANDOFF/lessons/sharedprogress. R10–11mechanics/mathpassgiữtheohash;pedagogicalclaimsupersededbyR12. Productionunpublished19.9.
+Spec `tasks/codex-r12-reading-teacher-setup-plan.md`.
+
+R12chốtlocal13/10:
+- [x] 3thẻđọcvuingắn(realworld/accessible;FibonaccihistorycrosscultureMacTutorverified;language/digitalmedia),HS0questions/options/choice/adminT11Must/source;newREAD1tapfragment/noacademicreward. SourceprivateGVdetails. MathTextgiữ.
+- [x] Setupbeforelaunchauto1proposal+“Gợi ý thiết lập cả bài”+manualdetails7fields;recheckindividual/taskcontentuntouched;0–2integrations;eventplanonlybudgetguard;sharedmapavailability3points. Strictcreateowner/fingerprint/atomicinit/GETnonreapply/STARTapprovedplanonly,legacyroomsunchanged.
+- [x] 1213fulltests/typecheck/lint/build0,394warnings;196sourcebyte-match;Worker911bfd3e/tree393f6b7d. 109nativeHTTP0external,combined150max450fragments+setup+900/600/1650actualresave1,500,176<cap,realv7rollbackbothfieldsPASS.
+- [x] CUAHSread0form/admin,false/1fragmentwithoutchoice/desktop375scroll360client305/MathML;CUAGVproposal/manual/launchcreatedroom5190BEdatafake/reloadserverconfigKhoBáuCánhândigital-media/noevent/windowclosed. Preview39reading3/3explicitseeded.
+- [x] MainindependentGeminiFlashhighPASS0findings/currentcode. SecondaryattemptsClaude2x503/Pro503/FlashboundarytimeoutunknownnotPASS;additionalreviewdepthdegraded,releaseevidenceexplicit.
+- [x] report/evidence/HANDOFF/todo/lessonsupdated `tasks/codex-r12-report.md`,`codex-r12-evidence.json`. R10mechanicmathgreen≠UXsưphạm;R12supersedesoldreflectionstudentdesign.
+- [ ] R10–R12publicationowner19.9;additionalproviderreviewifrequired;humanclass/GVsourceyear/format/timebox150/2oldAIcitation/realdevices3Dvisualremain.
+
+#### R13 — một câu/thẻ mỗi popup, map bớt nút
+- [x] Owner yêu cầu giảmrốiHUD/giảmscroll/NextBack/2D3D;spec `tasks/codex-r13-game-ui-plan.md`. R12bỏquestionsKhámpháđãxong,ảnhold khôngcoilàregressionbackend.
+- [x] R13.1 play/shared1câuvisible+NextBack/draftmounted/identity/khôngđổichecker/evidence.
+- [x] R13.2 exploration1thẻ/directmarker+PrevNext/MathText/readclaimgiữ.
+- [x] R13.3 HUDoneCTA/menu/toolssecondary/mapgate+discoverylistscollapsed2D3D/auxpanels/modalkeyboard375.
+- [x] R13.4 fullgate/review/nativefinal/CUAactual/screenshots/manifest/report/Claudehandoff. Chưaownerduyệtpháthành.
+
+R13 tiến độ: tích hợp đã xong; 1221 tests/109 HTTP đạt trên ứng viên trung gian. QA 375 phát hiện lề body 8px gây cuộn trang và nút hidden bị CSS hiển thị; đã sửa. Build cuối đang kiểm lại, chưa đóng R13.4. Review Flash 03:17 PASS; map menu bổ sung sau đó cần kiểm lại. Không phát hành.
+
+R13 nghiệm thu local: 1222 tests; 39 UI +52 map checks sau chỉnh cuối; typecheck/build đạt; lint 0 lỗi/392 cảnh báo cũ, scoped 0. 201 source byte-match. Native 109 HTTP trên hash cuối 31f903ab69b2a63eae3aa93b3abd902adadc8250d189f3af57d88011fe0dd653; cùng hash máy chủ browser QA. Gemini Flash core/map PASS 0 findings. CUA 375: trang 812/812, 1 câu, nháp 23 qua Next/Back, footer trong màn hình, Escape trả Menu; cổng 2D chạm mở riêng câu luyện. Broad CUA trước hai chỉnh cuối gồm 3D thẻ 2/3, nhận 1 mảnh, pause/giữ nháp, máy chung tách người; không gắn nhầm hash cuối. Báo cáo `tasks/codex-r13-report.md`, bằng chứng `tasks/codex-r13-evidence.json`.
+- [ ] Lỗi học liệu cũ ngoài R13: biến thể 12 hàng nhưng label 25 hàng, `content/lessons/g11-sequences-p1.json:337/350`; chưa sửa, chờ chủ hệ thống duyệt riêng.
+- [x] Chủ hệ thống duyệt phát hành R10–R13 ngày13/10: “Phát hành trước đi đã, còn lỗi nào thì ghi vào plan để lần sau sửa tiếp”. Đang phát hành; chưa ghi deployed tới khi native thành công.
+
+## Backlog sau phát hành R10–R13 (chủ hệ thống cho để lượt sau)
+- [ ] Sửa label biến thể 12/25 hàng tại `content/lessons/g11-sequences-p1.json:337/350`, giữ checker/đáp án hữu hạn; duyệt học liệu trước khi đưa vào lớp thật.
+- [ ] Đối soát hai citation số trong nháp Gemini lịch sử; chưa coi nháp đó được duyệt.
+- [ ] Duyệt nguồn/năm học/định dạng học liệu; nghiệm thu 150HS/40phút và điện thoại/iPad/TV thật.
+- [ ] Duyệt thẩm mỹ3D; cổng3Dcanvas vẫn cảnh quan, chọn bằng menuHTML.
+- [ ] Nếu cần giữ nháp chưa lưu qua đổi người/đóngtab trên máy chung, thiết kế riêng; R13 giữ nháp Next/Back và đóngpopup trong cùng người.

@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import MathText from "./MathText";
 type Item = {id:string;label:string};
 type Task = {id:string;inputSchema?:Record<string,unknown>;evaluation?:{checkerId?:string;answerKey?:unknown}};
 export function StructuredQuestionEditor({task,onChange}:{task:Task;onChange:(schema:Record<string,unknown>,answerKey:unknown)=>void}) {
@@ -15,6 +16,6 @@ export function StructuredQuestionEditor({task,onChange}:{task:Task;onChange:(sc
  {!ordering&&<label>Nhóm đúng<select className="lesson-select" value={mapping[item.id]||""} onChange={e=>save(items,categories,{...mapping,[item.id]:e.target.value})}><option value="">Chọn nhóm</option>{categories.map(category=><option key={category.id} value={category.id}>{category.label}</option>)}</select></label>}
  <button className="lesson-button lesson-button-outline" type="button" onClick={()=>save(items.filter(card=>card.id!==item.id),categories,ordering?order.filter(id=>id!==item.id):Object.fromEntries(Object.entries(mapping).filter(([id])=>id!==item.id)))}>Xóa thẻ {index+1}</button></div>)}
  <button className="lesson-button" type="button" disabled={items.length>=32} onClick={()=>{const card={id:crypto.randomUUID(),label:"Thẻ mới"};save([...items,card],categories,ordering?[...order,card.id]:mapping);}}>Thêm thẻ</button>
- {ordering&&<div><h4>Thứ tự đáp án đúng</h4>{order.map((id,index)=><p key={id}>{index+1}. {items.find(item=>item.id===id)?.label}<button className="lesson-button lesson-button-outline" type="button" aria-label={`Đưa thẻ ${index+1} lên`} disabled={index===0} onClick={()=>{const next=[...order];[next[index-1],next[index]]=[next[index],next[index-1]];save(items,categories,next);}}>Lên</button><button className="lesson-button lesson-button-outline" type="button" aria-label={`Đưa thẻ ${index+1} xuống`} disabled={index===order.length-1} onClick={()=>{const next=[...order];[next[index+1],next[index]]=[next[index],next[index+1]];save(items,categories,next);}}>Xuống</button></p>)}</div>}
+ {ordering&&<div><h4>Thứ tự đáp án đúng</h4>{order.map((id,index)=><p key={id}>{index+1}. <MathText text={items.find(item=>item.id===id)?.label}/><button className="lesson-button lesson-button-outline" type="button" aria-label={`Đưa thẻ ${index+1} lên`} disabled={index===0} onClick={()=>{const next=[...order];[next[index-1],next[index]]=[next[index],next[index-1]];save(items,categories,next);}}>Lên</button><button className="lesson-button lesson-button-outline" type="button" aria-label={`Đưa thẻ ${index+1} xuống`} disabled={index===order.length-1} onClick={()=>{const next=[...order];[next[index+1],next[index]]=[next[index],next[index+1]];save(items,categories,next);}}>Xuống</button></p>)}</div>}
  </fieldset>;
 }

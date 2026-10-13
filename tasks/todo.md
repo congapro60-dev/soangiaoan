@@ -178,3 +178,42 @@ Report tasks/codex-r8-report.md;authoritative sharedcheckboxplanfinalR8.
 - [x]Reports/HANDOFF/sharedcheckboxupdated.
 - [ ] Broadreleaseownerapproval;historicalGemini2citationfullcandidate;GVformat/math/year/timebox;realdevices/classroom/3Dvisual.
 Report tasks/codex-r9-report.md;authoritative sharedplanfinalR9.
+
+## Published R1–R9 —12/10
+- [x]Ownerapproved/nativeversion7succeeded/sourcec8064b4/Workerc3b1250d.
+- [x]Exact307+453HTTP150/migrationrollback/productionlanding16drafts/sourceAIrestore/dataretention/errorlogsPASS.
+- [x]Sharedchecklist/HANDOFF/release-report/evidenceupdated.
+- [ ]2historicAIcitation/multisourceAIQA/GVmathyearformat/timebox150/realdevices3Dvisual.
+
+## R10 pilot local —13/10 VN
+- [x]3cards/fragments/cosmeticreward/GVwindow/attention/waitmask implemented.
+- [x]1191fulltests/typecheck/lint/build/review/189manifest/native95/rollback/307+453HTTP150combinedPASS.
+- [x]CUAread3/claim1/3/pausefocus/Escapeblock/draft23resume/375widthPASS;report/HANDOFF/sharedcheckboxupdated.
+- [x]CUAremaining complete13/10; tab30gone, blockerresolved. Evidence/report tasks/codex-r10-report.md.
+- [ ]ScopedR10release afterCUA andownerapproval19.9;productionversion7unchanged.
+
+## R10 final local pilot —13/10 VN
+- [x]Previousnativeconfirmblockerresolved(tab30gone);CUAremaining10checksPASS.
+- [x]189sourcehashsame/finalWorkerf4dc4dbf;report/HANDOFF/sharedcheckboxupdated;previewtab36reward3/3explicitseeded.
+- [ ]OwnerR10publicationapproval19.9;humanclass/GVsource/year/realdevices3D/oldAIcitationsseparate.
+
+
+## R11 Math typesetting —13/10 VN
+- [x]Ownerđồngloạtformatonlyaudit/fix3cards+richUI+5packages46fields/nativeoptionsfullMathTextreference+CSSnooperatorbreak.
+- [x]1203tests/typecheck/lint/build0;192manifest/548fcf6e/native95/CUA375desktopstandardnotation/FlashreviewPASS.
+- [x]Report/evidence/HANDOFF/lessons/sharedcheckboxupdated;previewtab37.
+- [ ]R10+R11publicationowner19.9;realpedagogical/source/year/devices/3D/historicAIgate separate.
+
+## R12 reading and teacher setup —13/10 VN
+- [x]RemoveHSquestions/adminnotes;3readingcards/historyverified/READfragment/MathText.
+- [x]Autopresetbeforelaunch/buttonwholelesson/manualcollapsed/strictservercreatepersist/noGETreset/cockpitexplicitApply.
+- [x]1213tests/typecheck/lint/build/196manifest/911bfd3e/native109/caprollback/CUAreading375+teacheractualcreatedconfigreload.
+- [x]MainFlashreviewPASS;reports/sharedHandoff/lessonsupdated. Secondaryreviewattemptsunavailableexplicit.
+- [ ]Ownerpublication19.9;realclass/humanmathsourceyear/timeboxdevices3D/oldAIcitationsseparate.
+
+## R13 — hoàn tất local
+- [x] Map một CTA/menu; từng câu/thẻ popup; Next/Back giữ nháp; 2D/3D chung control HTML.
+- [x] 1222 tests +39UI+52map; build/typecheck; lint0/392;201manifest;native109/hash;Gemini core/map;CUA cuối375/focus/cổng.
+- [x] Report/evidence/plan chung/HANDOFF/lessons cập nhật.
+- [ ] Owner duyệt sửa học liệu 12/25 hàng ngoài UI.
+- [ ] Owner duyệt phát hành R10–R13 theo19.9; QA lớp thật/citation/year/3Dvisual riêng.

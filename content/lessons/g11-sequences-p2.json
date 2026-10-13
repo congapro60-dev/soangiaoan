@@ -811,7 +811,7 @@
           },
           {
             "id": "bounded",
-            "label": "Bị chặn khi có m, M sao cho m ≤ u_n ≤ M với mọi n."
+            "label": "Bị chặn khi có $m$, $M$ sao cho $m \\le u_n \\le M$ với mọi $n$."
           },
           {
             "id": "first",
@@ -1584,7 +1584,7 @@
   "rubric": {
     "criteria": [
       "Nêu đúng định nghĩa và miền n ≥ 1.",
-      "Chứng minh dấu hiệu u_(n+1) − u_n cho mọi chỉ số.",
+      "Chứng minh dấu hiệu $u_{n+1} - u_n$ cho mọi chỉ số.",
       "Phân biệt đơn điệu với bị chặn; giải thích điều kiện dùng tỉ số."
     ],
     "lookFor": [
@@ -1611,5 +1611,5 @@
       "group_score"
     ]
   },
-  "contentHash": "5782d42bcc78593c5617022c2d964e5a3440f039252abbb81115eca48d893c7d"
+  "contentHash": "ae8d29bead8fa1baff2732023c8a04049849e55ad8cdd5ab5cde5a100b7bdad9"
 }

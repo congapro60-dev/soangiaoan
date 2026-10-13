@@ -30,7 +30,7 @@
   "essentialQuestion": "Định nghĩa tăng, giảm và bị chặn yêu cầu điều kiện nào đúng với mọi chỉ số?",
   "prerequisites": [
     "So sánh số thực, ký hiệu bất đẳng thức và lượng từ mọi n.",
-    "Chỉ số n bắt đầu từ1; phân biệt u_n với n."
+    "Chỉ số $n$ bắt đầu từ1; phân biệt $u_n$ với $n$."
   ],
   "objectives": [
     {
@@ -484,15 +484,15 @@
         "options": [
           {
             "id": "a",
-            "label": "Tăng: u_(n+1)>u_n; giảm: u_(n+1)<u_n"
+            "label": "Tăng: $u_{n+1}>u_n$; giảm: $u_{n+1}<u_n$"
           },
           {
             "id": "b",
-            "label": "Tăng: u_(n+1)<u_n; giảm: u_(n+1)>u_n"
+            "label": "Tăng: $u_{n+1}<u_n$; giảm: $u_{n+1}>u_n$"
           },
           {
             "id": "c",
-            "label": "Tăng: u_(n+1)=u_n; giảm: u_(n+1)>u_n"
+            "label": "Tăng: $u_{n+1}=u_n$; giảm: $u_{n+1}>u_n$"
           },
           {
             "id": "d",
@@ -1069,5 +1069,5 @@
       "group_score"
     ]
   },
-  "contentHash": "84acbfc8061866aab575d55fbe9a57e1d341540544159d85b92f3a2af4283887"
+  "contentHash": "61a9c7e16ecf6ad0b3bf009becfbd96b664fe7d6613848e314c0ee49cd2e8ad7"
 }

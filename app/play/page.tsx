@@ -4,6 +4,8 @@ import { ClassEventPanel } from "../../components/lesson/ClassEventPanel";
 import { ValueReflection, type ValueReflectionData } from "../../components/lesson/ValueReflection";
 import { PracticePanel } from "../../components/lesson/PracticePanel";
 import { TutorPanel } from "../../components/lesson/TutorPanel";
+import { ExplorationPanel, LessonAttention } from "../../components/lesson/ExplorationPanel";
+import { QuestionPager } from "../../components/lesson/QuestionPager";
 import { SessionRules } from "../../components/lesson/SessionRules";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -725,6 +727,7 @@ export default function PlayPage() {
   const [showMediaSettings, setShowMediaSettings] = useState<boolean>(false);
   const [reflection, setReflection] = useState<ValueReflectionData>({ integrity:false,usedAI:false,aiHelp:"",ownChanges:"",reflection:"" });
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   // Hook for student lesson media feedback
   const media = useLessonMedia({
@@ -814,6 +817,7 @@ export default function PlayPage() {
 
   // Remaining time and disabled state
   const remainingMs = getRemainingMs();
+  const [explorationCardId,setExplorationCardId]=useState<string|null>(null);
   const isSessionPaused = view?.status === "paused";
   const isSessionConcluded = view?.status === "concluded";
   const isActivityLocked = Boolean(view?.timeline?.locked);
@@ -829,11 +833,11 @@ export default function PlayPage() {
   const isMainInputDisabled = isInputDisabled || Boolean(arenaPhase && arenaPhase !== 'done');
   const ownMapPeer = view?.map?.peers.find((peer) => peer.own);
   const worldMeta = getSafeWorldMetadata((view?.gamePlan as { theme?: string } | undefined)?.theme);
-  const ownAtGate = Boolean(ownMapPeer && view?.map && ownMapPeer.position >= (view.map.gatePosition ?? 0));
 
   // The first picture of a room is the map alone. After that, a new activity, the lesson starting or the arena
   // opening brings the task pop-up up by itself; the pupil can always close it to look at the map.
   const [encounterOpen, setEncounterOpen] = useState(false);
+  const [practiceOpen, setPracticeOpen] = useState(false);
   const [pickerSkipped, setPickerSkipped] = useState(false);
   const [seenMoment, setSeenMoment] = useState<string | null>(null);
   const moment = view ? `${view.timeline?.currentActivityId ?? ""}|${view.status ?? ""}|${arenaPhase ?? ""}` : null;
@@ -842,6 +846,7 @@ export default function PlayPage() {
     if (seenMoment !== null && view?.status === "active") setEncounterOpen(true);
   }
   const closeEncounter = useCallback(() => setEncounterOpen(false), []);
+  const dismissExploration = useCallback(()=>{setExplorationCardId(null);menuButton.current?.focus({preventScroll:true});},[]);
   const arriveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleArrive = useCallback(() => {
     // Let the mascot finish walking onto the gate before the task covers the map.
@@ -954,21 +959,21 @@ export default function PlayPage() {
 
   const tasksList = (view?.tasks || []) as StudentTask[];
   const submissionsList = (view?.submissions || []) as StudentSubmission[];
-  const diceTrack = (view?.diceTrack || { position: 0 }) as { position?: number };
   const groupWallet = (view?.group as { wallet?: GroupWalletProjection } | undefined)?.wallet;
   const extensionProj = view?.extension as ExtensionProjection | undefined;
+  const specialQuestion = Boolean(view?.classEvent?.status === "active" || arenaPhase && arenaPhase !== "done");
 
   return (
     <main className={`lesson-shell play-game ${media.settings.reducedMotion ? "lesson-media-reduced-motion" : ""}`}>
-      <div style={{position:"fixed",top:HUD_HEIGHT+4,left:10,right:10,zIndex:19,maxHeight:"calc(100dvh - 120px)",overflowY:"auto"}}>
-        <SessionRules worldTitle={worldMeta.name} rule={view?.lessonMode?.rule || (view?.gamePlan as {rule?:string})?.rule} participation={view?.lessonMode?.participation || (view?.gamePlan as {participation?:string})?.participation} eventLabel={view?.classEvent?.status==="active"?view.classEvent.label:undefined}/>
-      </div>
+      <LessonAttention status={view?.status}/>
+      <ExplorationPanel hideTrigger view={view?.exploration} status={view?.status} activityId={view?.timeline?.currentActivityId} onCommand={dispatchCommand} openCardId={explorationCardId} onDismiss={dismissExploration}/>
       {/* The campaign map is the game: it fills the screen and everything else floats over it */}
       <LessonMapStage
+        onExploreCard={id=>{setEncounterOpen(false);setMenuOpen(false);setExplorationCardId(id);}}
         onSelectBranch={async branch=>{const result=await dispatchCommand("SELECT_BRANCH",{branch});if(!result.ok)alert(LEVEL_ERRORS[result.code||""]||"Chưa đổi được mức. Kiểm tra điều kiện rồi thử lại.");}}
-        onGateSelect={async activityId => { await dispatchCommand("REVISIT", { activityId }); setEncounterOpen(true); }}
+        onGateSelect={async activityId => { const result=await dispatchCommand("REVISIT", { activityId }); if(result.ok){setPracticeOpen(true);setEncounterOpen(true);} }}
         fullscreen
-        topInset={HUD_HEIGHT+120}
+        topInset={HUD_HEIGHT+8}
         map={view?.map}
         themeKey={(view?.gamePlan as { theme?: string } | undefined)?.theme}
         sessionKey={sessionId || "preview"}
@@ -989,49 +994,34 @@ export default function PlayPage() {
             <strong className="play-hud-name">{view?.learnerName || view?.passport?.name || ownMapPeer?.name || "Học sinh"}</strong>
           </div>
           <div className="play-hud-right">
-            {!media.isUnlocked && (
-              <button
-                type="button"
-                className="play-menu-btn lesson-media-enable-btn"
-                onClick={media.unlockAudio}
-                title="Bật âm thanh và hiệu ứng phản hồi học tập"
-                aria-label="Bật phản hồi"
-              >
-                🔊
-              </button>
-            )}
-            <span
-              className="play-hud-pill play-learner-wallet"
-              title="Ví cá nhân độc lập trong Hộ chiếu học tập (không phụ thuộc điểm nhóm)"
-            >
-              🎖️ {view?.wallet?.earned || 0}
-            </span>
-            {groupWallet && (
-              <span className="play-hud-pill play-group-wallet" title="Quỹ thưởng nhóm hợp tác (tách biệt với Hộ chiếu thành thạo cá nhân)">
-                👥 Nhóm: {groupWallet.earned || 0}
-              </span>
-            )}
             <button
               type="button"
               className="play-menu-btn"
+              ref={menuButton}
+              data-encounter-trigger
               onClick={() => setMenuOpen((open) => !open)}
-              aria-haspopup="menu"
+              aria-haspopup="true"
               aria-expanded={menuOpen}
               aria-label="Menu"
             >
               ☰
             </button>
             {menuOpen && (
-              <div className="play-menu" role="menu">
+              <div className="play-menu" aria-label="Tiện ích trò chơi">
+                <button type="button" onClick={()=>{setMenuOpen(false);setEncounterOpen(true);}}>Mở nhiệm vụ</button>
+                {view?.exploration?.enabled&&<button type="button" disabled={!view.exploration.open&&view.status!=="concluded"} onClick={()=>{setEncounterOpen(false);setMenuOpen(false);setExplorationCardId(view.exploration?.cards?.[0]?.id||null);}}>Khám phá · {view.exploration.fragments||0}/3 mảnh</button>}
+                {!media.isUnlocked&&<button type="button" onClick={media.unlockAudio}>Bật phản hồi</button>}
+                <p>Ví cá nhân: {view?.wallet?.earned||0}{groupWallet?` · Quỹ nhóm: ${groupWallet.earned||0}`:""}</p>
+                <SessionRules worldTitle={worldMeta.name} rule={view?.lessonMode?.rule || (view?.gamePlan as {rule?:string})?.rule} participation={view?.lessonMode?.participation || (view?.gamePlan as {participation?:string})?.participation} eventLabel={view?.classEvent?.status==="active"?view.classEvent.label:undefined}/>
                 {media.isUnlocked && (
-                  <button type="button" role="menuitem" onClick={media.toggleMaster}>
+                  <button type="button" onClick={media.toggleMaster}>
                     {media.settings.master ? "🔊 Phản hồi: Bật" : "🔇 Phản hồi: Tắt"}
                   </button>
                 )}
-                <button type="button" role="menuitem" onClick={() => { setShowMediaSettings(true); setEncounterOpen(true); setMenuOpen(false); }}>
+                <button type="button" onClick={() => { setShowMediaSettings(true); setEncounterOpen(true); setMenuOpen(false); }}>
                   ⚙️ Cài đặt phản hồi
                 </button>
-                <button type="button" role="menuitem" className="play-menu-danger" onClick={handleLeave}>
+                <button type="button" className="play-menu-danger" onClick={handleLeave}>
                   Rời phòng
                 </button>
               </div>
@@ -1070,32 +1060,16 @@ export default function PlayPage() {
           </aside>
         )}
 
-      <button
-        type="button"
-        className={`play-encounter-fab${ownAtGate && !encounterOpen ? " play-encounter-fab-attention" : ""}`}
-        onClick={() => setEncounterOpen(true)}
-        aria-haspopup="dialog"
-        aria-label="Nhiệm vụ"
-      >
-        <span aria-hidden="true">📜</span>
-        <span className="play-encounter-fab-label">Nhiệm vụ</span>
-      </button>
-
       <LessonEncounterSheet
-        open={encounterOpen}
+        open={encounterOpen && !needsMascot && !explorationCardId && view?.status !== "waiting" && view?.status !== "paused"}
         onClose={closeEncounter}
         kicker={view?.currentActivity?.phase ? "HOẠT ĐỘNG HỌC TẬP" : undefined}
         title="Nhiệm vụ của cổng"
       >
-          {view?.lessonMode && <LessonModePanel view={view.lessonMode} disabled={isMainInputDisabled} onAction={async input=>{await dispatchCommand("MODE_ACTION",{...input,requestId:crypto.randomUUID()});}} />}
           {view?.lessonModeError && <p role="status">Bài học đã lưu. Hoàn thành bước chơi đang hiện trước khi nhận tiến độ chơi tiếp.</p>}
           {sessionError && (
             <div className="task-status-banner task-status-error">{sessionError}</div>
           )}
-
-          {view?.clock?.startedAt != null && serverNow - view.clock.startedAt > 20 * 60 * 1000 && <p className="lesson-muted">Đã dùng màn hình một lúc. Khi thầy cô cho nghỉ, em nhìn xa và thả lỏng mắt.</p>}
-          {Array.isArray(view?.valueBadges) && view.valueBadges.length>0 && <details className="lesson-card" style={{padding:"1rem"}}><summary>Giá trị em đã thể hiện</summary>{(view.valueBadges as Array<{valueId:string;reason:string;revokedAt?:number}>).filter(badge=>!badge.revokedAt).map((badge,index)=><p key={index}>{badge.valueId}: {badge.reason}</p>)}</details>}
-          {view?.storyCue && <details className="lesson-card" style={{ padding: "1rem" }}><summary>Manh mối hành trình</summary><p>{view.storyCue}</p></details>}
 
           <ClassEventPanel view={view?.classEvent || null} disabled={isSubmitting||isSessionPaused} onBuzz={async input=>{const result=await dispatchCommand("CLASS_EVENT_BUZZ",{...input,eventId:view?.classEvent?.id,requestId:crypto.randomUUID()});if(!result.ok)throw Error();}} onPick={async ({cellId})=>{await dispatchCommand("CLASS_EVENT_PICK",{cellId,eventId:view?.classEvent?.id,requestId:crypto.randomUUID()});}} onAnswer={async input => {const result=await dispatchCommand("CLASS_EVENT_ANSWER", {...input,eventId:view?.classEvent?.id,requestId:crypto.randomUUID()});if(!result.ok)throw Error();}} />
           {/* Status Notification Banners */}
@@ -1194,26 +1168,6 @@ export default function PlayPage() {
             </div>
           )}
 
-        {ownMapPeer?.chosen && (
-          <LessonMascotPicker
-            spriteImage={worldMeta.spriteImage}
-            mascots={worldMeta.mascots}
-            current={ownMapPeer.mascot}
-            chosen
-            locked={view?.status !== "waiting"}
-            disabled={!view}
-            onChoose={chooseMascot}
-          />
-        )}
-
-          {/* Themed Route Map & World Context */}
-          <LessonThemedRoute
-            gamePlan={view?.gamePlan}
-            currentActivityIndex={view?.timeline?.activityIndex}
-            currentPhase={view?.currentActivity?.phase}
-            variant="student"
-          />
-
           {/* Lôi Đài Ngũ Ấn Panel (when view.arena exists) */}
           {Boolean(view?.arena) && (
             <LessonArenaStudentPanel
@@ -1263,74 +1217,16 @@ export default function PlayPage() {
               </span>
             </div>
 
-            <div style={{ fontSize: "1.05rem", lineHeight: 1.5, margin: "0.5rem 0" }}>
+            <details><summary>Hướng dẫn hoạt động</summary><div style={{ fontSize: "1.05rem", lineHeight: 1.5, margin: "0.5rem 0" }}>
               <MathText text={view?.currentActivity?.studentAction} inline={false} />
-            </div>
+            </div></details>
 
             {view?.mode === "live" && ["recheck","exit"].includes(view?.currentActivity?.phase || "") && !view?.integrityConfirmed && <label className="lesson-card" style={{display:"block",padding:"1rem"}}><input type="checkbox" onChange={event => { if(event.target.checked)void dispatchCommand("INTEGRITY",{confirmed:true,usedAI:reflection.usedAI}); }} /> Em giữ đúng cam kết: ghi rõ phần tự làm và phần đã dùng gợi ý hoặc AI.</label>}
             {view?.currentActivity?.phase === "reflection" && <ValueReflection policy={view.aiPolicy || "off"} value={reflection} onChange={setReflection} onSubmit={async () => { await dispatchCommand("VALUE_REFLECT",{reflection}); }} disabled={isSubmitting} />}
-            <PracticePanel practice={view?.practice} gates={view?.revisitGates} enabled={view?.revisitEnabled !== false} busy={isSubmitting} onCommand={dispatchCommand} />
-            <TutorPanel key={learnerId} tutor={view?.tutor} busy={isSubmitting} onCommand={dispatchCommand}/>
-            {/* Level bar ("Đổi mức", plan 19.4) */}
-            <LevelBar
-              view={view}
-              disabled={isMainInputDisabled}
-              extension={extensionProj}
-              onSelect={(branch) => dispatchCommand("SELECT_BRANCH", { branch })}
-            />
           </section>
 
-          {/* Group Collaboration Bar (If Activity has Group Mode) */}
-          {view?.group && (
-            <section className="lesson-card" style={{ padding: "1rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <strong>👥 Nhóm học tập ({view.group.memberIds?.length || 0} thành viên)</strong>
-                  <span
-                    className="lesson-badge"
-                    style={{ background: "rgba(168, 85, 247, 0.2)", color: "#c084fc", fontSize: "0.75rem" }}
-                    title="Điểm thưởng nhóm không tự động chuyển thành thành thạo cá nhân"
-                  >
-                    Quỹ nhóm: {groupWallet?.earned || 0} điểm
-                  </span>
-                </div>
-                {view.group.selectionDeadline ? (
-                  <span className="lesson-badge lesson-badge-warning">
-                    Chọn vai trò: {Math.max(0, Math.floor((view.group.selectionDeadline - (serverNow || 0)) / 1000))}s
-                  </span>
-                ) : null}
-              </div>
-              <div style={{ fontSize: "0.8rem", color: "var(--lesson-text-muted)", marginBottom: "0.5rem" }}>
-                * Phần thưởng nhóm được chia sẻ chung và tách biệt với Hộ chiếu thành thạo cá nhân.
-              </div>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
-                {[
-                  { id: "discover", label: "Phát hiện dữ kiện" },
-                  { id: "represent", label: "Dựng biểu diễn" },
-                  { id: "check", label: "Kiểm chứng" },
-                  { id: "explain", label: "Giải thích, tổng hợp" },
-                ].map((role) => {
-                  const assignedMember = view.group?.roles?.[role.id];
-                  const isMyRole = assignedMember === learnerId;
-                  return (
-                    <button
-                      key={role.id}
-                      className={`lesson-badge ${isMyRole ? "lesson-badge-success" : "lesson-badge-primary"}`}
-                      style={{ cursor: "pointer", border: "none" }}
-                      onClick={() => dispatchCommand("CHOOSE_ROLE", { roleId: role.id })}
-                      disabled={isMainInputDisabled || (Boolean(assignedMember) && !isMyRole)}
-                    >
-                      {role.label} {isMyRole ? "(Em)" : assignedMember ? "(Đã nhận)" : ""}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
           {/* Active Tasks List */}
-          <section className="play-tasks">
+          <section className="play-tasks" hidden={specialQuestion || practiceOpen}>
             {tasksList.length === 0 ? (
               <div className="lesson-card" style={{ textAlign: "center", padding: "2rem" }}>
                 <p style={{ color: "var(--lesson-text-muted)" }}>
@@ -1338,7 +1234,7 @@ export default function PlayPage() {
                 </p>
               </div>
             ) : (
-              tasksList.map((task) => {
+              <QuestionPager identity={`${sessionId}:${learnerId}:${view?.round}:${view?.timeline?.currentActivityId}`} busy={isSubmitting} items={tasksList.map((task) => {
                 const currentActId = view?.timeline?.currentActivityId || "";
                 const draftKey = `draft_${sessionId}_act_${currentActId}_round_${view?.round}_task_${task.id}_learner_${learnerId}`;
                 let initialDraft = null;
@@ -1360,8 +1256,8 @@ export default function PlayPage() {
                   { answer: unknown; ok: boolean; submittedBy: string; at: number }
                 >;
 
-                return (
-                  <div key={task.id} className="lesson-card" style={{ marginBottom: "1.25rem" }}>
+                return {id:task.id,content:(
+                  <div className="lesson-card" style={{ marginBottom: ".5rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
                       <span className="lesson-badge">
                         {isGroupTask ? "Nhiệm vụ nhóm" : "Nhiệm vụ cá nhân"}
@@ -1415,10 +1311,95 @@ export default function PlayPage() {
                       groupContributions={view?.group?.contributions?.filter((c) => c.taskId === task.id)}
                     />
                   </div>
-                );
-              })
+                )};
+              })}/>
             )}
           </section>
+          <details className="lesson-task-options" open={practiceOpen||undefined} onToggle={event=>{if(!event.currentTarget.open)setPracticeOpen(false);}}><summary>Tiện ích và thông tin chặng</summary>
+          {view?.lessonMode && <details><summary>Hành động theo luật chơi</summary><LessonModePanel view={view.lessonMode} disabled={isMainInputDisabled} onAction={async input=>{await dispatchCommand("MODE_ACTION",{...input,requestId:crypto.randomUUID()});}} /></details>}
+          {view?.clock?.startedAt != null && serverNow - view.clock.startedAt > 20 * 60 * 1000 && <p className="lesson-muted">Đã dùng màn hình một lúc. Khi thầy cô cho nghỉ, em nhìn xa và thả lỏng mắt.</p>}
+          {Array.isArray(view?.valueBadges) && view.valueBadges.length>0 && <details className="lesson-card" style={{padding:"1rem"}}><summary>Giá trị em đã thể hiện</summary>{(view.valueBadges as Array<{valueId:string;reason:string;revokedAt?:number}>).filter(badge=>!badge.revokedAt).map((badge,index)=><p key={index}>{badge.valueId}: {badge.reason}</p>)}</details>}
+          {view?.storyCue && <details className="lesson-card" style={{ padding: "1rem" }}><summary>Manh mối hành trình</summary><p>{view.storyCue}</p></details>}
+
+        {ownMapPeer?.chosen && (<details><summary>Linh vật của em</summary>
+          <LessonMascotPicker
+            spriteImage={worldMeta.spriteImage}
+            mascots={worldMeta.mascots}
+            current={ownMapPeer.mascot}
+            chosen
+            locked={view?.status !== "waiting"}
+            disabled={!view}
+            onChoose={chooseMascot}
+          />
+        </details>)}
+
+          {/* Themed Route Map & World Context */}
+          <details><summary>Lộ trình và câu chuyện</summary><LessonThemedRoute
+            gamePlan={view?.gamePlan}
+            currentActivityIndex={view?.timeline?.activityIndex}
+            currentPhase={view?.currentActivity?.phase}
+            variant="student"
+          /></details>
+
+            <details open={practiceOpen} onToggle={event=>setPracticeOpen(event.currentTarget.open)}><summary>Luyện lại cổng</summary><PracticePanel practice={view?.practice} gates={view?.revisitGates} enabled={view?.revisitEnabled !== false} busy={isSubmitting || isInputDisabled || specialQuestion} onCommand={dispatchCommand} /></details>
+            <details><summary>Nhờ bạn hỗ trợ</summary><TutorPanel key={learnerId} tutor={view?.tutor} busy={isSubmitting} onCommand={dispatchCommand}/></details>
+            {/* Level bar ("Đổi mức", plan 19.4) */}
+            <details><summary>Mức học và sao</summary><LevelBar
+              view={view}
+              disabled={isMainInputDisabled}
+              extension={extensionProj}
+              onSelect={(branch) => dispatchCommand("SELECT_BRANCH", { branch })}
+            /></details>
+          {/* Group Collaboration Bar (If Activity has Group Mode) */}
+          {view?.group && (
+            <details className="lesson-card" style={{ padding: "1rem" }}><summary>Vai trò trong nhóm</summary>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <strong>👥 Nhóm học tập ({view.group.memberIds?.length || 0} thành viên)</strong>
+                  <span
+                    className="lesson-badge"
+                    style={{ background: "rgba(168, 85, 247, 0.2)", color: "#c084fc", fontSize: "0.75rem" }}
+                    title="Điểm thưởng nhóm không tự động chuyển thành thành thạo cá nhân"
+                  >
+                    Quỹ nhóm: {groupWallet?.earned || 0} điểm
+                  </span>
+                </div>
+                {view.group.selectionDeadline ? (
+                  <span className="lesson-badge lesson-badge-warning">
+                    Chọn vai trò: {Math.max(0, Math.floor((view.group.selectionDeadline - (serverNow || 0)) / 1000))}s
+                  </span>
+                ) : null}
+              </div>
+              <div style={{ fontSize: "0.8rem", color: "var(--lesson-text-muted)", marginBottom: "0.5rem" }}>
+                * Phần thưởng nhóm được chia sẻ chung và tách biệt với Hộ chiếu thành thạo cá nhân.
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                {[
+                  { id: "discover", label: "Phát hiện dữ kiện" },
+                  { id: "represent", label: "Dựng biểu diễn" },
+                  { id: "check", label: "Kiểm chứng" },
+                  { id: "explain", label: "Giải thích, tổng hợp" },
+                ].map((role) => {
+                  const assignedMember = view.group?.roles?.[role.id];
+                  const isMyRole = assignedMember === learnerId;
+                  return (
+                    <button
+                      key={role.id}
+                      className={`lesson-badge ${isMyRole ? "lesson-badge-success" : "lesson-badge-primary"}`}
+                      style={{ cursor: "pointer", border: "none" }}
+                      onClick={() => dispatchCommand("CHOOSE_ROLE", { roleId: role.id })}
+                      disabled={isMainInputDisabled || (Boolean(assignedMember) && !isMyRole)}
+                    >
+                      {role.label} {isMyRole ? "(Em)" : assignedMember ? "(Đã nhận)" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            </details>
+          )}
+
+          </details>
       </LessonEncounterSheet>
 
       <LessonEncounterSheet open={needsMascot} onClose={() => setPickerSkipped(true)} title="Chọn linh vật" variant="center">
@@ -1454,7 +1435,7 @@ function PassportCard({ card, name }: { card: LessonPassportCard; name: string }
         return (
           <div key={group.status} className={`passport-card-group is-${group.status}`}>
             <h3><span aria-hidden="true">{group.icon}</span> {group.title}</h3>
-            <ul>{items.map((item) => <li key={item.id}>{item.code ? <strong>{item.code}. </strong> : null}{item.statement}</li>)}</ul>
+            <ul>{items.map((item) => <li key={item.id}>{item.code ? <strong>{item.code}. </strong> : null}<MathText text={item.statement}/></li>)}</ul>
           </div>
         );
       })}

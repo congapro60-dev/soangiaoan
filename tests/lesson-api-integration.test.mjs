@@ -154,7 +154,7 @@ test('presenter rotation rejects old credentials, preserves classroom state and 
   const rotated = await service.rotatePresenter({id: room.session.id, accountId: 'owner-1', revision: teacher.revision});
   await assert.rejects(() => service.getSession({id: room.session.id, presenterToken: room.presenterToken}), /FORBIDDEN/);
   const tv = await service.getSession({id: room.session.id, presenterToken: rotated.presenterToken});
-  assert.equal(tv.view.tasks[0].evaluation?.answerKey, undefined);
+  assert.deepEqual(tv.view.tasks, []);
   await assert.rejects(() => service.event({sessionId: room.session.id, learnerToken: rotated.presenterToken, event: {type: 'START', eventId: 'tv-forged', round: teacher.view.round, revision: rotated.revision, payload: {}}}), /FORBIDDEN/);
   assert.equal(JSON.stringify((await service.getSession({id: room.session.id, accountId: 'owner-1'})).view.passports), before);
   assert.equal((await service.getSession({id: room.session.id, learnerToken: 'S'.repeat(43)})).view.passport.learnerId, student.learnerId);
@@ -173,7 +173,7 @@ test('teacher-owned presenter reads are anonymous and remain bound to room membe
     assert.equal(result.view.roster, undefined);
     assert.equal(result.view.passports, undefined);
     assert.equal(result.view.openAssessments, undefined);
-    assert.equal(result.view.tasks[0].evaluation?.answerKey, undefined);
+    assert.deepEqual(result.view.tasks, []);
     assert.equal(JSON.stringify(result.view).includes('Private learner'), false);
     assert.equal(JSON.stringify(result.view).includes(learner.learnerId), false);
   }

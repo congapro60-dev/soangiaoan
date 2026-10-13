@@ -33,6 +33,7 @@ function element() {
   return {
     style: { display: 'none', setProperty: noop }, dataset: {}, children: [], attributes: {},
     appendChild(child) { this.children.push(child); },
+    replaceChildren(...children) { this.children = children; },
     addEventListener(type, fn) { this[type] = fn; },
     setAttribute(name, value) { this.attributes[name] = String(value); },
     remove: noop,
@@ -151,7 +152,7 @@ async function pageHarness() {
     visiblePeers: (input) => input.map.peers, cellOf: (p) => p,
     setTimeout: (fn) => { timers.set(++seq, fn); return seq; }, clearTimeout: (id) => timers.delete(id),
   });
-  vm.runInContext(['buildModel', 'mount', 'renderLanes', 'renderExamJourney', 'receive'].map((n) => sourceNode(source, n)).join('\n'), ctx);
+  vm.runInContext(['buildModel', 'mount', 'renderLanes', 'renderDiscovery', 'renderExamJourney', 'receive'].map((n) => sourceNode(source, n)).join('\n'), ctx);
   return { ctx, timers, sent, nodes, models, flush: () => { const pending = [...timers.values()]; timers.clear(); pending.forEach((fn) => fn()); } };
 }
 

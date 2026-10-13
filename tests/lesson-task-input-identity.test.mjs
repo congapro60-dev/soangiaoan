@@ -16,3 +16,14 @@ test('two pupils answering the same task get distinct accessible input IDs and r
   if(checkerId==='single_choice_exact'){const names=[...html.matchAll(/\sname="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(names).size,2,'Two independent radio groups');}
  }
 });
+test('native selectors keep stable answer IDs, display all formula labels beside numbered choices',()=>{
+ for(const kind of ['representation_matching','classification']){
+  const isMatching=kind==='representation_matching';
+  const choices=[{id:'one',label:'$u_n=2n+16$ với $1 \\le n \\le 25$'},{id:'two',label:'$\\dfrac{1}{n}, \\dots$'}];
+  const task={id:'formula-selector',type:'closed',evaluation:{checkerId:isMatching?'four_representations_equivalence':'classification_exact'},inputSchema:{type:kind,...(isMatching?{representations:[{id:'rep',label:'Công thức'}],cards:choices}:{items:[{id:'item',label:'$u_n$'}],categories:choices})}};
+  const html=renderToStaticMarkup(React.createElement(exports.default,{task}));
+  const select=html.match(/<select[\s\S]*?<\/select>/)?.[0];assert.ok(select,kind);
+  assert.doesNotMatch(select,/\\le|\\dots|\\dfrac|\$/);assert.match(select,/value="one"/);assert.match(select,/value="two"/);
+  assert.match(html,/u_n=2n\+16/);assert.match(html,/\\dfrac/);assert.match(html,isMatching?/Các thẻ để ghép/:/Các nhóm để phân loại/);
+ }
+});

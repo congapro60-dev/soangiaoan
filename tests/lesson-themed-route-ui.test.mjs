@@ -523,6 +523,7 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
   playSrc = playSrc.replace('[learnerId, setLearnerId] = useState<string | null>(null)', '[learnerId, setLearnerId] = useState<string | null>("learner-an")');
   playSrc = playSrc.replace('[bearerToken, setBearerToken] = useState<string | null>(null)', '[bearerToken, setBearerToken] = useState<string | null>("token-an")');
 
+  playSrc = playSrc.replace('[menuOpen, setMenuOpen] = useState<boolean>(false)', '[menuOpen, setMenuOpen] = useState<boolean>(true)');
   const playJs = ts.transpileModule(playSrc, {
     compilerOptions: {
       target: ts.ScriptTarget.ES2022,
@@ -562,6 +563,7 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
     require(name) {
       if (name === 'react') return { ...React, default: React, __esModule: true };
       if (name.endsWith('/MathText')) return { default: ({ text }) => text, MathText: ({ text }) => text, __esModule: true };
+      if (name.endsWith('/QuestionPager')) return { QuestionPager: ({items}) => React.createElement('section',null,items[0]?.content) };
       if (name.endsWith('/TaskInput')) return { default: () => null, __esModule: true };
       if (name.endsWith('/LessonThemedRoute')) return { default: LessonThemedRoute, LessonThemedRoute, getSafeWorldMetadata, __esModule: true };
       if (name.endsWith('/LessonMascotPicker')) return { LessonMascotPicker: () => null, LessonMascotChip: () => null, __esModule: true };
@@ -588,6 +590,7 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
       if (name.endsWith('.css')) return {};
       if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
       if (name.endsWith("/SessionRules")) return { SessionRules: () => null };
+      if (name.endsWith("/ExplorationPanel")) return { ExplorationPanel: () => null, LessonAttention: () => null };
       if (name.endsWith("/TutorPanel")) return { TutorPanel: () => null };
       if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
       if (name.endsWith("/LeaguePanel")) return { LeaguePanel: () => null };
@@ -606,10 +609,10 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
   assert.match(html, /BẾN ĐÒ/);
 
   // 2. Wallets are distinctly displayed
-  assert.match(html, /🎖️ 15/);
-  assert.match(html, /title="Ví cá nhân độc lập/);
-  assert.match(html, /👥 Nhóm: 50/);
-  assert.match(html, /title="Quỹ thưởng nhóm hợp tác/);
+  assert.match(html, /Ví cá nhân: 15/);
+  assert.doesNotMatch(html, /play-learner-wallet/);
+  assert.match(html, /Quỹ nhóm: 50/);
+  assert.doesNotMatch(html, /play-group-wallet/);
 
   // 3. Extension button is rendered locked due to server projection
   assert.match(html, /lesson-branch-extension-btn/);

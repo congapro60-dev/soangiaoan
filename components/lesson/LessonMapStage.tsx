@@ -14,6 +14,7 @@ interface LessonMapStageProps {
   onArrive?: () => void;
   /** The primary button turns into "do the task" at the gate when this is given. */
   onOpenTask?: () => void;
+  onExploreCard?: (cardId:string)=>void;
   onGateSelect?: (activityId: string) => void;
   onSelectBranch?: (branch:'support'|'core'|'extension')=>void;
   onRoll: () => Promise<RollResult> | RollResult;
@@ -30,7 +31,7 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  * pupil's mascot, thrown onto the ground in front of it, showing its result there); this component only decides
  * when it rolls. One contextual button carries the main action. Dice move the mascot; they never gate learning.
  */
-export function LessonMapStage({ map, themeKey, sessionKey, disabled, onArrive, onOpenTask, onGateSelect, onSelectBranch, onRoll, fullscreen = false, topInset = 0 }: LessonMapStageProps) {
+export function LessonMapStage({ map, themeKey, sessionKey, disabled, onArrive, onOpenTask, onExploreCard, onGateSelect, onSelectBranch, onRoll, fullscreen = false, topInset = 0 }: LessonMapStageProps) {
   // While the die is in the air the map keeps its old picture; the mascot only walks once the die has landed.
   const [frozen, setFrozen] = useState<typeof map>(null);
   const shown = frozen ?? map ?? null;
@@ -113,6 +114,8 @@ export function LessonMapStage({ map, themeKey, sessionKey, disabled, onArrive, 
   return (
     <div className={`lesson-map-stage${fullscreen ? " lesson-map-stage-full" : ""}`}>
       <LessonWorldMap
+        onGateSelect={disabled?undefined:onGateSelect}
+        onExploreCard={disabled?undefined:onExploreCard}
         onSelectBranch={disabled?undefined:onSelectBranch}
         map={shown}
         themeKey={themeKey}
@@ -136,7 +139,7 @@ export function LessonMapStage({ map, themeKey, sessionKey, disabled, onArrive, 
             type="button"
             className={`lesson-roll-fab${useTask ? " lesson-roll-fab-task" : ""}`}
             onClick={() => (useTask ? onOpenTask?.() : void roll())}
-            disabled={useTask ? false : disabled || atGate || dice.phase !== "idle"}
+            disabled={disabled || (!useTask && (atGate || dice.phase !== "idle"))}
             aria-label={useTask ? "Mở nhiệm vụ của cổng" : atGate ? "Linh vật đã tới cổng" : "Lắc xúc xắc"}
           >
             <span aria-hidden="true">{icon}</span>
