@@ -1,3 +1,4 @@
+import {nativeVmModule} from './helpers/vm-native.mjs';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {SourceTextModule,SyntheticModule,createContext,runInContext} from 'node:vm';
@@ -18,7 +19,7 @@ const context=createContext({Date:TestDate,structuredClone,crypto:globalThis.cry
 runInContext('structuredClone = value => JSON.parse(JSON.stringify(value))',context);
 const cache=new Map();
 async function moduleAt(path){if(cache.has(path))return cache.get(path);const m=path===resolve('lib/storage.js')?new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);this.setExport('getEnv',storage.getEnv);},{context,identifier:path}):new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,m);return m;}
-const entry=await moduleAt(resolve('app/api/escape/route.js'));await entry.link((s,p)=>moduleAt(resolve(dirname(p.identifier),s)));await entry.evaluate();
+const entry=await moduleAt(resolve('app/api/escape/route.js'));await entry.link((s,p)=>s.startsWith('node:')?nativeVmModule(s,context):moduleAt(resolve(dirname(p.identifier),s)));await entry.evaluate();
 const rootH={'oai-authenticated-user-id':testEnv.SITE_OWNER_USER_ID,'oai-authenticated-user-email':testEnv.SITE_OWNER_EMAIL};
 async function post(action,body={},token='',extraH={}){const r=await entry.namespace.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','Origin':'https://game.test',...extraH},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:r.status,data:await r.json()};}
 const teacher=(action,body={})=>post(action,body,'',rootH);

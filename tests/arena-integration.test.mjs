@@ -1,3 +1,4 @@
+import {nativeVmModule} from './helpers/vm-native.mjs';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
@@ -48,7 +49,7 @@ let clock=Date.now();
 class TestDate extends Date{static now(){return clock;}}
 database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,testEnv.SITE_OWNER_EMAIL,'Root',clock);
 database.prepare('INSERT INTO system_hosts(account_id,role,created_at,created_by) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,'root',clock,testEnv.SITE_OWNER_USER_ID);
-const context=createContext({Date:TestDate,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
+const context=createContext({structuredClone,Date:TestDate,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
 const cache=new Map();
 async function moduleAt(path){
     if(cache.has(path))return cache.get(path);
@@ -65,7 +66,7 @@ async function moduleAt(path){
     return loadedModule;
 }
 const entryModule=await moduleAt(resolve('app/api/escape/route.js'));
-await entryModule.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));
+await entryModule.link((specifier,parent)=>specifier.startsWith('node:')?nativeVmModule(specifier,context):moduleAt(resolve(dirname(parent.identifier),specifier)));
 await entryModule.evaluate();
 const route=entryModule.namespace;
 const rootH={'oai-authenticated-user-id':testEnv.SITE_OWNER_USER_ID,'oai-authenticated-user-email':testEnv.SITE_OWNER_EMAIL};

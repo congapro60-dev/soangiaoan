@@ -1,3 +1,4 @@
+import {nativeVmModule} from './helpers/vm-native.mjs';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
@@ -14,10 +15,10 @@ const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const re
 // Seed root account + system_host so create-room identity auth works.
 database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,testEnv.SITE_OWNER_EMAIL,'Root',Date.now());
 database.prepare('INSERT INTO system_hosts(account_id,role,created_at,created_by) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,'root',Date.now(),testEnv.SITE_OWNER_USER_ID);
-const context=createContext({crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
+const context=createContext({structuredClone,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
 const cache=new Map();
 async function moduleAt(path){if(cache.has(path))return cache.get(path);let loadedModule;if(resolve(path)===resolve('lib/storage.js'))loadedModule=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);this.setExport('getEnv',storage.getEnv);},{context,identifier:path});else loadedModule=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,loadedModule);return loadedModule;}
-const entryModule=await moduleAt(resolve('app/api/escape/route.js'));await entryModule.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await entryModule.evaluate();
+const entryModule=await moduleAt(resolve('app/api/escape/route.js'));await entryModule.link((specifier,parent)=>specifier.startsWith('node:')?nativeVmModule(specifier,context):moduleAt(resolve(dirname(parent.identifier),specifier)));await entryModule.evaluate();
 const route=entryModule.namespace;
 const rootH={'oai-authenticated-user-id':testEnv.SITE_OWNER_USER_ID,'oai-authenticated-user-email':testEnv.SITE_OWNER_EMAIL};
 async function post(action,body={},token='',extraH={}){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test',...extraH},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}

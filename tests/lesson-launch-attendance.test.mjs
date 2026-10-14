@@ -1,3 +1,4 @@
+import {nativeVmModule} from './helpers/vm-native.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
@@ -122,9 +123,9 @@ test('create boundary enforces exact keys, own required fields and flat bounded 
 });
 
 async function publicRoute(env){
- const context=createContext({crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console}),cache=new Map();
+ const context=createContext({structuredClone,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console}),cache=new Map();
  const moduleAt=async path=>{if(cache.has(path))return cache.get(path);const mod=path===resolve('lib/storage.js')?new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',(sql,...args)=>env.db.prepare(sql).bind(...args));this.setExport('db',()=>env.db);this.setExport('getEnv',()=>({}));},{context,identifier:path}):new SourceTextModule(readFileSync(path,'utf8'),{context,identifier:path});cache.set(path,mod);return mod;};
- const api=await moduleAt(resolve('app/api/escape/route.js'));await api.link((name,parent)=>moduleAt(resolve(dirname(parent.identifier),name)));await api.evaluate();return api.namespace;
+ const api=await moduleAt(resolve('app/api/escape/route.js'));await api.link((name,parent)=>name.startsWith('node:')?nativeVmModule(name,context):moduleAt(resolve(dirname(parent.identifier),name)));await api.evaluate();return api.namespace;
 }
 test('public room lookup exposes only whether class profile is needed, never roster or setup',async()=>{
  const env=setup();try{

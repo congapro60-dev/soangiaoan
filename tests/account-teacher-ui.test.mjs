@@ -5,6 +5,7 @@ import { createContext, runInContext } from "node:vm";
 
 const appCode = readFileSync("public/app.js", "utf8");
 const campaignCode = readFileSync("public/campaign-data.js", "utf8");
+const setupCode=readFileSync("public/session-rules.js","utf8")+'\n'+readFileSync("public/game-setup.js","utf8")+'\n'+readFileSync("public/game-community-activities.js","utf8");
 
 function createMockContext(query = "") {
     const logs = [];
@@ -65,7 +66,7 @@ function createMockContext(query = "") {
         elements, 
         fetchHistory, 
         setFetchResponse: (res) => currentFetchResponse = res,
-        runApp: () => {runInContext(campaignCode, context);return runInContext(appCode, context);}
+        runApp: () => {runInContext(campaignCode, context);runInContext(setupCode,context);return runInContext(appCode, context);}
     };
 }
 

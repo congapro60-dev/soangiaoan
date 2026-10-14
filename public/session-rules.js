@@ -20,5 +20,5 @@
   const duration=seconds?`<p>Thời gian tối đa: ${esc(Math.floor(seconds/60))} phút${seconds%60?' '+esc(seconds%60)+' giây':''}. Luật có thể kết thúc sớm; đồng hồ phòng là mốc hiện hành.</p>`:'';
   return `<section class="rules room-rules" aria-label="Luật của phòng này"><h2>Luật của phòng này</h2><p><strong>Thế giới:</strong> ${esc(info?.worldTitle||'Theo phòng giáo viên chọn')} · <strong>Luật:</strong> ${esc(guide[0])} · <strong>Chế độ:</strong> ${esc(participation[c.participation]||'Theo cấu hình phòng')}</p>${duration}<dl><dt><strong>Cách chơi · Cần làm</strong></dt><dd>${esc(guide[1])}</dd><dt><strong>Mục tiêu · Hoàn thành</strong></dt><dd>${esc(guide[2])}</dd><dt><strong>Điểm · Xếp hạng</strong></dt><dd>${esc(guide[3])}</dd></dl><p>Sự kiện chung có luật và đồng hồ riêng; kết thúc sự kiện thì trở lại luật phòng. Trong tiết học, điểm chơi không thay bằng chứng cá nhân trong hộ chiếu.</p></section>`;
  }
- window.SignalRoomRules={render,config,label:rule=>Object.hasOwn(guides,rule)?guides[rule][0]:'Chờ chọn luật'};
+ window.SignalRoomRules={render,config,guide:rule=>Object.hasOwn(guides,rule)?[...guides[rule]]:null,label:rule=>Object.hasOwn(guides,rule)?guides[rule][0]:'Chờ chọn luật'};
 })();

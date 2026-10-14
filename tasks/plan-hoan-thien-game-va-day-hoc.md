@@ -1440,5 +1440,24 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] R15.2 gợi ý bài cá nhân nguyên văn từ học liệu đã duyệt: HS thiếu minh chứng dùng chẩn đoán/kiểm tra lại; hỗ trợ/cốt lõi/mở rộng theo minh chứng. Mục tiêu chưa ghép xuyên bài giữ namespace; phần chưa có học liệu nêu GV bổ sung.
 - [x] R15.3 bộ nhận local trong checkout cô lập `C:/Users/ADMIN/.codex/worktrees/r15-game-records-receiver/smart-lesson-plan-ai`, source productiona7b7f93, branchcodex/r15-game-learning-receiver. JSON xem trước/ghépID/duyệt/revision/chốngtrùng/thu hồi/khôi phụcCAS; minh chứng ngoài server-only, không tự đổi điểm/năng lực. Full2889/2889, focused59, FirestoreAdmin2+Rules4, build/typecheckPASS; Gemini review cuốiPASS. CUA panel thật/API giả đạt nhập→thu hồi→khôi phục; không thay chứng cứ phân quyền account thật.
 - [x] Kiểm thử quyền/source/CAS, fixture150×20, finalfull1359, typecheck/buildPASS, full/scopedlint0errors, Gemini finalPASS0; actualWorker/D1/R2/CUA desktop375/KaTeX/history/Trash/export/bàichẩndoán. Report codex-r15-report.md. Receiverfull2889+59focused+Admin2+Rules4 vàpanelmockCUA; khôngaccountproductionclaim.
-- [ ] Phát hành R15 sau lựa chọn chủ hệ thống theo19.9; lựa chọn đã hỏi async. R16/R17productionv11 giữ nguyên. Lớp thật/HS thật/pilot/retention vàR15.4 vẫn mở.
+- [x] Chủ hệ thống duyệt “Phát hành R15 trên Site; giữ bộ nhận GiaoAnDewey để QA tài khoản thật”. Site nativev12 succeeded13/10/2026 14:16:22Z; sourcefc560e17e26999725a445cd80538ae6e404197da. CUA GVhost→Hồsơ học tập đạt empty-state đúng (chưa cólớp), D1 có3bảng0023, logs5min0error. Evidence codex-r15-production-release.json. Khôngtạo/xóa/dồngbộdữliệuHSthật.
+- [ ] Receiver GiaoAnDewey giữlocal theo duyệt; QA tài khoảnGV/HSthật/pilot/retention/canonicalobjective mapping vàR15.4 cònmở. KhôngnhậptrùngmọiR15đãxong.
+
+### R18 — phản hồi màn Tạo phòng game14/10/2026
+- [x] Audit5ảnh+code+plan+PPCT/nănglựcpilot; report tasks/codex-r18-game-setup-audit.md. Chưa thayproductcode/pháthành.
+- [ ] R18.1 Giải thích9luậtngắnđộngtheoselect; làmrõkhoảngđộkhócâuToán/điểmthưởng/trầnđộkhólogic.
+- [ ] R18.2 Sửa historical/pastoralhardcodesamecover;7cover3Dtopdownthaytranhcoverriêngđồngđều, cube/survivaldistinctvisual; terrainkhôngbịđổi theo ảnhmarketing.
+- [ ] R18.3 Luồnggamechỉboat+arena;12activitieslessonchưa nốidropdown. Nối thậtvớipause/timer/nháp/budget/host+HSQA,khôngoptionrỗng.
+- [ ] R18.4 Danhmục21topictemplatehẹp (8G10/7G11/6G12), khôngđủfullLO/SGK. Bảnđồchuẩnnguồn/bài/LO/dạng/checker trước mởrộng;SGKscan cầnOCRđốisoát, khôngclaimđãimporttoànbộ.
+- [ ] QA nội dung+ngườimới+game/lesson trước duyệtpháthànhr18. R15receiverlocalgiữtheochốttrước.
+
+### R18 triển khai và duyệtpháthành14/10
+- [x] Chủ hệ thống giao “sửa và phát hành”; khônghỏi releaseapprovallại. Cover chọn199x112 đượcduyệt dùngnow/nângđộnétlater.
+- [x] R18.1 Mô tả9luật hiệnđộng/cáchchơi/mục tiêu/roleGV/vídụ; rõđộkhóToánmin/max, trầnđộkhólogic, điểmthưởng riêng; gợiýchơinhẹ, nângcaogấpgọn, bàiđãhọcchọnexplicit.
+- [x] R18.2 Historical/pastoral đúngtệp riêng;7coverCanvariêng/thịgiáccube≠survival;coverImage táchterrain2D/3D. Manifest7mediaIDs/providerunknownmodel vàuserapprovedpreview.
+- [x] R18.3 12sharedactivities nối game+oldboat/arena thật, serveractor/CAS/round/replay/privacy/budget/pause/resume/oncepoints; renderownquestion,GVopen/finish,pollphase vàgiữnháp; clock500ms.
+- [x] R18.4 44topics21old+23newgenerators/checkers/rationale/metadataPPCTadapted, khôngfakecanonicalLO/fullSGK.4,400math/5,280format+23oracle+207modepaths kiểm.
+- [x] R18.5 Final1373full/typecheck/buildPASS,lint0errors/392warnings,Gemini math/activities/route/UI/finalpollPASS0. Worker/D1/R2all12events+gamebrowserteachercreate/HSBingoanswer10/next/draft123/resume375noclip. Nativefixturecleanupactive0. Report tasks/codex-r18-report.md/source470manifest.
+- [ ] NativeSitespublishR18 vàproductionQA: đang thực hiện; bộnhậnDeweyvẫngiữlocal.
+- [ ] Backlog covergốc1680x944chưalấyđược; canonicalLO/SGK/SBT fullcoverage vàTV/iPad/150HS40min thật không tựđánhxong.
 - [ ] Nhập GiaoAnDewey/sync: cần mapping được GV duyệt, receiver/server+Rules QA và pilot; chưa chuyển dữ liệu thật. Không đánh dấu R15 toàn bộ hoàn tất khi mới có Site/export.

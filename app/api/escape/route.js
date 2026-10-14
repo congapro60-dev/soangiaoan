@@ -1,4 +1,5 @@
 import { COMMUNITY_CELL, individual, communityOf, gameNow, communityActive, createCommunity, communityAnswer, publicCommunity, settleCommunity, arenaEventOf, registerPause, canOpenEvent, enqueueEvent, eventQueueState } from '../../../lib/community.js';
+import { GAME_ACTIVITY_TYPES, gameActivityOf, createGameActivity, applyGameActivity, finishGameActivity, publicGameActivity, settleGameActivities, withdrawGameActivity } from '../../../lib/game-community-activities.js';
 import { ARENA_CELL, COMBAT_ACTIONS, createArenaEvent, arenaEntries, arenaAnswer, arenaCombat, publicArena, settleArena, arenaPhase } from '../../../lib/arena-community.js';
 import { checkContext } from '../../../lib/context-questions.js';
 import { createCampaign, campaignPublic, numericAnswer, modeConfig } from '../../../lib/campaign.js';
@@ -106,6 +107,7 @@ async function arenaData(room) {
 async function arenaView(room, ownId, teacher = false) { let { a, entries } = await arenaData(room); return publicArena(a, roomCampaign(room), entries, Date.now(), ownId, teacher); }
 // One wording per event type; both pause the same main-game clock.
 function pausedMessage(room) {
+    if (gameActivityOf(room) && Date.now() < gameActivityOf(room).resumeAt) return 'Cả lớp đang tham gia hoạt động cộng đồng. Ván chính được tạm dừng.';
     return arenaEventOf(room) && Date.now() < arenaEventOf(room).resumeAt
         ? 'Cả lớp đang ở Lôi Đài Ngũ Ấn. Ván chính được tạm dừng.'
         : 'Cả lớp đang tham gia đua thuyền Toán. Ván chính được tạm dừng.';
@@ -123,10 +125,10 @@ function returnMarkers(roster) {
 }
 async function settle(s, room, data, arena) { let { c, entries } = data || await communityData(room); if (c)
     settleCommunity(s, room, entries); let { a, entries: arenaRows } = arena || await arenaData(room); if (a)
-    settleArena(s, room, a, arenaRows); }
+    settleArena(s, room, a, arenaRows); settleGameActivities(s, room, Date.now(), gameNow(room)); }
 function roomDuration(room){const rule=roomCampaign(room)?.rule,limits=Object.hasOwn(modeRules,rule)?modeRules[rule].constants:null;if(limits?.duration)return limits.duration;return limits?.rounds&&limits?.roundMs?limits.rounds*limits.roundMs:G.DURATION;}
 async function publicState(s, room, revision = 0) {
-    const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room)};
+    const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room),classActivity:publicGameActivity(gameActivityOf(room),Date.now(),s.id)};
     if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {...roomInfo,id:s.id,name:s.name,status:room.started?'active':'waiting',round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
     const i=taskIndex(s);if(i<5&&s.status==='active')recoveryFor(s,i);
     let v=G.variant(s.seed),recovery=supportView(s,i);
@@ -231,8 +233,10 @@ async function raceRoom(room) {
         let publicTurn = { ...turn };
         delete publicTurn.community;
         delete publicTurn.arena;
+        delete publicTurn.classActivity;
+        delete publicTurn.classActivityHistory;
         delete publicTurn.commit;
-        return { campaign: campaignPublic(roomCampaign(current)), turn: publicTurn, community: publicCommunity(data.c, roomCampaign(current), data.entries, Date.now()), arena: publicArena(arena.a, roomCampaign(current), arena.entries, Date.now()), roomRevision: current.revision, peers: teams.map(s => ({ id: s.id, name: s.name, status: s.status, position: s.race.position, mascot: s.race.mascot, phase: s.race.reward ? 'reward' : s.race.bonus && !s.race.bonus.done ? 'bonus' : s.race.phase, completed: s.race.outcomes.filter(o => !o.skipped).length, freezeUntil: s.effects.freezeUntil, score: s.effects.wallet })), log: turn.log || [] };
+        return { campaign: campaignPublic(roomCampaign(current)), turn: publicTurn, classActivity:publicGameActivity(gameActivityOf(current),Date.now()), community: publicCommunity(data.c, roomCampaign(current), data.entries, Date.now()), arena: publicArena(arena.a, roomCampaign(current), arena.entries, Date.now()), roomRevision: current.revision, peers: teams.map(s => ({ id: s.id, name: s.name, status: s.status, position: s.race.position, mascot: s.race.mascot, phase: s.race.reward ? 'reward' : s.race.bonus && !s.race.bonus.done ? 'bonus' : s.race.phase, completed: s.race.outcomes.filter(o => !o.skipped).length, freezeUntil: s.effects.freezeUntil, score: s.effects.wallet })), log: turn.log || [] };
     }
     throw Error('Board busy');
 }
@@ -294,7 +298,7 @@ export async function GET(req) { try {
             const mode=projectMode(room,Date.now());
             team.mode=mode?{...modeView(room,saved,true),objective:mode.ruleState.players[saved.modeUnit]||null,history:JSON.parse(room.race).modeRequests?.eventHistory?.filter(e=>e.unitId===saved.modeUnit)||[],answers:Object.values(mode.challenges).filter(q=>q.unitId===saved.modeUnit)}:null;
         }
-        return reply({ community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, durationMs:roomDuration(room), mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
+        return reply({ classActivity:publicGameActivity(gameActivityOf(room),Date.now(),null,true), community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, durationMs:roomDuration(room), mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
     }
     return fail('Yêu cầu không hợp lệ.');
 }
@@ -515,6 +519,7 @@ export async function POST(req) {
                 if(unit)for(const member of unit.members.filter(member=>member.present))
                     mode=reduceMode(mode,{type:'leave',learnerId:member.id,round:mode.round,requestId:`remove:${commit}:${member.id}`},{gameNow:mode.gameNow,pause:mode.paused}).state;
                 race.modeState=mode;race.modeCommit=commit;
+                if (race.classActivity) race.classActivity=withdrawGameActivity(race.classActivity,Object.keys(race.classActivity.engine.participants).filter(id=>id!==target.id),Date.now());
                 const results=await db().batch([
                     stmt(`UPDATE rooms SET race=?,revision=revision+1,control_key=? WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM teams WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL) AND ${authorization.sql}`,JSON.stringify(race),controlKey,room.id,b.revision,room.round,target.id,room.id,target.revision,...authorization.args),
                     stmt("UPDATE teams SET removed_at=?,revision=revision+1 WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND round=? AND deleted_at IS NULL AND json_extract(race,'$.modeCommit')=?)",Date.now(),target.id,room.id,target.revision,room.id,room.round,commit),
@@ -524,6 +529,10 @@ export async function POST(req) {
                 return reply({ok:true,action:b.action});
             }
             const queries=managementStatements(stmt,b.action,{roomId:room.id,revision:b.revision,requestId:controlKey,teamId:b.teamId,now:Date.now(),authorization});
+            if (b.action==='remove-team' && gameActivityOf(room)) {
+                const event=gameActivityOf(room),changed=withdrawGameActivity(event,Object.keys(event.engine.participants).filter(id=>id!==b.teamId),Date.now());
+                queries.push(stmt("UPDATE rooms SET race=json_set(race,'$.classActivity',json(?)) WHERE id=? AND revision=? AND control_key=? AND deleted_at IS NULL",JSON.stringify(changed),room.id,b.revision+1,controlKey));
+            }
             if (b.action === 'delete-room' && caller.user) queries.push(stmt("INSERT INTO site_trash(kind,object_id,owner_account_id,deleted_at,data) SELECT 'room',id,?,deleted_at,? FROM rooms WHERE id=? AND control_key=? AND deleted_at IS NOT NULL ON CONFLICT(kind,object_id) DO UPDATE SET owner_account_id=excluded.owner_account_id,deleted_at=excluded.deleted_at,data=excluded.data",caller.user.userId,JSON.stringify({title:room.title,code:room.code,revision:b.revision+1,mode:room.mode}),room.id,controlKey));
             if (b.action === 'remove-team' && caller.user) queries.push(stmt("INSERT INTO site_trash(kind,object_id,owner_account_id,deleted_at,data) SELECT 'game-team',t.id,?,t.removed_at,json_object('title',json_extract(t.data,'$.name'),'roomId',t.room_id,'roomRevision',r.revision,'race',r.race) FROM teams t JOIN rooms r ON r.id=t.room_id WHERE t.id=? AND r.control_key=? AND t.removed_at IS NOT NULL ON CONFLICT(kind,object_id) DO UPDATE SET deleted_at=excluded.deleted_at,data=excluded.data,owner_account_id=excluded.owner_account_id",caller.user.userId,b.teamId,controlKey));
             if(b.action==='reset-room')queries.push(stmt("UPDATE teams SET data=json_remove(data,'$.modeUnit') WHERE room_id=? AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND control_key=? AND deleted_at IS NULL)",room.id,room.id,controlKey));
@@ -596,6 +605,59 @@ export async function POST(req) {
             if(!saved.meta.changes)return fail('Mode changed.',409,'REVISION_MISMATCH');
             room.race=JSON.stringify(race);room.revision++;
             return reply({result:reduced.result,mode:modeView(room,s)});
+        }
+        if (['class-event-open', 'class-event-finish', 'class-event-action'].includes(b.action)) {
+            const teacherAction = b.action !== 'class-event-action';
+            if (typeof b.id !== 'string' || !b.id || b.id.length>120) return fail('Thiếu mã phòng hoặc người chơi.',400,'INVALID_EVENT_INPUT');
+            if (typeof b.requestId !== 'string' || !b.requestId.trim() || b.requestId.length > 70 || ['__proto__','constructor','prototype'].includes(b.requestId)) return fail('Thiếu mã thao tác.',400,'INVALID_EVENT_INPUT');
+            if (!Number.isInteger(b.round)) return fail('Thiếu phiên bản ván.',400,'INVALID_EVENT_INPUT');
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const loaded = teacherAction ? null : await loadTeam(req,b.id);
+                let room = teacherAction ? await adminAuth(req,b.id,'game-action') : loaded?.room;
+                if (!room) return fail('Không có quyền tham gia hoạt động.',403,'UNAUTHORIZED');
+                if (room.round !== b.round) return fail('Phòng đã reset.',409,'SESSION_RESET');
+                if (!room.started || !roomCampaign(room)) return fail('Hãy bắt đầu ván trước.',409,'ROOM_NOT_STARTED');
+                const wall = Date.now(), turn = JSON.parse(room.race || 'null') || {}, campaign = roomCampaign(room);
+                let event = turn.classActivity;
+                try {
+                    if (b.action === 'class-event-open') {
+                        const prior = [...(turn.classActivityHistory || []),event].filter(Boolean).find(item => item.triggerId === b.requestId);
+                        if (prior) {
+                            if (prior.type !== b.type) return fail('Mã thao tác đã được dùng cho hoạt động khác.',409,'EVENT_REQUEST_CONFLICT');
+                            return reply({ok:true,replay:true,classActivity:publicGameActivity(prior,wall,null,true)});
+                        }
+                        if (!GAME_ACTIVITY_TYPES.includes(b.type)) return fail('Hoạt động chưa hợp lệ.',400,'INVALID_CLASS_EVENT');
+                        if (projectMode(room,wall)?.finished || gameNow(room,wall)-room.started >= roomDuration(room)-90000) return fail('Ván cần còn ít nhất 90 giây để mở hoạt động.',409,'GAME_FINISHED');
+                        const gate = canOpenEvent(turn,wall);
+                        if (!gate.ok) return fail('Một hoạt động đang diễn ra hoặc ván đã hết lượt hoạt động.',409,gate.code);
+                        const roster = await eventRoster(room,gameNow(room,wall));
+                        event = createGameActivity(room,campaign,roster,b.type,wall,b.requestId);
+                        if (turn.classActivity) turn.classActivityHistory = [...(turn.classActivityHistory || []),turn.classActivity];
+                        if (turn.modeState) turn.modeState = projectMode(room,wall);
+                        turn.classActivity = event;
+                        turn.pauses = registerPause(turn,event);
+                        turn.eventQueue = (turn.eventQueue || []).filter(item => item.kind !== b.type);
+                        turn.cursor = null; turn.deadline = 0;
+                    } else {
+                        if (!event || event.id !== b.eventId || event.round !== room.round) return fail('Hoạt động đã thay đổi.',409,'EVENT_STALE');
+                        if (b.action === 'class-event-finish') {
+                            event = finishGameActivity(room,event,wall);
+                            turn.classActivity = event;
+                            turn.pauses = registerPause(turn,event);
+                        } else {
+                            if (loaded.s.status !== 'active' || !Object.hasOwn(event.engine.participants,loaded.s.id)) return fail('Bạn đang xem hoạt động này.',409,'EVENT_LEARNER_UNAVAILABLE');
+                            const activeIds = (await stmt('SELECT id FROM teams WHERE room_id=? AND removed_at IS NULL',room.id).all()).results.map(item => item.id);
+                            event = withdrawGameActivity(event,activeIds,wall);
+                            event = applyGameActivity(event,{learnerId:loaded.s.id,requestId:b.requestId,eventAction:b.eventAction,step:b.step,answer:b.answer,cellId:b.cellId},wall);
+                            turn.classActivity = event;
+                        }
+                    }
+                } catch (error) { return fail(({EVENT_ROSTER_TOO_SMALL:'Cần ít nhất 2 người chơi đang hoạt động.',NOT_EVENT_TURN:'Chưa đến lượt bạn. Chờ đồng đội hoàn thành câu.',EVENT_ANSWER_COOLDOWN:'Câu trước chưa đúng. Chờ 10 giây rồi tiếp tục.',EVENT_BUZZ_REQUIRED:'Bấm chuông trước khi trả lời.',EVENT_CELL_REQUIRED:'Chọn một ô câu hỏi trước khi trả lời.'})[error.message] || 'Chưa thể thực hiện thao tác này. Đồng bộ hoạt động rồi thử lại.',409,error.message); }
+                const saved = await stmt(`UPDATE rooms SET race=?,revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL${teacherAction ? '' : ' AND EXISTS(SELECT 1 FROM teams WHERE id=? AND removed_at IS NULL)'}`,JSON.stringify(turn),room.id,room.revision,room.round,...(teacherAction?[]:[loaded.s.id])).run();
+                if (!saved.meta.changes) continue;
+                return reply({ok:true,result:b.action==='class-event-action'?event.engine.lastResult:null,classActivity:publicGameActivity(event,wall,loaded?.s.id,teacherAction)});
+            }
+            return fail('Phòng vừa thay đổi. Hãy đồng bộ rồi thử lại.',409,'REVISION_MISMATCH');
         }
         // Host opens Lôi Đài Ngũ Ấn from the board; the ancient map also opens it automatically on the arena cell.
         if (b.action === 'arena-open') {
@@ -900,19 +962,21 @@ export async function POST(req) {
                             turn.log.push({ type: 'roll', team: s.id, die: result.die, from: result.from, to: result.to, at: now });
                         }
                         const kind = s.campaign?.community, cell = kind === 'arena' ? ARENA_CELL : COMMUNITY_CELL;
-                        const crossed = kind && ['boat', 'arena'].includes(kind) && result.from < cell && result.to >= cell && now - s.start < G.DURATION - 90000;
-                        if (crossed && !turn[kind === 'arena' ? 'arena' : 'community']) {
+                        const activity = GAME_ACTIVITY_TYPES.includes(kind);
+                        const crossed = kind && (['boat', 'arena'].includes(kind) || activity) && result.from < cell && result.to >= cell && now - s.start < G.DURATION - 90000;
+                        if (crossed && !turn[kind === 'arena' ? 'arena' : activity ? 'classActivity' : 'community']) {
                             const gate = canOpenEvent(turn, Date.now());
                             if (!gate.ok)
                                 // Queue instead of overlapping; the next eligible roll reopens it.
                                 turn.eventQueue = enqueueEvent(turn, { kind, triggerId: s.id, at: Date.now() });
                             else {
                                 let roster = await eventRoster(room, now);
-                                trigger = kind === 'arena'
+                                if (!activity || roster.filter(player => player.status === 'active').length >= 2) {
+                                trigger = activity ? createGameActivity(room,s.campaign,roster,kind,Date.now(),s.id) : kind === 'arena'
                                     ? createArenaEvent({ roster, wall: Date.now(), triggerId: s.id, round: room.round })
                                     : createCommunity(room, roster, Date.now(), s.id);
-                                triggerSlot = kind === 'arena' ? 'arena' : 'community';
-                                triggerRows = kind === 'arena'
+                                triggerSlot = kind === 'arena' ? 'arena' : activity ? 'classActivity' : 'community';
+                                triggerRows = activity ? [] : kind === 'arena'
                                     ? arenaEntries(trigger, returnMarkers(roster))
                                     : trigger.roster.map((p, slot) => ({ id: p.id, slot, step: 0, correct: 0, wrong: 0, lastAt: 0, log: [] }));
                                 turn[triggerSlot] = trigger;
@@ -920,6 +984,7 @@ export async function POST(req) {
                                 turn.eventQueue = (turn.eventQueue || []).filter(x => x.kind !== kind);
                                 turn.cursor = null;
                                 turn.deadline = 0;
+                                }
                             }
                         }
                         room.race = JSON.stringify(turn);

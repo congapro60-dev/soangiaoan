@@ -267,4 +267,19 @@ Lượt này chỉ lập kế hoạch, chưa sửa code hoặc dữ liệu HS.
 - [x] R15.2 teacher draft/edit/approve/version/stale/Trash + bài cá nhân đã duyệt theo mục tiêu.
 - [x] Site JSON/CSV export; bộ nhận Dewey cô lập manualmapping/preview/import/Trash/revisions;2889full/59focused/Admin2/Rules4/buildPASS. Chưa phát hành, chưa pilot tài khoản thật.
 - [x] FinalSite1359/receiver2889/typecheck/build/reviewGemini0/Worker+D1+R2/browserreport; checklistchung/HANDOFFcậpnhật.
-- [ ] Chủ hệ thống chọnreleaseR15; pilotGV/HSthật/canonicalobjectivemapping/retention/R15.4sync chưahoàn tất.
+- [x] Chủ hệ thống duyệtSite-only; R15Sitev12nativepublished14:16:22Z, CUAhost→records+D1migration+logs0PASS. Receiver giữlocal.
+- [ ] ReceiverQA/pilotGV/HSthật/canonicalobjectivemapping/retention/R15.4sync chưahoàn tất.
+
+## R18 — màn Tạo phòng game14/10
+- [x] Audit5ảnh/code/PPCT và đối chiếu plan; reportcodex-r18-game-setup-audit.md, sharedchecklist/HANDOFF cập nhật.
+- [ ] Giải thích9luật; đổi nhãn khoảngđộkhócâuToán/trầnđộkhólogic, điểmthưởng riêng.
+- [ ] Sửa2coverhardcodedtrùng và7coverthô; cover/terrain riêng, modelprovenance/chi phí cầnxácminh.
+- [ ] Nối thật12activitieslesson sang game khi compatible; khôngfakeoption.
+- [ ] Coverage nguồnLO/PPCT/SGK/SBT→bài/dạng/checker trước mởrộng21templates; SGKscanOCRreview.
+- [ ] QA luồngGVmới/game+lesson, localverification vàduyệtpháthànhR18. Auditkhông phảiproductfix.
+
+## R18 readyrelease14/10
+- [x] Userapprovedfix+publish; lowres7coverselectionexplicitapproved.
+- [x] 9ruleguide/difficultylabels,12newcommunityactualengine,44builtinPPCTtopics,propercoverImage/terrain.
+- [x] Final1373full/typecheck/build/lint0/Geminireview0/native12/browserBingo+draft/resume375/source470/cleanup0.
+- [ ] Nativepublish+productionQA/checklistclosure. Highres/canonLO/physicaldevices separatebacklog.

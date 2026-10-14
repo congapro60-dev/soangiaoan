@@ -1,6 +1,6 @@
 # R15 — Hồ sơ tiến bộ và kết nối GiaoAnDewey
 
-Ngày: 13/10/2026. Trạng thái mới nhất: **R15.1–R15.2 và bộ nhận thủ công R15.3 đã triển khai local; chờ lựa chọn phát hành/pilot. R15.4 chưa làm.** Báo cáo kiểm chứng `tasks/codex-r15-report.md`; lịch sử lập kế hoạch phía dưới giữ nguyên làm đối chiếu.
+Ngày: 13/10/2026. Trạng thái mới nhất: **R15.1–R15.2 và xuấtfileSite đã phát hành v12. Bộ nhận thủ công R15.3 giữ local để QA tài khoản thật theo duyệt; R15.4 chưa làm.** Báo cáo kiểm chứng `tasks/codex-r15-report.md`; lịch sử lập kế hoạch phía dưới giữ nguyên làm đối chiếu.
 Yêu cầu: lưu kết quả từng HS thành hệ thống để GV theo dõi, xây dựng kế hoạch học tập, kết nối GiaoAnDewey.
 Kế hoạch này bổ sung R15 trong `tasks/plan-hoan-thien-game-va-day-hoc.md`; không thay các gate nghiệm thu lớp thật của R14.
 

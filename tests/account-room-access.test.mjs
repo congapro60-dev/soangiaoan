@@ -1,3 +1,4 @@
+import {nativeVmModule} from './helpers/vm-native.mjs';
 /**
  * tests/account-room-access.test.mjs
  *
@@ -62,7 +63,7 @@ const testEnv = {SITE_OWNER_EMAIL: 'root@access.test', SITE_OWNER_USER_ID: 'root
 let clock = 1800000000000;
 class TestDate extends Date { static now() { return clock; } }
 
-const context = createContext({Date: TestDate, crypto: globalThis.crypto, Request, Response, URL, TextEncoder, console, btoa});
+const context = createContext({structuredClone,Date: TestDate, crypto: globalThis.crypto, Request, Response, URL, TextEncoder, console, btoa});
 const cache = new Map();
 
 async function moduleAt(path) {
@@ -82,7 +83,7 @@ async function moduleAt(path) {
 }
 
 const entryModule = await moduleAt(resolve('app/api/escape/route.js'));
-await entryModule.link((specifier, parent) => moduleAt(resolve(dirname(parent.identifier), specifier)));
+await entryModule.link((specifier, parent) => specifier.startsWith('node:')?nativeVmModule(specifier,context):moduleAt(resolve(dirname(parent.identifier), specifier)));
 await entryModule.evaluate();
 const route = entryModule.namespace;
 
