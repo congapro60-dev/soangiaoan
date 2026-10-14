@@ -26,6 +26,7 @@ const OPS = {
   // HẠNG MỤC 1: app gửi file Excel đã điền điểm (base64) → gắn vào ô input file trên tab SSM.
   // Op này không gọi API SSM nên path là chuỗi rỗng đặc biệt, xử lý riêng trong handle().
   attachLoFile: () => '__attach__',
+  autofillSsm: () => '__autofill__',
   schoolYears: () => 'v1/school-years-branch?skip_paginate=true&is_active=all',
   teacherClasses: (p) => {
     const year = posInt(p?.schoolYearId);
@@ -159,6 +160,25 @@ const attachFileToSsmTab = async (params) => {
   }
 };
 
+const autofillSsmTab = async (params) => {
+  const fields = params?.fields;
+  if (!Array.isArray(fields) || fields.length === 0) {
+    return { ok: false, error: 'Thieu danh sach noi dung can dien.' };
+  }
+  const tab = await findSsmTab();
+  if (!tab?.id) return { ok: false, error: 'Chua mo trang SSM.' };
+  try {
+    const result = await chrome.tabs.sendMessage(tab.id, {
+      kind: 'ssm-autofill',
+      params: { fields, fieldSelector: params?.fieldSelector },
+    });
+    if (!result?.ok) return { ok: false, error: result?.error || 'Khong dien duoc.' };
+    return { ok: true, data: result.data };
+  } catch {
+    return { ok: false, error: 'Tab SSM chua tai xong.' };
+  }
+};
+
 const readSession = async () => {
   // 1. Ưu tiên token đã cache — không cần tab SSM mở.
   const cached = await readCachedSession();
@@ -213,6 +233,7 @@ const handle = async (message, sender) => {
   if (message.op === 'ping') return { ok: true, data: { version: chrome.runtime.getManifest().version } };
   // HẠNG MỤC 1: gắn file Excel vào trang SSM — không cần gọi API, chỉ cần tab SSM mở.
   if (message.op === 'attachLoFile') return attachFileToSsmTab(message.params);
+  if (message.op === 'autofillSsm') return autofillSsmTab(message.params);
   const { session, error } = await readSession();
   if (error) return { ok: false, error };
   return callSsm(path, session);
