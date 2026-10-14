@@ -6,6 +6,11 @@ const EXT_ID = 'ext-ssm';
 let listener: Listener;
 const tabsQuery = vi.fn();
 const tabsSendMessage = vi.fn();
+const tabsCreate = vi.fn();
+const tabsRemove = vi.fn();
+const storageGet = vi.fn();
+const storageSet = vi.fn();
+const storageRemove = vi.fn();
 const fetchMock = vi.fn();
 
 const appSender = { id: EXT_ID, origin: 'https://giaoandewey.vercel.app' };
@@ -25,10 +30,19 @@ beforeAll(async () => {
   vi.stubGlobal('chrome', {
     runtime: {
       id: EXT_ID,
-      getManifest: () => ({ version: '0.1.0' }),
+      getManifest: () => ({ version: '0.2.0' }),
       onMessage: { addListener: (fn: Listener) => { listener = fn; } },
     },
-    tabs: { query: tabsQuery, sendMessage: tabsSendMessage },
+    tabs: {
+      query: tabsQuery,
+      sendMessage: tabsSendMessage,
+      create: tabsCreate,
+      remove: tabsRemove,
+      onUpdated: { addListener: vi.fn(), removeListener: vi.fn() },
+    },
+    storage: {
+      session: { get: storageGet, set: storageSet, remove: storageRemove },
+    },
   });
   vi.stubGlobal('fetch', fetchMock);
   await import('./background.js');
@@ -37,6 +51,12 @@ beforeAll(async () => {
 beforeEach(() => {
   tabsQuery.mockReset().mockResolvedValue([{ id: 7, status: 'complete' }]);
   tabsSendMessage.mockReset().mockResolvedValue({ token: 'tok-abc', workspace: 'branch_23' });
+  tabsCreate.mockReset().mockResolvedValue({ id: 99 });
+  tabsRemove.mockReset().mockResolvedValue(undefined);
+  // Mặc định: chưa có cache → đọc từ tab như cũ.
+  storageGet.mockReset().mockResolvedValue({});
+  storageSet.mockReset().mockResolvedValue(undefined);
+  storageRemove.mockReset().mockResolvedValue(undefined);
   fetchMock.mockReset().mockResolvedValue(jsonResponse(200, { data: [{ id: 1, name: '11Columbus' }] }));
 });
 
@@ -74,28 +94,67 @@ describe('cầu nối SSM — service worker', () => {
 
   it('ping trả phiên bản, không cần tab SSM', async () => {
     tabsQuery.mockResolvedValue([]);
-    expect(await ask({ op: 'ping' })).toEqual({ ok: true, data: { version: '0.1.0' } });
+    expect(await ask({ op: 'ping' })).toEqual({ ok: true, data: { version: '0.2.0' } });
   });
 
-  it('báo rõ khi chưa mở SSM / tab chưa có tiện ích / chưa đăng nhập', async () => {
-    tabsQuery.mockResolvedValue([]);
-    expect((await ask({ op: 'profile' })).error).toMatch(/Chưa mở SSM/);
-    tabsQuery.mockResolvedValue([{ id: 7, status: 'complete' }]);
+  it('báo rõ khi tab chưa có tiện ích / chưa đăng nhập', async () => {
     tabsSendMessage.mockRejectedValue(new Error('no receiver'));
     expect((await ask({ op: 'profile' })).error).toMatch(/tải lại \(F5\) tab SSM/);
     tabsSendMessage.mockResolvedValue({ token: '', workspace: '' });
     expect((await ask({ op: 'profile' })).error).toMatch(/chưa đăng nhập/);
   });
 
-  it('401 → báo phiên hết hạn', async () => {
+  it('401 → báo phiên hết hạn và xoá cache', async () => {
     fetchMock.mockResolvedValue(jsonResponse(401, { message: 'Unauthenticated.' }));
     const res = await ask({ op: 'profile' });
     expect(res).toMatchObject({ ok: false, status: 401 });
     expect(res.error).toMatch(/hết hạn/);
+    expect(storageRemove).toHaveBeenCalled();
   });
 
   it('đường dẫn học sinh theo lớp', async () => {
     await ask({ op: 'classStudents', params: { classId: 9681 } });
     expect(fetchMock.mock.calls[0][0]).toBe('https://api-ssm.edufit.vn/api/v1/students/class/9681?skipPagination=true&page=1&limit=500');
+  });
+
+  describe('Hạng mục 5: Token Cache & Auto-Wake', () => {
+    it('dùng token cache khi còn hạn — không cần tab SSM', async () => {
+      storageGet.mockResolvedValue({
+        ssmToken: 'cached-tok',
+        ssmWorkspace: 'cached-ws',
+        ssmCachedAt: Date.now(),
+      });
+      // validateSession gọi v1/profile → trả 200 là token còn hạn.
+      fetchMock.mockResolvedValue(jsonResponse(200, { ok: true }));
+      tabsQuery.mockResolvedValue([]); // không có tab SSM nào
+      const res = await ask({ op: 'profile' });
+      expect(res.ok).toBe(true);
+      expect(tabsCreate).not.toHaveBeenCalled();
+      // Header dùng token từ cache.
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
+      expect(lastCall[1].headers.Authorization).toBe('Bearer cached-tok');
+    });
+
+    it('token cache hết hạn → tự mở tab SSM ngầm', async () => {
+      storageGet.mockResolvedValue({
+        ssmToken: 'old-tok',
+        ssmWorkspace: 'old-ws',
+        ssmCachedAt: Date.now() - 13 * 60 * 60 * 1000, // quá 12h
+      });
+      tabsQuery.mockResolvedValue([]); // không có tab SSM
+      // Giả lập tab nền tải xong ngay.
+      const { tabs } = chrome as unknown as { tabs: { onUpdated: { addListener: (fn: (id: number, info: { status: string }) => void) => void } } };
+      tabsCreate.mockImplementation(async () => {
+        setTimeout(() => {
+          const l = (tabs.onUpdated.addListener as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+          l?.(99, { status: 'complete' });
+        }, 10);
+        return { id: 99 };
+      });
+      const res = await ask({ op: 'profile' });
+      expect(tabsCreate).toHaveBeenCalledWith(expect.objectContaining({ active: false }));
+      expect(tabsRemove).toHaveBeenCalledWith(99);
+      expect(res.ok).toBe(true);
+    });
   });
 });
