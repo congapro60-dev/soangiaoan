@@ -306,3 +306,5 @@ Finalsmallmath/viewer/TFfix gatefull3073/288files,lintapp/API/buildexit0,native/
 
 ## SSM native follow-up
 User đã cập nhật0.3.1; lớp thật đọc được qua phiên cache. Form báo giảng SSM dùng CKEditor, textarea-only không tương thích. Đang chốt extension0.3.2 hỗ trợ focused-empty CKEditor bằng native insertText, kiểm selection/readonly/media/retained text; 22 test và native/Gemini review đạt. Native model acceptance cần cập nhật0.3.2 và thử bản nháp trống; không tự Save/Submit. Chi tiết tasks/muse-qa-followup-plan.md.
+
+15/10 source cuối dc376c6: CI38601323878 SUCCESS (3104/3104), Git deploymentREADY, ZIPpublic0.3.2 khớpsource. Native0.3.1 đọc lớp/cache+Auto-Wake+refusemissingfieldPASS, không ghiSSM. User mới xác nhận0.3.1; đã hỏi cập nhật0.3.2, chưa có phản hồi. CKEditormodel/Excel/cloudsync/rosterwrite/cross-machine thật còn mở. Không báo QA toàn bộSSMđạt.

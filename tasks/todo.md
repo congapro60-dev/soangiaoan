@@ -286,4 +286,4 @@ không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu l
 - [x] Giao diện từng em (chọn loại + khoảng, AI soạn nháp, sửa, lưu, tải PDF) + xuất cả lớp ZIP ở tab Báo cáo.
 - [x] Test + lint + build + QA production.
 
-- [ ] SSM native follow-up: user cập nhật0.3.1, đọc lớp thật đạt; form báo giảng dùng CKEditor. Bổ sung0.3.2, 22 test/review đạt, build/lint/push và native model acceptance còn kiểm. Không Save/Submit.
+- [ ] SSM native follow-up: đọc lớp/cache + Auto-Wake + từ chối ô thiếu trên0.3.1 thật đạt.0.3.2 CKEditor đã main/Ready, CI3104đạt. Chờ user cập nhật0.3.2 để kiểm editor; Excel/roster/cloudsync/cross-machine thật chưa kiểm. Không Save/Submit.

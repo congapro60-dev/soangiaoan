@@ -90,3 +90,12 @@ SSM đăng nhập thật đúng trường Tây Hồ Tây, đúng GV; trang Lịc
 Bổ sung extension 0.3.2: chỉ editor CKEditor đang chọn và trống, kiểm selection nằm trong editor, readonly/disabled, không ghi đè chữ/ảnh/bảng/widget. Native insertText, kiểm giữ nội dung sau100ms; unsupported trả lỗi dùng Chép. Exact mã HS không dùng rich editor để tránh điền nhầm nơi focus. Không thêm quyền hoặc inject page-world APIs.
 
 Test RED→GREEN: CKEditor test đỏ trên nguồn0.3.1, sau sửa 22/22 extension tests đạt (background15, autofill6, package1), native/Gemini review PASS. Native CKEditor model acceptance chưa kiểm, cần cài0.3.2 rồi thử một bản nháp trống. Chưa tự bấm Lưu/Submit. Build và lint exit 0; nguồn đã đủ gate để push, native model acceptance còn kiểm.
+
+## 15/10 — SSM native QA mới nhất
+
+- Source dc376c6b8bdd86cc372a2ae8ebf7df1fe1c65cd7 đã main/remote khớp. CI Quality Gate38601323878 SUCCESS: 3104/3104, 293file. Vercel dpl_7Rd2PwdYKQFsKdX15bwdNrb7U6A9 READY. ZIP public0.3.2 sáu file byte khớp sourceGit.
+- Tiện ích0.3.1 user đã cập nhật: đọc lớp thật qua phiêncachePASS, đúng GV/trường. Auto-Wake thao tác điền khi0tabSSM đã tạo tabwelcomePASS. Khi trang không có ô nhập, báo đúng “Chưa xác định duy nhất đúng ô…”; không thông báo thành công giả. Không ghi dữ liệu SSM.
+- Form báo giảng10Olinda dùng CKEditor: đã mở để đọcDOM, giữ nguyên lịch cũ, Hủy/đóng tab. Source0.3.2 sửa editor, RED→GREEN và reviewer đều đạt. User được yêu cầu cập nhật0.3.2 để QA native model; chưa nhận xác nhận cập nhật này.
+- Khảo sát điểmLO: SSM Đánh Giá Học Sinh V2, lớp10Olinda/VN TOÁN, các Quarter F1/IA1/SE1…; Chi Tiết chỉ mở Tiến Trình Duyệt, chưa xác định form nhậpExcel. Không nhập điểm, gắn file hoặc Save. Không coi relayExcel đã nativePASS.
+- Còn nativeCKEditor, Excelrelay, ghép/cloudsync/rosterwrite thực tế và thửhai máy. Test/unit/Rules cho các phần này đạt; không thay thế bằng chứng production. Đềthi tựdo trên GV hiện0đề; không tạo bài thật chỉ để QA.
+- Quyền mở edge://extensions vẫn bị công cụchặn; người dùng tự cập nhật. Không thử đường vòng. Ảnhbằng chứng ở visualizations/.../muse-qa/ssm-autowake.png và ssm-no-field.png, không commit ảnh riêng vào repo.
