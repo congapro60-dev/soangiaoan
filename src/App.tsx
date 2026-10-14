@@ -341,7 +341,7 @@ export default function App() {
                 ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.', '📚'],
               ].map(([title, desc, icon]) => (
                 <div key={title} className="rounded-3xl border border-[#c0c7d3]/50 bg-white p-6 shadow-[0_4px_12px_rgba(0,94,161,0.06)] transition hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,94,161,0.12)]">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d2e4ff] text-2xl">{icon}
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d2e4ff] text-2xl">{icon}</div>
                   <h3 className="text-lg font-black text-[#0d1c2e]">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#414751]">{desc}</p>
                 </div>
