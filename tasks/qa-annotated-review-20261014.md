@@ -43,3 +43,11 @@ npm --prefix 'C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai' run lin
 npm --prefix 'C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai' run build
 npm --prefix 'C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai' run test:rules
 ```
+
+## Git integration
+
+Source `024a5a864c0135993b13903b57067936d9c43a5f` pushed HEAD:main exit0; ls-remote exactSHA. Worktree sạch sau sourcecommit. Pre-push hook chạy bình thường, không bypass. CI/deployment chưa coi đạt nếu chưa có kết quả. Commit tiếp chỉ cập nhật bằng chứng này.
+
+Source024a5a8 GitHub: API Typecheck [38507174194](https://github.com/congapro60-dev/soangiaoan/actions/runs/38507174194) SUCCESS, QualityGate [38507174122](https://github.com/congapro60-dev/soangiaoan/actions/runs/38507174122) SUCCESS. Git Vercel status giaoandewey Deployment completed SUCCESS; second Vercel project stillpending at snapshot. No manualdeploy/promote. Rules and realaccounts/AIquality remain separate pending.
+
+Public production smoke: homepageHTTP200, unauthenticated correctionAttemptsHTTP401. No account access/classroom mutation; not realGV/HS/PHQA.

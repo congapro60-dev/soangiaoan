@@ -21,8 +21,9 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 - Browser production session không truy cập được: browserplugin absent, ComputerUse nativepipeoserror2 qua retry/reset. Fixtures/marks/AIstub không chứng minh liveAIquality hoặc realaccountsQA.
 - GeminiUI code dùng3.8Flash-low; Argon official ID có nhưng router keyinvalid/ag404. Không đổi config hoặc dùngpaidAPI mới.
 - **Rules đã đổi trong Git, chưa deploy.** User chỉ cho pushmain; sau API tương thích cần authorized Firestore+StorageRulesdeploy rồi realGV/HS/PHQA. Không coi push là productionhardlock hoàn tất.
+- Bridge14/10 không có live Claude Desktop session; không tạo/gửi phiên thay thế.
 - Bridge thread `01a123b1-a378-73b1-9aa4-685e5b67efaa`, peer `codex-01a123b1`; không gửi sang phiên gần giống. Sharedfiles là nguồn bàn giao.
-- Cổng local đã đạt; source chuẩn bị commit/push main. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. Trạng thái remote/CI ghi tại checklist.
+- Cổng local đạt; source đã push main `024a5a864c0135993b13903b57067936d9c43a5f`, remote khớp, push exit0. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. API Typecheck38507174194+QualityGate38507174122 SUCCESS; Vercel giaoandewey Git auto deployment SUCCESS. Rules/realaccountsQA chưa hoàn tất.
 
 ## Nhiều khoá Gemini trong Cài đặt (giáo viên tự gom hạn mức free) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
 

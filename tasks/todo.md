@@ -11,7 +11,8 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Full3027/3027(286files); Rules306/306(9files); native41+UI39checks; Gemini backend/grading/correction PASS; UI2falsefindings rejected by native source/test.
 - [x] Browser29checks390/820/1024 fixture0pageerrors; không tràn ngang; phản hồi/draft/correction/PHretry/directscroll đạt.
 - [x] Lint app/API/build exit0 sau source cuối; bundle index1545.01kB, cảnh báo kích thước có sẵn.
-- [ ] Commit/push main, xác minh remoteSHA/CI.
+- [x] Source commit/push main `024a5a864c0135993b13903b57067936d9c43a5f`; push exit0, ls-remote khớp, worktree sạch.
+- [x] Source024a5a8: API Typecheck38507174194 SUCCESS; QualityGate38507174122 SUCCESS. Vercel giaoandewey auto deployment SUCCESS; không manualdeploy. Rules/realaccountsQA còn lại.
 - [x] Cập nhật plan/checklist/HANDOFF để Claude qua MCPbridge tiếp quản.
 - [ ] Production: phát hành Rules mới sau API tương thích (chưa authorized manualdeploy), rồi QA thật GV/HS/PH+AI nhận xét/định vị.
 
