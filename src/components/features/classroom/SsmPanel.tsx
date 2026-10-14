@@ -9,6 +9,7 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/c
 import { asCompetencyGrade, competenciesByGrade } from '../../../lib/classroom/competency/framework';
 import { SSM_SCALE_4, type LoMark } from '../../../lib/ssm/loScore';
 import { readLoWorkbook, fillLoWorkbook } from '../../../lib/ssm/loWorkbook';
+import { attachLoFileToSsm } from '../../../lib/ssm/ssmBridge';
 import { parseLoInfo, suggestGrid, type LoInfo, type LoMapping } from '../../../lib/ssm/loMapping';
 import { buildLoMappingPrompt, parseLoMappingResponse } from '../../../lib/ssm/loMappingPrompt';
 import { buildClassLoScores } from '../../../lib/ssm/loClassScores';
@@ -148,6 +149,28 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
     }
   };
 
+  // HẠNG MỤC 1 (1-Click Excel Relay): điền điểm rồi gửi thẳng file lên trang SSM đang mở.
+  // Tiện ích chỉ ĐIỀN và TÔ VIỀN ô file — cô kiểm tra mắt rồi tự bấm Lưu trên SSM.
+  const sendToSsm = async () => {
+    if (!fileBytes) return;
+    setBusy('Đang gửi file lên SSM…');
+    setError('');
+    try {
+      const marks = new Map<string, Map<string, LoMark>>(
+        [...grid].map(([ma, row]) => [ma, new Map([...row].filter(([, mk]) => mk !== 'N'))]),
+      );
+      const out = await fillLoWorkbook(fileBytes.slice(0), marks);
+      const outName = fileName.replace(/\.xlsx$/i, '') + '_dien.xlsx';
+      await attachLoFileToSsm(out.bytes, outName);
+      setNote(`Đã gắn file "${outName}" (${out.written} ô điểm) vào trang SSM — cô kiểm tra ô file được tô viền xanh rồi bấm Lưu trên SSM.`);
+      showToast('Đã gửi file lên SSM.', '📄');
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy('');
+    }
+  };
+
   const mapLabel = (loCode: string): string => {
     const ids = mapping[loCode] ?? [];
     if (ids.length === 0) return '';
@@ -160,7 +183,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
       <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">SSM · Điểm LO</p>
         <p className="mt-1 text-sm font-semibold text-slate-700">
-          Tải file điểm SSM xuất ra → app điền sẵn từ bài đã duyệt → cô tải về rồi tự đưa lên SSM. App không tự ghi vào SSM.
+          Tải file điểm SSM xuất ra → app điền sẵn từ bài đã duyệt → bấm "Gửi thẳng lên SSM" để gắn file vào trang SSM (cô tự bấm Lưu), hoặc tải về rồi đưa lên tay. App không tự bấm Lưu trên SSM.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <input ref={fileInput} type="file" accept=".xlsx" className="hidden"
@@ -181,9 +204,14 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
             </button>
           )}
           {los.length > 0 && (
-            <button type="button" disabled={!!busy} onClick={() => void download()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60">
-              <Download className="h-4 w-4" /> Tải file đã điền
-            </button>
+            <>
+              <button type="button" disabled={!!busy} onClick={() => void download()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60">
+                <Download className="h-4 w-4" /> Tải file đã điền
+              </button>
+              <button type="button" disabled={!!busy} onClick={() => void sendToSsm()} title="Điền điểm và gắn thẳng file vào trang SSM đang mở — cô chỉ cần bấm Lưu trên SSM" className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-sm font-black text-white hover:bg-violet-700 disabled:opacity-60">
+                <Upload className="h-4 w-4" /> Gửi thẳng lên SSM
+              </button>
+            </>
           )}
         </div>
         {fileName && <p className="mt-2 text-xs font-semibold text-slate-500">File: {fileName}</p>}
