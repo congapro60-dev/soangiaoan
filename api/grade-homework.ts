@@ -1,3 +1,4 @@
+import { handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt } from './_submission-annotations.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
 import { generateWorkedSolutions, workedSolutionVersion } from './_worked-solutions.js';
@@ -848,7 +849,11 @@ const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, bod
   await ensureGeminiKey(getGradingApiKey());
   if (!originalInput.questions.length) {
     const variant = assignment.examVariants?.find((value: {code:string}) => value.code === examCode);
-    const catalog = await readAssignmentQuestionCatalog(db, uid, { ...assignment, solutionCatalogOnly: true, solutionExamCode: examCode, ...(variant ? { sourceText: variant.sourceText, answerKey: variant.answerKey } : {}) });
+    const catalogBudgetMs = Math.min(120000, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS - 90000);
+    if (catalogBudgetMs < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Chưa đủ thời gian để đọc đề và tạo lời giải. Thầy cô thử lại.' });
+    let catalog: Awaited<ReturnType<typeof readAssignmentQuestionCatalog>>;
+    try { catalog = await readAssignmentQuestionCatalog(db, uid, { ...assignment, solutionCatalogOnly: true, solutionExamCode: examCode, ...(variant ? { sourceText: variant.sourceText, answerKey: variant.answerKey } : {}) }, catalogBudgetMs); }
+    catch (reason) { if (reason instanceof GeminiResponseError && reason.kind === 'provider') return res.status(422).json({ error: 'Máy chưa đọc xong danh sách câu từ ảnh đề. Bài chấm và điểm của học sinh vẫn giữ nguyên; thầy cô thử tạo lời giải lại.' }); throw reason; }
     if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
     effectiveAssignment = examCode ? { ...assignment, questionCatalogByExamCode: { ...(assignment.questionCatalogByExamCode || {}), [examCode]: catalog.questionCatalog } } : { ...assignment, questionCatalog: catalog.questionCatalog };
   }
@@ -1831,6 +1836,7 @@ const readAssignmentQuestionCatalog = async (
   db: FirebaseFirestore.Firestore,
   uid: string,
   assignment: FirebaseFirestore.DocumentData,
+  timeoutMs = SINGLE_CALL_BUDGET_MS,
 ): Promise<{ questionCatalog: QuestionCatalogEntry[]; competencyTags: CompetencyTag[] } | { error: string; status: number }> => {
   const examText = String(assignment.sourceText || '');
   const examImages = await loadAssignmentSourceImages(assignment);
@@ -1855,7 +1861,7 @@ const readAssignmentQuestionCatalog = async (
     examImages,
     getGradingApiKey(),
     GRADING_MODEL,
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
@@ -2142,6 +2148,17 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
+    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: async (submission, targets) => {
+      const startedAt = Date.now();
+      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
+      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
+      await ensureGeminiKey(getGradingApiKey()); const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
+      if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
+      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+    } });
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);

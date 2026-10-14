@@ -142,3 +142,14 @@ Không thay điểm sổ/thang điểm/báo cáo đã công bố vì đổi bố
 Ngoài phạm vi: vẽ lại đề, Word/PDF mới, rules thi online, tự đổi điểm, xóa bản nộp cũ.
 
 Review14/10: tasks/qa-annotated-review-20261014.md; localbrowser29checks passed, realaccounts/liveAIQA chưa có. Rules đã deploy sau user yêu cầu làm nốt14/10; realaccountsQA còn blocked browsertool.
+
+## QA production sau appupdate14/10 — bổ sung tối thiểu trong phạm vi đã duyệt
+
+Browserruntime26.1007.71326 đãkhôi phục IABGV và HSauthretained. Thật3bàiThi thửgiữaHKI mẫu10/11/12 đều0photoMarks, workedSolutionmissing. Viewer/filters/scoređúng, math0KaTeXerror, imgsloaded;390/820nooverflow. HS đúngphiên11, directbuttons/deadlines/5nav/feedbackdraft/singleforms đạt.
+Tác vụGVprepareWorkedSolutions lớp12 thấtbại: providerGemini3.8Flash4sourceimages, catalogphase45.003sTimeout, /api/grade-homework500; chưa đến solutionsphase. Không báođãtạolời.
+User đãduyệt làmnốt vàchấmauto trênảnh3bài. Haiwriterđược giao hoàn thiệnblast-radius này, không regradelịch sử:
+- Backend: annotateSubmissionPhotosGVonly(existingendpoint),5minclaim/fingerprintoldgrade+images+code+source, onlymergegeometry, preserve scores/approval/teacherEdits/profile. Imageindexbindsuccessfulfetch,confidence>=.85, max3marks, blank/ignored/manualclearedskip; raceabort. Resultmapped/unlocated/total.
+- Timeoutcatalogfix: source4images45sproviderdeadline quángắn; boundedbudget đúngremaining300s, catalogpersist+resume nếu cần, không đổiprovider/model hoặc tăngvôhạn.
+- UI: pergradedsubmissionbutton 'Bổ sung dấu chấm trên ảnh', no chấm lại; partialmappingstatus, incompleteworkedsolutioncoverage không báođủ.
+- Tests immutablegradeexceptgeometry/manualrace/wrongGV/modelbounds/duplicates/cleared/cached/quota/deadline; root+independentreview trướcpushmain; noManualVercelDeploy.
+- LiveQA sauautoGitdeploy: đúng3bài mẫu, trước/saugiữscore/approval/text, eyeballmarks đúngnétHS; generatecommoncache từngassignment, correct+TFa-dread; HSsameversionphoto/detail; PHloginpending.

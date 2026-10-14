@@ -288,3 +288,8 @@ CHƯA kiểm định AI mới định vị trên lô ảnh thật, chưa product
 
 ## QA blocker mới14/10
 Userảnh xác nhận IABGV đãlogin thật. IAB khácTinyFishguest; đừng hỏiuserloginIAB lại. Trustedbrowserbootstrap thiếu browser/26.1007.21434/scripts/browser-service.mjs; currenttools không cóbrowser/cua. Không tự sửa trustedruntime/copyChromeService vàoBrowser. Checklist QA chưa hoàn tất.
+
+## Active continuation —14/10 appupdated
+Browser26.1007.71326 restoredIAB, realGV3class+HS11 read-onlyQAcompletedpartial. Old3exams no marks/nocommonworkedSolution; grade12catalogAItimeout45s/4sourceimages500. Backendwriter review_proxy_backend ownsgeometry-onlyaction+deadlinefix; final_ui_auditUIbutton+partialstatusfrozen. Rootnativebrowser/docs, riskreviewread-only. No score/approval changed. PHloginpending. Currenttaskplanappend+QAfile authoritative; prior runtimeblockedstatussuperseded.
+
+Historicalfixsourcefreeze: onlyannotationhelper/grade-homeworktimeout120/catalogsafeerror/UIbuttoncoverage/service+tests. Gate3040full/lintAPIapp/build+native21/GeminiPASS. Pushremaining; afterautoGitdeploynativeQA3selectedassignments. PHdirectclasslinkopened, need4digitPHpinuserdirect.

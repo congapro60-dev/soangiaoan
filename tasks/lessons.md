@@ -506,3 +506,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-14 — Không nhầm tab IAB với phiên TinyFish
 - User mởGV thật trongCodex in-app browser không đồng nghĩa TinyFishprofile đãlogin. Kiểm đúngbackend/tab trước khi bảologin lại.
 - Browserbootstrap thiếumodule là lỗi runtime/capability, không phải appauth. Không thay điều khiển tab hiện có bằng browser khác rồi suy kết quả tương đương.
+
+## 2026-10-14 — Mã lớp khác PIN phụ huynh
+- Người dùng chỉ ra nhầm4PINvới6classcode. Hướng dẫn tách mãlớp6ký tự→chọncon→PINPH4chữsố; ưu tiênlinkPHđúnglớp bỏbướcmã.
+- Saucậpnậtsource, historicalgrade khôngtựcótọađộ/lời giải. QAphảiđọcbàithật, khônggọi UIrendered bằngchứngdatafulfilled; annotationmigration onlygeometrygiữscores/approval.

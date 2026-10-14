@@ -32,3 +32,5 @@ export const prepareWorkedSolutions = (credentials: SubmissionActorCredentials, 
 export const listCorrectionAttempts = (submissionId: string, credentials: SubmissionActorCredentials = {}) => call<{ attempts: import('../lib/classroom/types').CorrectionAttemptDoc[] }>('correctionAttempts', credentials, { submissionId });
 export const saveCorrectionAttempt = (submissionId: string, uploadGrantId: string, note?: string) => call<{ attempt: import('../lib/classroom/types').CorrectionAttemptDoc }>('saveCorrectionAttempt', {}, { submissionId, uploadGrantId, note });
 export const reviewCorrectionAttempt = (submissionId: string, correctionAttemptId: string) => call<{ attempt: import('../lib/classroom/types').CorrectionAttemptDoc }>('reviewCorrectionAttempt', {}, { submissionId, correctionAttemptId }, '/api/grade-homework');
+
+export const annotateSubmissionPhotos = (credentials: SubmissionActorCredentials, submissionId: string, force = false) => call<{ mapped:number; unlocated:number; total:number; cached?:boolean }>('annotateSubmissionPhotos', credentials, { submissionId, force }, '/api/grade-homework');

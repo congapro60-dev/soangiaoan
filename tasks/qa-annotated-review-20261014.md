@@ -113,3 +113,17 @@ Current tool discovery không có browser/cua/toolsearch. ComputerUsenativepipe 
 `Cannot find module 'C:\Users\ADMIN\.codex\plugins\cache\openai-bundled\browser\26.1007.21434\scripts\browser-service.mjs' imported from ...\trusted-worker.js`.
 Pathbrowser-service kỳ vọng không tồn tại; Chrome cùngversion có servicefile nhưng không tựcopy/junction/rewrite trustedworker hoặc bypass runtime policy. Installer candidates không có Browser đểrepair bằngtool.
 Đã xác định blocker là Browsertool/runtime, không phải thiếuGVsession trongIAB. TinyFishguest evidence không đại diệnIAB. Chưa realGV/HS/PHQA hoàn tất.
+
+## Browser recovered26.1007.71326 — realGV/HSQA14/10
+
+IABcatalog2/tab1GV, tab2HS/lop retained11session. Root bootstrap public runtime thành công; no config/runtimepatch. Browservisibilitytrue fixed sporadicCDPinputtimeout; readgroundtruth aftereachfailure. Tempviewport390/820tested, resetrequiredend.
+GV3classes mapped10/11/12, exactThi thửgiữaHKI. Readonepublishedsubmissioneachscore4/5.9/8.5; liveviewercolors/list/filter+scoretotal+pagecontrolworks; all0ellipses/noworkedSolution inolddata, doNOTcallmarksqualityPASS. Grade10TFpartialoldtext, grade11TFcorrectjust“Trả lời đúng cả4ý”, grade12TFshortwhy. Grade10editmodal19blankworkedsolutionfields, imagesloaded+side-by-side820, noediting/saving. GVfeedbackhistoryempty/correctionhistoryemptyGETworks.
+HSactualretained11session,18rows5nav, deadlinesontime/late/imminent24h and directbuttons. ToplistnoClarifyPanel. scorebook5.9matchesGV; stats11assignments5scores,portfolio/reportSepavailable. Photoimgloads; math0errors; width390/382and820<=820. Viewerandnormalsharedquestion,feedbackexactTFquestionselected; QA54chartextlocaldraftretainednav then cleared, no message sent. onefeedback/correctionform perattempt. RecordingsnoPIN/auth/privateURLs saved. Screenshotpaths production-review-20261014 trong visualizations; no rawidentity inGit.
+PHtab/ph opens classcodeentry; noPHsessionrestored. useraskedloginPHdirectly, noPINrequestedchat.
+OneauthorizedGVAIcreatecommonSolutions12 failed; UI shows timeout. Vercellogs500catalog4images45.003sTimeout. No grade/approvalmutation. Nativewriterfix underwayplanappend. Nofalseclaimallcorrectsolutions/marks.
+
+## Historicalfollow-up sourcegate
+
+APIannotationgeometry-only preservesoriginalgradeexceptmarks +updatedAt conflictsmanualrevision; native21PASS annotations7/variants14, UI3PASS. GeminihistoricalfinalPASS source. Full3040/3040,288files exit0 `%TEMP%/historical-full-tests.log`; focused24/24exit0; lintapp+API/buildexit0 `%TEMP%/historical-final-build.log`. Rulesunchangednoemulatorrepeatneeded. Source doesnot regrade/approvalmutate.
+UsercorrectionPH:6 is classcode,4isPHpin. Tab/ph initiallycodeentry; usermistookwithPIN. NavigatedPHdirectcurrent11classfromdisplayedlink (notcachedstate/cookies); noURLorPIN savedinrepo. CurrentPHloginpending.
+Catalog120sfixawaitingpush/autoGitdeploy. Realoldgrades4/5.9/8.5 unchanged; sharedcache12earlierfailure cost usesexistingteacherAIkey. Postpushneed3commoncachegenerations+3annotationcalls+coordquality, insufficient/incompletecoverageclearlyreported.

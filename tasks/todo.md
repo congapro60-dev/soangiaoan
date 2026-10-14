@@ -18,7 +18,11 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Sau Rules: homepage200, correction unauth401, Firestore direct unauth403; không thay bài/điểm production.
 - [x] CI latest5f1380e full3029/3029(286files) và lint SUCCESS.
 - [x] Prompt bài chữa với model thật+3ca ảnh tự tạo: achieved826ký tự, needs_work859, uncertain299; không score. Evidence tasks/qa-correction-live-model-20261014.md.
-- [ ] QA thật GV/HS/PH+AIđịnhvị: userảnh14/10 xác nhận IABGV đãlogin; không hỏiloginIAB nữa. Runtime Browsertrustedworker thiếu browser/26.1007.21434/scripts/browser-service.mjs; ComputerUsepipeoserror2. TinyFishDefaultguest là phiênkhác. Cần khôi phụcBrowsertool trước QA.
+- [x] Appupdate26.1007.71326 khôi phục Browser IAB; GV thật3lớp, HS11sessionretained, read-onlyscreens/filters/scoreboard/stats/portfolio/reports/drafts/nooverflow390/820 đạt.
+- [ ] QA phát hiện bài cũ3khối chưa geometry/lời giải đầy đủ; prepareWorkedSolutions12timeoutcatalog45s. Backendwriter sửadeadline+GVgeometry-onlyaction; UIwriterbutton+partialcoverage. Không regrade/đổiđiểm.
+- [x] Historicalfix sourcegate: full3040/3040(288files),focused24/native21/UI3,lintapp/API/build exit0, GeminihistoricalPASS; Rulesunchanged.
+- [ ] Pushmain+Gitautodeploy; tạo3commoncache vàgeometry3samples, preservegrades4/5.9/8.5, actualcoordinateQA.
+- [ ] PH tab đãmở, cầnuserlogintrực tiếp; noPIN/chatsensitive. Bài chữaHS upload/eval vàfeedbacksendchưatestendtoend.
 
 Source không đổi sau5f1380e; Rules source024a5a8 đã deploy. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
 Chrome actual-component fixture không thay realaccounts/AIquality. Gemini4Argon router keyinvalid/ag404;

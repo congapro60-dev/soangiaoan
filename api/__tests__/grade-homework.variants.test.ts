@@ -99,6 +99,7 @@ const makeGeminiResponse = (text: string, finishReason = 'STOP') => ({
     }],
   }),
   text: async () => '',
+
 });
 
 const makeImageResponse = () => ({
@@ -352,5 +353,19 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     expect(harness.state.assignments['kt-1'].questionCatalogByExamCode).toEqual({ '1202': original }); expect(harness.state.assignments['kt-1'].workedSolutionsByExamCode).toBeUndefined(); expect(prompts).toHaveLength(1);
   });
 
+  it('solution catalog allows a heavy image source more than 45s while solve keeps the total deadline', async () => {
+    const harness = seed(); h.db = makeDb(harness);
+    const startedAt = Date.now(); let now = startedAt;
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation(() => new AbortController().signal);
+    let calls = 0;
+    vi.stubGlobal('fetch', async () => {
+      calls++;
+      if (calls === 1) { now += 90000; return makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', content: 'Tính 1+1', expectedAnswer: 'C' }] })); }
+      return makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', workedSolution: 'Ta cộng hai số: $1+1=2$. Vì vậy chọn C.', status: 'ready' }] }));
+    });
+    try { expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(200); expect(timeout.mock.calls[0][0]).toBe(120000); expect(timeout.mock.calls[1][0]).toBeLessThanOrEqual(195000); }
+    finally { clock.mockRestore(); timeout.mockRestore(); }
+  });
 });
 
