@@ -2,6 +2,24 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAdminDb, gradeSubmissionCore, stripAnswerKey, type CoreAnswer, type CoreQuestion } from './_exam-core.js';
 import { getAuth } from 'firebase-admin/auth';
+
+// FIX #5: Rate-limit đơn giản cho GET ?code= (chống dò mã đề)
+// Lưu ý: in-memory nên sẽ reset khi function cold start. Đủ dùng cho Hobby.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 30; // 30 requests
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // mỗi phút
+
+const checkRateLimit = (ip: string): boolean => {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+};
 import { getBearerToken } from './_ai-gateway-core.js';
 
 // Một hàm phục vụ cả 2 việc để không vượt giới hạn số Serverless Function:
@@ -14,6 +32,12 @@ import { getBearerToken } from './_ai-gateway-core.js';
 // và chỉ trả phần đã lược. Fail-safe: nếu POST lỗi, bài vẫn ở 'submitted' và giáo viên tự xác minh.
 
 const handleGet = async (req: VercelRequest, res: VercelResponse) => {
+  // Rate-limit cho endpoint public
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || (req.socket as any)?.remoteAddress || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: 'Quá nhiều yêu cầu, vui lòng thử lại sau.' });
+  }
+
   const submissionId = typeof req.query.submissionId === 'string' ? req.query.submissionId.trim() : '';
   if (submissionId) return handleGetResult(submissionId, res);
   const code = typeof req.query.code === 'string' ? req.query.code.trim().toUpperCase() : '';
