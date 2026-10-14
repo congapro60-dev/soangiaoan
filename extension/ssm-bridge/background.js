@@ -1,10 +1,17 @@
 // Service worker: nhận yêu cầu từ app, lấy phiên SSM từ tab SSM đang mở, gọi API SSM, trả JSON.
 // Đợt 1 CHỈ ĐỌC: mọi lệnh là GET trong danh sách cố định dưới đây, không có lệnh tự do.
 // Vé đăng nhập chỉ dùng trong hàm callSsm, không bao giờ trả về app hay ghi log.
+//
+// HẠNG MỤC 5 (Token Cache & Auto-Wake):
+// - Ưu tiên đọc token đã cache trong chrome.storage.session (do ssm-session.js lưu).
+// - Nếu chưa có cache hoặc token hết hạn: tự mở ngầm 1 tab SSM nền (active: false)
+//   để lấy token, thay vì báo lỗi "Chưa mở SSM".
 
 const API = 'https://api-ssm.edufit.vn/api/';
 const APP_ORIGINS = ['https://giaoandewey.vercel.app', 'http://localhost:3000'];
 const MAX_BODY = 2_000_000;
+// Token cache quá 12 tiếng thì coi như cũ — thử validate trước khi dùng.
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
 const posInt = (value) => {
   const n = Number(value);
@@ -32,16 +39,106 @@ const findSsmTab = async () => {
   return tabs.find((tab) => tab.status === 'complete') || tabs[0] || null;
 };
 
-const readSession = async () => {
-  const tab = await findSsmTab();
-  if (!tab?.id) return { error: 'Chưa mở SSM — mở ssm.edufit.vn trong một tab Edge và đăng nhập.' };
+/** Đọc token đã cache trong chrome.storage.session (do ssm-session.js lưu). */
+const readCachedSession = async () => {
+  try {
+    const { ssmToken, ssmWorkspace, ssmCachedAt } = await chrome.storage.session.get(
+      ['ssmToken', 'ssmWorkspace', 'ssmCachedAt']
+    );
+    if (!ssmToken || !ssmWorkspace) return null;
+    if (Date.now() - (ssmCachedAt || 0) > CACHE_TTL_MS) return null;
+    return { token: ssmToken, workspace: ssmWorkspace };
+  } catch {
+    return null;
+  }
+};
+
+const saveCachedSession = async (token, workspace) => {
+  try {
+    await chrome.storage.session.set({ ssmToken: token, ssmWorkspace: workspace, ssmCachedAt: Date.now() });
+  } catch {
+    // Bỏ qua khi storage bị chặn — lần sau đọc lại từ tab.
+  }
+};
+
+/** Gọi thử API profile để kiểm tra token còn hạn không. */
+const validateSession = async (session) => {
+  try {
+    const response = await fetch(API + 'v1/profile', {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'vi',
+        Authorization: `Bearer ${session.token}`,
+        workspace: session.workspace,
+      },
+    });
+    return response.status !== 401;
+  } catch {
+    // Không kết nối được mạng: giữ nguyên cache, để callSsm báo lỗi mạng sau.
+    return true;
+  }
+};
+
+/** Hỏi phiên đăng nhập từ tab SSM đang mở (qua content script ssm-session.js). */
+const readSessionFromTab = async (tab) => {
   try {
     const session = await chrome.tabs.sendMessage(tab.id, { kind: 'ssm-session' });
     if (!session?.token || !session.workspace) return { error: 'Tab SSM chưa đăng nhập — đăng nhập SSM rồi thử lại.' };
+    await saveCachedSession(session.token, session.workspace);
     return { session };
   } catch {
     return { error: 'Tab SSM mở trước khi cài tiện ích — tải lại (F5) tab SSM rồi thử lại.' };
   }
+};
+
+/**
+ * Tự mở ngầm 1 tab SSM nền để lấy token khi người dùng quên mở tab SSM.
+ * Tab nền (active: false) không làm phiền — đóng ngay sau khi lấy được phiên.
+ */
+const wakeSsmInBackground = async () => {
+  let tab = null;
+  try {
+    tab = await chrome.tabs.create({ url: 'https://ssm.edufit.vn/', active: false });
+  } catch {
+    return { error: 'Không mở được tab SSM ngầm — mở ssm.edufit.vn trong một tab Edge và đăng nhập.' };
+  }
+  // Đợi trang tải xong (tối đa ~15s) để content script kịp đọc localStorage.
+  const ready = await new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => { if (!done) { done = true; resolve(false); } }, 15000);
+    const listener = (tabId, info) => {
+      if (tabId === tab.id && info.status === 'complete' && !done) {
+        done = true;
+        clearTimeout(timer);
+        chrome.tabs.onUpdated.removeListener(listener);
+        // Thêm 1s cho content script khởi động.
+        setTimeout(() => resolve(true), 1000);
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+  try {
+    if (!ready) return { error: 'Tab SSM ngầm tải quá lâu — mở ssm.edufit.vn trong một tab Edge và đăng nhập.' };
+    const result = await readSessionFromTab(tab);
+    return result;
+  } finally {
+    // Dọn tab nền sau khi xong việc.
+    try { await chrome.tabs.remove(tab.id); } catch { /* tab đã đóng */ }
+  }
+};
+
+const readSession = async () => {
+  // 1. Ưu tiên token đã cache — không cần tab SSM mở.
+  const cached = await readCachedSession();
+  if (cached && await validateSession(cached)) return { session: cached };
+
+  // 2. Thử đọc từ tab SSM đang mở.
+  const tab = await findSsmTab();
+  if (tab?.id) return readSessionFromTab(tab);
+
+  // 3. Tự mở ngầm tab SSM nền để lấy token (Hạng mục 5: Auto-Wake).
+  return wakeSsmInBackground();
 };
 
 const callSsm = async (path, session) => {
@@ -60,7 +157,11 @@ const callSsm = async (path, session) => {
   } catch {
     return { ok: false, error: 'Không kết nối được SSM — kiểm tra mạng.' };
   }
-  if (response.status === 401) return { ok: false, status: 401, error: 'Phiên SSM hết hạn — đăng nhập lại SSM.' };
+  if (response.status === 401) {
+    // Token hết hạn: xoá cache để lần sau lấy lại từ tab.
+    try { await chrome.storage.session.remove(['ssmToken', 'ssmWorkspace', 'ssmCachedAt']); } catch { /* bỏ qua */ }
+    return { ok: false, status: 401, error: 'Phiên SSM hết hạn — đăng nhập lại SSM.' };
+  }
   if (!response.ok) return { ok: false, status: response.status, error: `SSM trả lỗi ${response.status}.` };
   const text = await response.text();
   if (text.length > MAX_BODY) return { ok: false, error: 'Dữ liệu SSM quá lớn.' };
