@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import JSZip from 'jszip';
 
 const SRC = 'extension/ssm-bridge';
-const FILES = ['manifest.json', 'background.js', 'app-relay.js', 'ssm-session.js', 'README.md'];
+const FILES = ['manifest.json', 'background.js', 'app-relay.js', 'ssm-session.js', 'ssm-autofill.js', 'README.md'];
 const OUT_DIR = 'public/downloads';
 
 const zip = new JSZip();
