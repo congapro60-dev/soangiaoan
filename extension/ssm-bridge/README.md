@@ -14,7 +14,8 @@ tiện ích không gửi nó lên app, lên máy chủ hay đi đâu khác.
 
 ## Dùng
 
-1. Mở `ssm.edufit.vn` trong một tab Edge, đăng nhập bằng **mail trường**, trùng với mail đăng nhập app.
+1. Đăng nhập `ssm.edufit.vn` bằng **mail trường**, trùng với mail đăng nhập app (chỉ cần 1 lần —
+   tiện ích tự nhớ phiên và tự mở ngầm tab SSM khi cần, không bắt mở tab SSM thủ công nữa).
 2. Trong app: **Lớp học → chọn lớp → tab Học sinh → Ghép với lớp SSM**.
 3. Chọn đúng lớp SSM, bấm **Ghép**, rồi bấm **So danh sách với SSM**.
 
@@ -23,9 +24,9 @@ tiện ích không gửi nó lên app, lên máy chủ hay đi đâu khác.
 | Thông báo | Cách xử lý |
 |---|---|
 | Chưa cài tiện ích… | Làm lại phần Cài, rồi F5 trang app |
-| Chưa mở SSM | Mở `ssm.edufit.vn` trong một tab khác |
+| Tab SSM chưa đăng nhập … | Mở `ssm.edufit.vn` trong một tab, đăng nhập bằng mail trường, rồi thử lại |
 | Tab SSM mở trước khi cài tiện ích | F5 tab SSM |
-| Tab SSM đang đăng nhập … khác tài khoản app | Đăng xuất SSM, đăng nhập lại đúng mail trường |
+| Tab SSM đang đăng nhập … khác tài khoản app | Đăng xuất SSM, đăng nhập lại đúng mail trường của bạn |
 | Phiên SSM hết hạn | Đăng nhập lại SSM |
 
 ## Giới hạn
