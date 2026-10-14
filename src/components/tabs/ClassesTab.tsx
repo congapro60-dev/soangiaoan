@@ -1146,6 +1146,27 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
               className={selectedClass.name}
               students={selectedClass.students}
               userEmail={user?.email ?? null}
+              userId={user?.uid ?? null}
+              onSyncStudents={(next) => {
+                // HẠNG MỤC 4: cập nhật DS học sinh từ SSM — đồng bộ state local + server.
+                setData(prev => ({
+                  ...prev,
+                  classes: prev.classes.map(item =>
+                    item.id !== selectedClass.id
+                      ? item
+                      : { ...item, students: next, studentCount: next.length },
+                  ),
+                }));
+                // Ghi từng em mới lên server (bỏ qua em đã có).
+                const existingIds = new Set(selectedClass.students.map(s => s.id));
+                for (const s of next) {
+                  if (!existingIds.has(s.id)) {
+                    void themHocSinhLenServer(selectedClass.id, user?.uid || '', {
+                      id: s.id, name: s.name, code: s.code,
+                    }).catch(() => { /* đã lưu local, lần sau đồng bộ */ });
+                  }
+                }
+              }}
             />
           )}
           <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
