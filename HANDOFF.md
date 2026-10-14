@@ -285,3 +285,6 @@ và hết clarification. Viewer SVG phủ ảnh gốc, chạm lời chữa, zoom
 Không thêm dependency, endpoint hay lượt gọi AI. 2.897 test tổng + 1 test gỡ dấu bổ sung, Rules303, lint app/API và build đạt.
 QA browser component thật/ảnh fixture ba khối đạt; review native + Gemini vòng2 không còn blocker.
 CHƯA kiểm định AI mới định vị trên lô ảnh thật, chưa production QA/commit/push/deploy. Chi tiết `tasks/red-pen-implementation.md`.
+
+## QA blocker mới14/10
+Userảnh xác nhận IABGV đãlogin thật. IAB khácTinyFishguest; đừng hỏiuserloginIAB lại. Trustedbrowserbootstrap thiếu browser/26.1007.21434/scripts/browser-service.mjs; currenttools không cóbrowser/cua. Không tự sửa trustedruntime/copyChromeService vàoBrowser. Checklist QA chưa hoàn tất.

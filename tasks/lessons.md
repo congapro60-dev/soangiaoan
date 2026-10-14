@@ -502,3 +502,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-14 — Trạng thái browser step không chứng minh đăng nhập
 - “Understand classworkspace” có thể là demo/guest. Không báo đã vào tài khoản hoặc lớp thật trước khi UI hiện đúng vai+dữ liệu lớp.
 - ProfileSaved/domain_count>0 không chứng minh auth được khôi phục. Terminalresult login/guest phải ghi blocked, không xếp PASS.
+
+## 2026-10-14 — Không nhầm tab IAB với phiên TinyFish
+- User mởGV thật trongCodex in-app browser không đồng nghĩa TinyFishprofile đãlogin. Kiểm đúngbackend/tab trước khi bảologin lại.
+- Browserbootstrap thiếumodule là lỗi runtime/capability, không phải appauth. Không thay điều khiển tab hiện có bằng browser khác rồi suy kết quả tương đương.

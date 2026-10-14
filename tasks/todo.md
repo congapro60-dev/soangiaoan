@@ -18,7 +18,7 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Sau Rules: homepage200, correction unauth401, Firestore direct unauth403; không thay bài/điểm production.
 - [x] CI latest5f1380e full3029/3029(286files) và lint SUCCESS.
 - [x] Prompt bài chữa với model thật+3ca ảnh tự tạo: achieved826ký tự, needs_work859, uncertain299; không score. Evidence tasks/qa-correction-live-model-20261014.md.
-- [ ] QA thật GV/HS/PH +AI nhận xét/định vị: user đã bật lại Browser, tools vẫn không cấp browser/cua; ComputerUsepipe os error2. Chưa coi completed. User chọn cloudbrowser; TinyFish Default setup đã mở, chờ user đăng nhậpGV+Saveprofile. Không lưu handoffURL hoặc bí mật trong repo. User đã báo saved; runTinyFish000c44e4 completed nhưng thấy login/guest, không lớp thật. QA vẫn blocked; user xác nhận chỉlưu chưalogin. Mở lại setup để loginGoogle/lớp thật rồiSave; không rerun trước xác thực.
+- [ ] QA thật GV/HS/PH+AIđịnhvị: userảnh14/10 xác nhận IABGV đãlogin; không hỏiloginIAB nữa. Runtime Browsertrustedworker thiếu browser/26.1007.21434/scripts/browser-service.mjs; ComputerUsepipeoserror2. TinyFishDefaultguest là phiênkhác. Cần khôi phụcBrowsertool trước QA.
 
 Source không đổi sau5f1380e; Rules source024a5a8 đã deploy. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
 Chrome actual-component fixture không thay realaccounts/AIquality. Gemini4Argon router keyinvalid/ag404;

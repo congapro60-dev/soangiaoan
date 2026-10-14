@@ -105,3 +105,11 @@ User đã chọn cloudbrowser; mở TinyFishstart_profile_setup_session cho Defa
 - TinyFishwalletlow0.11USD at runend, task unaffected; chưa bị insufficientcredits. Không tự nạp tiền hoặc chạy lặp task khi chưa có dữ kiện xác thực mới.
 
 User xác nhận trướcSave chưađăngnhập, chỉlưu phiên. Rootcause hiện là missinglogin; không có bằng chứngprofileexportbug hoặc authappbug. Quyềncloud/setup có sẵn; mở lại Defaultsetup để user loginGoogle→Lớphọc thật→Saveprofile.
+
+## Đối chiếu ảnh user14/10 — đúng IAB session GV
+
+User ảnh a1876f2b-ab3a-4b15-8c72-08b76aba66f7 cho thấy Codex in-app browser đang tại giaoandewey với dashboardGV thật, greetingGV; đây là IAB, không phải TinyFishDefault. Không yêu cầu loginIAB lại.
+Current tool discovery không có browser/cua/toolsearch. ComputerUsenativepipe vẫnoserror2. BundledChrome browser-client publicbootstrap qua trustedNodeREPL thất bại trước discovery với lỗi:
+`Cannot find module 'C:\Users\ADMIN\.codex\plugins\cache\openai-bundled\browser\26.1007.21434\scripts\browser-service.mjs' imported from ...\trusted-worker.js`.
+Pathbrowser-service kỳ vọng không tồn tại; Chrome cùngversion có servicefile nhưng không tựcopy/junction/rewrite trustedworker hoặc bypass runtime policy. Installer candidates không có Browser đểrepair bằngtool.
+Đã xác định blocker là Browsertool/runtime, không phải thiếuGVsession trongIAB. TinyFishguest evidence không đại diệnIAB. Chưa realGV/HS/PHQA hoàn tất.
