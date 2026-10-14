@@ -32,6 +32,6 @@ tiện ích không gửi nó lên app, lên máy chủ hay đi đâu khác.
 ## Giới hạn
 
 - API SSM chỉ GET. Tiện ích có thể điền/tô viền bản nháp; không tự bấm Lưu/Submit hoặc gửi tin phụ huynh. SSM có thể tự xử lý sự kiện input/change theo giao diện của trường.
-- File LO: mở đúng một form có ô .xlsx hiển thị. Nhận xét: mã HS phải khớp chính xác duy nhất. Báo giảng: chọn đúng ô văn bản trước; tiện ích không ghi đè ô đã có chữ.
+- File LO: mở đúng một form có ô .xlsx hiển thị. Nhận xét: mã HS phải khớp chính xác duy nhất. Báo giảng: chọn textarea hoặc ô CKEditor trống trước; tiện ích không ghi đè chữ/ảnh/bảng có sẵn. Nếu editor chưa giữ nội dung, dùng Chép để dán và đối chiếu trước khi Lưu.
 - Chỉ trang `giaoandewey.vercel.app` (và máy dev `localhost:3000`) gọi được tiện ích.
 - SSM là hệ thống nội bộ Edufit, không có tài liệu API. Edufit đổi hệ thống thì tiện ích có thể phải cập nhật.

@@ -303,3 +303,6 @@ Finalsmallmath/viewer/TFfix gatefull3073/288files,lintapp/API/buildexit0,native/
 947fc007641469a7bb2e70a38877223bb4ef299b pushedmainremoteexact; sourcefinalmath/viewer/TFfix. AutoVercel/CIpending; nextnativeGVreloadverifyKaTeX0all19/22,regen11TFcommoncache andHS/PHdetailmatch.
 
 947fcproductionREADY+CI. Nativecache11regen22/22allTFresolved; grade12editor22/22errors0; HSsameTFdetailed+17marks16dots1active390nooverflow. OneadditionaltaiBaistale-class-entryguard1line pendingpush (lint/buildpassed), fixescurrentclassspinnerwhenolderAIcallbackreturns. No gradeschanged.
+
+## SSM native follow-up
+User đã cập nhật0.3.1; lớp thật đọc được qua phiên cache. Form báo giảng SSM dùng CKEditor, textarea-only không tương thích. Đang chốt extension0.3.2 hỗ trợ focused-empty CKEditor bằng native insertText, kiểm selection/readonly/media/retained text; 22 test và native/Gemini review đạt. Native model acceptance cần cập nhật0.3.2 và thử bản nháp trống; không tự Save/Submit. Chi tiết tasks/muse-qa-followup-plan.md.

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmartPlan ↔ SSM",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Cầu nối chỉ-đọc giữa app SmartPlan và SSM Edufit. Vé đăng nhập SSM không rời trình duyệt.",
   "permissions": ["storage", "tabs"],
   "host_permissions": [

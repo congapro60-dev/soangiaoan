@@ -80,3 +80,13 @@ Web trả 200. ZIP public 0.3.1 đủ sáu file, byte khớp nguồn Git đã co
 QA thật: GV Edge/IAB còn đăng nhập, ba lớp/53 HS; tab SSM hiện nút Điền ô SSM, nội dung báo giảng hướng dẫn chọn đúng textarea; AI Tutor mở/đóng đổi accessible name và expanded đúng. Không có bài thi online trên tài khoản này, không tạo/nộp bài production để lấy bằng chứng. Chưa kiểm SSM mới với extension 0.3.1 được cài, chưa cross-machine. Công cụ chặn edge://extensions; không thử đường vòng. Viewport Edge không áp kích thước yêu cầu, không coi mobile/iPad đã QA.
 
 Phần code/Rules/index/push đã hoàn tất. Phần QA SSM thật chưa đạt, giữ checkbox mở; không giao Claude một kết luận end-to-end sai.
+
+## QA SSM thật sau người dùng cập nhật tiện ích
+
+Người dùng xác nhận đã cập nhật 0.3.1. Edge thật đọc được danh sách lớp SSM (10Olinda, 11Columbus) khi không có tab SSM đang mở; không bấm Ghép, không đồng bộ roster. Phiên cache còn hợp lệ nên đây là proof đọc qua cache, không chứng minh nhánh Auto-Wake cache-miss.
+
+SSM đăng nhập thật đúng trường Tây Hồ Tây, đúng GV; trang Lịch Báo Giảng Tuần lọc 10Olinda. Mở form chỉnh sửa chỉ đọc: CKEditor5 DIV contenteditable role textbox, không có textarea. Báo giảng cũ giữ nguyên, Hủy/đóng tab, không lưu. Đây là lỗi tương thích thật chưa được test DOM giả phát hiện.
+
+Bổ sung extension 0.3.2: chỉ editor CKEditor đang chọn và trống, kiểm selection nằm trong editor, readonly/disabled, không ghi đè chữ/ảnh/bảng/widget. Native insertText, kiểm giữ nội dung sau100ms; unsupported trả lỗi dùng Chép. Exact mã HS không dùng rich editor để tránh điền nhầm nơi focus. Không thêm quyền hoặc inject page-world APIs.
+
+Test RED→GREEN: CKEditor test đỏ trên nguồn0.3.1, sau sửa 22/22 extension tests đạt (background15, autofill6, package1), native/Gemini review PASS. Native CKEditor model acceptance chưa kiểm, cần cài0.3.2 rồi thử một bản nháp trống. Chưa tự bấm Lưu/Submit. Build và lint exit 0; nguồn đã đủ gate để push, native model acceptance còn kiểm.

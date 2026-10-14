@@ -285,3 +285,5 @@ không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu l
 - [x] Máy chủ: `draftParentComment` (AI, tính cho GV chủ lớp) + lưu/đọc nhận xét `parentReportNotes` (chỉ qua API).
 - [x] Giao diện từng em (chọn loại + khoảng, AI soạn nháp, sửa, lưu, tải PDF) + xuất cả lớp ZIP ở tab Báo cáo.
 - [x] Test + lint + build + QA production.
+
+- [ ] SSM native follow-up: user cập nhật0.3.1, đọc lớp thật đạt; form báo giảng dùng CKEditor. Bổ sung0.3.2, 22 test/review đạt, build/lint/push và native model acceptance còn kiểm. Không Save/Submit.
