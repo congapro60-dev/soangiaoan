@@ -51,3 +51,45 @@ Source `024a5a864c0135993b13903b57067936d9c43a5f` pushed HEAD:main exit0; ls-rem
 Source024a5a8 GitHub: API Typecheck [38507174194](https://github.com/congapro60-dev/soangiaoan/actions/runs/38507174194) SUCCESS, QualityGate [38507174122](https://github.com/congapro60-dev/soangiaoan/actions/runs/38507174122) SUCCESS. Git Vercel status giaoandewey Deployment completed SUCCESS; second Vercel project stillpending at snapshot. No manualdeploy/promote. Rules and realaccounts/AIquality remain separate pending.
 
 Public production smoke: homepageHTTP200, unauthenticated correctionAttemptsHTTP401. No account access/classroom mutation; not realGV/HS/PHQA.
+
+## Hoàn tất phần production còn lại theo user14/10
+
+User yêu cầu làm nốt những phần chưa làm; quyền Rulesdeploy được cấp trong lượt này. Source vẫn5f1380e, clean trước docs.
+- Vercel latest5f1380e: cả giaoandewey và soangiaoan Deploymentcompleted SUCCESS (Git status).
+- QualityGate38507498058 SUCCESS; log ghi3029/3029,286files+lint. APITypechecksource024a5a8SUCCESS.
+- `firebase deploy --only 'firestore:rules,storage' --project smartplan-ai-14200 --non-interactive` exit0; both rules compiled/released. Log `%TEMP%/annotated-production-rules-20261014.log`.
+- Postdeploy smoke homepageHTTP200; correctionAttempts noauthHTTP401; directFirestore nonexistentdocHTTP403 PERMISSION_DENIED. Read-only, không sửa bài/điểm/lớp.
+- LiveModel3syntheticcases: tasks/qa-correction-live-model-20261014.md; sourceprompt exported, 3outcomes correct; feedback826/859/299chars, no score. Correctcase command printedcp1252 error after artifact/checks saved; separate savedartifact validation exit0. Edgecases command exit0. No realstudentdata or production evaluator.
+- Browser reconnection requested; user replied đã bật lại. Current ALL_TOOLS still lacks browser/cua methods; ComputerUsepipeoserror2 after retry/reset. Pluginsearch offers installedTinyFish, not access existing IABsession. Cached browserpackage lacks skills/runtime and is an old install-temp; do not silently reconstruct its runtime.
+- Chưa realGV/HS/PH or realAIlocalization QA; do not mark completed from synthetic/sample evidence.
+
+## QA Sign-off Report — production follow-up14/10
+**Status:** CONDITIONAL
+
+### 1. Pre-flight Checks
+- Git Commit/Hash:5f1380e551cf7aac358c39f53a7861dd77d6dcd6 (source024a5a8).
+- Working Tree: documentation-only follow-up; source unchanged.
+- Unit Tests:3029Pass/3029Total,286files (CI38507498058).
+- Build Status:Success; sourcefinal localbuild exit0; currentVercelReady verified Gitstatus.
+- Main Index Chunk Size:1545.01KB; existingowneracceptedbaseline, sourcebundleincrease~2.5% from1507.77.
+
+### 2. Module Verification (Env: Prod / synthetic live AI)
+| Module | Status | Evidence |
+|---|---|---|
+| Firestore+StorageRulesrelease | PASS | firebase deploy exit0; compiled+released both |
+| Public portal+APIauth | PASS | homepage200; unauthcorrection401; directFirestore403 |
+| Detailedcorrectionteacherfeedback | PASS for3syntheticcases | achieved/needs_work/uncertain; no score; tasks/qa-correction-live-model-20261014.md |
+| RealGV/HS/PHworkspace | BLOCKED | IABtool absent; ComputerUsenativepipeoserror2 despite userenabled |
+| RealstudentphotoAIlocalization | NOT RUN | needs authenticated browser/realassignment |
+
+### 3. Issues & Tests Not Run
+- ExistingIABtab visible fromambientstate but no interactiontool exposed. ComputerUse retry/reset sameerror; cachedoldbrowserpartialpackage not executable workflow.
+- TinyFishalternative installed; Defaultprofile has no signed_in_sites. Tool requires consent before sign-in setup. User asked whether to switch; no setup/login/automation run yet.
+- Do not claim syntheticmodel/evaluatorprompt as productionend-to-endorrealstudentQA.
+
+### 4. Production Actions & Cleanup
+- Production Write Actions:Yes, Firestore+StorageRulesonly; no classroomsubmission/score/message/approval mutation.
+- Dữ liệu test đã được dọn dẹp:NA, syntheticimageslocal, no classroomtestdata created.
+- Đánh giá bởi:Codex; browserQArealpending.
+
+User đã chọn cloudbrowser; mở TinyFishstart_profile_setup_session cho Defaultprofile. Tool trả setupurl, đã cung cấp riêng cho user; user phải sign-in rồiSaveprofile. Không lưu handoffURL/PIN/token trong Git. Chưarunautomation trước khi profile saved.

@@ -7,7 +7,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 ## Bản chấm trên ảnh / nộp hộ / bài chữa — 14/10/2026
 
-- User đã duyệt implementation và **commit/push main**, không deploy/promote thủ công.
+- User đã duyệt implementation+commit/pushmain;14/10 yêu cầu làm nốt phần còn lại, authorized Firestore+StorageRules deploy. Không manual Vercel deploy/promote.
 - Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, branch `codex/student-submitted-photos`, base7d7c889. Preserve WIP; source writers frozen.
 - Plan `tasks/annotated-review-proxy-plan.md`; checklist `tasks/todo.md`; evidence `tasks/qa-annotated-review-20261014.md`.
 - Viewer đủ màu/filter/tổng+điểm câu; shared detail/lời giải mọi câu/TF a–d; math sửa prose KaTeX/ngắt bước. Cache theo bài/mã đề/version, giữ GV edits. Bài cũ cần nút GV tạo lời giải, không AI-on-view.
@@ -17,13 +17,14 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 - HS **Chụp ảnh bài chữa**, lưu lịch sử riêng, explicit Đánh giá bài chữa: nhận xét GV chi tiết sửa được gì/why, lỗi từngbước+why/cách sửa, việc luyện tiếp.3nhãn chỉ kết luận; không đổi grade/sổ/năng lực.
 - Correction retry expired/malformedlease, invalidate oldverdict khi GV sửa original/solution; context ảnh gốc+clarify+current sharedsolution, budget recomputed sau key/quota.
 - HS/PH directuploadbuttons ngoài list, deadline ngày+giờ/ontime/late/imminent24h,20rows; PH same-rowretry+scroll,0horizontaloverflow.
-- Checks: full3027/3027(286files)exit0; Rules306/306(9files)exit0; nativefinal41+UI39, Gemini backend/grading/correction PASS; UI2falsefindings independently rejected; browser29checks390/820/1024fixture0pageerrors. Lint app/API/build cuối exit0; index1545.01kB, cảnh báo bundle lớn có sẵn.
+- Checks: latestCI5f1380e full3029/3029(286files)SUCCESS; Rules306/306(9files)exit0; nativefinal41+UI39, Gemini backend/grading/correction PASS; UI2falsefindings independently rejected; browser29checks390/820/1024fixture0pageerrors. Lint app/API/build cuối exit0; index1545.01kB, cảnh báo bundle lớn có sẵn.
 - Browser production session không truy cập được: browserplugin absent, ComputerUse nativepipeoserror2 qua retry/reset. Fixtures/marks/AIstub không chứng minh liveAIquality hoặc realaccountsQA.
+- Model thật3.8Flash-low +exported correctionprompt/3 syntheticimagecases achieved/needs_work/uncertain đều đúng; feedback826/859/299ký tự, khôngscore. Evidence tasks/qa-correction-live-model-20261014.md; không thay realaccountsQA.
 - GeminiUI code dùng3.8Flash-low; Argon official ID có nhưng router keyinvalid/ag404. Không đổi config hoặc dùngpaidAPI mới.
-- **Rules đã đổi trong Git, chưa deploy.** User chỉ cho pushmain; sau API tương thích cần authorized Firestore+StorageRulesdeploy rồi realGV/HS/PHQA. Không coi push là productionhardlock hoàn tất.
+- **Firestore+Storage Rules đã deploy** smartplan-ai-14200 exit0 sau API5f1380e Ready. Smoke homepage200/correctionunauth401/directFirestore403. User chọn cloudbrowser TinyFish; Defaultprofile setup mở, chờ đăng nhậpGV/Saveprofile, chưa gọi automation. QA thật đang chờ phiên; IAB vẫn lỗi: user đã bật lại Browser nhưng runtime vẫn không cấp tool; ComputerUsepipeoserror2.
 - Bridge14/10 không có live Claude Desktop session; không tạo/gửi phiên thay thế.
 - Bridge thread `01a123b1-a378-73b1-9aa4-685e5b67efaa`, peer `codex-01a123b1`; không gửi sang phiên gần giống. Sharedfiles là nguồn bàn giao.
-- Cổng local đạt; source đã push main `024a5a864c0135993b13903b57067936d9c43a5f`, remote khớp, push exit0. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. API Typecheck38507174194+QualityGate38507174122 SUCCESS; Vercel giaoandewey Git auto deployment SUCCESS. Rules/realaccountsQA chưa hoàn tất.
+- Cổng local đạt; source đã push main `024a5a864c0135993b13903b57067936d9c43a5f`, remote khớp, push exit0. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. API Typecheck38507174194+QualityGate38507174122 SUCCESS; Vercel giaoandewey Git auto deployment SUCCESS. Rules hoàn tất; realaccountsQA chưa hoàn tất.
 
 ## Nhiều khoá Gemini trong Cài đặt (giáo viên tự gom hạn mức free) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
 

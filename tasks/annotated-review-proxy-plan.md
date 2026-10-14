@@ -1,6 +1,6 @@
 # Chấm trên ảnh, lời giải, nộp hộ và khóa chốt — 14/10/2026
 
-Trạng thái: source pushed main024a5a8; local QA passed; CI passed; Git auto deployment succeeded; Rules/real accounts QA remaining. Người dùng duyệt14/10/2026; bổ sung phản hồi HS→GV theo bài.
+Trạng thái: source pushed main024a5a8; local QA passed; CI passed; Git auto deployment succeeded; Rules deployed; real accounts QA remaining. Người dùng duyệt14/10/2026; bổ sung phản hồi HS→GV theo bài.
 Base7d7c889; nhánh codex/student-submitted-photos. Nguồn:5 ảnh và các quyết định người dùng trong luồng.
 Checklist tasks/todo.md; HANDOFF.md trỏ tới đây. Đích main sau QA, không deploy/promote thủ công.
 
@@ -135,10 +135,10 @@ Không thay điểm sổ/thang điểm/báo cáo đã công bố vì đổi bố
 - [x] GV/HS/PH nộp+xác nhận+revision/provenance/upload PH/lock transactional+Rules.
 - [x] Actor×đóng/mở×khóa; PIN/member thu hồi; URL giả; khóa lúc upload/finalize; race/manual/regrade.
 - [x] Đủ lời giải câu đúng/a–d, hai viewer đồng bộ, không leak pending/chưa duyệt.
-- [x] Browser390/820/1024:22 fixture checks, không đồng nghĩa định vị AI thật. QA production/AI còn lại.
+- [x] Browser390/820/1024:29 fixture checks, không đồng nghĩa định vị AI thật. QA production/AI còn lại.
 - [x] Full3027/lint app+API/build/Rules306/native+vendor review/HANDOFF/checklist.
 - [x] Source commit/push main024a5a8 sau gate; remoteSHA khớp, không deploy thủ công.
 
 Ngoài phạm vi: vẽ lại đề, Word/PDF mới, rules thi online, tự đổi điểm, xóa bản nộp cũ.
 
-Review14/10: tasks/qa-annotated-review-20261014.md; localbrowser22checks passed, realaccounts/liveAIQA chưa có. Rules chưa deploy; sourcecommit/push không đồng nghĩa productionenforcement.
+Review14/10: tasks/qa-annotated-review-20261014.md; localbrowser29checks passed, realaccounts/liveAIQA chưa có. Rules đã deploy sau user yêu cầu làm nốt14/10; realaccountsQA còn blocked browsertool.

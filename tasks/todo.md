@@ -14,9 +14,13 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Source commit/push main `024a5a864c0135993b13903b57067936d9c43a5f`; push exit0, ls-remote khớp, worktree sạch.
 - [x] Source024a5a8: API Typecheck38507174194 SUCCESS; QualityGate38507174122 SUCCESS. Vercel giaoandewey auto deployment SUCCESS; không manualdeploy. Rules/realaccountsQA còn lại.
 - [x] Cập nhật plan/checklist/HANDOFF để Claude qua MCPbridge tiếp quản.
-- [ ] Production: phát hành Rules mới sau API tương thích (chưa authorized manualdeploy), rồi QA thật GV/HS/PH+AI nhận xét/định vị.
+- [x] User14/10 yêu cầu làm nốt: authorized Firestore+Storage Rules deploy; firebase deploy --only firestore:rules,storage --project smartplan-ai-14200 exit0.
+- [x] Sau Rules: homepage200, correction unauth401, Firestore direct unauth403; không thay bài/điểm production.
+- [x] CI latest5f1380e full3029/3029(286files) và lint SUCCESS.
+- [x] Prompt bài chữa với model thật+3ca ảnh tự tạo: achieved826ký tự, needs_work859, uncertain299; không score. Evidence tasks/qa-correction-live-model-20261014.md.
+- [ ] QA thật GV/HS/PH +AI nhận xét/định vị: user đã bật lại Browser, tools vẫn không cấp browser/cua; ComputerUsepipe os error2. Chưa coi completed. User chọn cloudbrowser; TinyFish Default setup đã mở, chờ user đăng nhậpGV+Saveprofile. Không lưu handoffURL hoặc bí mật trong repo. Automation chỉ chạy sau profile saved.
 
-Source writers frozen: backend+finalUI. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
+Source không đổi sau5f1380e; Rules source024a5a8 đã deploy. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
 Chrome actual-component fixture không thay realaccounts/AIquality. Gemini4Argon router keyinvalid/ag404;
 UI code Gemini3.8Flash-low đã áp/review/test. Không bật trả phí hoặc đổi cấu hình.
 
