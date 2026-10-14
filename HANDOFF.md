@@ -299,3 +299,7 @@ Sourcef58109a pushedmainremoteverified, APItypecheckSUCCESS; autoVercel/QualityG
 RealAI3samplesgeometrysaved, grade/approvalunchanged4/5.9/8.5; PH/HS11now17marksvisible. Caches10=19/19,12=22/22,11=18/22missing4TF. Mathparsebuginline$$begin fixed centralmodule+22actualfixtures, viewerdots8pxselected24px; notpushedyet.77focused/native70/GeminiPASS+build/lintsready. BackendwriterpendingTFheadingtolerance+verifyfixtures10/11; exactrootcauseTFunavailableunknownrawnotstored.
 
 Finalsmallmath/viewer/TFfix gatefull3073/288files,lintapp/API/buildexit0,native/GeminiPASS; sourcefreeze. Nextpushmain+autoGitdeploy thenrealKaTeXerror0/labelsfit,regen11TF4missing. Grade10/12cachefull19/22,alloriginalscores/approvalkept. No newRules required.
+
+947fc007641469a7bb2e70a38877223bb4ef299b pushedmainremoteexact; sourcefinalmath/viewer/TFfix. AutoVercel/CIpending; nextnativeGVreloadverifyKaTeX0all19/22,regen11TFcommoncache andHS/PHdetailmatch.
+
+947fcproductionREADY+CI. Nativecache11regen22/22allTFresolved; grade12editor22/22errors0; HSsameTFdetailed+17marks16dots1active390nooverflow. OneadditionaltaiBaistale-class-entryguard1line pendingpush (lint/buildpassed), fixescurrentclassspinnerwhenolderAIcallbackreturns. No gradeschanged.

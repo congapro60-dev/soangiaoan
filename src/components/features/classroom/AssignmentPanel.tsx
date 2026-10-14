@@ -648,6 +648,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   const taiBai = useCallback(async () => {
+    if (lopHienTai.current !== classId) return;
     setDangTai(true);
     setLoiTai('');
     try {

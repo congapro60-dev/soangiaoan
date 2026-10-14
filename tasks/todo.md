@@ -24,8 +24,11 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Sourcef58109a pushmainexit0remoteSHAexact; APItypecheckSUCCESS.
 - [x] f581Gitdeploy+CIReady;3geometrysamplesrealannotationssaved, grades4/5.9/8.5remainapproved. Caches10=19/19,12=22/22,11=18/22missing4TF. HS/PH11see17marks.
 - [x] Math/viewer/TFsourcegate full3073/lintapp/API/build/native/GeminiPASS; actual3graderenderfixtureschecked.
-- [ ] Pushmathfence+inactive-dot+TFparsefix; verifyrealKaTeXerrors0/lessoverlap afterautoReady.
-- [ ] TF11Markdownheadingparse minimalfix+regenerateverify4missing; nofalseallsolutionsPASS.
+- [x] Source947fc00 pushmainexit0,remoteSHAexact; mathfence+inactive-dot+TFparse.
+- [x] 947fcQualityGate38541940949SUCCESS.
+- [x] 947fcgiaoandeweyREADY+CI; realKaTeXerrors0all22grade12/22grade11; viewer17ellipses16dots1numbered, HS390nooverflow/matherrors0.
+- [x] TF11regen22/22ready including4missing, actual4stepdetailedreadsameGV/HS.
+- [ ] Staleclassrefreshone-lineguardpushafterlint/buildpassed; autoReadyverify.
 - [x] PHthậtcùngHS11: report+11assignments/search/deadline/directsupplementform/scroll/image/nooverflow820 đạt; chưaupload.
 - [ ] Bài chữaHS upload/eval vàfeedbacksendchưatestendtoend (không có bài chữa thực tế được chọn).
 
