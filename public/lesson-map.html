@@ -569,7 +569,7 @@
     return {
       key: input.sessionKey + ':' + input.world,
       image: '/assets/' + theme.image,
-      imageHi: /.webp$/.test(theme.image) ? '/assets/' + theme.image.replace(/.webp$/, '@2x.webp') : null,
+      imageHi: theme.imageHi ? '/assets/' + theme.imageHi : /.webp$/.test(theme.image) ? '/assets/' + theme.image.replace(/.webp$/, '@2x.webp') : null,
       relief: input.world === 'historical' || input.world === 'pastoral',
       route: theme.route,
       peers: peers,

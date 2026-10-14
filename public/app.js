@@ -488,7 +488,7 @@
         legend.innerHTML = mapLegend(m); let mt = document.getElementById('mapTurn'); if (mt)
         mt.textContent = mapTurnText(m); let info = document.getElementById('terrainInfo'); if (info)
         info.innerHTML = terrainInfo(m); updateRaceClock(); }
-    function terrainModel(m) { return { key: (screen === 'teacher' ? teacherSession?.id : state?.room) + ':' + (screen === 'teacher' ? board?.room.round : state?.round || 1) + ':' + worldKey(), image: '/assets/' + mapAsset(), relief: ['historical', 'pastoral'].includes(worldKey()), route: mapStops(), peers: m.peers || [], own: screen === 'teacher' ? null : state?.id, focus: terrainFocus, spot: terrainSpot, mathCells: m.campaign?.cells || [], places: theme().places, community: m.campaign?.community === 'boat', now: now(), sprite, phase: phaseText, onDrag: v => terrainDragging = v }; }
+    function terrainModel(m) { return { key: (screen === 'teacher' ? teacherSession?.id : state?.room) + ':' + (screen === 'teacher' ? board?.room.round : state?.round || 1) + ':' + worldKey(), image: '/assets/' + mapAsset(), imageHi: theme().imageHi ? '/assets/' + theme().imageHi : null, relief: ['historical', 'pastoral'].includes(worldKey()), route: mapStops(), peers: m.peers || [], own: screen === 'teacher' ? null : state?.id, focus: terrainFocus, spot: terrainSpot, mathCells: m.campaign?.cells || [], places: theme().places, community: m.campaign?.community === 'boat', now: now(), sprite, phase: phaseText, onDrag: v => terrainDragging = v }; }
     function applyTerrainCamera() { terrainController?.resize(); }
     function zoomTerrain(delta) { terrainController?.zoom(delta); }
     function focusTerrain(team) { if (!currentMap().peers.some(p => p.id === team)) {
