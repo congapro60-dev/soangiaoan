@@ -1,6 +1,8 @@
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAdminDb, gradeSubmissionCore, stripAnswerKey, type CoreAnswer, type CoreQuestion } from './_exam-core.js';
+import { getAuth } from 'firebase-admin/auth';
+import { getBearerToken } from './_ai-gateway-core.js';
 
 // Một hàm phục vụ cả 2 việc để không vượt giới hạn số Serverless Function:
 //   GET  ?code=ABC   → đề đang phát hành, ĐÃ LƯỢC correctAnswer/explanation (học sinh vào làm)
@@ -115,12 +117,16 @@ const handleGetResult = async (submissionId: string, res: VercelResponse) => {
 
   let leaderboard: { id: string; studentName: string; studentClass: string; totalScore: number }[] = [];
   if (!projected.resultHidden && !exam.hideLeaderboard) {
-    const all = await db.collection('examSubmissions').where('examId', '==', String(submission.examId)).get();
-    leaderboard = all.docs
+    // FIX #2: dùng query orderBy + limit thay vì đọc toàn bộ rồi sort ở memory
+    // Lưu ý: cần tạo composite index cho (examId ASC, totalScore DESC) trong Firestore
+    const lbSnap = await db.collection('examSubmissions')
+      .where('examId', '==', String(submission.examId))
+      .orderBy('totalScore', 'desc')
+      .limit(RESULT_LEADERBOARD_SIZE)
+      .get();
+    leaderboard = lbSnap.docs
       .map(doc => ({ id: doc.id, data: doc.data() as Record<string, any> }))
       .filter(({ data }) => data.status !== 'in_progress' && typeof data.totalScore === 'number' && !data.classId && !data.assignmentId)
-      .sort((a, b) => b.data.totalScore - a.data.totalScore)
-      .slice(0, RESULT_LEADERBOARD_SIZE)
       .map(({ id, data }) => ({ id, studentName: String(data.studentName ?? ''), studentClass: String(data.studentClass ?? ''), totalScore: data.totalScore }));
   }
 
@@ -128,7 +134,27 @@ const handleGetResult = async (submissionId: string, res: VercelResponse) => {
   return res.status(200).json({ submission: projected, leaderboard });
 };
 
+
+/** Xác thực giáo viên qua Firebase ID token. Trả về null nếu không hợp lệ hoặc là anonymous. */
+const verifyTeacher = async (req: VercelRequest): Promise<{ uid: string } | null> => {
+  const token = getBearerToken(req.headers.authorization);
+  if (!token) return null;
+  try {
+    getAdminDb();
+    const decoded: any = await getAuth().verifyIdToken(token);
+    if (decoded?.firebase?.sign_in_provider === 'anonymous') return null;
+    return { uid: decoded.uid };
+  } catch {
+    return null;
+  }
+};
+
 const handlePost = async (req: VercelRequest, res: VercelResponse) => {
+  const user = await verifyTeacher(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Bạn cần đăng nhập để chấm bài.' });
+  }
+
   const submissionId = typeof req.body?.submissionId === 'string' ? req.body.submissionId.trim() : '';
   if (!submissionId) {
     return res.status(400).json({ error: 'Thiếu submissionId' });
@@ -151,6 +177,9 @@ const handlePost = async (req: VercelRequest, res: VercelResponse) => {
     return res.status(404).json({ error: 'Không tìm thấy đề thi của bài nộp' });
   }
   const exam = examSnap.data() as any;
+  if (exam.teacherId && exam.teacherId !== user.uid) {
+    return res.status(403).json({ error: 'Bạn không có quyền chấm đề này.' });
+  }
 
   const questions: CoreQuestion[] = Array.isArray(exam.questions) ? exam.questions : [];
   const answers: CoreAnswer[] = Array.isArray(submission.answers) ? submission.answers : [];
