@@ -1,3 +1,4 @@
+import { autofillSsmFields } from '../../../lib/ssm/ssmBridge';
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ClipboardCopy, Loader2, MessageSquareText, NotebookPen } from 'lucide-react';
 import type { Student } from '../../../types';
@@ -40,6 +41,11 @@ const copyText = async (text: string, showToast: (m: string, i?: string) => void
   } catch {
     showToast('Không chép được, hãy chọn và copy thủ công.', '⚠️');
   }
+};
+
+const fillDraft = async (key: string, value: string, target: 'exact' | 'focused', showToast: Props['showToast']) => {
+  try { await autofillSsmFields([{key,value}],target); showToast('Đã điền và tô viền ô SSM. Thầy cô đối chiếu rồi tự bấm Lưu.', 'success'); }
+  catch(reason) { showToast(reason instanceof Error ? reason.message : 'Chưa điền được SSM.', 'error'); }
 };
 
 const htmlToPlain = (html: string): string => html
@@ -99,13 +105,13 @@ const ScheduleCard = ({ className, classGrade, showToast }: { className: string;
   const html = lessons ? buildScheduleContent(className, 'VN TOÁN', label, lessons) : '';
 
   return (
-    <Card icon={CalendarDays} title="Lịch báo giảng tuần" desc="App dựng nội dung tuần theo phân phối chương trình. Cô chép vào ô báo giảng SSM rồi sắp theo buổi.">
+    <Card icon={CalendarDays} title="Lịch báo giảng tuần" desc="Soát nội dung tuần; chọn đúng ô báo giảng trên SSM trước khi bấm Điền. Tiện ích chỉ điền và tô viền, thầy cô tự bấm Lưu.">
       <div className="flex flex-wrap items-center gap-2">
         <label className="text-sm font-semibold text-slate-600">Tuần</label>
         <input type="number" min={1} max={40} value={week} onChange={(e) => setWeek(Math.max(1, Number(e.target.value) || 1))} className="min-h-9 w-20 rounded-lg border border-slate-200 px-2 text-sm" />
         <button type="button" disabled={busy || !Number.isInteger(grade)} onClick={() => void load()} className="min-h-9 rounded-lg bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">Xem nội dung</button>
         {lessons && lessons.length > 0 && (
-          <button type="button" onClick={() => void copyRich(html, htmlToPlain(html), showToast)} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-4 w-4" /> Chép</button>
+          <><button type="button" onClick={() => void fillDraft('schedule',htmlToPlain(html),'focused',showToast)} className="min-h-9 rounded-lg border px-3 text-sm font-bold">Điền ô SSM đã chọn</button><button type="button" onClick={() => void copyRich(html, htmlToPlain(html), showToast)} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-4 w-4" /> Chép</button></>
         )}
       </div>
       {busy && <p className="mt-2 flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Đang tải…</p>}
@@ -173,7 +179,7 @@ const CommentCard = ({ className, students, assignments, submissions, showToast 
               <div key={st.id} className="rounded-xl border border-slate-100 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold text-slate-800">{st.name}</div>
-                  <button type="button" onClick={() => void copyText(comment, showToast)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>
+                  <div className="flex flex-wrap gap-2"><button type="button" disabled={!st.code.trim()} onClick={() => void fillDraft(st.code,comment,'exact',showToast)} className="min-h-9 rounded-lg border px-2 text-xs font-bold disabled:opacity-50">Điền ô SSM</button><button type="button" onClick={() => void copyText(comment, showToast)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button></div>
                 </div>
                 <p className="mt-1 text-sm text-slate-600">{comment}</p>
               </div>

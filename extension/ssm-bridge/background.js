@@ -41,7 +41,9 @@ const OPS = {
 
 const findSsmTab = async () => {
   const tabs = await chrome.tabs.query({ url: 'https://ssm.edufit.vn/*' });
-  return tabs.find((tab) => tab.status === 'complete') || tabs[0] || null;
+  const active = tabs.filter(tab => tab.active);
+  if (active.length === 1) return active[0];
+  return tabs.length === 1 ? tabs[0] : null;
 };
 
 /** Đọc token đã cache trong chrome.storage.session (do ssm-session.js lưu). */
@@ -70,7 +72,7 @@ const saveCachedSession = async (token, workspace) => {
 const validateSession = async (session) => {
   try {
     const response = await fetch(API + 'v1/profile', {
-      method: 'GET',
+      method: 'GET', signal: AbortSignal.timeout(10000),
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'vi',
@@ -78,10 +80,9 @@ const validateSession = async (session) => {
         workspace: session.workspace,
       },
     });
-    return response.status !== 401;
+    return response.ok;
   } catch {
-    // Không kết nối được mạng: giữ nguyên cache, để callSsm báo lỗi mạng sau.
-    return true;
+    return false;
   }
 };
 
@@ -101,7 +102,7 @@ const readSessionFromTab = async (tab) => {
  * Tự mở ngầm 1 tab SSM nền để lấy token khi người dùng quên mở tab SSM.
  * Tab nền (active: false) không làm phiền — đóng ngay sau khi lấy được phiên.
  */
-const wakeSsmInBackground = async () => {
+const wakeSsmInBackground = async (keepOpen = false) => {
   let tab = null;
   try {
     tab = await chrome.tabs.create({ url: 'https://ssm.edufit.vn/', active: false });
@@ -111,7 +112,7 @@ const wakeSsmInBackground = async () => {
   // Đợi trang tải xong (tối đa ~15s) để content script kịp đọc localStorage.
   const ready = await new Promise((resolve) => {
     let done = false;
-    const timer = setTimeout(() => { if (!done) { done = true; resolve(false); } }, 15000);
+    const timer = setTimeout(() => { if (!done) { done = true; chrome.tabs.onUpdated.removeListener(listener); resolve(false); } }, 15000);
     const listener = (tabId, info) => {
       if (tabId === tab.id && info.status === 'complete' && !done) {
         done = true;
@@ -126,10 +127,10 @@ const wakeSsmInBackground = async () => {
   try {
     if (!ready) return { error: 'Tab SSM ngầm tải quá lâu — mở ssm.edufit.vn trong một tab Edge và đăng nhập.' };
     const result = await readSessionFromTab(tab);
-    return result;
+    return { ...result, tab };
   } finally {
     // Dọn tab nền sau khi xong việc.
-    try { await chrome.tabs.remove(tab.id); } catch { /* tab đã đóng */ }
+    try { if (!keepOpen) await chrome.tabs.remove(tab.id); } catch { /* tab đã đóng */ }
   }
 };
 
@@ -138,21 +139,21 @@ const wakeSsmInBackground = async () => {
  * gửi cho content script ssm-autofill.js gắn vào ô <input type="file"> trên tab SSM.
  * Chỉ ĐIỀN và TÔ VIỀN — giáo viên tự bấm Lưu trên SSM.
  */
-const attachFileToSsmTab = async (params) => {
+const attachFileToSsmTab = async (params, selectedTab) => {
   const fileData = params?.fileData;
   const fileName = params?.fileName || 'diem-lo-da-dien.xlsx';
   if (!fileData || typeof fileData !== 'string') return { ok: false, error: 'Thiếu dữ liệu file Excel.' };
   if (fileData.length > MAX_BODY * 2) return { ok: false, error: 'File Excel quá lớn.' };
-  let tab = await findSsmTab();
+  let tab = selectedTab || await findSsmTab();
   if (!tab?.id) {
     // Thử tự mở tab SSM ngầm rồi gắn file (kế thừa Auto-Wake của Hạng mục 5).
-    const wake = await wakeSsmInBackground();
+    const wake = await wakeSsmInBackground(true);
     if (wake.error) return { ok: false, error: wake.error };
-    tab = await findSsmTab();
+    tab = wake.tab;
     if (!tab?.id) return { ok: false, error: 'Không mở được tab SSM.' };
   }
   try {
-    const result = await chrome.tabs.sendMessage(tab.id, { kind: 'ssm-attach-file', fileData, fileName });
+    const result = await chrome.tabs.sendMessage(tab.id, { kind: 'ssm-attach-file', fileData, fileName, sessionToken: params.sessionToken, workspace: params.workspace });
     if (!result?.ok) return { ok: false, error: result?.error || 'Không gắn được file lên trang SSM.' };
     return { ok: true, data: { attached: true } };
   } catch {
@@ -160,17 +161,17 @@ const attachFileToSsmTab = async (params) => {
   }
 };
 
-const autofillSsmTab = async (params) => {
+const autofillSsmTab = async (params, selectedTab) => {
   const fields = params?.fields;
   if (!Array.isArray(fields) || fields.length === 0) {
     return { ok: false, error: 'Thieu danh sach noi dung can dien.' };
   }
-  const tab = await findSsmTab();
-  if (!tab?.id) return { ok: false, error: 'Chua mo trang SSM.' };
+  const tab = selectedTab || await findSsmTab();
+  if (!tab?.id) return { ok: false, error: 'Mở đúng một tab SSM hoặc chọn tab SSM đang thao tác.' };
   try {
     const result = await chrome.tabs.sendMessage(tab.id, {
       kind: 'ssm-autofill',
-      params: { fields, fieldSelector: params?.fieldSelector },
+      params: { fields, target: params?.target, fieldSelector: params?.fieldSelector }, sessionToken: params.sessionToken, workspace: params.workspace,
     });
     if (!result?.ok) return { ok: false, error: result?.error || 'Khong dien duoc.' };
     return { ok: true, data: result.data };
@@ -179,24 +180,25 @@ const autofillSsmTab = async (params) => {
   }
 };
 
-const readSession = async () => {
-  // 1. Ưu tiên token đã cache — không cần tab SSM mở.
-  const cached = await readCachedSession();
-  if (cached && await validateSession(cached)) return { session: cached };
-
-  // 2. Thử đọc từ tab SSM đang mở.
-  const tab = await findSsmTab();
-  if (tab?.id) return readSessionFromTab(tab);
-
-  // 3. Tự mở ngầm tab SSM nền để lấy token (Hạng mục 5: Auto-Wake).
-  return wakeSsmInBackground();
+const readSession = async (forWrite = false) => {
+  const tabs = await chrome.tabs.query({ url: 'https://ssm.edufit.vn/*' });
+  if (tabs.length) {
+    const tab = await findSsmTab();
+    if (!tab?.id) return { error: 'Có nhiều tab SSM. Chọn đúng tab cần dùng rồi thử lại.' };
+    return { ...(await readSessionFromTab(tab)), tab };
+  }
+  if (!forWrite) {
+    const cached = await readCachedSession();
+    if (cached && await validateSession(cached)) return { session: cached };
+  }
+  return wakeSsmInBackground(forWrite);
 };
 
 const callSsm = async (path, session) => {
   let response;
   try {
     response = await fetch(API + path, {
-      method: 'GET',
+      method: 'GET', signal: AbortSignal.timeout(10000),
       // Giống hệt trang SSM: thiếu header `workspace` thì API trả danh sách rỗng.
       headers: {
         Accept: 'application/json',
@@ -231,11 +233,19 @@ const handle = async (message, sender) => {
   const path = build(message.params);
   if (path === null) return { ok: false, error: 'Tham số không hợp lệ.' };
   if (message.op === 'ping') return { ok: true, data: { version: chrome.runtime.getManifest().version } };
-  // HẠNG MỤC 1: gắn file Excel vào trang SSM — không cần gọi API, chỉ cần tab SSM mở.
-  if (message.op === 'attachLoFile') return attachFileToSsmTab(message.params);
-  if (message.op === 'autofillSsm') return autofillSsmTab(message.params);
-  const { session, error } = await readSession();
+  const expectedEmails = Array.isArray(message.params?.expectedEmails) ? message.params.expectedEmails.filter(email => typeof email === 'string' && email.includes('@')).map(email => email.trim().toLowerCase()) : [];
+  if (!expectedEmails.length) return { ok: false, error: 'Đăng nhập tài khoản giáo viên trên app trước khi dùng SSM.' };
+  const forWrite = ['attachLoFile','autofillSsm'].includes(message.op);
+  const { session, error, tab } = await readSession(forWrite);
   if (error) return { ok: false, error };
+  const profile = await callSsm('v1/profile', session);
+  if (!profile.ok) return profile;
+  const email = String(profile.data?.data?.email || profile.data?.email || '').trim().toLowerCase();
+  if (!email || !expectedEmails.includes(email)) return { ok: false, error: 'Tài khoản SSM khác tài khoản giáo viên trên app. Đăng nhập đúng mail trường rồi thử lại.' };
+  if (message.op === 'profile') return { ...profile, data: { ...profile.data, ssmWorkspace: session.workspace } };
+  if (message.params?.expectedWorkspace && message.params.expectedWorkspace !== session.workspace) return { ok: false, error: 'Chi nhánh SSM đã đổi. Ghép lại đúng lớp trước khi so hoặc cập nhật danh sách.' };
+  if (message.op === 'attachLoFile') return attachFileToSsmTab({ ...message.params, sessionToken: session.token, workspace: session.workspace }, tab);
+  if (message.op === 'autofillSsm') return autofillSsmTab({ ...message.params, sessionToken: session.token, workspace: session.workspace }, tab);
   return callSsm(path, session);
 };
 

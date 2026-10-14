@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 import { Loader2, AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { Exam, ExamSubmission } from '../types';
 import { getExamById, getSubmissions, updateSubmission, waitForAuth } from '../hooks/useExams';
+import { verifySubmissionScore } from '../utils/examScoring';
 
 export const TeacherGradingPage = () => {
   const { examId } = useParams<{ examId: string }>();
@@ -40,7 +41,7 @@ export const TeacherGradingPage = () => {
       .then(([e, subs]) => {
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e);
-        const pending = subs.filter(s => s.status !== 'in_progress');
+        const pending = subs.filter(s => s.status !== 'in_progress').map(sub => ({ ...sub, ...verifySubmissionScore(e.questions, sub.answers, sub.totalScore, e.tfScoringMode) }));
         setSubmissions(pending);
         if (pending.length > 0) loadSubState(pending[0]);
       })
@@ -173,6 +174,7 @@ export const TeacherGradingPage = () => {
 
       {/* Body */}
       <div className="flex-1 max-w-3xl w-full mx-auto py-6 px-4 space-y-4">
+        {currentSub.requiresScoreReview && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Điểm tự luận cũ chưa có nguồn xác minh. Điểm cũ vẫn được giữ trên máy chủ; thầy cô đối chiếu bài làm rồi nhập lại điểm cần chốt.</p>}
         {essayQuestions.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-100 p-6 text-center text-slate-500 text-sm">
             Đề thi này không có câu tự luận.

@@ -43,6 +43,7 @@ export const StudentResultPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
   const [leaderboard, setLeaderboard] = useState<PublicLeaderboardRow[]>([]);
+  const [leaderboardLimited, setLeaderboardLimited] = useState(false);
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
@@ -53,6 +54,7 @@ export const StudentResultPage = () => {
         const e = await getPublicExamById(result.submission.examId);
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(result.submission); setLeaderboard(result.leaderboard);
+        setLeaderboardLimited(result.leaderboardLimited === true);
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
@@ -77,14 +79,12 @@ export const StudentResultPage = () => {
   const score = submission.totalScore ?? 0;
   const pct = exam.maxScore > 0 ? (score / exam.maxScore) * 100 : 0;
   // Chỉ báo "chờ chấm" khi đề thực sự có câu tự luận (học sinh giờ luôn nộp ở status 'submitted')
-  const pending = submission.status === 'submitted' && exam.questions.some(q => q.type === 'essay');
+  const pending = submission.totalScore === undefined || submission.status === 'submitted' && exam.questions.some(q => q.type === 'essay');
 
   // Enforce cấu hình "Hiện kết quả khi nào" của giáo viên
   const showWhen = exam.showResultWhen ?? 'submit';
-  const examEnded = exam.endAt ? Date.now() > new Date(exam.endAt).getTime() : false;
   // Máy chủ là nơi quyết định: đã bỏ điểm thì `resultHidden`, trình duyệt không tự hiện lại được.
-  const canShowScore = !submission.resultHidden && (showWhen === 'submit'
-    || (showWhen === 'all_done' && (examEnded || submission.status === 'graded')));
+  const canShowScore = !submission.resultHidden;
 
   if (!canShowScore) {
     return (
@@ -97,9 +97,9 @@ export const StudentResultPage = () => {
             <p>Thí sinh: <span className="font-bold text-slate-700">{submission.studentName}{submission.studentClass && ` • ${submission.studentClass}`}</span></p>
           </div>
           <p className="mt-5 text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-2.5 rounded-xl">
-            {showWhen === 'never'
+            {showWhen === 'submit' ? 'Bài đã lưu, đang chờ chấm. Hãy quay lại trang này sau.' : showWhen === 'never'
               ? 'Giáo viên sẽ công bố điểm sau. Kết quả không hiển thị trên trang này.'
-              : 'Điểm sẽ hiển thị sau khi kỳ thi kết thúc hoặc khi giáo viên hoàn tất chấm bài. Hãy quay lại trang này sau.'}
+              : 'Điểm sẽ hiển thị sau khi kỳ thi kết thúc hoặc khi giáo viên đóng đề. Hãy quay lại trang này sau.'}
           </p>
           <Link to="/" className="mt-5 inline-block text-xs text-slate-400 hover:text-slate-600 font-medium">
             Về trang chủ
@@ -134,19 +134,19 @@ export const StudentResultPage = () => {
 
             <div className="flex items-end gap-3 my-6">
               <p className="text-5xl font-black text-slate-800">
-                {score.toFixed(2)}
+                {submission.totalScore === undefined ? 'Chờ chấm' : score.toFixed(2)}
               </p>
               <p className="text-xl text-slate-400 pb-1">/ {exam.maxScore}</p>
-              <div className={`ml-2 px-3 py-1 rounded-xl text-sm font-black ${
+              {submission.totalScore !== undefined && <div className={`ml-2 px-3 py-1 rounded-xl text-sm font-black ${
                 pct >= 50 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
               }`}>
                 {pct.toFixed(0)}%
-              </div>
+              </div>}
             </div>
 
             {pending && (
               <p className="text-xs text-amber-600 mb-4 font-medium bg-amber-50 px-3 py-2 rounded-xl">
-                * Phần tự luận đang chờ giáo viên chấm — điểm cuối có thể thay đổi.
+                {submission.totalScore === undefined ? 'Bài đã lưu, đang chờ chấm. Chưa có điểm để hiển thị.' : '* Phần tự luận đang chờ giáo viên chấm — điểm cuối có thể thay đổi.'}
               </p>
             )}
 
@@ -201,10 +201,10 @@ export const StudentResultPage = () => {
             ) : (
               <ol className="space-y-2">
                 {leaderboard.map((s, i) => {
-                  const isMe = s.id === submissionId;
+                  const isMe = s.isMe;
                   const medal = ['🥇', '🥈', '🥉'][i];
                   return (
-                    <li key={s.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    <li key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                       isMe ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50'
                     }`}>
                       <span className="text-base shrink-0 w-6 text-center">
@@ -222,6 +222,7 @@ export const StudentResultPage = () => {
                 })}
               </ol>
             )}
+            {leaderboardLimited && <p className="mt-2 text-xs text-slate-500">Danh sách tạm thời chưa đủ dữ liệu để xác định toàn bộ top 10.</p>}
           </div>
         </div>
 

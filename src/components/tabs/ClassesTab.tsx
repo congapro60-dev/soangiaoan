@@ -1,3 +1,4 @@
+import { syncSsmRosterMissing } from '../../lib/ssm/ssmBridge';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -1141,31 +1142,16 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
             <>
           {workspaceView === 'students' && (
             <SsmLinkPanel
-              key={selectedClass.id}
+              key={`${user?.uid || ''}:${selectedClass.id}`}
               classId={selectedClass.id}
               className={selectedClass.name}
               students={selectedClass.students}
               userEmail={user?.email ?? null}
               userId={user?.uid ?? null}
-              onSyncStudents={(next) => {
-                // HẠNG MỤC 4: cập nhật DS học sinh từ SSM — đồng bộ state local + server.
-                setData(prev => ({
-                  ...prev,
-                  classes: prev.classes.map(item =>
-                    item.id !== selectedClass.id
-                      ? item
-                      : { ...item, students: next, studentCount: next.length },
-                  ),
-                }));
-                // Ghi từng em mới lên server (bỏ qua em đã có).
-                const existingIds = new Set(selectedClass.students.map(s => s.id));
-                for (const s of next) {
-                  if (!existingIds.has(s.id)) {
-                    void themHocSinhLenServer(selectedClass.id, user?.uid || '', {
-                      id: s.id, name: s.name, code: s.code,
-                    }).catch(() => { /* đã lưu local, lần sau đồng bộ */ });
-                  }
-                }
+              onSyncStudents={async (fresh) => {
+                const result = await syncSsmRosterMissing(selectedClass.id, fresh);
+                setData((prev: AppData) => ({...prev,classes:prev.classes.map(item=>item.id===selectedClass.id?{...item,students:result.students.map(student=>({...item.students.find(existing=>existing.id===student.id),...student})),studentCount:result.students.length}:item)}));
+                showToast(`Đã thêm ${result.added} học sinh mới từ SSM.`, 'success');
               }}
             />
           )}

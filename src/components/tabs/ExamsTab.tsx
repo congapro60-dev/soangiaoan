@@ -203,7 +203,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
       // Đồng thời chuyển 'submitted' → 'graded' khi bài đã đủ điểm mọi câu.
       let fixedCount = 0;
       const verified = await Promise.all(subs.map(async sub => {
-        if (sub.status === 'in_progress') return sub;
+        if (sub.status === 'in_progress' || sub.requiresScoreReview) return sub;
 
         const check = verifySubmissionScore(exam.questions, sub.answers, sub.totalScore, exam.tfScoringMode);
         const fullyGraded = exam.questions.every(q => {
@@ -921,7 +921,7 @@ const ExamDetail = ({
                         </span>
                       </td>
                       <td className="px-6 py-3 text-right font-bold text-slate-800">
-                        {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
+                        {s.requiresScoreReview ? 'Cần GV xác minh điểm cũ' : s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-center text-xs font-bold">
                         {(() => {
@@ -1202,7 +1202,7 @@ interface AnswerEditModalProps {
 }
 
 const AnswerEditModal = ({ exam, submissions, data, showToast, onClose, onSaved }: AnswerEditModalProps) => {
-  const completedSubs = submissions.filter(s => s.status !== 'in_progress');
+  const completedSubs = submissions.filter(s => s.status !== 'in_progress' && !s.requiresScoreReview);
   const hasSubmissions = completedSubs.length > 0;
 
   const [answers, setAnswers] = useState<Record<string, string>>(() =>

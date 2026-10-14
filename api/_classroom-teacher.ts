@@ -1051,6 +1051,30 @@ export const handleSetStudentCode = async (db: Db, body: Body, res: VercelRespon
   return void res.status(200).json({ updated: true, classId: context.classId, studentId, code, previousCodes });
 };
 
+const handleSyncSsmRosterMissing = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res); if (!context) return;
+  if (!Array.isArray(body.students) || !body.students.length || body.students.length > 400) return void res.status(422).json({error:'Danh sách SSM cần từ 1 đến 400 học sinh.'});
+  const incoming = body.students.map(raw => { const value = raw && typeof raw === 'object' ? raw as Body : {}; return {id: typeof value.id === 'string' ? value.id.trim() : '',name: typeof value.name === 'string' ? value.name.trim() : '',code: typeof value.code === 'string' ? value.code.trim().toUpperCase() : ''}; });
+  if (incoming.some(student => !student.id || student.id.length > 150 || student.id.includes('/') || !student.name || student.name.length > 200 || !student.code || student.code.length > 100)) return void res.status(422).json({error:'Mã hoặc tên học sinh SSM chưa hợp lệ. Chưa thêm em nào.'});
+  try {
+    const result = await db.runTransaction(async tx => {
+      const classSnap = await tx.get(context.classRef), memberSnap = await tx.get(db.collection('classMembers').doc(classMemberId(context.classId,context.uid)));
+      const classData = classSnap.data();
+      if (!classData || !deriveClassAccess(classData,memberFromData(memberSnap.data()),context.uid)) throw new Error('Quyền giáo viên với lớp đã bị thu hồi.');
+      const snapshot = await tx.get(context.classRef.collection('students'));
+      const existing = snapshot.docs.map(document => ({id:document.id,...document.data()}));
+      const codes = new Set(existing.map(student => String((student as Body).code || '').trim().toUpperCase()).filter(Boolean));
+      const ids = new Set(existing.map(student => student.id));
+      const fresh = [];
+      for (const student of incoming) { if (codes.has(student.code)) continue; if (ids.has(student.id)) throw new Error('ID học sinh đã tồn tại với mã khác. Không ghi đè danh sách.'); codes.add(student.code);ids.add(student.id);fresh.push({...student,status:'active',progress:0,classId:context.classId,teacherId:classData.teacherId,createdAt:nowIso(),updatedBy:context.uid}); }
+      for (const student of fresh) tx.create(context.classRef.collection('students').doc(student.id),student);
+      if (fresh.length) tx.update(context.classRef,{studentCount:existing.length+fresh.length,updatedAt:nowIso(),updatedBy:context.uid});
+      return {added:fresh.length,students:[...existing,...fresh].map(student=>({id:student.id,name:String((student as Body).name||''),code:String((student as Body).code||''),status:(student as Body).status||'active',progress:Number((student as Body).progress)||0}))};
+    });
+    res.status(200).json(result);
+  } catch(reason) { res.status(409).json({error:reason instanceof Error?reason.message:'Danh sách vừa đổi. Tải lại rồi thử đồng bộ SSM.'}); }
+};
+
 export const handleAddStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
@@ -1274,6 +1298,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'setClassExamSheet') { await handleSetClassExamSheet(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
   if (action === 'setStudentCode') { await handleSetStudentCode(db, body, res); return true; }
+  if (action === 'syncSsmRosterMissing') { await handleSyncSsmRosterMissing(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }
   if (action === 'teacherMembers') { await handleTeacherMembers(db, body, res); return true; }
   if (action === 'teacherInvitations') { await handleTeacherInvitations(db, body, res); return true; }

@@ -18,9 +18,13 @@ export const verifySubmissionScore = (
   tfScoringMode?: TfScoringMode
 ): { answers: StudentAnswer[]; totalScore: number; changed: boolean } => {
   let answersChanged = false;
-  const answers = submissionAnswers.map(a => {
-    const q = questions.find(item => item.id === a.questionId);
-    if (!q || q.type === 'essay') return a;
+  const seen = new Set<string>();
+  const answers = submissionAnswers.filter(a => {
+    if (!questions.some(q => q.id === a.questionId) || seen.has(a.questionId)) { answersChanged = true; return false; }
+    seen.add(a.questionId); return true;
+  }).map(a => {
+    const q = questions.find(item => item.id === a.questionId)!;
+    if (q.type === 'essay') return a;
     const autoScore = computeAutoScore(q, a.answer, tfScoringMode);
     if (autoScore === a.autoScore) return a;
     answersChanged = true;

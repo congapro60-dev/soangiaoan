@@ -247,7 +247,7 @@ export default function App() {
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#005ea1] text-lg font-black text-white shadow-sm shadow-blue-100">D</div>
               <div>
                 <p className="text-base font-black tracking-tight text-[#005ea1]">Giao An Dewey</p>
-                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[#717782] sm:block">AI lesson workspace</p>
+                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--dewey-muted)] sm:block">AI lesson workspace</p>
               </div>
             </div>
             <nav className="hidden items-center gap-6 text-sm font-semibold text-[#414751] md:flex">
@@ -288,7 +288,7 @@ export default function App() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   {highlights.map(item => (
                     <div key={item.label} className="rounded-2xl border border-[#c0c7d3]/50 bg-white p-4 shadow-[0_4px_12px_rgba(0,94,161,0.06)]">
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#717782]">{item.label}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--dewey-muted)]">{item.label}</p>
                       <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold ${item.tone}`}>{item.value}</p>
                     </div>
                   ))}
@@ -315,7 +315,7 @@ export default function App() {
                         <div key={title} className="rounded-2xl border border-white/70 bg-white p-4 shadow-sm">
                           <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{icon}</div>
                           <p className="text-sm font-black text-[#0d1c2e]">{title}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#717782]">{desc}</p>
+                          <p className="mt-1 text-xs leading-5 text-[color:var(--dewey-muted)]">{desc}</p>
                         </div>
                       ))}
                     </div>
@@ -355,13 +355,8 @@ export default function App() {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#005ea1] text-sm font-black text-white">D</div>
               <div>
                 <p className="text-sm font-black text-[#005ea1]">Giao An Dewey</p>
-                <p className="text-xs text-[#717782]">© 2026 The Dewey Schools. All rights reserved.</p>
+                <p className="text-xs text-[color:var(--dewey-muted)]">© 2026 The Dewey Schools. All rights reserved.</p>
               </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm font-semibold text-[#414751]">
-              <a href="#" className="hover:text-[#005ea1]">Điều khoản</a>
-              <a href="#" className="hover:text-[#005ea1]">Chính sách bảo mật</a>
-              <a href="mailto:contact@dewey.edu.vn" className="hover:text-[#005ea1]">Liên hệ</a>
             </div>
           </div>
         </footer>

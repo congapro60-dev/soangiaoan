@@ -229,6 +229,7 @@ service cloud.firestore {
       }
       function validStudentCreate() {
         return request.resource.data.id == subId
+               && request.resource.data.keys().hasOnly(['id', 'examId', 'examCode', 'studentName', 'studentClass', 'startedAt', 'answers', 'maxScore', 'tabSwitches', 'clientNonce', 'status'])
                && request.resource.data.status == 'in_progress'
                && request.resource.data.examId is string
                && request.resource.data.examCode is string
@@ -254,6 +255,7 @@ service cloud.firestore {
         // Điểm học sinh ghi vẫn là client-computed — trang theo dõi của giáo viên sẽ tự xác minh
         // và tính lại từ đáp án gốc (verifySubmissionScore) mỗi lần mở.
         return resource.data.status == 'in_progress'
+               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'status', 'submittedAt', 'tabSwitches'])
                && keepsSubmissionIdentity()
                && request.resource.data.status in ['in_progress', 'submitted']
                && request.resource.data.answers is list
@@ -1133,15 +1135,27 @@ service cloud.firestore {
     // HẠNG MỤC 4 (SSM): ghép lớp SSM của từng giáo viên. Document ID = `{uid}_{classId}`.
     // Mỗi GV chỉ đọc/ghi được ghép lớp của chính mình.
     match /ssmClassLinks/{linkId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'classId', 'ssmClassId', 'ssmClassName']);
-      allow update: if request.auth != null
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      function ssmOwnClass(d) {
+        return request.auth != null && d.userId == request.auth.uid && d.classId is string
+          && exists(/databases/$(database)/documents/classes/$(d.classId))
+          && ((get(/databases/$(database)/documents/classes/$(d.classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(d.classId)).data.teacherId) == request.auth.uid
+               && (!exists(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)) || get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.status == 'active'))
+              || (exists(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid))
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.status == 'active'
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.uid == request.auth.uid
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.classId == d.classId
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.role in ['owner','co_owner']));
+      }
+      function validSsmLink(d) {
+        return ssmOwnClass(d) && linkId == request.auth.uid + '_' + d.classId
+          && d.keys().hasOnly(['userId','classId','ssmClassId','ssmClassName','workspace','updatedAt'])
+          && (!('workspace' in d) || (d.workspace is string && d.workspace.size() <= 150))
+          && d.ssmClassId is int && d.ssmClassId > 0 && d.ssmClassName is string && d.ssmClassName.size() <= 200 && d.updatedAt is string;
+      }
+      allow get, list: if ssmOwnClass(resource.data);
+      allow create: if validSsmLink(request.resource.data);
+      allow update: if ssmOwnClass(resource.data) && validSsmLink(request.resource.data) && request.resource.data.classId == resource.data.classId;
+      allow delete: if ssmOwnClass(resource.data);
     }
 
     // Hồ sơ tích luỹ. Học sinh ĐỌC được phần của mình, không bao giờ ghi được —

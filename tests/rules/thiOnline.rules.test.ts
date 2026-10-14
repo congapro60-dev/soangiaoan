@@ -221,7 +221,7 @@ describe('examSubmissions · học sinh làm bài và nộp', () => {
   it('16. Nộp bài (in_progress → submitted) → ALLOW', async () => {
     await assertSucceeds(
       updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), {
-        status: 'submitted', submittedAt: '2026-08-01T01:20:00.000Z', totalScore: 7,
+        status: 'submitted', submittedAt: '2026-08-01T01:20:00.000Z',
       }),
     );
   });
@@ -230,6 +230,12 @@ describe('examSubmissions · học sinh làm bài và nộp', () => {
     await assertFails(
       updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), { status: 'graded', totalScore: 10 }),
     );
+  });
+  it('student cannot create or set server autograde marker, score or arbitrary fields', async () => {
+    for (const patch of [{ publicAutoGradedAt: 'forged' }, { totalScore: 7 }, { teacherApproved: true }]) {
+      await assertFails(setDoc(doc(dbHS(), 'examSubmissions/forged'), baiLamMau({ id: 'forged', ...patch })));
+      await assertFails(updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), patch));
+    }
   });
 
   it('18. totalScore vượt maxScore → DENY', async () => {

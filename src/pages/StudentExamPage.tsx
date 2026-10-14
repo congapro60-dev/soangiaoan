@@ -116,6 +116,7 @@ export const StudentExamPage = () => {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submittedRef = useRef(false);
   const submissionIdRef = useRef<string | null>(null);
+  const submissionNonceRef = useRef<string>('');
 
   // ── Group questions by type ───────────────────────────────────────────────
   const { sections, globalNum } = useMemo(() => {
@@ -194,7 +195,7 @@ export const StudentExamPage = () => {
       // Chấm server-side. Fail-safe: lỗi thì bỏ qua — bài vẫn ở 'submitted', giáo viên
       // mở trang theo dõi sẽ tự xác minh & tính điểm từ đáp án gốc.
       try {
-        await gradeExamSubmission(submissionId);
+        await gradeExamSubmission(submissionId, submissionNonceRef.current);
       } catch (gradeErr) {
         console.warn('Chấm server-side thất bại — bài vẫn được lưu, giáo viên sẽ chấm/xác minh sau', gradeErr);
       }
@@ -254,6 +255,7 @@ export const StudentExamPage = () => {
     try {
       const qs = exam.shuffleQuestions ? shuffle(exam.questions) : [...exam.questions];
       const newId = createSubmissionId();
+      const clientNonce = createSubmissionNonce();
       const subId = await createSubmission({
         id: newId,
         examId: exam.id,
@@ -265,10 +267,11 @@ export const StudentExamPage = () => {
         answers: [],
         maxScore: exam.maxScore,
         tabSwitches: 0,
-        clientNonce: createSubmissionNonce(),
+        clientNonce,
       });
       setSubmissionId(subId);
       submissionIdRef.current = subId;
+      submissionNonceRef.current = clientNonce;
       bumpLocalAttempts(exam.id);
       setOrderedQuestions(qs);
       // Thời gian làm bài không được vượt quá giờ đóng đề (endAt)

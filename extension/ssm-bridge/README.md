@@ -1,6 +1,6 @@
 # Tiện ích Edge "SmartPlan ↔ SSM"
 
-Cầu nối **chỉ đọc** giữa app SmartPlan và SSM của trường. Vé đăng nhập SSM của thầy cô nằm yên trong Edge:
+Cầu nối **đọc và điền bản nháp** giữa app SmartPlan và SSM của trường. Vé đăng nhập SSM của thầy cô nằm yên trong Edge:
 tiện ích không gửi nó lên app, lên máy chủ hay đi đâu khác.
 
 ## Cài (làm 1 lần)
@@ -31,6 +31,7 @@ tiện ích không gửi nó lên app, lên máy chủ hay đi đâu khác.
 
 ## Giới hạn
 
-- Đợt 1 chỉ đọc: tiện ích không ghi gì lên SSM, không gửi tin nào tới phụ huynh.
+- API SSM chỉ GET. Tiện ích có thể điền/tô viền bản nháp; không tự bấm Lưu/Submit hoặc gửi tin phụ huynh. SSM có thể tự xử lý sự kiện input/change theo giao diện của trường.
+- File LO: mở đúng một form có ô .xlsx hiển thị. Nhận xét: mã HS phải khớp chính xác duy nhất. Báo giảng: chọn đúng ô văn bản trước; tiện ích không ghi đè ô đã có chữ.
 - Chỉ trang `giaoandewey.vercel.app` (và máy dev `localhost:3000`) gọi được tiện ích.
 - SSM là hệ thống nội bộ Edufit, không có tài liệu API. Edufit đổi hệ thống thì tiện ích có thể phải cập nhật.

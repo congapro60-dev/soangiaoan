@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const h = vi.hoisted(() => ({ db: null as unknown }));
+const h = vi.hoisted(() => ({ db: null as unknown, uid: 'gv' }));
+vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: async (token: string) => {
+  if (token === 'bad') throw new Error('invalid');
+  return { uid: h.uid, firebase: { sign_in_provider: token === 'anon' ? 'anonymous' : 'google.com' } };
+} }) }));
 
 vi.mock('../_exam-core.js', async original => ({
   ...(await original<typeof import('../_exam-core.js')>()),
@@ -11,28 +15,32 @@ import handler, { publicResultProjection } from '../exam';
 
 type Doc = Record<string, unknown>;
 
-const makeDb = (state: Record<string, Record<string, Doc>>) => ({
-  collection: (name: string) => ({
-    doc: (id: string) => ({
-      get: async () => ({ exists: Boolean(state[name]?.[id]), data: () => state[name]?.[id] }),
-      update: async (patch: Doc) => { state[name][id] = { ...state[name][id], ...patch }; },
-    }),
-    where: (field: string, _op: string, value: unknown) => ({
-      get: async () => ({
-        docs: Object.entries(state[name] || {}).filter(([, data]) => data[field] === value).map(([id, data]) => ({ id, data: () => data })),
-      }),
-    }),
-  }),
-});
+const makeDb = (state: Record<string, Record<string, Doc>>) => {
+  const collection = (name: string, filters: [string, unknown][] = [], count = Infinity, ordered = false, cursor = ''): any => ({
+    doc: (id: string) => ({ get: async () => ({ exists: Boolean(state[name]?.[id]), data: () => structuredClone(state[name]?.[id]) }),
+      update: async (patch: Doc) => { state[name][id] = { ...state[name][id], ...patch }; } }),
+    where: (field: string, _op: string, value: unknown) => collection(name, [...filters, [field, value]], count, ordered, cursor),
+    limit: (value: number) => collection(name, filters, value, ordered, cursor),
+    orderBy: () => collection(name, filters, count, true, cursor),
+    startAfter: (doc: { id: string }) => collection(name, filters, count, ordered, doc.id),
+    get: async () => { let rows = Object.entries(state[name] || {}).filter(([, data]) => filters.every(([field,value]) => data[field] === value) && (!ordered || typeof data.totalScore === 'number'));
+      if (ordered) rows.sort((a,b) => Number(b[1].totalScore) - Number(a[1].totalScore) || a[0].localeCompare(b[0]));
+      if (cursor) rows = rows.slice(rows.findIndex(([id]) => id === cursor) + 1);
+      const docs = rows.slice(0,count).map(([id,data]) => ({ id, data: () => structuredClone(data) })); return { docs, empty: !docs.length }; },
+  });
+  return { collection, runTransaction: async (work: any) => { const writes: (() => Promise<void>)[] = [];
+    const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, patch: Doc) => writes.push(() => ref.update(patch)) });
+    for (const write of writes) await write(); return result; } };
+};
 
-const call = async (method: 'GET' | 'POST', query: Doc, body: Doc = {}) => {
+const call = async (method: 'GET' | 'POST', query: Doc, body: Doc = {}, headers: Doc = {}) => {
   const out: { status: number; body?: Doc } = { status: 0 };
   const res = {
     setHeader: () => res,
     status(code: number) { out.status = code; return res; },
     json(payload: Doc) { out.body = payload; return res; },
   };
-  await handler({ method, query, body } as never, res as never);
+  await handler({ method, query, body, headers } as never, res as never);
   return out;
 };
 
@@ -49,7 +57,7 @@ const seed = (exam: Doc = {}) => ({
 
 describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', () => {
   let state: Record<string, Record<string, Doc>>;
-  beforeEach(() => { state = seed(); h.db = makeDb(state); });
+  beforeEach(() => { state = seed(); h.db = makeDb(state); h.uid = 'gv'; });
 
   it('trả bài + bảng xếp hạng (chỉ tên + điểm, không có bài đang làm / bài trong lớp); không lộ nonce', async () => {
     const out = await call('GET', { submissionId: 'bai-1' });
@@ -57,8 +65,8 @@ describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', (
     expect(out.body?.submission).toMatchObject({ id: 'bai-1', totalScore: 8, answers: [answer] });
     expect(out.body?.submission).not.toHaveProperty('clientNonce');
     expect(out.body?.leaderboard).toEqual([
-      { id: 'bai-2', studentName: 'Bình', studentClass: '', totalScore: 9 },
-      { id: 'bai-1', studentName: 'An', studentClass: '', totalScore: 8 },
+      { isMe: false, studentName: 'Bình', studentClass: '', totalScore: 9 },
+      { isMe: true, studentName: 'An', studentClass: '', totalScore: 8 },
     ]);
   });
 
@@ -66,7 +74,7 @@ describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', (
     expect((await call('GET', { submissionId: 'dang-lam' })).status).toBe(404);
     expect((await call('GET', { submissionId: 'khong-co' })).status).toBe(404);
     expect((await call('GET', { submissionId: 'bai-lop' })).status).toBe(403);
-    expect((await call('POST', {}, { submissionId: 'bai-lop' })).status).toBe(403);
+    expect((await call('POST', {}, { submissionId: 'bai-lop' }, { authorization: 'Bearer valid' })).status).toBe(403);
     expect(state.examSubmissions['bai-lop'].gradeState).toBe('provisional');
   });
 
@@ -89,8 +97,80 @@ describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', (
 
   it('"hiện khi xong hết": trước giờ đóng đề và chưa chấm xong → ẩn; sau giờ đóng → hiện', () => {
     const exam = { showResultWhen: 'all_done', endAt: '2026-10-10T10:00:00.000Z' };
-    const sub = { status: 'submitted', totalScore: 5, answers: [] };
+    const sub = { status: 'submitted', totalScore: 5, answers: [], publicAutoGradedAt: 'server' };
     expect(publicResultProjection('x', sub, exam, Date.parse('2026-10-10T09:00:00.000Z'))).toMatchObject({ resultHidden: true });
     expect(publicResultProjection('x', sub, exam, Date.parse('2026-10-10T11:00:00.000Z'))).toMatchObject({ totalScore: 5 });
+    expect(publicResultProjection('x', { ...sub, status: 'graded' }, exam, Date.parse('2026-10-10T09:00:00.000Z'))).toHaveProperty('resultHidden', true);
+    expect(publicResultProjection('x', sub, { ...exam, isActive: false }, Date.parse('2026-10-10T09:00:00.000Z'))).toHaveProperty('totalScore', 5);
+  });
+  const nonce = '0123456789abcdef0123456789abcdef01234567';
+  const pending = () => {
+    state.exams['de-1'].questions = [{ id: 'q1', type: 'multiple_choice', correctAnswer: 'A', points: 2 }, { id: 'q2', type: 'essay', points: 8 }];
+    state.examSubmissions['bai-1'] = { ...state.examSubmissions['bai-1'], status: 'submitted', clientNonce: nonce,
+      answers: [{ questionId: 'q1', answer: 'A', autoScore: 99 }, { questionId: 'q1', answer: 'B' },
+        { questionId: 'q2', answer: 'bài viết' }, { questionId: 'unknown', answer: 'x' }] };
+  };
+  it('student nonce grades raw answers once, ignores forged grades and preserves later teacher edits', async () => {
+    pending();
+    const first = await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce });
+    expect(first.status).toBe(200); expect(first.body?.totalScore).toBe(2);
+    expect(state.examSubmissions['bai-1'].answers).toEqual([{ questionId: 'q1', answer: 'A', autoScore: 2, correctAnswer: 'A' }, { questionId: 'q2', answer: 'bài viết' }]);
+    expect(state.examSubmissions['bai-1'].publicAutoGradedAt).toEqual(expect.any(String));
+    state.examSubmissions['bai-1'].totalScore = 9;
+    const before = structuredClone(state.examSubmissions['bai-1']);
+    expect((await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce })).body?.totalScore).toBe(9);
+    expect(state.examSubmissions['bai-1']).toEqual(before);
+  });
+  it('student cannot grade before submission, use another nonce, or access a classroom attempt', async () => {
+    pending(); expect((await call('POST', {}, { submissionId: 'bai-1', clientNonce: 'wrong' })).status).toBe(401);
+    state.examSubmissions['bai-1'].status = 'in_progress';
+    expect((await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce })).status).toBe(409);
+    state.examSubmissions['bai-1'].status = 'submitted'; state.examSubmissions['bai-1'].classId = 'class';
+    expect((await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce })).status).toBe(403);
+  });
+  it('ambiguous old essay grades require explicit teacher review without overwriting stored data', async () => {
+    pending(); (state.examSubmissions['bai-1'].answers as Doc[])[2].aiScore = 8;
+    const before = structuredClone(state.examSubmissions['bai-1']);
+    expect((await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce })).status).toBe(409);
+    expect((await call('POST', {}, { submissionId: 'bai-1' }, { authorization: 'Bearer valid' })).status).toBe(409);
+    expect(state.examSubmissions['bai-1']).toEqual(before);
+  });
+  it('teacher requires valid nonanonymous token and exact nonempty exam owner', async () => {
+    pending();
+    for (const authorization of ['', 'Bearer bad', 'Bearer anon']) expect((await call('POST', {}, { submissionId: 'bai-1' }, { authorization })).status).toBe(401);
+    h.uid = 'stranger'; expect((await call('POST', {}, { submissionId: 'bai-1' }, { authorization: 'Bearer valid' })).status).toBe(403);
+    h.uid = 'gv'; delete state.exams['de-1'].teacherId;
+    expect((await call('POST', {}, { submissionId: 'bai-1' }, { authorization: 'Bearer valid' })).status).toBe(403);
+    state.exams['de-1'].teacherId = 'gv';
+    expect((await call('POST', {}, { submissionId: 'bai-1' }, { authorization: 'Bearer valid' })).status).toBe(200);
+  });
+  it('POST hides scores and review fields when teacher disables results; no review leaks aiFeedback', async () => {
+    pending(); state.exams['de-1'].showResultWhen = 'never';
+    const graded = await call('POST', {}, { submissionId: 'bai-1', clientNonce: nonce });
+    expect(graded.status).toBe(200); expect(graded.body).toHaveProperty('resultHidden', true); expect(graded.body).not.toHaveProperty('totalScore');
+    state.exams['de-1'].allowReview = false; state.exams['de-1'].showResultWhen = 'submit';
+    state.examSubmissions['bai-1'].answers = [{ ...answer, aiFeedback: 'PRIVATE SOLUTION' }];
+    const result = await call('GET', { submissionId: 'bai-1' }); expect(JSON.stringify(result.body)).not.toContain('PRIVATE SOLUTION');
+  });
+  it('ungraded raw client data never becomes a public score or answer-key source', async () => {
+    pending();
+    const result = await call('GET', { submissionId: 'bai-1' }); expect(result.body?.submission).not.toHaveProperty('totalScore');
+    expect(JSON.stringify(result.body?.submission)).not.toContain('autoScore'); expect(JSON.stringify(result.body?.submission)).not.toContain('aiScore');
+  });
+  it('top ten skips higher-score private and unfinished rows before filling public places, without peer IDs', async () => {
+    for (let i = 0; i < 105; i++) state.examSubmissions['private-' + i] = { examId: 'de-1', classId: 'class', totalScore: 100, status: 'graded' };
+    for (let i = 0; i < 12; i++) state.examSubmissions['public-' + i] = { examId: 'de-1', totalScore: 20 - i, status: 'graded', studentName: 'HS ' + i };
+    const result = await call('GET', { submissionId: 'bai-1' }); const rows = result.body?.leaderboard as Doc[];
+    expect(rows).toHaveLength(10); expect(rows[0].totalScore).toBe(20); expect(rows[9].totalScore).toBe(11); expect(rows.every(row => !('id' in row))).toBe(true);
+  });
+  it('bounded leaderboard reports incomplete coverage instead of pretending there are no public results', async () => {
+    for (let i = 0; i < 501; i++) state.examSubmissions['private-' + i] = { examId: 'de-1', classId: 'class', totalScore: 100, status: 'graded' };
+    const result = await call('GET', { submissionId: 'bai-1' }); expect(result.body).toHaveProperty('leaderboardLimited', true); expect(result.body?.leaderboard).toEqual([]);
+  });
+  it('code throttle does not throttle result URLs for students sharing an IP', async () => {
+    const headers = { 'x-forwarded-for': '192.0.2.17' };
+    for (let i = 0; i < 120; i++) expect((await call('GET', { code: 'ABC' }, {}, headers)).status).toBe(404);
+    expect((await call('GET', { code: 'ABC' }, {}, headers)).status).toBe(429);
+    for (let i = 0; i < 35; i++) expect((await call('GET', { submissionId: 'bai-1' }, {}, headers)).status).toBe(200);
   });
 });

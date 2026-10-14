@@ -17,7 +17,7 @@ const appSender = { id: EXT_ID, origin: 'https://giaoandewey.vercel.app' };
 
 const ask = (message: Record<string, unknown>, sender: object = appSender) =>
   new Promise<Record<string, unknown>>(resolve => {
-    listener({ kind: 'ssm-request', ...message }, sender, r => resolve(r as Record<string, unknown>));
+    listener({ kind: 'ssm-request', ...message, params: { expectedEmails: ['teacher@example.test'], ...(message.params as object || {}) } }, sender, r => resolve(r as Record<string, unknown>));
   });
 
 const jsonResponse = (status: number, body: unknown) => ({
@@ -57,14 +57,14 @@ beforeEach(() => {
   storageGet.mockReset().mockResolvedValue({});
   storageSet.mockReset().mockResolvedValue(undefined);
   storageRemove.mockReset().mockResolvedValue(undefined);
-  fetchMock.mockReset().mockResolvedValue(jsonResponse(200, { data: [{ id: 1, name: '11Columbus' }] }));
+  fetchMock.mockReset().mockImplementation(async url => String(url).endsWith('/profile') ? jsonResponse(200,{data:{email:'teacher@example.test'}}) : jsonResponse(200, { data: [{ id: 1, name: '11Columbus' }] }));
 });
 
 describe('cầu nối SSM — service worker', () => {
   it('gọi đúng API với vé SSM + header workspace như trang SSM', async () => {
     const res = await ask({ op: 'teacherClasses', params: { schoolYearId: 6 } });
     expect(res).toEqual({ ok: true, data: { data: [{ id: 1, name: '11Columbus' }] } });
-    const [url, init] = fetchMock.mock.calls[0];
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
     expect(url).toBe('https://api-ssm.edufit.vn/api/v1/class-teacher?school_year_id=6');
     expect(init.method).toBe('GET');
     expect(init.headers).toMatchObject({ Authorization: 'Bearer tok-abc', workspace: 'branch_23' });
@@ -114,10 +114,24 @@ describe('cầu nối SSM — service worker', () => {
 
   it('đường dẫn học sinh theo lớp', async () => {
     await ask({ op: 'classStudents', params: { classId: 9681 } });
-    expect(fetchMock.mock.calls[0][0]).toBe('https://api-ssm.edufit.vn/api/v1/students/class/9681?skipPagination=true&page=1&limit=500');
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v1/students/class/9681?skipPagination=true&page=1&limit=500');
   });
 
   describe('Hạng mục 5: Token Cache & Auto-Wake', () => {
+    it('a live tab wins over a valid cache from another account', async () => {
+      storageGet.mockResolvedValue({ ssmToken: 'old-account', ssmWorkspace: 'old-tenant', ssmCachedAt: Date.now() });
+      tabsSendMessage.mockResolvedValue({ token: 'current-account', workspace: 'current-tenant' });
+      await ask({ op: 'profile' });
+      expect(tabsSendMessage).toHaveBeenCalledWith(7, { kind: 'ssm-session' });
+      expect(fetchMock.mock.calls.at(-1)?.[1].headers).toMatchObject({ Authorization: 'Bearer current-account', workspace: 'current-tenant' });
+    });
+    it('requires matching account identity before reading a roster or attaching a file', async () => {
+      fetchMock.mockResolvedValue(jsonResponse(200, { data: { email: 'other@example.test' } }));
+      expect((await ask({ op: 'classStudents', params: { classId: 9681, expectedEmails: ['teacher@example.test'] } })).ok).toBe(false);
+      expect((await ask({ op: 'attachLoFile', params: { fileData: 'AA==', fileName: 'scores.xlsx', expectedEmails: ['teacher@example.test'] } })).ok).toBe(false);
+      expect(fetchMock.mock.calls.every(([url]) => String(url).endsWith('/profile'))).toBe(true);
+      expect(tabsSendMessage.mock.calls.every(([, message]) => message.kind === 'ssm-session')).toBe(true);
+    });
     it('dùng token cache khi còn hạn — không cần tab SSM', async () => {
       storageGet.mockResolvedValue({
         ssmToken: 'cached-tok',
@@ -125,7 +139,7 @@ describe('cầu nối SSM — service worker', () => {
         ssmCachedAt: Date.now(),
       });
       // validateSession gọi v1/profile → trả 200 là token còn hạn.
-      fetchMock.mockResolvedValue(jsonResponse(200, { ok: true }));
+      fetchMock.mockResolvedValue(jsonResponse(200, { data: { email: 'teacher@example.test' } }));
       tabsQuery.mockResolvedValue([]); // không có tab SSM nào
       const res = await ask({ op: 'profile' });
       expect(res.ok).toBe(true);
@@ -135,6 +149,10 @@ describe('cầu nối SSM — service worker', () => {
       expect(lastCall[1].headers.Authorization).toBe('Bearer cached-tok');
     });
 
+    it('tenant mismatch blocks roster and never sends the selected class request', async () => {
+      expect((await ask({op:'classStudents',params:{classId:1,expectedWorkspace:'other-branch'}})).ok).toBe(false);
+      expect(fetchMock.mock.calls.every(([url])=>String(url).endsWith('/profile'))).toBe(true);
+    });
     it('token cache hết hạn → tự mở tab SSM ngầm', async () => {
       storageGet.mockResolvedValue({
         ssmToken: 'old-tok',
@@ -155,6 +173,16 @@ describe('cầu nối SSM — service worker', () => {
       expect(tabsCreate).toHaveBeenCalledWith(expect.objectContaining({ active: false }));
       expect(tabsRemove).toHaveBeenCalledWith(99);
       expect(res.ok).toBe(true);
+    });
+    it('keeps an auto-woken attachment target available for teacher review', async () => {
+      tabsQuery.mockResolvedValue([]);
+      fetchMock.mockResolvedValue(jsonResponse(200, { data: { email: 'teacher@example.test' } }));
+      tabsSendMessage.mockImplementation(async (_id, message) => message.kind === 'ssm-session' ? { token: 'current', workspace: 'branch' } : { ok: true });
+      const { tabs } = chrome as unknown as { tabs: { onUpdated: { addListener: ReturnType<typeof vi.fn> } } };
+      tabsCreate.mockImplementation(async () => { setTimeout(() => tabs.onUpdated.addListener.mock.calls.at(-1)?.[0](99, { status: 'complete' }), 10); return { id: 99 }; });
+      const result = await ask({ op: 'attachLoFile', params: { fileData: 'AA==', fileName: 'scores.xlsx', expectedEmails: ['teacher@example.test'] } });
+      expect(result.ok).toBe(true); expect(tabsRemove).not.toHaveBeenCalled();
+      expect(tabsSendMessage).toHaveBeenCalledWith(99, expect.objectContaining({ kind: 'ssm-attach-file' }));
     });
   });
 });

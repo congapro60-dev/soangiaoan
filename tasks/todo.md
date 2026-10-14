@@ -1,5 +1,18 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Tiếp quản Muse — QA_FIX_PLAN_soangiaoan.md
+
+User xác nhận Muse đã dừng, Codex tiếp quản. Base a2f30d1, feature branch codex/muse-qa-followup.
+- [x] Đọc toàn bộ ghi chú; fast-forward main Muse, giữ sạch nguồn cũ.
+- [x] Xác minh Vercel project Hobby + Fluid Compute: 300s hợp lệ; khôi phục hai endpoint AI, không đổi gói.
+- [x] Sửa quyền chấm HS/GV và dữ liệu public thi online; nonce, điểm giả, idempotence, quyền xem; bài cũ cần GV xác minh được giữ nguyên.
+- [x] Sửa SSM đúng tài khoản/ô nhập/mã HS; cloud link theo UID/quyền lớp; roster thêm mới không ghi đè/nuốt lỗi.
+- [x] Minor: proxy dev, demo copy đúng, AI Tutor accessibility, tương phản; không refactor god-hook chỉ vì kích thước.
+- [x] Full 3102/3102, lint app/API/build exit 0; Rules 308/308; review native/Gemini PASS. ZIP 0.3.1 đủ sáu file khớp nguồn.
+- [x] Firebase Rules/index deploy exit 0 trước API mới; index leaderboard READY, không xóa index. Cấu hình chặn giả marker được triển khai trước push.
+- [ ] Push main, Git deployment, QA thật chỉ đọc; SSM không tự Save/Submit, không tự cập nhật/xóa tiện ích người dùng.
+- [ ] Cập nhật file Muse và HANDOFF/checklist theo bằng chứng; phân biệt code/test/production/SSM thật.
+
 ## Phần tiếp: chấm trên ảnh / lời giải / nộp hộ / khóa chốt / bài chữa
 
 Nguồn chuẩn `tasks/annotated-review-proxy-plan.md`; bằng chứng `tasks/qa-annotated-review-20261014.md`.

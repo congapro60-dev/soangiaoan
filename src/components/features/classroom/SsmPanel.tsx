@@ -163,7 +163,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
       const outName = fileName.replace(/\.xlsx$/i, '') + '_dien.xlsx';
       await attachLoFileToSsm(out.bytes, outName);
       setNote(`Đã gắn file "${outName}" (${out.written} ô điểm) vào trang SSM — cô kiểm tra ô file được tô viền xanh rồi bấm Lưu trên SSM.`);
-      showToast('Đã gửi file lên SSM.', '📄');
+      showToast('Đã gắn file vào ô SSM; chưa bấm Lưu.', '📄');
     } catch (e) {
       setError(errorText(e));
     } finally {

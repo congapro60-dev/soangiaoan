@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Link2, Loader2, RefreshCw, Unlink, UserPlus } from 'lucide-react';
 import type { Student } from '../../../types';
-import { pingSsmBridge, readSsmLink, readSsmLinkCloud, saveSsmLinkCloud, ssmRequest } from '../../../lib/ssm/ssmBridge';
+import { pingSsmBridge, readSsmLink, readSsmLinkCloud, saveSsmLink, saveSsmLinkCloud, ssmRequest } from '../../../lib/ssm/ssmBridge';
 import { getLinkedGoogleEmail } from '../../../lib/adminLink';
 import {
   guessSsmClass,
@@ -23,7 +23,7 @@ interface Props {
   /** UID Firebase — để đồng bộ ghép lớp lên cloud (Hạng mục 4). */
   userId?: string | null;
   /** Callback khi bấm "Cập nhật DS học sinh từ SSM" — cha cập nhật danh sách lớp. */
-  onSyncStudents?: (students: Student[]) => void;
+  onSyncStudents?: (students: Student[]) => Promise<void>;
 }
 
 const errorText = (error: unknown): string => error instanceof Error ? error.message : 'Có lỗi, thử lại sau.';
@@ -43,14 +43,16 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [needInstall, setNeedInstall] = useState(false);
+  const [workspace, setWorkspace] = useState('');
 
   // HẠNG MỤC 4: lúc mở panel, thử lấy ghép lớp từ cloud (trường hợp đổi máy / xoá cache).
   useEffect(() => {
-    if (!userId || link) return;
+    const local = readSsmLink(classId); setLink(local); setChoices(null); setRoster(null); setPicked('');
+    if (!userId || local) return;
     let cancelled = false;
     void readSsmLinkCloud(userId, classId).then(cloud => {
-      if (!cancelled && cloud) setLink(cloud);
-    });
+      if (!cancelled && cloud) { saveSsmLink(classId,cloud); setLink(cloud); }
+    }).catch(error => { if(!cancelled) setError(errorText(error)); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, classId]);
@@ -76,7 +78,10 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
       throw err;
     }
     if (!userEmail) throw new Error('Đăng nhập app bằng mail trường trước khi ghép với SSM.');
-    const email = parseProfileEmail(await ssmRequest('profile'));
+    const profile = await ssmRequest('profile') as {ssmWorkspace?:string};
+    const email = parseProfileEmail(profile);
+    if (!profile.ssmWorkspace) throw new Error('Tiện ích SSM cần cập nhật lên 0.3.1 rồi tải lại trang.');
+    setWorkspace(profile.ssmWorkspace);
     if (!ssmAccountAllowed(email, userEmail, getLinkedGoogleEmail())) {
       throw new Error(`Tab SSM đang đăng nhập ${email || 'tài khoản không rõ'}, khác tài khoản app ${userEmail || ''}. Đăng nhập SSM đúng mail trường của bạn.`);
     }
@@ -88,33 +93,28 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
     setPicked(guessSsmClass(className, classes)?.id ?? '');
   });
 
-  const confirmLink = () => {
+  const confirmLink = () => run('Đang lưu ghép lớp…', async () => {
     const chosen = choices?.find(c => c.id === picked);
     if (!chosen) return;
-    const newLink = { id: chosen.id, name: chosen.name };
+    const newLink = { id: chosen.id, name: chosen.name, workspace };
     // HẠNG MỤC 4: lưu đồng thời lên cloud (nếu đã đăng nhập).
-    if (userId) void saveSsmLinkCloud(userId, classId, newLink);
-    else {
-      // Fallback cũ: chỉ lưu local khi chưa có userId.
-      import('../../../lib/ssm/ssmBridge').then(m => m.saveSsmLink(classId, newLink));
-    }
+    if (!userId) throw new Error('Đăng nhập giáo viên trước khi ghép lớp.');
+    await saveSsmLinkCloud(userId, classId, newLink);
     setLink(newLink);
     setChoices(null);
     setRoster(null);
-  };
+  });
 
-  const unlink = () => {
-    if (userId) void saveSsmLinkCloud(userId, classId, null);
-    else {
-      import('../../../lib/ssm/ssmBridge').then(m => m.saveSsmLink(classId, null));
-    }
+  const unlink = () => run('Đang bỏ ghép lớp…', async () => {
+    if (!userId) throw new Error('Đăng nhập giáo viên trước khi bỏ ghép.');
+    await saveSsmLinkCloud(userId, classId, null);
     setLink(null);
     setRoster(null);
-  };
+  });
 
   const compareRoster = () => run('Đang so danh sách với SSM…', async () => {
     if (!link) return;
-    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id }));
+    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id, expectedWorkspace: link.workspace || '__relink_required__' }));
     if (unknownKeys) throw new Error(`Chưa đọc được mã học sinh từ SSM (các ô SSM trả về: ${unknownKeys.join(', ')}). Gửi dòng này cho người làm app.`);
     setRoster(matchRoster(students, ssmStudents));
   });
@@ -123,18 +123,18 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
   const syncStudentsFromSsm = () => run('Đang cập nhật danh sách từ SSM…', async () => {
     if (!link) return;
     if (!onSyncStudents) throw new Error('Chức năng đồng bộ chưa được bật cho lớp này.');
-    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id }));
+    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id, expectedWorkspace: link.workspace || '__relink_required__' }));
     if (unknownKeys) throw new Error(`Chưa đọc được mã học sinh từ SSM (các ô SSM trả về: ${unknownKeys.join(', ')}).`);
-    const existingCodes = new Set(students.map(s => s.code.trim()).filter(Boolean));
+    const existingCodes = new Set(students.map(s => s.code.trim().toUpperCase()).filter(Boolean));
     const fresh: Student[] = [];
     let added = 0;
     for (const s of ssmStudents) {
-      const code = (s.code || '').trim();
+      const code = (s.code || '').trim().toUpperCase();
       if (!code) continue;
       if (existingCodes.has(code)) continue; // đã có trong app — giữ nguyên (không ghi đè tên)
       existingCodes.add(code);
       fresh.push({
-        id: `ssm-${link.id}-${code}`,
+        id: `ssm-${link.id}-${encodeURIComponent(code)}`,
         name: s.name || code,
         code,
         progress: 0,
@@ -147,8 +147,8 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
       setRoster(matchRoster(students, ssmStudents));
       throw new Error('Danh sách đã khớp với SSM — không có học sinh mới.');
     }
-    onSyncStudents([...students, ...fresh]);
-    setRoster(matchRoster([...students, ...fresh], ssmStudents));
+    await onSyncStudents(fresh);
+    setRoster(null);
   });
 
   return (

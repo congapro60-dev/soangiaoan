@@ -61,7 +61,7 @@ export const useAuth = () => {
       try {
         await updateProfile(credential.user, { displayName: 'Khách dùng thử' });
       } catch { /* tên hiển thị không bắt buộc */ }
-      showToast('Đã vào chế độ dùng thử (tài khoản khách) — dữ liệu được lưu thật.', 'info');
+      showToast('Đã vào tài khoản khách. Nội dung bạn lưu được giữ trên hệ thống của tài khoản này.', 'info');
     } catch (err) {
       console.warn('Anonymous Auth chưa bật trong Firebase Console — dùng demo cục bộ', err);
       const mockUser: any = {

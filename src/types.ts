@@ -226,6 +226,10 @@ export interface ExamSubmission {
   tabSwitches?: number;
   /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
   clientNonce?: string;
+  /** Server or owner-teacher grading marker; public student Rules forbid writing it. */
+  publicAutoGradedAt?: string;
+  /** Client-derived warning: old unmarked essay scores need explicit teacher review. */
+  requiresScoreReview?: boolean;
   classId?: string;
   assignmentId?: string;
   attemptNumber?: number;

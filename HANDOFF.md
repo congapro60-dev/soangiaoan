@@ -5,6 +5,12 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Tiếp quản QA Muse — 14/10
+
+Muse đã dừng; người dùng giao Codex hoàn thiện. Base `a2f30d1`, nhánh `codex/muse-qa-followup`. Plan `tasks/muse-qa-followup-plan.md`, tiến độ ở đầu `tasks/todo.md`.
+
+Sửa lỗi HS chấm bị 401, điểm client chưa xác minh, quyền xem kết quả và leaderboard; SSM đúng phiên/ô/mã HS, cloud link theo UID/quyền lớp, roster ghi máy chủ trước. Vercel Hobby bật Fluid Compute hỗ trợ 300s đã xác minh; khôi phục hai endpoint AI. Full 3102/3102, Rules 308/308, lint app/API/build exit 0; native/Gemini review PASS. Firebase Rules/index deploy thành công trước push, index leaderboard READY. ZIP 0.3.1 khớp sáu file nguồn. Nguồn chưa push; CI/deployment còn kiểm. SSM chỉ điền/tô viền, không tự Lưu/Submit hoặc cài lại tiện ích; bản mới chưa QA với tiện ích Edge 0.3.1 thật.
+
 ## Trạng thái mới nhất — QA thật và main14/10
 
 - Source main `9944ae3cb2c61975eab40cd1034fda575458bbd0`; push/remote exact; Quality Gate38543907179SUCCESS; Vercel production dpl_3qta11hQqZSWUU8yYmdTbJnJL8ArREADY. Không manualVerceldeploy.

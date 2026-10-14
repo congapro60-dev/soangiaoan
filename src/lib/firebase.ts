@@ -13,6 +13,10 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-JQ4QX69VL6"
 };
 
+if (import.meta.env.DEV && !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+  console.warn('Đang dùng cấu hình Firebase mặc định của SmartPlan. Nếu kiểm thử, đặt VITE_USE_EMULATOR=1 hoặc cấu hình project Firebase riêng.');
+}
+
 /**
  * Cổng học sinh (/lop…) chạy trên app Firebase RIÊNG: phiên ẩn danh của HS lưu dưới khoá riêng,
  * không thay phiên Google của GV/admin trong cùng trình duyệt (trước đây phải đăng xuất mới vào được).

@@ -4,7 +4,9 @@
  */
 
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
+import { getLinkedGoogleEmail } from '../adminLink';
+import { ADMIN_EMAILS, isAdminEmail } from '../admin/adminConfig';
 
 export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm';
 
@@ -19,6 +21,8 @@ const NO_EXTENSION_MESSAGE =
 
 export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>, timeoutOverrideMs?: number): Promise<unknown> =>
   new Promise((resolve, reject) => {
+    const expectedEmails = [...new Set([auth.currentUser?.email, getLinkedGoogleEmail(), ...(isAdminEmail(auth.currentUser?.email) ? ADMIN_EMAILS : [])].filter((email): email is string => typeof email === 'string' && email.includes('@')).map(email => email.trim().toLowerCase()))];
+    if (op !== 'ping' && (!auth.currentUser || auth.currentUser.isAnonymous || !expectedEmails.length)) { reject(new Error('Đăng nhập tài khoản giáo viên trước khi dùng SSM.')); return; }
     const id = `ssm-${Date.now()}-${++seq}`;
     const timeoutMs = timeoutOverrideMs ?? REQUEST_TIMEOUT_MS;
 
@@ -40,7 +44,7 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>, timeoutO
     };
 
     window.addEventListener('message', onMessage);
-    window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params }, window.location.origin);
+    window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params: { ...params, expectedEmails } }, window.location.origin);
   });
 
 /** Hỏi xem tiện ích có đang chạy không. Lần đầu không trả lời thì thử lại với thời gian chờ dài hơn (đánh thức service worker). */
@@ -57,19 +61,21 @@ export const pingSsmBridge = async (): Promise<void> => {
   throw lastError;
 };
 
-const LINK_KEY = (classId: string) => `ssmClassLink:${classId}`;
+const LINK_KEY = (classId: string) => `ssmClassLink:${auth.currentUser?.uid || ''}:${classId}`;
 
 export interface SsmClassLink {
   id: number;
   name: string;
+  workspace?: string;
 }
 
 /** Lớp SSM đã ghép với lớp app — đọc từ cache trình duyệt (nhanh, offline). */
 export const readSsmLink = (classId: string): SsmClassLink | null => {
   try {
+    if (!auth.currentUser || auth.currentUser.isAnonymous) return null;
     const raw = localStorage.getItem(LINK_KEY(classId));
     const parsed = raw ? JSON.parse(raw) as { id?: unknown; name?: unknown } : null;
-    return parsed && typeof parsed.id === 'number' && typeof parsed.name === 'string' ? { id: parsed.id, name: parsed.name } : null;
+    return parsed && typeof parsed.id === 'number' && typeof parsed.name === 'string' ? { id: parsed.id, name: parsed.name, ...(typeof (parsed as {workspace?:unknown}).workspace==='string'?{workspace:(parsed as {workspace:string}).workspace}:{}) } : null;
   } catch {
     return null;
   }
@@ -78,6 +84,7 @@ export const readSsmLink = (classId: string): SsmClassLink | null => {
 /** Lưu ghép lớp vào cache trình duyệt. */
 export const saveSsmLink = (classId: string, link: SsmClassLink | null): void => {
   try {
+    if (!auth.currentUser || auth.currentUser.isAnonymous) return;
     if (link) localStorage.setItem(LINK_KEY(classId), JSON.stringify(link));
     else localStorage.removeItem(LINK_KEY(classId));
   } catch {
@@ -91,12 +98,14 @@ const cloudLinkDoc = (uid: string, classId: string) => doc(db, 'ssmClassLinks', 
 
 /** Đọc ghép lớp từ Firestore (đồng bộ giữa các máy). */
 export const readSsmLinkCloud = async (uid: string, classId: string): Promise<SsmClassLink | null> => {
+  if (!auth.currentUser || auth.currentUser.uid !== uid || auth.currentUser.isAnonymous) throw new Error('Phiên giáo viên đã thay đổi.');
   try {
     const snap = await getDoc(cloudLinkDoc(uid, classId));
+    if (!auth.currentUser || auth.currentUser.uid!==uid) throw new Error('Phiên giáo viên đã thay đổi.');
     if (!snap.exists()) return null;
-    const data = snap.data() as { ssmClassId?: unknown; ssmClassName?: unknown };
+    const data = snap.data() as { ssmClassId?: unknown; ssmClassName?: unknown; workspace?: unknown };
     return typeof data.ssmClassId === 'number' && typeof data.ssmClassName === 'string'
-      ? { id: data.ssmClassId, name: data.ssmClassName }
+      ? { id: data.ssmClassId, name: data.ssmClassName, ...(typeof data.workspace==='string'?{workspace:data.workspace}:{}) }
       : null;
   } catch {
     return null;
@@ -121,20 +130,20 @@ export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string): Pr
 
 /** Lưu ghép lớp lên Firestore + cache local. */
 export const saveSsmLinkCloud = async (uid: string, classId: string, link: SsmClassLink | null): Promise<void> => {
-  saveSsmLink(classId, link); // luôn cập nhật cache local trước
-  try {
-    if (link) {
-      await setDoc(cloudLinkDoc(uid, classId), {
-        userId: uid,
-        classId,
-        ssmClassId: link.id,
-        ssmClassName: link.name,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-    } else {
-      await deleteDoc(cloudLinkDoc(uid, classId));
-    }
-  } catch {
-    // Mất mạng: cache local vẫn giữ, lần sau có mạng sẽ đồng bộ lại.
-  }
+  if (!auth.currentUser || auth.currentUser.uid !== uid || auth.currentUser.isAnonymous) throw new Error('Phiên giáo viên đã thay đổi.');
+  if (link) await setDoc(cloudLinkDoc(uid, classId), { userId: uid, classId, ssmClassId: link.id, ssmClassName: link.name, ...(link.workspace?{workspace:link.workspace}:{}), updatedAt: new Date().toISOString() });
+  else await deleteDoc(cloudLinkDoc(uid, classId));
+  if (!auth.currentUser || auth.currentUser.uid!==uid) throw new Error('Phiên giáo viên đã thay đổi.');
+  saveSsmLink(classId, link);
+};
+/** Fill only exact fields or the single editable field GV deliberately focused on SSM. */
+export const autofillSsmFields = (fields: {key:string;value:string}[], target: 'exact' | 'focused' = 'exact') => ssmRequest('autofillSsm', {fields,target}) as Promise<{filled:number;total:number}>;
+export const syncSsmRosterMissing = async (classId: string, students: {id:string;name:string;code:string}[]) => {
+  const user = auth.currentUser;
+  if (!user || user.isAnonymous) throw new Error('Đăng nhập giáo viên trước khi đồng bộ.');
+  const response = await fetch('/api/classroom', { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'syncSsmRosterMissing',classId,students,idToken:await user.getIdToken()}) });
+  const result = await response.json();
+  if (!auth.currentUser || auth.currentUser.uid !== user.uid) throw new Error('Phiên giáo viên đã thay đổi. Tải lại danh sách lớp.');
+  if (!response.ok) throw new Error(result.error || 'Chưa đồng bộ được danh sách.');
+  return result as {students: import('../../types').Student[];added:number};
 };
