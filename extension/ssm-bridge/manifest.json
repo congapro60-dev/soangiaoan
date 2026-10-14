@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmartPlan ↔ SSM",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Cầu nối chỉ-đọc giữa app SmartPlan và SSM Edufit. Vé đăng nhập SSM không rời trình duyệt.",
   "permissions": ["storage", "tabs"],
   "host_permissions": [
@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "matches": ["https://ssm.edufit.vn/*"],
-      "js": ["ssm-session.js"],
+      "js": ["ssm-session.js", "ssm-autofill.js"],
       "run_at": "document_idle"
     },
     {
