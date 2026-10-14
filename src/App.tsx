@@ -129,13 +129,15 @@ export default function App() {
   const { savedExams, communityExams, fetchCommunityExams, saveExam: saveExamToLib, deleteExam: deleteExamFromLib, toggleShareExam } =
     useSavedExams(user);
 
+  const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
   const handleSaveExam = async (content: string, _hint: string) => {
     if (!user) { showToast('Vui lòng đăng nhập để lưu đề thi.', 'error'); return; }
     const { value: formValues } = await Swal.fire({
       title: 'Lưu đề thi vào Thư viện',
       html: `
         <input id="ex-title" class="swal2-input" placeholder="Tên đề thi (VD: Đề kiểm tra HK2 Toán 12)">
-        <select id="ex-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}</select>
+        <select id="ex-subject" class="swal2-input">${data.subjects.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('')}</select>
         <select id="ex-grade" class="swal2-input">${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select>
       `,
       focusConfirm: false,
@@ -304,11 +306,16 @@ export default function App() {
                       <div className="rounded-2xl bg-white px-3 py-2 text-xs font-bold text-emerald-700">Sẵn sàng</div>
                     </div>
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      {['Giáo án Vật lí 12', 'Đề kiểm tra Toán 10', 'Chấm tự luận Văn', 'Lộ trình cá nhân hoá'].map((title, idx) => (
+                      {[
+                        ['Giáo án Vật lí 12', '📘', 'Mẫu giáo án theo CV 5512, tự động chia hoạt động theo thời lượng.'],
+                        ['Đề kiểm tra Toán 10', '🧩', 'Ma trận đề 2 mặt, trộn câu hỏi và đáp án trong 1 click.'],
+                        ['Chấm tự luận Văn', '✍️', 'AI chấm theo rubric, gợi ý nhận xét chi tiết từng bài.'],
+                        ['Lộ trình cá nhân hoá', '🎯', 'Gợi ý bài tập theo năng lực từng học sinh.'],
+                      ].map(([title, icon, desc]) => (
                         <div key={title} className="rounded-2xl border border-white/70 bg-white p-4 shadow-sm">
-                          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{['📘', '🧩', '✍️', '🎯'][idx]}</div>
+                          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{icon}</div>
                           <p className="text-sm font-black text-[#0d1c2e]">{title}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#717782]">Tự động gợi ý bước tiếp theo, có thể chỉnh sửa trước khi xuất bản.</p>
+                          <p className="mt-1 text-xs leading-5 text-[#717782]">{desc}</p>
                         </div>
                       ))}
                     </div>
@@ -329,12 +336,12 @@ export default function App() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                ['Soạn nhanh nhưng vẫn kiểm soát', 'Tạo giáo án, tài liệu và hoạt động theo lớp, môn, tuần học.'],
-                ['Thi online & chấm AI', 'Biên soạn câu hỏi, phát hành mã thi, chấm tự luận và xuất kết quả.'],
-                ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.'],
-              ].map(([title, desc]) => (
+                ['Soạn nhanh nhưng vẫn kiểm soát', 'Tạo giáo án, tài liệu và hoạt động theo lớp, môn, tuần học.', '📝'],
+                ['Thi online & chấm AI', 'Biên soạn câu hỏi, phát hành mã thi, chấm tự luận và xuất kết quả.', '✅'],
+                ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.', '📚'],
+              ].map(([title, desc, icon]) => (
                 <div key={title} className="rounded-3xl border border-[#c0c7d3]/50 bg-white p-6 shadow-[0_4px_12px_rgba(0,94,161,0.06)] transition hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,94,161,0.12)]">
-                  <div className="mb-5 h-12 w-12 rounded-2xl bg-[#d2e4ff]" />
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d2e4ff] text-2xl">{icon}
                   <h3 className="text-lg font-black text-[#0d1c2e]">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#414751]">{desc}</p>
                 </div>
