@@ -49,8 +49,7 @@ const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m 
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
-// FIX #3: dynamic import để không kéo pptxgenjs vào bundle ban đầu
-const loadExportUtils = () => import('./utils/exportUtils');
+import * as exportUtils from './utils/exportUtils';
 import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
@@ -251,8 +250,6 @@ export default function App() {
             </div>
             <nav className="hidden items-center gap-6 text-sm font-semibold text-[#414751] md:flex">
               <a href="#features" className="hover:text-[#005ea1]">Tính năng</a>
-              <a href="#workflow" className="hover:text-[#005ea1]">Quy trình</a>
-              <a href="#community" className="hover:text-[#005ea1]">Cộng đồng</a>
             </nav>
             <div className="flex items-center gap-2">
               <button onClick={handleDemoLogin} className="hidden rounded-full border border-[#c0c7d3] px-4 py-2 text-sm font-bold text-[#414751] transition hover:border-[#005ea1]/40 hover:bg-[#eff4ff] hover:text-[#005ea1] sm:inline-flex">Dùng thử</button>
@@ -271,8 +268,8 @@ export default function App() {
                   ✨ Trợ lý AI cho giáo viên Việt Nam
                 </div>
                 <div className="space-y-5">
-                  <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-[-0.03em] text-[#0d1c2e] sm:text-5xl lg:text-6xl">
-                    Soạn giáo án, tạo đề và quản lý lớp học trong một workspace rõ ràng.
+                  <h1 className="max-w-3xl text-balance text-4xl font-black leading-tight tracking-[-0.03em] text-[#0d1c2e] sm:text-5xl lg:text-6xl">
+                    Soạn giáo án, tạo đề và quản lý lớp học trong một workspace rõ&nbsp;ràng.
                   </h1>
                   <p className="max-w-2xl text-base leading-8 text-[#414751] sm:text-lg">
                     Giao An Dewey giúp giáo viên tạo giáo án theo mục tiêu, biên soạn đề kiểm tra, xuất Word/PDF chuẩn A4, chấm tự luận bằng AI và theo dõi học tập thích ứng — giảm thao tác lặp lại, giữ chất lượng sư phạm.
@@ -345,6 +342,22 @@ export default function App() {
             </div>
           </section>
         </main>
+        <footer className="border-t border-[#c0c7d3]/50 bg-white px-4 py-8 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#005ea1] text-sm font-black text-white">D</div>
+              <div>
+                <p className="text-sm font-black text-[#005ea1]">Giao An Dewey</p>
+                <p className="text-xs text-[#717782]">© 2026 The Dewey Schools. All rights reserved.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sm font-semibold text-[#414751]">
+              <a href="#" className="hover:text-[#005ea1]">Điều khoản</a>
+              <a href="#" className="hover:text-[#005ea1]">Chính sách bảo mật</a>
+              <a href="mailto:contact@dewey.edu.vn" className="hover:text-[#005ea1]">Liên hệ</a>
+            </div>
+          </div>
+        </footer>
       </div>
     );
   }
@@ -434,8 +447,8 @@ export default function App() {
                     onXoaTienDo={ppctQueue.xoaTienDo}
                   />
                 )}
-                exportToPDF={(orientation) => loadExportUtils().then(m => m.exportToPDF(creator.currentPlan, showToast, orientation))}
-                exportToLaTeX={() => loadExportUtils().then(m => m.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen))}
+                exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
+                exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
                 onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}
                 onSaveDriveFolder={(key, folderId) => setData(prev => ({
                   ...prev,
@@ -578,7 +591,7 @@ export default function App() {
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
         downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
-        openInOverleaf={() => loadExportUtils().then(m => m.openInOverleaf(latexContent, creator.currentPlan, showToast))}
+        openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
         showToast={showToast}
       />
       <FloatingChatWidget {...chat} isLoading={isLoading} />
