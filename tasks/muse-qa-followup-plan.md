@@ -37,9 +37,9 @@ Nguồn: `C:/Users/ADMIN/Downloads/QA_FIX_PLAN_soangiaoan.md`. Người dùng x�
 - [x] Rules Firestore/Storage emulator, gồm exam marker và cloud link.
 - [x] Review khác hãng trên nguồn cuối; xử lý finding thật.
 - [x] Deploy Rules/index trước API mới để client không giả marker; index READY, không xóa index cũ.
-- [ ] Commit/push main fast-forward; CI và Git deployment, không deploy Vercel thủ công.
+- [x] Commit/push main fast-forward; source 9026b9c, CI SUCCESS, Git deployment READY. Không deploy Vercel thủ công.
 - [ ] QA production chỉ đọc GV/HS/PH khi có phiên; ghi giới hạn SSM thật/cross-machine.
-- [ ] Cập nhật plan Muse, HANDOFF, todo theo kết quả thật.
+- [x] Cập nhật plan Muse, HANDOFF, todo theo kết quả thật.
 
 ## Bằng chứng và giới hạn
 
@@ -70,3 +70,13 @@ Nguồn: `C:/Users/ADMIN/Downloads/QA_FIX_PLAN_soangiaoan.md`. Người dùng x�
 
 - Compiler compatibility final: native/Gemini review PASS; 105/105 focused tests, strict=true và strict=false API compile exit 0, build exit 0 (1m02s). Rules/UI source không đổi; không chạy lại Rules hoặc sửa timeout để né lỗi.
 - Production 3ed54c5 thực tế trên Edge: AI Tutor có tên “Mở/Đóng trợ lý AI Tutor”, expanded đổi đúng, mở/đóng đạt; không gửi prompt AI.
+
+## Nghiệm thu source cuối
+
+Source `9026b9c7f33c70154aa2019ce3c7700c8b39ff55` đã push main, remote khớp, worktree sạch trước cập nhật hồ sơ cuối. Quality Gate 38597081573 SUCCESS; API Typecheck 38597081645 SUCCESS (strict và non-strict). Vercel Git deployment dpl_UJZZVgwj4jR7G3R1CQJCHd3rxcaV READY. Log 100 event không còn error TS; còn cảnh báo memory bị bỏ qua với Active CPU billing và bundle lớn. Không deploy Vercel thủ công.
+
+Web trả 200. ZIP public 0.3.1 đủ sáu file, byte khớp nguồn Git đã commit. Local checkout Windows dùng CRLF nên so byte trực tiếp với ZIP Linux khác; so với git show commit khớp đủ sáu file.
+
+QA thật: GV Edge/IAB còn đăng nhập, ba lớp/53 HS; tab SSM hiện nút Điền ô SSM, nội dung báo giảng hướng dẫn chọn đúng textarea; AI Tutor mở/đóng đổi accessible name và expanded đúng. Không có bài thi online trên tài khoản này, không tạo/nộp bài production để lấy bằng chứng. Chưa kiểm SSM mới với extension 0.3.1 được cài, chưa cross-machine. Công cụ chặn edge://extensions; không thử đường vòng. Viewport Edge không áp kích thước yêu cầu, không coi mobile/iPad đã QA.
+
+Phần code/Rules/index/push đã hoàn tất. Phần QA SSM thật chưa đạt, giữ checkbox mở; không giao Claude một kết luận end-to-end sai.

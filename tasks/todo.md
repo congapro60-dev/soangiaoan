@@ -10,7 +10,7 @@ User xác nhận Muse đã dừng, Codex tiếp quản. Base a2f30d1, feature br
 - [x] Minor: proxy dev, demo copy đúng, AI Tutor accessibility, tương phản; không refactor god-hook chỉ vì kích thước.
 - [x] Full 3102/3102, lint app/API/build exit 0; Rules 308/308; review native/Gemini PASS. ZIP 0.3.1 đủ sáu file khớp nguồn.
 - [x] Firebase Rules/index deploy exit 0 trước API mới; index leaderboard READY, không xóa index. Cấu hình chặn giả marker được triển khai trước push.
-- [x] Push main source 3ed54c5, CI SUCCESS, Vercel Git deployment READY; ZIP public 0.3.1. GV thật đọc được; SSM không tự Save/Submit.
+- [x] Push main source cuối 9026b9c, CI SUCCESS, Vercel Git deployment READY, log hết TS2339; ZIP public 0.3.1. GV thật đọc được; SSM không tự Save/Submit.
 - [x] Cập nhật file Muse và HANDOFF/checklist theo bằng chứng; phân biệt code/test/production/SSM thật.
 - [x] Chốt sửa 15 điều kiện boolean gây TS2339 dưới compiler Vercel non-strict; compiler hai chế độ + 105 test liên quan + build/review native/Gemini đạt. CI kiểm cả hai chế độ.
 - [ ] QA Auto-Wake/điền tiện ích 0.3.1 và cross-machine thật. Công cụ chặn edge://extensions; không tự cập nhật tiện ích qua đường vòng.
