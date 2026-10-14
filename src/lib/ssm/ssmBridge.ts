@@ -6,7 +6,7 @@
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents';
+export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile';
 
 // Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
 const PING_TIMEOUTS_MS = [2000, 8000] as const;
@@ -101,6 +101,22 @@ export const readSsmLinkCloud = async (uid: string, classId: string): Promise<Ss
   } catch {
     return null;
   }
+};
+
+/**
+ * HẠNG MỤC 1 (1-Click Excel Relay): gửi file Excel điểm LO đã điền (dạng bytes)
+ * cho tiện ích để tự gắn vào ô input file trên trang SSM đang mở.
+ * Tiện ích chỉ ĐIỀN và TÔ VIỀN — giáo viên tự bấm Lưu trên SSM.
+ */
+export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string): Promise<void> => {
+  // Chuyển bytes thành base64 để gửi qua postMessage.
+  let binary = '';
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  const fileData = btoa(binary);
+  await ssmRequest('attachLoFile', { fileData, fileName });
 };
 
 /** Lưu ghép lớp lên Firestore + cache local. */
