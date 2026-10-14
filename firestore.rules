@@ -1130,6 +1130,20 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // HẠNG MỤC 4 (SSM): ghép lớp SSM của từng giáo viên. Document ID = `{uid}_{classId}`.
+    // Mỗi GV chỉ đọc/ghi được ghép lớp của chính mình.
+    match /ssmClassLinks/{linkId} {
+      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow list: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['userId', 'classId', 'ssmClassId', 'ssmClassName']);
+      allow update: if request.auth != null
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
     // Hồ sơ tích luỹ. Học sinh ĐỌC được phần của mình, không bao giờ ghi được —
     // đây là hồ sơ đánh giá năng lực, do giáo viên và máy chấm dựng nên.
     match /studentProfiles/{studentId} {
