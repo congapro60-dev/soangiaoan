@@ -109,7 +109,7 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
       const q = rows[index];
       if (!q.clarify || q.clarify.state !== 'open' || q.clarify.kind === 'photo') { rejected.push({ questionNumber: label, reason: 'Câu này đã được trả lời hoặc không cần gõ.' }); continue; }
       const canonical = canonicalAnswer(q.clarify.kind, entry.answer, q.clarify.parts);
-      if (!canonical.ok) { rejected.push({ questionNumber: label, reason: canonical.error }); continue; }
+      if (canonical.ok === false) { rejected.push({ questionNumber: label, reason: canonical.error }); continue; }
       const next = answerClarifyRow(q, canonical.value, now);
       if (next) rows[index] = { ...next, clarify: next.clarify ? { ...next.clarify, confirmedBy: actorStamp(auth.actor, now) } : undefined };
     }
@@ -164,7 +164,7 @@ const handleClarifyPhoto = async (db: Db, body: Body, res: VercelResponse, deps:
     const index = rows ? rows.findIndex(q => q.questionNumber === questionNumber) : -1;
     if (current.status !== 'graded' || !current.grade || !rows || index < 0) { refusal = 'Bài chưa chấm xong hoặc đã đổi — em tải lại trang rồi thử lại.'; return; }
     const step = startPhotoRegrade(rows[index], urls, startedAt, Date.now());
-    if (!step.ok) { refusal = step.error; return; }
+    if (step.ok === false) { refusal = step.error; return; }
     step.row = { ...step.row, clarify: step.row.clarify ? { ...step.row.clarify, confirmedBy: actorStamp(auth.actor, startedAt) } : undefined };
     const nextRows = rows.map((q, i) => (i === index ? step.row : q));
     transaction.update(ref, { grade: { ...current.grade, questionResults: nextRows }, updatedAt: startedAt });

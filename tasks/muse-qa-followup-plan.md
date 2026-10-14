@@ -61,3 +61,12 @@ Nguồn: `C:/Users/ADMIN/Downloads/QA_FIX_PLAN_soangiaoan.md`. Người dùng x�
 - Preview đúng dist trên 127.0.0.1:3016: landing không có dead link #, hero 60px trước/sau cuộn, transform none. Viewport override Edge không đổi kích thước thực (1496px), đã reset; không tính mobile/iPad PASS.
 - Còn bước commit/push main, CI/Ready và QA sau deployment. Không tuyên bố kiểm end-to-end SSM/cross-machine hoặc nộp bài thi mới trên production.
 
+
+## Sau push source 3ed54c5
+
+- Main `3ed54c5cd7bc0a466c78f9fdb7dd297d8769460c`, remote khớp. Quality Gate 38595269017 và API Typecheck 38595268822 SUCCESS. Vercel Git deployment dpl_3hyvGMyFh9R54M3NGQzeuk4PT9aL READY; web 200, ZIP public 0.3.1 gồm sáu file.
+- Vercel log còn TS2339 có sẵn do compiler không bật strictNullChecks; CI strict=true không tái hiện. `tsc --noEmit -p tsconfig.api.json --strict false` tái hiện lỗi. Sửa 15 điều kiện phân nhánh boolean sang === false/true trong 10 file API, giữ nghiệp vụ. Hai compiler config đạt; 105 test liên quan đạt. CI API thêm chế độ non-strict để khóa regression. Review Gemini PASS, review native/build cuối đang chạy.
+- Browser kiểm duyệt tự động chặn mở edge://extensions (chỉ cho HTTP/HTTPS). Không thử đường vòng, không tự cập nhật tiện ích. QA Auto-Wake/điền 0.3.1 và cross-machine còn cần tiện ích thật được cập nhật.
+
+- Compiler compatibility final: native/Gemini review PASS; 105/105 focused tests, strict=true và strict=false API compile exit 0, build exit 0 (1m02s). Rules/UI source không đổi; không chạy lại Rules hoặc sửa timeout để né lỗi.
+- Production 3ed54c5 thực tế trên Edge: AI Tutor có tên “Mở/Đóng trợ lý AI Tutor”, expanded đổi đúng, mở/đóng đạt; không gửi prompt AI.

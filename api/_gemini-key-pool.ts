@@ -163,7 +163,7 @@ export const handleGeminiPoolAdmin = async (
     if (current.some(k => k.key === key)) return { status: 409, payload: { error: 'Khoá này đã có trong danh sách.' } };
     if (current.length >= POOL_MAX_KEYS) return { status: 422, payload: { error: `Danh sách tối đa ${POOL_MAX_KEYS} khoá.` } };
     const ping = await pingKey(key, model);
-    if (!ping.ok) return { status: 422, payload: { error: ping.message } };
+    if (ping.ok === false) return { status: 422, payload: { error: ping.message } };
     const keys = await mutatePool(db, list => (list.some(k => k.key === key) || list.length >= POOL_MAX_KEYS
       ? null
       : [...list, { id: newId(), label, key, tier, enabled }]));

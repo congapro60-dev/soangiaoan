@@ -74,7 +74,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   }
 
   const parsed = parseRelayBody(readBody(req));
-  if (!parsed.ok) {
+  if (parsed.ok === false) {
     void sendError(res, parsed.status, parsed.error);
     return;
   }

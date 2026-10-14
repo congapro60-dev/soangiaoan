@@ -328,8 +328,8 @@ const callGeminiRawHeld = async (
     // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
     if (hold.vnd === 0) {
       const held = await acquireCallHoldWaiting(keyChoice, deadline);
-      if (!held.ok && held.reason === 'timeout') throw timedOutError();
-      if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
+      if (held.ok === false && held.reason === 'timeout') throw timedOutError();
+      if (held.ok === false) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
       if (held.holdVnd > 0) {
         hold.vnd = held.holdVnd;
         hold.ownerUid = keyChoice.ownerUid;

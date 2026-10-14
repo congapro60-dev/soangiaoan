@@ -241,7 +241,7 @@ export const acquireCallHoldWaiting = async (
   deadline: number | null = null,
 ): Promise<HoldResult | { ok: false; reason: 'timeout' }> => {
   let held = await acquireCallHold(choice);
-  for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+  for (let waited = 0; held.ok === false && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
     await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
     if (deadline !== null && deadline - Date.now() <= 0) return { ok: false, reason: 'timeout' };
     held = await acquireCallHold(choice);

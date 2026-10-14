@@ -152,7 +152,7 @@ export const handleGenerateImage = async (
   // Giữ chỗ tiền trước khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư (QA F3).
   const acquire = async (): Promise<number> => {
     const held = await acquireCallHoldWaiting(choice);
-    if (!held.ok) throw new AiKeyRequiredError(held.reason === 'timeout' ? 'no_balance' : held.reason, choice.ownerUid);
+    if (held.ok === false) throw new AiKeyRequiredError(held.reason === 'timeout' ? 'no_balance' : held.reason, choice.ownerUid);
     return held.holdVnd;
   };
   let holdVnd = await acquire();

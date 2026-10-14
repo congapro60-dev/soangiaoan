@@ -347,7 +347,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
       return true;
     }
     const probe = await probeGeminiKey(key);
-    if (!probe.ok) {
+    if (probe.ok === false) {
       res.status(422).json({ error: probe.message });
       return true;
     }
@@ -364,7 +364,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
     await ref.set({ uid: me.uid, email: me.email, monthlyCapVnd: cap > 0 ? cap : null, capUpdatedAt: now, updatedAt: now }, { merge: true });
   } else if (action === 'redeemVoucher') {
     const result = await redeemVoucher(db, me.uid, me.email, String(body.code || ''));
-    if (!result.ok) {
+    if (result.ok === false) {
       res.status(422).json({ error: result.error });
       return true;
     }

@@ -106,7 +106,7 @@ export const callVendor = async (call: VendorCall): Promise<VendorResult> => {
 
   const choice = await ensureGeminiKey(call.apiKey, { vendor: true });
   const held = await acquireCallHoldWaiting(choice, deadline);
-  if (!held.ok) {
+  if (held.ok === false) {
     if (held.reason === 'timeout') throw timedOut();
     throw new AiKeyRequiredError(held.reason, choice.ownerUid);
   }

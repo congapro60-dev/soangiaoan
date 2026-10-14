@@ -9,7 +9,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 Muse đã dừng; người dùng giao Codex hoàn thiện. Base `a2f30d1`, nhánh `codex/muse-qa-followup`. Plan `tasks/muse-qa-followup-plan.md`, tiến độ ở đầu `tasks/todo.md`.
 
-Sửa lỗi HS chấm bị 401, điểm client chưa xác minh, quyền xem kết quả và leaderboard; SSM đúng phiên/ô/mã HS, cloud link theo UID/quyền lớp, roster ghi máy chủ trước. Vercel Hobby bật Fluid Compute hỗ trợ 300s đã xác minh; khôi phục hai endpoint AI. Full 3102/3102, Rules 308/308, lint app/API/build exit 0; native/Gemini review PASS. Firebase Rules/index deploy thành công trước push, index leaderboard READY. ZIP 0.3.1 khớp sáu file nguồn. Nguồn chưa push; CI/deployment còn kiểm. SSM chỉ điền/tô viền, không tự Lưu/Submit hoặc cài lại tiện ích; bản mới chưa QA với tiện ích Edge 0.3.1 thật.
+Sửa lỗi HS chấm bị 401, điểm client chưa xác minh, quyền xem kết quả và leaderboard; SSM đúng phiên/ô/mã HS, cloud link theo UID/quyền lớp, roster ghi máy chủ trước. Vercel Hobby bật Fluid Compute hỗ trợ 300s đã xác minh; khôi phục hai endpoint AI. Full 3102/3102, Rules 308/308, lint app/API/build exit 0; native/Gemini review PASS. Firebase Rules/index deploy trước push, index leaderboard READY. Source `3ed54c5` đã push main, CI SUCCESS, Git deployment READY; ZIP public 0.3.1 khớp sáu file. Đã sửa thêm 15 điều kiện boolean để compiler Vercel non-strict hết TS2339 có sẵn; hai chế độ compiler, 105 test liên quan, build và review native/Gemini đạt; CI kiểm cả hai chế độ. SSM chỉ điền/tô viền, không tự Lưu/Submit. Công cụ chặn edge://extensions; tiện ích mới chưa được cập nhật/QA thật, cross-machine chưa kiểm.
 
 ## Trạng thái mới nhất — QA thật và main14/10
 
