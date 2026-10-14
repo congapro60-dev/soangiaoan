@@ -5,26 +5,20 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Bản chấm trên ảnh / nộp hộ / bài chữa — 14/10/2026
+## Trạng thái mới nhất — QA thật và main14/10
 
-- User đã duyệt implementation+commit/pushmain;14/10 yêu cầu làm nốt phần còn lại, authorized Firestore+StorageRules deploy. Không manual Vercel deploy/promote.
-- Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, branch `codex/student-submitted-photos`, base7d7c889. Preserve WIP; source writers frozen.
-- Plan `tasks/annotated-review-proxy-plan.md`; checklist `tasks/todo.md`; evidence `tasks/qa-annotated-review-20261014.md`.
-- Viewer đủ màu/filter/tổng+điểm câu; shared detail/lời giải mọi câu/TF a–d; math sửa prose KaTeX/ngắt bước. Cache theo bài/mã đề/version, giữ GV edits. Bài cũ cần nút GV tạo lời giải, không AI-on-view.
-- GV/HS/PH nộp/xác nhận ảnh bất kỳ lúc nào nếu chưa **Khóa chốt**. Hardlock transactional+Rules; grade/approvalGV vẫn hoạt động; online giữ luồng riêng.
-- PH PIN tự đặt; grants actor/purpose/target/expiry/type/size/generation; accepted-homework immutable. Direct client submission writes denied. Revision không ghi đè bài cũ.
-- HS feedback theo bài/câu, GV đọc/trả lời/sửa điểm; mộtform mỗi attempt, drafts, exactattemptnotification. Lock không chặn trao đổi.
-- HS **Chụp ảnh bài chữa**, lưu lịch sử riêng, explicit Đánh giá bài chữa: nhận xét GV chi tiết sửa được gì/why, lỗi từngbước+why/cách sửa, việc luyện tiếp.3nhãn chỉ kết luận; không đổi grade/sổ/năng lực.
-- Correction retry expired/malformedlease, invalidate oldverdict khi GV sửa original/solution; context ảnh gốc+clarify+current sharedsolution, budget recomputed sau key/quota.
-- HS/PH directuploadbuttons ngoài list, deadline ngày+giờ/ontime/late/imminent24h,20rows; PH same-rowretry+scroll,0horizontaloverflow.
-- Checks: latestCI5f1380e full3029/3029(286files)SUCCESS; Rules306/306(9files)exit0; nativefinal41+UI39, Gemini backend/grading/correction PASS; UI2falsefindings independently rejected; browser29checks390/820/1024fixture0pageerrors. Lint app/API/build cuối exit0; index1545.01kB, cảnh báo bundle lớn có sẵn.
-- Browser production session không truy cập được: browserplugin absent, ComputerUse nativepipeoserror2 qua retry/reset. Fixtures/marks/AIstub không chứng minh liveAIquality hoặc realaccountsQA.
-- Model thật3.8Flash-low +exported correctionprompt/3 syntheticimagecases achieved/needs_work/uncertain đều đúng; feedback826/859/299ký tự, khôngscore. Evidence tasks/qa-correction-live-model-20261014.md; không thay realaccountsQA.
-- GeminiUI code dùng3.8Flash-low; Argon official ID có nhưng router keyinvalid/ag404. Không đổi config hoặc dùngpaidAPI mới.
-- **Firestore+Storage Rules đã deploy** smartplan-ai-14200 exit0 sau API5f1380e Ready. Smoke homepage200/correctionunauth401/directFirestore403. User chọn cloudbrowser TinyFish, báoSaved; run000c44e4 thấylogin/guest, không tài khoảnGV/lớp thật. User xác nhận save-before-login, rootcause missinglogin. Mở lại setup; chờ loginGoogle/lớp thật→Save. Không đổi authcode. QA thật đang chờ phiên; IAB vẫn lỗi: user đã bật lại Browser nhưng runtime vẫn không cấp tool; ComputerUsepipeoserror2.
-- Bridge14/10 không có live Claude Desktop session; không tạo/gửi phiên thay thế.
-- Bridge thread `01a123b1-a378-73b1-9aa4-685e5b67efaa`, peer `codex-01a123b1`; không gửi sang phiên gần giống. Sharedfiles là nguồn bàn giao.
-- Cổng local đạt; source đã push main `024a5a864c0135993b13903b57067936d9c43a5f`, remote khớp, push exit0. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. API Typecheck38507174194+QualityGate38507174122 SUCCESS; Vercel giaoandewey Git auto deployment SUCCESS. Rules hoàn tất; realaccountsQA chưa hoàn tất.
+- Source main `9944ae3cb2c61975eab40cd1034fda575458bbd0`; push/remote exact; Quality Gate38543907179SUCCESS; Vercel production dpl_3qta11hQqZSWUU8yYmdTbJnJL8ArREADY. Không manualVerceldeploy.
+- Firestore+StorageRules đãdeploy smartplan-ai-14200 theo yêu cầu làmnốt. Authsmoke200/401/403 đạt.
+- Browser26.1007.71326 đãkhôi phục IABGV/HS/PH thật; không tiếp tụcTinyFishguest. Không cần đọcPIN/cookies/tokens.
+- QA native3Thi thửgiữaHKI mẫu: geometrysaved vàgrade/approval4/5.9/8.5giữ nguyên. Lời giải chung10=19/19,11=22/22,12=22/22; đầy đủ TF4ý trên mẫuđọc. Cachemissing11resolvedafterMarkdownTFparse+regen.
+- Ảnh có vòng khoanh xanh/vàng/đỏ, inactive8pxdots active24px, filter/clickexactquestion; không mô phỏng nét bút tay.14marks10page1/17marks11page1/22marks12image; skipblank/ignored/uncertainlocation.
+- Mathcentralfencefix: raw$$begin{aligned}metadata bug; actualGV22/22matherrors0, HSselectedTFmatherrors0; proof390/820nohorizontaloverflow. Source preserves every formula/prose andlegacytests.
+- Scorebook/stats/competencies/publishedSepreport/ownimage/draftretain/singleformsHS actualpass. PHactualreport+11assignments/deadline/search/directsupplementformscroll+img+colorfilterpass. No actualnewsubmission/correctionupload/feedbackmessage sent.
+- Historicalgeometryonlyaction GV preserves points/approval/teacherEdits; catalogsource120s within300s fixedactual45stimeout; cachedsolutionsread doesn'tAIcall. Staleclasscallback taiBaientryguard1line preventsnewclassspinner.
+- Checks: full3073/3073,288files; lintapp/API/buildexit0; Rules306prior+deploycompiled; native+GeminireviewsPASS; realcontent/sourceAIchecked. VercelbuildlogslegacyTS2339uniondiagnosticsremain thoughReady/projectAPItypecheckpasses; don'tclaimallbuildlogclean.
+- Remaining QA limit: newcorrectionupload→AIreview andHSfeedbacksend→GVreply not written onproduction. ExistingAPI/unit+3syntheticlivemodelcases pass; no authenticcorrectionimage supplied, no falseend-to-endclaim.
+- Plan `tasks/annotated-review-proxy-plan.md`; checklist `tasks/todo.md`; full evidence `tasks/qa-annotated-review-20261014.md`; screenshots local `visualizations/.../production-review-20261014/`, no sensitiveURLs/PIN inGit.
+- Worktree4c87 branchcodex/student-submitted-photos; sourcewritersfrozen. Bridge no liveClaude atlastcheck; peerthread01a123b1-a378-73b1-9aa4-685e5b67efaa /codex-01a123b1. Docs sharedforhandoff.
 
 ## Nhiều khoá Gemini trong Cài đặt (giáo viên tự gom hạn mức free) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
 

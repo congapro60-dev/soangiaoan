@@ -19,7 +19,7 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] CI latest5f1380e full3029/3029(286files) và lint SUCCESS.
 - [x] Prompt bài chữa với model thật+3ca ảnh tự tạo: achieved826ký tự, needs_work859, uncertain299; không score. Evidence tasks/qa-correction-live-model-20261014.md.
 - [x] Appupdate26.1007.71326 khôi phục Browser IAB; GV thật3lớp, HS11sessionretained, read-onlyscreens/filters/scoreboard/stats/portfolio/reports/drafts/nooverflow390/820 đạt.
-- [ ] QA phát hiện bài cũ3khối chưa geometry/lời giải đầy đủ; prepareWorkedSolutions12timeoutcatalog45s. Backendwriter sửadeadline+GVgeometry-onlyaction; UIwriterbutton+partialcoverage. Không regrade/đổiđiểm.
+- [x] Historical3samplesgeometry+3assignmentcommoncachefilled; catalogtimeoutfixed; no regrade/scoreapprovalchange.
 - [x] Historicalfix sourcegate: full3040/3040(288files),focused24/native21/UI3,lintapp/API/build exit0, GeminihistoricalPASS; Rulesunchanged.
 - [x] Sourcef58109a pushmainexit0remoteSHAexact; APItypecheckSUCCESS.
 - [x] f581Gitdeploy+CIReady;3geometrysamplesrealannotationssaved, grades4/5.9/8.5remainapproved. Caches10=19/19,12=22/22,11=18/22missing4TF. HS/PH11see17marks.
@@ -28,7 +28,9 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] 947fcQualityGate38541940949SUCCESS.
 - [x] 947fcgiaoandeweyREADY+CI; realKaTeXerrors0all22grade12/22grade11; viewer17ellipses16dots1numbered, HS390nooverflow/matherrors0.
 - [x] TF11regen22/22ready including4missing, actual4stepdetailedreadsameGV/HS.
-- [ ] Staleclassrefreshone-lineguardpushafterlint/buildpassed; autoReadyverify.
+- [x] Staleclassrefreshone-lineguard9944ae3pushremoteexact,lint/buildpassed.
+- [x] 9944QualityGate38543907179SUCCESS; remote main9944ae3exact.
+- [x] 9944giaoandeweyGitautodeployREADY dpl_3qta11hQqZSWUU8yYmdTbJnJL8Ar,productionaliasReady;CI/remoteexact.947fc viewer/mathnativeproofverified.
 - [x] PHthậtcùngHS11: report+11assignments/search/deadline/directsupplementform/scroll/image/nooverflow820 đạt; chưaupload.
 - [ ] Bài chữaHS upload/eval vàfeedbacksendchưatestendtoend (không có bài chữa thực tế được chọn).
 

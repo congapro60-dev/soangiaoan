@@ -150,3 +150,39 @@ Grade10cache19/19ready/14ellipsespage1 withscore4/10approved; grade12cache22/22/
 
 Vercel deploymentdpl_F9XrnX4CAxZaMS91KBmMQ4cWgDQcREADY targetproduction+alias giaoandewey, GitstatusbothSUCCESS. LatestmathnativeGrade12editor22/22present, KaTeXerrors0 (previous8); grade11regen22/22 including4TFmissingresolved, editorerrors0. Grade11viewer17ellipses16smallinactive1numberedactive, exactmark13TF1opensdetailed4substeps; sourceformatmath0errors,width820/820. HSfreshreloadauthretained:17ellipses16dots, detailedsameTF4steps, math0errors,width390/382.
 OneadditionalonChangedstaleclasscallbackbug: rootstartcache11→switchclass12→cache11finishesoldtaiBai11setsDangTaitrue thenclassguardfinallyskipclear =>class12spinnerforever. Existingclassresultmergeguardpreventswrongdata butbusyguardmissing. One-lineearlyrefclasscheckaddedto taiBai beforebusy. Nativeconfirmedsourcefailure andscope; lint+buildexit0 `%TEMP%/historical-stale-guard-build.log`, no extraAPI/Rules. Currentoldsource947fcdoesnotincludethisline; separatepushnext. No needgenerationagainon3classes foroneguard.
+
+## Final QA Sign-off Report — realGV/HS/PH14/10
+**Status:** CONDITIONAL (production read/view passes; actual new correction upload+review and feedback send/reply not exercised)
+
+### 1. Pre-flight Checks
+- Source main9944ae3 after947fc math/viewer/TF andf581 historicalonlygeometry. Rulesdeployed firebasestorage+firestore14/10.
+- Latestfull3073/3073,288files; lintapp/API/buildexit0. Singleentryguardafterfull hasfreshlint/buildexit0. CI/deployment9944pending at snapshot;947fcReady+CIpassed.
+- Bundle index1545.70KB; existingacceptedbaseline warning remains.
+
+### 2. Module Verification (Env: Prod, real sessions)
+| Module | Result | Evidence |
+|---|---|---|
+| GV grades10/11/12photo viewer | PASS selectedsamples | coloroverlays,filters,total/questionpoints,realphotos; originalscores4/5.9/8.5approvedunchanged |
+| Commonworkedsolutions3assignments | PASS fieldcoverage |10=19/19,11=22/22,12=22/22;TFa–d+detailedsteps, fetchedsharedcache |
+| Mathrender final | PASS checked real content |GV12all22zeroerrors;GV11all22zeroerrors;actualrenderer10/11fixtureszero;HSselectedTFzeroerrors |
+| HS existing11session | PASS read/view |directuploadbuttons/deadlines,scorebook/stats/competencies/publishedSepreport,ownimage/17marks,draftretain+samequestionselect,singleforms |
+| PH existing11child | PASS read/view/form |11assignments,deadline/search,supplementformscrolltop184,image17colors; markclickquestionmatch;filterredonly5marks |
+| Mobile/iPad | PASS checked390/820 |widthnohorizontaloverflow;active24px/inactive8pxdots;Math0onselectedHS/lateGV |
+| NewcorrectionAI+feedbackwrite | NOT RUN real writes |unitAPItests+live3syntheticpromptcases passed; no authentic correctionprovidedforproductionupload |
+
+### 3. Remaining limits
+- Productioncoordinates best-effort: skipblank/ignored/manualremoved; page1counts10=14,11=17,12=22, otherpageslinked. Nativeeyeballs correctMCQanswercolumn+TFgroups; not formalallstudents/mathematics certification.
+- Imageannotations are coloroverlayrings/dots, not humanfreehandwriting. Existingotherstudentimages needthehistoricalbutton; newlygradedworkusesAIgeometry.
+- SharedcachedoesnotmeanAIreasoninguniversallycorrect; GVcanread/edit. MissingTFpreviously18/22resolvedbyregenafterparserMarkdownsupport, exactoriginalrejectedrawnotavailable so rootcauseformatwasnotclaimedconfirmed.
+- VercelbuildlogslegacyTS2339wallet/hold/clarifyspecificallyrecordeddespiteprojectlint:apiPASS; Readyisnotzerowarningproof.
+- Singleclasscallbackentryguard nativebugfixed;9944Gitautodeployment pending at snapshot.
+
+### 4. Production Actions & Cleanup
+- Writes: commonassignmentcachefor3approvedThi thửGHKI; geometryonly3selectedgradedsubmissions. No regrade,scoreapprovalchange,class/rosterchange,feedbackmessage,correctionupload or deletion.
+- LocalHS54charQAfeedbackdraft retained then cleared. No unwanteduserdraftremoved.
+- PIN/privateURLs/identitynotincludedinGitfixtures. Screenshotproof uservisible photos storelocallyundervisualizationsproduction-review-20261014, notcommitted.
+- Reviewer:Codex with nativeindependent+Gemini source checks. Read/viewQA now actualaccounts, supersedes formerbrowserblockedstatus.
+
+9944QualityGate38543907179SUCCESS; Vercelgiaoandeweyguarddeploymentbuilding4min snapshot, otherprojectSUCCESS. Viewer/mathliveproof947fcReady remainsvalidsource; UIgeometry/cache3assignments readydataevenafterguard. Sourceguard not assumeddeployed.
+
+Final9944productionguarddeploymentdpl_3qta11hQqZSWUU8yYmdTbJnJL8ArREADY targetproduction, GitstatusbothSUCCESS; QualityGateSUCCESS. No manually triggered Vercel deploy. Native content/coordinates/maths verified947fc data unchangedbyguard1line. No falseproductiongrades/AIcorrectionwrite signoff.
