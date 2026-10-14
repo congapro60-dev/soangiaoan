@@ -3,6 +3,9 @@
  * App không bao giờ cầm vé đăng nhập SSM: tiện ích tự lấy phiên trong tab SSM, gọi API, chỉ trả JSON.
  */
 
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+
 export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents';
 
 // Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
@@ -56,8 +59,13 @@ export const pingSsmBridge = async (): Promise<void> => {
 
 const LINK_KEY = (classId: string) => `ssmClassLink:${classId}`;
 
-/** Lớp SSM đã ghép với lớp app — lưu trên trình duyệt của từng giáo viên. */
-export const readSsmLink = (classId: string): { id: number; name: string } | null => {
+export interface SsmClassLink {
+  id: number;
+  name: string;
+}
+
+/** Lớp SSM đã ghép với lớp app — đọc từ cache trình duyệt (nhanh, offline). */
+export const readSsmLink = (classId: string): SsmClassLink | null => {
   try {
     const raw = localStorage.getItem(LINK_KEY(classId));
     const parsed = raw ? JSON.parse(raw) as { id?: unknown; name?: unknown } : null;
@@ -67,11 +75,50 @@ export const readSsmLink = (classId: string): { id: number; name: string } | nul
   }
 };
 
-export const saveSsmLink = (classId: string, link: { id: number; name: string } | null): void => {
+/** Lưu ghép lớp vào cache trình duyệt. */
+export const saveSsmLink = (classId: string, link: SsmClassLink | null): void => {
   try {
     if (link) localStorage.setItem(LINK_KEY(classId), JSON.stringify(link));
     else localStorage.removeItem(LINK_KEY(classId));
   } catch {
     // Trình duyệt chặn lưu trữ: lần sau giáo viên chọn lại lớp, không mất dữ liệu gì.
+  }
+};
+
+// ── HẠNG MỤC 4: Cloud Sync — lưu ghép lớp lên Firestore để đổi máy không phải ghép lại ──
+
+const cloudLinkDoc = (uid: string, classId: string) => doc(db, 'ssmClassLinks', `${uid}_${classId}`);
+
+/** Đọc ghép lớp từ Firestore (đồng bộ giữa các máy). */
+export const readSsmLinkCloud = async (uid: string, classId: string): Promise<SsmClassLink | null> => {
+  try {
+    const snap = await getDoc(cloudLinkDoc(uid, classId));
+    if (!snap.exists()) return null;
+    const data = snap.data() as { ssmClassId?: unknown; ssmClassName?: unknown };
+    return typeof data.ssmClassId === 'number' && typeof data.ssmClassName === 'string'
+      ? { id: data.ssmClassId, name: data.ssmClassName }
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Lưu ghép lớp lên Firestore + cache local. */
+export const saveSsmLinkCloud = async (uid: string, classId: string, link: SsmClassLink | null): Promise<void> => {
+  saveSsmLink(classId, link); // luôn cập nhật cache local trước
+  try {
+    if (link) {
+      await setDoc(cloudLinkDoc(uid, classId), {
+        userId: uid,
+        classId,
+        ssmClassId: link.id,
+        ssmClassName: link.name,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    } else {
+      await deleteDoc(cloudLinkDoc(uid, classId));
+    }
+  } catch {
+    // Mất mạng: cache local vẫn giữ, lần sau có mạng sẽ đồng bộ lại.
   }
 };
