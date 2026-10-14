@@ -43,7 +43,8 @@ export default defineConfig(({mode}) => {
             'ai-sdks': ['@google/genai', '@anthropic-ai/sdk', 'openai'],
             'ui-vendor': ['sweetalert2', '@uiw/react-md-editor'],
             'export-utils': ['html2canvas-pro', 'jspdf', 'xlsx', 'mammoth'],
-            'charting': ['recharts', 'three']
+            'charting': ['recharts'],
+            'three': ['three']
           },
         },
       },
