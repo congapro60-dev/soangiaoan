@@ -163,3 +163,11 @@ describe('buildStudentFeed · máy hỏi lại học sinh', () => {
     expect(item.body).not.toContain('0/10');
   });
 });
+
+it('phản hồi mới gắn đúng lượt cũ và bài; đọc rồi không còn needsAction', () => {
+  const work = { id: 'older-attempt', assignmentId: 'a', status: 'graded', createdAt: '2026-10-01T00:00:00Z', grade: { teacherApproved: true, score: 8, maxScore: 10 }, feedbackSummary: { pending: 0, replies: 1, lastReplyAt: '2026-10-14T01:00:00Z' } } as SubmissionDoc;
+  const items = buildStudentFeed({ submissions: [work], assignments: [], notifications: [] });
+  const reply = items.find(item => item.kind === 'feedback_reply');
+  expect(reply?.assignmentId).toBe('a'); expect(reply?.submissionId).toBe('older-attempt'); expect(reply?.needsAction).toBe(true);
+  expect(buildStudentFeed({ submissions: [{ ...work, feedbackReadAt: '2026-10-14T01:00:00Z' }], assignments: [], notifications: [] }).find(item => item.kind === 'feedback_reply')?.needsAction).toBe(false);
+});

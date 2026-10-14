@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { QuestionResult } from '../../../lib/classroom/types';
-import { SubmissionPhotoReview } from './SubmissionPhotoReview';
+import { validPhotoRegion, SubmissionPhotoReview } from './SubmissionPhotoReview';
 
 const view = vi.hoisted(() => ({ active: null as number | null }));
 vi.mock('react', async original => ({
@@ -28,7 +28,7 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(html).toContain('cx="25"');
     expect(html).toContain('cy="25"');
     expect(html).toContain('Dấu 1 · Câu 2');
-    expect(html).toContain('Ẩn dấu đỏ');
+    expect(html).toContain('Ẩn dấu trên ảnh');
     expect(html).toContain('Mở bản gốc');
   });
   it('không lộ dấu hoặc lời chữa trước duyệt; GV thấy gợi ý AI', () => {
@@ -48,12 +48,13 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(render([row(invalid)])).not.toContain('<ellipse');
     expect(render([row(invalid)])).toContain('<img');
   });
-  it('không đánh dấu câu đúng, bỏ trống hoặc bỏ qua theo lệnh GV', () => {
-    const results = [row([mark], { status: 'correct' }), row([mark], { status: 'not_attempted' }),
-      row([mark], { ignoredByTeacherInstruction: true }), row([mark], { studentAnswer: '' })];
-    expect(render(results)).not.toContain('<ellipse');
-  });
-  it('không hiện dấu đã loại hoặc đang chờ làm rõ ngay cả ở luồng GV', () => {
+  it('đúng xanh, một phần vàng, sai đỏ; bỏ qua không đánh dấu', () => {
+    const results = [row([mark], { status: 'correct' }), row([mark], { status: 'partially_correct' }), row([mark]), row([mark], { ignoredByTeacherInstruction: true }), row([mark], { studentAnswer: '' })];
+    const html = render(results);
+    expect(html.match(/<ellipse/g)).toHaveLength(3);
+    for (const color of ['#059669', '#d97706', '#dc2626']) expect(html).toContain(`stroke="${color}"`);
+    for (const label of ['Tất cả', 'Đúng', 'Đúng một phần', 'Cần sửa', 'Cần đối chiếu']) expect(html).toContain(label);
+  });  it('không hiện dấu đã loại hoặc đang chờ làm rõ ngay cả ở luồng GV', () => {
     const results = [row([mark], { photoMarksCleared: true }), ...['open', 'photo_saved', 'regrading'].map(state =>
       row([mark], { clarify: { kind: 'photo', state, reading: '' } }))];
     expect(render(results, true, true)).not.toContain('<ellipse');
@@ -66,15 +67,40 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(html).not.toContain('<svg');
     expect(html).not.toContain('PRIVATE');
   });
-  it('mở đúng một lời chữa, không thêm điểm, vẫn không lộ khi chưa duyệt', () => {
+  it('mở đúng một lời chữa và điểm câu, vẫn không lộ khi chưa duyệt', () => {
     view.active = 0;
     const rows = [row([mark], { score: 99, maxScore: 100 }), row([mark], { correction: 'OTHER CORRECTION' })];
     const html = render(rows);
     expect(html).toContain('PRIVATE EXPLANATION');
     expect(html).toContain('PRIVATE CORRECTION');
     expect(html).not.toContain('OTHER CORRECTION');
-    expect(html).not.toContain('99/100');
+    expect(html).toContain('99/100');
     expect(html).toContain('Quay lại ảnh');
     expect(render(rows, false)).not.toContain('PRIVATE');
+  });
+  it('tổng lấy cả grade, bài định kì chỉ nhãn AI, chưa duyệt không lộ tổng', () => {
+    const grade = { score: 8, maxScore: 10, teacherApproved: true } as NonNullable<import('../../../lib/classroom/types').SubmissionDoc['grade']>;
+    const html = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} alt="Bài" approved grade={grade} questionResults={[row([mark], { score: 1, maxScore: 2 })]} />);
+    expect(html).toContain('Tổng điểm: 8/10');
+    expect(html).toContain('1/2');
+    const hidden = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} alt="Bài" grade={grade} questionResults={[row([mark])]} />);
+    expect(hidden).not.toContain('8/10');
+    const periodic = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} alt="Bài" approved grade={grade} hideScores questionResults={[row([mark], { score: 1, maxScore: 2 })]} />);
+    expect(periodic).toContain('Phân tích AI'); expect(periodic).not.toContain('8/10'); expect(periodic).not.toContain('>1/2<');
+  });
+  it('vùng đọc chưa chắc nét đứt, không lộ đáp án/lời giải; thiếu vùng vẫn chọn được câu', () => {
+    view.active = 0;
+    const question = row([], { status: 'unreadable', expectedAnswer: 'SECRET KEY', workedSolution: 'SECRET SOLUTION', readingRegions: [mark], clarify: { kind: 'mcq', state: 'open', reading: 'B' } });
+    const html = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} alt="Đối chiếu" pending questionResults={[question]} />);
+    expect(html).toContain('stroke-dasharray="5 3"'); expect(html).toContain('Máy đọc được'); expect(html).not.toContain('SECRET'); expect(html).not.toContain('PRIVATE');
+    const absent = render([row([], { workedSolution: 'Lời giải đã xác minh' })]);
+    expect(absent).toContain('Câu 2'); expect(absent).not.toContain('<ellipse'); expect(absent).toContain('Chưa có vị trí đủ chắc');
+  });
+  it('chọn câu gắn trang đúng; không tạo tọa độ từ index không có URL', () => {
+    const other = 'https://example.test/page2.jpg';
+    const question = row([{ ...mark, imageUrl: other, imageIndex: 2 }]);
+    const html = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} imageUrls={[url, other]} selectedQuestion="Câu 2" alt="Bài" approved questionResults={[question]} />);
+    expect(html).toContain('Trang ảnh'); expect(html).toContain('2/2'); expect(html).toContain('PRIVATE EXPLANATION');
+    expect(validPhotoRegion({ ...mark, imageUrl: undefined }, [url])).toBe(false);
   });
 });

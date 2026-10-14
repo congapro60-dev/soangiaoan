@@ -218,7 +218,7 @@ describe('sanitizeDisplayText — production-like hình học không có delimit
     const out = sanitizeDisplayText('Vì ta có \\frac{x}{y} = 1 nên kết luận đúng.');
 
     expect(out).toContain('Vì ta có ');
-    expect(out).toContain('$\\frac{x}{y} = 1$');
+    expect(out).toContain('$\\displaystyle \\frac{x}{y} = 1$');
     expect(out).toContain(' nên kết luận đúng.');
     expect(out).not.toContain('$Vì');
   });
@@ -249,4 +249,31 @@ describe('sanitizeDisplayText — production-like hình học không có delimit
     expect(out).toContain('$\\Rightarrow$');
     expect(sanitizeDisplayText('Học sinh in bài rồi.')).toBe('Học sinh in bài rồi.');
   });
+});
+
+ describe('mixed prose screenshot regression', () => {
+  it('keeps Vietnamese prose outside math, wraps individual relations, stays idempotent', () => {
+    const input = 'Sửa ý a thành: Sai (vì A có hoành độ x=1, tung độ y=5).';
+    const expected = 'Sửa ý a thành: Sai (vì A có hoành độ $x=1$, tung độ $y=5$).';
+    expect(sanitizeDisplayText(input)).toBe(expected);
+    expect(sanitizeDisplayText(expected)).toBe(expected);
+  });
+  it('keeps prose after bare commands and repairs odd delimiters conservatively', () => {
+    for (const input of [String.raw`Ta tính \frac{1}{2} rồi kết luận.`, String.raw`Ta tính $\frac{1}{2} rồi kết luận.`]) {
+      const out = sanitizeDisplayText(input);
+      expect(out).toContain(' rồi kết luận.');
+      expect(out).not.toContain('$Ta');
+      expect(assertClean(out)).toBe(true);
+      expect(sanitizeDisplayText(out)).toBe(out);
+    }
+  });
+});
+
+it('golden bare algebra and command expressions keep their mathematical boundaries', () => {
+  for (const input of [String.raw`x=2+3=5`, String.raw`x=\frac{1}{2}`, String.raw`\(x=2\)`, String.raw`\[x=2\]`, String.raw`Giá trị x=2 nên y=3.`]) {
+    const out = sanitizeDisplayText(input);
+    expect(assertClean(out)).toBe(true);
+    expect(sanitizeDisplayText(out)).toBe(out);
+    expect(out).not.toContain('$Giá');
+  }
 });

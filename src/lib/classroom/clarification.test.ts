@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyKindFor, failPhotoRegrade,
-  finishPhotoRegrade, hasStudentWriting, isActionableClarifyQuestion, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
+  hideWhileAwaitingClarification, answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyKindFor, failPhotoRegrade,
+  finishPhotoRegrade, hasStudentWriting, isActionableClarifyQuestion, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade, sanitizeClarify,
 } from './clarification';
 import type { QuestionResult } from './types';
 
@@ -11,6 +11,11 @@ const row = (patch: Partial<QuestionResult> = {}): QuestionResult => ({
 });
 
 describe('câu máy đọc chưa chắc', () => {
+  it('keeps safe confirmation provenance without UID, PIN or unrelated fields', () => {
+    const confirmedBy = { role: 'parent', studentId: 'student-1', at: '2026-10-14T01:00:00.000Z', uid: 'private-uid', pin: 'private-pin', nested: { secret: 'private' } };
+    expect(sanitizeClarify({ kind: 'mcq', state: 'answered', reading: 'B', confirmedBy })?.confirmedBy).toEqual({ role: 'parent', studentId: 'student-1', at: '2026-10-14T01:00:00.000Z' });
+    for (const invalid of [{ ...confirmedBy, role: 'admin' }, { ...confirmedBy, studentId: '../other' }, { ...confirmedBy, at: 'invalid' }]) expect(sanitizeClarify({ kind: 'mcq', state: 'answered', reading: 'B', confirmedBy: invalid })?.confirmedBy).toBeUndefined();
+  });
   it('không hỏi câu trống/placeholder, nhưng vẫn hỏi phần bài làm thực sự đọc được', () => {
     for (const studentAnswer of ['', 'Bỏ trống', '(Bỏ trống: không thấy bài)', 'Không đọc rõ nét chữ', 'chưa làm', 'not attempted']) {
       const q = row({ studentAnswer, status: 'unreadable', clarify: { kind: 'photo', state: 'open', reading: studentAnswer } });
@@ -186,4 +191,24 @@ describe('tự luận: chụp lại từng câu', () => {
     const failed = failPhotoRegrade(regrading, 'c');
     expect(failed.clarify).toMatchObject({ state: 'photo_saved', photoUrls: ['u1'] });
   });
+});
+
+it('pending projection exposes only neutral bound location, never solution or grading marks', () => {
+  const region = { imageIndex: 1, imageUrl: 'own', x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const old = row({ studentAnswer: 'B hoặc D', workedSolution: 'Đáp án B vì...', workedSolutionVersion: 'v', photoMarks: [region], readingRegions: [region],
+    clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+  const projected = hideWhileAwaitingClarification([old])[0];
+  expect(projected.readingRegions).toEqual([region]);
+  expect(projected).not.toHaveProperty('workedSolution');
+  expect(projected).not.toHaveProperty('photoMarks');
+  const typed = answerClarifyRow(old, 'B', 'now');
+  expect(typed?.workedSolution).toBe(old.workedSolution);
+  expect(typed).not.toHaveProperty('readingRegions');
+});
+
+it('does not attach invalid-first region URL onto later valid geometry', () => {
+  const region = { imageIndex: 2, imageUrl: 'second', x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const old = row({ studentAnswer: 'B hoặc D', readingRegions: [{ ...region, imageIndex: 1, imageUrl: 'first', width: 2 }, region],
+    clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+  expect(hideWhileAwaitingClarification([old])[0].readingRegions).toEqual([region]);
 });

@@ -7,7 +7,7 @@
  * 1. Tokenize chuỗi thành vùng math ($...$) / text TRƯỚC, mọi transform chỉ chạy
  *    trên đúng loại vùng của mình — KHÔNG BAO GIỜ chèn `$` vào trong vùng math.
  * 2. `$` lẻ được vá trước khi tokenize (gỡ `$` rác đầu/cuối, hoặc bọc cả cụm nếu có lệnh LaTeX).
- * 3. assertClean hậu-kiểm; vi phạm → bọc cả chuỗi làm cứu cánh + console.warn có tag.
+ * 3. assertClean hậu-kiểm; vi phạm → giữ mảnh text an toàn + console.warn có tag.
  *
  * CẤM viết regex xử lý công thức mới ngoài module này (xem tasks/lessons.md).
  */
@@ -64,7 +64,7 @@ const wrapWhole = (s: string): string => {
 /**
  * Vá `$` lẻ TRƯỚC khi tokenize:
  * - `$` rác ở cuối/đầu chuỗi → gỡ, nếu phần còn lại cân thì xong;
- * - còn lẻ → gỡ hết `$`; có lệnh LaTeX/caret thì bọc cả cụm, không thì trả text sạch.
+ * - còn lẻ → gỡ hết `$`; tokenizer sau đó chỉ bọc mảnh toán xác định, giữ lời dẫn.
  */
 const repairDollarBalance = (s: string): string => {
   const isBalanced = (t: string) => ((t.match(/\$/g) || []).length) % 2 === 0;
@@ -79,7 +79,7 @@ const repairDollarBalance = (s: string): string => {
     if (isBalanced(t)) return t;
   }
   const stripped = s.replace(/\$/g, '');
-  if (LATEX_CMD_RE.test(stripped) || /[\^_]\{?\w/.test(stripped)) return wrapWhole(stripped);
+  // Re-tokenize bare fragments later; never turn mixed prose into one formula.
   return stripped;
 };
 
@@ -187,24 +187,51 @@ const mathStartBeforeCommand = (prefix: string): number => {
   return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
 };
 
+/** ponytail: short ASCII math atoms only; longer identifiers need explicit LaTeX delimiters. */
+const proseFragments = (source: string): string[] => {
+  const pieces: string[] = [];
+  let cursor = 0;
+  let depth = 0;
+  for (let i = 0; i < source.length;) {
+    if (source[i] === '\\') {
+      const command = source.slice(i).match(/^\\[A-Za-z]+/);
+      i += command?.[0].length || 2;
+      continue;
+    }
+    if (source[i] === '{') depth++;
+    if (source[i] === '}') depth = Math.max(0, depth - 1);
+    const word = depth === 0 ? source.slice(i).match(/^[A-Za-zÀ-ỹ]+/) : null;
+    if (word) {
+      if (/[À-ỹ]/.test(word[0]) || (word[0].length > 2 && !/^[A-Z]+$/.test(word[0]))) {
+        pieces.push(source.slice(cursor, i), word[0]);
+        cursor = i + word[0].length;
+      }
+      i += word[0].length;
+    } else i++;
+  }
+  pieces.push(source.slice(cursor));
+  return pieces;
+};
+
 const wrapBareSegment = (segment: string): string => {
-  const left = segment.search(/\S/);
-  if (left < 0) return segment;
-  const right = segment.search(/\s*$/);
-  const leading = segment.slice(0, left);
-  const trailing = right > left ? segment.slice(right) : '';
-  const core = segment.slice(left, right > left ? right : segment.length);
+  const normalized = normalizeLegacyWordOperators(segment);
+  const pieces = proseFragments(normalized);
+  if (pieces.length > 1) return pieces.map(piece => /^[A-Za-zÀ-ỹ]+$/.test(piece) ? piece : wrapBareSegment(piece)).join('');
+  const left = normalized.search(/\S/);
+  if (left < 0) return normalized;
+  const leading = normalized.slice(0, left);
+  let core = normalized.slice(left).trimEnd();
+  let trailing = normalized.slice(left + core.length);
   if (core === '=>') return `${leading}$\\Rightarrow$${trailing}`;
-  const normalizedCore = normalizeLegacyWordOperators(core);
-  const hasCommand = LATEX_CMD_RE.test(normalizedCore);
-  const hasRelation = /[=]/.test(core);
-  if (!hasCommand && !hasRelation) return leading + convertCaretsInText(core) + trailing;
-
-  const source = hasCommand ? normalizedCore : convertCaretsInText(core);
+  if (!LATEX_CMD_RE.test(core) && !core.includes('=')) return leading + convertCaretsInText(core) + trailing;
+  // Sentence punctuation and unmatched prose brackets stay outside the math span.
+  while (/[.,;:!?]$/.test(core) || (core.endsWith(')') && (core.match(/\)/g)?.length || 0) > (core.match(/\(/g)?.length || 0))) {
+    trailing = core.slice(-1) + trailing;
+    core = core.slice(0, -1);
+  }
+  const source = LATEX_CMD_RE.test(core) ? core : convertCaretsInText(core);
   const commandIndex = source.search(LATEX_CMD_RE);
-  if (commandIndex <= 0) return leading + wrapWhole(source) + trailing;
-
-  const start = mathStartBeforeCommand(source.slice(0, commandIndex));
+  const start = commandIndex > 0 ? mathStartBeforeCommand(source.slice(0, commandIndex)) : 0;
   return leading + source.slice(0, start) + wrapWhole(source.slice(start)) + trailing;
 };
 
@@ -247,10 +274,11 @@ export const sanitizeDisplayText = (value: string | undefined | null): string =>
       ? { ...t, content: normalizeMathContent(t.content) }
       : { ...t, content: wrapBareFragmentsInText(t.content) },
   );
-  let result = joinTokens(out);
+  // Normalize newly wrapped spans in the same pass for idempotence.
+  let result = joinTokens(tokenizeMath(joinTokens(out)).map(t => t.type === 'math' ? { ...t, content: normalizeMathContent(t.content) } : t));
   if (!assertClean(result)) {
-    console.warn('[mathText] assertClean FAIL — bọc cả chuỗi làm cứu cánh:', result.slice(0, 120));
-    result = wrapWhole(result.replace(/\$/g, ''));
+    console.warn('[mathText] assertClean FAIL — giữ text thay vì bọc cả lời dẫn.');
+    result = wrapBareFragmentsInText(result.replace(/\$/g, ''));
   }
   return result;
 };

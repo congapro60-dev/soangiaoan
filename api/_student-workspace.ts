@@ -1,3 +1,4 @@
+import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import type { StudentAssignmentView, SubmissionDoc, QuestionResult } from '../src/lib/classroom/types.js';
@@ -215,10 +216,12 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
 
     const assignmentId = body.assignmentId;
     let assignment: StudentAssignmentView | undefined;
+    let fullAssignment: Data | undefined;
     if (assignmentId !== null) {
       if (!isSafeDocId(assignmentId)) throw new WorkspaceError(400, 'Mã bài tập không hợp lệ.');
       const snap = await db.collection('assignments').doc(assignmentId).get();
       if (!snap.exists || !visibleAssignment(snap.data() || {}, context)) throw new WorkspaceError(404, 'Không tìm thấy bài tập của em.');
+      fullAssignment = snap.data()!;
       assignment = projectors.projectStudentAssignment(snap.id, snap.data()!);
     } else if (!isSafeDocId(body.submissionId)) throw new WorkspaceError(400, 'Mã bài nộp không hợp lệ.');
     const [submissionSnap, onlineSnap] = await Promise.all([
@@ -240,7 +243,7 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
     const selectedSelfRoot = !assignment && typeof body.submissionId === 'string' && selfIds.has(body.submissionId) ? rootId(body.submissionId) : null;
     const submissions = newest(submissionSnap.docs.filter(doc => ownSubmission(doc.data(), context)
       && (assignment ? doc.data().assignmentId === assignment.id : !doc.data().assignmentId && selectedSelfRoot !== null && rootId(doc.id) === selectedSelfRoot))
-      .map(doc => projectors.projectStudentSubmission(doc.id, doc.data())), item => item.createdAt);
+      .map(doc => projectors.projectStudentSubmission(doc.id, attachAssignmentSolutions({ id: doc.id, ...doc.data() } as SubmissionDoc, fullAssignment))), item => item.createdAt);
     if (!assignment && submissions.length === 0) throw new WorkspaceError(404, 'Không tìm thấy bài nộp của em.');
     const onlineSubmissions = newest(onlineSnap.docs.filter(doc => onlineOwn(doc.data(), context) && doc.data().assignmentId === assignment?.id)
       .map(doc => onlineSummary(doc.id, doc.data(), context)), item => item.submittedAt || item.startedAt);

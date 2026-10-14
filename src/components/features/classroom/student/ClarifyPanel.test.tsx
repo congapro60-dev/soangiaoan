@@ -53,3 +53,14 @@ describe('ClarifyPanel', () => {
     expect(html({ kind: 'photo', state: 'open', reading: '' })).not.toContain('Xác nhận câu này');
   });
 });
+
+it('đối chiếu PH có ảnh cạnh câu hỏi / vùng nét đứt, không đáp án và lời giải', () => {
+  const url = 'https://example.test/paper.jpg';
+  const question = q({ questionNumber: 'Câu 3', expectedAnswer: 'SECRET KEY', explanation: 'SECRET WHY', workedSolution: 'SECRET SOLUTION', studentAnswer: 'B', clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' }, readingRegions: [{ imageIndex: 1, imageUrl: url, x: .1, y: .2, width: .3, height: .1, confidence: .95 }] });
+  const work = { ...submission([question]), fileUrls: [url] };
+  const props = { items: [{ title: 'Bài QA', submission: work }], onChanged: () => undefined, credentials: { role: 'parent' as const, joinCode: 'ABCD', studentId: 'child', pin: '1234' } };
+  const html = renderToStaticMarkup(<ClarifyPanel {...props} />);
+  expect(html).toContain('md:grid-cols-2'); expect(html).toContain('stroke-dasharray="5 3"'); expect(html).toContain(url); expect(html).toContain('B hoặc D'); expect(html).not.toContain('SECRET'); expect(html).not.toContain('1234');
+  const locked = renderToStaticMarkup(<ClarifyPanel {...props} locked />);
+  expect(locked).toContain('GV đã khóa chốt'); expect(locked).not.toContain('Xác nhận câu này');
+});

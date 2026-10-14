@@ -26,3 +26,25 @@ describe('GV bỏ dấu đỏ mà không đổi điểm', () => {
     expect(next[1]).toBe(rows[1]);
   });
 });
+
+it('GV sửa lời giải / giải thích giữ điểm, đánh dấu soát tay; focus đổi câu ảnh', () => {
+  const row: QuestionResult = { questionNumber: 'Câu 1', status: 'correct', score: 1, maxScore: 1, studentAnswer: 'A', expectedAnswer: 'A', explanation: 'Bản cũ', correction: '', nextPractice: '', errorType: '', needsTeacherReview: true, workedSolution: 'Lời giải cũ' };
+  const onChange = vi.fn(); const onFocusQuestion = vi.fn();
+  const tree = QuestionResultsEditor({ rows: [row], original: [row], canFixForClass: false, classFixes: new Set(), onChange, onToggleClassFix: () => undefined, onFocusQuestion });
+  let solutionChange: ((event: { target: { value: string } }) => void) | undefined;
+  let explanationChange: typeof solutionChange;
+  let focus: (() => void) | undefined;
+  const walk = (node: ReactNode) => Children.forEach(node, child => {
+    if (!isValidElement<{ children?: ReactNode; onChange?: typeof solutionChange; onFocus?: () => void; 'aria-label'?: string; 'data-question'?: string }>(child)) return;
+    if (child.props['aria-label'] === 'Lời giải chi tiết Câu 1') solutionChange = child.props.onChange;
+    if (child.props['aria-label'] === 'Vì sao Câu 1') explanationChange = child.props.onChange;
+    if (child.props['data-question'] === 'Câu 1') focus = child.props.onFocus;
+    walk(child.props.children);
+  });
+  walk(tree);
+  focus!(); expect(onFocusQuestion).toHaveBeenCalledWith('Câu 1');
+  solutionChange!({ target: { value: 'Lời giải đã sửa' } });
+  expect(onChange.mock.calls[0][0][0]).toMatchObject({ score: 1, workedSolution: 'Lời giải đã sửa', workedSolutionStatus: 'ready', teacherEdited: true, needsTeacherReview: false });
+  explanationChange!({ target: { value: 'Giải thích mới' } });
+  expect(onChange.mock.calls[1][0][0]).toMatchObject({ score: 1, explanation: 'Giải thích mới', teacherEdited: true });
+});

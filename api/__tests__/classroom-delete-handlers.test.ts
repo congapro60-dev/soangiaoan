@@ -45,6 +45,7 @@ interface Harness {
 const makeBucket = (harness: Harness) => ({
   name: BUCKET,
   file: (path: string) => ({
+    getMetadata: async () => [{ name: path, size: '100', contentType: 'image/jpeg' }], copy: async () => [], setMetadata: async () => [],
     delete: async () => {
       harness.events.push(`storage:${path}`);
       harness.deletedPaths.push(path);
@@ -53,6 +54,7 @@ const makeBucket = (harness: Harness) => ({
 });
 
 const makeDb = (harness: Harness) => ({
+  runTransaction: async (work: any) => { const operations: any[] = []; const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, data: DocData) => operations.push(() => ref.update(data)), create: (ref: any, data: DocData) => operations.push(() => ref.set(data)) }); for (const operation of operations) await operation(); return result; },
   collection: (colName: string) => ({
     doc: (docId: string) => {
       const touch = (col: string, id: string) => {
@@ -60,6 +62,9 @@ const makeDb = (harness: Harness) => ({
         return harness.store[col];
       };
       return {
+        id: docId,
+        collection: (sub: string) => makeDb(harness).collection(`${colName}/${docId}/${sub}`),
+        update: async (data: DocData) => { const col = touch(colName, docId); col[docId] = { ...col[docId], ...data }; },
         get: async () => {
           const col = touch(colName, docId);
           const data = col[docId];
@@ -89,7 +94,7 @@ const makeDb = (harness: Harness) => ({
             const docs = Object.entries(col)
               .filter(([, d]) => constraints.every(item => d[item.field] === item.value))
               .slice(0, count)
-              .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+              .map(([id, data]) => ({ id, data: () => ({ ...data }), ref: makeDb(harness).collection(colName).doc(id) }));
             return { empty: docs.length === 0, docs };
           },
         }),
@@ -97,7 +102,7 @@ const makeDb = (harness: Harness) => ({
           const col = harness.store[colName] || {};
           const docs = Object.entries(col)
             .filter(([, d]) => constraints.every(item => d[item.field] === item.value))
-            .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+            .map(([id, data]) => ({ id, data: () => ({ ...data }), ref: makeDb(harness).collection(colName).doc(id) }));
           return { empty: docs.length === 0, docs };
         },
       });
@@ -114,6 +119,8 @@ const buildHarness = (): Harness => {
 };
 
 const call = async (body: DocData) => {
+  const database = h.db as ReturnType<typeof makeDb>;
+  if (body.action === 'createSupplementSubmission') { await database.collection('classes').doc('lop-1').set({ teacherId: 'gv-1' }); await database.collection('classes/lop-1/students').doc('hs-1').set({ name: 'HS' }); }
   const res = {
     statusCode: 0,
     payload: null as DocData | null,
@@ -323,12 +330,12 @@ describe('POST /api/classroom · createSupplementSubmission', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.payload).toMatchObject({ submission: expect.objectContaining({
-      id: 'sub-new', status: 'submitted', supplementOf: 'sub-old',
-      fileUrls: [studentHomeworkUrl('old-1.jpg'), studentHomeworkUrl('old-2.jpg'), studentHomeworkUrl('new-1.jpg')],
+      status: 'submitted', supplementOf: 'sub-old',
+      fileUrls: [studentHomeworkUrl('old-1.jpg'), studentHomeworkUrl('old-2.jpg'), expect.stringContaining('accepted-homework'), expect.stringContaining('accepted-homework')],
       textContent: 'Phần cũ\n\nPhần bổ sung',
     }) });
     expect((harness.store['submissions']['sub-old'] as DocData).status).toBe('graded');
-    expect((harness.store['submissions']['sub-new'] as DocData).grade).toBeUndefined();
+    expect((res.payload?.submission as DocData).grade).toBeUndefined();
   });
 
   it('từ chối parent không thuộc đúng học sinh/lớp/bài', async () => {
@@ -385,13 +392,13 @@ describe('POST /api/classroom · createSupplementSubmission', () => {
     expect(harness.store['submissions']['sub-new']).toBeUndefined();
   });
 
-  it('từ chối bổ sung khi bài giao đã đóng', async () => {
+  it('từ chối bổ sung khi bài giao đã khóa chốt', async () => {
     const harness = buildHarness();
     harness.store['studentLinks'] = {
       'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' },
     };
     harness.store['assignments'] = {
-      'asg-1': { teacherId: 'gv-1', classId: 'lop-1', isOpen: false },
+      'asg-1': { teacherId: 'gv-1', classId: 'lop-1', isOpen: false, submissionLocked: true },
     };
     harness.store['submissions'] = {
       'sub-old': {

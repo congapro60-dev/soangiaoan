@@ -28,6 +28,12 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
+import { ActorSubmissionUpload } from './ActorSubmissionUpload';
+import { SubmissionFeedback } from './SubmissionFeedback';
+import { CorrectionAttempts } from './CorrectionAttempts';
+import { ClarifyPanel } from './student/ClarifyPanel';
+import { isActionableClarifyQuestion } from '../../../lib/classroom/clarification';
+import { setSubmissionLock, prepareWorkedSolutions } from '../../../services/submissionActorsApi';
 import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
@@ -112,7 +118,7 @@ interface SubmissionViewFile {
 
 const isImageSubmissionFile = (file: SubmissionViewFile): boolean => file.kind === 'image' || file.mimeType?.startsWith('image/') === true;
 
-const SubmissionImageViewer = ({ images, studentName, grade }: { images: SubmissionViewFile[]; studentName: string; grade?: SubmissionDoc['grade'] }) => {
+const SubmissionImageViewer = ({ images, studentName, grade, periodic = false }: { images: SubmissionViewFile[]; studentName: string; grade?: SubmissionDoc['grade']; periodic?: boolean }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -169,7 +175,7 @@ const SubmissionImageViewer = ({ images, studentName, grade }: { images: Submiss
             <div className="flex min-h-0 flex-1 items-start justify-center gap-2 overflow-y-auto p-3 sm:gap-4 sm:p-5">
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.max(0, index - 1))} disabled={selectedIndex === 0} aria-label="Ảnh trước" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-6 w-6" /></button>
               <div className="min-w-0 flex-1"><SubmissionPhotoReview key={selectedImage.url} imageUrl={selectedImage.url}
-                alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} questionResults={grade?.questionResults ?? []} teacherView approved={grade?.teacherApproved} /></div>
+                alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} imageUrls={images.map(image => image.url)} grade={grade} hideScores={periodic} questionResults={grade?.questionResults ?? []} teacherView approved={grade?.teacherApproved} /></div>
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.min(images.length - 1, index + 1))} disabled={selectedIndex === images.length - 1} aria-label="Ảnh sau" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-6 w-6" /></button>
             </div>
             <p className="border-t border-white/10 px-4 py-2 text-center text-xs font-semibold text-slate-400">Dùng nút Trước/Sau hoặc phím ← → · Esc để đóng</p>
@@ -182,6 +188,8 @@ const SubmissionImageViewer = ({ images, studentName, grade }: { images: Submiss
 
 interface BaiNopTheoLopProps {
   baiNop: SubmissionDoc[];
+  assignment?: AssignmentDoc;
+  onRefresh?: () => void;
   hanNop?: string;
   lopHocSinh: RosterStudent[];
   moRongId: string;
@@ -213,7 +221,9 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
+  const [proxyStudent, setProxyStudent] = useState('');
+  const [proxyBase, setProxyBase] = useState('');
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -327,6 +337,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Muộn</span>
                   : <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Đúng hạn</span>
               )}
+              {Boolean(s.feedbackSummary?.pending) && <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-800">{s.feedbackSummary?.pending} phản hồi chưa trả lời</span>}
               {s.grade?.editedByTeacher && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
@@ -408,7 +419,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     const otherFiles = files.filter(file => !isImageSubmissionFile(file));
                     return (
                       <>
-                        <SubmissionImageViewer images={images} studentName={ten} grade={s.grade} />
+                        <SubmissionImageViewer images={images} studentName={ten} grade={s.grade} periodic={Boolean(assignment?.periodicTest)} />
                         {otherFiles.length > 0 && <div className="flex flex-wrap gap-2">
                           {otherFiles.map(file => (
                             <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">
@@ -524,6 +535,13 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     Xóa lượt nộp
                   </button>
                 </div>
+                {assignment && <>
+                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
+                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
+                  {s.grade?.questionResults?.some(isActionableClarifyQuestion) && <ClarifyPanel items={[{ title: assignment.title, submission: { ...s, grade: { ...s.grade, questionResults: s.grade.questionResults.filter(isActionableClarifyQuestion) } } }]} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={() => onRefresh?.()} />}
+                  <SubmissionFeedback submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} onEditGrade={() => void suaDiem(s, ten)} onChanged={onRefresh} />
+                  <CorrectionAttempts submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} />
+                </>}
               </div>
             )}
           </div>
@@ -534,6 +552,8 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
           <Hourglass className="h-4 w-4 shrink-0 text-slate-300" />
           <span className="text-sm font-bold text-slate-400">{hs.name}</span>
           <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-400">Chưa nộp</span>
+          {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); }}>Nộp hộ</button>}
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
         </div>
       ))}
     </div>
@@ -1691,10 +1711,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   <CalendarClock className="h-3.5 w-3.5" /> {dinhDangHan(a.dueAt)}
                 </button>
                 <button
-                  onClick={() => setAssignmentOpen(a.id, !a.isOpen).then(taiBai)}
+                  onClick={() => { const studentId = lopHocSinh[0]?.studentId; if (!studentId) { showToast('Lớp chưa có học sinh.', 'info'); return; } void (a.type === 'exam' ? setAssignmentOpen(a.id, !a.isOpen) : setSubmissionLock({ role: 'teacher', classId, studentId }, a.id, !a.submissionLocked)).then(taiBai).catch(error => showToast(error.message, 'error')); }}
                   className="rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-50"
                 >
-                  {a.isOpen ? 'Đóng bài' : 'Mở lại'}
+                  {a.type === 'exam' ? a.isOpen ? 'Đóng bài' : 'Mở lại' : a.submissionLocked ? 'Mở khóa chốt' : 'Khóa chốt'}
                 </button>
                 {a.type === 'exam' ? (
                   <button
@@ -1885,7 +1905,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     <CompetencyTagEditor assignment={a} grade={competencyGrade} showToast={showToast} onSaved={taiBai} />
                   )}
 
+                  <WorkedSolutionsButton assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />
                   <BaiNopTheoLop
+                    assignment={a} onRefresh={() => void taiBai()}
                     baiNop={baiNopCua(a.id)}
                     hanNop={a.dueAt}
                     maDe={a.examVariants?.map(variant => variant.code)}
@@ -1928,4 +1950,17 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       )}
     </section>
   );
+};
+
+
+const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {
+  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  return <div className="my-3 rounded-xl border border-slate-200 bg-white p-3">
+    <p className="text-xs text-slate-500">Tạo lời giải chung cho mọi câu, gồm câu đúng. Thầy cô đọc và sửa trong màn sửa điểm.</p>
+    {!!assignment.examVariants?.length && <select aria-label="Mã đề tạo lời giải" value={examCode} onChange={event => setExamCode(event.target.value)} className="mr-2 min-h-11 rounded-lg border p-2 text-sm">{assignment.examVariants.map(variant => <option key={variant.code} value={variant.code}>{variant.code}</option>)}</select>}
+    <button type="button" disabled={busy || !studentId} className="min-h-11 rounded-lg border px-3 text-sm font-bold text-indigo-700 disabled:opacity-50" onClick={() => { if (!studentId) return; setBusy(true); setMessage(''); void prepareWorkedSolutions({ role: 'teacher', classId, studentId }, assignment.id, examCode || undefined, true).then(() => { setMessage('Đã tạo lời giải. Mở bài để kiểm tra nội dung.'); onChanged(); }).catch(error => setMessage(error.message)).finally(() => setBusy(false)); }}>{busy ? 'Đang tạo lời giải…' : 'Tạo / cập nhật lời giải đầy đủ'}</button>
+    {message && <p role="status" className="mt-2 text-sm text-slate-600">{message}</p>}
+  </div>;
 };

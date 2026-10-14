@@ -40,3 +40,9 @@ describe('chấm lại một câu từ ảnh chụp lại', () => {
     expect(parseQuestionRegrade('xin lỗi tôi không biết', old)).toBeNull();
   });
 });
+
+it('photo regrade keeps common solution when source key has not changed', () => {
+  const next = parseQuestionRegrade('{"status":"correct","score":2,"studentAnswer":"x=2"}', { ...old, workedSolution: 'Lời giải đầy đủ', workedSolutionVersion: 'v' });
+  expect(next?.workedSolution).toBe('Lời giải đầy đủ');
+  expect(next?.workedSolutionVersion).toBe('v');
+});

@@ -1,3 +1,4 @@
+import { invalidateWorkedSolution } from './workedSolutions.js';
 import type { AnswerKeyFix, QuestionResult, QuestionResultStatus } from './types.js';
 
 /**
@@ -201,6 +202,7 @@ export const applyStudentTypedAnswer = (q: QuestionResult, typed: string): Quest
   const base: QuestionResult = { ...q, studentAnswer: typed.trim(), confidence: 1 };
   // Đáp án gõ lại không có tọa độ trên ảnh cũ.
   delete base.photoMarks;
+  delete base.readingRegions;
   if (!result) return { ...base, needsTeacherReview: true };
   const score = round2(q.maxScore * result.fraction);
   const status = statusFor(result.fraction, typed);
@@ -260,8 +262,9 @@ export const applyAnswerKeyFixes = (rows: QuestionResult[], fixes: AnswerKeyFix[
     const expectedAnswer = byKey.get(questionKey(q.questionNumber));
     if (expectedAnswer === undefined || expectedAnswer.trim() === q.expectedAnswer.trim()) return q;
     changed = true;
-    const withKey = { ...q, expectedAnswer };
+    const withKey = invalidateWorkedSolution({ ...q, expectedAnswer });
     delete withKey.photoMarks;
+    delete withKey.readingRegions;
     const rescored = rescoreQuestion(withKey, 'teacher');
     if (rescored) return { ...rescored, needsTeacherReview: false };
     needsReview += 1;
@@ -280,8 +283,9 @@ export const keepTeacherEditedRows = (rows: QuestionResult[], previous: Question
   return rows.map(q => {
     const old = locked.get(questionKey(q.questionNumber));
     if (!old) return q;
-    if (!old.photoMarks || old.studentAnswer === q.studentAnswer) return old;
-    const { photoMarks: _stale, ...rest } = old;
+    const preserved = old.expectedAnswer === q.expectedAnswer ? old : invalidateWorkedSolution(old);
+    if (old.studentAnswer === q.studentAnswer) return preserved;
+    const { photoMarks: _stale, readingRegions: _regions, ...rest } = preserved;
     return rest;
   });
 };

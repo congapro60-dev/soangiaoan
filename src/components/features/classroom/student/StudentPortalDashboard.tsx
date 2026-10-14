@@ -9,6 +9,7 @@ import { buildStudentProgressSummary } from '../../../../lib/classroom/studentPr
 import { isActionableClarifyQuestion } from '../../../../lib/classroom/clarification';
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { vnDay } from '../../../../lib/classroom/reportPeriod';
+import { submissionDeadlineState } from '../../../../lib/classroom/hanNop';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentSubmittedWork } from './StudentSubmittedWork';
 import { StudentNotificationBell } from './StudentNotificationBell';
@@ -99,7 +100,7 @@ const onlineAssignmentState = (activity?: StudentActivityView): StudentAssignmen
   if (activity.status === 'pending_teacher') return { status: 'pending-approval', action: 'status', label: 'Chờ thầy cô duyệt' };
   return { status: 'waiting', action: 'status', label: 'Chờ kết quả' };
 };
-export const studentClarificationQuestions = (submission?: SubmissionDoc, assignment?: AssignmentDoc) => assignment?.isOpen === false ? [] : (submission?.grade?.questionResults ?? []).filter(question =>
+export const studentClarificationQuestions = (submission?: SubmissionDoc, assignment?: AssignmentDoc) => assignment?.submissionLocked === true ? [] : (submission?.grade?.questionResults ?? []).filter(question =>
   isActionableClarifyQuestion(question) || question.clarify?.state === 'regrading',
 );
 export interface WorkspaceRow {
@@ -126,12 +127,12 @@ export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc
     const submission = latest.get(assignment.id);
     const activity = activityMap.get(assignment.id);
     const state = assignment.type === 'exam' ? onlineAssignmentState(activity) : getStudentAssignmentState(assignment, submission);
-    const clarificationCount = assignment.isOpen !== false && submission?.grade?.awaitingClarification
+    const clarificationCount = assignment.submissionLocked !== true && submission?.grade?.awaitingClarification
       ? ((submission as StudentWorkspaceSubmission).clarificationCount ?? studentClarificationQuestions(submission, assignment).filter(isActionableClarifyQuestion).length) : 0;
     const score = assignment.periodicTest ? null : assignment.type === 'exam' ? activity?.officialScore ?? null
       : submission?.grade?.teacherApproved && !submission.grade.awaitingClarification && !scoreHiddenFromStudent(submission) ? submission.grade.score : null;
     return { id: assignment.id, title: assignment.title, assignment, submission,
-      state: clarificationCount === 0 && submission?.grade?.awaitingClarification ? { ...state, label: (submission as StudentWorkspaceSubmission).clarificationRegrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát' } : assignment.isOpen === false && !submission && state.status === 'todo' ? { ...state, label: 'Đã đóng' } : state,
+      state: clarificationCount === 0 && submission?.grade?.awaitingClarification ? { ...state, label: (submission as StudentWorkspaceSubmission).clarificationRegrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát' } : assignment.submissionLocked === true && !submission && state.status === 'todo' ? { ...state, label: 'Đã đóng' } : state,
       clarificationCount, score, maxScore: activity?.maxScore ?? submission?.grade?.maxScore ?? assignment.maxScore ?? 10,
       attempts: assignment.type === 'exam' ? activity?.attemptCount ?? 0 : own.filter(item => item.assignmentId === assignment.id).length,
       date: assignment.createdAt, statDate: submission?.createdAt || activity?.latestAttemptAt || assignment.createdAt };
@@ -152,8 +153,8 @@ export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc
   }); });
   return [...rows, ...self].sort((a, b) => Number(workspaceNeedsAction(b)) - Number(workspaceNeedsAction(a)) || (b.date || '').localeCompare(a.date || ''));
 };
-export const workspaceNeedsAction = (row: WorkspaceRow): boolean => (row.assignment?.isOpen !== false && (row.clarificationCount > 0 || row.submission?.errorReason === 'exam_code'))
-  || Boolean(row.assignment?.isOpen !== false && row.assignment && (row.state.status === 'todo' || row.state.status === 'retry'));
+export const workspaceNeedsAction = (row: WorkspaceRow): boolean => (row.assignment?.submissionLocked !== true && (row.clarificationCount > 0 || row.submission?.errorReason === 'exam_code'))
+  || Boolean(row.assignment?.submissionLocked !== true && row.assignment && (row.state.status === 'todo' || row.state.status === 'retry'));
 export const filterWorkspaceRows = (rows: readonly WorkspaceRow[], query: string, filter: FilterKey, from: string, to: string, statistics = false): WorkspaceRow[] => {
   const needle = query.trim().toLocaleLowerCase('vi-VN');
   return rows.filter(row => {
@@ -190,6 +191,8 @@ export const StudentPortalDashboard = (props: Props) => {
   const [statsTo, setStatsTo] = useState('');
   const [showPractice, setShowPractice] = useState(false);
   const [visitedCompetencies, setVisitedCompetencies] = useState(false);
+  const [feedbackAttempt, setFeedbackAttempt] = useState('');
+  const [feedbackOpenRequest, setFeedbackOpenRequest] = useState(0);
   const [opened, setOpened] = useState<WorkspaceRow | null>(null);
   const [detail, setDetail] = useState<StudentAssignmentDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -237,7 +240,7 @@ export const StudentPortalDashboard = (props: Props) => {
   const clarifyItems = detailLatest?.grade?.awaitingClarification && clarify.length ? [{ submission: { ...detailLatest, grade: { ...detailLatest.grade, questionResults: clarify } }, title: detailAssignment?.title || 'Bài tự nộp' }] : [];
   const detailState = detailAssignment?.type === 'exam' ? onlineAssignmentState(buildStudentProgressSummary({ studentId: session.studentId, assignments: [detailAssignment], examSubmissions: detail?.onlineSubmissions }).assignmentActivities[0]) : getStudentAssignmentState(detailAssignment, detailLatest);
   if (detailLatest?.grade?.awaitingClarification && !clarify.some(isActionableClarifyQuestion)) { detailState.label = clarify.some(question => question.clarify?.state === 'regrading') ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát'; }
-  if (detailAssignment?.isOpen === false) { detailState.canResubmit = false; if (detailState.action === 'submit' || detailState.action === 'retry') { detailState.action = 'status'; detailState.label = 'Bài đã đóng'; } }
+  if (detailAssignment?.submissionLocked === true) { detailState.canResubmit = false; if (detailState.action === 'submit' || detailState.action === 'retry') { detailState.action = 'status'; detailState.label = 'Bài đã khóa chốt'; } }
   if (detailState.detail?.includes('phía trên trang')) detailState.detail = 'Em mở phần xác nhận ngay trong bài này.';
   const legacyTopics = profile?.topics || [];
   const weakTopics = legacyTopics.filter(topic => topic.level === 'weak' || topic.level === 'developing').map(topic => topic.topic);
@@ -254,7 +257,7 @@ export const StudentPortalDashboard = (props: Props) => {
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2 sm:px-6">
         <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-slate-900">{session.studentName}</p><p className="truncate text-xs text-slate-500">{session.className}</p></div>
         <StudentAiCostChip />
-        <StudentNotificationBell items={notifications} lastSeenAt={notificationsLastSeenAt} onOpened={onNotificationsOpened} onSelectAssignment={id => { const row = rows.find(item => item.assignment?.id === id); if (row) openRow(row); }} />
+        <StudentNotificationBell items={notifications} lastSeenAt={notificationsLastSeenAt} onOpened={onNotificationsOpened} onSelectAssignment={(id, submissionId) => { const row = rows.find(item => item.assignment?.id === id); if (row) { openRow(row); setFeedbackAttempt(submissionId || ''); setFeedbackOpenRequest(value => value + 1); } }} onSelectSubmission={submissionId => { const row = rows.find(item => item.submission?.id === submissionId) ?? buildWorkspaceRows(session.studentId, [], submissions.filter(item => item.id === submissionId), [])[0]; if (row) { openRow(row); setFeedbackAttempt(submissionId); setFeedbackOpenRequest(value => value + 1); } }} />
         <button type="button" onClick={onReload} aria-label="Làm mới" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
         <button type="button" onClick={onSignOut} aria-label="Đăng xuất" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><LogOut className="h-4 w-4" /></button>
       </div>
@@ -342,17 +345,61 @@ export const StudentPortalDashboard = (props: Props) => {
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2"><label className="min-w-0 text-xs text-slate-500">Ngày giao từ<input aria-label="Ngày giao từ" type="date" value={from} onChange={event => { setFrom(event.target.value); setPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-sm" /></label><label className="min-w-0 text-xs text-slate-500">Đến ngày<input aria-label="Ngày giao đến" type="date" value={to} onChange={event => { setTo(event.target.value); setPage(1); }} className="mt-1 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-sm" /></label></div>
         {from && to && from > to && <p role="alert" className="mt-2 text-sm text-red-700">Ngày bắt đầu phải trước ngày kết thúc.</p>}
-        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          {visibleRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map(row => <button type="button" key={row.id} onClick={() => openRow(row)} className="flex min-h-16 w-full items-center gap-3 border-b border-slate-100 px-3 py-3 text-left last:border-b-0 hover:bg-indigo-50" data-assignment-row={row.id}>
-            <div className="min-w-0 flex-1"><span className="block break-words text-sm font-bold leading-5 text-slate-900">{row.title}</span>
-              <span className="mt-1 block text-xs text-slate-500">{row.assignment?.isOpen === false ? 'Đã đóng · ' : ''}{row.assignment?.dueAt ? `Hạn ${dayLabel(row.assignment.dueAt)}` : dayLabel(row.date)} · {row.state.label}</span>
-              {row.clarificationCount > 0 && <span className="mt-1 inline-block rounded-lg bg-amber-50 px-2 py-1 text-xs font-bold text-amber-800">Cần xác nhận {row.clarificationCount} câu</span>}
-              {row.assignment?.isOpen !== false && row.submission?.errorReason === 'exam_code' && <span className="mt-1 block text-xs font-bold text-amber-800">Cần chọn mã đề</span>}
-            </div>
-            {row.score !== null && <span className="shrink-0 text-sm font-black text-emerald-700">{row.score}/{row.maxScore}</span>}
-            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
-          </button>)}
-          {visibleRows.length === 0 && <p className="p-5 text-sm text-slate-500">{loading ? 'Đang tải bài tập…' : 'Không có bài phù hợp. Thử đổi bộ lọc.'}</p>}
+        <div className="mt-3 space-y-2.5">
+          {visibleRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map(row => {
+            const deadline = submissionDeadlineState(row.assignment?.dueAt, row.assignment?.type === 'exam' && row.attempts > 0 ? row.statDate : row.submission?.createdAt);
+            const isExam = row.assignment?.type === 'exam';
+            const isLocked = row.assignment?.submissionLocked === true;
+            const hasSubmission = Boolean(row.submission);
+            const canDirectPhoto = !isExam && row.assignment?.deliveryMode !== 'online' && !isLocked && Boolean(row.assignment);
+            return (
+              <article key={row.id} data-assignment-row={row.id} className="group rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button type="button" onClick={() => openRow(row)} className="min-w-0 flex-1 text-left focus-visible:outline-2 focus-visible:outline-indigo-600">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-black ${deadline.className}`}>{deadline.label}</span>
+                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">{row.state.label}</span>
+                      {isLocked && <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700">Đã khóa</span>}
+                    </div>
+                    <h2 className="mt-1.5 break-words text-base font-black leading-snug text-slate-900 group-hover:text-indigo-600">{row.title}</h2>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">
+                      {deadline.dueLabel ? `Hạn nộp: ${deadline.dueLabel}` : dayLabel(row.date)}
+                      {row.attempts > 0 ? ` · ${row.attempts} lượt` : ''}
+                    </p>
+                    {row.clarificationCount > 0 && <span className="mt-1.5 inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 ring-1 ring-amber-200">Cần xác nhận {row.clarificationCount} câu</span>}
+                    {!isLocked && row.submission?.errorReason === 'exam_code' && <span className="mt-1.5 block text-xs font-bold text-amber-800">Cần chọn mã đề</span>}
+                  </button>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2 pt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0">
+                    {row.score !== null && <span className="mr-1 text-sm font-black text-emerald-700">{row.score}/{row.maxScore}</span>}
+                    {canDirectPhoto && !hasSubmission && (
+                      <button type="button" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-50">
+                        <Camera className="h-4 w-4" /> Nộp ảnh
+                      </button>
+                    )}
+                    {canDirectPhoto && hasSubmission && (
+                      <>
+                        <button type="button" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id, row.submission!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-black text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
+                          Bổ sung ảnh
+                        </button>
+                        <button type="button" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 hover:border-indigo-300 disabled:opacity-50">
+                          Nộp lại
+                        </button>
+                      </>
+                    )}
+                    {isExam && (
+                      <button type="button" onClick={() => onOpenAssignment(row.assignment, row.submission)} className="inline-flex min-h-11 items-center gap-1 rounded-xl bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-700">
+                        Vào thi
+                      </button>
+                    )}
+                    <button type="button" onClick={() => openRow(row)} aria-label={`Xem chi tiết ${row.title}`} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+          {visibleRows.length === 0 && <p className="p-5 text-sm text-slate-500 rounded-2xl border border-slate-200 bg-white">{loading ? 'Đang tải bài tập…' : 'Không có bài phù hợp. Thử đổi bộ lọc.'}</p>}
         </div>
         <Pagination page={safePage} count={visibleRows.length} onPage={setPage} />
       </section>}
@@ -363,13 +410,13 @@ export const StudentPortalDashboard = (props: Props) => {
         {detailError && <div className="rounded-xl bg-red-50 p-3"><p role="alert" className="text-sm text-red-700">{detailError}</p><button type="button" className={`${buttonClass} mt-2`} onClick={() => void loadDetail(opened, true)}>Thử tải lại</button></div>}
         {detail && <>
           {detailAssignment ? <StudentAssignmentCard assignment={detailAssignment} submission={detailLatest} submissions={ownDetail} state={detailState}
-            detailView uploading={uploadingId !== ''} onUpload={onChooseImage} onOpen={onOpenAssignment} onAnswerExamCode={onAnswerExamCode}
+            detailView feedbackSubmissionId={feedbackAttempt} feedbackOpenRequest={feedbackOpenRequest} onFeedbackChanged={reloadDetail} uploading={uploadingId !== ''} onUpload={onChooseImage} onOpen={onOpenAssignment} onAnswerExamCode={onAnswerExamCode}
             deletedNotice={!detailLatest ? notifications.find(item => item.kind === 'submission_deleted' && item.assignmentId === detailAssignment.id)?.body : undefined} />
-          : <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-sm text-slate-500">Chấm thử không tính điểm chính thức.</p><StudentSubmittedWork submissions={ownDetail} />
+          : <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-sm text-slate-500">Chấm thử không tính điểm chính thức.</p><StudentSubmittedWork submissions={ownDetail} feedbackSubmissionId={feedbackAttempt} feedbackOpenRequest={feedbackOpenRequest} onFeedbackChanged={reloadDetail} />
             {detailLatest?.grade && !scoreHiddenFromStudent(detailLatest) && !detailLatest.grade.awaitingClarification && <div className="mt-3 space-y-2"><NhanXetMarkdown>{detailLatest.grade.feedback}</NhanXetMarkdown><QuestionResultsList results={detailLatest.grade.questionResults} compact /></div>}
           </div>}
-          {detailAssignment?.isOpen === false && detailLatest?.grade?.awaitingClarification && <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-600">Bài đã đóng. Em xem lại bài đã nộp; phần cần xác nhận đang chờ thầy cô soát.</p>}
-          {detailAssignment?.isOpen !== false && clarifyItems.length > 0 && <ClarifyPanel items={clarifyItems} onChanged={reloadDetail} pollingExternally />}
+          {detailAssignment?.submissionLocked === true && detailLatest?.grade?.awaitingClarification && <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-600">Bài đã khóa chốt. Em xem lại bài đã nộp; phần cần xác nhận đang chờ thầy cô soát.</p>}
+          {detailAssignment?.submissionLocked !== true && clarifyItems.length > 0 && <ClarifyPanel items={clarifyItems} onChanged={reloadDetail} pollingExternally />}
         </>}
       </section>}
       {section === 'scores' && <StudentScoreBoard scores={scores} homework={homeworkScores} />}

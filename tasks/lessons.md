@@ -487,3 +487,14 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-14 — Chốt đúng đích tích hợp
 - Người dùng làm rõ “phát hành” trong luồng này là push lên main. Ghi commit/push main trong checklist, không suy thành deploy/promote thủ công.
 - Nếu Vercel tự triển khai theo Git integration, theo dõi riêng; không gọi push thành bằng chứng deployment đã xong.
+
+## 2026-10-14 — Kết quả, độ chắc đọc và quyền nộp là ba việc khác nhau
+- Câu đúng vẫn cần lời giải/lưu ý; dấu đỏ không đại diện mọi loại câu.
+- Prompt dài chưa đủ: rescore/manual/clarify có thể ghi đè hoặc bỏ text-only edits; audit lifecycle.
+- Bare dấu bằng không được kéo tiếng Việt vào math; tái hiện tại sanitizer dùng chung.
+- User cho GV/HS/PH nộp/sửa bất kỳ lúc nào; Khóa chốt mới chặn, không dùng isOpen thay quyết định này.
+
+## 2026-10-14 — Nhận xét bài chữa phải giúp HS biết làm gì tiếp
+- Người dùng yêu cầu chi tiết như GV, không chỉ ba nhãn Đã đạt/Cần sửa thêm/Chưa đủ căn cứ.
+- Nhãn chỉ kết luận; nhận xét nêu phần tiến bộ, bước/câu còn sai và vì sao, hướng hoàn thiện có công thức/điều kiện, việc luyện/kiểm tra tiếp theo.
+- Bám ảnh gốc+ảnh chữa+lời giải đã xác minh; thiếu căn cứ chỉ rõ phần cần đối chiếu. Không chấm lại hoặc thay điểm bài gốc.

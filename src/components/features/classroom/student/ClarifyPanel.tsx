@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Camera, CheckCircle2, Loader2, MessageCircleQuestion } from 'lucide-react';
 import { MAX_PHOTO_TRIES, canonicalAnswer } from '../../../../lib/classroom/clarification';
 import type { QuestionResult, SubmissionDoc } from '../../../../lib/classroom/types';
-import { uploadClarifyPhotos } from '../../../../lib/classroom/submissionService';
-import { submitClarifyAnswers, submitClarifyPhotos, type ClarifyAnswersResult, type ClarifyPhotoResult } from '../../../../services/gradingApi';
+import { SubmissionPhotoReview } from '../SubmissionPhotoReview';
+import { actorClarifyAnswers, actorClarifyPhoto, uploadActorEvidence, type SubmissionActorCredentials } from '../../../../services/submissionActorsApi';
+import type { ClarifyAnswersResult, ClarifyPhotoResult } from '../../../../services/gradingApi';
 
 export interface ClarifyItem {
   submission: SubmissionDoc;
@@ -15,6 +16,8 @@ interface Props {
   /** Đã gửi xong một lượt: tải lại dữ liệu để câu vừa xác nhận biến khỏi danh sách. */
   onChanged: () => void;
   pollingExternally?: boolean;
+  credentials?: SubmissionActorCredentials;
+  locked?: boolean;
 }
 
 const draftKey = (submissionId: string, questionNumber: string) => `smartplan:clarify:${submissionId}:${questionNumber}`;
@@ -45,6 +48,8 @@ const readTrueFalse = (value: string): Record<string, string> => {
 
 interface QuestionProps {
   submissionId: string;
+  submission: SubmissionDoc;
+  credentials: SubmissionActorCredentials;
   question: QuestionResult;
   busy: boolean;
   error: string;
@@ -54,10 +59,12 @@ interface QuestionProps {
   onPhotos: (questionNumber: string, files: File[]) => void;
 }
 
-const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSkip, onPhotos }: QuestionProps) => {
+const ClarifyQuestion = ({ submissionId, submission, credentials, question, busy, error, onConfirm, onSkip, onPhotos }: QuestionProps) => {
   const clarify = question.clarify!;
-  const [value, setValue] = useState(() => readDraft(submissionId, question.questionNumber));
-  const update = (next: string) => { setValue(next); writeDraft(submissionId, question.questionNumber, next); };
+  const draftScope = credentials.role === 'teacher' ? 'teacher:' + submissionId : credentials.role === 'parent' ? 'parent:' + submissionId : submissionId;
+  const images = [...new Set([...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(clarify.photoUrls ?? [])])];
+  const [value, setValue] = useState(() => readDraft(draftScope, question.questionNumber));
+  const update = (next: string) => { setValue(next); writeDraft(draftScope, question.questionNumber, next); };
   const ready = canonicalAnswer(clarify.kind, value, clarify.parts).ok;
   const parts = clarify.parts;
   const tf = readTrueFalse(value);
@@ -68,7 +75,9 @@ const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSki
   const exhausted = (clarify.tries ?? 0) >= MAX_PHOTO_TRIES;
 
   return (
-    <li className="rounded-2xl border border-amber-200 bg-white p-4">
+    <li className="grid min-w-0 gap-3 rounded-2xl border border-amber-200 bg-white p-3 md:grid-cols-2">
+      {images.length > 0 && <SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt={`Đối chiếu ${question.questionNumber}`} questionResults={[question]} pending selectedQuestion={question.questionNumber} detailHidden />}
+      <div className="min-w-0">
       <p className="text-sm font-black text-slate-900">{question.questionNumber}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
         {clarify.reading ? <>Máy đọc được: <span className="font-black text-slate-700">“{clarify.reading}”</span> — chưa chắc. </> : 'Máy chưa đọc được câu này. '}
@@ -177,6 +186,7 @@ const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSki
           Để thầy cô xem
         </button>
       </div>
+      </div>
     </li>
   );
 };
@@ -185,7 +195,7 @@ const ClarifyQuestion = ({ submissionId, question, busy, error, onConfirm, onSki
  * Bảng "Máy cần em xác nhận": câu máy đọc chưa chắc trong bài em vừa nộp. Mỗi câu xác nhận được LƯU NGAY lên máy chủ —
  * em thoát giữa chừng thì lần sau vào thấy đúng những câu còn lại, bài và ảnh không bị xoá.
  */
-export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Props) => {
+export const ClarifyPanel = ({ items, onChanged, pollingExternally = false, credentials = {}, locked = false }: Props) => {
   const [busyKey, setBusyKey] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -200,6 +210,7 @@ export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Pr
   }, [hasRegrading, pollingExternally]);
 
   if (items.length === 0) return null;
+  if (locked) return <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">GV đã khóa chốt. Vẫn xem được ảnh; cần GV mở khóa trước khi xác nhận lại.</p>;
 
   const send = async (submissionId: string, questionNumber: string, run: () => Promise<ClarifyAnswersResult | ClarifyPhotoResult>) => {
     const key = `${submissionId}:${questionNumber}`;
@@ -211,7 +222,7 @@ export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Pr
       if (rejected) {
         setErrors(prev => ({ ...prev, [key]: rejected.reason }));
       } else {
-        writeDraft(submissionId, questionNumber, '');
+        writeDraft(credentials.role === 'teacher' ? 'teacher:' + submissionId : credentials.role === 'parent' ? 'parent:' + submissionId : submissionId, questionNumber, '');
       }
       onChanged();
     } catch (error) {
@@ -235,7 +246,7 @@ export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Pr
 
       <div className="mt-4 space-y-4">
         {items.map(({ submission, title }) => {
-          const questions = (submission.grade?.questionResults || []).filter(q => q.clarify);
+          const questions = (submission.grade?.questionResults || []).filter(q => q.clarify && ['open', 'photo_saved', 'regrading'].includes(q.clarify.state));
           return (
             <div key={submission.id}>
               <p className="text-xs font-black uppercase tracking-wide text-amber-800">{title} · còn {questions.length} câu</p>
@@ -246,13 +257,14 @@ export const ClarifyPanel = ({ items, onChanged, pollingExternally = false }: Pr
                     <ClarifyQuestion
                       key={key}
                       submissionId={submission.id}
+                      submission={submission} credentials={credentials}
                       question={question}
                       busy={busyKey === key}
                       error={errors[key] || ''}
-                      onConfirm={(questionNumber, answer) => void send(submission.id, questionNumber, () => submitClarifyAnswers(submission.id, [{ questionNumber, answer }]))}
-                      onSkip={questionNumber => void send(submission.id, questionNumber, () => submitClarifyAnswers(submission.id, [], [questionNumber]))}
+                      onConfirm={(questionNumber, answer) => void send(submission.id, questionNumber, () => actorClarifyAnswers(credentials, submission.id, [{ questionNumber, answer }]))}
+                      onSkip={questionNumber => void send(submission.id, questionNumber, () => actorClarifyAnswers(credentials, submission.id, [], [questionNumber]))}
                       onPhotos={(questionNumber, files) => void send(submission.id, questionNumber, async () => (
-                        submitClarifyPhotos(submission.id, questionNumber, files.length > 0 ? await uploadClarifyPhotos(submission.id, files) : [])
+                        actorClarifyPhoto(credentials, submission.id, questionNumber, files.length > 0 ? await uploadActorEvidence(credentials, submission.assignmentId, files, { purpose: 'clarification', submissionId: submission.id, questionNumber }) : undefined)
                       ))}
                     />
                   );

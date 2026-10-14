@@ -16,6 +16,12 @@ const render = (sub: SubmissionDoc) => renderToStaticMarkup(
 );
 
 describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => {
+  it('deliveryMode online không cho nộp/bổ sung ảnh dù legacy state yêu cầu submit', () => {
+    const html = renderToStaticMarkup(<StudentAssignmentCard assignment={{ ...assignment, deliveryMode: 'online' }}
+      state={{ status: 'todo', action: 'submit', label: 'Xem bài', canResubmit: true }} detailView uploading={false}
+      onUpload={() => undefined} onOpen={() => undefined} onAnswerExamCode={async () => undefined} />);
+    expect(html).not.toContain('Bổ sung ảnh');
+  });
   it('chưa duyệt: chỉ có "chờ thầy cô duyệt", không có điểm hay nhận xét', () => {
     const html = render(submission({ scoreHidden: true }));
     expect(html).toContain('Chờ thầy cô duyệt');
@@ -55,22 +61,22 @@ describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => 
     expect(html).not.toContain('chấm lại');
   });
 
-  it('bài đóng không có nút nộp/bổ sung dù state truyền legacy có quyền nộp', () => {
-    const closed = { ...assignment, isOpen: false };
+  it('bài khóa không có nút nộp/bổ sung dù state truyền legacy có quyền nộp', () => {
+    const closed = { ...assignment, isOpen: false, submissionLocked: true };
     const html = renderToStaticMarkup(<StudentAssignmentCard assignment={closed} submission={submission({ teacherApproved: true })}
       state={{ status: 'graded', action: 'review', label: 'Xem nhận xét', canResubmit: true }} detailView uploading={false}
       onUpload={() => undefined} onOpen={() => undefined} onAnswerExamCode={async () => undefined} />);
     expect(html).not.toContain('Bổ sung ảnh');
     expect(html).not.toContain('Nộp ảnh');
   });
-  it('bài đóng: không chọn mã đề; vẫn xem ảnh và chờ GV', () => {
+  it('bài khóa: không chọn mã đề; vẫn xem ảnh và chờ GV', () => {
     const sub = { ...submission({}), status: 'error' as const, grade: undefined, errorReason: 'exam_code' as const, examCodeAsk: ['101', '102'] };
-    const html = renderToStaticMarkup(<StudentAssignmentCard assignment={{ ...assignment, isOpen: false }} submission={sub}
+    const html = renderToStaticMarkup(<StudentAssignmentCard assignment={{ ...assignment, isOpen: false, submissionLocked: true }} submission={sub}
       state={getStudentAssignmentState(assignment, sub)} detailView uploading={false} onUpload={() => undefined}
       onOpen={() => undefined} onAnswerExamCode={async () => undefined} />);
     expect(html).not.toContain('Mã đề trên tờ đề của em là');
     expect(html).not.toMatch(/>101<\/button>/);
-    expect(html).toContain('Bài đã đóng');
+    expect(html).toContain('Bài đã khóa chốt');
   });
   it.each(['submitted', 'grading', 'error', 'graded'] as const)('luôn mở ảnh đã nộp khi %s, không phải chờ duyệt', status => {
     const html = render({ ...submission({ scoreHidden: true }), status, fileUrls: ['https://example.test/own.jpg'] });

@@ -221,6 +221,21 @@ export interface AssignmentCompetencyTag {
   reason: string;
 }
 
+export interface WorkedSolutionCache {
+  version: string;
+  generatedAt: string;
+  status: 'ready' | 'incomplete';
+  questions: { questionNumber: string; workedSolution: string; status: 'ready' | 'unavailable' }[];
+}
+export interface SubmissionActor { role: 'teacher' | 'student' | 'parent'; uid?: string; studentId: string; at: string }
+export interface SubmissionFeedbackMessage { id: string; role: 'student' | 'teacher'; text: string; at: string }
+export interface SubmissionFeedbackDoc {
+  id: string; submissionId: string; studentId: string; classId: string; teacherId: string;
+  questionNumber?: string; status: 'pending' | 'answered' | 'resolved';
+  messages: SubmissionFeedbackMessage[]; createdAt: string; updatedAt: string;
+}
+export interface SubmissionFeedbackSummary { pending: number; replies: number; lastReplyAt?: string }
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -249,6 +264,7 @@ export interface AssignmentDoc {
    * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
    */
   questionCatalog?: AssignmentQuestionCatalogItem[];
+  questionCatalogByExamCode?: Record<string, AssignmentQuestionCatalogItem[]>;
   /**
    * Năng lực AI gắn cho bài (một lượt cùng lúc đọc questionCatalog). Nền cho hồ sơ năng lực:
    * mỗi bài đã duyệt trở thành bằng chứng cho các năng lực này. Giáo viên duyệt/sửa sau.
@@ -297,6 +313,11 @@ export interface AssignmentDoc {
   periodicTest?: PeriodicTestInfo;
   /** Các mã đề (đề + đáp án riêng). Có thì máy chủ chấm mỗi bài nộp theo đúng mã AI đọc được trên bài. */
   examVariants?: ExamVariant[];
+  workedSolutions?: WorkedSolutionCache;
+  workedSolutionsByExamCode?: Record<string, WorkedSolutionCache>;
+  submissionLocked?: boolean;
+  lockedAt?: string;
+  lockedBy?: string;
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
@@ -306,7 +327,7 @@ export interface AssignmentDoc {
 export type StudentAssignmentView = Pick<
   AssignmentDoc,
   'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
-  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
+  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'submissionLocked' | 'lockedAt' | 'createdAt' | 'updatedAt'
   | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion' | 'periodicTest'
 > & {
   hasAnswerKey: boolean;
@@ -355,6 +376,10 @@ export interface QuestionResult {
   /** 0..1; chỉ có khi AI tự đánh giá được độ chắc chắn. */
   confidence?: number;
   photoMarks?: PhotoMark[];
+  readingRegions?: PhotoMark[];
+  workedSolution?: string;
+  workedSolutionVersion?: string;
+  workedSolutionStatus?: 'ready' | 'unavailable';
   /** Thầy cô đã bỏ dấu câu này; chấm lại không tự gắn lại. */
   photoMarksCleared?: boolean;
   /** true khi phần này được bỏ qua có chủ đích theo lệnh riêng của giáo viên. */
@@ -378,6 +403,7 @@ export type ClarifyState = 'open' | 'answered' | 'photo_saved' | 'regrading' | '
 
 export interface QuestionClarify {
   kind: ClarifyKind;
+  confirmedBy?: SubmissionActor;
   state: ClarifyState;
   /** Máy đã đọc ra gì ở lần chấm đầu (hiện cho em đối chiếu). */
   reading: string;
@@ -498,6 +524,9 @@ export interface SubmissionDoc {
   /** Revision này bổ sung vào submission trước; bản trước vẫn là lịch sử bất biến. */
   supplementOf?: string;
   /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
+  submittedBy?: SubmissionActor;
+  feedbackSummary?: SubmissionFeedbackSummary;
+  feedbackReadAt?: string;
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
   textContent?: string;
@@ -517,7 +546,7 @@ export interface SubmissionDoc {
   evidenceSyncError?: string;
   /** Bài nhiều mã đề: mã của bài này — AI đọc trên ảnh, hoặc giáo viên chọn khi AI không đọc được. Chỉ máy chủ ghi. */
   examCode?: string;
-  examCodeSource?: 'ai' | 'teacher' | 'student';
+  examCodeSource?: 'ai' | 'teacher' | 'student' | 'parent';
   /** Máy chưa đọc được mã đề ở lượt đọc đầu: các mã của bài để em chọn mã ghi trên tờ đề. Rỗng = không hỏi. */
   examCodeAsk?: string[];
   /**
@@ -698,4 +727,13 @@ export interface StudentActivityView {
   officialScore: number | null;
   status: StudentActivityStatus;
   nextAction: 'start' | 'resume' | 'view_feedback' | 'wait_teacher' | 'retry' | 'practice_again';
+}
+
+/** Bài chữa là luyện tập riêng, không sửa bằng chứng hoặc điểm của bài đã chấm. */
+export interface CorrectionAssessment { outcome: 'achieved' | 'needs_work' | 'uncertain'; feedback: string }
+export interface CorrectionAttemptDoc {
+  id: string; submissionId: string; studentId: string; classId: string; teacherId: string;
+  attachments: SubmissionAttachment[]; fileUrls: string[]; note: string;
+  status: 'saved' | 'reviewing' | 'reviewed' | 'error'; assessment?: CorrectionAssessment;
+  createdAt: string; updatedAt: string; reviewedAt?: string; errorMessage?: string;
 }

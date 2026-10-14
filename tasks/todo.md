@@ -1,5 +1,26 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Phần tiếp: chấm trên ảnh / lời giải / nộp hộ / khóa chốt / bài chữa
+
+Nguồn chuẩn `tasks/annotated-review-proxy-plan.md`; bằng chứng `tasks/qa-annotated-review-20261014.md`.
+User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích commit/pushmain, không deploy thủ công.
+- [x] B1 actor/lock/upload/feedback backend:3vai, closed≠locked, immutable revision, parentPIN, grants, Rules.
+- [x] B2 math/geometry/solution lifecycle+cache: golden ảnh4, mọi câu/TF a–d, giữ sửa tay/invalidate nguồn.
+- [x] B3 UI ba vai+viewer+feedback: directupload ngoài list, hạn ngày+giờ,20dòng, màu+lọc, shared detail/forms.
+- [x] B4 Chụp ảnh bài chữa+explicit AI chi tiết không chấm điểm; stale/expired/malformedlease retry, sharedsolution+clarifyphotos.
+- [x] Full3027/3027(286files); Rules306/306(9files); native41+UI39checks; Gemini backend/grading/correction PASS; UI2falsefindings rejected by native source/test.
+- [x] Browser29checks390/820/1024 fixture0pageerrors; không tràn ngang; phản hồi/draft/correction/PHretry/directscroll đạt.
+- [x] Lint app/API/build exit0 sau source cuối; bundle index1545.01kB, cảnh báo kích thước có sẵn.
+- [ ] Commit/push main, xác minh remoteSHA/CI.
+- [x] Cập nhật plan/checklist/HANDOFF để Claude qua MCPbridge tiếp quản.
+- [ ] Production: phát hành Rules mới sau API tương thích (chưa authorized manualdeploy), rồi QA thật GV/HS/PH+AI nhận xét/định vị.
+
+Source writers frozen: backend+finalUI. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
+Chrome actual-component fixture không thay realaccounts/AIquality. Gemini4Argon router keyinvalid/ag404;
+UI code Gemini3.8Flash-low đã áp/review/test. Không bật trả phí hoặc đổi cấu hình.
+
+Quality Gate GitHub7d7c889 SUCCESS; API Typecheck7c88a50 SUCCESS (xác minh14/10).
+
 Nguồn chuẩn: `tasks/student-workspace-redesign-plan.md`; quyền triển khai + commit/push main đã có.
 Người dùng chỉnh rõ: “push lên main”, không deploy/promote thủ công. Theo dõi Git integration nếu tự triển khai.
 Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, nhánh `codex/student-submitted-photos`.

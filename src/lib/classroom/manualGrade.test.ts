@@ -84,3 +84,14 @@ describe('buildManualGradeUpdate · câu máy đang hỏi lại học sinh', () 
     expect(rows.map(r => r.clarify.state)).toEqual(['done', 'answered']);
   });
 });
+
+it('keeps text-only teacher edits and invalidates solution on changed answer key', () => {
+  const old = { questionNumber: 'Câu 1', status: 'correct' as const, score: 1, maxScore: 1, studentAnswer: 'B', expectedAnswer: 'B',
+    errorType: '', explanation: 'Cũ', correction: '', nextPractice: '', needsTeacherReview: false, workedSolution: 'Lời giải cũ', workedSolutionVersion: 'v' };
+  for (const change of [{ explanation: 'Giải thích kỹ' }, { correction: 'Sửa dấu' }, { workedSolution: 'GV viết đủ bước' }]) {
+    const next = mergeTeacherQuestionResults([old], [{ ...old, ...change }])[0];
+    expect(next).toMatchObject({ ...change, teacherEdited: true });
+  }
+  expect(mergeTeacherQuestionResults([old], [{ ...old, studentAnswer: 'C' }])[0].workedSolution).toBe(old.workedSolution);
+  expect(mergeTeacherQuestionResults([old], [{ ...old, expectedAnswer: 'C' }])[0]).not.toHaveProperty('workedSolution');
+});

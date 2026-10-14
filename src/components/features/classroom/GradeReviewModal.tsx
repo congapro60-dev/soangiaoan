@@ -4,6 +4,7 @@ import type { QuestionResult, SubmissionDoc } from '../../../lib/classroom/types
 import { recomputeTotal } from '../../../lib/classroom/questionRescore';
 import { rewriteFeedback } from '../../../services/gradingApi';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { QuestionResultsEditor } from './QuestionResultsEditor';
 
 export interface GradeReviewValue {
@@ -43,6 +44,8 @@ const tachDong = (text: string): string[] =>
  */
 export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, onClose, onSubmit }: Props) => {
   const g = submission.grade;
+  const [activeQuestion, setActiveQuestion] = useState(g?.questionResults?.[0]?.questionNumber || '');
+  const images = [...new Set([...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(g?.questionResults?.flatMap(question => question.clarify?.photoUrls ?? []) ?? [])])];
   const maxScore = g?.maxScore ?? 10;
 
   const [score, setScore] = useState(String(g?.score ?? ''));
@@ -93,7 +96,7 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:p-8" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-6xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Sửa điểm / chấm tay</p>
@@ -103,16 +106,19 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
         </div>
 
         <div className="mt-4 space-y-5">
-          {rows.length > 0 && (
+          {rows.length > 0 && <div className="grid min-w-0 gap-4 md:grid-cols-2">
+            {images.length > 0 && <div className="min-w-0 md:sticky md:top-4 md:self-start"><SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt="Đối chiếu bài làm khi sửa điểm" questionResults={rows} teacherView approved={Boolean(g?.teacherApproved)} pending={Boolean(rows.find(row => row.questionNumber === activeQuestion)?.clarify && ['open', 'photo_saved', 'regrading'].includes(rows.find(row => row.questionNumber === activeQuestion)!.clarify!.state))} selectedQuestion={activeQuestion} onSelectQuestion={setActiveQuestion} detailHidden /></div>}
+            <div className="min-w-0 max-h-[75vh] overflow-y-auto">
             <QuestionResultsEditor
               rows={rows}
               original={g?.questionResults || []}
               canFixForClass={Boolean(submission.assignmentId)}
               classFixes={classFixes}
               onChange={doiCau}
+              onFocusQuestion={setActiveQuestion}
               onToggleClassFix={batTatCaLop}
             />
-          )}
+            </div></div>}
           <div>
             <label className="mb-1 block text-sm font-black text-slate-700">
               Điểm (tối đa {maxScore}){rows.length > 0 && <span className="font-semibold text-slate-500"> — tự cộng từ các câu, vẫn sửa tay được</span>}

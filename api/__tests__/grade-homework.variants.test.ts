@@ -23,6 +23,8 @@ interface Harness {
 }
 
 const makeDb = (harness: Harness) => {
+  harness.state.classes ||= {};
+  for (const submission of Object.values(harness.state.submissions || {})) { const classId = String(submission.classId || ''); if (classId) { harness.state.classes[classId] ||= { teacherId: submission.teacherId }; harness.state[`classes/${classId}/students`] ||= {}; harness.state[`classes/${classId}/students`][String(submission.studentId)] ||= { name: 'HS' }; } }
   const ensure = (name: string) => {
     harness.state[name] ||= {};
     return harness.state[name];
@@ -40,6 +42,7 @@ const makeDb = (harness: Harness) => {
   });
   const collection = (name: string) => ({
     doc: (id: string) => ({
+      collection: (sub: string) => collection(`${name}/${id}/${sub}`),
       get: async () => {
         const data = ensure(name)[id];
         return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
@@ -172,21 +175,20 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     h.uid = 'gv-1';
   });
 
-  it('HS không chọn mã hoặc gọi chấm trực tiếp khi bài đóng; không đổi bài, không gọi AI', async () => {
-    const harness = seed({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['1201', '1202'] }, { isOpen: false });
+  it('HS không chọn mã khi khóa chốt; lượt đã nhận vẫn được đọc tiếp', async () => {
+    const harness = seed({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['1201', '1202'] }, { isOpen: false, submissionLocked: true });
     harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-12', teacherId: 'gv-1' } };
     h.db = makeDb(harness); h.uid = 'hs-uid';
     const original = structuredClone(harness.state.submissions['sub-1']);
     const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
     expect((await call({ action: 'answerExamCode', submissionId: 'sub-1', examCode: '1202' })).statusCode).toBe(409);
-    expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(409);
     expect(harness.state.submissions['sub-1']).toEqual(original);
     expect(prompts).toHaveLength(0);
     expect(h.fetch).not.toHaveBeenCalled();
   });
 
   it('GV vẫn chấm bài đóng theo mã đã chọn', async () => {
-    const harness = seed({ examCode: '1201', examCodeSource: 'teacher' }, { isOpen: false });
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher' }, { isOpen: false, submissionLocked: true });
     h.db = makeDb(harness);
     const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
     expect((await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' })).statusCode).toBe(200);
@@ -320,6 +322,35 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
 
     await call({ action: 'solveAnswerKey', classId: 'lop-12', examText: 'Câu 1. Đề.', examImages: [], maxScore: 10 });
     expect(prompts[1]).not.toContain('ĐÂY LÀ ĐỀ KIỂM TRA ĐỊNH KÌ');
+  });  it('teacher creates one shared solution cache for periodic code, fetch attaches without regrading or extra AI', async () => {
+    const harness = seed({ status: 'graded', examCode: '1202', grade: JSON.parse(gradeJson(8)) }); h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(
+      makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', content: 'Tính 1+1.', expectedAnswer: 'C' }] })),
+      makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', workedSolution: 'Ta cộng hai số: $1+1=2$. Vì vậy đáp án C phù hợp.', status: 'ready' }] })),
+    );
+    const result = await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' });
+    expect(result.statusCode).toBe(200); expect(result.body?.cache).toMatchObject({ status: 'ready' }); expect(prompts).toHaveLength(2);
+    expect(prompts[0]).toContain('không tách câu Đúng/Sai thành 4 câu');
+    const before = structuredClone(harness.state.submissions['sub-1']);
+    const again = await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' }); expect(again.statusCode).toBe(200); expect(prompts).toHaveLength(2);
+    expect(harness.state.submissions['sub-1']).toEqual(before);
+    const assignment = harness.state.assignments['kt-1']; expect(assignment.questionCatalogByExamCode).toHaveProperty('1202'); expect(assignment.workedSolutionsByExamCode).toHaveProperty('1202');
   });
+  it('teacher cannot overlap a paid same-version solution run or persist changed answer key', async () => {
+    const harness = seed(); h.db = makeDb(harness);
+    harness.state.assignments['kt-1'].workedSolutionsClaims = { '1202': { id: 'other', expiresAt: Date.now() + 10000 } };
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse('{}'));
+    expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(409); expect(prompts).toHaveLength(0);
+  });
+  it('solution commit refuses concurrent catalog edits and retains teacher data', async () => {
+    const harness = seed({}, { questionCatalogByExamCode: { '1202': [{ questionNumber: 'Phần I – Câu 1', content: 'Câu gốc', expectedAnswer: 'C' }] } }); h.db = makeDb(harness);
+    const original = [{ questionNumber: 'Phần I – Câu 1', content: 'GV sửa đề trong lúc tạo lời giải', expectedAnswer: 'C' }];
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', workedSolution: 'Ta xét quy tắc rồi tính ra kết quả phù hợp với C.', status: 'ready' }] })));
+    const fetch = h.fetch as (url: unknown, init?: { body?: unknown }) => Promise<unknown>;
+    vi.stubGlobal('fetch', async (url: unknown, init?: { body?: unknown }) => { const result = await fetch(url, init); harness.state.assignments['kt-1'].questionCatalogByExamCode = { '1202': original }; return result; });
+    expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(409);
+    expect(harness.state.assignments['kt-1'].questionCatalogByExamCode).toEqual({ '1202': original }); expect(harness.state.assignments['kt-1'].workedSolutionsByExamCode).toBeUndefined(); expect(prompts).toHaveLength(1);
+  });
+
 });
 

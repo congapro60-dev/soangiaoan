@@ -24,6 +24,8 @@ interface Harness {
 }
 
 const makeDb = (harness: Harness) => {
+  harness.state.classes ||= {};
+  for (const submission of Object.values(harness.state.submissions || {})) { const classId = String(submission.classId || ''); if (classId) { harness.state.classes[classId] ||= { teacherId: submission.teacherId }; harness.state[`classes/${classId}/students`] ||= {}; harness.state[`classes/${classId}/students`][String(submission.studentId)] ||= { name: 'HS' }; } }
   const ensure = (name: string) => {
     harness.state[name] ||= {};
     return harness.state[name];
@@ -41,6 +43,7 @@ const makeDb = (harness: Harness) => {
   });
   const collection = (name: string) => ({
     doc: (id: string) => ({
+      collection: (sub: string) => collection(`${name}/${id}/${sub}`),
       get: async () => {
         const data = ensure(name)[id];
         return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
@@ -187,6 +190,14 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
   beforeEach(() => {
     process.env.GRADING_GEMINI_API_KEY = 'test-key';
     h.uid = 'gv-1';
+  });
+  it('assignment edits during AI cannot bless an old solution with the new version', async () => {
+    const harness = seed(); harness.state.submissions['sub-1'].assignmentId = 'asg-1'; harness.state.assignments = { 'asg-1': { classId: 'lop-1', teacherId: 'gv-1', answerKey: 'Câu 1: B', sourceText: 'Tính 1+1', questionCatalog: [{ questionNumber: 'Câu 1', content: 'Tính 1+1', expectedAnswer: 'B' }] } }; h.db = makeDb(harness);
+    const raw = { ...JSON.parse(validGradeJson(1)), questionResults: [{ questionNumber: 'Câu 1', status: 'correct', score: 1, maxScore: 1, studentAnswer: 'B', expectedAnswer: 'B', explanation: 'Đúng', correction: '', nextPractice: '', errorType: '', confidence: .95, needsTeacherReview: false, workedSolution: 'Lời giải từ bản đề cũ: $1+1=2$.' }] };
+    vi.stubGlobal('fetch', async () => { harness.state.assignments['asg-1'].answerKey = 'Câu 1: C'; return makeGeminiResponse(JSON.stringify(raw)); });
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(200);
+    const rows = (harness.state.submissions['sub-1'].grade as DocData).questionResults as DocData[];
+    expect(rows[0].workedSolution).toBeUndefined(); expect(rows[0].workedSolutionStatus).toBe('unavailable');
   });
   it.each([false, true])('binds marks to sent student photos after PDF/fetch failures; preserves removal=%s', async cleared => {
     const harness = seed();
@@ -545,7 +556,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
         ...db,
         runTransaction: async (work: Parameters<typeof db.runTransaction>[0]) => {
           soGiaoDich += 1;
-          if (soGiaoDich === 2) throw new Error('10 ABORTED: Too much contention');
+          if (soGiaoDich === 3) throw new Error('10 ABORTED: Too much contention');
           return db.runTransaction(work);
         },
       };

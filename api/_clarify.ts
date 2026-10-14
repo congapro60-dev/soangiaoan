@@ -9,7 +9,7 @@
  * - Tới khi MỌI câu được làm rõ (hoặc bỏ qua) mới đồng bộ minh chứng vào hồ sơ học tập (trước đó điểm còn tạm).
  */
 import type { VercelResponse } from '@vercel/node';
-import { getAuth } from 'firebase-admin/auth';
+import { actorStamp, assertActorCurrent, authorizeSubmissionActor, discardActorFiles, consumeActorGrant, prepareActorFiles, SubmissionAccessError } from './_submission-actors.js';
 import {
   answerClarifyRow, buildClarifyRows, canonicalAnswer, failPhotoRegrade, finishPhotoRegrade,
   isOwnClarifyPhotoUrl, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
@@ -25,15 +25,6 @@ type Body = Record<string, unknown>;
 const MAX_ITEMS_PER_CALL = 100;
 /** Số ảnh em gửi cho một câu trong một lần. */
 const MAX_PHOTOS_PER_CALL = 8;
-
-const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
-  if (typeof idToken !== 'string' || !idToken) return null;
-  try {
-    return (await getAuth().verifyIdToken(idToken)).uid;
-  } catch {
-    return null;
-  }
-};
 
 /**
  * Bài vừa được MÁY chấm lần đầu: đánh dấu các câu máy đọc chưa chắc để hỏi lại học sinh (luôn bật, không cần công tắc lớp).
@@ -63,22 +54,7 @@ export interface ClarifyDeps {
 interface Outcome { grade: SubmissionGrade; before: number; after: number; previous: SubmissionDoc }
 
 /** Xác thực phiên em + đúng chủ bài nộp. Trả null (đã trả lỗi) nếu không hợp lệ. */
-const authorizeStudent = async (db: Db, body: Body, res: VercelResponse): Promise<{ uid: string; submissionId: string } | null> => {
-  const uid = await uidFromIdToken(body.idToken);
-  if (!uid) { res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' }); return null; }
-  const submissionId = typeof body.submissionId === 'string' ? body.submissionId : '';
-  if (!submissionId || submissionId.includes('/')) { res.status(400).json({ error: 'Thiếu mã bài nộp.' }); return null; }
-  const snap = await db.collection('submissions').doc(submissionId).get();
-  if (!snap.exists) { res.status(404).json({ error: 'Không tìm thấy bài nộp.' }); return null; }
-  const data = snap.data() as FirebaseFirestore.DocumentData;
-  const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
-  if (!link || link.studentId !== data.studentId || link.classId !== data.classId || link.teacherId !== data.teacherId) {
-    res.status(403).json({ error: 'Không có quyền với bài này.' });
-    return null;
-  }
-  return { uid, submissionId };
-};
+const authorizeStudent = authorizeSubmissionActor;
 
 /** Mọi câu đã làm rõ → điểm chốt → mới ghi vào hồ sơ học tập (trước đó điểm còn tạm). */
 const syncIfFinished = async (db: Db, submissionId: string, done: Outcome | null): Promise<void> => {
@@ -111,15 +87,12 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
   const ref = db.collection('submissions').doc(submissionId);
   const rejected: Rejected[] = [];
   let outcome: Outcome | null = null;
-  let closed = false;
   await db.runTransaction(async transaction => {
     const snap = await transaction.get(ref);
     if (!snap.exists) return;
     const current = { id: submissionId, ...snap.data() } as SubmissionDoc;
-    if (current.assignmentId && (await transaction.get(db.collection('assignments').doc(current.assignmentId))).data()?.isOpen === false) {
-      closed = true;
-      return;
-    }
+    if (current.studentId !== auth.actor.studentId || current.classId !== auth.actor.classId || current.teacherId !== auth.actor.teacherId) throw new SubmissionAccessError(403, 'Bài nộp không thuộc tài khoản này.');
+    await assertActorCurrent(db, transaction, auth.actor, current.assignmentId, true);
     const grade = current.grade;
     if (current.status !== 'graded' || !grade?.questionResults) {
       rejected.push({ questionNumber: '', reason: 'Bài chưa chấm xong hoặc đã đổi — em tải lại trang rồi thử lại.' });
@@ -138,13 +111,13 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
       const canonical = canonicalAnswer(q.clarify.kind, entry.answer, q.clarify.parts);
       if (!canonical.ok) { rejected.push({ questionNumber: label, reason: canonical.error }); continue; }
       const next = answerClarifyRow(q, canonical.value, now);
-      if (next) rows[index] = next;
+      if (next) rows[index] = { ...next, clarify: next.clarify ? { ...next.clarify, confirmedBy: actorStamp(auth.actor, now) } : undefined };
     }
     for (const item of skips) {
       const index = indexOf(item);
       if (index < 0) { rejected.push({ questionNumber: String(item ?? ''), reason: 'Không có câu này.' }); continue; }
       const next = skipClarifyRow(rows[index], now);
-      if (next) rows[index] = next;
+      if (next) rows[index] = { ...next, clarify: next.clarify ? { ...next.clarify, confirmedBy: actorStamp(auth.actor, now) } : undefined };
       else rejected.push({ questionNumber: String(item), reason: 'Câu này đã xong.' });
     }
     const before = pendingClarifyCount(grade.questionResults);
@@ -154,7 +127,6 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
     outcome = { grade: nextGrade, before, after, previous: current };
   });
 
-  if (closed) return void res.status(409).json({ error: 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.' });
 
   const done = outcome as Outcome | null;
   await syncIfFinished(db, submissionId, done);
@@ -168,35 +140,40 @@ const handleClarifyAnswers = async (db: Db, body: Body, res: VercelResponse): Pr
 const handleClarifyPhoto = async (db: Db, body: Body, res: VercelResponse, deps: ClarifyDeps): Promise<void> => {
   const auth = await authorizeStudent(db, body, res);
   if (!auth) return;
-  const { uid, submissionId } = auth;
+  const { submissionId } = auth;
   const questionNumber = typeof body.questionNumber === 'string' ? body.questionNumber : '';
   if (!questionNumber) return void res.status(400).json({ error: 'Thiếu số câu.' });
+  await db.runTransaction(tx => assertActorCurrent(db, tx, auth.actor, auth.submission.assignmentId, true));
   const rawUrls = Array.isArray(body.photoUrls) ? body.photoUrls.slice(0, MAX_PHOTOS_PER_CALL) : [];
-  if (rawUrls.some(url => !isOwnClarifyPhotoUrl(url, uid))) return void res.status(400).json({ error: 'Ảnh không hợp lệ. Em chọn ảnh rồi gửi lại.' });
-  const urls = rawUrls as string[];
+  if (!body.uploadGrantId && rawUrls.some(url => !isOwnClarifyPhotoUrl(url, auth.actor.uid || ''))) return void res.status(400).json({ error: 'Ảnh không hợp lệ. Chọn ảnh rồi gửi lại.' });
+  const prepared = rawUrls.length || body.uploadGrantId ? await prepareActorFiles(db, { ...body, fileUrls: rawUrls }, auth.actor, auth.submission.assignmentId, 'clarification') : null;
+  const urls = prepared?.fileUrls || [];
 
   const ref = db.collection('submissions').doc(submissionId);
   const startedAt = new Date().toISOString();
   let claimed: { submission: SubmissionDoc; question: QuestionResult } | null = null;
   let refusal = '';
-  await db.runTransaction(async transaction => {
+  try { await db.runTransaction(async transaction => {
     const snap = await transaction.get(ref);
     if (!snap.exists) { refusal = 'Không tìm thấy bài nộp.'; return; }
     const current = { id: submissionId, ...snap.data() } as SubmissionDoc;
-    if (current.assignmentId && (await transaction.get(db.collection('assignments').doc(current.assignmentId))).data()?.isOpen === false) {
-      refusal = 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.';
-      return;
-    }
+    if (current.studentId !== auth.actor.studentId || current.classId !== auth.actor.classId || current.teacherId !== auth.actor.teacherId) throw new SubmissionAccessError(403, 'Bài nộp không thuộc tài khoản này.');
+    await assertActorCurrent(db, transaction, auth.actor, current.assignmentId, true);
+    const grantRef = prepared ? await consumeActorGrant(db, transaction, prepared, auth.actor, current.assignmentId, 'clarification') : undefined;
     const rows = current.grade?.questionResults;
     const index = rows ? rows.findIndex(q => q.questionNumber === questionNumber) : -1;
     if (current.status !== 'graded' || !current.grade || !rows || index < 0) { refusal = 'Bài chưa chấm xong hoặc đã đổi — em tải lại trang rồi thử lại.'; return; }
     const step = startPhotoRegrade(rows[index], urls, startedAt, Date.now());
     if (!step.ok) { refusal = step.error; return; }
+    step.row = { ...step.row, clarify: step.row.clarify ? { ...step.row.clarify, confirmedBy: actorStamp(auth.actor, startedAt) } : undefined };
     const nextRows = rows.map((q, i) => (i === index ? step.row : q));
     transaction.update(ref, { grade: { ...current.grade, questionResults: nextRows }, updatedAt: startedAt });
+    if (grantRef) transaction.update(grantRef, { consumed: true, consumedAt: startedAt, submissionId, questionNumber });
     claimed = { submission: current, question: step.row };
   });
+  } catch (reason) { if (prepared) await discardActorFiles(prepared); throw reason; }
   const taken = claimed as { submission: SubmissionDoc; question: QuestionResult } | null;
+  if (!taken && prepared) await discardActorFiles(prepared);
   if (!taken) return void res.status(409).json({ error: refusal || 'Chưa gửi được ảnh.' });
 
   const work = (async () => {
@@ -234,7 +211,12 @@ const handleClarifyPhoto = async (db: Db, body: Body, res: VercelResponse, deps:
 };
 
 export const handleClarifyAction = async (db: Db, body: Body, res: VercelResponse, deps: ClarifyDeps): Promise<boolean> => {
-  if (body.action === 'clarifyAnswers') { await handleClarifyAnswers(db, body, res); return true; }
-  if (body.action === 'clarifyPhoto') { await handleClarifyPhoto(db, body, res, deps); return true; }
-  return false;
+  try {
+    if (body.action === 'clarifyAnswers') { await handleClarifyAnswers(db, body, res); return true; }
+    if (body.action === 'clarifyPhoto') { await handleClarifyPhoto(db, body, res, deps); return true; }
+    return false;
+  } catch (reason) {
+    if (reason instanceof SubmissionAccessError) { res.status(reason.statusCode).json({ error: reason.message }); return true; }
+    throw reason;
+  }
 };

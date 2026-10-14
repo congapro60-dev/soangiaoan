@@ -32,12 +32,15 @@ interface Harness {
 }
 
 const makeDb = (harness: Harness) => {
+  harness.state.classes ||= {};
+  for (const submission of Object.values(harness.state.submissions || {})) { const classId = String(submission.classId || ''); if (classId) { harness.state.classes[classId] ||= { teacherId: submission.teacherId }; harness.state[`classes/${classId}/students`] ||= {}; harness.state[`classes/${classId}/students`][String(submission.studentId)] ||= { name: 'HS' }; } }
   const ensure = (name: string) => {
     harness.state[name] ||= {};
     return harness.state[name];
   };
   const collection = (name: string) => ({
     doc: (id: string) => ({
+      collection: (sub: string) => collection(`${name}/${id}/${sub}`),
       get: async () => {
         const data = ensure(name)[id];
         return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };

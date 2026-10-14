@@ -1,4 +1,5 @@
 import { isClarifyPending } from './clarification.js';
+import { invalidateWorkedSolution } from './workedSolutions.js';
 import { projectPhotoMarks } from './photoMarks.js';
 import type { QuestionResult, QuestionResultStatus, SubmissionDoc, SubmissionGrade } from './types.js';
 
@@ -41,7 +42,7 @@ export const mergeTeacherQuestionResults = (
     if (!raw) return old;
     const score = Number(raw.score);
     const status = STATUSES.find(s => s === raw.status) || old.status;
-    const next: QuestionResult = {
+    let next: QuestionResult = {
       ...old,
       score: Number.isFinite(score) ? Math.min(Math.max(score, 0), old.maxScore) : old.score,
       status,
@@ -51,9 +52,13 @@ export const mergeTeacherQuestionResults = (
       explanation: text(raw.explanation, old.explanation, true),
       correction: text(raw.correction, old.correction),
       nextPractice: text(raw.nextPractice, old.nextPractice),
+      ...(typeof raw.workedSolution === 'string' ? { workedSolution: raw.workedSolution.slice(0, 16000), workedSolutionStatus: raw.workedSolution.trim() ? 'ready' as const : 'unavailable' as const } : {}),
     };
     const changed = next.score !== old.score || next.status !== old.status
-      || next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer;
+      || next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer
+      || next.explanation !== old.explanation || next.correction !== old.correction || next.nextPractice !== old.nextPractice
+      || next.errorType !== old.errorType || next.workedSolution !== old.workedSolution;
+    if (next.expectedAnswer !== old.expectedAnswer) next = invalidateWorkedSolution(next);
     // Client chỉ được bỏ dấu; đổi phần đọc/status/đáp án làm tọa độ cũ không còn đáng tin.
     const removedByTeacher = Array.isArray(raw.photoMarks) && raw.photoMarks.length === 0;
     if (removedByTeacher) next.photoMarksCleared = true;
@@ -61,6 +66,7 @@ export const mergeTeacherQuestionResults = (
       || next.studentAnswer !== old.studentAnswer || next.status !== old.status || next.expectedAnswer !== old.expectedAnswer;
     const marks = clearMarks ? [] : projectPhotoMarks(next, (old.photoMarks || []).flatMap(m => m.imageUrl ? [m.imageUrl] : []));
     delete next.photoMarks;
+    if (next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer) delete next.readingRegions;
     if (marks.length) next.photoMarks = marks;
     return changed || old.teacherEdited
       ? { ...next, teacherEdited: true, needsTeacherReview: false }

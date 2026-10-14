@@ -187,3 +187,14 @@ describe('reconcileAiGrade', () => {
     expect(keepTeacherEditedRows(rows, [q({ questionNumber: 'Câu 9', teacherEdited: true })])).toEqual(rows);
   });
 });
+
+it('deterministic rescore and typed clarification preserve solution; key fix invalidates it', () => {
+  const old = q({ studentAnswer: 'B', expectedAnswer: 'B', workedSolution: 'Lời giải đầy đủ', workedSolutionVersion: 'v' });
+  expect(rescoreQuestion(old, 'teacher')?.workedSolution).toBe(old.workedSolution);
+  expect(applyAnswerKeyFixes([old], [{ questionNumber: old.questionNumber, expectedAnswer: 'C', fixedAt: 'now' }]).rows[0]).not.toHaveProperty('workedSolution');
+});
+
+it('teacher preservation cannot resurrect a solution from a changed key', () => {
+  const old = q({ studentAnswer: 'B', expectedAnswer: 'B', workedSolution: 'Lời giải B', workedSolutionVersion: 'v', teacherEdited: true });
+  expect(keepTeacherEditedRows([q({ studentAnswer: 'B', expectedAnswer: 'C' })], [old])[0]).not.toHaveProperty('workedSolution');
+});

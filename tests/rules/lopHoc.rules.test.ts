@@ -243,8 +243,8 @@ describe('submissions · bài nộp', () => {
     await assertFails(getDoc(doc(dbHsA(), 'submissions/bai-1')));
   });
 
-  it('22. Học sinh nộp bài hợp lệ → ALLOW', async () => {
-    await assertSucceeds(setDoc(doc(dbHsA(), 'submissions/bai-moi'), baiNopMau({ id: 'bai-moi' })));
+  it('22. Học sinh nộp trực tiếp phải qua API → DENY', async () => {
+    await assertFails(setDoc(doc(dbHsA(), 'submissions/bai-moi'), baiNopMau({ id: 'bai-moi' })));
   });
 
   it('23. Học sinh nộp bài kèm sẵn điểm → DENY (tự chấm cho mình)', async () => {
@@ -270,8 +270,8 @@ describe('submissions · bài nộp', () => {
     await assertFails(setDoc(doc(dbHsB(), 'submissions/bai-mao-danh'), baiNopMau({ id: 'bai-mao-danh' })));
   });
 
-  it('26. Học sinh nộp lại file khi bài chưa chấm → ALLOW', async () => {
-    await assertSucceeds(updateDoc(doc(dbHsA(), 'submissions/bai-1'), {
+  it('26. Học sinh nộp lại file phải qua API → DENY', async () => {
+    await assertFails(updateDoc(doc(dbHsA(), 'submissions/bai-1'), {
       fileUrls: ['https://storage/bai1-chup-lai.jpg'],
       updatedAt: '2026-08-20T01:30:00.000Z',
     }));
@@ -290,8 +290,8 @@ describe('submissions · bài nộp', () => {
     }));
   });
 
-  it('29. Giáo viên ghi điểm cho bài nộp → ALLOW', async () => {
-    await assertSucceeds(updateDoc(doc(dbGV(), 'submissions/bai-1'), {
+  it('29. Giáo viên ghi điểm phải qua API → DENY', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'submissions/bai-1'), {
       status: 'graded',
       grade: {
         score: 7.5, maxScore: 10, feedback: 'Câu 5 nhầm dấu.', strengths: [], weaknesses: ['dấu khi thay toạ độ'],
@@ -361,5 +361,14 @@ describe('submissionGradeHistory · audit server-only', () => {
     await assertFails(setDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), payload));
     await assertFails(updateDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), { action: 'delete' }));
     await assertFails(deleteDoc(doc(dbGV(), 'submissionGradeHistory/history-1')));
+  });
+});
+
+describe('Khóa chốt không thể bị lách qua document gốc', () => {
+  it('teacher cannot alter clarification, evidence or lock using direct writes', async () => {
+    await testEnv.withSecurityRulesDisabled(async context => { await updateDoc(doc(context.firestore(), 'assignments/bt-1'), { submissionLocked: true }); });
+    await assertFails(updateDoc(doc(dbGV(), 'submissions/bai-1'), { fileUrls: ['other-photo'] }));
+    await assertFails(updateDoc(doc(dbGV(), 'submissions/bai-1'), { grade: { questionResults: [{ studentAnswer: 'B', clarify: { photoUrls: ['forged'] } }] } }));
+    await assertFails(updateDoc(doc(dbGV(), 'assignments/bt-1'), { submissionLocked: false }));
   });
 });

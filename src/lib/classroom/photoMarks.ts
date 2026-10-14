@@ -1,18 +1,23 @@
 import type { PhotoMark } from './types.js';
 import { isBlankAnswer } from './questionRescore.js';
 
-type MarkedQuestion = { status?: unknown; studentAnswer?: unknown; ignoredByTeacherInstruction?: unknown; photoMarks?: unknown; photoMarksCleared?: unknown };
+type MarkedQuestion = { status?: unknown; studentAnswer?: unknown; ignoredByTeacherInstruction?: unknown; photoMarks?: unknown; photoMarksCleared?: unknown; readingRegions?: unknown };
 
 const canMark = (question: MarkedQuestion): boolean => {
   const answer = String(question.studentAnswer ?? '').trim();
-  return (question.status === 'incorrect' || question.status === 'partially_correct')
+  return ['correct', 'incorrect', 'partially_correct'].includes(String(question.status))
     && question.ignoredByTeacherInstruction !== true && question.photoMarksCleared !== true && !isBlankAnswer(answer)
     && !/^[\s[(]*(?:bỏ trống|để trống|không (?:đọc rõ|làm|trả lời)|chưa (?:làm|trả lời)|unreadable|blank|not attempted)(?:$|[\s\]):,.])/iu.test(answer);
 };
 
 /** Optional AI geometry is best-effort; never trust model URLs or coerce coordinates. */
 export const sanitizePhotoMarks = (value: unknown, question: MarkedQuestion, imageCount = Infinity): PhotoMark[] => {
-  if (!canMark(question) || !Array.isArray(value)) return [];
+  if (!canMark(question)) return [];
+  return sanitizeGeometry(value, imageCount);
+};
+
+const sanitizeGeometry = (value: unknown, imageCount: number): PhotoMark[] => {
+  if (!Array.isArray(value)) return [];
   return value.filter((raw): raw is PhotoMark => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return false;
     const m = raw as PhotoMark;
@@ -24,10 +29,12 @@ export const sanitizePhotoMarks = (value: unknown, question: MarkedQuestion, ima
 };
 
 export const bindQuestionPhotoMarks = <Q extends MarkedQuestion>(question: Q, studentUrls: readonly string[]): Q => {
-  const { photoMarks: _marks, ...rest } = question;
+  const { photoMarks: _marks, readingRegions: _regions, ...rest } = question;
   const photoMarks = sanitizePhotoMarks(question.photoMarks, question, studentUrls.length)
     .map(mark => ({ ...mark, imageUrl: studentUrls[mark.imageIndex - 1] }));
-  return { ...rest, ...(photoMarks.length ? { photoMarks } : {}) } as Q;
+  const readingRegions = sanitizeReadingRegions(question.readingRegions, question, studentUrls.length)
+    .map(mark => ({ ...mark, imageUrl: studentUrls[mark.imageIndex - 1] }));
+  return { ...rest, ...(photoMarks.length ? { photoMarks } : {}), ...(readingRegions.length ? { readingRegions } : {}) } as Q;
 };
 
 /** Only server-bound URLs belonging to this submission may leave the server. */
@@ -35,6 +42,23 @@ export const projectPhotoMarks = (question: MarkedQuestion, allowedUrls: readonl
   if (!Array.isArray(question.photoMarks)) return [];
   return question.photoMarks.flatMap(raw => {
     const marks = sanitizePhotoMarks([raw], question);
+    const imageUrl = raw && typeof raw === 'object' ? (raw as PhotoMark).imageUrl : undefined;
+    return marks.length && typeof imageUrl === 'string' && allowedUrls.includes(imageUrl)
+      ? [{ ...marks[0], imageUrl }] : [];
+  }).slice(0, 3);
+};
+
+/** Reading location does not assert the answer is correct or confidently transcribed. */
+export const sanitizeReadingRegions = (value: unknown, question: MarkedQuestion, imageCount = Infinity): PhotoMark[] => {
+  if (question.ignoredByTeacherInstruction === true || question.status === 'not_attempted'
+    || isBlankAnswer(String(question.studentAnswer ?? ''))) return [];
+  return sanitizeGeometry(value, imageCount);
+};
+
+export const projectReadingRegions = (question: MarkedQuestion, allowedUrls: readonly string[]): PhotoMark[] => {
+  if (!Array.isArray(question.readingRegions)) return [];
+  return question.readingRegions.flatMap(raw => {
+    const marks = sanitizeReadingRegions([raw], question);
     const imageUrl = raw && typeof raw === 'object' ? (raw as PhotoMark).imageUrl : undefined;
     return marks.length && typeof imageUrl === 'string' && allowedUrls.includes(imageUrl)
       ? [{ ...marks[0], imageUrl }] : [];

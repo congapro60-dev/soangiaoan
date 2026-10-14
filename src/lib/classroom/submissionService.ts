@@ -1,14 +1,12 @@
-import { doc, setDoc } from 'firebase/firestore';
-import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
-import { auth, db, removeUndefinedFields, storage } from '../firebase';
+import { uploadActorEvidence, submitActorSubmission } from '../../services/submissionActorsApi';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { auth, removeUndefinedFields, storage } from '../firebase';
 import type { ManualGradeInput } from './manualGrade';
 import {
-  SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
   type PeriodicTestInfo,
   type StudentNotificationDoc,
-  type SubmissionAttachment,
   type SubmissionDoc,
 } from './types';
 import type { ExamVariant } from './examVariants';
@@ -348,81 +346,15 @@ export interface SubmitInput {
   supplementOf?: string;
 }
 
-const attachmentKind = (file: File): SubmissionAttachment['kind'] => {
-  const type = file.type.toLowerCase();
-  if (type.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(file.name)) return 'image';
-  if (type === 'application/pdf' || /\.pdf$/i.test(file.name)) return 'pdf';
-  if (type.includes('word') || /\.docx?$/i.test(file.name)) return 'document';
-  return 'unknown';
-};
-
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
-  const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
-  if (input.images.length === 0 && (input.rawFiles || []).length === 0) throw new Error('Chưa chọn bài làm để nộp.');
-
-  const submissionId = newId('sub');
-  const fileUrls: string[] = [];
-  const attachments: SubmissionAttachment[] = [];
-  const uploadedRefs: ReturnType<typeof ref>[] = [];
-
-  try {
-    for (let i = 0; i < input.images.length; i += 1) {
-      const dataUrl = input.images[i];
-      const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-      // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
-      const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
-      const fileRef = ref(storage, path);
-      uploadedRefs.push(fileRef);
-      await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
-      const url = await getDownloadURL(fileRef);
-      fileUrls.push(url);
-      attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
-    }
-
-    for (const file of input.rawFiles || []) {
-      const an = file.name.replace(/[^\w.\-]+/g, '_');
-      const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
-      uploadedRefs.push(fileRef);
-      await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
-      const url = await getDownloadURL(fileRef);
-      fileUrls.push(url);
-      attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
-    }
-
-    const now = new Date().toISOString();
-    const submission: SubmissionDoc = {
-      id: submissionId,
-      teacherId: input.teacherId,
-      classId: input.classId,
-      studentId: input.studentId,
-      assignmentId: input.assignmentId,
-      ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}),
-      fileUrls,
-      textContent: input.textContent?.trim() || '',
-      attachments,
-      note: input.note || '',
-      status: 'submitted',
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    if (input.supplementOf) {
-      const result = await callClassroomStudentApi<{ submission: SubmissionDoc }>({
-        action: 'createSupplementSubmission',
-        submission: removeUndefinedFields(submission),
-      });
-      return result.submission;
-    }
-
-    await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
-    return submission;
-  } catch (error) {
-    // Action revision có thể bị từ chối sau khi Storage đã nhận file (parent sai, quá 12 tệp,
-    // hoặc mạng lỗi). Dọn các object vừa tạo để không để rác mồ côi; lượt nộp cũ vẫn nguyên.
-    if (input.supplementOf && uploadedRefs.length > 0) {
-      await Promise.allSettled(uploadedRefs.map(fileRef => deleteObject(fileRef)));
-    }
-    throw error;
-  }
+  if (!auth.currentUser) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
+  const imageFiles = await Promise.all(input.images.map(async (dataUrl, index) => {
+    const blob = await (await fetch(dataUrl)).blob();
+    return new File([blob], `Ảnh bài làm ${index + 1}.${blob.type.split('/')[1] || 'jpg'}`, { type: blob.type || 'image/jpeg' });
+  }));
+  const files = [...imageFiles, ...(input.rawFiles || [])];
+  if (!files.length) throw new Error('Chưa chọn bài làm để nộp.');
+  const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
+  return (await submitActorSubmission({ role: 'student' }, { assignmentId: input.assignmentId, uploadGrantId,
+    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent })).submission;
 };

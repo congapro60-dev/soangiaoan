@@ -1,10 +1,13 @@
 import * as mammoth from 'mammoth';
+import { pdfToImages } from './pdfToImages';
+export { pdfToImages } from './pdfToImages';
 import * as pdfjsLib from 'pdfjs-dist';
+if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { storage } from '../lib/firebase';
 import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
-import { applyCleanFilterToCanvas, cleanImageBase64 } from './imageCleanup';
+import { cleanImageBase64 } from './imageCleanup';
 
 type Settings = AppData['settings'];
 
@@ -18,49 +21,8 @@ const fileToDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-// Set worker once at module level (shared with TestingTab)
-if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-}
-
 export const MAX_IMPORT_MB = 20;
-
 const MAX_PDF_PAGES = 6;
-const PDF_SCALE = 1.0;
-const IMG_QUALITY = 0.4;
-
-/** Convert PDF pages to data URLs */
-/** `pages`: chỉ vẽ các trang này (đánh số từ 1) — vd các trang của một mã đề trong file gộp. Vắng = từ đầu tới trần. */
-export const pdfToImages = async (file: File, onProgress?: (p: number) => void, autoClean?: boolean, pages?: readonly number[]): Promise<string[]> => {
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  const images: string[] = [];
-  const wanted = pages?.length
-    ? pages.filter(n => Number.isInteger(n) && n >= 1 && n <= pdf.numPages).slice(0, MAX_PDF_PAGES)
-    : Array.from({ length: Math.min(pdf.numPages, MAX_PDF_PAGES) }, (_, k) => k + 1);
-  const pageCount = wanted.length;
-  for (let k = 0; k < pageCount; k++) {
-    const i = wanted[k];
-    const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: PDF_SCALE }); 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) continue;
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-    await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
-    
-    if (autoClean) {
-      applyCleanFilterToCanvas(canvas, ctx);
-    }
-    
-    images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
-    canvas.width = 0; canvas.height = 0; // release GPU memory
-    if (onProgress) onProgress(Math.round(((k + 1) / pageCount) * 100));
-  }
-  return images;
-};
 
 /** Crop image from data URL and bounding box [ymin, xmin, ymax, xmax] (0-1000) */
 export const cropImage = async (dataUrl: string, box: number[]): Promise<string> => {

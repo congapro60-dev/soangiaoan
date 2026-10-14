@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
+import { ParentAssignmentWorkspace } from '../components/features/classroom/ParentAssignmentWorkspace';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import { REPORT_KINDS, type ReportKind } from '../lib/classroom/reportKinds';
 import { PARENT_PIN_LENGTH, PARENT_PING_MS, isValidParentPin, type PublishedParentReport } from '../lib/classroom/parentAccess';
@@ -92,6 +93,7 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
  */
 export const ParentPortalPage = () => {
   const { joinCode: joinCodeParam } = useParams<{ joinCode?: string }>();
+  const [workspaceTab, setWorkspaceTab] = useState<'reports' | 'assignments'>('reports');
   const [stage, setStage] = useState<Stage>(joinCodeParam ? 'chon-ten' : 'nhap-ma-lop');
   const [joinCode, setJoinCode] = useState(normalizeJoinCode(joinCodeParam || ''));
   const [roster, setRoster] = useState<ParentRoster | null>(null);
@@ -383,6 +385,8 @@ export const ParentPortalPage = () => {
           </button>
         </div>
         {loiBox}
+        <nav className="mb-4 flex gap-2" aria-label="Cổng phụ huynh"><button type="button" aria-pressed={workspaceTab === 'reports'} className="min-h-11 rounded-xl border bg-white px-4 text-sm font-bold" onClick={() => setWorkspaceTab('reports')}>Báo cáo học tập</button><button type="button" aria-pressed={workspaceTab === 'assignments'} className="min-h-11 rounded-xl border bg-white px-4 text-sm font-bold" onClick={() => setWorkspaceTab('assignments')}>Bài tập của con</button></nav>
+        {workspaceTab === 'assignments' ? <ParentAssignmentWorkspace key={`${joinCode}:${studentId}:${pin}`} credentials={{ role: 'parent', joinCode, studentId, pin }} /> : <>
         <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="flex items-center gap-2 text-sm font-black text-slate-900"><CalendarRange className="h-4 w-4 text-emerald-600" /> Xem theo khoảng ngày bạn chọn</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">Ngoài các báo cáo thầy cô gửi, bạn có thể tự xem kết quả của con trong khoảng thời gian bất kỳ. Đây là số liệu hệ thống tự tính, <span className="whitespace-nowrap">chưa có nhận xét</span> hay <span className="whitespace-nowrap">chỉnh sửa của thầy cô</span> — số liệu chính thức xem ở các báo cáo thầy cô gửi.</p>
@@ -431,6 +435,7 @@ export const ParentPortalPage = () => {
           </>
         )}
         <p className="mt-6 text-center text-[11px] font-semibold text-slate-400">Thầy cô có thể xem thời gian bạn truy cập cổng này để hỗ trợ khi cần.</p>
+        </>}
       </main>
     </div>
   );

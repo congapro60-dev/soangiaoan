@@ -13,7 +13,8 @@ export type StudentFeedKind =
   | 'graded'
   | 'grade_error'
   | 'teacher_approved'
-  | 'submission_deleted';
+  | 'submission_deleted'
+  | 'feedback_reply';
 
 export interface StudentFeedItem {
   id: string;
@@ -23,6 +24,7 @@ export interface StudentFeedItem {
   /** Mốc thời gian ISO dùng để sắp xếp và so với lần đọc gần nhất. */
   at: string;
   assignmentId?: string;
+  submissionId?: string;
   /** Việc cần em làm tiếp; dùng để làm nổi bật trong bảng thông báo. */
   needsAction?: boolean;
 }
@@ -157,6 +159,8 @@ export const buildStudentFeed = (input: {
   for (const submission of input.submissions) {
     const item = feedFromSubmission(submission, input.assignments);
     if (item?.at) items.push(item);
+    const replyAt = asTime(submission.feedbackSummary?.lastReplyAt);
+    if (replyAt && !scoreHiddenFromStudent(submission)) items.push({ id: `${submission.id}:feedback:${replyAt}`, kind: 'feedback_reply', title: 'Thầy cô đã trả lời phản hồi', body: `Bài "${tenBai(submission, input.assignments)}" có câu trả lời mới. Mở đúng lượt nộp để đọc.`, at: replyAt, assignmentId: submission.assignmentId || undefined, submissionId: submission.id, needsAction: replyAt > (submission.feedbackReadAt || '') });
   }
   for (const notification of input.notifications) {
     if (asTime(notification.createdAt)) items.push(feedFromNotification(notification));

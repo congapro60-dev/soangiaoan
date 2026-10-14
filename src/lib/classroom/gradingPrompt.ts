@@ -2,7 +2,7 @@ import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type { CompetencyTag } from './competency/framework.js';
 import { repairLatexEscapes, type PracticeMistake } from './practiceBasis.js';
-import { sanitizePhotoMarks } from './photoMarks.js';
+import { sanitizePhotoMarks, sanitizeReadingRegions } from './photoMarks.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -107,13 +107,14 @@ Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu vớ
 Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
 
 export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageCount: number): string => studentImageCount > 0
-  ? `DẤU ĐỎ TRÊN ẢNH BÀI LÀM (field tùy chọn photoMarks của mỗi câu, cùng lượt chấm này):
+  ? `VÙNG CÂU TRÊN ẢNH BÀI LÀM (field tùy chọn photoMarks của mỗi câu, cùng lượt chấm này):
 - Bỏ qua ${referenceImageCount} ảnh ĐỀ/ĐÁP ÁN đầu tiên. Các ảnh HS còn lại có imageIndex 1..${studentImageCount}, theo thứ tự gửi; không dùng số thứ tự ảnh chung.
-- Chỉ incorrect/partially_correct có nét HS thực sự viết, không đánh dấu câu đúng, bỏ trống, không đọc rõ hoặc bỏ qua theo lệnh GV. Không khoanh nét chữa cũ của GV.
+- photoMarks cho correct/incorrect/partially_correct có nét HS thực sự viết; không đánh dấu câu bỏ trống hoặc bỏ qua theo lệnh GV. Câu đúng vẫn có vùng để xem lời giải, không đồng nghĩa lỗi. Không khoanh nét chữa cũ của GV.
+- readingRegions riêng là vùng TRUNG TÍNH cho câu đọc chưa chắc: độ chắc vị trí độc lập confidence đọc chữ. Có thấy chữ nhưng chưa đọc chắc vẫn định vị khi confidence vị trí >= 0.85. Không thấy nét nào thì [] và không khoanh bừa.
 - Tối đa 3 vùng lỗi chính/câu. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
 - Chỉ trả khi chắc vị trí confidence >= 0.85; không chắc thì photoMarks: [], giữ lời chữa dạng chữ. Không đoán vị trí, không chọn URL, không viết imageUrl.
 - Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.`
-  : 'Không có ảnh bài HS: không trả photoMarks.';
+  : 'Không có ảnh bài HS: không trả photoMarks hoặc readingRegions.';
 
 export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
   const soAnhDe = input.assignmentImageCount ?? 0;
@@ -194,7 +195,7 @@ CÁCH PHÂN TÍCH THEO TỪNG CÂU — bắt buộc:
   "status" = "unreadable", "needsTeacherReview" = true; tuyệt đối không đoán nội dung bị mờ.
 - "errorType" phải nói loại lỗi cụ thể (ví dụ: sai dấu, nhầm công thức, thiếu bước, tính toán, bỏ câu),
   không dùng mỗi chữ "sai". Với câu đúng ghi "Không có".
-- "explanation" phải chỉ ra vì sao cách làm dẫn tới kết quả đó; "correction" phải nói em sửa từ bước nào;
+- "explanation" giải thích rõ quy tắc, bước em đã dùng và vì sao dẫn tới kết quả đó, như thầy cô giảng; câu đúng cũng giải thích căn cứ, không chỉ nói đúng đáp án; "correction" phải nói em sửa từ bước nào;
   "nextPractice" phải là một việc luyện cụ thể. Nếu thiếu dữ kiện để kết luận, đánh dấu cần giáo viên soát.
 - Điểm từng câu nằm trong khoảng 0..maxScore của chính câu đó. Tổng các câu nên khớp điểm tổng theo hướng dẫn chấm.
 - Không bịa câu hỏi, đáp án hoặc lỗi không có bằng chứng trong ảnh/chữ.
@@ -275,13 +276,13 @@ Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feed
 Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
 Không đưa raw output lỗi của lần trước vào câu trả lời.
 ${FEEDBACK_LAYOUT}
-Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
+Bỏ chữ lặp, không nhắc lại đề, nhưng giữ đủ lý do và bước sửa. Không ép lời giải/giải thích thành một câu ngắn; thiếu căn cứ phải báo chưa đủ, không báo đã giải đủ.
 `;
 
 /** Chỉ nối thêm vào lượt thử lại sau khi Gemini dừng với RECITATION (nghi câu trả lời trích nguyên văn tài liệu có sẵn). */
 export const HOMEWORK_GRADING_RECITATION_NOTE = `
 LẦN TRƯỚC BỊ DỪNG VÌ NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN:
-Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" tối đa một câu ngắn do chính bạn diễn đạt lại.
+Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" dùng lời riêng, giữ đủ lý do và bước sửa; không thu gọn mất lập luận.
 `;
 
 const toStringArray = (value: unknown): string[] =>
@@ -329,6 +330,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
       const confidenceValue = Number(q.confidence);
 
       const photoMarks = sanitizePhotoMarks(q.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
+      const readingRegions = sanitizeReadingRegions(q.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
       return {
         questionNumber,
         status,
@@ -344,6 +346,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
         ignoredByTeacherInstruction,
         needsTeacherReview,
         ...(photoMarks.length ? { photoMarks } : {}),
+        ...(readingRegions.length ? { readingRegions } : {}),
       } as QuestionResult;
     })
     .filter((item): item is QuestionResult => item !== null);
@@ -536,6 +539,7 @@ const parseStrictQuestionResult = (
   }
 
   const photoMarks = sanitizePhotoMarks(record.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
+  const readingRegions = sanitizeReadingRegions(record.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
   return {
     questionNumber,
     status,
@@ -551,6 +555,7 @@ const parseStrictQuestionResult = (
     ...(hasIgnoredByTeacherInstruction ? { ignoredByTeacherInstruction } : {}),
     needsTeacherReview,
     ...(photoMarks.length ? { photoMarks } : {}),
+        ...(readingRegions.length ? { readingRegions } : {}),
   };
 };
 

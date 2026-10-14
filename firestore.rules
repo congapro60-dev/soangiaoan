@@ -1086,6 +1086,7 @@ service cloud.firestore {
                     && resource.data.teacherId == request.auth.uid
                     && request.resource.data.teacherId == resource.data.teacherId
                     && request.resource.data.classId == resource.data.classId
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['submissionLocked', 'lockedAt', 'lockedBy'])
                     && (!('sourceText' in request.resource.data)
                         || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
                     && (!('sourceImageUrls' in request.resource.data)
@@ -1124,55 +1125,9 @@ service cloud.firestore {
     }
 
     match /submissions/{submissionId} {
-      // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
-      // và tuyệt đối không được kèm sẵn điểm.
-      function hocSinhNopHopLe() {
-        let d = request.resource.data;
-        return coLienKetHocSinh()
-               && d.keys().hasOnly([
-                    'id', 'teacherId', 'classId', 'studentId', 'assignmentId', 'fileUrls',
-                    'supplementOf', 'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
-                  ])
-               && d.id == submissionId
-               && d.studentId == lienKetHocSinh().studentId
-               && d.classId == lienKetHocSinh().classId
-               && d.teacherId == lienKetHocSinh().teacherId
-               && (d.assignmentId == null || d.assignmentId is string)
-               && (!('supplementOf' in d)
-                   || (d.supplementOf is string && d.supplementOf.size() <= 150))
-               && d.status == 'submitted'
-               && !('grade' in d)
-               && d.fileUrls is list
-               && d.fileUrls.size() >= 1
-               && d.fileUrls.size() <= 12
-               && (!('textContent' in d)
-                   || (d.textContent is string && d.textContent.size() <= 60000))
-               && (!('attachments' in d)
-                   || (d.attachments is list && d.attachments.size() >= 1 && d.attachments.size() <= 12));
-      }
-
-      // Nộp lại khi chưa chấm: chỉ được đổi file và ghi chú, không đụng gì khác.
-      function hocSinhNopLai() {
-        return laHocSinh(resource.data.studentId)
-               && resource.data.status == 'submitted'
-               && request.resource.data.diff(resource.data).affectedKeys()
-                    .hasOnly(['fileUrls', 'textContent', 'attachments', 'note', 'updatedAt']);
-      }
-
-      // Học sinh nhận projection từ /api/classroom studentSubmissions để loại teacherNote/noteForTeacher;
-      // Firestore rules không redaction theo field nên không cho đọc document gốc trực tiếp.
+      // All evidence and grades use API transactions; no direct client writes can bypass hard locks.
       allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
-
-      allow create: if hocSinhNopHopLe()
-                    || (request.auth != null && request.resource.data.teacherId == request.auth.uid);
-
-      allow update: if hocSinhNopLai()
-                    || (request.auth != null
-                        && resource.data.teacherId == request.auth.uid
-                        && request.resource.data.teacherId == resource.data.teacherId
-                        && request.resource.data.studentId == resource.data.studentId);
-
-      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+      allow create, update, delete: if false;
     }
 
     // Hồ sơ tích luỹ. Học sinh ĐỌC được phần của mình, không bao giờ ghi được —

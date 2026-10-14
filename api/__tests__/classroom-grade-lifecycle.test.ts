@@ -43,6 +43,7 @@ const makeDb = (harness: Harness) => {
 
   const collection = (name: string) => ({
       doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
         get: async () => {
           const data = ensure(name)[id];
           return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
@@ -140,6 +141,8 @@ const seed = (): Harness => {
       createdAt: '2026-08-24T09:00:00.000Z', updatedAt: '2026-08-24T10:00:00.000Z',
     },
   };
+  harness.store.classes = { 'lop-1': { teacherId: 'gv-1' } };
+  harness.store['classes/lop-1/students'] = { 'hs-1': { name: 'HS' } };
   harness.store.assignments = {
     'asg-1': { id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra' },
   };
@@ -457,6 +460,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
         return {
           ...col,
           doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
             ...col.doc(id),
             update: async (patch: Record<string, unknown>) => {
               if ('evidenceSyncError' in patch) throw new Error('Update failed');
@@ -493,6 +497,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
         return {
           ...col,
           doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
             ...col.doc(id),
             update: async (patch: Record<string, unknown>) => {
               if ('evidenceSyncError' in patch) throw new Error('Update failed');
@@ -525,6 +530,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
         return {
           ...col,
           doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
             ...col.doc(id),
             set: async () => { throw new Error('Evidence cleanup failed'); },
           }),
@@ -568,6 +574,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
         return {
           ...col,
           doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
             ...col.doc(id),
             set: async () => { throw new Error('Evidence cleanup failed'); },
           }),
@@ -634,6 +641,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
         return {
           ...col,
           doc: (id: string) => ({
+        collection: (sub: string) => collection(`${name}/${id}/${sub}`),
             ...col.doc(id),
             set: async () => { throw new Error('Cleanup failed again'); },
           }),

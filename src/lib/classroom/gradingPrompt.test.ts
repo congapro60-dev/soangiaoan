@@ -972,3 +972,11 @@ describe('parseCompetencyTags', () => {
     expect(parseCompetencyTags('{"questions":[]}', allowed)).toEqual([]);
   });
 });
+
+it('preserves independent uncertain reading regions and avoids one-sentence retry constraint', () => {
+  const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const result = parseHomeworkGrade(JSON.stringify({ score: 0, maxScore: 1, questionResults: [{ questionNumber: 'Câu 1',
+    status: 'unreadable', studentAnswer: 'B hoặc D', confidence: .3, readingRegions: [{ ...mark, imageUrl: 'foreign' }] }] }), 1, false);
+  expect(result.questionResults[0].readingRegions).toEqual([mark]);
+  expect(buildHomeworkGradingRetryPrompt({ answerKey: 'B', maxScore: 1 })).not.toContain('một hai câu ngắn');
+});

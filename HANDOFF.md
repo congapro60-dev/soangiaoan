@@ -1,33 +1,28 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-09
+**Cập nhật:** 2026-10-14
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Đang triển khai — luồng HS và trình bày toán — 14/10/2026
+## Bản chấm trên ảnh / nộp hộ / bài chữa — 14/10/2026
 
-- Người dùng duyệt sửa toàn bộ rồi **commit/push main**; chỉnh rõ không yêu cầu deploy/promote thủ công.
-  Luôn ghi tiến độ chung để Claude phối hợp qua MCP bridge. Vercel có thể tự deploy theo Git integration.
-- Nguồn chuẩn: `tasks/student-workspace-redesign-plan.md`; checklist đang chạy ở đầu `tasks/todo.md`.
-- Worktree: `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`; nhánh `codex/student-submitted-photos`.
-- Giữ WIP ảnh đã nộp/bút đỏ; không reset hoặc ghi đè. Trước nhận file: đọc checklist chủ sở hữu và git status.
-- Phạm vi: 5 mục HS, danh sách gọn/tìm/lọc/phân trang, clarify đúng bài, dữ liệu cả năm, báo cáo đã công bố,
-  lời chữa theo ý/bước và công thức khối. Không đổi đáp án/điểm đã duyệt vì dàn trang.
-- Bridge kiểm 14/10: chưa có phiên Claude Desktop đang kết nối; không gửi sang phiên tên gần giống.
-  Luồng Codex đã bind: `01a123b1-a378-73b1-9aa4-685e5b67efaa`; Claude có thể tìm peer `codex-01a123b1`.
-- Cổng push main: test quyền/hành vi, full suite, lint app/API, build, Rules emulator, review độc lập,
-  QA trình duyệt điện thoại/iPad; xác minh origin/main đúng commit. Deployment tự động/QA production ghi riêng.
-- Trạng thái: source xong, browser390/820/430/1024/1366 đạt, Rules303/303, lint/build đạt, review native+Gemini PASS.
-  Full suite cuối2931/2931 (275 files),exit0; test22 lần scrypt timeout15s, không đổi authentication.
-  Bằng chứng/check/giới hạn: tasks/qa-student-workspace-20261014.md; cổng push passed.
-  Source đã push main: 7c88a50d4765fdcbbf6c8384aa97194c41ea6ab9, ls-remote đúng SHA, push exit0.
-  Commit tiếp chỉ chốt tài liệu. GitHub CI đang chạy; không deploy/promote thủ công. QA production/AI localization còn lại.
-
-
-
-
-
+- User đã duyệt implementation và **commit/push main**, không deploy/promote thủ công.
+- Worktree `C:\Users\ADMIN\.codex\worktrees\4c87\smart-lesson-plan-ai`, branch `codex/student-submitted-photos`, base7d7c889. Preserve WIP; source writers frozen.
+- Plan `tasks/annotated-review-proxy-plan.md`; checklist `tasks/todo.md`; evidence `tasks/qa-annotated-review-20261014.md`.
+- Viewer đủ màu/filter/tổng+điểm câu; shared detail/lời giải mọi câu/TF a–d; math sửa prose KaTeX/ngắt bước. Cache theo bài/mã đề/version, giữ GV edits. Bài cũ cần nút GV tạo lời giải, không AI-on-view.
+- GV/HS/PH nộp/xác nhận ảnh bất kỳ lúc nào nếu chưa **Khóa chốt**. Hardlock transactional+Rules; grade/approvalGV vẫn hoạt động; online giữ luồng riêng.
+- PH PIN tự đặt; grants actor/purpose/target/expiry/type/size/generation; accepted-homework immutable. Direct client submission writes denied. Revision không ghi đè bài cũ.
+- HS feedback theo bài/câu, GV đọc/trả lời/sửa điểm; mộtform mỗi attempt, drafts, exactattemptnotification. Lock không chặn trao đổi.
+- HS **Chụp ảnh bài chữa**, lưu lịch sử riêng, explicit Đánh giá bài chữa: nhận xét GV chi tiết sửa được gì/why, lỗi từngbước+why/cách sửa, việc luyện tiếp.3nhãn chỉ kết luận; không đổi grade/sổ/năng lực.
+- Correction retry expired/malformedlease, invalidate oldverdict khi GV sửa original/solution; context ảnh gốc+clarify+current sharedsolution, budget recomputed sau key/quota.
+- HS/PH directuploadbuttons ngoài list, deadline ngày+giờ/ontime/late/imminent24h,20rows; PH same-rowretry+scroll,0horizontaloverflow.
+- Checks: full3027/3027(286files)exit0; Rules306/306(9files)exit0; nativefinal41+UI39, Gemini backend/grading/correction PASS; UI2falsefindings independently rejected; browser29checks390/820/1024fixture0pageerrors. Lint app/API/build cuối exit0; index1545.01kB, cảnh báo bundle lớn có sẵn.
+- Browser production session không truy cập được: browserplugin absent, ComputerUse nativepipeoserror2 qua retry/reset. Fixtures/marks/AIstub không chứng minh liveAIquality hoặc realaccountsQA.
+- GeminiUI code dùng3.8Flash-low; Argon official ID có nhưng router keyinvalid/ag404. Không đổi config hoặc dùngpaidAPI mới.
+- **Rules đã đổi trong Git, chưa deploy.** User chỉ cho pushmain; sau API tương thích cần authorized Firestore+StorageRulesdeploy rồi realGV/HS/PHQA. Không coi push là productionhardlock hoàn tất.
+- Bridge thread `01a123b1-a378-73b1-9aa4-685e5b67efaa`, peer `codex-01a123b1`; không gửi sang phiên gần giống. Sharedfiles là nguồn bàn giao.
+- Cổng local đã đạt; source chuẩn bị commit/push main. Full3027 trước2tests guardUI cuối; focused39 sau guard cuối đạt. Trạng thái remote/CI ghi tại checklist.
 
 ## Nhiều khoá Gemini trong Cài đặt (giáo viên tự gom hạn mức free) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
 

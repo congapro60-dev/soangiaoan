@@ -30,8 +30,8 @@ describe('HS xem lại ảnh đã nộp', () => {
   it('giữ ảnh thiếu metadata, không trùng, không lộ điểm/nhận xét', () => {
     view.open = true;
     const html = render([submission]);
-    expect(html.match(/<img /g)).toHaveLength(2);
-    expect(html.indexOf('first.jpg')).toBeLessThan(html.indexOf('second.jpg'));
+    expect(html.match(/<img /g)).toHaveLength(1);
+    expect(html).toContain('first.jpg'); expect(html).toContain('2/2');
     expect(html).toContain('loading="lazy"');
     expect(html).toContain('noopener noreferrer');
     expect(html).not.toContain('PRIVATE FEEDBACK');
@@ -43,7 +43,7 @@ describe('HS xem lại ảnh đã nộp', () => {
     const html = render([submission, other]);
     expect(html).not.toContain('javascript:');
     expect(html).toContain('old%2Epdf');
-    expect(html.match(/<img /g)).toHaveLength(2);
+    expect(html.match(/<img /g)).toHaveLength(1);
     expect(html).toContain('Lượt 2');
   });
   it('chỉ hiện dấu đúng ảnh sau duyệt; ẩn khi còn hỏi lại hoặc ẩn điểm', () => {
@@ -70,8 +70,21 @@ describe('HS xem lại ảnh đã nộp', () => {
       photoMarks: [{ imageIndex: 1, imageUrl: photo, x: .1, y: .2, width: .2, height: .1, confidence: .9 }],
     }] } } as SubmissionDoc;
     const html = render([approved]);
-    expect(html.match(/<img /g)).toHaveLength(3);
-    expect(html.match(/<ellipse /g)).toHaveLength(1);
-    expect(html).toContain(photo);
+    expect(html.match(/<img /g)).toHaveLength(1);
+    expect(html).toContain('Câu 4'); expect(html).toContain('3/3');
+    expect(html).toContain('Câu 4');
+  });
+  it('phản hồi và bài chữa vẫn truy cập được khi khung ảnh đóng hoặc bài không có ảnh', () => {
+    const approved = { ...submission, grade: { ...submission.grade, teacherApproved: true } } as SubmissionDoc;
+    expect(render([approved])).toContain('Phản hồi bài chấm');
+    expect(render([approved])).toContain('Chụp ảnh bài chữa');
+    const withoutPhotos = { ...approved, fileUrls: [], attachments: [] };
+    expect(render([withoutPhotos])).toContain('Phản hồi bài chấm');
+  });
+  it('mở ảnh không nhân đôi biểu mẫu của cùng lượt nộp', () => {
+    view.open = true;
+    const html = render([{ ...submission, grade: { ...submission.grade, teacherApproved: true } } as SubmissionDoc]);
+    expect(html.match(/aria-label="Phản hồi bài chấm"/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Bài chữa và làm lại"/g)).toHaveLength(1);
   });
 });

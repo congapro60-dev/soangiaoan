@@ -6,7 +6,8 @@ import { buildWorkspaceRows, filterWorkspaceRows, studentClarificationQuestions,
 
 vi.mock('./StudentAiCostChip', () => ({ StudentAiCostChip: () => null }));
 vi.mock('./StudentCompetencyPortfolio', () => ({ StudentCompetencyPortfolio: () => null }));
-vi.mock('./StudentNotificationBell', () => ({ StudentNotificationBell: () => null }));
+const notificationActions = vi.hoisted(() => ({ onSelectSubmission: undefined as ((id: string) => void) | undefined }));
+vi.mock('./StudentNotificationBell', () => ({ StudentNotificationBell: (props: { onSelectSubmission: (id: string) => void }) => { notificationActions.onSelectSubmission = props.onSelectSubmission; return null; } }));
 vi.mock('./StudentPublishedReports', () => ({ StudentPublishedReports: () => null }));
 const assignment = (id: string, extra: Partial<AssignmentDoc> = {}): AssignmentDoc => ({
   id, teacherId: 't', classId: 'c', title: `Bài ${id}`, description: '', type: 'upload', isOpen: true,
@@ -21,6 +22,29 @@ const pendingGrade = { score: 0, maxScore: 10, feedback: 'SECRET', strengths: []
     score: 0, maxScore: 1, clarify: { kind: 'mcq', state: 'open', reading: 'B' } }], gradedAt: '' } as NonNullable<SubmissionDoc['grade']>;
 
 describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu', () => {
+  it('trả lời trên lượt chấm thử cũ vẫn mở đúng lượt sau khi em bổ sung ảnh', () => {
+    const submissions = [work('root', null, { createdAt: '2026-09-01T00:00:00Z' }), work('new', null, { supplementOf: 'root' })];
+    const onLoadDetail = vi.fn().mockResolvedValue({ submissions, assignment: undefined });
+    const props = { session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions,
+      onlineSubmissions: [], profile: null, scores: null, notifications: [], pendingFiles: [], practiceAnswers: {}, uploadRef: { current: null }, onLoadDetail,
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    vi.stubGlobal('window', { scrollTo: vi.fn() });
+    try {
+      renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+      notificationActions.onSelectSubmission!('root');
+      expect(onLoadDetail).toHaveBeenCalledWith(null, 'root');
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it('bài thi online đã nộp dùng thời điểm thi cho nhãn hạn', () => {
+    const assignments = [assignment('exam', { type: 'exam', examId: 'e', dueAt: '2026-10-13T12:00:00Z' })];
+    const props = { session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments, submissions: [],
+      onlineSubmissions: [{ id: 'online', examId: 'e', assignmentId: 'exam', studentId: 'own', status: 'submitted', submittedAt: '2026-10-13T10:00:00Z', startedAt: '2026-10-13T09:00:00Z', answers: [], maxScore: 10 }],
+      profile: null, scores: null, notifications: [], pendingFiles: [], practiceAnswers: {}, uploadRef: { current: null },
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(html).toContain('Đúng hạn');
+    expect(html).not.toContain('Quá hạn chưa nộp');
+  });
   it('300 bài / 500 lượt: một dòng mỗi bài; 20 dòng một trang; tìm được bài cũ; tổng không theo trang', () => {
     const assignments = Array.from({ length: 300 }, (_, index) => assignment(String(index)));
     const submissions = Array.from({ length: 500 }, (_, index) => work(`s${index}`, String(index % 300), {
@@ -67,20 +91,20 @@ describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu'
     expect(rows[0].state.label).toBe('Chờ thầy cô soát');
     expect(rows[0].score).toBeNull();
   });
-  it('ngày giao lọc bài, ngày nộp lọc thống kê; closed không trở thành bài cần nộp', () => {
-    const rows = buildWorkspaceRows('own', [assignment('closed', { isOpen: false }), assignment('done')], [work('s', 'done')], []);
+  it('ngày giao lọc bài, ngày nộp lọc thống kê; khóa chốt không trở thành bài cần nộp', () => {
+    const rows = buildWorkspaceRows('own', [assignment('closed', { isOpen: false, submissionLocked: true }), assignment('done')], [work('s', 'done')], []);
     expect(filterWorkspaceRows(rows, '', 'all', '2026-10-01', '2026-10-31')).toHaveLength(0);
     expect(filterWorkspaceRows(rows, '', 'all', '2026-10-01', '2026-10-31', true).map(row => row.id)).toEqual(['done']);
     expect(filterWorkspaceRows(rows, '', 'action', '', '')).toHaveLength(0);
   });
-  it('bài đóng pending: chỉ đọc ảnh, không câu hỏi hoặc tác vụ mã đề', () => {
-    const closed = assignment('closed', { isOpen: false });
+  it('bài khóa pending: chỉ đọc ảnh, không câu hỏi hoặc tác vụ mã đề', () => {
+    const closed = assignment('closed', { isOpen: false, submissionLocked: true });
     const pending = work('pending', 'closed', { status: 'graded', grade: pendingGrade });
     const rows = buildWorkspaceRows('own', [closed], [pending], []);
     expect(rows[0].clarificationCount).toBe(0);
     expect(filterWorkspaceRows(rows, '', 'action', '', '')).toHaveLength(0);
     expect(studentClarificationQuestions(pending, closed)).toEqual([]);
-    expect(studentClarificationQuestions(pending, { ...closed, isOpen: true })).toHaveLength(1);
+    expect(studentClarificationQuestions(pending, { ...closed, isOpen: false, submissionLocked: false })).toHaveLength(1);
     expect(filterWorkspaceRows(buildWorkspaceRows('own', [closed], [{ ...pending, status: 'error', errorReason: 'exam_code' }], []), '', 'action', '', '')).toHaveLength(0);
   });
   it('bài tự nộp bổ sung: một dòng latest, giữ số lượt; không hỏi lại attempt cũ', () => {
@@ -99,4 +123,14 @@ describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu'
     expect(rows.map(row => row.id)).toContain('submission:self');
     expect(rows.map(row => row.id)).not.toContain('submission:otherSelf');
   });
+});
+
+
+it('bài đóng chưa khóa vẫn nộp và xác nhận; khóa chốt mới chặn', () => {
+  const closed = assignment('closed', { isOpen: false, submissionLocked: false });
+  const pending = work('pending', 'closed', { status: 'graded', grade: pendingGrade });
+  const rows = buildWorkspaceRows('own', [closed], [pending], []);
+  expect(rows[0].clarificationCount).toBe(1); expect(studentClarificationQuestions(pending, closed)).toHaveLength(1);
+  const locked = buildWorkspaceRows('own', [{ ...closed, submissionLocked: true }], [pending], []);
+  expect(locked[0].clarificationCount).toBe(0); expect(studentClarificationQuestions(pending, { ...closed, submissionLocked: true })).toEqual([]);
 });

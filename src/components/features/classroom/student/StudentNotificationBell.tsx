@@ -9,7 +9,8 @@ interface StudentNotificationBellProps {
   lastSeenAt: string | null;
   onOpened: (seenAt: string) => void;
   /** Bấm vào một thông báo có bài kèm theo thì mở thẳng bài đó. */
-  onSelectAssignment?: (assignmentId: string) => void;
+  onSelectAssignment?: (assignmentId: string, submissionId?: string) => void;
+  onSelectSubmission?: (submissionId: string) => void;
 }
 
 const ICONS: Record<StudentFeedKind, typeof Bell> = {
@@ -18,6 +19,7 @@ const ICONS: Record<StudentFeedKind, typeof Bell> = {
   grade_error: AlertTriangle,
   teacher_approved: ShieldCheck,
   submission_deleted: Trash2,
+  feedback_reply: Bell,
 };
 
 const MAU: Record<StudentFeedKind, string> = {
@@ -26,6 +28,7 @@ const MAU: Record<StudentFeedKind, string> = {
   grade_error: 'bg-amber-50 text-amber-600',
   teacher_approved: 'bg-emerald-50 text-emerald-600',
   submission_deleted: 'bg-red-50 text-red-600',
+  feedback_reply: 'bg-indigo-50 text-indigo-600',
 };
 
 /** "3 phút trước", "hôm qua" — đọc nhanh hơn hẳn một chuỗi ngày giờ đầy đủ. */
@@ -48,6 +51,7 @@ export const StudentNotificationBell = ({
   lastSeenAt,
   onOpened,
   onSelectAssignment,
+  onSelectSubmission,
 }: StudentNotificationBellProps) => {
   const [dangMo, setDangMo] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -107,15 +111,16 @@ export const StudentNotificationBell = ({
             <ul className="max-h-[60vh] divide-y divide-slate-100 overflow-y-auto">
               {items.map(item => {
                 const Icon = ICONS[item.kind];
-                const moDuoc = Boolean(item.assignmentId && onSelectAssignment);
+                const moDuoc = Boolean(item.assignmentId && onSelectAssignment || item.submissionId && onSelectSubmission);
                 return (
                   <li key={item.id}>
                     <button
                       type="button"
                       disabled={!moDuoc}
                       onClick={() => {
+                        if (item.submissionId && !item.assignmentId && onSelectSubmission) { onSelectSubmission(item.submissionId); setDangMo(false); return; }
                         if (!item.assignmentId || !onSelectAssignment) return;
-                        onSelectAssignment(item.assignmentId);
+                        onSelectAssignment(item.assignmentId, item.submissionId);
                         setDangMo(false);
                       }}
                       className={`flex w-full gap-3 px-4 py-3 text-left transition ${moDuoc ? 'hover:bg-slate-50' : 'cursor-default'}`}

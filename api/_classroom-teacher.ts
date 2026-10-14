@@ -1,5 +1,6 @@
+import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
-import { projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
+import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import {
   canLeaveClass,
@@ -106,6 +107,12 @@ const assignmentFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
   ...data,
 }) as AssignmentDoc;
 
+const attachTeacherSolutions = async (db: Db, submissions: SubmissionDoc[]): Promise<SubmissionDoc[]> => {
+  const ids = [...new Set(submissions.map(submission => submission.assignmentId).filter((value): value is string => typeof value === 'string' && !!value))];
+  const assignments = new Map(await Promise.all(ids.map(async id => [id, (await db.collection('assignments').doc(id).get()).data()] as const)));
+  return submissions.map(submission => { const assignment = assignments.get(submission.assignmentId || ''); return assignment && assignment.classId === submission.classId && assignment.teacherId === submission.teacherId ? attachAssignmentSolutions(submission, assignment) : submission; });
+};
+
 const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
   const rawStatus = String(data.status || 'submitted');
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
@@ -152,6 +159,10 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             explanation: String(item.explanation || ''),
             correction: String(item.correction || ''),
             nextPractice: String(item.nextPractice || ''),
+            ...(typeof item.workedSolution === 'string' ? { workedSolution: item.workedSolution } : {}),
+            ...(typeof item.workedSolutionVersion === 'string' ? { workedSolutionVersion: item.workedSolutionVersion } : {}),
+            ...(item.workedSolutionStatus === 'ready' || item.workedSolutionStatus === 'unavailable' ? { workedSolutionStatus: item.workedSolutionStatus } : {}),
+            ...(projectReadingRegions(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { readingRegions: projectReadingRegions(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
             ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
             ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
             needsTeacherReview: Boolean(item.needsTeacherReview),
@@ -181,6 +192,8 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     studentId: String(data.studentId || ''),
     assignmentId: typeof data.assignmentId === 'string' ? data.assignmentId : null,
     ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
+    ...(data.feedbackSummary ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, lastReplyAt: data.feedbackSummary.lastReplyAt } } : {}),
+    ...(data.submittedBy ? { submittedBy: data.submittedBy } : {}),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     textContent: typeof data.textContent === 'string' ? data.textContent : undefined,
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
@@ -284,6 +297,10 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     teacherNote: data.teacherNote,
     hasAnswerKey: data.hasAnswerKey,
     isOpen: data.isOpen,
+    submissionLocked: data.submissionLocked === true,
+    lockedAt: data.lockedAt, lockedBy: data.lockedBy,
+    workedSolutions: data.workedSolutions, workedSolutionsByExamCode: data.workedSolutionsByExamCode,
+    questionCatalogByExamCode: data.questionCatalogByExamCode,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
     createdBy: data.createdBy,
@@ -547,7 +564,7 @@ export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelRe
       if (onlineSubmission && onlineSubmission.studentId === studentId) submissions.push(onlineSubmission);
     }
     submissions.sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
-    return void res.status(200).json({ submissions });
+    return void res.status(200).json({ submissions: await attachTeacherSolutions(db, submissions) });
   }
   const context = await teacherContext(db, { ...body, classId }, res);
   if (!context) return;
@@ -575,7 +592,7 @@ export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelRe
     .filter(submission => !assignmentId || submission.assignmentId === assignmentId);
   const submissions = [...legacySubmissions, ...onlineSubmissions]
     .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
-  return void res.status(200).json({ submissions });
+  return void res.status(200).json({ submissions: await attachTeacherSolutions(db, submissions) });
 };
 
 export const handleTeacherRoster = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {

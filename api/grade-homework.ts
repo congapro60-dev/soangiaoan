@@ -1,3 +1,6 @@
+import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
+import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
+import { generateWorkedSolutions, workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
@@ -105,9 +108,10 @@ import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai
 const STUDENT_AI_PAUSED_MESSAGE = 'AI chấm của lớp đang tạm dừng. Bài của em đã được lưu, thầy cô sẽ chấm sau.';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
-import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
+import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
 import { questionKey, reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
 import { bindQuestionPhotoMarks, projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
+import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError } from './_submission-actors.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
@@ -294,6 +298,7 @@ const loadAssignmentSourceImages = async (assignment: FirebaseFirestore.Document
 };
 
 interface GradeContext {
+  solutionAssignment?: Parameters<typeof assignmentSolutionInput>[0];
   answerKey: string;
   rubric: string;
   maxScore: number;
@@ -544,6 +549,7 @@ const gradeOneSubmission = async (
       gradeCtx = contextForVariant(ctx, code);
     }
 
+    const solutionVersionAtGrading = gradeCtx.solutionAssignment ? workedSolutionVersion(assignmentSolutionInput(gradeCtx.solutionAssignment, gradeCtx.examCode || previous.examCode || '')) : undefined;
     // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
     // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
     let transcription = '';
@@ -596,6 +602,7 @@ const gradeOneSubmission = async (
     const examCheck = ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null;
     const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
 
+    if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }
     const now = grade.gradedAt;
 
     // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.
@@ -741,6 +748,7 @@ const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Prom
   maxScore: Number(assignment.maxScore) || 10,
   assignmentTitle: String(assignment.title || ''),
   assignmentText: String(assignment.sourceText || ''),
+  solutionAssignment: assignment,
   // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
   gradingInstructions: String(assignment.gradingInstructions || ''),
   assignmentImages: await loadAssignmentSourceImages(assignment),
@@ -797,6 +805,7 @@ const regradeClarifiedQuestion = async (
     gradingInstructions: ctx.gradingInstructions,
     assignmentImageCount: ctx.assignmentImages.length,
     answerKeyImageCount: ctx.answerKeyImages.length,
+    studentImageCount: photos.length,
     ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
   }) + '\n\n' + buildPhotoMarksPrompt(photos.length, ctx.assignmentImages.length + ctx.answerKeyImages.length)
     + '\nKết quả chỉ có một câu: đặt photoMarks ngay trong object JSON kết quả, không bọc questionResults.';
@@ -810,6 +819,63 @@ const regradeClarifiedQuestion = async (
   const regraded = parseQuestionRegrade(raw, question);
   if (!regraded) throw new Error('Máy trả kết quả chấm lại không đọc được.');
   return bindQuestionPhotoMarks(regraded, studentImages.map(entry => entry.url));
+};
+
+const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const startedAt = Date.now();
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập giáo viên.' });
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  if (!assignmentId || assignmentId.includes('/')) return res.status(422).json({ error: 'Mã bài không hợp lệ.' });
+  const ref = db.collection('assignments').doc(assignmentId), snapshot = await ref.get(), assignment = snapshot.data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  const access = await readClassAccess(db, assignment.classId, uid);
+  if (!access || access.data.teacherId !== assignment.teacherId) return res.status(403).json({ error: 'Không có quyền với bài này.' });
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (assignment.examVariants?.length && !assignment.examVariants.some((v: {code:string}) => v.code === examCode)) return res.status(422).json({ error: 'Chọn đúng mã đề để tạo lời giải.' });
+  const initialInput = assignmentSolutionInput(assignment, examCode);
+  const initialCache = examCode ? assignment.workedSolutionsByExamCode?.[examCode] : assignment.workedSolutions;
+  if (!body.force && initialCache?.version === workedSolutionVersion(initialInput)) return res.status(200).json({ cache: initialCache });
+  const claimKey = examCode || 'default';
+  const claimId = `${uid}:${Date.now()}:${Math.random()}`;
+  const claimed = await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (!fresh || fresh.workedSolutionsClaims?.[claimKey]?.expiresAt > Date.now()) return false; const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data(); const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data(); if (!classData || classData.teacherId !== fresh.teacherId || !deriveClassAccess(classData, memberFromData(member), uid)) throw new SubmissionAccessError(403, 'Quyền giáo viên đã bị thu hồi.'); tx.update(ref, { workedSolutionsClaims: { ...(fresh.workedSolutionsClaims || {}), [claimKey]: { id: claimId, expiresAt: Date.now() + 5 * 60 * 1000 } } }); return true; });
+  if (!claimed) return res.status(409).json({ error: 'Lời giải đang được tạo. Chờ lượt hiện tại kết thúc.' });
+  try {
+  const originalInput = assignmentSolutionInput(assignment, examCode);
+  const sourceVersion = workedSolutionVersion({ ...originalInput, questions: [] });
+  let effectiveAssignment = assignment;
+  setAiKeyOwner(assignment.teacherId);
+  await ensureGeminiKey(getGradingApiKey());
+  if (!originalInput.questions.length) {
+    const variant = assignment.examVariants?.find((value: {code:string}) => value.code === examCode);
+    const catalog = await readAssignmentQuestionCatalog(db, uid, { ...assignment, solutionCatalogOnly: true, solutionExamCode: examCode, ...(variant ? { sourceText: variant.sourceText, answerKey: variant.answerKey } : {}) });
+    if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
+    effectiveAssignment = examCode ? { ...assignment, questionCatalogByExamCode: { ...(assignment.questionCatalogByExamCode || {}), [examCode]: catalog.questionCatalog } } : { ...assignment, questionCatalog: catalog.questionCatalog };
+  }
+  const input = assignmentSolutionInput(effectiveAssignment, examCode);
+  const existing = examCode ? assignment.workedSolutionsByExamCode?.[examCode] : assignment.workedSolutions;
+  const version = workedSolutionVersion(input);
+  if (!body.force && existing?.version === version) return res.status(200).json({ cache: existing });
+  setAiKeyOwner(assignment.teacherId);
+  await ensureGeminiKey(getGradingApiKey());
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const quotaVerdict = remainingQuota(quota, 'teacher', '');
+  if (quotaVerdict.allowed <= 0) return res.status(429).json({ error: quotaVerdict.reason });
+  const images = (await Promise.all((input.sourceUrls || []).map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+  if (FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Đọc đề mất nhiều thời gian. Thử lại để tạo lời giải.' });
+  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => callGeminiVision(prompt, images, getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+  const saved = await db.runTransaction(async tx => {
+    const fresh = (await tx.get(ref)).data();
+    if (!fresh || fresh.workedSolutionsClaims?.[claimKey]?.id !== claimId || workedSolutionVersion(assignmentSolutionInput(fresh, examCode)) !== workedSolutionVersion(originalInput) || workedSolutionVersion({ ...assignmentSolutionInput(fresh, examCode), questions: [] }) !== sourceVersion) return false;
+    const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data();
+    const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data();
+    if (!classData || !deriveClassAccess(classData, memberFromData(member), uid)) return false;
+    tx.update(ref, examCode ? { workedSolutionsByExamCode: { ...(fresh.workedSolutionsByExamCode || {}), [examCode]: cache }, questionCatalogByExamCode: { ...(fresh.questionCatalogByExamCode || {}), [examCode]: effectiveAssignment.questionCatalogByExamCode[examCode] } } : { workedSolutions: cache, questionCatalog: effectiveAssignment.questionCatalog }); return true;
+  });
+  if (!saved) return res.status(409).json({ error: 'Đề, đáp án hoặc quyền đã đổi. Tạo lại lời giải theo bản mới.' });
+  return res.status(200).json({ cache });
+  } finally { await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (fresh?.workedSolutionsClaims?.[claimKey]?.id === claimId) tx.update(ref, { workedSolutionsClaims: { ...(fresh.workedSolutionsClaims || {}), [claimKey]: { id: '', expiresAt: 0 } } }); }); }
 };
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -891,39 +957,57 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
  * Mã em chọn được ghi là "HS chọn" để thầy cô soát; thầy cô vẫn đổi được như cũ.
  */
 const handleAnswerExamCode = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
-  const uid = await uidFromIdToken(body.idToken);
-  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
-  const submissionId = typeof body.submissionId === 'string' ? body.submissionId : '';
-  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
-  if (!submissionId || !examCode) return res.status(422).json({ error: 'Thiếu bài nộp hoặc mã đề.' });
-  const ref = db.collection('submissions').doc(submissionId);
-  const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
-  if (!link) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới chọn được mã đề.' });
-  const verdict = await db.runTransaction(async transaction => {
-    const snap = await transaction.get(ref);
-    if (!snap.exists) return 'missing';
-    const current = snap.data() as FirebaseFirestore.DocumentData;
-    if (link.studentId !== current.studentId || link.classId !== current.classId || link.teacherId !== current.teacherId) return 'forbidden';
-    if (typeof current.assignmentId === 'string' && current.assignmentId
-      && (await transaction.get(db.collection('assignments').doc(current.assignmentId))).data()?.isOpen === false) return 'closed';
-    const options = Array.isArray(current.examCodeAsk) ? current.examCodeAsk.map(String) : [];
-    if (current.status !== 'error' || current.grade || !options.includes(examCode)) return 'stale';
-    transaction.update(ref, { examCode, examCodeSource: 'student', examCodeAsk: [], errorReason: '', updatedAt: new Date().toISOString() });
-    return 'ok';
-  });
-  if (verdict === 'missing') return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
-  if (verdict === 'forbidden') return res.status(403).json({ error: 'Bài nộp không thuộc tài khoản học sinh này.' });
-  if (verdict === 'closed') return res.status(409).json({ error: 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.' });
-  if (verdict === 'stale') return res.status(409).json({ error: 'Bài này không còn chờ em chọn mã đề. Em tải lại trang nhé.' });
-  return handleGradeOne(db, body, res);
+  try {
+    const auth = await authorizeSubmissionActor(db, body, res);
+    if (!auth) return;
+    const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+    if (!examCode) return res.status(422).json({ error: 'Thiếu mã đề.' });
+    const ref = db.collection('submissions').doc(auth.submissionId);
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref), current = snap.data();
+      if (!current || current.studentId !== auth.actor.studentId || current.classId !== auth.actor.classId || current.teacherId !== auth.actor.teacherId) throw new SubmissionAccessError(403, 'Bài nộp không thuộc tài khoản này.');
+      await assertActorCurrent(db, tx, auth.actor, current.assignmentId, true);
+      const options = Array.isArray(current.examCodeAsk) ? current.examCodeAsk : [];
+      if (current.status !== 'error' || current.grade || !options.includes(examCode)) throw new SubmissionAccessError(409, 'Bài này không còn chờ chọn mã đề.');
+      tx.update(ref, { examCode, examCodeSource: auth.actor.role, examCodeAsk: [], errorReason: '', examCodeConfirmedBy: actorStamp(auth.actor, new Date().toISOString()), updatedAt: new Date().toISOString() });
+    });
+    return handleGradeOne(db, body, res);
+  } catch (reason) { if (reason instanceof SubmissionAccessError) return res.status(reason.statusCode).json({ error: reason.message }); throw reason; }
 };
 
-const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
-  const uid = await uidFromIdToken(body.idToken);
-  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+const handleReviewCorrection = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => handleReviewCorrectionAttempt(db, body, res, {
+  assess: async (submission, attempt) => {
+    const startedAt = Date.now();
+    setAiKeyOwner(submission.teacherId);
+    tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+    const originalUrls = [...new Set([...submission.fileUrls, ...(submission.grade?.questionResults || []).flatMap(row => row.clarify?.photoUrls || [])])];
+    const originalEntries = (await Promise.all(originalUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+    const correctionEntries = (await Promise.all(attempt.fileUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+    if (!correctionEntries.length) return JSON.stringify({ outcome: 'uncertain', feedback: 'Chưa đọc được ảnh bài chữa. Em kiểm tra ảnh đã đủ sáng, rõ chữ và có đủ phần em đã chữa rồi thử lại.' });
+    let contextSubmission = submission;
+    let sourceText = '';
+    let sourceImages: InlineImage[] = [];
+    if (submission.assignmentId) {
+      const assignment = (await db.collection('assignments').doc(submission.assignmentId).get()).data();
+      if (assignment?.classId === submission.classId && assignment.teacherId === submission.teacherId) { sourceText = assignment.examVariants?.find((variant: {code:string}) => variant.code === submission.examCode)?.sourceText || assignment.sourceText || ''; sourceImages = await loadAssignmentSourceImages(assignment); contextSubmission = attachAssignmentSolutions(submission, assignment); }
+    }
+    const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+    if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh mất nhiều thời gian. Ảnh vẫn được giữ, em thử đánh giá lại.');
+    await ensureGeminiKey(getGradingApiKey());
+    const reservation = await reserveQuota(db, submission.teacherId, 'self', submission.studentId);
+    if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+    const modelBudget = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+    if (modelBudget < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Chuẩn bị đánh giá mất nhiều thời gian. Ảnh vẫn được giữ, em thử lại.');
+    return callGeminiVision(buildCorrectionReviewPrompt(contextSubmission, attempt, originalEntries.length, sourceText, correctionEntries.length, sourceImages.length), [...originalEntries, ...correctionEntries, ...sourceImages], getGradingApiKey(), GRADING_MODEL,
+      { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(GRADING_BUDGET_MS, modelBudget) });
+  },
+});
 
-  const submissionId = typeof body.submissionId === 'string' ? body.submissionId : '';
+const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const authorization = await authorizeSubmissionActor(db, body, res);
+  if (!authorization) return;
+  const uid = authorization.actor.uid || authorization.actor.teacherId;
+  const submissionId = authorization.submissionId;
   const ref = db.collection('submissions').doc(submissionId);
   const snap = await ref.get();
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
@@ -936,19 +1020,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (submission.status === 'grading' && !isStaleGradingTimestamp(submission.updatedAt)) {
     return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
   }
-  const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
-  const isOwnerStudent = Boolean(link
-    && link.studentId === submission.studentId
-    && link.classId === submission.classId
-    && link.teacherId === submission.teacherId);
-  const isTeacher = submission.teacherId === uid
-    || await canTeacherAccessLegacyNamespace(db, uid, submission.classId, submission.teacherId);
-  if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
-  if (isOwnerStudent && !isTeacher && typeof submission.assignmentId === 'string' && submission.assignmentId
-    && (await db.collection('assignments').doc(submission.assignmentId).get()).data()?.isOpen === false) {
-    return res.status(409).json({ error: 'Bài đã đóng. Em chỉ có thể xem lại bài đã nộp.' });
-  }
+  const isOwnerStudent = authorization.actor.role !== 'teacher';
+  const isTeacher = authorization.actor.role === 'teacher';
+  await db.runTransaction(tx => assertActorCurrent(db, tx, authorization.actor, submission.assignmentId));
   const mode: HomeworkGradingMode = isTeacher && !isOwnerStudent ? requestedMode : 'quick';
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
@@ -1776,8 +1850,8 @@ const readAssignmentQuestionCatalog = async (
       examText,
       examImageCount: examImages.length,
       maxScore: Number(assignment.maxScore) || 10,
-      ...(grade ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
-    }),
+      ...(grade && !assignment.solutionCatalogOnly ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
+    }) + (assignment.solutionCatalogOnly ? `\nƯU TIÊN CHO LỜI GIẢI CHUNG: chỉ đọc mã đề ${assignment.solutionExamCode || 'mặc định'}. Nhãn phải khớp từng câu trong đáp án bên dưới (Phần I/II/III + Câu/Bài), không tách câu Đúng/Sai thành 4 câu; giữ nội dung a–d trong content của một câu. Chép expectedAnswer của đúng câu từ đáp án GV, không tự giải hoặc đoán. ĐÁP ÁN GV: ${assignment.answerKey || ''}` : ''),
     examImages,
     getGradingApiKey(),
     GRADING_MODEL,
@@ -2066,7 +2140,9 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     // (nó tự khởi tạo Admin khi cần), chứ không nuốt vào 500 chung của route chấm bài.
     if (action === 'aiGateway') return await handleAiGateway(req, res);
     const db = getAdminDb();
+    if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
+    if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);
     if (await handleClarifyAction(db, body, res, {
@@ -2087,6 +2163,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
   } catch (error) {
     // Khoá AI của giáo viên hết/chưa có và chưa đồng ý dùng khoá chung → client mở hộp chọn.
     if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));
+    if (error instanceof SubmissionAccessError) return res.status(error.statusCode).json({ error: error.message });
     console.error('[grade-homework] lỗi', error);
     return res.status(500).json({
       error: error instanceof Error ? error.message : 'Máy chủ gặp lỗi khi chấm bài.',

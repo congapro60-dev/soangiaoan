@@ -13,6 +13,7 @@ interface Props {
   classFixes: ReadonlySet<string>;
   onChange: (rows: QuestionResult[]) => void;
   onToggleClassFix: (questionNumber: string) => void;
+  onFocusQuestion?: (questionNumber: string) => void;
 }
 
 const STATUS: Record<QuestionResultStatus, { label: string; className: string }> = {
@@ -62,7 +63,7 @@ const ScoreInput = ({ value, max, label, onCommit }: { value: number; max: numbe
  *  - cho điểm sai (tự luận) → sửa thẳng ô điểm.
  * Câu trắc nghiệm / Đúng-Sai / trả lời ngắn tự tính lại điểm, không tốn lượt AI.
  */
-export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFixes, onChange, onToggleClassFix }: Props) => {
+export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFixes, onChange, onToggleClassFix, onFocusQuestion }: Props) => {
   // Thầy cô đã đụng tay vào câu nào thì câu đó coi như đã soát: bỏ cờ "cần soát" ngay trên màn hình
   // (máy chủ cũng làm vậy khi lưu).
   const capNhat = (index: number, next: QuestionResult) =>
@@ -98,7 +99,7 @@ export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFix
           const doiDapAn = goc && goc.expectedAnswer.trim() !== q.expectedAnswer.trim() && q.expectedAnswer.trim() !== '';
           const st = STATUS[q.status] || STATUS.unreadable;
           return (
-            <div key={`${q.questionNumber}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3" data-question={q.questionNumber}>
+            <div key={`${q.questionNumber}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3" data-question={q.questionNumber} onFocus={() => onFocusQuestion?.(q.questionNumber)} onClick={() => onFocusQuestion?.(q.questionNumber)}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-black text-slate-800">{q.questionNumber}</span>
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${st.className}`}>{st.label}</span>
@@ -157,6 +158,10 @@ export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFix
                   </span>
                 </label>
               )}
+              <label className="mt-3 block text-xs font-bold text-slate-600">Giải thích vì sao<textarea aria-label={`Vì sao ${q.questionNumber}`} value={q.explanation} onChange={event => capNhat(index, { ...q, explanation: event.target.value, teacherEdited: true })} rows={3} className={O} /></label>
+              <label className="mt-2 block text-xs font-bold text-slate-600">Cách sửa / lưu ý<textarea aria-label={`Cách sửa ${q.questionNumber}`} value={q.correction} onChange={event => capNhat(index, { ...q, correction: event.target.value, teacherEdited: true })} rows={3} className={O} /></label>
+              <label className="mt-2 block text-xs font-bold text-slate-600">Lời giải chi tiết<textarea aria-label={`Lời giải chi tiết ${q.questionNumber}`} value={q.workedSolution || ''} onChange={event => capNhat(index, { ...q, workedSolution: event.target.value, workedSolutionStatus: event.target.value.trim() ? 'ready' : 'unavailable', teacherEdited: true })} rows={4} className={O} /></label>
+              {q.workedSolution?.trim() && <div className="mt-2 rounded-lg bg-white p-2"><NhanXetMarkdown>{q.workedSolution}</NhanXetMarkdown></div>}
               {q.explanation.trim() && (
                 <div className="mt-2 line-clamp-3 text-xs text-slate-500">
                   <NhanXetMarkdown>{q.explanation}</NhanXetMarkdown>

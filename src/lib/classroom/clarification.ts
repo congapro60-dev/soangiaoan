@@ -7,9 +7,10 @@
  *
  * Chống chép đáp án: câu còn chờ làm rõ KHÔNG được lộ đáp án đúng / giải thích / điểm cho học sinh.
  */
+import { projectReadingRegions } from './photoMarks.js';
 import { READ_CONFIDENCE_FLOOR } from './submissionSelection.js';
 import { applyStudentTypedAnswer, isBlankAnswer, parseExpectedAnswer } from './questionRescore.js';
-import type { ClarifyKind, ClarifyState, QuestionClarify, QuestionResult } from './types.js';
+import type { ClarifyKind, ClarifyState, QuestionClarify, QuestionResult, SubmissionActor } from './types.js';
 
 /** Câu máy đọc chưa chắc: không đọc được, tự đánh dấu cần soát, hoặc độ chắc dưới ngưỡng (cùng tiêu chí `hasUncertainRead`). */
 export const isUncertainQuestion = (q: QuestionResult): boolean =>
@@ -154,12 +155,18 @@ export const sanitizeClarify = (raw: unknown): QuestionClarify | undefined => {
   if (!KINDS.includes(value.kind as ClarifyKind) || !STATES.includes(value.state as ClarifyState)) return undefined;
   const parts = Array.isArray(value.parts) ? value.parts.filter((p): p is string => typeof p === 'string' && /^[a-d]$/.test(p)).slice(0, 4) : [];
   const photoUrls = Array.isArray(value.photoUrls) ? value.photoUrls.filter((u): u is string => typeof u === 'string').slice(0, 12) : [];
+  const actor = value.confirmedBy && typeof value.confirmedBy === 'object' ? value.confirmedBy as Record<string, unknown> : undefined;
+  const confirmedBy: SubmissionActor | undefined = actor && typeof actor.role === 'string' && ['teacher', 'student', 'parent'].includes(actor.role)
+    && typeof actor.studentId === 'string' && actor.studentId.length > 0 && actor.studentId.length <= 150 && !actor.studentId.includes('/')
+    && typeof actor.at === 'string' && actor.at.length <= 35 && Number.isFinite(Date.parse(actor.at))
+      ? { role: actor.role as SubmissionActor['role'], studentId: actor.studentId, at: actor.at } : undefined;
   return {
     kind: value.kind as ClarifyKind,
     state: value.state as ClarifyState,
     reading: typeof value.reading === 'string' ? value.reading.slice(0, 400) : '',
     ...(parts.length > 0 ? { parts } : {}),
     ...(photoUrls.length > 0 ? { photoUrls } : {}),
+    ...(confirmedBy ? { confirmedBy } : {}),
     ...(typeof value.at === 'string' ? { at: value.at } : {}),
     ...(typeof value.tries === 'number' && Number.isInteger(value.tries) && value.tries > 0 ? { tries: Math.min(value.tries, 99) } : {}),
     ...(typeof value.message === 'string' && value.message ? { message: value.message.slice(0, 300) } : {}),
@@ -184,6 +191,7 @@ export const hideWhileAwaitingClarification = (rows: readonly QuestionResult[]):
     nextPractice: '',
     needsTeacherReview: true,
     ...(q.clarify ? { clarify: q.clarify } : {}),
+    ...(q.readingRegions?.length ? { readingRegions: projectReadingRegions(q, q.readingRegions.flatMap(region => region.imageUrl ? [region.imageUrl] : [])) } : {}),
   }));
 
 
@@ -232,7 +240,7 @@ export const startPhotoRegrade = (q: QuestionResult, newUrls: readonly string[],
   const photos = [...new Set([...(clarify.photoUrls ?? []), ...newUrls])].slice(-MAX_CLARIFY_PHOTOS);
   if (photos.length === 0) return { ok: false, error: 'Em chưa chọn ảnh bài làm của câu này.' };
   const { message: _drop, ...rest } = clarify;
-  const { photoMarks: _oldMarks, ...reading } = q;
+  const { photoMarks: _oldMarks, readingRegions: _oldRegions, ...reading } = q;
   return { ok: true, row: { ...reading, clarify: { ...rest, state: 'regrading', photoUrls: photos, at, tries: tries + (newUrls.length > 0 ? 1 : 0) } } };
 };
 
@@ -249,6 +257,7 @@ export const finishPhotoRegrade = (q: QuestionResult, regraded: QuestionResult, 
       ...q,
       studentAnswer: regraded.studentAnswer || q.studentAnswer,
       needsTeacherReview: true,
+      readingRegions: regraded.readingRegions || [],
       clarify: { ...rest, state: 'open', reading: regraded.studentAnswer || clarify.reading, at, message: exhausted ? `${hint} Em bấm "Để thầy cô xem" nhé.` : hint },
     };
   }

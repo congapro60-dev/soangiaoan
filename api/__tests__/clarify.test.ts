@@ -6,11 +6,11 @@ type Doc = Record<string, unknown>;
 const h = vi.hoisted(() => ({ uid: 'student-uid-1', db: null as unknown, sync: vi.fn(async () => undefined) }));
 
 vi.mock('firebase-admin/auth', () => ({
-  getAuth: () => ({ verifyIdToken: async () => ({ uid: h.uid }) }),
+  getAuth: () => ({ verifyIdToken: async (token: string) => { if (!token) throw new Error(); return { uid: h.uid }; } }),
 }));
 vi.mock('../_exam-core.js', () => ({
   getAdminDb: () => h.db,
-  getAdminStorage: () => ({ name: 'unused.firebasestorage.app', file: () => ({ delete: async () => undefined }) }),
+  getAdminStorage: () => ({ name: 'test.firebasestorage.app', file: (path: string) => ({ getMetadata: async () => [{ name: path, contentType: 'image/jpeg', size: '100' }], copy: async () => [], setMetadata: async () => [], delete: async () => undefined }) }),
   stripAnswerKey: (question: Doc) => question,
 }));
 vi.mock('../_skill-profile.js', () => ({ syncApprovedGradeEvidence: h.sync }));
@@ -19,6 +19,7 @@ const makeDb = (store: Record<string, Record<string, Doc>>) => {
   const collection = (name: string) => ({
     doc: (id: string) => ({
       id,
+      collection: (sub: string) => collection(`${name}/${id}/${sub}`),
       get: async () => ({ exists: Boolean(store[name]?.[id]), data: () => (store[name]?.[id] ? structuredClone(store[name][id]) : undefined) }),
       update: async (payload: Doc) => { store[name][id] = { ...store[name][id], ...payload }; },
     }),
@@ -65,6 +66,8 @@ const seed = (extra: Doc = {}): Record<string, Record<string, Doc>> => ({
     'student-uid-2': { studentId: 'student-2', classId: 'class-1', teacherId: 'teacher-1' },
   },
   classes: { 'class-1': { teacherId: 'teacher-1' } },
+  'classes/class-1/students': { 'student-1': { name: 'HS' }, 'student-2': { name: 'HS2' } },
+  assignments: { 'asg-1': { classId: 'class-1', teacherId: 'teacher-1', isOpen: true } },
   submissions: {
     'sub-1': {
       teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1', fileUrls: [], note: '', status: 'graded',
@@ -119,9 +122,9 @@ describe('student clarification · clarifyAnswers', () => {
   beforeEach(() => { h.uid = 'student-uid-1'; h.sync.mockClear(); h.db = makeDb(seed()); });
   const store = () => (h.db as { collection: (n: string) => { doc: (i: string) => { get: () => Promise<{ data: () => Doc }> } } }).collection('submissions').doc('sub-1').get().then(s => s.data());
 
-  it('bài đã đóng: không đổi đáp án hoặc skip; bài tự nộp vẫn xử lý được', async () => {
+  it('bài khóa chốt: không đổi đáp án hoặc skip; bài tự nộp vẫn xử lý được', async () => {
     const data = seed();
-    data.assignments = { 'asg-1': { isOpen: false } };
+    data.assignments = { 'asg-1': { classId: 'class-1', teacherId: 'teacher-1', isOpen: false, submissionLocked: true } };
     h.db = makeDb(data);
     const original = structuredClone(data.submissions['sub-1']);
     const result = await call({ submissionId: 'sub-1', answers: [{ questionNumber: 'Phần I – Câu 2', answer: 'D' }], skip: ['Phần II – Câu 1'] });
@@ -132,11 +135,11 @@ describe('student clarification · clarifyAnswers', () => {
     expect((await call({ submissionId: 'sub-1', answers: [{ questionNumber: 'Phần I – Câu 2', answer: 'D' }] })).statusCode).toBe(200);
   });
 
-  it('đóng bài ngay trước transaction cũng từ chối, không chỉ dựa vào lần đọc quyền', async () => {
-    const data = seed(); data.assignments = { 'asg-1': { isOpen: true } };
+  it('khóa bài ngay trước transaction cũng từ chối, không chỉ dựa vào lần đọc quyền', async () => {
+    const data = seed(); data.assignments = { 'asg-1': { classId: 'class-1', teacherId: 'teacher-1', isOpen: true } };
     const db = makeDb(data);
     h.db = { ...db, runTransaction: async (work: Parameters<typeof db.runTransaction>[0]) => {
-      data.assignments['asg-1'].isOpen = false;
+      data.assignments['asg-1'].submissionLocked = true;
       return db.runTransaction(work);
     } };
     const original = structuredClone(data.submissions['sub-1']);
@@ -225,7 +228,7 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
     questionNumber: 'Tự luận – Bài 1', status: 'unreadable', score: 0, maxScore: 2, studentAnswer: 'không đọc rõ', expectedAnswer: 'x = 2',
     explanation: 'ẨN', needsTeacherReview: true, clarify: { kind: 'photo', state: 'open', reading: 'không đọc rõ' },
   });
-  const photo = (uid = 'student-uid-1', name = 'sub-1-clar-1.jpg') => `https://firebasestorage.googleapis.com/v0/b/proj.appspot.com/o/${encodeURIComponent(`homework/${uid}/${name}`)}?alt=media&token=abc`;
+  const photo = (uid = 'student-uid-1', name = 'sub-1-clar-1.jpg') => `https://firebasestorage.googleapis.com/v0/b/test.firebasestorage.app/o/${encodeURIComponent(`homework/${uid}/${name}`)}?alt=media&token=abc`;
   const good = (q: Doc): Doc => ({ ...q, status: 'correct', score: 2, studentAnswer: 'x = 2', explanation: 'Đúng', needsTeacherReview: false, confidence: 0.9 });
   const seedEssay = () => {
     const data = seed();
@@ -239,8 +242,8 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
     h.db = makeDb(seedEssay());
   });
 
-  it('bài đã đóng: không lưu ảnh hoặc gọi AI, không nhận retry', async () => {
-    const data = seedEssay(); data.assignments = { 'asg-1': { isOpen: false } };
+  it('bài khóa chốt: không lưu ảnh hoặc gọi AI, không nhận retry', async () => {
+    const data = seedEssay(); data.assignments = { 'asg-1': { classId: 'class-1', teacherId: 'teacher-1', isOpen: false, submissionLocked: true } };
     h.db = makeDb(data);
     const original = structuredClone(data.submissions['sub-1']);
     for (const photoUrls of [[photo()], []]) {
@@ -258,9 +261,9 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
     expect(result.statusCode).toBe(200);
     expect(result.payload).toMatchObject({ pending: 0, regrading: false });
     const sent = deps.regradeQuestion.mock.calls[0][1] as { clarify: { photoUrls: string[]; state: string } };
-    expect(sent.clarify.photoUrls).toEqual([photo()]);
+    expect(sent.clarify.photoUrls).toEqual([expect.stringContaining('accepted-homework')]);
     const saved = await stored();
-    expect(saved.questionResults[1]).toMatchObject({ status: 'correct', score: 2, clarify: { state: 'done', photoUrls: [photo()], tries: 1 } });
+    expect(saved.questionResults[1]).toMatchObject({ status: 'correct', score: 2, clarify: { state: 'done', photoUrls: [expect.stringContaining('accepted-homework')], tries: 1 } });
     expect(saved.score).toBeCloseTo(1.5); // 0,25 + 2 bị kẹp ở thang tối đa 1,5 của bài mẫu
     expect(h.sync).toHaveBeenCalledTimes(1);
   });
@@ -272,7 +275,7 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
     deps.runInBackground.mockImplementation((p: Promise<unknown>) => { work = p; return true; });
     const result = await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls: [photo()] }, 'clarifyPhoto');
     expect(result.statusCode).toBe(202);
-    expect(((await stored()).questionResults[1].clarify as Doc)).toMatchObject({ state: 'regrading', photoUrls: [photo()] });
+    expect(((await stored()).questionResults[1].clarify as Doc)).toMatchObject({ state: 'regrading', photoUrls: [expect.stringContaining('accepted-homework')] });
     // đang chấm: gửi tiếp bị từ chối, không chấm hai lần
     const again = await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls: [photo('student-uid-1', 'b.jpg')] }, 'clarifyPhoto');
     expect(again.statusCode).toBe(409);
@@ -284,19 +287,19 @@ describe('student clarification · clarifyPhoto (tự luận)', () => {
     deps.regradeQuestion.mockImplementation(async (_s: Doc, q: Doc) => ({ ...q, status: 'unreadable', needsTeacherReview: true, confidence: 0.2, explanation: 'Đáp án là x = 2' }));
     await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls: [photo()] }, 'clarifyPhoto');
     const q = (await stored()).questionResults[1];
-    expect(q.clarify).toMatchObject({ state: 'open', photoUrls: [photo()] });
+    expect(q.clarify).toMatchObject({ state: 'open', photoUrls: [expect.stringContaining('accepted-homework')] });
     expect(JSON.stringify(q.clarify)).not.toContain('x = 2');
     expect(h.sync).not.toHaveBeenCalled();
     // chụp thêm → ảnh nối tiếp
     deps.regradeQuestion.mockImplementation(async (_s: Doc, qq: Doc) => good(qq));
     await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls: [photo('student-uid-1', 'b.jpg')] }, 'clarifyPhoto');
-    expect(((await stored()).questionResults[1].clarify as { photoUrls: string[]; tries: number })).toMatchObject({ photoUrls: [photo(), photo('student-uid-1', 'b.jpg')], tries: 2 });
+    expect(((await stored()).questionResults[1].clarify as { photoUrls: string[]; tries: number })).toMatchObject({ photoUrls: [expect.stringContaining('accepted-homework'), expect.stringContaining('accepted-homework')], tries: 2 });
   });
 
   it('chấm lại lỗi → giữ ảnh ở photo_saved, "thử lại" không cần ảnh mới', async () => {
     deps.regradeQuestion.mockRejectedValueOnce(new Error('mạng'));
     await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1', photoUrls: [photo()] }, 'clarifyPhoto');
-    expect((await stored()).questionResults[1].clarify).toMatchObject({ state: 'photo_saved', photoUrls: [photo()] });
+    expect((await stored()).questionResults[1].clarify).toMatchObject({ state: 'photo_saved', photoUrls: [expect.stringContaining('accepted-homework')] });
     deps.regradeQuestion.mockImplementation(async (_s: Doc, q: Doc) => good(q));
     const retry = await call({ submissionId: 'sub-1', questionNumber: 'Tự luận – Bài 1' }, 'clarifyPhoto');
     expect(retry.payload).toMatchObject({ pending: 0 });
