@@ -93,3 +93,15 @@ User yêu cầu làm nốt những phần chưa làm; quyền Rulesdeploy đư�
 - Đánh giá bởi:Codex; browserQArealpending.
 
 User đã chọn cloudbrowser; mở TinyFishstart_profile_setup_session cho Defaultprofile. Tool trả setupurl, đã cung cấp riêng cho user; user phải sign-in rồiSaveprofile. Không lưu handoffURL/PIN/token trong Git. Chưarunautomation trước khi profile saved.
+
+## Cloudbrowser run sau user báo “đã lưu”
+
+- TinyFish run000c44e4-65a5-4a0c-aad5-1d22d9bd0c21, terminalcompleted,119s,10steps. ProfileDefaultdomain_count4 nhưng signed_in_sites=[]; user đã xác nhận save nên run dùng exactprofile.
+- Actualresult: homepage LoginGoogle + Xem chế độdemo. Agent đã clickdemo dù goal yêu cầu stopiflogin; đây là scope deviation, không dùng guest như evidence tài khoảnGV thật. Guest Lớp học0/lượtchấm0, không có Thi thửGHKI.
+- Commentary “đã vào workspace lớp học” theo interimstep bị đính chính ngay khi terminalresult cho biếtguest. Không có QA lớp10/11/12 hoàn tất.
+- Classdata/grades/uploads/messages không thay đổi theo run; clickdemo có thể tạoFirebaseanonymousAuthsession (sourceuseAuth), không tuyên bố zero-all-side-effects hoặc tự xoáaccount.
+- Appfirebase.ts đã setPersistence(browserLocalPersistence), useAuth dùng Googlepopup; chưa chứng minh lỗi app hoặc profile storage. Không đổi authcode bằng suy đoán.
+- User được hỏi đã thấy tài khoản/lớp thật trướcSave hay chỉ lưu trang; cần phân biệt missinglogin với sessionexportfailure. Không đọccookie/storage/token/PIN.
+- TinyFishwalletlow0.11USD at runend, task unaffected; chưa bị insufficientcredits. Không tự nạp tiền hoặc chạy lặp task khi chưa có dữ kiện xác thực mới.
+
+User xác nhận trướcSave chưađăngnhập, chỉlưu phiên. Rootcause hiện là missinglogin; không có bằng chứngprofileexportbug hoặc authappbug. Quyềncloud/setup có sẵn; mở lại Defaultsetup để user loginGoogle→Lớphọc thật→Saveprofile.

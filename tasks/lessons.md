@@ -498,3 +498,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Người dùng yêu cầu chi tiết như GV, không chỉ ba nhãn Đã đạt/Cần sửa thêm/Chưa đủ căn cứ.
 - Nhãn chỉ kết luận; nhận xét nêu phần tiến bộ, bước/câu còn sai và vì sao, hướng hoàn thiện có công thức/điều kiện, việc luyện/kiểm tra tiếp theo.
 - Bám ảnh gốc+ảnh chữa+lời giải đã xác minh; thiếu căn cứ chỉ rõ phần cần đối chiếu. Không chấm lại hoặc thay điểm bài gốc.
+
+## 2026-10-14 — Trạng thái browser step không chứng minh đăng nhập
+- “Understand classworkspace” có thể là demo/guest. Không báo đã vào tài khoản hoặc lớp thật trước khi UI hiện đúng vai+dữ liệu lớp.
+- ProfileSaved/domain_count>0 không chứng minh auth được khôi phục. Terminalresult login/guest phải ghi blocked, không xếp PASS.
