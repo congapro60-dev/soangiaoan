@@ -60,5 +60,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // async response
   }
 
+  // HẠNG MỤC 2: tự điền nhận xét học sinh cả lớp vào bảng trên trang SSM.
+  // HẠNG MỤC 3: tự điền lịch báo giảng / BTVN vào các ô tiết học trên trang SSM.
+  // params.fields: [{ key, value, match }] — key để khớp (mã HS / tên tiết), value để điền.
+  // params.fieldSelector: CSS selector của các ô cần điền (mặc định: textarea, input[type=text]).
+  if (message?.kind === 'ssm-autofill') {
+    (async () => {
+      try {
+        const fields = message.params?.fields || [];
+        const selector = message.params?.fieldSelector || 'textarea, input[type="text"]';
+        if (!Array.isArray(fields) || fields.length === 0) {
+          sendResponse({ ok: false, error: 'Thiếu danh sách nội dung cần điền.' });
+          return;
+        }
+        const inputs = [...document.querySelectorAll(selector)];
+        if (inputs.length === 0) {
+          sendResponse({ ok: false, error: 'Không tìm thấy ô nhập liệu nào trên trang SSM.' });
+          return;
+        }
+        let filled = 0;
+        for (const f of fields) {
+          const key = (f.key || '').toString().trim().toLowerCase();
+          const value = (f.value || '').toString();
+          if (!key || !value) continue;
+          // Tìm ô có chứa key trong các thuộc tính gần nó (data-*, name, id, placeholder, hoặc dòng chứa key).
+          const target = inputs.find((el) => {
+            const hay = [
+              el.getAttribute('data-key') || '',
+              el.getAttribute('data-code') || '',
+              el.name || '',
+              el.id || '',
+              el.placeholder || '',
+              el.closest('tr')?.textContent || '',
+              el.closest('[data-row]')?.textContent || '',
+            ].join(' ').toLowerCase();
+            return hay.includes(key);
+          });
+          if (!target) continue;
+          // Điền giá trị — hỗ trợ cả React (native setter) để framework nhận biết.
+          const setter = Object.getOwnPropertyDescriptor(
+            target instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
+            'value'
+          )?.set;
+          if (setter) setter.call(target, value);
+          else target.value = value;
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+          // Tô viền nổi bật để giáo viên kiểm tra mắt trước khi bấm Lưu trên SSM.
+          target.style.outline = '3px solid #8b5cf6';
+          target.style.outlineOffset = '2px';
+          filled++;
+        }
+        sendResponse({ ok: true, data: { filled, total: fields.length } });
+      } catch (e) {
+        sendResponse({ ok: false, error: 'Không điền được: ' + (e.message || e) });
+      }
+    })();
+    return true;
+  }
+
   return false;
 });
