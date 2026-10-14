@@ -1,5 +1,6 @@
 // Service worker: nhận yêu cầu từ app, lấy phiên SSM từ tab SSM đang mở, gọi API SSM, trả JSON.
-// Đợt 1 CHỈ ĐỌC: mọi lệnh là GET trong danh sách cố định dưới đây, không có lệnh tự do.
+// Đợt 1 CHỈ ĐỌC + gắn file Excel đã điền (attachLoFile): mọi lệnh GET trong danh sách cố định,
+// không có lệnh tự do. attachLoFile chỉ ĐIỀN file vào trang SSM — giáo viên tự bấm Lưu.
 // Vé đăng nhập chỉ dùng trong hàm callSsm, không bao giờ trả về app hay ghi log.
 //
 // HẠNG MỤC 5 (Token Cache & Auto-Wake):
@@ -22,6 +23,9 @@ const posInt = (value) => {
 const OPS = {
   ping: () => '',
   profile: () => 'v1/profile',
+  // HẠNG MỤC 1: app gửi file Excel đã điền điểm (base64) → gắn vào ô input file trên tab SSM.
+  // Op này không gọi API SSM nên path là chuỗi rỗng đặc biệt, xử lý riêng trong handle().
+  attachLoFile: () => '__attach__',
   schoolYears: () => 'v1/school-years-branch?skip_paginate=true&is_active=all',
   teacherClasses: (p) => {
     const year = posInt(p?.schoolYearId);
@@ -128,6 +132,33 @@ const wakeSsmInBackground = async () => {
   }
 };
 
+/**
+ * HẠNG MỤC 1 (1-Click Excel Relay): nhận file Excel đã điền điểm từ app (base64),
+ * gửi cho content script ssm-autofill.js gắn vào ô <input type="file"> trên tab SSM.
+ * Chỉ ĐIỀN và TÔ VIỀN — giáo viên tự bấm Lưu trên SSM.
+ */
+const attachFileToSsmTab = async (params) => {
+  const fileData = params?.fileData;
+  const fileName = params?.fileName || 'diem-lo-da-dien.xlsx';
+  if (!fileData || typeof fileData !== 'string') return { ok: false, error: 'Thiếu dữ liệu file Excel.' };
+  if (fileData.length > MAX_BODY * 2) return { ok: false, error: 'File Excel quá lớn.' };
+  let tab = await findSsmTab();
+  if (!tab?.id) {
+    // Thử tự mở tab SSM ngầm rồi gắn file (kế thừa Auto-Wake của Hạng mục 5).
+    const wake = await wakeSsmInBackground();
+    if (wake.error) return { ok: false, error: wake.error };
+    tab = await findSsmTab();
+    if (!tab?.id) return { ok: false, error: 'Không mở được tab SSM.' };
+  }
+  try {
+    const result = await chrome.tabs.sendMessage(tab.id, { kind: 'ssm-attach-file', fileData, fileName });
+    if (!result?.ok) return { ok: false, error: result?.error || 'Không gắn được file lên trang SSM.' };
+    return { ok: true, data: { attached: true } };
+  } catch {
+    return { ok: false, error: 'Tab SSM chưa tải xong tiện ích — tải lại (F5) tab SSM rồi thử lại.' };
+  }
+};
+
 const readSession = async () => {
   // 1. Ưu tiên token đã cache — không cần tab SSM mở.
   const cached = await readCachedSession();
@@ -180,6 +211,8 @@ const handle = async (message, sender) => {
   const path = build(message.params);
   if (path === null) return { ok: false, error: 'Tham số không hợp lệ.' };
   if (message.op === 'ping') return { ok: true, data: { version: chrome.runtime.getManifest().version } };
+  // HẠNG MỤC 1: gắn file Excel vào trang SSM — không cần gọi API, chỉ cần tab SSM mở.
+  if (message.op === 'attachLoFile') return attachFileToSsmTab(message.params);
   const { session, error } = await readSession();
   if (error) return { ok: false, error };
   return callSsm(path, session);
