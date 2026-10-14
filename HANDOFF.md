@@ -293,3 +293,9 @@ Userảnh xác nhận IABGV đãlogin thật. IAB khácTinyFishguest; đừng h�
 Browser26.1007.71326 restoredIAB, realGV3class+HS11 read-onlyQAcompletedpartial. Old3exams no marks/nocommonworkedSolution; grade12catalogAItimeout45s/4sourceimages500. Backendwriter review_proxy_backend ownsgeometry-onlyaction+deadlinefix; final_ui_auditUIbutton+partialstatusfrozen. Rootnativebrowser/docs, riskreviewread-only. No score/approval changed. PHloginpending. Currenttaskplanappend+QAfile authoritative; prior runtimeblockedstatussuperseded.
 
 Historicalfixsourcefreeze: onlyannotationhelper/grade-homeworktimeout120/catalogsafeerror/UIbuttoncoverage/service+tests. Gate3040full/lintAPIapp/build+native21/GeminiPASS. Pushremaining; afterautoGitdeploynativeQA3selectedassignments. PHdirectclasslinkopened, need4digitPHpinuserdirect.
+
+Sourcef58109a pushedmainremoteverified, APItypecheckSUCCESS; autoVercel/QualityGatepending. PHactualsessionrecoveredfor11student, report/assignment/directuploadformnooverflowverified; noupload/grade/messagechanges. HistoricalAI geometry+solutionsnativeafterReady remainsactive.
+
+RealAI3samplesgeometrysaved, grade/approvalunchanged4/5.9/8.5; PH/HS11now17marksvisible. Caches10=19/19,12=22/22,11=18/22missing4TF. Mathparsebuginline$$begin fixed centralmodule+22actualfixtures, viewerdots8pxselected24px; notpushedyet.77focused/native70/GeminiPASS+build/lintsready. BackendwriterpendingTFheadingtolerance+verifyfixtures10/11; exactrootcauseTFunavailableunknownrawnotstored.
+
+Finalsmallmath/viewer/TFfix gatefull3073/288files,lintapp/API/buildexit0,native/GeminiPASS; sourcefreeze. Nextpushmain+autoGitdeploy thenrealKaTeXerror0/labelsfit,regen11TF4missing. Grade10/12cachefull19/22,alloriginalscores/approvalkept. No newRules required.

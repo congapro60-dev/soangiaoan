@@ -57,8 +57,13 @@ export const parseWorkedSolutions = (raw: string, input: WorkedSolutionsInput, v
     const item = byKey.get(questionKey(q.questionNumber)) || { workedSolution: '', status: 'unavailable' as const };
     const tf = parseExpectedAnswer(q.expectedAnswer || '');
     if (tf?.kind === 'true_false') {
-      const parts = item.workedSolution.split(/(?=^\s*[a-d]\))/mi).map(p => p.trimStart());
-      const complete = Object.keys(tf.items).every(letter => parts.some(p => p.toLowerCase().startsWith(letter + ')') && (p.match(/Đúng|Sai/i)?.[0].toLocaleLowerCase('vi-VN') === (tf.items[letter] ? 'đúng' : 'sai')) && p.length >= 25));
+      // Normalize only for validation; keep the student's displayed Markdown exactly as generated.
+      const checked = item.workedSolution.replace(/^\s*(?:(?:#{1,6}|[-+*]|\d+[.)])\s+)?[*_]*([a-d]\))[*_]*\s*/gmi, '$1 ');
+      const parts = checked.split(/(?=^\s*[a-d]\))/mi).map(p => p.trimStart()).filter(p => /^[a-d]\)/i.test(p));
+      const complete = parts.length === Object.keys(tf.items).length && Object.keys(tf.items).every(letter => {
+        const matching = parts.filter(p => p.toLowerCase().startsWith(letter + ')'));
+        return matching.length === 1 && (matching[0].match(/Đúng|Sai/i)?.[0].toLocaleLowerCase('vi-VN') === (tf.items[letter] ? 'đúng' : 'sai')) && matching[0].replace(/[*_#]/g, '').trim().length >= 25;
+      });
       if (!complete) return { questionNumber: q.questionNumber, workedSolution: '', status: 'unavailable' as const };
     }
     return { questionNumber: q.questionNumber, workedSolution: item.status === 'ready' ? item.workedSolution : '', status: item.status };

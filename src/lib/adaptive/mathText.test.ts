@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { assertClean, formatFeedbackMath, repairMathDeep, repairMathString, sanitizeDisplayText, stripInlineMarkdown, toPlainText } from './mathText';
 
 describe('formatFeedbackMath — chỉ dàn lại phép biến đổi xác định', () => {
+  it('places display delimiters on their own lines without losing environments or prose', () => {
+    const input = 'Ta có:\n$$\\begin{aligned}\nx &= 1 \\\\\ny &= 2\n\\end{aligned}$$\nVậy đáp số là 3.';
+    const expected = 'Ta có:\n$$\n\\begin{aligned}\nx &= 1 \\\\\ny &= 2\n\\end{aligned}\n$$\nVậy đáp số là 3.';
+    expect(formatFeedbackMath(input)).toBe(expected);
+    expect(formatFeedbackMath(expected)).toBe(expected);
+  });
+  it('retains Markdown list nesting for existing display blocks', () => {
+    const input = '- Cách tính:\n  $$\\begin{cases}\nx=1\\\\y=2\n\\end{cases}$$\n- Kết luận.';
+    const output = formatFeedbackMath(input);
+    expect(output).toContain('\n  $$\n  \\begin{cases}\n  x=1\\\\y=2\n  \\end{cases}\n  $$\n- Kết luận.');
+    expect(formatFeedbackMath(output)).toBe(output);
+  });
   it('giữ nguyên dấu câu trong bảng và trích dẫn', () => {
     const formula = '$A = \\vec{F}\\cdot\\overrightarrow{AB} = 2\\cdot4+1\\cdot(-2)+3\\cdot1 = 9$';
     for (const text of ['| Cách sửa | ' + formula + '. |', '> ' + formula + '. Tiếp tục.']) {

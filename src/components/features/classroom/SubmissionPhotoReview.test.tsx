@@ -31,6 +31,20 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(html).toContain('Ẩn dấu trên ảnh');
     expect(html).toContain('Mở bản gốc');
   });
+  it('22 vùng gần nhau chỉ hiện số trên câu đang chọn, các vùng khác dùng chấm nhỏ và vẫn có nút 44px', () => {
+    const results = Array.from({ length: 22 }, (_, i) => row([{ ...mark, y: .1 + i * .025 }], { questionNumber: `Câu ${i + 1}` }));
+    const initial = render(results);
+    expect(initial.match(/h-2 w-2/g)).toHaveLength(22);
+    expect(initial.match(/aria-label="Dấu /g)).toHaveLength(22);
+    expect(initial.match(/absolute flex h-11 w-11/g)).toHaveLength(22);
+    view.active = 5;
+    const selected = render(results);
+    expect(selected.match(/h-6 w-6/g)).toHaveLength(1);
+    expect(selected.match(/h-2 w-2/g)).toHaveLength(21);
+    expect(selected).toContain('Dấu 6 · Câu 6');
+    expect(selected).toContain('>6</span>');
+    expect(selected.match(/<ellipse/g)).toHaveLength(22);
+  });
   it('không lộ dấu hoặc lời chữa trước duyệt; GV thấy gợi ý AI', () => {
     const html = render([row([mark])], false);
     expect(html).not.toContain('<ellipse');

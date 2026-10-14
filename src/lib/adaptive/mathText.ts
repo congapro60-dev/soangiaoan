@@ -287,6 +287,17 @@ export const sanitizeDisplayText = (value: string | undefined | null): string =>
 export const formatFeedbackMath = (value: string): string => {
   const tokens = tokenizeMath(sanitizeDisplayText(value));
   return tokens.map((token, index) => {
+    // remark-math treats text after an opening $$ as metadata, not TeX. Fence display math on its own lines.
+    if (token.type === 'math' && (token.open === '$$' || token.open === '\\[')) {
+      const previous = tokens[index - 1], next = tokens[index + 1];
+      const line = previous?.type === 'text' ? previous.content.split('\n').at(-1) || '' : '';
+      if (line.includes('|') || line.trimStart().startsWith('>')) return joinTokens([token]);
+      const list = line.match(/^(\s*)(?:[-*+]|\d+[.)])\s+/);
+      const indent = list ? ' '.repeat(list[0].length) : line.match(/^\s*/)?.[0] || '';
+      const before = line.trim() ? '\n\n' + indent : '';
+      const after = next?.type === 'text' && next.content && !next.content.startsWith('\n') ? '\n\n' + indent : '';
+      return before + '$$\n' + token.content.trim().split('\n').map(part => part.startsWith(indent) ? part : indent + part).join('\n') + '\n' + indent + '$$' + after;
+    }
     if (token.type !== 'math' || token.content.length < 60
       || /\\(?:begin|end|left|right|Rightarrow|Leftrightarrow)|[&\r\n]|\\\\|[<>!]=|==/.test(token.content)
       || /[À-ỹ]|[a-zA-Z]{3}/.test(token.content.replace(/\\[a-zA-Z]+/g, ''))) {

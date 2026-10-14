@@ -31,6 +31,23 @@ it('accepts indented uppercase true-false headings while preserving verdict vali
  expect(parseWorkedSolutions(JSON.stringify({ questions: [{ questionNumber: 'Câu 1', workedSolution, status: 'ready' }] }), tf, 'v', 'now').status).toBe('ready');
 });
 
+it.each(['**$label $verdict.**', '### $label $verdict', '- $label **$verdict.**', '### **$label $verdict.**'])('accepts Markdown true-false heading %s without changing the solution', heading => {
+ const tf = { ...input, questions: [{ questionNumber: 'Câu 1', expectedAnswer: 'a) Đ; b) S; c) Đ; d) S' }] };
+ const workedSolution = ['a','b','c','d'].map(letter => heading.replace('$label', letter + ')').replace('$verdict', ['a','c'].includes(letter) ? 'Đúng' : 'Sai') + '\nVì thay các số đã cho vào biểu thức, kết quả đối chiếu đúng với nhận định.').join('\n\n');
+ const cache = parseWorkedSolutions(JSON.stringify({ questions: [{ questionNumber: 'Câu 1', workedSolution, status: 'ready' }] }), tf, 'v', 'now');
+ expect(cache.status).toBe('ready'); expect(cache.questions[0].workedSolution).toBe(workedSolution);
+});
+
+it.each(['missing', 'duplicate', 'wrong', 'short'])('rejects Markdown true-false %s despite other valid parts', problem => {
+ const tf = { ...input, questions: [{ questionNumber: 'Câu 1', expectedAnswer: 'a) Đ; b) S; c) Đ; d) S' }] };
+ let parts = ['a','b','c','d'].map(letter => `**${letter}) ${['a','c'].includes(letter) ? 'Đúng' : 'Sai'}.**\nVì thay số vào biểu thức, ta thấy kết quả này phù hợp với nhận định.`);
+ if (problem === 'missing') parts.pop();
+ if (problem === 'duplicate') parts.push(parts[0]);
+ if (problem === 'wrong') parts[1] = parts[1].replace('Sai', 'Đúng');
+ if (problem === 'short') parts[3] = '**d) Sai.**';
+ expect(parseWorkedSolutions(JSON.stringify({ questions: [{ questionNumber: 'Câu 1', workedSolution: parts.join('\n\n'), status: 'ready' }] }), tf, 'v', 'now').status).toBe('incomplete');
+});
+
 it('keeps a freshly generated solution stamped with the current source version when no shared cache exists', () => {
  const row = { questionNumber: 'Câu 1', status: 'correct' as const, score: 1, maxScore: 1, studentAnswer: 'B', expectedAnswer: 'B', errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: false, workedSolution: 'Lập luận mới từ đúng phiên đề.', workedSolutionVersion: 'v', workedSolutionStatus: 'ready' as const };
  expect(attachWorkedSolutions([row], undefined, 'v')[0].workedSolution).toBe(row.workedSolution);

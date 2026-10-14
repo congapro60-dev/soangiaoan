@@ -1,6 +1,23 @@
-import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { formatFeedbackMath, sanitizeDisplayText, tokenizeMath } from '../../../lib/adaptive/mathText';
+import solutions from '../../../lib/adaptive/__fixtures__/graded-math-feedback.json';
+describe('published math feedback actual Markdown/KaTeX rendering', () => {
+  it.each(solutions)('$label renders without KaTeX errors, preserving content and idempotence', ({ text }) => {
+    const normalized = formatFeedbackMath(text);
+    const html = renderToStaticMarkup(<NhanXetMarkdown>{text}</NhanXetMarkdown>);
+    expect(html).not.toContain('katex-error');
+    expect(html).not.toContain('ParseError');
+    expect(html).toContain('class="katex"');
+    expect(formatFeedbackMath(normalized)).toBe(normalized);
+    const before = tokenizeMath(sanitizeDisplayText(text)), after = tokenizeMath(normalized);
+    const math = (content: string) => content.replace(/\\(?:begin|end)\{aligned\}|\\displaystyle|\\\\|&|\s/g, '').replace(/\.$/, '');
+    expect(after.filter(t => t.type === 'math').map(t => math(t.content))).toEqual(before.filter(t => t.type === 'math').map(t => math(t.content)));
+    const prose = (content: string) => content.replace(/[\s.]+/g, '');
+    expect(prose(after.filter(t => t.type === 'text').map(t => t.content).join(''))).toBe(prose(before.filter(t => t.type === 'text').map(t => t.content).join('')));
+  });
+});
 
 const render = (text: string) => renderToStaticMarkup(<NhanXetMarkdown>{text}</NhanXetMarkdown>);
 

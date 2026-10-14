@@ -21,8 +21,13 @@ User đã duyệt, gồm nhận xét bài chữa chi tiết như GV; đích comm
 - [x] Appupdate26.1007.71326 khôi phục Browser IAB; GV thật3lớp, HS11sessionretained, read-onlyscreens/filters/scoreboard/stats/portfolio/reports/drafts/nooverflow390/820 đạt.
 - [ ] QA phát hiện bài cũ3khối chưa geometry/lời giải đầy đủ; prepareWorkedSolutions12timeoutcatalog45s. Backendwriter sửadeadline+GVgeometry-onlyaction; UIwriterbutton+partialcoverage. Không regrade/đổiđiểm.
 - [x] Historicalfix sourcegate: full3040/3040(288files),focused24/native21/UI3,lintapp/API/build exit0, GeminihistoricalPASS; Rulesunchanged.
-- [ ] Pushmain+Gitautodeploy; tạo3commoncache vàgeometry3samples, preservegrades4/5.9/8.5, actualcoordinateQA.
-- [ ] PH tab đãmở, cầnuserlogintrực tiếp; noPIN/chatsensitive. Bài chữaHS upload/eval vàfeedbacksendchưatestendtoend.
+- [x] Sourcef58109a pushmainexit0remoteSHAexact; APItypecheckSUCCESS.
+- [x] f581Gitdeploy+CIReady;3geometrysamplesrealannotationssaved, grades4/5.9/8.5remainapproved. Caches10=19/19,12=22/22,11=18/22missing4TF. HS/PH11see17marks.
+- [x] Math/viewer/TFsourcegate full3073/lintapp/API/build/native/GeminiPASS; actual3graderenderfixtureschecked.
+- [ ] Pushmathfence+inactive-dot+TFparsefix; verifyrealKaTeXerrors0/lessoverlap afterautoReady.
+- [ ] TF11Markdownheadingparse minimalfix+regenerateverify4missing; nofalseallsolutionsPASS.
+- [x] PHthậtcùngHS11: report+11assignments/search/deadline/directsupplementform/scroll/image/nooverflow820 đạt; chưaupload.
+- [ ] Bài chữaHS upload/eval vàfeedbacksendchưatestendtoend (không có bài chữa thực tế được chọn).
 
 Source không đổi sau5f1380e; Rules source024a5a8 đã deploy. Giới hạn: browserplugin missing/ComputerUsepipe os error2;
 Chrome actual-component fixture không thay realaccounts/AIquality. Gemini4Argon router keyinvalid/ag404;
