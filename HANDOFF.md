@@ -15,6 +15,7 @@ Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài
 - Ảnh chấm tay xem ngay trong card; PDF mở tab. Nguồn đổi thì UI bỏ nhận xét cũ, giữ nháp. Xóa bài có fence và lease retry, dọn mọi revision/file/audit, không để upload đồng thời tạo tệp mồ côi.
 - Đã tích hợp main 2407c50, giữ các sửa lỗi khác. Full 3.146/3.146, Rules 309/309, app/API strict/non-strict và build cuối đạt (index 1.532,10 kB; cảnh báo chunk có sẵn). Rules đã deploy; native Astra xhigh review PASS. Đích tích hợp: main. Chi tiết: `tasks/qa-handmarked-corrections-20261015.md`.
 - Tab GV và tab QA cục bộ timeout khi kết nối; chưa có bằng chứng QA upload thật/mobile/iPad cho tính năng mới. Không đổi điểm, nộp ảnh giả hoặc gửi tin cho lớp thật. Người dùng yêu cầu ngừng model bên ngoài, chỉ dùng native Astra xhigh cho subagent.
+- Source `33b21cd` đã push main. API Typecheck CI thành công; Quality Gate và Vercel Git deployment đang chạy tại snapshot. Không deploy/promote Vercel thủ công. Phần chưa nghiệm thu duy nhất trong phạm vi tính năng: QA trình duyệt thật và chất lượng nhận xét trên bài chữa thật mới.
 
 ## Tiếp quản QA Muse — 14/10
 

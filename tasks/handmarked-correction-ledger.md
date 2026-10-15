@@ -22,7 +22,7 @@ Base `3b40a56`, spec commit `8ec0dc3`; branch `codex/handmarked-corrections`. Us
 | M7 | Private Storage và collection từ chối truy cập trực tiếp | Rules emulator | PASS | 309/309, 10 files, exit 0 |
 | M8 | lint app/API strict/non-strict, build, full tests | npm scripts | PASS | 3.146 tests, ba typechecks, final build exit 0 |
 | M9 | Review native Astra xhigh theo yêu cầu mới nhất | source review | PASS | astra_final_review, cả diff merge |
-| M10 | source main and Git deployment, checklist truthful | git/CI/Vercel | unresolved | |
+| M10 | Source main và theo dõi Git deployment | git/CI/Vercel | PUSHED | 33b21cd; API CI success; Git deployment đang build tại snapshot |
 
 ## Runtime/model evidence
 

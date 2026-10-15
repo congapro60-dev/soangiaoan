@@ -27,6 +27,8 @@
 | Build cuối sau tích hợp | Exit 0; index 1.532,10 kB, cảnh báo chunk lớn có sẵn |
 | Race upload/xóa | 66/66 ca tập trung; thêm lease xóa 10 phút, retry sau lỗi; token private bị xóa |
 | Review merge cuối | Astra PASS; không mất cleanup, quyền hay polling PH |
+| Main | Source 33b21cd đã push; API Typecheck 38680990504 success |
+| Git deployment | dpl_C5DgyLxnPbzRGmNaTha5wKEEn3wG đang build; Quality Gate 38680990419 đang chạy tại snapshot |
 
 ## Giới hạn và dữ liệu thật
 

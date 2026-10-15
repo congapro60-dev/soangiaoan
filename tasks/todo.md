@@ -8,7 +8,8 @@ Spec đã duyệt: docs/superpowers/specs/2026-10-15-handmarked-correction-desig
 - [x] UI: GV upload/toggle, HS/PH xem ảnh trực tiếp; card bài chữa nộp hộ và AI chung. Sửa nhận xét cũ còn hiện khi nguồn đổi, giữ bản nháp.
 - [x] Test quyền/race/replay/lock/projection; lint app/API hai compiler, build, Rules. Full 3.146/3.146; Rules 309/309; final build exit 0.
 - [x] Review native Astra xhigh theo yêu cầu mới nhất, gồm merge main 2407c50. Dừng gọi model bên ngoài.
-- [ ] Push main và theo dõi Git deployment. Full 3.146/3.146, Rules 309/309 đã đạt; QA browser bị timeout, không ghi nhận PASS thật.
+- [x] Push main source `33b21cd`. Full 3.146/3.146, Rules 309/309 đã đạt; API Typecheck CI thành công. Vercel tự build qua Git, không deploy thủ công.
+- [ ] QA browser GV/HS/PH thật, mobile/iPad: công cụ timeout; không ghi nhận PASS thật. Chi tiết `tasks/qa-handmarked-corrections-20261015.md`.
 ## Tiếp quản Muse — QA_FIX_PLAN_soangiaoan.md
 
 User xác nhận Muse đã dừng, Codex tiếp quản. Base a2f30d1, feature branch codex/muse-qa-followup.

@@ -14,30 +14,31 @@
 
 **Files:** `src/lib/classroom/types.ts`, `api/_classroom-teacher.ts`, `api/classroom.ts`, tests.
 
-- [ ] Add hand-marked evidence/publish fields and sanitized projection.
-- [ ] Add teacher upload/publish/unpublish actions through existing actor/grant boundary.
-- [ ] Add tests for hidden/published projection, wrong class, lock, immutable grade.
+- [x] Add hand-marked evidence/publish fields and sanitized projection.
+- [x] Add teacher upload/publish/unpublish actions through existing actor/grant boundary.
+- [x] Add tests for hidden/published projection, wrong class, lock, immutable grade.
 
 ### Task 2: GV upload and publish controls
 
 **Files:** `src/components/features/classroom/AssignmentPanel.tsx`, shared upload/viewer services/components.
 
-- [ ] Add upload action and publish toggle with explicit status.
-- [ ] Ensure errors preserve selected file and never imply publish on upload.
-- [ ] Add focused component tests.
+- [x] Add upload action and publish toggle with explicit status.
+- [x] Ensure errors preserve selected file and never imply publish on upload.
+- [x] Add focused component tests.
 
 ### Task 3: HS/PH viewer and correction submitter
 
 **Files:** student/parent workspace components, `src/services/submissionActorsApi.ts`, correction components/tests.
 
-- [ ] Render hand-marked evidence only from server projection.
-- [ ] Add GV/PH correction upload path with provenance and AI review opt-in.
-- [ ] Keep original score/grade untouched; add regression tests.
+- [x] Render hand-marked evidence only from server projection.
+- [x] Add GV/PH correction upload path with provenance and AI review opt-in.
+- [x] Keep original score/grade untouched; add regression tests.
 
 ### Task 4: Rules, verification, release
 
 **Files:** `firestore.rules`, `storage.rules`, rule tests, `tasks/todo.md`, `HANDOFF.md`.
 
-- [ ] Deny client writes to hand-marked evidence/publish fields.
-- [ ] Run focused tests, full test, lint/API, build, Rules emulator.
-- [ ] QA GV/HS/PH read-only, commit/push main only after all gates.
+- [x] Deny client writes to hand-marked evidence/publish fields.
+- [x] Run focused tests, full test, lint/API, build, Rules emulator. Full 3146, Rules 309, all passed; Rules deployed.
+- [x] Commit/push main source 33b21cd after code gates and native Astra review passed.
+- [ ] QA GV/HS/PH browser: CDP timeout; no claim of real-account or mobile/iPad validation for this feature.
