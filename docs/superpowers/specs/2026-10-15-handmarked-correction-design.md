@@ -1,0 +1,39 @@
+# Công bố bản chấm tay và nộp hộ bài chữa — Design
+
+## Mục tiêu
+Cho phép GV tải bản chấm tay (ảnh/PDF) gắn với đúng lượt bài đã nộp, rồi bật/tắt quyền xem riêng cho HS/PH. Cho phép GV hoặc PH nộp ảnh “Bài chữa/làm lại” thay HS; AI nhận xét cùng contract hiện có, không thay điểm gốc.
+
+## Quy tắc dữ liệu
+- Bản chấm tay là evidence dẫn xuất của `submissionId`, revision bất biến, có actor/thời điểm/file metadata.
+- Cờ công bố nằm trên submission, mặc định false: `handMarkedPublishedAt`, `handMarkedPublishedBy` chỉ được server/teacher action ghi.
+- HS/PH chỉ nhận `handMarkedEvidence` khi cờ công bố true và bài chấm/điểm đang đủ quyền xem; GV luôn thấy bản gốc + bản chấm.
+- Bản chấm tay không thay `fileUrls`, không thay `grade`, không đổi `teacherApproved`.
+- Bài chữa là `correctionAttempts`, mỗi lượt giữ `submittedBy`; GV/PH upload qua actor grant, AI review opt-in, assessment không có score/maxScore.
+- Khóa chốt chặn bản nộp/bổ sung; không chặn bài chữa riêng.
+
+## Luồng
+1. GV mở bài nộp → nút “Tải bản chấm tay” → chọn ảnh/PDF → server grant/finalize → bản nháp chỉ GV thấy.
+2. GV bật “Cho HS/PH xem bản chấm tay” → server transaction ghi cờ công bố. Tắt lại ẩn khỏi HS/PH, giữ lịch sử.
+3. HS mở chi tiết bài đã chấm → xem ảnh bài gốc/bản chấm tay trong cùng viewer, không lộ file khi cờ tắt.
+4. PH vào bài của con bằng PIN → cùng projection, chỉ con mình.
+5. GV/PH chọn “Nộp hộ bài chữa/làm lại” → upload ảnh → lưu correction attempt với provenance → AI review opt-in → hiển thị feedback chi tiết, không điểm.
+
+## Quyền và chống lỗi
+- Server lấy danh tính từ Firebase token/PIN; không tin `studentId`, `teacherId`, URLs client.
+- Upload grant ràng buộc submission/assignment/purpose/path/size/mime/expiry, consume một lần.
+- Finalize kiểm lại actor, membership/PIN, lock, object metadata, revision; race trả lỗi, không tạo bản nửa vời.
+- Projection lọc bản chấm tay ở server; Rules cấm client ghi evidence/cờ publish.
+- PH không được xem bài khác, sửa điểm, bật công bố; GV thuộc lớp được tải/công bố; HS chỉ xem khi công bố.
+
+## UI
+- GV: cụm nút hiện tại thêm “Tải bản chấm tay”, công tắc “Cho HS/PH xem bản chấm tay”, trạng thái Đang ẩn/Đã công bố.
+- HS/PH: badge “Bản chấm tay của GV” chỉ khi được công bố; viewer dùng ảnh gốc, không lẫn với bài chữa.
+- Bài chữa giữ card riêng; nhãn “Nộp bởi GV/PH/HS”, outcome AI rõ; không hiển thị điểm.
+
+## Tiêu chí nghiệm thu
+- Tắt cờ: HS/PH API không nhận URL bản chấm tay; GV nhận đầy đủ.
+- Bật cờ: HS/PH đúng bài nhận bản chấm tay; PH sai con bị từ chối.
+- Tắt lại không xóa file, projection ẩn ngay.
+- GV/PH nộp hộ tạo correction attempt, provenance đúng; AI review không ghi grade/score.
+- Lock chặn upload bản chấm tay/bản nộp; correction vẫn hoạt động.
+- Rules/API/unit, build/lint, browser fixture kiểm UI.
