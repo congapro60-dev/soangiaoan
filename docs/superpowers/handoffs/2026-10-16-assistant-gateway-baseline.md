@@ -3,8 +3,9 @@
 - Timestamp: 2026-10-16 (Asia/Ho_Chi_Minh context; local source inspection)
 - Repository: `C:\Users\ADMIN\.codex\worktrees\smart-lesson-plan-ai\assistant-gateway-plan`
 - Branch: `codex/assistant-gateway-plan`
-- HEAD: `e28cc88e8383c589d5c20bf8547afc8eab07115c`
-- Dirty state at capture: clean (`git status --short --branch` showed only the branch header; no changed or untracked files).`r`n- `git diff --check`: PASS (no output).
+- HEAD: `980f3300bd3d9253cf8529f9126390fb15cad853`
+- Dirty state at capture: clean (`git status --short --branch` showed only the branch header; no changed or untracked files).
+- `git diff --check`: PASS (no output).
 
 ## Route inventory
 
@@ -67,4 +68,5 @@ The client Firebase config also references `VITE_FIREBASE_API_KEY`, `VITE_FIREBA
 A new `/api/assistant` handler can fit the existing Vercel function model. Current source evidence does not require route consolidation or a Railway fallback: existing routes already run as independent Vercel functions, and the observed budget ceiling is 60s / 1024 MB. Revisit this decision only after production measurements show a gateway-specific timeout, memory, concurrency, or platform limit that the documented Vercel budgets cannot satisfy.
 
 This document is local source evidence only. It is not production proof, deployment proof, or live capacity evidence.
+
 
