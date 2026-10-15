@@ -1,0 +1,56 @@
+name: Refresh submitted work
+on:
+  workflow_dispatch:
+    inputs:
+      job_ids:
+        description: Administrator-created job IDs (JSON array)
+        required: true
+        type: string
+jobs:
+  refresh:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        job_id: ${{ fromJSON(inputs.job_ids) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Process scoped jobs
+        env:
+          REFRESH_SECRET: ${{ secrets.AUTO_GRADE_CRON_SECRET }}
+          REFRESH_JOB: ${{ matrix.job_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request, urllib.error
+          secret = os.environ['REFRESH_SECRET']
+          if not secret:
+              raise SystemExit('Missing cron secret')
+          for iteration in range(1000):
+              request = urllib.request.Request(
+                  'https://giaoandewey.vercel.app/api/grade-homework?cron=refresh',
+                  data=json.dumps({'jobId': os.environ['REFRESH_JOB']}).encode(),
+                  headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + secret})
+              try:
+                  with urllib.request.urlopen(request, timeout=310) as response:
+                      result = json.load(response)
+              except urllib.error.HTTPError as error:
+                  if error.code in (400, 401, 403, 409, 422, 429):
+                      raise SystemExit('Job refused or paused: HTTP ' + str(error.code))
+                  print('Server interrupted; retrying leased job.', flush=True)
+                  time.sleep(30)
+                  continue
+              except (TimeoutError, urllib.error.URLError):
+                  print('Request interrupted; retrying leased job.', flush=True)
+                  time.sleep(30)
+                  continue
+              print(json.dumps(result), flush=True)
+              if result.get('done'):
+                  counts = result.get('counts', {})
+                  if any(counts.get(key, 0) for key in ('failed', 'failed_preserved', 'skipped_scope', 'skipped_busy')):
+                      raise SystemExit('Run finished with items requiring follow-up')
+                  break
+              time.sleep(20 if result.get('busy') else 1)
+          else:
+              raise SystemExit('Job did not finish within iteration limit')
+          PY

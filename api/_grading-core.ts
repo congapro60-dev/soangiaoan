@@ -130,6 +130,15 @@ export const reserveQuota = async (
   });
 };
 
+/** One-off maintenance waiver: records each refresh outside the normal daily cap. */
+export const reserveTeacherRefreshQuota = async (db: FirebaseFirestore.Firestore, uid: string): Promise<void> => {
+  const ref = db.collection('gradingQuota').doc(uid);
+  await db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    transaction.set(ref, bumpQuota(rollQuota(snap.exists ? snap.data() as Partial<QuotaDoc> : null, today()), 'teacher', '', 1));
+  });
+};
+
 // ── Chạy ngầm sau khi đã trả lời client ──────────────────────────────────────
 
 /**

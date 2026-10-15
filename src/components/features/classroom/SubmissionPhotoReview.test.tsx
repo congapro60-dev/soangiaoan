@@ -68,11 +68,33 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(html.match(/<ellipse/g)).toHaveLength(3);
     for (const color of ['#059669', '#d97706', '#dc2626']) expect(html).toContain(`stroke="${color}"`);
     for (const label of ['Tất cả', 'Đúng', 'Đúng một phần', 'Cần sửa', 'Cần đối chiếu']) expect(html).toContain(label);
-  });  it('không hiện dấu đã loại hoặc đang chờ làm rõ ngay cả ở luồng GV', () => {
-    const results = [row([mark], { photoMarksCleared: true }), ...['open', 'photo_saved', 'regrading'].map(state =>
-      row([mark], { clarify: { kind: 'photo', state, reading: '' } }))];
-    expect(render(results, true, true)).not.toContain('<ellipse');
+  });
+  it('không hiện dấu đã loại; dấu cũ đang chờ làm rõ chỉ hiện trung tính', () => {
+    expect(render([row([mark], { photoMarksCleared: true })], true, true)).not.toContain('<ellipse');
+    const results = ['open', 'photo_saved', 'regrading'].map(state =>
+      row([mark], { clarify: { kind: 'photo', state, reading: '' } }));
+    const html = render(results, true, true);
+    expect(html.match(/stroke-dasharray="5 3"/g)).toHaveLength(3);
+    expect(html).not.toContain('stroke="#dc2626"');
     expect(render([row([mark], { clarify: { kind: 'photo', state: 'done', reading: '' } })], true, true)).toContain('<ellipse');
+  });
+  it.each([{ status: 'unreadable' }, { needsTeacherReview: true }, { confidence: .4 }])('vùng chưa chắc sau chấm lại vẫn hiện trung tính: %j', uncertainty => {
+    const html = render([row([mark], { ...uncertainty, readingRegions: [{ ...mark, x: .4 }] })], false, true);
+    expect(html).toContain('cx="55');
+    expect(html).toContain('stroke-dasharray="5 3"');
+    expect(html).toContain('stroke="#64748b"');
+    expect(html).toContain('background-color:#64748b');
+    expect(html).not.toContain('stroke="#dc2626"');
+  });
+  it('vùng đọc sai dùng dấu hợp lệ cũ làm vùng trung tính; câu chắc giữ dấu màu', () => {
+    const uncertain = render([row([mark], { needsTeacherReview: true, readingRegions: [{ ...mark, imageUrl: 'https://foreign.test/photo.jpg' }] })]);
+    expect(uncertain).toContain('cx="25"');
+    expect(uncertain).toContain('stroke="#64748b"');
+    expect(uncertain).toContain('stroke-dasharray="5 3"');
+    const certain = render([row([mark], { status: 'correct', confidence: .95, readingRegions: [{ ...mark, x: .4 }] })]);
+    expect(certain).toContain('cx="25"');
+    expect(certain).toContain('stroke="#059669"');
+    expect(certain).not.toContain('stroke-dasharray');
   });
   it('bài cũ không có dấu vẫn mở được ảnh, không thêm điểm hay lời chữa', () => {
     const html = render([]);

@@ -191,7 +191,7 @@ export const hideWhileAwaitingClarification = (rows: readonly QuestionResult[]):
     nextPractice: '',
     needsTeacherReview: true,
     ...(q.clarify ? { clarify: q.clarify } : {}),
-    ...(q.readingRegions?.length ? { readingRegions: projectReadingRegions(q, q.readingRegions.flatMap(region => region.imageUrl ? [region.imageUrl] : [])) } : {}),
+    ...((q.readingRegions?.length || q.photoMarks?.length) ? { readingRegions: projectReadingRegions({ ...q, readingRegions: q.readingRegions?.length ? q.readingRegions : q.photoMarks }, [...(q.readingRegions || []), ...(q.photoMarks || [])].flatMap(region => region.imageUrl ? [region.imageUrl] : [])) } : {}),
   }));
 
 

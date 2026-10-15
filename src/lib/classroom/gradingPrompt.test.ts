@@ -28,6 +28,9 @@ describe('photo marks grading contract', () => {
     expect(prompt).toContain('imageIndex 1..3');
     expect(prompt).toContain('photoMarks');
     expect(prompt).toContain('0.85');
+    const schema = JSON.parse(prompt.split('CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:')[1]);
+    expect(schema.questionResults[0]).toHaveProperty('photoMarks');
+    expect(schema.questionResults[0]).toHaveProperty('readingRegions');
   });
   it('keeps optional valid geometry, rejects bad geometry and all model URLs', () => {
     const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };

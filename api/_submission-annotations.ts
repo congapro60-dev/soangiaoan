@@ -11,6 +11,7 @@ type Db = FirebaseFirestore.Firestore;
 type Data = FirebaseFirestore.DocumentData;
 const fail = (code: number, message: string): never => { throw new SubmissionAccessError(code, message); };
 const eligible = (row: QuestionResult): boolean => !row.photoMarksCleared && !row.ignoredByTeacherInstruction && hasStudentWriting(row);
+export const missingAnnotationRows = (rows: QuestionResult[], urls: string[]): QuestionResult[] => rows.filter(row => eligible(row) && !projectPhotoMarks(row, urls).length && !projectReadingRegions(row, urls).length);
 export const annotationImageUrls = (submission: SubmissionDoc): string[] => [...new Set([...submission.fileUrls, ...(submission.grade?.questionResults || []).flatMap(row => row.clarify?.photoUrls || [])])];
 const locateCount = (rows: QuestionResult[], urls: string[]) => { const relevant = rows.filter(eligible); const mapped = relevant.filter(row => projectPhotoMarks(row, urls).length || projectReadingRegions(row, urls).length).length; return { mapped, unlocated: relevant.length - mapped, total: relevant.length }; };
 const fingerprint = async (db: Db, tx: FirebaseFirestore.Transaction, submission: SubmissionDoc): Promise<string> => {
@@ -20,6 +21,7 @@ const fingerprint = async (db: Db, tx: FirebaseFirestore.Transaction, submission
 const currentSubmission = async (db: Db, tx: FirebaseFirestore.Transaction, actor: ActorContext, submissionId: string): Promise<SubmissionDoc> => {
   const snap = await tx.get(db.collection('submissions').doc(submissionId)), current = { id: submissionId, ...snap.data() } as SubmissionDoc;
   if (!snap.exists || current.teacherId !== actor.teacherId || current.classId !== actor.classId || current.studentId !== actor.studentId) fail(403, 'Không có quyền với bài này.');
+  if (snap.data()?.deletionRunId) fail(409, 'Bài nộp đang được xóa.');
   await assertActorCurrent(db, tx, actor, current.assignmentId);
   if (current.status !== 'graded' || !current.grade?.questionResults?.length) fail(409, 'Bài cần có kết quả chấm từng câu trước khi định vị trên ảnh.');
   return current;
@@ -33,6 +35,20 @@ Mã đề: ${submission.examCode || '(không có)'}. Đây là dữ liệu đố
 - Tối đa3vùng/câu, x/y/width/height chuẩn hóa0..1 trênẢNH GỐC; nằmtrongảnh,diệntíchdương,confidence>=.85. Không chắc vị trí trả[],không khoanhbừa.
 - Chỉ nhãn được yêu cầu; mỗi nhãn một phần tử. Không score,status,explanation hay lời chữa mới.
 CHỈ JSON: {"questions":[{"questionNumber":"nhãn đúng","photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.05,"confidence":0.95}],"readingRegions":[]}]}`;
+export const mergeAnnotationResult = (rows: QuestionResult[], targets: QuestionResult[], urls: string[], raw: string): QuestionResult[] => {
+  const parsed = parseLooseJson<Data>(raw.match(/\{[\s\S]*\}/)?.[0] || '');
+  if (!Array.isArray(parsed.questions)) fail(422, 'Kết quả định vị chưa đúng định dạng.');
+  const labels = new Set(targets.map(row => row.questionNumber)), byLabel = new Map<string, Data>();
+  for (const item of parsed.questions) {
+    if (!item || typeof item.questionNumber !== 'string' || !labels.has(item.questionNumber) || byLabel.has(item.questionNumber)) fail(422, 'Kết quả định vị có nhãn câu lạ hoặc trùng.');
+    byLabel.set(item.questionNumber, item);
+  }
+  return rows.map(row => {
+    const located = byLabel.get(row.questionNumber); if (!located || !eligible(row)) return row;
+    const bound = bindQuestionPhotoMarks({ ...row, photoMarks: located.photoMarks, readingRegions: located.readingRegions }, urls);
+    return { ...row, ...(bound.photoMarks?.length ? { photoMarks: bound.photoMarks } : {}), ...(bound.readingRegions?.length ? { readingRegions: bound.readingRegions } : {}) };
+  });
+};
 export const handleAnnotateSubmissionPhotos = async (db: Db, body: Data, res: VercelResponse, deps: { locate(submission: SubmissionDoc, targets: QuestionResult[]): Promise<{ raw: string; urls: string[] }> }): Promise<void> => {
   let claim: { ref: FirebaseFirestore.DocumentReference; runId: string } | undefined;
   try {
@@ -54,22 +70,13 @@ export const handleAnnotateSubmissionPhotos = async (db: Db, body: Data, res: Ve
     const result = await deps.locate(original!, targets);
     const allowedUrls = annotationImageUrls(original!);
     if (!result.urls.length || result.urls.some(url => !allowedUrls.includes(url))) fail(422, 'Chưa đọc được ảnh bài làm để định vị. Điểm và bài chấm vẫn giữ nguyên.');
-    const parsed = parseLooseJson<Data>(result.raw.match(/\{[\s\S]*\}/)?.[0] || '');
-    if (!Array.isArray(parsed.questions)) fail(422, 'Kết quả định vị chưa đúng định dạng.');
-    const allowedLabels = new Set(targets.map(row => row.questionNumber)), byLabel = new Map<string, Data>();
-    for (const raw of parsed.questions) { if (!raw || typeof raw.questionNumber !== 'string' || !allowedLabels.has(raw.questionNumber) || byLabel.has(raw.questionNumber)) fail(422, 'Kết quả định vị có nhãn câu lạ hoặc trùng.'); byLabel.set(raw.questionNumber, raw); }
     let response: ReturnType<typeof locateCount> | undefined;
     await db.runTransaction(async tx => {
       const current = await currentSubmission(db, tx, auth.actor, auth.submissionId);
       if (await fingerprint(db, tx, current) !== version) fail(409, 'Bài chấm hoặc nguồn vừa đổi. Tải lại trước khi định vị; điểm hiện tại vẫn giữ nguyên.');
       const fresh = (await tx.get(ref)).data()!;
       if (fresh.annotationRunId !== runId) fail(409, 'Lượt định vị đã thay đổi.');
-      const rows = current.grade!.questionResults!.map(row => {
-        const located = byLabel.get(row.questionNumber); if (!located || !eligible(row)) return row;
-        const bound = bindQuestionPhotoMarks({ ...row, photoMarks: located.photoMarks, readingRegions: located.readingRegions }, result.urls);
-        // Empty/unreliable AI regions cannot delete existing valid teacher-visible geometry.
-        return { ...row, ...(bound.photoMarks?.length ? { photoMarks: bound.photoMarks } : {}), ...(bound.readingRegions?.length ? { readingRegions: bound.readingRegions } : {}) };
-      });
+      const rows = mergeAnnotationResult(current.grade!.questionResults!, targets, result.urls, result.raw);
       response = locateCount(rows, allowedUrls);
       const now = new Date().toISOString();
       tx.update(ref, { grade: { ...current.grade, questionResults: rows }, updatedAt: now, annotationRunId: '', annotationLeaseUntil: 0, annotationVersion: version, annotatedAt: now });

@@ -1,5 +1,16 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Kiểm dấu trên ảnh và chạy lại bài đã nộp — 15/10/2026
+
+Người dùng cung cấp ảnh QA của Claude, yêu cầu kiểm lỗi và chạy lại toàn bộ bài HS đã gửi theo thiết kế mới. Không gọi model lập trình bên ngoài; subagent native Astra yêu cầu nhưng lỗi credential, root tiếp tục.
+
+- [x] Đối chiếu transcript đúng phiên Claude và main 6d231ac. 15 lỗi + mathText đã có; các QA thật/SSM chưa được coi đã xong.
+- [x] Inventory chỉ đọc đúng chủ 3 lớp: 468 lượt, 1.130 ảnh; 7 lượt có geometry; 31 lượt không gắn assignment. Snapshot riêng ngoài Git, không ghi PIN/token/dữ liệu HS vào checklist.
+- [x] Tái hiện mẫu Đề cương số 4: 7 ảnh, 21 câu, không geometry. Root cause: schema mẫu thiếu fields; location fallback thiếu; UI bỏ `readingRegions` sau câu unreadable.
+- [x] Sửa nguyên nhân; 185 focused tests pass. Giữ sửa tay/ảnh gốc; source fingerprint chặn đáp án đổi giữa chừng; fresh manual edit claim chặn overwrite.
+- [ ] Chạy lại có nhật ký và checkpoint, dùng model chấm đang cấu hình; thống kê thành công/lỗi/thiếu nguồn. Kết quả AI mới qua luật duyệt hiện có, không tự sửa điểm sổ tay. Sample job tạo sau CI/deployment.
+- [ ] Cập nhật HANDOFF, main/CI/production; báo riêng giới hạn QA thật và chất lượng định vị.
+
 ## Căn cột danh sách bài nộp GV — 15/10/2026
 
 - [x] Cùng lưới cột cho tên, trạng thái, hạn, lưu ý, điểm, duyệt, giờ/tệp; giữ chọn bài/mở chi tiết/mã đề. Hàng chưa nộp cũng giữ cột.

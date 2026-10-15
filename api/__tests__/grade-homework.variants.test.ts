@@ -193,7 +193,7 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     h.db = makeDb(harness);
     const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
     expect((await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' })).statusCode).toBe(200);
-    expect(prompts).toHaveLength(1);
+    expect(prompts).toHaveLength(2);
   });
 
   it('AI đọc mã đề trên ảnh → chấm theo đúng đề + đáp án của mã đó, dặn bỏ qua nét chấm của giáo viên; lưu mã', async () => {
@@ -261,7 +261,7 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
 
     await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
 
-    expect(prompts).toHaveLength(1);
+    expect(prompts).toHaveLength(2);
     expect(prompts[0]).toContain('MÃ ĐỀ CỦA BÀI NÀY: 1201');
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', examCode: '1201', examCodeSource: 'teacher' });
   });

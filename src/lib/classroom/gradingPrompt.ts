@@ -107,11 +107,11 @@ Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu vớ
 Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
 
 export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageCount: number): string => studentImageCount > 0
-  ? `VÙNG CÂU TRÊN ẢNH BÀI LÀM (field tùy chọn photoMarks của mỗi câu, cùng lượt chấm này):
+  ? `VÙNG CÂU TRÊN ẢNH BÀI LÀM (trả photoMarks và readingRegions cho mỗi câu, cùng lượt chấm này):
 - Bỏ qua ${referenceImageCount} ảnh ĐỀ/ĐÁP ÁN đầu tiên. Các ảnh HS còn lại có imageIndex 1..${studentImageCount}, theo thứ tự gửi; không dùng số thứ tự ảnh chung.
 - photoMarks cho correct/incorrect/partially_correct có nét HS thực sự viết; không đánh dấu câu bỏ trống hoặc bỏ qua theo lệnh GV. Câu đúng vẫn có vùng để xem lời giải, không đồng nghĩa lỗi. Không khoanh nét chữa cũ của GV.
 - readingRegions riêng là vùng TRUNG TÍNH cho câu đọc chưa chắc: độ chắc vị trí độc lập confidence đọc chữ. Có thấy chữ nhưng chưa đọc chắc vẫn định vị khi confidence vị trí >= 0.85. Không thấy nét nào thì [] và không khoanh bừa.
-- Tối đa 3 vùng lỗi chính/câu. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
+- Tối đa 3 vùng bài làm/câu, kể cả câu đúng. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
 - Chỉ trả khi chắc vị trí confidence >= 0.85; không chắc thì photoMarks: [], giữ lời chữa dạng chữ. Không đoán vị trí, không chọn URL, không viết imageUrl.
 - Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.`
   : 'Không có ảnh bài HS: không trả photoMarks hoặc readingRegions.';
@@ -264,7 +264,9 @@ CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
     "nextPractice": "...",
     "confidence": 0.0,
     "ignoredByTeacherInstruction": false,
-    "needsTeacherReview": false
+    "needsTeacherReview": false,
+    "photoMarks": [],
+    "readingRegions": []
   }]
 }`;
 };

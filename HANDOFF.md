@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Sửa dấu chấm và đợt chấm lại — 15/10
+
+Inventory production read-only đúng chủ dự án: 468 lượt nộp ảnh, 1.130 ảnh, 437 lượt có bài giao, chỉ 7 lượt có geometry. Mẫu `GHKI - Đề cương số 4` có 7 ảnh/21 câu nhưng 0 geometry. Root cause xác nhận: schema prompt cuối thiếu `photoMarks`/`readingRegions`; luồng chấm không có pass định vị khi model bỏ vùng; UI bỏ vùng trung tính sau khi câu unreadable không còn clarification.
+
+Đã sửa: schema bắt buộc hai mảng tùy chọn; pass định vị riêng không đổi grade; UI hiển thị `readingRegions` trung tính cho mọi câu chưa chắc; merge geometry giữ điểm, ảnh, cờ bỏ dấu; source fingerprint chặn đáp án đổi trong lúc chấm; claim transaction chặn sửa tay mới; queue lease 6 phút, pause/retry/idempotency, job allowlist cố định. Quota GV/ngày chỉ bypass khi job admin có `allowDailyQuotaBypass=true`, user đã duyệt waiver riêng đợt này; quota/chi phí AI còn lại giữ nguyên.
+
+Chưa chạy batch production. 31 lượt không gắn assignment sẽ skip; 437 lượt gắn assignment chia 4 job, có checkpoint/đếm lỗi. Chạy mẫu `Đề cương số 4` trước, kiểm geometry + điểm/approval giữ nguyên, rồi mới dispatch 4 job. Workflow `.github/workflows/grading-refresh.yml` dùng cron secret đã có; không tự tạo job ngoài script quản trị.
+
 ## Căn cột bài nộp GV — 15/10
 
 Danh sách bài nộp dùng chung 7 cột: HS, trạng thái, hạn nộp, lưu ý, điểm, duyệt, giờ/tệp. Hàng chưa nộp cùng cột; mã đề riêng có chiều rộng cố định. Nhãn ngắn một dòng, giải thích và điểm GV đối chiếu giữ trong chú thích. Container hẹp chuyển bố cục gọn, không thay callback hoặc dữ liệu chấm.
