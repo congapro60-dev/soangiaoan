@@ -1,5 +1,5 @@
 import type { AdaptiveSimulationSpec } from './simulationTypes.js';
-import type { LessonMediaRef } from './media';
+import type { LessonMediaRef } from './media.js';
 
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';

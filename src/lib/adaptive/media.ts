@@ -1,4 +1,11 @@
-import { escapeAttribute, escapeHtml } from '../dewey/htmlShell';
+const escapeHtml = (value: string): string => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const escapeAttribute = escapeHtml;
 
 export type LessonMediaKind = 'image' | 'video' | 'audio';
 export type LessonMediaStatus = 'draft' | 'approved' | 'rejected' | 'archived';
