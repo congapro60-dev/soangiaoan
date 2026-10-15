@@ -8,7 +8,7 @@
 
 ### Task 1: PPCT manifest and teacher source picker
 
-- [x] Extract 218 new-knowledge seeds from `G10`, `G11`, `G12`.
+- [x] Extract 204 new-knowledge seeds from `G10`, `G11`, `G12` (G10 54, G11 84, G12 66).
 - [x] Add `src/data/discoverNewKnowledgeLessons.json` with source row/week traceability.
 - [x] Add `src/lib/discover/types.ts`.
 - [x] Add `src/pages/DiscoverSelfStudyPage.tsx` with grade/week/search filters and source handoff to Builder.

@@ -5,13 +5,13 @@ Source of truth: `C:\Users\ADMIN\Downloads\PPCT THCS-THPT 26-27.xlsx`, sheets `G
 
 ## Mục tiêu
 
-Tạo danh mục 218 tiết được phân loại là hình thành kiến thức mới trong Discover khối 10–12; cho giáo viên chọn tiết, tạo bản nháp bài tự học bằng luồng Adaptive Builder hiện có; sau khi duyệt, học sinh học qua cổng Adaptive và dữ liệu tiến độ đi vào dashboard hiện có.
+Tạo danh mục 204 tiết được phân loại là hình thành kiến thức mới trong Discover khối 10–12; cho giáo viên chọn tiết, tạo bản nháp bài tự học bằng luồng Adaptive Builder hiện có; sau khi duyệt, học sinh học qua cổng Adaptive và dữ liệu tiến độ đi vào dashboard hiện có.
 
 ## Phân loại PPCT
 
-- G10: 59 tiết mới.
+- G10: 54 tiết mới.
 - G11: 84 tiết mới.
-- G12: 75 tiết mới.
+- G12: 66 tiết mới.
 - Loại trừ: giới thiệu chương trình, luyện tập, ôn tập, kiểm tra, chữa/trả bài, tự chọn, dự án và ôn thi.
 - Mỗi seed giữ `sheet`, dòng Excel, tuần, tiết, tiêu đề gốc và tên workbook để truy nguyên.
 - Heuristic này là bước lọc tự động; giáo viên vẫn duyệt bài học trước khi xuất bản.
