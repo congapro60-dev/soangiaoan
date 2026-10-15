@@ -4,6 +4,7 @@
 - Repository: `C:\Users\ADMIN\.codex\worktrees\smart-lesson-plan-ai\assistant-gateway-plan`
 - Branch: `codex/assistant-gateway-plan`
 - HEAD: `980f3300bd3d9253cf8529f9126390fb15cad853`
+- Documentation-only correction commits after capture: `e28cc88`, `980f330`, `e861923`; no source changes in these commits.
 - Dirty state at capture: clean (`git status --short --branch` showed only the branch header; no changed or untracked files).
 - `git diff --check`: PASS (no output).
 
