@@ -192,7 +192,7 @@ test('Contrasting worlds (future, dewey, cube) render distinctive assets, storie
     React.createElement(LessonThemedRoute, { gamePlan: cubePlan, currentActivityIndex: 0 })
   );
   assert.match(cubeHtml, /Đảo Khối Lập Phương/);
-  assert.match(cubeHtml, /world-cube\.webp/);
+  assert.match(cubeHtml, /map-cube-r19\.webp/);
   assert.match(cubeHtml, /BẾN KHỐI/);
   assert.match(cubeHtml, /ĐÀI KHÔNG GIAN/);
 });

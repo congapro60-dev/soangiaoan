@@ -120,3 +120,20 @@ test('2D physical gate at the end shows activity nine, not decorative gate five'
   context.syncFlatGateStars({ lessonGates: [] });
   assert.equal(pin.dataset.lessonGateId, undefined);
 });
+
+test('leaving 3D remounts the 2D board with gate stars or the exam journey restored (R19 backlog P2)', () => {
+  const run = (examJourney) => {
+    const calls = [];
+    const context = {
+      pilot: { destroy() { calls.push('destroy'); } }, controller: null, lastInput: { world: 'cube', examJourney },
+      document: { getElementById: () => null, querySelector: () => null },
+      window: { SignalTerrain: { mount: () => ({ mode() {} }) } },
+      buildModel: () => ({ lessonGates: [] }), themeOf: () => ({}), followOwn() {}, setModeButtons() {},
+      syncFlatGateStars: () => calls.push('stars'), renderExamJourney: (j, is3D) => calls.push('exam:' + is3D),
+    };
+    vm.runInNewContext(sourceNode(script, 'leavePilot') + '; leavePilot(true);', context);
+    return calls;
+  };
+  assert.deepEqual(run(null), ['destroy', 'stars']);
+  assert.deepEqual(run({ stations: [] }), ['destroy', 'exam:false']);
+});

@@ -1,0 +1,1998 @@
+{
+ "schemaVersion": "1.0.0",
+ "id": "g11-ch2-review",
+ "version": "1.0.0",
+ "status": "draft",
+ "subject": "math",
+ "grade": 11,
+ "curriculumRefs": [
+  "CT2018-Toan11",
+  "T11.20",
+  "T11.22",
+  "T11.23",
+  "T11.26",
+  "T11.27",
+  "T11.28"
+ ],
+ "sourceRefs": [
+  {
+   "id": "src-sgk-g11-ch2",
+   "kind": "external",
+   "locator": "SGK Toán 11 Kết nối tri thức, Tập 1, Chương II (Bài 5–7, Bài tập cuối chương II); PPCT TDS tiết 50–51",
+   "label": "Toán 11 KNTT — Chương II: Dãy số, cấp số cộng, cấp số nhân",
+   "verification": "teacher_review_required"
+  }
+ ],
+ "essentialQuestion": "Làm thế nào để hệ thống hóa và nhận ra khi nào một quy luật là cấp số cộng hay cấp số nhân, rồi dùng đúng công thức số hạng và tổng?",
+ "prerequisites": [
+  "Dãy số và cách cho dãy số (Bài 5)",
+  "Lũy thừa với số mũ tự nhiên"
+ ],
+ "objectives": [
+  {
+   "id": "obj-t11-20",
+   "code": "T11.20",
+   "level": "should",
+   "statement": "Nhận biết được tính chất tăng, giảm, bị chặn của dãy số trong những trường hợp đơn giản.",
+   "prerequisiteIds": []
+  },
+  {
+   "id": "obj-t11-22",
+   "code": "T11.22",
+   "level": "must",
+   "statement": "Nhận biết cấp số cộng và dùng công thức số hạng tổng quát $u_n=u_1+(n-1)d$ (gộp T11.21–T11.22).",
+   "prerequisiteIds": []
+  },
+  {
+   "id": "obj-t11-23",
+   "code": "T11.23",
+   "level": "must",
+   "statement": "Tính được tổng $n$ số hạng đầu tiên của cấp số cộng.",
+   "prerequisiteIds": [
+    "obj-t11-22"
+   ]
+  },
+  {
+   "id": "obj-t11-26",
+   "code": "T11.26",
+   "level": "must",
+   "statement": "Nhận biết cấp số nhân và dùng công thức số hạng tổng quát $u_n=u_1q^{n-1}$ (gộp T11.25–T11.26).",
+   "prerequisiteIds": []
+  },
+  {
+   "id": "obj-t11-27",
+   "code": "T11.27",
+   "level": "should",
+   "statement": "Tính được tổng $n$ số hạng đầu tiên của cấp số nhân.",
+   "prerequisiteIds": [
+    "obj-t11-26"
+   ]
+  },
+  {
+   "id": "obj-t11-28",
+   "code": "T11.28",
+   "level": "could",
+   "statement": "Giải quyết một số vấn đề thực tiễn gắn với cấp số cộng, cấp số nhân (gộp T11.24, T11.28).",
+   "prerequisiteIds": [
+    "obj-t11-23",
+    "obj-t11-27"
+   ]
+  }
+ ],
+ "budget": {
+  "slotMinutes": 80,
+  "coreMinutes": 76,
+  "reserveMinutes": 2,
+  "transitionMinutes": 0,
+  "optionalMinutes": 2
+ },
+ "activities": [
+  {
+   "id": "act-exp",
+   "phase": "experience",
+   "budgetRole": "core",
+   "minutes": 4,
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "taskIds": [
+    "task-exp-classify"
+   ],
+   "participation": "whole_class",
+   "studentAction": "Cả lớp nhận dạng nhanh cấp số cộng, cấp số nhân trên TV.",
+   "expectedProduct": "Lựa chọn và lý do ngắn.",
+   "evidenceIds": [
+    "ev-exp-classify"
+   ],
+   "teacherLookFor": "Em nào còn nhầm hiệu với tỉ số.",
+   "supportIds": [
+    "hint-exp-classify"
+   ],
+   "transition": "Chuyển sang kiểm tra nền tảng cá nhân."
+  },
+  {
+   "id": "act-pre",
+   "phase": "guided",
+   "budgetRole": "core",
+   "minutes": 8,
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "taskIds": [
+    "task-pre-mono",
+    "task-pre-csc",
+    "task-pre-csn",
+    "task-pre-real"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em làm 4 câu nền tảng, không trao đổi.",
+   "expectedProduct": "Đáp án 4 câu.",
+   "evidenceIds": [
+    "ev-pre-mono",
+    "ev-pre-csc",
+    "ev-pre-csn",
+    "ev-pre-real"
+   ],
+   "teacherLookFor": "Nhóm em sai câu số hạng tổng quát để kèm ở trạm luyện tập.",
+   "supportIds": [
+    "hint-pre-mono",
+    "hint-pre-csc",
+    "hint-pre-csn",
+    "hint-pre-real"
+   ],
+   "transition": "Chia nhóm hệ thống hóa công thức."
+  },
+  {
+   "id": "act-form",
+   "phase": "formation",
+   "budgetRole": "core",
+   "minutes": 8,
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "taskIds": [
+    "task-form-formulas"
+   ],
+   "participation": "group",
+   "studentAction": "Nhóm ghép công thức, mỗi em giải thích một ô cho bạn.",
+   "expectedProduct": "Bảng hệ thống 4 công thức.",
+   "evidenceIds": [
+    "ev-form-formulas"
+   ],
+   "teacherLookFor": "Nhóm lẫn công thức tổng CSC và CSN.",
+   "supportIds": [
+    "hint-form-formulas"
+   ],
+   "transition": "Vào các trạm luyện tập theo 3 mức."
+  },
+  {
+   "id": "act-prac-mono",
+   "phase": "practice",
+   "budgetRole": "core",
+   "minutes": 6,
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "taskIds": [
+    "task-mono-support",
+    "task-mono-core",
+    "task-mono-extension"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em chọn mức phù hợp; có thể đổi mức.",
+   "expectedProduct": "Kết luận tăng/giảm, bị chặn có lập luận.",
+   "evidenceIds": [
+    "ev-mono-core"
+   ],
+   "teacherLookFor": "Em kết luận từ vài số hạng đầu mà không xét hiệu.",
+   "supportIds": [
+    "hint-mono-support",
+    "hint-mono-core",
+    "hint-mono-extension"
+   ],
+   "transition": "Sang trạm cấp số cộng."
+  },
+  {
+   "id": "act-prac-csc",
+   "phase": "practice",
+   "budgetRole": "core",
+   "minutes": 10,
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "taskIds": [
+    "task-csc-support",
+    "task-csc-core",
+    "task-csc-extension"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em làm câu ở mức mình chọn.",
+   "expectedProduct": "Số hạng và tổng của cấp số cộng.",
+   "evidenceIds": [
+    "ev-csc-core"
+   ],
+   "teacherLookFor": "Em dùng nhầm $n$ thay cho $n-1$.",
+   "supportIds": [
+    "hint-csc-support",
+    "hint-csc-core",
+    "hint-csc-extension"
+   ],
+   "transition": "Sang trạm cấp số nhân."
+  },
+  {
+   "id": "act-prac-csn",
+   "phase": "practice",
+   "budgetRole": "core",
+   "minutes": 10,
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "taskIds": [
+    "task-csn-support",
+    "task-csn-core",
+    "task-csn-extension"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em làm câu ở mức mình chọn.",
+   "expectedProduct": "Số hạng và tổng của cấp số nhân.",
+   "evidenceIds": [
+    "ev-csn-core"
+   ],
+   "teacherLookFor": "Em quên dấu khi công bội âm.",
+   "supportIds": [
+    "hint-csn-support",
+    "hint-csn-core",
+    "hint-csn-extension"
+   ],
+   "transition": "Sang trạm bài toán thực tế theo nhóm."
+  },
+  {
+   "id": "act-prac-real",
+   "phase": "practice",
+   "budgetRole": "core",
+   "minutes": 10,
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "taskIds": [
+    "task-real-bacteria",
+    "task-real-stadium"
+   ],
+   "participation": "group",
+   "studentAction": "Nhóm chọn mô hình cấp số phù hợp, mỗi em trình bày một bước.",
+   "expectedProduct": "Lời giải hai bài thực tế.",
+   "evidenceIds": [
+    "ev-real-bacteria"
+   ],
+   "teacherLookFor": "Nhóm nhận ra mô hình cộng hay nhân trước khi tính.",
+   "supportIds": [
+    "hint-real-bacteria",
+    "hint-real-stadium"
+   ],
+   "transition": "Kiểm tra cá nhân độc lập."
+  },
+  {
+   "id": "act-recheck",
+   "phase": "recheck",
+   "budgetRole": "core",
+   "minutes": 12,
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "taskIds": [
+    "task-rc-mono",
+    "task-rc-csc-term",
+    "task-rc-csc-sum",
+    "task-rc-csn-term",
+    "task-rc-csn-sum",
+    "task-rc-real"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em tự làm 6 câu, không dùng gợi ý nếu muốn được ghi nhận độc lập.",
+   "expectedProduct": "Đáp án 6 câu kiểm tra lại.",
+   "evidenceIds": [
+    "ev-rc-mono",
+    "ev-rc-csc-term",
+    "ev-rc-csc-sum",
+    "ev-rc-csn-term",
+    "ev-rc-csn-sum",
+    "ev-rc-real"
+   ],
+   "teacherLookFor": "Mục tiêu nào còn nhiều em sai để chữa ngay.",
+   "supportIds": [
+    "hint-rc-mono",
+    "hint-rc-csc-term",
+    "hint-rc-csc-sum",
+    "hint-rc-csn-term",
+    "hint-rc-csn-sum",
+    "hint-rc-real"
+   ],
+   "transition": "Phiếu ra cửa."
+  },
+  {
+   "id": "act-challenge",
+   "phase": "practice",
+   "budgetRole": "optional",
+   "minutes": 2,
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "taskIds": [
+    "task-challenge-mix"
+   ],
+   "participation": "individual",
+   "studentAction": "Em nào xong sớm làm thử thách.",
+   "expectedProduct": "Đáp án thử thách.",
+   "evidenceIds": [],
+   "teacherLookFor": "Không bắt buộc.",
+   "supportIds": [
+    "hint-challenge-mix"
+   ],
+   "transition": "Quay lại phiếu ra cửa."
+  },
+  {
+   "id": "act-exit",
+   "phase": "exit",
+   "budgetRole": "core",
+   "minutes": 6,
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "taskIds": [
+    "task-exit-ticket"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em làm phiếu ra cửa.",
+   "expectedProduct": "Lời giải 3 ý.",
+   "evidenceIds": [
+    "ev-exit-ticket"
+   ],
+   "teacherLookFor": "Chấm theo rubric; ghi em cần kèm thêm.",
+   "supportIds": [
+    "hint-exit-ticket"
+   ],
+   "transition": "Phản tư cuối giờ."
+  },
+  {
+   "id": "act-reflection",
+   "phase": "reflection",
+   "budgetRole": "core",
+   "minutes": 2,
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "taskIds": [
+    "task-reflection"
+   ],
+   "participation": "individual",
+   "studentAction": "Mỗi em viết hai câu phản tư.",
+   "expectedProduct": "Hai câu Trước/Giờ.",
+   "evidenceIds": [
+    "ev-reflection"
+   ],
+   "teacherLookFor": "Không chấm điểm.",
+   "supportIds": [
+    "hint-reflection"
+   ],
+   "transition": "Kết thúc."
+  },
+  {
+   "id": "act-reserve",
+   "phase": "reflection",
+   "budgetRole": "reserve",
+   "minutes": 2,
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "taskIds": [],
+   "participation": "whole_class",
+   "studentAction": "GV chữa câu kiểm tra lại có nhiều em sai.",
+   "expectedProduct": "Lời giải mẫu.",
+   "evidenceIds": [],
+   "teacherLookFor": "Dùng khi lớp còn vướng.",
+   "supportIds": [],
+   "transition": "Kết thúc giờ."
+  }
+ ],
+ "tasks": [
+  {
+   "id": "task-exp-classify",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "activityId": "act-exp",
+   "participation": "whole_class",
+   "prompt": "Ba dãy số: (A) $3, 7, 11, 15, \\dots$; (B) $2, 6, 18, 54, \\dots$; (C) $1, 4, 9, 16, \\dots$. Dãy nào là cấp số nhân?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-exp-classify"
+   ],
+   "inputSchema": {
+    "options": [
+     {
+      "id": "opt_a",
+      "label": "Dãy (A)"
+     },
+     {
+      "id": "opt_b",
+      "label": "Dãy (B)"
+     },
+     {
+      "id": "opt_c",
+      "label": "Dãy (C)"
+     }
+    ]
+   },
+   "evaluation": {
+    "checkerId": "choice_exact",
+    "options": [
+     "opt_a",
+     "opt_b",
+     "opt_c"
+    ],
+    "answerKey": "opt_b"
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Dãy (B) có tỉ số hai số hạng liên tiếp luôn bằng 3; (A) là cấp số cộng công sai 4; (C) là dãy bình phương, không phải cấp số.",
+   "minutes": 4,
+   "hintIds": [
+    "hint-exp-classify"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-pre-mono",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "activityId": "act-pre",
+   "participation": "individual",
+   "prompt": "Dãy số $u_n=\\dfrac{n}{n+1}$ là dãy số:",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-pre-mono"
+   ],
+   "inputSchema": {
+    "options": [
+     {
+      "id": "opt_inc",
+      "label": "Tăng"
+     },
+     {
+      "id": "opt_dec",
+      "label": "Giảm"
+     },
+     {
+      "id": "opt_none",
+      "label": "Không tăng, không giảm"
+     }
+    ]
+   },
+   "evaluation": {
+    "checkerId": "choice_exact",
+    "options": [
+     "opt_inc",
+     "opt_dec",
+     "opt_none"
+    ],
+    "answerKey": "opt_inc"
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_{n+1}-u_n=\\dfrac{1}{(n+1)(n+2)}>0$ với mọi $n\\ge 1$ nên dãy tăng.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-pre-mono"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-pre-csc",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "activityId": "act-pre",
+   "participation": "individual",
+   "prompt": "Cấp số cộng có $u_1=2$ và công sai $d=3$. Tính $u_{10}$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-pre-csc"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 29
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_{10}=u_1+9d=2+27=29$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-pre-csc"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-pre-csn",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "activityId": "act-pre",
+   "participation": "individual",
+   "prompt": "Cấp số nhân có $u_1=3$ và công bội $q=2$. Tính $u_5$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-pre-csn"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 48
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_5=u_1q^4=3\\cdot 16=48$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-pre-csn"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-pre-real",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "activityId": "act-pre",
+   "participation": "individual",
+   "prompt": "Lương khởi điểm của một kỹ sư là 8 triệu đồng/tháng; mỗi năm lương tháng tăng thêm 0,5 triệu đồng. Năm thứ 5 lương tháng là bao nhiêu triệu đồng?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-pre-real"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 10
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Lương tháng các năm lập cấp số cộng $u_1=8$, $d=0{,}5$; $u_5=8+4\\cdot 0{,}5=10$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-pre-real"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-form-formulas",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "activityId": "act-form",
+   "participation": "group",
+   "prompt": "Nhóm em ghép mỗi ô với công thức đúng để lập bảng hệ thống chương II.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-form-formulas"
+   ],
+   "inputSchema": {
+    "representations": [
+     {
+      "id": "rep_csc_term",
+      "label": "Cấp số cộng: số hạng tổng quát"
+     },
+     {
+      "id": "rep_csc_sum",
+      "label": "Cấp số cộng: tổng $n$ số hạng đầu"
+     },
+     {
+      "id": "rep_csn_term",
+      "label": "Cấp số nhân: số hạng tổng quát"
+     },
+     {
+      "id": "rep_csn_sum",
+      "label": "Cấp số nhân: tổng $n$ số hạng đầu ($q\\ne 1$)"
+     }
+    ],
+    "cards": [
+     {
+      "id": "card_csc_term",
+      "label": "$u_n=u_1+(n-1)d$"
+     },
+     {
+      "id": "card_csc_sum",
+      "label": "$S_n=\\dfrac{n(u_1+u_n)}{2}$"
+     },
+     {
+      "id": "card_csn_term",
+      "label": "$u_n=u_1q^{n-1}$"
+     },
+     {
+      "id": "card_csn_sum",
+      "label": "$S_n=\\dfrac{u_1(1-q^n)}{1-q}$"
+     }
+    ]
+   },
+   "evaluation": {
+    "checkerId": "representation_match",
+    "answerKey": {
+     "rep_csc_term": "card_csc_term",
+     "rep_csc_sum": "card_csc_sum",
+     "rep_csn_term": "card_csn_term",
+     "rep_csn_sum": "card_csn_sum"
+    }
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Bảng bốn công thức là khung để giải mọi trạm sau.",
+   "minutes": 8,
+   "hintIds": [
+    "hint-form-formulas"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-mono-support",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "activityId": "act-prac-mono",
+   "participation": "individual",
+   "prompt": "Mức 1: Cho $u_n=2n+1$. Tính hiệu $u_{n+1}-u_n$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 2
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_{n+1}-u_n=2(n+1)+1-(2n+1)=2$.",
+   "minutes": 4,
+   "hintIds": [
+    "hint-mono-support"
+   ],
+   "branch": "support"
+  },
+  {
+   "id": "task-mono-core",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "activityId": "act-prac-mono",
+   "participation": "individual",
+   "prompt": "Mức 2: Với dãy $u_n=\\dfrac{2n+1}{n+2}$, khẳng định nào đúng?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-mono-core"
+   ],
+   "inputSchema": {
+    "options": [
+     {
+      "id": "opt_inc_bounded",
+      "label": "Dãy tăng và bị chặn"
+     },
+     {
+      "id": "opt_dec_bounded",
+      "label": "Dãy giảm và bị chặn"
+     },
+     {
+      "id": "opt_inc_unbounded",
+      "label": "Dãy tăng và không bị chặn trên"
+     }
+    ]
+   },
+   "evaluation": {
+    "checkerId": "choice_exact",
+    "options": [
+     "opt_inc_bounded",
+     "opt_dec_bounded",
+     "opt_inc_unbounded"
+    ],
+    "answerKey": "opt_inc_bounded"
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_n=2-\\dfrac{3}{n+2}$ tăng theo $n$ và $1\\le u_n<2$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-mono-core"
+   ],
+   "branch": "core"
+  },
+  {
+   "id": "task-mono-extension",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "activityId": "act-prac-mono",
+   "participation": "individual",
+   "prompt": "Mức 3: Với $u_n=\\dfrac{2n+1}{n+2}$, tìm số nguyên dương $n$ nhỏ nhất để $u_n>1{,}9$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 29
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$2-\\dfrac{3}{n+2}>1{,}9\\iff n+2>30\\iff n>28$, nên $n=29$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-mono-extension"
+   ],
+   "branch": "extension"
+  },
+  {
+   "id": "task-csc-support",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "activityId": "act-prac-csc",
+   "participation": "individual",
+   "prompt": "Mức 1: Cấp số cộng có $u_1=5$, $u_2=8$. Tìm công sai $d$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 3
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$d=u_2-u_1=3$.",
+   "minutes": 4,
+   "hintIds": [
+    "hint-csc-support"
+   ],
+   "branch": "support"
+  },
+  {
+   "id": "task-csc-core",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "activityId": "act-prac-csc",
+   "participation": "individual",
+   "prompt": "Mức 2: Cấp số cộng có $u_1=-2$, $d=4$. Tính tổng 10 số hạng đầu $S_{10}$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-csc-core"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 160
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_{10}=-2+36=34$; $S_{10}=\\dfrac{10(-2+34)}{2}=160$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-csc-core"
+   ],
+   "branch": "core"
+  },
+  {
+   "id": "task-csc-extension",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-23"
+   ],
+   "activityId": "act-prac-csc",
+   "participation": "individual",
+   "prompt": "Mức 3: Cấp số cộng có $u_3=7$ và $u_8=22$. Tính $S_{20}$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 590
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$5d=15\\Rightarrow d=3$, $u_1=1$, $u_{20}=58$, $S_{20}=\\dfrac{20(1+58)}{2}=590$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-csc-extension"
+   ],
+   "branch": "extension"
+  },
+  {
+   "id": "task-csn-support",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "activityId": "act-prac-csn",
+   "participation": "individual",
+   "prompt": "Mức 1: Cấp số nhân có $u_1=2$, $u_2=6$. Tìm công bội $q$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 3
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$q=\\dfrac{u_2}{u_1}=3$.",
+   "minutes": 4,
+   "hintIds": [
+    "hint-csn-support"
+   ],
+   "branch": "support"
+  },
+  {
+   "id": "task-csn-core",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "activityId": "act-prac-csn",
+   "participation": "individual",
+   "prompt": "Mức 2: Cấp số nhân có $u_1=1$, $q=2$. Tính tổng 8 số hạng đầu $S_8$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-csn-core"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 255
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$S_8=\\dfrac{1(1-2^8)}{1-2}=255$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-csn-core"
+   ],
+   "branch": "core"
+  },
+  {
+   "id": "task-csn-extension",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-27"
+   ],
+   "activityId": "act-prac-csn",
+   "participation": "individual",
+   "prompt": "Mức 3: Cấp số nhân có $u_2=6$ và $u_5=-162$. Tính $S_5$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": -122
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$q^3=-27\\Rightarrow q=-3$, $u_1=-2$, $S_5=\\dfrac{-2(1-(-3)^5)}{1-(-3)}=-122$.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-csn-extension"
+   ],
+   "branch": "extension"
+  },
+  {
+   "id": "task-real-bacteria",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "activityId": "act-prac-real",
+   "participation": "group",
+   "prompt": "Một mẻ nuôi cấy có 500 vi khuẩn; cứ sau mỗi giờ số vi khuẩn tăng gấp đôi. Sau 6 giờ có bao nhiêu vi khuẩn?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-real-bacteria"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 32000
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Số vi khuẩn sau $k$ giờ là $500\\cdot 2^k$; sau 6 giờ là $500\\cdot 64=32000$.",
+   "minutes": 5,
+   "hintIds": [
+    "hint-real-bacteria"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-real-stadium",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "activityId": "act-prac-real",
+   "participation": "group",
+   "prompt": "Một khán đài có 20 hàng ghế; hàng đầu có 30 ghế, mỗi hàng sau nhiều hơn hàng trước 4 ghế. Khán đài có tất cả bao nhiêu ghế?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 1360
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Cấp số cộng $u_1=30$, $d=4$, $n=20$: $S_{20}=10(60+76)=1360$.",
+   "minutes": 5,
+   "hintIds": [
+    "hint-real-stadium"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-mono",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Với dãy $u_n=\\dfrac{n+3}{n+1}$, khẳng định nào đúng?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-mono"
+   ],
+   "inputSchema": {
+    "options": [
+     {
+      "id": "opt_dec_bounded",
+      "label": "Dãy giảm và bị chặn"
+     },
+     {
+      "id": "opt_inc_bounded",
+      "label": "Dãy tăng và bị chặn"
+     },
+     {
+      "id": "opt_dec_unbounded",
+      "label": "Dãy giảm và không bị chặn dưới"
+     }
+    ]
+   },
+   "evaluation": {
+    "checkerId": "choice_exact",
+    "options": [
+     "opt_dec_bounded",
+     "opt_inc_bounded",
+     "opt_dec_unbounded"
+    ],
+    "answerKey": "opt_dec_bounded"
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_n=1+\\dfrac{2}{n+1}$ giảm và $1<u_n\\le 2$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-mono"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-csc-term",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Cấp số cộng có $u_1=7$ và $u_6=-8$. Tính $u_{11}$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-csc-term"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": -23
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$5d=-15\\Rightarrow d=-3$; $u_{11}=7+10(-3)=-23$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-csc-term"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-csc-sum",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-23"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Tính tổng $S=1+4+7+\\dots+58$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-csc-sum"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 590
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Cấp số cộng $u_1=1$, $d=3$, $58=1+3(n-1)\\Rightarrow n=20$; $S=\\dfrac{20(1+58)}{2}=590$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-csc-sum"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-csn-term",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Cấp số nhân có $u_1=5$ và $q=-2$. Tính $u_6$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-csn-term"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": -160
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "$u_6=5\\cdot(-2)^5=-160$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-csn-term"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-csn-sum",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-27"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Tính tổng $S=3+6+12+\\dots+384$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-csn-sum"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 765
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Cấp số nhân $u_1=3$, $q=2$, $3\\cdot 2^{n-1}=384\\Rightarrow n=8$; $S=3(2^8-1)=765$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-csn-sum"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-rc-real",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "activityId": "act-recheck",
+   "participation": "individual",
+   "prompt": "Một quả bóng rơi từ độ cao 81 m; mỗi lần chạm đất nó nảy lên bằng $\\dfrac{2}{3}$ độ cao lần rơi trước. Lần nảy thứ 4 bóng lên cao bao nhiêu mét?",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-rc-real"
+   ],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 16
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Độ cao các lần nảy lập cấp số nhân $u_1=54$, $q=\\dfrac{2}{3}$; $u_4=81\\cdot\\left(\\dfrac{2}{3}\\right)^4=16$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-rc-real"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-exit-ticket",
+   "type": "open",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "activityId": "act-exit",
+   "participation": "individual",
+   "prompt": "(1) Với dãy $2, 5, 8, 11, \\dots$ và dãy $2, 6, 18, 54, \\dots$: nhận dạng mỗi dãy, viết số hạng tổng quát và tính tổng 10 số hạng đầu. (2) Dãy $u_n=\\dfrac{1}{n}$ tăng hay giảm, có bị chặn không? Giải thích. (3) Nêu một tình huống thực tế dùng được cấp số nhân.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-exit-ticket"
+   ],
+   "evaluation": {
+    "rubric": {
+     "criteria": [
+      "Nhận dạng đúng và viết đúng số hạng tổng quát, tổng của cả hai cấp số",
+      "Kết luận đúng tính đơn điệu, bị chặn có lập luận",
+      "Tình huống thực tế hợp lý, chỉ rõ số hạng đầu và công bội"
+     ],
+     "lookFor": [
+      "CSC $d=3$: $u_n=3n-1$, $S_{10}=155$; CSN $q=3$: $u_n=2\\cdot 3^{n-1}$, $S_{10}=3^{10}-1=59048$",
+      "$u_n=\\dfrac1n$ giảm, $0<u_n\\le 1$"
+     ]
+    }
+   },
+   "isCore": true,
+   "requiresFullScaffold": false,
+   "supportRationale": "Phiếu tổng hợp cả chương, GV chấm theo rubric.",
+   "minutes": 6,
+   "hintIds": [
+    "hint-exit-ticket"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-reflection",
+   "type": "reflection",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "activityId": "act-reflection",
+   "participation": "individual",
+   "prompt": "Trước giờ ôn tập em nghĩ…; giờ em nghĩ… về sự khác nhau giữa cấp số cộng và cấp số nhân.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [
+    "ev-reflection"
+   ],
+   "evaluation": {
+    "rubric": {
+     "criteria": [
+      "Nêu được thay đổi trong cách hiểu"
+     ],
+     "lookFor": [
+      "So sánh phép cộng $d$ với phép nhân $q$"
+     ]
+    }
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "Phản tư theo Visible Thinking.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-reflection"
+   ],
+   "branch": "shared"
+  },
+  {
+   "id": "task-challenge-mix",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "activityId": "act-challenge",
+   "participation": "individual",
+   "prompt": "Ba số $a, b, c$ theo thứ tự lập cấp số cộng có công sai dương và $a+b+c=15$. Nếu cộng thêm lần lượt $1, 1, 4$ vào ba số đó thì được một cấp số nhân. Tìm $c$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 8
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$b=5$, $a=5-d$, $c=5+d$; $(6-d)(9+d)=36\\Rightarrow d^2+3d-18=0\\Rightarrow d=3$; $c=8$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-challenge-mix"
+   ],
+   "branch": "extension"
+  }
+ ],
+ "hints": [
+  {
+   "id": "hint-exp-classify",
+   "tier": "H1",
+   "text": "Thử chia mỗi số hạng cho số hạng đứng trước nó: tỉ số có giữ nguyên không?",
+   "taskId": "task-exp-classify",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Dãy (B) có tỉ số hai số hạng liên tiếp luôn bằng 3; (A) là cấp số cộng công sai 4; (C) là dãy bình phương, không phải cấp số."
+  },
+  {
+   "id": "hint-pre-mono",
+   "tier": "H1",
+   "text": "Xét dấu của hiệu $u_{n+1}-u_n$.",
+   "taskId": "task-pre-mono",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_{n+1}-u_n=\\dfrac{1}{(n+1)(n+2)}>0$ với mọi $n\\ge 1$ nên dãy tăng."
+  },
+  {
+   "id": "hint-pre-csc",
+   "tier": "H1",
+   "text": "Dùng $u_n=u_1+(n-1)d$ với $n=10$.",
+   "taskId": "task-pre-csc",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_{10}=u_1+9d=2+27=29$."
+  },
+  {
+   "id": "hint-pre-csn",
+   "tier": "H1",
+   "text": "Dùng $u_n=u_1q^{n-1}$ với $n=5$.",
+   "taskId": "task-pre-csn",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_5=u_1q^4=3\\cdot 16=48$."
+  },
+  {
+   "id": "hint-pre-real",
+   "tier": "H1",
+   "text": "Năm thứ 5 cách năm đầu 4 lần tăng lương.",
+   "taskId": "task-pre-real",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Lương tháng các năm lập cấp số cộng $u_1=8$, $d=0{,}5$; $u_5=8+4\\cdot 0{,}5=10$."
+  },
+  {
+   "id": "hint-form-formulas",
+   "tier": "H1",
+   "text": "Cấp số cộng đi bằng phép cộng (có $d$); cấp số nhân đi bằng phép nhân (có lũy thừa của $q$).",
+   "taskId": "task-form-formulas",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Bảng bốn công thức là khung để giải mọi trạm sau."
+  },
+  {
+   "id": "hint-mono-support",
+   "tier": "H1",
+   "text": "Thay $n$ bởi $n+1$ rồi trừ đi $u_n$.",
+   "taskId": "task-mono-support",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_{n+1}-u_n=2(n+1)+1-(2n+1)=2$."
+  },
+  {
+   "id": "hint-mono-core",
+   "tier": "H1",
+   "text": "Viết $u_n=2-\\dfrac{3}{n+2}$ rồi xét khi $n$ tăng.",
+   "taskId": "task-mono-core",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_n=2-\\dfrac{3}{n+2}$ tăng theo $n$ và $1\\le u_n<2$."
+  },
+  {
+   "id": "hint-mono-extension",
+   "tier": "H1",
+   "text": "Dùng $u_n=2-\\dfrac{3}{n+2}$ và giải bất phương trình theo $n$.",
+   "taskId": "task-mono-extension",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$2-\\dfrac{3}{n+2}>1{,}9\\iff n+2>30\\iff n>28$, nên $n=29$."
+  },
+  {
+   "id": "hint-csc-support",
+   "tier": "H1",
+   "text": "Công sai là hiệu của hai số hạng liên tiếp.",
+   "taskId": "task-csc-support",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$d=u_2-u_1=3$."
+  },
+  {
+   "id": "hint-csc-core",
+   "tier": "H1",
+   "text": "Tính $u_{10}$ trước, rồi dùng $S_n=\\dfrac{n(u_1+u_n)}{2}$.",
+   "taskId": "task-csc-core",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_{10}=-2+36=34$; $S_{10}=\\dfrac{10(-2+34)}{2}=160$."
+  },
+  {
+   "id": "hint-csc-extension",
+   "tier": "H1",
+   "text": "Từ $u_8-u_3=5d$ tìm $d$, rồi tìm $u_1$.",
+   "taskId": "task-csc-extension",
+   "objectiveIds": [
+    "obj-t11-23"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$5d=15\\Rightarrow d=3$, $u_1=1$, $u_{20}=58$, $S_{20}=\\dfrac{20(1+58)}{2}=590$."
+  },
+  {
+   "id": "hint-csn-support",
+   "tier": "H1",
+   "text": "Công bội là thương của hai số hạng liên tiếp.",
+   "taskId": "task-csn-support",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$q=\\dfrac{u_2}{u_1}=3$."
+  },
+  {
+   "id": "hint-csn-core",
+   "tier": "H1",
+   "text": "Dùng $S_n=\\dfrac{u_1(1-q^n)}{1-q}$.",
+   "taskId": "task-csn-core",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$S_8=\\dfrac{1(1-2^8)}{1-2}=255$."
+  },
+  {
+   "id": "hint-csn-extension",
+   "tier": "H1",
+   "text": "Lập tỉ số $\\dfrac{u_5}{u_2}=q^3$.",
+   "taskId": "task-csn-extension",
+   "objectiveIds": [
+    "obj-t11-27"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$q^3=-27\\Rightarrow q=-3$, $u_1=-2$, $S_5=\\dfrac{-2(1-(-3)^5)}{1-(-3)}=-122$."
+  },
+  {
+   "id": "hint-real-bacteria",
+   "tier": "H1",
+   "text": "Mỗi giờ nhân thêm 2: đây là cấp số nhân. Đếm đúng số lần nhân.",
+   "taskId": "task-real-bacteria",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Số vi khuẩn sau $k$ giờ là $500\\cdot 2^k$; sau 6 giờ là $500\\cdot 64=32000$."
+  },
+  {
+   "id": "hint-real-stadium",
+   "tier": "H1",
+   "text": "Số ghế mỗi hàng lập cấp số cộng; cần tổng 20 số hạng.",
+   "taskId": "task-real-stadium",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Cấp số cộng $u_1=30$, $d=4$, $n=20$: $S_{20}=10(60+76)=1360$."
+  },
+  {
+   "id": "hint-rc-mono",
+   "tier": "H1",
+   "text": "Tách $u_n=1+\\dfrac{2}{n+1}$.",
+   "taskId": "task-rc-mono",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_n=1+\\dfrac{2}{n+1}$ giảm và $1<u_n\\le 2$."
+  },
+  {
+   "id": "hint-rc-csc-term",
+   "tier": "H1",
+   "text": "$u_6-u_1=5d$.",
+   "taskId": "task-rc-csc-term",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$5d=-15\\Rightarrow d=-3$; $u_{11}=7+10(-3)=-23$."
+  },
+  {
+   "id": "hint-rc-csc-sum",
+   "tier": "H1",
+   "text": "Tìm số số hạng trước khi tính tổng.",
+   "taskId": "task-rc-csc-sum",
+   "objectiveIds": [
+    "obj-t11-23"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Cấp số cộng $u_1=1$, $d=3$, $58=1+3(n-1)\\Rightarrow n=20$; $S=\\dfrac{20(1+58)}{2}=590$."
+  },
+  {
+   "id": "hint-rc-csn-term",
+   "tier": "H1",
+   "text": "Chú ý dấu của lũy thừa bậc lẻ của số âm.",
+   "taskId": "task-rc-csn-term",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$u_6=5\\cdot(-2)^5=-160$."
+  },
+  {
+   "id": "hint-rc-csn-sum",
+   "tier": "H1",
+   "text": "Tìm $n$ từ $u_n=384$ trước.",
+   "taskId": "task-rc-csn-sum",
+   "objectiveIds": [
+    "obj-t11-27"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Cấp số nhân $u_1=3$, $q=2$, $3\\cdot 2^{n-1}=384\\Rightarrow n=8$; $S=3(2^8-1)=765$."
+  },
+  {
+   "id": "hint-rc-real",
+   "tier": "H1",
+   "text": "Lần nảy thứ nhất đã nhân 2/3 một lần.",
+   "taskId": "task-rc-real",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Độ cao các lần nảy lập cấp số nhân $u_1=54$, $q=\\dfrac{2}{3}$; $u_4=81\\cdot\\left(\\dfrac{2}{3}\\right)^4=16$."
+  },
+  {
+   "id": "hint-exit-ticket",
+   "tier": "H1",
+   "text": "Xét hiệu hoặc tỉ số của hai số hạng liên tiếp để nhận dạng.",
+   "taskId": "task-exit-ticket",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Phiếu tổng hợp cả chương, GV chấm theo rubric."
+  },
+  {
+   "id": "hint-reflection",
+   "tier": "H1",
+   "text": "Nghĩ về câu em sửa lại trong giờ.",
+   "taskId": "task-reflection",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Phản tư theo Visible Thinking."
+  },
+  {
+   "id": "hint-challenge-mix",
+   "tier": "H1",
+   "text": "Đặt $b=5$, $a=5-d$, $c=5+d$ rồi dùng tính chất $y^2=xz$ của cấp số nhân.",
+   "taskId": "task-challenge-mix",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$b=5$, $a=5-d$, $c=5+d$; $(6-d)(9+d)=36\\Rightarrow d^2+3d-18=0\\Rightarrow d=3$; $c=8$."
+  }
+ ],
+ "evidenceRules": [
+  {
+   "id": "ev-exp-classify",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-26"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-exp-classify",
+   "kind": "precheck"
+  },
+  {
+   "id": "ev-pre-mono",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-pre-mono",
+   "kind": "precheck"
+  },
+  {
+   "id": "ev-pre-csc",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-pre-csc",
+   "kind": "precheck"
+  },
+  {
+   "id": "ev-pre-csn",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-pre-csn",
+   "kind": "precheck"
+  },
+  {
+   "id": "ev-pre-real",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-pre-real",
+   "kind": "precheck"
+  },
+  {
+   "id": "ev-form-formulas",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "individual": false,
+   "countsForMastery": false,
+   "taskId": "task-form-formulas",
+   "kind": "group_product"
+  },
+  {
+   "id": "ev-mono-core",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-mono-core",
+   "kind": "individual_reasoning"
+  },
+  {
+   "id": "ev-csc-core",
+   "objectiveIds": [
+    "obj-t11-22",
+    "obj-t11-23"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-csc-core",
+   "kind": "individual_reasoning"
+  },
+  {
+   "id": "ev-csn-core",
+   "objectiveIds": [
+    "obj-t11-26",
+    "obj-t11-27"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-csn-core",
+   "kind": "individual_reasoning"
+  },
+  {
+   "id": "ev-real-bacteria",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "individual": false,
+   "countsForMastery": false,
+   "taskId": "task-real-bacteria",
+   "kind": "group_product"
+  },
+  {
+   "id": "ev-rc-mono",
+   "objectiveIds": [
+    "obj-t11-20"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-mono",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-rc-csc-term",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-csc-term",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-rc-csc-sum",
+   "objectiveIds": [
+    "obj-t11-23"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-csc-sum",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-rc-csn-term",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-csn-term",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-rc-csn-sum",
+   "objectiveIds": [
+    "obj-t11-27"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-csn-sum",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-rc-real",
+   "objectiveIds": [
+    "obj-t11-28"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-rc-real",
+   "kind": "individual_recheck"
+  },
+  {
+   "id": "ev-exit-ticket",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "individual": true,
+   "countsForMastery": true,
+   "taskId": "task-exit-ticket",
+   "kind": "exit"
+  },
+  {
+   "id": "ev-reflection",
+   "objectiveIds": [
+    "obj-t11-20",
+    "obj-t11-22",
+    "obj-t11-23",
+    "obj-t11-26",
+    "obj-t11-27",
+    "obj-t11-28"
+   ],
+   "individual": true,
+   "countsForMastery": false,
+   "taskId": "task-reflection",
+   "kind": "self_assessment"
+  }
+ ],
+ "rubric": {
+  "criteria": [
+   "Nhận dạng đúng cấp số cộng, cấp số nhân",
+   "Dùng đúng công thức số hạng tổng quát và tổng",
+   "Mô hình hóa được tình huống thực tế"
+  ],
+  "lookFor": [
+   "Xét hiệu hoặc tỉ số hai số hạng liên tiếp",
+   "Đếm đúng số số hạng $n$"
+  ]
+ },
+ "modePolicies": {
+  "classroom": {
+   "enforceIndividualMastery": true,
+   "allowHintAssistance": true
+  }
+ },
+ "masteryPolicy": {
+  "individualEvidencePerObjectiveMin": 2,
+  "masterySources": [
+   "individual_recheck",
+   "exit"
+  ],
+  "forbiddenSources": [
+   "group_product",
+   "map_position",
+   "race_position",
+   "group_score"
+  ]
+ },
+ "contentHash": "7897e57122eced657435d207360e95154ac1f2b7f59e7f126df4fd71ae679d28"
+}

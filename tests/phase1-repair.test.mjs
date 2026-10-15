@@ -7,7 +7,7 @@ import {THEMES,createCampaign} from '../lib/campaign.js';
 import {LEGACY_THEME_TITLES} from '../lib/product-content.js';
 
 test('both generators are stable and keep the painted and 3D-rendered world covers untouched',async()=>{
- const rendered=['cube','ring','zones','academy','survival','galaxy','maze'].flatMap(id=>[THEMES[id].image,THEMES[id].image.replace('.webp','@2x.webp')]).map(f=>'public/assets/'+f);
+ const rendered=['cube','ring','zones','academy','survival','galaxy','maze'].flatMap(id=>[THEMES[id].image,THEMES[id].imageHi]).map(f=>'public/assets/'+f);
  const preserved=['public/katex/katex.min.css',...Object.keys(LEGACY_THEME_TITLES).map(id=>'public/assets/'+THEMES[id].image),...rendered];
  const before=await Promise.all(preserved.map(p=>readFile(p)));
  const outputs=['public/campaign-data.js','public/feedback.js'];

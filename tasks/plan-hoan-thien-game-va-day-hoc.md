@@ -1458,6 +1458,28 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] R18.3 12sharedactivities nối game+oldboat/arena thật, serveractor/CAS/round/replay/privacy/budget/pause/resume/oncepoints; renderownquestion,GVopen/finish,pollphase vàgiữnháp; clock500ms.
 - [x] R18.4 44topics21old+23newgenerators/checkers/rationale/metadataPPCTadapted, khôngfakecanonicalLO/fullSGK.4,400math/5,280format+23oracle+207modepaths kiểm.
 - [x] R18.5 Final1373full/typecheck/buildPASS,lint0errors/392warnings,Gemini math/activities/route/UI/finalpollPASS0. Worker/D1/R2all12events+gamebrowserteachercreate/HSBingoanswer10/next/draft123/resume375noclip. Nativefixturecleanupactive0. Report tasks/codex-r18-report.md/source470manifest.
-- [ ] NativeSitespublishR18 vàproductionQA: đang thực hiện; bộnhậnDeweyvẫngiữlocal.
+- [x] R18 nativeSitesv13publishsucceeded14/10/2026 15:41:36giờVN; source5dfbf5aecf102c6b0e9d632bd79a46ad1e5239c7, worker67a347ac83530572c4ffd78f37cc5257428327a1b30b7122ecb15a217fe9f032. Source470byte-match, native513HTTP/all12/0external/cleanup16roomsactive0. Production13scripts/assetsHTTP200byte-match, nativeworkerlogs5min0errors; anonymousbrowser teacherentryrequiresSign in đúng, console0errors. KhôngclaimproductionGVaccountE2E vìbrowserQAnewsessionchưaauth; localactualGV/HSgame+Bingoproof ghi report. BộnhậnDeweygiữlocal.
 - [ ] Backlog covergốc1680x944chưalấyđược; canonicalLO/SGK/SBT fullcoverage vàTV/iPad/150HS40min thật không tựđánhxong.
 - [ ] Nhập GiaoAnDewey/sync: cần mapping được GV duyệt, receiver/server+Rules QA và pilot; chưa chuyển dữ liệu thật. Không đánh dấu R15 toàn bộ hoàn tất khi mới có Site/export.
+
+
+### R18 ảnh gốc — 14/10/2026
+- [x] Tải 7/7 bản gốc Canva qua nút Tải xuống trong phiên người dùng; từng ảnh 1680 × 944, không phóng lớn thumbnail.
+- [x] WebP chất lượng 92, giữ kích thước gốc; tên r18-hd để tránh cache ảnh cũ. Chỉ thay coverImage trong thẻ chọn, không đổi terrain/route/học liệu.
+- [x] Manifest SHA256/kích thước và bảng ảnh: tasks/codex-r18-hd-cover-manifest.json, tasks/codex-r18-hd-contact.jpg.
+- [x] 11/11 focusedtests, typecheck/build/diff-check PASS; 470 sourcefiles matched; Gemini Flash low final review PASS. Native v14 succeeded14/10/2026 16:43:24VN, source42d0178e59622ca8f84b41b57b002ed9dcada81f. Browser7/7 ảnh loaded1680×944; tải lại qua pageAssets7/7 SHA256byte-match; screenshot codex-r18-hd-production.jpg, workerlogs5min0errors.
+
+
+### R19 — nền map 2D theo tọa độ có sẵn, 14/10/2026
+- [x] Chủ hệ thống giao tạo ảnh theo đường đi/cổng/điểm dừng hiện hữu; không di chuyển tuyến.
+- [x] Đọc consumer game/lesson/exam; dữ liệu tuyến33điểm, cổng0/8/16/24/32, khung1600×900. Xuất geometry/guide7map trong tasks/r19-map2d.
+- [x] Tạo và kiểm7Canvaoriginals theo guide; Pillowghépđường33verticesvàplazas chính xác, ảnhnative1680×944, high1680×945 oneedgepadding, base1280×720. Giữ5maptranh/7coverv14.
+- [x] theme.image/imageHi mới nối game/lesson/background/banner/mini; actualprocedural3Dsource và route/places/checkpoints/terrain12 unchanged.
+- [x] 56focused/typecheck/build/diff-check/GeminiPASS; source485matched; renderer7loadednative,HS/GV/TVsyntheticmodel,zoom/night/mobile375/clickgate; examroute17regressionsPASS, chưabrowserexamriêng/fullclassroomE2E. Lỗi3D→2Dcổngv14 ghi riêngP2, khôngclaiminteractionPASS.
+- [x] Nativev15 succeeded14/10/2026 17:42:21VN, sourceee412967aea2737d66761ab022840df812969b39; public/env2giữ. 14/14productionassets200SHA256match; productiondemo2Dcube1680×945. Logs1favicon404/info/outcomeok, khôngruntimeexception. SharedHANDOFF/report cập nhật.
+
+- [x] R19: Canva7gốctải xong; rejectedfirstsample roadsdrift, newterrain+deterministicPillow33vertices×7=231PASS. 56focusedtests/typecheck/buildPASS; Gemini finaltextreviewPASS0, independentaudit17PASS. Browser7loaded1680×945; dynamicgateeventlesson-map:gate; night/zoom/mobile375htmlnooverflow.
+- [ ] R19 backlog P2: v14existing leavePilot(true) remount2D missing syncFlatGateStars/renderExamJourney; labels/clickdynamicgate temporarilylostuntilreceive. Pointerpublic/lesson-map.html:388–403; noR19imagecause. Separatefixneeded, doNOTclaim2D3DlessoninteractionPASS.
+- [x] 14/10 Claude: R19 backlog P2 fixed in public/lesson-map.html leavePilot(true): after remounting the 2D board it restores lesson gate labels/stars (syncFlatGateStars) or the exam journey (renderExamJourney(..., false)). Regression test in tests/lesson-map-stars.test.mjs. Also updated 2 stale cover tests to R19 names (map-<id>-r19.webp / imageHi) that were failing in the full suite. Full npm test after: see coordination. Not released; Codex QA + release per owner rule.
+
+- r7.27 (14–15/10/2026): Chủ hệ thống quyết: viết luôn mạch truyện cho cả 12 thế giới (không chờ duyệt 2 thế giới mẫu); tiết dạy thật tuần sau = lớp 11, Ôn tập chương II (Dãy số, CSC, CSN), 80 phút. Claude làm: truyện 12 thế giới có nhân vật + 3 lời mở theo loại tiết (hình thành/luyện tập/ôn tập, suy từ gói bài) + 7 pha + kết đủ/kết dở; gói bài `g11-ch2-review` (T11.20/22/23/26/27/28, 3 mức mỗi trạm, draft chờ GV duyệt). Test 1378/1378. Chờ Codex QA + phát hành (kèm sửa R19 P2). 18.7 câu 1 đã có đáp án: viết luôn 12.

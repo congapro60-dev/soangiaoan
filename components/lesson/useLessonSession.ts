@@ -106,6 +106,7 @@ export interface LessonProjection {
   learningPolicyVersion?: number;
   valueReflection?: import("./ValueReflection").ValueReflectionData | null;
   storyCue?: string;
+  storyOpening?: string;
   gateStars?: Array<{ activityId: string; stars: number }>;
   levelInvite?: boolean;
   branchSwitchesLeft?: number;

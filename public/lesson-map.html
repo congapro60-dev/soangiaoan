@@ -397,6 +397,9 @@
       controller = window.SignalTerrain.mount(document.getElementById('terrainViewport'), buildModel(lastInput, themeOf(lastInput.world)));
       controller.mode('2d');
       followOwn(lastInput, true);
+      // The fresh 2D board has plain pins: put back the lesson gate labels/stars or the exam journey (R19 backlog P2).
+      if (lastInput.examJourney) renderExamJourney(lastInput.examJourney, false);
+      else syncFlatGateStars(buildModel(lastInput, themeOf(lastInput.world)));
     }
     setModeButtons('2d');
   }

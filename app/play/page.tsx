@@ -1300,7 +1300,7 @@ export default function PlayPage() {
           {view?.lessonMode && <details><summary>Hành động theo luật chơi</summary><LessonModePanel view={view.lessonMode} disabled={isMainInputDisabled} onAction={async input=>{await dispatchCommand("MODE_ACTION",{...input,requestId:crypto.randomUUID()});}} /></details>}
           {view?.clock?.startedAt != null && serverNow - view.clock.startedAt > 20 * 60 * 1000 && <p className="lesson-muted">Đã dùng màn hình một lúc. Khi thầy cô cho nghỉ, em nhìn xa và thả lỏng mắt.</p>}
           {Array.isArray(view?.valueBadges) && view.valueBadges.length>0 && <details className="lesson-card" style={{padding:"1rem"}}><summary>Giá trị em đã thể hiện</summary>{(view.valueBadges as Array<{valueId:string;reason:string;revokedAt?:number}>).filter(badge=>!badge.revokedAt).map((badge,index)=><p key={index}>{badge.valueId}: {badge.reason}</p>)}</details>}
-          {view?.storyCue && <details className="lesson-card" style={{ padding: "1rem" }}><summary>Manh mối hành trình</summary><p>{view.storyCue}</p></details>}
+          {view?.storyCue && <details className="lesson-card" style={{ padding: "1rem" }}><summary>Manh mối hành trình</summary>{view.storyOpening && <p><em>{view.storyOpening}</em></p>}<p>{view.storyCue}</p></details>}
 
         {ownMapPeer?.chosen && (<details><summary>Linh vật của em</summary>
           <LessonMascotPicker

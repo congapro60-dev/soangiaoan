@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
 
 test('authored library contains source-reviewed drafts, list omits answers, selection clones exact package',()=>{
- const list=listAuthoredLessons();assert.equal(list.length,16);assert.equal(JSON.stringify(list).includes('answerKey'),false);
+ const list=listAuthoredLessons();assert.equal(list.length,17);assert.equal(JSON.stringify(list).includes('answerKey'),false);
  for(const row of list){const pkg=getAuthoredLesson(row.id);assert.equal(pkg.status,'draft');assert.equal(validateLessonPackage(pkg).ok,true);assert.ok(pkg.sourceRefs.every(ref=>ref.verification==='teacher_review_required'));pkg.tasks[0].prompt='Changed';assert.notEqual(getAuthoredLesson(row.id).tasks[0].prompt,'Changed');}
  assert.equal(getAuthoredLesson('__proto__'),null);assert.equal(getAuthoredLesson('missing'),null);
 });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { PRODUCT_THEMES } from '../lib/product-content.js';
-import { STORY_PROFILES, storyCue } from '../lib/lesson/story-cues.js';
+import { STORY_PROFILES, LESSON_ARCS, lessonArc, storyCue } from '../lib/lesson/story-cues.js';
 
 const phases = ['experience', 'guided', 'formation', 'practice', 'recheck', 'exit', 'reflection'];
 const sentences = text => text.split(/[.!?…]+/u).map(s => s.trim()).filter(Boolean);
@@ -68,4 +68,26 @@ test('cue generation stays offline, deterministic and independent of scores or p
   const cue = storyCue({ theme: 'modern', phase: 'recheck', score: 0, wrong: true });
   assert.equal(cue, storyCue({ theme: 'modern', phase: 'recheck', score: 999, wrong: false }));
   assert.equal(JSON.stringify(PRODUCT_THEMES), before);
+});
+
+test('each world opens differently for formation, practice and review lessons', () => {
+  for (const [theme, profile] of Object.entries(STORY_PROFILES)) {
+    const openings = LESSON_ARCS.map(arc => storyCue({ theme, arc }));
+    assert.equal(new Set(openings).size, 3, theme);
+    for (const text of openings) {
+      assert.ok(sentences(text).length <= 2, `${theme}: ${text}`);
+      assert.match(text, /\bem\b/iu);
+      assert.doesNotMatch(text, /(?:đã đạt|đạt chuẩn|tăng điểm|trừ điểm|mất điểm|xếp hạng|đứng đầu)/iu);
+    }
+    assert.equal(storyCue({ theme, arc: 'unknown' }), profile.opening);
+    assert.equal(storyCue({ theme, arc: 'review', phase: 'recheck' }), profile.cues.recheck);
+  }
+});
+
+test('lesson arc is inferred from the package: review, formation or practice', () => {
+  assert.equal(lessonArc({ essentialQuestion: 'Làm thế nào để hệ thống hóa chương?', activities: [{ phase: 'formation' }] }), 'review');
+  assert.equal(lessonArc({ objectives: [1, 2, 3, 4], activities: [{ phase: 'practice' }] }), 'review');
+  assert.equal(lessonArc({ objectives: [1, 2], activities: [{ phase: 'formation' }] }), 'formation');
+  assert.equal(lessonArc({ objectives: [1], activities: [{ phase: 'practice' }] }), 'practice');
+  assert.equal(lessonArc(null), 'practice');
 });
