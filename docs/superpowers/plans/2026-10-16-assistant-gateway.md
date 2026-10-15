@@ -389,4 +389,3 @@ Stop before enabling writes if:
 - Vercel function limits or runtime duration cannot support the route.
 
 Do not add generic query tools, broad Admin credentials to Python, automatic writes, student/parent Telegram access, or unrelated UI refactors.
-
