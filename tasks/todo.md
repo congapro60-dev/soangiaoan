@@ -1,5 +1,12 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Căn cột danh sách bài nộp GV — 15/10/2026
+
+- [x] Cùng lưới cột cho tên, trạng thái, hạn, lưu ý, điểm, duyệt, giờ/tệp; giữ chọn bài/mở chi tiết/mã đề. Hàng chưa nộp cũng giữ cột.
+- [x] Nhãn ngắn một dòng, chú thích đầy đủ; tên dài và nhiều cảnh báo không đẩy lệch cột. Container dưới 56rem chuyển bố cục gọn.
+- [x] QA trình duyệt fixture 1100px có/không mã đề: 7 cột cùng tọa độ qua 6 hàng, không tràn. Màn 390px không tràn nhãn/ngang. Lint, 17 test liên quan, build cuối đạt. Không ghi dữ liệu lớp thật; lần kiểm 320px timeout, không coi PASS.
+- [x] Review Astra xhigh không còn blocker; cập nhật HANDOFF. Commit/push main theo quyền đã duyệt, trạng thái Git là bằng chứng cuối.
+
 ## Bản chấm tay và bài chữa nộp hộ — 15/10/2026
 
 Spec đã duyệt: docs/superpowers/specs/2026-10-15-handmarked-correction-design.md; plan docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md. User xác nhận, bổ sung HS/PH cùng xem bài chữa đúng người; GV/PH được opt-in AI như HS.

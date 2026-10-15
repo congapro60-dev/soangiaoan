@@ -519,3 +519,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Sổ điểm (liên kết bài giao) gác "chỉ điểm đã duyệt" cho bài ảnh nhưng quên đề online → điểm AI tạm lọt ra HS/PH qua cột liên kết, TB và chuyên cần. Mỗi khi thêm một đường đọc điểm cho HS/PH: liệt kê đủ các nguồn (`submissions`, `examSubmissions`, sổ tay) và dùng đúng hàm gác sẵn có (`teacherApproved`, `isOnlineAttemptOfficial`), kèm test "chưa duyệt → HS không thấy" cho TỪNG nguồn.
 - Sửa qua trình soạn GitHub từng file một dễ ghi đè bản sửa trước (1111588 xoá import động của 877bc5a). Sau loạt commit kiểu này phải rà lại diff tổng, không tin từng commit lẻ.
 - Hộp sửa gửi lại cả bảng mà bảng đó có phần GHÉP LÚC ĐỌC (lời giải chung) thì so "đã sửa" với bản người dùng NHÌN THẤY, không với bản lưu thô — không thì một lần sửa khoá cả bảng.
+
+## 2026-10-15 — Danh sách bài nộp cần cột và nhãn ngắn
+- Không nối tên và mọi badge thành một dãy flex tự co giãn: mỗi loại thông tin cần ô cố định, ô rỗng vẫn giữ vị trí.
+- Người dùng yêu cầu nhãn vừa một dòng. Rút ngắn câu chữ, giữ giải thích đầy đủ trong chú thích; nhiều nhãn xếp trong cùng ô, không đẩy lệch cột điểm/duyệt.

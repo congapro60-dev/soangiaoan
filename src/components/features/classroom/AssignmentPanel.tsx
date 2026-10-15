@@ -80,18 +80,18 @@ const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> 
   error: { nhan: 'Lỗi', mau: 'bg-red-50 text-red-700' },
 };
 
-const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; className: string } | null => {
+const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; title: string; className: string } | null => {
   if (!grade?.teacherApproved) {
-    if (grade) return { label: 'Chờ GV duyệt', className: 'bg-amber-50 text-amber-700' };
+    if (grade) return { label: 'Chờ duyệt', title: 'Chờ giáo viên duyệt điểm', className: 'bg-amber-50 text-amber-700' };
     return null;
   }
   if (grade.approvalSource === 'student_ai') {
-    return { label: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
+    return { label: 'AI duyệt', title: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
   }
   if (grade.approvalSource === 'auto_timeout') {
-    return { label: 'Tự duyệt sau 60 phút', className: 'bg-violet-50 text-violet-700' };
+    return { label: 'Tự duyệt', title: 'Tự duyệt sau 60 phút', className: 'bg-violet-50 text-violet-700' };
   }
-  return { label: 'GV đã duyệt', className: 'bg-emerald-50 text-emerald-700' };
+  return { label: 'GV duyệt', title: 'Giáo viên đã duyệt điểm', className: 'bg-emerald-50 text-emerald-700' };
 };
 
 const denONhapNgay = (iso?: string): string => {
@@ -257,7 +257,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100">
+    <div className={`teacher-submission-list overflow-hidden rounded-2xl border border-slate-100${maDe && maDe.length > 1 ? ' has-exam-codes' : ''}`}>
       <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-3 py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex min-h-11 items-center gap-2 text-sm font-black text-slate-700">
@@ -315,79 +315,92 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
           <p className="text-xs font-semibold text-slate-500">Đang ẩn {baiNop.length - current.length} lượt nộp cũ; chuyển sang “Hiện cả lịch sử” để đối chiếu hoặc xóa có chủ đích.</p>
         )}
       </div>
+      <div className="teacher-submission-head teacher-submission-row border-b border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px] font-bold text-slate-500" aria-hidden="true">
+        <span />
+        <div className="teacher-submission-columns">
+          <span>Học sinh</span><span>Trạng thái</span><span>Hạn nộp</span><span>Lưu ý</span><span className="text-right">Điểm</span><span>Duyệt</span><span>Nộp lúc</span>
+        </div>
+        {maDe && maDe.length > 1 && <span>Mã đề</span>}
+      </div>
       {baiNopHienThi.map(s => {
         const ten = tenTheoId.get(s.studentId) || `HS …${s.studentId.slice(-4)}`;
         const dangMo = moRongId === s.id;
         const gradingLockFresh = s.status === 'grading' && !isStaleGradingTimestamp(s.updatedAt);
         return (
           <div key={s.id} id={`bai-nop-${s.id}`} className="scroll-mt-24 border-b border-slate-100 last:border-b-0">
-            <div className="flex items-center gap-2 px-3 py-3">
+            <div className="teacher-submission-row px-3 py-3">
               <input
                 type="checkbox"
                 checked={selectedIds.has(s.id)}
                 onChange={event => toggleSelected(s.id, event.target.checked)}
                 disabled={dangBulk !== ''}
                 title={currentIds.has(s.id) ? 'Chọn lượt nộp mới nhất để chấm, duyệt hoặc xóa' : 'Chọn lượt nộp cũ để xóa theo mong muốn'}
+                aria-label={`Chọn bài của ${ten}`}
                 className="h-4 w-4 shrink-0 accent-indigo-600 disabled:opacity-30"
               />
-              <button type="button" onClick={() => troMoRong(dangMo ? '' : s.id)} className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left transition hover:bg-slate-50">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">{ten.charAt(0)}</span>
-              <span className="font-black text-slate-900">{ten}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${trangThai[s.status].mau}`}>{trangThai[s.status].nhan}</span>
-              {hanNop && (
+              <button type="button" aria-expanded={dangMo} onClick={() => troMoRong(dangMo ? '' : s.id)} className="teacher-submission-columns teacher-submission-summary min-w-0 text-left transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500">
+              <span data-column="student" className="flex min-w-0 items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">{ten.charAt(0)}</span>
+                <span className="min-w-0 break-words text-sm font-black text-slate-900">{ten}</span>
+              </span>
+              <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${trangThai[s.status].mau}`}>{trangThai[s.status].nhan}</span></span>
+              <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span>
+              {hanNop ? (
                 laNopQuaHan(s.createdAt, hanNop)
-                  ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Muộn</span>
+                  ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Nộp muộn</span>
                   : <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Đúng hạn</span>
-              )}
-              {Boolean(s.feedbackSummary?.pending) && <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-800">{s.feedbackSummary?.pending} phản hồi chưa trả lời</span>}
+              ) : <span className="text-xs text-slate-400">Không hạn</span>}
+              </span>
+              <span data-column="notes" className="teacher-submission-cell"><span className="teacher-submission-label">Lưu ý</span><span className="teacher-submission-notes">
+              {Boolean(s.feedbackSummary?.pending) && <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-800" title={`${s.feedbackSummary?.pending} phản hồi chưa trả lời`}>{s.feedbackSummary?.pending} phản hồi</span>}
               {s.grade?.editedByTeacher && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
               {s.grade?.gradingRecovery && (
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
-                  {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title={s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}>
+                  {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI thử lại' : 'AI phục hồi'}
                 </span>
               )}
               {s.grade && hasUncertainRead(s.grade) && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Máy đọc chưa chắc</span>
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Đọc chưa rõ</span>
               )}
               {(s.status === 'graded' && s.lastGradingError) && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={s.lastGradingError}>Đã giữ điểm (lỗi chấm lại)</span>
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={`Đã giữ điểm vì lỗi chấm lại: ${s.lastGradingError}`}>Giữ điểm</span>
               )}
               {s.evidenceSyncError && (
-                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={s.evidenceSyncError}>Đồng bộ minh chứng đang chờ</span>
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={`Đồng bộ minh chứng đang chờ: ${s.evidenceSyncError}`}>Chờ đồng bộ</span>
               )}
               {s.grade?.examCheck && (
                 <span
                   className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${s.grade.examCheck.mismatch ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}
-                  title={`So với điểm thầy cô chấm tay ở cột “${s.grade.examCheck.sheetLabel}” (thang 10): lệch ${s.grade.examCheck.diff} điểm.`}
+                  title={`Điểm GV: ${s.grade.examCheck.sheetScore}/10 ở cột “${s.grade.examCheck.sheetLabel}”; lệch ${s.grade.examCheck.diff} điểm.`}
                 >
-                  {s.grade.examCheck.mismatch ? `Lệch điểm GV (${s.grade.examCheck.sheetScore})` : `Khớp điểm GV (${s.grade.examCheck.sheetScore})`}
+                  {s.grade.examCheck.mismatch ? 'Lệch điểm GV' : 'Khớp điểm GV'}
                 </span>
               )}
               {nhanLanNop.get(s.id) && (
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   nhanLanNop.get(s.id) === 'Lần nộp mới nhất' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {nhanLanNop.get(s.id)}
+                }`} title={nhanLanNop.get(s.id)}>
+                  {currentIds.has(s.id) ? 'Mới nhất' : 'Lượt cũ'}
                 </span>
               )}
-              {/* Điểm + nhãn duyệt */}
-              <span className="flex items-center gap-1.5">
-                {s.grade && <span className="text-sm font-black text-slate-900">{s.grade.score}/{s.grade.maxScore}</span>}
+              </span></span>
+              <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{s.grade ? `${s.grade.score}/${s.grade.maxScore}` : '—'}</span></span>
+              <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span>
                 {(() => {
                   const approval = getApprovalLabel(s.grade);
-                  if (!approval) return null;
-                  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approval.className}`}>{approval.label}</span>;
+                  if (!approval) return <span className="text-xs text-slate-400">—</span>;
+                  return <span title={approval.title} className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approval.className}`}>{approval.label}</span>;
                 })()}
               </span>
-              <span className="text-[11px] font-semibold text-slate-400">
-                {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} tệp
+              <span data-column="time" className="teacher-submission-cell text-[11px] font-semibold tabular-nums text-slate-500"><span className="teacher-submission-label">Nộp lúc</span>
+                <span className="teacher-submission-time"><span>{new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span><span className="text-slate-400">{s.fileUrls.length} tệp</span></span>
               </span>
               </button>
               {maDe && maDe.length > 1 && (
                 <label
-                  className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-bold ${s.examCode ? 'bg-sky-50 text-sky-800' : 'bg-rose-50 text-rose-700'}`}
+                  className={`teacher-submission-exam flex flex-wrap items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${s.examCode ? 'bg-sky-50 text-sky-800' : 'bg-rose-50 text-rose-700'}`}
                   title={s.examCodeSource === 'teacher' ? 'Thầy cô đã chọn mã này' : s.examCodeSource === 'student' ? 'Máy không đọc được mã, học sinh tự chọn — soát lại trên bài rồi chọn lại nếu sai' : s.examCode ? 'Mã AI đọc trên bài — chọn lại nếu sai rồi chấm lại' : 'Chưa có mã đề — chọn mã rồi chấm lại'}
                 >
                   Mã đề
@@ -396,7 +409,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                     disabled={gradingLockFresh || !chonMaDe}
                     onChange={event => { if (event.target.value) void chonMaDe?.(s, event.target.value, ten); }}
                     aria-label={`Mã đề của bài ${ten}`}
-                    className="bg-transparent font-black outline-none disabled:opacity-50"
+                    title={s.examCode || 'Chưa có mã đề'}
+                    className="min-w-0 max-w-full bg-transparent font-black outline-none disabled:opacity-50"
                   >
                     <option value="">?</option>
                     {maDe.map(code => <option key={code} value={code}>{code}</option>)}
@@ -552,12 +566,22 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
         );
       })}
       {chuaNop.map(hs => (
-        <div key={hs.studentId} className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5 last:border-b-0">
+        <div key={hs.studentId} className="border-b border-slate-100 last:border-b-0">
+          <div className="teacher-submission-row px-3 py-2.5">
           <Hourglass className="h-4 w-4 shrink-0 text-slate-300" />
-          <span className="text-sm font-bold text-slate-400">{hs.name}</span>
-          <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-400">Chưa nộp</span>
-          {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); }}>Nộp hộ</button>}
-          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
+          <div className="teacher-submission-columns teacher-submission-summary text-slate-400">
+            <span data-column="student" className="min-w-0 break-words text-sm font-bold">{hs.name}</span>
+            <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold">Chưa nộp</span></span>
+            <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span><span className="text-xs">—</span></span>
+            <span data-column="notes" className="teacher-submission-cell">
+              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); }}>Nộp hộ</button>}
+            </span>
+            <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="text-xs">—</span></span>
+            <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span><span className="text-xs">—</span></span>
+            <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
+          </div>
+          </div>
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
         </div>
       ))}
     </div>

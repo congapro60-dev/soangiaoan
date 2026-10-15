@@ -5,6 +5,12 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Căn cột bài nộp GV — 15/10
+
+Danh sách bài nộp dùng chung 7 cột: HS, trạng thái, hạn nộp, lưu ý, điểm, duyệt, giờ/tệp. Hàng chưa nộp cùng cột; mã đề riêng có chiều rộng cố định. Nhãn ngắn một dòng, giải thích và điểm GV đối chiếu giữ trong chú thích. Container hẹp chuyển bố cục gọn, không thay callback hoặc dữ liệu chấm.
+
+Lint, 17 test liên quan và build cuối đạt. QA fixture qua trình duyệt: 1100px có/không mã đề, 7 cột thẳng qua 6 hàng; 390px không tràn ngang/nhãn. Không ghi vào lớp thật. Lần 320px timeout nên chưa chứng nhận. Ảnh fixture lưu cục bộ `visualizations/.../submission-columns/desktop.png`; không chứa dữ liệu HS thật.
+
 ## Bản chấm tay và bài chữa nộp hộ — 15/10
 
 Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài chữa. Nhánh `codex/handmarked-corrections`; kế hoạch `docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md`, bằng chứng `tasks/handmarked-correction-ledger.md`.
