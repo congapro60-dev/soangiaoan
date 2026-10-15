@@ -68,5 +68,3 @@ The client Firebase config also references `VITE_FIREBASE_API_KEY`, `VITE_FIREBA
 A new `/api/assistant` handler can fit the existing Vercel function model. Current source evidence does not require route consolidation or a Railway fallback: existing routes already run as independent Vercel functions, and the observed budget ceiling is 60s / 1024 MB. Revisit this decision only after production measurements show a gateway-specific timeout, memory, concurrency, or platform limit that the documented Vercel budgets cannot satisfy.
 
 This document is local source evidence only. It is not production proof, deployment proof, or live capacity evidence.
-
-
