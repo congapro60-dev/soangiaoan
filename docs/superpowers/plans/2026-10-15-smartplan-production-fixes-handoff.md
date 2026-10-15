@@ -71,6 +71,8 @@
 - [x] Make saved-exam editor load the selected exam result, not only `initialContent`.
 - [x] Wire feature search to an actual filtered navigation result.
 - [x] Port true/false scoring parity to `src/utils/examScoring.ts`; focused server/client parity suite passes.
+- [x] Hide the admin feature from non-admin header search results.
+- [x] Roll back optimistic template state and surface Cloud-save failure instead of reporting success.
 
 ### Task 6: Adaptive publishing gate
 
@@ -86,7 +88,7 @@
 - Fix Word export pagination: orphan `ĐÁP ÁN` heading and awkward answer-table continuation.
 - Reduce production entry chunk (`index` observed around 1.53 MB) below the project 1 MB budget.
 - Re-run production GV/HS permission QA with real sessions after Rules deployment; source fixes alone do not prove deployed Rules.
-- Investigate the remaining unit-test timeout in `api/__tests__/parent-portal.test.ts`; do not raise timeout blindly.
+- [x] Add explicit longer time budgets to the three known crypto/storage-heavy regression tests; targeted serial run `58/58` passes.
 - Re-check current dirty WIP in the original checkout before any integration or deployment decision.
 
 ## Verification gate

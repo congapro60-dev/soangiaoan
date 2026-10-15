@@ -211,7 +211,8 @@ export default function App() {
         const tId = uploadingFiles.templateId;
         const template = data.templates.find(t => t.id === tId);
         if (!template) throw new Error('Không tìm thấy bộ mẫu để lưu tệp.');
-        await updateTemplate(tId, { files: [...(template.files || []), ...processedFiles] });
+        const saved = await updateTemplate(tId, { files: [...(template.files || []), ...processedFiles] });
+        if (!saved) throw new Error('Không lưu được tệp mẫu lên Cloud.');
       }
       showToast('Tải tệp lên thành công!');
     } catch (error: any) {
@@ -390,6 +391,7 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
           activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}

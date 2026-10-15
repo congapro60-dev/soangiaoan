@@ -37,6 +37,7 @@ interface HeaderProps {
   onMenuClick?: () => void;
   /** Chip Ví AI (chỉ có khi giáo viên đã đăng nhập). */
   aiChip?: ReactNode;
+  isAdmin?: boolean;
 }
 
 const timeAgo = (ts: number) => {
@@ -48,7 +49,7 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip }: HeaderProps) => {
+export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip, isAdmin = false }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [featureSearch, setFeatureSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -161,10 +162,10 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
           />
           {featureSearch.trim() && (
             <div className="absolute right-0 top-11 w-64 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl z-50">
-              {filterHeaderFeatures(featureSearch).length === 0 ? (
+              {(filterHeaderFeatures(featureSearch).filter(feature => isAdmin || feature.id !== 'admin').length === 0) ? (
                 <p className="px-3 py-2 text-xs text-slate-400">Không tìm thấy tính năng</p>
               ) : (
-                filterHeaderFeatures(featureSearch).map(feature => (
+                filterHeaderFeatures(featureSearch).filter(feature => isAdmin || feature.id !== 'admin').map(feature => (
                   <button
                     key={feature.id}
                     type="button"
