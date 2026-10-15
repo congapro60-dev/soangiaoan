@@ -157,7 +157,7 @@ export default function LessonCreationWizard() {
                     </button>)}
                   </section>;
                 })}
-                {visibleExams.filter(item=>item.week===value).map(item=><section key={item.id}><h4>Kiểm tra · {item.minutes} phút</h4><p>{item.title}</p><a className="lesson-button lesson-button-outline" href="/exams">Mở thư viện đề kiểm tra</a></section>)}
+                {visibleExams.filter(item=>item.week===value).map(item=><section key={item.id}><h4>Kiểm tra · {item.minutes} phút</h4><p>{item.title}</p><div style={{display:'flex',flexWrap:'wrap',gap:8}}><a className="lesson-button lesson-button-outline" href={`/api/lesson-content?exam=${item.id}&format=questions`}>Tải đề</a><a className="lesson-button lesson-button-outline" href={`/api/lesson-content?exam=${item.id}&format=solutions`}>Đáp án GV</a></div></section>)}
               </details>)}
             </section>}
             {visiblePackages.some(item=>!item.week)&&<>
