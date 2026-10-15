@@ -7,7 +7,10 @@ service cloud.firestore {
 
     // Giáo án cá nhân — chỉ owner đọc/ghi, cộng đồng đọc khi isPublic=true
     match /lessonPlans/{planId} {
-      allow list: if request.auth != null;
+      // Firestore rules are OR-ed. Keep list constrained to the same owner/public
+      // predicate as read so an unconstrained query cannot enumerate private plans.
+      allow list: if request.auth != null
+                  && (resource.data.isPublic == true || request.auth.uid == resource.data.userId);
       allow read: if resource.data.isPublic == true
                   || (request.auth != null && request.auth.uid == resource.data.userId);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
@@ -53,8 +56,9 @@ service cloud.firestore {
 
     // Cache kết quả sinh lộ trình AI (Task 2)
     match /personalizationCache/{cacheId} {
-      // Cho phép giáo viên và học sinh nặc danh đọc/ghi cache
-      allow read, write: if true;
+      // Cache contains generated student-facing content; keep it server-only.
+      // The client falls back to its in-memory cache when this path is denied.
+      allow read, write: if false;
     }
 
     // Tiến trình từng tiết học phân hoá — ưu tiên API Admin; client nặc danh chỉ là kênh fallback có kiểm tra định danh/link bài học.

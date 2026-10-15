@@ -53,4 +53,25 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
       expect(codes.has('invalid_question_options')).toBe(false);
     }
   });
+
+  it('blocks publishing when required learning evidence is missing', () => {
+    const source = buildBanToanV4AdaptiveLessonDraft('10-5-31', 'teacher-qa');
+    const incomplete = {
+      ...source,
+      objectives: [],
+      diagnosticTest: { ...source.diagnosticTest, questions: [] },
+      knowledgeUnits: [],
+      exitTicket: { ...source.exitTicket, questions: [] },
+    };
+
+    const issues = validateAdaptiveLessonPublishReadiness(incomplete);
+
+    expect(new Set(issues.map(issue => issue.code))).toEqual(new Set([
+      'missing_objectives',
+      'insufficient_diagnostic',
+      'missing_units',
+      'insufficient_exit_ticket',
+    ]));
+    expect(issues.every(issue => issue.severity === 'error')).toBe(true);
+  });
 });

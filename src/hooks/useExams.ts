@@ -132,12 +132,12 @@ const fetchPublicExam = async (params: string): Promise<Exam | null> => {
 };
 
 /** Đề theo mã cho học sinh vào làm — đã lược correctAnswer/explanation. */
-export const findPublicExamByCode = (code: string): Promise<Exam | null> =>
-  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}`);
+export const findPublicExamByCode = (code: string, password = ''): Promise<Exam | null> =>
+  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}${password ? `&password=${encodeURIComponent(password)}` : ''}`);
 
 /** Đề theo id cho trang kết quả/xem lại — đã lược đáp án (đáp án xem lại lấy từ bài nộp đã chấm). */
-export const getPublicExamById = (id: string): Promise<Exam | null> =>
-  fetchPublicExam(`examId=${encodeURIComponent(id)}`);
+export const getPublicExamById = (id: string, proofSubmissionId?: string): Promise<Exam | null> =>
+  fetchPublicExam(`examId=${encodeURIComponent(id)}${proofSubmissionId ? `&proofSubmissionId=${encodeURIComponent(proofSubmissionId)}` : ''}`);
 
 /** Một dòng bảng xếp hạng trên trang kết quả (máy chủ chỉ trả tên + điểm). */
 export interface PublicLeaderboardRow {

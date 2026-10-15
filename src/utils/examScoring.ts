@@ -113,24 +113,26 @@ export const getOptionCols = (options: string[]): 1 | 2 | 4 => {
 
 export const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>> => {
   if (!v) return {};
+  const keys = ['a', 'b', 'c', 'd'] as const;
+  const normalizeValue = (value: unknown) => typeof value === 'string' ? value.trim().toUpperCase() : '';
   try {
     const parsed = JSON.parse(v);
-    if (typeof parsed === 'object' && parsed !== null) {
-      return parsed;
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return keys.reduce<Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>>>((result, key) => {
+        const value = normalizeValue((parsed as Record<string, unknown>)[key]);
+        if (value) result[key] = value as 'Đ' | 'S';
+        return result;
+      }, {});
     }
   } catch {
-    // If not JSON, assume comma-separated like "Đ,S,Đ,S"
-    const parts = v.split(',').map(s => s.trim().toUpperCase());
-    if (parts.length >= 4) {
-      return {
-        a: parts[0] as 'Đ' | 'S',
-        b: parts[1] as 'Đ' | 'S',
-        c: parts[2] as 'Đ' | 'S',
-        d: parts[3] as 'Đ' | 'S',
-      };
-    }
+    // Legacy/imported answer keys use CSV: "Đ,S,Đ,S".
   }
-  return {};
+  const parts = v.split(',').map(normalizeValue);
+  if (parts.length !== keys.length || parts.some(part => !part)) return {};
+  return keys.reduce<Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>>>(
+    (result, key, index) => { result[key] = parts[index] as 'Đ' | 'S'; return result; },
+    {},
+  );
 };
 
 export const computeAutoScore = (
@@ -148,7 +150,10 @@ export const computeAutoScore = (
     const studentTF = parseTFSub(answer);
     const correctTF = parseTFSub(q.correctAnswer || '');
     const keys: ('a' | 'b' | 'c' | 'd')[] = ['a', 'b', 'c', 'd'];
-    const correctCount = keys.filter(k => studentTF[k] === correctTF[k]).length;
+    if (keys.some(key => correctTF[key] === undefined)) return 0;
+    const correctCount = keys.filter(key => (
+      studentTF[key] !== undefined && studentTF[key] === correctTF[key]
+    )).length;
 
     if (tfScoringMode === 'thpt2025') {
       if (correctCount === 4) return q.points;

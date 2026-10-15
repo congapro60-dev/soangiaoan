@@ -85,11 +85,13 @@ export default function App() {
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
+  const [testingInitialResult, setTestingInitialResult] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
   const [liveLessonToLaunch, setLiveLessonToLaunch] = useState<AdaptiveLesson | null>(null);
   const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
+    setTestingInitialResult(undefined);
     setTestingInitialContent(`Soạn đề kiểm tra từ giáo án: "${lessonTitle}"\n\nNội dung bài học:\n${lessonContent}`);
     setActiveTab('testing');
   };
@@ -207,12 +209,9 @@ export default function App() {
         addDistribution(newDist);
       } else if (uploadingFiles.templateId) {
         const tId = uploadingFiles.templateId;
-        setData(prev => ({
-          ...prev,
-          templates: prev.templates.map(t => 
-            t.id === tId ? { ...t, files: [...t.files, ...processedFiles] } : t
-          )
-        }));
+        const template = data.templates.find(t => t.id === tId);
+        if (!template) throw new Error('Không tìm thấy bộ mẫu để lưu tệp.');
+        await updateTemplate(tId, { files: [...(template.files || []), ...processedFiles] });
       }
       showToast('Tải tệp lên thành công!');
     } catch (error: any) {
@@ -381,7 +380,6 @@ export default function App() {
       <Sidebar
         activeTab={activeTab} setActiveTab={setActiveTab}
         onCreatorTabClick={() => {
-          creator.setCurrentPlan({ title: '', content: '', subjectId: creator.currentPlan.subjectId || 'math', templateId: '', grade: creator.currentPlan.grade || '10', week: creator.currentPlan.week || '1' });
           setActiveTab('creator');
         }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
@@ -465,6 +463,8 @@ export default function App() {
                 data={data} user={user} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
                 initialContent={testingInitialContent}
                 onConsumeInitialContent={() => setTestingInitialContent(undefined)}
+                initialResult={testingInitialResult}
+                onConsumeInitialResult={() => setTestingInitialResult(undefined)}
                 onSaveExam={handleSaveExam}
               />
             )}
@@ -545,7 +545,8 @@ export default function App() {
                 onToggleShareExam={toggleShareExam}
                 onFetchCommunityExams={fetchCommunityExams}
                 onOpenExamInEditor={(exam) => {
-                  setTestingInitialContent(exam.content);
+                  setTestingInitialContent(undefined);
+                  setTestingInitialResult(exam.content);
                   setActiveTab('testing');
                 }}
                 showToast={showToast}

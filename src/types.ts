@@ -178,6 +178,8 @@ export interface Exam {
   updatedAt: string;
   // Advanced config (Phase 5)
   password?: string;
+  /** Public exam fetches use this marker before the student supplies the password. */
+  passwordRequired?: boolean;
   maxAttempts?: number;
   proctorMode?: 'off' | 'tab-exit' | 'advanced';
   showResultWhen?: 'submit' | 'all_done' | 'never';

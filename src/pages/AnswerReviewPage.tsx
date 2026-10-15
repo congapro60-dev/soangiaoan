@@ -45,7 +45,7 @@ export const AnswerReviewPage = () => {
         if (!result) { setError('Không tìm thấy bài làm'); return; }
         const s = result.submission;
         if (s.resultHidden) { setError('Chưa tới lúc xem lại bài: giáo viên sẽ công bố kết quả sau.'); return; }
-        const e = await getPublicExamById(s.examId);
+        const e = await getPublicExamById(s.examId, submissionId);
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(s);
         if (e.questions[0]) setActiveQ(e.questions[0].id);
