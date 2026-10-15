@@ -1,7 +1,7 @@
 import type { VercelResponse } from '@vercel/node';
 import { randomUUID } from 'node:crypto';
 import { getAdminStorage } from './_exam-core.js';
-import { actorStamp, assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
+import { actorStamp, assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, releasePendingSources, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import type { HandMarkedEvidence, SubmissionDoc } from '../src/lib/classroom/types.js';
 type Db = FirebaseFirestore.Firestore;
@@ -67,6 +67,7 @@ export const handleHandMarkedWorkAction = async (db: Db, body: Data, res: Vercel
         tx.update(ref, { handMarkedEvidence: evidence, handMarkedPublished: false, handMarkedPublishedAt: '', handMarkedPublishedBy: '', updatedAt: now });
         tx.update(grantRef!, { consumed: true, consumedAt: now, reviewId });
       }); } catch (reason) { await discardActorFiles(prepared); throw reason; }
+      await releasePendingSources(prepared);
       res.status(200).json({ handMarkedEvidence: evidence, handMarkedPublished: false }); return true;
     }
     if (body.action === 'setHandMarkedVisibility') {

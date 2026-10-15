@@ -4,7 +4,7 @@
 // Vé đăng nhập chỉ dùng trong hàm callSsm, không bao giờ trả về app hay ghi log.
 //
 // HẠNG MỤC 5 (Token Cache & Auto-Wake):
-// - Ưu tiên đọc token đã cache trong chrome.storage.session (do ssm-session.js lưu).
+// - Ưu tiên đọc token đã cache trong chrome.storage.session (service worker này lưu sau mỗi lần đọc được phiên).
 // - Nếu chưa có cache hoặc token hết hạn: tự mở ngầm 1 tab SSM nền (active: false)
 //   để lấy token, thay vì báo lỗi "Chưa mở SSM".
 
@@ -46,7 +46,7 @@ const findSsmTab = async () => {
   return tabs.length === 1 ? tabs[0] : null;
 };
 
-/** Đọc token đã cache trong chrome.storage.session (do ssm-session.js lưu). */
+/** Đọc token đã cache trong chrome.storage.session (saveCachedSession bên dưới lưu). */
 const readCachedSession = async () => {
   try {
     const { ssmToken, ssmWorkspace, ssmCachedAt } = await chrome.storage.session.get(
@@ -102,7 +102,7 @@ const readSessionFromTab = async (tab) => {
  * Tự mở ngầm 1 tab SSM nền để lấy token khi người dùng quên mở tab SSM.
  * Tab nền (active: false) không làm phiền — đóng ngay sau khi lấy được phiên.
  */
-const wakeSsmInBackground = async (keepOpen = false) => {
+const wakeSsmInBackground = async () => {
   let tab = null;
   try {
     tab = await chrome.tabs.create({ url: 'https://ssm.edufit.vn/', active: false });
@@ -130,7 +130,7 @@ const wakeSsmInBackground = async (keepOpen = false) => {
     return { ...result, tab };
   } finally {
     // Dọn tab nền sau khi xong việc.
-    try { if (!keepOpen) await chrome.tabs.remove(tab.id); } catch { /* tab đã đóng */ }
+    try { await chrome.tabs.remove(tab.id); } catch { /* tab đã đóng */ }
   }
 };
 
@@ -144,14 +144,8 @@ const attachFileToSsmTab = async (params, selectedTab) => {
   const fileName = params?.fileName || 'diem-lo-da-dien.xlsx';
   if (!fileData || typeof fileData !== 'string') return { ok: false, error: 'Thiếu dữ liệu file Excel.' };
   if (fileData.length > MAX_BODY * 2) return { ok: false, error: 'File Excel quá lớn.' };
-  let tab = selectedTab || await findSsmTab();
-  if (!tab?.id) {
-    // Thử tự mở tab SSM ngầm rồi gắn file (kế thừa Auto-Wake của Hạng mục 5).
-    const wake = await wakeSsmInBackground(true);
-    if (wake.error) return { ok: false, error: wake.error };
-    tab = wake.tab;
-    if (!tab?.id) return { ok: false, error: 'Không mở được tab SSM.' };
-  }
+  const tab = selectedTab || await findSsmTab();
+  if (!tab?.id) return { ok: false, error: 'Mở đúng một tab SSM có ô tải file điểm LO rồi thử lại.' };
   try {
     const result = await chrome.tabs.sendMessage(tab.id, { kind: 'ssm-attach-file', fileData, fileName, sessionToken: params.sessionToken, workspace: params.workspace });
     if (!result?.ok) return { ok: false, error: result?.error || 'Không gắn được file lên trang SSM.' };
@@ -187,11 +181,15 @@ const readSession = async (forWrite = false) => {
     if (!tab?.id) return { error: 'Có nhiều tab SSM. Chọn đúng tab cần dùng rồi thử lại.' };
     return { ...(await readSessionFromTab(tab)), tab };
   }
-  if (!forWrite) {
-    const cached = await readCachedSession();
-    if (cached && await validateSession(cached)) return { session: cached };
+  // Thao tác GHI cần đúng trang form giáo viên đang mở: tab mở ngầm chỉ là trang chủ, không có ô cần điền,
+  // nên không tự mở (trước đây mở rồi bỏ lại tab ẩn, lần sau báo "Có nhiều tab SSM").
+  if (forWrite) {
+    try { await chrome.tabs.create({ url: 'https://ssm.edufit.vn/', active: true }); } catch { /* người dùng tự mở */ }
+    return { error: 'Đã mở SSM ở tab mới — vào đúng trang cần điền (đã đăng nhập) rồi bấm lại.' };
   }
-  return wakeSsmInBackground(forWrite);
+  const cached = await readCachedSession();
+  if (cached && await validateSession(cached)) return { session: cached };
+  return wakeSsmInBackground();
 };
 
 const callSsm = async (path, session) => {

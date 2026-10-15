@@ -13,15 +13,15 @@ Base `3b40a56`, spec commit `8ec0dc3`; branch `codex/handmarked-corrections`. Us
 
 | Task | Yêu cầu | Kiểm | Kết luận | Bằng chứng |
 |---|---|---|---|---|
-| M1 | GV upload private, mặc định ẩn, grade/original không đổi | API upload/finalize tests | unresolved | |
-| M2 | HS/PH chỉ xem khi GV công bố; wrong-child/revocation deny | projection/read API tests | unresolved | |
-| M3 | Tắt/reset-newrevision/audit/expectedRevision chặn race | transaction tests | unresolved | |
-| M4 | HS/PH/GV correction save/list/review, actor provenance | correction actor matrix | unresolved | |
-| M5 | correction không đổi grade, lock không chặn riêng | original equality/lock tests | unresolved | |
-| M6 | shared UI GV/HS/PH upload/view/toggle/correction | component + browser fixture | unresolved | |
+| M1 | GV upload private, mặc định ẩn, grade/original không đổi | API upload/finalize tests | PASS | full suite 3.146/3.146 |
+| M2 | HS/PH chỉ xem khi GV công bố; wrong-child/revocation deny | projection/read API tests | PASS | auth matrix, PIN revoke, signed URL race |
+| M3 | Tắt/reset-newrevision/audit/expectedRevision chặn race | transaction tests | PASS | immutable revisions, deletion fence + retry |
+| M4 | HS/PH/GV correction save/list/review, actor provenance | correction actor matrix | PASS | reload + DTO UID privacy |
+| M5 | correction không đổi grade, lock không chặn riêng | original equality/lock tests | PASS | manual-only image/PDF + no grade writes |
+| M6 | shared UI GV/HS/PH upload/view/toggle/correction | component + browser | CONDITIONAL | component tests đạt; browser timeout |
 | M7 | Private Storage và collection từ chối truy cập trực tiếp | Rules emulator | PASS | 309/309, 10 files, exit 0 |
-| M8 | lint app/API strict/non-strict, build, full tests | npm scripts | unresolved | |
-| M9 | Review native Astra xhigh theo yêu cầu mới nhất | source review | in progress | astra_final_review |
+| M8 | lint app/API strict/non-strict, build, full tests | npm scripts | PASS | 3.146 tests, ba typechecks, final build exit 0 |
+| M9 | Review native Astra xhigh theo yêu cầu mới nhất | source review | PASS | astra_final_review, cả diff merge |
 | M10 | source main and Git deployment, checklist truthful | git/CI/Vercel | unresolved | |
 
 ## Runtime/model evidence

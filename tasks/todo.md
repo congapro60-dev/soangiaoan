@@ -5,9 +5,10 @@
 Spec đã duyệt: docs/superpowers/specs/2026-10-15-handmarked-correction-design.md; plan docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md. User xác nhận, bổ sung HS/PH cùng xem bài chữa đúng người; GV/PH được opt-in AI như HS.
 - [x] Backend: private ảnh/PDF chấm tay, mặc định ẩn, toggle/audit, file read đúng quyền.
 - [x] Backend: correction GV/PH lưu/xem/AI, provenance; không sửa grade gốc. Focused API 63/63; lịch sử ảnh HS/PH không biến mất khi ẩn điểm. Manual-only không đưa điểm ẩn vào AI.
-- [ ] UI: GV upload/toggle, HS/PH xem; card bài chữa nộp hộ và AI chung.
-- [ ] Test quyền/race/replay/lock/projection; lint app/API hai compiler, build, Rules.
-- [ ] Review độc lập + khác hãng; QA thật/fixture; push main và Git deployment.
+- [x] UI: GV upload/toggle, HS/PH xem ảnh trực tiếp; card bài chữa nộp hộ và AI chung. Sửa nhận xét cũ còn hiện khi nguồn đổi, giữ bản nháp.
+- [x] Test quyền/race/replay/lock/projection; lint app/API hai compiler, build, Rules. Full 3.146/3.146; Rules 309/309; final build exit 0.
+- [x] Review native Astra xhigh theo yêu cầu mới nhất, gồm merge main 2407c50. Dừng gọi model bên ngoài.
+- [ ] Push main và theo dõi Git deployment. Full 3.146/3.146, Rules 309/309 đã đạt; QA browser bị timeout, không ghi nhận PASS thật.
 ## Tiếp quản Muse — QA_FIX_PLAN_soangiaoan.md
 
 User xác nhận Muse đã dừng, Codex tiếp quản. Base a2f30d1, feature branch codex/muse-qa-followup.

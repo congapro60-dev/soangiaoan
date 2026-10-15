@@ -2,26 +2,33 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAdminDb, gradeSubmissionCore, stripAnswerKey, type CoreAnswer, type CoreQuestion } from './_exam-core.js';
 import { getAuth } from 'firebase-admin/auth';
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { getBearerToken } from './_ai-gateway-core.js';
 
-// ponytail: local best-effort code lookup throttle; distributed enforcement belongs at the ingress.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 120;
+/**
+ * Giới hạn tần suất tìm mã đề THEO IP, đếm chung trên Firestore (`rateLimits/{ipHash_phút}`) — bộ đếm trong bộ nhớ
+ * từng dùng ở đây không có tác dụng trên Vercel (mỗi instance / cold start đếm lại từ 0).
+ * Ngưỡng rộng vì cả trường dùng chung một IP mạng; lỗi Firestore thì cho qua (không chặn học sinh vào thi).
+ * Doc có `expireAt` để bật TTL policy của Firestore dọn tự động.
+ */
+const RATE_LIMIT_MAX = 300;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // mỗi phút
 
-const checkRateLimit = (ip: string): boolean => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitMap) if (now >= entry.resetAt) rateLimitMap.delete(key);
-  const entry = rateLimitMap.get(ip);
-  if (!entry) {
-    if (rateLimitMap.size >= 2000) rateLimitMap.delete(rateLimitMap.keys().next().value!);
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+const checkRateLimit = async (db: FirebaseFirestore.Firestore, ip: string, now = Date.now()): Promise<boolean> => {
+  const window = Math.floor(now / RATE_LIMIT_WINDOW_MS);
+  const key = `${createHash('sha256').update(ip).digest('hex').slice(0, 24)}_${window}`;
+  const ref = db.collection('rateLimits').doc(key);
+  try {
+    return await db.runTransaction(async tx => {
+      const count = Number((await tx.get(ref)).data()?.count) || 0;
+      if (count >= RATE_LIMIT_MAX) return false;
+      tx.set(ref, { count: count + 1, scope: 'exam-code', expireAt: new Date((window + 2) * RATE_LIMIT_WINDOW_MS) });
+      return true;
+    });
+  } catch (error) {
+    console.warn('[exam] không đếm được lượt tìm mã đề, cho qua', error);
     return true;
   }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
 };
 
 // Một hàm phục vụ cả 2 việc để không vượt giới hạn số Serverless Function:
@@ -45,7 +52,7 @@ const handleGet = async (req: VercelRequest, res: VercelResponse) => {
   if (!examId) {
     const forwarded = req.headers?.['x-vercel-forwarded-for'] || req.headers?.['x-forwarded-for'];
     const ip = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket?.remoteAddress || 'unknown').slice(0, 100);
-    if (!checkRateLimit(ip)) return res.status(429).json({ error: 'Quá nhiều lượt tìm mã đề, vui lòng thử lại sau.' });
+    if (!await checkRateLimit(getAdminDb(), ip)) return res.status(429).json({ error: 'Quá nhiều lượt tìm mã đề, vui lòng thử lại sau.' });
   }
 
   const db = getAdminDb();

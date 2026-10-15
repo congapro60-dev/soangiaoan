@@ -1,6 +1,6 @@
 import { handleCorrectionAttemptAction } from './_correction-attempts.js';
 import { handleHandMarkedWorkAction, handMarkedProjection } from './_hand-marked-work.js';
-import { assignmentSolutionInput } from './_assignment-solutions.js';
+import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
 import { workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -245,7 +245,10 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
       }
     }
   }
-  const urlsToDelete = urls.filter(url => !protectedUrls.has(url.trim()));
+  // Bài chữa gắn theo bài nộp này: xoá bài nộp thì bài chữa + ảnh chữa cũng không còn chỗ nào mở được — dọn cùng.
+  const corrections = await db.collection('correctionAttempts').where('submissionId', '==', submissionId).get();
+  const correctionUrls = corrections.docs.flatMap(doc => [...urlsFromValue(doc.data().fileUrls), ...urlsFromValue(doc.data().attachments)]);
+  const urlsToDelete = [...urls.filter(url => !protectedUrls.has(url.trim())), ...correctionUrls];
   let deletedFiles: number;
   try {
     deletedFiles = await deleteStorageFiles(urlsToDelete);
@@ -284,6 +287,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   const feedback = await db.collection('submissionFeedback').where('submissionId', '==', submissionId).get();
   for (const doc of feedback.docs) await doc.ref.delete();
   for (const doc of [...handMarkedReviews.docs, ...handMarkedAudit.docs]) await doc.ref.delete();
+  for (const doc of corrections.docs) await doc.ref.delete();
   await submissionRef.delete();
   deleted = true;
 
@@ -478,8 +482,11 @@ const handleSaveSubmissionGrade = async (
   if (!input) return res.status(422).json({ error: 'Điểm hoặc nội dung chấm tay không hợp lệ.' });
 
   const now = new Date().toISOString();
-  const grade = buildManualGrade(owned.submission, input, now);
-  if (owned.submission.assignmentId && grade.questionResults) { const assignment = (await db.collection('assignments').doc(owned.submission.assignmentId).get()).data(); if (assignment) { const version = workedSolutionVersion(assignmentSolutionInput(assignment, owned.submission.examCode || '')); grade.questionResults = grade.questionResults.map(row => row.teacherEdited && row.workedSolution ? { ...row, workedSolutionVersion: version, workedSolutionStatus: 'ready' as const } : row); } }
+  const assignment = owned.submission.assignmentId ? (await db.collection('assignments').doc(owned.submission.assignmentId).get()).data() : undefined;
+  // Đối chiếu với đúng bảng thầy cô đã thấy (đã gắn lời giải chung), không với bản lưu thô.
+  const seen = assignment ? attachAssignmentSolutions(owned.submission, assignment).grade?.questionResults : undefined;
+  const grade = buildManualGrade(owned.submission, input, now, seen);
+  if (assignment && grade.questionResults) { const version = workedSolutionVersion(assignmentSolutionInput(assignment, owned.submission.examCode || '')); grade.questionResults = grade.questionResults.map(row => row.teacherEdited && row.workedSolution ? { ...row, workedSolutionVersion: version, workedSolutionStatus: 'ready' as const } : row); }
   const nextSubmission = {
     ...owned.submission,
     status: 'graded',

@@ -1,12 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StudentAssignmentView, SubmissionDoc } from '../../../lib/classroom/types';
 const state = vi.hoisted(() => ({ index: 0, values: [] as unknown[] }));
 vi.mock('react', async original => ({ ...await original<typeof import('react')>(), useState: (initial: unknown) => {
   const index = state.index++;
   return [index < state.values.length ? state.values[index] : typeof initial === 'function' ? (initial as () => unknown)() : initial, () => undefined];
 } }));
-import { ParentAssignmentWorkspace } from './ParentAssignmentWorkspace';
+import { ParentAssignmentWorkspace, shouldPollParentDetail } from './ParentAssignmentWorkspace';
 const assignment = { id: 'a', title: 'Bài của con', type: 'upload', createdAt: '', isOpen: true } as StudentAssignmentView;
 beforeEach(() => { state.index = 0; });
 it('PH giữ trang ảnh xác nhận sau công bố để đọc được dấu trên ảnh mới', () => {
@@ -38,4 +38,13 @@ it('PH sees only published hand-marked files and can submit a correction under p
   state.values = [[assignmentHandMarked], [submission], '', 1, { assignment: assignmentHandMarked, submissions:[submission] }, 'a', null, '', false, 0];
   const html = renderToStaticMarkup(<ParentAssignmentWorkspace credentials={{role:'parent',joinCode:'private',studentId:'child',pin:'secret'}}/>);
   expect(html).toContain('Bản chấm tay của giáo viên'); expect(html).toContain('Đã chấm.pdf'); expect(html).toContain('Nộp hộ bài chữa / làm lại'); expect(html).not.toContain('secret');
+});
+
+describe('phụ huynh · tự làm mới khi chờ chấm', () => {
+  const sub = (id: string, createdAt: string, status: SubmissionDoc['status']) => ({ id, createdAt, status } as SubmissionDoc);
+  it('chỉ xét lượt mới nhất: bài cũ kẹt "Đã nộp" không làm trang hỏi máy chủ mãi', () => {
+    expect(shouldPollParentDetail([sub('cu', '2026-10-01T00:00:00Z', 'submitted'), sub('moi', '2026-10-02T00:00:00Z', 'graded')])).toBe(false);
+    expect(shouldPollParentDetail([sub('cu', '2026-10-01T00:00:00Z', 'graded'), sub('moi', '2026-10-02T00:00:00Z', 'grading')])).toBe(true);
+    expect(shouldPollParentDetail([])).toBe(false);
+  });
 });

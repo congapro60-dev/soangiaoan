@@ -24,7 +24,13 @@ const MAX_FIELD = 4000;
 export const mergeTeacherQuestionResults = (
   previous: QuestionResult[],
   input: unknown,
+  /**
+   * Bảng thầy cô ĐANG NHÌN khi sửa (đã gắn lời giải chung của bài). Hộp sửa điểm gửi lại lời giải của mọi câu,
+   * nên lời giải chỉ tính là "thầy cô sửa" khi khác chữ thầy cô đã thấy — không thì một lần sửa điểm khoá cả bảng.
+   */
+  seen: QuestionResult[] = previous,
 ): QuestionResult[] => {
+  const seenSolution = new Map(seen.map(row => [row.questionNumber, row.workedSolution ?? '']));
   if (!Array.isArray(input)) return previous;
   const byNumber = new Map<string, Record<string, unknown>>();
   for (const item of input) {
@@ -40,6 +46,8 @@ export const mergeTeacherQuestionResults = (
   return previous.map(old => {
     const raw = byNumber.get(old.questionNumber);
     if (!raw) return old;
+    const solution = typeof raw.workedSolution === 'string' ? raw.workedSolution.slice(0, 16000) : undefined;
+    const solutionEdited = solution !== undefined && solution !== (seenSolution.get(old.questionNumber) ?? old.workedSolution ?? '');
     const score = Number(raw.score);
     const status = STATUSES.find(s => s === raw.status) || old.status;
     let next: QuestionResult = {
@@ -52,12 +60,12 @@ export const mergeTeacherQuestionResults = (
       explanation: text(raw.explanation, old.explanation, true),
       correction: text(raw.correction, old.correction),
       nextPractice: text(raw.nextPractice, old.nextPractice),
-      ...(typeof raw.workedSolution === 'string' ? { workedSolution: raw.workedSolution.slice(0, 16000), workedSolutionStatus: raw.workedSolution.trim() ? 'ready' as const : 'unavailable' as const } : {}),
+      ...(solutionEdited ? { workedSolution: solution, workedSolutionStatus: solution.trim() ? 'ready' as const : 'unavailable' as const } : {}),
     };
     const changed = next.score !== old.score || next.status !== old.status
       || next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer
       || next.explanation !== old.explanation || next.correction !== old.correction || next.nextPractice !== old.nextPractice
-      || next.errorType !== old.errorType || next.workedSolution !== old.workedSolution;
+      || next.errorType !== old.errorType || solutionEdited;
     if (next.expectedAnswer !== old.expectedAnswer) next = invalidateWorkedSolution(next);
     // Client chỉ được bỏ dấu; đổi phần đọc/status/đáp án làm tọa độ cũ không còn đáng tin.
     const removedByTeacher = Array.isArray(raw.photoMarks) && raw.photoMarks.length === 0;
@@ -78,6 +86,8 @@ export const buildManualGrade = (
   submission: SubmissionDoc,
   input: ManualGradeInput,
   now: string,
+  /** Bảng câu thầy cô đã thấy (có gắn lời giải chung); xem `mergeTeacherQuestionResults`. */
+  seenQuestionResults?: QuestionResult[],
 ): SubmissionGrade => {
   const maxScore = Number.isFinite(input.maxScore) && input.maxScore > 0 ? input.maxScore : 10;
   const rawScore = Number.isFinite(input.score) ? input.score : 0;
@@ -92,7 +102,7 @@ export const buildManualGrade = (
     strengths: oldGrade?.strengths || [],
     weaknesses: oldGrade?.weaknesses || [],
     // Thầy cô đã chốt bảng điểm: câu nào máy còn đang hỏi lại học sinh thì đóng lại, em không phải trả lời nữa.
-    questionResults: mergeTeacherQuestionResults(oldGrade?.questionResults || [], input.questionResults)
+    questionResults: mergeTeacherQuestionResults(oldGrade?.questionResults || [], input.questionResults, seenQuestionResults ?? oldGrade?.questionResults ?? [])
       .map(q => (isClarifyPending(q) && q.clarify ? { ...q, clarify: { ...q.clarify, state: 'done' as const } } : q)),
     weakTopics: input.weakTopics.map(topic => topic.trim()).filter(Boolean),
     gradedWithoutAnswerKey: oldGrade?.gradedWithoutAnswerKey ?? false,

@@ -1,6 +1,6 @@
 # QA bản chấm tay / bài chữa nộp hộ — 15/10/2026
 
-**Status: IN PROGRESS** — chưa coi kiểm thử tự động là QA tài khoản thật.
+**Status: CONDITIONAL** — kiểm thử tự động đạt; QA tài khoản thật chưa thực hiện được.
 
 ## Phạm vi
 
@@ -21,6 +21,12 @@
 | Firestore/Storage Rules | 309/309, 10 files; emulator exit 0 |
 | Deploy Rules | smartplan-ai-14200, firestore:rules + storage, exit 0 |
 | Review | Native gpt-6-astra xhigh; sửa stale assessment và cleanup/fence xóa |
+| Tích hợp main | Giữ cả feature 15ad4e4 và main 2407c50; 68/68 ca liên quan đạt |
+| Full suite sau tích hợp | 3.146/3.146, 295 files, exit 0 |
+| TypeScript sau tích hợp | App, API strict và non-strict đều exit 0 |
+| Build cuối sau tích hợp | Exit 0; index 1.532,10 kB, cảnh báo chunk lớn có sẵn |
+| Race upload/xóa | 66/66 ca tập trung; thêm lease xóa 10 phút, retry sau lỗi; token private bị xóa |
+| Review merge cuối | Astra PASS; không mất cleanup, quyền hay polling PH |
 
 ## Giới hạn và dữ liệu thật
 

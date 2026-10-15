@@ -174,15 +174,14 @@ describe('cầu nối SSM — service worker', () => {
       expect(tabsRemove).toHaveBeenCalledWith(99);
       expect(res.ok).toBe(true);
     });
-    it('keeps an auto-woken attachment target available for teacher review', async () => {
+    it('write op with no SSM tab opens a VISIBLE SSM tab and asks the teacher to open the form — no hidden tab, no fake success', async () => {
       tabsQuery.mockResolvedValue([]);
-      fetchMock.mockResolvedValue(jsonResponse(200, { data: { email: 'teacher@example.test' } }));
-      tabsSendMessage.mockImplementation(async (_id, message) => message.kind === 'ssm-session' ? { token: 'current', workspace: 'branch' } : { ok: true });
-      const { tabs } = chrome as unknown as { tabs: { onUpdated: { addListener: ReturnType<typeof vi.fn> } } };
-      tabsCreate.mockImplementation(async () => { setTimeout(() => tabs.onUpdated.addListener.mock.calls.at(-1)?.[0](99, { status: 'complete' }), 10); return { id: 99 }; });
+      tabsCreate.mockResolvedValue({ id: 99 });
       const result = await ask({ op: 'attachLoFile', params: { fileData: 'AA==', fileName: 'scores.xlsx', expectedEmails: ['teacher@example.test'] } });
-      expect(result.ok).toBe(true); expect(tabsRemove).not.toHaveBeenCalled();
-      expect(tabsSendMessage).toHaveBeenCalledWith(99, expect.objectContaining({ kind: 'ssm-attach-file' }));
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('vào đúng trang cần điền');
+      expect(tabsCreate).toHaveBeenCalledWith(expect.objectContaining({ active: true }));
+      expect(tabsSendMessage).not.toHaveBeenCalledWith(99, expect.objectContaining({ kind: 'ssm-attach-file' }));
     });
   });
 });

@@ -9,7 +9,7 @@
  * - Tới khi MỌI câu được làm rõ (hoặc bỏ qua) mới đồng bộ minh chứng vào hồ sơ học tập (trước đó điểm còn tạm).
  */
 import type { VercelResponse } from '@vercel/node';
-import { actorStamp, assertActorCurrent, authorizeSubmissionActor, discardActorFiles, consumeActorGrant, prepareActorFiles, SubmissionAccessError } from './_submission-actors.js';
+import { actorStamp, assertActorCurrent, authorizeSubmissionActor, discardActorFiles, consumeActorGrant, prepareActorFiles, releasePendingSources, SubmissionAccessError } from './_submission-actors.js';
 import {
   answerClarifyRow, buildClarifyRows, canonicalAnswer, failPhotoRegrade, finishPhotoRegrade,
   isOwnClarifyPhotoUrl, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
@@ -175,6 +175,7 @@ const handleClarifyPhoto = async (db: Db, body: Body, res: VercelResponse, deps:
   const taken = claimed as { submission: SubmissionDoc; question: QuestionResult } | null;
   if (!taken && prepared) await discardActorFiles(prepared);
   if (!taken) return void res.status(409).json({ error: refusal || 'Chưa gửi được ảnh.' });
+  if (prepared) await releasePendingSources(prepared);
 
   const work = (async () => {
     let regraded: QuestionResult | null = null;

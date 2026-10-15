@@ -116,7 +116,11 @@ export const prepareActorFiles = async (db: Db, body: Data, actor: ActorContext,
   try {
   for (const [index, source] of sourceFiles.entries()) {
     const file = bucket.file(source.path);
-    const [metadata] = await file.getMetadata();
+    // Ảnh của lượt được cấp chưa tải lên xong (client gửi sớm) → báo rõ cho người nộp, không thành lỗi máy chủ 500.
+    const [metadata] = await file.getMetadata().catch((reason: { code?: number }) => {
+      if (grant && reason?.code === 404) error(422, 'Ảnh chưa tải lên xong. Chờ tải xong rồi bấm nộp lại.');
+      throw reason;
+    });
     if (!metadata || !mimeAllowed(metadata.contentType || '') || Number(metadata.size) < 1 || Number(metadata.size) >= 20 * 1024 * 1024
        || grant && (metadata.contentType !== source.mimeType || Number(metadata.size) !== source.size || metadata.name !== source.path)) error(422, 'Ảnh không khớp loại, kích thước hoặc đường dẫn được cấp.');
     const path = purpose === 'hand_marked'
@@ -138,6 +142,35 @@ export const consumeActorGrant = async (db: Db, tx: FirebaseFirestore.Transactio
   const fresh = (await tx.get(ref)).data();
   if (!fresh || !grantOwner(fresh, actor, assignmentId, purpose) || JSON.stringify(fresh.files) !== JSON.stringify(prepared.grant?.files) || fresh.submissionId !== prepared.grant?.submissionId || fresh.questionNumber !== prepared.grant?.questionNumber) error(409, 'Lượt tải ảnh đã dùng hoặc đã thay đổi.');
   return ref;
+};
+/**
+ * Sau khi lượt nộp đã ghi xong: ảnh đã chép sang `accepted-homework/`, bản tạm ở `pending-homework/` không còn dùng — xoá để
+ * mỗi bài không chiếm dung lượng gấp đôi. Lỗi xoá không làm hỏng lượt nộp đã thành công.
+ */
+export const releasePendingSources = async (prepared: Awaited<ReturnType<typeof prepareActorFiles>>): Promise<void> => {
+  const files = (prepared.grant?.files || []) as Array<{ path?: unknown }>;
+  const paths = files.map(file => String(file.path || '')).filter(path => path.startsWith('pending-homework/'));
+  if (!paths.length) return;
+  const bucket = getAdminStorage();
+  await Promise.allSettled(paths.map(path => bucket.file(path).delete()));
+};
+/** Một học sinh không giữ quá chừng này lượt tải ảnh chưa dùng cùng lúc (chặn xin lượt liên tục để làm đầy kho). */
+const MAX_OPEN_GRANTS = 10;
+/**
+ * Dọn lượt tải ảnh đã hết hạn mà chưa dùng (bỏ dở) của học sinh này: xoá ảnh tạm + lượt. Trả số lượt còn hạn chưa dùng.
+ */
+const sweepStudentGrants = async (db: Db, studentId: string, now: number): Promise<number> => {
+  const snap = await db.collection('submissionUploadGrants').where('studentId', '==', studentId).where('consumed', '==', false).get();
+  const bucket = getAdminStorage();
+  let open = 0;
+  for (const doc of snap.docs) {
+    const grant = doc.data();
+    if (Number(grant.expiresAt) > now) { open += 1; continue; }
+    const paths = (Array.isArray(grant.files) ? grant.files : []).map((file: Data) => String(file?.path || '')).filter((path: string) => path.startsWith('pending-homework/'));
+    await Promise.allSettled(paths.map((path: string) => bucket.file(path).delete()));
+    await doc.ref.delete().catch(() => undefined);
+  }
+  return open;
 };
 export const discardActorFiles = async (prepared: Awaited<ReturnType<typeof prepareActorFiles>>): Promise<void> => { const bucket = getAdminStorage(); await Promise.allSettled(uniqueStoragePaths(prepared.fileUrls, bucket.name).filter(path => path.startsWith('accepted-homework/') || path.startsWith('hand-marked-homework/')).map(path => bucket.file(path).delete())); };
 interface Projectors { projectStudentAssignment(id: string, data: Data): StudentAssignmentView; projectStudentSubmission(id: string, data: Data): SubmissionDoc }
@@ -188,6 +221,7 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
     await db.runTransaction(tx => assertActorCurrent(db, tx, actor, assignmentId, !correction));
     if (body.action === 'issueSubmissionUpload') {
       const files = filesInput(body.files), grantId = randomUUID(), expiresAt = Date.now() + 10 * 60 * 1000;
+      if (await sweepStudentGrants(db, actor.studentId, Date.now()) >= MAX_OPEN_GRANTS) error(429, 'Đang có quá nhiều lượt tải ảnh chưa dùng. Chờ vài phút rồi thử lại.');
       const purpose = body.purpose === 'hand_marked' ? 'hand_marked' : body.purpose === 'correction' ? 'correction' : body.purpose === 'clarification' ? 'clarification' : 'submission';
       let questionScope = {};
       if (purpose === 'hand_marked' && files.some(file => !file.mimeType.startsWith('image/') && file.mimeType !== 'application/pdf')) error(422, 'Bản chấm tay chỉ nhận ảnh hoặc PDF.');
@@ -227,6 +261,7 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
+    await releasePendingSources(prepared);
     res.status(200).json({ submission: created }); return true;
   } catch (reason) { if (reason instanceof SubmissionAccessError) { res.status(reason.statusCode).json({ error: reason.message }); return true; } throw reason; }
 };

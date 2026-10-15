@@ -514,3 +514,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Không tự thu hẹp quyền đã được người dùng duyệt** — GV/PH nộp hộ và gọi AI nhận xét bài chữa đã được xác nhận; yêu cầu thêm quyền xem không thu hồi quyền AI. Luôn đối chiếu quyết định trước khi trả lời hoặc sửa authorization. *(2026-10-15)*
 
 - **Ưu tiên lựa chọn model mới nhất của người dùng** — Trong phiên 15/10, người dùng yêu cầu ngừng gọi model ngoài, dùng native `gpt-6-astra` mức `xhigh` cho subagent. Yêu cầu này thay quy trình review khác hãng qua router; không tiếp tục gọi ngoài vì checklist cũ. Không tuyên bố đã đổi model phiên chính khi công cụ không hỗ trợ.
+
+## 2026-10-15 — Đường đọc điểm mới cho HS/PH phải gác MỌI nguồn điểm
+- Sổ điểm (liên kết bài giao) gác "chỉ điểm đã duyệt" cho bài ảnh nhưng quên đề online → điểm AI tạm lọt ra HS/PH qua cột liên kết, TB và chuyên cần. Mỗi khi thêm một đường đọc điểm cho HS/PH: liệt kê đủ các nguồn (`submissions`, `examSubmissions`, sổ tay) và dùng đúng hàm gác sẵn có (`teacherApproved`, `isOnlineAttemptOfficial`), kèm test "chưa duyệt → HS không thấy" cho TỪNG nguồn.
+- Sửa qua trình soạn GitHub từng file một dễ ghi đè bản sửa trước (1111588 xoá import động của 877bc5a). Sau loạt commit kiểu này phải rà lại diff tổng, không tin từng commit lẻ.
+- Hộp sửa gửi lại cả bảng mà bảng đó có phần GHÉP LÚC ĐỌC (lời giải chung) thì so "đã sửa" với bản người dùng NHÌN THẤY, không với bản lưu thô — không thì một lần sửa khoá cả bảng.

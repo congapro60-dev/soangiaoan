@@ -4,7 +4,7 @@ import { assignmentSolutionInput } from './_assignment-solutions.js';
 import { workedSolutionVersion } from './_worked-solutions.js';
 import { parseLooseJson } from '../src/utils/jsonRepair.js';
 import type { CorrectionAttemptDoc, CorrectionAssessment, SubmissionDoc } from '../src/lib/classroom/types.js';
-import { actorStamp, assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
+import { actorStamp, assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, releasePendingSources, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -69,6 +69,7 @@ export const handleCorrectionAttemptAction = async (db: Db, body: Data, res: Ver
         tx.create(db.collection(COL).doc(attemptId), attempt); tx.update(grantRef!, { consumed: true, consumedAt: now, correctionAttemptId: attemptId });
       });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
+    await releasePendingSources(prepared);
     res.status(200).json({ attempt: projectCorrectionAttempt(attemptId, attempt!, undefined, actor.role) }); return true;
   } catch (reason) { if (reason instanceof SubmissionAccessError) { res.status(reason.statusCode).json({ error: reason.message }); return true; } throw reason; }
 };

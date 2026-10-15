@@ -45,6 +45,16 @@ describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu'
     expect(html).toContain('Đúng hạn');
     expect(html).not.toContain('Quá hạn chưa nộp');
   });
+  it('đề online mở ra làm nhưng CHƯA nộp, đã quá hạn: báo "Quá hạn chưa nộp", không phải "Đúng hạn"', () => {
+    const assignments = [assignment('exam', { type: 'exam', examId: 'e', dueAt: '2026-10-13T12:00:00Z' })];
+    const props = { session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments, submissions: [],
+      onlineSubmissions: [{ id: 'online', examId: 'e', assignmentId: 'exam', studentId: 'own', status: 'in_progress', startedAt: '2026-10-13T09:00:00Z', answers: [], maxScore: 10 }],
+      profile: null, scores: null, notifications: [], pendingFiles: [], practiceAnswers: {}, uploadRef: { current: null },
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(html).toContain('Quá hạn chưa nộp');
+    expect(html).not.toContain('Đúng hạn');
+  });
   it('300 bài / 500 lượt: một dòng mỗi bài; 20 dòng một trang; tìm được bài cũ; tổng không theo trang', () => {
     const assignments = Array.from({ length: 300 }, (_, index) => assignment(String(index)));
     const submissions = Array.from({ length: 500 }, (_, index) => work(`s${index}`, String(index % 300), {

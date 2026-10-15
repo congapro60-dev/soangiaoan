@@ -289,3 +289,40 @@ it('golden bare algebra and command expressions keep their mathematical boundari
     expect(out).not.toContain('$Giá');
   }
 });
+
+it('từ tiếng Việt ngắn không dấu ("ta", "em", "ra") và ngoặc mở của lời giải thích không bị kéo vào công thức', () => {
+  const cases: Array<[string, string, string]> = [
+    [String.raw`Thay x=1 vào \frac{1}{2} ta được`, ' ta được', '$ta'],
+    ['Vì x = 1 em sai', ' em sai', 'em$'],
+    [String.raw`suy ra \sqrt{4} = 2 ta chọn A`, ' ta chọn A', 'ta$'],
+    ['Do đó f(x) = 3x + 2 = 5 (thỏa mãn).', ' (thỏa mãn).', '($'],
+  ];
+  for (const [input, prose, leak] of cases) {
+    const out = sanitizeDisplayText(input);
+    expect(out).toContain(prose);
+    expect(out).not.toContain(leak);
+    expect(assertClean(out)).toBe(true);
+    expect(sanitizeDisplayText(out)).toBe(out);
+  }
+  // Ký hiệu toán 2 chữ cái vẫn ở trong công thức; dấu câu đầu mảnh ở ngoài
+  expect(sanitizeDisplayText('y = ln x + 2')).toBe('$y = ln x + 2$');
+  expect(sanitizeDisplayText('Đáp án: x = 2 ( loại ) và x = 3')).toBe('Đáp án: $x = 2$ ( loại ) và $x = 3$');
+});
+
+it('công thức có khoảng trắng trước lệnh LaTeX (\\int, \\sum, phép cộng…) được bọc trọn, không cắt ở dấu cách', () => {
+  const cases: Array<[string, string]> = [
+    [String.raw`\int_0^1 x dx = \frac{1}{2}`, String.raw`$\int_0^1 x dx = \frac{1}{2}$`],
+    [String.raw`Tính \int_0^1 x dx = \frac{1}{2} nên đúng`, String.raw`Tính $\int_0^1 x dx = \frac{1}{2}$ nên đúng`],
+    [String.raw`\sum_{k=1}^{n} k = \frac{n(n+1)}{2}`, String.raw`$\sum_{k=1}^{n} k = \frac{n(n+1)}{2}$`],
+    [String.raw`Ta có y = 2x + \frac{1}{2} nên đúng`, String.raw`Ta có $y = 2x + \frac{1}{2}$ nên đúng`],
+    [String.raw`Vì a = \sqrt{4} em sai`, String.raw`Vì $a = \sqrt{4}$ em sai`],
+  ];
+  for (const [input, expected] of cases) {
+    const out = sanitizeDisplayText(input);
+    expect(out).toBe(expected);
+    expect(assertClean(out)).toBe(true);
+    expect(sanitizeDisplayText(out)).toBe(out);
+  }
+  // Lời dẫn tiếng Việt trước công thức vẫn ở ngoài
+  expect(sanitizeDisplayText(String.raw`Ta tính \frac{1}{2} rồi kết luận.`)).not.toContain('$Ta');
+});
