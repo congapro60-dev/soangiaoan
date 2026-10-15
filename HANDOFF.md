@@ -11,7 +11,9 @@ Inventory production read-only đúng chủ dự án: 468 lượt nộp ảnh, 1
 
 Đã sửa: schema bắt buộc hai mảng tùy chọn; pass định vị riêng không đổi grade; UI hiển thị `readingRegions` trung tính cho mọi câu chưa chắc; merge geometry giữ điểm, ảnh, cờ bỏ dấu; source fingerprint chặn đáp án đổi trong lúc chấm; claim transaction chặn sửa tay mới; queue lease 6 phút, pause/retry/idempotency, job allowlist cố định. Quota GV/ngày chỉ bypass khi job admin có `allowDailyQuotaBypass=true`, user đã duyệt waiver riêng đợt này; quota/chi phí AI còn lại giữ nguyên.
 
-Chưa chạy batch production. 31 lượt không gắn assignment sẽ skip; 437 lượt gắn assignment chia 4 job, có checkpoint/đếm lỗi. Chạy mẫu `Đề cương số 4` trước, kiểm geometry + điểm/approval giữ nguyên, rồi mới dispatch 4 job. Workflow `.github/workflows/grading-refresh.yml` dùng cron secret đã có; không tự tạo job ngoài script quản trị.
+Đã chạy mẫu production `GHKI - Đề cương số 4`: 1/1 thành công, 23 vùng, điểm 8.85 và chưa duyệt giữ nguyên. Batch 436 lượt đã xử lý: 127 `graded`, 292 `failed_preserved`, 17 `failed`; 31 lượt không gắn assignment được skip. Lỗi chính Gemini provider 429, kèm 503/timeout/system; grade cũ luôn giữ.
+
+Retry 309 lượt lỗi chạy tuần tự 50 lượt rồi pause do tiếp tục 429. Job `photo-refresh-20261015-retry` giữ cursor để chạy tiếp khi Gemini quota/key hồi phục; không chạy lại lượt đã thành công. Workflow dùng cron secret, checkpoint và quota waiver chỉ từ job admin đã tạo.
 
 ## Căn cột bài nộp GV — 15/10
 

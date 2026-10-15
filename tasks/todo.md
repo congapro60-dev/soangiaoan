@@ -8,8 +8,10 @@ Người dùng cung cấp ảnh QA của Claude, yêu cầu kiểm lỗi và ch�
 - [x] Inventory chỉ đọc đúng chủ 3 lớp: 468 lượt, 1.130 ảnh; 7 lượt có geometry; 31 lượt không gắn assignment. Snapshot riêng ngoài Git, không ghi PIN/token/dữ liệu HS vào checklist.
 - [x] Tái hiện mẫu Đề cương số 4: 7 ảnh, 21 câu, không geometry. Root cause: schema mẫu thiếu fields; location fallback thiếu; UI bỏ `readingRegions` sau câu unreadable.
 - [x] Sửa nguyên nhân; 185 focused tests pass. Giữ sửa tay/ảnh gốc; source fingerprint chặn đáp án đổi giữa chừng; fresh manual edit claim chặn overwrite.
-- [ ] Chạy lại có nhật ký và checkpoint, dùng model chấm đang cấu hình; thống kê thành công/lỗi/thiếu nguồn. Kết quả AI mới qua luật duyệt hiện có, không tự sửa điểm sổ tay. Sample job tạo sau CI/deployment.
-- [ ] Cập nhật HANDOFF, main/CI/production; báo riêng giới hạn QA thật và chất lượng định vị.
+- [x] Mẫu production `GHKI - Đề cương số 4`: 1/1 thành công, 23 vùng; điểm 8.85 và chưa duyệt giữ nguyên.
+- [!] Batch 436: 127 graded, 292 failed_preserved (điểm cũ giữ nguyên), 17 failed. Provider 429/503 là nguyên nhân chính. Retry 309 đã pause ở cursor 50 sau khi tiếp tục 429.
+- [ ] Khi Gemini quota/key hồi phục, tiếp tục `photo-refresh-20261015-retry`; chỉ chạy lại lượt lỗi.
+- [x] HANDOFF/main cập nhật; source `00b82b2`, CI 3.163/3.163.
 
 ## Căn cột danh sách bài nộp GV — 15/10/2026
 

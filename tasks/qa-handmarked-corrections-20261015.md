@@ -36,3 +36,9 @@
 - Không nộp ảnh giả vào lớp thật, không thay điểm, không gửi tin cho HS/PH.
 - URL file chấm tay chỉ cấp sau kiểm quyền, hạn 60 giây. Tắt công bố chặn lượt mở mới; ảnh đã tải/đang đọc không thể thu hồi từ thiết bị.
 - Chỉ kiểm chất lượng nội dung AI bằng contract và fixture trong lượt này; chưa đánh giá trên ảnh bài chữa thật mới.
+
+## Đợt chạy lại dấu/điểm — kết quả
+
+- Inventory: 468 lượt ảnh, 1.130 ảnh; 437 lượt gắn assignment, 31 lượt không gắn nguồn.
+- Mẫu Đề cương số 4: 7 ảnh/21 câu, từ 0 lên 23 vùng; điểm 8.85 và teacherApproved=false giữ nguyên.
+- Batch 436: 127 `graded`, 292 `failed_preserved`, 17 `failed`. Retry 309 dừng cursor 50 vì provider tiếp tục 429. Không claim toàn bộ đã chấm lại.
