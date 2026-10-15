@@ -20,7 +20,7 @@ export interface MathToken {
 }
 
 /** Lệnh LaTeX phổ biến — xuất hiện NGOÀI vùng $...$ nghĩa là dữ liệu lỗi cần vá. */
-const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)(?![A-Za-z])/;
+const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne|int|iint|oint|sum|prod|partial|nabla|forall|exists|cdots|ldots|dots|circ|angle|perp|parallel|triangle|widehat|overrightarrow|bar|dfrac|tfrac|binom|equiv|sim|varphi|phi|rho|tau|epsilon|varepsilon|Omega|Sigma|Pi|Gamma|Lambda|Theta|Phi|emptyset|varnothing|setminus|max|min|exp|arcsin|arccos|arctan|rightarrow|leftarrow|Leftarrow|mapsto|implies|iff)(?![A-Za-z])/;
 
 /**
  * Dữ liệu chấm cũ đôi khi làm mất dấu `\\` khi đi qua JSON, ví dụ `D in SA`.
@@ -181,10 +181,29 @@ const splitBareText = (s: string): string[] => {
   return chunks;
 };
 
+/** Ký hiệu toán viết bằng chữ thường gặp, đứng riêng giữa các dấu cách (vi phân, hàm). */
+const MATH_WORDS = new Set(['dx', 'dy', 'dz', 'dt', 'du', 'dv', 'ln', 'lg', 'tg', 'sin', 'cos', 'tan', 'cot', 'log', 'max', 'min', 'lim', 'mod']);
+const isMathToken = (token: string): boolean => /^[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^|']+$/.test(token)
+  && (/[^A-Za-z]/.test(token) || token.length === 1 || /^[A-Z]{2,4}$/.test(token) || MATH_WORDS.has(token));
+
+/**
+ * Công thức bắt đầu từ đâu trong phần đứng trước lệnh LaTeX đầu tiên: lùi qua TỪNG cụm cách bằng dấu cách khi cụm đó
+ * là ký hiệu toán (`y`, `=`, `2x`, `+`, `dx`, tên hình `AB`…), dừng ở chữ thường (`Ta`). Trước đây chỉ lùi tới dấu cách gần nhất
+ * nên `y = 2x + \frac{1}{2}` bị cắt thành `y = 2x $+ \frac{1}{2}$`.
+ */
 const mathStartBeforeCommand = (prefix: string): number => {
-  const trimmed = prefix.trimEnd();
-  const match = trimmed.match(/[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^]+$/);
-  return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
+  let start = prefix.length;
+  for (;;) {
+    const match = prefix.slice(0, start).match(/(\S+)\s*$/);
+    if (!match) return start;
+    if (!isMathToken(match[1])) {
+      // Cụm dính liền ngay trước lệnh (`"M\left(`): như trước, lấy phần đuôi mang dạng ký hiệu toán của cụm đó.
+      if (start !== prefix.length || match[0] !== match[1]) return start;
+      const tail = match[1].match(/[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^]+$/);
+      return tail ? start - tail[0].length : start;
+    }
+    start -= match[0].length;
+  }
 };
 
 /**
