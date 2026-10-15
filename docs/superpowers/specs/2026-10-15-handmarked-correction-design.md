@@ -6,7 +6,7 @@ Cho phép GV tải bản chấm tay (ảnh/PDF) gắn với đúng lượt bài 
 ## Quy tắc dữ liệu
 - Bản chấm tay là evidence dẫn xuất của `submissionId`, revision bất biến, có actor/thời điểm/file metadata.
 - Cờ công bố nằm trên submission, mặc định false: `handMarkedPublishedAt`, `handMarkedPublishedBy` chỉ được server/teacher action ghi.
-- HS/PH chỉ nhận `handMarkedEvidence` khi cờ công bố true và bài chấm/điểm đang đủ quyền xem; GV luôn thấy bản gốc + bản chấm.
+- HS/PH chỉ nhận `handMarkedEvidence` khi cờ công bố true; điểm hệ thống vẫn theo luật duyệt riêng; GV luôn thấy bản gốc + bản chấm.
 - Bản chấm tay không thay `fileUrls`, không thay `grade`, không đổi `teacherApproved`.
 - Bài chữa là `correctionAttempts`, mỗi lượt giữ `submittedBy`; GV/PH upload qua actor grant, AI review opt-in, assessment không có score/maxScore.
 - Khóa chốt chặn bản nộp/bổ sung; không chặn bài chữa riêng.
@@ -37,3 +37,14 @@ Cho phép GV tải bản chấm tay (ảnh/PDF) gắn với đúng lượt bài 
 - GV/PH nộp hộ tạo correction attempt, provenance đúng; AI review không ghi grade/score.
 - Lock chặn upload bản chấm tay/bản nộp; correction vẫn hoạt động.
 - Rules/API/unit, build/lint, browser fixture kiểm UI.
+
+## Contract triển khai — đã duyệt 15/10
+
+- API actions `/api/classroom`: saveHandMarkedWork, setHandMarkedVisibility, readHandMarkedFile; upload qua issueSubmissionUpload purpose hand_marked, scope submissionId.
+- Submission DTO handMarkedEvidence: `{id, files:[{id,name,mimeType,size,kind:'image'|'pdf'}], note, submittedBy, createdAt}`; handMarkedPublished boolean mặc định false, publication audit server-only. Không có storage path/token/URL file trong DTO. Private objects `hand-marked-homework/...`, deny clientStorage.
+- File read action xác minh actor + exact submission/revision/file. Trả signed read URL ngắn hạn 60s với no-store; không tạo Firebase token vĩnh viễn. Tắt công bố chặn các yêu cầu mở tiếp theo; nội dung đã tải không thể thu hồi.
+- Publication ảnh chấm tay độc lập điểm: GV có thể công bố bản chấm tay cả khi chưa có AI grade; điểm hệ thống vẫn tuân teacherApproved. Bản chấm tay có thể tự chứa điểm GV viết trên giấy, nên nút công bố là hành động chủ động riêng của GV.
+- Upload bản chấm tay mới tạo revision bất biến và tự về chưa công bố; so expectedReviewId khi đổi visibility chống công bố nhầm phiên bản. Audit upload/publish/unpublish giữ actor/time/revision.
+- Correction contract: cả teacher/student/parent dùng credentials đúng bài cho list/save/review. Lịch sử ảnh và ghi chú vẫn xem được khi điểm gốc bị ẩn; lưu/đánh giá mới cần điểm hoặc bản chấm tay đã công bố. Khóa bài gốc không chặn correction. submittedBy/reviewedBy do server ghi; không sửa điểm gốc.
+- Nếu chỉ có bản chấm tay công bố, AI dùng ảnh/ghi chú bản đó, không dùng điểm hoặc lời giải AI đang ẩn. Nguồn thay đổi trong lúc đánh giá thì không lưu kết quả cũ. PDF chưa có bộ đọc ảnh phía máy chủ: trả “Chưa đủ căn cứ”, hướng dẫn bổ sung ảnh bản chấm, không đoán và không mất ảnh bài chữa.
+- Nhận xét AI cũ bị ẩn khi nguồn đối chiếu thay đổi hoặc bị thu hồi; ảnh/ghi chú/lịch sử nộp vẫn giữ. HS/PH xem cùng các lượt đúng bài, kể cả GV hoặc PH nộp hộ.

@@ -31,6 +31,7 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { ActorSubmissionUpload } from './ActorSubmissionUpload';
 import { SubmissionFeedback } from './SubmissionFeedback';
 import { CorrectionAttempts } from './CorrectionAttempts';
+import { HandMarkedWork } from './HandMarkedWork';
 import { ClarifyPanel } from './student/ClarifyPanel';
 import { isActionableClarifyQuestion } from '../../../lib/classroom/clarification';
 import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos } from '../../../services/submissionActorsApi';
@@ -542,6 +543,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                   {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
                   {s.grade?.questionResults?.some(isActionableClarifyQuestion) && <ClarifyPanel items={[{ title: assignment.title, submission: { ...s, grade: { ...s.grade, questionResults: s.grade.questionResults.filter(isActionableClarifyQuestion) } } }]} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={() => onRefresh?.()} />}
                   <SubmissionFeedback submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} onEditGrade={() => void suaDiem(s, ten)} onChanged={onRefresh} />
+                  <HandMarkedWork submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={onRefresh} />
                   <CorrectionAttempts submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} />
                 </>}
               </div>

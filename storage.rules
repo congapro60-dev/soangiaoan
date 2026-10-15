@@ -47,6 +47,8 @@ service firebase.storage {
     // Signed resumable sessions upload temporary objects; Admin promotes immutable accepted evidence.
     match /pending-homework/{grantId}/{fileName} { allow read, write: if false; }
     match /accepted-homework/{classId}/{studentId}/{fileName} { allow read, write: if false; }
+    match /hand-marked-homework/{classId}/{studentId}/{fileName} { allow read, write: if false; }
+
 
     match /{path=**} {
       allow read, write: if false;

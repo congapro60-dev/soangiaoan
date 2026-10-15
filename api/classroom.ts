@@ -1,8 +1,10 @@
 import { handleCorrectionAttemptAction } from './_correction-attempts.js';
+import { handleHandMarkedWorkAction, handMarkedProjection } from './_hand-marked-work.js';
 import { assignmentSolutionInput } from './_assignment-solutions.js';
 import { workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { randomUUID } from 'node:crypto';
 import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
@@ -185,7 +187,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   const submissionSnap = await submissionRef.get();
   if (!submissionSnap.exists) return res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
 
-  const submission = submissionSnap.data() || {};
+  let submission = submissionSnap.data() || {};
   if (!await teacherCanAccessClass(db, uid, submission.classId, submission.teacherId)) {
     return res.status(403).json({ error: 'Bạn không có quyền xoá bài nộp này.' });
   }
@@ -193,9 +195,36 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
     return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ lượt hiện tại kết thúc rồi mới xóa bài nộp.' });
   }
 
+  const deletionRunId = randomUUID();
+  submission = await db.runTransaction(async tx => {
+    const latest = (await tx.get(submissionRef)).data();
+    if (!latest) throw new SubmissionAccessError(404, 'Bài nộp không còn tồn tại.');
+    if (latest.teacherId !== submission.teacherId || latest.classId !== submission.classId || latest.studentId !== submission.studentId || latest.assignmentId !== submission.assignmentId) throw new SubmissionAccessError(409, 'Bài nộp đã thay đổi. Tải lại trước khi xóa.');
+    if (latest.status === 'grading' || latest.deletionRunId && Number(latest.deletionLeaseUntil) > Date.now()) throw new SubmissionAccessError(409, 'Bài đang được xử lý. Chờ lượt hiện tại kết thúc rồi thử xóa lại.');
+    // Fence new evidence before querying revisions; the lease also permits retry after a killed request.
+    tx.update(submissionRef, { deletionRunId, deletionLeaseUntil: Date.now() + 10 * 60 * 1000 });
+    return latest;
+  });
+  let deleted = false;
+  try {
+  const [handMarkedReviews, handMarkedAudit] = await Promise.all([
+    db.collection('submissionHandMarkedReviews').where('submissionId', '==', submissionId).get(),
+    db.collection('submissionHandMarkedAudit').where('submissionId', '==', submissionId).get(),
+  ]);
+  const handMarkedUrls: string[] = [];
+  for (const revision of handMarkedReviews.docs) {
+    const data = revision.data();
+    const prefix = `hand-marked-homework/${submission.classId}/${submission.studentId}/`;
+    if (data.teacherId !== submission.teacherId || data.classId !== submission.classId || data.studentId !== submission.studentId
+      || !Array.isArray(data.files) || data.files.some((file: { path?: unknown }) => typeof file.path !== 'string' || !file.path.startsWith(prefix))) {
+      return res.status(422).json({ error: 'Bản chấm tay có đường dẫn không khớp bài nộp. Chưa xóa để tránh mất tệp khác.' });
+    }
+    handMarkedUrls.push(...data.files.map((file: { path: string }) => `gs://${getAdminStorage().name}/${file.path}`));
+  }
   const urls = [
     ...urlsFromValue(submission.fileUrls),
     ...urlsFromValue(submission.attachments),
+    ...handMarkedUrls,
   ];
   // Một revision con giữ lại toàn bộ evidence của parent để chấm lại toàn bài. Vì vậy
   // không được dọn URL chỉ vì giáo viên xoá parent: file vẫn còn được document khác trỏ tới.
@@ -254,13 +283,21 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
 
   const feedback = await db.collection('submissionFeedback').where('submissionId', '==', submissionId).get();
   for (const doc of feedback.docs) await doc.ref.delete();
+  for (const doc of [...handMarkedReviews.docs, ...handMarkedAudit.docs]) await doc.ref.delete();
   await submissionRef.delete();
+  deleted = true;
 
   // Bài biến mất khỏi màn hình em mà không một lời giải thích thì em tưởng máy nuốt mất bài. Phải
   // ghi tại đây: sau lệnh delete ở trên không còn dấu vết nào để cổng học sinh dựng lại việc này.
   await writeSubmissionDeletedNotification(db, submissionId, submission, body.reason);
 
   return res.status(200).json({ deleted: true, deletedFiles });
+  } finally {
+    if (!deleted) await db.runTransaction(async tx => {
+      const latest = (await tx.get(submissionRef)).data();
+      if (latest?.deletionRunId === deletionRunId) tx.update(submissionRef, { deletionRunId: '', deletionLeaseUntil: 0 });
+    }).catch(error => console.error('[classroom] chưa mở lại khóa xóa bài nộp', error));
+  }
 };
 
 /** Best-effort: hỏng bước thông báo KHÔNG được biến một lượt xoá đã thành công thành lỗi. */
@@ -1051,6 +1088,7 @@ export const projectStudentSubmission = (id: string, data: FirebaseFirestore.Doc
     ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
     ...(data.feedbackSummary && typeof data.feedbackSummary === 'object' ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, ...(typeof data.feedbackSummary.lastReplyAt === 'string' ? { lastReplyAt: data.feedbackSummary.lastReplyAt } : {}) } } : {}),
     ...(typeof data.feedbackReadAt === 'string' ? { feedbackReadAt: data.feedbackReadAt } : {}),
+    ...handMarkedProjection(data, false),
     ...(data.submittedBy && ['teacher','student','parent'].includes(data.submittedBy.role) ? { submittedBy: { role: data.submittedBy.role, studentId: String(data.submittedBy.studentId || ''), at: String(data.submittedBy.at || '') } } : {}),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
@@ -1495,6 +1533,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     const db = getAdminDb();
     if (await handleAdminAction(db, body, res)) return;
     if (await handleSubmissionActorAction(db, body, res, { projectStudentAssignment, projectStudentSubmission })) return;
+    if (await handleHandMarkedWorkAction(db, body, res)) return;
     if (await handleCorrectionAttemptAction(db, body, res)) return;
     if (await handleSubmissionFeedbackAction(db, body, res)) return;
     if (await handleTeacherAction(db, body, res)) return;

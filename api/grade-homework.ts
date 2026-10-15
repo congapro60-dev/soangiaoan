@@ -1,5 +1,7 @@
 import { handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt } from './_submission-annotations.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
+import { isPublishedSubmission } from './_submission-feedback.js';
+import { publishedHandMarkedImages } from './_hand-marked-work.js';
 import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
 import { generateWorkedSolutions, workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
@@ -989,10 +991,16 @@ const handleReviewCorrection = async (db: FirebaseFirestore.Firestore, body: Rec
     const originalEntries = (await Promise.all(originalUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
     const correctionEntries = (await Promise.all(attempt.fileUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
     if (!correctionEntries.length) return JSON.stringify({ outcome: 'uncertain', feedback: 'Chưa đọc được ảnh bài chữa. Em kiểm tra ảnh đã đủ sáng, rõ chữ và có đủ phần em đã chữa rồi thử lại.' });
-    let contextSubmission = submission;
+    const gradePublished = isPublishedSubmission(submission);
+    let contextSubmission: SubmissionDoc = gradePublished ? submission : { ...submission, grade: undefined };
     let sourceText = '';
     let sourceImages: InlineImage[] = [];
-    if (submission.assignmentId) {
+    if (!gradePublished) {
+      const manualUrls = await publishedHandMarkedImages(db, submission);
+      sourceImages = (await Promise.all(manualUrls.map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+      if (!sourceImages.length) return JSON.stringify({ outcome:'uncertain', feedback:'Bài chữa đã được lưu. Bản chấm tay hiện chỉ có PDF hoặc ảnh chưa đọc được; cần thêm ảnh bản chấm tay rõ chữ để đối chiếu. Máy chưa đủ căn cứ nhận xét, không đoán theo điểm hoặc lời chấm chưa công bố.' });
+      sourceText = `BẢN CHẤM TAY GV ĐÃ CÔNG BỐ: ${submission.handMarkedEvidence?.note || ''}. Các ảnh tư liệu cuối là bản chấm tay đã công bố, chỉ dùng căn cứ đối chiếu.`;
+    } else if (submission.assignmentId) {
       const assignment = (await db.collection('assignments').doc(submission.assignmentId).get()).data();
       if (assignment?.classId === submission.classId && assignment.teacherId === submission.teacherId) { sourceText = assignment.examVariants?.find((variant: {code:string}) => variant.code === submission.examCode)?.sourceText || assignment.sourceText || ''; sourceImages = await loadAssignmentSourceImages(assignment); contextSubmission = attachAssignmentSolutions(submission, assignment); }
     }

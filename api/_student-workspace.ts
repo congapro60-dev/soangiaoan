@@ -58,10 +58,11 @@ const newest = <T extends { id: string }>(items: T[], date: (item: T) => string)
 
 const summary = (id: string, data: Data, project: Projectors['projectStudentSubmission']): StudentWorkspaceSubmission => {
   const submission = project(id, data);
+  const { handMarkedEvidence: _evidence, ...summarySubmission } = submission;
   const pending = rows(record(data.grade).questionResults).filter(row => isClarifyPending({ clarify: sanitizeClarify(row.clarify) }));
   const actionable = pending.filter(row => isActionableClarifyQuestion({ ...row, clarify: sanitizeClarify(row.clarify) } as QuestionResult));
   return {
-    ...submission, fileUrls: [], attachments: [], note: '',
+    ...summarySubmission, fileUrls: [], attachments: [], note: '',
     ...(submission.grade ? { grade: {
       score: submission.grade.score, maxScore: submission.grade.maxScore,
       teacherApproved: submission.grade.teacherApproved, scoreHidden: submission.grade.scoreHidden,

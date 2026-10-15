@@ -1,9 +1,18 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-14
+**Cập nhật:** 2026-10-15
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Bản chấm tay và bài chữa nộp hộ — đang kiểm chứng
+
+Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài chữa. Nhánh `codex/handmarked-corrections`; kế hoạch `docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md`, bằng chứng `tasks/handmarked-correction-ledger.md`.
+
+- GV tải ảnh/PDF gắn đúng lượt nộp; mặc định ẩn. Công bố riêng, độc lập điểm AI; bản mới tự về ẩn. File riêng, không token tải vĩnh viễn; URL đọc có hạn 60 giây sau kiểm quyền. Tắt chặn lần mở tiếp theo, không thu hồi nội dung đã tải.
+- GV/HS/PH được lưu, xem, gọi AI cho bài chữa đúng quyền. Lịch sử ảnh vẫn xem được sau khi thu hồi công bố điểm; lưu/đánh giá mới cần nguồn chấm công bố. Nhận xét cũ được ẩn khi nguồn thay đổi. Không sửa điểm gốc.
+- Chấm tay chưa có AI grade: chỉ đưa ảnh/ghi chú chấm tay công bố vào AI. PDF-only trả “Chưa đủ căn cứ”, cần ảnh chấm tay để đối chiếu; ảnh bài chữa vẫn lưu.
+- Focused backend 63/63, UI đang hoàn thiện xem ảnh trực tiếp. Full gates/Rules/review cuối/push chưa hoàn tất tại snapshot này. Tab GV thật timeout khi kết nối; chưa có bằng chứng QA upload thật cho tính năng mới.
 
 ## Tiếp quản QA Muse — 14/10
 

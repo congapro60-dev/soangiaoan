@@ -1,5 +1,13 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Bản chấm tay và bài chữa nộp hộ — 15/10/2026
+
+Spec đã duyệt: docs/superpowers/specs/2026-10-15-handmarked-correction-design.md; plan docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md. User xác nhận, bổ sung HS/PH cùng xem bài chữa đúng người; GV/PH được opt-in AI như HS.
+- [x] Backend: private ảnh/PDF chấm tay, mặc định ẩn, toggle/audit, file read đúng quyền.
+- [x] Backend: correction GV/PH lưu/xem/AI, provenance; không sửa grade gốc. Focused API 63/63; lịch sử ảnh HS/PH không biến mất khi ẩn điểm. Manual-only không đưa điểm ẩn vào AI.
+- [ ] UI: GV upload/toggle, HS/PH xem; card bài chữa nộp hộ và AI chung.
+- [ ] Test quyền/race/replay/lock/projection; lint app/API hai compiler, build, Rules.
+- [ ] Review độc lập + khác hãng; QA thật/fixture; push main và Git deployment.
 ## Tiếp quản Muse — QA_FIX_PLAN_soangiaoan.md
 
 User xác nhận Muse đã dừng, Codex tiếp quản. Base a2f30d1, feature branch codex/muse-qa-followup.

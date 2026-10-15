@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import handler from '../classroom';
+import handler, { projectStudentSubmission } from '../classroom';
 
 /**
  * Test hồi quy cho hai action xoá bài (057cd7b): quyền giáo viên, thứ tự dọn file
@@ -124,6 +124,7 @@ const call = async (body: DocData) => {
   const res = {
     statusCode: 0,
     payload: null as DocData | null,
+    setHeader() { return res; },
     status(code: number) { res.statusCode = code; return res; },
     json(payload: DocData) { res.payload = payload; return res; },
   };
@@ -133,6 +134,73 @@ const call = async (body: DocData) => {
 
 describe('POST /api/classroom · deleteSubmission', () => {
   beforeEach(() => { h.uid = 'gv-1'; });
+
+  it.each([false, true])('dọn mọi revision chấm tay; lỗi Storage=%s giữ dữ liệu để thử lại', async (storageFails) => {
+    const harness = buildHarness();
+    const owner = { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1' };
+    harness.store.submissions = { 'sub-1': { ...owner, fileUrls: [] } };
+    harness.store.submissionHandMarkedReviews = {
+      old: { ...owner, submissionId: 'sub-1', files: [{ path: 'hand-marked-homework/lop-1/hs-1/old.pdf' }] },
+      current: { ...owner, submissionId: 'sub-1', files: [{ path: 'hand-marked-homework/lop-1/hs-1/current.jpg' }] },
+      other: { ...owner, submissionId: 'sub-2', files: [{ path: 'hand-marked-homework/lop-1/hs-1/other.jpg' }] },
+    };
+    harness.store.submissionHandMarkedAudit = { own: { submissionId: 'sub-1' }, other: { submissionId: 'sub-2' } };
+    if (storageFails) h.bucket = { name: BUCKET, file: () => ({ delete: async () => { throw new Error('Storage unavailable'); } }) };
+    const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+    expect(res.statusCode).toBe(storageFails ? 500 : 200);
+    if (storageFails) {
+      expect(harness.store.submissions['sub-1']).toBeDefined();
+      expect(harness.store.submissionHandMarkedReviews.old).toBeDefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeDefined();
+      expect(harness.store.submissionHandMarkedAudit.own).toBeDefined();
+      expect(harness.store.submissions['sub-1'].deletionRunId).toBe('');
+      h.bucket = makeBucket(harness);
+      expect((await call({ action: 'deleteSubmission', submissionId: 'sub-1' })).statusCode).toBe(200);
+      expect(harness.store.submissions['sub-1']).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.old).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeUndefined();
+    } else {
+      expect(harness.deletedPaths).toEqual(expect.arrayContaining(['hand-marked-homework/lop-1/hs-1/old.pdf', 'hand-marked-homework/lop-1/hs-1/current.jpg']));
+      expect(harness.store.submissionHandMarkedReviews.old).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeUndefined();
+      expect(harness.store.submissionHandMarkedAudit.own).toBeUndefined();
+    }
+    expect(harness.store.submissionHandMarkedReviews.other).toBeDefined();
+    expect(harness.store.submissionHandMarkedAudit.other).toBeDefined();
+  });
+
+  it('khóa finalize bản chấm tay đang tải trước khi dọn revision, không tạo tệp mồ côi', async () => {
+    const harness = buildHarness();
+    const owner = { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1' };
+    harness.store.classes = { 'lop-1': { teacherId: 'gv-1' } };
+    harness.store['classes/lop-1/students'] = { 'hs-1': { name: 'HS' } };
+    harness.store.submissions = { 'sub-1': { ...owner, assignmentId: null, fileUrls: [baiLamUrl] } };
+    harness.store.submissionUploadGrants = { grant: { ...owner, role: 'teacher', uid: 'gv-1', assignmentId: null, submissionId: 'sub-1', purpose: 'hand_marked', pinRevision: '', expiresAt: Date.now() + 60000, consumed: false, files: [{ path: 'pending-homework/grant/0', name: 'marked.jpg', mimeType: 'image/jpeg', size: 100 }] } };
+    let copying!: () => void, deleting!: () => void, finishCopy!: () => void, finishDelete!: () => void;
+    const copyStarted = new Promise<void>(resolve => { copying = resolve; });
+    const deleteStarted = new Promise<void>(resolve => { deleting = resolve; });
+    const copyGate = new Promise<void>(resolve => { finishCopy = resolve; });
+    const deleteGate = new Promise<void>(resolve => { finishDelete = resolve; });
+    const bucket = makeBucket(harness);
+    h.bucket = { ...bucket, file: (path: string) => ({ ...bucket.file(path),
+      copy: async () => { copying(); await copyGate; return []; },
+      delete: async () => { if (path === 'homework/hs-uid/sub-1-0.jpg') { deleting(); await deleteGate; } await bucket.file(path).delete(); },
+    }) };
+    const uploading = call({ action: 'saveHandMarkedWork', role: 'teacher', submissionId: 'sub-1', uploadGrantId: 'grant' });
+    await copyStarted;
+    const removal = call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+    await deleteStarted;
+    expect(projectStudentSubmission('sub-1', harness.store.submissions['sub-1'])).not.toHaveProperty('deletionRunId');
+    expect((await call({ action: 'deleteSubmission', submissionId: 'sub-1' })).statusCode).toBe(409);
+    finishCopy();
+    expect((await uploading).statusCode).toBe(409);
+    expect(harness.store.submissionUploadGrants.grant.consumed).toBe(false);
+    expect(Object.keys(harness.store.submissionHandMarkedReviews || {})).toHaveLength(0);
+    expect(harness.deletedPaths.some(path => path.startsWith('hand-marked-homework/lop-1/hs-1/'))).toBe(true);
+    finishDelete();
+    expect((await removal).statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1']).toBeUndefined();
+  });
 
   it('không xóa cả bài nộp khi worker đang giữ trạng thái grading', async () => {
     const harness = buildHarness();

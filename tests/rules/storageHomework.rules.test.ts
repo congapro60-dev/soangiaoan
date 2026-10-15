@@ -17,12 +17,15 @@ it('owner uploads a temporary legacy object once; cannot rewrite or delete accep
   await assertFails(uploadBytes(ref(env.authenticatedContext('other').storage(`gs://${projectId}.appspot.com`), 'homework/student/b.jpg'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
 });
 it('signed upload staging and accepted homework are server-only for student and teacher', async () => {
-  await env.withSecurityRulesDisabled(async context => { const storage = context.storage(`gs://${projectId}.appspot.com`); await uploadBytes(ref(storage, 'accepted-homework/class/student/a'), new Uint8Array([1]), { contentType: 'image/jpeg' }); });
+  await env.withSecurityRulesDisabled(async context => { const storage = context.storage(`gs://${projectId}.appspot.com`); await uploadBytes(ref(storage, 'accepted-homework/class/student/a'), new Uint8Array([1]), { contentType: 'image/jpeg' }); await uploadBytes(ref(storage, 'hand-marked-homework/class/student/a'), new Uint8Array([1]), {contentType:'image/jpeg'}); });
   for (const uid of ['student', 'teacher']) {
     const storage = env.authenticatedContext(uid).storage(`gs://${projectId}.appspot.com`);
     await assertFails(uploadBytes(ref(storage, 'pending-homework/grant/0'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
     await assertFails(uploadBytes(ref(storage, 'accepted-homework/class/student/a'), new Uint8Array([2]), { contentType: 'image/jpeg' }));
     await assertFails(deleteObject(ref(storage, 'accepted-homework/class/student/a')));
     await assertFails(getBytes(ref(storage, 'accepted-homework/class/student/a')));
+    await assertFails(uploadBytes(ref(storage, 'hand-marked-homework/class/student/a'), new Uint8Array([2]), {contentType:'image/jpeg'}));
+    await assertFails(getBytes(ref(storage, 'hand-marked-homework/class/student/a')));
+    await assertFails(deleteObject(ref(storage, 'hand-marked-homework/class/student/a')));
   }
 });

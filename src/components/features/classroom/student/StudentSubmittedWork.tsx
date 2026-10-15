@@ -3,6 +3,7 @@ import type { SubmissionDoc } from '../../../../lib/classroom/types';
 import { SubmissionPhotoReview } from '../SubmissionPhotoReview';
 import { SubmissionFeedback } from '../SubmissionFeedback';
 import { CorrectionAttempts } from '../CorrectionAttempts';
+import { HandMarkedWork } from '../HandMarkedWork';
 export const StudentSubmittedWork = ({ submissions, hideScores = false, feedbackSubmissionId, feedbackOpenRequest, onFeedbackChanged }: { submissions: SubmissionDoc[]; hideScores?: boolean; feedbackSubmissionId?: string; feedbackOpenRequest?: number; onFeedbackChanged?: () => void }) => {
   const [open, setOpen] = useState(false);
   const [feedbackQuestion, setFeedbackQuestion] = useState<Record<string, { question: string; nonce: number }>>({});
@@ -22,7 +23,7 @@ export const StudentSubmittedWork = ({ submissions, hideScores = false, feedback
     return { submission, files };
   });
   const published = attempts.filter(({ submission }) => submission.grade?.teacherApproved === true && !submission.grade.awaitingClarification && !submission.grade.scoreHidden);
-  if (!attempts.some(attempt => attempt.files.length) && !published.length) return null;
+  if (!attempts.length) return null;
   return <section>
     {attempts.some(attempt => attempt.files.length) && <details className="mt-3 rounded-2xl border border-slate-200 bg-slate-50" onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-bold text-indigo-700">Xem bài đã nộp</summary>
@@ -35,9 +36,10 @@ export const StudentSubmittedWork = ({ submissions, hideScores = false, feedback
       </section>;
     })}</div>}
   </details>}
-    {published.map(({ submission }) => <section key={submission.id} aria-label={`Trao đổi và bài chữa · ${submission.id}`}>
-      {published.length > 1 && <p className="mt-3 text-xs font-bold text-slate-600">Bài nộp {new Date(submission.createdAt).toLocaleString('vi-VN')}</p>}
-      <SubmissionFeedback submission={submission} questionNumber={feedbackQuestion[submission.id]?.question} openRequest={feedbackQuestion[submission.id]?.nonce} onChanged={onFeedbackChanged} />
+    {attempts.map(({ submission }) => <section key={submission.id} aria-label={`Trao đổi và bài chữa · ${submission.id}`}>
+      {attempts.length > 1 && <p className="mt-3 text-xs font-bold text-slate-600">Bài nộp {new Date(submission.createdAt).toLocaleString('vi-VN')}</p>}
+      {published.some(item => item.submission.id === submission.id) && <SubmissionFeedback submission={submission} questionNumber={feedbackQuestion[submission.id]?.question} openRequest={feedbackQuestion[submission.id]?.nonce} onChanged={onFeedbackChanged} />}
+      <HandMarkedWork submission={submission} credentials={{ role: 'student' }} />
       <CorrectionAttempts submission={submission} />
     </section>)}
   </section>;

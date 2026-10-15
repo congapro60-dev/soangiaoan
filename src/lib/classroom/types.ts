@@ -527,6 +527,8 @@ export interface SubmissionDoc {
   submittedBy?: SubmissionActor;
   feedbackSummary?: SubmissionFeedbackSummary;
   feedbackReadAt?: string;
+  handMarkedEvidence?: HandMarkedEvidence;
+  handMarkedPublished?: boolean;
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
   textContent?: string;
@@ -566,6 +568,14 @@ export interface SubmissionAttachment {
   mimeType?: string;
   size?: number;
   kind?: SubmissionAttachmentKind;
+}
+/** Private teacher-marked files are opened through a short-lived authorized read action. */
+export interface HandMarkedEvidence {
+  id: string;
+  files: { id: string; name: string; mimeType: string; size: number; kind: 'image' | 'pdf' }[];
+  note: string;
+  submittedBy: SubmissionActor;
+  createdAt: string;
 }
 
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
@@ -734,6 +744,7 @@ export interface CorrectionAssessment { outcome: 'achieved' | 'needs_work' | 'un
 export interface CorrectionAttemptDoc {
   id: string; submissionId: string; studentId: string; classId: string; teacherId: string;
   attachments: SubmissionAttachment[]; fileUrls: string[]; note: string;
+  submittedBy?: SubmissionActor; reviewedBy?: SubmissionActor;
   status: 'saved' | 'reviewing' | 'reviewed' | 'error'; assessment?: CorrectionAssessment;
   createdAt: string; updatedAt: string; reviewedAt?: string; errorMessage?: string;
 }

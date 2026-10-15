@@ -19,6 +19,8 @@ export interface ActorContext { role: SubmissionActor['role']; uid?: string; cla
 const error = (code: number, message: string): never => { throw new SubmissionAccessError(code, message); };
 const id = (value: unknown): string => isSafeDocId(value) ? value : error(422, 'Mã bài hoặc học sinh không hợp lệ.');
 const text = (value: unknown): string => typeof value === 'string' ? value : '';
+const correctionPublished = (value: Data): boolean => value.handMarkedPublished === true && Boolean(value.handMarkedEvidence?.id)
+  || value.status === 'graded' && Boolean(value.grade) && !awaitsClarification(value.grade.questionResults) && (!value.assignmentId || value.grade.teacherApproved === true);
 export const actorStamp = (actor: ActorContext, at: string): SubmissionActor => ({ role: actor.role, ...(actor.uid ? { uid: actor.uid } : {}), studentId: actor.studentId, at });
 export const resolveSubmissionActor = async (db: Db, body: Data, res: VercelResponse, scope?: Data): Promise<ActorContext | null> => {
   if (body.role === 'parent') {
@@ -98,10 +100,10 @@ export const prepareActorFiles = async (db: Db, body: Data, actor: ActorContext,
   let sourceFiles: Array<{ path: string; name: string; mimeType?: string; size?: number }>;
   if (grantId) {
     grant = (await db.collection('submissionUploadGrants').doc(id(grantId)).get()).data();
-    if (!grant || !grantOwner(grant, actor, assignmentId, purpose) || ['clarification','correction'].includes(purpose) && (grant.submissionId !== body.submissionId || purpose === 'clarification' && grant.questionNumber !== body.questionNumber)) error(422, 'Lượt tải ảnh đã hết hạn, dùng rồi hoặc không thuộc bài này.');
+    if (!grant || !grantOwner(grant, actor, assignmentId, purpose) || ['clarification','correction','hand_marked'].includes(purpose) && (grant.submissionId !== body.submissionId || purpose === 'clarification' && grant.questionNumber !== body.questionNumber)) error(422, 'Lượt tải ảnh đã hết hạn, dùng rồi hoặc không thuộc bài này.');
     sourceFiles = grant!.files;
   } else {
-    if (actor.role === 'parent') error(422, 'Phụ huynh phải tải ảnh qua lượt được cấp cho bài này.');
+    if (actor.role === 'parent' || purpose === 'hand_marked') error(422, 'Tải tệp qua lượt được cấp cho bài này.');
     const urls = body.fileUrls || body.photoUrls;
     if (!Array.isArray(urls) || !urls.length || urls.length > 12 || urls.some(value => typeof value !== 'string')) error(422, 'Chọn ảnh bài làm để nộp.');
     const paths = uniqueStoragePaths(urls, bucket.name);
@@ -117,12 +119,14 @@ export const prepareActorFiles = async (db: Db, body: Data, actor: ActorContext,
     const [metadata] = await file.getMetadata();
     if (!metadata || !mimeAllowed(metadata.contentType || '') || Number(metadata.size) < 1 || Number(metadata.size) >= 20 * 1024 * 1024
        || grant && (metadata.contentType !== source.mimeType || Number(metadata.size) !== source.size || metadata.name !== source.path)) error(422, 'Ảnh không khớp loại, kích thước hoặc đường dẫn được cấp.');
-    const path = `accepted-homework/${actor.classId}/${actor.studentId}/${batchId}-${index}`;
+    const path = purpose === 'hand_marked'
+      ? `hand-marked-homework/${actor.classId}/${actor.studentId}/${batchId}-${index}`
+      : `accepted-homework/${actor.classId}/${actor.studentId}/${batchId}-${index}`;
     await bucket.file(source.path, metadata.generation ? { generation: metadata.generation } : undefined).copy(bucket.file(path), { preconditionOpts: { ifGenerationMatch: 0 } });
     copiedPaths.push(path);
     const token = randomUUID();
-    await bucket.file(path).setMetadata({ contentType: metadata.contentType, metadata: { firebaseStorageDownloadTokens: token } });
-    const url = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+    await bucket.file(path).setMetadata({ contentType: metadata.contentType, metadata: { firebaseStorageDownloadTokens: purpose === 'hand_marked' ? null : token } });
+    const url = purpose === 'hand_marked' ? `gs://${bucket.name}/${path}` : `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
     attachments.push({ name: source.name, url, mimeType: metadata.contentType, size: Number(metadata.size), kind: (metadata.contentType!.startsWith('image/') ? 'image' : metadata.contentType === 'application/pdf' ? 'pdf' : 'document') as 'image' | 'pdf' | 'document' });
   }
   return { attachments, fileUrls: attachments.map(file => file.url), grantId, grant };
@@ -135,7 +139,7 @@ export const consumeActorGrant = async (db: Db, tx: FirebaseFirestore.Transactio
   if (!fresh || !grantOwner(fresh, actor, assignmentId, purpose) || JSON.stringify(fresh.files) !== JSON.stringify(prepared.grant?.files) || fresh.submissionId !== prepared.grant?.submissionId || fresh.questionNumber !== prepared.grant?.questionNumber) error(409, 'Lượt tải ảnh đã dùng hoặc đã thay đổi.');
   return ref;
 };
-export const discardActorFiles = async (prepared: Awaited<ReturnType<typeof prepareActorFiles>>): Promise<void> => { const bucket = getAdminStorage(); await Promise.allSettled(uniqueStoragePaths(prepared.fileUrls, bucket.name).filter(path => path.startsWith('accepted-homework/')).map(path => bucket.file(path).delete())); };
+export const discardActorFiles = async (prepared: Awaited<ReturnType<typeof prepareActorFiles>>): Promise<void> => { const bucket = getAdminStorage(); await Promise.allSettled(uniqueStoragePaths(prepared.fileUrls, bucket.name).filter(path => path.startsWith('accepted-homework/') || path.startsWith('hand-marked-homework/')).map(path => bucket.file(path).delete())); };
 interface Projectors { projectStudentAssignment(id: string, data: Data): StudentAssignmentView; projectStudentSubmission(id: string, data: Data): SubmissionDoc }
 export const handleSubmissionActorAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
   if (!['setSubmissionLock', 'issueSubmissionUpload', 'submitActorSubmission', 'actorAssignments', 'actorAssignmentDetail'].includes(body.action)) return false;
@@ -159,6 +163,7 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
     const assignment = assignmentId ? (await db.collection('assignments').doc(assignmentId).get()).data() : undefined;
     const actor = await resolveSubmissionActor(db, body, res, assignment);
     if (!actor) return true;
+    if (['saveHandMarkedWork','setHandMarkedVisibility'].includes(String(body.action)) && actor.role !== 'teacher') error(403, 'Chỉ giáo viên quản lý bản chấm tay.');
     if (body.action === 'actorAssignments') {
       await db.runTransaction(tx => assertActorCurrent(db, tx, actor));
       const snap = await db.collection('assignments').where('classId', '==', actor.classId).get();
@@ -167,7 +172,8 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       const submitted = await db.collection('submissions').where('studentId', '==', actor.studentId).get();
       const summaries = submitted.docs.filter(doc => doc.data().classId === actor.classId && doc.data().teacherId === actor.teacherId && ids.has(doc.data().assignmentId)).map(doc => {
         const safe = projectors.projectStudentSubmission(doc.id, doc.data());
-        return { ...safe, fileUrls: [], attachments: [], note: '', ...(safe.grade ? { grade: { score: safe.grade.score, maxScore: safe.grade.maxScore, teacherApproved: safe.grade.teacherApproved, scoreHidden: safe.grade.scoreHidden === true, awaitingClarification: safe.grade.awaitingClarification === true, gradedAt: safe.grade.gradedAt, feedback: '', strengths: [], weaknesses: [] } } : {}) };
+        const { handMarkedEvidence: _evidence, ...summary } = safe;
+        return { ...summary, fileUrls: [], attachments: [], note: '', ...(safe.grade ? { grade: { score: safe.grade.score, maxScore: safe.grade.maxScore, teacherApproved: safe.grade.teacherApproved, scoreHidden: safe.grade.scoreHidden === true, awaitingClarification: safe.grade.awaitingClarification === true, gradedAt: safe.grade.gradedAt, feedback: '', strengths: [], weaknesses: [] } } : {}) };
       }).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
       res.status(200).json({ assignments: allowed.map(doc => projectors.projectStudentAssignment(doc.id, doc.data())), submissions: summaries }); return true;
     }
@@ -176,24 +182,33 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       const snap = await db.collection('submissions').where('studentId', '==', actor.studentId).get();
       res.status(200).json({ ...(assignment ? { assignment: projectors.projectStudentAssignment(assignmentId!, assignment) } : {}), submissions: snap.docs.filter(doc => doc.data().classId === actor.classId && doc.data().teacherId === actor.teacherId && doc.data().assignmentId === assignmentId).map(doc => projectors.projectStudentSubmission(doc.id, attachAssignmentSolutions({ id: doc.id, ...doc.data() } as SubmissionDoc, assignment))) }); return true;
     }
-    const correction = body.action === 'issueSubmissionUpload' && body.purpose === 'correction';
-    if (correction && actor.role !== 'student') error(403, 'Chỉ học sinh lưu bài chữa của mình.');
+    const correction = body.action === 'saveCorrectionAttempt' || body.action === 'issueSubmissionUpload' && body.purpose === 'correction';
+    const handMarked = body.action === 'issueSubmissionUpload' && body.purpose === 'hand_marked';
+    if (handMarked && actor.role !== 'teacher') error(403, 'Chỉ giáo viên tải bản chấm tay.');
     await db.runTransaction(tx => assertActorCurrent(db, tx, actor, assignmentId, !correction));
     if (body.action === 'issueSubmissionUpload') {
       const files = filesInput(body.files), grantId = randomUUID(), expiresAt = Date.now() + 10 * 60 * 1000;
-      const purpose = body.purpose === 'correction' ? 'correction' : body.purpose === 'clarification' ? 'clarification' : 'submission';
+      const purpose = body.purpose === 'hand_marked' ? 'hand_marked' : body.purpose === 'correction' ? 'correction' : body.purpose === 'clarification' ? 'clarification' : 'submission';
       let questionScope = {};
-      if (purpose === 'clarification' || purpose === 'correction') {
+      if (purpose === 'hand_marked' && files.some(file => !file.mimeType.startsWith('image/') && file.mimeType !== 'application/pdf')) error(422, 'Bản chấm tay chỉ nhận ảnh hoặc PDF.');
+      if (purpose === 'clarification' || purpose === 'correction' || purpose === 'hand_marked') {
         const submissionId = id(body.submissionId), questionNumber = text(body.questionNumber);
         const submission = (await db.collection('submissions').doc(submissionId).get()).data();
         if (!submission || submission.studentId !== actor.studentId || submission.classId !== actor.classId || submission.teacherId !== actor.teacherId || submission.assignmentId !== assignmentId || purpose === 'clarification' && !submission.grade?.questionResults?.some((row: Data) => row.questionNumber === questionNumber && row.clarify?.kind === 'photo')) error(403, 'Câu cần đối chiếu không thuộc bài này.');
-        if (purpose === 'correction' && (submission!.status !== 'graded' || !submission!.grade || awaitsClarification(submission!.grade.questionResults) || submission!.assignmentId && submission!.grade.teacherApproved !== true)) error(409, 'Chờ bài chấm được công bố trước khi lưu bài chữa.');
+        if (purpose === 'correction' && !correctionPublished(submission!)) error(409, 'Chờ bài chấm hoặc bản chấm tay được công bố trước khi lưu bài chữa.');
         if (purpose === 'correction' && files.some(file => !file.mimeType.startsWith('image/'))) error(422, 'Bài chữa cần ảnh chụp rõ từng trang.');
-        questionScope = purpose === 'correction' ? { submissionId } : { submissionId, questionNumber };
+        questionScope = purpose === 'correction' || purpose === 'hand_marked' ? { submissionId } : { submissionId, questionNumber };
       }
       const objects = files.map((file, index) => ({ ...file, path: `pending-homework/${grantId}/${index}` }));
       const grant = { role: actor.role, uid: actor.uid || '', studentId: actor.studentId, classId: actor.classId, teacherId: actor.teacherId, assignmentId, purpose, pinRevision: actor.pinRevision || '', ...questionScope, files: objects, expiresAt, consumed: false };
-      await db.runTransaction(async tx => { await assertActorCurrent(db, tx, actor, assignmentId, purpose !== 'correction'); if (purpose === 'correction') { const fresh = (await tx.get(db.collection('submissions').doc(String((questionScope as {submissionId:string}).submissionId)))).data(); if (!fresh || fresh.studentId !== actor.studentId || fresh.classId !== actor.classId || fresh.teacherId !== actor.teacherId || fresh.assignmentId !== assignmentId || fresh.status !== 'graded' || !fresh.grade || awaitsClarification(fresh.grade.questionResults) || fresh.assignmentId && fresh.grade.teacherApproved !== true) error(409, 'Bài chấm đã thay đổi, mở lại trước khi lưu bài chữa.'); } tx.create(db.collection('submissionUploadGrants').doc(grantId), grant); });
+      await db.runTransaction(async tx => {
+        await assertActorCurrent(db, tx, actor, assignmentId, purpose !== 'correction');
+        if (purpose === 'correction' || purpose === 'hand_marked') {
+          const fresh = (await tx.get(db.collection('submissions').doc(String((questionScope as {submissionId:string}).submissionId)))).data();
+          if (!fresh || fresh.studentId !== actor.studentId || fresh.classId !== actor.classId || fresh.teacherId !== actor.teacherId || fresh.assignmentId !== assignmentId || purpose === 'correction' && !correctionPublished(fresh)) error(409, 'Bài nộp hoặc quyền xem đã đổi. Tải lại rồi gửi.');
+        }
+        tx.create(db.collection('submissionUploadGrants').doc(grantId), grant);
+      });
       const signed = await Promise.all(objects.map(async file => ({ ...file, uploadUrl: (await getAdminStorage().file(file.path).createResumableUpload({ origin: uploadOrigin(body.uploadOrigin), metadata: { contentType: file.mimeType, contentLength: file.size }, preconditionOpts: { ifGenerationMatch: 0 } }))[0] })));
       res.status(200).json({ uploadGrantId: grantId, expiresAt, files: signed }); return true;
     }

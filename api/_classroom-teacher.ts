@@ -1,4 +1,5 @@
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
+import { handMarkedProjection } from './_hand-marked-work.js';
 import type { VercelResponse } from '@vercel/node';
 import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
@@ -194,6 +195,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
     ...(data.feedbackSummary ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, lastReplyAt: data.feedbackSummary.lastReplyAt } } : {}),
     ...(data.submittedBy ? { submittedBy: data.submittedBy } : {}),
+    ...handMarkedProjection(data, true),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     textContent: typeof data.textContent === 'string' ? data.textContent : undefined,
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,

@@ -510,3 +510,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-14 — Mã lớp khác PIN phụ huynh
 - Người dùng chỉ ra nhầm4PINvới6classcode. Hướng dẫn tách mãlớp6ký tự→chọncon→PINPH4chữsố; ưu tiênlinkPHđúnglớp bỏbướcmã.
 - Saucậpnậtsource, historicalgrade khôngtựcótọađộ/lời giải. QAphảiđọcbàithật, khônggọi UIrendered bằngchứngdatafulfilled; annotationmigration onlygeometrygiữscores/approval.
+
+- **Không tự thu hẹp quyền đã được người dùng duyệt** — GV/PH nộp hộ và gọi AI nhận xét bài chữa đã được xác nhận; yêu cầu thêm quyền xem không thu hồi quyền AI. Luôn đối chiếu quyết định trước khi trả lời hoặc sửa authorization. *(2026-10-15)*
+
+- **Ưu tiên lựa chọn model mới nhất của người dùng** — Trong phiên 15/10, người dùng yêu cầu ngừng gọi model ngoài, dùng native `gpt-6-astra` mức `xhigh` cho subagent. Yêu cầu này thay quy trình review khác hãng qua router; không tiếp tục gọi ngoài vì checklist cũ. Không tuyên bố đã đổi model phiên chính khi công cụ không hỗ trợ.

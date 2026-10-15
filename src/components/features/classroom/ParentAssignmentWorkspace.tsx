@@ -9,6 +9,8 @@ import { isActionableClarifyQuestion } from '../../../lib/classroom/clarificatio
 import { latestSubmissionByAssignment } from '../../../lib/classroom/portalViewModel';
 import { submissionDeadlineState } from '../../../lib/classroom/hanNop';
 import { Camera, ChevronRight, Search } from 'lucide-react';
+import { HandMarkedWork } from './HandMarkedWork';
+import { CorrectionAttempts } from './CorrectionAttempts';
 /** Parent credentials never become the student Firebase session. */
 export const ParentAssignmentWorkspace = ({ credentials }: { credentials: SubmissionActorCredentials }) => {
   const [assignments, setAssignments] = useState<StudentAssignmentView[]>([]);
@@ -91,6 +93,8 @@ export const ParentAssignmentWorkspace = ({ credentials }: { credentials: Submis
           {index === 0 && !detail.assignment.submissionLocked && detail.assignment.type !== 'exam' && detail.assignment.deliveryMode !== 'online' && <button type="button" className="mb-2 min-h-11 rounded-lg border px-3 text-sm font-bold text-indigo-700" onClick={() => setUpload(submission.id)}>Bổ sung ảnh lượt này</button>}
           {!!images.length && <SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt="Bài làm của con" questionResults={approved ? grade?.questionResults ?? [] : []} approved={approved} grade={approved ? grade : undefined} hideScores={Boolean(detail.assignment.periodicTest)} />}
           {approved && !images.length && <QuestionResultsList results={grade?.questionResults} hideScores={Boolean(detail.assignment.periodicTest)} />}
+          <HandMarkedWork submission={submission} credentials={credentials} />
+          <CorrectionAttempts submission={submission} credentials={credentials} />
           {index === 0 && actionable.length > 0 && <ClarifyPanel items={[{ title: detail.assignment.title, submission: { ...submission, grade: { ...grade!, questionResults: actionable } } }]} credentials={credentials} locked={detail.assignment.submissionLocked} onChanged={() => void refresh().catch(reason => setError(reason.message))} pollingExternally />}
           {index === 0 && !!submission.examCodeAsk?.length && !detail.assignment.submissionLocked && <div className="flex flex-wrap gap-2"><p className="w-full text-sm font-bold">Mã đề chưa rõ. Đối chiếu mã trên ảnh rồi chọn:</p>{submission.examCodeAsk.map(code => <button key={code} type="button" className="min-h-11 rounded-lg border px-3 font-bold" onClick={() => { void actorAnswerExamCode(credentials, submission.id, code).then(refresh).catch(reason => setError(reason.message)); }}>{code}</button>)}</div>}
         </article>;

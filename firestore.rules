@@ -1126,6 +1126,9 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /submissionHandMarkedReviews/{reviewId} { allow read, write: if false; }
+    match /submissionHandMarkedAudit/{auditId} { allow read, write: if false; }
+
     match /submissions/{submissionId} {
       // All evidence and grades use API transactions; no direct client writes can bypass hard locks.
       allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;

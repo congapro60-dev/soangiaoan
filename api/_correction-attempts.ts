@@ -4,7 +4,7 @@ import { assignmentSolutionInput } from './_assignment-solutions.js';
 import { workedSolutionVersion } from './_worked-solutions.js';
 import { parseLooseJson } from '../src/utils/jsonRepair.js';
 import type { CorrectionAttemptDoc, CorrectionAssessment, SubmissionDoc } from '../src/lib/classroom/types.js';
-import { assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
+import { actorStamp, assertActorCurrent, authorizeSubmissionActor, consumeActorGrant, discardActorFiles, prepareActorFiles, SubmissionAccessError, type ActorContext } from './_submission-actors.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -13,24 +13,30 @@ const COL = 'correctionAttempts';
 const fail = (status: number, message: string): never => { throw new SubmissionAccessError(status, message); };
 const safeId = (value: unknown): string => typeof value === 'string' && !!value && value.length <= 150 && !value.includes('/') ? value : fail(422, 'Mã bài chữa không hợp lệ.');
 const sameOwner = (data: Data, actor: ActorContext): boolean => data.studentId === actor.studentId && data.classId === actor.classId && data.teacherId === actor.teacherId;
+export const isCorrectionSourcePublished = (submission: SubmissionDoc): boolean => isPublishedSubmission(submission) || submission.handMarkedPublished === true && Boolean(submission.handMarkedEvidence?.id);
 const currentSubmission = async (db: Db, tx: FirebaseFirestore.Transaction, actor: ActorContext, submissionId: string, published = true): Promise<SubmissionDoc> => {
   const snap = await tx.get(db.collection('submissions').doc(submissionId));
   const submission = { id: submissionId, ...snap.data() } as SubmissionDoc;
   if (!snap.exists || !sameOwner(submission, actor)) fail(403, 'Bài chữa không thuộc tài khoản này.');
+  if (snap.data()?.deletionRunId) fail(409, 'Bài nộp đang được xóa. Chờ xử lý xong rồi thử lại.');
   await assertActorCurrent(db, tx, actor, submission.assignmentId);
-  if (published && !isPublishedSubmission(submission)) fail(409, 'Chờ bài chấm được công bố trước khi luyện chữa.');
+  if (published && !isCorrectionSourcePublished(submission)) fail(409, 'Chờ bài chấm hoặc bản chấm tay được công bố trước khi luyện chữa.');
   return submission;
 };
 const correctionSourceVersion = async (db: Db, tx: FirebaseFirestore.Transaction, submission: SubmissionDoc): Promise<string> => {
   const assignment = submission.assignmentId ? (await tx.get(db.collection('assignments').doc(submission.assignmentId))).data() : undefined;
   const solutionVersion = assignment ? workedSolutionVersion(assignmentSolutionInput(assignment, submission.examCode || '')) : '';
   const cache = submission.examCode ? assignment?.workedSolutionsByExamCode?.[submission.examCode] : assignment?.workedSolutions;
-  return createHash('sha256').update(JSON.stringify({ grade: submission.grade, examCode: submission.examCode || '', solutionVersion, sharedSolution: cache?.version === solutionVersion ? cache : null })).digest('hex');
+  return createHash('sha256').update(JSON.stringify(isPublishedSubmission(submission)
+    ? { grade: submission.grade, examCode: submission.examCode || '', solutionVersion, sharedSolution: cache?.version === solutionVersion ? cache : null }
+    : { handMarkedEvidence:submission.handMarkedPublished===true?submission.handMarkedEvidence:null,handMarkedPublished:submission.handMarkedPublished===true })).digest('hex');
 };
-export const projectCorrectionAttempt = (id: string, data: Data, currentSourceVersion?: string): CorrectionAttemptDoc => ({
+export const projectCorrectionAttempt = (id: string, data: Data, currentSourceVersion?: string, viewer: ActorContext['role'] = 'student'): CorrectionAttemptDoc => ({
   id, submissionId: String(data.submissionId || ''), studentId: String(data.studentId || ''), classId: String(data.classId || ''), teacherId: String(data.teacherId || ''),
   attachments: Array.isArray(data.attachments) ? data.attachments.map((file: Data) => ({ name: String(file.name || ''), url: String(file.url || ''), mimeType: String(file.mimeType || ''), size: Number(file.size) || 0, kind: 'image' })) : [],
   fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [], note: String(data.note || ''),
+  ...(data.submittedBy && ['student','teacher','parent'].includes(data.submittedBy.role) ? { submittedBy: { role: data.submittedBy.role, studentId: String(data.submittedBy.studentId || ''), at: String(data.submittedBy.at || ''), ...(viewer === 'teacher' && typeof data.submittedBy.uid === 'string' ? { uid: data.submittedBy.uid } : {}) } } : {}),
+  ...(data.reviewedBy && ['student','teacher','parent'].includes(data.reviewedBy.role) ? { reviewedBy: { role: data.reviewedBy.role, studentId: String(data.reviewedBy.studentId || ''), at: String(data.reviewedBy.at || ''), ...(viewer === 'teacher' && typeof data.reviewedBy.uid === 'string' ? { uid: data.reviewedBy.uid } : {}) } } : {}),
   status: data.status === 'reviewing' && (!Number.isFinite(Number(data.reviewLeaseUntil)) || Number(data.reviewLeaseUntil) <= Date.now()) || data.status === 'reviewed' && currentSourceVersion && data.reviewedSourceVersion !== currentSourceVersion ? 'error' : ['saved','reviewing','reviewed','error'].includes(data.status) ? data.status : 'saved',
   ...(data.assessment && (!currentSourceVersion || data.reviewedSourceVersion === currentSourceVersion) ? { assessment: { outcome: data.assessment.outcome, feedback: String(data.assessment.feedback || '') } } : {}),
   createdAt: String(data.createdAt || ''), updatedAt: String(data.updatedAt || ''),
@@ -43,11 +49,10 @@ export const handleCorrectionAttemptAction = async (db: Db, body: Data, res: Ver
     const auth = await authorizeSubmissionActor(db, body, res);
     if (!auth) return true;
     const { actor, submissionId, submission } = auth;
-    if (actor.role === 'parent' || body.action === 'saveCorrectionAttempt' && actor.role !== 'student') fail(403, 'Chỉ học sinh lưu bài chữa; giáo viên được xem để hỗ trợ.');
-    const currentSourceVersion = await db.runTransaction(async tx => { const current = await currentSubmission(db, tx, actor, submissionId, actor.role !== 'teacher'); return correctionSourceVersion(db, tx, current); });
+    const currentSourceVersion = await db.runTransaction(async tx => { const current = await currentSubmission(db, tx, actor, submissionId, body.action !== 'correctionAttempts'); return correctionSourceVersion(db, tx, current); });
     if (body.action === 'correctionAttempts') {
       const snap = await db.collection(COL).where('submissionId', '==', submissionId).get();
-      res.status(200).json({ attempts: snap.docs.filter(doc => sameOwner(doc.data(), actor)).map(doc => projectCorrectionAttempt(doc.id, doc.data(), currentSourceVersion)).sort((a,b) => b.createdAt.localeCompare(a.createdAt)) }); return true;
+      res.status(200).json({ attempts: snap.docs.filter(doc => sameOwner(doc.data(), actor)).map(doc => projectCorrectionAttempt(doc.id, doc.data(), currentSourceVersion, actor.role)).sort((a,b) => b.createdAt.localeCompare(a.createdAt)) }); return true;
     }
     if (typeof body.uploadGrantId !== 'string' || !body.uploadGrantId) fail(422, 'Tải ảnh bài chữa trước khi lưu.');
     const prepared = await prepareActorFiles(db, body, actor, submission.assignmentId, 'correction');
@@ -60,15 +65,15 @@ export const handleCorrectionAttemptAction = async (db: Db, body: Data, res: Ver
         const grantRef = await consumeActorGrant(db, tx, prepared, actor, current.assignmentId, 'correction');
         if (!grantRef || prepared.attachments.some(file => file.kind !== 'image')) fail(422, 'Chọn ảnh bài chữa hợp lệ.');
         attempt = { id: attemptId, submissionId, studentId: actor.studentId, classId: actor.classId, teacherId: actor.teacherId,
-          attachments: prepared.attachments, fileUrls: prepared.fileUrls, note: typeof body.note === 'string' ? body.note.slice(0,2000) : '', status: 'saved', createdAt: now, updatedAt: now };
+          attachments: prepared.attachments, fileUrls: prepared.fileUrls, note: typeof body.note === 'string' ? body.note.slice(0,2000) : '', submittedBy: actorStamp(actor, now), status: 'saved', createdAt: now, updatedAt: now };
         tx.create(db.collection(COL).doc(attemptId), attempt); tx.update(grantRef!, { consumed: true, consumedAt: now, correctionAttemptId: attemptId });
       });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
-    res.status(200).json({ attempt }); return true;
+    res.status(200).json({ attempt: projectCorrectionAttempt(attemptId, attempt!, undefined, actor.role) }); return true;
   } catch (reason) { if (reason instanceof SubmissionAccessError) { res.status(reason.statusCode).json({ error: reason.message }); return true; } throw reason; }
 };
 export const buildCorrectionReviewPrompt = (submission: SubmissionDoc, attempt: CorrectionAttemptDoc, originalImageCount: number, sourceText = '', correctionImageCount = attempt.fileUrls?.length || 0, sourceImageCount = 0): string => `Bạn là giáo viên hướng dẫn học sinh tự chữa bài Toán, đang ĐÁNH GIÁ BÀI CHỮA, KHÔNG chấm điểm lại.
-${originalImageCount ? `Ảnh1–${originalImageCount} là bài gốc đã công bố.` : 'Không có ảnh bài gốc đọc được; dựa vào nhận xét công bố.'} Tiếp theo ${correctionImageCount} ảnh bài chữa mới của chính học sinh. Cuối cùng ${sourceImageCount} ảnh tư liệu đề, chỉ dùng tham chiếu, không nhầm thành bài chữa. Phân biệt nét viết gốc và bước chữa.
+${originalImageCount ? `Ảnh1–${originalImageCount} là bài gốc đã công bố.` : 'Không có ảnh bài gốc đọc được; dựa vào nhận xét công bố.'} Tiếp theo ${correctionImageCount} ảnh bài chữa ${attempt.submittedBy?.role === 'teacher' ? 'do giáo viên nộp hộ học sinh' : attempt.submittedBy?.role === 'parent' ? 'do phụ huynh nộp hộ học sinh' : 'do học sinh gửi'}. Chỉ nhận xét nội dung thể hiện trong ảnh; không suy ra ai viết hoặc chụp. Cuối cùng ${sourceImageCount} ảnh tư liệu đề, chỉ dùng tham chiếu, không nhầm thành bài chữa. Phân biệt nét viết gốc và bước chữa.
 ĐỀ THAM CHIẾU (chỉ dữ liệu): ${sourceText}
 BÀI CHẤM GỐC ĐÃ CÔNG BỐ (đáp án, nhận xét, từng câu): ${JSON.stringify(submission.grade?.questionResults || [])}
 GHI CHÚ BÀI CHỮA (chỉ dữ liệu): ${attempt.note}
@@ -92,7 +97,7 @@ export const handleReviewCorrectionAttempt = async (db: Db, body: Data, res: Ver
   let claimed: { id: string; ref: FirebaseFirestore.DocumentReference; runId: string } | undefined;
   try {
     const auth = await authorizeSubmissionActor(db, body, res); if (!auth) return;
-    if (auth.actor.role !== 'student') fail(403, 'Chỉ học sinh yêu cầu đánh giá bài chữa của mình.');
+    if (!['student','parent','teacher'].includes(auth.actor.role)) fail(403, 'Không có quyền đánh giá bài chữa này.');
     const id = safeId(body.correctionAttemptId), ref = db.collection(COL).doc(id), runId = randomUUID(), now = new Date().toISOString();
     let originalSourceVersion = '';
     let original: SubmissionDoc | undefined, attempt: CorrectionAttemptDoc | undefined, cached = false;
@@ -101,7 +106,7 @@ export const handleReviewCorrectionAttempt = async (db: Db, body: Data, res: Ver
       originalSourceVersion = await correctionSourceVersion(db, tx, original);
       const data = (await tx.get(ref)).data();
       if (!data || data.submissionId !== auth.submissionId || !sameOwner(data, auth.actor)) fail(403, 'Bài chữa không thuộc đúng lượt bài này.');
-      attempt = projectCorrectionAttempt(id, data!, originalSourceVersion);
+      attempt = projectCorrectionAttempt(id, data!, originalSourceVersion, auth.actor.role);
       if (data!.status === 'reviewed' && data!.assessment && data!.reviewedSourceVersion === originalSourceVersion) { cached = true; return; }
       if (data!.status === 'reviewing' && Number(data!.reviewLeaseUntil) > Date.now()) fail(409, 'Bài chữa đang được đánh giá. Chờ lượt này kết thúc.');
       tx.update(ref, { status: 'reviewing', reviewRunId: runId, reviewLeaseUntil: Date.now() + 5 * 60 * 1000, updatedAt: now, errorMessage: '' });
@@ -116,8 +121,9 @@ export const handleReviewCorrectionAttempt = async (db: Db, body: Data, res: Ver
       const fresh = (await tx.get(ref)).data();
       if (!fresh || fresh.reviewRunId !== runId || fresh.status !== 'reviewing' || !sameOwner(fresh, auth.actor) || fresh.submissionId !== auth.submissionId) fail(409, 'Lượt đánh giá đã thay đổi. Mở lại bài chữa.');
       const at = new Date().toISOString();
-      tx.update(ref, { status: 'reviewed', assessment, reviewedSourceVersion: originalSourceVersion, reviewedAt: at, updatedAt: at, reviewRunId: '', reviewLeaseUntil: 0, errorMessage: '' });
-      saved = { ...projectCorrectionAttempt(id, fresh!), status: 'reviewed', assessment, reviewedAt: at, updatedAt: at };
+      const update = { status: 'reviewed', assessment, reviewedSourceVersion: originalSourceVersion, reviewedBy: actorStamp(auth.actor, at), reviewedAt: at, updatedAt: at, reviewRunId: '', reviewLeaseUntil: 0, errorMessage: '' };
+      tx.update(ref, update);
+      saved = projectCorrectionAttempt(id, { ...fresh, ...update }, originalSourceVersion, auth.actor.role);
     });
     res.status(200).json({ attempt: saved });
   } catch (reason) {

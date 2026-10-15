@@ -32,3 +32,10 @@ it('bài online không hiện đường nộp ảnh hộ ở danh sách hoặc c
   expect(html).not.toContain('Nộp bài hộ con');
   expect(html).not.toContain('Chọn tệp bài làm');
 });
+it('PH sees only published hand-marked files and can submit a correction under parent credentials', () => {
+  const submission = { id:'s',studentId:'child',classId:'c',teacherId:'t',assignmentId:'a',status:'graded',fileUrls:[],note:'',createdAt:'',updatedAt:'',grade:{score:8,maxScore:10,teacherApproved:true,feedback:'',strengths:[],weaknesses:[],gradedAt:''},handMarkedPublished:true,handMarkedEvidence:{id:'r',files:[{id:'f',name:'Đã chấm.pdf',mimeType:'application/pdf',size:10,kind:'pdf'}],note:'Bản giấy',submittedBy:{role:'teacher',studentId:'child',at:''},createdAt:''} } as unknown as SubmissionDoc;
+  const assignmentHandMarked = { ...assignment, id:'a' };
+  state.values = [[assignmentHandMarked], [submission], '', 1, { assignment: assignmentHandMarked, submissions:[submission] }, 'a', null, '', false, 0];
+  const html = renderToStaticMarkup(<ParentAssignmentWorkspace credentials={{role:'parent',joinCode:'private',studentId:'child',pin:'secret'}}/>);
+  expect(html).toContain('Bản chấm tay của giáo viên'); expect(html).toContain('Đã chấm.pdf'); expect(html).toContain('Nộp hộ bài chữa / làm lại'); expect(html).not.toContain('secret');
+});

@@ -27,6 +27,11 @@ describe('HS xem lại ảnh đã nộp', () => {
     expect(html).toContain('Xem bài đã nộp');
     expect(html).not.toContain('<img');
   });
+  it('shows separately published hand-marked evidence even when the official grade is pending', () => {
+    const evidence = { id: 'review', files: [{ id: 'file', name: 'ban-cham.pdf', mimeType: 'application/pdf', size: 20, kind: 'pdf' as const }], note: '', submittedBy: { role: 'teacher' as const, studentId: 'hs', at: '' }, createdAt: '' };
+    const html = render([{ ...submission, fileUrls: [], attachments: [], grade: undefined, handMarkedEvidence: evidence, handMarkedPublished: true } as SubmissionDoc]);
+    expect(html).toContain('Bản chấm tay của giáo viên'); expect(html).toContain('ban-cham.pdf'); expect(html).not.toContain('PRIVATE FEEDBACK');
+  });
   it('giữ ảnh thiếu metadata, không trùng, không lộ điểm/nhận xét', () => {
     view.open = true;
     const html = render([submission]);
@@ -86,5 +91,12 @@ describe('HS xem lại ảnh đã nộp', () => {
     const html = render([{ ...submission, grade: { ...submission.grade, teacherApproved: true } } as SubmissionDoc]);
     expect(html.match(/aria-label="Phản hồi bài chấm"/g)).toHaveLength(1);
     expect(html.match(/aria-label="Bài chữa và làm lại"/g)).toHaveLength(1);
+  });
+  it('giữ lịch sử bài chữa khi GV ẩn điểm, kể cả bài không còn ảnh gốc', () => {
+    const html = render([{ ...submission, fileUrls: [], attachments: [], grade: undefined }]);
+    expect(html).toContain('Bài chữa / làm lại');
+    expect(html).toContain('Lịch sử bài chữa vẫn xem được');
+    expect(html).not.toContain('Phản hồi bài chấm');
+    expect(html).not.toContain('PRIVATE');
   });
 });

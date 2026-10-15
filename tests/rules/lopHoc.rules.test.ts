@@ -365,6 +365,16 @@ describe('submissionGradeHistory · audit server-only', () => {
 });
 
 describe('Khóa chốt không thể bị lách qua document gốc', () => {
+  it('teacher and student cannot access private hand-marked revision paths or publication audit',async()=>{
+    await testEnv.withSecurityRulesDisabled(async context=>{
+      for(const name of ['submissionHandMarkedReviews','submissionHandMarkedAudit'])await setDoc(doc(context.firestore(),name,'private'),{submissionId:'bai-1',files:[{path:'private'}]});
+    });
+    for(const actor of [dbGV(),dbHsA()])for(const name of ['submissionHandMarkedReviews','submissionHandMarkedAudit']){
+      await assertFails(getDoc(doc(actor,name,'private')));
+      await assertFails(setDoc(doc(actor,name,'private'),{submissionId:'bai-1',files:[{path:'private'}]}));
+      await assertFails(deleteDoc(doc(actor,name,'private')));
+    }
+  });
   it('teacher cannot alter clarification, evidence or lock using direct writes', async () => {
     await testEnv.withSecurityRulesDisabled(async context => { await updateDoc(doc(context.firestore(), 'assignments/bt-1'), { submissionLocked: true }); });
     await assertFails(updateDoc(doc(dbGV(), 'submissions/bai-1'), { fileUrls: ['other-photo'] }));
