@@ -88,6 +88,11 @@ export default function LessonCreationWizard() {
   const visiblePackages = packages.filter(item => (!item.authoredId || !item.grade || item.grade === Number(grade)) && (!week || item.week === Number(week)) && (!category || item.category===category) && searchable(`${item.title || item.package_id} ${item.period || ""}`).includes(searchable(search)));
   const visibleExams=exams.filter(item=>item.grade===Number(grade)&&(!week||item.week===Number(week))&&(!category||category==='exam')&&searchable(item.title).includes(searchable(search)));
   const visibleWeeks=Array.from(new Set([...visiblePackages.filter(item=>item.week).map(item=>item.week!),...visibleExams.map(item=>item.week)])).sort((a,b)=>a-b);
+  const loadedWeeks=Array.from(new Set([...packages.map(item=>item.week),...exams.map(item=>item.week)]))
+    .filter((value): value is number => typeof value === 'number' && Number.isInteger(value) && value > 0)
+    .sort((a,b)=>a-b);
+  const weekOptions=loadedWeeks.length>0?loadedWeeks:Array.from({length:38},(_,index)=>index+1);
+  const semesterTitle=Number(week)>0?(Number(week)>=19?'Học kỳ II':'Học kỳ I'):(visibleWeeks.some(value=>value>=19)?(visibleWeeks.some(value=>value<19)?'Học kỳ I & II':'Học kỳ II'):'Học kỳ I');
   function choosePackage(id:string){
     const selected=packages.find(item=>item.row_id===id);
     setPackageId(id);
@@ -137,15 +142,15 @@ export default function LessonCreationWizard() {
             <label htmlFor="creation-week">Tuần học</label>
             <select id="creation-week" className="lesson-select" value={week} onChange={event=>{setWeek(event.target.value);setPackageId("");}}>
               <option value="">Tất cả tuần và bài mẫu</option>
-              {Array.from({length:18},(_,index)=>index+1).map(value=><option key={value} value={value}>Tuần {value}</option>)}
+              {weekOptions.map(value=><option key={value} value={value}>Tuần {value}</option>)}
             </select>
             <label htmlFor="creation-category">Loại tiết trong thư viện</label>
             <select id="creation-category" className="lesson-select" value={category} onChange={event=>{setCategory(event.target.value);setPackageId("");}}>
               <option value="">Tất cả loại tiết</option>
               {Object.entries(categories).map(([value,label])=><option key={value} value={value}>{label}</option>)}
             </select>
-            {visibleWeeks.length>0&&<section aria-label={`Học liệu HKI lớp ${grade}`}>
-              <h3>Lớp {grade} · Discover · Học kỳ I</h3>
+            {visibleWeeks.length>0&&<section aria-label={`Học liệu ${semesterTitle} lớp ${grade}`}>
+              <h3>Lớp {grade} · Discover · {semesterTitle}</h3>
               <p>Chọn tuần rồi chọn bài theo loại tiết. Tự chọn là game ôn tổng hợp; bài và đề đều cần GV duyệt.</p>
               {visibleWeeks.map(value=><details key={`${grade}-${value}`} className="lesson-form-card" open={week===String(value)||Boolean(search)||selectedPackage?.week===value}>
                 <summary style={{cursor:'pointer',minHeight:44,padding:8}}><strong>Tuần {value}</strong> · {visiblePackages.filter(item=>item.week===value).length} tiết{visibleExams.some(item=>item.week===value)?' · Có đề kiểm tra':''}</summary>

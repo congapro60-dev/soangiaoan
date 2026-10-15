@@ -162,6 +162,30 @@ test('semester library groups grade, week and type; searches without accents and
  byId(tree,'creation-grade').props.onChange({target:{value:'10'}});tree=h.render();assert.equal(byLabel(tree,'Tiếp tục soạn nội dung').props.disabled,true);
 });
 
+test('semester week filter exposes HKII weeks from loaded library data', async () => {
+ const authored = [
+  { id: 'g11-week19', title: 'Hàm số mũ', version: '1.0.0', status: 'draft', grade: 11, week: 19, period: 1, category: 'formation', slotMinutes: 40 },
+  { id: 'g11-week38', title: 'Ôn tập cuối năm', version: '1.0.0', status: 'draft', grade: 11, week: 38, period: 1, category: 'review', slotMinutes: 40 },
+ ];
+ const h = harness({ ok: true, json: async () => ({ packages: [] }) }, { ok: true, json: async () => ({ lessons: authored, exams: [] }) });
+ byLabel(stepTwo(h, 'Hình thành kiến thức'), 'Chọn từ thư viện').props.onClick(); h.render(); await settle();
+ const tree = h.render();
+ const weekOptions = elements(elements(tree).find(node => node.props.id === 'creation-week')).filter(node => node.type === 'option');
+ assert.equal(weekOptions.some(option => Number(option.props.value) === 19), true);
+ assert.equal(weekOptions.some(option => Number(option.props.value) === 38), true);
+ assert.match(renderToStaticMarkup(tree), /Lớp 11 · Discover · Học kỳ II/);
+});
+
+test('semester week filter falls back to weeks 1 through 38 before data arrives', async () => {
+ const h = harness({ ok: true, json: async () => ({ packages: [] }) }, { ok: true, json: async () => ({ lessons: [], exams: [] }) });
+ byLabel(stepTwo(h, 'Ôn tập'), 'Chọn từ thư viện').props.onClick(); h.render(); await settle();
+ const tree = h.render();
+ const weekOptions = elements(elements(tree).find(node => node.props.id === 'creation-week')).filter(node => node.type === 'option');
+ assert.equal(weekOptions.some(option => Number(option.props.value) === 1), true);
+ assert.equal(weekOptions.some(option => Number(option.props.value) === 38), true);
+ assert.equal(weekOptions.length, 39);
+});
+
 test('duration validation rejects decimals, zero and overlimit before navigation', () => {
   const h = harness();
   stepTwo(h, 'Luyện tập');

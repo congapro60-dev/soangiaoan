@@ -137,3 +137,46 @@ test('leaving 3D remounts the 2D board with gate stars or the exam journey resto
   assert.deepEqual(run(null), ['destroy', 'stars']);
   assert.deepEqual(run({ stations: [] }), ['destroy', 'exam:false']);
 });
+
+test('leaving 3D restores the physical gate label and its delegated activity click', () => {
+  const pin = element('button'), number = element('span'), detail = element('small'), calls = [];
+  pin.dataset.cell = '32';
+  pin.querySelector = selector => selector === '.pin-symbol' ? number : detail;
+  const input = { sessionKey: 'room', world: 'cube', map: {
+    totalPosition: 72,
+    peers: [{ id: 'm1', own: true, position: 16 }],
+    activityIds: ['activity-1', 'activity-2'],
+    gateStars: [{ activityId: 'activity-2', stars: 2 }],
+    revisitEnabled: true,
+    revisitGates: [{ id: 'activity-2' }],
+  } };
+  const context = {
+    pilot: { destroy() {} }, controller: null, lastInput: input,
+    document: {
+      getElementById: id => id === 'terrainViewport' ? { style: {} } : null,
+      querySelector: () => null,
+      querySelectorAll: selector => selector === '.gate-pin' ? [pin] : [],
+    },
+    window: {
+      SignalTerrain: { mount: (_host, model) => { calls.push(model); return { mode() {} }; } },
+      parent: { postMessage: message => calls.push(message) },
+      location: { origin: 'https://map.test' },
+    },
+    buildModel: undefined, themeOf: () => ({ route: [], places: [], image: '', sprites: '' }),
+    followOwn() {}, setModeButtons() {}, selectPeer: noop, openPeerChooser: noop,
+    visiblePeers: data => data.map.peers,
+    cellOf: (position, total) => Math.round(position / total * 32), sprite: noop,
+    standaloneDemo: false,
+  };
+  vm.runInNewContext([
+    sourceNode(script, 'buildModel'), sourceNode(script, 'post'), sourceNode(script, 'gateAllowed'),
+    sourceNode(script, 'selectGate'), sourceNode(script, 'syncFlatGateStars'), sourceNode(script, 'leavePilot'),
+    'leavePilot(true);',
+  ].join('\n'), context);
+  assert.equal(calls.length, 1, 'remounts the 2D controller once');
+  assert.equal(number.textContent, '02');
+  assert.equal(detail.textContent, 'Cổng 2 · ★★');
+  assert.equal(pin.dataset.lessonGateId, 'activity-2');
+  context.selectGate(pin.dataset.lessonGateId);
+  assert.deepEqual(plain(calls.at(-1)), { type: 'lesson-map:gate', payload: { activityId: 'activity-2' } });
+});
