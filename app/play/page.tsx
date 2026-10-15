@@ -18,7 +18,6 @@ import { LessonMapStage } from "../../components/lesson/LessonMapStage";
 import { LessonEncounterSheet } from "../../components/lesson/LessonEncounterSheet";
 import { useLessonSession, formatDuration, type LessonPassportCard, type LessonProjection } from "../../components/lesson/useLessonSession";
 import { useLessonMedia } from "../../components/lesson/useLessonMedia";
-import "../lessons/lesson.css";
 
 // Height of the pupil's top bar; the map keeps this much free at its top edge.
 const HUD_HEIGHT = 56;

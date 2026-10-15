@@ -1,7 +1,6 @@
 import { requireChatGPTUser } from "../chatgpt-auth";
 import LessonDashboard from "./lesson-dashboard";
 import { AISettingsCard } from "../../components/AISettingsCard";
-import "./lesson.css";
 import {redirect} from "next/navigation";
 import {parseLessonCreation} from "../../lib/lesson/creation-context.js";
 

@@ -1,6 +1,5 @@
 import { requireChatGPTUser } from "../../chatgpt-auth";
 import LessonCreationWizard from "../../../components/lesson/LessonCreationWizard";
-import "../lesson.css";
 
 export const dynamic = "force-dynamic";
 

@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { EDUFIT_VALUES } from "../../lib/lesson/values.js";
 import Link from "next/link";
 import MathText from "../../components/lesson/MathText";
-import "../lessons/lesson.css";
 
 export const CLASS_PASSPORT_TOKEN_KEY = "lesson_class_passport_token";
 type Passport = { leagues?:Array<{id:string;title:string}>; sessions?:Array<{id:string;status:string;storyEnding?:string}>; class: { id: string; title: string; code: string }; member: { id: string; name: string; code: string }; passport: { tutorHistory?:Array<{id:string;recipientName:string;at:number;revokedAt?:number}>; values?:Array<{valueId:string;reason:string;revokedAt?:number}>;reflections?:Array<{reflection:string;submittedAt:number}>; objectives: Array<{ key?: string; code: string; statement: string; status: string; independentCount: number; supportedCount: number }> } };

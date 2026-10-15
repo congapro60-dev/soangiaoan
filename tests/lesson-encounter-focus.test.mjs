@@ -8,7 +8,7 @@ const ast=ts.createSourceFile('sheet.tsx',source,ts.ScriptTarget.Latest,true,ts.
 function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect')effect=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);
 test('mounted encounter traps Tab, restores background and lets native attention own Escape',()=>{
  const listeners={},doc={activeElement:null,body:{},querySelector:()=>null,addEventListener:(name,fn)=>listeners[name]=fn,removeEventListener:name=>delete listeners[name]};
- class Element {constructor(){this.inert=false;this.tagName='DIV';this.children=[];}focus(){doc.activeElement=this;}getClientRects(){return[{}];}closest(){return null;}}
+ class Element {constructor(){this.inert=false;this.tagName='DIV';this.children=[];this.dataset={};}focus(){doc.activeElement=this;}getClientRects(){return[{}];}closest(){return null;}}
  const trigger=new Element(),background=new Element(),attention=new Element(),sheet=new Element(),panel=new Element(),first=new Element(),last=new Element(),main=new Element();attention.tagName='DIALOG';main.parentElement=doc.body;doc.body.children=[main];main.children=[background,attention,sheet];sheet.parentElement=main;panel.parentElement=sheet;panel.querySelectorAll=()=>[first,last];doc.activeElement=trigger;
  let closes=0;const context={document:doc,HTMLElement:Element,open:true,panelRef:{current:panel},returnFocus:{current:null},onClose:()=>closes++};vm.createContext(context);vm.runInContext('globalThis.cleanup=('+ts.transpileModule(effect,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText.trim().replace(/;$/,'')+')()',context);
  assert.equal(background.inert,true);assert.equal(attention.inert,false);assert.equal(doc.activeElement,panel);
@@ -19,4 +19,17 @@ test('mounted encounter traps Tab, restores background and lets native attention
  doc.activeElement=doc.body;doc.querySelector=query=>query==='[data-encounter-trigger]'?trigger:null;
  vm.runInContext('globalThis.cleanup=('+ts.transpileModule(effect,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText.trim().replace(/;$/,'')+')()',context);
  context.cleanup();assert.equal(doc.activeElement,trigger);
+});
+
+test('closing the mascot sheet does not re-inert a task sheet React has just opened',()=>{
+ const doc={activeElement:null,body:{},querySelector:()=>null,addEventListener(){},removeEventListener(){}};
+ class Element {constructor(){this.inert=false;this.tagName='DIV';this.children=[];this.dataset={};}focus(){}getAttribute(name){return name==='data-open'?this.dataset.open??null:null;}}
+ const main=new Element(),mascot=new Element(),task=new Element(),panel=new Element();
+ main.parentElement=doc.body;doc.body.children=[main];main.children=[task,mascot];task.parentElement=mascot.parentElement=main;panel.parentElement=mascot;
+ task.dataset.open='false';task.inert=true;
+ const context={document:doc,HTMLElement:Element,open:true,panelRef:{current:panel},returnFocus:{current:null},onClose(){}};
+ vm.createContext(context);vm.runInContext('globalThis.cleanup=('+ts.transpileModule(effect,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText.trim().replace(/;$/,'')+')()',context);
+ // React applies the new task-sheet DOM props before passive cleanup of the old mascot effect.
+ task.dataset.open='true';task.inert=false;
+ context.cleanup();assert.equal(task.inert,false,'The new answer controls must remain interactive');
 });

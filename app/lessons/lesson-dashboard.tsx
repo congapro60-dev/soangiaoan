@@ -746,7 +746,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
   const [setupDraft,setSetupDraft]=useState<{key:string;value:TeacherSetup}|null>(null);
   const setupKey=JSON.stringify([selectedRecord?.row_id||null,currentPackage?.id,currentPackage?.version,currentPackage?.contentHash,currentPackage?.sourceRefs]);
   const teacherSetup=(setupDraft?.key===setupKey?setupDraft.value:recommendTeacherSetup(currentPackage)) as TeacherSetup;
-  const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(creation?.source==='library');
+  const [isLoadingStudio, setIsLoadingStudio] = useState<boolean>(creation?.source==='library' || creation?.source==='authored');
   const [studioStatus, setStudioStatus] = useState<string>("");
   const [editedPackage, setRawEditedPackage] = useState<LessonPackage | null>(null);
   const [undoDraft, setUndoDraft] = useState<LessonPackage | null>(null);
@@ -1196,7 +1196,20 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
       if (!selectInitial || draftRevisionRef.current !== revision) return;
       activePackageFetchIdRef.current = fetchSessionId;
 
-      if (creation?.source === "library") {
+      if (creation?.source === "authored") {
+        const authoredId = creation.packageId;
+        if (!authoredId || !/^[A-Za-z0-9_-]{1,128}$/.test(authoredId)) throw Error("Bài học có sẵn không hợp lệ. Hãy chọn lại trong màn khởi tạo.");
+        const authoredRes = await fetch(`/api/lesson-content?id=${encodeURIComponent(authoredId)}`, { cache: "no-store" });
+        if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
+        if (!authoredRes.ok) throw Error("Không mở được bài học có sẵn. Hãy chọn lại nội dung hoặc kiểm tra quyền truy cập.");
+        const normalized = normalizeLessonResponse(await authoredRes.json());
+        if (activePackageFetchIdRef.current !== fetchSessionId || draftRevisionRef.current !== revision) return;
+        setSelectedRecord(null);
+        setCurrentPackage({ ...normalized.lesson, status: "draft" });
+        setGenerationSettings(current=>({...current,grade:normalized.lesson.grade||current.grade,slotMinutes:normalized.lesson.budget?.slotMinutes||current.slotMinutes}));
+        setEditedPackage(JSON.parse(JSON.stringify({ ...normalized.lesson, status: "draft" })));
+        setLaunchTitle(normalized.lesson.essentialQuestion?.slice(0, 60) || normalized.lesson.id);
+      } else if (creation?.source === "library") {
         const first = pkgList.find(record => record.row_id === creation.packageId);
         if(!first)throw Error("Học liệu đã chọn không còn khả dụng. Chọn lại trong màn khởi tạo.");
         setSelectedRecord(first);

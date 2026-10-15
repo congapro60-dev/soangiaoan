@@ -15,7 +15,6 @@ import { TutorPanel } from "../../components/lesson/TutorPanel";
 import { SharedDuelPanel } from "../../components/lesson/SharedDuelPanel";
 import { SessionRules } from "../../components/lesson/SessionRules";
 import {getSafeWorldMetadata} from "../../components/lesson/LessonThemedRoute";
-import "../lessons/lesson.css";
 export default function SharedPage() {
  const [sessionId,setSessionId]=React.useState("");
  React.useEffect(()=>{const value=new URLSearchParams(window.location.search).get("session");if(value&&/^[A-Za-z0-9_-]{1,70}$/.test(value)){const timer=setTimeout(()=>setSessionId(value),0);return()=>clearTimeout(timer);}},[]); const [enteredToken,setEnteredToken]=React.useState(""); const [token,setToken]=React.useState("");

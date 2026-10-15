@@ -56,6 +56,20 @@ test('Studio selects an authored source draft without treating it as an approved
  await handler('handleSelectPackage',bindings)(null,'g11-sequences-p2');assert.equal(state.CurrentPackage.id,pkg.id);assert.equal(state.SelectedRecord,null);assert.equal(state.EditedPackage.status,'draft');assert.equal(state.ApprovedPlan,null);
 });
 
+test('creation route loads the explicitly selected authored lesson and keeps it unsaved', async () => {
+  const state = {}, bindings = studioBindings(state), calls = [];
+  const pkg = JSON.parse(await readFile(new URL('../content/lessons/g11-ch2-review.json', import.meta.url), 'utf8'));
+  bindings.useCallback = callback => callback;
+  bindings.creation = { source: 'authored', purpose: 'review', grade: 11, minutes: 80, packageId: pkg.id };
+  bindings.setPackages = value => { state.Packages = value; };
+  bindings.fetch = async url => { calls.push(url); if (url === '/api/lessons?kind=list') return { ok: true, json: async () => ({ packages: [] }) }; assert.equal(url, `/api/lesson-content?id=${pkg.id}`); return { ok: true, json: async () => ({ package: pkg }) }; };
+  await handler('loadStudio', bindings)(true);
+  assert.deepEqual(calls, ['/api/lessons?kind=list', `/api/lesson-content?id=${pkg.id}`]);
+  assert.equal(state.CurrentPackage.id, pkg.id);
+  assert.equal(state.CurrentPackage.status, 'draft');
+  assert.equal(state.SelectedRecord, null);
+});
+
 test('Studio preview budget exposes optional extension minutes', () => {
   assert.match(source, /tùy chọn\/phó bản/);
   assert.match(source, /optionalMinutes/);

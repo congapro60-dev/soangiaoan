@@ -9,16 +9,17 @@ const purposes = [
   { id: "exam", title: "Kiểm tra", description: "Soạn đề, đáp án và thiết lập bài kiểm tra." },
 ] as const;
 
-type PackageChoice = { row_id: string; package_id: string; version: string; status: string; title?: string; grade?: number; slotMinutes?: number };
+type PackageChoice = { row_id: string; package_id: string; version: string; status: string; title?: string; grade?: number; slotMinutes?: number; authoredId?: string };
+type AuthoredChoice = { id: string; title: string; version: string; status: string; grade?: number; slotMinutes?: number };
 
 export function lessonCreationDestination(purpose: string, source: string, grade: string, minutes: string, packageId: string) {
   if (!purposes.some(item => item.id === purpose) || !["10", "11", "12"].includes(grade) || !/^\d+$/.test(minutes) || Number(minutes) < 5 || Number(minutes) > 240) return null;
   const query = new URLSearchParams({ setup: "new" });
   if (purpose !== "exam") {
-    if (!["import", "library"].includes(source) || (source === "library" && !/^[A-Za-z0-9_-]{1,128}$/.test(packageId))) return null;
+    if (!["import", "library", "authored"].includes(source) || (source !== "import" && !/^[A-Za-z0-9_-]{1,128}$/.test(packageId))) return null;
     query.set("purpose", purpose);
     query.set("source", source);
-    if (source === "library") query.set("package", packageId);
+    if (source === "library" || source === "authored") query.set("package", packageId);
   }
   if(purpose!=="exam")query.set("grade", grade);
   query.set("minutes", String(Number(minutes)));
@@ -49,11 +50,15 @@ export default function LessonCreationWizard() {
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetch("/api/lessons?kind=list", { cache: "no-store" });
-        if (!response.ok) throw Error("Không tải được thư viện. Hãy thử lại.");
+        const [response, authoredResponse] = await Promise.all([fetch("/api/lessons?kind=list", { cache: "no-store" }), fetch("/api/lesson-content", { cache: "no-store" })]);
+        if (!response.ok || !authoredResponse.ok) throw Error("Không tải được thư viện. Hãy thử lại.");
         const data = await response.json() as { packages?: PackageChoice[] };
-        if (!Array.isArray(data.packages)) throw Error("Không tải được thư viện. Hãy thử lại.");
-        if (!cancelled) setPackages(data.packages.filter(item => typeof item.row_id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.row_id)));
+        const authoredData = await authoredResponse.json() as { lessons?: AuthoredChoice[] };
+        if (!Array.isArray(data.packages) || !Array.isArray(authoredData.lessons)) throw Error("Không tải được thư viện. Hãy thử lại.");
+        if (!cancelled) setPackages([
+          ...data.packages.filter(item => typeof item.row_id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.row_id)).map(item => ({ ...item, authoredId: undefined })),
+          ...authoredData.lessons.filter(item => typeof item.id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.id)).map(item => ({ ...item, row_id: "source:" + item.id, package_id: item.id, authoredId: item.id })),
+        ]);
       } catch {
         if (!cancelled) setError("Không tải được thư viện. Hãy thử lại.");
       } finally {
@@ -67,8 +72,8 @@ export default function LessonCreationWizard() {
   const selectedPackage = source === "library" ? packages.find(item => item.row_id === packageId) : undefined;
   const savedGrade = selectedPackage && [10, 11, 12].includes(Number(selectedPackage.grade));
   const savedMinutes = selectedPackage && Number.isInteger(selectedPackage.slotMinutes) && Number(selectedPackage.slotMinutes) >= 5 && Number(selectedPackage.slotMinutes) <= 240;
-  const target = lessonCreationDestination(purpose, source, grade, minutes,
-    packages.some(item => item.row_id === packageId) ? packageId : "");
+  const target = lessonCreationDestination(purpose, selectedPackage?.authoredId ? "authored" : source, grade, minutes,
+    selectedPackage?.authoredId || selectedPackage?.row_id || "");
   const validMinutes = /^\d+$/.test(minutes) && Number(minutes) >= 5 && Number(minutes) <= 240;
 
   return <main className="lesson-shell">
@@ -108,7 +113,7 @@ export default function LessonCreationWizard() {
           </div>
           {source === "import" && <p>Ở màn tiếp theo, tải DOCX, PDF, Markdown hoặc nhập ý tưởng. Sau khi soạn nội dung, thầy cô xem gợi ý thiết lập trò chơi và chỉnh lại.</p>}
           {source === "library" && <div className="lesson-field-group">
-            <label htmlFor="creation-package">Học liệu đã lưu</label>
+            <label htmlFor="creation-package">Học liệu đã lưu và bài có sẵn</label>
             <select id="creation-package" className="lesson-select" disabled={loading || !packages.length} value={packageId} onChange={event => {
               const selected = packages.find(item => item.row_id === event.target.value);
               setPackageId(event.target.value);
@@ -116,7 +121,7 @@ export default function LessonCreationWizard() {
               if (selected && Number.isInteger(selected.slotMinutes) && Number(selected.slotMinutes) >= 5 && Number(selected.slotMinutes) <= 240) setMinutes(String(selected.slotMinutes));
             }}>
               <option value="">{loading ? "Đang tải thư viện…" : "Chọn một học liệu"}</option>
-              {packages.map(item => <option key={item.row_id} value={item.row_id}>{item.title || item.package_id} · {item.version} · {({ draft: "Bản nháp", approved: "Đã duyệt", published: "Đã phát hành" } as Record<string, string>)[item.status] || item.status}</option>)}
+              {packages.map(item => <option key={item.row_id} value={item.row_id}>{item.title || item.package_id} · {item.version} · {item.authoredId ? "Bài có sẵn, cần lưu và GV duyệt" : ({ draft: "Bản nháp", approved: "Đã duyệt", published: "Đã phát hành" } as Record<string, string>)[item.status] || item.status}</option>)}
             </select>
             {selectedPackage && <p role="status">Học liệu đã lưu giữ nguyên nội dung, khối lớp và thời lượng có sẵn. Loại tiết đã chọn dùng để tổ chức bài này. Muốn soạn lại theo yêu cầu khác, chọn “Đưa giáo án hoặc ý tưởng vào”.</p>}
             {!loading && !error && !packages.length && <p role="status">Thư viện chưa có học liệu. Chọn “Đưa giáo án hoặc ý tưởng vào” để soạn bài mới.</p>}

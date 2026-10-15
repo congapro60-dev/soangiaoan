@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./lessons/lesson.css";
 
 export const metadata: Metadata = {
   title: "Mật Mã Đa Giới · Toán 10–12",

@@ -50,7 +50,7 @@ export function LessonEncounterSheet({ open, title, kicker, onClose, variant = "
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      for(const item of background)item.element.inert=item.inert;
+      for(const item of background)if(item.element.dataset.open!=="true")item.element.inert=item.inert;
       if(!document.querySelector("dialog[open]")){
         const target=(!returnFocus.current||returnFocus.current===document.body||returnFocus.current.isConnected===false)?document.querySelector<HTMLElement>("[data-encounter-trigger]"):returnFocus.current;
         target?.focus?.({ preventScroll: true });

@@ -7,7 +7,6 @@ import { LessonWorldMap } from "../../components/lesson/LessonWorldMap";
 import { useLessonSession, formatDuration } from "../../components/lesson/useLessonSession";
 import { useLessonMedia } from "../../components/lesson/useLessonMedia";
 import { ClassEventPanel } from "../../components/lesson/ClassEventPanel";
-import "../lessons/lesson.css";
 
 interface PresenterTask {
   id: string;

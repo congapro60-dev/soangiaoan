@@ -10,11 +10,11 @@ const source = readFileSync(new URL('../components/lesson/LessonCreationWizard.t
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText;
 const rows = [{ row_id: 'row-a', package_id: 'lesson-geometry', title: 'Hình học', grade: 10, slotMinutes: 80, version: '2', status: 'approved' }, { row_id: 'row-b', package_id: 'lesson-arithmetic', version: '1', status: 'draft' }];
 
-function harness(response = { ok: true, json: async () => ({ packages: rows }) }) {
+function harness(response = { ok: true, json: async () => ({ packages: rows }) }, authoredResponse = { ok: true, json: async () => ({ lessons: [] }) }) {
   const states = [], effects = [], pending = [], calls = [];
   let stateIndex = 0, effectIndex = 0;
   const exports = {};
-  vm.runInNewContext(code, { exports, React, URLSearchParams, fetch: async (...args) => { calls.push(args); return response; }, require: name => {
+  vm.runInNewContext(code, { exports, React, URLSearchParams, fetch: async (...args) => { calls.push(args); return args[0] === '/api/lesson-content' ? authoredResponse : response; }, require: name => {
     assert.equal(name, 'react');
     return { ...React, useState(initial) {
       const index = stateIndex++;
@@ -54,7 +54,8 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
 test('new entry requires authenticated teacher and uses existing lesson styles', () => {
   const page = readFileSync(new URL('../app/lessons/new/page.tsx', import.meta.url), 'utf8');
   assert.match(page, /await requireChatGPTUser\("\/lessons\/new"\)/);
-  assert.match(page, /import "\.\.\/lesson.css"/);
+  const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8');
+  assert.match(layout, /import "\.\/lessons\/lesson.css"/);
 });
 
 test('initial rendered wizard offers four choices, no preselection or content calls', () => {
@@ -89,9 +90,10 @@ test('library fetch is explicit, selection remains empty until teacher picks sav
   h.render();
   await settle();
   let tree = h.render();
-  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls.length, 2);
   assert.equal(h.calls[0][0], '/api/lessons?kind=list');
   assert.equal(h.calls[0][1].cache, 'no-store');
+  assert.equal(h.calls[1][0], '/api/lesson-content');
   assert.equal(byId(tree, 'creation-package').props.value, '');
   assert.equal(byLabel(tree, 'Tiếp tục soạn nội dung').props.disabled, true);
   assert.match(renderToStaticMarkup(tree), /Hình học · 2 · Đã duyệt/);
@@ -118,6 +120,17 @@ test('saved metadata supplies original grade and duration with readonly controls
   byLabel(tree, 'Đưa giáo án hoặc ý tưởng vào').props.onClick();
   assert.equal(byId(h.render(), 'creation-grade').props.disabled, false);
   assert.equal(byId(h.render(), 'creation-minutes').props.disabled, false);
+});
+
+test('authored lesson appears only after explicit library choice and keeps source identity', async () => {
+  const h = harness(undefined, { ok: true, json: async () => ({ lessons: [{ id: 'g11-ch2-review', title: 'Ôn tập chương II', version: '1.0.0', status: 'draft', grade: 11, slotMinutes: 80 }] }) });
+  byLabel(stepTwo(h, 'Ôn tập'), 'Chọn từ thư viện').props.onClick();
+  h.render(); await settle();
+  let tree = h.render();
+  assert.match(renderToStaticMarkup(tree), /Ôn tập chương II · 1\.0\.0 · Bài có sẵn, cần lưu và GV duyệt/);
+  byId(tree, 'creation-package').props.onChange({ target: { value: 'source:g11-ch2-review' } });
+  tree = h.render();
+  assert(elements(tree).some(node => node.type === 'a' && node.props.href === '/lessons?setup=new&purpose=review&source=authored&package=g11-ch2-review&grade=11&minutes=80'));
 });
 
 test('exam goes to exam editor, without lesson package or import requirement', () => {
