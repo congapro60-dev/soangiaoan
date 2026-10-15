@@ -350,6 +350,7 @@ export interface StudentSessionProgressRecord {
   studentCode: string;
   studentName: string;
   studentClass?: string;
+  learningPurpose?: 'preparation' | 'remediation' | 'self_paced';
   route: LearningRoute;
   status: 'in_progress' | 'needs_support' | 'completed';
   diagnosticAttempt: AssessmentAttempt;

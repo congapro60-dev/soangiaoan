@@ -69,6 +69,7 @@ import {
 import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 import { sanitizeDisplayText } from '../lib/adaptive/mathText';
+import { getLearningPurposePlan, learningPurposeOptions, type LearningPurpose } from '../lib/adaptive/learningPurpose';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
@@ -331,6 +332,10 @@ export const AdaptiveStudentPortalPage = () => {
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentCode, setStudentCode] = useState('');
+  const [learningPurpose, setLearningPurpose] = useState<LearningPurpose>(() => {
+    const value = new URLSearchParams(window.location.search).get('purpose');
+    return value === 'preparation' || value === 'remediation' ? value : 'self_paced';
+  });
   const [studentAiKeyInput, setStudentAiKeyInput] = useState(() => getStudentAiKey());
   const [aiKeySaved, setAiKeySaved] = useState(false);
   const [profile, setProfile] = useState<StudentLearningProfile | null>(null);
@@ -438,6 +443,7 @@ export const AdaptiveStudentPortalPage = () => {
   const activeTeacherId = teacherId || lesson?.teacherId || '';
   const currentUnit = lesson?.knowledgeUnits[currentUnitIndex] || null;
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
+  const learningPurposePlan = getLearningPurposePlan(learningPurpose);
   const routeContent = currentUnit?.routes.find(item => item.route === recommendedRoute) || currentUnit?.routes[1] || currentUnit?.routes[0];
   const totalDiagnosticScore = diagnosticAttempt?.answers.reduce((sum, item) => sum + item.score, 0) || 0;
   const maxDiagnosticScore = lesson?.diagnosticTest.questions.reduce((sum, item) => sum + item.points, 0) || 0;
@@ -637,7 +643,7 @@ export const AdaptiveStudentPortalPage = () => {
     }
 
     const deweyAssets = await loadDeweyAssets(personalizedLesson);
-    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets);
+    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets, learningPurpose);
     const html = renderDeweyLesson(deweyContent, 'classic', { studentCode });
     setDeweyHtml(html);
     setStage('dewey-lesson');
@@ -681,6 +687,7 @@ export const AdaptiveStudentPortalPage = () => {
       studentCode: normalizeStudentCode(studentCode),
       studentName: studentName.trim(),
       studentClass: studentClass.trim() || undefined,
+      learningPurpose,
       route: recommendedRoute,
       status: 'completed',
       diagnosticAttempt,
@@ -764,6 +771,7 @@ export const AdaptiveStudentPortalPage = () => {
       studentCode: normalizeStudentCode(studentCode),
       studentName: studentName.trim(),
       studentClass: studentClass.trim() || undefined,
+      learningPurpose,
       route: recommendedRoute,
       status: needsTeacherSupport ? 'needs_support' : 'completed',
       diagnosticAttempt,
@@ -1133,6 +1141,27 @@ export const AdaptiveStudentPortalPage = () => {
                   </a>
                   . Key chỉ lưu trên máy của em, không gửi cho ai khác.
                 </p>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <p className="text-sm font-black text-blue-950">Em muốn học theo cách nào?</p>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  {learningPurposeOptions.map(option => (
+                    <button
+                      key={option.purpose}
+                      type="button"
+                      onClick={() => setLearningPurpose(option.purpose)}
+                      className={cn(
+                        'rounded-2xl border px-3 py-3 text-left transition',
+                        learningPurpose === option.purpose ? 'border-blue-500 bg-white ring-2 ring-blue-200' : 'border-blue-100 bg-blue-50 hover:bg-white',
+                      )}
+                    >
+                      <span className="block text-sm font-black text-slate-800">{option.label}</span>
+                      <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs font-bold text-blue-700">{learningPurposePlan.description}</p>
               </div>
 
               <button onClick={handleIdentify} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 sm:w-auto">

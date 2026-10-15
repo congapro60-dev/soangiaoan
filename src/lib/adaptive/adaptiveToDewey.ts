@@ -8,6 +8,7 @@ import type {
 import { escapeAttribute } from '../dewey/htmlShell';
 import { sanitizeDisplayText, stripInlineMarkdown } from './mathText';
 import { normalizeApprovedMedia, toNativeMediaDescriptor } from './media';
+import type { LearningPurpose } from './learningPurpose';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -287,7 +288,8 @@ const buildRoutePacks = (lesson: AdaptiveLesson): [DeweyOlympiaPack, DeweyOlympi
 export function adaptiveLessonToDeweyContent(
   lesson: AdaptiveLesson,
   route: LearningRoute = 'standard',
-  assets: DeweyConversionAssets = {}
+  assets: DeweyConversionAssets = {},
+  learningPurpose: LearningPurpose = 'self_paced',
 ): DeweyLessonContent {
   const reviewedMedia = (lesson.mediaManifest ?? [])
     .map(normalizeApprovedMedia)
@@ -507,7 +509,7 @@ export function adaptiveLessonToDeweyContent(
   return {
     lessonId: lesson.id,
     title: lesson.title,
-    subtitle: `Lớp ${lesson.grade} · Tuyến ${routeLabel}`,
+    subtitle: `Lớp ${lesson.grade} · ${learningPurpose === 'preparation' ? 'Chuẩn bị trước bài' : learningPurpose === 'remediation' ? 'Ôn tập và bù lỗ hổng' : 'Học theo nhịp riêng'} · Tuyến ${routeLabel}`,
     durationMinutes: lesson.durationMinutes,
     skipPretest: true,
     pretest: {
