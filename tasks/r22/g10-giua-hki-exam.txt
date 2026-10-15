@@ -1,0 +1,85 @@
+Toán 10 Discover - Kiểm tra giữa học kỳ I
+
+Thời gian làm bài: 80 phút
+
+Họ và tên: ................................ Lớp: ........
+
+PHẦN I. (8 câu/2 điểm) Trắc nghiệm nhiều phương án lựa chọn
+
+Câu 1. (0,25 điểm) Câu nào là mệnh đề?
+A. Em hãy tính 3+2.
+B. Số 9 là số chẵn.
+C. Em đã làm bài chưa?
+D. $x>5$ (chưa cho x).
+
+Câu 2. (0,25 điểm) Phủ định của “$\exists x\in\mathbb R:x^2<0$” là:
+A. $\exists x:x^2\ge0$
+B. $\forall x\in\mathbb R:x^2\ge0$
+C. $\forall x:x^2<0$
+D. $\exists x:x^2>0$
+
+Câu 3. (0,25 điểm) Cho $A=\{1;2;4\}$, $B=\{2;3;4\}$. $A\setminus B$ bằng:
+A. $\{1\}$
+B. $\{3\}$
+C. $\{2;4\}$
+D. $\{1;2;3;4\}$
+
+Câu 4. (0,25 điểm) Tập $\{x\in\mathbb R:-1<x\le3\}$ viết là:
+A. $[-1;3]$
+B. $(-1;3)$
+C. $(-1;3]$
+D. $[-1;3)$
+
+Câu 5. (0,25 điểm) Điểm nào thuộc miền $x\ge0,y\ge0,x+y\le5$?
+A. $(-1;2)$
+B. $(4;3)$
+C. $(2;-1)$
+D. $(2;3)$
+
+Câu 6. (0,25 điểm) Tam giác có hai cạnh kề góc $60^\circ$ dài $14$ cm và $21$ cm. Nếu cạnh đối diện là $a$ cm, hãy tính $a^2$ (đơn vị $\mathrm{cm}^2$).
+A. $345$
+B. $342$
+C. $343$
+D. $344$
+
+Câu 7. (0,25 điểm) Tam giác ABC có $A=30^\circ$, $B=90^\circ$, $a=16$ cm. Tính cạnh $b$ (cm).
+A. $34$
+B. $31$
+C. $32$
+D. $33$
+
+Câu 8. (0,25 điểm) ABCD là hình vuông ghi theo thứ tự quanh hình. Vectơ nào bằng vectơ AB?
+A. $\overrightarrow{CD}$
+B. $\overrightarrow{DC}$
+C. $\overrightarrow{BC}$
+D. $\overrightarrow{BA}$
+
+PHẦN II. (2 câu/2 điểm) Trắc nghiệm Đúng - Sai
+
+Câu 1. (1 điểm) Xét miền $x\ge0,y\ge0,x+2y\le6,2x+y\le6$.
+a) Gốc tọa độ thuộc miền nghiệm.
+b) Giao hai đường biên xiên là (2;2).
+c) Điểm (4;0) thuộc miền nghiệm.
+d) Giá trị lớn nhất của $F=3x+4y$ là 14.
+
+Câu 2. (1 điểm) Tam giác ABC vuông tại A, $AB=6$ cm, $AC=8$ cm.
+a) BC dài 10 cm.
+b) Diện tích bằng $48\,\mathrm{cm}^2$.
+c) Bán kính ngoại tiếp bằng 5 cm.
+d) $\cos B=3/5$.
+
+PHẦN III. (4 câu/2 điểm) Trả lời ngắn
+
+Câu 1. (0,5 điểm) Một nhóm có 32 em; 23 em thích cờ, 20 em thích vẽ, 15 em thích cả hai. Có bao nhiêu em thích ít nhất một trong hai hoạt động?
+
+Câu 2. (0,5 điểm) Một xưởng làm x sản phẩm A, y sản phẩm B. Ràng buộc $x,y\ge0$, $x+2y\le96$, $2x+y\le96$. Lợi nhuận $F=3x+4y$ (triệu đồng). Tìm giá trị lớn nhất của F.
+
+Câu 3. (0,5 điểm) Tam giác có ba cạnh $51$ cm, $68$ cm, $85$ cm. Tính bán kính nội tiếp $r$ (cm).
+
+Câu 4. (0,5 điểm) Hai cạnh kề một góc $30^\circ$ của tam giác dài $36$ m và $8$ m. Tính diện tích tam giác (đơn vị $\mathrm{m}^2$).
+
+PHẦN IV. (2 câu/4 điểm) Tự luận
+
+Câu 1. (2 điểm) Một nhóm 30 em có 18 em thích đọc sách, 15 em thích chơi cờ và 7 em thích cả hai. Vẽ sơ đồ Venn, tìm số em chỉ thích đọc, chỉ thích cờ, thích ít nhất một hoạt động và không thích hoạt động nào trong hai hoạt động. Giải thích vì sao không thể cộng 18+15 làm số em thích ít nhất một.
+
+Câu 2. (2 điểm) Hai trạm A,B cách nhau 40 m; C cùng phía với AB. Đo được góc CAB bằng 30 độ và CBA bằng 60 độ. Vẽ mô hình, tính góc C, AC, BC và diện tích tam giác ABC; giữ căn thức chính xác.

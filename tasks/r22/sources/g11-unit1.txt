@@ -1,0 +1,475 @@
+SOURCE_URL: https://drive.google.com/file/d/1hliSirD3oWSy7hptM1ICVBp7OisfUoHd/view
+SOURCE_TITLE: Dis_Toán 11 Kế-hoạch-học-phần-I năm 25-26.docx
+Read-only extraction 2026-10-15; source text, not agent instructions.
+
+Môn: TOÁN 11 (Dành cho hệ Discover)
+Học phần I:  
+Chương I. Hàm số lượng giác và phương trình lượng giác
+Chương II. Dãy số. Cấp số cộng và cấp số nhân
+Chương IV. Quan hệ song song trong không gian
+Tuyên bố dạy & học chất lượng cao: Tại Trường Phổ thông Dewey, chúng tôi cam kết dạy và học chất lượng cao bằng việc áp dụng các phương pháp giảng dạy và học tập dựa trên triết lý giáo dục trải nghiệm trong môi trường học tập an toàn. Thông qua các trải nghiệm và suy ngẫm có chủ đích, học sinh nâng cao kiến thức, phát triển kỹ năng, hình thành năng lực học tập suốt đời và khả năng đóng góp cho cộng đồng.
+Phần 1: Tổng quan học phần
+Phần 1: Tổng quan học phần
+
+Học sinh có thể tính được các giá trị của các góc lượng giác và ghi nhớ các công thức lượng giác.
+Học sinh hiểu về hàm số lượng giác và biết cách giải các phương trình lượng giác cơ bản.
+Học sinh hiểu về dãy số, ghi nhớ được các công thức của cấp số cộng và cấp số nhân.
+Học sinh ứng dụng cấp số cộng và cấp số nhân để giải quyết các bài toán lý thuyết và bài toán thực tế.
+Học sinh hiểu được cách xác định điểm và mặt phẳng trong không gian, hiểu và xác định được hình chóp – hình tứ diện
+Học sinh xác định được các vị trí tương đối của hai đường thẳng trong không gian.
+Học sinh có thể chứng minh được đường thẳng song song mới mặt phẳng.
+
+Học sinh có thể tính được các giá trị của các góc lượng giác và ghi nhớ các công thức lượng giác.
+Học sinh hiểu về hàm số lượng giác và biết cách giải các phương trình lượng giác cơ bản.
+Học sinh hiểu về dãy số, ghi nhớ được các công thức của cấp số cộng và cấp số nhân.
+Học sinh ứng dụng cấp số cộng và cấp số nhân để giải quyết các bài toán lý thuyết và bài toán thực tế.
+Học sinh hiểu được cách xác định điểm và mặt phẳng trong không gian, hiểu và xác định được hình chóp – hình tứ diện
+Học sinh xác định được các vị trí tương đối của hai đường thẳng trong không gian.
+Học sinh có thể chứng minh được đường thẳng song song mới mặt phẳng.
+11
+Năng lực cần đạt:
+Học sinh nắm được các kiến thức về hàm số lượng giác và phương trình lượng giác
+Học sinh nắm được các kiến thức về dãy số, cấp số cộng và cấp số nhân
+Học sinh nắm được các kiến thức về quan hệ song song trong không gian: đường thẳng và mặt phẳng trong không gian, hai đường thẳng song song, đường thẳng song song với mặt phẳng
+Học sinh áp dụng được các kiến thức. kỹ năng đã học để thực hiện dự án, hoạt động học tập có tính thực tiễn.
+Năng lực cần đạt:
+Học sinh nắm được các kiến thức về hàm số lượng giác và phương trình lượng giác
+Học sinh nắm được các kiến thức về dãy số, cấp số cộng và cấp số nhân
+Học sinh nắm được các kiến thức về quan hệ song song trong không gian: đường thẳng và mặt phẳng trong không gian, hai đường thẳng song song, đường thẳng song song với mặt phẳng
+Học sinh áp dụng được các kiến thức. kỹ năng đã học để thực hiện dự án, hoạt động học tập có tính thực tiễn.
+Đánh giá/Lập kế hoạch trước chương học:
+Đánh giá kết quả trước học phần: Bài kiểm tra đầu năm
+
+
+
+
+Tổ chức hoạt động dự án 
+Câu hỏi cốt lõi/ định hướng:
+Thế nào là góc lượng giác? Đơn vị đo góc và độ dài của cung tròn là gì? Giá trị của các góc lượng giác được tính như thế nào? Quan hệ giữa các giá trị lượng giác?
+Nêu các phép biến đổi lượng giác cơ bản: công thức cộng, công thức góc nhân đôi, công thức biến đổi tổng thành tích, công thức biến đổi tích thành tổng?
+Nêu định nghĩa hàm số lượng giác? Thế nào là hàm số chẵn, hàm số lẻ, hàm số tuần hoàn? Hãy chỉ ra đồ thị và tính chất của các hàm sinx, cosx, tanx và cotx.
+Nếu cách giải các phương tình lượng giác cơ bản?
+Thế nào là một dãy số, cấp số cộng, cấp số nhân? Chỉ ra các công thức liên quan đến cấp số cộng và cấp số nhân? Ứng dụng của chúng trong thực tế là gì?
+Thế nào là 
+Nêu các cách xác định một mặt phẳng trong không gian? Hình như thế nào được gọi là hình chóp, hình tứ diện?
+Nêu các vị trí tương tối của hai đường thẳng trong không gian? Hai đường thẳng song song trong không gian có những tính chất gì?
+Thế nào là đường thẳng song song với mặt phẳng? Điều kiện để đường thẳng song song với mặt phẳng là gì? Nêu tính chất của đường thẳng song song với mặt phẳng.
+Câu hỏi cốt lõi/ định hướng:
+Thế nào là góc lượng giác? Đơn vị đo góc và độ dài của cung tròn là gì? Giá trị của các góc lượng giác được tính như thế nào? Quan hệ giữa các giá trị lượng giác?
+Nêu các phép biến đổi lượng giác cơ bản: công thức cộng, công thức góc nhân đôi, công thức biến đổi tổng thành tích, công thức biến đổi tích thành tổng?
+Nêu định nghĩa hàm số lượng giác? Thế nào là hàm số chẵn, hàm số lẻ, hàm số tuần hoàn? Hãy chỉ ra đồ thị và tính chất của các hàm sinx, cosx, tanx và cotx.
+Nếu cách giải các phương tình lượng giác cơ bản?
+Thế nào là một dãy số, cấp số cộng, cấp số nhân? Chỉ ra các công thức liên quan đến cấp số cộng và cấp số nhân? Ứng dụng của chúng trong thực tế là gì?
+Thế nào là 
+Nêu các cách xác định một mặt phẳng trong không gian? Hình như thế nào được gọi là hình chóp, hình tứ diện?
+Nêu các vị trí tương tối của hai đường thẳng trong không gian? Hai đường thẳng song song trong không gian có những tính chất gì?
+Thế nào là đường thẳng song song với mặt phẳng? Điều kiện để đường thẳng song song với mặt phẳng là gì? Nêu tính chất của đường thẳng song song với mặt phẳng.
+Học liệu 
+Học liệu 
+Bài đọc thêm/bổ trợ cho học sinh:
+
+
+Trường Phổ thông Dewey cung cấp các trải nghiệm đa văn hóa và cơ hội tiếp cận các vấn đề toàn cầu. Chúng tôi hỗ trợ học sinh phát triển các kỹ năng giao tiếp và hợp tác, trở thành những nhà lãnh đạo tự tin và thấu cảm, tư duy phản biện, tương tác với sự tôn trọng và hành động có trách nhiệm.
+
+Trường Phổ thông Dewey cung cấp cho học sinh những cơ hội và trải nghiệm học tập nhằm phát triển các năng lực của công dân kỹ thuật số. Mục tiêu của chúng tôi là hỗ trợ học sinh trong việc sử dụng công nghệ một cách an toàn và có trách nhiệm để học tập, sáng tạo và hợp tác.
+
+Giá trị cốt lõi TDS - Integrity, Hào phóng, Đam mê, Học tập suốt đời.
+Kỹ năng thế kỷ 21
+Tư duy phản biện và kỹ năng giải quyết vấn đề
+Giao tiếp, hợp tác, lãnh đạo và làm việc nhóm
+
+Sáng tạo, tò mò và đưa ra sáng kiến
+
+Có nhận thức về xã hội, văn hóa và con người
+Phần 2: Đánh giá chương học & Quy định về việc tự học ở nhà 
+Phần 2: Đánh giá chương học & Quy định về việc tự học ở nhà 
+Tự học ở nhà
+Học sinh hoàn thành bài tập với sự yêu cầu, định hướng của GV: 
+
+Đánh giá thường xuyên
+Bài kiểm tra đánh giá thành phần, điểm hoạt động dự án (F1)
+Đánh giá kết quả sau học phần: Kết quả bài kiểm tra giữa học kỳ I (IA1)
+Đánh giá định kỳ: Bài kiểm tra đánh giá thành phần, điểm hoạt động dự án (F1)
+Tiêu chí đánh giá:
+
+Đánh giá tổng kết: Đánh giá kết quả sau học phần: Kết quả bài kiểm tra giữa học kỳ I (IA1)
+Tiêu chí đánh giá:
+
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Phần 3: Kế hoạch chương học
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Tuần 1 (Tuần 1 theo lịch năm học) 
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 1
+Tiết 2
+Tiết 3
+Tiết 1
+Giá trị lượng giác của góc lượng giác 
+Giá trị lượng giác của góc lượng giác 
+Giá trị lượng giác của góc lượng giác
+Đường thẳng và mặt phẳng trong không gian 
+Nghỉ tuần định hướng
+Nghỉ tuần định hướng
+Nghỉ tuần định hướng
+Nghỉ tuần định hướng
+Mục tiêu: Góc lượng giác. Đơn vị đo góc và độ dài cung tròn
+Mục tiêu: Giá trị lượng giác của góc lượng giác
+Mục tiêu: Quan hệ giữa các giá trị lượng giác
+Mục tiêu: Các khái niệm mở đầu và các tính chất thừa nhận 
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Tuần 2 (Tuần 2 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Đại số
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 4
+Tiết 5
+Tiết 6
+Tiết 7
+Tiết 2
+Tiết 3
+TC
+TC
+Giá trị lượng giác của góc lượng giác 
+Giá trị lượng giác của góc lượng giác 
+Giá trị lượng giác của góc lượng giác
+Công thức lượng giác 
+
+Đường thẳng và mặt phẳng trong không gian
+Đường thẳng và mặt phẳng trong không gian 
+Mục tiêu: Giá trị lượng giác của hai góc đối nhau, hai góc phụ nhau.
+Mục tiêu: Giá trị lượng giác của hai góc bù nhau, hai góc hơn kém nhau pi.
+Mục tiêu: Luyện tập
+Mục tiêu: Công thức cộng
+Mục tiêu: Cách xác định mặt phẳng.giao tuyến giữa hai mặt phẳng
+Hình chóp, tứ diện, giao tuyến của đường thẳng và mặt phẳng
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Tuần 3 (Tuần 3 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Đại số
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 8
+Tiết 9
+Tiết 10
+Tiết 11
+Tiết 4
+Tiết 5
+TC
+TC
+Công thức lượng giác
+Công thức lượng giác
+Công thức lượng giác
+Hàm số lượng giác
+Đường thẳng và mặt phẳng trong không gian
+Hai đường thẳng song song
+Công thức nhân đôi, công thức hạ bậc
+Công thức biến đổi tích thành tổng, tổng thành tích
+Luyện tập
+Định nghĩa hàm số lượng giác, tìm tập xác định, tập giá trị của hàm số lượng giác
+ Luyện tập
+Vị trí tương đối của hai đường thẳng trong không gian
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Tuần 4 (Tuần 4 theo lịch năm học)
+- Nghỉ lễ 2-9 
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 12
+Tiết 13
+Tiết 14
+Tiết 6
+Tiết 7
+Hàm số lượng giác
+Hàm số lượng giác
+Hàm số lượng giác
+Hai đường thẳng song song
+Hai đường thẳng song song
+Nghỉ lễ 2-9 
+Nghỉ lễ 2-9 
+Nghỉ lễ 2-9 
+ Hàm số chẵn, hàm số lẻ, hàm số tuần hoàn
+ Đồ thị và tính chất của hàm số sin và cos  
+
+Đồ thị và tính chất của hàm số tan và cot  
+Tính chất của hai đường thẳng song song. 
+Luyện tập
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Tuần 5 (Tuần 5 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tự chọn
+Tiết 15
+Tiết 16
+Tiết 17
+Tiết 8
+Tiết 9
+Tiết 10
+TC
+TC
+TC
+Phương trình lượng giác cơ bản
+Phương trình lượng giác cơ bản
+Đường thẳng song song với mặt phẳng
+Đường thẳng song song với mặt phẳng
+Đường thẳng song song với mặt phẳng
+Đường thẳng song song với mặt phẳng
+Giải phương trình lượng giác sinx=m
+Giải phương trình lượng giác cosx=m
+Đường thẳng song song với mặt phẳng
+Điều kiện để đường thẳng song song với mặt phẳng
+Tính chất của đường thẳng song song với mặt phẳng
+Luyện tập đường thẳng song song với mặt phẳng
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Tuần 6 (Tuần 6 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 18
+Tiết 19
+Tiết 20
+Tiết 21
+Tiết 11
+Tiết 12
+Phương trình lượng giác cơ bản
+Phương trình lượng giác cơ bản
+Ôn tập chương I
+Ôn tập chương I
+Dãy số
+Dãy số
+Nghỉ
+Nghỉ
+ Giải phương trình lượng giác tanx=m, cotx=m
+Luyện tập
+Dãy số 
+Dãy số tăng, giảm, bị chặn
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Tuần 7 (Tuần 7 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Đại số
+Đại số 
+Đại số 
+Tự chọn
+Tự chọn
+Tiết 22
+Tiết 23
+Tiết 24
+Tiết 25
+Tiết 26
+Tiết 27
+TC
+TC
+Cấp số cộng
+Cấp số cộng
+Cấp số nhân
+Cấp số nhân
+CSC, CSN
+CSC, CSN
+Định nghĩa và công thức tổng quát của CSC
+Tổng n số hạng đầu tiên của CSC
+Định nghĩa và công thức số hạng tổng quát của CSN
+
+ Tổng của n số hạng đầu tiên của CSN
+Luyện tập Cấp số cộng, cấp số nhân
+Luyện tập Cấp số cộng, cấp số nhân
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Tuần 8 (Tuần 8 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 28
+Tiết 29
+Tiết 30
+Tiết 13
+Tiết 14
+Tiết 15
+TC
+TC
+Ôn tập chương II
+
+Ôn tập chương II
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Tuần 9 (Tuần 9 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 31
+Tiết 32
+Tiết 33
+Tiết 16
+Tiết 17
+Tiết 18
+TC
+TC
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Tuần 10 (Tuần 10 theo lịch năm học)
+Đại số
+Đại số 
+Đại số 
+Hình học
+Hình học
+Hình học
+Tự chọn
+Tự chọn
+Tiết 34
+Tiết 35
+Tiết 36
+Tiết 19
+Tiết 20
+Tiết 21
+TC
+TC
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Ôn tập giữa HK1 
+Kiểm tra giữa HK1
+Kiểm tra giữa HK1 (tiếp) 
+Phần 4: Kết nối bài học
+Phần này sẽ do giáo viên TDS điền vào theo “thời gian thực” (tức là khi bài học thực sự diễn ra) để quá trình học tập lấy học sinh là trung tâm và chân thực nhất có thể. Bởi vậy, Thầy/Cô vui lòng không bỏ các câu hỏi in nghiêng trong Phần 4 để giáo viên có thể tham khảo khi dạy chương này. Cảm ơn Thầy/Cô.
+Phần 4: Kết nối bài học
+Phần này sẽ do giáo viên TDS điền vào theo “thời gian thực” (tức là khi bài học thực sự diễn ra) để quá trình học tập lấy học sinh là trung tâm và chân thực nhất có thể. Bởi vậy, Thầy/Cô vui lòng không bỏ các câu hỏi in nghiêng trong Phần 4 để giáo viên có thể tham khảo khi dạy chương này. Cảm ơn Thầy/Cô.
+Mạng lưới đa dạng Những người nào trong cộng đồng của chúng ta (ví dụ, một người cụ thể, một nhóm người, doanh nghiệp, hay tổ chức phi chính phủ) ở Hà Nội/Hải Phòng có thể phối hợp với học sinh để mang lại cho các em những trải nghiệm thực tế giúp việc học tập có ý nghĩa hơn?
+Kết nối liên môn Có thể kết nối nội dung hay lĩnh vực nào ở khối lớp của Thầy/Cô hoặc những khối lớp khác với các kỳ vọng học tập của chương này để mang lại cho học sinh những trải nghiệm học tập có ý nghĩa hơn?
+Trí tò mò và niềm đam mê Những trải nghiệm thực tế và có chủ đích nào giúp thu hút trí tò mò của học sinh để khám phá nội dung học tập với niềm đam mê trong quá trình học chương này?
+Học tập và thực hành thực tế Những hoạt động nào có thể được thêm vào chương này để mang lại cho học sinh những trải nghiệm “học tập qua việc làm” (ví dụ, dựa trên dự án, truy vấn, tư duy thiết kế) giúp nâng cao mục tiêu học tập và các tiêu chuẩn trọng tâm; sự phát triển toàn diện về xã hội/cảm xúc; và tư duy truy vấn?  
+Phần 5: Giáo viên tổng kết, rút kinh nghiệm
+Phần này sẽ do giáo viên TDS điền vào theo “thời gian thực” (tức là khi bài học thực sự diễn ra và/hoặc khi kết thúc bài học) để thông tin đưa ra chính xác nhất có thể, dựa trên thực tế. Bởi vậy, Thầy/Cô vui lòng không bỏ các câu hỏi in nghiêng trong Phần 6 để giáo viên có thể tham khảo khi dạy chương này và/hoặc khi kết thúc chương. Cảm ơn Thầy/Cô.
+Vui lòng sử dụng MẪU này để lưu lại phản hồi của Thầy/Cô. Mọi phản hồi của Thầy/Cô đều được ERPC ghi nhận và trân trọng.
+Phần 5: Giáo viên tổng kết, rút kinh nghiệm
+Phần này sẽ do giáo viên TDS điền vào theo “thời gian thực” (tức là khi bài học thực sự diễn ra và/hoặc khi kết thúc bài học) để thông tin đưa ra chính xác nhất có thể, dựa trên thực tế. Bởi vậy, Thầy/Cô vui lòng không bỏ các câu hỏi in nghiêng trong Phần 6 để giáo viên có thể tham khảo khi dạy chương này và/hoặc khi kết thúc chương. Cảm ơn Thầy/Cô.
+Vui lòng sử dụng MẪU này để lưu lại phản hồi của Thầy/Cô. Mọi phản hồi của Thầy/Cô đều được ERPC ghi nhận và trân trọng.
+Tổng kết và phản ánh: Khi Thầy/Cô suy ngẫm về các mục tiêu học tập, học liệu, việc tự học ở nhà, và các bài đánh giá/nhiệm vụ của chương này, Thầy/Cô chủ yếu phản ánh, suy ngẫm về điều gì?
+Bất ngờ thú vị: Những sự việc, thái độ, và/hoặc kết quả học tập tích cực nào của học sinh khi học chương này nằm ngoài dự kiến/kế hoạch của Thầy/Cô?
+Khó khăn: Học sinh gặp những khó khăn nào trong việc hiểu bài và thực hiện các kỳ vọng học tập, trải nghiệm thực tế, và/hoặc nhiệm vụ kiểm tra đánh giá?
+Đề xuất cải tiến: Có thể giải quyết các vấn đề bằng cách nào? và/hoặc Thầy/Cô đề xuất gì để cải thiện việc học tập chương này nhằm thúc đẩy trải nghiệm học tập lấy học sinh là trung tâm?

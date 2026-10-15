@@ -1,0 +1,231 @@
+{
+  "title": "Toán 12 Discover - Kiểm tra giữa học kỳ I",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": false,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $f(x)=1x+6$. Với $x_1<x_2$, $f(x_2)-f(x_1)=1(x_2-x_1)$. Kết luận nào đúng trên $\\mathbb R$?",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "Hàm số nghịch biến.",
+        "B": "Hàm số không đổi.",
+        "C": "Hàm số đồng biến."
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Vì $1(x_2-x_1)>0$, $f(x_2)>f(x_1)$ với mọi cặp đã cho."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$(4;+\\infty)$",
+        "B": "$(-4;4)$",
+        "C": "$(-\\infty;-4)$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$5$",
+        "B": "$3$",
+        "C": "Không có cực tiểu."
+      },
+      "noShuffle": true,
+      "key": "A",
+      "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{ST}$?",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$\\overrightarrow{TS}$",
+        "B": "$\\overrightarrow{UV}$",
+        "C": "$\\overrightarrow{VU}$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, $AB=2$, $AD=5$. Tính $\\left|\\overrightarrow{AB}+\\overrightarrow{AD}\\right|^2$.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$30$",
+        "B": "$28$",
+        "C": "$29$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Tổng là $\\overrightarrow{AC}$. Tam giác $ABC$ vuông nên $AC^2=2^2+5^2=29$."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $f(x)=1+\\dfrac{1}{x-3}$. Cặp tiệm cận đứng và ngang là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$x=3$ và $y=1$",
+        "B": "$x=1$ và $y=3$",
+        "C": "$x=-3$ và $y=1$"
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Khi $x\\to3^{\\pm}$, phần phân thức vô hạn; khi $x\\to\\pm\\infty$, phần phân thức tiến về $0$."
+    },
+    {
+      "id": "q7",
+      "section": "II",
+      "label": "Câu 7",
+      "type": "short",
+      "points": 0.75,
+      "text": "Tìm GTLN của $f(x)=x^2-6x+3$ trên $[-1;5]$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "10",
+          "10"
+        ]
+      },
+      "solution": "$f'=2x-6$, điểm dừng $x=3$. So sánh $f(-1)=10$, $f(3)=-6$, $f(5)=-2$; GTLN là $10$."
+    },
+    {
+      "id": "q8",
+      "section": "II",
+      "label": "Câu 8",
+      "type": "short",
+      "points": 0.75,
+      "text": "Cho $\\vec u=(2;-2;3)$, $\\vec v=(2;3;-1)$. Tính $\\vec u\\cdot\\vec v$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "-5",
+          "-5"
+        ]
+      },
+      "solution": "$2\\cdot2+(-2)\\cdot3+3\\cdot(-1)=-5$."
+    },
+    {
+      "id": "q9",
+      "section": "II",
+      "label": "Câu 9",
+      "type": "short",
+      "points": 0.75,
+      "text": "Cho $|\\vec u|=2$, $\\vec v=-2\\vec u$. Tính $|\\vec v|$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "4",
+          "4"
+        ]
+      },
+      "solution": "$|\\vec v|=|-2|\\,2=4$; hai vectơ ngược hướng."
+    },
+    {
+      "id": "q10",
+      "section": "II",
+      "label": "Câu 10",
+      "type": "short",
+      "points": 0.75,
+      "text": "Cho $f(x)=x^3-48x+1$. Tính giá trị cực tiểu của hàm số.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "-127",
+          "-127"
+        ]
+      },
+      "solution": "$f'=3(x-4)(x+4)$. Dấu đổi từ $-$ sang $+$ tại $x=4$; $f(4)=-127$."
+    },
+    {
+      "id": "q11",
+      "section": "III",
+      "label": "Câu 11",
+      "type": "essay",
+      "points": 2,
+      "text": "Cho $f(x)=x^3-3x-2$, $f'(x)=3(x-1)(x+1)$. Trên vở, hoàn thiện bảng biến thiên, ghi hai điểm cực trị và phác đồ thị qua $(0;-2)$. Mô tả ngắn chiều của ba nhánh.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Miền $\\mathbb R$; dấu $f'$ là $+,-,+$ qua $-1,1$. Cực đại $(-1;0)$, cực tiểu $(1;-4)$, qua $(0;-2)$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    },
+    {
+      "id": "q12",
+      "section": "III",
+      "label": "Câu 12",
+      "type": "essay",
+      "points": 2,
+      "text": "Cho $f(x)=x+1+\\dfrac{4}{x-2}$, $f'(x)=1-\\dfrac{4}{(x-2)^2}$. Ghi hai tiệm cận, lập bảng biến thiên và phác hai nhánh với điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Miền loại $2$; tiệm cận $x=2$ và $y=x+1$. Nghiệm đạo hàm $0,4$; dấu $+,-\\mid-,+$. Cực đại nhánh trái $(0;-1)$, cực tiểu nhánh phải $(4;7)$. Hai nhánh tiến sát đường xiên ở vô cực.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    }
+  ]
+}

@@ -9,8 +9,10 @@ const purposes = [
   { id: "exam", title: "Kiểm tra", description: "Soạn đề, đáp án và thiết lập bài kiểm tra." },
 ] as const;
 
-type PackageChoice = { row_id: string; package_id: string; version: string; status: string; title?: string; grade?: number; slotMinutes?: number; authoredId?: string };
-type AuthoredChoice = { id: string; title: string; version: string; status: string; grade?: number; slotMinutes?: number };
+type PackageChoice = { row_id: string; package_id: string; version: string; status: string; title?: string; grade?: number; slotMinutes?: number; authoredId?: string; week?: number; period?: number; category?: string };
+type AuthoredChoice = { id: string; title: string; version: string; status: string; grade?: number; slotMinutes?: number; week?: number; period?: number; category?: string };
+type ExamChoice = {id:string;title:string;grade:number;week:number;minutes:number};
+const categories: Record<string,string> = {formation:"Hình thành kiến thức",practice:"Luyện tập",review:"Ôn tập",elective:"Tự chọn · Game tổng hợp",exam:"Kiểm tra",feedback:"Trả và chữa bài",project:"Báo cáo dự án",orientation:"Giới thiệu"};
 
 export function lessonCreationDestination(purpose: string, source: string, grade: string, minutes: string, packageId: string) {
   if (!purposes.some(item => item.id === purpose) || !["10", "11", "12"].includes(grade) || !/^\d+$/.test(minutes) || Number(minutes) < 5 || Number(minutes) > 240) return null;
@@ -37,12 +39,17 @@ export default function LessonCreationWizard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const [search, setSearch] = useState("");
+  const [week, setWeek] = useState("");
+  const [category, setCategory] = useState("");
+  const [exams, setExams] = useState<ExamChoice[]>([]);
 
   function prepareLibrary() {
     setLoading(true);
     setError("");
     setPackages([]);
     setPackageId("");
+    setExams([]);
   }
 
   useEffect(() => {
@@ -53,12 +60,13 @@ export default function LessonCreationWizard() {
         const [response, authoredResponse] = await Promise.all([fetch("/api/lessons?kind=list", { cache: "no-store" }), fetch("/api/lesson-content", { cache: "no-store" })]);
         if (!response.ok || !authoredResponse.ok) throw Error("Không tải được thư viện. Hãy thử lại.");
         const data = await response.json() as { packages?: PackageChoice[] };
-        const authoredData = await authoredResponse.json() as { lessons?: AuthoredChoice[] };
+        const authoredData = await authoredResponse.json() as { lessons?: AuthoredChoice[]; exams?: ExamChoice[] };
         if (!Array.isArray(data.packages) || !Array.isArray(authoredData.lessons)) throw Error("Không tải được thư viện. Hãy thử lại.");
         if (!cancelled) setPackages([
           ...data.packages.filter(item => typeof item.row_id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.row_id)).map(item => ({ ...item, authoredId: undefined })),
           ...authoredData.lessons.filter(item => typeof item.id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.id)).map(item => ({ ...item, row_id: "source:" + item.id, package_id: item.id, authoredId: item.id })),
         ]);
+        if(!cancelled)setExams(Array.isArray(authoredData.exams)?authoredData.exams:[]);
       } catch {
         if (!cancelled) setError("Không tải được thư viện. Hãy thử lại.");
       } finally {
@@ -72,9 +80,20 @@ export default function LessonCreationWizard() {
   const selectedPackage = source === "library" ? packages.find(item => item.row_id === packageId) : undefined;
   const savedGrade = selectedPackage && [10, 11, 12].includes(Number(selectedPackage.grade));
   const savedMinutes = selectedPackage && Number.isInteger(selectedPackage.slotMinutes) && Number(selectedPackage.slotMinutes) >= 5 && Number(selectedPackage.slotMinutes) <= 240;
-  const target = lessonCreationDestination(purpose, selectedPackage?.authoredId ? "authored" : source, grade, minutes,
+  const contentPurpose=selectedPackage?.category?(['formation','practice'].includes(selectedPackage.category)?selectedPackage.category:'review'):purpose;
+  const target = lessonCreationDestination(contentPurpose, selectedPackage?.authoredId ? "authored" : source, grade, minutes,
     selectedPackage?.authoredId || selectedPackage?.row_id || "");
   const validMinutes = /^\d+$/.test(minutes) && Number(minutes) >= 5 && Number(minutes) <= 240;
+  const searchable = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g,"d");
+  const visiblePackages = packages.filter(item => (!item.authoredId || !item.grade || item.grade === Number(grade)) && (!week || item.week === Number(week)) && (!category || item.category===category) && searchable(`${item.title || item.package_id} ${item.period || ""}`).includes(searchable(search)));
+  const visibleExams=exams.filter(item=>item.grade===Number(grade)&&(!week||item.week===Number(week))&&(!category||category==='exam')&&searchable(item.title).includes(searchable(search)));
+  const visibleWeeks=Array.from(new Set([...visiblePackages.filter(item=>item.week).map(item=>item.week!),...visibleExams.map(item=>item.week)])).sort((a,b)=>a-b);
+  function choosePackage(id:string){
+    const selected=packages.find(item=>item.row_id===id);
+    setPackageId(id);
+    if(selected&&[10,11,12].includes(Number(selected.grade)))setGrade(String(selected.grade));
+    if(selected&&Number.isInteger(selected.slotMinutes)&&Number(selected.slotMinutes)>=5&&Number(selected.slotMinutes)<=240)setMinutes(String(selected.slotMinutes));
+  }
 
   return <main className="lesson-shell">
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
@@ -95,7 +114,7 @@ export default function LessonCreationWizard() {
       </> : <>
         <div className="lesson-form-grid">
           {purpose!=="exam"&&<div className="lesson-field-group"><label htmlFor="creation-grade">Khối lớp</label>
-            <select id="creation-grade" className="lesson-select" value={grade} disabled={Boolean(savedGrade)} onChange={event => setGrade(event.target.value)}>
+            <select id="creation-grade" className="lesson-select" value={grade} disabled={Boolean(savedGrade&&!selectedPackage?.week)} onChange={event => {setGrade(event.target.value);setPackageId("");}}>
               {[10, 11, 12].map(value => <option key={value} value={value}>Lớp {value}</option>)}
             </select>
           </div>}
@@ -113,22 +132,50 @@ export default function LessonCreationWizard() {
           </div>
           {source === "import" && <p>Ở màn tiếp theo, tải DOCX, PDF, Markdown hoặc nhập ý tưởng. Sau khi soạn nội dung, thầy cô xem gợi ý thiết lập trò chơi và chỉnh lại.</p>}
           {source === "library" && <div className="lesson-field-group">
-            <label htmlFor="creation-package">Học liệu đã lưu và bài có sẵn</label>
-            <select id="creation-package" className="lesson-select" disabled={loading || !packages.length} value={packageId} onChange={event => {
-              const selected = packages.find(item => item.row_id === event.target.value);
-              setPackageId(event.target.value);
-              if (selected && [10, 11, 12].includes(Number(selected.grade))) setGrade(String(selected.grade));
-              if (selected && Number.isInteger(selected.slotMinutes) && Number(selected.slotMinutes) >= 5 && Number(selected.slotMinutes) <= 240) setMinutes(String(selected.slotMinutes));
-            }}>
-              <option value="">{loading ? "Đang tải thư viện…" : "Chọn một học liệu"}</option>
-              {packages.map(item => <option key={item.row_id} value={item.row_id}>{item.title || item.package_id} · {item.version} · {item.authoredId ? "Bài có sẵn, cần lưu và GV duyệt" : ({ draft: "Bản nháp", approved: "Đã duyệt", published: "Đã phát hành" } as Record<string, string>)[item.status] || item.status}</option>)}
+            <label htmlFor="creation-search">Tìm tên bài hoặc số tiết</label>
+            <input id="creation-search" className="lesson-input" value={search} onChange={event=>{setSearch(event.target.value);setPackageId("");}} placeholder="Ví dụ: cấp số cộng, tích phân, 38" />
+            <label htmlFor="creation-week">Tuần học</label>
+            <select id="creation-week" className="lesson-select" value={week} onChange={event=>{setWeek(event.target.value);setPackageId("");}}>
+              <option value="">Tất cả tuần và bài mẫu</option>
+              {Array.from({length:18},(_,index)=>index+1).map(value=><option key={value} value={value}>Tuần {value}</option>)}
             </select>
+            <label htmlFor="creation-category">Loại tiết trong thư viện</label>
+            <select id="creation-category" className="lesson-select" value={category} onChange={event=>{setCategory(event.target.value);setPackageId("");}}>
+              <option value="">Tất cả loại tiết</option>
+              {Object.entries(categories).map(([value,label])=><option key={value} value={value}>{label}</option>)}
+            </select>
+            {visibleWeeks.length>0&&<section aria-label={`Học liệu HKI lớp ${grade}`}>
+              <h3>Lớp {grade} · Discover · Học kỳ I</h3>
+              <p>Chọn tuần rồi chọn bài theo loại tiết. Tự chọn là game ôn tổng hợp; bài và đề đều cần GV duyệt.</p>
+              {visibleWeeks.map(value=><details key={`${grade}-${value}`} className="lesson-form-card" open={week===String(value)||Boolean(search)||selectedPackage?.week===value}>
+                <summary style={{cursor:'pointer',minHeight:44,padding:8}}><strong>Tuần {value}</strong> · {visiblePackages.filter(item=>item.week===value).length} tiết{visibleExams.some(item=>item.week===value)?' · Có đề kiểm tra':''}</summary>
+                {Object.entries(categories).filter(([key])=>key!=='exam').map(([key,label])=>{
+                  const rows=visiblePackages.filter(item=>item.week===value&&item.category===key).sort((a,b)=>(a.period||0)-(b.period||0));
+                  return rows.length>0&&<section key={key} aria-label={`${label} tuần ${value}`}><h4>{label} · {rows.length}</h4>
+                    {rows.map(item=><button type="button" key={item.row_id} className="lesson-form-card" aria-pressed={packageId===item.row_id} onClick={()=>choosePackage(item.row_id)} style={{display:'block',width:'100%',textAlign:'left',color:'inherit',cursor:'pointer',padding:12,minHeight:56,borderColor:packageId===item.row_id?'var(--lesson-primary)':undefined}}>
+                      <strong>Tiết {item.period} · {item.slotMinutes} phút</strong><span style={{display:'block',marginTop:4}}>{item.title}</span>
+                    </button>)}
+                  </section>;
+                })}
+                {visibleExams.filter(item=>item.week===value).map(item=><section key={item.id}><h4>Kiểm tra · {item.minutes} phút</h4><p>{item.title}</p><a className="lesson-button lesson-button-outline" href="/exams">Mở thư viện đề kiểm tra</a></section>)}
+              </details>)}
+            </section>}
+            {visiblePackages.some(item=>!item.week)&&<>
+            <label htmlFor="creation-package">Học liệu đã lưu và bài có sẵn</label>
+            <select id="creation-package" className="lesson-select" disabled={loading || !packages.length} value={selectedPackage?.week?'':packageId} onChange={event => choosePackage(event.target.value)}>
+              <option value="">{loading ? "Đang tải thư viện…" : "Chọn một học liệu"}</option>
+              {visiblePackages.filter(item=>!item.week).map(item => <option key={item.row_id} value={item.row_id}>{item.title || item.package_id} · {item.version} · {item.authoredId ? "Bài có sẵn, cần lưu và GV duyệt" : ({ draft: "Bản nháp", approved: "Đã duyệt", published: "Đã phát hành" } as Record<string, string>)[item.status] || item.status}</option>)}
+            </select>
+            </>}
+            {loading&&<p role="status">Đang tải thư viện…</p>}
+            {!loading && packages.length>0 && !visiblePackages.length&&!visibleExams.length && <p role="status">Không có bài phù hợp. Thử đổi khối, tuần hoặc từ khóa.</p>}
+            {selectedPackage?.week&&<p role="status"><strong>Đã chọn: Lớp {selectedPackage.grade} · Tuần {selectedPackage.week} · Tiết {selectedPackage.period} · {categories[selectedPackage.category||'']}</strong><br/>{selectedPackage.title}</p>}
             {selectedPackage && <p role="status">Học liệu đã lưu giữ nguyên nội dung, khối lớp và thời lượng có sẵn. Loại tiết đã chọn dùng để tổ chức bài này. Muốn soạn lại theo yêu cầu khác, chọn “Đưa giáo án hoặc ý tưởng vào”.</p>}
             {!loading && !error && !packages.length && <p role="status">Thư viện chưa có học liệu. Chọn “Đưa giáo án hoặc ý tưởng vào” để soạn bài mới.</p>}
             {error && <div role="alert"><p>{error}</p><button type="button" className="lesson-button" onClick={() => { prepareLibrary(); setRetry(value => value + 1); }}>Thử lại</button></div>}
           </div>}
         </section>}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, position:'sticky',bottom:0,background:'var(--lesson-bg)',padding:'12px 0',zIndex:2 }}>
           <button type="button" className="lesson-button lesson-button-outline" onClick={() => setStep(1)}>Quay lại</button>
           {target ? <a className="lesson-button lesson-button-primary" href={target}>{purpose === "exam" ? "Tiếp tục soạn đề" : "Tiếp tục soạn nội dung"}</a> : <button type="button" className="lesson-button lesson-button-primary" disabled>Tiếp tục soạn nội dung</button>}
         </div>

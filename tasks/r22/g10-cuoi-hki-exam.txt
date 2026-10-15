@@ -1,0 +1,85 @@
+Toán 10 Discover - Kiểm tra cuối học kỳ I
+
+Thời gian làm bài: 80 phút
+
+Họ và tên: ................................ Lớp: ........
+
+PHẦN I. (8 câu/2 điểm) Trắc nghiệm nhiều phương án lựa chọn
+
+Câu 1. (0,25 điểm) Phủ định của “$\forall x\in\mathbb R:x^2\ge1$” là:
+A. $\forall x:x^2<1$
+B. $\exists x\in\mathbb R:x^2<1$
+C. $\exists x:x^2\ge1$
+D. $\forall x:x^2>1$
+
+Câu 2. (0,25 điểm) $A=[-2;4)$, $B=(1;6]$. Giao hai tập là:
+A. $(1;4)$
+B. $[1;4]$
+C. $[-2;6]$
+D. $(1;4]$
+
+Câu 3. (0,25 điểm) Mẫu số liệu 1;2;2;4;11 có trung vị bằng:
+A. $4$
+B. $2$
+C. $11$
+D. $20/5$
+
+Câu 4. (0,25 điểm) Mẫu 2;4;4;6 có số trung bình bằng:
+A. $3$
+B. $5$
+C. $4$
+D. $6$
+
+Câu 5. (0,25 điểm) Vectơ $\vec a$ có độ dài $12$ cm. Tính độ dài của vectơ $-3\vec a-\vec a$ (cm).
+A. $50$
+B. $47$
+C. $48$
+D. $49$
+
+Câu 6. (0,25 điểm) Cho $\vec u=(13;2)$, $\vec v=(3;13)$. Tính $\vec u\cdot\vec v$.
+A. $67$
+B. $64$
+C. $65$
+D. $66$
+
+Câu 7. (0,25 điểm) Tam giác ABC có $A=30^\circ$, $a=28$ cm. Tính bán kính ngoại tiếp $R$ (cm).
+A. $30$
+B. $27$
+C. $28$
+D. $29$
+
+Câu 8. (0,25 điểm) Cho $A(1;2)$, $B(5;-1)$. Vectơ $\overrightarrow{AB}$ là:
+A. $(6;1)$
+B. $(-4;3)$
+C. $(4;-3)$
+D. $(5;-1)$
+
+PHẦN II. (2 câu/2 điểm) Trắc nghiệm Đúng - Sai
+
+Câu 1. (1 điểm) Cho mẫu tăng dần $1;2;2;3;4;4;4;8$. Dùng trung vị của hai nửa mẫu để tính tứ phân vị. Xét từng phát biểu.
+a) $Q_1=2$.
+b) $Q_3=4$.
+c) Mốt của mẫu là 3.
+d) Giá trị 8 bất thường theo hàng rào 1,5 IQR.
+
+Câu 2. (1 điểm) Cho $\vec u=(1;2)$, $\vec v=(2;-1)$. Xét các phát biểu.
+a) $\vec u\cdot\vec v=0$.
+b) $|\vec u|=\sqrt5$.
+c) $\vec u+\vec v=(3;1)$.
+d) Hai vectơ cùng phương.
+
+PHẦN III. (4 câu/2 điểm) Trả lời ngắn
+
+Câu 1. (0,5 điểm) Một nhóm có 23 em; 14 em thích cờ, 11 em thích vẽ, 6 em thích cả hai. Có bao nhiêu em chỉ thích đúng một trong hai hoạt động?
+
+Câu 2. (0,5 điểm) Một xưởng làm x sản phẩm A, y sản phẩm B. Ràng buộc $x,y\ge0$, $x+2y\le42$, $2x+y\le42$. Lợi nhuận $F=3x+4y$ (triệu đồng). Tìm giá trị lớn nhất của F.
+
+Câu 3. (0,5 điểm) Tìm m để hai vectơ $\vec u=(-8;1)$ và $\vec v=(2;m)$ vuông góc.
+
+Câu 4. (0,5 điểm) Cho $|\vec u|=18$, $|\vec v|=27$, góc giữa hai vectơ bằng $60^\circ$. Tính $|\vec u+\vec v|^2$.
+
+PHẦN IV. (2 câu/4 điểm) Tự luận
+
+Câu 1. (2 điểm) Hai mẫu số liệu A: $2;2;6;6$, B: $3;3;5;5$. Tính trung bình, phương sai (chia n), độ lệch chuẩn của từng mẫu. Một báo cáo kết luận “hai mẫu giống nhau hoàn toàn vì cùng trung bình”. Em sửa kết luận này.
+
+Câu 2. (2 điểm) Cho $A(1;1)$, $B(5;1)$, $C(1;4)$. Tính các vectơ AB, AC; chứng minh tam giác vuông tại A bằng tích vô hướng. Tính BC, diện tích tam giác và tọa độ trung điểm M của BC.

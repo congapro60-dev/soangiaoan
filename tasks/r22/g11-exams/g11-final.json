@@ -1,0 +1,137 @@
+{
+  "title": "Toán 11 Discover - Kiểm tra cuối học kỳ I",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": true,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "essay",
+      "points": 1,
+      "text": "Giải $\\tan(7x)=1$. Giải thích vì sao bước giữa hai nghiệm liên tiếp không phải $2\\pi/7$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$7x=\\pi/4+k\\pi$, nên $x=\\pi/28+k\\pi/7$; các nghiệm đều thuộc miền xác định. Chu kỳ của hàm là $\\pi$ theo biến góc.",
+      "rubric": "Nêu đúng kết luận, đủ điều kiện và lập luận. $7x=\\pi/4+k\\pi$, nên $x=\\pi/28+k\\pi/7$; các nghiệm đều thuộc miền xác định. Chu kỳ của hàm là $\\pi$ theo biến góc."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "essay",
+      "points": 1,
+      "text": "Một khán đài có 12 hàng, hàng đầu 4 ghế, mỗi hàng sau thêm 4 ghế. Có tổng cộng bao nhiêu ghế?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$u_{12}=48$; $S_{12}=12(4+48)/2=312$.",
+      "rubric": "Nêu cách tính và kết quả đúng. $u_{12}=48$; $S_{12}=12(4+48)/2=312$."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "essay",
+      "points": 1,
+      "text": "Hai nhóm $[14;18)$, $[18;22)$ có tần số lần lượt 4, 5. Tính số trung bình mẫu ghép nhóm.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Trung điểm $16,20$; $\\bar x=(16\\cdot4+20\\cdot5)/9=\\frac{164}{9}$.",
+      "rubric": "Nêu cách tính và kết quả đúng. Trung điểm $16,20$; $\\bar x=(16\\cdot4+20\\cdot5)/9=\\frac{164}{9}$."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "essay",
+      "points": 1,
+      "text": "Bốn nhóm có cùng tần số $4$: $[11;13),[13;15),[15;17),[17;19)$. Tính $Q_1$ bằng nội suy.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$n=16$, vị trí $n/4=4$ rơi đúng ranh giới nhóm, nên $Q_1=13$. Hai cách lấy nhóm kề cho cùng ranh giới.",
+      "rubric": "Nêu cách tính và kết quả đúng. $n=16$, vị trí $n/4=4$ rơi đúng ranh giới nhóm, nên $Q_1=13$. Hai cách lấy nhóm kề cho cùng ranh giới."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "essay",
+      "points": 1,
+      "text": "Tính $\\lim_{n\\to\\infty}\\frac{8n+10}{4n+1}$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Chia tử/mẫu cho $n$: $(8+10/n)/(4+1/n)\\to\\frac{8}{4}$.",
+      "rubric": "Nêu cách tính và kết quả đúng. Chia tử/mẫu cho $n$: $(8+10/n)/(4+1/n)\\to\\frac{8}{4}$."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "essay",
+      "points": 1,
+      "text": "Tính $\\lim_{x\\to5}\\frac{x^2-25}{x-5}$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Với $x\\ne5$, thương bằng $x+5$; giới hạn bằng $10$.",
+      "rubric": "Nêu cách tính và kết quả đúng. Với $x\\ne5$, thương bằng $x+5$; giới hạn bằng $10$."
+    },
+    {
+      "id": "q7",
+      "section": "I",
+      "label": "Câu 7",
+      "type": "essay",
+      "points": 1,
+      "text": "Cho $f(x)=\\frac{x^2-4}{x-2}$ khi $x\\ne2$, và $f(2)=m$. Tìm $m$ để hàm liên tục tại $2$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Giới hạn phần phân thức bằng $\\lim_{x\\to2}(x+2)=4$. Liên tục đòi $m$ bằng giới hạn này.",
+      "rubric": "Nêu cách tính và kết quả đúng. Giới hạn phần phân thức bằng $\\lim_{x\\to2}(x+2)=4$. Liên tục đòi $m$ bằng giới hạn này."
+    },
+    {
+      "id": "q8",
+      "section": "I",
+      "label": "Câu 8",
+      "type": "essay",
+      "points": 1,
+      "text": "Tính $\\log_3(27)+\\log_3(9)$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Theo định nghĩa, hai lôgarit lần lượt $3$ và $2$; kết quả $5$. Có thể gộp thành lôgarit tích.",
+      "rubric": "Nêu cách tính và kết quả đúng. Theo định nghĩa, hai lôgarit lần lượt $3$ và $2$; kết quả $5$. Có thể gộp thành lôgarit tích."
+    },
+    {
+      "id": "q9",
+      "section": "I",
+      "label": "Câu 9",
+      "type": "essay",
+      "points": 1,
+      "text": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/10$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$.",
+      "rubric": "Nêu đủ hai cặp đường song song. Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng. Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+    },
+    {
+      "id": "q10",
+      "section": "I",
+      "label": "Câu 10",
+      "type": "essay",
+      "points": 1,
+      "text": "Trên đoạn $AB$, điểm $M$ thỏa $AM:MB=1:6$. Phép chiếu song song cho ảnh $A',M',B'$ phân biệt. Biết $A'B'=21$ cm. Tính $A'M'$; giải thích có suy ra $AB=21$ cm không.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Tỉ số được bảo toàn: $A'M':M'B'=1:6$. Suy ra $A'M'=3$ cm. Không thể suy độ dài thật $AB$ từ độ dài ảnh vì phép chiếu không bảo toàn độ dài nói chung.",
+      "rubric": "Nêu đúng kết luận, đủ điều kiện và lập luận. Tỉ số được bảo toàn: $A'M':M'B'=1:6$. Suy ra $A'M'=3$ cm. Không thể suy độ dài thật $AB$ từ độ dài ảnh vì phép chiếu không bảo toàn độ dài nói chung."
+    }
+  ]
+}

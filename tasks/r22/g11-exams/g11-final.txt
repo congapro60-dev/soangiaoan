@@ -1,0 +1,29 @@
+Toán 11 Discover - Kiểm tra cuối học kỳ I
+
+BẢN NHÁP - ĐỀ TỰ SOẠN CẦN GIÁO VIÊN DUYỆT
+
+Thời gian: 80 phút. Tổng điểm: 10.
+
+PHẦN I. TỰ LUẬN (10 điểm)
+
+Câu 1. (1 điểm) Giải $\tan(7x)=1$. Giải thích vì sao bước giữa hai nghiệm liên tiếp không phải $2\pi/7$.
+
+Câu 2. (1 điểm) Một khán đài có 12 hàng, hàng đầu 4 ghế, mỗi hàng sau thêm 4 ghế. Có tổng cộng bao nhiêu ghế?
+
+Câu 3. (1 điểm) Hai nhóm $[14;18)$, $[18;22)$ có tần số lần lượt 4, 5. Tính số trung bình mẫu ghép nhóm.
+
+Câu 4. (1 điểm) Bốn nhóm có cùng tần số $4$: $[11;13),[13;15),[15;17),[17;19)$. Tính $Q_1$ bằng nội suy.
+
+Câu 5. (1 điểm) Tính $\lim_{n\to\infty}\frac{8n+10}{4n+1}$.
+
+Câu 6. (1 điểm) Tính $\lim_{x\to5}\frac{x^2-25}{x-5}$.
+
+Câu 7. (1 điểm) Cho $f(x)=\frac{x^2-4}{x-2}$ khi $x\ne2$, và $f(2)=m$. Tìm $m$ để hàm liên tục tại $2$.
+
+Câu 8. (1 điểm) Tính $\log_3(27)+\log_3(9)$.
+
+Câu 9. (1 điểm) Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/10$. Chứng minh $(MNP)\parallel(ABC)$.
+
+Câu 10. (1 điểm) Trên đoạn $AB$, điểm $M$ thỏa $AM:MB=1:6$. Phép chiếu song song cho ảnh $A',M',B'$ phân biệt. Biết $A'B'=21$ cm. Tính $A'M'$; giải thích có suy ra $AB=21$ cm không.
+
+HẾT

@@ -1,0 +1,73 @@
+Toán 12 Discover - Kiểm tra cuối học kỳ I
+
+Bản nháp tự soạn, cần giáo viên duyệt.
+
+Thời gian: 80 phút
+
+PHẦN I. Trắc nghiệm (6 câu/3 điểm)
+
+Câu 1. (0,5 điểm) Cho $f(x)=x^3-3x$. Khoảng nghịch biến là
+
+A. $(-\infty;-1)$
+
+B. $(1;+\infty)$
+
+C. $(-1;1)$
+
+Câu 2. (0,5 điểm) Cho $f(x)=\dfrac{x^2+0x-15}{x-4}=x+4+\dfrac1{x-4}$. Tiệm cận xiên là
+
+A. $y=4$
+
+B. $y=x+4$
+
+C. $y=x-4$
+
+Câu 3. (0,5 điểm) Cho $\vec u=(3;-2;3)$, $\vec v=(2;1;-1)$. Tọa độ $2\vec u-\vec v$ là
+
+A. $(4;-5;7)$
+
+B. $(8;-3;5)$
+
+C. $(-1;-4;5)$
+
+Câu 4. (0,5 điểm) Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.
+
+A. $s^2=16,\ s=4$
+
+B. $s^2=2\sqrt2,\ s=8$
+
+C. $s^2=8,\ s=2\sqrt2$
+
+Câu 5. (0,5 điểm) Tìm $\int 15x^{4}\,dx$.
+
+A. $60x^{3}+C$
+
+B. $3x^{5}+C$
+
+C. $15x^{5}+C$
+
+Câu 6. (0,5 điểm) Tìm $\int(4\cos x+2\sin x)\,dx$.
+
+A. $4\sin x-2\cos x+C$
+
+B. $4\sin x+2\cos x+C$
+
+C. $-4\sin x-2\cos x+C$
+
+PHẦN II. Trả lời ngắn (4 câu/3 điểm)
+
+Câu 7. (0,75 điểm) Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.
+
+Câu 8. (0,75 điểm) Tính $\int_0^{3}(4x+1)\,dx$.
+
+Câu 9. (0,75 điểm) Tính diện tích giữa đồ thị $y=x-1$ và trục hoành trên $[0;2]$.
+
+Câu 10. (0,75 điểm) Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\pi$; nhập phân số nếu cần.
+
+PHẦN III. Tự luận (2 câu/4 điểm)
+
+Câu 11. (2 điểm) Cho $f(x)=x+3+\dfrac{1}{x-3}$, $f'(x)=1-\dfrac{1}{(x-3)^2}$. Ghi hai tiệm cận, lập bảng biến thiên và phác hai nhánh với điểm cực trị.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.
+
+Câu 12. (2 điểm) Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=2x$. Nhập phân số nếu cần.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.

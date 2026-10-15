@@ -1,0 +1,33 @@
+HƯỚNG DẪN CHẤM - CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 11 Discover - Kiểm tra cuối học kỳ I
+
+Câu 1. $7x=\pi/4+k\pi$, nên $x=\pi/28+k\pi/7$; các nghiệm đều thuộc miền xác định. Chu kỳ của hàm là $\pi$ theo biến góc.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu đúng kết luận, đủ điều kiện và lập luận. $7x=\pi/4+k\pi$, nên $x=\pi/28+k\pi/7$; các nghiệm đều thuộc miền xác định. Chu kỳ của hàm là $\pi$ theo biến góc.
+
+Câu 2. $u_{12}=48$; $S_{12}=12(4+48)/2=312$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $u_{12}=48$; $S_{12}=12(4+48)/2=312$.
+
+Câu 3. Trung điểm $16,20$; $\bar x=(16\cdot4+20\cdot5)/9=\frac{164}{9}$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Trung điểm $16,20$; $\bar x=(16\cdot4+20\cdot5)/9=\frac{164}{9}$.
+
+Câu 4. $n=16$, vị trí $n/4=4$ rơi đúng ranh giới nhóm, nên $Q_1=13$. Hai cách lấy nhóm kề cho cùng ranh giới.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $n=16$, vị trí $n/4=4$ rơi đúng ranh giới nhóm, nên $Q_1=13$. Hai cách lấy nhóm kề cho cùng ranh giới.
+
+Câu 5. Chia tử/mẫu cho $n$: $(8+10/n)/(4+1/n)\to\frac{8}{4}$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Chia tử/mẫu cho $n$: $(8+10/n)/(4+1/n)\to\frac{8}{4}$.
+
+Câu 6. Với $x\ne5$, thương bằng $x+5$; giới hạn bằng $10$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Với $x\ne5$, thương bằng $x+5$; giới hạn bằng $10$.
+
+Câu 7. Giới hạn phần phân thức bằng $\lim_{x\to2}(x+2)=4$. Liên tục đòi $m$ bằng giới hạn này.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Giới hạn phần phân thức bằng $\lim_{x\to2}(x+2)=4$. Liên tục đòi $m$ bằng giới hạn này.
+
+Câu 8. Theo định nghĩa, hai lôgarit lần lượt $3$ và $2$; kết quả $5$. Có thể gộp thành lôgarit tích.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Theo định nghĩa, hai lôgarit lần lượt $3$ và $2$; kết quả $5$. Có thể gộp thành lôgarit tích.
+
+Câu 9. Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\parallel AB$, $MP\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\parallel(ABC)$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu đủ hai cặp đường song song. Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng. Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\parallel AB$, $MP\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\parallel(ABC)$.
+
+Câu 10. Tỉ số được bảo toàn: $A'M':M'B'=1:6$. Suy ra $A'M'=3$ cm. Không thể suy độ dài thật $AB$ từ độ dài ảnh vì phép chiếu không bảo toàn độ dài nói chung.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu đúng kết luận, đủ điều kiện và lập luận. Tỉ số được bảo toàn: $A'M':M'B'=1:6$. Suy ra $A'M'=3$ cm. Không thể suy độ dài thật $AB$ từ độ dài ảnh vì phép chiếu không bảo toàn độ dài nói chung.

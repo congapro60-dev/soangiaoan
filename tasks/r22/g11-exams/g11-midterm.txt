@@ -1,0 +1,29 @@
+Toán 11 Discover - Kiểm tra giữa học kỳ I
+
+BẢN NHÁP - ĐỀ TỰ SOẠN CẦN GIÁO VIÊN DUYỆT
+
+Thời gian: 80 phút. Tổng điểm: 10.
+
+PHẦN I. TỰ LUẬN (10 điểm)
+
+Câu 1. (1 điểm) Biết $\sin x=112/113$, $0<x<\pi/2$. Tính $\cos x$.
+
+Câu 2. (1 điểm) Tính $\sin 60^\circ\cos 30^\circ+\cos 60^\circ\sin 30^\circ$.
+
+Câu 3. (1 điểm) Giải phương trình $\sin(14x)=\frac12$; tìm nghiệm trong $[0;\pi/14]$., ghi rõ $k\in\mathbb Z$.
+
+Câu 4. (1 điểm) Giải $\cos(11x)=-\frac12$; liệt kê nghiệm thuộc $[0;2\pi/11)$.
+
+Câu 5. (1 điểm) Cấp số cộng có $u_1=8$, $d=3$. Tính $u_{11}$.
+
+Câu 6. (1 điểm) Một khán đài có 8 hàng, hàng đầu 5 ghế, mỗi hàng sau thêm 4 ghế. Có tổng cộng bao nhiêu ghế?
+
+Câu 7. (1 điểm) Cấp số nhân có $u_1=2$, $q=-2$. Tính $u_{6}$.
+
+Câu 8. (1 điểm) Một trò chơi thưởng vòng đầu 12 xu; mỗi vòng sau thưởng gấp đôi vòng trước. Sau 4 vòng, tổng xu thưởng bằng bao nhiêu?
+
+Câu 9. (1 điểm) Cho hình chóp $S.ABCD$ có đáy hình bình hành, $AB=9$, $AD=11$. Hai đường chéo đáy cắt tại $O$. Xác định giao tuyến $(SAC)\cap(SBD)$; giải thích hai điểm chung.
+
+Câu 10. (1 điểm) Cho tứ diện $SABC$; $M\in SA, N\in SB$ thỏa $SM/SA=SN/SB=1/7$. Chứng minh $MN\parallel(ABC)$. Có thể chỉ ghi $MN\parallel AB$ rồi kết luận mà không xét vị trí $MN$ không?
+
+HẾT

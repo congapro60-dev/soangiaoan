@@ -1,0 +1,384 @@
+{
+  "id": "r22-g10-giua-hki",
+  "title": "Toán 10 Discover - Kiểm tra giữa học kỳ I",
+  "grade": 10,
+  "week": 10,
+  "sourcePeriodIds": [
+    "g10-discover-r095",
+    "g10-discover-r096"
+  ],
+  "minutes": 80,
+  "status": "draft",
+  "requiresTeacherReview": true,
+  "files": {
+    "text": "tasks/r22/g10-giua-hki-exam.txt",
+    "json": "tasks/r22/g10-giua-hki-exam.json"
+  },
+  "sourceRefs": [
+    "G10!E95",
+    "G10!E96"
+  ],
+  "notes": [
+    "Đề mới do tác giả soạn; PPCT chỉ xác định lịch, không cung cấp đề hoặc ma trận chính thức.",
+    "80 phút tương ứng hai tiết 40 phút theo phạm vi đã được giao; GV xác nhận lịch kiểm tra trước khi mở đề."
+  ],
+  "blueprint": {
+    "mc": {
+      "count": 8,
+      "points": 2
+    },
+    "tf": {
+      "count": 2,
+      "points": 2
+    },
+    "short": {
+      "count": 4,
+      "points": 2
+    },
+    "essay": {
+      "count": 2,
+      "points": 4
+    }
+  },
+  "exam": {
+    "title": "Toán 10 Discover - Kiểm tra giữa học kỳ I",
+    "durationMin": 80,
+    "settings": {
+      "showResult": "none",
+      "review": "after_close",
+      "allowLateJoin": false,
+      "shuffleQuestions": false,
+      "shuffleOptions": false,
+      "assignment": "alternate",
+      "showCode": false,
+      "integrityPolicyVersion": 1,
+      "graceSeconds": 30
+    },
+    "questions": [
+      {
+        "id": "q1",
+        "section": "I",
+        "label": "Câu 1",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Câu nào là mệnh đề?",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "Em hãy tính 3+2.",
+          "B": "Số 9 là số chẵn.",
+          "C": "Em đã làm bài chưa?",
+          "D": "$x>5$ (chưa cho x)."
+        },
+        "noShuffle": false,
+        "key": "B",
+        "solution": "“Số 9 là số chẵn” có giá trị sai xác định nên vẫn là mệnh đề."
+      },
+      {
+        "id": "q2",
+        "section": "I",
+        "label": "Câu 2",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Phủ định của “$\\exists x\\in\\mathbb R:x^2<0$” là:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$\\exists x:x^2\\ge0$",
+          "B": "$\\forall x\\in\\mathbb R:x^2\\ge0$",
+          "C": "$\\forall x:x^2<0$",
+          "D": "$\\exists x:x^2>0$"
+        },
+        "noShuffle": false,
+        "key": "B",
+        "solution": "Đổi tồn tại thành với mọi, phủ định nhỏ hơn thành lớn hơn hoặc bằng."
+      },
+      {
+        "id": "q3",
+        "section": "I",
+        "label": "Câu 3",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Cho $A=\\{1;2;4\\}$, $B=\\{2;3;4\\}$. $A\\setminus B$ bằng:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$\\{1\\}$",
+          "B": "$\\{3\\}$",
+          "C": "$\\{2;4\\}$",
+          "D": "$\\{1;2;3;4\\}$"
+        },
+        "noShuffle": false,
+        "key": "A",
+        "solution": "Giữ phần tử thuộc A nhưng không thuộc B, chỉ có 1."
+      },
+      {
+        "id": "q4",
+        "section": "I",
+        "label": "Câu 4",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Tập $\\{x\\in\\mathbb R:-1<x\\le3\\}$ viết là:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$[-1;3]$",
+          "B": "$(-1;3)$",
+          "C": "$(-1;3]$",
+          "D": "$[-1;3)$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "Đầu −1 không lấy, đầu 3 có lấy."
+      },
+      {
+        "id": "q5",
+        "section": "I",
+        "label": "Câu 5",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Điểm nào thuộc miền $x\\ge0,y\\ge0,x+y\\le5$?",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$(-1;2)$",
+          "B": "$(4;3)$",
+          "C": "$(2;-1)$",
+          "D": "$(2;3)$"
+        },
+        "noShuffle": false,
+        "key": "D",
+        "solution": "Điểm (2;3) thỏa cả ba điều kiện, trong đó tổng bằng 5 vẫn được lấy."
+      },
+      {
+        "id": "q6",
+        "section": "I",
+        "label": "Câu 6",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Tam giác có hai cạnh kề góc $60^\\circ$ dài $14$ cm và $21$ cm. Nếu cạnh đối diện là $a$ cm, hãy tính $a^2$ (đơn vị $\\mathrm{cm}^2$).",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$345$",
+          "B": "$342$",
+          "C": "$343$",
+          "D": "$344$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "$a^2=14^2+21^2-2\\cdot14\\cdot21\\cos60^\\circ=343$. Cạnh $a$ là căn dương của số này, nhưng đề đang hỏi bình phương."
+      },
+      {
+        "id": "q7",
+        "section": "I",
+        "label": "Câu 7",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Tam giác ABC có $A=30^\\circ$, $B=90^\\circ$, $a=16$ cm. Tính cạnh $b$ (cm).",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$34$",
+          "B": "$31$",
+          "C": "$32$",
+          "D": "$33$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "$b=a\\sin B/\\sin A=16\\cdot1/(1/2)=32$."
+      },
+      {
+        "id": "q8",
+        "section": "I",
+        "label": "Câu 8",
+        "type": "mc",
+        "points": 0.25,
+        "text": "ABCD là hình vuông ghi theo thứ tự quanh hình. Vectơ nào bằng vectơ AB?",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$\\overrightarrow{CD}$",
+          "B": "$\\overrightarrow{DC}$",
+          "C": "$\\overrightarrow{BC}$",
+          "D": "$\\overrightarrow{BA}$"
+        },
+        "noShuffle": false,
+        "key": "B",
+        "solution": "AB và DC cùng hướng, cùng độ dài. CD và BA là các vectơ ngược hướng với AB."
+      },
+      {
+        "id": "q9",
+        "section": "II",
+        "label": "Câu 1",
+        "type": "tf",
+        "points": 1,
+        "text": "Xét miền $x\\ge0,y\\ge0,x+2y\\le6,2x+y\\le6$.",
+        "statements": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "statementText": {
+          "a": "Gốc tọa độ thuộc miền nghiệm.",
+          "b": "Giao hai đường biên xiên là (2;2).",
+          "c": "Điểm (4;0) thuộc miền nghiệm.",
+          "d": "Giá trị lớn nhất của $F=3x+4y$ là 14."
+        },
+        "noShuffle": false,
+        "key": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "solution": "O thỏa hệ. Hai đường xiên cho x=y=2. (4;0) vi phạm $2x+y\\le6$. Các đỉnh (0;0),(3;0),(2;2),(0;3) cho F=0,9,14,12."
+      },
+      {
+        "id": "q10",
+        "section": "II",
+        "label": "Câu 2",
+        "type": "tf",
+        "points": 1,
+        "text": "Tam giác ABC vuông tại A, $AB=6$ cm, $AC=8$ cm.",
+        "statements": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "statementText": {
+          "a": "BC dài 10 cm.",
+          "b": "Diện tích bằng $48\\,\\mathrm{cm}^2$.",
+          "c": "Bán kính ngoại tiếp bằng 5 cm.",
+          "d": "$\\cos B=3/5$."
+        },
+        "noShuffle": false,
+        "key": [
+          true,
+          false,
+          true,
+          true
+        ],
+        "solution": "Pythagore cho BC=10. Diện tích là $6\\cdot8/2=24$, không phải 48. Bán kính ngoại tiếp bằng nửa cạnh huyền, cos B=AB/BC=3/5."
+      },
+      {
+        "id": "q11",
+        "section": "III",
+        "label": "Câu 1",
+        "type": "short",
+        "points": 0.5,
+        "text": "Một nhóm có 32 em; 23 em thích cờ, 20 em thích vẽ, 15 em thích cả hai. Có bao nhiêu em thích ít nhất một trong hai hoạt động?",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "28"
+          ]
+        },
+        "solution": "Chỉ thích cờ: 23-15=8; chỉ thích vẽ: 20-15=5. Ít nhất một: 8+5+15=28."
+      },
+      {
+        "id": "q12",
+        "section": "III",
+        "label": "Câu 2",
+        "type": "short",
+        "points": 0.5,
+        "text": "Một xưởng làm x sản phẩm A, y sản phẩm B. Ràng buộc $x,y\\ge0$, $x+2y\\le96$, $2x+y\\le96$. Lợi nhuận $F=3x+4y$ (triệu đồng). Tìm giá trị lớn nhất của F.",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "224"
+          ]
+        },
+        "solution": "Các đỉnh $(0;0),(48;0),(32;32),(0;48)$ cho F lần lượt $0;144;224;192$. Giá trị lớn nhất là $224$ triệu đồng."
+      },
+      {
+        "id": "q13",
+        "section": "III",
+        "label": "Câu 3",
+        "type": "short",
+        "points": 0.5,
+        "text": "Tam giác có ba cạnh $51$ cm, $68$ cm, $85$ cm. Tính bán kính nội tiếp $r$ (cm).",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "17"
+          ]
+        },
+        "solution": "$p=102$; $S=\\sqrt{102\\cdot51\\cdot34\\cdot17}=1734$. $r=S/p=17$."
+      },
+      {
+        "id": "q14",
+        "section": "III",
+        "label": "Câu 4",
+        "type": "short",
+        "points": 0.5,
+        "text": "Hai cạnh kề một góc $30^\\circ$ của tam giác dài $36$ m và $8$ m. Tính diện tích tam giác (đơn vị $\\mathrm{m}^2$).",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "72"
+          ]
+        },
+        "solution": "$S=\\frac12bc\\sin A=\\frac12\\cdot36\\cdot8\\sin30^\\circ=72$."
+      },
+      {
+        "id": "q15",
+        "section": "IV",
+        "label": "Câu 1",
+        "type": "essay",
+        "points": 2,
+        "text": "Một nhóm 30 em có 18 em thích đọc sách, 15 em thích chơi cờ và 7 em thích cả hai. Vẽ sơ đồ Venn, tìm số em chỉ thích đọc, chỉ thích cờ, thích ít nhất một hoạt động và không thích hoạt động nào trong hai hoạt động. Giải thích vì sao không thể cộng 18+15 làm số em thích ít nhất một.",
+        "noShuffle": false,
+        "key": null,
+        "solution": "Phần giao 7; chỉ đọc 18−7=11, chỉ cờ 15−7=8; hợp 11+7+8=26; ngoài cả hai 30−26=4. Cộng 18+15 đếm phần giao hai lần.",
+        "rubric": "Sơ đồ và phần giao: 0,4 điểm; hai phần chỉ thích: 0,6; hợp và ngoài: 0,6; giải thích đếm trùng: 0,4."
+      },
+      {
+        "id": "q16",
+        "section": "IV",
+        "label": "Câu 2",
+        "type": "essay",
+        "points": 2,
+        "text": "Hai trạm A,B cách nhau 40 m; C cùng phía với AB. Đo được góc CAB bằng 30 độ và CBA bằng 60 độ. Vẽ mô hình, tính góc C, AC, BC và diện tích tam giác ABC; giữ căn thức chính xác.",
+        "noShuffle": false,
+        "key": null,
+        "solution": "C=90 độ. Định lí sin cho $BC=40\\sin30^\\circ=20$ m, $AC=40\\sin60^\\circ=20\\sqrt3$ m. Diện tích $BC\\cdot AC/2=200\\sqrt3\\,\\mathrm{m}^2$.",
+        "rubric": "Mô hình và góc C: 0,4 điểm; chọn đúng định lí: 0,4; AC,BC đúng: 0,6; diện tích và đơn vị đúng: 0,6."
+      }
+    ]
+  }
+}

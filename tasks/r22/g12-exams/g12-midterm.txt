@@ -1,0 +1,73 @@
+Toán 12 Discover - Kiểm tra giữa học kỳ I
+
+Bản nháp tự soạn, cần giáo viên duyệt.
+
+Thời gian: 80 phút
+
+PHẦN I. Trắc nghiệm (6 câu/3 điểm)
+
+Câu 1. (0,5 điểm) Cho $f(x)=1x+6$. Với $x_1<x_2$, $f(x_2)-f(x_1)=1(x_2-x_1)$. Kết luận nào đúng trên $\mathbb R$?
+
+A. Hàm số nghịch biến.
+
+B. Hàm số không đổi.
+
+C. Hàm số đồng biến.
+
+Câu 2. (0,5 điểm) Cho $f(x)=x^3-48x$. Khoảng nghịch biến là
+
+A. $(4;+\infty)$
+
+B. $(-4;4)$
+
+C. $(-\infty;-4)$
+
+Câu 3. (0,5 điểm) Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;3)$, $(3;5)$, $(5;+\infty)$. Điểm cực tiểu có hoành độ nào?
+
+A. $5$
+
+B. $3$
+
+C. Không có cực tiểu.
+
+Câu 4. (0,5 điểm) Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\overrightarrow{ST}$?
+
+A. $\overrightarrow{TS}$
+
+B. $\overrightarrow{UV}$
+
+C. $\overrightarrow{VU}$
+
+Câu 5. (0,5 điểm) Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, $AB=2$, $AD=5$. Tính $\left|\overrightarrow{AB}+\overrightarrow{AD}\right|^2$.
+
+A. $30$
+
+B. $28$
+
+C. $29$
+
+Câu 6. (0,5 điểm) Cho $f(x)=1+\dfrac{1}{x-3}$. Cặp tiệm cận đứng và ngang là
+
+A. $x=3$ và $y=1$
+
+B. $x=1$ và $y=3$
+
+C. $x=-3$ và $y=1$
+
+PHẦN II. Trả lời ngắn (4 câu/3 điểm)
+
+Câu 7. (0,75 điểm) Tìm GTLN của $f(x)=x^2-6x+3$ trên $[-1;5]$.
+
+Câu 8. (0,75 điểm) Cho $\vec u=(2;-2;3)$, $\vec v=(2;3;-1)$. Tính $\vec u\cdot\vec v$.
+
+Câu 9. (0,75 điểm) Cho $|\vec u|=2$, $\vec v=-2\vec u$. Tính $|\vec v|$.
+
+Câu 10. (0,75 điểm) Cho $f(x)=x^3-48x+1$. Tính giá trị cực tiểu của hàm số.
+
+PHẦN III. Tự luận (2 câu/4 điểm)
+
+Câu 11. (2 điểm) Cho $f(x)=x^3-3x-2$, $f'(x)=3(x-1)(x+1)$. Trên vở, hoàn thiện bảng biến thiên, ghi hai điểm cực trị và phác đồ thị qua $(0;-2)$. Mô tả ngắn chiều của ba nhánh.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.
+
+Câu 12. (2 điểm) Cho $f(x)=x+1+\dfrac{4}{x-2}$, $f'(x)=1-\dfrac{4}{(x-2)^2}$. Ghi hai tiệm cận, lập bảng biến thiên và phác hai nhánh với điểm cực trị.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.

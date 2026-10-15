@@ -1,0 +1,137 @@
+{
+  "title": "Toán 11 Discover - Kiểm tra giữa học kỳ I",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": true,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "essay",
+      "points": 1,
+      "text": "Biết $\\sin x=112/113$, $0<x<\\pi/2$. Tính $\\cos x$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$\\cos^2x=1-\\frac{12544}{12769}=\\frac{225}{12769}$. Xét góc phần tư, $\\cos x=\\frac{15}{113}$.",
+      "rubric": "Nêu cách tính và kết quả đúng. $\\cos^2x=1-\\frac{12544}{12769}=\\frac{225}{12769}$. Xét góc phần tư, $\\cos x=\\frac{15}{113}$."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "essay",
+      "points": 1,
+      "text": "Tính $\\sin 60^\\circ\\cos 30^\\circ+\\cos 60^\\circ\\sin 30^\\circ$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Nhận ra công thức sin tổng: $\\sin(60^\\circ+(30^\\circ))=\\sin90^\\circ=1$.",
+      "rubric": "Nêu cách tính và kết quả đúng. Nhận ra công thức sin tổng: $\\sin(60^\\circ+(30^\\circ))=\\sin90^\\circ=1$."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "essay",
+      "points": 1,
+      "text": "Giải phương trình $\\sin(14x)=\\frac12$; tìm nghiệm trong $[0;\\pi/14]$., ghi rõ $k\\in\\mathbb Z$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$x=\\pi/84+2k\\pi/14$ hoặc $x=5\\pi/84+2k\\pi/14$. Trong đoạn đã cho chỉ có $\\pi/84$ và $5\\pi/84$.",
+      "rubric": "Đủ hai họ nghiệm với tham số nguyên. Chia đúng mọi số hạng; lọc khoảng nếu được yêu cầu. $x=\\pi/84+2k\\pi/14$ hoặc $x=5\\pi/84+2k\\pi/14$. Trong đoạn đã cho chỉ có $\\pi/84$ và $5\\pi/84$."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "essay",
+      "points": 1,
+      "text": "Giải $\\cos(11x)=-\\frac12$; liệt kê nghiệm thuộc $[0;2\\pi/11)$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$x=\\pm2\\pi/33+2k\\pi/11$, $k\\in\\mathbb Z$. Trong khoảng đã cho: $2\\pi/33$ và $4\\pi/33$.",
+      "rubric": "Nêu đúng kết luận, đủ điều kiện và lập luận. $x=\\pm2\\pi/33+2k\\pi/11$, $k\\in\\mathbb Z$. Trong khoảng đã cho: $2\\pi/33$ và $4\\pi/33$."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "essay",
+      "points": 1,
+      "text": "Cấp số cộng có $u_1=8$, $d=3$. Tính $u_{11}$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$u_{11}=8+(11-1)\\cdot3=38$.",
+      "rubric": "Nêu cách tính và kết quả đúng. $u_{11}=8+(11-1)\\cdot3=38$."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "essay",
+      "points": 1,
+      "text": "Một khán đài có 8 hàng, hàng đầu 5 ghế, mỗi hàng sau thêm 4 ghế. Có tổng cộng bao nhiêu ghế?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$u_{8}=33$; $S_{8}=8(5+33)/2=152$.",
+      "rubric": "Nêu cách tính và kết quả đúng. $u_{8}=33$; $S_{8}=8(5+33)/2=152$."
+    },
+    {
+      "id": "q7",
+      "section": "I",
+      "label": "Câu 7",
+      "type": "essay",
+      "points": 1,
+      "text": "Cấp số nhân có $u_1=2$, $q=-2$. Tính $u_{6}$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$u_{6}=2\\cdot(-2)^{5}=-64$.",
+      "rubric": "Nêu cách tính và kết quả đúng. $u_{6}=2\\cdot(-2)^{5}=-64$."
+    },
+    {
+      "id": "q8",
+      "section": "I",
+      "label": "Câu 8",
+      "type": "essay",
+      "points": 1,
+      "text": "Một trò chơi thưởng vòng đầu 12 xu; mỗi vòng sau thưởng gấp đôi vòng trước. Sau 4 vòng, tổng xu thưởng bằng bao nhiêu?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Các khoản thưởng là cấp số nhân $u_1=12$, $q=2$. $S_{4}=12(2^{4}-1)=180$.",
+      "rubric": "Nêu cách tính và kết quả đúng. Các khoản thưởng là cấp số nhân $u_1=12$, $q=2$. $S_{4}=12(2^{4}-1)=180$."
+    },
+    {
+      "id": "q9",
+      "section": "I",
+      "label": "Câu 9",
+      "type": "essay",
+      "points": 1,
+      "text": "Cho hình chóp $S.ABCD$ có đáy hình bình hành, $AB=9$, $AD=11$. Hai đường chéo đáy cắt tại $O$. Xác định giao tuyến $(SAC)\\cap(SBD)$; giải thích hai điểm chung.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$S$ thuộc cả hai mặt phẳng. $O\\in AC$ và $O\\in BD$ nên $O$ cũng chung. Vì $S\\ne O$, giao tuyến là $SO$; các độ dài đáy không làm thay đổi lập luận.",
+      "rubric": "Nêu hai điểm chung và chứng minh từng điểm thuộc cả hai mặt phẳng. Kết luận giao tuyến đúng, không dùng hình chiếu làm chứng minh. $S$ thuộc cả hai mặt phẳng. $O\\in AC$ và $O\\in BD$ nên $O$ cũng chung. Vì $S\\ne O$, giao tuyến là $SO$; các độ dài đáy không làm thay đổi lập luận."
+    },
+    {
+      "id": "q10",
+      "section": "I",
+      "label": "Câu 10",
+      "type": "essay",
+      "points": 1,
+      "text": "Cho tứ diện $SABC$; $M\\in SA, N\\in SB$ thỏa $SM/SA=SN/SB=1/7$. Chứng minh $MN\\parallel(ABC)$. Có thể chỉ ghi $MN\\parallel AB$ rồi kết luận mà không xét vị trí $MN$ không?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Trong tam giác $SAB$, hai tỉ lệ bằng nhau nên $MN\\parallel AB$. Vì $M$ nằm trong cạnh $SA$ và khác $A$, $M\\notin(ABC)$; do đó $MN$ không nằm trong $(ABC)$. Lại có $AB\\subset(ABC)$, suy ra $MN\\parallel(ABC)$. Cần điều kiện không thuộc mặt phẳng.",
+      "rubric": "Nêu đúng kết luận, đủ điều kiện và lập luận. Trong tam giác $SAB$, hai tỉ lệ bằng nhau nên $MN\\parallel AB$. Vì $M$ nằm trong cạnh $SA$ và khác $A$, $M\\notin(ABC)$; do đó $MN$ không nằm trong $(ABC)$. Lại có $AB\\subset(ABC)$, suy ra $MN\\parallel(ABC)$. Cần điều kiện không thuộc mặt phẳng."
+    }
+  ]
+}

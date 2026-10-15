@@ -1,0 +1,33 @@
+HƯỚNG DẪN CHẤM - CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 11 Discover - Kiểm tra giữa học kỳ I
+
+Câu 1. $\cos^2x=1-\frac{12544}{12769}=\frac{225}{12769}$. Xét góc phần tư, $\cos x=\frac{15}{113}$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $\cos^2x=1-\frac{12544}{12769}=\frac{225}{12769}$. Xét góc phần tư, $\cos x=\frac{15}{113}$.
+
+Câu 2. Nhận ra công thức sin tổng: $\sin(60^\circ+(30^\circ))=\sin90^\circ=1$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Nhận ra công thức sin tổng: $\sin(60^\circ+(30^\circ))=\sin90^\circ=1$.
+
+Câu 3. $x=\pi/84+2k\pi/14$ hoặc $x=5\pi/84+2k\pi/14$. Trong đoạn đã cho chỉ có $\pi/84$ và $5\pi/84$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Đủ hai họ nghiệm với tham số nguyên. Chia đúng mọi số hạng; lọc khoảng nếu được yêu cầu. $x=\pi/84+2k\pi/14$ hoặc $x=5\pi/84+2k\pi/14$. Trong đoạn đã cho chỉ có $\pi/84$ và $5\pi/84$.
+
+Câu 4. $x=\pm2\pi/33+2k\pi/11$, $k\in\mathbb Z$. Trong khoảng đã cho: $2\pi/33$ và $4\pi/33$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu đúng kết luận, đủ điều kiện và lập luận. $x=\pm2\pi/33+2k\pi/11$, $k\in\mathbb Z$. Trong khoảng đã cho: $2\pi/33$ và $4\pi/33$.
+
+Câu 5. $u_{11}=8+(11-1)\cdot3=38$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $u_{11}=8+(11-1)\cdot3=38$.
+
+Câu 6. $u_{8}=33$; $S_{8}=8(5+33)/2=152$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $u_{8}=33$; $S_{8}=8(5+33)/2=152$.
+
+Câu 7. $u_{6}=2\cdot(-2)^{5}=-64$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. $u_{6}=2\cdot(-2)^{5}=-64$.
+
+Câu 8. Các khoản thưởng là cấp số nhân $u_1=12$, $q=2$. $S_{4}=12(2^{4}-1)=180$.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu cách tính và kết quả đúng. Các khoản thưởng là cấp số nhân $u_1=12$, $q=2$. $S_{4}=12(2^{4}-1)=180$.
+
+Câu 9. $S$ thuộc cả hai mặt phẳng. $O\in AC$ và $O\in BD$ nên $O$ cũng chung. Vì $S\ne O$, giao tuyến là $SO$; các độ dài đáy không làm thay đổi lập luận.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu hai điểm chung và chứng minh từng điểm thuộc cả hai mặt phẳng. Kết luận giao tuyến đúng, không dùng hình chiếu làm chứng minh. $S$ thuộc cả hai mặt phẳng. $O\in AC$ và $O\in BD$ nên $O$ cũng chung. Vì $S\ne O$, giao tuyến là $SO$; các độ dài đáy không làm thay đổi lập luận.
+
+Câu 10. Trong tam giác $SAB$, hai tỉ lệ bằng nhau nên $MN\parallel AB$. Vì $M$ nằm trong cạnh $SA$ và khác $A$, $M\notin(ABC)$; do đó $MN$ không nằm trong $(ABC)$. Lại có $AB\subset(ABC)$, suy ra $MN\parallel(ABC)$. Cần điều kiện không thuộc mặt phẳng.
+Chấm 0,5 điểm cho cách làm/điều kiện phù hợp; 0,5 điểm cho kết quả và kết luận. Nêu đúng kết luận, đủ điều kiện và lập luận. Trong tam giác $SAB$, hai tỉ lệ bằng nhau nên $MN\parallel AB$. Vì $M$ nằm trong cạnh $SA$ và khác $A$, $M\notin(ABC)$; do đó $MN$ không nằm trong $(ABC)$. Lại có $AB\subset(ABC)$, suy ra $MN\parallel(ABC)$. Cần điều kiện không thuộc mặt phẳng.

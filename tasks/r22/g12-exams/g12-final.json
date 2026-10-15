@@ -1,0 +1,231 @@
+{
+  "title": "Toán 12 Discover - Kiểm tra cuối học kỳ I",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": false,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$(-\\infty;-1)$",
+        "B": "$(1;+\\infty)$",
+        "C": "$(-1;1)$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $f(x)=\\dfrac{x^2+0x-15}{x-4}=x+4+\\dfrac1{x-4}$. Tiệm cận xiên là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$y=4$",
+        "B": "$y=x+4$",
+        "C": "$y=x-4$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Hiệu $f(x)-(x+4)=1/(x-4)\\to0$ khi $x\\to\\pm\\infty$."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Cho $\\vec u=(3;-2;3)$, $\\vec v=(2;1;-1)$. Tọa độ $2\\vec u-\\vec v$ là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$(4;-5;7)$",
+        "B": "$(8;-3;5)$",
+        "C": "$(-1;-4;5)$"
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Nhân từng tọa độ của $\\vec u$ với $2$ rồi trừ tọa độ tương ứng của $\\vec v$: $(4;-5;7)$."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$s^2=16,\\ s=4$",
+        "B": "$s^2=2\\sqrt2,\\ s=8$",
+        "C": "$s^2=8,\\ s=2\\sqrt2$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Điểm giữa là $12,16,20$, $\\bar x=16$. Tổng bình phương lệch có trọng số bằng $128$; chia $16$ được $s^2=8$; lấy căn được $s=2\\sqrt2$."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Tìm $\\int 15x^{4}\\,dx$.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$60x^{3}+C$",
+        "B": "$3x^{5}+C$",
+        "C": "$15x^{5}+C$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Tăng số mũ lên $5$ rồi chia hệ số $15$ cho $5$ được $3$."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Tìm $\\int(4\\cos x+2\\sin x)\\,dx$.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$4\\sin x-2\\cos x+C$",
+        "B": "$4\\sin x+2\\cos x+C$",
+        "C": "$-4\\sin x-2\\cos x+C$"
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Đạo hàm của $4\\sin x$ là $4\\cos x$; đạo hàm của $-2\\cos x$ là $2\\sin x$."
+    },
+    {
+      "id": "q7",
+      "section": "II",
+      "label": "Câu 7",
+      "type": "short",
+      "points": 0.75,
+      "text": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "10",
+          "10"
+        ]
+      },
+      "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$."
+    },
+    {
+      "id": "q8",
+      "section": "II",
+      "label": "Câu 8",
+      "type": "short",
+      "points": 0.75,
+      "text": "Tính $\\int_0^{3}(4x+1)\\,dx$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "21",
+          "21"
+        ]
+      },
+      "solution": "Nguyên hàm là $2x^2+1x$; thay cận được $2\\cdot3^2+1\\cdot3=21$."
+    },
+    {
+      "id": "q9",
+      "section": "II",
+      "label": "Câu 9",
+      "type": "short",
+      "points": 0.75,
+      "text": "Tính diện tích giữa đồ thị $y=x-1$ và trục hoành trên $[0;2]$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "1",
+          "1"
+        ]
+      },
+      "solution": "Đổi dấu tại $x=1$. $S=\\int_0^{1}(1-x)\\,dx+\\int_{1}^{2}(x-1)\\,dx=\\frac{1+1}2=1$."
+    },
+    {
+      "id": "q10",
+      "section": "II",
+      "label": "Câu 10",
+      "type": "short",
+      "points": 0.75,
+      "text": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "10.666666666666666",
+          "10,666666666666666"
+        ]
+      },
+      "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+    },
+    {
+      "id": "q11",
+      "section": "III",
+      "label": "Câu 11",
+      "type": "essay",
+      "points": 2,
+      "text": "Cho $f(x)=x+3+\\dfrac{1}{x-3}$, $f'(x)=1-\\dfrac{1}{(x-3)^2}$. Ghi hai tiệm cận, lập bảng biến thiên và phác hai nhánh với điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Miền loại $3$; tiệm cận $x=3$ và $y=x+3$. Nghiệm đạo hàm $2,4$; dấu $+,-\\mid-,+$. Cực đại nhánh trái $(2;4)$, cực tiểu nhánh phải $(4;8)$. Hai nhánh tiến sát đường xiên ở vô cực.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    },
+    {
+      "id": "q12",
+      "section": "III",
+      "label": "Câu 12",
+      "type": "essay",
+      "points": 2,
+      "text": "Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=2x$. Nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Giao điểm có hoành độ $0,2$. Trên đoạn đó, $2x\\ge x^2$. $S=\\int_0^{2}(2x-x^2)\\,dx=\\frac{8}6$.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    }
+  ]
+}

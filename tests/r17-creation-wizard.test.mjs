@@ -141,6 +141,27 @@ test('exam goes to exam editor, without lesson package or import requirement', (
   assert.deepEqual(h.calls, []);
 });
 
+test('semester library groups grade, week and type; searches without accents and preserves elective purpose',async()=>{
+ const authored=[
+  {id:'r22-g10-a',title:'Mệnh đề',version:'1.0.0',status:'draft',grade:10,week:1,period:2,category:'formation',slotMinutes:40},
+  {id:'r22-g11-a',title:'Cấp số cộng',version:'1.0.0',status:'draft',grade:11,week:7,period:42,category:'formation',slotMinutes:40},
+  {id:'r22-g11-b',title:'Game tổng hợp',version:'1.0.0',status:'draft',grade:11,week:7,period:47,category:'elective',slotMinutes:40},
+ ];
+ const h=harness({ok:true,json:async()=>({packages:[]})},{ok:true,json:async()=>({lessons:authored,exams:[{id:'g11-midterm',title:'Giữa học kỳ',grade:11,week:10,minutes:80}]})});
+ byLabel(stepTwo(h,'Hình thành kiến thức'),'Chọn từ thư viện').props.onClick();h.render();await settle();
+ let tree=h.render(),html=renderToStaticMarkup(tree);
+ assert.match(html,/Lớp 11 · Discover · Học kỳ I/);assert.match(html,/<summary[^>]*><strong>Tuần 7/);assert.match(html,/Tự chọn · Game tổng hợp/);assert.doesNotMatch(html,/Mệnh đề/);
+ byId(tree,'creation-week').props.onChange({target:{value:'7'}});tree=h.render();
+ byId(tree,'creation-search').props.onChange({target:{value:'CAP SO CONG'}});tree=h.render();html=renderToStaticMarkup(tree);
+ assert.match(html,/Cấp số cộng/);assert.doesNotMatch(html,/<span[^>]*>Game tổng hợp/);
+ byId(tree,'creation-search').props.onChange({target:{value:''}});tree=h.render();
+ byId(tree,'creation-category').props.onChange({target:{value:'elective'}});tree=h.render();
+ byLabel(tree,'Tiết 47').props.onClick();tree=h.render();
+ assert(elements(tree).some(node=>node.type==='a'&&node.props.href==='/lessons?setup=new&purpose=review&source=authored&package=r22-g11-b&grade=11&minutes=40'));
+ assert.equal(byId(tree,'creation-grade').props.disabled,false);
+ byId(tree,'creation-grade').props.onChange({target:{value:'10'}});tree=h.render();assert.equal(byLabel(tree,'Tiếp tục soạn nội dung').props.disabled,true);
+});
+
 test('duration validation rejects decimals, zero and overlimit before navigation', () => {
   const h = harness();
   stepTwo(h, 'Luyện tập');

@@ -1,0 +1,29 @@
+CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 12 Discover - Kiểm tra giữa học kỳ I
+
+Câu 1 (0.5 điểm): Vì $1(x_2-x_1)>0$, $f(x_2)>f(x_1)$ với mọi cặp đã cho.
+
+Câu 2 (0.5 điểm): $f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.
+
+Câu 3 (0.5 điểm): Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.
+
+Câu 4 (0.5 điểm): Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng.
+
+Câu 5 (0.5 điểm): Tổng là $\overrightarrow{AC}$. Tam giác $ABC$ vuông nên $AC^2=2^2+5^2=29$.
+
+Câu 6 (0.5 điểm): Khi $x\to3^{\pm}$, phần phân thức vô hạn; khi $x\to\pm\infty$, phần phân thức tiến về $0$.
+
+Câu 7 (0.75 điểm): $f'=2x-6$, điểm dừng $x=3$. So sánh $f(-1)=10$, $f(3)=-6$, $f(5)=-2$; GTLN là $10$.
+
+Câu 8 (0.75 điểm): $2\cdot2+(-2)\cdot3+3\cdot(-1)=-5$.
+
+Câu 9 (0.75 điểm): $|\vec v|=|-2|\,2=4$; hai vectơ ngược hướng.
+
+Câu 10 (0.75 điểm): $f'=3(x-4)(x+4)$. Dấu đổi từ $-$ sang $+$ tại $x=4$; $f(4)=-127$.
+
+Câu 11 (2 điểm): Miền $\mathbb R$; dấu $f'$ là $+,-,+$ qua $-1,1$. Cực đại $(-1;0)$, cực tiểu $(1;-4)$, qua $(0;-2)$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.
+
+Câu 12 (2 điểm): Miền loại $2$; tiệm cận $x=2$ và $y=x+1$. Nghiệm đạo hàm $0,4$; dấu $+,-\mid-,+$. Cực đại nhánh trái $(0;-1)$, cực tiểu nhánh phải $(4;7)$. Hai nhánh tiến sát đường xiên ở vô cực.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.

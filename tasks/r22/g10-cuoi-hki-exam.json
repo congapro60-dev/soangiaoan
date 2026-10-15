@@ -1,0 +1,384 @@
+{
+  "id": "r22-g10-cuoi-hki",
+  "title": "Toán 10 Discover - Kiểm tra cuối học kỳ I",
+  "grade": 10,
+  "week": 18,
+  "sourcePeriodIds": [
+    "g10-discover-r167",
+    "g10-discover-r168"
+  ],
+  "minutes": 80,
+  "status": "draft",
+  "requiresTeacherReview": true,
+  "files": {
+    "text": "tasks/r22/g10-cuoi-hki-exam.txt",
+    "json": "tasks/r22/g10-cuoi-hki-exam.json"
+  },
+  "sourceRefs": [
+    "G10!E167",
+    "G10!E168"
+  ],
+  "notes": [
+    "Đề mới do tác giả soạn; PPCT chỉ xác định lịch, không cung cấp đề hoặc ma trận chính thức.",
+    "80 phút tương ứng hai tiết 40 phút theo phạm vi đã được giao; GV xác nhận lịch kiểm tra trước khi mở đề."
+  ],
+  "blueprint": {
+    "mc": {
+      "count": 8,
+      "points": 2
+    },
+    "tf": {
+      "count": 2,
+      "points": 2
+    },
+    "short": {
+      "count": 4,
+      "points": 2
+    },
+    "essay": {
+      "count": 2,
+      "points": 4
+    }
+  },
+  "exam": {
+    "title": "Toán 10 Discover - Kiểm tra cuối học kỳ I",
+    "durationMin": 80,
+    "settings": {
+      "showResult": "none",
+      "review": "after_close",
+      "allowLateJoin": false,
+      "shuffleQuestions": false,
+      "shuffleOptions": false,
+      "assignment": "alternate",
+      "showCode": false,
+      "integrityPolicyVersion": 1,
+      "graceSeconds": 30
+    },
+    "questions": [
+      {
+        "id": "q1",
+        "section": "I",
+        "label": "Câu 1",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Phủ định của “$\\forall x\\in\\mathbb R:x^2\\ge1$” là:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$\\forall x:x^2<1$",
+          "B": "$\\exists x\\in\\mathbb R:x^2<1$",
+          "C": "$\\exists x:x^2\\ge1$",
+          "D": "$\\forall x:x^2>1$"
+        },
+        "noShuffle": false,
+        "key": "B",
+        "solution": "Đổi lượng từ với mọi thành tồn tại và phủ định dấu lớn hơn hoặc bằng thành nhỏ hơn."
+      },
+      {
+        "id": "q2",
+        "section": "I",
+        "label": "Câu 2",
+        "type": "mc",
+        "points": 0.25,
+        "text": "$A=[-2;4)$, $B=(1;6]$. Giao hai tập là:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$(1;4)$",
+          "B": "$[1;4]$",
+          "C": "$[-2;6]$",
+          "D": "$(1;4]$"
+        },
+        "noShuffle": false,
+        "key": "A",
+        "solution": "Phải đồng thời lớn hơn 1 và nhỏ hơn 4; hai đầu đều không được nhận."
+      },
+      {
+        "id": "q3",
+        "section": "I",
+        "label": "Câu 3",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Mẫu số liệu 1;2;2;4;11 có trung vị bằng:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$4$",
+          "B": "$2$",
+          "C": "$11$",
+          "D": "$20/5$"
+        },
+        "noShuffle": false,
+        "key": "B",
+        "solution": "Mẫu đã sắp, có năm số nên lấy số thứ ba là 2."
+      },
+      {
+        "id": "q4",
+        "section": "I",
+        "label": "Câu 4",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Mẫu 2;4;4;6 có số trung bình bằng:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$3$",
+          "B": "$5$",
+          "C": "$4$",
+          "D": "$6$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "Tổng 16 chia số phần tử 4 được 4."
+      },
+      {
+        "id": "q5",
+        "section": "I",
+        "label": "Câu 5",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Vectơ $\\vec a$ có độ dài $12$ cm. Tính độ dài của vectơ $-3\\vec a-\\vec a$ (cm).",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$50$",
+          "B": "$47$",
+          "C": "$48$",
+          "D": "$49$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "$-3\\vec a-\\vec a=(-3-1)\\vec a=-4\\vec a$. Độ dài $|-4|\\cdot12=48$ cm; hướng ngược với a."
+      },
+      {
+        "id": "q6",
+        "section": "I",
+        "label": "Câu 6",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Cho $\\vec u=(13;2)$, $\\vec v=(3;13)$. Tính $\\vec u\\cdot\\vec v$.",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$67$",
+          "B": "$64$",
+          "C": "$65$",
+          "D": "$66$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "$\\vec u\\cdot\\vec v=13\\cdot3+2\\cdot(13)=65$. Kết quả là một số."
+      },
+      {
+        "id": "q7",
+        "section": "I",
+        "label": "Câu 7",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Tam giác ABC có $A=30^\\circ$, $a=28$ cm. Tính bán kính ngoại tiếp $R$ (cm).",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$30$",
+          "B": "$27$",
+          "C": "$28$",
+          "D": "$29$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "$R=a/(2\\sin A)=28/(2\\cdot1/2)=28$."
+      },
+      {
+        "id": "q8",
+        "section": "I",
+        "label": "Câu 8",
+        "type": "mc",
+        "points": 0.25,
+        "text": "Cho $A(1;2)$, $B(5;-1)$. Vectơ $\\overrightarrow{AB}$ là:",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "choiceText": {
+          "A": "$(6;1)$",
+          "B": "$(-4;3)$",
+          "C": "$(4;-3)$",
+          "D": "$(5;-1)$"
+        },
+        "noShuffle": false,
+        "key": "C",
+        "solution": "Lấy điểm cuối trừ điểm đầu: (5−1;−1−2)=(4;−3)."
+      },
+      {
+        "id": "q9",
+        "section": "II",
+        "label": "Câu 1",
+        "type": "tf",
+        "points": 1,
+        "text": "Cho mẫu tăng dần $1;2;2;3;4;4;4;8$. Dùng trung vị của hai nửa mẫu để tính tứ phân vị. Xét từng phát biểu.",
+        "statements": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "statementText": {
+          "a": "$Q_1=2$.",
+          "b": "$Q_3=4$.",
+          "c": "Mốt của mẫu là 3.",
+          "d": "Giá trị 8 bất thường theo hàng rào 1,5 IQR."
+        },
+        "noShuffle": false,
+        "key": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "solution": "$Q_1=(2+2)/2=2$, $Q_3=(4+4)/2=4$; mốt 4 xuất hiện ba lần. IQR=2, hàng rào trên 7 nên 8 nằm ngoài."
+      },
+      {
+        "id": "q10",
+        "section": "II",
+        "label": "Câu 2",
+        "type": "tf",
+        "points": 1,
+        "text": "Cho $\\vec u=(1;2)$, $\\vec v=(2;-1)$. Xét các phát biểu.",
+        "statements": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "statementText": {
+          "a": "$\\vec u\\cdot\\vec v=0$.",
+          "b": "$|\\vec u|=\\sqrt5$.",
+          "c": "$\\vec u+\\vec v=(3;1)$.",
+          "d": "Hai vectơ cùng phương."
+        },
+        "noShuffle": false,
+        "key": [
+          true,
+          true,
+          true,
+          false
+        ],
+        "solution": "Tích là $1\\cdot2+2\\cdot(-1)=0$; độ dài u là $\\sqrt{1+4}=\\sqrt5$; tổng (3;1). Hai vectơ khác không vuông góc nên không cùng phương."
+      },
+      {
+        "id": "q11",
+        "section": "III",
+        "label": "Câu 1",
+        "type": "short",
+        "points": 0.5,
+        "text": "Một nhóm có 23 em; 14 em thích cờ, 11 em thích vẽ, 6 em thích cả hai. Có bao nhiêu em chỉ thích đúng một trong hai hoạt động?",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "13"
+          ]
+        },
+        "solution": "Chỉ thích cờ: 14-6=8; chỉ thích vẽ: 11-6=5. Đúng một: 8+5=13."
+      },
+      {
+        "id": "q12",
+        "section": "III",
+        "label": "Câu 2",
+        "type": "short",
+        "points": 0.5,
+        "text": "Một xưởng làm x sản phẩm A, y sản phẩm B. Ràng buộc $x,y\\ge0$, $x+2y\\le42$, $2x+y\\le42$. Lợi nhuận $F=3x+4y$ (triệu đồng). Tìm giá trị lớn nhất của F.",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "98"
+          ]
+        },
+        "solution": "Các đỉnh $(0;0),(21;0),(14;14),(0;21)$ cho F lần lượt $0;63;98;84$. Giá trị lớn nhất là $98$ triệu đồng."
+      },
+      {
+        "id": "q13",
+        "section": "III",
+        "label": "Câu 3",
+        "type": "short",
+        "points": 0.5,
+        "text": "Tìm m để hai vectơ $\\vec u=(-8;1)$ và $\\vec v=(2;m)$ vuông góc.",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "16"
+          ]
+        },
+        "solution": "Hai vectơ khác không. Điều kiện $\\vec u\\cdot\\vec v=2\\cdot-8+m=0$, suy ra $m=16$."
+      },
+      {
+        "id": "q14",
+        "section": "III",
+        "label": "Câu 4",
+        "type": "short",
+        "points": 0.5,
+        "text": "Cho $|\\vec u|=18$, $|\\vec v|=27$, góc giữa hai vectơ bằng $60^\\circ$. Tính $|\\vec u+\\vec v|^2$.",
+        "noShuffle": false,
+        "key": {
+          "accept": [
+            "1539"
+          ]
+        },
+        "solution": "$\\vec u\\cdot\\vec v=18\\cdot27/2=243$. Bình phương độ dài là $18^2+27^2+2\\cdot243=1539$."
+      },
+      {
+        "id": "q15",
+        "section": "IV",
+        "label": "Câu 1",
+        "type": "essay",
+        "points": 2,
+        "text": "Hai mẫu số liệu A: $2;2;6;6$, B: $3;3;5;5$. Tính trung bình, phương sai (chia n), độ lệch chuẩn của từng mẫu. Một báo cáo kết luận “hai mẫu giống nhau hoàn toàn vì cùng trung bình”. Em sửa kết luận này.",
+        "noShuffle": false,
+        "key": null,
+        "solution": "Cả hai trung bình 4. A có độ lệch −2,−2,2,2 nên phương sai 4, độ lệch chuẩn 2. B có độ lệch −1,−1,1,1 nên phương sai 1, độ lệch chuẩn 1. Hai mẫu cùng trung bình nhưng A phân tán hơn B; chưa có căn cứ suy ra nguyên nhân.",
+        "rubric": "Hai trung bình đúng: 0,4 điểm; hai phương sai đúng: 0,6; hai độ lệch chuẩn đúng: 0,4; sửa nhận xét có căn cứ: 0,6."
+      },
+      {
+        "id": "q16",
+        "section": "IV",
+        "label": "Câu 2",
+        "type": "essay",
+        "points": 2,
+        "text": "Cho $A(1;1)$, $B(5;1)$, $C(1;4)$. Tính các vectơ AB, AC; chứng minh tam giác vuông tại A bằng tích vô hướng. Tính BC, diện tích tam giác và tọa độ trung điểm M của BC.",
+        "noShuffle": false,
+        "key": null,
+        "solution": "AB=(4;0), AC=(0;3), tích vô hướng bằng 0 nên vuông tại A. BC=(-4;3) có độ dài 5. Diện tích $4\\cdot3/2=6$. Trung điểm M=(3;2,5).",
+        "rubric": "AB, AC đúng: 0,4 điểm; tích và kết luận vuông: 0,4; BC=5: 0,4; diện tích 6: 0,4; trung điểm đúng: 0,4."
+      }
+    ]
+  }
+}

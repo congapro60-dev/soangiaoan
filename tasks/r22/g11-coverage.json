@@ -1,0 +1,1110 @@
+{
+  "grade": 11,
+  "summary": {
+    "periodRows": 137,
+    "lessonPackages": 133,
+    "electiveGames": 32,
+    "examPeriods": 4,
+    "examFiles": 2,
+    "concepts": 50,
+    "numericChecks": 739
+  },
+  "coverage": [
+    {
+      "sourcePeriodId": "g11-discover-r013",
+      "period": 1,
+      "week": 1,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r013"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r014",
+      "period": 2,
+      "week": 1,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r014"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r015",
+      "period": 3,
+      "week": 1,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r015"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r018",
+      "period": 4,
+      "week": 1,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r018"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r022",
+      "period": 5,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r022"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r023",
+      "period": 6,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r023"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r024",
+      "period": 7,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r024"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r025",
+      "period": 8,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r025"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r027",
+      "period": 9,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r027"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r028",
+      "period": 10,
+      "week": 2,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r028"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r029",
+      "period": 11,
+      "week": 2,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r029"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r030",
+      "period": 12,
+      "week": 2,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r030"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r031",
+      "period": 13,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r031"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r032",
+      "period": 14,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r032"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r033",
+      "period": 15,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r033"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r034",
+      "period": 16,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r034"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r036",
+      "period": 17,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r036"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r037",
+      "period": 18,
+      "week": 3,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r037"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r038",
+      "period": 19,
+      "week": 3,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r038"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r039",
+      "period": 20,
+      "week": 3,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r039"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r040",
+      "period": 21,
+      "week": 4,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r040"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r041",
+      "period": 22,
+      "week": 4,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r041"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r042",
+      "period": 23,
+      "week": 4,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r042"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r044",
+      "period": 24,
+      "week": 4,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r044"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r045",
+      "period": 25,
+      "week": 4,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r045"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r049",
+      "period": 26,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r049"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r050",
+      "period": 27,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r050"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r051",
+      "period": 28,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r051"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r052",
+      "period": 29,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r052"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r054",
+      "period": 30,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r054"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r055",
+      "period": 31,
+      "week": 5,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r055"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r056",
+      "period": 32,
+      "week": 5,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r056"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r057",
+      "period": 33,
+      "week": 5,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r057"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r058",
+      "period": 34,
+      "week": 6,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r058"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r059",
+      "period": 35,
+      "week": 6,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r059"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r060",
+      "period": 36,
+      "week": 6,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r060"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r061",
+      "period": 37,
+      "week": 6,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r061"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r063",
+      "period": 38,
+      "week": 6,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r063"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r064",
+      "period": 39,
+      "week": 6,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r064"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r065",
+      "period": 40,
+      "week": 6,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r065"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r066",
+      "period": 41,
+      "week": 6,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r066"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r067",
+      "period": 42,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r067"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r068",
+      "period": 43,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r068"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r069",
+      "period": 44,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r069"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r070",
+      "period": 45,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r070"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r071",
+      "period": 46,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r071"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r072",
+      "period": 47,
+      "week": 7,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r072"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r074",
+      "period": 48,
+      "week": 7,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r074"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r075",
+      "period": 49,
+      "week": 7,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r075"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r076",
+      "period": 50,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r076"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r077",
+      "period": 51,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r077"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r078",
+      "period": 52,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r078"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r079",
+      "period": 53,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r079"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r080",
+      "period": 54,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r080"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r081",
+      "period": 55,
+      "week": 8,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r081"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r083",
+      "period": 56,
+      "week": 8,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r083"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r084",
+      "period": 57,
+      "week": 8,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r084"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r085",
+      "period": 58,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r085"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r086",
+      "period": 59,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r086"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r087",
+      "period": 60,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r087"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r088",
+      "period": 61,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r088"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r089",
+      "period": 62,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r089"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r090",
+      "period": 63,
+      "week": 9,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r090"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r092",
+      "period": 64,
+      "week": 9,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r092"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r093",
+      "period": 65,
+      "week": 9,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r093"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r094",
+      "period": 66,
+      "week": 10,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r094"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r095",
+      "period": 67,
+      "week": 10,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r095"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r096",
+      "period": 68,
+      "week": 10,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r096"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r097",
+      "period": 69,
+      "week": 10,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r097"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r099",
+      "period": 70,
+      "week": 10,
+      "kind": "assessment",
+      "mode": "exam",
+      "examId": "g11-midterm"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r100",
+      "period": 71,
+      "week": 10,
+      "kind": "assessment",
+      "mode": "exam",
+      "examId": "g11-midterm"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r101",
+      "period": 72,
+      "week": 10,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r101"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r102",
+      "period": 73,
+      "week": 10,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r102"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r103",
+      "period": 74,
+      "week": 11,
+      "kind": "assessment_feedback",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r103"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r104",
+      "period": 75,
+      "week": 11,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r104"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r105",
+      "period": 76,
+      "week": 11,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r105"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r106",
+      "period": 77,
+      "week": 11,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r106"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r107",
+      "period": 78,
+      "week": 11,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r107"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r108",
+      "period": 79,
+      "week": 11,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r108"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r110",
+      "period": 80,
+      "week": 11,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r110"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r111",
+      "period": 81,
+      "week": 11,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r111"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r112",
+      "period": 82,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r112"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r113",
+      "period": 83,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r113"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r114",
+      "period": 84,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r114"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r115",
+      "period": 85,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r115"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r116",
+      "period": 86,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r116"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r117",
+      "period": 87,
+      "week": 12,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r117"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r119",
+      "period": 88,
+      "week": 12,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r119"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r120",
+      "period": 89,
+      "week": 12,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r120"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r121",
+      "period": 90,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r121"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r122",
+      "period": 91,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r122"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r123",
+      "period": 92,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r123"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r124",
+      "period": 93,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r124"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r125",
+      "period": 94,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r125"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r126",
+      "period": 95,
+      "week": 13,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r126"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r128",
+      "period": 96,
+      "week": 13,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r128"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r129",
+      "period": 97,
+      "week": 13,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r129"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r130",
+      "period": 98,
+      "week": 14,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r130"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r131",
+      "period": 99,
+      "week": 14,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r131"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r132",
+      "period": 100,
+      "week": 14,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r132"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r133",
+      "period": 101,
+      "week": 14,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r133"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r135",
+      "period": 102,
+      "week": 14,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r135"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r136",
+      "period": 103,
+      "week": 14,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r136"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r137",
+      "period": 104,
+      "week": 14,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r137"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r138",
+      "period": 105,
+      "week": 14,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r138"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r139",
+      "period": 106,
+      "week": 15,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r139"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r140",
+      "period": 107,
+      "week": 15,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r140"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r141",
+      "period": 108,
+      "week": 15,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r141"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r143",
+      "period": 109,
+      "week": 15,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r143"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r144",
+      "period": 110,
+      "week": 15,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r144"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r145",
+      "period": 111,
+      "week": 15,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r145"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r146",
+      "period": 112,
+      "week": 15,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r146"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r147",
+      "period": 113,
+      "week": 15,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r147"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r148",
+      "period": 114,
+      "week": 16,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r148"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r149",
+      "period": 115,
+      "week": 16,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r149"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r150",
+      "period": 116,
+      "week": 16,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r150"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r151",
+      "period": 117,
+      "week": 16,
+      "kind": "core",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r151"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r152",
+      "period": 118,
+      "week": 16,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r152"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r154",
+      "period": 119,
+      "week": 16,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r154"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r155",
+      "period": 120,
+      "week": 16,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r155"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r156",
+      "period": 121,
+      "week": 16,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r156"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r157",
+      "period": 122,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r157"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r158",
+      "period": 123,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r158"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r159",
+      "period": 124,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r159"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r160",
+      "period": 125,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r160"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r161",
+      "period": 126,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r161"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r162",
+      "period": 127,
+      "week": 17,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r162"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r164",
+      "period": 128,
+      "week": 17,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r164"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r165",
+      "period": 129,
+      "week": 17,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r165"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r166",
+      "period": 130,
+      "week": 18,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r166"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r167",
+      "period": 131,
+      "week": 18,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r167"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r168",
+      "period": 132,
+      "week": 18,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r168"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r169",
+      "period": 133,
+      "week": 18,
+      "kind": "review",
+      "mode": "lesson",
+      "packageId": "r22-g11-discover-r169"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r171",
+      "period": 134,
+      "week": 18,
+      "kind": "assessment",
+      "mode": "exam",
+      "examId": "g11-final"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r172",
+      "period": 135,
+      "week": 18,
+      "kind": "assessment",
+      "mode": "exam",
+      "examId": "g11-final"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r173",
+      "period": 136,
+      "week": 18,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r173"
+    },
+    {
+      "sourcePeriodId": "g11-discover-r174",
+      "period": 137,
+      "week": 18,
+      "kind": "elective",
+      "mode": "game",
+      "packageId": "r22-g11-discover-r174"
+    }
+  ]
+}
