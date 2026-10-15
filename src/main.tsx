@@ -11,6 +11,7 @@ import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
 import { DuGioPage } from './pages/DuGioPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
 import { ParentPortalPage } from './pages/ParentPortalPage';
+import { DiscoverSelfStudyPage } from './pages/DiscoverSelfStudyPage';
 import { StudentClassExamPage } from './pages/StudentClassExamPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
@@ -107,6 +108,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/adaptive-portal" element={<AdaptiveStudentPortalPage />} />
           <Route path="/adaptive-live/:sessionId" element={<Suspense fallback={<RouteLoading />}><LiveLessonPage /></Suspense>} />
           <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
+          <Route path="/discover-self-study" element={<DiscoverSelfStudyPage />} />
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />
           <Route path="/exam/:examId/grade" element={<TeacherGradingPage />} />
