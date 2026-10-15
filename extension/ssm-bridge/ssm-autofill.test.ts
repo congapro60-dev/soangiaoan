@@ -3,8 +3,8 @@ import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 const setup = (inputs: (FakeInput | FakeEditor)[]) => {
  let listener: (message:any,sender:any,respond:(r:any)=>void)=>void;
- class FakeDataTransfer { files:any[]=[];items={add:(file:any)=>this.files.push(file)}; }
- const context = { document: {querySelectorAll:()=>inputs,activeElement:inputs[0],getSelection:()=>({anchorNode:inputs[0],focusNode:inputs[0]}),execCommand:(_command:string,_ui:boolean,value:string)=>{const input=inputs[0] as FakeEditor;input.textContent=value;input.events.push('native-input');return true}}, setTimeout, chrome:{runtime:{id:'ext',onMessage:{addListener(fn:any){listener=fn}}}}, HTMLInputElement:FakeInput,HTMLTextAreaElement:FakeTextarea, Event:class{constructor(readonly type:string){}}, DataTransfer:FakeDataTransfer,File:class{constructor(readonly bytes:any,readonly name:string){}},Uint8Array,atob:(x:string)=>Buffer.from(x,'base64').toString('binary'),localStorage:{getItem:(key:string)=>key==='access_token'?'current-token':'tenant'},location:{href:'https://ssm.edufit.vn/grades'} };
+ class FakeDataTransfer { files:any[]=[];data:any={};items={add:(file:any)=>this.files.push(file)};setData=(key:string,value:string)=>{this.data[key]=value}; }
+ const context = { document: {querySelectorAll:()=>inputs,activeElement:inputs[0],getSelection:()=>({anchorNode:inputs[0],focusNode:inputs[0]})}, setTimeout, chrome:{runtime:{id:'ext',onMessage:{addListener(fn:any){listener=fn}}}}, HTMLInputElement:FakeInput,HTMLTextAreaElement:FakeTextarea, ClipboardEvent:class{constructor(readonly type:string,readonly init:any){}}, Event:class{constructor(readonly type:string){}}, DataTransfer:FakeDataTransfer,File:class{constructor(readonly bytes:any,readonly name:string){}},Uint8Array,atob:(x:string)=>Buffer.from(x,'base64').toString('binary'),localStorage:{getItem:(key:string)=>key==='access_token'?'current-token':'tenant'},location:{href:'https://ssm.edufit.vn/grades'} };
  vm.runInNewContext(readFileSync('extension/ssm-bridge/ssm-autofill.js','utf8'),context);
  return {context,ask:(message:any)=>new Promise<any>(resolve=>listener({...message,sessionToken:'current-token',workspace:'tenant'},{id:'ext'},resolve))};
 };
@@ -12,7 +12,7 @@ class FakeInput {accept='';type='text';disabled=false;readOnly=false;name='';id=
 Object.defineProperty(FakeInput.prototype,'value',{get(){return this.assigned},set(value){this.assigned=value}});
 class FakeTextarea extends FakeInput {}
 Object.defineProperty(FakeTextarea.prototype,'value',{get(){return this.assigned},set(value){this.assigned=value}});
-class FakeEditor { textContent='';disabled=false;readOnly=false;style:any={};events:string[]=[];embedded=false;getAttribute(){return null} getClientRects(){return [1]}scrollIntoView(){}matches(selector:string){return selector.includes('.ck-editor__editable')}querySelector(){return this.embedded?{}:null}contains(node:any){return node===this} }
+class FakeEditor { textContent='';disabled=false;readOnly=false;style:any={};events:string[]=[];embedded=false;revertPaste=false;getAttribute(){return null} getClientRects(){return [1]}scrollIntoView(){}matches(selector:string){return selector.includes('.ck-editor__editable')}querySelector(){return this.embedded?{}:null}contains(node:any){return node===this}dispatchEvent(event:any){if(event.type==='paste'){if(this.revertPaste)return true;this.textContent=event.init.clipboardData.data['text/plain'];this.events.push('native-input');return false}return true} }
 describe('SSM fill-only exact targeting',()=>{
  it('refuses arbitrary file input and ambiguous xlsx controls',async()=>{
   const picture=new FakeInput();picture.type='file';picture.accept='.png';let state=setup([picture]);expect((await state.ask({kind:'ssm-attach-file',fileData:'AA==',fileName:'scores.xlsx'})).ok).toBe(false);expect(picture.events).toEqual([]);
@@ -46,7 +46,6 @@ describe('SSM fill-only exact targeting',()=>{
   editor.embedded=true;expect((await ask()).ok).toBe(false);editor.embedded=false;
   state.context.document.getSelection=()=>({anchorNode:{} as FakeEditor,focusNode:editor});expect((await ask()).ok).toBe(false);
   state.context.document.getSelection=()=>({anchorNode:editor,focusNode:editor});
-  state.context.document.execCommand=()=>false;expect((await ask()).ok).toBe(false);
-  state.context.document.execCommand=()=>true;expect((await ask()).ok).toBe(false);expect(editor.textContent).toBe('');
+  editor.revertPaste=true;expect((await ask()).ok).toBe(false);expect(editor.textContent).toBe('');
  });
 });

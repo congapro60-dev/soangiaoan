@@ -43,11 +43,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     for (const {input,value} of plan) {
       if (richInput(input)) {
-        // ponytail: native CKEditor typing only; unsupported editors fall back to Copy, without page-world APIs.
+        // ponytail: CKEditor clipboard pipeline only; unsupported editors fall back to Copy, without page-world APIs.
         const selection = document.getSelection();
         if (document.activeElement !== input || !selection || !input.contains(selection.anchorNode) || !input.contains(selection.focusNode)) throw new Error('Chọn lại đúng ô nội dung SSM rồi thử lại.');
         if (fieldText(input) !== value) {
-          if (!document.execCommand('insertText', false, value)) throw new Error('Editor SSM chưa nhận nội dung. Thầy cô dùng nút Chép rồi dán vào ô này.');
+          const clipboard = typeof DataTransfer === 'function' ? new DataTransfer() : null;
+          if (clipboard) clipboard.setData('text/plain', value);
+          const paste = typeof ClipboardEvent === 'function' && clipboard
+            ? new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: clipboard })
+            : null;
+          if (!paste) throw new Error('Editor SSM chưa hỗ trợ dán tự động. Thầy cô dùng nút Chép rồi dán vào ô này.');
+          input.dispatchEvent(paste);
           await new Promise(resolve => setTimeout(resolve, 100));
           if (fieldText(input).replace(/\s+/g,' ').trim() !== value.replace(/\s+/g,' ').trim()) throw new Error('Editor SSM chưa giữ nội dung. Thầy cô đối chiếu rồi dùng Chép để dán.');
         }

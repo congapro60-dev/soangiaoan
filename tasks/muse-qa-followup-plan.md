@@ -99,3 +99,9 @@ Test RED→GREEN: CKEditor test đỏ trên nguồn0.3.1, sau sửa 22/22 extens
 - Khảo sát điểmLO: SSM Đánh Giá Học Sinh V2, lớp10Olinda/VN TOÁN, các Quarter F1/IA1/SE1…; Chi Tiết chỉ mở Tiến Trình Duyệt, chưa xác định form nhậpExcel. Không nhập điểm, gắn file hoặc Save. Không coi relayExcel đã nativePASS.
 - Còn nativeCKEditor, Excelrelay, ghép/cloudsync/rosterwrite thực tế và thửhai máy. Test/unit/Rules cho các phần này đạt; không thay thế bằng chứng production. Đềthi tựdo trên GV hiện0đề; không tạo bài thật chỉ để QA.
 - Quyền mở edge://extensions vẫn bị công cụchặn; người dùng tự cập nhật. Không thử đường vòng. Ảnhbằng chứng ở visualizations/.../muse-qa/ssm-autowake.png và ssm-no-field.png, không commit ảnh riêng vào repo.
+
+## CKEditor 0.3.3 follow-up
+
+- `0.3.2` native test: `execCommand` không cập nhật CKEditor model; gõ tay và Ctrl+Z trên SSM thật đạt, chứng minh editor hoạt động. Bridge báo lỗi trung thực, không Save.
+- `0.3.3` đổi sang ClipboardEvent paste text/plain, đúng clipboard pipeline CKEditor5; giữ focus/selection/empty/media/readonly guards và retention check 100ms. 22 extension tests + build/lint + Gemini review đạt. Native 0.3.3 model test vẫn chưa có bằng chứng vì phiên browser treo lúc paste; không tuyên bố PASS.
+- Excel relay, roster/cloud sync, cross-machine chưa QA production. Không tự Lưu/Submit.

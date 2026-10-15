@@ -308,3 +308,11 @@ Finalsmallmath/viewer/TFfix gatefull3073/288files,lintapp/API/buildexit0,native/
 User đã cập nhật0.3.1; lớp thật đọc được qua phiên cache. Form báo giảng SSM dùng CKEditor, textarea-only không tương thích. Đang chốt extension0.3.2 hỗ trợ focused-empty CKEditor bằng native insertText, kiểm selection/readonly/media/retained text; 22 test và native/Gemini review đạt. Native model acceptance cần cập nhật0.3.2 và thử bản nháp trống; không tự Save/Submit. Chi tiết tasks/muse-qa-followup-plan.md.
 
 15/10 source cuối dc376c6: CI38601323878 SUCCESS (3104/3104), Git deploymentREADY, ZIPpublic0.3.2 khớpsource. Native0.3.1 đọc lớp/cache+Auto-Wake+refusemissingfieldPASS, không ghiSSM. User mới xác nhận0.3.1; đã hỏi cập nhật0.3.2, chưa có phản hồi. CKEditormodel/Excel/cloudsync/rosterwrite/cross-machine thật còn mở. Không báo QA toàn bộSSMđạt.
+
+CKEditor native result: source0.3.2 focus/guard chạy, nhưng CKEditor không nhận execCommand; bridge báo lỗi trung thực và không Lưu. Gõ tay+Undo đạt, chứng minh editor SSM hoạt động. Tính năng chưa đạt native insert; cần thiết kế tiếp theo CKEditor5 beforeinput/typing contract hoặc giữ Copy fallback. Không tự Save.
+
+## CKEditor 0.3.3 follow-up
+
+- `0.3.2` native test: `execCommand` không cập nhật CKEditor model; gõ tay và Ctrl+Z trên SSM thật đạt, chứng minh editor hoạt động. Bridge báo lỗi trung thực, không Save.
+- `0.3.3` đổi sang ClipboardEvent paste text/plain, đúng clipboard pipeline CKEditor5; giữ focus/selection/empty/media/readonly guards và retention check 100ms. 22 extension tests + build/lint + Gemini review đạt. Native 0.3.3 model test vẫn chưa có bằng chứng vì phiên browser treo lúc paste; không tuyên bố PASS.
+- Excel relay, roster/cloud sync, cross-machine chưa QA production. Không tự Lưu/Submit.
