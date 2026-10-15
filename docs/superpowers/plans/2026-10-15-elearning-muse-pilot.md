@@ -73,11 +73,11 @@
 - Modify: `src/services/adaptiveLessonService.ts` if versioned approved media needs serialization.
 - Test: builder/content completeness tests.
 
-- [ ] Write failing test for publish readiness: media must be approved or absent; every pilot objective must have a knowledge unit, route content, quick check and fallback text.
-- [ ] Verify RED.
-- [ ] Add a compact review panel showing purpose coverage, media alt/transcript, exact math source, and fallback behavior. No Muse connector or auto-generation in runtime.
-- [ ] Block publish on missing safety/accessibility/content errors; keep warnings visible.
-- [ ] Run completeness tests and builder tests.
+- [x] Write failing tests for publish readiness: media must be approved or absent; media needs alt text and video/audio needs captions or transcript.
+- [x] Verify RED.
+- [x] Add publish errors for unapproved/invalid/inaccessible media. Existing Builder publish gate already blocks `severity: 'error'`; no Muse connector or auto-generation in runtime.
+- [ ] Add a compact review panel showing purpose coverage, exact math source, and fallback behavior.
+- [x] Run media readiness tests and `lint:api`.
 
 ## Task 5: Verification and handoff
 
@@ -96,4 +96,4 @@
 
 ## Current implementation note
 
-Commits: `ec8bd84` (reviewed media), `1f9e82a` (three-purpose selector), `b5e8fef` and `5cdba60` (truthful checkpoint/source guard and API-compatible imports). The pilot is not production-ready: teacher review UI, approved Muse assets, server checkpoint persistence, and full purpose-specific routing remain.
+Commits: `ec8bd84` (reviewed media), `1f9e82a` (three-purpose selector), `b5e8fef` and `5cdba60` (truthful checkpoint/source guard and API-compatible imports), `244236d` (publish media gate). The pilot is not production-ready: teacher review UI, approved Muse assets, server checkpoint persistence, and full purpose-specific routing remain.
