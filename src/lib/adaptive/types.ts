@@ -1,4 +1,5 @@
 import type { AdaptiveSimulationSpec } from './simulationTypes.js';
+import type { LessonMediaRef } from './media';
 
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';
@@ -227,6 +228,8 @@ export interface AdaptiveLesson {
   };
   generationWarnings?: string[];
   generationSource?: 'ai_json' | 'regex_fallback';
+  /** Teacher-reviewed, versioned media references. Media never carries answer-bearing content. */
+  mediaManifest?: LessonMediaRef[];
 }
 
 export interface StudentParticipant {

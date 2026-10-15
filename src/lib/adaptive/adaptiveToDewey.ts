@@ -7,6 +7,7 @@ import type {
 } from '../dewey/types';
 import { escapeAttribute } from '../dewey/htmlShell';
 import { sanitizeDisplayText, stripInlineMarkdown } from './mathText';
+import { normalizeApprovedMedia, toNativeMediaDescriptor } from './media';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -288,6 +289,10 @@ export function adaptiveLessonToDeweyContent(
   route: LearningRoute = 'standard',
   assets: DeweyConversionAssets = {}
 ): DeweyLessonContent {
+  const reviewedMedia = (lesson.mediaManifest ?? [])
+    .map(normalizeApprovedMedia)
+    .filter((media): media is NonNullable<typeof media> => Boolean(media));
+
   // Pretest: lấy 5 câu đầu từ diagnosticTest
   const pretestQuestions = (lesson.diagnosticTest?.questions ?? []).slice(0, 5).map(q => {
     const rawOpts = (q.options ?? []).slice(0, 4);
@@ -373,6 +378,9 @@ export function adaptiveLessonToDeweyContent(
           height: unit.simulationSpec?.html?.height || 460,
         }
       : undefined;
+    const unitMedia = reviewedMedia
+      .filter(media => media.unitId === unit.id)
+      .map(toNativeMediaDescriptor);
     return {
       id: unit.id,
       title: unit.title,
@@ -381,6 +389,7 @@ export function adaptiveLessonToDeweyContent(
       // Vở ghi = phần CHỐT kiến thức (công thức/định nghĩa cốt lõi), không phải đoạn giải thích dài.
       formulaForNotebook: normalizeLatexText(unit.knowledgeConclusion || firstExample?.solution || unit.title, unit.title).slice(0, 320),
       ...(simulationHtml ? { simulationHtml } : {}),
+      ...(unitMedia.length ? { media: unitMedia } : {}),
     };
   });
 
@@ -511,6 +520,9 @@ export function adaptiveLessonToDeweyContent(
       storyHook: normalizeLatexText(stripMetaLeaks(engageData?.storyHook || lesson.preparation?.guidingQuestions?.[0], `Hôm nay em sẽ khám phá bài học "${lesson.title}" qua các câu hỏi, ví dụ và hoạt động luyện tập cụ thể.`)),
       interactiveSvgId: '',
       ...(engageIllustration ? { illustration: engageIllustration } : {}),
+      ...(reviewedMedia.filter(media => !media.unitId).length
+        ? { media: reviewedMedia.filter(media => !media.unitId).map(toNativeMediaDescriptor) }
+        : {}),
       realityCheckMessage: normalizeLatexText(stripMetaLeaks(
         engageData?.realityCheckMessage || lesson.preparation?.readingInstructions,
         `Hãy quan sát vấn đề trung tâm của bài "${lesson.title}" và dự đoán cách giải trước khi học chi tiết.`,
