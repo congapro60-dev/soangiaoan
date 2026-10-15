@@ -70,6 +70,7 @@ import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } fro
 import { ensureMathWrapped } from '../utils/examScoring';
 import { sanitizeDisplayText } from '../lib/adaptive/mathText';
 import { getLearningPurposePlan, learningPurposeOptions, type LearningPurpose } from '../lib/adaptive/learningPurpose';
+import { createDeweyCheckpoint, isTrustedDeweyMessage } from '../lib/dewey/checkpoint';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
@@ -655,85 +656,20 @@ export const AdaptiveStudentPortalPage = () => {
     setQuickCheckAnswers({});
   };
 
-  const handleDeweyComplete = useCallback(async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number }) => {
+  const handleDeweyComplete = useCallback(async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number; notebookEntries?: string[] }) => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
-    const { olympiaScore, unitIds, durationSeconds } = data;
-    const now = new Date().toISOString();
-    const studentId = buildStudentId(activeTeacherId, studentCode);
-    const progressId = buildProgressId(activeTeacherId, lesson.id, studentCode);
-    const mockExitAttempt: AssessmentAttempt = {
-      id: `dewey-exit-${Date.now()}`,
-      assessmentId: lesson.exitTicket.id,
-      purpose: 'exit_ticket',
-      submittedAt: now,
-      durationSeconds,
-      answers: [],
-      objectiveScores: lesson.objectives.map(obj => ({
-        objectiveId: obj.id,
-        score: olympiaScore,
-        maxScore: 60,
-        masteryEstimate: Math.min(1, olympiaScore / 60),
-      })),
-      recommendedRoute: recommendedRoute,
-    };
-    setExitTicketAttempt(mockExitAttempt);
-    const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
-    const progressRecord: StudentSessionProgressRecord = {
-      id: progressId,
-      teacherId: activeTeacherId,
-      lessonId: lesson.id,
-      lessonTitle: lesson.title,
-      studentId,
-      studentCode: normalizeStudentCode(studentCode),
-      studentName: studentName.trim(),
-      studentClass: studentClass.trim() || undefined,
-      learningPurpose,
-      route: recommendedRoute,
-      status: 'completed',
-      diagnosticAttempt,
-      quickCheckAttempts: [],
-      exitTicketAttempt: mockExitAttempt,
-      objectiveStates: progress.objectiveStates,
-      remediationAttempts: 0,
-      completedUnitIds: unitIds,
-      timings: {
-        diagnostic: {
-          startedAt: timestampFor('diagnostic'),
-          completedAt: diagnosticAttempt.submittedAt,
-          durationSeconds: diagnosticAttempt.durationSeconds,
-          plannedSeconds: lesson.diagnosticTest.durationMinutes * 60,
-        },
-      },
-      startedAt: timestampFor('diagnostic'),
-      completedAt: now,
-      updatedAt: now,
-    };
-    const nextProfile = buildProfile({
-      existingProfile: profile,
-      teacherId: activeTeacherId,
-      studentId,
-      studentCode,
-      studentName,
-      studentClass,
-      lesson,
-      attempts: [diagnosticAttempt, mockExitAttempt],
-      route: recommendedRoute,
-    });
-    setIsSaving(true);
+
+    const checkpoint = createDeweyCheckpoint(lesson.id, studentCode, data);
     try {
-      const result = await saveAdaptiveProgressViaApi({ teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile });
-      setProfile(result.profile || nextProfile);
-    } catch (error) {
-      void saveAdaptiveProgressOffline(
-        { teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile },
-        getErrorMessage(error),
-        now
-      );
-    } finally {
-      setIsSaving(false);
-      setStage('complete');
+      window.localStorage.setItem(`adaptive-checkpoint-${lesson.id}-${normalizeStudentCode(studentCode)}`, JSON.stringify(checkpoint));
+    } catch {
+      // A full/private storage area must not turn a partial lesson into a completed one.
     }
-  }, [lesson, diagnosticAttempt, studentCode, studentName, studentClass, profile, sectionStarts]);
+    setNotice({ tone: 'info', message: 'Đã lưu vị trí học. Bài chưa được đánh dấu hoàn thành vì còn thiếu bài kiểm tra cuối.' });
+    setIsSaving(false);
+    return;
+
+  }, [lesson, studentCode, diagnosticAttempt]);
 
   const handleExitTicketSubmit = async () => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
@@ -955,8 +891,10 @@ export const AdaptiveStudentPortalPage = () => {
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      const iframe = document.querySelector<HTMLIFrameElement>('iframe[title="Bài học Dewey"]');
+      if (!iframe || !isTrustedDeweyMessage(e, iframe.contentWindow)) return;
       if (e.data?.type === 'dewey:complete') {
-        void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number });
+        void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number; notebookEntries?: string[] });
       }
       if (e.data?.type === 'dewey:gradeImageRequest') {
         void handleDeweyGradeImageRequest(e.data.data);
