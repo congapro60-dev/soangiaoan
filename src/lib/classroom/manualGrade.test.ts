@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { SubmissionDoc } from './types';
+import type { QuestionResult, SubmissionDoc } from './types';
 import { buildManualGradeUpdate, mergeTeacherQuestionResults } from './manualGrade';
 
 describe('manual photo marks', () => {
@@ -94,4 +94,22 @@ it('keeps text-only teacher edits and invalidates solution on changed answer key
   }
   expect(mergeTeacherQuestionResults([old], [{ ...old, studentAnswer: 'C' }])[0].workedSolution).toBe(old.workedSolution);
   expect(mergeTeacherQuestionResults([old], [{ ...old, expectedAnswer: 'C' }])[0]).not.toHaveProperty('workedSolution');
+});
+
+it('sửa điểm MỘT câu khi bài đã có lời giải chung: các câu khác không bị coi là thầy cô sửa', () => {
+  const row = (n: string): QuestionResult => ({ questionNumber: n, status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'A', expectedAnswer: 'B',
+    errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: true });
+  const stored = [row('Câu 1'), row('Câu 2')];
+  // Bảng giáo viên nhìn thấy: lời giải chung gắn lúc đọc, bản lưu chưa có.
+  const seen = stored.map(q => ({ ...q, workedSolution: `Lời giải ${q.questionNumber}`, workedSolutionVersion: 'v1' }));
+  const sent = seen.map(q => (q.questionNumber === 'Câu 1' ? { ...q, score: 1, status: 'correct' } : q));
+  const [c1, c2] = mergeTeacherQuestionResults(stored, sent, seen);
+  expect(c1).toMatchObject({ score: 1, teacherEdited: true });
+  expect(c1).not.toHaveProperty('workedSolution');
+  expect(c2).toEqual(stored[1]);
+  expect(c2.needsTeacherReview).toBe(true);
+  // Sửa chính lời giải thì vẫn được ghi nhận
+  const edited = mergeTeacherQuestionResults(stored, seen.map(q => ({ ...q, workedSolution: q.questionNumber === 'Câu 2' ? 'GV viết lại' : q.workedSolution })), seen);
+  expect(edited[1]).toMatchObject({ workedSolution: 'GV viết lại', teacherEdited: true });
+  expect(edited[0].teacherEdited).toBeUndefined();
 });

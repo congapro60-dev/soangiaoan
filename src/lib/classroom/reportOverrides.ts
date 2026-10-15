@@ -6,7 +6,7 @@
  */
 import type { ParentCompetencyItem, ParentReportPrintInput } from './parentReportTypes.js';
 import type { ExamMark } from './examScores.js';
-import type { Hs1Mark } from './scoreBook.js';
+import { parseHs1Weight, type Hs1Mark } from './scoreBook.js';
 import { sanitizeRequirementLines, type ParentRequirementLine } from './parentRequirements.js';
 
 /** Một bài trong "Kết quả theo bài": chỉ ghi những ô đã sửa; `hidden` = ẩn khỏi báo cáo. */
@@ -99,7 +99,9 @@ export const sanitizeReportOverrides = (raw: unknown, grade: string | number): R
   set('hs1', rows(source.hs1)?.flatMap(row => {
     const label = text(row.label, 100);
     const value = score(row.score);
-    return label && value !== undefined ? [{ label, date: text(row.date, 10) ?? '', score: value }] : [];
+    const weight = parseHs1Weight(row.weight);
+    // Giữ hệ số: mất nó thì cột HS2/HS3 thành HS1 và TB trên báo cáo bị tính sai.
+    return label && value !== undefined ? [{ label, date: text(row.date, 10) ?? '', score: value, ...(weight ? { weight } : {}) }] : [];
   }));
   set('competencyItems', rows(source.competencyItems)?.flatMap(row => {
     const topic = text(row.topic, 200);

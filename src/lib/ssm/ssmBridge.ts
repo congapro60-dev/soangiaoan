@@ -117,7 +117,15 @@ export const readSsmLinkCloud = async (uid: string, classId: string): Promise<Ss
  * cho tiện ích để tự gắn vào ô input file trên trang SSM đang mở.
  * Tiện ích chỉ ĐIỀN và TÔ VIỀN — giáo viên tự bấm Lưu trên SSM.
  */
-export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string): Promise<void> => {
+/**
+ * Chi nhánh SSM của lớp đã ghép (nếu có): thao tác GHI gửi kèm để tiện ích từ chối khi tài khoản SSM đang ở chi nhánh khác.
+ */
+const writeScope = (classId?: string): { expectedWorkspace?: string } => {
+  const workspace = classId ? readSsmLink(classId)?.workspace : undefined;
+  return workspace ? { expectedWorkspace: workspace } : {};
+};
+
+export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string, classId?: string): Promise<void> => {
   // Chuyển bytes thành base64 để gửi qua postMessage.
   let binary = '';
   const chunk = 8192;
@@ -125,7 +133,7 @@ export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string): Pr
     binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
   }
   const fileData = btoa(binary);
-  await ssmRequest('attachLoFile', { fileData, fileName });
+  await ssmRequest('attachLoFile', { fileData, fileName, ...writeScope(classId) });
 };
 
 /** Lưu ghép lớp lên Firestore + cache local. */
@@ -137,7 +145,7 @@ export const saveSsmLinkCloud = async (uid: string, classId: string, link: SsmCl
   saveSsmLink(classId, link);
 };
 /** Fill only exact fields or the single editable field GV deliberately focused on SSM. */
-export const autofillSsmFields = (fields: {key:string;value:string}[], target: 'exact' | 'focused' = 'exact') => ssmRequest('autofillSsm', {fields,target}) as Promise<{filled:number;total:number}>;
+export const autofillSsmFields = (fields: {key:string;value:string}[], target: 'exact' | 'focused' = 'exact', classId?: string) => ssmRequest('autofillSsm', {fields,target,...writeScope(classId)}) as Promise<{filled:number;total:number}>;
 export const syncSsmRosterMissing = async (classId: string, students: {id:string;name:string;code:string}[]) => {
   const user = auth.currentUser;
   if (!user || user.isAnonymous) throw new Error('Đăng nhập giáo viên trước khi đồng bộ.');

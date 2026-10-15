@@ -9,6 +9,17 @@ import { isActionableClarifyQuestion } from '../../../lib/classroom/clarificatio
 import { latestSubmissionByAssignment } from '../../../lib/classroom/portalViewModel';
 import { submissionDeadlineState } from '../../../lib/classroom/hanNop';
 import { Camera, ChevronRight, Search } from 'lucide-react';
+const PARENT_POLL_MS = 4000;
+/** Quá ngần này mà máy chưa chấm xong thì thôi tự làm mới — phụ huynh bấm mở lại bài là thấy kết quả mới. */
+const PARENT_POLL_MAX_MS = 10 * 60 * 1000;
+
+/** Còn cần tự làm mới không: chỉ xét lượt nộp mới nhất (bài cũ kẹt "Đã nộp" không tính). */
+export const shouldPollParentDetail = (submissions: readonly SubmissionDoc[]): boolean => {
+  const latest = [...submissions].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  return Boolean(latest && (latest.status === 'submitted' || latest.status === 'grading'
+    || latest.grade?.questionResults?.some(question => question.clarify?.state === 'regrading')));
+};
+
 /** Parent credentials never become the student Firebase session. */
 export const ParentAssignmentWorkspace = ({ credentials }: { credentials: SubmissionActorCredentials }) => {
   const [assignments, setAssignments] = useState<StudentAssignmentView[]>([]);
@@ -64,7 +75,18 @@ export const ParentAssignmentWorkspace = ({ credentials }: { credentials: Submis
   const latest = latestSubmissionByAssignment(summaries);
   const filtered = assignments.filter(item => item.title.toLocaleLowerCase('vi-VN').includes(query.trim().toLocaleLowerCase('vi-VN')));
   const safePage = Math.min(page, Math.max(1, Math.ceil(filtered.length / 20)));
-  useEffect(() => { if (!detail?.submissions.some(submission => submission.status === 'submitted' || submission.status === 'grading' || submission.grade?.questionResults?.some(question => question.clarify?.state === 'regrading'))) return; const timer = window.setInterval(() => { void refresh().catch(reason => setError(reason.message)); }, 4000); return () => window.clearInterval(timer); }, [detail, selected]);
+  // Chỉ chờ khi LƯỢT NỘP MỚI NHẤT còn đang chấm; có trần thời gian và bỏ qua khi tab ẩn — bài cũ kẹt "Đã nộp" không làm trang hỏi máy chủ mãi.
+  const pollStartedAt = useRef<{ id: string; at: number } | null>(null);
+  useEffect(() => {
+    if (!selected || !detail || !shouldPollParentDetail(detail.submissions)) { pollStartedAt.current = null; return; }
+    if (pollStartedAt.current?.id !== selected) pollStartedAt.current = { id: selected, at: Date.now() };
+    const timer = window.setInterval(() => {
+      if (Date.now() - (pollStartedAt.current?.at ?? 0) > PARENT_POLL_MAX_MS) { window.clearInterval(timer); return; }
+      if (document.visibilityState !== 'visible') return;
+      void refresh().catch(reason => setError(reason.message));
+    }, PARENT_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [detail, selected]);
   return <section className="space-y-3" aria-label="Bài tập của con">
     {error && <div><p role="alert" className="text-sm text-red-700">{error}</p>{selected && !detail && <button type="button" disabled={busy} className="min-h-11 rounded-lg border px-3 text-sm font-bold" onClick={() => setReloadRequest(value => value + 1)}>Thử tải bài lại</button>}</div>}
     <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4"><h1 className="text-lg font-black text-indigo-950">Bài tập của con</h1><p className="mt-1 text-sm text-indigo-800">{assignments.length} bài · Nộp ảnh và đối chiếu cùng thầy cô</p></div>

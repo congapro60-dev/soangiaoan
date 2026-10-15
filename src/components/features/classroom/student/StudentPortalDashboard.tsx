@@ -115,6 +115,8 @@ export interface WorkspaceRow {
   attempts: number;
   date: string;
   statDate: string;
+  /** Lúc nộp lượt mới nhất ĐÃ NỘP (lượt đang làm dở không tính) — để xét đúng hạn / quá hạn. */
+  submittedAt?: string;
 }
 /** The index contains the full scoped year; pagination never changes the totals. */
 export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc[], submissions: SubmissionDoc[], onlineSubmissions: ExamSubmission[]): WorkspaceRow[] => {
@@ -123,6 +125,12 @@ export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc
   const activities = buildStudentProgressSummary({ studentId, assignments, submissions: own, examSubmissions: onlineSubmissions }).assignmentActivities;
   const activityMap = new Map(activities.map(activity => [activity.assignmentId, activity]));
   const assigned = new Set(assignments.map(assignment => assignment.id));
+  // Đề online: lượt mới mở mà chưa nộp không phải là "đã nộp" — chỉ lấy lượt đã nộp thật.
+  const onlineSubmittedAt = (assignmentId: string): string | undefined => onlineSubmissions
+    .filter(attempt => attempt.assignmentId === assignmentId && attempt.status !== 'in_progress' && attempt.submittedAt)
+    .map(attempt => attempt.submittedAt as string)
+    .sort()
+    .pop();
   const rows = assignments.filter(assignment => !assignment.targetStudentIds?.length || assignment.targetStudentIds.includes(studentId)).map(assignment => {
     const submission = latest.get(assignment.id);
     const activity = activityMap.get(assignment.id);
@@ -135,7 +143,8 @@ export const buildWorkspaceRows = (studentId: string, assignments: AssignmentDoc
       state: clarificationCount === 0 && submission?.grade?.awaitingClarification ? { ...state, label: (submission as StudentWorkspaceSubmission).clarificationRegrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát' } : assignment.submissionLocked === true && !submission && state.status === 'todo' ? { ...state, label: 'Đã đóng' } : state,
       clarificationCount, score, maxScore: activity?.maxScore ?? submission?.grade?.maxScore ?? assignment.maxScore ?? 10,
       attempts: assignment.type === 'exam' ? activity?.attemptCount ?? 0 : own.filter(item => item.assignmentId === assignment.id).length,
-      date: assignment.createdAt, statDate: submission?.createdAt || activity?.latestAttemptAt || assignment.createdAt };
+      date: assignment.createdAt, statDate: submission?.createdAt || activity?.latestAttemptAt || assignment.createdAt,
+      submittedAt: assignment.type === 'exam' ? onlineSubmittedAt(assignment.id) : submission?.createdAt };
   });
   const selfAttempts = own.filter(submission => !submission.assignmentId || !assigned.has(submission.assignmentId));
   const byId = new Map(selfAttempts.map(item => [item.id, item]));
@@ -347,7 +356,7 @@ export const StudentPortalDashboard = (props: Props) => {
         {from && to && from > to && <p role="alert" className="mt-2 text-sm text-red-700">Ngày bắt đầu phải trước ngày kết thúc.</p>}
         <div className="mt-3 space-y-2.5">
           {visibleRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map(row => {
-            const deadline = submissionDeadlineState(row.assignment?.dueAt, row.assignment?.type === 'exam' && row.attempts > 0 ? row.statDate : row.submission?.createdAt);
+            const deadline = submissionDeadlineState(row.assignment?.dueAt, row.submittedAt);
             const isExam = row.assignment?.type === 'exam';
             const isLocked = row.assignment?.submissionLocked === true;
             const hasSubmission = Boolean(row.submission);

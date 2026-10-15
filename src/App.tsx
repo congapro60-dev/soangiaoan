@@ -49,7 +49,8 @@ const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m 
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
-import * as exportUtils from './utils/exportUtils';
+// Tải module xuất (kéo theo pptxgenjs, docx…) chỉ khi bấm xuất — không nằm trong bundle ban đầu.
+const loadExportUtils = () => import('./utils/exportUtils');
 import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
@@ -449,8 +450,8 @@ export default function App() {
                     onXoaTienDo={ppctQueue.xoaTienDo}
                   />
                 )}
-                exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
-                exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
+                exportToPDF={(orientation) => loadExportUtils().then(m => m.exportToPDF(creator.currentPlan, showToast, orientation))}
+                exportToLaTeX={() => loadExportUtils().then(m => m.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen))}
                 onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}
                 onSaveDriveFolder={(key, folderId) => setData(prev => ({
                   ...prev,
@@ -557,7 +558,7 @@ export default function App() {
                 addTemplate={() => {
                   Swal.fire({
                     title: 'Thêm mẫu mới',
-                    html: `<input id="tpl-name" class="swal2-input" placeholder="Tên mẫu"><select id="tpl-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>`,
+                    html: `<input id="tpl-name" class="swal2-input" placeholder="Tên mẫu"><select id="tpl-subject" class="swal2-input">${data.subjects.map(s => `<option value="${escapeHtml(String(s.id))}">${escapeHtml(s.name)}</option>`).join('')}</select>`,
                     preConfirm: () => ({ name: (document.getElementById('tpl-name') as HTMLInputElement).value, subjectId: (document.getElementById('tpl-subject') as HTMLSelectElement).value })
                   }).then(res => {
                     if (res.isConfirmed && res.value.name) {
@@ -593,7 +594,7 @@ export default function App() {
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
         downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
-        openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
+        openInOverleaf={() => loadExportUtils().then(m => m.openInOverleaf(latexContent, creator.currentPlan, showToast))}
         showToast={showToast}
       />
       <FloatingChatWidget {...chat} isLoading={isLoading} />

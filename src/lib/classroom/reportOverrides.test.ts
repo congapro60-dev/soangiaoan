@@ -40,6 +40,17 @@ describe('bản chỉnh tay báo cáo phụ huynh', () => {
     expect(input.report.results).toHaveLength(2);
   });
 
+  it('sửa điểm trên lớp vẫn giữ hệ số của từng cột (hệ số sai thì bỏ, coi như HS1)', () => {
+    const clean = sanitizeReportOverrides({ hs1: [
+      { label: 'BTVN tuần 1 (sửa)', date: '2026-09-20', score: 8, weight: 2 },
+      { label: 'Miệng', date: '2026-09-21', score: 9, weight: 7 },
+    ] }, '11');
+    expect(clean.hs1).toEqual([
+      { label: 'BTVN tuần 1 (sửa)', date: '2026-09-20', score: 8, weight: 2 },
+      { label: 'Miệng', date: '2026-09-21', score: 9 },
+    ]);
+  });
+
   it('điểm trung bình có thể đặt về "chưa đủ bài" (null)', () => {
     expect(applyReportOverrides(input, { officialAveragePercent: null }).report.officialAveragePercent).toBeNull();
   });

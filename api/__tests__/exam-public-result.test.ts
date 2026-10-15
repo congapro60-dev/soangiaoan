@@ -18,7 +18,8 @@ type Doc = Record<string, unknown>;
 const makeDb = (state: Record<string, Record<string, Doc>>) => {
   const collection = (name: string, filters: [string, unknown][] = [], count = Infinity, ordered = false, cursor = ''): any => ({
     doc: (id: string) => ({ get: async () => ({ exists: Boolean(state[name]?.[id]), data: () => structuredClone(state[name]?.[id]) }),
-      update: async (patch: Doc) => { state[name][id] = { ...state[name][id], ...patch }; } }),
+      update: async (patch: Doc) => { state[name][id] = { ...state[name][id], ...patch }; },
+      set: async (data: Doc) => { (state[name] ||= {})[id] = structuredClone(data); } }),
     where: (field: string, _op: string, value: unknown) => collection(name, [...filters, [field, value]], count, ordered, cursor),
     limit: (value: number) => collection(name, filters, value, ordered, cursor),
     orderBy: () => collection(name, filters, count, true, cursor),
@@ -29,7 +30,7 @@ const makeDb = (state: Record<string, Record<string, Doc>>) => {
       const docs = rows.slice(0,count).map(([id,data]) => ({ id, data: () => structuredClone(data) })); return { docs, empty: !docs.length }; },
   });
   return { collection, runTransaction: async (work: any) => { const writes: (() => Promise<void>)[] = [];
-    const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, patch: Doc) => writes.push(() => ref.update(patch)) });
+    const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, patch: Doc) => writes.push(() => ref.update(patch)), set: (ref: any, data: Doc) => writes.push(() => ref.set(data)) });
     for (const write of writes) await write(); return result; } };
 };
 
@@ -169,8 +170,11 @@ describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', (
   });
   it('code throttle does not throttle result URLs for students sharing an IP', async () => {
     const headers = { 'x-forwarded-for': '192.0.2.17' };
-    for (let i = 0; i < 120; i++) expect((await call('GET', { code: 'ABC' }, {}, headers)).status).toBe(404);
+    for (let i = 0; i < 300; i++) expect((await call('GET', { code: 'ABC' }, {}, headers)).status).toBe(404);
     expect((await call('GET', { code: 'ABC' }, {}, headers)).status).toBe(429);
+    // Bộ đếm nằm ở Firestore (dùng chung mọi instance), không ở bộ nhớ từng instance.
+    expect(Object.values(state.rateLimits)[0]).toMatchObject({ count: 300, scope: 'exam-code' });
+    expect((await call('GET', { code: 'ABC' }, {}, { 'x-forwarded-for': '198.51.100.9' })).status).toBe(404);
     for (let i = 0; i < 35; i++) expect((await call('GET', { submissionId: 'bai-1' }, {}, headers)).status).toBe(200);
   });
 });

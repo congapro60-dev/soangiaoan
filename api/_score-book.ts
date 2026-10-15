@@ -7,6 +7,7 @@
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { teacherContext } from './_classroom-teacher.js';
+import { isOnlineAttemptOfficial } from '../src/lib/classroom/onlineGradeLifecycle.js';
 import {
   SCORE_BOOKS_COL,
   canAddHs1Column,
@@ -64,7 +65,7 @@ const loadHomeworkInputs = async (
   const [assignmentSnap, uploadSnap, onlineSnap] = await Promise.all([
     db.collection('assignments').where('classId', '==', classId).select('title', 'createdAt', 'dueAt', 'periodicTest', 'targetStudentIds').get(),
     scoped('submissions').select('assignmentId', 'studentId', 'createdAt', 'grade.score', 'grade.maxScore', 'grade.awaitingClarification', 'grade.teacherApproved').get(),
-    scoped('examSubmissions').select('assignmentId', 'studentId', 'status', 'startedAt', 'submittedAt', 'totalScore', 'maxScore', 'grade.score', 'grade.maxScore').get(),
+    scoped('examSubmissions').select('assignmentId', 'studentId', 'status', 'gradeState', 'startedAt', 'submittedAt', 'totalScore', 'maxScore', 'grade.score', 'grade.maxScore', 'grade.teacherApproved').get(),
   ]);
 
   const assignments: HomeworkAssignment[] = assignmentSnap.docs.map(doc => {
@@ -95,7 +96,13 @@ const loadHomeworkInputs = async (
     const data = doc.data();
     if (typeof data.assignmentId !== 'string' || typeof data.studentId !== 'string' || data.status === 'in_progress') continue;
     const grade = isRecord(data.grade) ? data.grade : null;
-    const graded = grade ? numOf(grade.score) : data.status === 'graded' ? numOf(data.totalScore) : null;
+    // Như bài ảnh: cổng học sinh / phụ huynh chỉ nhận điểm đề online đã CHÍNH THỨC (xem `hideUnofficialOnlineScore`).
+    const official = isOnlineAttemptOfficial({
+      status: data.status,
+      gradeState: data.gradeState,
+      grade: grade ? { teacherApproved: grade.teacherApproved === true } as never : undefined,
+    });
+    const graded = studentId && !official ? null : grade ? numOf(grade.score) : data.status === 'graded' ? numOf(data.totalScore) : null;
     const maxScore = (grade ? numOf(grade.maxScore) : null) ?? numOf(data.maxScore) ?? 0;
     entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.submittedAt) || isoOf(data.startedAt), score: graded, maxScore });
   }

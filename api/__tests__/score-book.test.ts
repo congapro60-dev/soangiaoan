@@ -249,6 +249,29 @@ describe('sổ điểm', () => {
       expect(book.auto.linked[book.hs1Columns[0].id]).toEqual({ a: 9 });
     });
 
+    it('đề online AI chấm chưa duyệt: giáo viên thấy điểm, học sinh / phụ huynh KHÔNG thấy (cả cột liên kết lẫn TB)', async () => {
+      Object.assign(h.store, {
+        assignments: { ...h.store.assignments, on2: { classId: 'lop-1', title: 'Đề online 2', createdAt: day('2026-09-01'), dueAt: day('2026-09-02'), type: 'exam' } },
+        examSubmissions: {
+          p1: { classId: 'lop-1', studentId: 'a', assignmentId: 'on2', status: 'graded', gradeState: 'provisional', submittedAt: day('2026-09-02'), totalScore: 3, maxScore: 10, grade: { score: 3, maxScore: 10, teacherApproved: false } },
+        },
+      });
+      const res = await call({ action: 'linkAssignments', classId: 'lop-1', items: [{ assignmentId: 'on2', weight: 2 }] });
+      const book = res.payload?.scoreBook as { hs1Columns: Array<{ id: string }>; auto: { linked: Record<string, Record<string, number>> } };
+      expect(book.auto.linked[book.hs1Columns[0].id]).toEqual({ a: 3 });
+
+      h.claims = STUDENT_A;
+      const scores = (await call({ action: 'studentScoreBook' })).payload?.scores as { hs1: unknown[]; average: number | null; homework: { graded: number; submitted: number } };
+      expect(scores.hs1).toEqual([]);
+      expect(scores.average).toBeNull();
+      expect(scores.homework.graded).toBe(0);
+      expect(scores.homework.submitted).toBe(3); // 2 bài ảnh + đề online vẫn tính là đã nộp
+
+      // thầy cô duyệt → em thấy
+      h.store.examSubmissions.p1 = { ...h.store.examSubmissions.p1, gradeState: 'official', grade: { score: 3, maxScore: 10, teacherApproved: true } };
+      expect(((await call({ action: 'studentScoreBook' })).payload?.scores as { hs1: Array<{ score: number }> }).hs1[0].score).toBe(3);
+    });
+
     it('chọn hệ số cho mốc thi MOET → vào điểm trung bình; bỏ chọn thì không tính', async () => {
       h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: { a: { moet: [{ label: 'Giữa kì', score: 6 }, { label: 'Khảo sát', score: 10 }], tds: [] } } } };
       expect((await call({ action: 'setExamWeights', classId: 'lop-1', weights: { 'Giữa kì': 2 } })).statusCode).toBe(200);

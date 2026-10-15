@@ -510,3 +510,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-14 — Mã lớp khác PIN phụ huynh
 - Người dùng chỉ ra nhầm4PINvới6classcode. Hướng dẫn tách mãlớp6ký tự→chọncon→PINPH4chữsố; ưu tiênlinkPHđúnglớp bỏbướcmã.
 - Saucậpnậtsource, historicalgrade khôngtựcótọađộ/lời giải. QAphảiđọcbàithật, khônggọi UIrendered bằngchứngdatafulfilled; annotationmigration onlygeometrygiữscores/approval.
+
+## 2026-10-15 — Đường đọc điểm mới cho HS/PH phải gác MỌI nguồn điểm
+- Sổ điểm (liên kết bài giao) gác "chỉ điểm đã duyệt" cho bài ảnh nhưng quên đề online → điểm AI tạm lọt ra HS/PH qua cột liên kết, TB và chuyên cần. Mỗi khi thêm một đường đọc điểm cho HS/PH: liệt kê đủ các nguồn (`submissions`, `examSubmissions`, sổ tay) và dùng đúng hàm gác sẵn có (`teacherApproved`, `isOnlineAttemptOfficial`), kèm test "chưa duyệt → HS không thấy" cho TỪNG nguồn.
+- Sửa qua trình soạn GitHub từng file một dễ ghi đè bản sửa trước (1111588 xoá import động của 877bc5a). Sau loạt commit kiểu này phải rà lại diff tổng, không tin từng commit lẻ.
+- Hộp sửa gửi lại cả bảng mà bảng đó có phần GHÉP LÚC ĐỌC (lời giải chung) thì so "đã sửa" với bản người dùng NHÌN THẤY, không với bản lưu thô — không thì một lần sửa khoá cả bảng.

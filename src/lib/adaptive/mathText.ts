@@ -187,6 +187,12 @@ const mathStartBeforeCommand = (prefix: string): number => {
   return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
 };
 
+/**
+ * Từ tiếng Việt 2 chữ không dấu hay gặp trong lời giải. Chỉ coi là chữ khi đứng riêng (cách bằng khoảng trắng) — không
+ * dùng quy tắc "mọi từ 2 chữ thường" vì sẽ cắt nhầm ký hiệu toán như `dx`, `ln`, `tg`.
+ */
+const SHORT_PROSE_WORDS = new Set(['ta', 'em', 'ra', 'ai', 'ba']);
+
 /** ponytail: short ASCII math atoms only; longer identifiers need explicit LaTeX delimiters. */
 const proseFragments = (source: string): string[] => {
   const pieces: string[] = [];
@@ -202,7 +208,8 @@ const proseFragments = (source: string): string[] => {
     if (source[i] === '}') depth = Math.max(0, depth - 1);
     const word = depth === 0 ? source.slice(i).match(/^[A-Za-zÀ-ỹ]+/) : null;
     if (word) {
-      if (/[À-ỹ]/.test(word[0]) || (word[0].length > 2 && !/^[A-Z]+$/.test(word[0]))) {
+      const standalone = /\s/.test(source[i - 1] || ' ') && /^(\s|$)/.test(source.slice(i + word[0].length, i + word[0].length + 1));
+      if (/[À-ỹ]/.test(word[0]) || (word[0].length > 2 && !/^[A-Z]+$/.test(word[0])) || (standalone && SHORT_PROSE_WORDS.has(word[0]))) {
         pieces.push(source.slice(cursor, i), word[0]);
         cursor = i + word[0].length;
       }
@@ -217,7 +224,8 @@ const wrapBareSegment = (segment: string): string => {
   const normalized = normalizeLegacyWordOperators(segment);
   const pieces = proseFragments(normalized);
   if (pieces.length > 1) return pieces.map(piece => /^[A-Za-zÀ-ỹ]+$/.test(piece) ? piece : wrapBareSegment(piece)).join('');
-  const left = normalized.search(/\S/);
+  // Dấu câu đứng đầu mảnh (vd "Đáp án: x = 2") thuộc câu chữ, không thuộc công thức.
+  const left = normalized.search(/[^\s.,;:!?]/);
   if (left < 0) return normalized;
   const leading = normalized.slice(0, left);
   let core = normalized.slice(left).trimEnd();
@@ -225,7 +233,10 @@ const wrapBareSegment = (segment: string): string => {
   if (core === '=>') return `${leading}$\\Rightarrow$${trailing}`;
   if (!LATEX_CMD_RE.test(core) && !core.includes('=')) return leading + convertCaretsInText(core) + trailing;
   // Sentence punctuation and unmatched prose brackets stay outside the math span.
-  while (/[.,;:!?]$/.test(core) || (core.endsWith(')') && (core.match(/\)/g)?.length || 0) > (core.match(/\(/g)?.length || 0))) {
+  // Ngoặc mở cuối mảnh (lời giải thích kiểu "= 5 (thỏa mãn)") cũng thuộc phần chữ, không thuộc công thức.
+  const opensMore = (text: string) => (text.match(/\(/g)?.length || 0) > (text.match(/\)/g)?.length || 0);
+  while (/[.,;:!?]$/.test(core) || (core.endsWith(')') && (core.match(/\)/g)?.length || 0) > (core.match(/\(/g)?.length || 0))
+    || (core.endsWith('(') && opensMore(core)) || (/\s$/.test(core) && core.trim() !== '')) {
     trailing = core.slice(-1) + trailing;
     core = core.slice(0, -1);
   }

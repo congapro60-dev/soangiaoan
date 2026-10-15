@@ -195,6 +195,25 @@ describe('POST /api/classroom · deleteSubmission', () => {
     expect(harness.store['studentSkillEvidence']['hs-1__sub-1%3Amath.line-equation']).toBeUndefined();
   });
 
+  it('xoá bài nộp dọn luôn bài chữa gắn với bài đó (cả ảnh chữa), không đụng bài chữa của bài khác', async () => {
+    const harness = buildHarness();
+    const chuaUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent('accepted-homework/lop-1/hs-1/batch-0')}?alt=media&token=c`;
+    harness.store['submissions'] = {
+      'sub-1': { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1', fileUrls: [baiLamUrl] },
+    };
+    harness.store['correctionAttempts'] = {
+      'ca-1': { submissionId: 'sub-1', studentId: 'hs-1', fileUrls: [chuaUrl], attachments: [{ url: chuaUrl }] },
+      'ca-2': { submissionId: 'sub-khac', studentId: 'hs-1', fileUrls: [] },
+    };
+
+    const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.deletedPaths).toContain('accepted-homework/lop-1/hs-1/batch-0');
+    expect(harness.store['correctionAttempts']['ca-1']).toBeUndefined();
+    expect(harness.store['correctionAttempts']['ca-2']).toBeDefined();
+  });
+
   it('URL ngoài Firebase không chặn xoá document bằng lỗi chung — trả 422 kèm nguyên nhân, giữ bài nộp để sửa dữ liệu', async () => {
     const harness = buildHarness();
     harness.store['submissions'] = {
