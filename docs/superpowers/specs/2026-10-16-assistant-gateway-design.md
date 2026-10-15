@@ -1,4 +1,4 @@
-# Assistant Gateway — Telegram đa giáo viên
+# Assistant Gateway — đa kênh (Telegram + Zalo OA)
 
 Status: approved-for-plan
 Version: 2026-10-16
@@ -6,6 +6,11 @@ Version: 2026-10-16
 ## Source of truth
 
 - User: one shared Telegram bot, multiple teachers.
+- User: add Zalo Official Account (OA) as a second channel adapter.
+- Official evidence observed 2026-10-16:
+  - https://oa.zalo.me/home/documents/guides/Khoi-tao-ung-dung-va-cap-quyen_117071366476220195 - OA OpenAPI integrates an internal server; Zalo sends event data to the server through POST webhooks.
+  - https://oa.zalo.me/home/documents/guides/tin-tu-van - OpenAPI advisory messages can be sent within 7 days of the user's last interaction.
+  - https://oa.zalo.me/home/documents/vie/guides/tong-quan-cac-loai-tin-nhan-tren-zalo-official-account-_3651713298729094511 - OA User ID/UID is scoped to a specific OA.
 - User: each teacher links Firebase account with a one-time code.
 - User: reads run automatically; every write, edit, send, or destructive action requires confirmation.
 - User: data is private by default; explicit sharing is allowed per class or lesson.
@@ -14,9 +19,9 @@ Version: 2026-10-16
 
 ## 1. Objective
 
-Build a multi-tenant Telegram assistant for SmartPlan. A teacher can ask about their own classes, students, lesson plans, homework submissions, grades, exams, adaptive progress, and AI jobs. The teacher can request generation or mutations. The assistant executes only through server-side tools, enforces ownership and sharing, asks for explicit confirmation before every write, and records an audit event.
+Build a channel-neutral multi-tenant assistant for SmartPlan. Telegram and Zalo OA are transport adapters over the same assistant core. A teacher can ask about their own classes, students, lesson plans, homework submissions, grades, exams, adaptive progress, and AI jobs. The teacher can request generation or mutations. The assistant executes only through server-side tools, enforces ownership and sharing, asks for explicit confirmation before every write, and records an audit event.
 
-The result is a thin Telegram transport plus a SmartPlan Assistant Gateway. The model never receives unrestricted Firestore access, Firebase Admin credentials, or a generic query primitive.
+The result is a thin channel adapter layer plus a SmartPlan Assistant Gateway. The model never receives unrestricted Firestore access, Firebase Admin credentials, or a generic query primitive.
 
 ## 2. Users and identity
 
@@ -34,15 +39,19 @@ The result is a thin Telegram transport plus a SmartPlan Assistant Gateway. The 
 - Existing student portal and parent-safe projections remain the source of truth.
 - Student PINs, studentSecrets, raw teacher notes, private download tokens, and private class URLs never enter assistant responses.
 
-### Telegram identity
+### Channel identity
 
-Use Telegram numeric userId as the stable identity. Do not use display name or username for authorization. Link commands are accepted only in private chats in phase one. Group chats are denied until a separate group policy exists.
+Every request carries `channel`, `channelAccountId`, and `channelUserId`.
+
+- Telegram: use numeric userId as `channelUserId`; private chats only in phase one. Do not use display name or username for authorization.
+- Zalo OA: use the OA ID as `channelAccountId` and the Zalo User ID/UID as `channelUserId`; the UID is scoped to that OA.
+- A channel-specific link binds one channel identity to one SmartPlan Firebase UID. Never infer a cross-channel identity from matching names, phone numbers, or UIDs.
 
 ## 3. Scope
 
 ### In scope
 
-- One shared Telegram bot for multiple teachers.
+- One shared Telegram bot and one Zalo OA adapter for multiple teachers.
 - Web-generated one-time linking code.
 - Server-side identity resolution.
 - Read tools for classes, students, assignments, submissions, grades, lesson plans, exams, adaptive progress, and job status.
@@ -50,11 +59,11 @@ Use Telegram numeric userId as the stable identity. Do not use display name or u
 - Confirmation records bound to teacher, Telegram chat, request hash, and expiration.
 - Audit records for reads that expose student data and every write.
 - Draft lesson generation, export, Drive upload, assignment creation, grading launch, grade approval/edit, and outbound teacher/parent message as confirmed tools.
-- Long-running job status through Telegram.
+- Long-running job status through the originating channel adapter.
 
 ### Out of scope for first release
 
-- Direct Telegram access for students or parents.
+- Direct Telegram or Zalo access for students or parents.
 - Arbitrary Firestore query language.
 - Browser automation against the SmartPlan UI.
 - Automatic write/send actions without confirmation.
@@ -80,17 +89,16 @@ The gateway must reuse those server-side checks or equivalent shared core functi
 
 ### Components
 
-1. Telegram transport
-   - Existing Python polling process.
-   - Parses link, question, confirmation, cancellation, and status commands.
-   - Sends requests to the gateway using a server-to-server secret.
-   - Never receives Firebase Admin credentials.
+1. Channel adapters
+   - Telegram adapter: existing Python polling process; parses link, question, confirmation, cancellation, and status commands.
+   - Zalo OA adapter: receives Zalo POST webhook events, verifies the request, normalizes events, and sends replies through Zalo OpenAPI.
+   - Both adapters send requests to the gateway using a server-to-server secret and never receive Firebase Admin credentials.
 
 2. SmartPlan Assistant Gateway
    - Consolidated POST route: /api/assistant.
    - Web calls use Firebase ID-token authentication for link-code creation and share management.
-   - Telegram calls use an HMAC service signature plus Telegram user/chat identifiers.
-   - Resolves Telegram link before dispatching any tool.
+   - Channel calls use an HMAC/service signature plus channel account and user identifiers.
+   - Resolves a channel-specific link before dispatching any tool.
    - Validates tool input, ownership, share grants, confirmation, idempotency, and audit logging.
 
 3. Tool registry
@@ -101,7 +109,7 @@ The gateway must reuse those server-side checks or equivalent shared core functi
 4. Job layer
    - Short reads return synchronously.
    - Generation, export, bulk grading, and multi-recipient messaging create assistantJobs.
-   - Telegram polls job status and receives a final result.
+   - The originating adapter polls or receives job status and returns a final result.
    - Job execution rechecks actor, scope, request hash, and confirmation before side effects.
 
 5. Storage
@@ -117,7 +125,13 @@ Server-only collections:
 
 Client Firestore rules deny direct client reads/writes to these collections. Admin-side code validates every access.
 
-## 6. Account linking flow
+## 6. Channel delivery policy
+
+- Assistant replies are sent only after an inbound interaction and only within each platform's rules.
+- Zalo OA outbound teacher/parent notifications require an approved message type or template, resolved recipients, and explicit confirmation.
+- Do not promise arbitrary proactive Zalo messages. The seven-day advisory window and any template/platform limits are enforced by the adapter.
+
+## 7. Account linking flow
 
 1. Teacher opens SmartPlan while authenticated.
 2. Settings calls POST /api/assistant with action createLinkCode and the Firebase ID token.
@@ -130,7 +144,13 @@ Client Firestore rules deny direct client reads/writes to these collections. Adm
 
 Replay, expired codes, mismatched private/group chat, and already-linked accounts return safe errors without revealing account existence.
 
-## 7. Data access and sharing
+## 8. Data access and sharing
+
+Every normalized request includes:
+
+- `channel`: `telegram` or `zalo_oa`.
+- `channelAccountId`: Telegram bot identity or Zalo OA ID.
+- `channelUserId`: Telegram numeric userId or OA-scoped Zalo UID.
 
 Default query scope:
 
@@ -147,7 +167,7 @@ Explicit sharing:
 - Revocation takes precedence over cached context.
 - No workspace-wide sharing in phase one.
 
-## 8. Tool contract
+## 9. Tool contract
 
 ### Read tools
 
@@ -184,14 +204,18 @@ Read responses include source collection, scoped resource, and observedAt timest
 
 Each tool returns a preview before side effect. The preview states target, scope, recipients, files, estimated AI cost where known, and irreversible effects.
 
-## 9. Confirmation, idempotency, and audit
+## 10. Confirmation, idempotency, and audit
 
 Confirmation fields:
 
+- channel
+- channelAccountId
+- channelUserId
 - id
 - actorUid
-- telegramUserId
-- chatId
+- channelAccountId
+- channelUserId
+- channelChatId (when the channel provides one)
 - toolName
 - requestHash
 - preview
@@ -200,9 +224,9 @@ Confirmation fields:
 
 Confirmation accepts only the same linked Telegram identity and matching request hash. A second confirmation or replay returns the existing result and does not repeat the side effect.
 
-Audit records include actor UID, Telegram IDs, tool, resource IDs, result status, confirmation ID, request hash, error class, and timestamps. Never store raw API keys, PINs, full student submissions, or private download tokens in logs.
+Audit records include actor UID, channel account/user IDs, tool, resource IDs, result status, confirmation ID, request hash, error class, and timestamps. Never store raw API keys, PINs, full student submissions, or private download tokens in logs.
 
-## 10. Error behavior
+## 11. Error behavior
 
 - Unknown class, student, or lesson name: return disambiguation choices; do not guess.
 - Missing permission: return a permission result, not a fabricated empty result.
@@ -212,7 +236,7 @@ Audit records include actor UID, Telegram IDs, tool, resource IDs, result status
 - Partial bulk action: return per-item status and idempotency keys.
 - Provider/API errors: redact secrets and internal stack traces.
 
-## 11. Alternatives
+## 12. Alternatives
 
 Selected: gateway plus thin bot. This centralizes authorization and domain rules in SmartPlan, keeps Telegram replaceable, and supports explicit audit.
 
@@ -220,7 +244,7 @@ Rejected: Python bot with direct Firebase Admin. It duplicates Rules and creates
 
 Rejected: browser automation. It depends on UI layout and authenticated sessions and cannot provide a reliable authorization boundary.
 
-## 12. Acceptance criteria
+## 13. Acceptance criteria
 
 1. Two linked teachers cannot read each other's private class, student, assignment, submission, grade, or lesson data.
 2. A shared class or lesson is readable only after an owner-created active grant.
@@ -232,8 +256,9 @@ Rejected: browser automation. It depends on UI layout and authenticated sessions
 8. Existing web classroom and grading flows remain unchanged.
 9. Linking, read tools, confirmation, job retry, and permission boundaries have tests.
 10. Real-account QA uses at least two teacher accounts, one shared class, one private class, one revoked link, one confirmed write, one cancelled write, and one timeout.
+11. Zalo OA canary receives a signed webhook, normalizes a teacher interaction, replies through OpenAPI, rejects a mismatched OA/UID link, and enforces the approved-message/confirmation policy.
 
-## 13. Rollout
+## 14. Rollout
 
 - Phase 0: link/revoke and read-only class/assignment summaries.
 - Phase 1: all read tools and explicit share grants.
@@ -243,13 +268,22 @@ Rejected: browser automation. It depends on UI layout and authenticated sessions
 
 No production write action is enabled until the two-teacher permission matrix passes.
 
-## 14. Fixed decisions
+## 15. Fixed decisions
 
-- One shared Telegram bot.
+- One shared Telegram bot plus one Zalo OA adapter.
 - Multiple teachers.
-- One-time Firebase linking.
+- Channel-specific one-time Firebase linking.
 - Private-by-default data.
 - Explicit class/lesson sharing.
 - Reads automatic.
 - Every write/edit/send requires confirmation.
-- Students and parents remain web-portal users in first release.
+- Students and parents remain web-portal users in first release; any future Zalo/Telegram outbound notification needs approved platform message policy and confirmation.
+
+
+## 16. Zalo OA acceptance and canary cases
+
+- Receive a valid Zalo OA POST webhook and normalize it to the shared assistant envelope.
+- Reject invalid signature, malformed event, unknown OA ID, and a Zalo UID linked to another OA.
+- Reply through Zalo OpenAPI using the same assistant core authorization and redaction rules as Telegram.
+- Allow an assistant reply after a teacher interaction; reject or queue outbound notifications when the platform window or approved message type/template is unavailable.
+- Confirm that identical names or phone numbers across Telegram and Zalo never merge identities.

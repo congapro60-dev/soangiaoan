@@ -2,11 +2,13 @@
 
 > For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
-**Goal:** Build a multi-teacher Telegram assistant that reads SmartPlan data through scoped tools and performs confirmed actions through a server-side gateway.
+**Goal:** Build a multi-channel assistant (Telegram + Zalo OA) that reads SmartPlan data through scoped tools and performs confirmed actions through a server-side gateway.
 
-**Architecture:** Keep the existing Python Telegram process as transport. Add one consolidated SmartPlan Assistant Gateway route plus focused server modules for identity linking, tool authorization, confirmations, audit, and jobs. Reuse existing Firebase Admin classroom/grading cores; do not give the bot direct Firestore Admin access.
+**Architecture:** Keep Telegram and Zalo OA as thin channel adapters over one consolidated SmartPlan Assistant Gateway route plus focused server modules for identity linking, tool authorization, confirmations, audit, and jobs. Reuse existing Firebase Admin classroom/grading cores; do not give the bot direct Firestore Admin access.
 
 **Tech Stack:** React + TypeScript + Vite, Vercel Node functions, Firebase Admin Auth/Firestore, existing Firestore Rules, Python requests Telegram polling, Vitest, Python unittest/stdlib checks.
+
+**Scope amendment:** Documentation only. Add no source code or dependencies until implementation is explicitly started.
 
 ---
 
@@ -27,7 +29,7 @@ Files to create:
 
 - api/assistant.ts: single gateway route with action dispatch.
 - api/_assistant-types.ts: actor, link, share, confirmation, audit, job, and tool result types.
-- api/_assistant-auth.ts: Firebase ID-token verification, Telegram HMAC verification, link-code consume, actor resolution.
+- api/_assistant-auth.ts: Firebase ID-token verification, channel signature verification, link-code consume, actor resolution.
 - api/_assistant-core.ts: tool registry, request normalization, scope checks, confirmation hash, redaction.
 - api/_assistant-tools.ts: typed read/write tools.
 - api/_assistant-jobs.ts: job creation, status, idempotency, and retry state.
@@ -41,6 +43,10 @@ Files to create:
 - src/services/telegramLinkService.test.ts
 - lesson-bot/app/assistant_client.py
 - lesson-bot/tests/test_assistant_client.py
+- lesson-bot/app/zalo_adapter.py: Zalo OA webhook event normalization and reply dispatch.
+- lesson-bot/app/zalo_client.py: Zalo OpenAPI webhook verification and message client.
+- lesson-bot/tests/test_zalo_adapter.py
+- lesson-bot/tests/test_zalo_client.py
 
 Files to modify:
 
@@ -48,7 +54,9 @@ Files to modify:
 - src/types.ts: link status and share types used by web UI.
 - firestore.rules: deny client access to assistant server collections explicitly.
 - lesson-bot/app/config.py: gateway URL and service-secret settings.
-- lesson-bot/app/telegram_bot.py: link, assistant request, confirmation, cancellation, status.
+- lesson-bot/app/telegram_bot.py: Telegram link, assistant request, confirmation, cancellation, status.
+- lesson-bot/app/zalo_adapter.py: Zalo OA webhook, link, assistant request, confirmation, cancellation, status.
+- lesson-bot/app/zalo_client.py: Zalo OpenAPI transport and signature verification.
 - lesson-bot/README.md and lesson-bot/HANDOFF.md: runtime contract and secret names.
 - vercel.json: only if the consolidated route requires explicit duration/memory settings.
 
@@ -110,7 +118,7 @@ Expected: new tests pass against pure validation helpers.
 
 ---
 
-## 4. Task 2 — Create and consume Telegram link codes
+## 4. Task 2 — Create and consume channel link codes
 
 Files:
 - Create: api/_assistant-auth.ts
@@ -120,8 +128,8 @@ Files:
 - Modify: api/assistant.ts
 
 - [ ] Implement createLinkCode(idToken): verify Firebase ID token, generate a cryptographically random code, store only SHA-256 hash, expire after 10 minutes, return the one-time display code.
-- [ ] Implement consumeLinkCode(code, telegramUserId, chatId): require private chat, atomically reject used/expired code, create or replace the link for the exact Telegram numeric user ID.
-- [ ] Implement revokeTelegramLink(idToken, linkId): verify owner, mark link inactive, and invalidate pending confirmations for that actor.
+- [ ] Implement channel-specific consumeLinkCode: require Telegram private chat or verified Zalo OA identity, atomically reject used/expired code, and bind the exact channel account/user pair.
+- [ ] Implement revokeChannelLink(idToken, linkId): verify owner, mark link inactive, and invalidate pending confirmations for that actor.
 - [ ] Add Settings UI states: generate code, copy/display once, linked account, revoke, and error.
 - [ ] Never persist the raw bot service secret or raw one-time code in userSettings.
 - [ ] Test expiry, replay, wrong Firebase owner, group-chat rejection, relink, revoke, and code hash mismatch.
@@ -143,10 +151,12 @@ Files:
 - Create: api/_assistant-core.ts
 - Modify: vercel.json only when needed for the single route.
 
-- [ ] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, chat, confirm, cancel, and jobStatus.
+- [ ] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, chat, confirm, cancel, and jobStatus from either channel adapter.
+- [ ] Normalize `channel`, `channelAccountId`, and `channelUserId`; keep link and authorization channel-specific.
 - [ ] For web actions, verify Firebase ID token from Authorization header.
 - [ ] For Telegram actions, verify HMAC over timestamp, nonce, body, and service identifier using SMARTPLAN_ASSISTANT_SECRET.
-- [ ] Reject old timestamps, reused nonces, unknown Telegram links, non-private chats, and malformed JSON.
+- [ ] For Zalo OA actions, verify the webhook/request signature and bind the exact OA ID plus OA-scoped Zalo UID before dispatch.
+- [ ] Reject old timestamps, reused nonces, unknown channel links, non-private Telegram chats, unknown Zalo OA IDs, and malformed JSON.
 - [ ] Normalize every request to action, actor, requestId, and payload.
 - [ ] Return stable kinds: answer, confirmation, job, or safe error.
 - [ ] Redact internal error details before sending to Telegram.
@@ -288,7 +298,7 @@ Expected: job state transitions and client envelope tests pass.
 
 ---
 
-## 10. Task 8 — Wire Telegram commands and natural-language requests
+## 10. Task 8 — Wire channel adapters and natural-language requests
 
 Files:
 - Modify: lesson-bot/app/telegram_bot.py
@@ -297,13 +307,15 @@ Files:
 - Modify: lesson-bot/README.md
 - Modify: lesson-bot/HANDOFF.md
 
-- [ ] Add /link, /unlink, /confirm, /cancel, /status, and /help entries.
-- [ ] Route a linked teacher's natural-language message to the gateway when it is not a legacy TDS/MOET command.
+- [ ] Add Telegram `/link`, `/unlink`, `/confirm`, `/cancel`, `/status`, and `/help` entries.
+- [ ] Add Zalo webhook link, confirmation, cancellation, and status handling.
+- [ ] Route a linked teacher's natural-language message from either adapter to the shared gateway when it is not a legacy TDS/MOET command.
 - [ ] Preserve legacy PPCT audit/generation commands during migration.
 - [ ] Render confirmation previews with target, scope, count, recipients, and expiration.
 - [ ] Poll job status with bounded backoff and stop at terminal state.
 - [ ] Reject unlinked users without revealing whether a Firebase account exists.
-- [ ] Test linking, read request, confirmation, cancellation, job status, legacy compatibility, and malformed responses.
+- [ ] Test Telegram linking, read request, confirmation, cancellation, job status, legacy compatibility, and malformed responses.
+- [ ] Test Zalo webhook signature/verify, OA ID + UID binding, event normalization, OpenAPI reply/send, approved message type/template checks, and seven-day interaction policy.
 
 Run:
 
@@ -361,6 +373,7 @@ Files:
   - Revocation blocks the next read.
 - [ ] Run confirmed lesson export/upload, cancelled upload, duplicate confirmation, and job timeout cases.
 - [ ] Run real Telegram private-chat canary with two linked teacher accounts. Redact IDs, tokens, private URLs, and student secrets.
+- [ ] Run Zalo OA canary: signed webhook in, normalized assistant reply out, invalid signature rejected, wrong OA/UID rejected, and proactive notification policy enforced.
 - [ ] Record each check as pass, fail, or unresolved; do not call production-ready from local tests alone.
 
 Run:
@@ -388,4 +401,4 @@ Stop before enabling writes if:
 - Student PINs, private tokens, or raw teacher-only notes reach Telegram.
 - Vercel function limits or runtime duration cannot support the route.
 
-Do not add generic query tools, broad Admin credentials to Python, automatic writes, student/parent Telegram access, or unrelated UI refactors.
+Do not add generic query tools, broad Admin credentials to Python, automatic writes, student/parent Telegram or Zalo access, arbitrary proactive Zalo messages, or unrelated UI refactors.
