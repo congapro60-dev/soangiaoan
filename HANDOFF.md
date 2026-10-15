@@ -1,9 +1,14 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-15
+**Cập nhật:** 2026-10-16
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Kiểm dấu trên ảnh sau đợt chấm lại (Claude) — 16/10
+
+Đọc dữ liệu production qua phản hồi API trang GV (không token): bài chấm từ 13/10 có dấu 133/141, câu có dấu 1.810/2.275; 8 bài còn 0 dấu (khớp lượt lỗi 429 của job retry đang pause). Mắt soát bài Hồ Khánh Phương (Đề cương số 4): dấu trắc nghiệm đúng từng dòng, câu sai khoanh đỏ đúng chỗ; Đúng/Sai hơi lệch lên nửa dòng; một bài tự luận bị khoanh trùm cả trang — chất lượng định vị, không phải lỗi code.
+Sửa `SubmissionPhotoReview`: ảnh và danh sách câu dùng chung một nhãn (`appearanceOf`). Câu máy đọc chưa chắc là "Cần đối chiếu" xám nét đứt ở CẢ HAI chỗ khi chưa duyệt (trước đó danh sách ghi "Đúng" mà ảnh khoanh xám); bài đã duyệt hiện theo kết quả (xanh/vàng/đỏ), HS không còn thấy câu đúng của mình bị khoanh xám mãi. Test 153/153 thư mục lớp học.
 
 ## Sửa dấu chấm và đợt chấm lại — 15/10
 

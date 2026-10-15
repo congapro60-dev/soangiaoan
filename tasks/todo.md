@@ -11,6 +11,7 @@ Người dùng cung cấp ảnh QA của Claude, yêu cầu kiểm lỗi và ch�
 - [x] Mẫu production `GHKI - Đề cương số 4`: 1/1 thành công, 23 vùng; điểm 8.85 và chưa duyệt giữ nguyên.
 - [!] Batch 436: 127 graded, 292 failed_preserved (điểm cũ giữ nguyên), 17 failed. Provider 429/503 là nguyên nhân chính. Retry 309 đã pause ở cursor 50 sau khi tiếp tục 429.
 - [ ] Khi Gemini quota/key hồi phục, tiếp tục `photo-refresh-20261015-retry`; chỉ chạy lại lượt lỗi.
+- [x] (Claude 16/10) Kiểm dữ liệu thật: 133/141 bài từ 13/10 có dấu; mắt soát Đề cương số 4 đạt (TF lệch nhẹ, tự luận vòng to). Sửa ảnh/danh sách lệch nhãn "Cần đối chiếu"; đã duyệt hiện theo kết quả.
 - [x] HANDOFF/main cập nhật; source `00b82b2`, CI 3.163/3.163.
 
 ## Căn cột danh sách bài nộp GV — 15/10/2026

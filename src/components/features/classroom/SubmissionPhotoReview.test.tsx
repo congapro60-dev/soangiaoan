@@ -87,7 +87,7 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(html).not.toContain('stroke="#dc2626"');
   });
   it('vùng đọc sai dùng dấu hợp lệ cũ làm vùng trung tính; câu chắc giữ dấu màu', () => {
-    const uncertain = render([row([mark], { needsTeacherReview: true, readingRegions: [{ ...mark, imageUrl: 'https://foreign.test/photo.jpg' }] })]);
+    const uncertain = render([row([mark], { needsTeacherReview: true, readingRegions: [{ ...mark, imageUrl: 'https://foreign.test/photo.jpg' }] })], false, true);
     expect(uncertain).toContain('cx="25"');
     expect(uncertain).toContain('stroke="#64748b"');
     expect(uncertain).toContain('stroke-dasharray="5 3"');
@@ -95,6 +95,17 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     expect(certain).toContain('cx="25"');
     expect(certain).toContain('stroke="#059669"');
     expect(certain).not.toContain('stroke-dasharray');
+  });
+  it('ảnh và danh sách cùng một nhãn: chưa duyệt "Cần đối chiếu" xám; đã duyệt theo kết quả', () => {
+    const flagged = [row([mark], { status: 'correct', needsTeacherReview: true })];
+    const before = render(flagged, false, true);
+    expect(before).toContain('stroke="#64748b"');
+    expect(before).toContain('<span>Cần đối chiếu</span>');
+    expect(before).not.toContain('<span>Đúng</span>');
+    const after = render(flagged, true, false);
+    expect(after).toContain('stroke="#059669"');
+    expect(after).toContain('<span>Đúng</span>');
+    expect(after).not.toContain('stroke-dasharray');
   });
   it('bài cũ không có dấu vẫn mở được ảnh, không thêm điểm hay lời chữa', () => {
     const html = render([]);
