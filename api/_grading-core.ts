@@ -5,7 +5,7 @@ import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys
 import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
-import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
+import { classifyGeminiKeyFailure, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -232,6 +232,8 @@ export class GeminiResponseError extends Error {
     message: string,
     readonly finishReason?: string,
     cause?: unknown,
+    /** Google từ chối vì chính khoá (hết hạn mức / hỏng) — đợt chấm nền dựa vào đây để dừng thay vì đốt bài. */
+    readonly keyFailure?: AiKeyStatus | null,
   ) {
     super(message, cause === undefined ? undefined : { cause });
     this.name = 'GeminiResponseError';
@@ -408,6 +410,9 @@ const callGeminiRawHeld = async (
     throw new GeminiResponseError(
       'http',
       `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+      undefined,
+      undefined,
+      classifyGeminiKeyFailure(res.status, await Promise.resolve().then(() => res.clone().text()).catch(() => '')),
     );
   }
 

@@ -210,6 +210,36 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     await handler({method:'POST',headers:{authorization:'Bearer test-cron'},query:{cron:'refresh'},body:{jobId:'job'}} as never,response as never);
     expect(state.statusCode).toBe(200);expect(harness.state.submissions['sub-1'].grade).toEqual(manual);expect(fetch).toHaveBeenCalledTimes(1);
   });
+  it.each([
+    [429, 'RESOURCE_EXHAUSTED', 'provider_quota'],
+    [403, 'API_KEY_INVALID PERMISSION_DENIED', 'provider_key_invalid'],
+  ])('maintenance refresh pauses on provider %s without consuming the item or the grade', async (status, body, code) => {
+    const harness=seed();
+    harness.state.submissions['sub-1'].assignmentId='asg-1';
+    harness.state.assignments={'asg-1':{classId:'lop-1',teacherId:'gv-1',type:'upload'}};
+    harness.state.gradingRefreshJobs={job:{teacherId:'gv-1',submissionIds:['sub-1'],cursor:0,status:'running',expiresAt:Date.now()+60000,allowDailyQuotaBypass:true}};
+    h.db=makeDb(harness);process.env.AUTO_GRADE_CRON_SECRET='test-cron';
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:false,status,json:async()=>({}),clone:()=>({text:async()=>body})})));
+    const {response,state}=makeResponse();
+    await handler({method:'POST',headers:{authorization:'Bearer test-cron'},query:{cron:'refresh'},body:{jobId:'job'}} as never,response as never);
+    expect(state.statusCode).toBe(429);
+    expect(harness.state.gradingRefreshJobs.job).toMatchObject({status:'paused',pauseReason:code,cursor:0,runId:'',leaseUntil:0});
+    expect(harness.state.gradingRefreshJobs.job.counts).toBeUndefined();
+    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'paused',failureCode:code});
+    expect(harness.state.submissions['sub-1']).toMatchObject({status:'graded',grade:oldGrade});
+  });
+  it('maintenance refresh records a short failure code and keeps going on a non-key provider error', async () => {
+    const harness=seed();
+    harness.state.submissions['sub-1'].assignmentId='asg-1';
+    harness.state.assignments={'asg-1':{classId:'lop-1',teacherId:'gv-1',type:'upload'}};
+    harness.state.gradingRefreshJobs={job:{teacherId:'gv-1',submissionIds:['sub-1'],cursor:0,status:'running',expiresAt:Date.now()+60000,allowDailyQuotaBypass:true}};
+    h.db=makeDb(harness);process.env.AUTO_GRADE_CRON_SECRET='test-cron';
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:false,status:503,json:async()=>({}),text:async()=>'overloaded'})));
+    const {response,state}=makeResponse();
+    await handler({method:'POST',headers:{authorization:'Bearer test-cron'},query:{cron:'refresh'},body:{jobId:'job'}} as never,response as never);
+    expect(state.statusCode).toBe(200);expect(state.body).toMatchObject({outcome:'failed_preserved',failureCode:'provider_http',done:true});
+    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'failed_preserved',failureCode:'provider_http'});
+  });
   it.each([false, true])('binds marks to sent student photos after PDF/fetch failures; preserves removal=%s', async cleared => {
     const harness = seed();
     harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/missing.jpg', 'https://storage.test/original.pdf', 'https://storage.test/actual.jpg'];

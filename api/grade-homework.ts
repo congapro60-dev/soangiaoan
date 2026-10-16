@@ -452,6 +452,20 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
   || error instanceof JsonRecoveryError
   || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens' || error.kind === 'recitation'));
 
+/** Mã lỗi ngắn (không kèm khoá/chi tiết Google) ghi vào hồ sơ đợt chấm nền. `provider_quota`/`provider_key_invalid` làm đợt dừng. */
+const gradeFailureCode = (error: unknown): string => {
+  if (error instanceof GeminiResponseError) {
+    if (error.keyFailure === 'exhausted') return 'provider_quota';
+    if (error.keyFailure === 'invalid') return 'provider_key_invalid';
+    return `provider_${error.kind}`;
+  }
+  if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return 'unreadable_photo';
+  if (error instanceof Error && error.message === UNCERTAIN_READ_MESSAGE) return 'uncertain_read';
+  if (error instanceof Error && error.message === UNREADABLE_EXAM_CODE_MESSAGE) return 'exam_code';
+  if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return 'contract';
+  return 'system';
+};
+
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
   if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE].includes(error.message)) return error.message;
@@ -524,7 +538,7 @@ const gradeOneSubmission = async (
   isTeacher: boolean,
   mode: HomeworkGradingMode,
   refreshSnapshot?: SubmissionDoc,
-): Promise<{ success: boolean; gradePreserved?: boolean; syncPending?: boolean; syncError?: string }> => {
+): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
   const claim = await claimSubmissionForGrading(db, submissionId, isTeacher, refreshSnapshot);
@@ -706,7 +720,7 @@ const gradeOneSubmission = async (
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return { success: false, gradePreserved: hadPreviousGrade };
+    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error) };
   }
 };
 

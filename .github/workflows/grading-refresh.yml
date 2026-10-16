@@ -26,6 +26,8 @@ jobs:
           secret = os.environ['REFRESH_SECRET']
           if not secret:
               raise SystemExit('Missing cron secret')
+          # A provider outage the server cannot recognise as a quota stop must not burn the rest of the job.
+          max_consecutive_failures, consecutive_failures = 3, 0
           for iteration in range(1000):
               request = urllib.request.Request(
                   'https://giaoandewey.vercel.app/api/grade-homework?cron=refresh',
@@ -36,7 +38,7 @@ jobs:
                       result = json.load(response)
               except urllib.error.HTTPError as error:
                   if error.code in (400, 401, 403, 409, 422, 429):
-                      raise SystemExit('Job refused or paused: HTTP ' + str(error.code))
+                      raise SystemExit('Job refused or paused: HTTP ' + str(error.code) + ' ' + error.read().decode(errors='replace')[:300])
                   print('Server interrupted; retrying leased job.', flush=True)
                   time.sleep(30)
                   continue
@@ -45,6 +47,12 @@ jobs:
                   time.sleep(30)
                   continue
               print(json.dumps(result), flush=True)
+              if result.get('outcome') in ('failed', 'failed_preserved'):
+                  consecutive_failures += 1
+                  if consecutive_failures >= max_consecutive_failures and not result.get('done'):
+                      raise SystemExit(f'Stopped after {consecutive_failures} consecutive failed items (last: {result.get("failureCode")}); job left resumable')
+              elif result.get('outcome'):
+                  consecutive_failures = 0
               if result.get('done'):
                   counts = result.get('counts', {})
                   if any(counts.get(key, 0) for key in ('failed', 'failed_preserved', 'skipped_scope', 'skipped_busy')):

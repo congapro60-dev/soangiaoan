@@ -1,11 +1,13 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-16
+**Cập nhật:** 2026-10-17
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Điểm chấm tay trên bài định kì → sổ điểm (GV xác nhận) — 16/10 (Claude)
+## Đợt chấm lại nền dừng khi khoá hết hạn mức — 17/10 (Claude)
+
+Sự cố 16/10 (run 38896124428, `photo-refresh-20261015-retry`): khoá hết hạn mức giữa chừng, ~243 bài thành `failed_preserved` (điểm giữ nguyên) vì runner chỉ dừng khi bị ném `AiKeyRequiredError`/429 quota ngày, còn 429 của Google lại về dưới dạng `{success:false, gradePreserved:true}`. Vì sao "cả hai" không cứu: khoá riêng hết → đường ví/khoá chung ĐÃ được chọn (nếu bị chặn thì đã ném lỗi và đợt đã dừng), nhưng khoá chung máy chủ cũng 429 → không còn nguồn nào. Suy từ code; log Vercel Hobby chỉ giữ 1 giờ nên không đối chiếu được. Đã sửa: `GeminiResponseError.keyFailure` (phân loại như `classifyGeminiKeyFailure`) → `gradeOneSubmission` trả `failureCode` ngắn (`provider_quota`, `provider_key_invalid`, `provider_http`, `unreadable_photo`, `system`…); runner dừng đợt (`status:'paused'`, `pauseReason` = mã, KHÔNG tăng cursor, items/{id} `status:'paused'`) với `provider_quota`/`provider_key_invalid`/`key_blocked_*`/`daily_quota`, trả HTTP 429. Mọi item lỗi ghi `failureCode`. Workflow dừng sau 3 bài lỗi liên tiếp (`failed`/`failed_preserved`). Lưu ý: 429 do giới hạn mỗi phút cũng làm dừng — chủ dự án đặt `status:'running'` lại để chạy tiếp. Đợt retry 243 bài: chủ dự án quyết, chưa tạo. Lệch chưa sửa: `onOwnKeyFailure` coi admin không thuộc nhóm dùng chung (khác `ensureGeminiKey`).
 
 Chủ dự án duyệt: AI đọc TỔNG điểm GV viết tay trên ảnh bài định kì, hiện cạnh điểm AI, GV xác nhận rồi mới vào sổ. Prompt bài chấm tay thêm field `teacherMarkedScore` (chỉ đọc, KHÔNG dùng để chấm; không chắc → null) → `parseTeacherMarkedScore` → `grade.paperScore`. Sổ chưa có điểm mốc đó thì `examCheck` đối chiếu với `paperScore` (nhãn "Điểm ghi trên bài"; lệch > ngưỡng vẫn không tự duyệt). GV: dòng bài nộp định kì có ô "Điểm thầy cô ghi trên bài (máy đọc)" + "Xác nhận vào sổ" (cột = `periodicTest.sheetLabel` hoặc tên bài) → action `confirmPaperExamScore` lưu `scoreBooks.paperExams` RIÊNG (đồng bộ file điểm thay `exams` cả khối nên không xoá mất); `normalizeScoreBook` ghép vào `exams` với `source:'paper'`, cột file điểm đã có thì FILE THẮNG; `writeBook` bỏ phần ghép (`storedExams`). Sổ điểm tô đỏ nhạt điểm từ ảnh. Mốc trùng tên cột TDS của lớp thì vào TDS, còn lại MOET. Test: score-book +1, grade-homework.variants +1, gradingPrompt, examVariants.
 
