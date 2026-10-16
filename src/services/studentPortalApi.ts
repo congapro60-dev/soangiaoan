@@ -167,27 +167,6 @@ export const fetchStudentAiCost = async (): Promise<StudentAiCostView> => {
   return call<StudentAiCostView>({ action: 'studentAiCost', idToken });
 };
 
-/** Khoá Gemini riêng của học sinh — máy chủ không bao giờ trả khoá, chỉ 4 ký tự cuối + trạng thái. */
-export interface StudentAiKeyView {
-  hasKey: boolean;
-  last4: string;
-  keyStatus: 'ok' | 'exhausted' | 'invalid' | null;
-  /** false = bài của em đang chấm bằng khoá của thầy cô. */
-  usable: boolean;
-  /** Khoá hết hạn mức: thử lại từ lúc này (ISO). */
-  retryAt: string | null;
-}
-
-const studentKeyCall = async (payload: Record<string, unknown>): Promise<StudentAiKeyView> => {
-  const current = auth.currentUser;
-  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
-  return call<StudentAiKeyView>({ ...payload, idToken: await current.getIdToken() });
-};
-
-export const fetchStudentAiKey = () => studentKeyCall({ action: 'studentAiKeyStatus' });
-export const saveStudentAiKey = (key: string) => studentKeyCall({ action: 'saveStudentAiKey', key });
-export const deleteStudentAiKey = () => studentKeyCall({ action: 'deleteStudentAiKey' });
-
 /** Bảng điểm (điểm thi định kì + hệ số 1) của chính học sinh; máy chủ lọc theo phiên, không nhận studentId. */
 export const fetchStudentScoreBook = async (): Promise<StudentScoreView> => {
   const current = auth.currentUser;

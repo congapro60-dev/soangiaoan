@@ -5,13 +5,9 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Học sinh tự nhập khoá Gemini; khoá lỗi thì chấm bằng khoá thầy cô — 16/10 (Claude)
+## Đã hoàn tác theo yêu cầu chủ dự án — 16/10 (Claude)
 
-Chủ dự án chốt: mọi HS được nhập khoá của mình (Gmail riêng), không giới hạn; không có khoá / khoá lỗi thì tự dùng khoá thầy cô, màn hình nói rõ. `studentAiKeys/{classId}__{studentId}` (chỉ máy chủ, rules mặc định chặn; gắn theo em, không theo phiên ẩn danh). `ensureGeminiKey`: lượt do HS gọi (identity ẩn danh + `studentLinks`) dùng khoá em trước — `source:'own'`, `studentKeyId`, không trừ ví, không cộng sổ chi tiêu thầy cô; `aiUsage.keyHolder='student'`, sao kê tách `studentKeyCalls`. Khoá em bị Google từ chối (429/hỏng) → `onOwnKeyFailure` ghi trạng thái (nghỉ 60 phút với hết hạn mức) rồi gọi lại NGAY bằng đường của thầy cô. Action `studentAiKeyStatus/saveStudentAiKey/deleteStudentAiKey` (probe Google trước khi lưu, không trả khoá). UI: mục "Khoá AI của em" trong hộp chi phí AI ở đầu cổng HS. Áp cho mọi lượt AI do HS gọi (chấm bài tự nộp, hỏi lại câu, bài chữa, bài luyện); lượt GV bấm chấm vẫn dùng khoá GV. Lưu ý pháp lý đã nêu với chủ dự án: điều khoản Gemini API về tuổi (≥18) và dữ liệu gói miễn phí — chủ dự án quyết bật. Test `ai-keys.test.ts` +4, `StudentAiKeySection.test.tsx`.
-
-## Bài kiểm tra định kì nhận đề scan / ảnh chụp — 16/10 (Claude)
-
-Trước: file không có lớp chữ bị loại ("không có chữ (bản scan hoặc ảnh)…") dù "Để AI giải đề" vốn gửi được ảnh trang. Nay `readExamSourceFile` trả `scanPages` cho PDF scan / ảnh JPG-PNG-WEBP; `splitVariantSources` coi mỗi file ảnh là một đề, mã lấy theo tên file CHẶT ("Mã đề 101", "đề 101" — số trần như IMG_0457 không tính), mọi trang làm `pageRefs`; tên không có mã → dòng mã TRỐNG + khung hỏi lại "file này là mã đề nào" (chưa điền thì không giải đề/giao được); chỉ một đề ảnh không mã → đề số 1. Đáp án dạng ảnh chưa đọc tự động (báo GV dán hoặc để AI giải). Giới hạn: file scan GỘP nhiều mã (khối 12) chưa tách được — tách mỗi mã một file. QA production 16/10 (không giao bài): PDF ảnh "… đề 101 …" → mã 101; IMG_0457.jpg → dòng mã trống + khung hỏi lại, nút AI giải khoá tới khi điền mã.
+Hai tính năng đã đẩy rồi gỡ: (1) bài định kì nhận đề scan/ảnh (`65be575`, `916790e`); (2) học sinh tự nhập khoá Gemini (`a110118`). Mã nguồn các file liên quan trả về đúng bản `b5f6f41`; muốn làm lại thì xem hai commit đó.
 
 ## Kiểm dấu trên ảnh sau đợt chấm lại (Claude) — 16/10
 

@@ -103,26 +103,7 @@ describe('tách các mã đề', () => {
     expect(plan.variants[0].sourceText).not.toContain('Câu 1: A');
     expect(plan.answerMaterial).toContain('Phần đáp án nằm sau đề mã 101 (file "Đáp án mã 101.docx")');
     expect(plan.answerMaterial).toContain('Phần không ghi mã đề (file "Bang dap an.docx")');
-    expect(plan.warnings).toEqual(['scan.pdf: không đọc được — chỉ nhận Word (.docx), PDF hoặc ảnh chụp.']);
-  });
-
-  it('đề dạng ảnh (scan/ảnh chụp): mã theo tên file, mọi trang làm ảnh đề; chưa rõ mã thì để TRỐNG cho thầy cô điền', () => {
-    const plan = splitVariantSources([
-      { name: 'Toán 10 GHKI - đề 101 (HS thi).pdf', text: '', scanPages: 2 },
-      { name: 'Mã đề 102.docx', text: 'Câu 1. Đề 102.' },
-      { name: 'IMG_0457.jpg', text: '', scanPages: 1 },
-      { name: 'Đáp án 101.jpg', text: '', scanPages: 1 },
-    ]);
-    expect(plan.variants.map(v => [v.code, v.files, v.pageRefs])).toEqual([
-      ['', ['IMG_0457.jpg'], [{ file: 'IMG_0457.jpg', pages: [1] }]],
-      ['101', ['Toán 10 GHKI - đề 101 (HS thi).pdf'], [{ file: 'Toán 10 GHKI - đề 101 (HS thi).pdf', pages: [1, 2] }]],
-      ['102', ['Mã đề 102.docx'], []],
-    ]);
-    expect(plan.warnings[0]).toContain('Đáp án 101.jpg: đáp án dạng ảnh chưa đọc tự động');
-  });
-
-  it('chỉ một đề dạng ảnh, không có mã → đề số 1', () => {
-    expect(splitVariantSources([{ name: 'de-thi.pdf', text: '', scanPages: 3 }]).variants.map(v => v.code)).toEqual(['1']);
+    expect(plan.warnings).toEqual(['scan.pdf: không có chữ (bản scan hoặc ảnh) — dùng file Word/PDF gốc của người ra đề.']);
   });
 
   it('không nhận ra mã nào, hoặc không có phần đáp án → báo rõ cho giáo viên', () => {

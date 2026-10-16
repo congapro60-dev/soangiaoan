@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Coins, Loader2, X } from 'lucide-react';
-import { fetchStudentAiCost, fetchStudentAiKey, type StudentAiKeyView } from '../../../../services/studentPortalApi';
-import { StudentAiKeySection } from './StudentAiKeySection';
+import { fetchStudentAiCost } from '../../../../services/studentPortalApi';
 import { formatStudentVnd, type StudentAiCostItem, type StudentAiCostTotals, type StudentAiCostView } from '../../../../lib/classroom/studentAiCost';
 
 /** Đọc lại thỉnh thoảng để số mới (bài vừa được AI chấm) hiện mà em không phải tải lại trang. */
@@ -86,7 +85,6 @@ export const StudentAiCostChip = () => {
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [keyView, setKeyView] = useState<StudentAiKeyView | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   const hasView = useRef(false);
@@ -120,8 +118,6 @@ export const StudentAiCostChip = () => {
   useEffect(() => {
     if (!open) return;
     void load();
-    // Máy chủ cũ chưa có khoá học sinh: bỏ qua lỗi, mục khoá hiện "chưa có khoá".
-    fetchStudentAiKey().then(next => { if (mounted.current) setKeyView(next); }).catch(() => undefined);
     const closeOutside = (event: MouseEvent) => {
       if (boxRef.current && !boxRef.current.contains(event.target as Node)) setOpen(false);
     };
@@ -163,9 +159,7 @@ export const StudentAiCostChip = () => {
             <div>
               <p className="text-base font-black text-slate-900">Chi phí AI của em</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                {keyView?.hasKey && keyView.usable
-                  ? 'Em đang dùng khoá AI của mình: các lượt AI của em tính vào hạn mức khoá của em, không tốn tiền của thầy cô.'
-                  : 'Mỗi lần AI chấm bài hay soạn bài luyện cho em, thầy cô phải trả tiền cho AI. Em có thể tự nhập khoá AI của mình ở bên dưới để tự lo phần này.'}
+                Mỗi lần AI chấm bài hay soạn bài luyện cho em, thầy cô phải trả tiền cho AI. Em xem để biết và quý trọng nhé — em không phải trả khoản này.
               </p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Đóng" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
@@ -173,7 +167,6 @@ export const StudentAiCostChip = () => {
             </button>
           </div>
 
-          <StudentAiKeySection view={keyView} onChange={setKeyView} />
           <StudentAiCostPanel view={view} />
         </div>
       )}

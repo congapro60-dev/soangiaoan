@@ -59,8 +59,6 @@ export interface AiKeyChoice {
   ownerUid: string | null;
   /** Có trừ ví trả trước không (null = không trừ: chưa bật kiểm soát / khoá riêng / chủ dự án). */
   billing?: { usdVnd: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
-  /** Khoá RIÊNG của học sinh (`studentAiKeys/{id}`), source = 'own': em tự trả Google, không tính cho thầy cô. */
-  studentKeyId?: string;
 }
 
 export interface AiTokenCounts {
@@ -168,8 +166,6 @@ export const buildAiUsageRecord = (
   // 'own' = giáo viên tự trả Google, KHÔNG vào bảng kê. Lượt cũ (trước khi có trường này) là khoá chung.
   keySource: context?.keyChoice?.source ?? 'shared',
   ...(context?.keyChoice?.ownerUid ? { keyOwnerUid: context.keyChoice.ownerUid } : {}),
-  // Khoá của học sinh: tách khỏi "lượt chạy bằng khoá riêng" của thầy cô trong sao kê.
-  ...(context?.keyChoice?.studentKeyId ? { keyHolder: 'student' } : {}),
   ...counts,
   ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
 });

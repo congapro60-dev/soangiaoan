@@ -9,11 +9,8 @@ import { docxXmlToText, pdfItemsToText, type PdfTextItem, type VariantSourceFile
  *
  * Khác `readSourceFile`: Word đọc thẳng `word/document.xml` để GIỮ BẢNG (bảng đáp án các mã) và chữ công thức;
  * PDF dùng lớp chữ (không render ảnh) — dòng "Mã đề …" và bảng đáp án là chữ thường, đọc được.
- * File không có chữ (PDF scan, ảnh chụp) trả chữ rỗng kèm số trang ảnh: mã đề lấy từ tên file, AI giải đề đọc ảnh.
+ * File không có chữ (ảnh, PDF scan, .doc đời cũ) trả chữ rỗng để bộ tách báo giáo viên.
  */
-const IMAGE_EXT = /^(?:jpe?g|png|webp)$/u;
-const isImageFile = (file: File): boolean => file.type.startsWith('image/') || IMAGE_EXT.test(file.name.split('.').pop()?.toLowerCase() || '');
-
 export const readExamSourceFile = async (file: File): Promise<VariantSourceFile> => {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   if (ext === 'docx') {
@@ -29,9 +26,8 @@ export const readExamSourceFile = async (file: File): Promise<VariantSourceFile>
       pages.push(pdfItemsToText(content.items as PdfTextItem[]));
     }
     const text = pages.join('\n').trim();
-    return text.length >= 50 ? { name: file.name, text, pages } : { name: file.name, text: '', scanPages: pdf.numPages };
+    return text.length >= 50 ? { name: file.name, text, pages } : { name: file.name, text: '' };
   }
-  if (isImageFile(file)) return { name: file.name, text: '', scanPages: 1 };
   return { name: file.name, text: '' };
 };
 
@@ -55,11 +51,6 @@ export const renderVariantPages = async (
     const room = MAX_SOLVE_PAGES - images.length;
     if (room <= 0) { truncated = true; break; }
     if (ref.pages.length > room) truncated = true;
-    if (isImageFile(file)) {
-      const { nenAnhBaiLam } = await import('../../utils/imageCompress');
-      images.push(await nenAnhBaiLam(file));
-      continue;
-    }
     images.push(...await pdfToImages(file, undefined, false, ref.pages.slice(0, room)));
   }
   return { images, truncated };
