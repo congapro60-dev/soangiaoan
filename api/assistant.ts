@@ -1,14 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ASSISTANT_SIGNATURE_WINDOW_SECONDS, cancelLinkCode, consumeLinkCode, createLinkCode, revokeChannelLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
+import { claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
 
 const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7) : '';
 export const config = { api: { bodyParser: false } };
-const bodyOf = (rawBody: string, parsedBody?: unknown): Record<string, unknown> => {
-  if (parsedBody && typeof parsedBody === 'object') return parsedBody as Record<string, unknown>;
-  try { return JSON.parse(rawBody || '{}') as Record<string, unknown>; } catch { return {}; }
+const bodyOf = (rawBody: string): Record<string, unknown> => {
+  try {
+    const parsed = JSON.parse(rawBody);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
 };
 const text = (v: unknown) => typeof v === 'string' ? v : '';
-const consumedNonces = new Map<string, number>();
 const header = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] || '' : value || '';
 const rawRequestBody = (req: VercelRequest): string => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
@@ -29,17 +32,17 @@ const readRequestBody = async (req: VercelRequest): Promise<string> => {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const rawBody = await readRequestBody(req);
-  const body = bodyOf(rawBody, typeof req.body === 'object' ? req.body : undefined);
+  const body = bodyOf(rawBody);
   try {
     if (body.action === 'createLinkCode') {
       const token = bearer(req.headers.authorization);
       if (!token) return res.status(401).json({ error: 'Authentication required' });
       return res.status(200).json(await createLinkCode(token));
     }
-    if (body.action === 'revokeChannelLink') {
+    if (body.action === 'revokeLink' || body.action === 'revokeChannelLink') {
       const token = bearer(req.headers.authorization);
       if (!token) return res.status(401).json({ error: 'Authentication required' });
-      await revokeChannelLink(token, text(body.linkId));
+      await revokeLink(token, text(body.linkId));
       return res.status(200).json({ ok: true });
     }
     if (body.action === 'cancelLinkCode') {
@@ -57,14 +60,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(401).json({ error: 'Assistant adapter authentication required' });
       }
       const now = Date.now();
-      for (const [seenNonce, seenAt] of consumedNonces) if (now - seenAt > ASSISTANT_SIGNATURE_WINDOW_SECONDS * 1000) consumedNonces.delete(seenNonce);
-      if (consumedNonces.has(nonce)) return res.status(401).json({ error: 'Replay detected' });
-      consumedNonces.set(nonce, now);
+      await claimAssistantRequestNonce(nonce, now);
       const channel = body.channel === 'telegram' || body.channel === 'zalo_oa' ? body.channel : '';
       if (!channel) return res.status(400).json({ error: 'Unsupported channel' });
+      const channelAccountId = text(body.channelAccountId);
+      if (channel === 'zalo_oa' && !isAllowedZaloOaId(channelAccountId)) {
+        return res.status(401).json({ error: 'Assistant adapter authentication required' });
+      }
       const result = await consumeLinkCode(text(body.code), {
         channel,
-        channelAccountId: text(body.channelAccountId),
+        channelAccountId,
         channelUserId: text(body.channelUserId),
         channelChatId: text(body.channelChatId) || undefined,
         verifiedChannelAccountId: text(body.verifiedChannelAccountId) || undefined,
@@ -74,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Unknown action' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Assistant request failed';
-    const status = /authentication|required|token|not found|used|expired|invalid|private chat/i.test(message) ? 401 : 400;
-    return res.status(status).json({ error: message });
+    const status = /authentication|required|token|not found|used|expired|invalid|private chat|replay/i.test(message) ? 401 : 400;
+    return res.status(status).json({ error: status === 401 ? 'Assistant request rejected' : 'Invalid assistant request' });
   }
 }

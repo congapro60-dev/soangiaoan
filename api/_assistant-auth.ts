@@ -2,11 +2,15 @@
 import crypto from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
-import type { Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js';
+import type { AssistantRequestNonceDoc, Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
 export const ASSISTANT_SIGNATURE_WINDOW_SECONDS = 300;
+export const ASSISTANT_SERVICE_ID = 'smartplan-assistant';
+
+export const assistantSignaturePayload = (rawBody: string, timestamp: string, nonce: string): string =>
+  `${timestamp}.${nonce}.${rawBody}.${ASSISTANT_SERVICE_ID}`;
 
 /** Verifies adapter requests over the exact request body bytes. */
 export const verifyAssistantServiceSignature = (
@@ -17,13 +21,12 @@ export const verifyAssistantServiceSignature = (
   secret: string | undefined,
   now = Date.now(),
 ): boolean => {
-  if (!secret?.trim() || !rawBody || !timestamp?.trim() || !nonce?.trim() || !signature?.trim()) return false;
+  if (!secret?.trim() || !rawBody || !timestamp || !nonce || !signature) return false;
   const timestampSeconds = Number(timestamp);
   if (!Number.isInteger(timestampSeconds) || Math.abs(Math.floor(now / 1000) - timestampSeconds) > ASSISTANT_SIGNATURE_WINDOW_SECONDS) return false;
-  const expected = crypto.createHmac('sha256', secret).update(`${timestamp}.${nonce}.${rawBody}`, 'utf8').digest('hex');
-  const supplied = Buffer.from(signature.trim(), 'hex');
-  const actual = Buffer.from(expected, 'hex');
-  return supplied.length === actual.length && crypto.timingSafeEqual(supplied, actual);
+  if (!/^[0-9a-f]{64}$/.test(signature)) return false;
+  const expected = crypto.createHmac('sha256', secret).update(assistantSignaturePayload(rawBody, timestamp, nonce), 'utf8').digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
 };
 
 export const hashLinkCode = (code: string): string =>
@@ -40,6 +43,12 @@ export interface ChannelIdentity {
   verifiedChannelAccountId?: string;
 }
 
+export const allowedZaloOaIds = (value = process.env.ZALO_OA_ALLOWED_IDS): Set<string> =>
+  new Set((value || '').split(',').map(id => id.trim()).filter(Boolean));
+
+export const isAllowedZaloOaId = (oaId: string, value = process.env.ZALO_OA_ALLOWED_IDS): boolean =>
+  Boolean(oaId?.trim() && allowedZaloOaIds(value).has(oaId));
+
 export const validateChannelIdentity = (identity: ChannelIdentity): void => {
   if (!identity || (identity.channel !== 'telegram' && identity.channel !== 'zalo_oa')) throw new Error('Unsupported channel');
   if (!identity.channelAccountId?.trim() || !identity.channelUserId?.trim()) throw new Error('Channel account and user are required');
@@ -55,6 +64,17 @@ export const canRelinkActiveChannel = (existingFirebaseUid: string, targetFireba
   Boolean(existingFirebaseUid?.trim() && targetFirebaseUid?.trim() && existingFirebaseUid === targetFirebaseUid);
 
 const adminDb = (db?: Firestore) => db || getAdminDb();
+
+export const claimAssistantRequestNonce = async (nonce: string, now = Date.now(), db?: Firestore): Promise<void> => {
+  if (!/^[A-Za-z0-9._~-]{1,256}$/.test(nonce)) throw new Error('Invalid request');
+  const firestore = adminDb(db);
+  const ref = firestore.collection('assistantRequestNonces').doc(nonce);
+  await firestore.runTransaction(async tx => {
+    const existing = await tx.get(ref);
+    if (existing.exists) throw new Error('Replay detected');
+    tx.set(ref, { createdAt: now, expiresAt: now + ASSISTANT_SIGNATURE_WINDOW_SECONDS * 1000 } satisfies AssistantRequestNonceDoc);
+  });
+};
 
 export const verifyFirebaseIdToken = async (idToken: string): Promise<string> => {
   if (!idToken?.trim()) throw new Error('Missing Firebase ID token');
@@ -105,14 +125,18 @@ export const consumeLinkCode = async (
       .where('channelAccountId', '==', identity.channelAccountId)
       .where('channelUserId', '==', identity.channelUserId)
       .where('active', '==', true));
+    const linkRef = firestore.collection('channelLinks').doc(codeDoc.id);
+    const linkSnapshot = await tx.get(linkRef);
     existing.docs.forEach(doc => {
       const existingUid = String(doc.data()?.firebaseUid || '');
       if (!canRelinkActiveChannel(existingUid, value.firebaseUid)) throw new Error('Channel is already linked to another account');
     });
+    if (linkSnapshot.exists && linkSnapshot.data()?.active === true && linkSnapshot.data()?.firebaseUid !== value.firebaseUid) {
+      throw new Error('Link is already used');
+    }
     await cancelConfirmations(tx, firestore, identity, value.firebaseUid);
     existing.docs.forEach(doc => tx.update(doc.ref, { active: false, revokedAt: now, updatedAt: now }));
 
-    const linkRef = firestore.collection('channelLinks').doc(codeDoc.id);
     const link: ChannelLinkDoc = {
       firebaseUid: value.firebaseUid,
       channel: identity.channel,

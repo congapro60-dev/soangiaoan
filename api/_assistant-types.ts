@@ -35,6 +35,11 @@ export interface LinkCodeDoc {
   usedBy?: Pick<AssistantActor, 'channel' | 'channelAccountId' | 'channelUserId'>;
 }
 
+export interface AssistantRequestNonceDoc {
+  createdAt: number;
+  expiresAt: number;
+}
+
 export interface ChannelLinkDoc {
   firebaseUid: string;
   channel: Channel;

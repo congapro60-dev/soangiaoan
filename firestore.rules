@@ -1199,6 +1199,9 @@ service cloud.firestore {
     match /assistantJobs/{jobId} {
       allow read, write: if false;
     }
+    match /assistantRequestNonces/{nonce} {
+      allow read, write: if false;
+    }
 
   }
 }
