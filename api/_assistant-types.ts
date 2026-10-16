@@ -114,8 +114,8 @@ export function isUsableChannelLink(
   identity?: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>,
 ): boolean {
   return link.active === true && link.revokedAt === undefined && Number.isFinite(now)
-    && link.createdAt <= now
-    && (link.expiresAt === undefined || link.expiresAt > now)
+    && Number.isFinite(link.createdAt) && link.createdAt <= now
+    && (link.expiresAt === undefined || (Number.isFinite(link.expiresAt) && link.expiresAt > now))
     && (identity === undefined || (link.channel === identity.channel
       && link.channelAccountId === identity.channelAccountId
       && link.channelUserId === identity.channelUserId));
@@ -129,7 +129,10 @@ export function canUseAssistantShare(
   requiredRole: AssistantRole,
   now: number,
 ): boolean {
-  if (share.status !== 'active' || share.revokedAt !== undefined
+  if ((share.status !== 'active' && share.status !== 'revoked')
+    || (share.role !== 'read' && share.role !== 'write')
+    || (share.resourceType !== 'class' && share.resourceType !== 'lessonPlan')
+    || share.status !== 'active' || share.revokedAt !== undefined
     || share.resourceType !== resourceType || share.resourceId !== resourceId
     || !Number.isFinite(now) || !Number.isFinite(share.createdAt) || share.createdAt > now
     || (share.expiresAt !== undefined

@@ -222,7 +222,7 @@ Confirmation fields:
 - expiresAt
 - status: pending, confirmed, cancelled, expired, or executed
 
-Confirmation accepts only the same linked Telegram identity and matching request hash. A second confirmation or replay returns the existing result and does not repeat the side effect.
+Confirmation accepts only the same linked channel identity (channel + channelAccountId + channelUserId, with optional chat) and matching request hash. A second confirmation or replay returns the existing result and does not repeat the side effect.
 
 Audit records include actor UID, channel account/user IDs, tool, resource IDs, result status, confirmation ID, request hash, error class, and timestamps. Never store raw API keys, PINs, full student submissions, or private download tokens in logs.
 

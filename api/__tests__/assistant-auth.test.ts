@@ -16,22 +16,34 @@ describe('assistant authorization contracts', () => {
     expect(isUsableChannelLink(link, now)).toBe(true);
     expect(isUsableChannelLink(link, now, { channel: 'telegram', channelAccountId: 'bot-1', channelUserId: 'unknown' })).toBe(false);
     expect(isUsableChannelLink({ ...link, createdAt: 1_100 }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, expiresAt: 999 }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, active: false }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, revokedAt: 950 }, now)).toBe(false);
   });
 
   it('authorizes owner and grantee reads, but respects revocation and role escalation', () => {
     expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'read', now)).toBe(true);
+    expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'write', now)).toBe(true);
     expect(canUseAssistantShare(share, 'grantee', 'class', 'class-1', 'read', now)).toBe(true);
     expect(canUseAssistantShare(share, 'unknown', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, status: 'revoked' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare(share, 'grantee', 'class', 'class-1', 'write', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, expiresAt: now }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, expiresAt: Number.NaN }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: Number.POSITIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: Number.NEGATIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, resourceType: 'lessonPlan' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, resourceId: 'class-2' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, createdAt: Number.NaN }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, createdAt: Number.POSITIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, createdAt: Number.NEGATIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, status: 'pending' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, role: 'admin' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, resourceType: 'exam' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
   });
 
   it('keeps the same Zalo UID scoped to its OA', () => {

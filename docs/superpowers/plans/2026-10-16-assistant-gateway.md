@@ -90,7 +90,7 @@ Files:
 - Modify: firestore.rules
 - Test: api/__tests__/assistant-auth.test.ts
 
-- [ ] Define AssistantActor with firebaseUid, telegramUserId, chatId, linkId, and active.
+- [ ] Define AssistantActor with firebaseUid, channel, channelAccountId, channelUserId, optional channelChatId, linkId, and active.
 - [ ] Define AssistantToolName as an explicit union. Do not accept arbitrary tool names from the model.
 - [ ] Define assistantLinkCodes, channelLinks, assistantShares, assistantConfirmations, assistantAuditLogs, and assistantJobs document shapes.
 - [ ] Add deny-by-default Firestore matches for all six collections. Server Admin SDK remains the only access path.
@@ -101,8 +101,10 @@ Contract to implement before tool code:
 ~~~ts
 type AssistantActor = {
   firebaseUid: string;
-  telegramUserId: string;
-  chatId: string;
+  channel: Channel;
+  channelAccountId: string;
+  channelUserId: string;
+  channelChatId?: string;
   linkId: string;
   active: true;
 };
@@ -236,7 +238,7 @@ Files:
 - [ ] Require confirmation for every category except read.
 - [ ] Build request hash from normalized tool name, actor, resource IDs, payload, and intended recipients.
 - [ ] Store a short-lived confirmation with preview, expiry, and status.
-- [ ] Accept confirmation only from the same linked Telegram identity and matching request hash.
+- [ ] Accept confirmation only from the same linked channel identity (channel + channelAccountId + channelUserId, optional channelChatId) and matching request hash.
 - [ ] Mark confirmed records executed atomically before side effect; replay returns the original result.
 - [ ] Write audit logs for reads that expose student data and all mutations.
 - [ ] Test cancel, expiry, wrong chat, changed payload, replay, and partial failure.
@@ -247,8 +249,10 @@ Contract to implement before the confirmation handler:
 type AssistantConfirmation = {
   id: string;
   actorUid: string;
-  telegramUserId: string;
-  chatId: string;
+  channel: Channel;
+  channelAccountId: string;
+  channelUserId: string;
+  channelChatId?: string;
   toolName: AssistantToolName;
   requestHash: string;
   preview: string;
