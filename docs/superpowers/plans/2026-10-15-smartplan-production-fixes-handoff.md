@@ -86,7 +86,7 @@
 - Validate generated Vietnamese math content against source curriculum before release; current stored “Mệnh đề” artifact contains an incorrect equivalence explanation.
 - Fix generated exam metadata defaulting to stale school year `2024-2025` when current date is October 2026.
 - Fix Word export pagination: orphan `ĐÁP ÁN` heading and awkward answer-table continuation.
-- Reduce production entry chunk (`index` observed around 1.53 MB) below the project 1 MB budget.
+- [x] Split standalone routes and file-heavy utilities out of the entry bundle; local build entry is now `672.89 kB`.
 - Re-run production GV/HS permission QA with real sessions after Rules deployment; source fixes alone do not prove deployed Rules.
 - [x] Add explicit longer time budgets to the three known crypto/storage-heavy regression tests; targeted serial run `58/58` passes.
 - Re-check current dirty WIP in the original checkout before any integration or deployment decision.

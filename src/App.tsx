@@ -9,7 +9,6 @@ import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { usePpctQueue } from './hooks/usePpctQueue';
-import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
 import { isAdminEmail } from './lib/admin/adminConfig';
 
@@ -18,8 +17,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
-import { SettingsModal } from './components/modals/SettingsModal';
-import { LatexModal } from './components/modals/LatexModal';
 import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
 import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
 import { AiWalletChip } from './components/features/aiBilling/AiWalletChip';
@@ -46,12 +43,14 @@ const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab')
 const LessonScheduleTab = lazy(() => import('./components/tabs/LessonScheduleTab').then(m => ({ default: m.LessonScheduleTab })));
 const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
 const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m => ({ default: m.AiBillingTab })));
+const PpctBulkPanel = lazy(() => import('./components/features/creator/PpctBulkPanel').then(m => ({ default: m.PpctBulkPanel })));
+const SettingsModal = lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const LatexModal = lazy(() => import('./components/modals/LatexModal').then(m => ({ default: m.LatexModal })));
 
 // Utils
-import { processUploadedFile } from './utils/fileUtils';
+const loadFileUtils = () => import('./utils/fileUtils');
 // Tải module xuất (kéo theo pptxgenjs, docx…) chỉ khi bấm xuất — không nằm trong bundle ban đầu.
 const loadExportUtils = () => import('./utils/exportUtils');
-import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
 import { TemplateFile } from './types';
@@ -190,6 +189,7 @@ export default function App() {
     try {
       const processedFiles: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
+        const { processUploadedFile } = await loadFileUtils();
         const resultFiles = await processUploadedFile(files[i], uploadingFiles.category, i);
         processedFiles.push(...resultFiles);
       }
@@ -596,7 +596,7 @@ export default function App() {
       <LatexModal 
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
-        downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
+        downloadLaTeXFile={() => loadFileUtils().then(({ downloadBlob, safeFilename }) => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`))}
         openInOverleaf={() => loadExportUtils().then(m => m.openInOverleaf(latexContent, creator.currentPlan, showToast))}
         showToast={showToast}
       />
