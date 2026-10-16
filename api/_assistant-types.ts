@@ -108,22 +108,43 @@ export interface AssistantJobDoc {
   errorClass?: string;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+const isChannel = (value: unknown): value is Channel =>
+  value === 'telegram' || value === 'zalo_oa';
+const isRole = (value: unknown): value is AssistantRole =>
+  value === 'read' || value === 'write';
+const isResourceType = (value: unknown): value is AssistantResourceType =>
+  value === 'class' || value === 'lessonPlan';
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+const isOptionalFiniteNumber = (value: unknown): boolean =>
+  value === undefined || isFiniteNumber(value);
+
 export function isUsableChannelLink(
   link: ChannelLinkDoc,
   now: number,
   identity?: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>,
 ): boolean {
-  const validIdentity = (value: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>): boolean =>
-    (value.channel === 'telegram' || value.channel === 'zalo_oa')
-    && typeof value.channelAccountId === 'string' && value.channelAccountId.length > 0
-    && typeof value.channelUserId === 'string' && value.channelUserId.length > 0;
-  return validIdentity(link) && (identity === undefined || validIdentity(identity))
-    && link.active === true && link.revokedAt === undefined && Number.isFinite(now)
-    && Number.isFinite(link.createdAt) && link.createdAt <= now
-    && (link.expiresAt === undefined || (Number.isFinite(link.expiresAt) && link.expiresAt > now))
-    && (identity === undefined || (link.channel === identity.channel
-      && link.channelAccountId === identity.channelAccountId
-      && link.channelUserId === identity.channelUserId));
+  try {
+    if (!isRecord(link) || !isFiniteNumber(now)) return false;
+    const validIdentity = (value: unknown): value is Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'> =>
+      isRecord(value) && isChannel(value.channel)
+      && isNonEmptyString(value.channelAccountId) && isNonEmptyString(value.channelUserId);
+    if (!validIdentity(link) || (identity !== undefined && !validIdentity(identity))) return false;
+    return link.active === true
+      && isFiniteNumber(link.createdAt) && isFiniteNumber(link.updatedAt)
+      && link.createdAt <= now
+      && isOptionalFiniteNumber(link.expiresAt) && (link.expiresAt === undefined || link.expiresAt > now)
+      && isOptionalFiniteNumber(link.revokedAt) && link.revokedAt === undefined
+      && (identity === undefined || (link.channel === identity.channel
+        && link.channelAccountId === identity.channelAccountId
+        && link.channelUserId === identity.channelUserId));
+  } catch {
+    return false;
+  }
 }
 
 export function canUseAssistantShare(
@@ -134,15 +155,21 @@ export function canUseAssistantShare(
   requiredRole: AssistantRole,
   now: number,
 ): boolean {
-  if ((share.status !== 'active' && share.status !== 'revoked')
-    || (share.role !== 'read' && share.role !== 'write')
-    || (requiredRole !== 'read' && requiredRole !== 'write')
-    || (share.resourceType !== 'class' && share.resourceType !== 'lessonPlan')
-    || share.status !== 'active' || share.revokedAt !== undefined
-    || share.resourceType !== resourceType || share.resourceId !== resourceId
-    || !Number.isFinite(now) || !Number.isFinite(share.createdAt) || share.createdAt > now
-    || (share.expiresAt !== undefined
-      && (!Number.isFinite(share.expiresAt) || share.expiresAt <= now))) return false;
-  if (share.ownerUid === actorUid) return true;
-  return share.granteeUid === actorUid && (requiredRole === 'read' || share.role === 'write');
+  try {
+    if (!isRecord(share) || !isNonEmptyString(actorUid) || !isNonEmptyString(resourceId)
+      || !isResourceType(resourceType) || !isRole(requiredRole) || !isFiniteNumber(now)
+      || !isNonEmptyString(share.resourceId) || !isNonEmptyString(share.ownerUid)
+      || !isNonEmptyString(share.granteeUid) || !isResourceType(share.resourceType)
+      || !isRole(share.role) || (share.status !== 'active' && share.status !== 'revoked')
+      || share.status !== 'active' || share.revokedAt !== undefined
+      || share.resourceType !== resourceType || share.resourceId !== resourceId
+      || !isFiniteNumber(share.createdAt) || share.createdAt > now
+      || !isOptionalFiniteNumber(share.expiresAt)
+      || (share.expiresAt !== undefined && share.expiresAt <= now)
+      || !isOptionalFiniteNumber(share.revokedAt)) return false;
+    if (share.ownerUid === actorUid) return true;
+    return share.granteeUid === actorUid && (requiredRole === 'read' || share.role === 'write');
+  } catch {
+    return false;
+  }
 }
