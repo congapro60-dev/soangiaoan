@@ -200,7 +200,8 @@ export const statementFor = async (db: Db, uid: string, month: string): Promise<
     topups: topups.filter(t => t.month === month).sort((a, b) => String(a.at).localeCompare(String(b.at))),
     adjustments: adjustments.filter(a => a.month === month).sort((a, b) => String(a.at).localeCompare(String(b.at))),
     items: await describeItems(db, items),
-    ownKeyCalls: usage.filter(u => u.keySource === 'own' && u.month === month).length,
+    ownKeyCalls: usage.filter(u => u.keySource === 'own' && u.keyHolder !== 'student' && u.month === month).length,
+    studentKeyCalls: usage.filter(u => u.keyHolder === 'student' && u.month === month).length,
   };
 };
 
