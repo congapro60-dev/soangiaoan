@@ -113,7 +113,12 @@ export function isUsableChannelLink(
   now: number,
   identity?: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>,
 ): boolean {
-  return link.active === true && link.revokedAt === undefined && Number.isFinite(now)
+  const validIdentity = (value: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>): boolean =>
+    (value.channel === 'telegram' || value.channel === 'zalo_oa')
+    && typeof value.channelAccountId === 'string' && value.channelAccountId.length > 0
+    && typeof value.channelUserId === 'string' && value.channelUserId.length > 0;
+  return validIdentity(link) && (identity === undefined || validIdentity(identity))
+    && link.active === true && link.revokedAt === undefined && Number.isFinite(now)
     && Number.isFinite(link.createdAt) && link.createdAt <= now
     && (link.expiresAt === undefined || (Number.isFinite(link.expiresAt) && link.expiresAt > now))
     && (identity === undefined || (link.channel === identity.channel
@@ -131,6 +136,7 @@ export function canUseAssistantShare(
 ): boolean {
   if ((share.status !== 'active' && share.status !== 'revoked')
     || (share.role !== 'read' && share.role !== 'write')
+    || (requiredRole !== 'read' && requiredRole !== 'write')
     || (share.resourceType !== 'class' && share.resourceType !== 'lessonPlan')
     || share.status !== 'active' || share.revokedAt !== undefined
     || share.resourceType !== resourceType || share.resourceId !== resourceId

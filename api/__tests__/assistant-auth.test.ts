@@ -18,9 +18,16 @@ describe('assistant authorization contracts', () => {
     expect(isUsableChannelLink({ ...link, createdAt: 1_100 }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, createdAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, createdAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.NaN }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, expiresAt: 999 }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, expiresAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, expiresAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.NaN }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channel: 'discord' as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: null as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelUserId: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelUserId: 42 as never }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, active: false }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, revokedAt: 950 }, now)).toBe(false);
   });
@@ -28,6 +35,7 @@ describe('assistant authorization contracts', () => {
   it('authorizes owner and grantee reads, but respects revocation and role escalation', () => {
     expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'read', now)).toBe(true);
     expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'write', now)).toBe(true);
+    expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'admin' as never, now)).toBe(false);
     expect(canUseAssistantShare(share, 'grantee', 'class', 'class-1', 'read', now)).toBe(true);
     expect(canUseAssistantShare(share, 'unknown', 'class', 'class-1', 'read', now)).toBe(false);
     expect(canUseAssistantShare({ ...share, status: 'revoked' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);

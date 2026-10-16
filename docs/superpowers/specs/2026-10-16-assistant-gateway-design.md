@@ -28,7 +28,7 @@ The result is a thin channel adapter layer plus a SmartPlan Assistant Gateway. T
 ### Teacher
 
 - Authenticated SmartPlan Firebase user.
-- Links one or more private Telegram chats through a short-lived one-time code.
+- Links one or more channel identities through a short-lived one-time code.
 - Reads owned data automatically.
 - Reads explicitly shared classes or lesson plans according to a share grant.
 - Confirms every mutation, outbound message, destructive action, or billable AI job.
@@ -56,7 +56,7 @@ Every request carries `channel`, `channelAccountId`, and `channelUserId`.
 - Server-side identity resolution.
 - Read tools for classes, students, assignments, submissions, grades, lesson plans, exams, adaptive progress, and job status.
 - Explicit share grants for individual classes and lesson plans.
-- Confirmation records bound to teacher, Telegram chat, request hash, and expiration.
+- Confirmation records bound to teacher, channel identity, optional channel chat, request hash, and expiration.
 - Audit records for reads that expose student data and every write.
 - Draft lesson generation, export, Drive upload, assignment creation, grading launch, grade approval/edit, and outbound teacher/parent message as confirmed tools.
 - Long-running job status through the originating channel adapter.
