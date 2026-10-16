@@ -349,3 +349,10 @@ CKEditor native result: source0.3.2 focus/guard chạy, nhưng CKEditor không n
 - `0.3.2` native test: `execCommand` không cập nhật CKEditor model; gõ tay và Ctrl+Z trên SSM thật đạt, chứng minh editor hoạt động. Bridge báo lỗi trung thực, không Save.
 - `0.3.3` đổi sang ClipboardEvent paste text/plain, đúng clipboard pipeline CKEditor5; giữ focus/selection/empty/media/readonly guards và retention check 100ms. 22 extension tests + build/lint + Gemini review đạt. Native 0.3.3 model test vẫn chưa có bằng chứng vì phiên browser treo lúc paste; không tuyên bố PASS.
 - Excel relay, roster/cloud sync, cross-machine chưa QA production. Không tự Lưu/Submit.
+
+
+## SmartPlan QA bundle follow-up 2026-10-16
+
+- Lazy-loaded standalone routes and file-heavy utilities from src/main.tsx/src/App.tsx to reduce production entry bundle from ~1.535 MB to ~672.89 kB.
+- Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
+- Remaining: large lazy chunks remain expected; no production data writes.
