@@ -50,7 +50,7 @@ const problemsOf = (rows: readonly Row[]): string[] => {
   const codes = rows.map(row => row.code.trim());
   if (codes.some(code => !/^[0-9A-Za-z]{1,8}$/u.test(code))) out.push('Có mã đề để trống hoặc sai dạng (chỉ chữ số/chữ cái, tối đa 8 ký tự).');
   if (new Set(codes).size !== codes.length) out.push('Có hai dòng trùng mã đề.');
-  const missing = rows.filter(row => !row.answerKey.trim()).map(row => row.code);
+  const missing = rows.filter(row => !row.answerKey.trim()).map(row => row.code.trim() || '(chưa có mã)');
   if (missing.length > 0) out.push(`Mã ${missing.join(', ')} chưa có đáp án — dán đáp án hoặc bấm “Để AI giải đề”.`);
   return out;
 };
