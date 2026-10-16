@@ -21,6 +21,9 @@ export const createTelegramLinkCode = (user: User) => call<{ code: string; expir
 export const revokeTelegramLink = (user: User, linkId: string) =>
   call<{ ok: true }>(user, 'revokeLink', { linkId });
 
+export const cancelTelegramLinkCode = (user: User, linkId: string) =>
+  call<{ ok: true }>(user, 'cancelLinkCode', { linkId });
+
 export const consumeChannelLink = (code: string, identity: {
   channel: LinkChannel;
   channelAccountId: string;

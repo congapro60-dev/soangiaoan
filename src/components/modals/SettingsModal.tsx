@@ -31,7 +31,7 @@ import { EffortPicker } from '../features/settings/EffortPicker';
 import { GeminiKeysField } from '../features/settings/GeminiKeysField';
 import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
 import { auth } from '../../lib/firebase';
-import { createTelegramLinkCode, revokeTelegramLink } from '../../services/telegramLinkService';
+import { cancelTelegramLinkCode, createTelegramLinkCode, revokeTelegramLink } from '../../services/telegramLinkService';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -345,14 +345,6 @@ export const SettingsModal = ({
 
                   {activeTab !== 'vercel-gateway' && <div className="mt-4"><ProviderGuideCard provider={activeTab} /></div>}
                 </section>
-                <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div><h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Kết nối trợ lý Telegram / Zalo OA</h4><p className="mt-1 text-sm text-slate-500">Mã dùng một lần, hết hạn sau 10 phút. Chỉ hiển thị ngay sau khi tạo.</p></div>
-                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  {linkCode ? <div className="mt-4 flex flex-wrap items-center gap-2"><code className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold tracking-widest text-slate-800">{linkCode.code}</code><button type="button" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white" onClick={() => navigator.clipboard.writeText(linkCode.code).then(() => showToast('Đã chép mã liên kết'))}>Copy</button><button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await revokeTelegramLink(auth.currentUser, linkCode.linkId); setLinkCode(null); showToast('Đã thu hồi mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi mã'); } finally { setLinkBusy(false); } }}>Thu hồi</button></div> : <button type="button" className="mt-4 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { setLinkCode(await createTelegramLinkCode(auth.currentUser)); showToast('Đã tạo mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo mã'); } finally { setLinkBusy(false); } }}>{linkBusy ? 'Đang tạo…' : 'Tạo mã liên kết'}</button>}
-                </section>
-
                 <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
                   <div className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
                     <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Mô hình</h4>
@@ -544,6 +536,13 @@ export const SettingsModal = ({
                       </label>
                     ))}
                   </div>
+                </section>
+                <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div><h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Kết nối trợ lý Telegram / Zalo OA</h4><p className="mt-1 text-sm text-slate-500">Mã dùng một lần, hết hạn sau 10 phút. Chỉ hiển thị ngay sau khi tạo.</p></div>
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  {linkCode ? <div className="mt-4 flex flex-wrap items-center gap-2"><code className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold tracking-widest text-slate-800">{linkCode.code}</code><button type="button" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white" onClick={() => navigator.clipboard.writeText(linkCode.code).then(() => showToast('Đã chép mã liên kết'))}>Copy</button><button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await cancelTelegramLinkCode(auth.currentUser, linkCode.linkId); setLinkCode(null); showToast('Đã thu hồi mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi mã'); } finally { setLinkBusy(false); } }}>Thu hồi</button></div> : <button type="button" className="mt-4 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { setLinkCode(await createTelegramLinkCode(auth.currentUser)); showToast('Đã tạo mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo mã'); } finally { setLinkBusy(false); } }}>{linkBusy ? 'Đang tạo…' : 'Tạo mã liên kết'}</button>}
                 </section>
               </div>
             </div>
