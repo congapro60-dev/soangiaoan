@@ -5,6 +5,7 @@ import type { ExamSubmission } from '../types';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import type { CompetencyPortfolioDoc, PortfolioEntry } from '../lib/classroom/competency/studentPortfolio';
 import type { StudentAiCostView } from '../lib/classroom/studentAiCost';
+import type { StudentDiscoverCatalogItem } from '../lib/discover/types';
 
 export interface RosterEntry {
   studentId: string;
@@ -157,6 +158,15 @@ export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]>
   const idToken = await current.getIdToken();
   const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
   return response.submissions || [];
+};
+
+/** Danh mục Discover an toàn theo khối của lớp; máy chủ tự ràng buộc theo phiên HS. */
+export const fetchStudentDiscoverCatalog = async (): Promise<StudentDiscoverCatalogItem[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ catalog: StudentDiscoverCatalogItem[] }>({ action: 'studentDiscoverCatalog', idToken });
+  return response.catalog || [];
 };
 
 /** Chi phí AI của chính học sinh (token + tiền ước tính) — chỉ để em biết; máy chủ lọc theo phiên, không nhận studentId. */

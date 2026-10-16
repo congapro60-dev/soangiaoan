@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpenCheck, Filter, Sparkles } from 'lucide-react';
-import manifest from '../data/discoverNewKnowledgeLessons.json';
+import manifest from '../data/discoverNewKnowledgeLessons';
 import type { DiscoverGrade, DiscoverNewKnowledgeSeed, DiscoverSourceDraft } from '../lib/discover/types';
 
 const seeds = manifest as DiscoverNewKnowledgeSeed[];

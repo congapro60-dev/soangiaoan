@@ -13,6 +13,8 @@ import { publishedReportInput } from './_published-report.js';
 import { COMPETENCY_LEVELS } from '../src/lib/classroom/competency/framework.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
+import discoverManifest from '../src/data/discoverNewKnowledgeLessons.js';
+import type { DiscoverNewKnowledgeSeed, StudentDiscoverCatalogItem } from '../src/lib/discover/types.js';
 
 type Data = FirebaseFirestore.DocumentData;
 type Db = FirebaseFirestore.Firestore;
@@ -163,10 +165,26 @@ const reportMeta = (id: string, data: Data) => ({
   id, kind: text(data.kind), from: text(data.from), to: text(data.to), title: text(data.title), range: text(data.range), publishedAt: text(data.publishedAt),
 });
 
+const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
+  (discoverManifest as readonly DiscoverNewKnowledgeSeed[])
+    .filter(seed => seed.grade === grade)
+    .map(seed => ({
+      id: seed.id,
+      title: seed.text.split(' / ')[0]?.trim() || seed.text,
+      grade: seed.grade,
+      week: seed.week,
+      period: seed.period,
+      status: 'available' as const,
+    }));
+
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport'].includes(body.action)) return false;
+  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
+    if (body.action === 'studentDiscoverCatalog') {
+      res.status(200).json({ catalog: studentDiscoverCatalog(text(context.classDoc.data()?.grade)) });
+      return true;
+    }
     if (body.action === 'studentReports' || body.action === 'studentReport') {
       if (body.action === 'studentReports') {
         const snap = await context.classRef.collection(PARENT_REPORTS_SUB).where('studentId', '==', context.studentId).get();

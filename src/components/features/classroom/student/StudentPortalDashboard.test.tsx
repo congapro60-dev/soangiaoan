@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type { ComponentProps } from 'react';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
+import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
 import { buildWorkspaceRows, filterWorkspaceRows, studentClarificationQuestions, StudentPortalDashboard } from './StudentPortalDashboard';
 
 vi.mock('./StudentAiCostChip', () => ({ StudentAiCostChip: () => null }));
@@ -22,6 +23,22 @@ const pendingGrade = { score: 0, maxScore: 10, feedback: 'SECRET', strengths: []
     score: 0, maxScore: 1, clarify: { kind: 'mcq', state: 'open', reading: 'B' } }], gradedAt: '' } as NonNullable<SubmissionDoc['grade']>;
 
 describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu', () => {
+  it('shows safe Discover catalog metadata with a disabled preparation status', () => {
+    const discoverCatalog: StudentDiscoverCatalogItem[] = [{
+      id: 'tds-discover-g10-p2', title: 'Mệnh đề', grade: '10', week: 1, period: 2, status: 'available',
+    }];
+    const props = {
+      session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions: [],
+      onlineSubmissions: [], profile: null, scores: null, discoverCatalog, notifications: [], pendingFiles: [], practiceAnswers: {},
+      uploadRef: { current: null }, onReload: vi.fn(), onLoadDetail: vi.fn(),
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(html).toContain('Discover');
+    expect(html).toContain('Mệnh đề');
+    expect(html).toContain('Đang chuẩn bị bài');
+    expect(html).not.toContain('/discover-self-study');
+  });
+
   it('trả lời trên lượt chấm thử cũ vẫn mở đúng lượt sau khi em bổ sung ảnh', () => {
     const submissions = [work('root', null, { createdAt: '2026-09-01T00:00:00Z' }), work('new', null, { supplementOf: 'root' })];
     const onLoadDetail = vi.fn().mockResolvedValue({ submissions, assignment: undefined });

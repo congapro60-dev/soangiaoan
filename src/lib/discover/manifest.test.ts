@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import manifest from '../../data/discoverNewKnowledgeLessons.json';
+import manifest from '../../data/discoverNewKnowledgeLessons';
 import type { DiscoverNewKnowledgeSeed } from './types';
 
 const rows = manifest as DiscoverNewKnowledgeSeed[];
