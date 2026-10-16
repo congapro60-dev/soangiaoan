@@ -1,18 +1,51 @@
+import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, listActiveChannelLinks, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
+import {
+  cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode,
+  isAllowedZaloOaId, listActiveChannelLinks, revokeLink,
+  validateChannelIdentity, verifyAssistantServiceSignature,
+} from './_assistant-auth.js';
+import type { Channel } from './_assistant-types.js';
 
-const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7) : '';
 export const config = { api: { bodyParser: false } };
-const bodyOf = (rawBody: string): Record<string, unknown> => {
-  try {
-    const parsed = JSON.parse(rawBody);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
-  } catch {
-    return {};
-  }
-};
-const text = (v: unknown) => typeof v === 'string' ? v : '';
+const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7).trim() : '';
 const header = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] || '' : value || '';
+const text = (value: unknown) => typeof value === 'string' ? value.trim() : '';
+const requestId = (value: unknown) => {
+  const id = text(value);
+  return id && /^[A-Za-z0-9._:-]{1,128}$/.test(id) ? id : '';
+};
+
+export interface GatewayEnvelope {
+  action: string;
+  requestId: string;
+  channel?: Channel;
+  channelAccountId?: string;
+  channelUserId?: string;
+  channelChatId?: string;
+  payload: Record<string, unknown>;
+}
+
+export const normalizeGatewayEnvelope = (body: Record<string, unknown>): GatewayEnvelope => {
+  const action = text(body.action);
+  const suppliedRequestId = requestId(body.requestId);
+  if (!action || (body.requestId !== undefined && !suppliedRequestId)) throw new Error('Invalid request');
+  const rawChannel = text(body.channel);
+  if (rawChannel && rawChannel !== 'telegram' && rawChannel !== 'zalo_oa') throw new Error('Unsupported channel');
+  const channel = rawChannel as Channel | undefined;
+  const account = text(body.channelAccountId);
+  const user = text(body.channelUserId);
+  const chat = text(body.channelChatId);
+  if (channel && (!account || !user)) throw new Error('Invalid request');
+  if (channel === 'telegram' && chat !== user) throw new Error('Telegram linking requires a private chat');
+  return {
+    action,
+    requestId: suppliedRequestId || crypto.randomUUID(),
+    ...(channel ? { channel, channelAccountId: account, channelUserId: user, ...(chat ? { channelChatId: chat } : {}) } : {}),
+    payload: body,
+  };
+};
+
 const rawRequestBody = (req: VercelRequest): string => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
   if (Buffer.isBuffer(raw)) return raw.toString('utf8');
@@ -28,63 +61,67 @@ const readRequestBody = async (req: VercelRequest): Promise<string> => {
   for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   return Buffer.concat(chunks).toString('utf8');
 };
+const parseBody = (raw: string): Record<string, unknown> => {
+  if (!raw) throw new Error('Invalid request');
+  const parsed: unknown = JSON.parse(raw);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid request');
+  return parsed as Record<string, unknown>;
+};
+const safeError = (res: VercelResponse, status: number, requestIdValue: string, code: string) =>
+  res.status(status).json({ kind: 'error', code, requestId: requestIdValue });
+const notImplemented = (res: VercelResponse, id: string) => safeError(res, 501, id, 'NOT_IMPLEMENTED');
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const rawBody = await readRequestBody(req);
-  const body = bodyOf(rawBody);
+  if (req.method !== 'POST') return res.status(405).json({ kind: 'error', code: 'METHOD_NOT_ALLOWED' });
+  let envelope: GatewayEnvelope | undefined;
   try {
-    if (body.action === 'createLinkCode') {
-      const token = bearer(req.headers.authorization);
-      if (!token) return res.status(401).json({ error: 'Authentication required' });
-      return res.status(200).json(await createLinkCode(token));
-    }
-    if (body.action === 'revokeLink' || body.action === 'revokeChannelLink') {
-      const token = bearer(req.headers.authorization);
-      if (!token) return res.status(401).json({ error: 'Authentication required' });
-      await revokeLink(token, text(body.linkId));
-      return res.status(200).json({ ok: true });
-    }
-    if (body.action === 'listChannelLinks') {
-      const token = bearer(req.headers.authorization);
-      if (!token) return res.status(401).json({ error: 'Authentication required' });
-      return res.status(200).json({ links: await listActiveChannelLinks(token) });
-    }
-    if (body.action === 'cancelLinkCode') {
-      const token = bearer(req.headers.authorization);
-      if (!token) return res.status(401).json({ error: 'Authentication required' });
-      await cancelLinkCode(token, text(body.linkId));
-      return res.status(200).json({ ok: true });
-    }
-    if (body.action === 'consumeLinkCode') {
+    const rawBody = await readRequestBody(req);
+    const body = parseBody(rawBody);
+    envelope = normalizeGatewayEnvelope(body);
+    const { action, requestId: id } = envelope;
+    const adapterAction = action === 'consumeLinkCode' || Boolean(envelope.channel);
+    if (adapterAction) {
       const timestamp = header(req.headers['x-assistant-timestamp']);
       const nonce = header(req.headers['x-assistant-nonce']);
       const signature = header(req.headers['x-assistant-signature']);
-      const secret = process.env.SMARTPLAN_ASSISTANT_SECRET;
-      if (!verifyAssistantServiceSignature(rawBody, timestamp, nonce, signature, secret)) {
-        return res.status(401).json({ error: 'Assistant adapter authentication required' });
-      }
-      const now = Date.now();
-      await claimAssistantRequestNonce(nonce, now);
-      const channel = body.channel === 'telegram' || body.channel === 'zalo_oa' ? body.channel : '';
-      if (!channel) return res.status(400).json({ error: 'Unsupported channel' });
-      const channelAccountId = text(body.channelAccountId);
-      if (channel === 'zalo_oa' && !isAllowedZaloOaId(channelAccountId)) {
-        return res.status(401).json({ error: 'Assistant adapter authentication required' });
-      }
-      const result = await consumeLinkCode(text(body.code), {
-        channel,
-        channelAccountId,
-        channelUserId: text(body.channelUserId),
-        channelChatId: text(body.channelChatId) || undefined,
-        verifiedChannelAccountId: text(body.verifiedChannelAccountId) || undefined,
-      });
-      return res.status(200).json(result);
+      if (!verifyAssistantServiceSignature(rawBody, timestamp, nonce, signature, process.env.SMARTPLAN_ASSISTANT_SECRET)) return safeError(res, 401, id, 'UNAUTHORIZED');
+      await claimAssistantRequestNonce(nonce);
+      if (envelope.channel === 'zalo_oa' && !isAllowedZaloOaId(envelope.channelAccountId || '')) return safeError(res, 401, id, 'UNAUTHORIZED');
+      if (envelope.channel) validateChannelIdentity(envelope as Required<Pick<GatewayEnvelope, 'channel' | 'channelAccountId' | 'channelUserId'>> & { channelChatId?: string });
     }
-    return res.status(400).json({ error: 'Unknown action' });
+    if (action === 'createLinkCode') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      return res.status(200).json({ kind: 'answer', requestId: id, result: await createLinkCode(token) });
+    }
+    if (action === 'consumeLinkCode') {
+      if (!envelope.channel) throw new Error('Invalid request');
+      const result = await consumeLinkCode(text(envelope.payload.code), {
+        channel: envelope.channel, channelAccountId: envelope.channelAccountId!, channelUserId: envelope.channelUserId!,
+        channelChatId: envelope.channelChatId, verifiedChannelAccountId: envelope.channelAccountId,
+      });
+      return res.status(200).json({ kind: 'answer', requestId: id, result });
+    }
+    if (action === 'revokeLink' || action === 'revokeChannelLink' || action === 'cancelLinkCode') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      const linkId = text(envelope.payload.linkId);
+      if (!linkId) throw new Error('Invalid request');
+      if (action === 'cancelLinkCode') await cancelLinkCode(token, linkId);
+      else await revokeLink(token, linkId);
+      return res.status(200).json({ kind: 'answer', requestId: id, result: { ok: true } });
+    }
+    if (action === 'listChannelLinks') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      return res.status(200).json({ kind: 'answer', requestId: id, result: { links: await listActiveChannelLinks(token) } });
+    }
+    if (action === 'chat' || action === 'confirm' || action === 'cancel' || action === 'jobStatus') return notImplemented(res, id);
+    return safeError(res, 400, id, 'UNKNOWN_ACTION');
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Assistant request failed';
-    const status = /authentication|required|token|not found|used|expired|invalid|private chat|replay/i.test(message) ? 401 : 400;
-    return res.status(status).json({ error: status === 401 ? 'Assistant request rejected' : 'Invalid assistant request' });
+    const id = envelope?.requestId || '';
+    const message = error instanceof Error ? error.message : '';
+    const auth = /authentication|required|token|unauthorized|replay|private chat|unknown oa|already linked/i.test(message);
+    return safeError(res, auth ? 401 : 400, id, auth ? 'UNAUTHORIZED' : 'INVALID_REQUEST');
   }
 }

@@ -157,15 +157,15 @@ Files:
 - Create: api/_assistant-core.ts
 - Modify: vercel.json only when needed for the single route.
 
-- [ ] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, chat, confirm, cancel, and jobStatus from either channel adapter.
-- [ ] Normalize `channel`, `channelAccountId`, and `channelUserId`; keep link and authorization channel-specific.
-- [ ] For web actions, verify Firebase ID token from Authorization header.
-- [ ] For Telegram actions, verify HMAC over timestamp, nonce, body, and service identifier using SMARTPLAN_ASSISTANT_SECRET.
-- [ ] For Zalo OA actions, verify the webhook/request signature and bind the exact OA ID plus OA-scoped Zalo UID before dispatch.
-- [ ] Reject old timestamps, reused nonces, unknown channel links, non-private Telegram chats, unknown Zalo OA IDs, and malformed JSON.
-- [ ] Normalize every request to action, actor, requestId, and payload.
-- [ ] Return stable kinds: answer, confirmation, job, or safe error.
-- [ ] Redact internal error details before sending to Telegram.
+- [x] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, revokeChannelLink, cancelLinkCode, listChannelLinks, and safe NOT_IMPLEMENTED responses for chat, confirm, cancel, and jobStatus.
+- [x] Normalize `channel`, `channelAccountId`, and `channelUserId`; keep link and authorization channel-specific.
+- [x] For web actions, verify Firebase ID token from Authorization header.
+- [x] For adapter actions, verify HMAC over timestamp, nonce, body, and service identifier using SMARTPLAN_ASSISTANT_SECRET.
+- [x] For Zalo OA actions, verify the signed request and bind the exact OA ID plus OA-scoped Zalo UID before dispatch.
+- [x] Reject old timestamps, reused nonces, unknown channel links, non-private Telegram chats, unknown Zalo OA IDs, and malformed JSON.
+- [x] Normalize every request to action, actor, requestId, and payload.
+- [x] Return stable kinds: answer, confirmation, job, or safe error.
+- [x] Redact internal error details before sending to Telegram.
 
 Run:
 
