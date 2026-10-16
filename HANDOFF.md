@@ -5,6 +5,10 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Bài kiểm tra định kì nhận đề scan / ảnh chụp — 16/10 (Claude)
+
+Trước: file không có lớp chữ bị loại ("không có chữ (bản scan hoặc ảnh)…") dù "Để AI giải đề" vốn gửi được ảnh trang. Nay `readExamSourceFile` trả `scanPages` cho PDF scan / ảnh JPG-PNG-WEBP; `splitVariantSources` coi mỗi file ảnh là một đề, mã lấy theo tên file CHẶT ("Mã đề 101", "đề 101" — số trần như IMG_0457 không tính), mọi trang làm `pageRefs`; tên không có mã → dòng mã TRỐNG + khung hỏi lại "file này là mã đề nào" (chưa điền thì không giải đề/giao được); chỉ một đề ảnh không mã → đề số 1. Đáp án dạng ảnh chưa đọc tự động (báo GV dán hoặc để AI giải). Giới hạn: file scan GỘP nhiều mã (khối 12) chưa tách được — tách mỗi mã một file.
+
 ## Kiểm dấu trên ảnh sau đợt chấm lại (Claude) — 16/10
 
 Đọc dữ liệu production qua phản hồi API trang GV (không token): bài chấm từ 13/10 có dấu 133/141, câu có dấu 1.810/2.275; 8 bài còn 0 dấu (khớp lượt lỗi 429 của job retry đang pause). Mắt soát bài Hồ Khánh Phương (Đề cương số 4): dấu trắc nghiệm đúng từng dòng, câu sai khoanh đỏ đúng chỗ; Đúng/Sai hơi lệch lên nửa dòng; một bài tự luận bị khoanh trùm cả trang — chất lượng định vị, không phải lỗi code.

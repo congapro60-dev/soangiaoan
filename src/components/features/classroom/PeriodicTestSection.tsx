@@ -220,7 +220,7 @@ export const PeriodicTestSection = ({ classId, maxScore, gradingInstructions, on
 
   const update = (index: number, patch: Partial<Row>) => setRows(previous => previous.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   const problems = problemsOf(rows);
-  const noKey = rows.filter(row => !row.answerKey.trim()).map(row => row.code);
+  const noKey = rows.filter(row => !row.answerKey.trim() && row.code.trim()).map(row => row.code);
   const working = busy !== '';
 
   return (
@@ -234,10 +234,11 @@ export const PeriodicTestSection = ({ classId, maxScore, gradingInstructions, on
         <p className="text-sm font-black text-slate-800">1. Đề (và đáp án nếu có) của mọi mã đề</p>
         <p className="mb-3 mt-1 text-xs font-semibold leading-5 text-slate-500">
           Khối 12: thả <b>một file gộp</b> hết các mã. Khối khác: thả <b>mỗi mã một file</b> (tên file nên có mã, vd “Mã đề 101.docx”); chỉ một đề thì không cần mã.
-          Dùng file PDF (AI đọc được cả hình) hoặc Word gốc của người ra đề. Có file đáp án thì thả cùng; chưa có thì để AI giải ở mục 2.
+          Nhận Word, PDF, bản scan hoặc ảnh chụp đề (đề dạng ảnh: mỗi mã một file, mã lấy theo tên file — chưa rõ mã thì máy hỏi lại bên dưới).
+          Có file đáp án thì thả cùng; chưa có thì để AI giải ở mục 2.
           Học sinh không nhận các file này — các em chỉ chụp bài đã chấm nộp lên.
         </p>
-        <input ref={fileRef} type="file" multiple accept=".docx,.pdf" className="hidden"
+        <input ref={fileRef} type="file" multiple accept=".docx,.pdf,image/*" className="hidden"
           onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ''; void readFiles(files); }} />
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => fileRef.current?.click()} disabled={working}
@@ -304,8 +305,8 @@ export const PeriodicTestSection = ({ classId, maxScore, gradingInstructions, on
                       </span>
                     ))}
                     <div className="ml-auto flex flex-wrap items-center gap-1">
-                      <button type="button" disabled={working} onClick={() => void solveMany([row.code])}
-                        title={row.answerKey.trim() ? 'Giải lại đề này (đè đáp án đang có)' : 'AI đọc đề mã này rồi giải ra đáp án nháp'}
+                      <button type="button" disabled={working || !row.code.trim()} onClick={() => void solveMany([row.code])}
+                        title={!row.code.trim() ? 'Nhập mã đề trước' : row.answerKey.trim() ? 'Giải lại đề này (đè đáp án đang có)' : 'AI đọc đề mã này rồi giải ra đáp án nháp'}
                         className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-black text-blue-700 hover:bg-blue-50 disabled:opacity-40">
                         <Sparkles className="h-3 w-3" /> {row.answerKey.trim() ? 'Giải lại' : 'Để AI giải đề'}
                       </button>
@@ -316,7 +317,16 @@ export const PeriodicTestSection = ({ classId, maxScore, gradingInstructions, on
                         className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </div>
-                  <p className="mt-1.5 break-words text-xs font-semibold text-slate-500">{firstQuestion(row.sourceText) || 'Chưa có chữ của đề mã này.'}</p>
+                  {!row.code.trim() && (
+                    <p className="mt-2 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-2 text-xs font-black text-amber-900">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      Máy chưa biết file {row.files.join(', ')} là mã đề nào — nhập mã ở ô “Mã” (vd 101). Chưa có mã thì chưa giải đề / giao bài được.
+                    </p>
+                  )}
+                  <p className="mt-1.5 break-words text-xs font-semibold text-slate-500">
+                    {firstQuestion(row.sourceText)
+                      || (row.pageRefs.length > 0 ? 'Đề dạng ảnh — AI giải đề đọc thẳng ảnh các trang; soát kỹ đáp án AI giải.' : 'Chưa có chữ của đề mã này.')}
+                  </p>
                   {row.byAi && (
                     <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
                       <p className="flex items-start gap-2 text-xs font-black text-amber-900">
