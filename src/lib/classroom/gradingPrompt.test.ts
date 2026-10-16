@@ -983,3 +983,16 @@ it('preserves independent uncertain reading regions and avoids one-sentence retr
   expect(result.questionResults[0].readingRegions).toEqual([mark]);
   expect(buildHomeworkGradingRetryPrompt({ answerKey: 'B', maxScore: 1 })).not.toContain('một hai câu ngắn');
 });
+
+describe('tổng điểm giáo viên ghi tay (bài chấm tay)', () => {
+  it('chỉ nhận số hợp lệ trong thang; thiếu thang thì là 10; sai dạng thì bỏ', async () => {
+    const { parseTeacherMarkedScore, TEACHER_MARKED_PAPER_NOTE } = await import('./gradingPrompt');
+    expect(parseTeacherMarkedScore({ score: 7.5 })).toEqual({ score: 7.5, maxScore: 10 });
+    expect(parseTeacherMarkedScore({ score: '15', maxScore: 20 })).toEqual({ score: 15, maxScore: 20 });
+    expect(parseTeacherMarkedScore({ score: 12, maxScore: 10 })).toBeUndefined();
+    expect(parseTeacherMarkedScore(null)).toBeUndefined();
+    expect(parseTeacherMarkedScore({ score: 'bảy' })).toBeUndefined();
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('teacherMarkedScore');
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('KHÔNG dùng để chấm');
+  });
+});

@@ -280,6 +280,19 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     expect((khop.state.submissions['sub-1'].grade as DocData).examCheck).toMatchObject({ mismatch: false, diff: 0 });
   });
 
+  it('sổ chưa có điểm: AI đọc tổng điểm GV ghi trên bài → lưu paperScore, đối chiếu với chính số đó; lệch thì cờ lệch', async () => {
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher' });
+    (harness.state.scoreBooks as any)['lop-12'].exams = {};
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({ ...JSON.parse(gradeJson(6)), teacherMarkedScore: { score: 16, maxScore: 20 } })));
+    await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    const grade = harness.state.submissions['sub-1'].grade as DocData;
+    expect(grade.score).toBe(6);
+    expect(grade.paperScore).toEqual({ score: 16, maxScore: 20 });
+    expect(grade.examCheck).toMatchObject({ sheetLabel: 'Điểm ghi trên bài', sheetScore: 8, mismatch: true });
+    expect(prompts.some(text => text.includes('teacherMarkedScore'))).toBe(true);
+  });
+
   it('đáp án đã sửa chỉ áp cho bài cùng mã đề', async () => {
     const harness = seed({ examCode: '1202', examCodeSource: 'teacher' }, {
       answerKeyFixes: [{ questionNumber: 'Phần I – Câu 2', expectedAnswer: 'B-MA-1201', fixedAt: '2026-10-06', examCode: '1201' }],

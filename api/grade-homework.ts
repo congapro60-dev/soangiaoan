@@ -61,6 +61,7 @@ import {
   buildDetectExamCodePrompt,
   buildExtractVariantKeysPrompt,
   examScoreCheck,
+  paperScoreCheck,
   parseDetectedExamCode,
   parseExtractedVariantKeys,
   sanitizeExamVariants,
@@ -433,6 +434,8 @@ const attemptHomeworkGrade = async (
     questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc) — để thầy cô xác nhận đưa vào sổ, không dùng để chấm.
+    ...(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
     gradedAt: now,
     // Mọi lượt chấm bằng máy (kể cả bài học sinh tự nộp) đều CHƯA duyệt: học sinh chỉ thấy điểm sau khi thầy cô duyệt
     // (hoặc máy tự duyệt sau 60 phút khi lớp bật). Học sinh chỉ được hỏi lại câu máy đọc chưa chắc.
@@ -619,7 +622,9 @@ const gradeOneSubmission = async (
       throw new Error(UNCERTAIN_READ_MESSAGE);
     }
     // Bài định kì: so tổng điểm với điểm giáo viên chấm tay — lệch nhiều thì không tự duyệt (xem needsTeacherCheck).
-    const examCheck = ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null;
+    // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
+    const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
+      ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
     const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
 
     if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }

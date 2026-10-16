@@ -510,3 +510,17 @@ export const examScoreCheck = (
   const diff = Math.round(Math.abs((score / maxScore) * 10 - mark.score) * 100) / 100;
   return { sheetLabel: mark.label, sheetScore: mark.score, diff, mismatch: diff > EXAM_CHECK_TOLERANCE };
 };
+
+/** Nhãn đối chiếu khi chưa có điểm trong sổ: dùng tổng điểm giáo viên viết trên bài (máy đọc). */
+export const PAPER_SCORE_LABEL = 'Điểm ghi trên bài';
+
+/** Đối chiếu điểm AI với tổng điểm giáo viên viết tay trên bài (quy về thang 10). Không đọc được thì null. */
+export const paperScoreCheck = (
+  score: number,
+  maxScore: number,
+  paper: { score: number; maxScore: number } | undefined,
+): ExamScoreCheck | null => {
+  if (!paper || !(paper.maxScore > 0)) return null;
+  const onTen = Math.round((paper.score / paper.maxScore) * 1000) / 100;
+  return examScoreCheck(score, maxScore, PAPER_SCORE_LABEL, { moet: [{ label: PAPER_SCORE_LABEL, score: onTen }], tds: [] });
+};
