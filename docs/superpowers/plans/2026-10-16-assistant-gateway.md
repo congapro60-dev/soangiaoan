@@ -136,9 +136,9 @@ Files:
 - [x] Implement revokeChannelLink(idToken, linkId): verify owner, mark link inactive, and invalidate pending confirmations for that actor.
 - [x] Add Settings UI states: generate code, copy/display once, linked account, revoke, and error.
 - [x] Never persist the raw bot service secret or raw one-time code in userSettings.
-- [ ] Test expiry, replay, wrong Firebase owner, group-chat rejection, relink, revoke, and code hash mismatch.
+- [x] Add tests for expiry, replay, wrong Firebase owner, group-chat rejection, relink, revoke, and code hash mismatch.
 
-Validation status (2026-10-16): implementation complete, including replay rejection (`claimAssistantRequestNonce` and one-time link-code consume). Runtime tests/build blocked because `node_modules` is absent in this worktree; `git diff --check` passes.
+Validation status (2026-10-16): implementation and test cases complete, including replay rejection (`claimAssistantRequestNonce` and one-time link-code consume). Runtime test execution/build blocked because `node_modules` is absent in this worktree; `git diff --check` passes.
 
 Run:
 
