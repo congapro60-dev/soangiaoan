@@ -18,7 +18,7 @@ Inventory production read-only đúng chủ dự án: 468 lượt nộp ảnh, 1
 
 Đã chạy mẫu production `GHKI - Đề cương số 4`: 1/1 thành công, 23 vùng, điểm 8.85 và chưa duyệt giữ nguyên. Batch 436 lượt đã xử lý: 127 `graded`, 292 `failed_preserved`, 17 `failed`; 31 lượt không gắn assignment được skip. Lỗi chính Gemini provider 429, kèm 503/timeout/system; grade cũ luôn giữ.
 
-Retry 309 lượt lỗi chạy tuần tự 50 lượt rồi pause do tiếp tục 429. Job `photo-refresh-20261015-retry` giữ cursor để chạy tiếp khi Gemini quota/key hồi phục; không chạy lại lượt đã thành công. Workflow dùng cron secret, checkpoint và quota waiver chỉ từ job admin đã tạo.
+Retry `photo-refresh-20261015-retry` đã reset cursor về 0 theo thiết kế idempotent, canary chạy thêm 7 lượt rồi pause an toàn tại cursor 7 với `AI quota or key policy blocked the run`. Workflow không ghi điểm khi provider/key bị chặn; không chạy lại lượt đã thành công. Workflow dùng cron secret, checkpoint và quota waiver chỉ từ job admin đã tạo. Cần nhập khóa server-side tại `Chi phí AI → Khóa Gemini riêng` qua Edge/cloud browser rồi tiếp tục từ cursor 7.
 
 ## Căn cột bài nộp GV — 15/10
 
