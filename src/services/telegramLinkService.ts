@@ -19,7 +19,7 @@ const call = async <T>(user: User, action: string, payload: Record<string, unkno
 export const createTelegramLinkCode = (user: User) => call<{ code: string; expiresAt: number; linkId: string }>(user, 'createLinkCode');
 
 export const revokeTelegramLink = (user: User, linkId: string) =>
-  call<{ ok: true }>(user, 'revokeChannelLink', { linkId });
+  call<{ ok: true }>(user, 'cancelLinkCode', { linkId });
 
 export const consumeChannelLink = (code: string, identity: {
   channel: LinkChannel;

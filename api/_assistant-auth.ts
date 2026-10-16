@@ -6,6 +6,25 @@ import type { Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
+export const ASSISTANT_SIGNATURE_WINDOW_SECONDS = 300;
+
+/** Verifies adapter requests over the exact request body bytes. */
+export const verifyAssistantServiceSignature = (
+  rawBody: string,
+  timestamp: string,
+  nonce: string,
+  signature: string,
+  secret: string | undefined,
+  now = Date.now(),
+): boolean => {
+  if (!secret?.trim() || !rawBody || !timestamp?.trim() || !nonce?.trim() || !signature?.trim()) return false;
+  const timestampSeconds = Number(timestamp);
+  if (!Number.isInteger(timestampSeconds) || Math.abs(Math.floor(now / 1000) - timestampSeconds) > ASSISTANT_SIGNATURE_WINDOW_SECONDS) return false;
+  const expected = crypto.createHmac('sha256', secret).update(`${timestamp}.${nonce}.${rawBody}`, 'utf8').digest('hex');
+  const supplied = Buffer.from(signature.trim(), 'hex');
+  const actual = Buffer.from(expected, 'hex');
+  return supplied.length === actual.length && crypto.timingSafeEqual(supplied, actual);
+};
 
 export const hashLinkCode = (code: string): string =>
   crypto.createHash('sha256').update(code, 'utf8').digest('hex');
@@ -31,6 +50,9 @@ export const validateChannelIdentity = (identity: ChannelIdentity): void => {
     throw new Error('Zalo OA identity is not verified');
   }
 };
+
+export const canRelinkActiveChannel = (existingFirebaseUid: string, targetFirebaseUid: string): boolean =>
+  Boolean(existingFirebaseUid?.trim() && targetFirebaseUid?.trim() && existingFirebaseUid === targetFirebaseUid);
 
 const adminDb = (db?: Firestore) => db || getAdminDb();
 
@@ -83,6 +105,10 @@ export const consumeLinkCode = async (
       .where('channelAccountId', '==', identity.channelAccountId)
       .where('channelUserId', '==', identity.channelUserId)
       .where('active', '==', true));
+    existing.docs.forEach(doc => {
+      const existingUid = String(doc.data()?.firebaseUid || '');
+      if (!canRelinkActiveChannel(existingUid, value.firebaseUid)) throw new Error('Channel is already linked to another account');
+    });
     await cancelConfirmations(tx, firestore, identity, value.firebaseUid);
     existing.docs.forEach(doc => tx.update(doc.ref, { active: false, revokedAt: now, updatedAt: now }));
 
@@ -120,3 +146,21 @@ export const revokeChannelLink = async (
 };
 
 export const revokeLink = revokeChannelLink;
+
+export const cancelLinkCode = async (
+  idToken: string,
+  linkId: string,
+  now = Date.now(),
+  db?: Firestore,
+): Promise<void> => {
+  const firebaseUid = await verifyFirebaseIdToken(idToken);
+  if (!linkId?.trim()) throw new Error('Link not found');
+  const firestore = adminDb(db);
+  await firestore.runTransaction(async tx => {
+    const ref = firestore.collection('assistantLinkCodes').doc(linkId);
+    const snapshot = await tx.get(ref);
+    const value = snapshot.data() as LinkCodeDoc | undefined;
+    if (!snapshot.exists || !value || value.firebaseUid !== firebaseUid || value.usedAt || value.expiresAt <= now) throw new Error('Link not found');
+    tx.update(ref, { usedAt: now });
+  });
+};
