@@ -8,13 +8,14 @@
  * Chỉ nhận model đã có giá trong `aiPricing.ts` — model chưa có giá sẽ bị tính 0đ, tức tặng miễn phí.
  */
 import type { InlineImage } from './_grading-core.js';
+import { resolveEffort } from '../src/data/reasoningEffort.js';
 
 /** Khớp `functions["api/ai-relay.ts"].maxDuration` trong vercel.json (có test khoá hai bên bằng nhau). */
 export const RELAY_MAX_DURATION_S = 300;
 /** Chừa ~30 giây cuối để ghi sổ và trả lời trước khi Vercel cắt hàm. */
 export const RELAY_GEMINI_TIMEOUT_MS = (RELAY_MAX_DURATION_S - 30) * 1000;
 
-export const RELAY_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'] as const;
+export const RELAY_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview', 'gemini-4-argon'] as const;
 export const RELAY_DEFAULT_MODEL = RELAY_MODELS[0];
 
 /**
@@ -65,6 +66,8 @@ export interface RelayRequest {
   prompt: string;
   system?: string;
   images: InlineImage[];
+  /** Mức suy nghĩ ĐÃ kiểm hợp (hãng, model); vắng = không gửi tham số, model chạy mặc định. */
+  effort?: string;
 }
 
 export type RelayParse = { ok: true; value: RelayRequest } | { ok: false; status: number; error: string };
@@ -113,5 +116,8 @@ export const parseRelayBody = (body: unknown): RelayParse => {
     images.push({ mimeType: match[1], data: match[2] });
   }
 
-  return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images } };
+  // Mức không hợp model thì bỏ (không báo lỗi): gửi lên hãng sẽ bị 400, còn bỏ đi chỉ là chạy mặc định.
+  const effort = resolveEffort(provider as string, model, typeof source.effort === 'string' ? source.effort : undefined);
+
+  return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images, ...(effort ? { effort } : {}) } };
 };

@@ -219,7 +219,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
           <p className="mt-1 text-xs font-semibold text-slate-500">Lấy miễn phí ở aistudio.google.com. Khoá lưu trên máy chủ, không hiện lại; thầy/cô tự trả Google, không trừ ví.</p>
           {status.hasKey && keyPill ? (
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-mono font-black text-slate-800">AIza…{status.last4}</span>
+              <span className="font-mono font-black text-slate-800">…{status.last4}</span>
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${keyPill.className}`}>{keyPill.text}</span>
               <button type="button" disabled={Boolean(busy)} onClick={() => void run('delkey', deleteAiKey, 'Đã gỡ khoá riêng.')} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Gỡ khoá</button>
             </div>
@@ -227,7 +227,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
             <p className="mt-2 text-xs font-bold text-slate-400">Chưa có khoá riêng.</p>
           )}
           <div className="mt-2 flex flex-wrap gap-2">
-            <input value={keyInput} onChange={event => setKeyInput(event.target.value)} placeholder="Dán khoá AIza…" type="password" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
+            <input value={keyInput} onChange={event => setKeyInput(event.target.value)} placeholder="Dán khoá AIza… hoặc AQ.…" type="password" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
             <button type="button" disabled={!keyInput.trim() || Boolean(busy)} onClick={() => void run('key', () => saveAiKey(keyInput), 'Đã lưu khoá riêng (máy chủ giữ, không hiện lại).').then(() => setKeyInput(''))}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-black text-white hover:bg-slate-900 disabled:opacity-50">
               {busy === 'key' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasKey ? 'Thay khoá' : 'Lưu khoá'}

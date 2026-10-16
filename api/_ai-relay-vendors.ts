@@ -29,6 +29,8 @@ export interface VendorCall {
   prompt: string;
   system?: string;
   images: InlineImage[];
+  /** Mức suy nghĩ đã kiểm hợp (xem `_ai-relay-core.ts`); vắng = mặc định của model. */
+  effort?: string;
   /** Hạn chót cho CẢ lượt (kể cả thời gian chờ giữ chỗ tiền), tính bằng ms từ lúc gọi. */
   timeoutMs: number;
 }
@@ -50,6 +52,7 @@ const buildRequest = (call: VendorCall): { url: string; headers: Record<string, 
       body: {
         model: call.model,
         max_tokens: maxTokens,
+        ...(call.effort ? { output_config: { effort: call.effort } } : {}),
         ...(call.system ? { system: call.system } : {}),
         messages: [{
           role: 'user',
@@ -67,6 +70,7 @@ const buildRequest = (call: VendorCall): { url: string; headers: Record<string, 
     body: {
       model: call.model,
       max_completion_tokens: maxTokens,
+      ...(call.effort ? { reasoning_effort: call.effort } : {}),
       messages: [
         ...(call.system ? [{ role: 'system', content: call.system }] : []),
         {

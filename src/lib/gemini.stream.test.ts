@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const h = vi.hoisted(() => ({ calls: 0, plan: [] as Array<'ok-then-429' | 'fail-immediately-then-ok'> }));
+const h = vi.hoisted(() => ({ calls: 0, plan: [] as Array<'ok-then-429' | 'fail-immediately-then-ok'>, configs: [] as Array<Record<string, any>> }));
 
 vi.mock('@google/genai', () => ({
   GoogleGenAI: class {
     models = {
-      generateContentStream: async () => {
+      generateContentStream: async (params: { config?: Record<string, any> }) => {
         h.calls += 1;
+        h.configs.push(params.config ?? {});
         const kind = h.plan[h.calls - 1] ?? 'ok-then-429';
         return (async function* () {
           if (kind === 'fail-immediately-then-ok') throw new Error('500 model lỗi ngay đầu luồng');
@@ -38,5 +39,19 @@ describe('luồng Gemini không in lặp khi lỗi giữa chừng (QA F8)', () =
     await expect(callGeminiAIStream('p', 'khoa', chunk => chunks.push(chunk))).rejects.toThrow('429');
     expect(h.calls).toBeGreaterThan(1); // đã thử model kế tiếp
     expect(chunks.filter(chunk => chunk === 'phần đầu ').length).toBe(1); // nhưng khi đã có chữ thì dừng, không lặp
+  });
+
+  it('mức suy nghĩ vào thinkingConfig.thinkingLevel (viết hoa theo SDK), đúng theo model đang gọi; mức không hợp model thì bỏ', async () => {
+    h.configs = [];
+    h.calls = 0;
+    h.plan = [];
+    await callGeminiAIStream('p', 'khoa', () => undefined, 0, 'gemini-3.8-flash', 'high').catch(() => undefined);
+    expect(h.configs[0].thinkingConfig).toEqual({ thinkingLevel: 'HIGH' });
+    h.configs = [];
+    await callGeminiAIStream('p', 'khoa', () => undefined, 0, 'gemini-3.8-flash', 'minimal').catch(() => undefined);
+    expect(h.configs[0].thinkingConfig).toBeUndefined();
+    h.configs = [];
+    await callGeminiAIStream('p', 'khoa', () => undefined, 0, 'gemini-3.7-flash', 'high').catch(() => undefined);
+    expect(h.configs[0].thinkingConfig).toBeUndefined();
   });
 });

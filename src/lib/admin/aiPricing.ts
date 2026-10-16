@@ -35,7 +35,7 @@ interface PriceRule {
 }
 
 export const PRICE_SOURCES = {
-  gemini: 'ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-09-23)',
+  gemini: 'ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-10-15)',
   gateway: 'vercel.com/ai-gateway/models/glm-5.2 (tra 2026-09-24)',
   claude: 'trang giá Anthropic (tra 2026-09-30, xem src/data/providerGuide.ts)',
   openai: 'trang giá OpenAI (tra 2026-09-30, xem src/data/providerGuide.ts)',
@@ -50,6 +50,15 @@ const FLASH_PERIODS: PricePeriod[] = [
 ];
 
 const RULES: PriceRule[] = [
+  {
+    label: 'Gemini 4 Argon',
+    matches: m => m.startsWith('gemini-4-argon'),
+    // ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-10-15): giá khuyến mãi tới 2026-11-30, từ 2026-12-01 gấp đôi; chỉ gói trả phí.
+    periods: [
+      { to: '2026-11-30', price: { input: 2, output: 10, cached: 0.1 } },
+      { from: '2026-12-01', price: { input: 4, output: 20, cached: 0.2 } },
+    ],
+  },
   { label: 'Gemini 3.8 Flash', matches: m => m.startsWith('gemini-3.8-flash'), periods: FLASH_PERIODS },
   { label: 'Gemini 3.7 Flash', matches: m => m.startsWith('gemini-3.7-flash'), periods: FLASH_PERIODS },
   {

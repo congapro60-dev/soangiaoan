@@ -432,3 +432,76 @@ describe('relay cho Claude / ChatGPT (ví web trả cho hãng khác Gemini)', ()
     expect(h.store['aiWallets/gv-1'].balanceVnd).toBe(0);
   });
 });
+
+describe('mức suy nghĩ qua relay — mỗi mức là tham số thật gửi cho hãng', () => {
+  const claudeOk = vi.fn(async (..._args: unknown[]) => ({ ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn', usage: { input_tokens: 10, output_tokens: 10 } }) }));
+  const openaiOk = vi.fn(async (..._args: unknown[]) => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }], usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } }) }));
+  const sentBody = (mock: { mock: { calls: unknown[][] } }): any => JSON.parse(((mock.mock.calls.at(-1) as unknown[])[1] as { body: string }).body);
+
+  beforeEach(() => {
+    h.store = {};
+    h.verifyFails = false;
+    h.claims = { uid: 'gv-1', email: 'gv1@x.vn', firebase: { sign_in_provider: 'google.com' } };
+    process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-OWNER';
+    process.env.OPENAI_API_KEY = 'sk-OWNER-OPENAI';
+    claudeOk.mockClear();
+    openaiOk.mockClear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  it('Gemini: mức đi vào generationConfig.thinkingConfig.thinkingLevel, mỗi mức một giá trị khác nhau; không chọn thì không gửi', async () => {
+    const fetchMock = geminiOk();
+    vi.stubGlobal('fetch', fetchMock);
+    const levels: Array<string | undefined> = [];
+    for (const effort of ['low', 'medium', 'high', undefined]) {
+      expect((await call({ prompt: 'x', model: 'gemini-3.8-flash', ...(effort ? { effort } : {}) })).statusCode).toBe(200);
+      levels.push(sentBody(fetchMock).generationConfig.thinkingConfig?.thinkingLevel);
+    }
+    expect(levels).toEqual(['low', 'medium', 'high', undefined]);
+  });
+
+  it('Gemini: mức model không nhận (3.8 Flash không có "minimal") bị bỏ, lượt vẫn chạy bình thường', async () => {
+    const fetchMock = geminiOk();
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await call({ prompt: 'x', model: 'gemini-3.8-flash', effort: 'minimal' })).statusCode).toBe(200);
+    expect(sentBody(fetchMock).generationConfig.thinkingConfig).toBeUndefined();
+    expect((await call({ prompt: 'x', model: 'gemini-4-argon', effort: 'high' })).statusCode).toBe(200);
+    expect(sentBody(fetchMock).generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'high' });
+  });
+
+  it('Claude: đủ 5 mức vào output_config.effort; Haiku 4.5 không nhận nên không gửi', async () => {
+    vi.stubGlobal('fetch', claudeOk);
+    const seen: Array<string | undefined> = [];
+    for (const effort of ['low', 'medium', 'high', 'xhigh', 'max']) {
+      expect((await call({ provider: 'claude', model: 'claude-opus-5-5', prompt: 'x', effort })).statusCode).toBe(200);
+      seen.push(sentBody(claudeOk).output_config?.effort);
+    }
+    expect(seen).toEqual(['low', 'medium', 'high', 'xhigh', 'max']);
+    await call({ provider: 'claude', model: 'claude-haiku-4-5-20251001', prompt: 'x', effort: 'high' });
+    expect(sentBody(claudeOk).output_config).toBeUndefined();
+    await call({ provider: 'claude', model: 'claude-sonnet-5-5', prompt: 'x' });
+    expect(sentBody(claudeOk).output_config).toBeUndefined();
+  });
+
+  it('ChatGPT: mức vào reasoning_effort đúng theo từng model (Luna nhận "none", Sol thì không)', async () => {
+    vi.stubGlobal('fetch', openaiOk);
+    await call({ provider: 'openai', model: 'gpt-6-luna', prompt: 'x', effort: 'none' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('none');
+    await call({ provider: 'openai', model: 'gpt-6.1-sol', prompt: 'x', effort: 'none' });
+    expect(sentBody(openaiOk).reasoning_effort).toBeUndefined();
+    await call({ provider: 'openai', model: 'gpt-6.1-sol', prompt: 'x', effort: 'max' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('max');
+    await call({ provider: 'openai', model: 'gpt-6-astra', prompt: 'x', effort: 'minimal' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('minimal');
+  });
+
+  it('thân request sai kiểu mức (số, mảng…) thì bỏ qua, không làm hỏng lượt', () => {
+    expect(parseRelayBody({ prompt: 'x', effort: 5 })).toMatchObject({ ok: true });
+    expect((parseRelayBody({ prompt: 'x', effort: ['high'] }) as any).value.effort).toBeUndefined();
+  });
+});

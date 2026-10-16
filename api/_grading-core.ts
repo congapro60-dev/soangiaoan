@@ -201,6 +201,8 @@ export interface GeminiOptions {
   maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /** Mức suy nghĩ Gemini (`thinkingConfig.thinkingLevel`, chữ thường) — nơi gọi PHẢI kiểm hợp model trước (`resolveEffort`). */
+  thinkingLevel?: string;
   /** Chỉ dẫn hệ thống (đường relay giữ đúng chỉ dẫn mà trình duyệt vốn gửi khi gọi Gemini bằng khoá của giáo viên). */
   systemInstruction?: string;
   /**
@@ -311,6 +313,8 @@ const callGeminiRawHeld = async (
   // model. An toàn hơn tự điền một con số — điền quá tay là bị từ chối, điền dè là lại bị cắt.
   if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
+  // Mức suy nghĩ (đã kiểm hợp model ở nơi gọi): REST dùng chữ thường như tài liệu.
+  if (options.thinkingLevel) generationConfig.thinkingConfig = { thinkingLevel: options.thinkingLevel };
 
   // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
   let keyChoice = await ensureGeminiKey(apiKey);

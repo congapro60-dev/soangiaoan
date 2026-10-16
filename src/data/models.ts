@@ -23,6 +23,8 @@ export interface ProviderConfig {
 export const GEMINI_MODELS: ProviderModel[] = [
   // Ba con so gioi han duoi day CHUA XAC MINH cho 3.7/3.8 Flash — tam lay theo 3.6 Flash.
   // Chung chi dung de hien muc da dung trong Cai dat, khong anh huong luc goi API.
+  // Gemini 4 Argon: model flagship (ai.google.dev/gemini-api/docs/models, tra 2026-10-16), chỉ có ở gói trả phí. Giới hạn rpd/tpm/rpm CHƯA XÁC MINH — lấy tạm như 3.1 Pro, chỉ để hiện trong Cài đặt.
+  { id: 'gemini-4-argon', name: 'Gemini 4 Argon', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },

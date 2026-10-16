@@ -280,6 +280,8 @@ export interface AppData {
     openaiApiKey: string;
     selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway';
     selectedModel: string;
+    /** Mức suy nghĩ giáo viên chọn theo hãng (xem `data/reasoningEffort.ts`); vắng = mặc định của model. */
+    effort?: Partial<Record<'gemini' | 'claude' | 'openai', string>>;
     grokApiKey: string;
     deepseekApiKey: string;
     nvidiaApiKey: string;
@@ -321,7 +323,7 @@ export const DEFAULT_DATA: AppData = {
     openaiCompatibleModelId: 'claude-opus-4-7',
     selectedProvider: 'gemini',
     selectedModel: 'gemini-3.8-flash',
-    models: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro-preview'],
+    models: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro-preview', 'gemini-4-argon'],
     driveFolders: {},
   },
   gradingSessions: [],

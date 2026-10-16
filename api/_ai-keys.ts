@@ -343,7 +343,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
   if (action === 'saveAiKey') {
     const key = typeof body.key === 'string' ? body.key.trim() : '';
     if (!looksLikeGeminiKey(key)) {
-      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza".' });
+      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".' });
       return true;
     }
     const probe = await probeGeminiKey(key);

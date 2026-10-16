@@ -78,7 +78,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     void sendError(res, parsed.status, parsed.error);
     return;
   }
-  const { provider, model, prompt, system, images } = parsed.value;
+  const { provider, model, prompt, system, images, effort } = parsed.value;
   // Hãng khác Gemini chỉ chạy khi chủ dự án đã đặt khoá của hãng đó trên máy chủ — kiểm TRƯỚC khi giữ chỗ/đếm hạn mức ngày.
   const vendorKey = provider === 'gemini' ? null : relayVendorKey(provider);
   if (provider !== 'gemini' && !vendorKey) {
@@ -122,7 +122,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   try {
     const result = await runWithAiUsage(context, async (): Promise<{ text: string; finishReason?: string }> => {
       if (provider !== 'gemini' && vendorKey) {
-        const vendor = await callVendor({ vendor: provider, apiKey: vendorKey, model, prompt, system, images, timeoutMs: RELAY_GEMINI_TIMEOUT_MS });
+        const vendor = await callVendor({ vendor: provider, apiKey: vendorKey, model, prompt, system, images, effort, timeoutMs: RELAY_GEMINI_TIMEOUT_MS });
         return { text: vendor.text, finishReason: vendor.refused ? 'SAFETY' : vendor.truncated ? 'MAX_TOKENS' : 'STOP' };
       }
       return callGeminiRaw(prompt, images, getGradingApiKey(), model, {
@@ -130,6 +130,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
         maxOutputTokens: RELAY_MAX_OUTPUT_TOKENS,
         timeoutMs: RELAY_GEMINI_TIMEOUT_MS,
         ...(system ? { systemInstruction: system } : {}),
+        ...(effort ? { thinkingLevel: effort } : {}),
       });
     });
 

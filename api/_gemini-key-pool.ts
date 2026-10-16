@@ -158,7 +158,7 @@ export const handleGeminiPoolAdmin = async (
       return found ? view(keys, envConfigured) : { status: 404, payload: { error: 'Không tìm thấy khoá này.' } };
     }
     const key = typeof body.key === 'string' ? body.key.trim() : '';
-    if (!looksLikeGeminiKey(key)) return { status: 422, payload: { error: 'Khoá Gemini có dạng "AIza…" (39 ký tự). Kiểm tra lại khoá vừa dán.' } };
+    if (!looksLikeGeminiKey(key)) return { status: 422, payload: { error: 'Khoá Gemini có dạng "AIza…" (39 ký tự) hoặc "AQ.…". Kiểm tra lại khoá vừa dán.' } };
     const current = await readPool(db, true);
     if (current.some(k => k.key === key)) return { status: 409, payload: { error: 'Khoá này đã có trong danh sách.' } };
     if (current.length >= POOL_MAX_KEYS) return { status: 422, payload: { error: `Danh sách tối đa ${POOL_MAX_KEYS} khoá.` } };
