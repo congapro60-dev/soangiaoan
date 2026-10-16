@@ -5,7 +5,7 @@
  *
  * File này thuần (không Firestore) để cả máy chủ lẫn trình duyệt dùng chung phần kiểm dữ liệu.
  */
-import type { ExamMark, StudentExamScores } from './examScores.js';
+import type { ExamMark, PaperExamMark, StudentExamScores } from './examScores.js';
 
 export const SCORE_BOOKS_COL = 'scoreBooks';
 
@@ -74,6 +74,8 @@ export interface ScoreBookDoc {
   examWeights?: Record<string, Hs1Weight>;
   examsSyncedAt?: string;
   examsSpreadsheetTitle?: string;
+  /** studentId → điểm thầy cô xác nhận từ ảnh bài chấm tay. Ghép vào `exams` khi đọc, chỉ ở cột file điểm chưa có. */
+  paperExams?: Record<string, PaperExamMark[]>;
   updatedAt?: string;
   auto?: AutoScores;
 }
@@ -157,7 +159,7 @@ const sanitizeMarks = (raw: unknown): ExamMark[] => {
     const score = typeof item.score === 'number' && Number.isFinite(item.score) ? round2(item.score) : NaN;
     if (!label || !(score >= 0 && score <= EXAM_MAX)) continue;
     const letter = cleanLabel(item.letter).slice(0, 8);
-    marks.push({ label, score, ...(letter ? { letter } : {}) });
+    marks.push({ label, score, ...(letter ? { letter } : {}), ...(item.source === 'paper' ? { source: 'paper' as const } : {}) });
   }
   return marks;
 };
@@ -233,11 +235,13 @@ export const normalizeScoreBook = (classId: string, raw: unknown): ScoreBookDoc 
     }
   }
   const auto = normalizeAutoScores(raw.auto);
+  const paperExams = sanitizePaperExams(raw.paperExams);
   return {
     classId,
     hs1Columns,
     hs1,
-    exams,
+    exams: mergePaperExams(exams, paperExams),
+    ...(Object.keys(paperExams).length > 0 ? { paperExams } : {}),
     ...(Object.keys(examWeights).length > 0 ? { examWeights } : {}),
     ...(typeof raw.examsSyncedAt === 'string' ? { examsSyncedAt: raw.examsSyncedAt } : {}),
     ...(typeof raw.examsSpreadsheetTitle === 'string' ? { examsSpreadsheetTitle: raw.examsSpreadsheetTitle } : {}),
@@ -245,6 +249,58 @@ export const normalizeScoreBook = (classId: string, raw: unknown): ScoreBookDoc 
     ...(auto ? { auto } : {}),
   };
 };
+
+const sanitizePaperExams = (raw: unknown): Record<string, PaperExamMark[]> => {
+  const out: Record<string, PaperExamMark[]> = {};
+  if (!isRecord(raw)) return out;
+  for (const [studentId, list] of Object.entries(raw)) {
+    if (!Array.isArray(list)) continue;
+    const marks = list.flatMap(item => {
+      if (!isRecord(item)) return [];
+      const label = cleanLabel(item.label);
+      const score = typeof item.score === 'number' && Number.isFinite(item.score) ? round2(item.score) : NaN;
+      const assignmentId = typeof item.assignmentId === 'string' ? item.assignmentId : '';
+      if (!label || !assignmentId || !(score >= 0 && score <= HS1_MAX)) return [];
+      return [{ label, score, assignmentId, confirmedAt: typeof item.confirmedAt === 'string' ? item.confirmedAt : '' }];
+    });
+    if (marks.length > 0) out[studentId] = marks.slice(0, 20);
+  }
+  return out;
+};
+
+const sameExamLabel = (left: string, right: string): boolean =>
+  left.normalize('NFC').trim().toLocaleLowerCase('vi-VN') === right.normalize('NFC').trim().toLocaleLowerCase('vi-VN');
+
+/**
+ * Ghép điểm chấm tay đã xác nhận vào điểm thi: file điểm LUÔN thắng — cột đã có điểm từ file thì bỏ qua điểm ảnh.
+ * Mốc trùng tên một cột TDS của lớp thì vào TDS, còn lại vào MOET (thang 10).
+ */
+export const mergePaperExams = (
+  exams: Record<string, StudentExamScores>,
+  paperExams: Record<string, PaperExamMark[]>,
+): Record<string, StudentExamScores> => {
+  const tdsLabels = Object.values(exams).flatMap(row => row.tds.filter(mark => mark.source !== 'paper').map(mark => mark.label));
+  const out: Record<string, StudentExamScores> = {};
+  for (const [studentId, row] of Object.entries(exams)) {
+    out[studentId] = { moet: row.moet.filter(mark => mark.source !== 'paper'), tds: row.tds.filter(mark => mark.source !== 'paper') };
+  }
+  for (const [studentId, marks] of Object.entries(paperExams)) {
+    const row = out[studentId] ?? (out[studentId] = { moet: [], tds: [] });
+    for (const mark of marks) {
+      if ([...row.moet, ...row.tds].some(item => sameExamLabel(item.label, mark.label))) continue;
+      const target = tdsLabels.some(label => sameExamLabel(label, mark.label)) ? row.tds : row.moet;
+      target.push({ label: mark.label, score: mark.score, source: 'paper' });
+    }
+  }
+  return out;
+};
+
+/** Điểm thi lưu xuống Firestore: bỏ phần ghép từ ảnh (đã có ở `paperExams`). */
+export const storedExams = (exams: Record<string, StudentExamScores>): Record<string, StudentExamScores> =>
+  Object.fromEntries(Object.entries(exams).map(([studentId, row]) => [studentId, {
+    moet: row.moet.filter(mark => mark.source !== 'paper'),
+    tds: row.tds.filter(mark => mark.source !== 'paper'),
+  }]));
 
 /** Cột xếp theo ngày kiểm tra, cùng ngày thì theo thứ tự tạo. */
 export const sortedHs1Columns = (columns: readonly Hs1Column[]): Hs1Column[] =>

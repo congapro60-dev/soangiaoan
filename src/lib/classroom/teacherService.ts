@@ -160,6 +160,15 @@ export const saveExamScores = async (
   return normalizeScoreBook(classId, scoreBook);
 };
 
+/** Thầy cô xác nhận điểm chấm tay (máy đọc từ ảnh bài định kì) để đưa vào sổ điểm. `score: null` = gỡ. */
+export const confirmPaperExamScore = async (
+  classId: string,
+  input: { studentId: string; assignmentId: string; label: string; score: number | null },
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'confirmPaperExamScore', classId, ...input });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
 export const renameStudent = async (classId: string, studentId: string, name: string): Promise<void> => {
   await callTeacherApi({ action: 'renameStudent', classId, studentId, name });
 };

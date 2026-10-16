@@ -20,6 +20,8 @@ import {
   capReached,
   decideAiKey,
   effectiveAiMode,
+  EXHAUSTED_COOLDOWN_MS,
+  ownKeyUsable,
   looksLikeGeminiKey,
   maskKey,
   usdToVndRounded,
@@ -78,6 +80,100 @@ export const loadAiAccess = async (db: Db): Promise<AiAccessSettings> => {
 const loadKeyDoc = async (db: Db, uid: string): Promise<TeacherKeyDoc | null> => {
   const snap = await db.collection(TEACHER_AI_KEYS_COL).doc(uid).get();
   return snap.exists ? (snap.data() as TeacherKeyDoc) : null;
+};
+
+// ── Khoá riêng của HỌC SINH ──────────────────────────────────────────────────
+// `studentAiKeys/{classId}__{studentId}`: CHỈ máy chủ đọc/ghi (rules mặc định chặn), khoá không trả về trình duyệt.
+// Gắn theo em (lớp + mã HS) chứ không theo phiên ẩn danh — đổi máy đăng nhập lại vẫn dùng được khoá cũ.
+
+export const STUDENT_AI_KEYS_COL = 'studentAiKeys';
+
+interface StudentKeyDoc {
+  geminiKey?: string;
+  last4?: string;
+  keyStatus?: AiKeyStatus;
+  keyStatusAt?: string;
+  keyStatusMessage?: string;
+  classId?: string;
+  studentId?: string;
+  teacherId?: string;
+}
+
+interface StudentLinkInfo { classId: string; studentId: string; teacherId: string }
+
+const studentLinkOf = async (db: Db, uid: string): Promise<StudentLinkInfo | null> => {
+  const snap = await db.collection('studentLinks').doc(uid).get();
+  const data = snap.exists ? snap.data() ?? {} : {};
+  const link = { classId: String(data.classId || ''), studentId: String(data.studentId || ''), teacherId: String(data.teacherId || '') };
+  return link.classId && link.studentId && link.teacherId ? link : null;
+};
+
+const studentKeyDocId = (link: StudentLinkInfo): string => `${link.classId}__${link.studentId}`;
+
+/** Khoá của học sinh đang gọi AI, nếu em có khoá và khoá không đang nghỉ (hết hạn mức → nghỉ 60 phút). */
+const studentKeyChoice = async (db: Db, context: NonNullable<ReturnType<typeof currentAiUsageContext>>): Promise<AiKeyChoice | null> => {
+  const who = await context.identity();
+  if (!who.uid || !who.anonymous) return null;
+  const link = await studentLinkOf(db, who.uid);
+  if (!link) return null;
+  const id = studentKeyDocId(link);
+  const snap = await db.collection(STUDENT_AI_KEYS_COL).doc(id).get();
+  const doc = snap.exists ? (snap.data() as StudentKeyDoc) : null;
+  if (!doc?.geminiKey || !ownKeyUsable({ status: doc.keyStatus ?? 'ok', statusAt: doc.keyStatusAt })) return null;
+  return { key: doc.geminiKey, source: 'own', ownerUid: link.teacherId, billing: null, studentKeyId: id };
+};
+
+const studentKeyStatus = (doc: StudentKeyDoc | null): Record<string, unknown> => {
+  const hasKey = Boolean(doc?.geminiKey);
+  const status = hasKey ? doc?.keyStatus ?? 'ok' : null;
+  const usable = hasKey && ownKeyUsable({ status: status ?? 'ok', statusAt: doc?.keyStatusAt });
+  const at = Date.parse(doc?.keyStatusAt || '');
+  return {
+    hasKey,
+    last4: doc?.last4 ?? '',
+    keyStatus: status,
+    /** Khoá đang dùng được; false = bài của em đang chấm bằng khoá của thầy cô. */
+    usable,
+    /** Khoá hết hạn mức thì thử lại từ lúc này (ISO). */
+    retryAt: hasKey && !usable && status === 'exhausted' && Number.isFinite(at) ? new Date(at + EXHAUSTED_COOLDOWN_MS).toISOString() : null,
+  };
+};
+
+/** Học sinh lưu / xoá / xem khoá Gemini của mình. Phiên lấy từ `studentLinks`, không tin mã HS client gửi. */
+export const handleStudentAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
+  const action = String(body.action || '');
+  if (!['studentAiKeyStatus', 'saveStudentAiKey', 'deleteStudentAiKey'].includes(action)) return false;
+  let uid = '';
+  try {
+    uid = typeof body.idToken === 'string' && body.idToken ? (await getAuth().verifyIdToken(body.idToken)).uid : '';
+  } catch {
+    uid = '';
+  }
+  const link = uid ? await studentLinkOf(db, uid) : null;
+  if (!link) {
+    res.status(401).json({ error: 'Cần đăng nhập cổng học sinh.' });
+    return true;
+  }
+  const ref = db.collection(STUDENT_AI_KEYS_COL).doc(studentKeyDocId(link));
+  const now = new Date().toISOString();
+  if (action === 'saveStudentAiKey') {
+    const key = typeof body.key === 'string' ? body.key.trim() : '';
+    if (!looksLikeGeminiKey(key)) {
+      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".' });
+      return true;
+    }
+    const probe = await probeGeminiKey(key);
+    if (probe.ok === false) {
+      res.status(422).json({ error: probe.message });
+      return true;
+    }
+    await ref.set({ ...link, geminiKey: key, last4: maskKey(key), keyStatus: 'ok', keyStatusAt: now, keyStatusMessage: '', updatedAt: now }, { merge: true });
+  } else if (action === 'deleteStudentAiKey') {
+    await ref.set({ ...link, geminiKey: '', last4: '', keyStatus: 'ok', keyStatusAt: now, updatedAt: now }, { merge: true });
+  }
+  const snap = await ref.get();
+  res.status(200).json(studentKeyStatus(snap.exists ? (snap.data() as StudentKeyDoc) : null));
+  return true;
 };
 
 interface SpendTotals { costUsd: number; calls: number; chargeVnd: number }
@@ -161,12 +257,17 @@ const resolveKeyOwner = async (db: Db): Promise<string | null> => {
  * `vendor`: hãng KHÁC Gemini (Claude/ChatGPT qua relay) — khoá Gemini riêng lưu trên máy chủ không dùng được cho hãng đó, nên
  * coi như không có khoá riêng; còn lại cùng luật nhóm/đồng ý/chế độ/ví/trần.
  */
-export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: boolean } = {}): Promise<AiKeyChoice> => {
+export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: boolean; skipStudentKey?: boolean } = {}): Promise<AiKeyChoice> => {
   const context = currentAiUsageContext();
   if (!context) return { key: fallbackKey, source: 'shared', ownerUid: null };
   if (context.keyChoice) return context.keyChoice;
 
   const db = getAdminDb();
+  // Lượt do HỌC SINH gọi: khoá riêng của em chạy trước; không có / đang nghỉ thì đi tiếp đường của thầy cô như cũ.
+  if (!options.vendor && !options.skipStudentKey) {
+    const student = await studentKeyChoice(db, context).catch(() => null);
+    if (student) return (context.keyChoice = student);
+  }
   const access = await loadAiAccess(db);
   // Người chịu phí cần biết cả khi CHƯA bật kiểm soát: để cộng sổ chi tiêu và giữ trần tự đặt.
   const ownerUid = await resolveKeyOwner(db).catch(() => null);
@@ -200,6 +301,17 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
  * hoặc đã đồng ý thì chuyển request này sang khoá chung (trừ ví), còn lại thì chặn.
  */
 export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, detail: string, fallbackKey: string): Promise<AiKeyChoice> => {
+  if (choice.studentKeyId) {
+    // Khoá của học sinh hỏng / hết hạn mức: ghi lại để màn hình em thấy, rồi chấm tiếp bằng khoá của thầy cô ngay lượt này.
+    await getAdminDb().collection(STUDENT_AI_KEYS_COL).doc(choice.studentKeyId).set({
+      keyStatus: status,
+      keyStatusAt: new Date().toISOString(),
+      keyStatusMessage: detail.slice(0, 300),
+    }, { merge: true });
+    const context = currentAiUsageContext();
+    if (context) context.keyChoice = null;
+    return ensureGeminiKey(fallbackKey, { skipStudentKey: true });
+  }
   const uid = choice.ownerUid;
   if (!uid) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', null);
   const db = getAdminDb();

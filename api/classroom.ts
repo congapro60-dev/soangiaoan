@@ -55,7 +55,7 @@ import { handleParentReportAction } from './_parent-report.js';
 import { handleSsmTemplateAction } from './_ssm-template.js';
 import { handleTimetableAction } from './_timetable.js';
 import { handlePortfolioAction } from './_portfolio.js';
-import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction, handleStudentAiKeyAction } from './_ai-keys.js';
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleAdminLinkAction } from './_admin-link.js';
 import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
@@ -1551,6 +1551,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleTimetableAction(body, res)) return;
     if (await handlePortfolioAction(db, body, res)) return;
     if (await handleAiKeyAction(db, body, res)) return;
+    if (await handleStudentAiKeyAction(db, body, res)) return;
     if (await handleAiBillingAction(db, body, res)) return;
     if (await handleAdminLinkAction(body, res)) return;
     if (await handleParentPortalAction(db, body, res)) return;

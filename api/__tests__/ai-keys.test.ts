@@ -78,7 +78,7 @@ const fakeDb = () => {
 vi.mock('../_exam-core.js', () => ({ getAdminDb: () => fakeDb() }));
 
 import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from '../_ai-usage';
-import { AiKeyRequiredError, assertSharedAiAllowed, ensureGeminiKey, handleAiKeyAction } from '../_ai-keys';
+import { AiKeyRequiredError, assertSharedAiAllowed, ensureGeminiKey, handleAiKeyAction, handleStudentAiKeyAction } from '../_ai-keys';
 import { callGeminiVision } from '../_grading-core';
 
 const OWNER_KEY = 'OWNER-KEY';
@@ -495,5 +495,66 @@ describe('khoá AI + trần chi tiêu', () => {
 
     h.claims = { uid: 'hs', firebase: { sign_in_provider: 'anonymous' } };
     expect((await call({ action: 'aiKeyStatus' })).statusCode).toBe(401);
+  });
+
+  describe('khoá riêng của học sinh', () => {
+    const STUDENT_KEY = 'AIza' + 's'.repeat(35);
+    const asStudent = <T>(fn: () => Promise<T>) => {
+      const ctx = createAiUsageContext('t', 'gradeOne', {}, async () => ({ uid: 'phien-hs', email: null, anonymous: true }));
+      return runWithAiUsage(ctx, fn);
+    };
+    const okBody = { ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 10, totalTokenCount: 110 } }) };
+    beforeEach(() => {
+      h.store['studentLinks/phien-hs'] = { classId: 'lop-1', studentId: 'hs-1', teacherId: 'gv-ngoai' };
+      h.store['adminSettings/aiAccess'] = { enabled: false };
+    });
+
+    it('em có khoá: lượt của em chạy bằng khoá của em, không tính cho thầy cô', async () => {
+      h.store['studentAiKeys/lop-1__hs-1'] = { geminiKey: STUDENT_KEY, keyStatus: 'ok' };
+      expect(await asStudent(() => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: STUDENT_KEY, source: 'own', ownerUid: 'gv-ngoai', studentKeyId: 'lop-1__hs-1' });
+      vi.stubGlobal('fetch', vi.fn(async () => okBody));
+      await asStudent(() => callGeminiVision('chấm', [], OWNER_KEY));
+      expect(Object.values(h.store).find(d => d.keySource)).toMatchObject({ keySource: 'own', keyHolder: 'student' });
+      expect(h.store[`aiSpend/gv-ngoai_${month}`]).toBeUndefined();
+    });
+
+    it('khoá của em hết hạn mức: ghi trạng thái rồi chấm tiếp bằng khoá của thầy cô ngay lượt đó; 60 phút sau mới thử lại', async () => {
+      h.store['studentAiKeys/lop-1__hs-1'] = { geminiKey: STUDENT_KEY, keyStatus: 'ok' };
+      const fetchMock = vi.fn(async (url: string) => (String(url).includes(encodeURIComponent(STUDENT_KEY))
+        ? { ok: false, status: 429, clone: () => ({ text: async () => 'RESOURCE_EXHAUSTED' }) }
+        : okBody));
+      vi.stubGlobal('fetch', fetchMock);
+      await asStudent(() => callGeminiVision('chấm', [], OWNER_KEY));
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(String(fetchMock.mock.calls[1][0])).toContain(OWNER_KEY);
+      expect(h.store['studentAiKeys/lop-1__hs-1'].keyStatus).toBe('exhausted');
+      expect((await asStudent(() => ensureGeminiKey(OWNER_KEY))).key).toBe(OWNER_KEY);
+    });
+
+    it('không có khoá / lượt của giáo viên: đi đường cũ', async () => {
+      expect((await asStudent(() => ensureGeminiKey(OWNER_KEY))).key).toBe(OWNER_KEY);
+      h.store['studentAiKeys/lop-1__hs-1'] = { geminiKey: STUDENT_KEY, keyStatus: 'ok' };
+      expect((await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).key).toBe(OWNER_KEY);
+    });
+
+    it('API học sinh: lưu theo phiên (không theo tham số), kiểm khoá với Google, không bao giờ trả khoá', async () => {
+      const call = async (body: DocData) => {
+        const res: any = { statusCode: 0, payload: null, status(c: number) { res.statusCode = c; return res; }, json(p: any) { res.payload = p; return res; } };
+        await handleStudentAiKeyAction(fakeDb() as never, { idToken: 't', ...body }, res);
+        return res;
+      };
+      h.claims = { uid: 'phien-hs', firebase: { sign_in_provider: 'anonymous' } };
+      expect((await call({ action: 'saveStudentAiKey', key: 'sk-1' })).statusCode).toBe(422);
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200 })));
+      const saved = await call({ action: 'saveStudentAiKey', key: STUDENT_KEY, studentId: 'hs-khac' });
+      expect(saved.statusCode).toBe(200);
+      expect(JSON.stringify(saved.payload)).not.toContain(STUDENT_KEY);
+      expect(saved.payload).toMatchObject({ hasKey: true, last4: 'ssss', usable: true });
+      expect(h.store['studentAiKeys/lop-1__hs-1'].geminiKey).toBe(STUDENT_KEY);
+      expect(h.store['studentAiKeys/lop-1__hs-khac']).toBeUndefined();
+      expect((await call({ action: 'deleteStudentAiKey' })).payload).toMatchObject({ hasKey: false });
+      h.claims = { uid: 'khong-co-lien-ket', firebase: { sign_in_provider: 'anonymous' } };
+      expect((await call({ action: 'studentAiKeyStatus' })).statusCode).toBe(401);
+    });
   });
 });

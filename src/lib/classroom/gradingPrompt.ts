@@ -63,7 +63,10 @@ export const TEACHER_MARKED_PAPER_NOTE = `BÀI KIỂM TRA ĐÃ ĐƯỢC GIÁO VI
 dấu đúng/sai, điểm từng câu, tổng điểm, và có khi là ĐÁP ÁN ĐÚNG giáo viên viết chữa cạnh câu em làm sai.
 - Những nét đó KHÔNG phải bài làm của em. "studentAnswer" chỉ chép phần CHÍNH EM làm (bút xanh/đen, ô em tô trên phiếu trả lời).
 - Không chép điểm giáo viên ghi; tự chấm từng câu theo ĐÁP ÁN CHUẨN.
-- Chữ chữa của giáo viên đè lên làm không phân biệt được đâu là của em → "status" = "unreadable", "needsTeacherReview" = true.`;
+- Chữ chữa của giáo viên đè lên làm không phân biệt được đâu là của em → "status" = "unreadable", "needsTeacherReview" = true.
+- RIÊNG field gốc "teacherMarkedScore": chép TỔNG điểm giáo viên viết tay trên bài, dạng {"score": 7.5, "maxScore": 10}
+  (maxScore = thang ghi trên bài; không ghi thang thì 10). Chỉ để thầy cô đối chiếu, KHÔNG dùng để chấm.
+  Không thấy tổng điểm, hoặc đọc không chắc chữ số → "teacherMarkedScore": null. Không tự cộng điểm từng câu để điền vào đây.`;
 
 export interface HomeworkGrade {
   score: number;
@@ -79,7 +82,19 @@ export interface HomeworkGrade {
   weakTopics: string[];
   /** true khi chấm mà KHÔNG có đáp án chuẩn — kết quả kém tin cậy hơn. */
   gradedWithoutAnswerKey: boolean;
+  /** Bài chấm tay: tổng điểm giáo viên viết trên bài, máy đọc (không dùng để chấm). */
+  teacherMarkedScore?: { score: number; maxScore: number };
 }
+
+/** Tổng điểm giáo viên viết tay AI đọc ra: chỉ nhận số hợp lệ trong thang (thang 1–100). Sai dạng → bỏ, không đoán. */
+export const parseTeacherMarkedScore = (raw: unknown): { score: number; maxScore: number } | undefined => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const record = raw as Record<string, unknown>;
+  const score = Number(record.score);
+  const maxScore = record.maxScore === undefined || record.maxScore === null ? 10 : Number(record.maxScore);
+  if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || maxScore > 100 || score < 0 || score > maxScore) return undefined;
+  return { score: Math.round(score * 100) / 100, maxScore };
+};
 
 export interface HomeworkGradeRecovery {
   parseMode: JsonParseMode;
@@ -398,6 +413,7 @@ const coerceHomeworkGrade = (
     weakTopics: toStringArray(parsed.weakTopics),
     questionResults,
     gradedWithoutAnswerKey,
+    ...(parseTeacherMarkedScore(parsed.teacherMarkedScore) ? { teacherMarkedScore: parseTeacherMarkedScore(parsed.teacherMarkedScore) } : {}),
   };
 };
 

@@ -5,6 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Điểm chấm tay trên bài định kì → sổ điểm (GV xác nhận) — 16/10 (Claude)
+
+Chủ dự án duyệt: AI đọc TỔNG điểm GV viết tay trên ảnh bài định kì, hiện cạnh điểm AI, GV xác nhận rồi mới vào sổ. Prompt bài chấm tay thêm field `teacherMarkedScore` (chỉ đọc, KHÔNG dùng để chấm; không chắc → null) → `parseTeacherMarkedScore` → `grade.paperScore`. Sổ chưa có điểm mốc đó thì `examCheck` đối chiếu với `paperScore` (nhãn "Điểm ghi trên bài"; lệch > ngưỡng vẫn không tự duyệt). GV: dòng bài nộp định kì có ô "Điểm thầy cô ghi trên bài (máy đọc)" + "Xác nhận vào sổ" (cột = `periodicTest.sheetLabel` hoặc tên bài) → action `confirmPaperExamScore` lưu `scoreBooks.paperExams` RIÊNG (đồng bộ file điểm thay `exams` cả khối nên không xoá mất); `normalizeScoreBook` ghép vào `exams` với `source:'paper'`, cột file điểm đã có thì FILE THẮNG; `writeBook` bỏ phần ghép (`storedExams`). Sổ điểm tô đỏ nhạt điểm từ ảnh. Mốc trùng tên cột TDS của lớp thì vào TDS, còn lại MOET. Test: score-book +1, grade-homework.variants +1, gradingPrompt, examVariants.
+
+## Học sinh tự nhập khoá Gemini; khoá lỗi thì chấm bằng khoá thầy cô — 16/10 (Claude)
+
+Chủ dự án chốt: mọi HS được nhập khoá của mình (Gmail riêng), không giới hạn; không có khoá / khoá lỗi thì tự dùng khoá thầy cô, màn hình nói rõ. `studentAiKeys/{classId}__{studentId}` (chỉ máy chủ, rules mặc định chặn; gắn theo em, không theo phiên ẩn danh). `ensureGeminiKey`: lượt do HS gọi (identity ẩn danh + `studentLinks`) dùng khoá em trước — `source:'own'`, `studentKeyId`, không trừ ví, không cộng sổ chi tiêu thầy cô; `aiUsage.keyHolder='student'`, sao kê tách `studentKeyCalls`. Khoá em bị Google từ chối (429/hỏng) → `onOwnKeyFailure` ghi trạng thái (nghỉ 60 phút với hết hạn mức) rồi gọi lại NGAY bằng đường của thầy cô. Action `studentAiKeyStatus/saveStudentAiKey/deleteStudentAiKey` (probe Google trước khi lưu, không trả khoá). UI: mục "Khoá AI của em" trong hộp chi phí AI ở đầu cổng HS. Áp cho mọi lượt AI do HS gọi (chấm bài tự nộp, hỏi lại câu, bài chữa, bài luyện); lượt GV bấm chấm vẫn dùng khoá GV. Lưu ý pháp lý đã nêu với chủ dự án: điều khoản Gemini API về tuổi (≥18) và dữ liệu gói miễn phí — chủ dự án quyết bật. Test `ai-keys.test.ts` +4, `StudentAiKeySection.test.tsx`.
+
+## Bài kiểm tra định kì nhận đề scan / ảnh chụp — 16/10 (Claude)
+
+Trước: file không có lớp chữ bị loại ("không có chữ (bản scan hoặc ảnh)…") dù "Để AI giải đề" vốn gửi được ảnh trang. Nay `readExamSourceFile` trả `scanPages` cho PDF scan / ảnh JPG-PNG-WEBP; `splitVariantSources` coi mỗi file ảnh là một đề, mã lấy theo tên file CHẶT ("Mã đề 101", "đề 101" — số trần như IMG_0457 không tính), mọi trang làm `pageRefs`; tên không có mã → dòng mã TRỐNG + khung hỏi lại "file này là mã đề nào" (chưa điền thì không giải đề/giao được); chỉ một đề ảnh không mã → đề số 1. Đáp án dạng ảnh chưa đọc tự động (báo GV dán hoặc để AI giải). Giới hạn: file scan GỘP nhiều mã (khối 12) chưa tách được — tách mỗi mã một file. QA production 16/10 (không giao bài): PDF ảnh "… đề 101 …" → mã 101; IMG_0457.jpg → dòng mã trống + khung hỏi lại, nút AI giải khoá tới khi điền mã.
+
 ## Kiểm dấu trên ảnh sau đợt chấm lại (Claude) — 16/10
 
 Đọc dữ liệu production qua phản hồi API trang GV (không token): bài chấm từ 13/10 có dấu 133/141, câu có dấu 1.810/2.275; 8 bài còn 0 dấu (khớp lượt lỗi 429 của job retry đang pause). Mắt soát bài Hồ Khánh Phương (Đề cương số 4): dấu trắc nghiệm đúng từng dòng, câu sai khoanh đỏ đúng chỗ; Đúng/Sai hơi lệch lên nửa dòng; một bài tự luận bị khoanh trùm cả trang — chất lượng định vị, không phải lỗi code.
