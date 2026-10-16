@@ -9,8 +9,11 @@ Người dùng cung cấp ảnh QA của Claude, yêu cầu kiểm lỗi và ch�
 - [x] Tái hiện mẫu Đề cương số 4: 7 ảnh, 21 câu, không geometry. Root cause: schema mẫu thiếu fields; location fallback thiếu; UI bỏ `readingRegions` sau câu unreadable.
 - [x] Sửa nguyên nhân; 185 focused tests pass. Giữ sửa tay/ảnh gốc; source fingerprint chặn đáp án đổi giữa chừng; fresh manual edit claim chặn overwrite.
 - [x] Mẫu production `GHKI - Đề cương số 4`: 1/1 thành công, 23 vùng; điểm 8.85 và chưa duyệt giữ nguyên.
-- [!] Batch 436: 127 graded, 292 failed_preserved (điểm cũ giữ nguyên), 17 failed. Provider 429/503 là nguyên nhân chính. Retry canary sau reset cursor xử lý thêm 7/309 rồi dừng `AI quota or key policy blocked the run`; không có lượt nào ghi đè điểm cũ.
-- [ ] Khi server-side Gemini key/quota hồi phục, tiếp tục `photo-refresh-20261015-retry` từ cursor 7; chỉ chạy lại lượt lỗi.
+- [x] Batch 436: 127 graded, 292 failed_preserved, 17 failed; retry queue complete 309/309: graded 66, failed_preserved 229, failed 14. Điểm cũ giữ nguyên.
+- [x] Claude 16/10 resume bằng khóa mới; queue đã complete. 14 lượt failed và 229 lượt giữ điểm cần follow-up riêng.
+- [x] Nguyên nhân: khóa `htzg` exhausted 13:16:43Z; refresh không pause vì lỗi khóa trả `gradePreserved` thay vì 429 → cần sửa runner (pause khi khóa hết hạn mức) trước đợt sau.
+- [x] Soát 3 bài (2 lớp — bài graded chỉ thuộc 2 lớp): dấu gắn đúng ảnh của bài, không sửa tay, ảnh đủ. Chưa có điểm/duyệt trước refresh để đối chiếu; chưa xem nét đứt trên UI.
+- [ ] Chủ dự án quyết: tạo job mới cho 243 bài lỗi (có ngưỡng dừng khi lỗi liên tiếp) hay dừng.
 - [x] (Claude 16/10) Kiểm dữ liệu thật: 133/141 bài từ 13/10 có dấu; mắt soát Đề cương số 4 đạt (TF lệch nhẹ, tự luận vòng to). Sửa ảnh/danh sách lệch nhãn "Cần đối chiếu"; đã duyệt hiện theo kết quả.
 - [x] HANDOFF/main cập nhật; source `00b82b2`, CI 3.163/3.163.
 
@@ -318,3 +321,4 @@ không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu l
 - [x] Test + lint + build + QA production.
 
 - [ ] SSM native follow-up: đọc lớp/cache + Auto-Wake + từ chối ô thiếu trên0.3.1 thật đạt.0.3.2 CKEditor đã main/Ready, CI3104đạt. Chờ user cập nhật0.3.2 để kiểm editor; Excel/roster/cloudsync/cross-machine thật chưa kiểm. Không Save/Submit.
+
