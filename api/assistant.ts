@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
+import { cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
 
 const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7) : '';
 export const config = { api: { bodyParser: false } };

@@ -131,12 +131,14 @@ Files:
 - Modify: src/components/modals/SettingsModal.tsx
 - Modify: api/assistant.ts
 
-- [ ] Implement createLinkCode(idToken): verify Firebase ID token, generate a cryptographically random code, store only SHA-256 hash, expire after 10 minutes, return the one-time display code.
-- [ ] Implement channel-specific consumeLinkCode: require Telegram private chat or verified Zalo OA identity, atomically reject used/expired code, and bind the exact channel account/user pair.
-- [ ] Implement revokeChannelLink(idToken, linkId): verify owner, mark link inactive, and invalidate pending confirmations for that actor.
-- [ ] Add Settings UI states: generate code, copy/display once, linked account, revoke, and error.
-- [ ] Never persist the raw bot service secret or raw one-time code in userSettings.
+- [x] Implement createLinkCode(idToken): verify Firebase ID token, generate a cryptographically random code, store only SHA-256 hash, expire after 10 minutes, return the one-time display code.
+- [x] Implement channel-specific consumeLinkCode: require Telegram private chat or verified Zalo OA identity, atomically reject used/expired code, and bind the exact channel account/user pair.
+- [x] Implement revokeChannelLink(idToken, linkId): verify owner, mark link inactive, and invalidate pending confirmations for that actor.
+- [x] Add Settings UI states: generate code, copy/display once, linked account, revoke, and error.
+- [x] Never persist the raw bot service secret or raw one-time code in userSettings.
 - [ ] Test expiry, replay, wrong Firebase owner, group-chat rejection, relink, revoke, and code hash mismatch.
+
+Validation status (2026-10-16): implementation complete, including replay rejection (`claimAssistantRequestNonce` and one-time link-code consume). Runtime tests/build blocked because `node_modules` is absent in this worktree; `git diff --check` passes.
 
 Run:
 
