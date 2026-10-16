@@ -11,7 +11,7 @@ Chủ dự án chốt: mọi HS được nhập khoá của mình (Gmail riêng)
 
 ## Bài kiểm tra định kì nhận đề scan / ảnh chụp — 16/10 (Claude)
 
-Trước: file không có lớp chữ bị loại ("không có chữ (bản scan hoặc ảnh)…") dù "Để AI giải đề" vốn gửi được ảnh trang. Nay `readExamSourceFile` trả `scanPages` cho PDF scan / ảnh JPG-PNG-WEBP; `splitVariantSources` coi mỗi file ảnh là một đề, mã lấy theo tên file CHẶT ("Mã đề 101", "đề 101" — số trần như IMG_0457 không tính), mọi trang làm `pageRefs`; tên không có mã → dòng mã TRỐNG + khung hỏi lại "file này là mã đề nào" (chưa điền thì không giải đề/giao được); chỉ một đề ảnh không mã → đề số 1. Đáp án dạng ảnh chưa đọc tự động (báo GV dán hoặc để AI giải). Giới hạn: file scan GỘP nhiều mã (khối 12) chưa tách được — tách mỗi mã một file.
+Trước: file không có lớp chữ bị loại ("không có chữ (bản scan hoặc ảnh)…") dù "Để AI giải đề" vốn gửi được ảnh trang. Nay `readExamSourceFile` trả `scanPages` cho PDF scan / ảnh JPG-PNG-WEBP; `splitVariantSources` coi mỗi file ảnh là một đề, mã lấy theo tên file CHẶT ("Mã đề 101", "đề 101" — số trần như IMG_0457 không tính), mọi trang làm `pageRefs`; tên không có mã → dòng mã TRỐNG + khung hỏi lại "file này là mã đề nào" (chưa điền thì không giải đề/giao được); chỉ một đề ảnh không mã → đề số 1. Đáp án dạng ảnh chưa đọc tự động (báo GV dán hoặc để AI giải). Giới hạn: file scan GỘP nhiều mã (khối 12) chưa tách được — tách mỗi mã một file. QA production 16/10 (không giao bài): PDF ảnh "… đề 101 …" → mã 101; IMG_0457.jpg → dòng mã trống + khung hỏi lại, nút AI giải khoá tới khi điền mã.
 
 ## Kiểm dấu trên ảnh sau đợt chấm lại (Claude) — 16/10
 
