@@ -131,8 +131,9 @@ export function canUseAssistantShare(
 ): boolean {
   if (share.status !== 'active' || share.revokedAt !== undefined
     || share.resourceType !== resourceType || share.resourceId !== resourceId
-    || !Number.isFinite(now) || share.createdAt > now
-    || (share.expiresAt !== undefined && share.expiresAt <= now)) return false;
+    || !Number.isFinite(now) || !Number.isFinite(share.createdAt) || share.createdAt > now
+    || (share.expiresAt !== undefined
+      && (!Number.isFinite(share.expiresAt) || share.expiresAt <= now))) return false;
   if (share.ownerUid === actorUid) return true;
   return share.granteeUid === actorUid && (requiredRole === 'read' || share.role === 'write');
 }

@@ -117,7 +117,7 @@ The gateway must reuse those server-side checks or equivalent shared core functi
 Server-only collections:
 
 - assistantLinkCodes/{codeHash}
-- telegramLinks/{telegramUserId}
+- channelLinks/{linkId}
 - assistantShares/{shareId}
 - assistantConfirmations/{confirmationId}
 - assistantAuditLogs/{logId}
@@ -138,7 +138,7 @@ Client Firestore rules deny direct client reads/writes to these collections. Adm
 3. Gateway stores only a hash of a random code, teacher UID, creation time, expiration, and unused state. Expiration is 10 minutes. The code is single-use.
 4. Teacher sends /link CODE to the bot in a private chat.
 5. Bot sends the code plus Telegram numeric IDs to the gateway.
-6. Gateway atomically consumes the code and creates or updates telegramLinks/{telegramUserId}.
+6. Gateway atomically consumes the code and creates or updates channelLinks/{linkId}, keyed by channel identity.
 7. Bot confirms only teacher display name and link status. It never echoes the raw code after use.
 8. Unlink or revoke marks the link inactive immediately. Later requests fail closed.
 

@@ -92,7 +92,7 @@ Files:
 
 - [ ] Define AssistantActor with firebaseUid, telegramUserId, chatId, linkId, and active.
 - [ ] Define AssistantToolName as an explicit union. Do not accept arbitrary tool names from the model.
-- [ ] Define assistantLinkCodes, telegramLinks, assistantShares, assistantConfirmations, assistantAuditLogs, and assistantJobs document shapes.
+- [ ] Define assistantLinkCodes, channelLinks, assistantShares, assistantConfirmations, assistantAuditLogs, and assistantJobs document shapes.
 - [ ] Add deny-by-default Firestore matches for all six collections. Server Admin SDK remains the only access path.
 - [ ] Add tests for unlinked actor, expired link, revoked link, and inactive share.
 
