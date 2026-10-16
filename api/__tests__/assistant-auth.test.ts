@@ -36,6 +36,12 @@ describe('assistant authorization contracts', () => {
     expect(isUsableChannelLink(link, now, null as never)).toBe(false);
     expect(isUsableChannelLink({ ...link, channelAccountId: '   ' }, now)).toBe(false);
     expect(isUsableChannelLink({ ...link, channelUserId: '   ' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: null as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: 42 as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: '   ' }, now)).toBe(false);
+    expect(isUsableChannelLink(link, undefined as never)).toBe(false);
+    expect(isUsableChannelLink({ ...link, updatedAt: undefined as never }, now)).toBe(false);
   });
 
   it('authorizes owner and grantee reads, but respects revocation and role escalation', () => {

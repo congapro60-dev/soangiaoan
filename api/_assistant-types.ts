@@ -133,7 +133,8 @@ export function isUsableChannelLink(
     const validIdentity = (value: unknown): value is Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'> =>
       isRecord(value) && isChannel(value.channel)
       && isNonEmptyString(value.channelAccountId) && isNonEmptyString(value.channelUserId);
-    if (!validIdentity(link) || (identity !== undefined && !validIdentity(identity))) return false;
+    if (!validIdentity(link) || !isNonEmptyString(link.firebaseUid)
+      || (identity !== undefined && !validIdentity(identity))) return false;
     return link.active === true
       && isFiniteNumber(link.createdAt) && isFiniteNumber(link.updatedAt)
       && link.createdAt <= now

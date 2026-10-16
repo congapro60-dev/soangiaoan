@@ -90,11 +90,11 @@ Files:
 - Modify: firestore.rules
 - Test: api/__tests__/assistant-auth.test.ts
 
-- [ ] Define AssistantActor with firebaseUid, channel, channelAccountId, channelUserId, optional channelChatId, linkId, and active.
-- [ ] Define AssistantToolName as an explicit union. Do not accept arbitrary tool names from the model.
-- [ ] Define assistantLinkCodes, channelLinks, assistantShares, assistantConfirmations, assistantAuditLogs, and assistantJobs document shapes.
-- [ ] Add deny-by-default Firestore matches for all six collections. Server Admin SDK remains the only access path.
-- [ ] Add tests for unlinked actor, expired link, revoked link, and inactive share.
+- [x] Define AssistantActor with firebaseUid, channel, channelAccountId, channelUserId, optional channelChatId, linkId, and active.
+- [x] Define AssistantToolName as an explicit union. Do not accept arbitrary tool names from the model.
+- [x] Define assistantLinkCodes, channelLinks, assistantShares, assistantConfirmations, assistantAuditLogs, and assistantJobs document shapes.
+- [x] Add deny-by-default Firestore matches for all six collections. Server Admin SDK remains the only access path.
+- [x] Add tests for unlinked actor, expired link, revoked link, and inactive share.
 
 Contract to implement before tool code:
 
@@ -117,6 +117,8 @@ npm --prefix "C:\Users\ADMIN\.codex\worktrees\smart-lesson-plan-ai\assistant-gat
 ~~~
 
 Expected: new tests pass against pure validation helpers.
+
+Verification (2026-10-16): `git diff --check` passes. Runtime tests and build blocked because `node_modules` is absent in this worktree.
 
 ---
 
