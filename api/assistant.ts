@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
+import { cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode, isAllowedZaloOaId, listActiveChannelLinks, revokeLink, verifyAssistantServiceSignature } from './_assistant-auth.js';
 
 const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7) : '';
 export const config = { api: { bodyParser: false } };
@@ -44,6 +44,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!token) return res.status(401).json({ error: 'Authentication required' });
       await revokeLink(token, text(body.linkId));
       return res.status(200).json({ ok: true });
+    }
+    if (body.action === 'listChannelLinks') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return res.status(401).json({ error: 'Authentication required' });
+      return res.status(200).json({ links: await listActiveChannelLinks(token) });
     }
     if (body.action === 'cancelLinkCode') {
       const token = bearer(req.headers.authorization);

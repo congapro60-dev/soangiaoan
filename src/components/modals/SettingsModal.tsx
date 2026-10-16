@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Activity,
@@ -31,7 +31,7 @@ import { EffortPicker } from '../features/settings/EffortPicker';
 import { GeminiKeysField } from '../features/settings/GeminiKeysField';
 import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
 import { auth } from '../../lib/firebase';
-import { cancelTelegramLinkCode, createTelegramLinkCode, revokeTelegramLink } from '../../services/telegramLinkService';
+import { cancelTelegramLinkCode, createTelegramLinkCode, listChannelLinks, revokeTelegramLink, type LinkSummary } from '../../services/telegramLinkService';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -118,6 +118,9 @@ export const SettingsModal = ({
 }: SettingsModalProps) => {
   const [linkCode, setLinkCode] = useState<{ code: string; expiresAt: number; linkId: string } | null>(null);
   const [linkBusy, setLinkBusy] = useState(false);
+  const [activeLinks, setActiveLinks] = useState<LinkSummary[]>([]);
+  const [linksLoading, setLinksLoading] = useState(false);
+  const [linksError, setLinksError] = useState<string | null>(null);
   // Migrate giá trị cũ đã ngừng hỗ trợ (VD 'free-router' còn lưu trong Firestore) về gemini
   // để modal không crash khi tra PROVIDERS/PROVIDER_MODELS.
   const rawProvider = data.settings.selectedProvider as string | undefined;
@@ -125,6 +128,16 @@ export const SettingsModal = ({
     ? (rawProvider as Provider)
     : 'gemini';
   const [activeTab, setActiveTab] = useState<Provider>(currentProvider);
+
+  useEffect(() => {
+    if (!isOpen || !auth.currentUser) return;
+    setLinksLoading(true);
+    setLinksError(null);
+    listChannelLinks(auth.currentUser)
+      .then(({ links }) => setActiveLinks(links))
+      .catch(error => setLinksError(error instanceof Error ? error.message : 'Không thể tải liên kết'))
+      .finally(() => setLinksLoading(false));
+  }, [isOpen]);
 
   const handleSelectProvider = (provider: Provider) => {
     setActiveTab(provider);
@@ -541,6 +554,15 @@ export const SettingsModal = ({
                   <div className="flex items-start justify-between gap-3">
                     <div><h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Kết nối trợ lý Telegram / Zalo OA</h4><p className="mt-1 text-sm text-slate-500">Mã dùng một lần, hết hạn sau 10 phút. Chỉ hiển thị ngay sau khi tạo.</p></div>
                     <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Liên kết đang hoạt động</p>
+                    {linksLoading ? <p className="text-xs text-slate-500">Đang tải liên kết…</p> : linksError ? <p className="text-xs text-red-600">{linksError}</p> : activeLinks.length === 0 ? <p className="text-xs text-slate-500">Chưa có kênh nào được liên kết.</p> : activeLinks.map(link => (
+                      <div key={link.linkId} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div className="text-xs text-slate-700"><span className="font-bold">{link.channel === 'telegram' ? 'Telegram' : 'Zalo OA'}</span><span className="ml-2 text-slate-500">{link.channelUserId}</span></div>
+                        <button type="button" className="rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await revokeTelegramLink(auth.currentUser, link.linkId); setActiveLinks(current => current.filter(item => item.linkId !== link.linkId)); showToast('Đã thu hồi liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi liên kết'); } finally { setLinkBusy(false); } }}>Thu hồi</button>
+                      </div>
+                    ))}
                   </div>
                   {linkCode ? <div className="mt-4 flex flex-wrap items-center gap-2"><code className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold tracking-widest text-slate-800">{linkCode.code}</code><button type="button" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white" onClick={() => navigator.clipboard.writeText(linkCode.code).then(() => showToast('Đã chép mã liên kết'))}>Copy</button><button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await cancelTelegramLinkCode(auth.currentUser, linkCode.linkId); setLinkCode(null); showToast('Đã thu hồi mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi mã'); } finally { setLinkBusy(false); } }}>Thu hồi</button></div> : <button type="button" className="mt-4 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { setLinkCode(await createTelegramLinkCode(auth.currentUser)); showToast('Đã tạo mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo mã'); } finally { setLinkBusy(false); } }}>{linkBusy ? 'Đang tạo…' : 'Tạo mã liên kết'}</button>}
                 </section>

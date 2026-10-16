@@ -171,6 +171,32 @@ export const revokeChannelLink = async (
 
 export const revokeLink = revokeChannelLink;
 
+export interface ChannelLinkSummary {
+  linkId: string;
+  channel: Channel;
+  channelAccountId: string;
+  channelUserId: string;
+  createdAt: number;
+}
+
+export const listActiveChannelLinks = async (idToken: string, db?: Firestore): Promise<ChannelLinkSummary[]> => {
+  const firebaseUid = await verifyFirebaseIdToken(idToken);
+  const snapshot = await adminDb(db).collection('channelLinks')
+    .where('firebaseUid', '==', firebaseUid)
+    .where('active', '==', true)
+    .get();
+  return snapshot.docs.map(doc => {
+    const value = doc.data() as ChannelLinkDoc;
+    return {
+      linkId: doc.id,
+      channel: value.channel,
+      channelAccountId: value.channelAccountId,
+      channelUserId: value.channelUserId,
+      createdAt: value.createdAt,
+    };
+  });
+};
+
 export const cancelLinkCode = async (
   idToken: string,
   linkId: string,

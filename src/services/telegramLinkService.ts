@@ -2,6 +2,14 @@ import type { User } from 'firebase/auth';
 
 export type LinkChannel = 'telegram' | 'zalo_oa';
 
+export interface LinkSummary {
+  linkId: string;
+  channel: LinkChannel;
+  channelAccountId: string;
+  channelUserId: string;
+  createdAt: number;
+}
+
 const request = async <T>(headers: Record<string, string>, action: string, payload: Record<string, unknown> = {}): Promise<T> => {
   const response = await fetch('/api/assistant', {
     method: 'POST',
@@ -23,6 +31,9 @@ export const revokeTelegramLink = (user: User, linkId: string) =>
 
 export const cancelTelegramLinkCode = (user: User, linkId: string) =>
   call<{ ok: true }>(user, 'cancelLinkCode', { linkId });
+
+export const listChannelLinks = (user: User) =>
+  call<{ links: LinkSummary[] }>(user, 'listChannelLinks');
 
 export const consumeChannelLink = (code: string, identity: {
   channel: LinkChannel;
