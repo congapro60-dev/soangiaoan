@@ -32,6 +32,27 @@ it('concurrent call cannot claim an active lease; failed grade advances with fai
  expect(await runGradingRefreshItem(db,'job',grade)).toMatchObject({done:true,outcome:'failed'});
  expect(store['gradingRefreshJobs/job'].counts.failed).toBe(1);
 });
+it.each([
+ ['provider_quota',async()=>({success:false,gradePreserved:true,failureCode:'provider_quota'})],
+ ['key_blocked_exhausted',async()=>{throw Object.assign(Error('key'),{name:'AiKeyRequiredError',reason:'exhausted'})}],
+ ['daily_quota',async()=>{const {SubmissionAccessError}=await import('../_submission-actors');throw new SubmissionAccessError(429,'quota')}],
+])('%s pauses the job on the same item; resume retries it',async(code,impl)=>{
+ store['gradingRefreshJobs/job'].submissionIds=['s','t'];
+ const grade=vi.fn(impl as any);
+ await expect(runGradingRefreshItem(db,'job',grade)).rejects.toMatchObject({statusCode:429});
+ expect(store['gradingRefreshJobs/job']).toMatchObject({status:'paused',pauseReason:code,cursor:0,leaseUntil:0,runId:''});
+ expect(store['gradingRefreshJobs/job'].counts).toBeUndefined();
+ expect(store['gradingRefreshJobs/job/items/s']).toMatchObject({status:'paused',failureCode:code});
+ await expect(runGradingRefreshItem(db,'job',grade)).rejects.toMatchObject({statusCode:409,message:expect.stringContaining('Đợt chấm đang tạm dừng:')});
+ store['gradingRefreshJobs/job'].status='running';
+ expect(await runGradingRefreshItem(db,'job',vi.fn(async()=>({success:true})))).toMatchObject({outcome:'graded',remaining:1});
+ expect(store['gradingRefreshJobs/job/items/s'].status).toBe('graded');
+});
+it('non-key failure advances and stores its short code',async()=>{
+ const grade=vi.fn(async()=>({success:false,gradePreserved:true,failureCode:'provider_http'}));
+ expect(await runGradingRefreshItem(db,'job',grade)).toMatchObject({outcome:'failed_preserved',failureCode:'provider_http',done:true});
+ expect(store['gradingRefreshJobs/job/items/s']).toMatchObject({status:'failed_preserved',failureCode:'provider_http'});
+});
 it('lost response after successful grade does not regrade when lease expires',async()=>{
  store['gradingRefreshJobs/job/items/s']={startedAt:'2026-10-15T01:00:00Z',previousGradeAt:'2026-10-10T00:00:00Z'};
  store['submissions/s'].grade.gradedAt='2026-10-15T01:01:00Z';

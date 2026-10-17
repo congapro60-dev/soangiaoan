@@ -3,6 +3,7 @@ import { auth } from '../firebase';
 import { AI_QUIET_HEADER } from './aiKeyGate';
 import type { AiKeyBlockReason, AiKeyMode } from '../admin/aiKeyPolicy';
 import type { PaymentAccount, PaymentSettings, VoucherDef, VoucherRedemption } from '../admin/aiWallet';
+import { moTaLoiHttp } from '../httpErrorText';
 
 const call = async <T>(payload: Record<string, unknown>, quiet = false): Promise<T> => {
   const user = auth.currentUser;
@@ -13,7 +14,7 @@ const call = async <T>(payload: Record<string, unknown>, quiet = false): Promise
     body: JSON.stringify({ ...payload, idToken: await user.getIdToken() }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${res.status}.`);
+  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(res.status));
   return data as T;
 };
 
