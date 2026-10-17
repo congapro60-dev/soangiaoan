@@ -28,7 +28,8 @@ interface ClassesTabProps {
   user: User | null;
   showToast: (msg: string, icon?: any) => void;
   /** Yêu cầu mở một lớp ở tab Bài nộp và bung khung việc tồn (từ Bảng điều khiển). */
-  focus?: { classId: string; nonce: number } | null;
+  focus?: { classId: string; nonce: number; studentId?: string } | null;
+  onFocusApplied?: (nonce: number) => void;
 }
 
 const escapeHtml = (value: string) => value.replace(/[<>&"]/g, ch => (
@@ -70,7 +71,7 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
 
 const EMPTY_CLASS_ASSIGNMENTS: ClassAssignment[] = [];
 
-const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass): TeacherClass => {
+export const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass): TeacherClass => {
   const onlineAssignments = remote.assignments
     .filter(assignment => assignment.type === 'exam' && Boolean(assignment.examId))
     .map(assignment => ({
@@ -105,16 +106,24 @@ const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass
   };
 };
 
-export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTabProps) => {
+export const ClassesTab = ({ data, setData, user, showToast, focus, onFocusApplied }: ClassesTabProps) => {
   const classes = data.classes || [];
   const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('overview');
+  const lastAppliedFocusNonce = useRef<number | null>(null);
   useEffect(() => {
-    if (!focus) return;
+    if (!focus || focus.nonce === lastAppliedFocusNonce.current) return;
     setSelectedClassId(focus.classId);
-    setWorkspaceView('submissions');
-  }, [focus]);
+    const targetStudent = focus.studentId
+      ? classes.find(item => item.id === focus.classId)?.students.find(student => student.id === focus.studentId)
+      : null;
+    if (focus.studentId && !targetStudent) return;
+    setViewingStudent(targetStudent || null);
+    setWorkspaceView(targetStudent ? 'overview' : 'submissions');
+    lastAppliedFocusNonce.current = focus.nonce;
+    onFocusApplied?.(focus.nonce);
+  }, [classes, focus, onFocusApplied]);
   const [managingClassId, setManagingClassId] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);
 
@@ -1345,4 +1354,3 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
     </div>
   );
 };
-

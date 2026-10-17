@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Swal from 'sweetalert2';
 
@@ -55,6 +55,8 @@ const loadExportUtils = () => import('./utils/exportUtils');
 // Types
 import { TemplateFile } from './types';
 import type { AdaptiveLesson } from './lib/adaptive/types';
+import { listAccessibleClasses } from './lib/classroom/classroomService';
+import type { TeacherClass } from './types';
 
 export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
@@ -74,7 +76,17 @@ export default function App() {
   const aiMode = useAiModeSnapshot();
   const walletCoversGemini = Boolean(aiMode?.gateEnabled && aiMode.mode !== 'own');
   // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
-  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
+  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number; studentId?: string } | null>(null);
+  const headerStudentClassesPromise = useRef<Promise<TeacherClass[]> | null>(null);
+  const loadHeaderStudentClasses = useCallback(() => {
+    if (!headerStudentClassesPromise.current) {
+      headerStudentClassesPromise.current = Promise.all([
+        listAccessibleClasses(),
+        import('./components/tabs/ClassesTab'),
+      ]).then(([remoteClasses, classesModule]) => remoteClasses.map(remote => classesModule.teacherClassFromServer(remote)));
+    }
+    return headerStudentClassesPromise.current;
+  }, []);
   // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
   useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -391,6 +403,8 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
           activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          onStudentSearchSelect={(classId, studentId) => { setClassFocus({ classId, studentId, nonce: Date.now() }); setActiveTab('classes'); }}
+          loadStudentSearchClasses={loadHeaderStudentClasses}
           isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />
@@ -429,7 +443,7 @@ export default function App() {
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} />
+              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} onFocusApplied={() => setClassFocus(null)} />
             )}
 
             {activeTab === 'creator' && (

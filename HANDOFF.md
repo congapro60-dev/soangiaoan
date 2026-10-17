@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## GV tìm học sinh ở mọi lớp từ ô tìm của Header — 17/10 (Claude)
+
+**Đổi gì, vì sao:** GV phải chọn lớp rồi mới tìm được em. Nay ô tìm có sẵn ở Header ("Tìm tính năng…") còn liệt kê học sinh mọi lớp (tên/Mã HS, không phân biệt dấu, tối đa 8, kèm tên lớp); bấm kết quả thì mở tab Lớp học, chọn đúng lớp và mở trang của em (`setClassFocus` ở `App.tsx` → `ClassesTab`). Dùng `data.classes` có sẵn, không đọc Firestore thêm. Hàm khớp: `src/components/layout/headerStudentSearch.ts`.
+
+**Còn dở / cố ý bỏ:** đích hiện là trang học sinh CÓ SẴN, chưa phải giao diện HS thật. Chủ dự án muốn "xem như HS thật, chỉ đọc" (T9b): máy chủ `studentContext` nhận `preview` chỉ khi token là GV sở hữu lớp — đặc tả ở `docs/spec/discover-self-study-v2.md` (nhánh `codex/elearning-muse-task1`). Chưa chạy thử trên trình duyệt.
+
+**Bẫy:** lần đầu focus/gõ ô tìm, Header nạp thêm lớp truy cập từ máy chủ (`listAccessibleClasses` + `teacherClassFromServer` dùng chung với `ClassesTab`, cache một Promise) nên kết quả của lớp đồng sở hữu hiện sau request đầu. Đích mở em được áp đúng một lần (nonce) rồi xoá focus ở `App`; `đ/Đ` được chuẩn hoá thành `d`.
+
+**Nghiệm thu:** `npx vitest run src/components/layout/headerStudentSearch.test.ts` rồi `npx tsc --noEmit`. Tay: gõ tên em ở lớp khác với lớp đang mở → bấm → vào đúng lớp, đúng em.
 ## Báo lỗi nói rõ lí do, không chỉ mã — 17/10 (Claude)
 
 Chủ dự án yêu cầu: mọi lỗi phải nói lí do + việc cần làm, không ghi mỗi "409/503". `src/lib/httpErrorText.ts`: `moTaLoiHttp(status)` (máy chủ của web) và `moTaLoiDichVu(status, 'Gemini' | 'Google Sheets'…)` → "X báo lỗi: <lí do>. <cách xử lí> (mã N)." Đã thay mọi câu dự phòng "Máy chủ trả lỗi N" / "(mã lỗi N)" / "Google trả lỗi N" / "Kroki N" ở 26 file (service client, Gemini, relay, thử khoá, Sheets, Drive, xuất file). Đợt chấm nền: mỗi `failureCode` lưu kèm `failureMessage`, job dừng có `pauseMessage`; lỗi 409 tách 3 câu (không thấy đợt / quá hạn / đang dừng vì …); log workflow in câu tiếng Việt. Luật trong `tasks/lessons.md`.
