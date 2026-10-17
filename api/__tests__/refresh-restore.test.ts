@@ -30,6 +30,12 @@ describe('khôi phục sau sự cố chấm lại 15–16/10', () => {
     expect(decideRestore(null, history).action).toBe('skip');
   });
 
+  it('bài đã soát ảnh thấy lần chấm lại đúng hơn → giữ điểm mới, vẫn hiện điểm cũ để đối chiếu', () => {
+    const kept = decideRestore(sub(newGrade, { id: 'sub_dc2eeab1-d05a-403a-887f-2196a1fb8bea' }), history);
+    expect(kept).toMatchObject({ action: 'skip', oldGrade });
+    expect(kept.reason).toContain('giữ điểm mới');
+  });
+
   it('ghép dấu trên ảnh mới vào bảng câu cũ theo nhãn; giữ nguyên điểm câu cũ và câu GV đã bỏ dấu', () => {
     const merged = withCurrentMarks([row('Câu 1', { score: 0.5 }), row('Câu 2', { photoMarksCleared: true })], [row('câu 1.', { photoMarks: [mark] }), row('Câu 2', { photoMarks: [mark] })]);
     expect(merged[0]).toMatchObject({ score: 0.5, photoMarks: [mark] });

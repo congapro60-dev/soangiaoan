@@ -51,7 +51,7 @@ export const RefreshRestorePanel = () => {
       <h3 className="flex items-center gap-2 text-base font-black text-rose-900"><History className="h-4 w-4" /> Khôi phục điểm bị chấm lại (15–16/10)</h3>
       <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">
         Đợt “làm mới dấu trên ảnh” đã chấm lại bài thay vì chỉ thêm dấu. Khôi phục trả lại điểm, nhận xét, trạng thái duyệt trước đợt chạy
-        (lấy từ lịch sử điểm máy đã lưu) và GIỮ dấu trên ảnh mới. Chỉ bài thầy cô đã sửa tay sau đợt chạy được giữ nguyên.
+        (lấy từ lịch sử điểm máy đã lưu) và GIỮ dấu trên ảnh mới. Giữ nguyên: bài thầy cô đã sửa tay sau đợt chạy, và 18 bài đã soát ảnh thấy lần chấm lại đúng hơn (cần duyệt lại).
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => void preview()}>Xem trước</button>

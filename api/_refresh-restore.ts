@@ -17,6 +17,31 @@ type Body = Record<string, unknown>;
 export const REFRESH_JOB_PREFIX = 'photo-refresh-20261015';
 const RESTORE_BATCH = 20;
 
+/**
+ * Bài chủ dự án soát ảnh 17/10 thấy lần chấm lại đúng hơn → giữ điểm mới, không khôi phục (thầy cô duyệt lại).
+ * Nhóm Hình học 29/09: hai lần đọc như nhau, lần chấm lại theo thang Đúng/Sai THPT đã chốt (1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý trọn).
+ */
+export const KEEP_REGRADE = new Set([
+  'sub_dc2eeab1-d05a-403a-887f-2196a1fb8bea', // Linh Chi — Đại số 25/09
+  'sub_1eddb6ae-fc69-42f9-b9ed-362d873698d6', // Linh Chi — Đại số 25/09
+  'sub_2b0f0d5e-3844-4936-b52a-4be39c758e99', // Nam Phong — Đại số 25/09
+  'sub_c165971b-cbe2-4c90-a2bc-ea290181d8a7', // Bảo Nam — Hình học 24/09
+  'sub_b8f2c47f-b714-4714-b422-8ac16ef1e327', // Nam Phong — Hình học 10/09
+  'sub_89fc0482-6446-4a13-a02e-6c9a44d41992', // Phúc Minh — GHK I ĐC1 (câu 5 em khoanh B: thầy cô sửa tay)
+  'sub_16637666-f22c-4d1b-b6f3-0886c168393a', // Hình học 29/09 (12 bài)
+  'sub_2160c53c-1c60-4ac8-869f-711bb826b0ab',
+  'sub_320ecaff-ac1f-4516-acbf-99ea3c45bc72',
+  'sub_4da13ac9-915d-4811-8376-b9a1e1148d7c',
+  'sub_521ac101-d865-4107-8254-b02d437e370c',
+  'sub_934c7abb-ab4a-4183-ad59-e0927498a7de',
+  'sub_f0c98aec-0f02-484c-abc1-2569056104bf',
+  'sub_f77c4bc1-145c-45f9-b518-15ac658e3326',
+  'sub_511a70eb-335d-4476-9989-0441e2cb32db',
+  'sub_77651a88-f399-408f-9338-71b2a6c97320',
+  'sub_a343fb96-17c3-4f54-a4e2-22eff20b3590',
+  'sub_d3737b09-85cc-41f6-9537-4c8f7c735ede',
+]);
+
 export type RestoreAction = 'restore' | 'skip';
 
 export interface RestorePlanItem {
@@ -63,6 +88,7 @@ export const decideRestore = (
   const regrade = history.find(item => item.action === 'ai_regrade' && item.createdAt === current.gradedAt && item.grade);
   if (!regrade?.grade) return { action: 'skip', reason: 'Bài đã được chấm hoặc sửa lại sau đợt chạy — giữ kết quả hiện tại.' };
   if (current.editedByTeacher) return { action: 'skip', reason: 'Thầy cô đã sửa tay sau đợt chạy — giữ kết quả của thầy cô.' };
+  if (KEEP_REGRADE.has(submission.id)) return { action: 'skip', reason: 'Đã soát ảnh: lần chấm lại đúng hơn — giữ điểm mới, thầy cô duyệt lại.', oldGrade: regrade.grade };
   // Duyệt sau đợt chạy (kể cả "teacher") vẫn khôi phục: chủ dự án xác nhận 17/10 là bấm duyệt hàng loạt, không biết điểm đã bị chấm lại.
   return { action: 'restore', reason: 'Trả lại điểm, nhận xét, trạng thái duyệt trước đợt chạy; giữ dấu trên ảnh.', oldGrade: regrade.grade };
 };
