@@ -37,6 +37,7 @@ export const normalizeGatewayEnvelope = (body: Record<string, unknown>): Gateway
   const user = text(body.channelUserId);
   const chat = text(body.channelChatId);
   if (channel && (!account || !user)) throw new Error('Invalid request');
+  if (channel === 'telegram' && !/^\d+$/.test(user)) throw new Error('Invalid Telegram user ID');
   if (channel === 'telegram' && chat !== user) throw new Error('Telegram linking requires a private chat');
   return {
     action,
@@ -87,7 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!verifyAssistantServiceSignature(rawBody, timestamp, nonce, signature, process.env.SMARTPLAN_ASSISTANT_SECRET)) return safeError(res, 401, id, 'UNAUTHORIZED');
       await claimAssistantRequestNonce(nonce);
       if (envelope.channel === 'zalo_oa' && !isAllowedZaloOaId(envelope.channelAccountId || '')) return safeError(res, 401, id, 'UNAUTHORIZED');
-      if (envelope.channel) validateChannelIdentity(envelope as Required<Pick<GatewayEnvelope, 'channel' | 'channelAccountId' | 'channelUserId'>> & { channelChatId?: string });
+      if (envelope.channel) validateChannelIdentity({
+        channel: envelope.channel,
+        channelAccountId: envelope.channelAccountId!,
+        channelUserId: envelope.channelUserId!,
+        channelChatId: envelope.channelChatId,
+        verifiedChannelAccountId: envelope.channel === 'zalo_oa' ? envelope.channelAccountId : undefined,
+      });
     }
     if (action === 'createLinkCode') {
       const token = bearer(req.headers.authorization);
@@ -98,7 +105,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!envelope.channel) throw new Error('Invalid request');
       const result = await consumeLinkCode(text(envelope.payload.code), {
         channel: envelope.channel, channelAccountId: envelope.channelAccountId!, channelUserId: envelope.channelUserId!,
-        channelChatId: envelope.channelChatId, verifiedChannelAccountId: envelope.channelAccountId,
+        channelChatId: envelope.channelChatId,
+        verifiedChannelAccountId: envelope.channel === 'zalo_oa' ? envelope.channelAccountId : undefined,
       });
       return res.status(200).json({ kind: 'answer', requestId: id, result });
     }

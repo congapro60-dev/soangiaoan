@@ -21,8 +21,13 @@ const request = async <T>(headers: Record<string, string>, action: string, paylo
   return body as T;
 };
 
+export const unwrapGatewayResult = <T>(body: T & { result?: unknown }): T =>
+  body && typeof body === 'object' && Object.prototype.hasOwnProperty.call(body, 'result')
+    ? body.result as T
+    : body;
+
 const call = async <T>(user: User, action: string, payload: Record<string, unknown> = {}) =>
-  request<T>({ Authorization: `Bearer ${await user.getIdToken()}` }, action, payload);
+  unwrapGatewayResult<T>(await request<T & { result?: unknown }>({ Authorization: `Bearer ${await user.getIdToken()}` }, action, payload));
 
 export const createTelegramLinkCode = (user: User) => call<{ code: string; expiresAt: number; linkId: string }>(user, 'createLinkCode');
 
@@ -40,4 +45,4 @@ export const consumeChannelLink = (code: string, identity: {
   channelAccountId: string;
   channelUserId: string;
   channelChatId?: string;
-}) => request<{ linkId: string; firebaseUid: string }>({}, 'consumeLinkCode', { code, ...identity });
+}) => request<{ linkId: string; firebaseUid: string } & { result?: unknown }>({}, 'consumeLinkCode', { code, ...identity }).then(unwrapGatewayResult);

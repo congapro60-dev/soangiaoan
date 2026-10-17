@@ -165,6 +165,8 @@ Files:
 - [x] Reject old timestamps, reused nonces, unknown channel links, non-private Telegram chats, unknown Zalo OA IDs, and malformed JSON.
 - [x] Normalize every request to action, actor, requestId, and payload.
 - [x] Return stable kinds: answer, confirmation, job, or safe error.
+- [x] Preserve legacy top-level client responses while unwrapping `{ result }` gateway envelopes; bind verified Zalo OA identity and numeric Telegram user IDs.
+- [ ] Chat, confirm, cancel, and jobStatus remain safe NOT_IMPLEMENTED placeholders; actor/tool dispatch is deferred.
 - [x] Redact internal error details before sending to Telegram.
 
 Run:
