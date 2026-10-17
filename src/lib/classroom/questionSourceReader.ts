@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import type { AppData } from '../../types';
 import { callAIWithVision } from '../aiProviders';
+import { moTaLoiDichVu } from '../httpErrorText';
 import {
   extractQuestionCatalogFromText,
   normalizeQuestionKey,
@@ -199,7 +200,7 @@ export const readQuestionCatalogFromSources = async (
   await Promise.all(uniqueSources.map(async source => {
     try {
       const response = await fetchSourceWithTimeout(activeDeps.fetch, source.url);
-      if (!response.ok) throw new Error(`máy chủ trả ${response.status}`);
+      if (!response.ok) throw new Error(moTaLoiDichVu(response.status, 'Kho lưu file'));
       const contentLength = Number(response.headers.get('content-length') || 0);
       if (contentLength > MAX_SOURCE_FILE_BYTES) throw new Error('file vượt quá 20 MB');
       const blob = await response.blob();

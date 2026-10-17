@@ -258,7 +258,9 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(state.statusCode).toBe(429);
     expect(harness.state.gradingRefreshJobs.job).toMatchObject({status:'paused',pauseReason:code,cursor:0,runId:'',leaseUntil:0});
     expect(harness.state.gradingRefreshJobs.job.counts).toBeUndefined();
-    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'paused',failureCode:code});
+    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'paused',failureCode:code,failureMessage:expect.stringContaining('Gemini báo lỗi:')});
+    expect(harness.state.gradingRefreshJobs.job.pauseMessage).toMatch(/Gemini báo lỗi: .*(hết hạn mức|không có quyền)/);
+    expect(String(state.body?.error)).toMatch(/Đợt chấm đã tạm dừng ở bài sub-1: Gemini báo lỗi/);
     expect(harness.state.submissions['sub-1'].grade).toEqual(before.grade);
   });
   it('maintenance refresh records a short failure code and keeps going on a non-key provider error', async () => {
@@ -266,7 +268,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     const state=await runRefresh();
     expect(gemini).toHaveBeenCalled();
     expect(state.statusCode).toBe(200);expect(state.body).toMatchObject({outcome:'failed_preserved',failureCode:'provider_http',done:true});
-    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'failed_preserved',failureCode:'provider_http'});
+    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'failed_preserved',failureCode:'provider_http',failureMessage:expect.stringContaining('quá tải')});
   });
   it.each([false, true])('binds marks to sent student photos after PDF/fetch failures; preserves removal=%s', async cleared => {
     const harness = seed();

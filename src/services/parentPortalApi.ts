@@ -1,5 +1,6 @@
 import type { ParentDevice, PublishedParentReport } from '../lib/classroom/parentAccess';
 import type { ParentReportPrintInput } from '../lib/classroom/parentReportTypes';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 /**
  * API cổng phụ huynh (/ph). Phụ huynh KHÔNG có phiên Firebase: mỗi lượt xem gửi mã lớp + em + PIN để máy chủ kiểm.
@@ -31,7 +32,7 @@ const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
     throw new ParentApiError('Không kết nối được máy chủ. Hãy kiểm tra mạng rồi thử lại.', 0);
   }
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new ParentApiError(data?.error || `Máy chủ đang bận (mã ${res.status}). Vui lòng thử lại sau ít phút.`, res.status);
+  if (!res.ok) throw new ParentApiError(data?.error || moTaLoiHttp(res.status), res.status);
   return data as T;
 };
 

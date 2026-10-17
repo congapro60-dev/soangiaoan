@@ -469,6 +469,8 @@ const gradeFailureCode = (error: unknown): string => {
 
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
+  // Lí do máy chủ tự đặt (vd "Không có ảnh bài làm đọc được") đã là câu cho người đọc, không có chi tiết hệ thống.
+  if (error instanceof SubmissionAccessError) return error.message;
   if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE].includes(error.message)) return error.message;
   // Nhãn "lỗi định dạng" chỉ đúng khi bộ đọc kết quả AI từ chối; mọi lỗi lạ khác (ghi Firestore,
   // mạng...) mà mang nhãn này là đẩy giáo viên đi tìm sai hướng.
@@ -539,7 +541,7 @@ const gradeOneSubmission = async (
   isTeacher: boolean,
   mode: HomeworkGradingMode,
   refreshSnapshot?: SubmissionDoc,
-): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; syncPending?: boolean; syncError?: string }> => {
+): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
   const claim = await claimSubmissionForGrading(db, submissionId, isTeacher, refreshSnapshot);
@@ -721,7 +723,7 @@ const gradeOneSubmission = async (
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error) };
+    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage };
   }
 };
 
@@ -2204,7 +2206,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } catch (error) {
             if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
             if (error instanceof AiKeyRequiredError) throw error;
-            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error) };
+            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error), failureMessage: safeGradeErrorMessage(error) };
           }
         });
       });

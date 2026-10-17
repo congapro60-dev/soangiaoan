@@ -6,6 +6,7 @@ import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKe
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
+import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -409,7 +410,7 @@ const callGeminiRawHeld = async (
     // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
     throw new GeminiResponseError(
       'http',
-      `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+      moTaLoiDichVu(res.status, 'Gemini'),
       undefined,
       undefined,
       classifyGeminiKeyFailure(res.status, await Promise.resolve().then(() => res.clone().text()).catch(() => '')),

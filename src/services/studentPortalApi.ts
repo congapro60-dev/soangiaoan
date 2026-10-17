@@ -5,6 +5,7 @@ import type { ExamSubmission } from '../types';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import type { CompetencyPortfolioDoc, PortfolioEntry } from '../lib/classroom/competency/studentPortfolio';
 import type { StudentAiCostView } from '../lib/classroom/studentAiCost';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export interface RosterEntry {
   studentId: string;
@@ -125,7 +126,7 @@ const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
     body: JSON.stringify(payload),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return data as T;
 };
 

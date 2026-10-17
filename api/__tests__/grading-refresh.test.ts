@@ -43,7 +43,7 @@ it.each([
  expect(store['gradingRefreshJobs/job']).toMatchObject({status:'paused',pauseReason:code,cursor:0,leaseUntil:0,runId:''});
  expect(store['gradingRefreshJobs/job'].counts).toBeUndefined();
  expect(store['gradingRefreshJobs/job/items/s']).toMatchObject({status:'paused',failureCode:code});
- await expect(runGradingRefreshItem(db,'job',grade)).rejects.toMatchObject({statusCode:409});
+ await expect(runGradingRefreshItem(db,'job',grade)).rejects.toMatchObject({statusCode:409,message:expect.stringContaining('Đợt chấm đang tạm dừng:')});
  store['gradingRefreshJobs/job'].status='running';
  expect(await runGradingRefreshItem(db,'job',vi.fn(async()=>({success:true})))).toMatchObject({outcome:'graded',remaining:1});
  expect(store['gradingRefreshJobs/job/items/s'].status).toBe('graded');

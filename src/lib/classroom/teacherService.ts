@@ -13,6 +13,7 @@ import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } 
 import type { ParentRequirementLine } from './parentRequirements';
 import type { ReportOverrides } from './reportOverrides';
 import type { ParentActivityEvent, ParentActivityRow, PublishedParentGroup } from './parentAccess';
+import { moTaLoiHttp } from '../httpErrorText';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -55,7 +56,7 @@ const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> =
     body: JSON.stringify({ ...payload, idToken }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   return data as T;
 };
 

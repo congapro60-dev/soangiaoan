@@ -1,6 +1,7 @@
 import { saveAs } from 'file-saver';
 import { DriveAuthError, clearDriveAccessToken, getDriveAccessToken } from '../../googleDrive';
 import { COMPETENCY_LEVELS, competenciesByGrade, type CompetencyGrade, type CompetencyLevel } from './framework';
+import { moTaLoiDichVu } from '../../httpErrorText';
 
 /**
  * Xuất hồ sơ năng lực ra ĐÚNG file mẫu của trường (GĐ4).
@@ -220,7 +221,7 @@ const authedFetch = async (url: string, init: RequestInit = {}): Promise<Record<
     throw new DriveAuthError('Phiên cấp quyền Google đã hết. Bấm lại để cấp quyền rồi thử tiếp.');
   }
   const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
-  if (!res.ok) throw new Error(body?.error?.message || `Google trả lỗi ${res.status}.`);
+  if (!res.ok) throw new Error(body?.error?.message || moTaLoiDichVu(res.status, 'Google'));
   return (body ?? {}) as Record<string, unknown>;
 };
 
@@ -298,6 +299,6 @@ export const downloadPortfolioXlsx = async (spreadsheetId: string, fileName: str
     clearDriveAccessToken();
     throw new DriveAuthError('Phiên cấp quyền Google đã hết. Bấm lại để cấp quyền rồi thử tiếp.');
   }
-  if (!res.ok) throw new Error(`Google không xuất được file (${res.status}).`);
+  if (!res.ok) throw new Error(`Google không xuất được file. ${moTaLoiDichVu(res.status, 'Google')}`);
   saveAs(await res.blob(), `${fileName}.xlsx`);
 };

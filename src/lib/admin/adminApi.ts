@@ -1,6 +1,7 @@
 /** Gọi các action quản trị ở /api/classroom. Quyền được kiểm lại ở máy chủ. */
 import { auth } from '../firebase';
 import type { TeacherUsage } from './billing';
+import { moTaLoiHttp } from '../httpErrorText';
 
 export interface AdminUser {
   uid: string;
@@ -65,7 +66,7 @@ const callAdmin = async <T>(payload: Record<string, unknown>): Promise<T> => {
     body: JSON.stringify({ ...payload, idToken }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   return data as T;
 };
 

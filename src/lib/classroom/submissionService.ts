@@ -11,6 +11,7 @@ import {
 } from './types';
 import type { ExamVariant } from './examVariants';
 import { nenAnhBaiLam } from '../../utils/imageCompress';
+import { moTaLoiHttp } from '../httpErrorText';
 
 const newId = (prefix: string): string => {
   const rand = typeof globalThis.crypto?.randomUUID === 'function'
@@ -107,7 +108,7 @@ const callClassroomTeacherApi = async <T>(payload: Record<string, unknown>): Pro
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
   if (!response.ok) {
-    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+    throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   }
   return data as T;
 };
@@ -126,7 +127,7 @@ const callClassroomStudentApi = async <T>(payload: Record<string, unknown>): Pro
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
   if (!response.ok) {
-    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+    throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   }
   return data as T;
 };

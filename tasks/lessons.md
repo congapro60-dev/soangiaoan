@@ -528,3 +528,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Đợt làm mới dấu trên ảnh gọi `gradeOneSubmission` (chấm lại từ đầu) → 104 bài đổi điểm, 50 bài mất duyệt trên production. Bản bàn giao ghi "giữ điểm by design"; không ai đọc lại đúng dòng gọi hàm trước khi chạy hàng loạt.
 - Luật: việc ghi hàng loạt lên dữ liệu thật phải (1) có test khoá bất biến ("điểm/duyệt/nhận xét không đổi") chạy qua ĐÚNG đường mã job dùng, (2) chạy mẫu rồi SO TRƯỚC/SAU toàn bộ trường cần giữ, không chỉ nhìn trường mới thêm, (3) chụp lại dữ liệu trước khi chạy để còn đường lùi. Lời khẳng định trong HANDOFF của agent khác là giả thuyết — kiểm mã.
 
+
+## 2026-10-17 — Báo lỗi bằng mã trần, không ai hiểu
+- Chủ dự án nhắc: lỗi hiện ra chỉ "409", "503", "Máy chủ trả lỗi 500", hay mã cụt `provider_quota` thì giáo viên lẫn quản trị đều mù. Mọi lỗi người đọc thấy (màn hình, Firestore quản trị đọc, log workflow) phải nói LÍ DO + VIỆC CẦN LÀM bằng tiếng Việt; mã HTTP/mã máy chỉ để cuối câu cho người sửa lỗi.
+- Chỉ có mã HTTP thì dùng `moTaLoiHttp(status)` (máy chủ của web) hoặc `moTaLoiDichVu(status, 'Gemini' | 'Google Sheets'…)` trong `src/lib/httpErrorText.ts`; lưu mã máy (`failureCode`) thì luôn lưu kèm câu (`failureMessage` / `pauseMessage`).
