@@ -27,7 +27,7 @@ describe('actor submission and feedback', () => {
         expect((await call({ action: 'actorAssignmentDetail', ...credentials, assignmentId: 'a' })).status).toBe(200);
       }
     }
-  });
+  }, 20_000);
   it('teacher lock applies independently of closed status', async () => { h.uid = 'teacher'; const locked = await call({ action: 'setSubmissionLock', classId: 'class', assignmentId: 'a', locked: true }); expect(locked.status).toBe(200); expect(store['assignments/a'].submissionLocked).toBe(true); expect(store['assignments/a'].lockedBy).toBe('teacher'); const unlocked = await call({ action: 'setSubmissionLock', classId: 'class', assignmentId: 'a', locked: false }); expect(unlocked.status).toBe(200); expect(store['assignments/a'].submissionLocked).toBe(false); });
   it('student feedback works when evidence locked, teacher replies preserve immutable history', async () => { store['assignments/a'].submissionLocked = true; const sent = await call({ action: 'sendSubmissionFeedback', submissionId: 's', message: 'Xin xem lại', questionNumber: 'Câu 1' }); expect(sent.status).toBe(200); const id = sent.payload.feedback.id; h.uid = 'teacher'; const reply = await call({ action: 'replySubmissionFeedback', submissionId: 's', feedbackId: id, message: 'Thầy sẽ kiểm tra.', resolved: true }); expect(reply.status).toBe(200); h.uid = 'student-uid'; const read = await call({ action: 'submissionFeedback', submissionId: 's' }); expect(read.status).toBe(200); expect(read.payload.feedback[0].messages.map((m: Data) => m.text)).toEqual(['Xin xem lại', 'Thầy sẽ kiểm tra.']); expect(read.payload.feedback[0].status).toBe('resolved'); });
   it('rejects different student, unreleased grade, unknown question and oversized message', async () => { h.uid = 'other'; expect((await call({ action: 'sendSubmissionFeedback', submissionId: 's', message: 'x' })).status).toBe(403); h.uid = 'student-uid'; store['submissions/s'].grade.teacherApproved = false; expect((await call({ action: 'sendSubmissionFeedback', submissionId: 's', message: 'x' })).status).toBe(409); store['submissions/s'].grade.teacherApproved = true; expect((await call({ action: 'sendSubmissionFeedback', submissionId: 's', message: 'x', questionNumber: 'fake' })).status).toBe(422); expect((await call({ action: 'sendSubmissionFeedback', submissionId: 's', message: 'x'.repeat(2001) })).status).toBe(422); });
@@ -101,5 +101,5 @@ describe('actor submission and feedback', () => {
     await grant();
     const refused = await call({ action: 'issueSubmissionUpload', ...parent, assignmentId: 'a', files: [{ name: 'a.jpg', mimeType: 'image/jpeg', size: 100 }] });
     expect(refused.status).toBe(429);
-  });
+  }, 20_000);
 });

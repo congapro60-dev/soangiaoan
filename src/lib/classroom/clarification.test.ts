@@ -201,6 +201,7 @@ it('pending projection exposes only neutral bound location, never solution or gr
   expect(projected.readingRegions).toEqual([region]);
   expect(projected).not.toHaveProperty('workedSolution');
   expect(projected).not.toHaveProperty('photoMarks');
+  expect(hideWhileAwaitingClarification([{ ...old, readingRegions: undefined }])[0].readingRegions).toEqual([region]);
   const typed = answerClarifyRow(old, 'B', 'now');
   expect(typed?.workedSolution).toBe(old.workedSolution);
   expect(typed).not.toHaveProperty('readingRegions');

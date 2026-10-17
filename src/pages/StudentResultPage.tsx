@@ -51,7 +51,7 @@ export const StudentResultPage = () => {
     getPublicExamResult(submissionId)
       .then(async result => {
         if (!result) { setError('Không tìm thấy bài làm'); return; }
-        const e = await getPublicExamById(result.submission.examId);
+        const e = await getPublicExamById(result.submission.examId, submissionId);
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(result.submission); setLeaderboard(result.leaderboard);
         setLeaderboardLimited(result.leaderboardLimited === true);

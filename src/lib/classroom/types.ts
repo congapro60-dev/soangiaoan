@@ -487,9 +487,11 @@ export interface SubmissionGrade {
   transcription?: string;
   /** Bài kiểm tra định kì: đối chiếu với điểm giáo viên trong sổ điểm (khi đã có điểm). */
   examCheck?: ExamScoreCheck;
+  /** Bài kiểm tra định kì: TỔNG điểm giáo viên viết tay trên bài, máy đọc từ ảnh (chưa ai xác nhận). Không dùng để chấm. */
+  paperScore?: { score: number; maxScore: number };
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix' | 'refresh_restore';
 
 /** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
 export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';

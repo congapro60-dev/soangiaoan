@@ -219,6 +219,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
       gradingRecovery: rawGrade.gradingRecovery,
       // Bài định kì: khớp/lệch điểm giáo viên — thiếu ở đây thì nhãn "Lệch điểm GV" không bao giờ hiện.
       ...(rawGrade.examCheck && typeof rawGrade.examCheck === 'object' ? { examCheck: rawGrade.examCheck } : {}),
+      ...(rawGrade.paperScore && typeof rawGrade.paperScore === 'object' ? { paperScore: rawGrade.paperScore } : {}),
     } : undefined;
 
   return {

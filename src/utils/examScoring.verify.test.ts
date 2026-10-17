@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { verifySubmissionScore } from './examScoring';
+import { computeAutoScore, verifySubmissionScore } from './examScoring';
 import type { ExamQuestion, StudentAnswer } from '../types';
 
 const questions: ExamQuestion[] = [
@@ -7,6 +7,19 @@ const questions: ExamQuestion[] = [
   { id: 'q2', type: 'short_answer', content: 'SA', correctAnswer: '42', points: 1 },
   { id: 'q3', type: 'essay', content: 'Essay', points: 3 },
 ];
+
+describe('computeAutoScore true/false parity', () => {
+  const question: ExamQuestion = {
+    id: 'tf', type: 'true_false', content: 'TF', options: ['a', 'b', 'c', 'd'], correctAnswer: 'Đ,S,Đ,S', points: 1,
+  };
+
+  it('matches server semantics for CSV/JSON and missing keys', () => {
+    expect(computeAutoScore(question, JSON.stringify({ a: 'đ', b: 's', c: 'đ', d: 's' }))).toBe(1);
+    expect(computeAutoScore(question, '{}', 'thpt2025')).toBe(0);
+    expect(computeAutoScore(question, JSON.stringify({ a: 'Đ' }), 'thpt2025')).toBe(0.1);
+    expect(computeAutoScore({ ...question, correctAnswer: 'Đ,S,Đ' }, 'Đ,S,Đ,S')).toBe(0);
+  });
+});
 
 describe('verifySubmissionScore', () => {
   it('không đổi gì khi điểm trung thực', () => {

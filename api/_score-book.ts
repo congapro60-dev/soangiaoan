@@ -12,10 +12,12 @@ import {
   SCORE_BOOKS_COL,
   canAddHs1Column,
   computeAutoScores,
+  mergePaperExams,
   normalizeScoreBook,
   parseHs1Score,
   parseHs1Weight,
   sanitizeExamScores,
+  storedExams,
   studentScoreView,
   validateHs1Column,
   type HomeworkAssignment,
@@ -42,7 +44,8 @@ export const readBook = async (db: Db, classId: string): Promise<ScoreBookDoc> =
 const writeBook = async (db: Db, book: ScoreBookDoc, uid: string): Promise<void> => {
   // `auto` là điểm tính lại mỗi lần đọc — không bao giờ lưu.
   const { auto: _auto, ...stored } = book;
-  await db.collection(SCORE_BOOKS_COL).doc(book.classId).set({ ...stored, updatedAt: nowIso(), updatedBy: uid });
+  // Điểm ghép từ ảnh chấm tay đã nằm ở `paperExams` — không chép vào `exams` (đồng bộ file điểm thay `exams` cả khối).
+  await db.collection(SCORE_BOOKS_COL).doc(book.classId).set({ ...stored, exams: storedExams(book.exams), updatedAt: nowIso(), updatedBy: uid });
 };
 
 const isoOf = (value: unknown): string => (typeof value === 'string' ? value : '');
@@ -278,12 +281,37 @@ const handleSaveExamScores = async (db: Db, body: Body, res: VercelResponse): Pr
     if (clean.moet.length > 0 || clean.tds.length > 0) exams[studentId] = clean;
   }
   const book = await readBook(db, context.classId);
-  book.exams = exams;
+  book.exams = mergePaperExams(exams, book.paperExams ?? {});
   book.examsSyncedAt = nowIso();
   const title = typeof body.spreadsheetTitle === 'string' ? body.spreadsheetTitle.trim().slice(0, 200) : '';
   if (title) book.examsSpreadsheetTitle = title;
   await writeBook(db, book, context.uid);
   res.status(200).json({ saved: true, studentCount: Object.keys(exams).length, scoreBook: await teacherBook(db, context, book) });
+};
+
+/**
+ * Thầy cô xác nhận điểm đã chấm tay (máy đọc từ ảnh bài kiểm tra định kì, thầy cô soát lại) để đưa vào sổ điểm.
+ * Lưu ở `paperExams`; cột đã có điểm từ file điểm thì file điểm vẫn thắng. `score: null` = gỡ điểm này.
+ */
+const handleConfirmPaperExamScore = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const studentId = typeof body.studentId === 'string' ? body.studentId : '';
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const label = typeof body.label === 'string' ? body.label.normalize('NFC').replace(/\s+/g, ' ').trim().slice(0, 80) : '';
+  const score = body.score === null ? null : parseHs1Score(body.score);
+  if (!studentId || !assignmentId || !label || score === undefined) return void res.status(422).json({ error: 'Thiếu học sinh, bài, tên cột hoặc điểm (0–10).' });
+  if (!(await rosterIds(context.classRef)).has(studentId)) return void res.status(404).json({ error: 'Học sinh không thuộc lớp này.' });
+  const assignment = (await db.collection('assignments').doc(assignmentId).get()).data();
+  if (!assignment || assignment.classId !== context.classId || !assignment.periodicTest) return void res.status(422).json({ error: 'Chỉ bài kiểm tra định kì của lớp này mới đưa điểm chấm tay vào sổ.' });
+  const book = await readBook(db, context.classId);
+  const paperExams = { ...(book.paperExams ?? {}) };
+  const others = (paperExams[studentId] ?? []).filter(mark => mark.label.toLocaleLowerCase('vi-VN') !== label.toLocaleLowerCase('vi-VN'));
+  paperExams[studentId] = score === null ? others : [...others, { label, score, assignmentId, confirmedAt: nowIso() }];
+  book.paperExams = paperExams;
+  book.exams = mergePaperExams(book.exams, paperExams);
+  await writeBook(db, book, context.uid);
+  res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context, book) });
 };
 
 /** Học sinh xem sổ điểm của CHÍNH mình. */
@@ -309,6 +337,7 @@ export const handleScoreBookAction = async (db: Db, body: Body, res: VercelRespo
   if (action === 'setExamWeights') { await handleSetExamWeights(db, body, res); return true; }
   if (action === 'deleteHs1Column') { await handleDeleteHs1Column(db, body, res); return true; }
   if (action === 'saveExamScores') { await handleSaveExamScores(db, body, res); return true; }
+  if (action === 'confirmPaperExamScore') { await handleConfirmPaperExamScore(db, body, res); return true; }
   if (action === 'studentScoreBook') { await handleStudentScoreBook(db, body, res); return true; }
   return false;
 };

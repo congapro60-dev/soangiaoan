@@ -411,7 +411,11 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
                       <p className="whitespace-nowrap font-black text-slate-900">{student.name}</p>
                       <p className="text-[11px] font-semibold text-slate-400">{student.code}</p>
                     </td>
-                    {moetLabels.map((label, i) => <td key={label} className={`px-3 py-2.5 text-center font-black text-slate-800 ${i === 0 ? 'border-l border-slate-100' : ''}`}>{moet.get(label)?.score ?? <span className="text-slate-300">—</span>}</td>)}
+                    {moetLabels.map((label, i) => {
+                      const mark = moet.get(label);
+                      // Điểm thầy cô xác nhận từ ảnh bài chấm tay (chưa có trong file điểm): tô đỏ nhạt để phân biệt.
+                      return <td key={label} title={mark?.source === 'paper' ? 'Điểm chấm tay đã xác nhận từ ảnh bài — file điểm chưa có cột này' : undefined} className={`px-3 py-2.5 text-center font-black ${mark?.source === 'paper' ? 'text-rose-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark?.score ?? <span className="text-slate-300">—</span>}</td>;
+                    })}
                     {tdsLabels.map((label, i) => {
                       const mark = tds.get(label);
                       return <td key={label} className={`whitespace-nowrap px-3 py-2.5 text-center font-black text-slate-800 ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark ? <>{mark.score}{mark.letter && <span className="ml-1 rounded bg-indigo-50 px-1.5 text-[11px] text-indigo-700">{mark.letter}</span>}</> : <span className="text-slate-300">—</span>}</td>;

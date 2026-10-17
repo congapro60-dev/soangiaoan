@@ -85,8 +85,11 @@ export const classifyGeminiKeyFailure = (httpStatus: number, body: string): AiKe
   return null;
 };
 
-/** Khoá Gemini (Google AI Studio) có dạng "AIza" + 35 ký tự. */
-export const looksLikeGeminiKey = (value: string): boolean => /^AIza[0-9A-Za-z_-]{35}$/.test(value.trim());
+/**
+ * Khoá Gemini (Google AI Studio): dạng cũ "AIza" + 35 ký tự, hoặc dạng MỚI bắt đầu "AQ." (dài hơn, có dấu chấm).
+ * Chỉ chặn lỗi dán rõ ràng (có khoảng trắng, quá ngắn/dài); đúng hay không do Google xác nhận ở bước thử khoá.
+ */
+export const looksLikeGeminiKey = (value: string): boolean => /^(AIza[0-9A-Za-z_-]{35}|AQ\.[0-9A-Za-z._-]{20,200})$/.test(value.trim());
 
 export const maskKey = (key: string): string => (key.length >= 4 ? key.slice(-4) : '');
 

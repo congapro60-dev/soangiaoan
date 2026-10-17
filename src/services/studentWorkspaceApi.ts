@@ -2,6 +2,7 @@ import { auth } from '../lib/firebase';
 import type {
   PublishedStudentReport, StudentAssignmentDetail, StudentReportSummary, StudentWorkspaceIndex,
 } from '../lib/classroom/studentWorkspace';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 const call = async <T,>(action: string, payload: Record<string, unknown> = {}): Promise<T> => {
   const current = auth.currentUser;
@@ -12,7 +13,7 @@ const call = async <T,>(action: string, payload: Record<string, unknown> = {}): 
     body: JSON.stringify({ ...payload, action, idToken }),
   });
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${response.status}`);
+  if (!response.ok) throw new Error(data?.error || moTaLoiHttp(response.status));
   return data as T;
 };
 

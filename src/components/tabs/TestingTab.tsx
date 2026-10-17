@@ -36,6 +36,8 @@ interface TestingTabProps {
   showToast: (msg: string, type?: any) => void;
   initialContent?: string;
   onConsumeInitialContent?: () => void;
+  initialResult?: string;
+  onConsumeInitialResult?: () => void;
   onSaveExam?: (content: string, title: string) => void;
 }
 
@@ -54,6 +56,9 @@ const LAST_RESULT_KEY = 'testing_last_result';
 const LAST_MODE_KEY = 'testing_last_mode';
 const MAX_HISTORY = 20;
 const EXPIRE_DAYS = 7;
+
+export const normalizeInitialExamResult = (value?: string): string | null =>
+  value?.trim() ? value : null;
 
 const loadHistory = (): HistoryEntry[] => {
   try {
@@ -80,7 +85,7 @@ const modeBadge: Record<TestingMode, { label: string; color: string }> = {
   shuffle:{ label: 'Trộn đề', color: 'bg-orange-100 text-orange-700' },
 };
 
-export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent, onSaveExam }: TestingTabProps) => {
+export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent, initialResult, onConsumeInitialResult, onSaveExam }: TestingTabProps) => {
   const [activeMode, setActiveMode] = useState<TestingMode>(
     () => (localStorage.getItem(LAST_MODE_KEY) as TestingMode) || 'create'
   );
@@ -125,6 +130,15 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       onConsumeInitialContent?.();
     }
   }, [initialContent]);
+
+  // Load a selected library exam into the editor instead of leaving the previous result visible.
+  useEffect(() => {
+    if (initialResult !== undefined) {
+      setTestResult(normalizeInitialExamResult(initialResult));
+      setRequirement('');
+      onConsumeInitialResult?.();
+    }
+  }, [initialResult]);
 
   // Lưu kết quả vào localStorage
   useEffect(() => {

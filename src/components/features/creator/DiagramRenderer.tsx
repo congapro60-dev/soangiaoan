@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import pako from 'pako';
 import { Loader2, Code2, Copy, Check } from 'lucide-react';
+import { moTaLoiDichVu } from '../../../lib/httpErrorText';
 
 interface DiagramRendererProps {
   code: string;
@@ -73,7 +74,7 @@ async function fetchKroki(type: string, payload: string): Promise<string> {
   const response = await fetch(url);
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Kroki Error: ${response.status} - ${errText}`);
+    throw new Error(`Chưa vẽ được sơ đồ. ${moTaLoiDichVu(response.status, 'Dịch vụ vẽ sơ đồ Kroki')} Chi tiết: ${errText.slice(0, 300)}`);
   }
   return response.text();
 }

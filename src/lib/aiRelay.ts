@@ -4,9 +4,10 @@
  * Bị chặn (chưa đồng ý tính phí, hết số dư, chạm trần) thì máy chủ trả 402 và `aiKeyGate` tự mở hộp nạp tiền rồi gửi lại.
  */
 import { auth } from './firebase';
+import { moTaLoiHttp } from './httpErrorText';
 
 /** Trùng `RELAY_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai danh sách bằng nhau). */
-export const RELAY_MODEL_IDS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'] as const;
+export const RELAY_MODEL_IDS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview', 'gemini-4-argon'] as const;
 
 /** Hãng khác Gemini mà ví web trả được + model nhận. Trùng `RELAY_VENDOR_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai bên). */
 export const RELAY_VENDOR_MODEL_IDS = {
@@ -61,7 +62,7 @@ export const fitImagesForRelay = async (urls: readonly string[]): Promise<string
   throw new Error(TOO_HEAVY);
 };
 
-export const callAiRelay = async (input: { prompt: string; model: string; provider?: RelayVendorId; system?: string; images?: readonly string[] }): Promise<RelayResult> => {
+export const callAiRelay = async (input: { prompt: string; model: string; provider?: RelayVendorId; system?: string; images?: readonly string[]; /** Mức suy nghĩ đã kiểm hợp model (xem `resolveEffort`). */ effort?: string }): Promise<RelayResult> => {
   const user = auth.currentUser;
   if (!user || user.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên để dùng AI bằng ví web.');
 
@@ -72,13 +73,14 @@ export const callAiRelay = async (input: { prompt: string; model: string; provid
     body: JSON.stringify({
       ...(input.provider ? { provider: input.provider } : {}),
       model: input.model,
+      ...(input.effort ? { effort: input.effort } : {}),
       prompt: input.prompt,
       ...(input.system ? { system: input.system } : {}),
       ...(images.length > 0 ? { images } : {}),
     }),
   });
   const payload = await response.json().catch(() => null) as { text?: unknown; model?: unknown; truncated?: unknown; error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof payload?.error === 'string' ? payload.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof payload?.error === 'string' ? payload.error : moTaLoiHttp(response.status));
   if (typeof payload?.text !== 'string') throw new Error('AI không trả về nội dung. Thử lại sau ít phút.');
   return { text: payload.text, model: typeof payload.model === 'string' ? payload.model : input.model, truncated: payload.truncated === true };
 };

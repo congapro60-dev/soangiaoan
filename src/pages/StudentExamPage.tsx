@@ -103,6 +103,7 @@ export const StudentExamPage = () => {
   const [exam, setExam] = useState<Exam | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
+  const [examPassword, setExamPassword] = useState('');
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [orderedQuestions, setOrderedQuestions] = useState<ExamQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -236,7 +237,27 @@ export const StudentExamPage = () => {
   const startExam = async () => {
     if (!exam || !studentName.trim()) return;
 
-    const win = getExamWindow(exam);
+    let activeExam = exam;
+    if (exam.passwordRequired) {
+      if (!examPassword.trim()) {
+        setStartError('Nhập mật khẩu để vào thi.');
+        return;
+      }
+      try {
+        const unlocked = await findPublicExamByCode(code || '', examPassword.trim());
+        if (!unlocked || unlocked.passwordRequired) {
+          setStartError('Mật khẩu không đúng hoặc đề thi chưa mở.');
+          return;
+        }
+        activeExam = unlocked;
+        setExam(unlocked);
+      } catch {
+        setStartError('Không xác thực được mật khẩu. Vui lòng thử lại.');
+        return;
+      }
+    }
+
+    const win = getExamWindow(activeExam);
     if (win.state === 'not_yet') {
       setStartError(`Đề chưa mở. Giờ mở đề: ${win.startAt?.toLocaleString('vi-VN')}. Hãy tải lại trang khi đến giờ.`);
       return;
@@ -245,37 +266,37 @@ export const StudentExamPage = () => {
       setStartError(`Đề đã đóng lúc ${win.endAt?.toLocaleString('vi-VN')} — không thể vào làm bài.`);
       return;
     }
-    if ((exam.maxAttempts ?? 0) > 0 && getLocalAttempts(exam.id) >= exam.maxAttempts) {
-      setStartError(`Bạn đã làm đủ ${exam.maxAttempts} lần cho đề này trên thiết bị này.`);
+    if ((activeExam.maxAttempts ?? 0) > 0 && getLocalAttempts(activeExam.id) >= activeExam.maxAttempts) {
+      setStartError(`Bạn đã làm đủ ${activeExam.maxAttempts} lần cho đề này trên thiết bị này.`);
       return;
     }
 
     setStartError(null);
     setPageState('loading');
     try {
-      const qs = exam.shuffleQuestions ? shuffle(exam.questions) : [...exam.questions];
+      const qs = activeExam.shuffleQuestions ? shuffle(activeExam.questions) : [...activeExam.questions];
       const newId = createSubmissionId();
       const clientNonce = createSubmissionNonce();
       const subId = await createSubmission({
         id: newId,
-        examId: exam.id,
-        examCode: exam.code,
+        examId: activeExam.id,
+        examCode: activeExam.code,
         studentName,
         studentClass,
         status: 'in_progress',
         startedAt: new Date().toISOString(),
         answers: [],
-        maxScore: exam.maxScore,
+        maxScore: activeExam.maxScore,
         tabSwitches: 0,
         clientNonce,
       });
       setSubmissionId(subId);
       submissionIdRef.current = subId;
       submissionNonceRef.current = clientNonce;
-      bumpLocalAttempts(exam.id);
+      bumpLocalAttempts(activeExam.id);
       setOrderedQuestions(qs);
       // Thời gian làm bài không được vượt quá giờ đóng đề (endAt)
-      const durationSec = exam.durationMinutes * 60;
+      const durationSec = activeExam.durationMinutes * 60;
       const endCapSec = win.endAt ? Math.floor((win.endAt.getTime() - Date.now()) / 1000) : Infinity;
       setRemainingSeconds(Math.max(1, Math.min(durationSec, endCapSec)));
       setPageState('taking');
@@ -336,6 +357,12 @@ export const StudentExamPage = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Lớp</label>
               <input type="text" value={studentClass} onChange={e => setStudentClass(e.target.value)} placeholder="Ví dụ: 12A1..." className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            {exam?.passwordRequired && (
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mật khẩu vào thi</label>
+                <input type="password" value={examPassword} onChange={e => setExamPassword(e.target.value)} autoComplete="off" placeholder="Nhập mật khẩu..." className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            )}
             {blockMessage && (
               <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
                 {blockMessage}
@@ -346,7 +373,7 @@ export const StudentExamPage = () => {
                 {startError}
               </div>
             )}
-            <button onClick={startExam} disabled={!studentName.trim() || !!entryBlocked} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 active:scale-95">
+            <button onClick={startExam} disabled={!studentName.trim() || !!entryBlocked || Boolean(exam?.passwordRequired && !examPassword.trim())} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 active:scale-95">
               BẮT ĐẦU LÀM BÀI
             </button>
           </div>

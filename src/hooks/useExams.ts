@@ -6,6 +6,7 @@ import {
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { Exam, ExamSubmission } from '../types';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 /**
  * Chờ Firebase Auth ổn định state đầu tiên rồi trả về user hiện tại.
@@ -126,18 +127,18 @@ export const useExams = (user: User | null) => {
 const fetchPublicExam = async (params: string): Promise<Exam | null> => {
   const res = await fetch(`/api/exam?${params}`);
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Không tải được đề thi (mã lỗi ${res.status})`);
+  if (!res.ok) throw new Error(`Không tải được đề thi. ${moTaLoiHttp(res.status)}`);
   const data = await res.json();
   return data.exam ? normalizeExam(data.exam as Exam) : null;
 };
 
 /** Đề theo mã cho học sinh vào làm — đã lược correctAnswer/explanation. */
-export const findPublicExamByCode = (code: string): Promise<Exam | null> =>
-  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}`);
+export const findPublicExamByCode = (code: string, password = ''): Promise<Exam | null> =>
+  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}${password ? `&password=${encodeURIComponent(password)}` : ''}`);
 
 /** Đề theo id cho trang kết quả/xem lại — đã lược đáp án (đáp án xem lại lấy từ bài nộp đã chấm). */
-export const getPublicExamById = (id: string): Promise<Exam | null> =>
-  fetchPublicExam(`examId=${encodeURIComponent(id)}`);
+export const getPublicExamById = (id: string, proofSubmissionId?: string): Promise<Exam | null> =>
+  fetchPublicExam(`examId=${encodeURIComponent(id)}${proofSubmissionId ? `&proofSubmissionId=${encodeURIComponent(proofSubmissionId)}` : ''}`);
 
 /** Một dòng bảng xếp hạng trên trang kết quả (máy chủ chỉ trả tên + điểm). */
 export interface PublicLeaderboardRow {
@@ -158,7 +159,7 @@ export const getPublicExamResult = async (submissionId: string): Promise<{ submi
   const res = await fetch(`/api/exam?submissionId=${encodeURIComponent(submissionId)}`);
   if (res.status === 404) return null;
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Không tải được kết quả (mã lỗi ${res.status})`);
+  if (!res.ok) throw new Error(data?.error || `Không tải được kết quả. ${moTaLoiHttp(res.status)}`);
   return { submission: data.submission as PublicExamResult, leaderboard: Array.isArray(data.leaderboard) ? data.leaderboard : [], leaderboardLimited: data.leaderboardLimited === true };
 };
 
@@ -177,7 +178,7 @@ export const gradeExamSubmission = async (
   });
   if (!res.ok) {
     const detail = await res.json().catch(() => null);
-    throw new Error(detail?.error || `Chấm điểm thất bại (mã lỗi ${res.status})`);
+    throw new Error(detail?.error || `Chưa chấm được điểm. ${moTaLoiHttp(res.status)}`);
   }
   return res.json();
 };

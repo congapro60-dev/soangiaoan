@@ -1,4 +1,5 @@
-import { handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt } from './_submission-annotations.js';
+import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows, mergeAnnotationResult } from './_submission-annotations.js';
+import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
 import { publishedHandMarkedImages } from './_hand-marked-work.js';
@@ -19,6 +20,7 @@ import {
   loadQuotaDoc,
   remainingQuota,
   reserveQuota,
+  reserveTeacherRefreshQuota,
   type GradeKind,
   parseDataUrl,
   type InlineImage,
@@ -59,6 +61,7 @@ import {
   buildDetectExamCodePrompt,
   buildExtractVariantKeysPrompt,
   examScoreCheck,
+  paperScoreCheck,
   parseDetectedExamCode,
   parseExtractedVariantKeys,
   sanitizeExamVariants,
@@ -163,6 +166,7 @@ const claimSubmissionForGrading = async (
   db: FirebaseFirestore.Firestore,
   submissionId: string,
   allowApproved: boolean,
+  refreshSnapshot?: SubmissionDoc,
 ): Promise<GradingClaim | null> => {
   const ref = db.collection('submissions').doc(submissionId);
   const gradingRunId = newGradingRunId();
@@ -173,9 +177,12 @@ const claimSubmissionForGrading = async (
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) return;
     const current = snapshot.data() as FirebaseFirestore.DocumentData;
+    if (refreshSnapshot && (current.teacherId !== refreshSnapshot.teacherId || current.classId !== refreshSnapshot.classId || current.studentId !== refreshSnapshot.studentId
+      || current.assignmentId !== refreshSnapshot.assignmentId || current.updatedAt !== refreshSnapshot.updatedAt || current.grade?.editedByTeacher
+      || current.grade?.questionResults?.some((row: QuestionResult) => row.teacherEdited))) return;
     // Khoá "grading" còn tươi thì không giành; khoá cũ (worker chết chưa mở khoá) thì cho giành lại.
     const dangKhoaTuoi = current.status === 'grading' && !isStaleGradingTimestamp(current.updatedAt);
-    if (dangKhoaTuoi || (!allowApproved && current.grade?.teacherApproved === true)) return;
+    if (current.deletionRunId || dangKhoaTuoi || (!allowApproved && current.grade?.teacherApproved === true)) return;
     previous = { id: submissionId, ...current } as SubmissionDoc;
     transaction.update(ref, {
       status: 'grading',
@@ -427,6 +434,8 @@ const attemptHomeworkGrade = async (
     questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc) — để thầy cô xác nhận đưa vào sổ, không dùng để chấm.
+    ...(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
     gradedAt: now,
     // Mọi lượt chấm bằng máy (kể cả bài học sinh tự nộp) đều CHƯA duyệt: học sinh chỉ thấy điểm sau khi thầy cô duyệt
     // (hoặc máy tự duyệt sau 60 phút khi lớp bật). Học sinh chỉ được hỏi lại câu máy đọc chưa chắc.
@@ -443,8 +452,25 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
   || error instanceof JsonRecoveryError
   || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens' || error.kind === 'recitation'));
 
+/** Mã lỗi ngắn (không kèm khoá/chi tiết Google) ghi vào hồ sơ đợt chấm nền. `provider_quota`/`provider_key_invalid` làm đợt dừng. */
+const gradeFailureCode = (error: unknown): string => {
+  if (error instanceof GeminiResponseError) {
+    if (error.keyFailure === 'exhausted') return 'provider_quota';
+    if (error.keyFailure === 'invalid') return 'provider_key_invalid';
+    return `provider_${error.kind}`;
+  }
+  if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return 'unreadable_photo';
+  if (error instanceof Error && error.message === UNCERTAIN_READ_MESSAGE) return 'uncertain_read';
+  if (error instanceof Error && error.message === UNREADABLE_EXAM_CODE_MESSAGE) return 'exam_code';
+  if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return 'contract';
+  if (error instanceof SubmissionAccessError) return `access_${error.statusCode}`;
+  return 'system';
+};
+
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
+  // Lí do máy chủ tự đặt (vd "Không có ảnh bài làm đọc được") đã là câu cho người đọc, không có chi tiết hệ thống.
+  if (error instanceof SubmissionAccessError) return error.message;
   if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE].includes(error.message)) return error.message;
   // Nhãn "lỗi định dạng" chỉ đúng khi bộ đọc kết quả AI từ chối; mọi lỗi lạ khác (ghi Firestore,
   // mạng...) mà mang nhãn này là đẩy giáo viên đi tìm sai hướng.
@@ -514,10 +540,11 @@ const gradeOneSubmission = async (
   actorUid: string,
   isTeacher: boolean,
   mode: HomeworkGradingMode,
-): Promise<{ success: boolean; gradePreserved?: boolean; syncPending?: boolean; syncError?: string }> => {
+  refreshSnapshot?: SubmissionDoc,
+): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
-  const claim = await claimSubmissionForGrading(db, submissionId, isTeacher);
+  const claim = await claimSubmissionForGrading(db, submissionId, isTeacher, refreshSnapshot);
   if (!claim) return { success: false };
 
   const previous = claim.previous;
@@ -568,7 +595,7 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, conLaiMs(), false, studentImageUrls);
+      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - 60_000), false, studentImageUrls);
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
       // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
@@ -590,6 +617,16 @@ const gradeOneSubmission = async (
       const photoMarks = projectPhotoMarks(q, studentImageUrls);
       return { ...rest, ...(photoMarks.length ? { photoMarks } : {}) };
     });
+    // The scoring model can omit geometry even when it reads the answer correctly.
+    // Use the existing location-only contract; failure must not discard a valid grade.
+    const unlocated = missingAnnotationRows(reconciled.questionResults, studentImageUrls);
+    if (images.length && unlocated.length && conLaiMs() > MIN_GEMINI_BUDGET_MS + FINISH_MARGIN_MS) {
+      try {
+        const raw = await callGeminiVision(buildAnnotationPrompt({ ...previous, grade: reconciled }, unlocated, images.length), images, apiKey, GRADING_MODEL,
+          { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(60_000, conLaiMs() - FINISH_MARGIN_MS) });
+        reconciled.questionResults = mergeAnnotationResult(reconciled.questionResults, unlocated, studentImageUrls, raw);
+      } catch { console.warn('[grade-homework] chưa định vị đủ ảnh; giữ kết quả chấm và cho phép bổ sung dấu sau.'); }
+    }
 
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
@@ -602,7 +639,9 @@ const gradeOneSubmission = async (
       throw new Error(UNCERTAIN_READ_MESSAGE);
     }
     // Bài định kì: so tổng điểm với điểm giáo viên chấm tay — lệch nhiều thì không tự duyệt (xem needsTeacherCheck).
-    const examCheck = ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null;
+    // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
+    const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
+      ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
     const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
 
     if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }
@@ -620,6 +659,7 @@ const gradeOneSubmission = async (
       grade,
       actorUid,
       now,
+      previous.assignmentId && solutionVersionAtGrading ? { assignmentId: previous.assignmentId, examCode: gradeCtx.examCode || previous.examCode || '', version: solutionVersionAtGrading } : undefined,
     );
     if (!committed.committed) return { success: false };
 
@@ -683,7 +723,7 @@ const gradeOneSubmission = async (
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return { success: false, gradePreserved: hadPreviousGrade };
+    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage };
   }
 };
 
@@ -2125,10 +2165,53 @@ const handleAutoGradeSweep = async (req: VercelRequest, res: VercelResponse) => 
   return res.status(200).json({ approved, graded, failed, remaining });
 };
 
+
+/** Gọi AI ĐỊNH VỊ câu trên ảnh (không chấm lại). Dùng cho nút "Bổ sung dấu chấm trên ảnh" và job làm mới. */
+const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boolean) => async (submission: SubmissionDoc, targets: QuestionResult[]): Promise<{ raw: string; urls: string[] }> => {
+      const startedAt = Date.now();
+      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
+      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
+      await ensureGeminiKey(getGradingApiKey());
+      if (bypassDailyQuota) await reserveTeacherRefreshQuota(db, submission.teacherId);
+      else {
+        const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
+        if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+      }
+      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
+      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Chỉ nhận POST' });
+  }
+  if (req.query?.cron === 'refresh') {
+    const secret = (process.env.AUTO_GRADE_CRON_SECRET || '').trim();
+    if (!secret || getBearerToken(req.headers.authorization) !== secret) return res.status(401).json({ error: 'Sai khóa.' });
+    try {
+      const db = getAdminDb();
+      // CHỈ định vị câu trên ảnh — KHÔNG chấm lại: điểm, duyệt, nhận xét, sửa tay giữ nguyên.
+      // (Bản 15/10 gọi gradeOneSubmission ở đây → chấm lại toàn bộ 184 bài, đổi điểm 104 bài; xem HANDOFF 17/10.)
+      const result = await runGradingRefreshItem(db, String(readBody(req).jobId || ''), async (submission, _assignment, bypassDailyQuota) => {
+        const usage = createAiUsageContext(null, 'teacherRefresh', { submissionId: submission.id, classId: submission.classId, assignmentId: submission.assignmentId },
+          async () => ({ uid: submission.teacherId, email: null, anonymous: false }));
+        return runWithAiUsage(usage, async () => {
+          setAiKeyOwner(submission.teacherId);
+          try {
+            await annotateSubmission(db, submission.id, null, locateAnnotation(db, bypassDailyQuota));
+            return { success: true };
+          } catch (error) {
+            if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
+            if (error instanceof AiKeyRequiredError) throw error;
+            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error), failureMessage: safeGradeErrorMessage(error) };
+          }
+        });
+      });
+      return res.status(200).json(result);
+    } catch (error) { return res.status(error instanceof SubmissionAccessError ? error.statusCode : 500).json({ error: error instanceof SubmissionAccessError ? error.message : 'Chưa chạy được đợt chấm.' }); }
   }
   if (req.query?.cron === 'auto') {
     try {
@@ -2156,17 +2239,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
-    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: async (submission, targets) => {
-      const startedAt = Date.now();
-      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
-      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
-      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
-      await ensureGeminiKey(getGradingApiKey()); const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
-      if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
-      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
-      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
-      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
-    } });
+    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: locateAnnotation(db, false) });
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);

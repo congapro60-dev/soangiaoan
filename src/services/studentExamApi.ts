@@ -1,6 +1,7 @@
 import { auth } from '../lib/firebase';
 import type { Exam, ExamSubmission, StudentAnswer } from '../types';
 import type { StudentAssignmentView } from '../lib/classroom/types';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export type StudentExamAction = 'studentExamStart' | 'studentExamResume' | 'studentExamSave' | 'studentExamSubmit';
 
@@ -86,7 +87,7 @@ const call = async (
     const errorValue = data && typeof data === 'object' ? (data as { error?: unknown }).error : undefined;
     const message = typeof errorValue === 'string'
       ? errorValue
-      : `Máy chủ trả lỗi ${response.status}.`;
+      : moTaLoiHttp(response.status);
     throw new StudentExamApiError(response.status, message);
   }
   return data as StudentExamResponse;

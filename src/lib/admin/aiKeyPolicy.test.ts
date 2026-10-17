@@ -88,5 +88,10 @@ describe('chọn khoá AI', () => {
   it('nhận dạng khoá Gemini', () => {
     expect(looksLikeGeminiKey('AIza' + 'a'.repeat(35))).toBe(true);
     expect(looksLikeGeminiKey('sk-abc')).toBe(false);
+    // Khoá dạng mới của Google (bắt đầu "AQ.")
+    expect(looksLikeGeminiKey('AQ.Ab8RN6' + 'x'.repeat(40))).toBe(true);
+    expect(looksLikeGeminiKey('  AQ.Ab8RN6' + 'x'.repeat(40) + ' ')).toBe(true);
+    expect(looksLikeGeminiKey('AQ.ngan')).toBe(false);
+    expect(looksLikeGeminiKey('AQ.Ab8 RN6' + 'x'.repeat(40))).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PhotoMark, QuestionResult, SubmissionGrade } from '../../../lib/classroom/types';
-import { isClarifyPending } from '../../../lib/classroom/clarification';
+import { isClarifyPending, isUncertainQuestion } from '../../../lib/classroom/clarification';
 import { QuestionDetail, questionAppearance } from './QuestionDetail';
 interface Props {
   imageUrl: string; imageUrls?: string[]; alt: string; questionResults: readonly QuestionResult[];
@@ -27,11 +27,19 @@ export const SubmissionPhotoReview = ({ imageUrl, imageUrls, alt, questionResult
   const rows = canRead || pending ? questionResults : [];
   const index = selectedQuestion ? rows.findIndex(row => row.questionNumber === selectedQuestion) : active;
   const selected = index != null && index >= 0 ? rows[index] : undefined;
+  // Một nguồn cho cả ảnh lẫn danh sách: câu máy đọc chưa chắc là "Cần đối chiếu" (xám, nét đứt) tới khi
+  // thầy cô duyệt; đã duyệt thì hiện theo kết quả — không để danh sách ghi "Đúng" mà ảnh khoanh xám.
+  const isUncertainHere = (result: QuestionResult) => pending || isClarifyPending(result) || (!approved && isUncertainQuestion(result));
+  const appearanceOf = (result: QuestionResult) => (isUncertainHere(result) && !result.ignoredByTeacherInstruction
+    ? questionAppearance({ ...result, status: 'unreadable' })
+    : questionAppearance(result));
   const regions = rows.flatMap((result, resultIndex) => {
     if (result.photoMarksCleared || result.ignoredByTeacherInstruction || (!pending && !isClarifyPending(result) && !result.studentAnswer?.trim())) return [];
-    const uncertain = pending || isClarifyPending(result);
-    const marks = uncertain ? result.readingRegions : result.photoMarks;
-    return (Array.isArray(marks) ? marks : []).filter(mark => validPhotoRegion(mark, urls)).slice(0, 3).map(mark => ({ mark, result, resultIndex, uncertain }));
+    const uncertain = isUncertainHere(result);
+    const readingRegions = (Array.isArray(result.readingRegions) ? result.readingRegions : []).filter(mark => validPhotoRegion(mark, urls));
+    const marks = uncertain && readingRegions.length ? readingRegions : result.photoMarks;
+    const color = appearanceOf(result).color;
+    return (Array.isArray(marks) ? marks : []).filter(mark => validPhotoRegion(mark, urls)).slice(0, 3).map(mark => ({ mark, result, resultIndex, uncertain, color }));
   });
   const choose = (resultIndex: number) => {
     setActive(resultIndex); onSelectQuestion?.(rows[resultIndex].questionNumber);
@@ -43,8 +51,8 @@ export const SubmissionPhotoReview = ({ imageUrl, imageUrls, alt, questionResult
   useEffect(() => { if (selectedRegionPage >= 0) setPage(selectedRegionPage); }, [selectedQuestion, selectedRegionUrl, selectedRegionPage]);
   const url = urls[page] ?? imageUrl;
   useEffect(() => setFailed(false), [url]);
-  const visibleRegions = regions.filter(item => item.mark.imageUrl === url && (filter === 'all' || questionAppearance(item.result).kind === filter || filter === 'uncertain' && item.result.needsTeacherReview));
-  const visibleRows = rows.map((result, resultIndex) => ({ result, resultIndex })).filter(item => filter === 'all' || questionAppearance(item.result).kind === filter || filter === 'uncertain' && item.result.needsTeacherReview);
+  const visibleRegions = regions.filter(item => item.mark.imageUrl === url && (filter === 'all' || appearanceOf(item.result).kind === filter));
+  const visibleRows = rows.map((result, resultIndex) => ({ result, resultIndex })).filter(item => filter === 'all' || appearanceOf(item.result).kind === filter);
   return <section className="min-w-0 rounded-xl bg-white p-2 text-slate-700" aria-label={alt}>
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3">
       {canRead && grade && !pending && <p className="text-lg font-black text-slate-900">{hideScores ? 'Phân tích AI · điểm chính thức trong sổ điểm' : `Tổng điểm: ${grade.score}/${grade.maxScore}`}</p>}
@@ -64,13 +72,13 @@ export const SubmissionPhotoReview = ({ imageUrl, imageUrls, alt, questionResult
         {failed ? <p role="status" className="p-2 text-sm">Không tải được ảnh. Thử mở bản gốc bên dưới.</p> : <div className="relative" style={{ width: zoom ? '200%' : '100%' }}>
           <img src={url} alt={alt} loading="lazy" className="block h-auto w-full rounded-lg" onError={() => setFailed(true)} />
           {showMarks && !!visibleRegions.length && <><svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
-            {visibleRegions.map(({ mark, result, resultIndex, uncertain }, number) => <ellipse key={number} cx={(mark.x + mark.width / 2) * 100} cy={(mark.y + mark.height / 2) * 100} rx={mark.width * 50} ry={mark.height * 50} fill="none" stroke={questionAppearance(result).color} strokeDasharray={uncertain ? '5 3' : undefined} strokeWidth={index === resultIndex ? 3 : 2} vectorEffect="non-scaling-stroke" />)}
-          </svg>{visibleRegions.map(({ mark, result, resultIndex }, number) => <button key={number} type="button" className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus:outline focus:outline-2 focus:outline-indigo-600"
-            style={{ left: `clamp(22px, ${(mark.x + mark.width) * 100}%, calc(100% - 22px))`, top: `clamp(22px, ${mark.y * 100}%, calc(100% - 22px))` }} aria-label={`Dấu ${number + 1} · ${result.questionNumber}`} aria-expanded={index === resultIndex} onClick={() => choose(resultIndex)}><span aria-hidden="true" className={`flex items-center justify-center rounded-full border border-white text-xs font-black text-white shadow ${index === resultIndex ? 'h-6 w-6' : 'h-2 w-2'}`} style={{ backgroundColor: questionAppearance(result).color }}>{index === resultIndex ? number + 1 : null}</span></button>)}</>}
+            {visibleRegions.map(({ mark, resultIndex, uncertain, color }, number) => <ellipse key={number} cx={(mark.x + mark.width / 2) * 100} cy={(mark.y + mark.height / 2) * 100} rx={mark.width * 50} ry={mark.height * 50} fill="none" stroke={color} strokeDasharray={uncertain ? '5 3' : undefined} strokeWidth={index === resultIndex ? 3 : 2} vectorEffect="non-scaling-stroke" />)}
+          </svg>{visibleRegions.map(({ mark, result, resultIndex, color }, number) => <button key={number} type="button" className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus:outline focus:outline-2 focus:outline-indigo-600"
+            style={{ left: `clamp(22px, ${(mark.x + mark.width) * 100}%, calc(100% - 22px))`, top: `clamp(22px, ${mark.y * 100}%, calc(100% - 22px))` }} aria-label={`Dấu ${number + 1} · ${result.questionNumber}`} aria-expanded={index === resultIndex} onClick={() => choose(resultIndex)}><span aria-hidden="true" className={`flex items-center justify-center rounded-full border border-white text-xs font-black text-white shadow ${index === resultIndex ? 'h-6 w-6' : 'h-2 w-2'}`} style={{ backgroundColor: color }}>{index === resultIndex ? number + 1 : null}</span></button>)}</>}
         </div>}
       </div><a href={url} target="_blank" rel="noopener noreferrer" className="block min-h-11 break-words px-2 py-3 text-sm font-bold text-indigo-700 underline">Mở bản gốc</a></div>
       {!detailHidden && !!rows.length && <div className="min-w-0 space-y-3"><div className="max-h-64 space-y-1 overflow-y-auto" aria-label="Chọn câu để xem lời giải">{visibleRows.map(({ result, resultIndex }) => {
-        const appearance = questionAppearance(result);
+        const appearance = appearanceOf(result);
         return <button key={resultIndex} type="button" onClick={() => choose(resultIndex)} aria-expanded={index === resultIndex} className={`flex min-h-11 w-full flex-wrap items-center gap-2 rounded-lg border p-2 text-left text-xs font-bold ${appearance.className}`}><span className="min-w-0 flex-1 break-words">{result.questionNumber}</span><span>{appearance.label}</span>{!hideScores && !pending && Number.isFinite(result.score) && <span>{result.score}/{result.maxScore}</span>}</button>;
       })}</div>{selected ? <div className="rounded-xl border border-slate-200 bg-slate-50" aria-live="polite"><QuestionDetail question={selected} hideScores={hideScores} pending={pending} />
         {!regions.some(item => item.resultIndex === index) && <p className="px-3 text-xs text-slate-500">Chưa có vị trí đủ chắc trên ảnh. Chọn trang ảnh rồi phóng to để đối chiếu.</p>}

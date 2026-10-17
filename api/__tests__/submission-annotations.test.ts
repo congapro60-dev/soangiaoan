@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import handler from '../classroom';
 import gradeHandler from '../grade-homework';
-import { handleAnnotateSubmissionPhotos } from '../_submission-annotations';
+import { handleAnnotateSubmissionPhotos, mergeAnnotationResult, missingAnnotationRows } from '../_submission-annotations';
 import { commitSubmissionGradeChange, GradeLifecycleConflictError } from '../_grade-lifecycle';
 import { workedSolutionVersion } from '../_worked-solutions';
 import { assignmentSolutionInput } from '../_assignment-solutions';
@@ -24,6 +24,17 @@ const call = async (body: Data) => { const result = { status: 0, payload: {} as 
 beforeEach(() => { h.uid = 'student-uid'; h.beforeCommit = undefined; h.copy.mockReset(); h.copy.mockResolvedValue([]); h.signed.mockClear(); h.ai.mockClear(); process.env.GRADING_GEMINI_API_KEY = 'test-key'; h.metadata = { 'homework/student-uid/a.jpg': { name: 'homework/student-uid/a.jpg', size: '100', contentType: 'image/jpeg', metadata: { firebaseStorageDownloadTokens: 'token' } } }; store = { 'studentLinks/student-uid': { classId: 'class', studentId: 'student', teacherId: 'teacher' }, 'classes/class': { teacherId: 'teacher', joinCode: 'CODE' }, 'classes/class/students/student': { name: 'HS' }, 'classes/class/parentSecrets/student': { pinHash: hashPin('2468'), pinSetBy: 'parent', updatedAt: 'now' }, 'assignments/a': { classId: 'class', teacherId: 'teacher', type: 'upload', title: 'Bài', isOpen: false }, 'submissions/s': { classId: 'class', teacherId: 'teacher', studentId: 'student', assignmentId: 'a', fileUrls: [], status: 'graded', grade: { teacherApproved: true, score: 8, maxScore: 10, questionResults: [{ questionNumber: 'Câu 1' }] } } }; h.db = makeDb(store); });
 
 const mark = { imageIndex: 1, x: .1, y: .2, width: .3, height: .1, confidence: .95, imageUrl: 'https://foreign' };
+it('location fallback keeps scores and manual removals; rejects foreign labels', () => {
+ const rows = [
+  { questionNumber:'Câu 1',status:'correct',studentAnswer:'B',score:1,maxScore:1 },
+  { questionNumber:'Câu 2',status:'unreadable',studentAnswer:'C hoặc D',score:0,maxScore:1 },
+  { questionNumber:'Câu 3',status:'incorrect',studentAnswer:'A',score:0,maxScore:1,photoMarksCleared:true },
+ ] as any;
+ const targets=missingAnnotationRows(rows,['own']); expect(targets.map(row=>row.questionNumber)).toEqual(['Câu 1','Câu 2']);
+ const next=mergeAnnotationResult(rows,targets,['own'],JSON.stringify({questions:[{questionNumber:'Câu 1',photoMarks:[mark]},{questionNumber:'Câu 2',readingRegions:[mark]}]}));
+ expect(next.map(row=>row.score)).toEqual([1,0,0]);expect(next[0].photoMarks?.[0].imageUrl).toBe('own');expect(next[1].readingRegions?.[0].imageUrl).toBe('own');expect(next[2]).toEqual(rows[2]);
+ expect(()=>mergeAnnotationResult(rows,targets,['own'],JSON.stringify({questions:[{questionNumber:'foreign'}]}))).toThrow('nhãn câu');
+});
 const row = (patch: Data = {}) => ({ questionNumber: 'Câu 1', status: 'incorrect', studentAnswer: 'x=3', expectedAnswer: 'x=2', score: 0, maxScore: 1, explanation: 'GV đã sửa nhận xét', correction: 'Kiểm tra dấu', needsTeacherReview: false, teacherEdited: true, ...patch });
 const annotate = async (locate: (submission: any, targets: any[]) => Promise<any>, body: Data = {}) => {
  const result = { status: 0, payload: {} as Data }; const res = { status(code: number) { result.status = code; return res; }, json(data: Data) { result.payload = data; return res; } };

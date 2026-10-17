@@ -154,7 +154,7 @@ export const AiUsagePopup = ({ status, onClose, onOpenBilling, onRefresh }: Prop
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             {status.hasKey && keyState ? (
               <>
-                <span className="font-mono font-black text-slate-800">AIza…{status.last4}</span>
+                <span className="font-mono font-black text-slate-800">…{status.last4}</span>
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${keyState.className}`}>{keyState.text}</span>
                 <span className="font-semibold text-slate-500">(khoá lưu trên máy chủ, dùng khi chấm bài học sinh)</span>
               </>

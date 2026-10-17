@@ -86,15 +86,15 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-start justify-between gap-4">
+            <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50 flex flex-col gap-4 shrink-0">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-5 h-5 text-blue-500 shrink-0" />
-                  <h3 className="text-xl font-bold text-slate-800 truncate">{plan.title}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 break-words">{plan.title}</h3>
                 </div>
                 <div className="flex flex-wrap gap-2 items-center text-xs font-bold">
                   <span className="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase">Lớp {plan.grade || '?'}</span>
@@ -107,60 +107,72 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
                   </span>
                 </div>
               </div>
-                            <button
+              <div className="flex flex-wrap gap-2 justify-end">
+                <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateInclassWorksheet)}
                 disabled={isGeneratingSlide}
-                className="px-6 py-2.5 bg-white border border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2.5 bg-white border border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Dùng AI sinh Phiếu học tập tại lớp"
               >
                 {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardList className="w-4 h-4" />}
                 {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Phiếu học tập'}
-              </button>
-              
-              <button
+                </button>
+
+                <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateHomeworkWorksheet)}
                 disabled={isGeneratingSlide}
-                className="px-6 py-2.5 bg-white border border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2.5 bg-white border border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Dùng AI sinh Phiếu bài tập về nhà"
               >
                 {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
                 {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Bài tập về nhà'}
-              </button>
-              <button
+                </button>
+                <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGeneratePPTX)}
                 disabled={isGeneratingSlide}
-                className="px-6 py-2.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Presentation className="w-4 h-4" />}
                 {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Slide PPTX'}
-              </button>
-              <button
+                </button>
+                <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_pdf', () => exportUtils.exportToPDF(plan, showToast, 'portrait'))}
-                className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
+                className="px-3 sm:px-4 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
               >
                 Tải PDF
-              </button>
-              <button
+                </button>
+                <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', () => {
                   import('../../utils/wordExportA4').then(m => m.exportToWordA4(plan, showToast, 'portrait'));
                 })}
-                className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-200"
+                className="px-3 sm:px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-200"
               >
                 Xuất Word (.docx)
-              </button>
-              
-              <button
+                </button>
+
+                <button
                 onClick={onClose}
-                className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors"
+                className="px-3 sm:px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors"
               >
                 Đóng
-              </button>
-              <button
+                </button>
+                <button
                 onClick={() => onEdit(plan)}
-                className="px-6 py-2.5 gradient-bg text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity"
+                className="px-3 sm:px-4 py-2.5 gradient-bg text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity"
               >
                 <Edit3 className="w-4 h-4" /> Mở để chỉnh sửa
-              </button>
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8">
+              <div data-testid="lesson-plan-preview" className="prose prose-slate max-w-none markdown-body">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeRaw, rehypeKatex]}
+                >
+                  {plan.content || 'Chưa có nội dung giáo án.'}
+                </ReactMarkdown>
+              </div>
             </div>
           </motion.div>
         </motion.div>

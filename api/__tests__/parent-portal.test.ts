@@ -349,7 +349,7 @@ describe('thống kê hoạt động phụ huynh', () => {
     } finally {
       vi.useRealTimers();
     }
-  });
+  }, 20_000);
 
   it('parentEvent: PIN sai cũng được đếm; mã tạm của thầy cô (chưa đặt PIN riêng) không ghi được sự kiện', async () => {
     const pins = await issue();

@@ -327,7 +327,8 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     }
   };
 
-  const updateTemplate = async (templateId: string, updatedTemplate: Partial<LessonTemplate>) => {
+  const updateTemplate = async (templateId: string, updatedTemplate: Partial<LessonTemplate>): Promise<boolean> => {
+    const previousTemplates = data.templates || [];
     setData(prev => {
       const currentTemplates = prev.templates || [];
       const newTemplates = currentTemplates.map(t => t.id === templateId ? { ...t, ...updatedTemplate } : t);
@@ -338,8 +339,11 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
         await setDoc(doc(db, 'userTemplates', templateId), { ...updatedTemplate, id: templateId, userId: user.uid }, { merge: true });
       } catch (e) {
         console.error("Lỗi cập nhật mẫu Cloud", e);
+        setData(prev => ({ ...prev, templates: previousTemplates }));
+        return false;
       }
     }
+    return true;
   };
 
   const deleteFile = async (templateId: string, fileId: string) => {

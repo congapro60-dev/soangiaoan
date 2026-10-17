@@ -1,6 +1,7 @@
 import { geminiKeysOf, withGeminiKeys } from './geminiKeyRing';
 import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, EXAM_FORMAT_SYSTEM_INSTRUCTION, GEMINI_RUNTIME_MODELS } from './gemini';
 import { callAiRelay, relayModelFor, relayVendorModelFor, type RelayVendorId } from './aiRelay';
+import { chosenEffortOf, resolveEffort } from '../data/reasoningEffort';
 import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, vendorRouteFor } from './ai/aiModeStore';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
 import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
@@ -10,6 +11,22 @@ import { callVercelGateway, SERVER_MANAGED_API_KEY, streamVercelGateway } from '
 import { VERCEL_AI_GATEWAY_MODEL } from './vercelGatewayConfig';
 
 type Settings = AppData['settings'];
+
+/** Mức suy nghĩ sẽ gửi cho (hãng, model) theo Cài đặt; undefined = không gửi (model chạy mặc định). */
+const effortFor = (settings: Settings, provider: 'gemini' | 'claude' | 'openai', model: string): string | undefined =>
+  resolveEffort(provider, model, chosenEffortOf(settings.effort, provider));
+
+/** Tham số mức suy nghĩ của Claude (`output_config.effort`); SDK cũ chưa có kiểu cho `xhigh` nên ép kiểu. */
+const claudeEffortParams = (settings: Settings, model: string): { output_config?: { effort: 'low' | 'medium' | 'high' | 'max' } } => {
+  const effort = effortFor(settings, 'claude', model);
+  return effort ? { output_config: { effort: effort as 'low' | 'medium' | 'high' | 'max' } } : {};
+};
+
+/** Tham số mức suy nghĩ của ChatGPT (`reasoning_effort`); SDK cũ chưa có kiểu cho `max` nên ép kiểu. */
+const openaiEffortParams = (settings: Settings, model: string): { reasoning_effort?: 'low' | 'medium' | 'high' } => {
+  const effort = effortFor(settings, 'openai', model);
+  return effort ? { reasoning_effort: effort as 'low' | 'medium' | 'high' } : {};
+};
 
 // --- Token limits per provider (kịch trần model hỗ trợ) ---
 const CLAUDE_MAX_TOKENS = 32768;
@@ -198,6 +215,7 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
       const msg = await client.messages.create({
         model,
         max_tokens: CLAUDE_MAX_TOKENS,
+        ...claudeEffortParams(settings, model),
         messages: [{ role: 'user', content: prompt }],
       });
       const text = claudeText(msg.content);
@@ -215,6 +233,7 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
       const res = await client.chat.completions.create({
         model,
         max_completion_tokens: OPENAI_MAX_TOKENS,
+        ...openaiEffortParams(settings, model),
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -307,7 +326,7 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
     const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 
     const viaOwnKey = async (): Promise<RawResult> => {
-      const result = await withGeminiKeys(geminiKeysOf(settings), key => callGeminiAIRaw(prompt, key, idx >= 0 ? idx : 0));
+      const result = await withGeminiKeys(geminiKeysOf(settings), key => callGeminiAIRaw(prompt, key, idx >= 0 ? idx : 0, chosenEffortOf(settings.effort, 'gemini')));
 
       if (!result) {
         throw new Error('Gemini không trả về kết quả. Kiểm tra API key trong Cài đặt hoặc thử lại sau.');
@@ -322,7 +341,8 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
     };
     // Ví web: chạy qua máy chủ (chế độ "chỉ ví", hoặc "cả hai" khi khoá riêng hết hạn mức). Tiền ghi ở máy chủ.
     const viaWallet = async (): Promise<RawResult> => {
-      const relayed = await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), system: EXAM_FORMAT_SYSTEM_INSTRUCTION });
+      const geminiModel = relayModelFor(settings.selectedModel);
+      const relayed = await callAiRelay({ prompt, model: geminiModel, system: EXAM_FORMAT_SYSTEM_INSTRUCTION, effort: effortFor(settings, 'gemini', geminiModel) });
       return { text: relayed.text, truncated: relayed.truncated };
     };
     const route = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
@@ -344,7 +364,8 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
   const wallet = walletVendor(settings);
   if (!wallet) return callAIOnceDirect(prompt, settings);
   const viaWallet = async (): Promise<RawResult> => {
-    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel) });
+    const vendorModel = relayVendorModelFor(wallet.vendor, settings.selectedModel);
+    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: vendorModel, effort: effortFor(settings, wallet.vendor, vendorModel) });
     return { text: relayed.text, truncated: relayed.truncated };
   };
   if (wallet.route === 'relay') return viaWallet();
@@ -392,7 +413,7 @@ export async function callAIWithVision(
   if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings);
   const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
   const viaWallet = async (): Promise<string> =>
-    (await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel), images: urls })).text;
+    (await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel), images: urls, effort: effortFor(settings, wallet.vendor, relayVendorModelFor(wallet.vendor, settings.selectedModel)) })).text;
   if (wallet.route === 'relay') return viaWallet();
   try {
     return await callAIWithVisionDirect(prompt, imageDataUrls, settings);
@@ -434,6 +455,7 @@ async function callAIWithVisionDirect(
       const msg = await client.messages.create({
         model,
         max_tokens: CLAUDE_MAX_TOKENS,
+        ...claudeEffortParams(settings, model),
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
@@ -458,6 +480,7 @@ async function callAIWithVisionDirect(
       const res = await client.chat.completions.create({
         model,
         max_completion_tokens: OPENAI_MAX_TOKENS,
+        ...openaiEffortParams(settings, model),
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
@@ -554,7 +577,7 @@ async function callAIWithVisionDirect(
     // Gemini — ví web đi qua máy chủ (ảnh được nén cho lọt trần thân request 4,5MB của Vercel)
     const visionRoute = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
     const visionViaWallet = async (): Promise<string> =>
-      (await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), images: urls })).text;
+      (await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), images: urls, effort: effortFor(settings, 'gemini', relayModelFor(settings.selectedModel)) })).text;
     if (visionRoute === 'relay') return await visionViaWallet();
 
     const { GoogleGenAI } = await import('@google/genai');
@@ -623,7 +646,8 @@ export async function callAIStream(
   if (!wallet) return callAIStreamDirect(prompt, settings, onChunk, modelOverride);
   // Ví web không có luồng: máy chủ trả trọn một lần, hiện một cục.
   const viaWallet = async (): Promise<void> => {
-    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, modelOverride, settings.selectedModel) });
+    const vendorModel = relayVendorModelFor(wallet.vendor, modelOverride, settings.selectedModel);
+    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: vendorModel, effort: effortFor(settings, wallet.vendor, vendorModel) });
     onChunk(relayed.text);
   };
   if (wallet.route === 'relay') return viaWallet();
@@ -665,6 +689,7 @@ async function callAIStreamDirect(
       const stream = client.messages.stream({
         model,
         max_tokens: CLAUDE_MAX_TOKENS,
+        ...claudeEffortParams(settings, model),
         messages: [{ role: 'user', content: prompt }],
       });
       let output = '';
@@ -685,6 +710,7 @@ async function callAIStreamDirect(
       const stream = await client.chat.completions.create({
         model,
         max_completion_tokens: OPENAI_MAX_TOKENS,
+        ...openaiEffortParams(settings, model),
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -798,7 +824,8 @@ async function callAIStreamDirect(
     let output = '';
     // Ví web không có luồng: máy chủ trả trọn một lần, hiện một cục.
     const viaWallet = async () => {
-      const relayed = await callAiRelay({ prompt, model: relayModelFor(modelOverride, settings.selectedModel), system: EXAM_FORMAT_SYSTEM_INSTRUCTION });
+      const geminiModel = relayModelFor(modelOverride, settings.selectedModel);
+      const relayed = await callAiRelay({ prompt, model: geminiModel, system: EXAM_FORMAT_SYSTEM_INSTRUCTION, effort: effortFor(settings, 'gemini', geminiModel) });
       output += relayed.text;
       onChunk(relayed.text);
     };
@@ -811,7 +838,7 @@ async function callAIStreamDirect(
       await withGeminiKeys(geminiKeysOf(settings), key => callGeminiAIStream(prompt, key, (chunk) => {
         output += chunk;
         onChunk(chunk);
-      }, idx >= 0 ? idx : 0, modelOverride), { canRotate: () => output === '' });
+      }, idx >= 0 ? idx : 0, modelOverride, chosenEffortOf(settings.effort, 'gemini')), { canRotate: () => output === '' });
       recordEstimatedUsage(provider, model, prompt, output);
     } catch (ownKeyError) {
       // Chỉ chuyển sang ví khi chưa có chữ nào hiện ra — nếu không nội dung bị lặp hai lần.

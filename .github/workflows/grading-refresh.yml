@@ -1,0 +1,70 @@
+name: Refresh submitted work
+on:
+  workflow_dispatch:
+    inputs:
+      job_ids:
+        description: Administrator-created job IDs (JSON array)
+        required: true
+        type: string
+jobs:
+  refresh:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        job_id: ${{ fromJSON(inputs.job_ids) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Process scoped jobs
+        env:
+          REFRESH_SECRET: ${{ secrets.AUTO_GRADE_CRON_SECRET }}
+          REFRESH_JOB: ${{ matrix.job_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request, urllib.error
+          secret = os.environ['REFRESH_SECRET']
+          if not secret:
+              raise SystemExit('Thiếu khoá bí mật AUTO_GRADE_CRON_SECRET trong GitHub Secrets nên không gọi được máy chủ.')
+          # A provider outage the server cannot recognise as a quota stop must not burn the rest of the job.
+          max_consecutive_failures, consecutive_failures = 3, 0
+          for iteration in range(1000):
+              request = urllib.request.Request(
+                  'https://giaoandewey.vercel.app/api/grade-homework?cron=refresh',
+                  data=json.dumps({'jobId': os.environ['REFRESH_JOB']}).encode(),
+                  headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + secret})
+              try:
+                  with urllib.request.urlopen(request, timeout=310) as response:
+                      result = json.load(response)
+              except urllib.error.HTTPError as error:
+                  # The server explains every refusal in Vietnamese; print that reason, not just the HTTP code.
+                  body = error.read().decode(errors='replace')
+                  try:
+                      reason = json.loads(body).get('error') or body
+                  except ValueError:
+                      reason = body
+                  if error.code in (400, 401, 403, 409, 422, 429):
+                      raise SystemExit(f'Máy chủ từ chối hoặc đợt chấm đã dừng: {reason[:500]} (mã {error.code})')
+                  print(f'Máy chủ bị ngắt giữa chừng ({reason[:200]}, mã {error.code}); thử lại bài đang giữ sau 30 giây.', flush=True)
+                  time.sleep(30)
+                  continue
+              except (TimeoutError, urllib.error.URLError) as error:
+                  print(f'Mất kết nối tới máy chủ ({error}); thử lại bài đang giữ sau 30 giây.', flush=True)
+                  time.sleep(30)
+                  continue
+              print(json.dumps(result, ensure_ascii=False), flush=True)
+              if result.get('outcome') in ('failed', 'failed_preserved'):
+                  consecutive_failures += 1
+                  if consecutive_failures >= max_consecutive_failures and not result.get('done'):
+                      raise SystemExit(f'Dừng vì {consecutive_failures} bài liên tiếp bị lỗi. Lí do bài gần nhất: {result.get("failureMessage") or result.get("failureCode")}. Đợt vẫn chạy tiếp được sau khi xử lí lí do này.')
+              elif result.get('outcome'):
+                  consecutive_failures = 0
+              if result.get('done'):
+                  counts = result.get('counts', {})
+                  if any(counts.get(key, 0) for key in ('failed', 'failed_preserved', 'skipped_scope', 'skipped_busy')):
+                      raise SystemExit(f'Đợt chấm chạy xong nhưng còn bài cần xem lại (lí do từng bài ở items/{{id}}.failureMessage): {json.dumps(counts, ensure_ascii=False)}')
+                  break
+              time.sleep(20 if result.get('busy') else 1)
+          else:
+              raise SystemExit('Đợt chấm chưa xong sau 1000 lượt gọi; chạy lại workflow để làm tiếp.')
+          PY

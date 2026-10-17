@@ -28,6 +28,8 @@ export interface VariantSourceFile {
   text: string;
   /** PDF: chữ từng trang (đúng thứ tự) — để biết trang nào của file gộp thuộc mã nào. */
   pages?: string[];
+  /** File KHÔNG có lớp chữ (PDF scan, ảnh chụp): số trang ảnh. Mã đề lấy từ tên file, AI giải đề đọc thẳng ảnh. */
+  scanPages?: number;
 }
 
 /** Các trang (đánh số từ 1) của một file PDF thuộc về một mã đề. */
@@ -179,12 +181,14 @@ const CODE_HEADER = /m(?:ã|a)\s*(?:đề|de)(?:\s*(?:thi|kiểm\s*tra|kt))?(?:\
 const isYear = (digits: string): boolean => digits.length === 4 && Number(digits) >= 1990 && Number(digits) <= 2100;
 
 /** Mã đề trong tên file: "Mã đề 101.docx", "MD102.pdf", "De_103.docx", "Toan10 GK1 2026 - 104.docx". */
-export const codeFromFileName = (fileName: string): string | null => {
+export const codeFromFileName = (fileName: string, allowBareNumber = true): string | null => {
   const name = nfc(fileName).replace(/\.[a-z0-9]{2,5}$/iu, '');
   const header = [...name.matchAll(CODE_HEADER)].map(match => match[1]);
   if (header.length === 1) return header[0];
   const prefixed = [...name.matchAll(/(?:^|[^a-zà-ỹ])(?:m(?:ã|a)(?:\s*(?:đề|de))?|md|đề|de)[\s_\-.]*(\d{3,4})(?!\d)/giu)].map(match => match[1]);
   if (new Set(prefixed).size === 1) return prefixed[0];
+  // Ảnh chụp tên kiểu "IMG_0457.jpg": số trần không phải mã đề — để trống cho thầy cô điền.
+  if (!allowBareNumber) return null;
   const bare = [...new Set([...name.matchAll(/(?<!\d)(\d{3,4})(?!\d)/gu)].map(match => match[1]).filter(digits => !isYear(digits)))];
   return bare.length === 1 ? bare[0] : null;
 };
@@ -280,10 +284,15 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
   const material: string[] = [];
   const loose: { file: string; text: string; pageCount: number }[] = [];
   const pagesByFile: { file: string; codes: (string | null)[] }[] = [];
+  const scans: { file: string; code: string | null; pageCount: number }[] = [];
   for (const file of files) {
     const text = nfc(file.text || '').trim();
     if (!text) {
-      warnings.push(`${file.name}: không có chữ (bản scan hoặc ảnh) — dùng file Word/PDF gốc của người ra đề.`);
+      const pageCount = file.scanPages ?? 0;
+      if (pageCount <= 0) warnings.push(`${file.name}: không đọc được — chỉ nhận Word (.docx), PDF hoặc ảnh chụp.`);
+      else if (ANSWER_FILE.test(nfc(file.name))) warnings.push(`${file.name}: đáp án dạng ảnh chưa đọc tự động — dán đáp án vào từng mã hoặc bấm “Để AI giải đề”.`);
+      // Đề dạng ảnh: không có chữ nên không tách được theo dòng "Mã đề" → mã lấy từ tên file, cả file là một đề.
+      else scans.push({ file: file.name, code: codeFromFileName(file.name, false), pageCount });
       continue;
     }
     const inText = [...new Set([...text.matchAll(CODE_HEADER)].map(match => match[1]))];
@@ -308,6 +317,17 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
       if (!draft.files.includes(file.name)) draft.files.push(file.name);
       byCode.set(block.code, draft);
     }
+  }
+  // Đề dạng ảnh. Tên file không có mã: vẫn tạo dòng với mã TRỐNG để màn giao bài hỏi lại thầy cô — trừ khi cả đợt chỉ
+  // có đúng một đề này (khi đó là đề số 1, như đề chữ không ghi mã).
+  const onlyScan = scans.length === 1 && byCode.size === 0 && loose.length === 0;
+  for (const scan of scans) {
+    const code = scan.code ?? (onlyScan ? SINGLE_VARIANT_CODE : '');
+    const key = code || `?${scan.file}`;
+    const draft = byCode.get(key) ?? { code, sourceText: '', files: [], pageRefs: [] };
+    if (!draft.files.includes(scan.file)) draft.files.push(scan.file);
+    draft.pageRefs.push({ file: scan.file, pages: Array.from({ length: scan.pageCount }, (_, i) => i + 1) });
+    byCode.set(key, draft);
   }
   // Một đề duy nhất, không có mã đề: không bắt giáo viên đặt mã — coi là đề số 1 (chỉ một mã nên chấm khỏi đọc mã trên ảnh).
   if (byCode.size === 0 && loose.length === 1) {
@@ -489,4 +509,18 @@ export const examScoreCheck = (
   if (!mark || !(mark.score >= 0 && mark.score <= 10)) return null;
   const diff = Math.round(Math.abs((score / maxScore) * 10 - mark.score) * 100) / 100;
   return { sheetLabel: mark.label, sheetScore: mark.score, diff, mismatch: diff > EXAM_CHECK_TOLERANCE };
+};
+
+/** Nhãn đối chiếu khi chưa có điểm trong sổ: dùng tổng điểm giáo viên viết trên bài (máy đọc). */
+export const PAPER_SCORE_LABEL = 'Điểm ghi trên bài';
+
+/** Đối chiếu điểm AI với tổng điểm giáo viên viết tay trên bài (quy về thang 10). Không đọc được thì null. */
+export const paperScoreCheck = (
+  score: number,
+  maxScore: number,
+  paper: { score: number; maxScore: number } | undefined,
+): ExamScoreCheck | null => {
+  if (!paper || !(paper.maxScore > 0)) return null;
+  const onTen = Math.round((paper.score / paper.maxScore) * 1000) / 100;
+  return examScoreCheck(score, maxScore, PAPER_SCORE_LABEL, { moet: [{ label: PAPER_SCORE_LABEL, score: onTen }], tds: [] });
 };

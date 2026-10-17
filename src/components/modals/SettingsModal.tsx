@@ -27,6 +27,7 @@ import type { ApiProvider } from '../../config/apiLimits';
 import { ProviderCompareTable, ProviderGuideCard } from '../features/settings/ProviderGuide';
 import { useAiModeSnapshot } from '../../lib/ai/aiModeStore';
 import { glmWalletNotice, vendorWalletHint } from '../../lib/ai/aiModeView';
+import { EffortPicker } from '../features/settings/EffortPicker';
 import { GeminiKeysField } from '../features/settings/GeminiKeysField';
 import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
 
@@ -405,6 +406,18 @@ export const SettingsModal = ({
                         })
                       )}
                     </div>
+                    {(activeTab === 'gemini' || activeTab === 'claude' || activeTab === 'openai') && (
+                      <EffortPicker
+                        provider={activeTab}
+                        model={selectedModelForTab}
+                        value={data.settings.effort?.[activeTab]}
+                        onChange={level => setData(prev => {
+                          const next = { ...(prev.settings.effort ?? {}) };
+                          if (level) next[activeTab] = level; else delete next[activeTab];
+                          return { ...prev, settings: { ...prev.settings, effort: next } };
+                        })}
+                      />
+                    )}
                   </div>
 
                   <div className="space-y-5">

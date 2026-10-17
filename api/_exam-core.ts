@@ -89,13 +89,32 @@ export interface CoreAnswer {
 const isCompoundTF = (q: CoreQuestion) =>
   q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
 
-const parseTFSub = (v: string): Record<string, string> => {
+type TfSubKey = 'a' | 'b' | 'c' | 'd';
+type TfSubAnswers = Partial<Record<TfSubKey, string>>;
+
+const parseTFSub = (v: string): TfSubAnswers => {
+  const keys: TfSubKey[] = ['a', 'b', 'c', 'd'];
+  const normalizeValue = (value: unknown) => typeof value === 'string' ? value.trim().toUpperCase() : '';
+
   try {
     const parsed = JSON.parse(v);
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return keys.reduce<TfSubAnswers>((result, key) => {
+        const value = normalizeValue((parsed as Record<string, unknown>)[key]);
+        if (value) result[key] = value;
+        return result;
+      }, {});
+    }
   } catch {
-    return {};
+    // Legacy/imported answer keys use CSV: "Đ,S,Đ,S".
   }
+
+  const parts = v.split(',').map(normalizeValue);
+  if (parts.length !== keys.length || parts.some(part => !part)) return {};
+  return keys.reduce<TfSubAnswers>((result, key, index) => {
+    result[key] = parts[index];
+    return result;
+  }, {});
 };
 
 const normalize = (s: string) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -115,8 +134,11 @@ export const computeAutoScoreCore = (
   if (isCompoundTF(q)) {
     const studentTF = parseTFSub(answer);
     const correctTF = parseTFSub(q.correctAnswer || '');
-    const keys = ['a', 'b', 'c', 'd'];
-    const correctCount = keys.filter(k => studentTF[k] === correctTF[k]).length;
+    const keys: TfSubKey[] = ['a', 'b', 'c', 'd'];
+    if (keys.some(key => correctTF[key] === undefined)) return 0;
+    const correctCount = keys.filter(key => (
+      studentTF[key] !== undefined && studentTF[key] === correctTF[key]
+    )).length;
 
     if (tfScoringMode === 'thpt2025') {
       if (correctCount === 4) return q.points;

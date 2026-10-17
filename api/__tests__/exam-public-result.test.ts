@@ -11,9 +11,18 @@ vi.mock('../_exam-core.js', async original => ({
   getAdminDb: () => h.db,
 }));
 
-import handler, { publicResultProjection } from '../exam';
+import handler, { examPasswordMatches, publicResultProjection } from '../exam';
 
 type Doc = Record<string, unknown>;
+
+describe('examPasswordMatches', () => {
+  it('requires an exact password and rejects missing/non-string values', () => {
+    expect(examPasswordMatches('Toan10!', 'Toan10!')).toBe(true);
+    expect(examPasswordMatches('Toan10!', 'toan10!')).toBe(false);
+    expect(examPasswordMatches('Toan10!', '')).toBe(false);
+    expect(examPasswordMatches('Toan10!', undefined)).toBe(false);
+  });
+});
 
 const makeDb = (state: Record<string, Record<string, Doc>>) => {
   const collection = (name: string, filters: [string, unknown][] = [], count = Infinity, ordered = false, cursor = ''): any => ({
@@ -176,5 +185,43 @@ describe('GET /api/exam?submissionId= · trang kết quả thí sinh tự do', (
     expect(Object.values(state.rateLimits)[0]).toMatchObject({ count: 300, scope: 'exam-code' });
     expect((await call('GET', { code: 'ABC' }, {}, { 'x-forwarded-for': '198.51.100.9' })).status).toBe(404);
     for (let i = 0; i < 35; i++) expect((await call('GET', { submissionId: 'bai-1' }, {}, headers)).status).toBe(200);
+  });
+});
+
+describe('GET /api/exam password-protected exam access', () => {
+  it('does not disclose exam id/content through the locked code or unproved examId path', async () => {
+    const state = seed();
+    state.exams['de-1'] = {
+      ...state.exams['de-1'],
+      id: 'de-1',
+      isActive: true,
+      password: 'secret',
+      questions: [{ id: 'q1', type: 'multiple_choice', content: 'Câu hỏi bí mật', correctAnswer: 'A', points: 1 }],
+    };
+    h.db = makeDb(state);
+
+    const locked = await call('GET', { code: 'ABC' });
+    expect(locked.status).toBe(200);
+    expect(locked.body?.passwordRequired).toBe(true);
+    expect(locked.body?.exam).not.toHaveProperty('id');
+
+    const bypass = await call('GET', { examId: 'de-1' });
+    expect(bypass.status).toBe(403);
+  });
+
+  it('allows a submitted result page to load the protected exam with a matching proof submission', async () => {
+    const state = seed();
+    state.exams['de-1'] = {
+      ...state.exams['de-1'],
+      id: 'de-1',
+      password: 'secret',
+      questions: [{ id: 'q1', type: 'multiple_choice', content: 'Câu hỏi bí mật', correctAnswer: 'A', points: 1 }],
+    };
+    state.examSubmissions['proof'] = { examId: 'de-1', status: 'graded', answers: [] };
+    h.db = makeDb(state);
+
+    const out = await call('GET', { examId: 'de-1', proofSubmissionId: 'proof' });
+    expect(out.status).toBe(200);
+    expect((out.body?.exam as Doc).questions).toHaveLength(1);
   });
 });

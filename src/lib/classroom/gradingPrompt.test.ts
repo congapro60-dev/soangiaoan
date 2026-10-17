@@ -28,6 +28,9 @@ describe('photo marks grading contract', () => {
     expect(prompt).toContain('imageIndex 1..3');
     expect(prompt).toContain('photoMarks');
     expect(prompt).toContain('0.85');
+    const schema = JSON.parse(prompt.split('CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:')[1]);
+    expect(schema.questionResults[0]).toHaveProperty('photoMarks');
+    expect(schema.questionResults[0]).toHaveProperty('readingRegions');
   });
   it('keeps optional valid geometry, rejects bad geometry and all model URLs', () => {
     const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };
@@ -979,4 +982,17 @@ it('preserves independent uncertain reading regions and avoids one-sentence retr
     status: 'unreadable', studentAnswer: 'B hoặc D', confidence: .3, readingRegions: [{ ...mark, imageUrl: 'foreign' }] }] }), 1, false);
   expect(result.questionResults[0].readingRegions).toEqual([mark]);
   expect(buildHomeworkGradingRetryPrompt({ answerKey: 'B', maxScore: 1 })).not.toContain('một hai câu ngắn');
+});
+
+describe('tổng điểm giáo viên ghi tay (bài chấm tay)', () => {
+  it('chỉ nhận số hợp lệ trong thang; thiếu thang thì là 10; sai dạng thì bỏ', async () => {
+    const { parseTeacherMarkedScore, TEACHER_MARKED_PAPER_NOTE } = await import('./gradingPrompt');
+    expect(parseTeacherMarkedScore({ score: 7.5 })).toEqual({ score: 7.5, maxScore: 10 });
+    expect(parseTeacherMarkedScore({ score: '15', maxScore: 20 })).toEqual({ score: 15, maxScore: 20 });
+    expect(parseTeacherMarkedScore({ score: 12, maxScore: 10 })).toBeUndefined();
+    expect(parseTeacherMarkedScore(null)).toBeUndefined();
+    expect(parseTeacherMarkedScore({ score: 'bảy' })).toBeUndefined();
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('teacherMarkedScore');
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('KHÔNG dùng để chấm');
+  });
 });

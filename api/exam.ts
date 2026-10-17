@@ -14,6 +14,13 @@ import { getBearerToken } from './_ai-gateway-core.js';
 const RATE_LIMIT_MAX = 300;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // mỗi phút
 
+export const examPasswordMatches = (stored: unknown, supplied: unknown): boolean => {
+  if (typeof stored !== 'string' || stored.length === 0 || typeof supplied !== 'string') return false;
+  const left = Buffer.from(stored);
+  const right = Buffer.from(supplied);
+  return left.length === right.length && timingSafeEqual(left, right);
+};
+
 const checkRateLimit = async (db: FirebaseFirestore.Firestore, ip: string, now = Date.now()): Promise<boolean> => {
   const window = Math.floor(now / RATE_LIMIT_WINDOW_MS);
   const key = `${createHash('sha256').update(ip).digest('hex').slice(0, 24)}_${window}`;
@@ -45,6 +52,7 @@ const handleGet = async (req: VercelRequest, res: VercelResponse) => {
   if (submissionId) return safeId(submissionId) ? handleGetResult(submissionId, res) : res.status(400).json({ error: 'Mã bài làm không hợp lệ.' });
   const code = typeof req.query.code === 'string' ? req.query.code.trim().toUpperCase() : '';
   const examId = typeof req.query.examId === 'string' ? req.query.examId.trim() : '';
+  const proofSubmissionId = typeof req.query.proofSubmissionId === 'string' ? req.query.proofSubmissionId.trim() : '';
   if (!code && !examId) {
     return res.status(400).json({ error: 'Thiếu tham số code hoặc examId' });
   }
@@ -72,6 +80,23 @@ const handleGet = async (req: VercelRequest, res: VercelResponse) => {
 
   if (!examData) {
     return res.status(404).json({ error: 'Không tìm thấy đề thi' });
+  }
+
+  if (examId && typeof examData.password === 'string' && examData.password.length > 0) {
+    if (!safeId(proofSubmissionId)) return res.status(403).json({ error: 'Cần bài nộp hợp lệ để xem lại đề thi.' });
+    const proof = await getAdminDb().collection('examSubmissions').doc(proofSubmissionId).get();
+    const proofData = proof.exists ? proof.data() : undefined;
+    if (!proofData || proofData.examId !== examId || !['submitted', 'graded'].includes(String(proofData.status))) {
+      return res.status(403).json({ error: 'Bài nộp không hợp lệ cho đề thi này.' });
+    }
+  }
+
+  if (code && typeof examData.password === 'string' && examData.password.length > 0 && !examPasswordMatches(examData.password, req.query.password)) {
+    const { questions: _questions, password: _password, id: _id, ...examMeta } = examData;
+    return res.status(200).json({
+      passwordRequired: true,
+      exam: { ...examMeta, questions: [], passwordRequired: true },
+    });
   }
 
   const publicExam = {

@@ -9,7 +9,6 @@ import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { usePpctQueue } from './hooks/usePpctQueue';
-import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
 import { isAdminEmail } from './lib/admin/adminConfig';
 
@@ -18,8 +17,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
-import { SettingsModal } from './components/modals/SettingsModal';
-import { LatexModal } from './components/modals/LatexModal';
 import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
 import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
 import { AiWalletChip } from './components/features/aiBilling/AiWalletChip';
@@ -46,12 +43,14 @@ const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab')
 const LessonScheduleTab = lazy(() => import('./components/tabs/LessonScheduleTab').then(m => ({ default: m.LessonScheduleTab })));
 const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
 const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m => ({ default: m.AiBillingTab })));
+const PpctBulkPanel = lazy(() => import('./components/features/creator/PpctBulkPanel').then(m => ({ default: m.PpctBulkPanel })));
+const SettingsModal = lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const LatexModal = lazy(() => import('./components/modals/LatexModal').then(m => ({ default: m.LatexModal })));
 
 // Utils
-import { processUploadedFile } from './utils/fileUtils';
+const loadFileUtils = () => import('./utils/fileUtils');
 // Tải module xuất (kéo theo pptxgenjs, docx…) chỉ khi bấm xuất — không nằm trong bundle ban đầu.
 const loadExportUtils = () => import('./utils/exportUtils');
-import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
 import { TemplateFile } from './types';
@@ -85,11 +84,13 @@ export default function App() {
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
+  const [testingInitialResult, setTestingInitialResult] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
   const [liveLessonToLaunch, setLiveLessonToLaunch] = useState<AdaptiveLesson | null>(null);
   const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
+    setTestingInitialResult(undefined);
     setTestingInitialContent(`Soạn đề kiểm tra từ giáo án: "${lessonTitle}"\n\nNội dung bài học:\n${lessonContent}`);
     setActiveTab('testing');
   };
@@ -188,6 +189,7 @@ export default function App() {
     try {
       const processedFiles: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
+        const { processUploadedFile } = await loadFileUtils();
         const resultFiles = await processUploadedFile(files[i], uploadingFiles.category, i);
         processedFiles.push(...resultFiles);
       }
@@ -207,12 +209,10 @@ export default function App() {
         addDistribution(newDist);
       } else if (uploadingFiles.templateId) {
         const tId = uploadingFiles.templateId;
-        setData(prev => ({
-          ...prev,
-          templates: prev.templates.map(t => 
-            t.id === tId ? { ...t, files: [...t.files, ...processedFiles] } : t
-          )
-        }));
+        const template = data.templates.find(t => t.id === tId);
+        if (!template) throw new Error('Không tìm thấy bộ mẫu để lưu tệp.');
+        const saved = await updateTemplate(tId, { files: [...(template.files || []), ...processedFiles] });
+        if (!saved) throw new Error('Không lưu được tệp mẫu lên Cloud.');
       }
       showToast('Tải tệp lên thành công!');
     } catch (error: any) {
@@ -381,7 +381,6 @@ export default function App() {
       <Sidebar
         activeTab={activeTab} setActiveTab={setActiveTab}
         onCreatorTabClick={() => {
-          creator.setCurrentPlan({ title: '', content: '', subjectId: creator.currentPlan.subjectId || 'math', templateId: '', grade: creator.currentPlan.grade || '10', week: creator.currentPlan.week || '1' });
           setActiveTab('creator');
         }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
@@ -392,6 +391,7 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
           activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}
@@ -465,6 +465,8 @@ export default function App() {
                 data={data} user={user} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
                 initialContent={testingInitialContent}
                 onConsumeInitialContent={() => setTestingInitialContent(undefined)}
+                initialResult={testingInitialResult}
+                onConsumeInitialResult={() => setTestingInitialResult(undefined)}
                 onSaveExam={handleSaveExam}
               />
             )}
@@ -545,7 +547,8 @@ export default function App() {
                 onToggleShareExam={toggleShareExam}
                 onFetchCommunityExams={fetchCommunityExams}
                 onOpenExamInEditor={(exam) => {
-                  setTestingInitialContent(exam.content);
+                  setTestingInitialContent(undefined);
+                  setTestingInitialResult(exam.content);
                   setActiveTab('testing');
                 }}
                 showToast={showToast}
@@ -593,7 +596,7 @@ export default function App() {
       <LatexModal 
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
-        downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
+        downloadLaTeXFile={() => loadFileUtils().then(({ downloadBlob, safeFilename }) => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`))}
         openInOverleaf={() => loadExportUtils().then(m => m.openInOverleaf(latexContent, creator.currentPlan, showToast))}
         showToast={showToast}
       />
