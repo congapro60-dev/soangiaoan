@@ -13,6 +13,10 @@ import { publishedReportInput } from './_published-report.js';
 import { COMPETENCY_LEVELS } from '../src/lib/classroom/competency/framework.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
+import discoverManifest from '../src/data/discoverNewKnowledgeLessons.js';
+import type { DiscoverNewKnowledgeSeed, StudentDiscoverCatalogItem } from '../src/lib/discover/types.js';
+import { stripAnswers } from '../src/lib/adaptive/stripAnswers.js';
+import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
 
 type Data = FirebaseFirestore.DocumentData;
 type Db = FirebaseFirestore.Firestore;
@@ -55,6 +59,16 @@ const onlineOwn = (data: Data, context: Context): boolean =>
   && (!data.teacherId || data.teacherId === context.teacherId);
 const newest = <T extends { id: string }>(items: T[], date: (item: T) => string): T[] =>
   items.sort((a, b) => date(b).localeCompare(date(a)) || b.id.localeCompare(a.id));
+
+const normalizeAdaptiveLesson = (raw: unknown, fallbackId: string): AdaptiveLesson | null => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const data = raw as Record<string, unknown> & { lesson?: Record<string, unknown> };
+  const lesson = data.lesson && typeof data.lesson === 'object' && !Array.isArray(data.lesson) ? { ...data.lesson } : { ...data };
+  if (!lesson.id) lesson.id = typeof data.lessonId === 'string' ? data.lessonId : typeof data.id === 'string' ? data.id : fallbackId;
+  if (!lesson.teacherId && typeof data.teacherId === 'string') lesson.teacherId = data.teacherId;
+  if (!lesson.title && typeof data.title === 'string') lesson.title = data.title;
+  return lesson.id ? lesson as unknown as AdaptiveLesson : null;
+};
 
 const summary = (id: string, data: Data, project: Projectors['projectStudentSubmission']): StudentWorkspaceSubmission => {
   const submission = project(id, data);
@@ -163,10 +177,26 @@ const reportMeta = (id: string, data: Data) => ({
   id, kind: text(data.kind), from: text(data.from), to: text(data.to), title: text(data.title), range: text(data.range), publishedAt: text(data.publishedAt),
 });
 
+const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
+  (discoverManifest as readonly DiscoverNewKnowledgeSeed[])
+    .filter(seed => seed.grade === grade)
+    .map(seed => ({
+      id: seed.id,
+      title: seed.text.split(' / ')[0]?.trim() || seed.text,
+      grade: seed.grade,
+      week: seed.week,
+      period: seed.period,
+      status: 'available' as const,
+    }));
+
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport'].includes(body.action)) return false;
+  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
+    if (body.action === 'studentDiscoverCatalog') {
+      res.status(200).json({ catalog: studentDiscoverCatalog(text(context.classDoc.data()?.grade)) });
+      return true;
+    }
     if (body.action === 'studentReports' || body.action === 'studentReport') {
       if (body.action === 'studentReports') {
         const snap = await context.classRef.collection(PARENT_REPORTS_SUB).where('studentId', '==', context.studentId).get();
@@ -190,6 +220,28 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
         if (!input) throw new WorkspaceError(404, 'Bản báo cáo này chưa sẵn sàng.');
         res.status(200).json({ report: { ...reportMeta(doc.id, data), input } });
       }
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveList') {
+      const snapshot = await db.collection('adaptiveAssignments').where('classId', '==', context.classId).get();
+      const assignments = snapshot.docs.filter(doc => visibleAssignment(doc.data(), context) && doc.data().isOpen === true).map(doc => ({
+        assignmentId: doc.id, lessonId: text(doc.data().lessonId), title: text(doc.data().title),
+        discoverSeedId: typeof doc.data().discoverSeedId === 'string' ? doc.data().discoverSeedId : undefined, createdAt: text(doc.data().createdAt),
+      }));
+      res.status(200).json({ assignments });
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveOpen') {
+      if (!isSafeDocId(body.assignmentId)) throw new WorkspaceError(400, 'Invalid lesson code.');
+      const assignmentSnap = await db.collection('adaptiveAssignments').doc(body.assignmentId).get();
+      const assignment = assignmentSnap.data() || {};
+      if (!assignmentSnap.exists || !visibleAssignment(assignment, context) || assignment.isOpen !== true || !isSafeDocId(assignment.lessonId)) throw new WorkspaceError(404, 'Lesson not found.');
+      const lessonSnap = await db.collection('adaptiveLessons').doc(assignment.lessonId).get();
+      const lesson = normalizeAdaptiveLesson(lessonSnap.data(), assignment.lessonId);
+      if (!lessonSnap.exists || !lesson || lesson.teacherId !== assignment.teacherId || lesson.status !== 'published') throw new WorkspaceError(404, 'Lesson is not ready.');
+      res.status(200).json({ assignmentId: assignmentSnap.id, lesson: stripAnswers(lesson) });
       return true;
     }
 

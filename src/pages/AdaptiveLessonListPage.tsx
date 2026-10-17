@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Edit3, Eye, Trash2, WandSparkles } from 'lucide-react';
+import { BarChart3, BookOpenCheck, Edit3, Eye, Trash2, WandSparkles } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
@@ -254,6 +254,9 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               </button>
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
                 <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
+              </button>
+              <button onClick={() => navigate('/discover-self-study')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25">
+                <BookOpenCheck className="h-4 w-4" /> Chọn tiết Discover
               </button>
             </div>
           </div>

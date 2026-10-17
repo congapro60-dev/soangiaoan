@@ -25,6 +25,7 @@ const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m
 const StudentPortalPage = lazy(() => import('./pages/StudentPortalPage').then(m => ({ default: m.StudentPortalPage })));
 const ParentPortalPage = lazy(() => import('./pages/ParentPortalPage').then(m => ({ default: m.ParentPortalPage })));
 const StudentClassExamPage = lazy(() => import('./pages/StudentClassExamPage').then(m => ({ default: m.StudentClassExamPage })));
+const DiscoverSelfStudyPage = lazy(() => import('./pages/DiscoverSelfStudyPage').then(m => ({ default: m.DiscoverSelfStudyPage })));
 
 const RouteLoading = () => (
   <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-700">
@@ -107,6 +108,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/adaptive-portal" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           <Route path="/adaptive-live/:sessionId" element={<Suspense fallback={<RouteLoading />}><LiveLessonPage /></Suspense>} />
           <Route path="/adaptive/student/:teacherId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          <Route path="/discover-self-study" element={<Suspense fallback={<RouteLoading />}><DiscoverSelfStudyPage /></Suspense>} />
           <Route path="/exam/:code/review/:submissionId" element={<Suspense fallback={<RouteLoading />}><AnswerReviewPage /></Suspense>} />
           <Route path="/exam/:code/result/:submissionId" element={<Suspense fallback={<RouteLoading />}><StudentResultPage /></Suspense>} />
           <Route path="/exam/:examId/grade" element={<Suspense fallback={<RouteLoading />}><TeacherGradingPage /></Suspense>} />
