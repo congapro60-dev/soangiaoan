@@ -155,6 +155,16 @@ describe('công bố + phụ huynh xem', () => {
     expect((await call({ ...PUBLISH, from: '1/9', reports: [{ studentId: 'a', input: INPUT('An') }] })).statusCode).toBe(400);
   });
 
+  it('công bố được hai khoảng custom khác nhau mà không ghi đè', async () => {
+    const input = { studentId: 'a', input: INPUT('An') };
+    expect((await call({ ...PUBLISH, kind: 'custom', from: '2026-09-01', to: '2026-09-15', reports: [input] })).statusCode).toBe(200);
+    expect((await call({ ...PUBLISH, kind: 'custom', from: '2026-09-16', to: '2026-09-30', reports: [input] })).statusCode).toBe(200);
+    expect(Object.keys(h.store['classes/lop-1/parentReports'])).toEqual([
+      'a__custom__2026-09-01__2026-09-15',
+      'a__custom__2026-09-16__2026-09-30',
+    ]);
+  });
+
   it('đúng PIN → thấy báo cáo của CHÍNH em, không thấy của em khác', async () => {
     const pins = await setup();
     const res = await parentCall({ studentId: 'a', pin: pins.a });

@@ -9,9 +9,9 @@ import type { SubmissionDoc } from './types.js';
 import type { Hs1Mark } from './scoreBook.js';
 import type { ParentSafeAssignmentResult } from './parentSafeReport.js';
 
-import { REPORT_KINDS, type ReportKind } from './reportKinds.js';
+import { REPORT_KINDS, TEACHER_REPORT_KINDS, type ReportKind } from './reportKinds.js';
 
-export { REPORT_KINDS, type ReportKind };
+export { REPORT_KINDS, TEACHER_REPORT_KINDS, type ReportKind };
 
 export interface ReportPeriod {
   kind: ReportKind;

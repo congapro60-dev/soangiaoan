@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## GV tự chọn khoảng ngày khi xuất / công bố báo cáo phụ huynh — 17/10 (Claude)
+
+**Đổi gì, vì sao:** trước đây GV chỉ chọn tháng / giữa-cuối kì / cả năm; loại `custom` (từ ngày — đến ngày) chỉ phụ huynh dùng trên `/ph` và bị chủ ý loại khỏi `REPORT_KINDS`. Chủ dự án muốn GV cũng chọn khoảng ngày tuỳ ý. Thêm `TEACHER_REPORT_KINDS` (= `REPORT_KINDS` + `custom` "Tự chọn khoảng ngày") dùng ở 2 ô chọn của GV (`StudentReport`, `ClassParentReportExport`), nhãn công bố, và hai bộ kiểm loại ở máy chủ (`api/_parent-portal.ts`, `api/_parent-report.ts`). `REPORT_KINDS` giữ nguyên nên cổng `/ph` không đổi.
+
+**Còn dở / cố ý bỏ:** chưa chạy thử trên trình duyệt, chưa `npm run build`. Báo cáo tự chọn của phụ huynh (id `TU_CHON_ID`) giữ nguyên.
+
+**Bẫy:** mã báo cáo đã công bố có cả ngày bắt đầu/kết thúc (`a__custom__2026-09-01__2026-09-15`) nên hai khoảng khác nhau là hai bản riêng, không ghi đè; công bố lại cùng khoảng thì ghi đè bản cũ. Nhận xét GV lưu theo `{kind, from, to}` nên mỗi khoảng custom có nhận xét riêng.
+
+**Nghiệm thu:** `npx vitest run src/lib/classroom/reportPeriod.test.ts api/__tests__/parent-portal.test.ts api/__tests__/parent-report.test.ts api/__tests__/function-count.test.ts`, `npx tsc --noEmit`, `npx tsc --noEmit -p tsconfig.api.json`.
 ## Báo lỗi nói rõ lí do, không chỉ mã — 17/10 (Claude)
 
 Chủ dự án yêu cầu: mọi lỗi phải nói lí do + việc cần làm, không ghi mỗi "409/503". `src/lib/httpErrorText.ts`: `moTaLoiHttp(status)` (máy chủ của web) và `moTaLoiDichVu(status, 'Gemini' | 'Google Sheets'…)` → "X báo lỗi: <lí do>. <cách xử lí> (mã N)." Đã thay mọi câu dự phòng "Máy chủ trả lỗi N" / "(mã lỗi N)" / "Google trả lỗi N" / "Kroki N" ở 26 file (service client, Gemini, relay, thử khoá, Sheets, Drive, xuất file). Đợt chấm nền: mỗi `failureCode` lưu kèm `failureMessage`, job dừng có `pauseMessage`; lỗi 409 tách 3 câu (không thấy đợt / quá hạn / đang dừng vì …); log workflow in câu tiếng Việt. Luật trong `tasks/lessons.md`.
