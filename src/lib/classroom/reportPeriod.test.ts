@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SubmissionDoc } from './types';
 import type { ParentSafeAssignmentResult } from './parentSafeReport';
-import { defaultPeriod, filterForPeriod, monthlyAverages, periodComparison, periodError, rangeLabel, reportTitle, schoolYearStart } from './reportPeriod';
+import { defaultPeriod, filterForPeriod, monthlyAverages, periodComparison, periodError, rangeLabel, reportTitle, schoolYearStart, TEACHER_REPORT_KINDS } from './reportPeriod';
 
 const sub = (id: string, assignmentId: string | null, createdAt: string): SubmissionDoc =>
   ({ id, assignmentId, createdAt, studentId: 's', teacherId: 't', classId: 'c', status: 'graded', fileUrls: [], note: '', updatedAt: createdAt }) as SubmissionDoc;
@@ -20,6 +20,9 @@ describe('báo cáo phụ huynh theo kì', () => {
   });
 
   it('kiểm khoảng + tiêu đề', () => {
+    expect(TEACHER_REPORT_KINDS.at(-1)).toEqual({ kind: 'custom', label: 'Tự chọn khoảng ngày' });
+    expect(periodError({ kind: 'custom', from: '2026-11-01', to: '2026-10-01' })).toMatch(/trước/);
+    expect(periodError({ kind: 'custom', from: '2026-02-30', to: '2026-03-01' })).toMatch(/có thật/);
     expect(periodError({ kind: 'gk1', from: '2026-11-01', to: '2026-10-01' })).toMatch(/trước/);
     expect(periodError({ kind: 'year', from: '2026-09-01', to: '2027-05-31', hk2From: '2027-07-01' })).toMatch(/học kì II/);
     expect(periodError(defaultPeriod('gk2', '2026-09-29'))).toBeNull();

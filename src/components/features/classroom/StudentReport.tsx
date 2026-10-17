@@ -16,7 +16,7 @@ import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrin
 import { brandingForReport } from '../../../lib/classroom/parentBranding';
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
-import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
+import { TEACHER_REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
 import { parentActionsForRequirements, requirementsInStage, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
 import { stageForPeriod } from '../../../lib/classroom/reportStage';
 import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
@@ -369,7 +369,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <div className="flex flex-wrap items-end gap-2">
               <select value={kyBaoCao?.kind ?? 'all'} onChange={event => chonLoai(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
                 <option value="all">Tổng hợp từ đầu năm tới nay</option>
-                {REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
+                {TEACHER_REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
               </select>
               {kyBaoCao?.kind === 'month' && (
                 <input type="month" value={kyBaoCao.from.slice(0, 7)} onChange={event => event.target.value && setKyBaoCao(defaultPeriod('month', kyBaoCao.from, event.target.value))} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />

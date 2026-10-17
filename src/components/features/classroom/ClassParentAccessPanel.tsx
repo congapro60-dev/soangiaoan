@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { ClipboardCopy, FileSpreadsheet, KeyRound, Loader2, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { listParentPublished, issueParentPins, resetParentPin, unpublishParentReports } from '../../../lib/classroom/teacherService';
 import { DEFAULT_PARENT_MESSAGE, parentPortalLink, renderParentMessage, type PublishedParentGroup } from '../../../lib/classroom/parentAccess';
-import { REPORT_KINDS } from '../../../lib/classroom/reportKinds';
+import { TEACHER_REPORT_KINDS } from '../../../lib/classroom/reportKinds';
 import { SSM_MERGE_MESSAGE, buildSsmMergeWorkbook, missingCodeCount } from '../../../lib/classroom/ssmMailMerge';
 import type { Student } from '../../../types';
 import { ParentActivityPanel } from './ParentActivityPanel';
@@ -135,7 +135,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
     }
   };
 
-  const nhan = (kind: string) => REPORT_KINDS.find(item => item.kind === kind)?.label ?? kind;
+  const nhan = (kind: string) => TEACHER_REPORT_KINDS.find(item => item.kind === kind)?.label ?? kind;
 
   return (
     <section className="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/50 p-4 sm:p-5">

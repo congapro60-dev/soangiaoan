@@ -16,7 +16,7 @@ import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { exportParentReportToPdf, parentReportFileName } from '../../../lib/classroom/parentReportPrintDoc';
-import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, reportTitle, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
+import { TEACHER_REPORT_KINDS, defaultPeriod, periodError, rangeLabel, reportTitle, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
 import type { Student } from '../../../types';
 
 interface Props {
@@ -168,7 +168,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       </div>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <select value={ky.kind} onChange={event => setKy(defaultPeriod(event.target.value as ReportKind, today()))} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-          {REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
+          {TEACHER_REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
         </select>
         {ky.kind === 'month' ? (
           <input type="month" value={ky.from.slice(0, 7)} onChange={event => event.target.value && setKy(defaultPeriod('month', ky.from, event.target.value))} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold" />
