@@ -463,6 +463,7 @@ const gradeFailureCode = (error: unknown): string => {
   if (error instanceof Error && error.message === UNCERTAIN_READ_MESSAGE) return 'uncertain_read';
   if (error instanceof Error && error.message === UNREADABLE_EXAM_CODE_MESSAGE) return 'exam_code';
   if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return 'contract';
+  if (error instanceof SubmissionAccessError) return `access_${error.statusCode}`;
   return 'system';
 };
 
@@ -2203,7 +2204,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } catch (error) {
             if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
             if (error instanceof AiKeyRequiredError) throw error;
-            return { success: false, gradePreserved: true };
+            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error) };
           }
         });
       });
