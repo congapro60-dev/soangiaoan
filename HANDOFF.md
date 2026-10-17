@@ -1,9 +1,19 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-15
+**Cập nhật:** 2026-10-17
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Discover tự học: GV giao bài cho lớp, HS mở bài đã bỏ đáp án — 17/10 (Claude, tiếp nhận từ Codex 01a13816)
+
+**Đổi gì, vì sao:** nhánh `codex/elearning-muse-task1` (Codex làm catalog 204 tiết Discover 10–12, trang `/discover-self-study`, mục "Discover · Tự học" ở `/lop`). Lát này nối tiếp để HS học được an toàn: (1) `discoverSeedId` đi từ trang chọn tiết vào bài Adaptive đã lưu; (2) `src/lib/adaptive/stripAnswers.ts` tạo bản bài cho HS, bỏ đáp án/lời giải/gợi ý/ghi chú GV THEO KIỂU DỮ LIỆU (không theo tên khoá — `LearningRouteContent.explanation` là nội dung HS đọc nên giữ); (3) action mới `teacherAssignAdaptiveLesson` (`api/_classroom-teacher.ts`), `studentAdaptiveList`, `studentAdaptiveOpen` (`api/_student-workspace.ts`) trên collection MỚI `adaptiveAssignments/{classId}_{lessonId}` (chỉ Admin SDK ghi). Lý do: engine hiện chấm ở trình duyệt và `api/adaptive-progress` không xác thực nên HS soi/giả mạo được đáp án và tiến độ. Thiết kế đầy đủ + sổ tiến độ: `docs/spec/discover-self-study-v2.md` và `.ledger.md`.
+
+**Còn dở / cố ý bỏ:** nút học ở `/lop` vẫn khoá; T3 (server chấm, sự kiện học, tiến độ có `classId`), T4 (player HS dùng open/submit), T5 (GV giao bài + thống kê theo tiết/mục tiêu/lỗi sai/hỗ trợ), T6 (rules: thu hẹp đọc `adaptiveLessons`, rules cho 2 collection mới + test), T7 (rebase `origin/main`, build, QA trình duyệt) CHƯA làm. Không có asset Muse, không gọi Muse API.
+
+**Bẫy:** (a) route công khai `/adaptive-portal` vẫn đọc cả bài (có đáp án) — đừng đưa link đó cho HS lớp; rules hiện cho mọi user đăng nhập (kể cả HS ẩn danh) đọc mọi `adaptiveLessons`, sửa ở T6. (b) `tsc --noEmit` có 2 lỗi ép kiểu `readonly` CÓ TỪ TRƯỚC (`src/lib/discover/manifest.test.ts`, `src/pages/DiscoverSelfStudyPage.tsx` dòng 7) — chưa sửa. (c) `normalizeAdaptiveLesson` bị chép ở 2 file api, gộp ở T7. (d) `api/` đang 11/12 function Vercel — thêm action vào dispatcher có sẵn, không thêm file. (e) nhánh chậm 7 commit so với `main`, chỉ trùng `src/main.tsx` và `adaptiveFromLessonPlan.ts`.
+
+**Nghiệm thu:** `npx vitest run src/lib/adaptive api/__tests__/student-adaptive.test.ts api/__tests__/student-workspace.test.ts api/__tests__/function-count.test.ts` (139 test đạt khi bàn giao), `npx tsc --noEmit -p tsconfig.api.json` (sạch).
 
 ## Căn cột bài nộp GV — 15/10
 
