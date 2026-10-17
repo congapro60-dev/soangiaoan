@@ -7,7 +7,7 @@ import { syncApprovedGradeEvidence } from './_skill-profile.js';
 /**
  * KHÔI PHỤC sau sự cố 15–16/10: job "làm mới dấu trên ảnh" (`photo-refresh-20261015-*`) đã chấm lại toàn bộ bài thay vì
  * chỉ thêm dấu. Trả lại grade trước đợt chạy (lấy từ lịch sử `ai_regrade` mà chính lượt chấm lại đã ghi), GIỮ dấu trên ảnh
- * mới tạo. Không đụng bài thầy cô đã sửa tay hoặc tự duyệt SAU đợt chạy — đó là quyết định mới của thầy cô.
+ * mới tạo. Không đụng bài thầy cô đã SỬA TAY sau đợt chạy. Bài được duyệt sau đợt (kể cả nguồn 'teacher') vẫn khôi phục.
  * Chủ dự án duyệt 17/10. Chỉ quản trị gọi (`_admin.ts`), xem trước rồi mới chạy, chạy theo lô.
  */
 
@@ -63,7 +63,7 @@ export const decideRestore = (
   const regrade = history.find(item => item.action === 'ai_regrade' && item.createdAt === current.gradedAt && item.grade);
   if (!regrade?.grade) return { action: 'skip', reason: 'Bài đã được chấm hoặc sửa lại sau đợt chạy — giữ kết quả hiện tại.' };
   if (current.editedByTeacher) return { action: 'skip', reason: 'Thầy cô đã sửa tay sau đợt chạy — giữ kết quả của thầy cô.' };
-  if (current.teacherApproved && current.approvalSource === 'teacher') return { action: 'skip', reason: 'Thầy cô đã duyệt điểm mới sau đợt chạy — giữ quyết định của thầy cô.' };
+  // Duyệt sau đợt chạy (kể cả "teacher") vẫn khôi phục: chủ dự án xác nhận 17/10 là bấm duyệt hàng loạt, không biết điểm đã bị chấm lại.
   return { action: 'restore', reason: 'Trả lại điểm, nhận xét, trạng thái duyệt trước đợt chạy; giữ dấu trên ảnh.', oldGrade: regrade.grade };
 };
 

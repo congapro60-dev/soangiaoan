@@ -17,9 +17,9 @@ describe('khôi phục sau sự cố chấm lại 15–16/10', () => {
     expect(decideRestore(sub(newGrade), history)).toMatchObject({ action: 'restore', oldGrade });
   });
 
-  it('auto_timeout duyệt điểm mới vẫn khôi phục; thầy cô duyệt tay điểm mới thì GIỮ', () => {
+  it('điểm mới đã được duyệt sau đợt (tự duyệt hay bấm duyệt hàng loạt) vẫn khôi phục — chủ dự án chốt 17/10', () => {
     expect(decideRestore(sub({ ...newGrade, teacherApproved: true, approvalSource: 'auto_timeout' } as SubmissionGrade), history).action).toBe('restore');
-    expect(decideRestore(sub({ ...newGrade, teacherApproved: true, approvalSource: 'teacher' } as SubmissionGrade), history)).toMatchObject({ action: 'skip', reason: expect.stringContaining('duyệt điểm mới') });
+    expect(decideRestore(sub({ ...newGrade, teacherApproved: true, approvalSource: 'teacher' } as SubmissionGrade), history).action).toBe('restore');
   });
 
   it('thầy cô sửa tay / bài chấm lại thêm sau đợt (mốc lệch) / đã khôi phục / đang chấm → giữ nguyên', () => {
