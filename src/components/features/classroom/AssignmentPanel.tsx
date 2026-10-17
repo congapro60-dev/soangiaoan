@@ -38,7 +38,7 @@ import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos } f
 import { isBlankAnswer } from '../../../lib/classroom/questionRescore';
 import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
-import { renameAssignment } from '../../../lib/classroom/teacherService';
+import { confirmPaperExamScore, renameAssignment } from '../../../lib/classroom/teacherService';
 import { countKeyQuestions } from '../../../lib/classroom/examVariants';
 import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
@@ -492,6 +492,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
 
                 <div className="flex flex-wrap items-center gap-2">
                   {assignment?.type !== 'exam' && assignment?.deliveryMode !== 'online' && <AnnotateSubmissionPhotosButton submission={s} disabled={gradingLockFresh || tienDo !== ''} onChanged={() => onRefresh?.()} />}
+                  {assignment?.periodicTest && <PaperScoreButton submission={s} assignment={assignment} />}
                   <button
                     type="button"
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
@@ -1997,6 +1998,36 @@ export const AnnotateSubmissionPhotosButton = ({ submission, disabled = false, o
       }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
     }}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
     {message && <p role="status" className="mt-1 max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài kiểm tra định kì đã chấm tay: máy đọc TỔNG điểm thầy cô viết trên ảnh; thầy cô soát số rồi đưa vào sổ điểm
+ * (cột theo "tên cột sổ điểm" của bài). Cột đã có điểm từ file điểm thì file điểm vẫn được ưu tiên.
+ */
+export const PaperScoreButton = ({ submission, assignment }: { submission: SubmissionDoc; assignment: AssignmentDoc }) => {
+  const paper = submission.grade?.paperScore;
+  const label = assignment.periodicTest?.sheetLabel?.trim() || assignment.title;
+  const [score, setScore] = useState(paper ? String(Math.round((paper.score / paper.maxScore) * 1000) / 100) : '');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  if (submission.status !== 'graded' || !submission.grade) return null;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-900">
+    <span>{paper ? `Điểm thầy cô ghi trên bài (máy đọc): ${paper.score}/${paper.maxScore}` : 'Máy chưa đọc được điểm ghi tay trên bài'}</span>
+    <label className="inline-flex items-center gap-1">Đưa vào sổ cột “{label}”:
+      <input value={score} onChange={event => setScore(event.target.value)} inputMode="decimal" aria-label="Điểm chấm tay thang 10" placeholder="0–10"
+        className="w-16 rounded-lg border border-rose-200 bg-white px-2 py-1 text-right text-sm font-black text-slate-900" />/10
+    </label>
+    <button type="button" disabled={busy || !score.trim()} className="min-h-9 rounded-lg bg-rose-600 px-3 text-white disabled:opacity-50" onClick={() => {
+      const value = Number(score.trim().replace(',', '.'));
+      if (!Number.isFinite(value) || value < 0 || value > 10) { setMessage('Điểm phải từ 0 đến 10.'); return; }
+      setBusy(true); setMessage('');
+      void confirmPaperExamScore(submission.classId, { studentId: submission.studentId, assignmentId: assignment.id, label, score: value })
+        .then(() => setMessage(`Đã đưa ${value}/10 vào sổ điểm (cột “${label}”). Cột đã có điểm từ file điểm thì file điểm vẫn được ưu tiên.`))
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được vào sổ điểm.'))
+        .finally(() => setBusy(false));
+    }}>{busy ? 'Đang lưu…' : 'Xác nhận vào sổ'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
   </div>;
 };
 

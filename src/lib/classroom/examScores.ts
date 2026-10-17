@@ -21,6 +21,17 @@ export interface ExamMark {
   score: number;
   /** Điểm chữ đi kèm (chỉ TDS), vd "A"/"B". */
   letter?: string;
+  /** 'paper' = điểm thầy cô xác nhận từ ảnh bài chấm tay (chưa có trong file điểm). Vắng = từ file điểm. */
+  source?: 'paper';
+}
+
+/** Điểm thầy cô xác nhận từ ảnh bài kiểm tra chấm tay — lưu riêng để đồng bộ file điểm không xoá mất. */
+export interface PaperExamMark {
+  label: string;
+  /** Thang 10. */
+  score: number;
+  assignmentId: string;
+  confirmedAt: string;
 }
 
 export interface StudentExamScores {

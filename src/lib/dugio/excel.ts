@@ -14,6 +14,7 @@ import type { MaThanhTo } from '../../data/khungDanielson';
 import { lamSachDongQuanSat } from './lamSach';
 import type { BienBanDuGio, DongQuanSat } from './types';
 import { bienBanRong } from './types';
+import { moTaLoiHttp } from '../httpErrorText';
 
 export const DUONG_DAN_MAU = '/mau/bien-ban-du-gio.xlsx';
 
@@ -342,7 +343,7 @@ export async function xuatTheoMau(
   bb: BienBanDuGio,
   layMau: () => Promise<ArrayBuffer> = async () => {
     const res = await fetch(DUONG_DAN_MAU);
-    if (!res.ok) throw new Error(`Không tải được file mẫu (${res.status})`);
+    if (!res.ok) throw new Error(`Không tải được file mẫu. ${moTaLoiHttp(res.status)}`);
     return res.arrayBuffer();
   },
 ): Promise<Blob> {

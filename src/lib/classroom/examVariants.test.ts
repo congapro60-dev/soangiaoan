@@ -263,3 +263,12 @@ describe('trang PDF của từng mã đề', () => {
     expect(splitVariantSources([{ name: 'Mã đề 101.docx', text: 'Câu 1. a' }]).variants[0].pageRefs).toEqual([]);
   });
 });
+
+describe('đối chiếu với điểm ghi tay trên bài', () => {
+  it('quy về thang 10; lệch quá ngưỡng → mismatch; không đọc được → null', async () => {
+    const { paperScoreCheck, PAPER_SCORE_LABEL } = await import('./examVariants');
+    expect(paperScoreCheck(7, 10, { score: 15, maxScore: 20 })).toMatchObject({ sheetLabel: PAPER_SCORE_LABEL, sheetScore: 7.5, mismatch: false });
+    expect(paperScoreCheck(4, 10, { score: 8, maxScore: 10 })?.mismatch).toBe(true);
+    expect(paperScoreCheck(7, 10, undefined)).toBeNull();
+  });
+});

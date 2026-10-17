@@ -1,5 +1,6 @@
 import { auth } from '../lib/firebase';
 import type { AssignmentCompetencyTag, AssignmentQuestionCatalogItem } from '../lib/classroom/types';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export interface GradeBatchResult {
   graded: number;
@@ -26,7 +27,7 @@ const callApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
     body: JSON.stringify({ ...payload, idToken: await user.getIdToken() }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return data as T;
 };
 
@@ -157,7 +158,7 @@ export const fetchPractice = async (setId?: string, attemptId?: string): Promise
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -186,7 +187,7 @@ export const submitPractice = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -230,7 +231,7 @@ export const solveAnswerKey = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -261,7 +262,7 @@ export const solveAnswerKeyForAssignment = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -287,7 +288,7 @@ export const extractExamVariantKeys = async (
     body: JSON.stringify({ action: 'extractExamVariantKeys', idToken: await user.getIdToken(), classId, codes, answerMaterial, hints }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return data?.keys && typeof data.keys === 'object' ? data.keys as Record<string, string> : {};
 };
 
@@ -315,7 +316,7 @@ export const buildQuestionCatalog = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return {
     questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
     competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [],
@@ -342,7 +343,7 @@ export const setAssignmentCompetencyTags = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return { competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [] };
 };
 
@@ -369,7 +370,7 @@ export const suggestRubric = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return String((data as { rubric?: string })?.rubric || '');
 };
 
@@ -393,6 +394,6 @@ export const rewriteFeedback = async (input: RewriteFeedbackInput): Promise<stri
     body: JSON.stringify({ action: 'rewriteFeedback', idToken: await user.getIdToken(), ...input }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return String((data as { feedback?: string })?.feedback || '');
 };

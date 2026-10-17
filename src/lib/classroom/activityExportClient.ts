@@ -9,6 +9,7 @@ import {
   type ActivityExportFormat,
   type ActivityExportOutputs,
 } from './activityExport';
+import { moTaLoiHttp } from '../httpErrorText';
 
 interface ExportResponseFile {
   filename?: unknown;
@@ -38,7 +39,7 @@ const requestExport = async (
     body: JSON.stringify({ title: exam.title, content, type: 'MOET', format }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown; pdf?: ExportResponseFile; word?: ExportResponseFile } | null;
-  if (!response.ok) throw new Error(safeText(data?.error) || `Máy chủ xuất ${format.toUpperCase()} trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(safeText(data?.error) || `Chưa xuất được ${format.toUpperCase()}. ${moTaLoiHttp(response.status)}`);
   const file = format === 'pdf' ? data?.pdf : data?.word;
   const base64 = safeText(file?.base64);
   if (!base64) throw new Error(`Máy chủ không trả file ${format.toUpperCase()} cho bản ${audience === 'student' ? 'học sinh' : 'giáo viên'}.`);

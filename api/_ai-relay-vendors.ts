@@ -18,6 +18,7 @@ import {
 import { GeminiResponseError, type InlineImage } from './_grading-core.js';
 import { getAdminDb } from './_exam-core.js';
 import { RELAY_VENDOR_MAX_OUTPUT_TOKENS, type RelayVendor } from './_ai-relay-core.js';
+import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 const LABEL: Record<RelayVendor, string> = { claude: 'Claude', openai: 'ChatGPT' };
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -130,7 +131,7 @@ export const callVendor = async (call: VendorCall): Promise<VendorResult> => {
       throw expired ? timedOut() : new GeminiResponseError('provider', `Không gọi được ${label} lúc này. Thử lại sau ít phút.`);
     }
     if (!res.ok) {
-      throw new GeminiResponseError('http', `${label} không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`);
+      throw new GeminiResponseError('http', moTaLoiDichVu(res.status, label));
     }
     const parsed = parseResponse(call.vendor, await res.json().catch(() => null));
     if (!parsed) throw new GeminiResponseError('provider', `${label} trả về phản hồi không hợp lệ. Thử lại sau ít phút.`);

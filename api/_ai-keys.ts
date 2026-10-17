@@ -32,6 +32,7 @@ import {
 import { ADMIN_EMAILS } from '../src/lib/admin/adminConfig.js';
 import { enabledRelayVendors } from './_ai-relay-core.js';
 import { resolveGatewayApiKey } from './_ai-gateway-core.js';
+import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -386,7 +387,7 @@ const probeGeminiKey = async (key: string): Promise<{ ok: true } | { ok: false; 
       signal: AbortSignal.timeout(10_000),
     });
     if (res.ok) return { ok: true };
-    return { ok: false, message: `Google từ chối khoá này (mã ${res.status}). Kiểm tra lại khoá trong Google AI Studio.` };
+    return { ok: false, message: `${moTaLoiDichVu(res.status, 'Google')} Kiểm tra lại khoá trong Google AI Studio.` };
   } catch {
     return { ok: false, message: 'Chưa kiểm tra được khoá với Google. Thử lại sau ít phút.' };
   }

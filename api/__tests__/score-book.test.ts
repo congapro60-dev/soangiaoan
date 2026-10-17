@@ -116,6 +116,32 @@ describe('sổ điểm', () => {
     expect(h.store.scoreBooks['lop-1']).toMatchObject({ hs1Columns: [], hs1: { a: {} } });
   });
 
+  it('điểm chấm tay xác nhận từ ảnh: vào sổ, còn nguyên sau khi đồng bộ file điểm; file điểm có cột đó thì file thắng; null = gỡ', async () => {
+    h.store.assignments = {
+      gk1: { classId: 'lop-1', title: 'Kiểm tra giữa kì I', periodicTest: { sheetLabel: 'Giữa học kì I' } },
+      btvn: { classId: 'lop-1', title: 'BTVN 1' },
+    };
+    const confirm = (body: DocData) => call({ action: 'confirmPaperExamScore', classId: 'lop-1', studentId: 'a', assignmentId: 'gk1', label: 'Giữa học kì I', score: 7.5, ...body });
+    expect((await confirm({ assignmentId: 'btvn' })).statusCode).toBe(422);
+    expect((await confirm({ score: 11 })).statusCode).toBe(422);
+    expect((await confirm({ studentId: 'la' })).statusCode).toBe(404);
+    const saved = await confirm({});
+    expect(saved.statusCode).toBe(200);
+    expect((saved.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 7.5, source: 'paper' }]);
+    // Firestore: điểm ảnh nằm ở paperExams, KHÔNG chép vào exams.
+    expect(h.store.scoreBooks['lop-1'].exams).toEqual({ a: { moet: [], tds: [] } });
+
+    const sync = await call({ action: 'saveExamScores', classId: 'lop-1', spreadsheetTitle: 'f', exams: { a: { moet: [{ label: 'Khảo sát', score: 6 }], tds: [] } } });
+    expect((sync.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Khảo sát', score: 6 }, { label: 'Giữa học kì I', score: 7.5, source: 'paper' }]);
+
+    const sheetWins = await call({ action: 'saveExamScores', classId: 'lop-1', spreadsheetTitle: 'f', exams: { a: { moet: [{ label: 'Giữa học kì I', score: 8 }], tds: [] } } });
+    expect((sheetWins.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 8 }]);
+
+    await call({ action: 'saveExamScores', classId: 'lop-1', spreadsheetTitle: 'f', exams: {} });
+    const removed = await confirm({ score: null });
+    expect((removed.payload?.scoreBook as any).exams.a?.moet ?? []).toEqual([]);
+  });
+
   it('học sinh chỉ nhận dòng của CHÍNH mình, bỏ qua studentId gửi lên', async () => {
     const col = await call({ action: 'saveHs1Column', classId: 'lop-1', column: { label: 'Miệng', date: '2026-09-20' }, scores: { a: 9, b: 3 } });
     expect(col.statusCode).toBe(200);
