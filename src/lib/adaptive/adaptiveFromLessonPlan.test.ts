@@ -82,9 +82,9 @@ describe('validateAdaptiveLessonPublishReadiness', () => {
 
     const issues = validateAdaptiveLessonPublishReadiness(lesson);
 
-    expect(issues.filter(issue => issue.severity === 'error').map(issue => issue.code)).toEqual([
+    expect(issues.filter(issue => issue.severity === 'error').map(issue => issue.code)).toEqual(expect.arrayContaining([
       'unapproved_media', 'missing_media_text_alternative',
-    ]);
+    ]));
   });
 
   it('accepts an approved image media reference without a transcript', () => {

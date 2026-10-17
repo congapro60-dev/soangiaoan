@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import manifest from '../../data/discoverNewKnowledgeLessons';
 import type { DiscoverNewKnowledgeSeed } from './types';
 
-const rows = manifest as DiscoverNewKnowledgeSeed[];
+const rows = manifest as unknown as DiscoverNewKnowledgeSeed[];
 
 describe('Discover PPCT manifest', () => {
   it('contains the expected new-knowledge counts for grades 10-12', () => {

@@ -4,7 +4,7 @@ import { BookOpenCheck, Filter, Sparkles } from 'lucide-react';
 import manifest from '../data/discoverNewKnowledgeLessons';
 import type { DiscoverGrade, DiscoverNewKnowledgeSeed, DiscoverSourceDraft } from '../lib/discover/types';
 
-const seeds = manifest as DiscoverNewKnowledgeSeed[];
+const seeds = manifest as unknown as DiscoverNewKnowledgeSeed[];
 
 const titleOf = (seed: DiscoverNewKnowledgeSeed) => seed.text.split(' / ')[0]?.trim() || seed.text;
 
