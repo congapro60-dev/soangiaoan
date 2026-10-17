@@ -74,7 +74,7 @@ export default function App() {
   const aiMode = useAiModeSnapshot();
   const walletCoversGemini = Boolean(aiMode?.gateEnabled && aiMode.mode !== 'own');
   // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
-  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
+  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number; studentId?: string } | null>(null);
   // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
   useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -391,6 +391,7 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
           activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          onStudentSearchSelect={(classId, studentId) => { setClassFocus({ classId, studentId, nonce: Date.now() }); setActiveTab('classes'); }}
           isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />

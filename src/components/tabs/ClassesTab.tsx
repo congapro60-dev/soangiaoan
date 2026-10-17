@@ -28,7 +28,7 @@ interface ClassesTabProps {
   user: User | null;
   showToast: (msg: string, icon?: any) => void;
   /** Yêu cầu mở một lớp ở tab Bài nộp và bung khung việc tồn (từ Bảng điều khiển). */
-  focus?: { classId: string; nonce: number } | null;
+  focus?: { classId: string; nonce: number; studentId?: string } | null;
 }
 
 const escapeHtml = (value: string) => value.replace(/[<>&"]/g, ch => (
@@ -113,8 +113,12 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
   useEffect(() => {
     if (!focus) return;
     setSelectedClassId(focus.classId);
-    setWorkspaceView('submissions');
-  }, [focus]);
+    const targetStudent = focus.studentId
+      ? classes.find(item => item.id === focus.classId)?.students.find(student => student.id === focus.studentId)
+      : null;
+    setViewingStudent(targetStudent || null);
+    setWorkspaceView(targetStudent ? 'overview' : 'submissions');
+  }, [classes, focus]);
   const [managingClassId, setManagingClassId] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);
 
