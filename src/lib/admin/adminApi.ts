@@ -71,6 +71,26 @@ const callAdmin = async <T>(payload: Record<string, unknown>): Promise<T> => {
 
 export const loadAdminOverview = () => callAdmin<AdminOverview>({ action: 'adminOverview' });
 
+/** Một dòng trong kế hoạch khôi phục sau sự cố chấm lại 15–16/10 (xem `api/_refresh-restore.ts`). */
+export interface RefreshRestoreItem {
+  submissionId: string;
+  classId: string;
+  studentName: string;
+  assignmentTitle: string;
+  oldScore: number | null;
+  currentScore: number | null;
+  maxScore: number | null;
+  oldApproved: boolean | null;
+  currentApproved: boolean | null;
+  action: 'restore' | 'skip';
+  reason: string;
+}
+
+export interface RefreshRestoreResult { plan: RefreshRestoreItem[]; restored: number; failed: number; pending: number; batch: number }
+
+/** `run=false`: chỉ xem trước. `run=true`: khôi phục một lô (tối đa `batch` bài) rồi trả kế hoạch mới. */
+export const refreshRestore = (run: boolean) => callAdmin<RefreshRestoreResult>({ action: 'adminRefreshRestore', run });
+
 export const loadAdminUsage = (fromDay: string, toDay: string) => callAdmin<AdminUsage>({ action: 'adminUsage', fromDay, toDay });
 
 export const saveAdminSettings = (settings: AdminBillingSettings) =>
