@@ -9,6 +9,7 @@ const seeds = manifest as DiscoverNewKnowledgeSeed[];
 const titleOf = (seed: DiscoverNewKnowledgeSeed) => seed.text.split(' / ')[0]?.trim() || seed.text;
 
 const lessonSource = (seed: DiscoverNewKnowledgeSeed): DiscoverSourceDraft => ({
+  seedId: seed.id,
   title: `Discover ${seed.grade}: ${titleOf(seed)}`,
   content: [
     `Nguồn PPCT: ${seed.sourceWorkbook}, sheet ${seed.sheet}, dòng ${seed.row}, tuần ${seed.week ?? 'chưa xác định'}, tiết ${seed.period ?? 'chưa xác định'}.`,

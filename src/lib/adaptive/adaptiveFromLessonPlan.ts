@@ -20,6 +20,7 @@ import type {
 type AdaptiveGrade = AdaptiveLesson['grade'];
 
 export interface AdaptiveLessonSource {
+  seedId?: string;
   title: string;
   content: string;
   grade?: string;
@@ -480,6 +481,7 @@ export const buildAdaptiveLessonFromReviewedPlan = (
     teacherId,
     createdAt: now,
     updatedAt: now,
+    ...(source.seedId ? { discoverSeedId: source.seedId } : {}),
     curriculumRef: {
       programType: 'CUSTOM',
       week: source.week || '',
@@ -2292,6 +2294,7 @@ export const runAdaptivePipeline = async (
     teacherId,
     createdAt: now,
     updatedAt: now,
+    ...(source.seedId ? { discoverSeedId: source.seedId } : {}),
     curriculumRef: {
       programType: 'CUSTOM',
       week: source.week || '',

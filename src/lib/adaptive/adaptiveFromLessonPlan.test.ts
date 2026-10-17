@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildAdaptiveLessonFromReviewedPlan,
   buildAdaptiveLessonFromContentJson,
   runAdaptivePipeline,
   validateAdaptiveLessonPublishReadiness,
@@ -250,12 +251,19 @@ ${padding}
 `;
 
   const source: AdaptiveLessonSource = {
+    seedId: 'discover-seed-1',
     title: 'Ba đường Conic',
     content: 'Giáo án nguồn về ba đường conic trong mặt phẳng tọa độ.',
     grade: '10',
     week: '30',
     sourceLabel: 'Test',
   };
+
+  it('carries the Discover seed id into the built lesson', () => {
+    const lesson = buildAdaptiveLessonFromReviewedPlan(source, reviewedPlan, 'teacher-1');
+
+    expect(lesson.discoverSeedId).toBe('discover-seed-1');
+  });
 
   const blueprintJson = JSON.stringify({
     title: 'Ba đường Conic',

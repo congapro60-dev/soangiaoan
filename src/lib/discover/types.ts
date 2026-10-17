@@ -17,6 +17,7 @@ export interface DiscoverNewKnowledgeSeed {
 }
 
 export interface DiscoverSourceDraft {
+  seedId: string;
   title: string;
   content: string;
   grade: string;

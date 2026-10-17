@@ -195,6 +195,7 @@ export interface PracticeSet {
 
 export interface AdaptiveLesson {
   id: string;
+  discoverSeedId?: string;
   title: string;
   subjectId: 'math';
   grade: '10' | '11' | '12';
