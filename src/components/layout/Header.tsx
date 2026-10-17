@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, type ReactNode } from 'react';
 import { Search, History, BookOpen, FileText, GraduationCap, Menu } from 'lucide-react';
 import { AppData } from '../../types';
+import type { TeacherClass } from '../../types';
 import { filterHeaderStudents } from './headerStudentSearch';
 
 type ActiveTab = 'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonSchedule' | 'aiBilling' | 'admin' | 'lessonUpgrade' | 'duGio';
@@ -37,6 +38,7 @@ interface HeaderProps {
   setActiveTab: (tab: ActiveTab) => void;
   onMenuClick?: () => void;
   onStudentSearchSelect?: (classId: string, studentId: string) => void;
+  loadStudentSearchClasses?: () => Promise<TeacherClass[]>;
   /** Chip Ví AI (chỉ có khi giáo viên đã đăng nhập). */
   aiChip?: ReactNode;
   isAdmin?: boolean;
@@ -51,12 +53,23 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, onStudentSearchSelect, aiChip, isAdmin = false }: HeaderProps) => {
+export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, onStudentSearchSelect, loadStudentSearchClasses, aiChip, isAdmin = false }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [featureSearch, setFeatureSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const studentResults = useMemo(() => filterHeaderStudents(featureSearch, data), [featureSearch, data]);
+  const [accessibleClasses, setAccessibleClasses] = useState<TeacherClass[] | null>(null);
+  const searchData = useMemo(() => {
+    if (!accessibleClasses) return data;
+    const accessibleIds = new Set(accessibleClasses.map(cls => cls.id));
+    return { ...data, classes: [...accessibleClasses, ...data.classes.filter(cls => !accessibleIds.has(cls.id))] };
+  }, [accessibleClasses, data]);
+  const studentResults = useMemo(() => filterHeaderStudents(featureSearch, searchData), [featureSearch, searchData]);
+
+  const loadAccessibleClasses = () => {
+    if (!loadStudentSearchClasses || accessibleClasses) return;
+    void loadStudentSearchClasses().then(setAccessibleClasses).catch(() => {});
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -160,7 +173,8 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
             type="text"
             placeholder="Tìm tính năng..."
             value={featureSearch}
-            onChange={e => setFeatureSearch(e.target.value)}
+            onFocus={loadAccessibleClasses}
+            onChange={e => { setFeatureSearch(e.target.value); loadAccessibleClasses(); }}
             className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-50 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all w-48"
           />
           {featureSearch.trim() && (
