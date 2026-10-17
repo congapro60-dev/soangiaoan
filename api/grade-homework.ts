@@ -1,4 +1,4 @@
-import { handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows, mergeAnnotationResult } from './_submission-annotations.js';
+import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows, mergeAnnotationResult } from './_submission-annotations.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
@@ -2148,6 +2148,24 @@ const handleAutoGradeSweep = async (req: VercelRequest, res: VercelResponse) => 
   return res.status(200).json({ approved, graded, failed, remaining });
 };
 
+
+/** Gọi AI ĐỊNH VỊ câu trên ảnh (không chấm lại). Dùng cho nút "Bổ sung dấu chấm trên ảnh" và job làm mới. */
+const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boolean) => async (submission: SubmissionDoc, targets: QuestionResult[]): Promise<{ raw: string; urls: string[] }> => {
+      const startedAt = Date.now();
+      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
+      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
+      await ensureGeminiKey(getGradingApiKey());
+      if (bypassDailyQuota) await reserveTeacherRefreshQuota(db, submission.teacherId);
+      else {
+        const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
+        if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+      }
+      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
+      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -2158,17 +2176,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!secret || getBearerToken(req.headers.authorization) !== secret) return res.status(401).json({ error: 'Sai khóa.' });
     try {
       const db = getAdminDb();
-      const result = await runGradingRefreshItem(db, String(readBody(req).jobId || ''), async (submission, assignment, bypassDailyQuota) => {
+      // CHỈ định vị câu trên ảnh — KHÔNG chấm lại: điểm, duyệt, nhận xét, sửa tay giữ nguyên.
+      // (Bản 15/10 gọi gradeOneSubmission ở đây → chấm lại toàn bộ 184 bài, đổi điểm 104 bài; xem HANDOFF 17/10.)
+      const result = await runGradingRefreshItem(db, String(readBody(req).jobId || ''), async (submission, _assignment, bypassDailyQuota) => {
         const usage = createAiUsageContext(null, 'teacherRefresh', { submissionId: submission.id, classId: submission.classId, assignmentId: submission.assignmentId },
           async () => ({ uid: submission.teacherId, email: null, anonymous: false }));
         return runWithAiUsage(usage, async () => {
           setAiKeyOwner(submission.teacherId);
-          await ensureGeminiKey(getGradingApiKey());
-          if (!bypassDailyQuota) {
-            const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
-            if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
-          } else await reserveTeacherRefreshQuota(db, submission.teacherId);
-          return gradeOneSubmission(db, submission.id, await gradeContextFor(assignment), getGradingApiKey(), submission.teacherId, true, 'thorough', submission);
+          try {
+            await annotateSubmission(db, submission.id, null, locateAnnotation(db, bypassDailyQuota));
+            return { success: true };
+          } catch (error) {
+            if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
+            if (error instanceof AiKeyRequiredError) throw error;
+            return { success: false, gradePreserved: true };
+          }
         });
       });
       return res.status(200).json(result);
@@ -2200,17 +2222,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     const db = getAdminDb();
     if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
-    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: async (submission, targets) => {
-      const startedAt = Date.now();
-      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
-      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
-      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
-      await ensureGeminiKey(getGradingApiKey()); const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
-      if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
-      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
-      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
-      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
-    } });
+    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: locateAnnotation(db, false) });
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);

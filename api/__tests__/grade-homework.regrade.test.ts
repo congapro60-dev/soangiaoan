@@ -198,17 +198,41 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(422);
     expect(harness.state.submissions['sub-1'].grade).toEqual(oldGrade);
   });
-  it('maintenance refresh rechecks teacher edits atomically after loading assignment images', async () => {
+  it('maintenance refresh KHÔNG BAO GIỜ chấm lại: bài không có bảng câu thì giữ nguyên, không gọi AI', async () => {
     const harness=seed();
     harness.state.submissions['sub-1'].assignmentId='asg-1';
     harness.state.assignments={'asg-1':{classId:'lop-1',teacherId:'gv-1',type:'upload',sourceImageUrls:['https://storage.test/source.jpg']}};
     harness.state.gradingRefreshJobs={job:{teacherId:'gv-1',submissionIds:['sub-1'],cursor:0,status:'running',expiresAt:Date.now()+60000,allowDailyQuotaBypass:true}};
     h.db=makeDb(harness);process.env.AUTO_GRADE_CRON_SECRET='test-cron';
-    const manual={...oldGrade,score:9,editedByTeacher:true};
-    const fetch=vi.fn(async(url:unknown)=>{if(String(url).startsWith('https://storage.test/')){harness.state.submissions['sub-1'].grade=manual;return makeImageResponse();}throw Error('AI must not run');});vi.stubGlobal('fetch',fetch);
+    const before=structuredClone(harness.state.submissions['sub-1'].grade);
+    const fetch=vi.fn(async()=>{throw Error('AI must not run');});vi.stubGlobal('fetch',fetch);
     const {response,state}=makeResponse();
     await handler({method:'POST',headers:{authorization:'Bearer test-cron'},query:{cron:'refresh'},body:{jobId:'job'}} as never,response as never);
-    expect(state.statusCode).toBe(200);expect(harness.state.submissions['sub-1'].grade).toEqual(manual);expect(fetch).toHaveBeenCalledTimes(1);
+    expect(state.statusCode).toBe(200);expect(harness.state.submissions['sub-1'].grade).toEqual(before);expect(fetch).not.toHaveBeenCalled();
+  });
+  it('maintenance refresh chỉ thêm dấu trên ảnh: điểm, duyệt, nhận xét, bảng câu giữ nguyên tuyệt đối', async () => {
+    const harness=seed();
+    const row={questionNumber:'Câu 1',status:'incorrect',score:0,maxScore:10,studentAnswer:'x=3',expectedAnswer:'x=2',errorType:'Sai dấu',explanation:'Sai',correction:'Đổi dấu',nextPractice:'Luyện',confidence:.95,needsTeacherReview:false};
+    harness.state.submissions['sub-1'].grade={...oldGrade,score:7.25,teacherApproved:true,approvalSource:'teacher',feedback:'Nhận xét cũ',questionResults:[row]};
+    harness.state.submissions['sub-1'].fileUrls=['https://storage.test/actual.jpg'];
+    harness.state.submissions['sub-1'].assignmentId='asg-1';
+    harness.state.assignments={'asg-1':{classId:'lop-1',teacherId:'gv-1',type:'upload'}};
+    harness.state.gradingRefreshJobs={job:{teacherId:'gv-1',submissionIds:['sub-1'],cursor:0,status:'running',expiresAt:Date.now()+60000,allowDailyQuotaBypass:true}};
+    h.db=makeDb(harness);process.env.AUTO_GRADE_CRON_SECRET='test-cron';
+    const prompts:string[]=[];
+    vi.stubGlobal('fetch',vi.fn(async(url:unknown,init?:{body?:unknown})=>{
+      if(String(url).startsWith('https://storage.test/'))return makeImageResponse();
+      prompts.push(String((JSON.parse(String(init?.body||'{}')) as GeminiRequestBody).contents?.[0]?.parts?.find(p=>typeof p.text==='string')?.text));
+      return makeGeminiResponse(JSON.stringify({questions:[{questionNumber:'Câu 1',photoMarks:[{imageIndex:1,x:.1,y:.2,width:.3,height:.1,confidence:.95}],readingRegions:[]}]}));
+    }));
+    const {response,state}=makeResponse();
+    await handler({method:'POST',headers:{authorization:'Bearer test-cron'},query:{cron:'refresh'},body:{jobId:'job'}} as never,response as never);
+    expect(state.statusCode).toBe(200);
+    const grade=harness.state.submissions['sub-1'].grade as DocData;
+    expect(grade).toMatchObject({score:7.25,teacherApproved:true,approvalSource:'teacher',feedback:'Nhận xét cũ',gradedAt:oldGrade.gradedAt});
+    expect((grade.questionResults as DocData[])[0]).toMatchObject({...row,photoMarks:[expect.objectContaining({imageUrl:'https://storage.test/actual.jpg'})]});
+    expect(prompts).toHaveLength(1);expect(prompts[0]).toContain('KHÔNG chấm lại');
+    expect(harness.state.submissionGradeHistory).toBeUndefined();
   });
   it.each([false, true])('binds marks to sent student photos after PDF/fetch failures; preserves removal=%s', async cleared => {
     const harness = seed();

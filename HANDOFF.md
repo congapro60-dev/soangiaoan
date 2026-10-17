@@ -5,6 +5,12 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## SỰ CỐ 15–16/10: job "làm mới dấu trên ảnh" đã CHẤM LẠI toàn bộ bài — đã sửa gốc 17/10 (Claude)
+
+`cron=refresh` gọi `gradeOneSubmission(..., 'thorough')` → chấm lại từ đầu + `commitAiGradeIfClaimed` ghi grade mới (lịch sử `ai_regrade` giữ grade cũ). So ảnh chụp trước đợt (`%TEMP%/grading-refresh-private/inventory.json`, 15/10 14:33) với production 17/10: 184 bài bị chấm lại trong khung job; 104 đổi điểm (10Olinda 72, 11Columbus 30, 12LoTrinh1 2), 93 trong đó đã duyệt (43 GV duyệt tay), 50 bài mất duyệt; lệch >1 điểm 16, lớn nhất 5,5. Codex báo "giữ điểm by design" — sai, mã không làm vậy.
+Sửa gốc: tách `annotateSubmission()` (lõi nút "Bổ sung dấu chấm trên ảnh") trong `_submission-annotations.ts`; job làm mới chỉ gọi nó (`locateAnnotation`), không còn `gradeOneSubmission`. Test khoá: refresh giữ score/duyệt/nhận xét/gradedAt/bảng câu, chỉ thêm photoMarks, không tạo lịch sử.
+Khôi phục dữ liệu: chủ dự án chọn "trả lại điểm cũ, giữ dấu ảnh; trừ bài GV đã tự sửa/duyệt lại SAU đợt chạy" — xem mục kế tiếp khi xong.
+
 ## Điểm chấm tay trên bài định kì → sổ điểm (GV xác nhận) — 16/10 (Claude)
 
 Chủ dự án duyệt: AI đọc TỔNG điểm GV viết tay trên ảnh bài định kì, hiện cạnh điểm AI, GV xác nhận rồi mới vào sổ. Prompt bài chấm tay thêm field `teacherMarkedScore` (chỉ đọc, KHÔNG dùng để chấm; không chắc → null) → `parseTeacherMarkedScore` → `grade.paperScore`. Sổ chưa có điểm mốc đó thì `examCheck` đối chiếu với `paperScore` (nhãn "Điểm ghi trên bài"; lệch > ngưỡng vẫn không tự duyệt). GV: dòng bài nộp định kì có ô "Điểm thầy cô ghi trên bài (máy đọc)" + "Xác nhận vào sổ" (cột = `periodicTest.sheetLabel` hoặc tên bài) → action `confirmPaperExamScore` lưu `scoreBooks.paperExams` RIÊNG (đồng bộ file điểm thay `exams` cả khối nên không xoá mất); `normalizeScoreBook` ghép vào `exams` với `source:'paper'`, cột file điểm đã có thì FILE THẮNG; `writeBook` bỏ phần ghép (`storedExams`). Sổ điểm tô đỏ nhạt điểm từ ảnh. Mốc trùng tên cột TDS của lớp thì vào TDS, còn lại MOET. Test: score-book +1, grade-homework.variants +1, gradingPrompt, examVariants.
