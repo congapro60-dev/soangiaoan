@@ -54,6 +54,8 @@ export interface LessonProjection {
   passports?: Record<string, Record<string, unknown>>;
   groups?: Record<string, Record<string, unknown>>;
   submissions?: unknown;
+  selfProgress?: { gates: Array<{ activityId: string; count: number }>; finished: number; total: number };
+  wrongAlerts?: Array<{ taskId: string; activityId: string; total: number; wrong: number; prompt: string }>;
   openAssessments?: Record<string, {
     submissionId: string;
     learnerId: string;
@@ -107,6 +109,9 @@ export interface LessonProjection {
   valueReflection?: import("./ValueReflection").ValueReflectionData | null;
   storyCue?: string;
   storyOpening?: string;
+  pacing?: "self" | "teacher";
+  selfFinished?: boolean;
+  classQuest?: { gate: number; activityId: string; eventType: string; eventLabel: string; status: "pending" | "ready" | "open"; passed: number; total: number } | null;
   gateStars?: Array<{ activityId: string; stars: number }>;
   levelInvite?: boolean;
   branchSwitchesLeft?: number;

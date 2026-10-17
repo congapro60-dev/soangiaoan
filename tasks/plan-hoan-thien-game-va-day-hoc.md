@@ -1479,7 +1479,67 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] Nativev15 succeeded14/10/2026 17:42:21VN, sourceee412967aea2737d66761ab022840df812969b39; public/env2giữ. 14/14productionassets200SHA256match; productiondemo2Dcube1680×945. Logs1favicon404/info/outcomeok, khôngruntimeexception. SharedHANDOFF/report cập nhật.
 
 - [x] R19: Canva7gốctải xong; rejectedfirstsample roadsdrift, newterrain+deterministicPillow33vertices×7=231PASS. 56focusedtests/typecheck/buildPASS; Gemini finaltextreviewPASS0, independentaudit17PASS. Browser7loaded1680×945; dynamicgateeventlesson-map:gate; night/zoom/mobile375htmlnooverflow.
-- [ ] R19 backlog P2: v14existing leavePilot(true) remount2D missing syncFlatGateStars/renderExamJourney; labels/clickdynamicgate temporarilylostuntilreceive. Pointerpublic/lesson-map.html:388–403; noR19imagecause. Separatefixneeded, doNOTclaim2D3DlessoninteractionPASS.
+- [x] R19 backlog P2: `leavePilot(true)` remount 2D now restores `syncFlatGateStars`/`renderExamJourney`; behavioral test covers physical label/star and delegated click. Live 3D visual/device acceptance remains separate.
 - [x] 14/10 Claude: R19 backlog P2 fixed in public/lesson-map.html leavePilot(true): after remounting the 2D board it restores lesson gate labels/stars (syncFlatGateStars) or the exam journey (renderExamJourney(..., false)). Regression test in tests/lesson-map-stars.test.mjs. Also updated 2 stale cover tests to R19 names (map-<id>-r19.webp / imageHi) that were failing in the full suite. Full npm test after: see coordination. Not released; Codex QA + release per owner rule.
 
 - r7.27 (14–15/10/2026): Chủ hệ thống quyết: viết luôn mạch truyện cho cả 12 thế giới (không chờ duyệt 2 thế giới mẫu); tiết dạy thật tuần sau = lớp 11, Ôn tập chương II (Dãy số, CSC, CSN), 80 phút. Claude làm: truyện 12 thế giới có nhân vật + 3 lời mở theo loại tiết (hình thành/luyện tập/ôn tập, suy từ gói bài) + 7 pha + kết đủ/kết dở; gói bài `g11-ch2-review` (T11.20/22/23/26/27/28, 3 mức mỗi trạm, draft chờ GV duyệt). Test 1378/1378. Chờ Codex QA + phát hành (kèm sửa R19 P2). 18.7 câu 1 đã có đáp án: viết luôn 12.
+
+
+### R20 — Claude delta QA/release 15/10/2026
+- [x] R19 P2 fix, 12-world story arcs, `g11-ch2-review` draft copied into release candidate; math audit 26/26 no wrong key.
+- [x] Full 1378 tests, typecheck, build, lint 0 errors. Native v16 deployed correct Site.
+- [ ] **P1 BLOCKED:** `/lessons/new` library dropdown reads DB `/api/lessons?kind=list`, while `g11-ch2-review` lives in `/api/lesson-content`; authored draft cannot launch a room. Bridge package source or complete teacher save/approve workflow before live gate/3-lane/story/3D→2D QA.
+- [ ] After bridge: rerun 375px/desktop live room, all 3 lanes + Đổi mức, two world story cues, lesson/exam 3D→2D stars/journey; record screenshots and release follow-up.
+
+- [x] R20 v16 deployed; 1378 tests/typecheck/build pass, lint 0 errors. 375px creation screen no horizontal overflow.
+- [ ] R20 live QA BLOCKED after preview room: HS answer selection does not persist (Nộp remains disabled), so gates/3 lanes/Đổi mức/second-world story/lesson+exam 3D→2D cannot be certified. Wizard authored-package mismatch and HS input bug require follow-up. QA room/draft moved Trash.
+- [ ] R20 additional P1: clean production build manifest references missing `lesson-CGYLFws9.js`; resolve asset graph, rerun browser console/worker QA, then publish follow-up.
+
+
+### R22 — học liệu HKI 10–12 (15/10)
+- [x] Đọc sáu unit plan từ Drive; giữ nguồn và năm gốc tại tasks/r22/sources.
+- [ ] Đối soát toàn bộ tiết HKI theo PPCT 26–27; soạn đủ bài, Tự chọn ôn tích lũy theo tuần; kiểm toán đáp án và tích hợp thư viện. Chi tiết tasks/r22-hki-plan.md.
+- [x] Áp dụng yêu cầu mới: subagents GPT-6 Astra xhigh, không gọi model ngoài.
+
+### R21 — chủ hệ thống giao sửa blocker R20 (15/10)
+- [x] Phạm vi T1–T7 trong tasks/r21-fix-acceptance-plan.md; baselinev16WIPgiữ.
+- [x] Wizard authored + exactload/nativebudget; missing client asset graph; root radio lifecycle: local regressions/full suite/typecheck/build/assets verified.
+- [ ] Native publication follow-up, live full QA (375px/desktop, gates/lanes/Đổi mức/story/3D→2D) and QA fixture cleanup remain open.
+
+### 16/10 — Codex backlog repair checkpoint
+- [x] Bộ lọc tuần thư viện dùng metadata packages/exams, fallback tuần 1–38; HKII tuần 19–38 chọn trực tiếp được; regression 13/13.
+- [x] Mười hai hoạt động tập thể đã có engine + selector + renderer + route; audit setup/engine/UI pass, không thêm bản sao.
+- [x] R19 P2: rời 3D remount 2D phục hồi nhãn/sao cổng và hành động chọn cổng; behavioral regression pass.
+- [x] Full suite 1397/1397; typecheck pass; lint 0 errors/452 warnings; build pass; client asset graph 53 files/0 missing; diff-check pass.
+- [ ] Live R21 flow (375px/desktop, HS thật giả lập, ba làn/Đổi mức, hai thế giới, lesson/exam 3D→2D) chưa nghiệm thu; không đánh dấu bằng test cục bộ.
+- [ ] Teacher approval học liệu, pilot lớp/thiết bị thật, canonical LO/SGK/SBT, receiver GiaoAnDewey và Sites release approval vẫn mở.
+
+### 16/10 — phát hành version 21
+- [x] Chủ hệ thống duyệt nghiệm thu/phát hành; đúng Site public `mat-ma-da-gioi.cuong-vuviet.chatgpt.site`.
+- [x] Version 21 saved/deployed: source `4ed8d7f03d378b10cc3633056ad31ff4c44a5328`, deployment `appgdep_6ad167617910819193427ac9c3b0cc49`, HTTP 200.
+- [ ] Live classroom acceptance, teacher content approval, real-device pilot, canonical LO/SGK/SBT coverage and GiaoAnDewey receiver pilot remain separate gates.
+
+### 16/10 — học liệu/coverage/GiaoAnDewey gate
+- [x] QA kỹ thuật học liệu: PPCT 415 HKI + 416 HKII rows mapped; focused HKI/HKII tests pass; 807 gói tiết + 12 đề draft.
+- [x] Coverage report: 52 mục tiêu overview từ Unit Plan có trích dẫn/hash; 54 mapping dựa Unit Plan; 153 mục tiêu tác giả suy từ PPCT; không có LO code chính thức.
+- [ ] SGK/SBT canonical coverage: Drive inventory đã tìm thấy nguồn, gồm inventory Toán 10/11 và SBT PDF Toán 10 Q1/Toán 11 Q1; chưa trích/map trang/bài vào PPCT/LO/task nên chưa đủ coverage hoặc duyệt toàn bộ.
+- [x] Receiver GiaoAnDewey synthetic: 59/59 focused + Firestore emulator 6/6; preview/import/dedup/archive/restore/conflict/Rules pass.
+- [ ] GiaoAnDewey real GV account + selected-class pilot; browser file chooser cần owner bật `Allow access to file URLs` trong Edge extension hoặc cung cấp luồng file đã được phép.
+
+- r7.28 (16/10/2026) — Chủ hệ thống thử với HS thật, báo: (a) "Tạo phòng game" hiện câu hỏi như thường, không thấy map + xúc xắc; (b) phòng 3B7326 HS chỉ lắc xúc xắc mãi, không thấy câu; câu cuối phải GV chấm tay; không thấy các bài khối 10–12; (c) tạo phòng luyện tập không chạy, giao diện tạo phòng khó hiểu. Nguyên nhân (b): runtime điều nhịp theo GV — xúc xắc bị chặn ở cổng của hoạt động GV đang mở (`gatePosition=(activityIndex+1)*8`), HS chỉ thấy câu khi GV bấm Tiếp theo, hết giờ thì khóa.
+  **QUYẾT ĐỊNH:**
+  1. **HS tự đi** là mặc định: mỗi em tự lắc → tới cổng nào làm câu cổng đó → đi tiếp theo tốc độ riêng. GV **dừng cả lớp bất kỳ lúc nào** (đặc biệt bài lý thuyết: tới công thức/kết luận quan trọng) và hệ thống **gợi ý/tự dừng khi một câu có >50% em sai**.
+  2. **Phiếu ra cửa / phản tư**: HS nộp là hoàn thành (thấy thông báo hoàn thành), kết quả lưu; GV chấm sau. Có nút **AI chấm tất cả phiếu** → thống kê cuối giờ % đạt / chưa đạt. Mỗi em thấy kết quả + thống kê cá nhân của mình trên màn hình em. Bổ sung **phiếu tự đánh giá mục tiêu**: em tự chọn mức đạt cho 3 mức mục tiêu (Must/Should/Could).
+  **Đã code (Claude, 16/10, chưa phát hành):** `lib/lesson/self-pace.js` + lớp bọc `reduceLessonSession` (lệnh của HS chạy trên timeline riêng của em; NEXT trả SELF_PACED; START đặt một đồng hồ cho cả tiết, trừ dự phòng; câu nhóm/cả lớp làm cá nhân; xong cổng khi đúng / chờ GV chấm / thử 2 lần; mức không có câu → dùng mức gần nhất); `serializeForStudent` theo cổng riêng (+`pacing`, `selfFinished`); GV: `selfProgress`, `wrongAlerts` (>50% sai lần đầu, ≥4 em) → "3 việc nên làm" gợi ý Tạm dừng; nút Tiếp theo đổi thành "🧭 HS tự đi · x/y về đích"; bảng thiết lập có "Nhịp chơi" (mặc định HS tự đi); phòng mới mặc định `pacing:'self'`. Test 1403/1403.
+- r7.29 (16/10/2026) — Chủ hệ thống bổ sung 4 yêu cầu:
+  1. Màn GV phải thấy **tên HS đã vào phòng**, số lượng khớp và cập nhật tức thời.
+  2. **Bài Codex đã làm (807 gói) phải hiện ra để chọn**; bấm vào bài → hiện cấu hình phòng → vào game luôn (bỏ bước "lưu bản nháp" rườm rà).
+  3. **Trò chơi tập thể** (đua thuyền, lôi đài, …) tự xuất hiện khi cả lớp đạt một mốc/điều kiện; mốc đó hiện trên màn hình mọi HS như **nhiệm vụ chung của cả lớp**.
+  4. **"Luật ván" phải có giới thiệu** từng luật (ảnh hưởng tới cách chơi, nhiệm vụ, chấm, mục 1–3) ngay khi chọn.
+  Kèm từ r7.28: AI chấm tất cả phiếu ra cửa + thống kê % đạt cuối giờ; HS thấy kết quả cá nhân; phiếu tự đánh giá 3 mức mục tiêu.
+- r7.30 (16/10/2026) — Chủ hệ thống chốt logic vào phòng (kế hoạch cũ chỉ có dòng chung "vắng/late/rejoin → khôi phục đúng người"):
+  1. HS vào từ đầu: tự đi theo nhịp riêng.
+  2. HS **vào sau**: bắt đầu luôn ở cổng (mốc nội dung chính) mà kế hoạch bài đã tới ở thời điểm đó (tính theo thời gian học thực, trừ tạm dừng).
+  3. HS **thoát ra vào lại**: chọn/gõ đúng y hệt tên mình → tiếp tục đúng vị trí cũ (máy khác vẫn được; máy cũ mất quyền).
+  4. Màn vào phòng hiện **danh sách tên đã vào** để chọn; HS mới tự gõ tên. Tên chỉ khác hoa/thường/dấu → báo để thêm họ/tên đệm (tránh 2 bạn trùng tên).
+  **Đã code (Claude):** `plannedGateIndex`/`placeLateLearner` (self-pace.js, gắn vào ADD_LEARNER), vào lại bằng đúng tên trong `attemptJoin` (service.js, phòng không dùng hồ sơ lớp), `names` trong tra cứu phòng (escape route) + nút chọn tên ở /play. Test 1405/1405. Phòng dùng hồ sơ lớp (mã HS + PIN) giữ nguyên cách cũ.

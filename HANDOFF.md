@@ -280,3 +280,48 @@ User5screenshots: no9ruleexplanations, communityonlyboat/arena, poor/duplicateco
 
 ## R18 readyrelease14/10
 Userapprovedfix+publish and7lowresselectioncovers199x112untiloriginalavailable. Readtasks/codex-r18-report.md/sharedR18checklist. Code9ruledynamicguide/difficultyclear/14communitychoices12newsharedactivities/44verifiedmathtopics/coverImage7newCanvaseparatedterrain. Final1373full,typecheck/buildPASS,lint0/392warnings,Geminireviews0,470manifest andnativeall12+CUA-equivalentagentbrowseractualBingoanswer/next/draft123/resume375. Nativepipeline usesactualworkerd/D1/R2, noexternal;cleanupactive0. Nativepipecomputerunavailable,agent-browserCLIactualsyntheticUI proofnotproductionaccountproof. RootWIPprotected;releasecheckout .sites-runtime/release-r16-r17-20261013 fc560v12baseline openednativehelper;publishR18pendingnow. Deweyreceiverlocalunchanged. Coversmanifestuserapprovedpreview—nothighres. Don'tclaimfullschoolLO/SGK/real150HS/3D certification.
+
+## R18 published v13 14/10/2026
+Nativepublishsucceeded08:41:36Z (15:41:36VN), source5dfbf5aecf102c6b0e9d632bd79a46ad1e5239c7. ExactWorker67a347ac83530572c4ffd78f37cc5257428327a1b30b7122ecb15a217fe9f032/source470byte-match. Final1373full,typecheck/build0,lint0/392oldwarnings,Gemini finalreviewsPASS0. ActualWorkerD1R2all12/513HTTP/0external/cleanup16active0. Agent-browseractualGVcreate/HSBingo answer7=>10/nextquestion/draft123/poll/resume/375nopan, KaTeXcasescorrect. Production13assets/scripts200byte-match, workerlogs5min0error, anonymousbrowserloadsrequiresSign in correctly/console0. NoactualproductionGV/HSaccountE2E due freshsession noauth, doNOTcallthatverified. Siteinappbrowser openednativeforuser; still useraccount. Cover7Canvagenerator preview199x112explicituserapproval; upgradingoriginal1680x944 remainsbacklog +fullcanonLOSGK/SBT; nofabricatedpages. NoD1migrationR18. Deweyreceiverlocalremains perpriorownerchoice. Releasecheckoutreuse .sites-runtime/release-r16-r17-20261013 advancedv13; archive .sites-runtime/r18-release-20261014.tar. RootWIPprotected. Tokenscleared. Neverresetroot. Reports tasks/codex-r18-report.md/codex-r18-production-release.json.
+
+
+## R18 HD covers acquired — 14/10/2026
+7 originals downloaded through authenticated Canva UI, 1680x944 each. Prior connector-only blocker resolved by CUA in-app browser download, not signature modifications/upscaling. 7 WebPs quality92, new -r18-hd names, only 3 literal source/test reference files changed. Dimensions/hashes manifest tasks/codex-r18-hd-cover-manifest.json; contact tasks/codex-r18-hd-contact.jpg. Native source opened from clean productionv13 5dfbf5a; candidate build running; releasecheckout has no node_modules so build must run verified candidate, then copy exact matched dist. Publication/checks pending; do not claimHDlive yet. R15 receiver remains local.
+
+
+## R18 HD published v14 — 14/10/2026
+Original7 covers nowlive1680x944. Nativev14 succeeded09:43:24Z (16:43:24VN), source42d0178e59622ca8f84b41b57b002ed9dcada81f, Workerd0146a273a92b5a7ed520105708a64e3daf0ec133905b01693851c18c993fa42, audiencepublic/env2unchanged. 11focusedtests/typecheck/build/diff-checkPASS, source470matched. CrossproviderGeminiFlashlow finalPASS0 (textonly). CUAactualuserSite/?view=teacher7natural1680x944/loadedtrue; pageAssetsoriginalbytes7/7matchesWebPmanifest; screenshot tasks/codex-r18-hd-production.jpg; workerlogs5min0errors. Pythonurllibdirect403 WAF notassetfailure; authoritativebrowserdownloadverified. No roomcreation/classdata/terrain/receiver changes. Old199px assets removedfromrelease; new-r18-hdnamespreventstaleimagecache. PreviousCanvapreviewbacklogsuperseded. AllotherfullLO/physicaldevice/receiverpilot gatesremainopen.
+
+
+## R19 artwork integration local —14/10
+Userapproved generatebeautiful2D/backgroundaccordingexistinggeometry. 7Canvaoriginals1680x944; originalcamera guideAIroadmisalignedrejected, terrainonlyrepaint+Pillowexactroadclearings. Tasks/r19-map2d/{spec.md,geometry.json,asset-manifest.json,canva-provenance.json,contact.jpg}. First5/7covers/route33/checkpoints/terrainunchanged; only4sourcefiles metadata/appimageHi/iframeexplicitimageHi/clientdata. Nativewidth1680retained+oneedge-rowpadded16:9, low1280x720high1680x945; nofake3200upscale. 231roadmaskstopsPASS/56focused/typecheck/build, GeminiPASS0textonly, independentaudit17PASS. Browserrealrendererwithsyntheticmodel7loaded1680x945,dynamicgateeventPASS,mobile375htmlnooverflow; no fullrealclassroomE2E. Preexistingv14leavePilot decorationlossuntilpoll recordedP2notfixed; doNOTclaim2D3DlessoninteractionPASS. Procedural3Dgeometrysourcehashsame; backgroundreturns2D. Releasependingnow. Receiverlocalunchanged.
+
+
+## R19 published v15 —14/10/2026
+Nativev15 succeeded10:42:21Z (17:42:21VN), sourceee412967aea2737d66761ab022840df812969b39, Workerfa4648b3295d17e1d9c0181bbcd2935f7fbf3ad70720263bc4b38e7fae048f1e. Evidence tasks/r19-map2d/production-release.json+production-assets.json+report.md. Public/env2 unchanged. 14/14newassetsHTTP200SHA256match; actualproductiondemo2Dcube1680x945verified screenshotproduction-cube.jpg, no room/classdata. Localrenderer7native/HS-GV-TVsynthetic/mobile375/zoom/night/gate event; focused56/typecheck/build/GeminiPASS0/source485matched. Nativeoriginal1680x944oneedgepad notupscale; low1280x720. Keep5paintedmaps and7coverv14. Geometryall12 unchanged. Oldworld*.webp remainforrollback/reference; newmapnamesprotectedfrommap3dcovergenerator.
+BacklogP2existingv14leavePilot refreshgate/examdecoration untilnextreceive (notfixedscope); demo3D19FPSautofallbackobserved, noactualphysical3Dcertification. Logs1/favicon.ico404info/outcomeok no runtimeexception, not0eventsclaim. LocalstaticQAserverstopped, no testroomscreated. ReceiverLOCALONLYunchanged. Sourcecredential cleared.
+
+
+## R20 native v16 released; live QA not accepted —15/10/2026
+Ownerdirectrelease+liveQArequest. Exactv16saved appgprj_6ac8d74b14f8819193caded9533bb337~appgver_60d140c41bdc8191910a90486e48b3cd/deploymentappgdep_6ad020e51bbc8191bb5359cf136e431f succeeded00:40:27Z, sourceb8671808d6ba091fdbdcf1f26ece833eb8af279a, public/env2unchanged. RootWIPpreserved,15scopedClaude filescopiedv15releasebaseline; noV7/receiverchanges. Tests1378/typecheck/buildPASS;lint0errors392warnings. 26mathauditedtasksr20/math-audit.md;g11-ch2-reviewstilldraftteacherreview.
+Liveaccountdesktop/375wizardgap: newlibraryreadsDBonly, authoredAPIhas17inclch2butwizardomits. ExistingStudio via sessionquery canselectauthored, savedduplicatepreviewdraft d467dac9-307b-41aa-8cd3-73fe68db2a54/version1.0.0-draft.4352; room033be6ee-3a65-4b72-9781-2d3a0868db32/codeC7BA3B testpreviewcreated, HSQA1joined/start/mascot/Cổtrangmap/task1loaded. Radioselectiondidnotpersist and submitdisabled; nohonestgates/3lanes/Đổimức/story2worlds/lesson-exam3D→2DpersistencePASS. RoomanddraftTrashdeletedviaUI; hostsnoactivefixturesaftercleanup. SourceapprovalNOTdone.
+Workerlogsinfo404missingclientchunklesson-CGYLFws9.js; cleanbuildstillmanifest44refs1missing, causalconnectiontoradiofailunproven. Olddistpreserved .sites-runtime/r20-dist-preclean-20261015; cleanlocalbuilddiffhashnotpublished. Releasev16archiveandsourceevidenceintasksr20,releasejsonexactIDs. Browserviewport375(document360scroll360)screenshotr20-lesson-new-375.jpg, restoreddefaultandtemporarytabsclosed. NoallQAgreenclaim. Nextrepairwizardauthoredaccess+assetgraph/HSinput thenrerunrequestedliveflow. Credentialscleared.
+
+## 16/10 Codex backlog repair
+- Fixed HKII library week selection in `components/lesson/LessonCreationWizard.tsx`: dynamic weeks from loaded lessons/exams, fallback 1–38, correct HKI/HKII label. Regression `tests/r17-creation-wizard.test.mjs` 13/13.
+- Audited team activities: all 12 class-event types are already exposed by lesson setup, cockpit fallback, and legacy selector; engine/route/renderer tests pass. No duplicate implementation.
+- R19 P2 source fix was already present; strengthened `tests/lesson-map-stars.test.mjs` to verify 2D gate labels/stars and delegated click after 3D exit.
+- Fresh gate: full 1397/1397, typecheck exit 0, build exit 0, lint 0 errors/452 warnings, asset graph 53/53, diff-check exit 0.
+- No publish. Live R21 acceptance, teacher/content approval, real-device/classroom pilot and Sites release approval remain open.
+
+## 16/10 version 21 published
+- Existing Site `appgprj_6ac8d74b14f8819193caded9533bb337` retained public audience/env revision 2.
+- Saved version 21 from source `4ed8d7f03d378b10cc3633056ad31ff4c44a5328`; archive SHA-256 `e1002aec9df0de4b5f2963ff3e7747301f405047ff00fbfb57a2d76b157aadc1`.
+- Deployment `appgdep_6ad167617910819193427ac9c3b0cc49` succeeded at `https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site`; live HTTP 200, title `Mật Mã Đa Giới · Toán 10–12`.
+- No QA rooms or student data created. Live classroom/teacher/device/content approval gates remain open.
+
+## 16/10 content approval, coverage and GiaoAnDewey gate
+- Report: `tasks/codex-20261016-content-approval-coverage-pilot.md`.
+- Technical QA passed: 415 HKI + 416 HKII PPCT rows mapped; 807 lesson packages + 12 exam drafts; HKI/HKII focused tests 11/11.
+- Source boundary remains explicit: 52 Unit Plan overview objectives with hashes; 54 Unit Plan based mappings; 153 author-derived mappings; no official LO codes; 0 canonical SGK/SBT items directly verified.
+- Receiver synthetic/API QA passed: 59/59 focused tests and Firestore emulator 6/6. No production data touched. Real GV pilot and canonical SGK/SBT review remain open.

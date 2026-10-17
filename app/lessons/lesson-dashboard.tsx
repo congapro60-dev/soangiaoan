@@ -1483,7 +1483,35 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
     }
   };
 
-  // Handle import file change
+  // Chủ hệ thống 16/10: chọn bài có sẵn là mở phòng được ngay — tự lưu bản nháp phía sau rồi mở bảng cấu hình phòng.
+  const quickLaunch = async () => {
+    if (!currentPackage || savingRef.current) return;
+    savingRef.current = true;
+    setIsSavingDraft(true);
+    setStudioStatus("Đang chuẩn bị bài để mở phòng...");
+    try {
+      const pkg = syncPackageBidirectionalLinks(currentPackage);
+      const draftPkg = { ...pkg, version: `${pkg.version || "1.0.0"}-draft.${Date.now().toString().slice(-4)}`, status: "draft",
+        sourceRefs: (pkg.sourceRefs || []).map((s) => ({ ...s, verification: "teacher_review_required" })) };
+      const res = await fetch("/api/lessons", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "save", package: draftPkg }) });
+      const data = (await res.json()) as { package?: LessonPackage; row?: PackageRecord; error?: string };
+      if (!res.ok || !data.package || !data.row) throw new Error(data.error || "Không thể chuẩn bị bài.");
+      setSelectedRecord(normalizeLessonResponse({ package: { ...data.row, package: data.package } }).row);
+      setCurrentPackage(data.package);
+      setEditedPackage(data.package);
+      await loadStudio();
+      setStudioStatus("");
+      setCreatedSessionData(null);
+      setIsLaunchOpen(true);
+    } catch (err: unknown) {
+      setStudioStatus(`✕ Lỗi: ${err instanceof Error ? err.message : "Không thể mở phòng."}`);
+    } finally {
+      savingRef.current = false;
+      setIsSavingDraft(false);
+    }
+  };
+
+  // Handle import file change
   const [typedBrief, setTypedBrief] = useState("");
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2224,13 +2252,14 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                   </details>
                   <button
                     className="lesson-button lesson-button-primary"
-                    disabled={!selectedRecord}
+                    disabled={(!selectedRecord && !currentPackage) || isSavingDraft}
                     onClick={() => {
+                      if (!selectedRecord) { void quickLaunch(); return; }
                       setCreatedSessionData(null);
                       setIsLaunchOpen(true);
                     }}
                   >
-                    🚀 Khởi tạo phòng học
+                    {isSavingDraft ? "Đang chuẩn bị..." : "🚀 Mở phòng ngay"}
                   </button>
                 </>
               )}
@@ -2239,7 +2268,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
 
           {!selectedRecord && currentPackage && (
             <p className="play-notice-banner" role="status">
-              Đây là bài mẫu chưa được lưu. Hãy chọn “Biên tập nội dung”, rồi lưu bản thảo trước khi tạo phòng học.
+              Bài có sẵn trong thư viện: bấm “🚀 Mở phòng ngay” — máy tự lưu một bản nháp của thầy cô rồi mở bảng cấu hình phòng. Muốn sửa câu hỏi trước thì chọn “Biên tập nội dung”.
             </p>
           )}
 
@@ -5393,7 +5422,14 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                     </button>
                   )}
                   {createdSessionData?.code&&<a className="lesson-button lesson-button-outline" href={"/?code="+encodeURIComponent(createdSessionData.code)} target="_blank" rel="noopener">Trang học sinh</a>}
-                  <span className="cockpit-count">{present}/{rosterList.length} em có mặt</span>
+                  {(() => {
+                    const presence = (cockpitView as { presence?: Array<{ learnerId: string; name: string; online: boolean }> | null } | null)?.presence;
+                    if (!Array.isArray(presence)) return <span className="cockpit-count">{present}/{rosterList.length} em có mặt</span>;
+                    const online = presence.filter(item => item.online).length;
+                    return <details className="cockpit-count cockpit-presence"><summary title="Cập nhật mỗi 3 giây">🟢 {online}/{presence.length} em đang trong phòng</summary>
+                      <ol className="cockpit-presence-list">{presence.map(item => <li key={item.learnerId} className={item.online ? "is-online" : "is-away"}>{item.online ? "🟢" : "⚪"} {item.name}</li>)}</ol>
+                    </details>;
+                  })()}
                 </div>
 
                 <div className="cockpit-bar-right">
@@ -5419,6 +5455,19 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                     </button>
                   )}
 
+                  {cockpitView?.pacing === "self" ? (
+                    <span className="lesson-muted" title="HS tự đi: mỗi em tự lắc xúc xắc và làm câu ở cổng của mình">
+                      🧭 HS tự đi · {cockpitView.selfProgress?.finished || 0}/{cockpitView.selfProgress?.total || 0} em đã về đích
+                    </span>
+                  ) : null}
+                  {cockpitView?.pacing === "self" && cockpitView.classQuest ? (
+                    cockpitView.classQuest.status === "open" ? <span className="lesson-muted">🎯 Đang chơi “{cockpitView.classQuest.eventLabel}”</span>
+                    : <button className="lesson-button lesson-button-outline" title="Tự mở khi cả lớp qua cổng mốc; thầy cô có thể mở sớm" disabled={isCockpitBusy || status !== "active"}
+                        onClick={() => dispatchCommand("CLASS_EVENT_OPEN", { type: cockpitView.classQuest?.eventType, durationMs: 180000 })}>
+                        🎯 Cổng {cockpitView.classQuest.gate}: {cockpitView.classQuest.passed}/{cockpitView.classQuest.total} em · Mở “{cockpitView.classQuest.eventLabel}”
+                      </button>
+                  ) : null}
+                  {cockpitView?.pacing === "self" ? null : (
                   <button
                     className="lesson-button lesson-button-primary"
                     onClick={() => dispatchCommand("NEXT", { force: true })}
@@ -5426,6 +5475,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                   >
                     Tiếp theo ⏭️
                   </button>
+                  )}
 
                   {isArenaOpenEligible(cockpitView) && (
                     <button className="lesson-button arena-open-btn" onClick={() => dispatchCommand("ARENA_OPEN", {})} disabled={isCockpitBusy} title="Mở Lôi Đài Ngũ Ấn cho hoạt động hiện tại">

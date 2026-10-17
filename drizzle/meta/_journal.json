@@ -169,6 +169,13 @@
       "when": 1791895693112,
       "tag": "0023_r15_learning_records",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1792137600000,
+      "tag": "0024_lesson_learner_presence",
+      "breakpoints": true
     }
   ]
 }

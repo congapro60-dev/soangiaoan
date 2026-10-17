@@ -5,6 +5,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { createContext, SourceTextModule, SyntheticModule } from 'node:vm';
 
 import { createPackageDraft, hashPackage } from '../lib/lesson/schema.js';
+import { recommendTeacherSetup } from '../lib/lesson/teacher-setup.js';
 import { pilotDraft } from '../lib/lesson/director.js';
 import { createGameAdapter } from '../lib/lesson/game-adapter.js';
 import { reduceLessonSession, createLessonSession } from '../lib/lesson/runtime.js';
@@ -12,6 +13,7 @@ import {packLessonState,unpackLessonState} from '../lib/lesson/state-storage.js'
 import {
   createLessonService,
   normalizeLearnerName,
+  learnerNameKey,
   validateSessionBody,
 } from '../lib/lesson/service.js';
 
@@ -32,7 +34,7 @@ function realDb() {
      CREATE TABLE lesson_approvals(id TEXT PRIMARY KEY,package_row_id TEXT NOT NULL,actor_account_id TEXT NOT NULL,reviewed_parent_hash TEXT NOT NULL,approved_hash TEXT NOT NULL,source_ack TEXT NOT NULL,created_at INTEGER NOT NULL);
       CREATE TABLE lesson_session_plans(row_id TEXT PRIMARY KEY,owner_account_id TEXT NOT NULL,package_row_id TEXT NOT NULL,package_version TEXT NOT NULL,package_hash TEXT NOT NULL,plan_hash TEXT NOT NULL,data TEXT NOT NULL,source_review TEXT NOT NULL,approved_by TEXT NOT NULL,created_at INTEGER NOT NULL,UNIQUE(row_id,plan_hash,package_row_id,package_version,package_hash),FOREIGN KEY(package_row_id,package_version,package_hash) REFERENCES lesson_packages(row_id,version,content_hash));
       CREATE TABLE lesson_sessions(id TEXT PRIMARY KEY,room_id TEXT UNIQUE NOT NULL,package_row_id TEXT NOT NULL,package_version TEXT NOT NULL,package_hash TEXT NOT NULL,plan_row_id TEXT,plan_hash TEXT,owner_account_id TEXT NOT NULL,request_id TEXT,request_fingerprint TEXT,state TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL,mutation_nonce TEXT NOT NULL,presenter_token_hash TEXT,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,UNIQUE(owner_account_id,request_id),FOREIGN KEY(package_row_id,package_version,package_hash) REFERENCES lesson_packages(row_id,version,content_hash),FOREIGN KEY(plan_row_id,plan_hash,package_row_id,package_version,package_hash) REFERENCES lesson_session_plans(row_id,plan_hash,package_row_id,package_version,package_hash));
-    CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,learner_id TEXT NOT NULL,name TEXT NOT NULL,name_key TEXT NOT NULL,token_hash TEXT UNIQUE NOT NULL,present INTEGER NOT NULL DEFAULT 1,created_at INTEGER NOT NULL,UNIQUE(session_id,learner_id),UNIQUE(session_id,name_key));
+    CREATE TABLE lesson_learners(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,learner_id TEXT NOT NULL,name TEXT NOT NULL,name_key TEXT NOT NULL,token_hash TEXT UNIQUE NOT NULL,present INTEGER NOT NULL DEFAULT 1,created_at INTEGER NOT NULL,last_seen_at INTEGER,UNIQUE(session_id,learner_id),UNIQUE(session_id,name_key));
      CREATE TABLE lesson_event_receipts(id TEXT PRIMARY KEY,session_id TEXT NOT NULL,actor_key TEXT NOT NULL,event_id TEXT NOT NULL,fingerprint TEXT NOT NULL,result TEXT NOT NULL,created_at INTEGER NOT NULL,UNIQUE(session_id,actor_key,event_id));
      CREATE TRIGGER lesson_session_plans_immutable_update BEFORE UPDATE ON lesson_session_plans BEGIN SELECT RAISE(ABORT, 'lesson_session_plans are immutable'); END;
      CREATE TRIGGER lesson_session_plans_immutable_delete BEFORE DELETE ON lesson_session_plans BEGIN SELECT RAISE(ABORT, 'lesson_session_plans are immutable'); END;
@@ -222,12 +224,24 @@ test('two pupils with the same name get a clear NAME_TAKEN error, not a raw SQL 
   assert.equal(again.learnerId, first.learnerId);
 });
 
-async function startedClassroom(count) {
+test('near-duplicate Vietnamese names differing only by case or diacritics get NAME_TAKEN', async () => {
+  assert.equal(learnerNameKey('Nguyễn Văn An'), 'nguyen van an');
   const { db, database } = realDb();
   database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1', 'owner-1@example.invalid', 'owner-1', 1);
   const service = createLessonService({ db, now: () => 1000 });
   const saved = await service.savePackage({ ownerAccountId: 'owner-1', package: structuredClone(lessonFixture) });
-  const room = await service.createSession({ ownerAccountId: 'owner-1', packageRowId: saved.row.rowId, mode: 'preview', title: 'Crowd', requestId: 'crowd-events' });
+  const room = await service.createSession({ ownerAccountId: 'owner-1', packageRowId: saved.row.rowId, mode: 'preview', title: 'Near duplicate', requestId: 'near-duplicate' });
+  await service.joinSession({ code: room.session.code, name: 'Nguyễn Văn An', token: 'A'.repeat(43) });
+  await assert.rejects(() => service.joinSession({ code: room.session.code, name: 'NGUYEN VAN AN', token: 'B'.repeat(43) }), /NAME_TAKEN/);
+});
+
+async function startedClassroom(count, pacing = 'teacher') {
+  const { db, database } = realDb();
+  database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1', 'owner-1@example.invalid', 'owner-1', 1);
+  const service = createLessonService({ db, now: () => 1000 });
+  const saved = await service.savePackage({ ownerAccountId: 'owner-1', package: structuredClone(lessonFixture) });
+  const room = await service.createSession({ ownerAccountId: 'owner-1', packageRowId: saved.row.rowId, mode: 'preview', title: 'Crowd', requestId: 'crowd-events',
+    ...(pacing ? { teacherSetup: { ...recommendTeacherSetup(lessonFixture), pacing } } : {}) });
   const learners = [];
   for (let i = 0; i < count; i += 1) {
     const token = String.fromCharCode(65 + i).repeat(43);
@@ -265,6 +279,14 @@ test('the teacher can advance the lesson with a view that pupils have already ou
   const next = await service.event({ sessionId: room.session.id, accountId: 'owner-1', event: { eventId: 'next-stale', type: 'NEXT', round: 1, revision, activityId, payload: {} } });
   assert.equal(next.result.ok, true);
   assert.notEqual(next.view.timeline.currentActivityId, activityId);
+});
+
+test('new rooms let pupils go at their own pace unless the teacher chooses to pace the lesson', async () => {
+  const { service, room } = await startedClassroom(1, null);
+  const teacher = await service.getSession({ id: room.session.id, accountId: 'owner-1' });
+  assert.equal(teacher.view.pacing, 'self');
+  const paced = await startedClassroom(1);
+  assert.equal((await paced.service.getSession({ id: paced.room.session.id, accountId: 'owner-1' })).view.pacing, 'teacher');
 });
 
 test('a submission for an activity that has already ended is still refused', async () => {
@@ -410,7 +432,7 @@ test('deleted lesson rooms reject teacher, student, presenter, join-retry, and e
   const created = await service.createSession({ ownerAccountId: 'owner-1', packageRowId: saved.row.rowId, mode: 'preview', title: 'Deleted', requestId: 'deleted-create' });
   const presenterToken = created.presenterToken;
   const learnerToken = 'learner-deleted-token';
-  database.prepare('INSERT INTO lesson_learners VALUES(?,?,?,?,?,?,?,?)').run('learner-row', created.session.id, 'learner-1', 'Learner', 'learner', service.hashToken(learnerToken), 1, 1000);
+  database.prepare('INSERT INTO lesson_learners(id,session_id,learner_id,name,name_key,token_hash,present,created_at) VALUES(?,?,?,?,?,?,?,?)').run('learner-row', created.session.id, 'learner-1', 'Learner', 'learner', service.hashToken(learnerToken), 1, 1000);
   const event = { eventId: 'delete-replay', type: 'START', round: 1, revision: 0, payload: {} };
   await service.event({ sessionId: created.session.id, accountId: 'owner-1', event });
   const replay = await service.event({ sessionId: created.session.id, accountId: 'owner-1', event });
@@ -739,4 +761,23 @@ test('durable state stores each own answer once and reload restores the learner 
  const state=JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state);
  assert.equal(state.passports[pupil.learnerId].submissions[0].answer,undefined);assert.equal(Object.values(state.submissions)[0].answer,'opt_finite_seat');assert.equal(Object.keys(state.rewardLedger).length,0);
  const restored=await service.getSession({id:room.session.id,learnerToken:token});assert.equal(restored.view.passport.submissions[0].answer,'opt_finite_seat');assert.equal(Object.keys(restored.view.passport.submissions).length,1);
+});
+
+test('a pupil who lost the session comes back on another device by typing exactly the same name; near-duplicates are refused', async () => {
+  const { service, room, learners } = await startedClassroom(1, null);
+  const again = await service.joinSession({ code: room.session.code, name: 'Student 1', token: 'Z'.repeat(43) });
+  assert.equal(again.learnerId, learners[0].learnerId);
+  assert.equal(again.resumed, true);
+  await assert.rejects(() => service.event({ sessionId: room.session.id, learnerToken: learners[0].token, event: { eventId: 'old-device', type: 'ROLL', round: 1, revision: 0, payload: {} } }));
+  await assert.rejects(() => service.joinSession({ code: room.session.code, name: 'student 1', token: 'Y'.repeat(43) }), /NAME_TAKEN/);
+});
+
+test('the teacher sees every pupil who joined by name, newest first, and who is in the room right now', async () => {
+  const { service, room, learners } = await startedClassroom(2, null);
+  await service.getSession({ id: room.session.id, learnerToken: learners[1].token });
+  const teacher = await service.getSession({ id: room.session.id, accountId: 'owner-1' });
+  assert.deepEqual(teacher.view.presence.map(item => item.name).sort(), ['Student 1', 'Student 2']);
+  assert.deepEqual(teacher.view.presence.filter(item => item.online).map(item => item.name), ['Student 2']);
+  const pupil = await service.getSession({ id: room.session.id, learnerToken: learners[0].token });
+  assert.equal(pupil.view.presence, undefined, 'pupils never receive the class list with presence');
 });

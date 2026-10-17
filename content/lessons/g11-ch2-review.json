@@ -335,6 +335,8 @@
     "obj-t11-26"
    ],
    "taskIds": [
+    "task-challenge-support",
+    "task-challenge-core",
     "task-challenge-mix"
    ],
    "participation": "individual",
@@ -343,6 +345,8 @@
    "evidenceIds": [],
    "teacherLookFor": "Không bắt buộc.",
    "supportIds": [
+    "hint-challenge-support",
+    "hint-challenge-core",
     "hint-challenge-mix"
    ],
    "transition": "Quay lại phiếu ra cửa."
@@ -1274,6 +1278,58 @@
    "branch": "shared"
   },
   {
+   "id": "task-challenge-support",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "activityId": "act-challenge",
+   "participation": "individual",
+   "prompt": "Mức 1: Ba số $3, x, 11$ theo thứ tự lập cấp số cộng. Tìm $x$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 7
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "Số ở giữa bằng trung bình cộng hai số bên: $x=\\dfrac{3+11}{2}=7$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-challenge-support"
+   ],
+   "branch": "support"
+  },
+  {
+   "id": "task-challenge-core",
+   "type": "closed",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "activityId": "act-challenge",
+   "participation": "individual",
+   "prompt": "Mức 2: Ba số dương $2, x, 18$ theo thứ tự lập cấp số nhân. Tìm $x$.",
+   "sourceRefs": [
+    "src-sgk-g11-ch2"
+   ],
+   "evidenceIds": [],
+   "evaluation": {
+    "checkerId": "numeric_exact",
+    "answerKey": 6
+   },
+   "isCore": false,
+   "requiresFullScaffold": false,
+   "supportRationale": "$x^2=2\\cdot 18=36$, $x>0$ nên $x=6$.",
+   "minutes": 2,
+   "hintIds": [
+    "hint-challenge-core"
+   ],
+   "branch": "core"
+  },
+  {
    "id": "task-challenge-mix",
    "type": "closed",
    "objectiveIds": [
@@ -1746,6 +1802,40 @@
    "supportRationale": "Phản tư theo Visible Thinking."
   },
   {
+   "id": "hint-challenge-support",
+   "tier": "H1",
+   "text": "Trong cấp số cộng, số hạng giữa bằng trung bình cộng của hai số hạng kề bên.",
+   "taskId": "task-challenge-support",
+   "objectiveIds": [
+    "obj-t11-22"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "Số ở giữa bằng trung bình cộng hai số bên: $x=\\dfrac{3+11}{2}=7$."
+  },
+  {
+   "id": "hint-challenge-core",
+   "tier": "H1",
+   "text": "Trong cấp số nhân, $x^2$ bằng tích hai số hạng kề bên.",
+   "taskId": "task-challenge-core",
+   "objectiveIds": [
+    "obj-t11-26"
+   ],
+   "order": 1,
+   "notAnswer": true,
+   "penalty": {
+    "time": 0,
+    "score": 0,
+    "freeze": 0
+   },
+   "supportRationale": "$x^2=2\\cdot 18=36$, $x>0$ nên $x=6$."
+  },
+  {
    "id": "hint-challenge-mix",
    "tier": "H1",
    "text": "Đặt $b=5$, $a=5-d$, $c=5+d$ rồi dùng tính chất $y^2=xz$ của cấp số nhân.",
@@ -1994,5 +2084,5 @@
    "group_score"
   ]
  },
- "contentHash": "7897e57122eced657435d207360e95154ac1f2b7f59e7f126df4fd71ae679d28"
+ "contentHash": "23314ab28250daa0166fad505f162a83bd3fdb2fd713326815262b927c12af20"
 }

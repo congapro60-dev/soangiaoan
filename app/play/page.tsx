@@ -685,7 +685,7 @@ function StudentJoinForm({initialCode, initialError, onJoined}: {initialCode: st
   const [classCode, setClassCode] = useState("");
   const [memberCode, setMemberCode] = useState("");
   const [pin, setPin] = useState("");
-  const [room, setRoom] = useState<{code: string; kind: "lesson" | "game"; needsProfile: boolean} | null>(null);
+  const [room, setRoom] = useState<{code: string; kind: "lesson" | "game"; needsProfile: boolean; names: string[]} | null>(null);
   const [credential, setCredential] = useState<ClassCredential | null>(null);
   const [checking, setChecking] = useState(/^[A-Za-z0-9]{6}$/.test(initialCode));
   const [lookupAttempt, setLookupAttempt] = useState(0);
@@ -700,10 +700,10 @@ function StudentJoinForm({initialCode, initialError, onJoined}: {initialCode: st
     void (async () => {
       try {
         const response = await fetch("/api/escape", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: "room-info", code: cleanCode}), signal: controller.signal});
-        const data = await response.json() as {kind?: string; needsProfile?: boolean};
+        const data = await response.json() as {kind?: string; needsProfile?: boolean; names?: unknown};
         if (controller.signal.aborted || requestEpoch !== epoch.current) return;
         if (!response.ok || data.kind !== "lesson" && data.kind !== "game" || data.kind === "lesson" && typeof data.needsProfile !== "boolean") throw Error("ROOM_UNAVAILABLE");
-        setRoom({code: cleanCode, kind: data.kind, needsProfile: data.needsProfile === true});
+        setRoom({code: cleanCode, kind: data.kind, needsProfile: data.needsProfile === true, names: Array.isArray(data.names) ? data.names.filter((item): item is string => typeof item === "string").slice(0, 200) : []});
         let saved: string | null = null;
         try { saved = sessionStorage.getItem("lesson_class_passport_token"); } catch { /* Login remains available. */ }
         if (data.needsProfile === true && saved) {
@@ -760,7 +760,7 @@ function StudentJoinForm({initialCode, initialError, onJoined}: {initialCode: st
         AUTH_REQUIRED: "Phiên hồ sơ đã hết hạn. Nhập lại mã và PIN thầy cô cấp.",
         FORBIDDEN: "Hồ sơ này chưa được phép vào phòng. Kiểm tra đúng lớp hoặc hỏi thầy cô.",
         NOT_FOUND: "Không tìm thấy phòng. Kiểm tra mã thầy cô cung cấp.",
-        NAME_TAKEN: "Đã có bạn dùng tên này. Thêm tên đệm rồi thử lại.",
+        NAME_TAKEN: "Tên này gần giống tên một bạn đã vào (chỉ khác chữ hoa/thường hoặc dấu). Nếu là em, chọn đúng tên của em trong danh sách; nếu là bạn khác, thêm họ hoặc tên đệm.",
         LEARNER_IDENTITY_MISMATCH: "Dùng đúng hồ sơ hoặc tên lúc trước trên thiết bị này.",
         JOIN_CONFLICT: "Lớp đang đông. Bấm Vào phòng lại sau vài giây.",
       };
@@ -781,7 +781,7 @@ function StudentJoinForm({initialCode, initialError, onJoined}: {initialCode: st
           <label htmlFor="join-member-code">Mã học sinh</label><input id="join-member-code" className="lesson-input" autoComplete="off" autoCapitalize="characters" maxLength={6} pattern="[A-Za-z0-9]{6}" required disabled={busy} value={memberCode} onChange={event => setMemberCode(event.target.value.toUpperCase())} />
           <label htmlFor="join-pin">PIN riêng</label><input id="join-pin" className="lesson-input" type="password" autoComplete="off" autoCapitalize="characters" maxLength={8} pattern="[A-Za-z0-9]{8}" required disabled={busy} value={pin} onChange={event => setPin(event.target.value.toUpperCase())} />
           <p className="lesson-muted">Dùng thông tin thầy cô cấp; không cần tài khoản ChatGPT.</p>
-        </> : <><label htmlFor="student-name-input">Họ và tên</label><input id="student-name-input" className="lesson-input" autoComplete="name" maxLength={40} required disabled={busy} value={name} onChange={event => setName(event.target.value)} /></>)}
+        </> : <>{room.names.length > 0 && <div><p className="lesson-muted">Em đã vào trước đó? Chọn đúng tên của em để tiếp tục từ chỗ cũ:</p><div style={{display: "flex", flexWrap: "wrap", gap: 8}}>{room.names.map(item => <button key={item} type="button" className={`lesson-button ${name === item ? "" : "lesson-button-outline"}`} style={{minHeight: 44}} disabled={busy} onClick={() => setName(item)}>{item}</button>)}</div><p className="lesson-muted">Em mới vào lần đầu: gõ họ và tên của em. Khi vào lại phải gõ đúng y hệt tên này.</p></div>}<label htmlFor="student-name-input">Họ và tên</label><input id="student-name-input" className="lesson-input" autoComplete="name" maxLength={40} required disabled={busy} value={name} onChange={event => setName(event.target.value)} /></>)}
         {room?.kind === "game" && <p>Phòng game đã sẵn sàng. Bấm Vào phòng để chọn tên.</p>}
         {error && <p role="alert" className="task-status-banner task-status-error">{error}</p>}
         {!room && !checking && /^[A-Z0-9]{6}$/.test(cleanCode) && <button type="button" className="lesson-button lesson-button-outline" onClick={() => {setChecking(true); setError(""); setLookupAttempt(value => value + 1);}}>Thử lại</button>}
@@ -1070,7 +1070,20 @@ export default function PlayPage() {
           )}
           {isActivityExpired && !isSessionPaused && !isActivityLocked && !isSessionConcluded && (
             <div className="task-status-banner task-status-pending">
-              ⏰ Đã hết giờ hoạt động này. Hãy chờ thầy cô chuyển sang hoạt động tiếp theo.
+              {view?.pacing === "self" ? "⏰ Đã hết giờ của tiết. Bài làm của em đã được lưu." : "⏰ Đã hết giờ hoạt động này. Hãy chờ thầy cô chuyển sang hoạt động tiếp theo."}
+            </div>
+          )}
+          {view?.classQuest && view.classQuest.status !== "open" && !isSessionConcluded && (
+            <div className="task-status-banner task-status-pending class-quest-banner" role="status">
+              {view.classQuest.status === "pending"
+                ? <>🎯 Nhiệm vụ cả lớp: tất cả cùng qua cổng {view.classQuest.gate} để mở “{view.classQuest.eventLabel}” — {view.classQuest.passed}/{view.classQuest.total} bạn đã qua.</>
+                : <>🎉 Cả lớp đã đạt mốc cổng {view.classQuest.gate}! Chờ thầy cô mở “{view.classQuest.eventLabel}”.</>}
+              <progress max={Math.max(1, view.classQuest.total)} value={view.classQuest.passed} style={{ display: "block", width: "100%" }} aria-label="Tiến độ nhiệm vụ cả lớp" />
+            </div>
+          )}
+          {view?.selfFinished && !isSessionConcluded && (
+            <div className="task-status-banner task-status-success">
+              🎉 Em đã đi hết hành trình! Kết quả đã được lưu; phần tự luận thầy cô sẽ chấm sau. Em có thể luyện lại các cổng cũ để thêm sao.
             </div>
           )}
           {isSessionConcluded && (
