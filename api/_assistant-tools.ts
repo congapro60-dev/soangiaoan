@@ -5,7 +5,11 @@ import { getAdminDb } from './_exam-core.js';
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
 const MAX_ROWS = 500;
 const clean = (v: unknown, max = 2000) => typeof v === 'string' ? v.slice(0, max) : '';
-const redactTokenUrls = (v: unknown, max: number) => clean(v, max).replace(/https?:\/\/[^\s)\]>"']+/gi, url => /[?&](?:amp;)?token=/i.test(url) ? '[liên kết riêng tư đã ẩn]' : url);
+const redactTokenUrls = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, 12000) : '').replace(/https?:\/\/[^\s<>"']+/gi, url => {
+  const trailing = url.match(/[)\].,!?;:]+$/)?.[0] || '';
+  const link = trailing ? url.slice(0, -trailing.length) : url;
+  return /[?&](?:amp;)?token=/i.test(link) ? '[liên kết riêng tư đã ẩn]' + trailing : url;
+}).slice(0, max);
 const optionalString = (key: string, value: unknown, max: number) => typeof value === 'string' ? { [key]: clean(value, max) } : {};
 const optionalCount = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? { studentCount: value } : {};
 const limitOf = (v: unknown, max = 50) => Math.min(max, Math.max(1, Number.isInteger(v) ? Number(v) : 20));

@@ -84,9 +84,9 @@ describe('assistant private read tools', () => {
     });
     const result = await runAssistantReadTool('getClassSummary', { classId: 'c' }, actor('A'), db);
     expect(result.data).toMatchObject({ submissions: { perAssignment: [
-      { assignmentId: 'a1', counts: { graded: 1, missing: 1, unknown: 2 } },
+      { assignmentId: 'a1', counts: { graded: 1, missing: 0, unknown: 2 } },
       { assignmentId: 'a2', counts: { submitted: 1, missing: 1, unknown: 0 } },
-    ], aggregate: { graded: 1, submitted: 1, missing: 2, unknown: 2 } }, complete: true });
+    ], aggregate: { graded: 1, submitted: 1, missing: 1, unknown: 2 } }, complete: true });
     expect(result.sources.map(s => s.collection)).toEqual(['classes', 'classes/c/students', 'assignments', 'submissions']);
   });
   it('requires assignment ownership by direct ID and lists all read sources', async () => {

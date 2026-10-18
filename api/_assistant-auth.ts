@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
-import type { AssistantActor, AssistantRequestNonceDoc, Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js';
+import { isUsableChannelLink, type AssistantActor, type AssistantRequestNonceDoc, type Channel, type ChannelLinkDoc, type LinkCodeDoc } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
