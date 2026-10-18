@@ -5,6 +5,7 @@ import { getAdminDb } from './_exam-core.js';
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
 const MAX_ROWS = 500;
 const clean = (v: unknown, max = 2000) => typeof v === 'string' ? v.slice(0, max) : '';
+const redactTokenUrls = (v: unknown, max: number) => clean(v, max).replace(/https?:\/\/[^\s)\]>"']+/gi, url => /[?&]token=/i.test(url) ? '[liên kết riêng tư đã ẩn]' : url);
 const limitOf = (v: unknown, max = 50) => Math.min(max, Math.max(1, Number.isInteger(v) ? Number(v) : 20));
 const dataOf = (doc: any) => ({ id: doc.id, ...doc.data() });
 const assertOwner = (doc: any, uid: string, field = 'teacherId') => { if (!doc || doc[field] !== uid) throw new Error('Resource not found'); };
@@ -118,11 +119,11 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     if (name === 'getLessonPlan') {
       const id = clean(args.lessonPlanId, 200); if (!id) throw new Error('lessonPlanId required');
       const plan = await docById(fs.collection('lessonPlans'), id); assertOwner(plan, uid, 'userId');
-      data = { id: plan.id, title: clean(plan.title, 300), subject: clean(plan.subject, 100), grade: clean(plan.grade, 40), updatedAt: clean(plan.updatedAt, 100), content: clean(plan.content, 12000) }; sources = sourcesFor('lessonPlans');
+      data = { id: plan.id, title: clean(plan.title, 300), subject: clean(plan.subject, 100), grade: clean(plan.grade, 40), updatedAt: clean(plan.updatedAt, 100), content: redactTokenUrls(plan.content, 12000) }; sources = sourcesFor('lessonPlans');
     } else {
       const { rows, complete, truncated } = await queryDocs(fs.collection('lessonPlans').where('userId', '==', uid), limitOf(args.limit, 100));
       const term = clean(args.query, 200).toLocaleLowerCase();
-      data = { items: rows.filter((x: any) => x.userId === uid && (!term || `${x.title || ''} ${x.content || ''}`.toLocaleLowerCase().includes(term))).map((x: any) => ({ id: x.id, title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), updatedAt: clean(x.updatedAt, 100), snippet: clean(x.content, 240) })), complete, truncated }; sources = sourcesFor('lessonPlans');
+      data = { items: rows.filter((x: any) => x.userId === uid && (!term || `${x.title || ''} ${x.content || ''}`.toLocaleLowerCase().includes(term))).map((x: any) => ({ id: x.id, title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), updatedAt: clean(x.updatedAt, 100), snippet: redactTokenUrls(x.content, 240) })), complete, truncated }; sources = sourcesFor('lessonPlans');
     }
   } else if (name === 'searchExams') {
     const { rows, complete, truncated } = await queryDocs(fs.collection('exams').where('teacherId', '==', uid), limitOf(args.limit, 100));
@@ -132,7 +133,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     const { rows, complete, truncated } = await queryDocs(fs.collection('studentLearningProfiles').where('teacherId', '==', uid), MAX_ROWS);
     const profiles = rows.filter((x: any) => x.teacherId === uid);
     const topics = profiles.flatMap((p: any) => Array.isArray(p.topics) ? p.topics.slice(0, 100) : []);
-    const topicTruncated = profiles.some((p: any) => Array.isArray(p.topics) && p.topics.length > 100); data = { students: profiles.length, topics: topics.length, mastery: { weak: topics.filter((x: any) => x?.level === 'weak').length, developing: topics.filter((x: any) => x?.level === 'developing').length, solid: topics.filter((x: any) => x?.level === 'solid').length }, sessions: profiles.reduce((n: number, p: any) => n + (Number.isFinite(p.sessionCount) && p.sessionCount >= 0 ? p.sessionCount : 0), 0), complete: complete && !topicTruncated, truncated: truncated || topicTruncated }; sources = sourcesFor('studentLearningProfiles');
+    const topicTruncated = profiles.some((p: any) => Array.isArray(p.topics) && p.topics.length > 100); data = { students: profiles.length, topics: topics.length, mastery: { weak: topics.filter((x: any) => x?.level === 'weak').length, developing: topics.filter((x: any) => x?.level === 'developing').length, solid: topics.filter((x: any) => x?.level === 'solid').length }, sessions: profiles.reduce((n: number, p: any) => n + (Number.isFinite(p.totalSessions) && p.totalSessions >= 0 ? p.totalSessions : 0), 0), complete: complete && !topicTruncated, truncated: truncated || topicTruncated }; sources = sourcesFor('studentLearningProfiles');
   } else if (name === 'getAssistantJobStatus') {
     const jobId = clean(args.jobId, 200); if (!jobId) throw new Error('jobId required'); const job = await docById(fs.collection('assistantJobs'), jobId); assertOwner(job, uid, 'actorUid'); data = { status: job.status, toolName: job.toolName, createdAt: job.createdAt, updatedAt: job.updatedAt }; sources = sourcesFor('assistantJobs');
   }

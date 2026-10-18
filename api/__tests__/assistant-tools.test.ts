@@ -30,6 +30,28 @@ describe('assistant private read tools', () => {
     const result = await runAssistantReadTool('listClasses', {}, actor('A'), db);
     expect(result.data).toMatchObject({ items: [{ id: 'a' }], complete: true, truncated: false });
   });
+  it('redacts token-bearing Storage URLs in lesson content and search snippets only', async () => {
+    const storageUrl = 'https://firebasestorage.googleapis.com/v0/b/example/o/lesson_images%2Fimg.png?alt=media&token=secret-token';
+    const content = `Giữ phần này. ![ảnh](${storageUrl}) Và https://example.com/public.png vẫn công khai.`;
+    const db = fakeDb({ lessonPlans: [{ id: 'p', userId: 'A', title: 'Lesson', content, fileUrls: [storageUrl], answerKey: 'secret answer' }] });
+    const lesson = (await runAssistantReadTool('getLessonPlan', { lessonPlanId: 'p' }, actor('A'), db)).data as any;
+    const search = (await runAssistantReadTool('searchLessonPlans', {}, actor('A'), db)).data as any;
+    for (const output of [lesson.content, search.items[0].snippet]) {
+      expect(output).toContain('Giữ phần này.');
+      expect(output).toContain('Và https://example.com/public.png vẫn công khai.');
+      expect(output).not.toContain('firebasestorage.googleapis.com');
+      expect(output).not.toContain('secret-token');
+    }
+    expect(JSON.stringify({ lesson, search })).not.toContain('secret answer');
+    expect(JSON.stringify({ lesson, search })).not.toContain('fileUrls');
+  });
+  it('aggregates adaptive sessions from StudentLearningProfile.totalSessions', async () => {
+    const db = fakeDb({ studentLearningProfiles: [
+      { id: 's1', teacherId: 'A', totalSessions: 3, sessionCount: 99 },
+      { id: 's2', teacherId: 'A', totalSessions: 5 },
+    ] });
+    await expect(runAssistantReadTool('getAdaptiveProgressSummary', {}, actor('A'), db)).resolves.toMatchObject({ data: { sessions: 8 } });
+  });
   it('deduplicates per assignment and reports orphan or malformed rows as unknown', async () => {
     const db = fakeDb({
       classes: [{ id: 'c', teacherId: 'A' }],
