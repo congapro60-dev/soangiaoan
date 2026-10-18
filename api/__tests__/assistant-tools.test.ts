@@ -14,7 +14,7 @@ function fakeDb(seed: Record<string, any[]> = {}) {
       return { docs, empty: !docs.length };
     },
     doc(id: string) {
-      const row = rows.find(r => r.id === id);
+      const row = rows.find(r => (r._documentId || r.id) === id);
       return { async get() { return { exists: !!row, id, data: () => row }; }, collection(name: string) { return query(seed[`classes/${id}/${name}`] || []); } };
     },
   });
@@ -26,6 +26,8 @@ describe('assistant private read tools', () => {
     const plans = Array.from({ length: 130 }, (_, i) => ({ id: `p${i}`, userId: 'A', title: `Plan ${i}` }));
     const db = fakeDb({ lessonPlans: plans, classes: [{ id: 'a', teacherId: 'A', name: 'A' }, { id: 'b', teacherId: 'B', name: 'B' }] });
     expect((await runAssistantReadTool('getLessonPlan', { lessonPlanId: 'p129' }, actor('A'), db)).data).toMatchObject({ id: 'p129' });
+    expect((await runAssistantReadTool('getLessonPlan', { lessonPlanId: 'expected' }, actor('A'), fakeDb({ lessonPlans: [{ id: 'spoof', _documentId: 'expected', userId: 'A', title: 'canonical' }] }))).data).toMatchObject({ id: 'expected', title: 'canonical' });
+    await expect(runAssistantReadTool('getLessonPlan', { lessonPlanId: 'foreign' }, actor('A'), fakeDb({ lessonPlans: [{ id: 'spoof', _documentId: 'foreign', userId: 'B' }] }))).rejects.toThrow('Resource not found');
     await expect(runAssistantReadTool('getLessonPlan', { lessonPlanId: 'b' }, actor('A'), fakeDb({ lessonPlans: [{ id: 'b', userId: 'B' }] }))).rejects.toThrow('Resource not found');
     const result = await runAssistantReadTool('listClasses', {}, actor('A'), db);
     expect(result.data).toMatchObject({ items: [{ id: 'a' }], complete: true, truncated: false });
@@ -133,6 +135,12 @@ describe('assistant private read tools', () => {
     await expect(runAssistantReadTool('searchExams', {}, actor('B'), fakeDb({ exams: [{ id: 'x', teacherId: 'A' }] }))).resolves.toMatchObject({ data: { items: [] } });
     expect(await runAssistantReadTool('getStudentTeacherSummary', { classId: 'c', studentId: 's0' }, actor('A'), db)).toMatchObject({ data: { id: 's0' } });
     await expect(runAssistantReadTool('getAssistantJobStatus', { jobId: 'j' }, actor('A'), db)).rejects.toThrow('Resource not found');
+    const malformedJob = fakeDb({ assistantJobs: [{ id: 'bad', actorUid: 'A', status: 'x'.repeat(300), toolName: 'x'.repeat(300) }] });
+    await expect(runAssistantReadTool('getAssistantJobStatus', { jobId: 'bad' }, actor('A'), malformedJob)).resolves.toMatchObject({ data: { status: 'unknown' } });
+    expect(JSON.stringify(await runAssistantReadTool('getAssistantJobStatus', { jobId: 'bad' }, actor('A'), malformedJob))).not.toContain('toolName');
+    const invalidIds = fakeDb({ assignments: [{ id: 'a', teacherId: 'A', classId: 'x'.repeat(257) }] });
+    expect((await runAssistantReadTool('listAssignments', {}, actor('A'), invalidIds)).data).toMatchObject({ items: [{ id: 'a' }] });
+    expect(JSON.stringify((await runAssistantReadTool('listAssignments', {}, actor('A'), invalidIds)).data)).not.toContain('classId');
   });
   it('does not convert failed queries into zero counts', async () => {
     const db = { collection: () => ({ where() { return this; }, limit() { return this; }, get() { throw new Error('query failed'); } }) } as any;

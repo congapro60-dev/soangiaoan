@@ -6,6 +6,10 @@ const SUBMISSION_STATUSES = ['submitted', 'grading', 'graded', 'error'];
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
 const MAX_ROWS = 500;
 const clean = (v: unknown, max = 2000) => typeof v === 'string' ? v.slice(0, max) : '';
+const safeId = (v: unknown): string | undefined => typeof v === 'string' && v.trim().length > 0 && v.length <= 256 && !/[\u0000-\u001f\u007f/]/.test(v) ? v : undefined;
+const optionalId = (key: string, value: unknown) => safeId(value) ? { [key]: value } : {};
+const TOOL_NAMES = new Set(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus', 'draftLesson', 'patchLessonSection', 'exportLesson', 'uploadLessonToDrive', 'createAssignment', 'startAssignmentGrading', 'approveGrade', 'editGrade', 'sendTeacherMessage', 'sendParentMessage', 'revokeStudentAccess', 'replaceDriveFile']);
+const optionalToolName = (value: unknown) => typeof value === 'string' && TOOL_NAMES.has(value) ? { toolName: value } : {};
 const redactTokenUrls = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, 12000) : '').replace(/https?:\/\/[^\s<>"']+/gi, url => {
   const trailing = url.match(/[)\].,!?;:]+$/)?.[0] || '';
   const link = trailing ? url.slice(0, -trailing.length) : url;
@@ -25,7 +29,7 @@ const safeGrade = (g: any) => {
   return result;
 };
 const safeStudent = (s: any) => ({
-  id: clean(s.id, 200), name: clean(s.name, 200), code: clean(s.code, 80),
+  ...optionalId('id', s.id), name: clean(s.name, 200), code: clean(s.code, 80),
   ...(['active', 'needs_support', 'excellent'].includes(s.status) ? { status: s.status } : {}),
   ...(typeof s.progress === 'number' && Number.isFinite(s.progress) && s.progress >= 0 && s.progress <= 100 ? { progress: s.progress } : {}),
 });
@@ -36,7 +40,7 @@ const queryDocs = async (q: any, limit: number) => {
 };
 const docById = async (collection: any, id: string) => {
   const snap = await collection.doc(id).get();
-  return snap.exists ? { id: snap.id, ...snap.data() } : null;
+  return snap.exists ? { ...snap.data(), id: snap.id } : null;
 };
 const sourcesFor = (...collections: string[]) => [...new Set(collections)].map(collection => ({ collection, label: collection }));
 
@@ -59,7 +63,7 @@ function submissionCounts(roster: any[], assignments: any[], submissions: any[])
     }
     counts.missing = [...members].filter(id => !latest.has(id)).length;
     for (const key of Object.keys(aggregate) as (keyof typeof aggregate)[]) aggregate[key] += counts[key];
-    return { assignmentId: assignment.id, counts };
+    return { ...optionalId('assignmentId', assignment.id), counts };
   });
   aggregate.unknown += new Set(submissions.filter(x => !assignments.some(a => a.id === x.assignmentId)).map(x => x.studentId || x.id)).size;
   return { perAssignment, aggregate };
@@ -72,12 +76,12 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
   let sources: Array<{ collection: string; label: string }> = [];
   if (name === 'listClasses') {
     const { rows, complete, truncated } = await queryDocs(fs.collection('classes').where('teacherId', '==', uid), limitOf(args.limit));
-    data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, ...optionalString('name', x.name, 200), ...optionalString('grade', x.grade, 40), ...optionalString('track', x.track, 100), ...optionalCount(x.studentCount), ...optionalString('updatedAt', x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('classes');
+    data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ ...optionalId('id', x.id), ...optionalString('name', x.name, 200), ...optionalString('grade', x.grade, 40), ...optionalString('track', x.track, 100), ...optionalCount(x.studentCount), ...optionalString('updatedAt', x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('classes');
   } else if (name === 'getClassSummary' || name === 'listStudents' || name === 'getStudentTeacherSummary') {
-    const classId = clean(args.classId, 200); if (!classId) throw new Error('classId required');
+    const classId = safeId(args.classId); if (!classId) throw new Error('classId required');
     const cls = await docById(fs.collection('classes'), classId); assertOwner(cls, uid);
     if (name === 'getStudentTeacherSummary') {
-      const studentId = clean(args.studentId, 200);
+      const studentId = safeId(args.studentId); if (!studentId) throw new Error('studentId required');
       const student = await docById(fs.collection('classes').doc(classId).collection('students'), studentId);
       if (!student || student.teacherId !== uid || student.classId !== classId) throw new Error('Resource not found');
       data = safeStudent(student);
@@ -92,57 +96,57 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
       const assignmentIds = new Set(assignments.map((x: any) => x.id));
       const submissions = submissionResult.rows.filter((x: any) => x.teacherId === uid && (assignmentIds.has(x.assignmentId) || x.classId === classId));
       const counts = submissionCounts(roster, assignments, submissions);
-      data = { id: cls.id, ...optionalString('name', cls.name, 200), ...optionalString('grade', cls.grade, 40), ...optionalString('track', cls.track, 100), ...optionalString('updatedAt', cls.updatedAt, 100), students: roster.length, assignments: assignments.length, submissions: counts, complete: rosterResult.complete && assignmentResult.complete && submissionResult.complete, truncated: rosterResult.truncated || assignmentResult.truncated || submissionResult.truncated };
+      data = { ...optionalId('id', cls.id), ...optionalString('name', cls.name, 200), ...optionalString('grade', cls.grade, 40), ...optionalString('track', cls.track, 100), ...optionalString('updatedAt', cls.updatedAt, 100), students: roster.length, assignments: assignments.length, submissions: counts, complete: rosterResult.complete && assignmentResult.complete && submissionResult.complete, truncated: rosterResult.truncated || assignmentResult.truncated || submissionResult.truncated };
       }
     }
     sources = sourcesFor('classes', `classes/${classId}/students`, ...(name === 'getClassSummary' ? ['assignments', 'submissions'] : []));
   } else if (name === 'listAssignments' || name === 'getAssignmentSubmissionSummary') {
     if (name === 'getAssignmentSubmissionSummary') {
-      const assignmentId = clean(args.assignmentId, 200); if (!assignmentId) throw new Error('assignmentId required');
+      const assignmentId = safeId(args.assignmentId); if (!assignmentId) throw new Error('assignmentId required');
       const assignment = await docById(fs.collection('assignments'), assignmentId); assertOwner(assignment, uid);
-      const cls = await docById(fs.collection('classes'), clean(assignment.classId, 200)); assertOwner(cls, uid);
+      const cls = await docById(fs.collection('classes'), safeId(assignment.classId) || ''); assertOwner(cls, uid);
       const [rosterResult, submissionsResult] = await Promise.all([
         queryDocs(fs.collection('classes').doc(cls.id).collection('students'), MAX_ROWS),
         queryDocs(fs.collection('submissions').where('teacherId', '==', uid).where('assignmentId', '==', assignment.id), MAX_ROWS),
       ]);
       const roster = rosterResult.rows.filter((s: any) => s.teacherId === uid && s.classId === cls.id);
       const submissions = submissionsResult.rows.filter((s: any) => s.teacherId === uid && s.assignmentId === assignment.id);
-      data = { assignmentId: assignment.id, counts: submissionCounts(roster, [assignment], submissions).perAssignment[0].counts, complete: rosterResult.complete && submissionsResult.complete, truncated: rosterResult.truncated || submissionsResult.truncated };
+      data = { ...optionalId('assignmentId', assignment.id), counts: submissionCounts(roster, [assignment], submissions).perAssignment[0].counts, complete: rosterResult.complete && submissionsResult.complete, truncated: rosterResult.truncated || submissionsResult.truncated };
       sources = sourcesFor('assignments', 'classes', `classes/${cls.id}/students`, 'submissions');
     } else {
       const query = fs.collection('assignments').where('teacherId', '==', uid);
       const filtered = clean(args.classId, 200) ? query.where('classId', '==', clean(args.classId, 200)) : query;
       const { rows, complete, truncated } = await queryDocs(filtered, limitOf(args.limit));
-      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, classId: x.classId, ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), ...(typeof x.isOpen === 'boolean' ? { isOpen: x.isOpen } : {}) })), complete, truncated }; sources = sourcesFor('assignments');
+      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('classId', x.classId), ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), ...(typeof x.isOpen === 'boolean' ? { isOpen: x.isOpen } : {}) })), complete, truncated }; sources = sourcesFor('assignments');
     }
   } else if (name === 'getStudentSubmissionHistory' || name === 'getApprovedGradeSummary') {
-    const studentId = clean(args.studentId, 200); if (!studentId) throw new Error('studentId required');
+    const studentId = safeId(args.studentId); if (!studentId) throw new Error('studentId required');
     const query = fs.collection('submissions').where('teacherId', '==', uid).where('studentId', '==', studentId);
     const approved = name === 'getApprovedGradeSummary';
     const { rows, complete, truncated } = await queryDocs(approved ? query.where('grade.teacherApproved', '==', true) : query, limitOf(args.limit, 100));
-    const safe = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId).map((x: any) => ({ id: x.id, assignmentId: x.assignmentId, classId: x.classId, status: SUBMISSION_STATUSES.includes(x.status) ? x.status : 'unknown', createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
-    data = { items: approved ? safe.filter((x: any) => x.grade).map((x: any) => ({ id: x.id, assignmentId: x.assignmentId, grade: x.grade })) : safe, complete, truncated }; sources = sourcesFor('submissions');
+    const safe = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('assignmentId', x.assignmentId), ...optionalId('classId', x.classId), status: SUBMISSION_STATUSES.includes(x.status) ? x.status : 'unknown', createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
+    data = { items: approved ? safe.filter((x: any) => x.grade).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('assignmentId', x.assignmentId), grade: x.grade })) : safe, complete, truncated }; sources = sourcesFor('submissions');
   } else if (name === 'searchLessonPlans' || name === 'getLessonPlan') {
     if (name === 'getLessonPlan') {
-      const id = clean(args.lessonPlanId, 200); if (!id) throw new Error('lessonPlanId required');
+      const id = safeId(args.lessonPlanId); if (!id) throw new Error('lessonPlanId required');
       const plan = await docById(fs.collection('lessonPlans'), id); assertOwner(plan, uid, 'userId');
-      data = { id: plan.id, title: clean(plan.title, 300), subject: clean(plan.subject, 100), grade: clean(plan.grade, 40), updatedAt: clean(plan.updatedAt, 100), content: redactTokenUrls(plan.content, 12000) }; sources = sourcesFor('lessonPlans');
+      data = { ...optionalId('id', plan.id), title: clean(plan.title, 300), subject: clean(plan.subject, 100), grade: clean(plan.grade, 40), updatedAt: clean(plan.updatedAt, 100), content: redactTokenUrls(plan.content, 12000) }; sources = sourcesFor('lessonPlans');
     } else {
       const { rows, complete, truncated } = await queryDocs(fs.collection('lessonPlans').where('userId', '==', uid), limitOf(args.limit, 100));
       const term = clean(args.query, 200).toLocaleLowerCase();
-      data = { items: rows.filter((x: any) => x.userId === uid && (!term || `${x.title || ''} ${x.content || ''}`.toLocaleLowerCase().includes(term))).map((x: any) => ({ id: x.id, title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), updatedAt: clean(x.updatedAt, 100), snippet: redactTokenUrls(x.content, 240) })), complete, truncated }; sources = sourcesFor('lessonPlans');
+      data = { items: rows.filter((x: any) => x.userId === uid && (!term || `${x.title || ''} ${x.content || ''}`.toLocaleLowerCase().includes(term))).map((x: any) => ({ ...optionalId('id', x.id), title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), updatedAt: clean(x.updatedAt, 100), snippet: redactTokenUrls(x.content, 240) })), complete, truncated }; sources = sourcesFor('lessonPlans');
     }
   } else if (name === 'searchExams') {
     const { rows, complete, truncated } = await queryDocs(fs.collection('exams').where('teacherId', '==', uid), limitOf(args.limit, 100));
     const term = clean(args.query, 200).toLocaleLowerCase();
-    data = { items: rows.filter((x: any) => x.teacherId === uid && (!term || clean(x.title).toLocaleLowerCase().includes(term))).map((x: any) => ({ id: x.id, title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), createdAt: clean(x.createdAt, 100), updatedAt: clean(x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('exams');
+    data = { items: rows.filter((x: any) => x.teacherId === uid && (!term || clean(x.title).toLocaleLowerCase().includes(term))).map((x: any) => ({ ...optionalId('id', x.id), title: clean(x.title, 300), subject: clean(x.subject, 100), grade: clean(x.grade, 40), createdAt: clean(x.createdAt, 100), updatedAt: clean(x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('exams');
   } else if (name === 'getAdaptiveProgressSummary') {
     const { rows, complete, truncated } = await queryDocs(fs.collection('studentLearningProfiles').where('teacherId', '==', uid), MAX_ROWS);
     const profiles = rows.filter((x: any) => x.teacherId === uid);
     const topics = profiles.flatMap((p: any) => Array.isArray(p.topics) ? p.topics.slice(0, 100) : []);
     const topicTruncated = profiles.some((p: any) => Array.isArray(p.topics) && p.topics.length > 100); data = { students: profiles.length, topics: topics.length, mastery: { weak: topics.filter((x: any) => x?.level === 'weak').length, developing: topics.filter((x: any) => x?.level === 'developing').length, solid: topics.filter((x: any) => x?.level === 'solid').length }, sessions: profiles.reduce((n: number, p: any) => n + (Number.isFinite(p.totalSessions) && p.totalSessions >= 0 ? p.totalSessions : 0), 0), complete: complete && !topicTruncated, truncated: truncated || topicTruncated }; sources = sourcesFor('studentLearningProfiles');
   } else if (name === 'getAssistantJobStatus') {
-    const jobId = clean(args.jobId, 200); if (!jobId) throw new Error('jobId required'); const job = await docById(fs.collection('assistantJobs'), jobId); assertOwner(job, uid, 'actorUid'); data = { status: job.status, toolName: job.toolName, createdAt: job.createdAt, updatedAt: job.updatedAt }; sources = sourcesFor('assistantJobs');
+    const jobId = safeId(args.jobId); if (!jobId) throw new Error('jobId required'); const job = await docById(fs.collection('assistantJobs'), jobId); assertOwner(job, uid, 'actorUid'); data = { status: ['queued', 'running', 'succeeded', 'failed', 'cancelled'].includes(job.status) ? job.status : 'unknown', ...optionalToolName(job.toolName), createdAt: job.createdAt, updatedAt: job.updatedAt }; sources = sourcesFor('assistantJobs');
   }
   return { data, sources, observedAt };
 }
