@@ -121,6 +121,12 @@ export const SettingsModal = ({
   const [activeLinks, setActiveLinks] = useState<LinkSummary[]>([]);
   const [linksLoading, setLinksLoading] = useState(false);
   const [linksError, setLinksError] = useState<string | null>(null);
+  const [shares, setShares] = useState<any[]>([]);
+  const [shareResource, setShareResource] = useState('');
+  const [shareType, setShareType] = useState<'class' | 'lessonPlan'>('class');
+  const [granteeUid, setGranteeUid] = useState('');
+  const [shareRole, setShareRole] = useState<'read' | 'write'>('read');
+  const [shareBusy, setShareBusy] = useState(false);
   // Migrate giá trị cũ đã ngừng hỗ trợ (VD 'free-router' còn lưu trong Firestore) về gemini
   // để modal không crash khi tra PROVIDERS/PROVIDER_MODELS.
   const rawProvider = data.settings.selectedProvider as string | undefined;
@@ -137,6 +143,21 @@ export const SettingsModal = ({
       .then(({ links }) => setActiveLinks(links))
       .catch(error => setLinksError(error instanceof Error ? error.message : 'Không thể tải liên kết'))
       .finally(() => setLinksLoading(false));
+  }, [isOpen]);
+
+  const shareRequest = async (action: string, payload: Record<string, unknown> = {}) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Vui lòng đăng nhập');
+    const token = await user.getIdToken();
+    const response = await fetch('/api/assistant', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ action, ...payload }) });
+    const body = await response.json();
+    if (!response.ok || body.kind === 'error') throw new Error('Không thể cập nhật chia sẻ');
+    return body.result;
+  };
+
+  useEffect(() => {
+    if (!isOpen || !auth.currentUser) return;
+    shareRequest('listShares').then(result => setShares(result.shares || [])).catch(() => setShares([]));
   }, [isOpen]);
 
   const handleSelectProvider = (provider: Provider) => {
@@ -282,6 +303,17 @@ export const SettingsModal = ({
               </aside>
 
               <div className="min-h-0 space-y-5 p-5 sm:p-7">
+                <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
+                  <div className="mb-4"><h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Chia sẻ lớp / giáo án với giáo viên</h4><p className="mt-1 text-sm text-slate-500">Cấp quyền theo Firebase UID. Mặc định riêng tư; quyền ghi chưa mở thao tác trợ lý.</p></div>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <select value={shareType} onChange={event => { const type = event.target.value as 'class' | 'lessonPlan'; setShareType(type); setShareResource(''); }} className="rounded-xl border border-slate-200 px-3 py-2 text-sm"><option value="class">Lớp</option><option value="lessonPlan">Giáo án</option></select>
+                    <select value={shareResource} onChange={event => setShareResource(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm"><option value="">Chọn {shareType === 'class' ? 'lớp' : 'giáo án'}</option>{(shareType === 'class' ? data.classes : data.lessonPlans).map(item => <option key={item.id} value={item.id}>{item.name || item.title}</option>)}</select>
+                    <input value={granteeUid} onChange={event => setGranteeUid(event.target.value)} placeholder="Firebase UID giáo viên nhận" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                    <select value={shareRole} onChange={event => setShareRole(event.target.value as 'read' | 'write')} className="rounded-xl border border-slate-200 px-3 py-2 text-sm"><option value="read">Chỉ đọc</option><option value="write">Đọc và ghi (chưa bật ghi qua trợ lý)</option></select>
+                  </div>
+                  <button type="button" disabled={shareBusy || !shareResource || !granteeUid.trim()} onClick={async () => { setShareBusy(true); try { await shareRequest('createShare', { resourceType: shareType, resourceId: shareResource, granteeUid: granteeUid.trim(), role: shareRole }); setShares((await shareRequest('listShares')).shares || []); setGranteeUid(''); showToast('Đã chia sẻ'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể chia sẻ'); } finally { setShareBusy(false); } }} className="mt-3 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white">Chia sẻ</button>
+                  <div className="mt-4 space-y-2">{shares.map(share => <div key={share.shareId} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs"><span>{share.resourceType}: {share.resourceId} · {share.granteeUid} · {share.role} · {share.status}</span>{share.status === 'active' && <button type="button" disabled={shareBusy} onClick={async () => { setShareBusy(true); try { await shareRequest('revokeShare', { shareId: share.shareId }); setShares((await shareRequest('listShares')).shares || []); showToast('Đã thu hồi chia sẻ'); } catch { showToast('Không thể thu hồi chia sẻ'); } finally { setShareBusy(false); } }} className="font-bold text-red-600">Thu hồi</button>}</div>)}</div>
+                </section>
                 <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>

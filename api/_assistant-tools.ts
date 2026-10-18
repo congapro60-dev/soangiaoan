@@ -1,6 +1,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import type { AssistantActor, AssistantToolName } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
+import { canActorAccessSharedResource } from './_assistant-auth.js';
 
 const SUBMISSION_STATUSES = ['submitted', 'grading', 'graded', 'error'];
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
@@ -79,22 +80,26 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ ...optionalId('id', x.id), ...optionalString('name', x.name, 200), ...optionalString('grade', x.grade, 40), ...optionalString('track', x.track, 100), ...optionalCount(x.studentCount), ...optionalString('updatedAt', x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('classes');
   } else if (name === 'getClassSummary' || name === 'listStudents' || name === 'getStudentTeacherSummary') {
     const classId = safeId(args.classId); if (!classId) throw new Error('classId required');
-    const cls = await docById(fs.collection('classes'), classId); assertOwner(cls, uid);
+    const cls = await docById(fs.collection('classes'), classId);
+    if (!cls) throw new Error('Resource not found');
+    const classSharedReadOnly = cls.teacherId !== uid && name === 'getClassSummary' && await canActorAccessSharedResource(uid, cls.teacherId, 'class', classId, 'read', db);
+    if (!classSharedReadOnly) assertOwner(cls, uid);
+    const resourceUid = cls.teacherId;
     if (name === 'getStudentTeacherSummary') {
       const studentId = safeId(args.studentId); if (!studentId) throw new Error('studentId required');
       const student = await docById(fs.collection('classes').doc(classId).collection('students'), studentId);
-      if (!student || student.teacherId !== uid || student.classId !== classId) throw new Error('Resource not found');
+      if (!student || student.teacherId !== resourceUid || student.classId !== classId || classSharedReadOnly) throw new Error('Resource not found');
       data = safeStudent(student);
     } else {
       const rosterResult = await queryDocs(fs.collection('classes').doc(classId).collection('students'), name === 'listStudents' ? limitOf(args.limit) : MAX_ROWS);
-      const roster = rosterResult.rows.filter((x: any) => x.teacherId === uid && x.classId === classId);
+      const roster = rosterResult.rows.filter((x: any) => x.teacherId === resourceUid && x.classId === classId);
       if (name === 'listStudents') data = { items: roster.map(safeStudent), complete: rosterResult.complete, truncated: rosterResult.truncated };
       else {
-      const assignmentResult = await queryDocs(fs.collection('assignments').where('teacherId', '==', uid).where('classId', '==', classId), MAX_ROWS);
-      const assignments = assignmentResult.rows.filter((x: any) => x.teacherId === uid && x.classId === classId);
-      const submissionResult = await queryDocs(fs.collection('submissions').where('teacherId', '==', uid), MAX_ROWS);
+      const assignmentResult = await queryDocs(fs.collection('assignments').where('teacherId', '==', resourceUid).where('classId', '==', classId), MAX_ROWS);
+      const assignments = assignmentResult.rows.filter((x: any) => x.teacherId === resourceUid && x.classId === classId);
+      const submissionResult = await queryDocs(fs.collection('submissions').where('teacherId', '==', resourceUid), MAX_ROWS);
       const assignmentIds = new Set(assignments.map((x: any) => x.id));
-      const submissions = submissionResult.rows.filter((x: any) => x.teacherId === uid && (assignmentIds.has(x.assignmentId) || x.classId === classId));
+      const submissions = submissionResult.rows.filter((x: any) => x.teacherId === resourceUid && (assignmentIds.has(x.assignmentId) || x.classId === classId));
       const counts = submissionCounts(roster, assignments, submissions);
       data = { ...optionalId('id', cls.id), ...optionalString('name', cls.name, 200), ...optionalString('grade', cls.grade, 40), ...optionalString('track', cls.track, 100), ...optionalString('updatedAt', cls.updatedAt, 100), students: roster.length, assignments: assignments.length, submissions: counts, complete: rosterResult.complete && assignmentResult.complete && submissionResult.complete, truncated: rosterResult.truncated || assignmentResult.truncated || submissionResult.truncated };
       }
@@ -129,7 +134,8 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
   } else if (name === 'searchLessonPlans' || name === 'getLessonPlan') {
     if (name === 'getLessonPlan') {
       const id = safeId(args.lessonPlanId); if (!id) throw new Error('lessonPlanId required');
-      const plan = await docById(fs.collection('lessonPlans'), id); assertOwner(plan, uid, 'userId');
+      const plan = await docById(fs.collection('lessonPlans'), id); if (!plan) throw new Error('Resource not found');
+      if (plan.userId !== uid && !await canActorAccessSharedResource(uid, plan.userId, 'lessonPlan', id, 'read', db)) throw new Error('Resource not found');
       data = { ...optionalId('id', plan.id), title: clean(plan.title, 300), subject: clean(plan.subject, 100), grade: clean(plan.grade, 40), updatedAt: clean(plan.updatedAt, 100), content: redactTokenUrls(plan.content, 12000) }; sources = sourcesFor('lessonPlans');
     } else {
       const { rows, complete, truncated } = await queryDocs(fs.collection('lessonPlans').where('userId', '==', uid), limitOf(args.limit, 100));

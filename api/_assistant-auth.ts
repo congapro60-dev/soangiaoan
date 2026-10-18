@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
-import { isUsableChannelLink, type AssistantActor, type AssistantRequestNonceDoc, type Channel, type ChannelLinkDoc, type LinkCodeDoc } from './_assistant-types.js';
+import { canUseAssistantShare, isUsableChannelLink, type AssistantActor, type AssistantRequestNonceDoc, type AssistantShareDoc, type AssistantResourceType, type AssistantRole, type Channel, type ChannelLinkDoc, type LinkCodeDoc } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
@@ -224,4 +224,45 @@ export const cancelLinkCode = async (
     if (!snapshot.exists || !value || value.firebaseUid !== firebaseUid || value.usedAt || value.expiresAt <= now) throw new Error('Link not found');
     tx.update(ref, { usedAt: now });
   });
+};
+
+export const createAssistantShare = async (idToken: string, input: { resourceType: AssistantResourceType; resourceId: string; granteeUid: string; role: AssistantRole }, now = Date.now(), db?: Firestore) => {
+  const ownerUid = await verifyFirebaseIdToken(idToken);
+  const { resourceType, resourceId, granteeUid, role } = input;
+  if (!['class', 'lessonPlan'].includes(resourceType) || !resourceId?.trim() || !granteeUid?.trim() || !['read', 'write'].includes(role) || ownerUid === granteeUid) throw new Error('Invalid share');
+  const firestore = adminDb(db);
+  const collection = resourceType === 'class' ? 'classes' : 'lessonPlans';
+  const ownerField = resourceType === 'class' ? 'teacherId' : 'userId';
+  const resource = await firestore.collection(collection).doc(resourceId).get();
+  if (!resource.exists || resource.data()?.[ownerField] !== ownerUid) throw new Error('Resource not found');
+  const user = await getAuth().getUser(granteeUid);
+  if (!user.uid) throw new Error('Grantee not found');
+  const ref = firestore.collection('assistantShares').doc();
+  const share: AssistantShareDoc = { resourceType, resourceId, ownerUid, granteeUid, role, status: 'active', createdAt: now };
+  await ref.set(share);
+  return { shareId: ref.id, ...share };
+};
+
+export const listAssistantShares = async (idToken: string, db?: Firestore) => {
+  const ownerUid = await verifyFirebaseIdToken(idToken);
+  const snapshot = await adminDb(db).collection('assistantShares').where('ownerUid', '==', ownerUid).get();
+  return snapshot.docs.map(doc => ({ shareId: doc.id, ...doc.data() as AssistantShareDoc }));
+};
+
+export const revokeAssistantShare = async (idToken: string, shareId: string, now = Date.now(), db?: Firestore): Promise<void> => {
+  const ownerUid = await verifyFirebaseIdToken(idToken);
+  if (!shareId?.trim()) throw new Error('Share not found');
+  const firestore = adminDb(db);
+  await firestore.runTransaction(async tx => {
+    const ref = firestore.collection('assistantShares').doc(shareId);
+    const snapshot = await tx.get(ref);
+    if (!snapshot.exists || snapshot.data()?.ownerUid !== ownerUid) throw new Error('Share not found');
+    tx.update(ref, { status: 'revoked', revokedAt: now });
+  });
+};
+
+export const canActorAccessSharedResource = async (actorUid: string, ownerUid: string, resourceType: AssistantResourceType, resourceId: string, role: AssistantRole, db?: Firestore, now = Date.now()): Promise<boolean> => {
+  if (actorUid === ownerUid) return true;
+  const snapshot = await adminDb(db).collection('assistantShares').where('resourceType', '==', resourceType).where('resourceId', '==', resourceId).where('ownerUid', '==', ownerUid).where('granteeUid', '==', actorUid).where('status', '==', 'active').get();
+  return snapshot.docs.some(doc => canUseAssistantShare(doc.data() as AssistantShareDoc, actorUid, resourceType, resourceId, role, now));
 };

@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode,
-  isAllowedZaloOaId, listActiveChannelLinks, resolveChannelActor, revokeLink,
+  isAllowedZaloOaId, listActiveChannelLinks, listAssistantShares, createAssistantShare, revokeAssistantShare, resolveChannelActor, revokeLink,
   validateChannelIdentity, verifyAssistantServiceSignature,
 } from './_assistant-auth.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
@@ -124,6 +124,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const token = bearer(req.headers.authorization);
       if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
       return res.status(200).json({ kind: 'answer', requestId: id, result: { links: await listActiveChannelLinks(token) } });
+    }
+    if (action === 'createShare') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      const resourceType = text(envelope.payload.resourceType);
+      const role = text(envelope.payload.role);
+      const result = await createAssistantShare(token, { resourceType: resourceType as 'class' | 'lessonPlan', resourceId: text(envelope.payload.resourceId), granteeUid: text(envelope.payload.granteeUid), role: role as 'read' | 'write' });
+      return res.status(200).json({ kind: 'answer', requestId: id, result });
+    }
+    if (action === 'listShares') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      return res.status(200).json({ kind: 'answer', requestId: id, result: { shares: await listAssistantShares(token) } });
+    }
+    if (action === 'revokeShare') {
+      const token = bearer(req.headers.authorization);
+      if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
+      await revokeAssistantShare(token, text(envelope.payload.shareId));
+      return res.status(200).json({ kind: 'answer', requestId: id, result: { ok: true } });
     }
     if (action === 'readTool') {
       if (!envelope.channel) throw new Error('Invalid request');
