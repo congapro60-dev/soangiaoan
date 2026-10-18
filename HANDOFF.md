@@ -386,3 +386,15 @@ CKEditor native result: source0.3.2 focus/guard chạy, nhưng CKEditor không n
 - Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
 - Remaining: large lazy chunks remain expected; no production data writes.
 
+
+## Assistant Gateway release — 2026-10-19
+
+- Added channel-neutral /api/assistant auth/link/read/share/confirmation/job lifecycle for Telegram + Zalo OA. Identity binds Firebase UID to exact channel account/user; payloads, previews, results, job refs, and adapter output are bounded/redacted.
+- Added draftLesson confirmation executor only. It returns persisted: false; export, Drive upload, assignments, grading, grade edits, and outbound messages remain fail-closed NOT_IMPLEMENTED.
+- Release gate: 
+pm run test (full suite), 
+pm run lint, 
+pm run lint:api, 
+pm run build; existing Vite chunk/externalization warnings remain. Focused assistant tests cover link/share/confirmation/replay/jobs/writes.
+- Zalo/Telegram adapter code lives in the separate du-lesson-automation-task7 worktree and requires its own Railway release. Zalo production needs a persistent path for ZALO_WEBHOOK_REPLAY_DB; no credentials or external canary were run.
+- Next owner action: set Vercel SMARTPLAN_ASSISTANT_SECRET and ZALO_OA_ALLOWED_IDS, Railway matching secret + bot/OA vars, then configure Zalo webhook at /api/zalo/webhook. Do not enable real write tools until Task 9 canary passes.
