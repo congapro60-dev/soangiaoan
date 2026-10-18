@@ -2,6 +2,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { AssistantActor, AssistantToolName } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
+const SUBMISSION_STATUSES = ['submitted', 'grading', 'graded', 'error'];
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
 const MAX_ROWS = 500;
 const clean = (v: unknown, max = 2000) => typeof v === 'string' ? v.slice(0, max) : '';
@@ -13,7 +14,7 @@ const redactTokenUrls = (v: unknown, max: number) => (typeof v === 'string' ? v.
 const optionalString = (key: string, value: unknown, max: number) => typeof value === 'string' ? { [key]: clean(value, max) } : {};
 const optionalCount = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? { studentCount: value } : {};
 const limitOf = (v: unknown, max = 50) => Math.min(max, Math.max(1, Number.isInteger(v) ? Number(v) : 20));
-const dataOf = (doc: any) => ({ id: doc.id, ...doc.data() });
+const dataOf = (doc: any) => ({ ...doc.data(), id: doc.id });
 const assertOwner = (doc: any, uid: string, field = 'teacherId') => { if (!doc || doc[field] !== uid) throw new Error('Resource not found'); };
 const safeGrade = (g: any) => {
   if (g?.teacherApproved !== true) return undefined;
@@ -53,7 +54,7 @@ function submissionCounts(roster: any[], assignments: any[], submissions: any[])
     }
     const counts = { submitted: 0, grading: 0, graded: 0, error: 0, missing: 0, unknown: unknownPairs.size };
     for (const [studentId, item] of latest) {
-      if (statuses.includes(item.status)) counts[item.status as keyof typeof counts]++;
+      if (SUBMISSION_STATUSES.includes(item.status)) counts[item.status as keyof typeof counts]++;
       else counts.unknown++;
     }
     counts.missing = [...members].filter(id => !latest.has(id)).length;
@@ -119,7 +120,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     const query = fs.collection('submissions').where('teacherId', '==', uid).where('studentId', '==', studentId);
     const approved = name === 'getApprovedGradeSummary';
     const { rows, complete, truncated } = await queryDocs(approved ? query.where('grade.teacherApproved', '==', true) : query, limitOf(args.limit, 100));
-    const safe = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId).map((x: any) => ({ id: x.id, assignmentId: x.assignmentId, classId: x.classId, status: x.status, createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
+    const safe = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId).map((x: any) => ({ id: x.id, assignmentId: x.assignmentId, classId: x.classId, status: SUBMISSION_STATUSES.includes(x.status) ? x.status : 'unknown', createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
     data = { items: approved ? safe.filter((x: any) => x.grade).map((x: any) => ({ id: x.id, assignmentId: x.assignmentId, grade: x.grade })) : safe, complete, truncated }; sources = sourcesFor('submissions');
   } else if (name === 'searchLessonPlans' || name === 'getLessonPlan') {
     if (name === 'getLessonPlan') {

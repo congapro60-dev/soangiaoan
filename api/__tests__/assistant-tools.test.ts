@@ -10,7 +10,7 @@ function fakeDb(seed: Record<string, any[]> = {}) {
     limit(n: number) { return query(rows, filters, n); },
     async get() {
       const filtered = rows.filter(r => filters.every(([k, op, v]) => op === '==' && valueAt(r, k) === v)).slice(0, max);
-      const docs = filtered.map(r => ({ id: r.id, data: () => r, exists: true }));
+      const docs = filtered.map(r => ({ id: r._documentId || r.id, data: () => r, exists: true }));
       return { docs, empty: !docs.length };
     },
     doc(id: string) {
@@ -29,6 +29,8 @@ describe('assistant private read tools', () => {
     await expect(runAssistantReadTool('getLessonPlan', { lessonPlanId: 'b' }, actor('A'), fakeDb({ lessonPlans: [{ id: 'b', userId: 'B' }] }))).rejects.toThrow('Resource not found');
     const result = await runAssistantReadTool('listClasses', {}, actor('A'), db);
     expect(result.data).toMatchObject({ items: [{ id: 'a' }], complete: true, truncated: false });
+    const conflictingId = fakeDb({ classes: [{ id: 'spoofed', _documentId: 'canonical', teacherId: 'A', name: 'canonical', spoofed: true }] });
+    expect((await runAssistantReadTool('listClasses', {}, actor('A'), conflictingId)).data).toMatchObject({ items: [{ id: 'canonical' }] });
   });
   it('redacts token-bearing Storage URLs in lesson content and search snippets only', async () => {
     const storageUrl = 'https://firebasestorage.googleapis.com/v0/b/example/o/lesson_images%2Fimg.png?alt=media&token=secret-token';
@@ -45,6 +47,10 @@ describe('assistant private read tools', () => {
     }
     expect(JSON.stringify({ lesson, search })).not.toContain('secret answer');
     expect(JSON.stringify({ lesson, search })).not.toContain('fileUrls');
+    const nearLimit = 'a'.repeat(225) + ' https://firebasestorage.googleapis.com/o/file?alt=media&token=' + 'secret-token'.repeat(10);
+    const bounded = (await runAssistantReadTool('searchLessonPlans', {}, actor('A'), fakeDb({ lessonPlans: [{ id: 'long', userId: 'A', title: 'Long', content: nearLimit }] }))).data as any;
+    expect(bounded.items[0].snippet).not.toContain('secret-token');
+    expect(bounded.items[0].snippet).not.toContain('firebasestorage.googleapis.com');
   });
   it('bounds metadata strings and omits malformed fields or student counts', async () => {
     const db = fakeDb({
@@ -68,6 +74,12 @@ describe('assistant private read tools', () => {
       { id: 's2', teacherId: 'A', totalSessions: 5 },
     ] });
     await expect(runAssistantReadTool('getAdaptiveProgressSummary', {}, actor('A'), db)).resolves.toMatchObject({ data: { sessions: 8 } });
+  });
+  it('whitelists malformed submission status as unknown', async () => {
+    const db = fakeDb({ submissions: [{ id: 'bad', teacherId: 'A', studentId: 's', status: 'bogus', privateField: 'hidden' }] });
+    const result = await runAssistantReadTool('getStudentSubmissionHistory', { studentId: 's' }, actor('A'), db);
+    expect(result.data).toMatchObject({ items: [{ id: 'bad', status: 'unknown' }] });
+    expect(JSON.stringify(result)).not.toContain('privateField');
   });
   it('deduplicates per assignment and reports orphan or malformed rows as unknown', async () => {
     const db = fakeDb({
