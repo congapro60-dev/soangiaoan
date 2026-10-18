@@ -108,7 +108,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
       const query = fs.collection('assignments').where('teacherId', '==', uid);
       const filtered = clean(args.classId, 200) ? query.where('classId', '==', clean(args.classId, 200)) : query;
       const { rows, complete, truncated } = await queryDocs(filtered, limitOf(args.limit));
-      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, classId: x.classId, ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), isOpen: x.isOpen })), complete, truncated }; sources = sourcesFor('assignments');
+      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, classId: x.classId, ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), ...(typeof x.isOpen === 'boolean' ? { isOpen: x.isOpen } : {}) })), complete, truncated }; sources = sourcesFor('assignments');
     }
   } else if (name === 'getStudentSubmissionHistory' || name === 'getApprovedGradeSummary') {
     const studentId = clean(args.studentId, 200); if (!studentId) throw new Error('studentId required');

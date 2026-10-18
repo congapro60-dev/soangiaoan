@@ -49,12 +49,18 @@ describe('assistant private read tools', () => {
   it('bounds metadata strings and omits malformed fields or student counts', async () => {
     const db = fakeDb({
       classes: [{ id: 'c', teacherId: 'A', name: 'n'.repeat(250), grade: 7, track: 't'.repeat(120), studentCount: '4', updatedAt: 'u'.repeat(120) }],
-      assignments: [{ id: 'a', teacherId: 'A', classId: 'c', title: 't'.repeat(350), type: false, dueAt: 'd'.repeat(120) }],
+      assignments: [
+        { id: 'a', teacherId: 'A', classId: 'c', title: 't'.repeat(350), type: false, dueAt: 'd'.repeat(120), isOpen: 'true' },
+        { id: 'b', teacherId: 'A', classId: 'c', isOpen: false },
+      ],
     });
     const classes = (await runAssistantReadTool('listClasses', {}, actor('A'), db)).data as any;
     expect(classes.items[0]).toEqual({ id: 'c', name: 'n'.repeat(200), track: 't'.repeat(100), updatedAt: 'u'.repeat(100) });
     const assignments = (await runAssistantReadTool('listAssignments', {}, actor('A'), db)).data as any;
-    expect(assignments.items[0]).toEqual({ id: 'a', classId: 'c', title: 't'.repeat(300), dueAt: 'd'.repeat(100), isOpen: undefined });
+    expect(assignments.items).toEqual([
+      { id: 'a', classId: 'c', title: 't'.repeat(300), dueAt: 'd'.repeat(100) },
+      { id: 'b', classId: 'c', isOpen: false },
+    ]);
   });
   it('aggregates adaptive sessions from StudentLearningProfile.totalSessions', async () => {
     const db = fakeDb({ studentLearningProfiles: [
