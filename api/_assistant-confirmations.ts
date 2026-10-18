@@ -103,10 +103,20 @@ const normalizeScopes = (value: unknown): Array<Omit<ResourceScope, 'ownerUid' |
   if (value === undefined) return [];
   if (!Array.isArray(value) || value.length > 50) throw new Error('Invalid resource scopes');
   return value.map(scope => {
-    if (!isRecord(scope) || (scope.resourceType !== 'class' && scope.resourceType !== 'lessonPlan')
-      || !isText(scope.resourceId) || (scope.requiredRole !== undefined && scope.requiredRole !== 'read' && scope.requiredRole !== 'write')
-      || (scope.ownerUid !== undefined && !isText(scope.ownerUid))) throw new Error('Invalid resource scope');
-    return { resourceType: scope.resourceType, resourceId: scope.resourceId, ...(scope.requiredRole ? { requiredRole: scope.requiredRole } : {}), ...(scope.ownerUid ? { ownerUid: scope.ownerUid } : {}) };
+    if (!isRecord(scope)) throw new Error('Invalid resource scope');
+    const resourceType = scope.resourceType;
+    const resourceId = scope.resourceId;
+    const requiredRole = scope.requiredRole;
+    const ownerUid = scope.ownerUid;
+    if ((resourceType !== 'class' && resourceType !== 'lessonPlan')
+      || !isText(resourceId) || (requiredRole !== undefined && requiredRole !== 'read' && requiredRole !== 'write')
+      || (ownerUid !== undefined && !isText(ownerUid))) throw new Error('Invalid resource scope');
+    return {
+      resourceType: resourceType as AssistantResourceType,
+      resourceId,
+      ...(requiredRole === undefined ? {} : { requiredRole: requiredRole as AssistantRole }),
+      ...(ownerUid === undefined ? {} : { ownerUid }),
+    };
   });
 };
 
