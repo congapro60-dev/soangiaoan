@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
-import type { AssistantRequestNonceDoc, Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js';
+import type { AssistantActor, AssistantRequestNonceDoc, Channel, ChannelLinkDoc, LinkCodeDoc } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
@@ -64,6 +64,17 @@ export const canRelinkActiveChannel = (existingFirebaseUid: string, targetFireba
   Boolean(existingFirebaseUid?.trim() && targetFirebaseUid?.trim() && existingFirebaseUid === targetFirebaseUid);
 
 const adminDb = (db?: Firestore) => db || getAdminDb();
+
+export const resolveChannelActor = async (channel: Channel, accountId: string, userId: string, chatId?: string, db?: Firestore): Promise<AssistantActor> => {
+  validateChannelIdentity({ channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId, verifiedChannelAccountId: channel === 'zalo_oa' ? accountId : undefined });
+  const firestore = adminDb(db);
+  const snapshot = await firestore.collection('channelLinks').where('channel', '==', channel).where('channelAccountId', '==', accountId).where('channelUserId', '==', userId).where('active', '==', true).get();
+  const now = Date.now();
+  const match = snapshot.docs.find(doc => isUsableChannelLink(doc.data() as ChannelLinkDoc, now, { channel, channelAccountId: accountId, channelUserId: userId }));
+  if (!match) throw new Error('Channel is not linked');
+  const link = match.data() as ChannelLinkDoc;
+  return { firebaseUid: link.firebaseUid, channel, channelAccountId: accountId, channelUserId: userId, ...(link.channelChatId ? { channelChatId: link.channelChatId } : {}), linkId: match.id, active: true };
+};
 
 export const claimAssistantRequestNonce = async (nonce: string, now = Date.now(), db?: Firestore): Promise<void> => {
   if (!/^[A-Za-z0-9._~-]{1,256}$/.test(nonce)) throw new Error('Invalid request');

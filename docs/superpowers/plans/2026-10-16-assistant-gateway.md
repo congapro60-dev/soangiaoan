@@ -187,12 +187,12 @@ Files:
 - Create: api/__tests__/assistant-tools.test.ts
 - Reuse: api/_classroom-core.ts, api/_grading-core.ts, src/lib/classroom/types.ts
 
-- [ ] Implement listClasses, getClassSummary, listStudents, listAssignments, getAssignmentSubmissionSummary, getStudentSubmissionHistory, getApprovedGradeSummary, searchLessonPlans, getLessonPlan, searchExams, getAdaptiveProgressSummary, and getAssistantJobStatus.
-- [ ] Derive every Firestore owner scope from actor.firebaseUid; reject caller-supplied teacher IDs.
-- [ ] Exclude studentSecrets, studentLinks internals, API keys, raw provider errors, private storage tokens, and unapproved teacher notes.
-- [ ] Separate submitted, grading, graded, error, missing, and unknown counts.
-- [ ] Attach source collection, resource label, and observedAt.
-- [ ] Test teacher A cannot read teacher B, missing data is not converted to zero, and unapproved grade details are omitted.
+- [x] Implement private read tools and signed linked actor resolution; shares remain unavailable until Task 5.
+- [x] Derive Firestore owner scopes from actor.firebaseUid; reject caller-supplied teacher IDs.
+- [x] Exclude private collections, raw provider errors, file URLs, and unapproved teacher notes.
+- [x] Separate submitted, grading, graded, error, missing, and unknown counts.
+- [x] Attach source collection, resource label, and observedAt.
+- [x] Test ownership, unavailable query errors, safe projections, and linked actor resolution.
 
 Run:
 

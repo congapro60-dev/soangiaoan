@@ -2,9 +2,10 @@ import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   cancelLinkCode, claimAssistantRequestNonce, consumeLinkCode, createLinkCode,
-  isAllowedZaloOaId, listActiveChannelLinks, revokeLink,
+  isAllowedZaloOaId, listActiveChannelLinks, resolveChannelActor, revokeLink,
   validateChannelIdentity, verifyAssistantServiceSignature,
 } from './_assistant-auth.js';
+import { runAssistantReadTool } from './_assistant-tools.js';
 import type { Channel } from './_assistant-types.js';
 
 export const config = { api: { bodyParser: false } };
@@ -123,6 +124,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const token = bearer(req.headers.authorization);
       if (!token) return safeError(res, 401, id, 'UNAUTHORIZED');
       return res.status(200).json({ kind: 'answer', requestId: id, result: { links: await listActiveChannelLinks(token) } });
+    }
+    if (action === 'readTool') {
+      if (!envelope.channel) throw new Error('Invalid request');
+      const actor = await resolveChannelActor(envelope.channel, envelope.channelAccountId!, envelope.channelUserId!, envelope.channelChatId);
+      const toolName = text(envelope.payload.toolName);
+      const args = envelope.payload.args && typeof envelope.payload.args === 'object' && !Array.isArray(envelope.payload.args) ? envelope.payload.args as Record<string, unknown> : {};
+      const result = await runAssistantReadTool(toolName, args, actor);
+      return res.status(200).json({ kind: 'answer', requestId: id, result });
     }
     if (action === 'chat' || action === 'confirm' || action === 'cancel' || action === 'jobStatus') return notImplemented(res, id);
     return safeError(res, 400, id, 'UNKNOWN_ACTION');
