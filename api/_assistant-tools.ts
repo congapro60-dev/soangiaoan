@@ -82,7 +82,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     const classId = safeId(args.classId); if (!classId) throw new Error('classId required');
     const cls = await docById(fs.collection('classes'), classId);
     if (!cls) throw new Error('Resource not found');
-    const classSharedReadOnly = cls.teacherId !== uid && name === 'getClassSummary' && await canActorAccessSharedResource(uid, cls.teacherId, 'class', classId, 'read', db);
+    const classSharedReadOnly = cls.teacherId !== uid && ['getClassSummary', 'listStudents'].includes(name) && await canActorAccessSharedResource(uid, cls.teacherId, 'class', classId, 'read', db);
     if (!classSharedReadOnly) assertOwner(cls, uid);
     const resourceUid = cls.teacherId;
     if (name === 'getStudentTeacherSummary') {
@@ -108,28 +108,55 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
   } else if (name === 'listAssignments' || name === 'getAssignmentSubmissionSummary') {
     if (name === 'getAssignmentSubmissionSummary') {
       const assignmentId = safeId(args.assignmentId); if (!assignmentId) throw new Error('assignmentId required');
-      const assignment = await docById(fs.collection('assignments'), assignmentId); assertOwner(assignment, uid);
-      const cls = await docById(fs.collection('classes'), safeId(assignment.classId) || ''); assertOwner(cls, uid);
+      const assignment = await docById(fs.collection('assignments'), assignmentId); if (!assignment) throw new Error('Resource not found');
+      const cls = await docById(fs.collection('classes'), safeId(assignment.classId) || '');
+      if (!cls || assignment.teacherId !== cls.teacherId || assignment.classId !== cls.id) throw new Error('Resource not found');
+      const sharedRead = cls?.teacherId !== uid && cls && await canActorAccessSharedResource(uid, cls.teacherId, 'class', cls.id, 'read', db);
+      if (!sharedRead) { assertOwner(assignment, uid); assertOwner(cls, uid); }
+      const resourceUid = cls.teacherId;
       const [rosterResult, submissionsResult] = await Promise.all([
         queryDocs(fs.collection('classes').doc(cls.id).collection('students'), MAX_ROWS),
-        queryDocs(fs.collection('submissions').where('teacherId', '==', uid).where('assignmentId', '==', assignment.id), MAX_ROWS),
+        queryDocs(fs.collection('submissions').where('teacherId', '==', resourceUid).where('assignmentId', '==', assignment.id), MAX_ROWS),
       ]);
-      const roster = rosterResult.rows.filter((s: any) => s.teacherId === uid && s.classId === cls.id);
-      const submissions = submissionsResult.rows.filter((s: any) => s.teacherId === uid && s.assignmentId === assignment.id);
+      const roster = rosterResult.rows.filter((s: any) => s.teacherId === resourceUid && s.classId === cls.id);
+      const submissions = submissionsResult.rows.filter((s: any) => s.teacherId === resourceUid && s.assignmentId === assignment.id);
       data = { ...optionalId('assignmentId', assignment.id), counts: submissionCounts(roster, [assignment], submissions).perAssignment[0].counts, complete: rosterResult.complete && submissionsResult.complete, truncated: rosterResult.truncated || submissionsResult.truncated };
       sources = sourcesFor('assignments', 'classes', `classes/${cls.id}/students`, 'submissions');
     } else {
+      const classId = safeId(args.classId);
+      const cls = classId ? await docById(fs.collection('classes'), classId) : undefined;
+      const sharedRead = !!cls && cls.teacherId !== uid && await canActorAccessSharedResource(uid, cls.teacherId, 'class', classId!, 'read', db);
+      if (sharedRead) {
+        const { rows, complete, truncated } = await queryDocs(fs.collection('assignments').where('teacherId', '==', cls.teacherId).where('classId', '==', classId), limitOf(args.limit));
+        data = { items: rows.filter((x: any) => x.teacherId === cls.teacherId && x.classId === classId).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('classId', x.classId), ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), ...(typeof x.isOpen === 'boolean' ? { isOpen: x.isOpen } : {}) })), complete, truncated }; sources = sourcesFor('assignments');
+      } else {
+      if (cls && cls.teacherId !== uid) throw new Error('Resource not found');
       const query = fs.collection('assignments').where('teacherId', '==', uid);
-      const filtered = clean(args.classId, 200) ? query.where('classId', '==', clean(args.classId, 200)) : query;
+      const filtered = classId ? query.where('classId', '==', classId) : query;
       const { rows, complete, truncated } = await queryDocs(filtered, limitOf(args.limit));
       data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('classId', x.classId), ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), ...(typeof x.isOpen === 'boolean' ? { isOpen: x.isOpen } : {}) })), complete, truncated }; sources = sourcesFor('assignments');
+      }
     }
   } else if (name === 'getStudentSubmissionHistory' || name === 'getApprovedGradeSummary') {
     const studentId = safeId(args.studentId); if (!studentId) throw new Error('studentId required');
-    const query = fs.collection('submissions').where('teacherId', '==', uid).where('studentId', '==', studentId);
     const approved = name === 'getApprovedGradeSummary';
-    const { rows, complete, truncated } = await queryDocs(approved ? query.where('grade.teacherApproved', '==', true) : query, limitOf(args.limit, 100));
-    const safe = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('assignmentId', x.assignmentId), ...optionalId('classId', x.classId), status: SUBMISSION_STATUSES.includes(x.status) ? x.status : 'unknown', createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
+    let rows: any[] = []; let complete = true; let truncated = false;
+    const classId = safeId(args.classId);
+    if (classId) {
+      const cls = await docById(fs.collection('classes'), classId);
+      const sharedRead = !!cls && cls.teacherId !== uid && await canActorAccessSharedResource(uid, cls.teacherId, 'class', classId, 'read', db);
+      if (!cls || cls.teacherId !== uid && !sharedRead) throw new Error('Resource not found');
+      const member = await docById(fs.collection('classes').doc(classId).collection('students'), studentId);
+      if (!member || member.teacherId !== cls.teacherId || member.classId !== classId) throw new Error('Resource not found');
+      const query = fs.collection('submissions').where('teacherId', '==', cls.teacherId).where('studentId', '==', studentId).where('classId', '==', classId);
+      ({ rows, complete, truncated } = await queryDocs(approved ? query.where('grade.teacherApproved', '==', true) : query, limitOf(args.limit, 100)));
+      rows = rows.filter((x: any) => x.teacherId === cls.teacherId && x.studentId === studentId && x.classId === classId);
+    } else {
+      const query = fs.collection('submissions').where('teacherId', '==', uid).where('studentId', '==', studentId);
+      ({ rows, complete, truncated } = await queryDocs(approved ? query.where('grade.teacherApproved', '==', true) : query, limitOf(args.limit, 100)));
+      rows = rows.filter((x: any) => x.teacherId === uid && x.studentId === studentId);
+    }
+    const safe = rows.map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('assignmentId', x.assignmentId), ...optionalId('classId', x.classId), status: SUBMISSION_STATUSES.includes(x.status) ? x.status : 'unknown', createdAt: x.createdAt, updatedAt: x.updatedAt, ...(safeGrade(x.grade) ? { grade: safeGrade(x.grade) } : {}) }));
     data = { items: approved ? safe.filter((x: any) => x.grade).map((x: any) => ({ ...optionalId('id', x.id), ...optionalId('assignmentId', x.assignmentId), grade: x.grade })) : safe, complete, truncated }; sources = sourcesFor('submissions');
   } else if (name === 'searchLessonPlans' || name === 'getLessonPlan') {
     if (name === 'getLessonPlan') {

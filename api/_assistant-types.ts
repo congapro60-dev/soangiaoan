@@ -174,7 +174,7 @@ export function canUseAssistantShare(
       || (share.expiresAt !== undefined && share.expiresAt <= now)
       || !isOptionalFiniteNumber(share.revokedAt)) return false;
     if (share.ownerUid === actorUid) return true;
-    return share.granteeUid === actorUid && (requiredRole === 'read' || share.role === 'write');
+    return share.granteeUid === actorUid && share.role === requiredRole;
   } catch {
     return false;
   }
