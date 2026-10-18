@@ -5,7 +5,9 @@ import { getAdminDb } from './_exam-core.js';
 const READ_TOOLS = new Set<AssistantToolName>(['listClasses', 'getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'searchLessonPlans', 'getLessonPlan', 'searchExams', 'getAdaptiveProgressSummary', 'getAssistantJobStatus']);
 const MAX_ROWS = 500;
 const clean = (v: unknown, max = 2000) => typeof v === 'string' ? v.slice(0, max) : '';
-const redactTokenUrls = (v: unknown, max: number) => clean(v, max).replace(/https?:\/\/[^\s)\]>"']+/gi, url => /[?&]token=/i.test(url) ? '[liên kết riêng tư đã ẩn]' : url);
+const redactTokenUrls = (v: unknown, max: number) => clean(v, max).replace(/https?:\/\/[^\s)\]>"']+/gi, url => /[?&](?:amp;)?token=/i.test(url) ? '[liên kết riêng tư đã ẩn]' : url);
+const optionalString = (key: string, value: unknown, max: number) => typeof value === 'string' ? { [key]: clean(value, max) } : {};
+const optionalCount = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? { studentCount: value } : {};
 const limitOf = (v: unknown, max = 50) => Math.min(max, Math.max(1, Number.isInteger(v) ? Number(v) : 20));
 const dataOf = (doc: any) => ({ id: doc.id, ...doc.data() });
 const assertOwner = (doc: any, uid: string, field = 'teacherId') => { if (!doc || doc[field] !== uid) throw new Error('Resource not found'); };
@@ -65,7 +67,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
   let sources: Array<{ collection: string; label: string }> = [];
   if (name === 'listClasses') {
     const { rows, complete, truncated } = await queryDocs(fs.collection('classes').where('teacherId', '==', uid), limitOf(args.limit));
-    data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, name: x.name, grade: x.grade, track: x.track, studentCount: x.studentCount, updatedAt: x.updatedAt })), complete, truncated }; sources = sourcesFor('classes');
+    data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, ...optionalString('name', x.name, 200), ...optionalString('grade', x.grade, 40), ...optionalString('track', x.track, 100), ...optionalCount(x.studentCount), ...optionalString('updatedAt', x.updatedAt, 100) })), complete, truncated }; sources = sourcesFor('classes');
   } else if (name === 'getClassSummary' || name === 'listStudents' || name === 'getStudentTeacherSummary') {
     const classId = clean(args.classId, 200); if (!classId) throw new Error('classId required');
     const cls = await docById(fs.collection('classes'), classId); assertOwner(cls, uid);
@@ -85,7 +87,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
       const assignmentIds = new Set(assignments.map((x: any) => x.id));
       const submissions = submissionResult.rows.filter((x: any) => x.teacherId === uid && (assignmentIds.has(x.assignmentId) || x.classId === classId));
       const counts = submissionCounts(roster, assignments, submissions);
-      data = { id: cls.id, name: cls.name, grade: cls.grade, students: roster.length, assignments: assignments.length, submissions: counts, complete: rosterResult.complete && assignmentResult.complete && submissionResult.complete, truncated: rosterResult.truncated || assignmentResult.truncated || submissionResult.truncated };
+      data = { id: cls.id, ...optionalString('name', cls.name, 200), ...optionalString('grade', cls.grade, 40), ...optionalString('track', cls.track, 100), ...optionalString('updatedAt', cls.updatedAt, 100), students: roster.length, assignments: assignments.length, submissions: counts, complete: rosterResult.complete && assignmentResult.complete && submissionResult.complete, truncated: rosterResult.truncated || assignmentResult.truncated || submissionResult.truncated };
       }
     }
     sources = sourcesFor('classes', `classes/${classId}/students`, ...(name === 'getClassSummary' ? ['assignments', 'submissions'] : []));
@@ -106,7 +108,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
       const query = fs.collection('assignments').where('teacherId', '==', uid);
       const filtered = clean(args.classId, 200) ? query.where('classId', '==', clean(args.classId, 200)) : query;
       const { rows, complete, truncated } = await queryDocs(filtered, limitOf(args.limit));
-      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, classId: x.classId, title: x.title, type: x.type, dueAt: x.dueAt, isOpen: x.isOpen })), complete, truncated }; sources = sourcesFor('assignments');
+      data = { items: rows.filter((x: any) => x.teacherId === uid).map((x: any) => ({ id: x.id, classId: x.classId, ...optionalString('title', x.title, 300), ...optionalString('type', x.type, 80), ...optionalString('dueAt', x.dueAt, 100), isOpen: x.isOpen })), complete, truncated }; sources = sourcesFor('assignments');
     }
   } else if (name === 'getStudentSubmissionHistory' || name === 'getApprovedGradeSummary') {
     const studentId = clean(args.studentId, 200); if (!studentId) throw new Error('studentId required');

@@ -32,18 +32,29 @@ describe('assistant private read tools', () => {
   });
   it('redacts token-bearing Storage URLs in lesson content and search snippets only', async () => {
     const storageUrl = 'https://firebasestorage.googleapis.com/v0/b/example/o/lesson_images%2Fimg.png?alt=media&token=secret-token';
-    const content = `Giữ phần này. ![ảnh](${storageUrl}) Và https://example.com/public.png vẫn công khai.`;
+    const content = `Giữ phần này. ![ảnh](${storageUrl}) ![ảnh HTML](https://firebasestorage.googleapis.com/v0/b/example/o/lesson_images%2Fhtml.png?alt=media&amp;token=secret) Và https://example.com/public.png vẫn công khai.`;
     const db = fakeDb({ lessonPlans: [{ id: 'p', userId: 'A', title: 'Lesson', content, fileUrls: [storageUrl], answerKey: 'secret answer' }] });
     const lesson = (await runAssistantReadTool('getLessonPlan', { lessonPlanId: 'p' }, actor('A'), db)).data as any;
     const search = (await runAssistantReadTool('searchLessonPlans', {}, actor('A'), db)).data as any;
     for (const output of [lesson.content, search.items[0].snippet]) {
       expect(output).toContain('Giữ phần này.');
+      expect(output).toContain('![ảnh HTML]([liên kết riêng tư đã ẩn])');
       expect(output).toContain('Và https://example.com/public.png vẫn công khai.');
       expect(output).not.toContain('firebasestorage.googleapis.com');
       expect(output).not.toContain('secret-token');
     }
     expect(JSON.stringify({ lesson, search })).not.toContain('secret answer');
     expect(JSON.stringify({ lesson, search })).not.toContain('fileUrls');
+  });
+  it('bounds metadata strings and omits malformed fields or student counts', async () => {
+    const db = fakeDb({
+      classes: [{ id: 'c', teacherId: 'A', name: 'n'.repeat(250), grade: 7, track: 't'.repeat(120), studentCount: '4', updatedAt: 'u'.repeat(120) }],
+      assignments: [{ id: 'a', teacherId: 'A', classId: 'c', title: 't'.repeat(350), type: false, dueAt: 'd'.repeat(120) }],
+    });
+    const classes = (await runAssistantReadTool('listClasses', {}, actor('A'), db)).data as any;
+    expect(classes.items[0]).toEqual({ id: 'c', name: 'n'.repeat(200), track: 't'.repeat(100), updatedAt: 'u'.repeat(100) });
+    const assignments = (await runAssistantReadTool('listAssignments', {}, actor('A'), db)).data as any;
+    expect(assignments.items[0]).toEqual({ id: 'a', classId: 'c', title: 't'.repeat(300), dueAt: 'd'.repeat(100), isOpen: undefined });
   });
   it('aggregates adaptive sessions from StudentLearningProfile.totalSessions', async () => {
     const db = fakeDb({ studentLearningProfiles: [
