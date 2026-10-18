@@ -12,7 +12,7 @@ export type AssistantToolName =
 export type AssistantResourceType = 'class' | 'lessonPlan';
 export type AssistantRole = 'read' | 'write';
 export type AssistantShareStatus = 'active' | 'revoked';
-export type AssistantConfirmationStatus = 'pending' | 'confirmed' | 'cancelled' | 'expired' | 'executed';
+export type AssistantConfirmationStatus = 'pending' | 'executing' | 'cancelled' | 'expired' | 'executed' | 'outcome_unknown';
 
 export interface AssistantActor {
   firebaseUid: string;
@@ -66,20 +66,31 @@ export interface AssistantShareDoc {
   revokedAt?: number;
 }
 
+export function isValidAssistantShareExpiry(expiresAt: unknown, now: number): expiresAt is number | undefined {
+  return isFiniteNumber(now) && (expiresAt === undefined || (isFiniteNumber(expiresAt) && expiresAt > now));
+}
+
 export interface AssistantConfirmationDoc {
   channel: Channel;
   channelAccountId: string;
   channelUserId: string;
   channelChatId?: string;
+  linkId: string;
   actorUid: string;
   toolName: AssistantToolName;
   requestHash: string;
+  payload?: Record<string, unknown>;
+  resourceIds?: string[];
+  resourceScopes?: Array<{ resourceType: AssistantResourceType; resourceId: string; requiredRole: AssistantRole; ownerUid: string }>;
+  recipients?: string[];
   preview: string;
   createdAt: number;
   expiresAt: number;
   status: AssistantConfirmationStatus;
+  executionStartedAt?: number;
+  executionLeaseExpiresAt?: number;
   executedAt?: number;
-  resultRef?: string;
+  result?: unknown;
 }
 
 export interface AssistantAuditLogDoc {
@@ -90,7 +101,7 @@ export interface AssistantAuditLogDoc {
   channelChatId?: string;
   toolName: AssistantToolName;
   resourceIds: string[];
-  resultStatus: 'success' | 'denied' | 'error' | 'queued';
+  resultStatus: 'pending' | 'executing' | 'success' | 'denied' | 'error' | 'queued' | 'cancelled' | 'expired' | 'outcome_unknown' | 'replayed';
   confirmationId?: string;
   requestHash: string;
   errorClass?: string;
@@ -99,6 +110,7 @@ export interface AssistantAuditLogDoc {
 
 export interface AssistantJobDoc {
   actorUid: string;
+  linkId: string;
   channel: Channel;
   channelAccountId: string;
   channelUserId: string;
@@ -106,6 +118,9 @@ export interface AssistantJobDoc {
   toolName: AssistantToolName;
   requestHash: string;
   status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  progress: number;
+  retryCount: number;
+  maxRetries: number;
   createdAt: number;
   updatedAt: number;
   confirmationId?: string;
@@ -131,13 +146,14 @@ const isOptionalFiniteNumber = (value: unknown): boolean =>
 export function isUsableChannelLink(
   link: ChannelLinkDoc,
   now: number,
-  identity?: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'>,
+  identity?: Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId' | 'channelChatId'>,
 ): boolean {
   try {
     if (!isRecord(link) || !isFiniteNumber(now)) return false;
-    const validIdentity = (value: unknown): value is Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId'> =>
+    const validIdentity = (value: unknown): value is Pick<ChannelLinkDoc, 'channel' | 'channelAccountId' | 'channelUserId' | 'channelChatId'> =>
       isRecord(value) && isChannel(value.channel)
-      && isNonEmptyString(value.channelAccountId) && isNonEmptyString(value.channelUserId);
+      && isNonEmptyString(value.channelAccountId) && isNonEmptyString(value.channelUserId)
+      && (value.channelChatId === undefined || isNonEmptyString(value.channelChatId));
     if (!validIdentity(link) || !isNonEmptyString(link.firebaseUid)
       || (identity !== undefined && !validIdentity(identity))) return false;
     return link.active === true
@@ -147,7 +163,8 @@ export function isUsableChannelLink(
       && isOptionalFiniteNumber(link.revokedAt) && link.revokedAt === undefined
       && (identity === undefined || (link.channel === identity.channel
         && link.channelAccountId === identity.channelAccountId
-        && link.channelUserId === identity.channelUserId));
+        && link.channelUserId === identity.channelUserId
+        && link.channelChatId === identity.channelChatId));
   } catch {
     return false;
   }

@@ -61,6 +61,22 @@ describe('assistant explicit sharing', () => {
     await expect(runAssistantReadTool('getStudentSubmissionHistory', { classId: 'c1', studentId: 'missing' }, actor('teacher'), db)).rejects.toThrow('Resource not found');
   });
 
+  it('hides student performance labels from shared-class readers while retaining them for the owner', async () => {
+    const db = fakeDb({
+      classes: [{ id: 'c1', teacherId: 'owner' }],
+      assistantShares: [share()],
+      'classes/c1/students': [{ id: 's1', teacherId: 'owner', classId: 'c1', name: 'Student', status: 'needs_support', progress: 42 }],
+    });
+
+    const shared = await runAssistantReadTool('listStudents', { classId: 'c1' }, actor('teacher'), db);
+    expect(shared.data).toMatchObject({ items: [{ id: 's1', name: 'Student' }] });
+    expect((shared.data as any).items[0]).not.toHaveProperty('status');
+    expect((shared.data as any).items[0]).not.toHaveProperty('progress');
+
+    const owned = await runAssistantReadTool('listStudents', { classId: 'c1' }, actor('owner'), db);
+    expect((owned.data as any).items[0]).toMatchObject({ status: 'needs_support', progress: 42 });
+  });
+
   it('allows matching lesson-plan reads through active grants only', async () => {
     const writeDb = fakeDb({ lessonPlans: [{ id: 'p1', userId: 'owner', title: 'Shared' }], assistantShares: [share({ resourceType: 'lessonPlan', resourceId: 'p1', role: 'write' })] });
     await expect(runAssistantReadTool('getLessonPlan', { lessonPlanId: 'p1' }, actor('teacher'), writeDb)).rejects.toThrow('Resource not found');

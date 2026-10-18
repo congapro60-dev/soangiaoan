@@ -1,8 +1,9 @@
 /// <reference types="node" />
 import crypto from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
+import { FieldValue } from 'firebase-admin/firestore';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
-import { canUseAssistantShare, isUsableChannelLink, type AssistantActor, type AssistantRequestNonceDoc, type AssistantShareDoc, type AssistantResourceType, type AssistantRole, type Channel, type ChannelLinkDoc, type LinkCodeDoc } from './_assistant-types.js';
+import { canUseAssistantShare, isUsableChannelLink, isValidAssistantShareExpiry, type AssistantActor, type AssistantRequestNonceDoc, type AssistantShareDoc, type AssistantResourceType, type AssistantRole, type Channel, type ChannelLinkDoc, type LinkCodeDoc } from './_assistant-types.js';
 import { getAdminDb } from './_exam-core.js';
 
 export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
@@ -70,7 +71,11 @@ export const resolveChannelActor = async (channel: Channel, accountId: string, u
   const firestore = adminDb(db);
   const snapshot = await firestore.collection('channelLinks').where('channel', '==', channel).where('channelAccountId', '==', accountId).where('channelUserId', '==', userId).where('active', '==', true).get();
   const now = Date.now();
-  const match = snapshot.docs.find(doc => isUsableChannelLink(doc.data() as ChannelLinkDoc, now, { channel, channelAccountId: accountId, channelUserId: userId }));
+  const match = snapshot.docs.find(doc => {
+    const value = doc.data() as ChannelLinkDoc;
+    return isUsableChannelLink(value, now, { channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId })
+      && value.channelChatId === chatId;
+  });
   if (!match) throw new Error('Channel is not linked');
   const link = match.data() as ChannelLinkDoc;
   return { firebaseUid: link.firebaseUid, channel, channelAccountId: accountId, channelUserId: userId, ...(link.channelChatId ? { channelChatId: link.channelChatId } : {}), linkId: match.id, active: true };
@@ -105,14 +110,33 @@ export const createLinkCode = async (idToken: string, now = Date.now(), db?: Fir
   return { code, expiresAt, linkId: ref.id };
 };
 
-const cancelConfirmations = async (tx: Transaction, db: Firestore, identity: ChannelIdentity, actorUid: string) => {
+const cancelConfirmations = async (tx: Transaction, db: Firestore, identity: ChannelIdentity, actorUid: string, linkId?: string, now = Date.now(), ignoreChat = false) => {
   const query = db.collection('assistantConfirmations')
     .where('channel', '==', identity.channel)
     .where('channelAccountId', '==', identity.channelAccountId)
     .where('channelUserId', '==', identity.channelUserId)
-    .where('status', '==', 'pending');
+    .where('status', '==', 'pending')
+    .limit(100);
   const snapshot = await tx.get(query);
-  snapshot.docs.forEach(doc => tx.update(doc.ref, { status: 'cancelled', cancelledAt: Date.now(), actorUid }));
+  snapshot.docs.forEach(doc => {
+    const value = doc.data() as { channelChatId?: string; linkId?: string };
+    const sameChat = ignoreChat || value.channelChatId === identity.channelChatId;
+    const sameLink = linkId === undefined || value.linkId === linkId;
+    if (sameChat && sameLink) {
+      const confirmation = doc.data() as { actorUid?: string; channel?: Channel; channelAccountId?: string; channelUserId?: string; channelChatId?: string; toolName?: string; requestHash?: string; resourceScopes?: Array<{ resourceId?: string }> };
+      tx.update(doc.ref, { status: 'cancelled', cancelledAt: now, actorUid, payload: FieldValue.delete(), resourceScopes: FieldValue.delete(), recipients: FieldValue.delete() });
+      tx.set(db.collection('assistantAuditLogs').doc(), {
+        actorUid: confirmation.actorUid || actorUid,
+        channel: confirmation.channel || identity.channel,
+        channelAccountId: confirmation.channelAccountId || identity.channelAccountId,
+        channelUserId: confirmation.channelUserId || identity.channelUserId,
+        ...(confirmation.channelChatId ? { channelChatId: confirmation.channelChatId } : {}),
+        toolName: confirmation.toolName || 'getAssistantJobStatus',
+        resourceIds: (confirmation.resourceScopes || []).map(scope => scope.resourceId).filter((resourceId): resourceId is string => typeof resourceId === 'string').slice(0, 50),
+        resultStatus: 'cancelled', confirmationId: doc.id, requestHash: confirmation.requestHash || '', createdAt: now,
+      });
+    }
+  });
 };
 
 export const consumeLinkCode = async (
@@ -145,7 +169,7 @@ export const consumeLinkCode = async (
     if (linkSnapshot.exists && linkSnapshot.data()?.active === true && linkSnapshot.data()?.firebaseUid !== value.firebaseUid) {
       throw new Error('Link is already used');
     }
-    await cancelConfirmations(tx, firestore, identity, value.firebaseUid);
+    await cancelConfirmations(tx, firestore, identity, value.firebaseUid, undefined, now, true);
     existing.docs.forEach(doc => tx.update(doc.ref, { active: false, revokedAt: now, updatedAt: now }));
 
     const link: ChannelLinkDoc = {
@@ -175,7 +199,7 @@ export const revokeChannelLink = async (
     const snapshot = await tx.get(ref);
     if (!snapshot.exists || snapshot.data()?.firebaseUid !== firebaseUid) throw new Error('Link not found');
     const link = snapshot.data() as ChannelLinkDoc;
-    await cancelConfirmations(tx, firestore, link, firebaseUid);
+    await cancelConfirmations(tx, firestore, link, firebaseUid, linkId, now, true);
     tx.update(ref, { active: false, revokedAt: now, updatedAt: now });
   });
 };
@@ -226,10 +250,10 @@ export const cancelLinkCode = async (
   });
 };
 
-export const createAssistantShare = async (idToken: string, input: { resourceType: AssistantResourceType; resourceId: string; granteeUid: string; role: AssistantRole }, now = Date.now(), db?: Firestore) => {
+export const createAssistantShare = async (idToken: string, input: { resourceType: AssistantResourceType; resourceId: string; granteeUid: string; role: AssistantRole; expiresAt?: number }, now = Date.now(), db?: Firestore) => {
   const ownerUid = await verifyFirebaseIdToken(idToken);
-  const { resourceType, resourceId, granteeUid, role } = input;
-  if (!['class', 'lessonPlan'].includes(resourceType) || !resourceId?.trim() || !granteeUid?.trim() || !['read', 'write'].includes(role) || ownerUid === granteeUid) throw new Error('Invalid share');
+  const { resourceType, resourceId, granteeUid, role, expiresAt } = input;
+  if (!['class', 'lessonPlan'].includes(resourceType) || !resourceId?.trim() || !granteeUid?.trim() || !['read', 'write'].includes(role) || ownerUid === granteeUid || !isValidAssistantShareExpiry(expiresAt, now)) throw new Error('Invalid share');
   const firestore = adminDb(db);
   const collection = resourceType === 'class' ? 'classes' : 'lessonPlans';
   const ownerField = resourceType === 'class' ? 'teacherId' : 'userId';
@@ -238,7 +262,7 @@ export const createAssistantShare = async (idToken: string, input: { resourceTyp
   const user = await getAuth().getUser(granteeUid);
   if (!user.uid) throw new Error('Grantee not found');
   const ref = firestore.collection('assistantShares').doc();
-  const share: AssistantShareDoc = { resourceType, resourceId, ownerUid, granteeUid, role, status: 'active', createdAt: now };
+  const share: AssistantShareDoc = { resourceType, resourceId, ownerUid, granteeUid, role, status: 'active', createdAt: now, ...(expiresAt === undefined ? {} : { expiresAt }) };
   await ref.set(share);
   return { shareId: ref.id, ...share };
 };
@@ -257,6 +281,26 @@ export const revokeAssistantShare = async (idToken: string, shareId: string, now
     const ref = firestore.collection('assistantShares').doc(shareId);
     const snapshot = await tx.get(ref);
     if (!snapshot.exists || snapshot.data()?.ownerUid !== ownerUid) throw new Error('Share not found');
+    const share = snapshot.data() as AssistantShareDoc;
+    const pending = await tx.get(firestore.collection('assistantConfirmations')
+      .where('actorUid', '==', share.granteeUid)
+      .where('status', '==', 'pending')
+      .limit(100));
+    pending.docs.forEach(doc => {
+      const confirmation = doc.data() as { resourceScopes?: Array<{ resourceType?: string; resourceId?: string; ownerUid?: string }>; channel?: Channel; channelAccountId?: string; channelUserId?: string; channelChatId?: string; actorUid?: string; toolName?: string; requestHash?: string };
+      const matches = (confirmation.resourceScopes || []).some(scope => scope.resourceType === share.resourceType && scope.resourceId === share.resourceId && scope.ownerUid === share.ownerUid);
+      if (!matches) return;
+      tx.update(doc.ref, { status: 'cancelled', cancelledAt: now, payload: FieldValue.delete(), resourceIds: FieldValue.delete(), resourceScopes: FieldValue.delete(), recipients: FieldValue.delete() });
+      tx.set(firestore.collection('assistantAuditLogs').doc(), {
+        actorUid: confirmation.actorUid || share.granteeUid,
+        channel: confirmation.channel || 'telegram',
+        channelAccountId: confirmation.channelAccountId || 'unknown',
+        channelUserId: confirmation.channelUserId || 'unknown',
+        ...(confirmation.channelChatId ? { channelChatId: confirmation.channelChatId } : {}),
+        toolName: confirmation.toolName || 'getAssistantJobStatus', resourceIds: [share.resourceId], resultStatus: 'cancelled',
+        confirmationId: doc.id, requestHash: confirmation.requestHash || '', createdAt: now,
+      });
+    });
     tx.update(ref, { status: 'revoked', revokedAt: now });
   });
 };

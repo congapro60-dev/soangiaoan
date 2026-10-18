@@ -135,7 +135,7 @@ describe('assistant private read tools', () => {
     await expect(runAssistantReadTool('searchExams', {}, actor('B'), fakeDb({ exams: [{ id: 'x', teacherId: 'A' }] }))).resolves.toMatchObject({ data: { items: [] } });
     expect(await runAssistantReadTool('getStudentTeacherSummary', { classId: 'c', studentId: 's0' }, actor('A'), db)).toMatchObject({ data: { id: 's0' } });
     await expect(runAssistantReadTool('getAssistantJobStatus', { jobId: 'j' }, actor('A'), db)).rejects.toThrow('Resource not found');
-    const malformedJob = fakeDb({ assistantJobs: [{ id: 'bad', actorUid: 'A', status: 'x'.repeat(300), toolName: 'x'.repeat(300) }] });
+    const malformedJob = fakeDb({ assistantJobs: [{ id: 'bad', actorUid: 'A', linkId: 'link', status: 'x'.repeat(300), toolName: 'x'.repeat(300) }] });
     await expect(runAssistantReadTool('getAssistantJobStatus', { jobId: 'bad' }, actor('A'), malformedJob)).resolves.toMatchObject({ data: { status: 'unknown' } });
     expect(JSON.stringify(await runAssistantReadTool('getAssistantJobStatus', { jobId: 'bad' }, actor('A'), malformedJob))).not.toContain('toolName');
     const invalidIds = fakeDb({ assignments: [{ id: 'a', teacherId: 'A', classId: 'x'.repeat(257) }] });
@@ -147,7 +147,7 @@ describe('assistant private read tools', () => {
     await expect(runAssistantReadTool('listClasses', {}, actor('A'), db)).rejects.toThrow('query failed');
   });
   it('refuses unlinked identities and exposes only the linked owner', async () => {
-    const db = fakeDb({ channelLinks: [{ id: 'l', firebaseUid: 'A', channel: 'telegram', channelAccountId: 'bot', channelUserId: '123', createdAt: 1, updatedAt: 1, active: true }] });
+    const db = fakeDb({ channelLinks: [{ id: 'l', firebaseUid: 'A', channel: 'telegram', channelAccountId: 'bot', channelUserId: '123', channelChatId: '123', createdAt: 1, updatedAt: 1, active: true }] });
     await expect(resolveChannelActor('telegram', 'bot', '123', '123', db)).resolves.toMatchObject({ firebaseUid: 'A' });
     await expect(resolveChannelActor('telegram', 'bot', '999', '999', db)).rejects.toThrow('Channel is not linked');
   });

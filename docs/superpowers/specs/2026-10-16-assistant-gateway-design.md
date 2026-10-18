@@ -213,16 +213,21 @@ Confirmation fields:
 - channelUserId
 - id
 - actorUid
-- channelAccountId
-- channelUserId
 - channelChatId (when the channel provides one)
 - toolName
 - requestHash
+- bounded, normalized tool payload (server-only, cleared on terminal state)
+- resource IDs and intended recipients
+- server-resolved resource scopes (owner UID and required role; never trusted from channel input)
 - preview
 - expiresAt
-- status: pending, confirmed, cancelled, expired, or executed
+- status: pending, executing, cancelled, expired, executed, or outcome_unknown
 
-Confirmation accepts only the same linked channel identity (channel + channelAccountId + channelUserId, with optional chat) and matching request hash. A second confirmation or replay returns the existing result and does not repeat the side effect.
+Confirmation expires after five minutes by default. A duplicate prepare request with the same adapter request ID and request hash returns the same confirmation; a reused request ID with different content is rejected. Confirmation accepts only the same linked Firebase actor and exact channel identity (channel + channelAccountId + channelUserId + optional chat) with the matching request hash.
+
+Preparation requires a caller-supplied stable request ID and at least one server-resolved resource scope. The gateway derives each scope's current owner and tool-appropriate role from Firestore, checks the tool's permitted resource types and payload root IDs against those scopes, and verifies the current owner/share grant before storing; channel input cannot choose an owner UID or required role. Payload and preview text reject private URLs, secrets, common PII, PINs, submissions, and teacher notes.
+
+Atomically claim a pending confirmation as `executing` before starting its side effect. Success stores a bounded, safe result, changes status to `executed`, and clears the payload. Any side-effect error or process crash after the claim is treated as `outcome_unknown`; replays return that status and never retry automatically. Cancellation and expiration also clear the payload. A bounded cleanup sweep expires pending records and locks abandoned execution leases as `outcome_unknown`; status reads also perform this normalization. This favors no duplicate classroom actions over automatic recovery when the result cannot be proven.
 
 Audit records include actor UID, channel account/user IDs, tool, resource IDs, result status, confirmation ID, request hash, error class, and timestamps. Never store raw API keys, PINs, full student submissions, or private download tokens in logs.
 

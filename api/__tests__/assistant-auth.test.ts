@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canUseAssistantShare, isUsableChannelLink, type AssistantShareDoc, type ChannelLinkDoc } from '../_assistant-types';
+import { canUseAssistantShare, isUsableChannelLink, isValidAssistantShareExpiry, type AssistantShareDoc, type ChannelLinkDoc } from '../_assistant-types';
 
 const now = 1_000;
 const link: ChannelLinkDoc = {
@@ -12,6 +12,16 @@ const share: AssistantShareDoc = {
 };
 
 describe('assistant authorization contracts', () => {
+  it('accepts optional future share expiry and rejects invalid or past timestamps', () => {
+    expect(isValidAssistantShareExpiry(undefined, now)).toBe(true);
+    expect(isValidAssistantShareExpiry(now + 1, now)).toBe(true);
+    expect(isValidAssistantShareExpiry(now, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(now - 1, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(Number.NaN, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(Number.POSITIVE_INFINITY, now)).toBe(false);
+    expect(isValidAssistantShareExpiry('tomorrow', now)).toBe(false);
+  });
+
   it('accepts active links and rejects expired or revoked links', () => {
     expect(isUsableChannelLink(link, now)).toBe(true);
     expect(isUsableChannelLink(link, now, { channel: 'telegram', channelAccountId: 'bot-1', channelUserId: 'unknown' })).toBe(false);
@@ -78,5 +88,7 @@ describe('assistant authorization contracts', () => {
   it('keeps the same Zalo UID scoped to its OA', () => {
     expect(isUsableChannelLink(link, now, { channel: 'zalo_oa', channelAccountId: 'oa-2', channelUserId: 'uid-1' })).toBe(false);
     expect(isUsableChannelLink({ ...link, channelAccountId: 'oa-2' }, now, link)).toBe(false);
+    expect(isUsableChannelLink(link, now, { ...link, channelChatId: '' })).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelChatId: 'zalo-chat' }, now, link)).toBe(false);
   });
 });

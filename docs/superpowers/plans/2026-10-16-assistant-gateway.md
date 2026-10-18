@@ -157,7 +157,7 @@ Files:
 - Create: api/_assistant-core.ts
 - Modify: vercel.json only when needed for the single route.
 
-- [x] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, revokeChannelLink, cancelLinkCode, listChannelLinks, and safe NOT_IMPLEMENTED responses for chat, confirm, cancel, and jobStatus.
+- [x] Accept POST actions createLinkCode, consumeLinkCode, revokeLink, revokeChannelLink, cancelLinkCode, listChannelLinks, confirmation lifecycle actions, and safe NOT_IMPLEMENTED response for chat; Task 7 adds authenticated jobStatus.
 - [x] Normalize `channel`, `channelAccountId`, and `channelUserId`; keep link and authorization channel-specific.
 - [x] For web actions, verify Firebase ID token from Authorization header.
 - [x] For adapter actions, verify HMAC over timestamp, nonce, body, and service identifier using SMARTPLAN_ASSISTANT_SECRET.
@@ -166,7 +166,7 @@ Files:
 - [x] Normalize every request to action, actor, requestId, and payload.
 - [x] Return stable kinds: answer, confirmation, job, or safe error.
 - [x] Preserve legacy top-level client responses while unwrapping `{ result }` gateway envelopes; bind verified Zalo OA identity and numeric Telegram user IDs.
-- [ ] Chat, confirm, cancel, and jobStatus remain safe NOT_IMPLEMENTED placeholders; actor/tool dispatch is deferred.
+- [x] Chat remains a safe NOT_IMPLEMENTED placeholder; confirmation lifecycle is implemented separately, while write-tool dispatch remains deferred until Task 9. Task 7 exposes authenticated job status.
 - [x] Redact internal error details before sending to Telegram.
 
 Run:
@@ -217,12 +217,14 @@ Files:
 - Modify: src/types.ts
 - Modify: src/components/modals/SettingsModal.tsx
 
-- [ ] Add owner-only web actions to create, list, revoke, and expire a share grant.
-- [ ] Support resource types class and lessonPlan; roles read and write.
-- [ ] Resolve a shared resource only when an active grant matches granteeUid, resource ID, and required role.
-- [ ] Keep student submissions and grades read-only through a read class share; only the owner can approve or edit grades in phase one.
-- [ ] Show share state in the web UI without exposing secret collections.
-- [ ] Test owner, grantee, revoked grant, wrong resource type, and write-role escalation.
+- [x] Add owner-only web actions to create, list, revoke, and expire a share grant.
+- [x] Support resource types class and lessonPlan; roles read and write.
+- [x] Resolve a shared resource only when an active grant matches granteeUid, resource ID, and required role.
+- [x] Keep student submissions and grades read-only through a read class share; only the owner can approve or edit grades in phase one.
+- [x] Show share state in the web UI without exposing secret collections.
+- [x] Test owner, grantee, revoked grant, wrong resource type, and write-role escalation.
+
+Validation (2026-10-18): `assistant-auth`, `assistant-tools`, and `assistant-sharing` tests pass (21/21); `lint:api`, `lint`, `build`, and `git diff --check` pass. Build reports existing module externalization, mixed import, and large-chunk warnings. A fresh read-only review caught and closed a UI expiry-validation issue. Cross-vendor review remains degraded: no matching Claude Desktop task; the local model router listener is bound to `0.0.0.0`, so project code was not sent through it.
 
 Run:
 
@@ -238,18 +240,22 @@ Expected: private-by-default and explicit-share matrix passes.
 
 Files:
 - Create: api/__tests__/assistant-confirmation.test.ts
-- Modify: api/_assistant-core.ts
+- Create: api/_assistant-core.ts
+- Create: api/_assistant-confirmations.ts
 - Modify: api/_assistant-tools.ts
 - Modify: api/assistant.ts
 
-- [ ] Classify tools as read, draft, write, send, destructive, or billable.
-- [ ] Require confirmation for every category except read.
-- [ ] Build request hash from normalized tool name, actor, resource IDs, payload, and intended recipients.
-- [ ] Store a short-lived confirmation with preview, expiry, and status.
-- [ ] Accept confirmation only from the same linked channel identity (channel + channelAccountId + channelUserId, optional channelChatId) and matching request hash.
-- [ ] Mark confirmed records executed atomically before side effect; replay returns the original result.
-- [ ] Write audit logs for reads that expose student data and all mutations.
-- [ ] Test cancel, expiry, wrong chat, changed payload, replay, and partial failure.
+- [x] Classify tools as read, draft, write, send, destructive, or billable.
+- [x] Require confirmation for every category except read.
+- [x] Build request hash from normalized tool name, actor, resource IDs, payload, and intended recipients.
+- [x] Store a short-lived confirmation with normalized payload, server-resolved scopes, preview, expiry, and status; clear payload at terminal states.
+- [x] Accept confirmation only from the same linked channel identity (channel + channelAccountId + channelUserId, optional channelChatId) and matching request hash.
+- [x] Claim a confirmation atomically before side effects; replay returns the stored result and never repeats a claimed action.
+- [x] On ambiguous side-effect failure or crash, return `OUTCOME_UNKNOWN` and lock automatic retry.
+- [x] Write audit logs for reads that expose student data and all mutations.
+- [x] Test cancel, expiry, wrong identity/chat, changed payload, replay, partial failure, revoked link/share, scope mismatch, privacy redaction, and cleanup.
+
+Validation (2026-10-18): full suite passed (73 files, 1,078 tests); confirmation/auth/tools/sharing/gateway tests passed (40/40 before final hardening, 20/20 after the final confirmation hardening); API typecheck and full lint passed; build passed with existing module externalization, mixed import, and large-chunk warnings; `firestore.indexes.json` parses. Engine requires a stable prepare request ID, server-resolves resource owners/tool roles/permitted scope types and target ownership, checks current grants before prepare, re-checks exact linked identity/current link/owner resource/active share and target IDs inside the claim transaction, validates stored confirmation schema fail-closed, audits terminal/replay/denied/cancellation events, clears terminal payloads, and sweeps expired/abandoned records. Write executor registry remains empty until Task 9, so `/confirm` returns `NOT_IMPLEMENTED` and cannot mutate classroom data in this task. Cross-vendor review remains degraded: no matching Claude Desktop task; the local model router listener was bound to `0.0.0.0`, so project code was not sent through it.
 
 Contract to implement before the confirmation handler:
 
@@ -261,11 +267,17 @@ type AssistantConfirmation = {
   channelAccountId: string;
   channelUserId: string;
   channelChatId?: string;
+  linkId: string;
   toolName: AssistantToolName;
   requestHash: string;
+  payload?: Record<string, unknown>;
+  resourceIds?: string[];
+  resourceScopes?: Array<{ resourceType: 'class' | 'lessonPlan'; resourceId: string; requiredRole: 'read' | 'write'; ownerUid: string }>;
+  recipients?: string[];
   preview: string;
-  expiresAt: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'expired' | 'executed';
+  expiresAt: number;
+  status: 'pending' | 'executing' | 'cancelled' | 'expired' | 'executed' | 'outcome_unknown';
+  result?: unknown;
 };
 ~~~
 
@@ -292,12 +304,12 @@ Files:
 - Create: lesson-bot/app/assistant_client.py
 - Create: lesson-bot/tests/test_assistant_client.py
 
-- [ ] Create job records for lesson generation, export, bulk grading, and multi-recipient messages.
-- [ ] Store jobId, actor, tool, request hash, status, progress, retry count, result references, and redacted error class.
-- [ ] Enforce one active job for the same request hash unless the previous job is terminal.
-- [ ] Implement bot client methods send_request, confirm, cancel, and get_job_status.
-- [ ] Configure SMARTPLAN_ASSISTANT_URL, SMARTPLAN_ASSISTANT_SECRET, request timeout, and polling interval through environment variables.
-- [ ] Test queueing, status transitions, retryable failure, terminal failure, and idempotent polling.
+- [ ] Create job records from confirmed lesson generation, export, bulk grading, and multi-recipient message executors (executor wiring remains Task 9).
+- [x] Store jobId, actor, link identity, tool, request hash, status, progress, retry count, result references, and redacted error class.
+- [x] Enforce one active job for the same request hash unless the previous job is terminal; bind status reads to the exact channel link.
+- [x] Implement bot client methods `send_request`, `confirm`, `cancel`, and `get_job_status`.
+- [x] Configure `SMARTPLAN_ASSISTANT_URL`, `SMARTPLAN_ASSISTANT_SECRET`, request timeout, and polling interval through environment variables.
+- [x] Test queueing, status transitions, retryable failure, terminal failure, idempotent polling, gateway `jobStatus`, HMAC envelopes, and polling timeout.
 
 Run:
 
@@ -307,6 +319,8 @@ python -m unittest discover -s "C:\Users\ADMIN\.codex\worktrees\smart-lesson-pla
 ~~~
 
 Expected: job state transitions and client envelope tests pass.
+
+Task 7 validation (2026-10-19): SmartPlan full suite passed (75 files, 1,083 tests), `lint`, `lint:api`, and `build` passed; Vite emitted only existing externalization/chunk-size warnings. Bot contract tests passed (6 tests) with no network calls and `git diff --check` passed. Job creation is intentionally not reachable from `/confirm` while the write executor registry is empty; Task 9 must create the job only after a confirmed executor claims the action. `linkId` is required on new job records, malformed/private result references fail closed, and status reads fail closed for a revoked/relinked channel. `/consumeLinkCode` returns only `{ linked: true }`; internal IDs stay server-side. `prepare_confirmation` requires a stable request ID for retries.
 
 ---
 
@@ -319,15 +333,17 @@ Files:
 - Modify: lesson-bot/README.md
 - Modify: lesson-bot/HANDOFF.md
 
-- [ ] Add Telegram `/link`, `/unlink`, `/confirm`, `/cancel`, `/status`, and `/help` entries.
-- [ ] Add Zalo webhook link, confirmation, cancellation, and status handling.
-- [ ] Route a linked teacher's natural-language message from either adapter to the shared gateway when it is not a legacy TDS/MOET command.
-- [ ] Preserve legacy PPCT audit/generation commands during migration.
-- [ ] Render confirmation previews with target, scope, count, recipients, and expiration.
-- [ ] Poll job status with bounded backoff and stop at terminal state.
-- [ ] Reject unlinked users without revealing whether a Firebase account exists.
-- [ ] Test Telegram linking, read request, confirmation, cancellation, job status, legacy compatibility, and malformed responses.
-- [ ] Test Zalo webhook signature/verify, OA ID + UID binding, event normalization, OpenAPI reply/send, approved message type/template checks, and seven-day interaction policy.
+- [x] Add Telegram `/link`, `/unlink`, `/confirm`, `/cancel`, `/status`, and `/help` entries; `/unlink` remains an authenticated web-only revoke.
+- [x] Add Zalo webhook link, confirmation, cancellation, and status handling.
+- [x] Route a linked teacher's natural-language message from either adapter to the shared gateway when it is not a legacy TDS/MOET command; gateway `chat` stays fail-closed until its web tool dispatcher exists.
+- [x] Preserve legacy PPCT audit/generation commands during migration.
+- [x] Render bounded confirmation previews with target/hash/expiration when the gateway returns them.
+- [ ] Poll job status with bounded backoff and stop at terminal state (client has bounded fixed-interval polling; adapter auto-poll remains open).
+- [x] Reject unlinked users without revealing whether a Firebase account exists.
+- [x] Test Telegram linking, confirmation, cancellation, job status, private-chat routing, legacy compatibility, and malformed responses.
+- [ ] Real Zalo approved-message/template and seven-day policy canary; implementation is reactive-only and sends no proactive messages.
+
+Task 8 validation (2026-10-19): bot worktree `C:\Users\ADMIN\Downloads\edu-lesson-automation-task7` passed 22 stdlib unittest cases, AST parsing, compileall, and `git diff --check`. Zalo uses exact raw-body HMAC, configured OA ID plus allowlist, OA-scoped UID, durable SQLite event claims, timestamp freshness, server-only OpenAPI token, private output redaction, and reactive inbound replies. Telegram assistant routing requires private chat, numeric user ID, configured bot account ID, and gateway secret; edited/duplicate assistant messages are ignored, transport errors are normalized, and legacy TDS/MOET flow remains first-class. Full app import/runtime and external canary remain unverified because the current shell lacks pre-existing `pandas`; no credentials or network calls were used.
 
 Run:
 
@@ -344,17 +360,20 @@ Expected: assistant and legacy Telegram flows pass without network credentials.
 Files:
 - Modify: api/_assistant-tools.ts
 - Modify: api/_assistant-jobs.ts
+- Create: api/_assistant-executors.ts
 - Create: api/__tests__/assistant-writes.test.ts
 - Reuse: api/export-lesson.ts, api/grade-homework.ts, api/classroom.ts, src/services/pushLessonToDrive.ts
 
-- [ ] Implement draftLesson and patchLessonSection with the existing bounded editor-patch contract.
+- [x] Implement a bounded, confirmation-gated `draftLesson` preview executor with `persisted: false`; keep patching/persistence disabled until the existing editor-patch/server contract is wired.
 - [ ] Implement exportLesson with the existing server export path; use single-format requests for long content.
 - [ ] Implement uploadLessonToDrive through a server-side authenticated path; never expose a shared bot token to browser storage.
 - [ ] Implement createAssignment with teacher ownership and explicit class scope.
 - [ ] Implement startAssignmentGrading through the existing grading action and preserve quota and approval rules.
 - [ ] Implement approveGrade and editGrade only for the submission owner teacher; preview affected students and scores.
 - [ ] Implement outbound messages only after recipient resolution, template rendering, and confirmation.
-- [ ] Test write authorization, confirmation requirement, idempotency, quota errors, and partial bulk results.
+- [x] Test executor allowlist and fail-closed unsupported tools; existing confirmation tests cover authorization, replay, and `OUTCOME_UNKNOWN`.
+
+Task 9 validation (2026-10-19): SmartPlan full suite passed (76 files, 1,085 tests), `lint`, `lint:api`, and `build` passed; Vite emitted only existing externalization/chunk-size warnings. Unit-level executor and confirmation lifecycle tests cover the bounded `draftLesson` preview after atomic claim/finalization; a handler-level prepare→confirm integration test remains open. Export, Drive upload, assignments, grading, grade edits, and outbound messages remain `NOT_IMPLEMENTED`; no classroom or external data was changed.
 
 Run:
 

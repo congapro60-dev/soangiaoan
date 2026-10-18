@@ -29,10 +29,10 @@ const safeGrade = (g: any) => {
   for (const key of ['strengths', 'weaknesses'] as const) if (Array.isArray(g[key])) result[key] = g[key].slice(0, 20).filter((x: unknown) => typeof x === 'string').map((x: string) => clean(x, 300));
   return result;
 };
-const safeStudent = (s: any) => ({
+const safeStudent = (s: any, includePerformance = true) => ({
   ...optionalId('id', s.id), name: clean(s.name, 200), code: clean(s.code, 80),
-  ...(['active', 'needs_support', 'excellent'].includes(s.status) ? { status: s.status } : {}),
-  ...(typeof s.progress === 'number' && Number.isFinite(s.progress) && s.progress >= 0 && s.progress <= 100 ? { progress: s.progress } : {}),
+  ...(includePerformance && ['active', 'needs_support', 'excellent'].includes(s.status) ? { status: s.status } : {}),
+  ...(includePerformance && typeof s.progress === 'number' && Number.isFinite(s.progress) && s.progress >= 0 && s.progress <= 100 ? { progress: s.progress } : {}),
 });
 const queryDocs = async (q: any, limit: number) => {
   const snap = await q.limit(limit + 1).get();
@@ -93,7 +93,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     } else {
       const rosterResult = await queryDocs(fs.collection('classes').doc(classId).collection('students'), name === 'listStudents' ? limitOf(args.limit) : MAX_ROWS);
       const roster = rosterResult.rows.filter((x: any) => x.teacherId === resourceUid && x.classId === classId);
-      if (name === 'listStudents') data = { items: roster.map(safeStudent), complete: rosterResult.complete, truncated: rosterResult.truncated };
+      if (name === 'listStudents') data = { items: roster.map((student: any) => safeStudent(student, !classSharedReadOnly)), complete: rosterResult.complete, truncated: rosterResult.truncated };
       else {
       const assignmentResult = await queryDocs(fs.collection('assignments').where('teacherId', '==', resourceUid).where('classId', '==', classId), MAX_ROWS);
       const assignments = assignmentResult.rows.filter((x: any) => x.teacherId === resourceUid && x.classId === classId);
@@ -179,7 +179,7 @@ export async function runAssistantReadTool(name: string, args: Record<string, un
     const topics = profiles.flatMap((p: any) => Array.isArray(p.topics) ? p.topics.slice(0, 100) : []);
     const topicTruncated = profiles.some((p: any) => Array.isArray(p.topics) && p.topics.length > 100); data = { students: profiles.length, topics: topics.length, mastery: { weak: topics.filter((x: any) => x?.level === 'weak').length, developing: topics.filter((x: any) => x?.level === 'developing').length, solid: topics.filter((x: any) => x?.level === 'solid').length }, sessions: profiles.reduce((n: number, p: any) => n + (Number.isFinite(p.totalSessions) && p.totalSessions >= 0 ? p.totalSessions : 0), 0), complete: complete && !topicTruncated, truncated: truncated || topicTruncated }; sources = sourcesFor('studentLearningProfiles');
   } else if (name === 'getAssistantJobStatus') {
-    const jobId = safeId(args.jobId); if (!jobId) throw new Error('jobId required'); const job = await docById(fs.collection('assistantJobs'), jobId); assertOwner(job, uid, 'actorUid'); data = { status: ['queued', 'running', 'succeeded', 'failed', 'cancelled'].includes(job.status) ? job.status : 'unknown', ...optionalToolName(job.toolName), createdAt: job.createdAt, updatedAt: job.updatedAt }; sources = sourcesFor('assistantJobs');
+    const jobId = safeId(args.jobId); if (!jobId) throw new Error('jobId required'); const job = await docById(fs.collection('assistantJobs'), jobId); assertOwner(job, uid, 'actorUid'); if (job.linkId !== actor.linkId) throw new Error('Resource not found'); data = { status: ['queued', 'running', 'succeeded', 'failed', 'cancelled'].includes(job.status) ? job.status : 'unknown', ...optionalToolName(job.toolName), createdAt: job.createdAt, updatedAt: job.updatedAt }; sources = sourcesFor('assistantJobs');
   }
   return { data, sources, observedAt };
 }

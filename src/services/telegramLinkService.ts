@@ -45,4 +45,4 @@ export const consumeChannelLink = (code: string, identity: {
   channelAccountId: string;
   channelUserId: string;
   channelChatId?: string;
-}) => request<{ linkId: string; firebaseUid: string } & { result?: unknown }>({}, 'consumeLinkCode', { code, ...identity }).then(unwrapGatewayResult);
+}) => request<{ linked: true } & { result?: unknown }>({}, 'consumeLinkCode', { code, ...identity }).then(unwrapGatewayResult);
