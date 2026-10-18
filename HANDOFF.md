@@ -398,3 +398,7 @@ pm run lint:api,
 pm run build; existing Vite chunk/externalization warnings remain. Focused assistant tests cover link/share/confirmation/replay/jobs/writes.
 - Zalo/Telegram adapter code lives in the separate du-lesson-automation-task7 worktree and requires its own Railway release. Zalo production needs a persistent path for ZALO_WEBHOOK_REPLAY_DB; no credentials or external canary were run.
 - Next owner action: set Vercel SMARTPLAN_ASSISTANT_SECRET and ZALO_OA_ALLOWED_IDS, Railway matching secret + bot/OA vars, then configure Zalo webhook at /api/zalo/webhook. Do not enable real write tools until Task 9 canary passes.
+- Vercel preview initially exposed a stricter TypeScript error in 
+ormalizeScopes; explicit narrowing was added in commit 197583f. Local 
+pm run lint:api, focused tests, and 
+pm run build pass afterward. Recheck both Vercel projects before production promotion.
