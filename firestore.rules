@@ -1179,5 +1179,29 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
     }
 
+    // Assistant gateway state is server-only. Admin-side code enforces channel
+    // identity, ownership, sharing, confirmation, and audit rules.
+    match /assistantLinkCodes/{codeHash} {
+      allow read, write: if false;
+    }
+    match /channelLinks/{linkId} {
+      allow read, write: if false;
+    }
+    match /assistantShares/{shareId} {
+      allow read, write: if false;
+    }
+    match /assistantConfirmations/{confirmationId} {
+      allow read, write: if false;
+    }
+    match /assistantAuditLogs/{logId} {
+      allow read, write: if false;
+    }
+    match /assistantJobs/{jobId} {
+      allow read, write: if false;
+    }
+    match /assistantRequestNonces/{nonce} {
+      allow read, write: if false;
+    }
+
   }
 }

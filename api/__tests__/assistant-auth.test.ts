@@ -1,0 +1,94 @@
+import { describe, expect, it } from 'vitest';
+import { canUseAssistantShare, isUsableChannelLink, isValidAssistantShareExpiry, type AssistantShareDoc, type ChannelLinkDoc } from '../_assistant-types';
+
+const now = 1_000;
+const link: ChannelLinkDoc = {
+  firebaseUid: 'teacher-1', channel: 'zalo_oa', channelAccountId: 'oa-1', channelUserId: 'uid-1',
+  createdAt: 900, updatedAt: 900, active: true,
+};
+const share: AssistantShareDoc = {
+  resourceType: 'class', resourceId: 'class-1', ownerUid: 'owner', granteeUid: 'grantee',
+  role: 'read', status: 'active', createdAt: 900,
+};
+
+describe('assistant authorization contracts', () => {
+  it('accepts optional future share expiry and rejects invalid or past timestamps', () => {
+    expect(isValidAssistantShareExpiry(undefined, now)).toBe(true);
+    expect(isValidAssistantShareExpiry(now + 1, now)).toBe(true);
+    expect(isValidAssistantShareExpiry(now, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(now - 1, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(Number.NaN, now)).toBe(false);
+    expect(isValidAssistantShareExpiry(Number.POSITIVE_INFINITY, now)).toBe(false);
+    expect(isValidAssistantShareExpiry('tomorrow', now)).toBe(false);
+  });
+
+  it('accepts active links and rejects expired or revoked links', () => {
+    expect(isUsableChannelLink(link, now)).toBe(true);
+    expect(isUsableChannelLink(link, now, { channel: 'telegram', channelAccountId: 'bot-1', channelUserId: 'unknown' })).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: 1_100 }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, createdAt: Number.NaN }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: 999 }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.POSITIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.NEGATIVE_INFINITY }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, expiresAt: Number.NaN }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channel: 'discord' as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: null as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelUserId: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelUserId: 42 as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, active: false }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, revokedAt: 950 }, now)).toBe(false);
+    expect(isUsableChannelLink(null as never, now)).toBe(false);
+    expect(isUsableChannelLink(undefined as never, now)).toBe(false);
+    expect(isUsableChannelLink('link' as never, now)).toBe(false);
+    expect(isUsableChannelLink(link, now, null as never)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: '   ' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelUserId: '   ' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: null as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: 42 as never }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: '' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, firebaseUid: '   ' }, now)).toBe(false);
+    expect(isUsableChannelLink(link, undefined as never)).toBe(false);
+    expect(isUsableChannelLink({ ...link, updatedAt: undefined as never }, now)).toBe(false);
+  });
+
+  it('authorizes owner and grantee reads, but respects revocation and role escalation', () => {
+    expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'read', now)).toBe(true);
+    expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'write', now)).toBe(true);
+    expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'admin' as never, now)).toBe(false);
+    expect(canUseAssistantShare(share, 'grantee', 'class', 'class-1', 'read', now)).toBe(true);
+    expect(canUseAssistantShare(share, 'unknown', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, status: 'revoked' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(share, 'grantee', 'class', 'class-1', 'write', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: now }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: Number.NaN }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: Number.POSITIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, expiresAt: Number.NEGATIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, resourceType: 'lessonPlan' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, resourceId: 'class-2' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, createdAt: Number.NaN }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, createdAt: Number.POSITIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, createdAt: Number.NEGATIVE_INFINITY }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, status: 'pending' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, role: 'admin' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, resourceType: 'exam' as never }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(null as never, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(undefined as never, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare('share' as never, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(share, '', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(share, '   ', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(share, 'owner', 'class', '', 'read', now)).toBe(false);
+    expect(canUseAssistantShare(share, 'owner', 'class', '   ', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, ownerUid: '' }, 'owner', 'class', 'class-1', 'read', now)).toBe(false);
+    expect(canUseAssistantShare({ ...share, granteeUid: '   ' }, 'grantee', 'class', 'class-1', 'read', now)).toBe(false);
+  });
+
+  it('keeps the same Zalo UID scoped to its OA', () => {
+    expect(isUsableChannelLink(link, now, { channel: 'zalo_oa', channelAccountId: 'oa-2', channelUserId: 'uid-1' })).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelAccountId: 'oa-2' }, now, link)).toBe(false);
+    expect(isUsableChannelLink(link, now, { ...link, channelChatId: '' })).toBe(false);
+    expect(isUsableChannelLink({ ...link, channelChatId: 'zalo-chat' }, now, link)).toBe(false);
+  });
+});
