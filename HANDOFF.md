@@ -449,3 +449,9 @@ pm run build pass afterward. Recheck both Vercel projects before production prom
 - Vercel: `dpl_H3zcqnStuZNVo5a5AueUGPpxe12M`, `READY`, production alias `giaoandewey.vercel.app`, Git SHA matches `723c461`.
 - Smoke: production root HTTP 200/title `Smart Lesson Plan AI`; nonexistent exam API HTTP 404 with Vietnamese error. These are deployment smoke only, not browser E2E.
 - Browser E2E and real GV/HS workflow remain unverified because the browser control session was unavailable/timeout. No production student/teacher data writes made.
+
+## Release docs follow-up — 2026-10-21
+
+- Documentation commit `f33d91c61aa15a0861688c8a76a245c2940a2b36` records the release checkpoint and is now on `main`.
+- Latest Vercel deployment: `dpl_E7oLUvHWXFHaLP76zb5dzcFoNEb1`, `READY`, production alias correct, SHA `f33d91c`.
+- Post-doc smoke repeated: root HTTP 200/title correct; nonexistent exam API 404 with expected message.
