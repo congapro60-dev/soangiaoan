@@ -92,3 +92,12 @@ describe('assistant authorization contracts', () => {
     expect(isUsableChannelLink({ ...link, channelChatId: 'zalo-chat' }, now, link)).toBe(false);
   });
 });
+
+
+it('keeps Bot links private and separate from OA and Telegram namespaces', () => {
+  const botLink = { ...link, channel: 'zalo_bot' as const, channelChatId: link.channelUserId };
+  expect(isUsableChannelLink(botLink, now, botLink)).toBe(true);
+  for (const channel of ['zalo_oa', 'telegram'] as const) expect(isUsableChannelLink(botLink, now, { ...botLink, channel })).toBe(false);
+  for (const channelChatId of [undefined, '', 'group']) expect(isUsableChannelLink({ ...botLink, channelChatId }, now)).toBe(false);
+  expect(isUsableChannelLink(botLink, now, { ...botLink, channelAccountId: 'bot-other' })).toBe(false);
+});

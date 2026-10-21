@@ -386,6 +386,34 @@ CKEditor native result: source0.3.2 focus/guard chạy, nhưng CKEditor không n
 - Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
 - Remaining: large lazy chunks remain expected; no production data writes.
 
+## Bot Cuong Vu — Zalo Bot Platform — 2026-10-21
+
+- Commit `a8ec359` adds the official Zalo Bot Platform transport at
+  `/api/assistant?transport=zalo_bot`; it is separate from the existing Zalo OA
+  adapter and Telegram identity namespace.
+- Webhook checks the fixed Zalo Bot API origin, `X-Bot-Api-Secret-Token`,
+  configured bot identity, private human sender, exact sender/chat binding,
+  bounded payload, fresh millisecond timestamp, durable replay claim, and
+  server-side per-teacher link/confirmation authorization. It replies only to
+  the inbound private chat and never sends startup or group messages.
+- Supported commands: `/help`, `/link CODE`, `/classes`, `/confirm ID HASH`,
+  `/cancel ID HASH`, `/status ID`. Natural-language `chat` remains
+  `NOT_IMPLEMENTED`; write tools stay confirmation-gated and disabled unless
+  separately implemented.
+- Verification: Bot tests `36/36`; full suite `3317/3317` before the final
+  stream/sender hardening; current `lint`, `lint:api`, `git diff --check`, and
+  Vite build pass. Existing chunk-size and browser externalization warnings
+  remain.
+- Required server-only variables: `ZALO_BOT_TOKEN`, `ZALO_BOT_ID`,
+  `ZALO_BOT_ALLOWED_IDS`, `ZALO_BOT_ALLOWED_USER_IDS`,
+  `ZALO_BOT_WEBHOOK_SECRET`, and `SMARTPLAN_ASSISTANT_SECRET`. Never put them
+  in chat, `VITE_*`, logs, or committed files.
+- Remaining: Bot token/ID/webhook secret, Firebase link code, Vercel env,
+  webhook registration, production deployment, and private Zalo canary. The
+  current production deployment `b913b1c` does not contain this commit.
+- Routing used native Codex / `gpt-6-sol`; Astra was not used. No live Zalo
+  message or third-party chat was sent.
+
 
 ## Assistant Gateway release — 2026-10-19
 

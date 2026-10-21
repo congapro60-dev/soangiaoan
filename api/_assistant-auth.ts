@@ -50,14 +50,24 @@ export const allowedZaloOaIds = (value = process.env.ZALO_OA_ALLOWED_IDS): Set<s
 export const isAllowedZaloOaId = (oaId: string, value = process.env.ZALO_OA_ALLOWED_IDS): boolean =>
   Boolean(oaId?.trim() && allowedZaloOaIds(value).has(oaId));
 
+export const allowedZaloBotIds = (value = process.env.ZALO_BOT_ALLOWED_IDS): Set<string> =>
+  new Set((value || '').split(',').map(id => id.trim()).filter(Boolean));
+
+export const isAllowedZaloBotId = (botId: string, value = process.env.ZALO_BOT_ALLOWED_IDS): boolean =>
+  Boolean(botId?.trim() && allowedZaloBotIds(value).has(botId));
+
 export const validateChannelIdentity = (identity: ChannelIdentity): void => {
-  if (!identity || (identity.channel !== 'telegram' && identity.channel !== 'zalo_oa')) throw new Error('Unsupported channel');
+  if (!identity || !['telegram', 'zalo_oa', 'zalo_bot'].includes(identity.channel)) throw new Error('Unsupported channel');
   if (!identity.channelAccountId?.trim() || !identity.channelUserId?.trim()) throw new Error('Channel account and user are required');
   if (identity.channel === 'telegram' && (!identity.channelChatId || identity.channelChatId !== identity.channelUserId)) {
     throw new Error('Telegram linking requires a private chat');
   }
   if (identity.channel === 'zalo_oa' && identity.verifiedChannelAccountId !== identity.channelAccountId) {
     throw new Error('Zalo OA identity is not verified');
+  }
+  if (identity.channel === 'zalo_bot') {
+    if (identity.verifiedChannelAccountId !== identity.channelAccountId) throw new Error('Zalo Bot identity is not verified');
+    if (!identity.channelChatId || identity.channelChatId !== identity.channelUserId) throw new Error('Zalo Bot linking requires a private chat');
   }
 };
 
@@ -67,7 +77,7 @@ export const canRelinkActiveChannel = (existingFirebaseUid: string, targetFireba
 const adminDb = (db?: Firestore) => db || getAdminDb();
 
 export const resolveChannelActor = async (channel: Channel, accountId: string, userId: string, chatId?: string, db?: Firestore): Promise<AssistantActor> => {
-  validateChannelIdentity({ channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId, verifiedChannelAccountId: channel === 'zalo_oa' ? accountId : undefined });
+  validateChannelIdentity({ channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId, verifiedChannelAccountId: channel === 'zalo_oa' || channel === 'zalo_bot' ? accountId : undefined });
   const firestore = adminDb(db);
   const snapshot = await firestore.collection('channelLinks').where('channel', '==', channel).where('channelAccountId', '==', accountId).where('channelUserId', '==', userId).where('active', '==', true).get();
   const now = Date.now();

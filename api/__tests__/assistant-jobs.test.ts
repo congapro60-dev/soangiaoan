@@ -60,3 +60,16 @@ describe('assistant jobs', () => {
     await expect(getAssistantJobStatus({ actor: { ...actor, channel: 'zalo_oa', channelAccountId: 'oa-1', channelUserId: 'uid-1', channelChatId: undefined }, jobId: 'empty-chat' }, db as any)).rejects.toThrow('Job not found');
   });
 });
+
+
+it('binds bot jobs to their own channel and exact private sender chat', async () => {
+  const db = new Db();
+  const botActor = { ...actor, channel: 'zalo_bot' as const };
+  const requestHash = 'd'.repeat(64);
+  const job = await createAssistantJob({ actor: botActor, toolName: 'exportLesson', requestHash, confirmationId: 'confirm-bot', now: 1000 }, db as any);
+  expect((await getAssistantJobStatus({ actor: botActor, jobId: job.jobId }, db as any)).status).toBe('queued');
+  for (const patch of [{ channel: 'zalo_oa' as const }, { channel: 'telegram' as const }, { channelAccountId: 'other-bot' }, { channelChatId: 'group' }]) await expect(getAssistantJobStatus({ actor: { ...botActor, ...patch }, jobId: job.jobId }, db as any)).rejects.toThrow('Job not found');
+  for (const channelChatId of [undefined, 'group']) expect(() => jobIdForRequest({ ...botActor, channelChatId }, 'exportLesson', requestHash)).toThrow('Invalid assistant job request');
+  db.update(`assistantJobs/${job.jobId}`, { channelChatId: 'group' });
+  await expect(getAssistantJobStatus({ actor: { ...botActor, channelChatId: 'group' }, jobId: job.jobId }, db as any)).rejects.toThrow('Job not found');
+});
