@@ -113,14 +113,12 @@ export const evaluateStudentExamStart = (input: StudentExamStartInput): StudentE
   const nowMs = now.getTime();
   const startMs = time(exam.startAt);
   const endMs = time(exam.endAt);
-  const dueMs = time(assignment.dueAt);
   if (!exam.isActive) return { allowed: false, reason: 'exam_ended' };
   if (startMs !== null && nowMs < startMs) return { allowed: false, reason: 'exam_not_started' };
   if (endMs !== null && nowMs > endMs) return { allowed: false, reason: 'exam_ended' };
-  if (dueMs !== null && nowMs > dueMs) return { allowed: false, reason: 'assignment_due' };
 
   const ownAttempts = attemptedBy(input.attempts, link.studentId, link.classId, assignment.id);
-  const maxAttempts = typeof exam.maxAttempts === 'number' && Number.isFinite(exam.maxAttempts)
+  const maxAttempts = typeof exam.maxAttempts === 'number' && Number.isFinite(exam.maxAttempts) && exam.maxAttempts > 0
     ? Math.max(1, Math.floor(exam.maxAttempts))
     : null;
   const finishedAttempts = ownAttempts.filter(attempt => attempt.status !== 'in_progress').length;

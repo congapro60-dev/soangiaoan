@@ -1,5 +1,27 @@
 # Checklist chung Codex / Claude — 14/10/2026
 
+## Rà soát 5 luồng và kế hoạch sửa — 19/10/2026
+
+Kế hoạch hiện hành: `docs/superpowers/plans/2026-10-15-smartplan-production-fixes-handoff.md` (phần cập nhật 19/10 ở đầu tệp). Chỉ cập nhật tài liệu trong worktree riêng; không sửa WIP checkout gốc.
+
+- [x] Xác minh production/main cùng `b913b1c`; rà source đúng commit, kiểm vùng chồng lấn Claude.
+- [x] Rà giáo án, đề offline, thi online, dự giờ, thư viện bằng ba reviewer độc lập theo phạm vi; root kiểm chéo lỗi chính.
+- [x] Unit 3.293/3.293, Rules 310/310, app/API typecheck và build đạt; entry 684,52 kB.
+- [x] Tái hiện bằng hàm/render thật: drift chấm TF, review giữ key cũ, TF invalid, mất bất đẳng thức LaTeX, raw iframe/srcDoc.
+- [x] Ghi một kế hoạch có thứ tự sửa, file, trigger, tiêu chí nghiệm thu và bàn giao overlap.
+- [ ] Browser E2E 5 luồng: công cụ không nhận tab phiên khác; tab QA Edge/IAB timeout. Chưa kiểm AI thật/nội dung mới/file xuất hiện tại.
+- [ ] Triển khai và nghiệm thu 12 gói trong kế hoạch; chưa sửa app, commit, push hoặc deploy ở lượt rà soát 19/10.
+
+## Triển khai tiếp 21/10/2026
+
+- [x] Sửa 5 nhóm P1: cách ly UID, attempt server, scorer, dự giờ giữ dữ liệu, Rules chặn ghi trực tiếp.
+- [x] Sửa cấu hình thi, TF đơn, nhập MCQ, LaTeX/Word thư viện, Excel dự giờ.
+- [x] `npm run lint`, `npm run lint:api`, full unit `314/314`, Rules `310/310`, build exit 0.
+- [ ] Browser E2E thật, AI/content QA, Firebase Rules production deploy, Vercel deployment và smoke sau deploy.
+- [ ] Review diff cuối, commit/push theo cổng; không đụng WIP checkout gốc hoặc vùng Claude.
+
+Review: test hiện hữu đạt nhưng vẫn có lỗi sai điểm, cách ly tài khoản và giữ dữ liệu; không được báo toàn web đã QA đầy đủ. Kế hoạch ghi riêng bằng chứng source/local, browser bị chặn và Rules production chưa xác minh.
+
 ## Kiểm dấu trên ảnh và chạy lại bài đã nộp — 15/10/2026
 
 Người dùng cung cấp ảnh QA của Claude, yêu cầu kiểm lỗi và chạy lại toàn bộ bài HS đã gửi theo thiết kế mới. Không gọi model lập trình bên ngoài; subagent native Astra yêu cầu nhưng lỗi credential, root tiếp tục.

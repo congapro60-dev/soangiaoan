@@ -432,3 +432,12 @@ pm run build; existing Vite chunk/externalization warnings remain. Focused assis
 ormalizeScopes; explicit narrowing was added in commit 197583f. Local 
 pm run lint:api, focused tests, and 
 pm run build pass afterward. Recheck both Vercel projects before production promotion.
+
+## Codex follow-up — 2026-10-21
+
+- Worktree: `C:/Users/ADMIN/.codex/worktrees/fix-production-qa/smart-lesson-plan-ai`, branch `codex/audit-core-workflows-20261019`, base `b913b1c`.
+- Điều phối: catalog 9Router sống; dùng route local/Codex hiện tại; không gọi Astra. Claude weekly đang giới hạn; không gọi Claude route.
+- Implemented: UID-scoped app/testing/PPCT state; preview raw HTML removed; public exam server-issued session/attempt/deadline/password POST with transactional participant maxAttempts, save/submit status guards, and final-submit-after-end handling; client exam submissions no longer write Firestore directly; Rules deny public attempt create/update; scorer parity, simple T/F UI, all import paths preserve full MCQ keys before validation, config deleteField/local timezone; observer patch save/retry/Excel 35 rows/22 components; library exam/worksheet DOCX renderer. Public maxAttempts identity is normalized name/class because anonymous exams lack a verified student identity.
+- Verification: app/API typecheck pass; full unit single-worker with `--testTimeout=20000` `314 files / 3293 tests` pass; Rules emulator `310/310` pass; final build exit 0, entry `684.52 kB`; focused API `22/22` and earlier focused QA `71/71` pass. Default 5s parallel runner timed out on heavy existing tests; isolated heavy files passed at 20s.
+- Open: browser E2E, AI/content QA, production Firebase Rules deploy, Vercel deploy and post-deploy smoke. `useLessonCreator.ts` and Word/Toan renderer WIP overlap remain excluded from this patch.
+- No production data writes. No commit/push/deploy in this checkpoint.
