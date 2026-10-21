@@ -7,5 +7,6 @@
  // Bảng so sánh 9 luật để GV chọn trước (16/10): luật đổi cách đi, mục tiêu và điểm trò chơi; câu Toán và độ khó chọn ở mục 2.
  function compare(current){const rows=Object.keys(matches).map(id=>{const g=window.SignalRoomRules?.guide(id)||[];return `<tr${id===current?' aria-current="true" style="outline:2px solid currentColor"':''}><td><strong>${esc(g[0]||id)}</strong></td><td>${esc(g[1])}</td><td>${esc(g[3])}</td><td>${esc(matches[id])}</td></tr>`;}).join('');return `<details><summary>So sánh 9 luật trước khi chọn</summary><p>Luật quyết định cách đi trên bản đồ, mục tiêu và cách xếp hạng của ván. Câu Toán, độ khó và thời lượng chọn ở mục 2 và giữ nguyên với mọi luật.</p><div style="overflow-x:auto"><table><thead><tr><th>Luật</th><th>Cách chơi</th><th>Xếp hạng</th><th>Hợp với</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;}
  function options(selected,theme){return Object.entries(activities).filter(([id])=>id!=='arena'||theme==='historical').map(([id,a])=>`<option value="${id}" ${selected===id?'selected':''}>${esc(a[0])}</option>`).join('');}
- window.SignalGameSetup={guidance,options,activities,label:type=>activities[type]?.[0]||'Hoạt động chung'};
+ function libraryEntry(){return '<a class="primary" href="/lessons/new?launch=quick" data-launch="authored-library">Tạo phòng game từ thư viện bài học</a>';}
+ window.SignalGameSetup={guidance,options,activities,libraryEntry,label:type=>activities[type]?.[0]||'Hoạt động chung'};
 })();

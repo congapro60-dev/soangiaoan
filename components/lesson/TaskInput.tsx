@@ -17,6 +17,9 @@ export interface TaskInputProps {
       cards?: Array<{ id: string; label: string }>;
       items?: Array<{ id: string; label: string }>;
       categories?: Array<{ id: string; label: string }>;
+      statements?: Array<{ id: string; label: string }>;
+      cells?: Array<{ id: string; label: string }>;
+      format?: "digits" | "signed_digits" | "alphanumeric";
     };
     evaluation?: {
       checkerId?: string;
@@ -87,6 +90,8 @@ export function TaskInput({
   // Determine input flavor
   const isOrdering = checkerId === "ordering_exact";
   const isClassification = checkerId === "classification_exact";
+  const isTrueFalse4 = checkerId === "true_false_4" || schema.type === "true_false_4";
+  const isShortAnswer4 = checkerId === "short_answer_4" || schema.type === "short_answer_4";
   const isRepresentationMatch =
     checkerId === "representation_match" ||
     (Array.isArray(schema.representations) && Array.isArray(schema.cards));
@@ -98,6 +103,8 @@ export function TaskInput({
   const isSingleChoice =
     !isOrdering &&
     !isClassification &&
+    !isTrueFalse4 &&
+    !isShortAnswer4 &&
     !isRepresentationMatch &&
     !isMultiChoice &&
     (checkerId === "choice_exact" || Array.isArray(schema.options));
@@ -106,6 +113,8 @@ export function TaskInput({
     !isRepresentationMatch &&
     !isMultiChoice &&
     !isSingleChoice &&
+    !isTrueFalse4 &&
+    !isShortAnswer4 &&
     (checkerId === "numeric_exact" || schema.type === "numeric");
 
   // Initial answer calculation
@@ -120,6 +129,8 @@ export function TaskInput({
     if (isMultiChoice) return [];
     if (isOrdering) return (schema.items || []).map(item => item.id);
     if (isRepresentationMatch || isClassification) return {};
+    if (isTrueFalse4) return [null, null, null, null];
+    if (isShortAnswer4) return ["", "", "", ""];
     return "";
   };
 
@@ -171,6 +182,10 @@ export function TaskInput({
         setValue((schema.items || []).map(item => item.id));
       } else if (isRepresentationMatch || isClassification) {
         setValue({});
+      } else if (isTrueFalse4) {
+        setValue([null, null, null, null]);
+      } else if (isShortAnswer4) {
+        setValue(["", "", "", ""]);
       } else {
         setValue("");
       }
@@ -187,6 +202,8 @@ export function TaskInput({
     isOrdering,
     isClassification,
     isRepresentationMatch,
+    isTrueFalse4,
+    isShortAnswer4,
     schema.items,
     submission?.answer,
     submission?.submissionId,
@@ -287,6 +304,12 @@ export function TaskInput({
       const reps = schema.representations || [];
       const valMap = value as Record<string, string>;
       return reps.length > 0 && reps.every((r) => Boolean(valMap[r.id]));
+    }
+    if (isTrueFalse4) {
+      return Array.isArray(value) && value.length === 4 && value.every(answer => typeof answer === "boolean");
+    }
+    if (isShortAnswer4) {
+      return Array.isArray(value) && value.length === 4 && value.every(answer => typeof answer === "string" && Array.from(answer.trim()).length === 1);
     }
     if (isMultiChoice) {
       return Array.isArray(value) && value.length > 0;
@@ -547,6 +570,29 @@ export function TaskInput({
       );
     }
 
+    if (isTrueFalse4) {
+      const statements = schema.statements || [];
+      const selected: Array<boolean | null> = Array.isArray(value) ? value as Array<boolean | null> : [];
+      return (
+        <fieldset className="task-fieldset" disabled={disabled}>
+          <legend className="task-legend">Đánh dấu đúng hoặc sai cho từng phát biểu:</legend>
+          <div className="task-options-grid">
+            {statements.map((statement, index) => (
+              <div key={statement.id} className="task-option-card">
+                <div className="task-option-content"><strong>{index + 1}. </strong><MathText text={statement.label} inline={true} /></div>
+                <label>
+                  <input type="radio" name={`task-true-false-${inputId}-${index}`} checked={selected[index] === true} onChange={() => handleValueChange([...selected.slice(0, index), true, ...selected.slice(index + 1)])} disabled={disabled} /> Đúng
+                </label>
+                <label>
+                  <input type="radio" name={`task-true-false-${inputId}-${index}`} checked={selected[index] === false} onChange={() => handleValueChange([...selected.slice(0, index), false, ...selected.slice(index + 1)])} disabled={disabled} /> Sai
+                </label>
+              </div>
+            ))}
+          </div>
+        </fieldset>
+      );
+    }
+
     if (isSingleChoice) {
       const options = schema.options || [];
       return (
@@ -673,6 +719,37 @@ export function TaskInput({
             })}
           </div>
         </div>
+      );
+    }
+
+    if (isShortAnswer4) {
+      const cells = schema.cells || [1, 2, 3, 4].map(index => ({ id: `cell-${index}`, label: `Ô ${index}` }));
+      const answers: string[] = Array.isArray(value) ? value as string[] : ["", "", "", ""];
+      return (
+        <fieldset className="task-fieldset" disabled={disabled}>
+          <legend className="task-legend">Nhập bốn ký tự theo thứ tự:</legend>
+          <div className="task-short-answer-4" role="group" aria-label="Bốn ô trả lời">
+            {cells.map((cell, index) => (
+              <label key={cell.id} className="task-short-answer-cell">
+                <span className="task-short-answer-cell-label">{cell.label || `Ô ${index + 1}`}</span>
+                <input
+                  aria-label={cell.label || `Ô ${index + 1}`}
+                  type="text"
+                  inputMode={schema.format === "alphanumeric" ? "text" : "numeric"}
+                  maxLength={1}
+                  disabled={disabled}
+                  value={answers[index] || ""}
+                  onChange={(event) => {
+                    const next = [...answers];
+                    next[index] = event.target.value;
+                    handleValueChange(next);
+                  }}
+                  className="task-short-answer-input"
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
       );
     }
 

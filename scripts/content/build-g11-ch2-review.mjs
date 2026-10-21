@@ -134,7 +134,14 @@ activity('act-reflection', 'reflection', 2, 'individual', all, [
 ], { action: 'Mỗi em viết hai câu phản tư.', product: 'Hai câu Trước/Giờ.', look: 'Không chấm điểm.', next: 'Kết thúc.' });
 
 // 7. Thử thách thêm (2', tùy chọn) và dự phòng (2')
+// Mỗi mức đều có câu: em chưa mở Mức 3 vẫn có việc ở trạm này (QA live 16/10: trạm chỉ có Mức 3 thì Mức 1–2 trống).
 activity('act-challenge', 'practice', 2, 'individual', [O.cscTerm, O.csnTerm], [
+  task('act-challenge', 'task-challenge-support', { branch: 'support', objectiveIds: [O.cscTerm], minutes: 2,
+    prompt: R`Mức 1: Ba số $3, x, 11$ theo thứ tự lập cấp số cộng. Tìm $x$.`, ...numeric(7),
+    why: R`Số ở giữa bằng trung bình cộng hai số bên: $x=\dfrac{3+11}{2}=7$.`, hint: 'Trong cấp số cộng, số hạng giữa bằng trung bình cộng của hai số hạng kề bên.' }),
+  task('act-challenge', 'task-challenge-core', { branch: 'core', objectiveIds: [O.csnTerm], minutes: 2, isCore: false,
+    prompt: R`Mức 2: Ba số dương $2, x, 18$ theo thứ tự lập cấp số nhân. Tìm $x$.`, ...numeric(6),
+    why: R`$x^2=2\cdot 18=36$, $x>0$ nên $x=6$.`, hint: R`Trong cấp số nhân, $x^2$ bằng tích hai số hạng kề bên.` }),
   task('act-challenge', 'task-challenge-mix', { branch: 'extension', objectiveIds: [O.cscTerm, O.csnTerm], minutes: 2,
     prompt: R`Ba số $a, b, c$ theo thứ tự lập cấp số cộng có công sai dương và $a+b+c=15$. Nếu cộng thêm lần lượt $1, 1, 4$ vào ba số đó thì được một cấp số nhân. Tìm $c$.`, ...numeric(8),
     why: R`$b=5$, $a=5-d$, $c=5+d$; $(6-d)(9+d)=36\Rightarrow d^2+3d-18=0\Rightarrow d=3$; $c=8$.`, hint: R`Đặt $b=5$, $a=5-d$, $c=5+d$ rồi dùng tính chất $y^2=xz$ của cấp số nhân.` }),

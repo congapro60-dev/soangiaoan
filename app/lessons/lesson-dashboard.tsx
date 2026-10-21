@@ -1,5 +1,7 @@
 "use client";
 import { TeacherGroupAssessment } from "../../components/lesson/TeacherGroupAssessment";
+import { TeacherLearningEvidence } from "../../components/lesson/LearningEvidencePanel";
+import { TeacherBugReports } from "../../components/lesson/PupilReports";
 import { TeacherSetupPanel, TeacherSetupSummary, type TeacherSetup } from "../../components/lesson/TeacherSetupPanel";
 import { recommendTeacherSetup, normalizeTeacherSetup } from "../../lib/lesson/teacher-setup.js";
 import { TeacherLessonTools } from "../../components/lesson/TeacherLessonTools";
@@ -22,7 +24,7 @@ import { useLessonSession, formatDuration, LessonProjection } from "../../compon
 import { buildLessonProposal } from "../../lib/lesson/proposal.js";
 
 export interface LessonDashboardProps {
-  creation?: {purpose:string;source:string;grade:number;minutes:number;packageId:string|null}|null;
+  creation?: {purpose:string;source:string;grade:number;minutes:number;packageId:string|null;launch?:"quick"}|null;
   user: {
     userId: string;
     displayName: string;
@@ -1484,7 +1486,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
   };
 
   // Chủ hệ thống 16/10: chọn bài có sẵn là mở phòng được ngay — tự lưu bản nháp phía sau rồi mở bảng cấu hình phòng.
-  const quickLaunch = async () => {
+  const quickLaunch = useCallback(async () => {
     if (!currentPackage || savingRef.current) return;
     savingRef.current = true;
     setIsSavingDraft(true);
@@ -1509,7 +1511,14 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
       savingRef.current = false;
       setIsSavingDraft(false);
     }
-  };
+  }, [currentPackage, loadStudio]);
+
+  const quickLaunchStartedRef = useRef(false);
+  useEffect(() => {
+    if (creation?.launch !== "quick" || !currentPackage || quickLaunchStartedRef.current || isLoadingStudio) return;
+    quickLaunchStartedRef.current = true;
+    void quickLaunch();
+  }, [creation?.launch, currentPackage, currentPackage?.id, currentPackage?.contentHash, isLoadingStudio, quickLaunch]);
 
   // Handle import file change
   const [typedBrief, setTypedBrief] = useState("");
@@ -5392,6 +5401,8 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
               {cockpitError}
             </div>
           )}
+          {Boolean(cockpitView?.autoPlanAudit) && <p className="lesson-muted" role="status">Luật “{(cockpitView?.autoPlanAudit as {rule?:string})?.rule}” đang chạy theo kế hoạch vận hành tự tạo từ phiên bản bài học hiện tại.</p>}
+          {cockpitView?.ruleFallback && <div className="task-status-banner task-status-pending" role="status">Luật “{cockpitView.ruleFallback.selectedRule}” chưa khả dụng ({cockpitView.ruleFallback.reason}); phòng đang chạy theo Hành trình.</div>}
 
           {/* Control bar: the clock, one primary action, and a menu for everything else */}
           {(() => {
@@ -5610,6 +5621,8 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                   id: string;
                   studentAction?: string;
                   expectedProduct?: string;
+                  teacherLookFor?: string;
+                  transition?: string;
                   phase?: string;
                   minutes?: number;
                   taskIds?: string[];
@@ -5626,7 +5639,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                     <p><strong>Nhiệm vụ của học sinh:</strong> <MathText text={currAct.studentAction} /></p>
                     <p><strong>Sản phẩm kỳ vọng:</strong> <MathText text={currAct.expectedProduct}/></p>
                     {activities[(cockpitView.timeline?.activityIndex || 0) + 1] && <p className="lesson-muted"><strong>Tiếp theo:</strong> {getPhaseDisplay(activities[(cockpitView.timeline?.activityIndex || 0) + 1].phase)} · {activities[(cockpitView.timeline?.activityIndex || 0) + 1].minutes} phút</p>}
-                    <details><summary>Tiến trình tiết học</summary><ol className="lesson-checklist">{activities.map((activity, index) => <li key={activity.id} aria-current={index === (cockpitView.timeline?.activityIndex || 0) ? "step" : undefined}>{getPhaseDisplay(activity.phase)} · {activity.minutes} phút</li>)}</ol></details>
+                    <details><summary>Tiến trình và hướng dẫn giảng dạy</summary><p>Khi cần giảng hoặc chốt kiến thức, bấm Tạm dừng để cả lớp cùng chú ý; bấm Tiếp tục sau khi chốt.</p><ol className="lesson-checklist">{activities.map((activity, index) => <li key={activity.id} aria-current={index === (cockpitView.timeline?.activityIndex || 0) ? "step" : undefined}><details><summary>{getPhaseDisplay(activity.phase)} · {activity.minutes} phút</summary><MathText text={activity.teacherLookFor}/>{activity.transition && <p><strong>Chốt trước khi chuyển:</strong> <MathText text={activity.transition}/></p>}</details></li>)}</ol></details>
 
                     {/* Tasks in Current Activity */}
                     <div style={{ marginTop: "1rem" }}>
@@ -5681,6 +5694,8 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
             {(cockpitView?.map?.peers || []).some(peer => !peer.chosen) && <p>{cockpitView?.map?.peers.filter(peer => !peer.chosen).length} em chưa chọn linh vật.</p>}
           </div>
           <div className="cockpit-assess-panel">
+            {activeSessionId && cockpitView && <TeacherLearningEvidence sessionId={activeSessionId} view={{...(cockpitView as unknown as Record<string,unknown>),revision:cockpitRevision,openAssessments:cockpitView.openAssessments,submissions:cockpitView.submissions,roster:cockpitView.roster} as React.ComponentProps<typeof TeacherLearningEvidence>["view"]} onCommand={dispatchCommand} disabled={isCockpitBusy} />}
+            {activeSessionId && cockpitView && <TeacherBugReports key={activeSessionId} sessionId={activeSessionId} />}
             <h2 className="lesson-card-title" style={{ marginBottom: "1rem" }}>
               Bài tự luận và vé ra cửa
             </h2>

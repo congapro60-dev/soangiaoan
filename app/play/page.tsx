@@ -7,6 +7,8 @@ import { TutorPanel } from "../../components/lesson/TutorPanel";
 import { ExplorationPanel, LessonAttention } from "../../components/lesson/ExplorationPanel";
 import { QuestionPager } from "../../components/lesson/QuestionPager";
 import { SessionRules } from "../../components/lesson/SessionRules";
+import { StudentLearningEvidence } from "../../components/lesson/LearningEvidencePanel";
+import { StudentBugReport } from "../../components/lesson/PupilReports";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
@@ -844,6 +846,8 @@ export default function PlayPage() {
   const [showMediaSettings, setShowMediaSettings] = useState<boolean>(false);
   const [reflection, setReflection] = useState<ValueReflectionData>({ integrity:false,usedAI:false,aiHelp:"",ownChanges:"",reflection:"" });
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
 
   // Hook for student lesson media feedback
@@ -886,10 +890,11 @@ export default function PlayPage() {
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [pickerSkipped, setPickerSkipped] = useState(false);
   const [seenMoment, setSeenMoment] = useState<string | null>(null);
-  const moment = view ? `${view.timeline?.currentActivityId ?? ""}|${view.status ?? ""}|${arenaPhase ?? ""}` : null;
+  const moment = view ? `${view.timeline?.currentActivityId ?? ""}|${view.status ?? ""}|${arenaPhase ?? ""}|${Boolean(view.selfFinished)}` : null;
   if (moment !== null && moment !== seenMoment) {
     setSeenMoment(moment);
     if (seenMoment !== null && view?.status === "active") setEncounterOpen(true);
+    if (view?.status === "concluded" || view?.selfFinished) { setEncounterOpen(false); setShowEvidence(true); }
   }
   const closeEncounter = useCallback(() => setEncounterOpen(false), []);
   const dismissExploration = useCallback(()=>{setExplorationCardId(null);menuButton.current?.focus({preventScroll:true});},[]);
@@ -989,6 +994,8 @@ export default function PlayPage() {
             {menuOpen && (
               <div className="play-menu" aria-label="Tiện ích trò chơi">
                 <button type="button" onClick={()=>{setMenuOpen(false);setEncounterOpen(true);}}>Mở nhiệm vụ</button>
+                <button type="button" onClick={()=>{setMenuOpen(false);setEncounterOpen(false);setReportOpen(true);}}>Báo lỗi</button>
+                {view?.status !== 'waiting' && <button type="button" onClick={()=>{setMenuOpen(false);setEncounterOpen(false);setShowEvidence(true);}}>Kết quả & tự đánh giá</button>}
                 {view?.exploration?.enabled&&<button type="button" disabled={!view.exploration.open&&view.status!=="concluded"} onClick={()=>{setEncounterOpen(false);setMenuOpen(false);setExplorationCardId(view.exploration?.cards?.[0]?.id||null);}}>Khám phá · {view.exploration.fragments||0}/3 mảnh</button>}
                 {!media.isUnlocked&&<button type="button" onClick={media.unlockAudio}>Bật phản hồi</button>}
                 <p>Ví cá nhân: {view?.wallet?.earned||0}{groupWallet?` · Quỹ nhóm: ${groupWallet.earned||0}`:""}</p>
@@ -1041,12 +1048,13 @@ export default function PlayPage() {
         )}
 
       <LessonEncounterSheet
-        open={encounterOpen && !needsMascot && !explorationCardId && view?.status !== "waiting" && view?.status !== "paused"}
+        open={encounterOpen && !showEvidence && !reportOpen && !needsMascot && !explorationCardId && view?.status !== "waiting" && view?.status !== "paused"}
         onClose={closeEncounter}
         kicker={view?.currentActivity?.phase ? "HOẠT ĐỘNG HỌC TẬP" : undefined}
         title="Nhiệm vụ của cổng"
       >
           {view?.lessonModeError && <p role="status">Bài học đã lưu. Hoàn thành bước chơi đang hiện trước khi nhận tiến độ chơi tiếp.</p>}
+          {view?.ruleFallback && <p className="task-status-banner task-status-pending" role="status">Luật đã chọn chưa khả dụng; phòng đang chạy theo Hành trình.</p>}
           {sessionError && (
             <div className="task-status-banner task-status-error">{sessionError}</div>
           )}
@@ -1199,7 +1207,7 @@ export default function PlayPage() {
           <section className="play-activity-banner" id="lesson-gate-task">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
               <span className="lesson-kicker">
-                {({ experience: "KHÁM PHÁ", guided: "CÙNG TÌM HIỂU", practice: "LUYỆN TẬP", group: "HỢP TÁC", recheck: "KIỂM TRA CÁ NHÂN", extension: "THỬ THÁCH MỞ RỘNG", exit: "TỔNG KẾT" } as Record<string, string>)[view?.currentActivity?.phase || ""] || "HOẠT ĐỘNG"}
+                {({ experience: "KHÁM PHÁ", formation: "HÌNH THÀNH KIẾN THỨC", guided: "CÙNG TÌM HIỂU", practice: "LUYỆN TẬP", group: "HỢP TÁC", recheck: "KIỂM TRA CÁ NHÂN", extension: "THỬ THÁCH MỞ RỘNG", exit: "TỔNG KẾT" } as Record<string, string>)[view?.currentActivity?.phase || ""] || "HOẠT ĐỘNG"}
               </span>
               <span
                 className={`lesson-badge ${
@@ -1210,7 +1218,7 @@ export default function PlayPage() {
               </span>
             </div>
 
-            <details><summary>Hướng dẫn hoạt động</summary><div style={{ fontSize: "1.05rem", lineHeight: 1.5, margin: "0.5rem 0" }}>
+            <details key={view?.currentActivity?.id} open={view?.currentActivity?.phase === 'formation' || view?.currentActivity?.phase === 'experience'}><summary>Hướng dẫn hoạt động</summary><div style={{ fontSize: "1.05rem", lineHeight: 1.5, margin: "0.5rem 0" }}>
               <MathText text={view?.currentActivity?.studentAction} inline={false} />
             </div></details>
 
@@ -1267,7 +1275,7 @@ export default function PlayPage() {
                     {view?.group?.proposal?.taskId === task.id && <div className="lesson-card" style={{ padding: "1rem" }}><p>Nhóm đã có đề xuất: {view.group.consent?.votes || 0}/{view.group.consent?.required || 1} phiếu cần thiết.</p><button className="lesson-button" disabled={isMainInputDisabled} onClick={() => void dispatchCommand("GROUP_VOTE", { taskId: task.id, proposalHash: view.group?.proposal?.hash })}>Đồng ý đề xuất này</button><button className="lesson-button" disabled={isMainInputDisabled || !view.group.consent?.approved} onClick={() => void dispatchCommand("GROUP_SUBMIT", { taskId: task.id, answer: view.group?.proposal?.answer, proposalHash: view.group?.proposal?.hash })}>Nộp sản phẩm đã thống nhất</button></div>}
                   <TaskInput
                       task={task}
-                      disabled={isMainInputDisabled}
+                      disabled={isMainInputDisabled || task.completed === true}
                       initialDraft={initialDraft}
                       submission={sub}
                       currentLearnerId={learnerId || undefined}
@@ -1395,7 +1403,11 @@ export default function PlayPage() {
           </details>
       </LessonEncounterSheet>
 
-      <LessonEncounterSheet open={needsMascot} onClose={() => setPickerSkipped(true)} title="Chọn linh vật" variant="center">
+      {reportOpen && <StudentBugReport key={`${sessionId}:${learnerId}`} sessionId={sessionId} bearerToken={bearerToken} onClose={()=>{setReportOpen(false);menuButton.current?.focus();}} />}
+      <LessonEncounterSheet open={showEvidence && !reportOpen && !needsMascot && !explorationCardId} onClose={()=>setShowEvidence(false)} title="Kết quả & tự đánh giá">
+        {view && <StudentLearningEvidence key={`${sessionId}:${learnerId}`} view={view} onCommand={dispatchCommand} disabled={isSubmitting} />}
+      </LessonEncounterSheet>
+      <LessonEncounterSheet open={needsMascot && !reportOpen} onClose={() => setPickerSkipped(true)} title="Chọn linh vật" variant="center">
         {ownMapPeer && (
           <LessonMascotPicker
             spriteImage={worldMeta.spriteImage}

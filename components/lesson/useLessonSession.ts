@@ -31,6 +31,9 @@ export interface LessonProjection {
   id?: string;
   learnerId?: string;
   learnerName?: string;
+  objectives?:Array<{level:string;statement:string}>;
+  selfAssessment?: {must:"not_started"|"working"|"met";should:"not_started"|"working"|"met";could:"not_started"|"working"|"met";updatedAt:number}|null;
+  learningEvidence?: import("./LearningEvidencePanel").LearningEvidenceView;
   round?: number;
   revision?: number;
   mode?: "preview" | "live";
@@ -98,6 +101,7 @@ export interface LessonProjection {
   passportCard?: LessonPassportCard | null;
   lessonMode?: import("./LessonModePanel").LessonModeView;
   lessonModeError?: string | null;
+  ruleFallback?: { selectedRule:string; reason:string; appliedRule:'campaign' } | null;
   classEvent?: import("./ClassEventPanel").ClassEventView | null;
   practice?: import("./PracticePanel").PracticeView | null;
   revisitGates?: Array<{id: string; title: string}>;

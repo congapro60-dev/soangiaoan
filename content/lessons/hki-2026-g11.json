@@ -113420,7 +113420,7 @@
    "sourceTopic": "Các số đặc trưng đo xu thế trung tâm"
   },
   {
-   "title": "Hai mặt phẳng song song - Hai mặt phẳng song song (tiết 77)",
+   "title": "Hai mặt phẳng song song - Định nghĩa và điều kiện (tiết 77)",
    "week": 11,
    "period": 77,
    "kind": "core",
@@ -113428,7 +113428,7 @@
    "pkg": {
     "schemaVersion": "1.0.0",
     "id": "r22-g11-discover-r106",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "draft",
     "subject": "math",
     "grade": 11,
@@ -113449,18 +113449,28 @@
       "label": "Dis_Toán 11 Kế-hoạch-học-phần-II năm 25-26.docx (tasks/r22/sources/g11-unit2.txt:18-18)",
       "hash": "e2f3afc83ff90ed25bcd325992c9369680624282d6211000686614e436a45d3b",
       "verification": "teacher_review_required"
+     },
+     {
+      "id": "r26-g11-parallel-planes-sgk",
+      "kind": "external",
+      "locator": "C:/Users/ADMIN/Downloads/smart-lesson-plan-ai/SGK Kết nối/sach-giao-khoa-toan-11-tap-1-ket-noi-tri-thuc-voi-cuoc-song (2).pdf#page=89",
+      "label": "SGK Toán 11, tập 1, Kết nối tri thức với cuộc sống, Bài 13, trang in 88–89 (trang PDF 89–90); định nghĩa và HĐ2. Bài tập trong gói do tác giả biên soạn.",
+      "hash": "d33709c42f9a1cf835c87926f7ea77034251198c1f0108ac2cead535e9d049ef",
+      "verification": "teacher_review_required"
      }
     ],
-    "essentialQuestion": "Làm thế nào chứng minh hai mặt phẳng song song bằng hai đường cắt nhau; không dùng chỉ một cặp đường?",
+    "essentialQuestion": "Vì sao một hướng song song chưa đủ để kết luận hai mặt phẳng song song? Cần kiểm tra những điều kiện nào?",
     "prerequisites": [
-     "Các nội dung đã học theo PPCT trước tiết này; GV dùng kiểm tra đầu giờ để xác nhận."
+     "Hai mặt phẳng phân biệt có điểm chung thì cắt nhau theo một đường thẳng.",
+     "Định nghĩa, dấu hiệu và tính chất đường thẳng song song với mặt phẳng; điều kiện đường không nằm trong mặt phẳng.",
+     "Đường trung bình của tam giác; tính chất các cạnh của hình hộp chữ nhật."
     ],
     "objectives": [
      {
       "id": "obj-1",
       "code": "r22-g11-discover-r106-lo1",
       "level": "must",
-      "statement": "Chứng minh hai mặt phẳng song song bằng hai đường cắt nhau; không dùng chỉ một cặp đường.",
+      "statement": "Nêu định nghĩa hai mặt phẳng song song; áp dụng dấu hiệu hai đường cắt nhau cùng song song với mặt phẳng kia; bác bỏ kết luận thiếu điều kiện bằng phản ví dụ.",
       "prerequisiteIds": [],
       "metadata": {
        "sourceCitation": {
@@ -113492,22 +113502,22 @@
        "task-1-1"
       ],
       "participation": "individual",
-      "studentAction": "GV bắt đầu với bảng trắng và TV chờ. HS đọc đề, dự đoán rồi viết vào vở; GV chưa công bố đáp án.",
-      "expectedProduct": "Mỗi em có dự đoán và một bước làm ban đầu.",
+      "studentAction": "4 phút: quan sát mô hình hoặc hình GV vẽ trên bảng, dự đoán riêng trong vở; chưa tra định nghĩa. TV ở màn hình chờ, thiết bị chỉ dùng để gửi dự đoán sau khi viết.",
+      "expectedProduct": "Hai hình phác về điểm chung và một câu phân biệt mặt phẳng với miếng bìa hữu hạn.",
       "evidenceIds": [
        "ev-1-1"
       ],
       "supportIds": [
        "hint-1-1-1"
       ],
-      "teacherLookFor": "Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
-      "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
+      "teacherLookFor": "Chuẩn bị hai tấm bìa và một hộp chữ nhật; nếu thiếu đồ dùng, vẽ hình kệ với vách bên. Hỏi: “Kéo dài hai mặt thì sao?”, “Không chạm mép bìa có nghĩa là không có điểm chung không?”. Giữ hai dự đoán khác nhau để thảo luận; chưa chấm đúng/sai như bài luyện.",
+      "transition": "GV chọn hai dự đoán trái nhau, chuyển sang tìm định nghĩa và kiểm tra điều kiện."
      },
      {
       "id": "act-2",
       "phase": "formation",
       "budgetRole": "core",
-      "minutes": 8,
+      "minutes": 12,
       "objectiveIds": [
        "obj-1"
       ],
@@ -113515,22 +113525,22 @@
        "task-2-1"
       ],
       "participation": "whole_class",
-      "studentAction": "HS giải thích dự đoán; GV vẽ/lập bảng từ dữ kiện và làm rõ điều kiện áp dụng.",
-      "expectedProduct": "Vở ghi quy tắc, điều kiện và ví dụ đã được GV chốt.",
+      "studentAction": "12 phút, theo nhịp thầy/cô: (1) đối chiếu dự đoán về điểm chung; (2) kiểm tra phản ví dụ một đường song song; (3) dự đoán khi có hai đường cắt nhau; (4) ghi định nghĩa, định lí và điều kiện sau khi GV chốt; (5) cùng giải một ví dụ mẫu, chỉ tên hai đường được dùng. Thiết bị tạm dừng để quan sát bảng.",
+      "expectedProduct": "Vở có định nghĩa, định lí kèm đầy đủ giả thiết, một phản ví dụ và lời giải mẫu có bước kiểm tra điều kiện.",
       "evidenceIds": [
        "ev-2-1"
       ],
       "supportIds": [
        "hint-2-1-1"
       ],
-      "teacherLookFor": "Dựng hai đường cắt nhau trong mặt phẳng thứ nhất, lần lượt song song hai đường cắt nhau trong mặt phẳng thứ hai. Một cặp đường song song chưa đủ quyết định hai mặt phẳng. Ví dụ trên TV: Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/11$. Chứng minh $(MNP)\\parallel(ABC)$. Lời giải GV: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$.",
-      "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
+      "teacherLookFor": "Phút 1–2. Định nghĩa (SGK trang 88): Hai mặt phẳng song song nếu chúng không có điểm chung; kí hiệu $(P)\\parallel(Q)$. Hỏi: “Hai mặt phẳng trùng nhau có thỏa định nghĩa không?” Chốt: không, vì có điểm chung.\n\nPhút 3–5. Phản ví dụ: vẽ $(P)\\cap(Q)=d$, rồi vẽ $a\\subset(P)$, $a\\parallel d$, $a\\ne d$. Hỏi: “$a$ có chạm $(Q)$ không? Hai mặt phẳng có còn cắt nhau không?” Chốt $a\\parallel(Q)$ vẫn chưa đủ. Vẽ thêm $b\\parallel d$ khác $a,d$: hai đường song song trong $(P)$ cùng song song $(Q)$ vẫn chưa đủ.\n\nPhút 6–8. Định lí (SGK trang 89): Nếu $(P)$ chứa hai đường thẳng cắt nhau và cả hai đường cùng song song với $(Q)$ thì $(P)\\parallel(Q)$. Viết riêng ba giả thiết: $a,b\\subset(P)$; $a\\cap b=\\{O\\}$; $a\\parallel(Q),b\\parallel(Q)$. Hỏi: “Bỏ cắt nhau, phản ví dụ vừa vẽ có bác bỏ được không?” Giải thích ngắn: nếu hai mặt phẳng cắt theo $d$, tính chất đường–mặt phẳng buộc $a,b$ cùng song song $d$, trái điều kiện cắt nhau. Không được thay $a\\parallel(Q)$ bằng $a\\subset(Q)$.\n\nPhút 9–12. Ví dụ mẫu do tác giả biên soạn: trong tứ diện $SABC$, lấy $M,N,P$ là trung điểm của $SA,SB,SC$. GV hỏi lần lượt: “Muốn xét $(MNP)$ với $(ABC)$, chọn hai đường nào?”, “Vì sao chúng song song $(ABC)$?”, “Chúng cắt nhau ở đâu?”. Từ đường trung bình: $MN\\parallel AB$, $MP\\parallel AC$. Vì $M\\notin(ABC)$, suy ra $MN,MP$ đều song song $(ABC)$. Chúng nằm trong $(MNP)$, cắt nhau tại $M$, nên $(MNP)\\parallel(ABC)$. HS gạch chân điều kiện cắt nhau và điều kiện đường không nằm trong mặt phẳng đích.",
+      "transition": "GV chốt định nghĩa, ba giả thiết của định lí và ví dụ mẫu trên bảng; mời một em nhắc lại điều kiện cắt nhau rồi mới mở luyện tập."
      },
      {
       "id": "act-3",
       "phase": "practice",
       "budgetRole": "core",
-      "minutes": 10,
+      "minutes": 8,
       "objectiveIds": [
        "obj-1"
       ],
@@ -113539,8 +113549,8 @@
        "task-3-2"
       ],
       "participation": "individual",
-      "studentAction": "Mỗi em làm tuyến hỗ trợ hoặc cơ bản theo hướng dẫn của GV. Có thể đổi tuyến sau khi trao đổi; không cần làm cả hai. Tuyến mở rộng chỉ có sau kiểm tra lại.",
-      "expectedProduct": "Bài làm có bước tính hoặc lập luận, ghi rõ điều kiện.",
+      "studentAction": "8 phút: mỗi em làm một tuyến theo hướng dẫn GV. Tuyến hỗ trợ bổ sung lời giải mẫu; tuyến cơ bản tự chọn đường trong hình hộp. Viết lập luận vào vở trước khi gửi; không phải làm cả hai tuyến.",
+      "expectedProduct": "Một lời giải chỉ rõ hai đường cắt nhau, quan hệ từng đường với mặt phẳng đích và kết luận.",
       "evidenceIds": [
        "ev-3-1",
        "ev-3-2"
@@ -113552,14 +113562,14 @@
        "hint-3-1-4",
        "hint-3-2-1"
       ],
-      "teacherLookFor": "Can thiệp: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song. Yêu cầu em chỉ ra giả thiết/công thức đang dùng trước khi sửa số.",
-      "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
+      "teacherLookFor": "Hỏi “Em đang dùng hai đường nào?” và “Đường đó nằm trong hay song song với mặt phẳng đích?”. Nếu HS chọn hai đường song song, yêu cầu đổi một đường; không chữa bằng đổi số trong đề.",
+      "transition": "GV chữa một cách chọn thiếu điều kiện; đóng trao đổi để chuyển sang kiểm tra độc lập."
      },
      {
       "id": "act-4",
       "phase": "recheck",
       "budgetRole": "core",
-      "minutes": 6,
+      "minutes": 4,
       "objectiveIds": [
        "obj-1"
       ],
@@ -113567,15 +113577,15 @@
        "task-4-1"
       ],
       "participation": "individual",
-      "studentAction": "Mỗi em làm đề mới độc lập, không trao đổi. Dùng gợi ý thì bài được ghi nhận có hỗ trợ.",
-      "expectedProduct": "Một câu trả lời độc lập cho mỗi mục tiêu.",
+      "studentAction": "4 phút: tự tìm lỗi, vẽ phản ví dụ và sửa phát biểu; không xem lời giải của bạn. Nếu dùng gợi ý, báo rõ đã nhận hỗ trợ.",
+      "expectedProduct": "Phản ví dụ thỏa giả thiết sai và phát biểu định lí đã sửa đủ điều kiện.",
       "evidenceIds": [
        "ev-4-1"
       ],
       "supportIds": [
        "hint-4-1-1"
       ],
-      "teacherLookFor": "GV xem cách làm; bài mở chờ GV chấm rubric. Chưa đủ minh chứng không đồng nghĩa học sinh yếu.",
+      "teacherLookFor": "Cần có hai mặt phẳng thực sự cắt nhau và cả hai đường đều song song mặt phẳng kia. Chỉ viết “thiếu cắt nhau” chưa thay thế được phản ví dụ. Bài mở chờ GV đánh giá.",
       "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
      },
      {
@@ -113590,15 +113600,15 @@
        "task-5-1"
       ],
       "participation": "individual",
-      "studentAction": "Em đủ điều kiện sau kiểm tra lại có thể thử thách thêm. Em khác dùng thời gian này kiểm lại bài cùng GV.",
-      "expectedProduct": "Một cách giải hoặc hướng tiếp cận mới.",
+      "studentAction": "4 phút tự chọn sau kiểm tra lại: em đủ điều kiện thử giải thích định lí bằng phản chứng; các em khác dùng thời gian này sửa điều kiện với GV. Có thể bỏ phần này để giữ thời gian phiếu ra cửa.",
+      "expectedProduct": "Một mâu thuẫn hình học có giải thích, hoặc bản sửa phản ví dụ cùng GV.",
       "evidenceIds": [
        "ev-5-1"
       ],
       "supportIds": [
        "hint-5-1-1"
       ],
-      "teacherLookFor": "Không ép làm; có thể bỏ toàn bộ phần này, giữ nguyên thời gian phiếu ra cửa.",
+      "teacherLookFor": "Dùng tính chất đường thẳng song song mặt phẳng đã học; không yêu cầu định lí Thalès trong không gian của tiết sau.",
       "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
      },
      {
@@ -113613,15 +113623,15 @@
        "task-6-1"
       ],
       "participation": "individual",
-      "studentAction": "Mỗi em hoàn thành câu mới, ghi điều kiện và kết quả; nộp trước khi trao đổi.",
-      "expectedProduct": "Phiếu ra cửa độc lập; bài mở cần GV đánh giá.",
+      "studentAction": "4 phút: kiểm tra từng giả thiết trong cấu hình mới, tự viết chứng minh và diễn giải kết luận bằng điểm chung; nộp trước khi trao đổi.",
+      "expectedProduct": "Phiếu độc lập có hai quan hệ đường–mặt phẳng, điều kiện cắt nhau và kết luận theo định nghĩa.",
       "evidenceIds": [
        "ev-6-1"
       ],
       "supportIds": [
        "hint-6-1-1"
       ],
-      "teacherLookFor": "So với recheck để xác định điều cần hỗ trợ. Không suy mastery từ điểm nhóm hoặc vị trí trên bản đồ.",
+      "teacherLookFor": "Đối chiếu phản ví dụ ở recheck với chứng minh ở exit. Chỉ ghi đạt mục tiêu khi có đủ hai minh chứng cá nhân đã được GV đánh giá; điểm nhóm và bài theo mẫu không thay thế.",
       "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
      },
      {
@@ -113657,9 +113667,10 @@
       ],
       "activityId": "act-1",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/10$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Quan sát hai mặt kệ nằm ngang ở hai độ cao khác nhau và mặt kệ với một vách bên. Coi mỗi mặt là một phần của mặt phẳng kéo dài vô hạn. Cặp nào không có điểm chung, cặp nào có điểm chung? Vẽ hai hình phác, đánh dấu điểm hoặc đường chung nếu có. Hai miếng bìa chưa chạm nhau có đủ để kết luận hai mặt phẳng chứa chúng không có điểm chung không?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-1-1"
@@ -113671,15 +113682,15 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: Hai mặt kệ nằm ngang ở hai độ cao khác nhau gợi hai mặt phẳng không có điểm chung. Mặt kệ và vách bên có đường chung. Hai miếng bìa hữu hạn không chạm nhau chưa đủ: các mặt phẳng chứa chúng có thể cắt nhau bên ngoài phần bìa.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Phân biệt không có điểm chung với có đường chung.",
+         "Phân biệt miếng bìa hữu hạn với mặt phẳng kéo dài vô hạn."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Hai mặt kệ nằm ngang ở hai độ cao khác nhau gợi hai mặt phẳng không có điểm chung. Mặt kệ và vách bên có đường chung. Hai miếng bìa hữu hạn không chạm nhau chưa đủ: các mặt phẳng chứa chúng có thể cắt nhau bên ngoài phần bìa."
         ]
        }
       },
@@ -113690,7 +113701,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Hai mặt kệ nằm ngang ở hai độ cao khác nhau gợi hai mặt phẳng không có điểm chung. Mặt kệ và vách bên có đường chung. Hai miếng bìa hữu hạn không chạm nhau chưa đủ: các mặt phẳng chứa chúng có thể cắt nhau bên ngoài phần bìa."
       }
      },
      {
@@ -113701,9 +113712,10 @@
       ],
       "activityId": "act-2",
       "participation": "whole_class",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/11$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Khám phá cùng thầy/cô. Hai mặt phẳng $(P),(Q)$ cắt nhau theo $d$. Trong $(P)$, vẽ $a$ song song với $d$ và khác $d$. (1) $a$ có thể song song với $(Q)$ dù $(P)$ không song song với $(Q)$ không? (2) Bây giờ $(P)$ chứa hai đường $a,b$ cắt nhau và cả hai cùng song song với $(Q)$. Em dự đoán quan hệ giữa $(P),(Q)$ thế nào? Nêu điều kiện mới đã làm thay đổi dự đoán. Ghi dự đoán trước khi nghe thầy/cô chốt.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-2-1"
@@ -113711,19 +113723,19 @@
       "hintIds": [
        "hint-2-1-1"
       ],
-      "minutes": 8,
+      "minutes": 12,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: (1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Dùng giao tuyến để bác bỏ suy luận từ một đường.",
+         "Dự đoán và chỉ ra điều kiện hai đường cắt nhau; GV chốt, không dùng lượt chung làm mastery."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "(1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ."
         ]
        }
       },
@@ -113734,7 +113746,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "(1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ."
       }
      },
      {
@@ -113745,9 +113757,10 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/12$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Luyện có hỗ trợ. Trong tứ diện $SABC$, $M,N,P$ là trung điểm của $SA,SB,SC$. Một lời giải viết: “$MN\\parallel AB$ và $MP\\parallel AC$, vậy $(MNP)\\parallel(ABC)$”. Hãy bổ sung các bước còn thiếu: mỗi đường $MN,MP$ song song với mặt phẳng nào, vì sao; chúng cắt nhau ở đâu; định lí nào cho kết luận?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-3-1"
@@ -113758,19 +113771,19 @@
        "hint-3-1-3",
        "hint-3-1-4"
       ],
-      "minutes": 10,
+      "minutes": 8,
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Bổ sung bước từ đường song song đường sang đường song song mặt phẳng, có điều kiện không nằm trong mặt phẳng.",
+         "Chỉ rõ hai đường cắt nhau tại M và cùng nằm trong (MNP)."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "$MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
         ]
        }
       },
@@ -113781,7 +113794,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "$MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
       }
      },
      {
@@ -113792,9 +113805,10 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/13$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Luyện vận dụng. Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, hãy chứng minh hai mặt phẳng chứa hai mặt đối diện $(ABB'A')$ và $(DCC'D')$ song song. Tự chọn hai đường cắt nhau trong mặt phẳng thứ nhất; chỉ ra các đường song song tương ứng trong mặt phẳng thứ hai. Giải thích vì sao chỉ chọn $AB$ và $A'B'$ là chưa đủ để áp dụng định lí hai đường cắt nhau.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-3-2"
@@ -113802,19 +113816,19 @@
       "hintIds": [
        "hint-3-2-1"
       ],
-      "minutes": 10,
+      "minutes": 8,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chọn đúng hai đường cắt nhau, chứng minh mỗi đường song song mặt phẳng đối diện.",
+         "Phân biệt cách chọn đường chưa đủ điều kiện với kết luận hình học sai."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
         ]
        }
       },
@@ -113825,7 +113839,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
       }
      },
      {
@@ -113836,9 +113850,10 @@
       ],
       "activityId": "act-4",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/15$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Kiểm tra độc lập: lời giải sau sai ở đâu? “$(P)$ chứa hai đường phân biệt $a,b$; $a\\parallel b$, $a\\parallel(Q)$, $b\\parallel(Q)$, do đó $(P)\\parallel(Q)$”. Hãy vẽ một phản ví dụ bằng hai mặt phẳng cắt nhau theo $d$, rồi phát biểu điều kiện cần thay cho $a\\parallel b$ để kết luận trên được bảo đảm.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-4-1"
@@ -113846,19 +113861,20 @@
       "hintIds": [
        "hint-4-1-1"
       ],
-      "minutes": 6,
+      "minutes": 4,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chỉ đúng điều kiện bị thiếu, không chỉ nói kết luận sai.",
+         "Phản ví dụ thỏa cả hai giả thiết đường song song mặt phẳng nhưng hai mặt phẳng cắt nhau.",
+         "Phát biểu đủ điều kiện của định lí đã sửa."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$."
         ]
        }
       },
@@ -113869,7 +113885,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$."
       }
      },
      {
@@ -113880,9 +113896,10 @@
       ],
       "activityId": "act-5",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ trên $SA,SB,SC$ có $SM/SA=SN/SB=1/2$ nhưng $SP/SC=1/3$. Vì sao một cặp $MN\\parallel AB$ chưa đủ để kết luận $(MNP)\\parallel(ABC)$?",
+      "prompt": "Thử thách tự chọn. $(P)$ chứa hai đường $a,b$ cắt nhau, cùng song song với $(Q)$. Giả sử $(P)$ và $(Q)$ cắt nhau theo $d$. Dùng tính chất đường thẳng song song mặt phẳng đã học để xác định quan hệ giữa $a,d$ và $b,d$. Mâu thuẫn xuất hiện ở đâu? Vì sao $(P)$ cũng không thể trùng $(Q)$?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-5-1"
@@ -113894,14 +113911,15 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "extension",
-      "supportRationale": "Lời giải đối soát: Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: Nếu $(P)\\cap(Q)=d$ thì $a\\parallel(Q)$, $a\\subset(P)$ cho $a\\parallel d$; tương tự $b\\parallel d$. Khi đó $a\\parallel b$, trái giả thiết $a,b$ cắt nhau. $(P)$ không thể trùng $(Q)$ vì khi ấy $a\\subset(Q)$, trái $a\\parallel(Q)$. Vậy $(P)\\parallel(Q)$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Lập luận rõ điều kiện, chọn cách biến đổi phù hợp và kết luận đúng."
+         "Suy ra hai đường cùng song song giao tuyến nên không thể cắt nhau.",
+         "Loại trường hợp hai mặt phẳng trùng nhau bằng giả thiết đường song song mặt phẳng."
         ],
         "lookFor": [
-         "Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai."
+         "Nếu $(P)\\cap(Q)=d$ thì $a\\parallel(Q)$, $a\\subset(P)$ cho $a\\parallel d$; tương tự $b\\parallel d$. Khi đó $a\\parallel b$, trái giả thiết $a,b$ cắt nhau. $(P)$ không thể trùng $(Q)$ vì khi ấy $a\\subset(Q)$, trái $a\\parallel(Q)$. Vậy $(P)\\parallel(Q)$."
         ]
        }
       },
@@ -113912,7 +113930,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai."
+       "workedSolution": "Nếu $(P)\\cap(Q)=d$ thì $a\\parallel(Q)$, $a\\subset(P)$ cho $a\\parallel d$; tương tự $b\\parallel d$. Khi đó $a\\parallel b$, trái giả thiết $a,b$ cắt nhau. $(P)$ không thể trùng $(Q)$ vì khi ấy $a\\subset(Q)$, trái $a\\parallel(Q)$. Vậy $(P)\\parallel(Q)$."
       }
      },
      {
@@ -113923,9 +113941,10 @@
       ],
       "activityId": "act-6",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/4$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Phiếu ra cửa, làm độc lập. Cho $A\\notin(Q)$; hai đường $d,e$ trong $(Q)$ cắt nhau. Qua $A$ dựng $a\\parallel d$, $b\\parallel e$; gọi $(P)$ là mặt phẳng chứa $a,b$. Chứng minh $(P)\\parallel(Q)$ bằng cách kiểm tra từng điều kiện của định lí. Kết luận này cho biết gì về các điểm chung của $(P)$ và $(Q)$?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-6-1"
@@ -113937,15 +113956,16 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải dành cho GV: Do $d,e$ cắt nhau, chúng có hai hướng khác nhau, nên $a,b$ là hai đường phân biệt cắt nhau tại $A$ và cùng thuộc $(P)$. Vì $A\\notin(Q)$, $a\\parallel d$, $d\\subset(Q)$, suy ra $a\\parallel(Q)$; tương tự $b\\parallel(Q)$. Định lí cho $(P)\\parallel(Q)$. Theo định nghĩa, hai mặt phẳng không có điểm chung.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chỉ rõ a,b phân biệt, cắt nhau tại A và cùng nằm trong (P).",
+         "Dùng A ngoài (Q) cùng hai cặp đường song song để suy ra a,b đều song song (Q).",
+         "Áp dụng định lí, diễn giải kết luận bằng định nghĩa không có điểm chung."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Do $d,e$ cắt nhau, chúng có hai hướng khác nhau, nên $a,b$ là hai đường phân biệt cắt nhau tại $A$ và cùng thuộc $(P)$. Vì $A\\notin(Q)$, $a\\parallel d$, $d\\subset(Q)$, suy ra $a\\parallel(Q)$; tương tự $b\\parallel(Q)$. Định lí cho $(P)\\parallel(Q)$. Theo định nghĩa, hai mặt phẳng không có điểm chung."
         ]
        }
       },
@@ -113956,7 +113976,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Do $d,e$ cắt nhau, chúng có hai hướng khác nhau, nên $a,b$ là hai đường phân biệt cắt nhau tại $A$ và cùng thuộc $(P)$. Vì $A\\notin(Q)$, $a\\parallel d$, $d\\subset(Q)$, suy ra $a\\parallel(Q)$; tương tự $b\\parallel(Q)$. Định lí cho $(P)\\parallel(Q)$. Theo định nghĩa, hai mặt phẳng không có điểm chung."
       }
      },
      {
@@ -113967,9 +113987,10 @@
       ],
       "activityId": "act-7",
       "participation": "individual",
-      "prompt": "Chọn một bước em đã sửa trong tiết này. Viết cách kiểm lại bước đó và điều em muốn hỏi thầy/cô.",
+      "prompt": "Nhìn lại bài làm: em đã bổ sung hoặc sửa điều kiện nào? Ghi một dấu hiệu giúp em tự phát hiện lỗi đó lần sau. Nếu chưa rõ, viết câu hỏi cụ thể gửi thầy/cô.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-planes-sgk"
       ],
       "evidenceIds": [
        "ev-7-1"
@@ -113981,14 +114002,14 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu.",
+      "supportRationale": "Lời giải dành cho GV: GV đọc phản hồi để chọn bước hỗ trợ tiếp theo; không suy đạt mục tiêu từ tự đánh giá.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu một bước kiểm tra hoặc câu hỏi cụ thể."
+         "Nêu một điều kiện đã sửa hoặc một câu hỏi cụ thể."
         ],
         "lookFor": [
-         "GV phản hồi; không chấm đúng/sai và không ghi mastery từ phản tư."
+         "GV đọc phản hồi để chọn bước hỗ trợ tiếp theo; không suy đạt mục tiêu từ tự đánh giá."
         ]
        }
       },
@@ -113998,7 +114019,8 @@
         "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
         "origin": "generated"
        },
-       "numericReviewRequired": true
+       "numericReviewRequired": true,
+       "workedSolution": "GV đọc phản hồi để chọn bước hỗ trợ tiếp theo; không suy đạt mục tiêu từ tự đánh giá."
       }
      }
     ],
@@ -114006,7 +114028,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Hãy tưởng tượng kéo dài mỗi mặt về mọi phía; đừng chỉ nhìn mép miếng bìa.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -114018,12 +114040,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: Hai mặt kệ nằm ngang ở hai độ cao khác nhau gợi hai mặt phẳng không có điểm chung. Mặt kệ và vách bên có đường chung. Hai miếng bìa hữu hạn không chạm nhau chưa đủ: các mặt phẳng chứa chúng có thể cắt nhau bên ngoài phần bìa."
      },
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "So sánh hai tình huống: điều kiện về vị trí tương đối của hai đường đã thay đổi thế nào?",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -114035,12 +114057,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: (1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ."
      },
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Tô màu mặt phẳng đích và xác định vị trí của M so với mặt phẳng ấy.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -114052,12 +114074,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
      },
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Xét hai tam giác có chung một cạnh bên.",
+      "text": "Một đường song song với một đường nằm trong mặt phẳng chưa đủ nếu chính nó nằm trong mặt phẳng.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -114069,12 +114091,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
      },
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chứng minh từng cặp đường song song trước.",
+      "text": "Viết riêng ba dòng: đường thứ nhất song song mặt phẳng; đường thứ hai song song mặt phẳng; hai đường cắt nhau.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -114086,12 +114108,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
      },
      {
       "id": "hint-3-1-4",
       "tier": "H4",
-      "text": "Ví dụ khác: hai đường cắt nhau tạo hai hướng đủ để xác định mặt phẳng.",
+      "text": "Ví dụ khác: với hai hình bình hành $ABCD,ABEF$ không đồng phẳng, $BC\\parallel AD$ và $BE\\parallel AF$. Muốn xét $(BCE)$ với $(ADF)$, hãy kiểm tra vị trí của $B$ trước khi dùng hai cặp đường này.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -114103,12 +114125,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
      },
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Tại một đỉnh của mặt hình chữ nhật, chọn hai cạnh theo hai hướng khác nhau.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -114120,12 +114142,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
      },
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Nếu cần hỗ trợ, bắt đầu từ hai mặt phẳng cắt nhau; bài có dùng gợi ý không còn là minh chứng độc lập.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -114137,12 +114159,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$."
      },
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Thử dùng hệ quả Thales cho một thiết diện song song.",
+      "text": "Nhắc lại tính chất: mặt phẳng chứa đường song song mặt phẳng kia thì giao tuyến, nếu có, song song với đường ấy.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -114154,12 +114176,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: Nếu $(P)\\cap(Q)=d$ thì $a\\parallel(Q)$, $a\\subset(P)$ cho $a\\parallel d$; tương tự $b\\parallel d$. Khi đó $a\\parallel b$, trái giả thiết $a,b$ cắt nhau. $(P)$ không thể trùng $(Q)$ vì khi ấy $a\\subset(Q)$, trái $a\\parallel(Q)$. Vậy $(P)\\parallel(Q)$."
      },
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Kiểm tra đủ nơi chứa hai đường, vị trí tương đối của chúng và quan hệ của từng đường với mặt phẳng đích.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -114171,12 +114193,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải dành cho GV: Do $d,e$ cắt nhau, chúng có hai hướng khác nhau, nên $a,b$ là hai đường phân biệt cắt nhau tại $A$ và cùng thuộc $(P)$. Vì $A\\notin(Q)$, $a\\parallel d$, $d\\subset(Q)$, suy ra $a\\parallel(Q)$; tương tự $b\\parallel(Q)$. Định lí cho $(P)\\parallel(Q)$. Theo định nghĩa, hai mặt phẳng không có điểm chung."
      },
      {
       "id": "hint-7-1-1",
       "tier": "H1",
-      "text": "Nhìn lại một bài làm của chính em; nêu bước cụ thể.",
+      "text": "Đối chiếu một dòng trong bài đầu giờ với lời giải sau khi em sửa.",
       "taskId": "task-7-1",
       "objectiveIds": [
        "obj-1"
@@ -114188,7 +114210,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu."
+      "supportRationale": "Lời giải dành cho GV: GV đọc phản hồi để chọn bước hỗ trợ tiếp theo; không suy đạt mục tiêu từ tự đánh giá."
      }
     ],
     "evidenceRules": [
@@ -114275,10 +114297,11 @@
     ],
     "rubric": {
      "criteria": [
-      "Chứng minh hai mặt phẳng song song bằng hai đường cắt nhau; không dùng chỉ một cặp đường."
+      "Nêu định nghĩa hai mặt phẳng song song; áp dụng dấu hiệu hai đường cắt nhau cùng song song với mặt phẳng kia; bác bỏ kết luận thiếu điều kiện bằng phản ví dụ."
      ],
      "lookFor": [
-      "Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "Nhầm hai miếng bìa không chạm nhau với hai mặt phẳng không có điểm chung.",
+      "Bỏ điều kiện hai đường cắt nhau hoặc bỏ điều kiện đường không nằm trong mặt phẳng đích."
      ]
     },
     "modePolicies": {},
@@ -114295,7 +114318,7 @@
       "group_score"
      ]
     },
-    "contentHash": "fbd4a13f4417c7cf183a61040e9c00f99690023292268bba71b4ce910c3b2a79"
+    "contentHash": "402fd35dae5ea4b92389fe02eefcce11aca54aa3dfac83f2a6205d46fb1b552f"
    },
    "citations": [
     {

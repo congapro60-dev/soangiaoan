@@ -4049,3 +4049,9 @@
 body:has(.play-game) { margin: 0; overflow: hidden; }
 .lesson-button[hidden] { display: none !important; }
 .play-game .play-activity-banner { padding: 8px 12px; margin: 0; }
+
+/* Danh sách HS đang trong phòng (16/10) */
+.cockpit-presence summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.cockpit-presence-list { position: absolute; z-index: 20; max-height: 50vh; overflow: auto; margin: 4px 0 0; padding: 8px 12px 8px 32px; background: var(--lesson-surface, #111827); border: 1px solid var(--lesson-border, #334155); border-radius: 10px; min-width: 220px; }
+.cockpit-presence-list li { padding: 2px 0; }
+.cockpit-presence-list .is-away { opacity: 0.6; }

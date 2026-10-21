@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {assembleHkiPackage} from './hki-package.mjs';
+import {repairR106Formation} from './repair-r106-formation.mjs';
 import {hashPackage, CHECKER_REGISTRY} from '../../lib/lesson/schema.js';
 import {validateLessonPackage} from '../../lib/lesson/validate.js';
 import {normalizeExamInput} from '../../lib/exam/validate.js';
@@ -374,7 +375,7 @@ for(const period of ppct.lessons){
   assert.equal(new Set(ids).size,2);
  }
  assert.ok(ids?.length,`Unmapped period ${period.period}`);
- entries.push(buildLesson(period,ids,eligible));
+ entries.push(repairR106Formation(buildLesson(period,ids,eligible)));
 }
 
 function exam(id,title,periodNumbers,conceptIds){
