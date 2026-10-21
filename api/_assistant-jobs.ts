@@ -20,17 +20,19 @@ const safeErrorClass = (value: unknown): string => {
 const validStatuses = new Set<AssistantJobStatus>(['queued', 'running', 'succeeded', 'failed', 'cancelled']);
 const sameOptional = (left: string | undefined, right: string | undefined): boolean => left === right;
 const isValidActor = (actor: AssistantActor): boolean => Boolean(actor && actor.active === true
-  && isText(actor.firebaseUid) && (actor.channel === 'telegram' || actor.channel === 'zalo_oa')
+  && isText(actor.firebaseUid) && (actor.channel === 'telegram' || actor.channel === 'zalo_oa' || actor.channel === 'zalo_bot')
   && isText(actor.channelAccountId) && isText(actor.channelUserId) && isText(actor.linkId)
-  && (actor.channelChatId === undefined || isText(actor.channelChatId)));
+  && (actor.channelChatId === undefined || isText(actor.channelChatId))
+  && (actor.channel !== 'zalo_bot' || actor.channelChatId === actor.channelUserId));
 const isValidJobDoc = (value: unknown): value is AssistantJobDoc => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const job = value as Partial<AssistantJobDoc>;
   const retryCount = job.retryCount;
   const maxRetries = job.maxRetries;
-  return isText(job.actorUid) && isText(job.linkId) && (job.channel === 'telegram' || job.channel === 'zalo_oa')
+  return isText(job.actorUid) && isText(job.linkId) && (job.channel === 'telegram' || job.channel === 'zalo_oa' || job.channel === 'zalo_bot')
     && isText(job.channelAccountId) && isText(job.channelUserId)
     && (job.channelChatId === undefined || isText(job.channelChatId))
+    && (job.channel !== 'zalo_bot' || job.channelChatId === job.channelUserId)
     && isAssistantLongRunningTool(job.toolName || '') && /^[0-9a-f]{64}$/.test(job.requestHash || '')
     && validStatuses.has(job.status as AssistantJobStatus)
     && isFiniteNumber(job.createdAt) && isFiniteNumber(job.updatedAt) && job.createdAt <= job.updatedAt

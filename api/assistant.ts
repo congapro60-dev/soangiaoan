@@ -19,6 +19,7 @@ import { buildAssistantRequestHash } from './_assistant-core.js';
 import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import type { AssistantToolName, Channel } from './_assistant-types.js';
+import { handleZaloBotWebhook } from './_assistant-zalo-bot.js';
 
 export const config = { api: { bodyParser: false } };
 const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7).trim() : '';
@@ -44,7 +45,7 @@ export const normalizeGatewayEnvelope = (body: Record<string, unknown>): Gateway
   const suppliedRequestId = requestId(body.requestId);
   if (!action || (body.requestId !== undefined && !suppliedRequestId)) throw new Error('Invalid request');
   const rawChannel = text(body.channel);
-  if (rawChannel && rawChannel !== 'telegram' && rawChannel !== 'zalo_oa') throw new Error('Unsupported channel');
+  if (rawChannel && rawChannel !== 'telegram' && rawChannel !== 'zalo_oa' && rawChannel !== 'zalo_bot') throw new Error('Unsupported channel');
   const channel = rawChannel as Channel | undefined;
   const account = text(body.channelAccountId);
   const user = text(body.channelUserId);
@@ -95,6 +96,10 @@ const auditedReadTools = new Set(['getClassSummary', 'listStudents', 'getStudent
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ kind: 'error', code: 'METHOD_NOT_ALLOWED' });
+  if (String((req.query as Record<string, unknown> | undefined)?.transport || '') === 'zalo_bot') {
+    await handleZaloBotWebhook(req, res);
+    return;
+  }
   let envelope: GatewayEnvelope | undefined;
   try {
     const rawBody = await readRequestBody(req);

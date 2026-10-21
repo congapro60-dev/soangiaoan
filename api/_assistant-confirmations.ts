@@ -43,8 +43,9 @@ const sameIdentity = (actor: AssistantActor, value: Pick<AssistantConfirmationDo
 const validStatuses = new Set<AssistantConfirmationDoc['status']>(['pending', 'executing', 'cancelled', 'expired', 'executed', 'outcome_unknown']);
 const validStoredConfirmation = (value: unknown): value is AssistantConfirmationDoc => {
   try {
-    if (!isRecord(value) || !isText(value.actorUid) || (value.channel !== 'telegram' && value.channel !== 'zalo_oa')
+    if (!isRecord(value) || !isText(value.actorUid) || (value.channel !== 'telegram' && value.channel !== 'zalo_oa' && value.channel !== 'zalo_bot')
       || !isText(value.channelAccountId) || !isText(value.channelUserId) || (value.channelChatId !== undefined && !isText(value.channelChatId))
+      || (value.channel === 'zalo_bot' && value.channelChatId !== value.channelUserId)
       || !isText(value.linkId) || !isText(value.toolName) || !validStatuses.has(value.status as AssistantConfirmationDoc['status'])
       || !isText(value.requestHash, 128) || !isText(value.preview, 1200) || !isFiniteNumber(value.createdAt) || !isFiniteNumber(value.expiresAt)
       || value.expiresAt <= value.createdAt) return false;

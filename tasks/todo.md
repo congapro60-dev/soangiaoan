@@ -322,3 +322,12 @@ không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu l
 
 - [ ] SSM native follow-up: đọc lớp/cache + Auto-Wake + từ chối ô thiếu trên0.3.1 thật đạt.0.3.2 CKEditor đã main/Ready, CI3104đạt. Chờ user cập nhật0.3.2 để kiểm editor; Excel/roster/cloudsync/cross-machine thật chưa kiểm. Không Save/Submit.
 
+## 2026-10-19 - Bot Cuong Vu
+
+- [x] Zalo Bot Platform channel, private identity and webhook on existing Vercel endpoint.
+- [x] Local security/regression tests, lint and build.
+- [ ] Real bot creation, secure configuration, deployment and private canary.
+
+Plan: `docs/superpowers/plans/2026-10-19-zalo-bot-platform.md`.
+Natural-language assistant remains incomplete; transport tests are not live proof.
+

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
-import { ASSISTANT_SERVICE_ID, assistantSignaturePayload, canRelinkActiveChannel, generateLinkCode, hashLinkCode, isAllowedZaloOaId, validateChannelIdentity, verifyAssistantServiceSignature } from '../_assistant-auth';
+import { ASSISTANT_SERVICE_ID, assistantSignaturePayload, canRelinkActiveChannel, generateLinkCode, hashLinkCode, isAllowedZaloOaId, isAllowedZaloBotId, validateChannelIdentity, verifyAssistantServiceSignature } from '../_assistant-auth';
 
 describe('assistant channel linking helpers', () => {
   it('hashes codes deterministically and generates non-empty random codes', () => {
@@ -44,5 +44,22 @@ describe('assistant channel linking helpers', () => {
     expect(canRelinkActiveChannel('teacher-1', 'teacher-1')).toBe(true);
     expect(canRelinkActiveChannel('teacher-1', 'teacher-2')).toBe(false);
     expect(canRelinkActiveChannel('', 'teacher-1')).toBe(false);
+  });
+});
+
+
+describe('Zalo Bot identity', () => {
+  const identity = { channel: 'zalo_bot' as const, channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', verifiedChannelAccountId: 'bot-1' };
+  it('requires a verified bot account and exact private sender chat', () => {
+    expect(() => validateChannelIdentity(identity)).not.toThrow();
+    for (const patch of [{ verifiedChannelAccountId: undefined }, { verifiedChannelAccountId: 'bot-2' }, { channelChatId: undefined }, { channelChatId: 'group' }, { channelAccountId: '' }, { channelUserId: '' }]) {
+      expect(() => validateChannelIdentity({ ...identity, ...patch })).toThrow();
+    }
+  });
+  it('uses a separate explicitly configured bot allowlist', () => {
+    expect(isAllowedZaloBotId('bot-1', 'bot-1, bot-2')).toBe(true);
+    expect(isAllowedZaloBotId('bot-3', 'bot-1,bot-2')).toBe(false);
+    expect(isAllowedZaloBotId('bot-1', '')).toBe(false);
+    expect(isAllowedZaloBotId('', 'bot-1')).toBe(false);
   });
 });

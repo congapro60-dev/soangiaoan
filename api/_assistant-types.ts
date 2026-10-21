@@ -1,4 +1,4 @@
-export type Channel = 'telegram' | 'zalo_oa';
+export type Channel = 'telegram' | 'zalo_oa' | 'zalo_bot';
 
 export type AssistantToolName =
   | 'listClasses' | 'getClassSummary' | 'listStudents' | 'getStudentTeacherSummary'
@@ -17,7 +17,7 @@ export type AssistantConfirmationStatus = 'pending' | 'executing' | 'cancelled' 
 export interface AssistantActor {
   firebaseUid: string;
   channel: Channel;
-  /** Telegram bot identity or Zalo OA ID. Always paired with channelUserId. */
+  /** Telegram bot, Zalo OA, or Zalo Bot identity. Always paired with channelUserId. */
   channelAccountId: string;
   /** Telegram numeric user ID or a Zalo UID scoped to channelAccountId. */
   channelUserId: string;
@@ -133,7 +133,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
 const isChannel = (value: unknown): value is Channel =>
-  value === 'telegram' || value === 'zalo_oa';
+  value === 'telegram' || value === 'zalo_oa' || value === 'zalo_bot';
 const isRole = (value: unknown): value is AssistantRole =>
   value === 'read' || value === 'write';
 const isResourceType = (value: unknown): value is AssistantResourceType =>
@@ -156,6 +156,9 @@ export function isUsableChannelLink(
       && (value.channelChatId === undefined || isNonEmptyString(value.channelChatId));
     if (!validIdentity(link) || !isNonEmptyString(link.firebaseUid)
       || (identity !== undefined && !validIdentity(identity))) return false;
+    if (link.channel === 'zalo_bot' && (link.channelChatId !== link.channelUserId
+      || !link.channelChatId)) return false;
+    if (identity?.channel === 'zalo_bot' && identity.channelChatId !== identity.channelUserId) return false;
     return link.active === true
       && isFiniteNumber(link.createdAt) && isFiniteNumber(link.updatedAt)
       && link.createdAt <= now

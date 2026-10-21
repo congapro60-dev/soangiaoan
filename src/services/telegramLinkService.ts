@@ -1,6 +1,6 @@
 import type { User } from 'firebase/auth';
 
-export type LinkChannel = 'telegram' | 'zalo_oa';
+export type LinkChannel = 'telegram' | 'zalo_oa' | 'zalo_bot';
 
 export interface LinkSummary {
   linkId: string;
