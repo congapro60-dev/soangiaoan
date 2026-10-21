@@ -239,6 +239,8 @@ npm --prefix $qaRoot run build
 
 **Trạng thái:** `implemented -> tested` trên worktree `codex/audit-core-workflows-20261019`. Chưa gắn `deployed`/`verified` cho production.
 
+**Cập nhật phát hành 21/10/2026:** `main` đã nhận commit `723c4617d45db3ad1e688a50ed8597f13c672715`; Firebase Rules đã deploy exit 0; Vercel `dpl_H3zcqnStuZNVo5a5AueUGPpxe12M` READY và alias production đúng SHA. Smoke root 200/title đúng, API mã không tồn tại 404. Trạng thái release: `deployed`; `verified` vẫn mở vì browser E2E và GV/HS thật chưa chạy.
+
 ---
 
 ## Hồ sơ lịch sử 15–16/10/2026 — không phải trạng thái hiện hành
