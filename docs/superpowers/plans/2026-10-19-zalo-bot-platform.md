@@ -18,8 +18,11 @@ name: Bot Cuong Vu. Earlier business OA implementation is a separate channel.
   ambiguous deliveries never automatically retry writes or messages.
 - Reply only to the authenticated inbound private chat. No proactive messages,
   groups, contact access, personal-session automation or startup broadcasts.
-- Fail closed until server secrets and pilot sender allowlist are configured.
-  Credentials are entered in secure settings, never in chat or tracked files.
+- Fail closed until bot secrets are configured. `ZALO_BOT_ALLOWED_USER_IDS` is
+  optional: when blank, an unlinked private sender can only use a valid one-use
+  `/link CODE`; linked senders are authorized by Firestore identity. When set,
+  it restricts the pilot to those sender IDs. Credentials are entered in secure
+  settings, never in chat or tracked files.
 - Commands: `/help`, `/link`, `/classes`, `/confirm`, `/cancel`, `/status`.
   Natural-language `chat` remains explicitly unavailable until its separate
   dispatcher is implemented; do not describe this transport as a finished AI.

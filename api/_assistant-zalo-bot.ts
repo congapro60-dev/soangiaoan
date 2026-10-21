@@ -69,7 +69,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const token = text(process.env.ZALO_BOT_TOKEN); const botId = text(process.env.ZALO_BOT_ID);
   const allowedBots = set(process.env.ZALO_BOT_ALLOWED_IDS); const allowedUsers = set(process.env.ZALO_BOT_ALLOWED_USER_IDS);
   const configuredSecret = text(process.env.ZALO_BOT_WEBHOOK_SECRET);
-  if (!token || !botId || !allowedBots.has(botId) || !allowedUsers.size || !configuredSecret) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  if (!token || !botId || !allowedBots.has(botId) || !configuredSecret) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   const providedSecret = h(req.headers['x-bot-api-secret-token']);
   if (!secretEqual(providedSecret, configuredSecret)) { res.status(401).json({ kind: 'error', code: 'UNAUTHORIZED' }); return true; }
   let raw = '';
@@ -78,10 +78,17 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   let body: any;
   try { body = JSON.parse(raw); } catch { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   const m = body?.result?.message;
-  if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !allowedUsers.has(text(m.from?.id)) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
+  if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { redirect: 'error' }).catch(() => null);
   const meBody = me && await me.json().catch(() => null);
   if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  const senderId = text(m.from.id);
+  const command = text(m.text).split(/\s+/, 1)[0];
+  if (allowedUsers.size && !allowedUsers.has(senderId)) { res.status(200).json({ ok: true }); return true; }
+  if (!allowedUsers.size && command !== '/link') {
+    try { await resolveChannelActor('zalo_bot' as any, botId, senderId, text(m.chat.id)); }
+    catch { res.status(200).json({ ok: true }); return true; }
+  }
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${m.from.id}:${m.chat.id}:${m.message_id}`).digest('hex')}`;
   try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   let reply = 'Tính năng chưa khả dụng.';

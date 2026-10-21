@@ -17,7 +17,7 @@ vi.mock('../_assistant-confirmations', () => ({
 vi.mock('../_assistant-jobs', () => ({ getAssistantJobStatus: vi.fn(async () => ({ status: 'succeeded', result: { url: 'https://private.test/?token=secret' } })) }));
 
 import handler from '../assistant';
-import { claimAssistantRequestNonce, consumeLinkCode } from '../_assistant-auth';
+import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from '../_assistant-auth';
 import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_assistant-confirmations';
 import { runAssistantReadTool } from '../_assistant-tools';
 
@@ -45,11 +45,25 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     const result = await request(event(), secret === undefined ? '' : secret);
     expect(result.code).toBe(401); expect(fetchMock).not.toHaveBeenCalled(); expect(claimAssistantRequestNonce).not.toHaveBeenCalled();
   });
-  it.each(['ZALO_BOT_TOKEN', 'ZALO_BOT_ID', 'ZALO_BOT_ALLOWED_IDS', 'ZALO_BOT_ALLOWED_USER_IDS', 'ZALO_BOT_WEBHOOK_SECRET'])('fails closed without %s', async key => {
+  it.each(['ZALO_BOT_TOKEN', 'ZALO_BOT_ID', 'ZALO_BOT_ALLOWED_IDS', 'ZALO_BOT_WEBHOOK_SECRET'])('fails closed without %s', async key => {
     vi.stubEnv(key, ''); expect((await request()).code).toBe(503); expect(fetchMock).not.toHaveBeenCalled();
   });
   it('rejects unallowed bot ID before sending credentials', async () => {
     vi.stubEnv('ZALO_BOT_ALLOWED_IDS', 'other'); expect((await request()).code).toBe(503); expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it('allows one-use link bootstrap when the optional user allowlist is empty', async () => {
+    vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', '');
+    expect((await request(event('/link one_use-code'))).code).toBe(200);
+    expect(consumeLinkCode).toHaveBeenCalled(); expect(sent()).toHaveLength(1);
+  });
+  it('acks an unlinked sender without replying when no user allowlist is configured', async () => {
+    vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', '');
+    vi.mocked(resolveChannelActor).mockRejectedValueOnce(new Error('Channel is not linked'));
+    expect((await request(event('/classes'))).code).toBe(200); expect(sent()).toHaveLength(0);
+  });
+  it('acks senders outside an optional static allowlist without replying', async () => {
+    vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', 'other-user');
+    expect((await request(event('/help'))).code).toBe(200); expect(sent()).toHaveLength(0);
   });
   it.each(['group', 'bot', 'sender', 'chat', 'stale', 'future', 'missing-id', 'oversized', 'event', 'seconds'])('rejects invalid event: %s', async invalid => {
     const body = event(); const m = body.result.message;
@@ -63,8 +77,12 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     if (invalid === 'oversized') m.text = 'x'.repeat(2001);
     if (invalid === 'event') body.result.event_name = 'message.image.received';
     if (invalid === 'seconds') m.date = Math.floor(m.date / 1000);
-    expect([400, 403]).toContain((await request(body)).code);
-    expect(fetchMock).not.toHaveBeenCalled(); expect(claimAssistantRequestNonce).not.toHaveBeenCalled();
+    const result = await request(body);
+    if (invalid === 'sender') expect(result.code).toBe(200); else {
+      expect([400, 403]).toContain(result.code);
+      expect(fetchMock).not.toHaveBeenCalled();
+    }
+    expect(claimAssistantRequestNonce).not.toHaveBeenCalled();
   });
   it('requires an explicit human sender flag', async () => {
     const body = event(); delete body.result.message.from.is_bot;
