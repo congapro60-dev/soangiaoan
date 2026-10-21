@@ -405,9 +405,11 @@ CKEditor native result: source0.3.2 focus/guard chạy, nhưng CKEditor không n
   Vite build pass. Existing chunk-size and browser externalization warnings
   remain.
 - Required server-only variables: `ZALO_BOT_TOKEN`, `ZALO_BOT_ID`,
-  `ZALO_BOT_ALLOWED_IDS`, `ZALO_BOT_ALLOWED_USER_IDS`,
+  `ZALO_BOT_ALLOWED_IDS`,
   `ZALO_BOT_WEBHOOK_SECRET`, and `SMARTPLAN_ASSISTANT_SECRET`. Never put them
   in chat, `VITE_*`, logs, or committed files.
+- `ZALO_BOT_ALLOWED_USER_IDS` is optional. Leave it blank for one-use
+  `/link CODE` bootstrap; linked private senders are then checked in Firestore.
 - Remaining: Bot token/ID/webhook secret, Firebase link code, Vercel env,
   webhook registration, production deployment, and private Zalo canary. The
   current production deployment `b913b1c` does not contain this commit.
