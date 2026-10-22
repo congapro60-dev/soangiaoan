@@ -13,10 +13,12 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
   - Tích hợp route `/lesson-gen` (`LessonGenPage.tsx`): Cho phép giáo viên tải tệp giáo án DOCX, PDF, XLSX, TXT, MD hoặc nhập nhanh ý tưởng bài giảng (mục tiêu, kiến thức cốt lõi, hoạt động). AI đọc và tự động sinh bản nháp bài học tương tác V8.8 ngay lập tức.
   - `src/pages/AdaptiveLessonListPage.tsx`: Bổ sung nút **"Soạn bài tương tác V8.8"** trực tiếp trên thanh công cụ của tab "Quản lý bài học" để giáo viên truy cập một chạm.
   - Backend: Tích hợp đầy đủ các API handler `_v832-runtime.ts`, `_v84-runtime.ts`, `_v871-preview.ts` vào `api/classroom.ts`. Đồng bộ `tsconfig.api.json` sang `"moduleResolution": "bundler"`.
-- **Kết quả kiểm thử**:
+- **Kết quả kiểm thử** (chạy lại sau khi gộp fix Codex `9ee893e` + vá test `9529d65`):
   - `npm run lint`: **PASS (0 lỗi)**
   - `npm run lint:api`: **PASS (0 lỗi)**
-  - `npm run build`: **PASS (built in 1m51s, 0 lỗi build)**
+  - `npx vitest run`: **407/407 file, 4376/4376 test PASS** (đã sửa 9 test fail cũ: thêm `closed` vào test student-adaptive để khớp handler đóng bài; dùng bản test maScale của LiveLessonRichText; khôi phục fixture 11T38 hash `d265a324…`; bỏ vào file DOCX mẫu `docs/source-specs/v88/ban-toan-template/THT_G11_Gioi_han_cua_day_so.docx`)
+  - `npm run build`: **PASS (built in 1m 33s)**
+  - Fix production từ Codex (`9ee893e`): thêm đuôi `.js` cho import cây v832/v84 để lambda Vercel hết `ERR_MODULE_NOT_FOUND` (500).
 
 ## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) qua Server Proxy — 23/10 (GÓI · Gemini 3.8 Flash)
 
