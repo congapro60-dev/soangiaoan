@@ -108,8 +108,12 @@ test('invalid generation job settings and client authority fields are rejected b
   const base = { ownerAccountId: 'teacher', sourceId: 'src-1', requestId: 'request-1', settings: { slotMinutes: 40, subject: 'math', grade: 11 }, model: 'local-model' };
   await assert.rejects(() => service.start({ ...base, settings: { slotMinutes: 0 } }), /INVALID_SETTINGS/);
   await assert.rejects(() => service.start({ ...base, settings: { slotMinutes: 40, approved: true } }), /INVALID_SETTINGS/);
+  await assert.rejects(() => service.start({ ...base, settings: { slotMinutes: 40, subject: 'Sinh học\u0000', grade: 8 } }), /INVALID_SETTINGS/);
+  await assert.rejects(() => service.start({ ...base, settings: { slotMinutes: 40, subject: 'Sinh học', grade: 13 } }), /INVALID_SETTINGS/);
+  const custom = await service.start({ ...base, requestId: 'custom-grade-8', settings: { slotMinutes: 45, subject: 'Sinh học', grade: 8 }, model: 'local-model' });
+  assert.equal(custom.status, 'queued');
   await assert.rejects(() => service.start({ ...base, requestId: '' }), /INVALID_REQUEST_ID/);
-  assert.equal(database.prepare('SELECT count(*) AS n FROM lesson_generation_jobs').get().n, 0);
+  assert.equal(database.prepare('SELECT count(*) AS n FROM lesson_generation_jobs').get().n, 1);
 });
 
 test('concurrent run claims one model call; interrupted polling never retries it', async () => {

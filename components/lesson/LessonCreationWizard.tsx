@@ -19,15 +19,19 @@ const packageStatusLabel = (item: PackageChoice) => item.authoredId
 
 export type LaunchMode = "normal" | "quick";
 
-export function lessonCreationDestination(purpose: string, source: string, grade: string, minutes: string, packageId: string, launchMode: LaunchMode = "normal") {
-  if (!purposes.some(item => item.id === purpose) || !["10", "11", "12"].includes(grade) || !/^\d+$/.test(minutes) || Number(minutes) < 5 || Number(minutes) > 240) return null;
+export function lessonCreationDestination(purpose: string, source: string, grade: string, minutes: string, packageId: string, launchMode: LaunchMode = "normal", subject = "") {
+  const customSubject = subject.normalize("NFC").trim();
+  const validGrade = source === "custom" ? /^(?:[1-9]|1[0-2])$/.test(grade) : ["10", "11", "12"].includes(grade);
+  if (!purposes.some(item => item.id === purpose) || !validGrade || !/^\d+$/.test(minutes) || Number(minutes) < 5 || Number(minutes) > 240) return null;
+  if (source === "custom" && (!customSubject || customSubject.length > 80 || /[\u0000-\u001f\u007f]/.test(customSubject))) return null;
   if (!(["normal", "quick"] as const).includes(launchMode)) return null;
   const query = new URLSearchParams({ setup: "new" });
   if (purpose !== "exam") {
-    if (!["import", "library", "authored"].includes(source) || (source !== "import" && !/^[A-Za-z0-9_-]{1,128}$/.test(packageId))) return null;
+    if (!["import", "custom", "library", "authored"].includes(source) || (["library", "authored"].includes(source) && !/^[A-Za-z0-9_-]{1,128}$/.test(packageId)) || (["import", "custom"].includes(source) && packageId)) return null;
     query.set("purpose", purpose);
     query.set("source", source);
     if (source === "library" || source === "authored") query.set("package", packageId);
+    if (source === "custom") query.set("subject", customSubject);
   }
   if(purpose!=="exam")query.set("grade", grade);
   query.set("minutes", String(Number(minutes)));
@@ -41,6 +45,7 @@ export default function LessonCreationWizard(props?: { initialLaunchMode?: Launc
   const [step, setStep] = useState(quickLaunch ? 2 : 1);
   const [purpose, setPurpose] = useState(quickLaunch ? "review" : "");
   const [source, setSource] = useState(quickLaunch ? "library" : "");
+  const [subject, setSubject] = useState("Toán");
   const [grade, setGrade] = useState("11");
   const [minutes, setMinutes] = useState("40");
   const [packages, setPackages] = useState<PackageChoice[]>([]);
@@ -93,7 +98,7 @@ export default function LessonCreationWizard(props?: { initialLaunchMode?: Launc
   const savedMinutes = selectedPackage && Number.isInteger(selectedPackage.slotMinutes) && Number(selectedPackage.slotMinutes) >= 5 && Number(selectedPackage.slotMinutes) <= 240;
   const contentPurpose=selectedPackage?.category?(['formation','practice'].includes(selectedPackage.category)?selectedPackage.category:'review'):purpose;
   const target = lessonCreationDestination(contentPurpose, selectedPackage?.authoredId ? "authored" : source, grade, minutes,
-    selectedPackage?.authoredId || selectedPackage?.row_id || "", launchMode);
+    selectedPackage?.authoredId || selectedPackage?.row_id || "", launchMode, subject);
   const validMinutes = /^\d+$/.test(minutes) && Number(minutes) >= 5 && Number(minutes) <= 240;
   const searchable = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g,"d");
   const catalogPackages = quickLaunch ? packages.filter(item => Boolean(item.authoredId)) : packages;
@@ -132,7 +137,7 @@ export default function LessonCreationWizard(props?: { initialLaunchMode?: Launc
         <div className="lesson-form-grid">
           {purpose!=="exam"&&<div className="lesson-field-group"><label htmlFor="creation-grade">Khối lớp</label>
             <select id="creation-grade" className="lesson-select" value={grade} disabled={Boolean(savedGrade&&!selectedPackage?.week)} onChange={event => {setGrade(event.target.value);setPackageId("");}}>
-              {[10, 11, 12].map(value => <option key={value} value={value}>Lớp {value}</option>)}
+              {(source === "custom" ? Array.from({length: 12}, (_, index) => index + 1) : [10, 11, 12]).map(value => <option key={value} value={value}>Lớp {value}</option>)}
             </select>
           </div>}
           <div className="lesson-field-group"><label htmlFor="creation-minutes">Thời lượng (phút)</label>
@@ -145,8 +150,10 @@ export default function LessonCreationWizard(props?: { initialLaunchMode?: Launc
           <p>{quickLaunch ? "Danh sách lấy từ catalogue bài đã biên soạn. Gói vẫn giữ trạng thái bản nháp/teacher review; bước mở phòng dùng pipeline lesson session hiện có." : "Dùng học liệu đã lưu hoặc đưa giáo án, ý tưởng của thầy cô vào để soạn bài."}</p>
           <div className="lesson-form-grid" role="group" aria-label="Nguồn nội dung">
             <button type="button" className={`lesson-button ${source === "library" ? "lesson-button-primary" : "lesson-button-outline"}`} aria-pressed={source === "library"} onClick={() => { if (source !== "library") { prepareLibrary(); setSource("library"); } }}>Chọn từ thư viện</button>
-            <button type="button" className={`lesson-button ${source === "import" ? "lesson-button-primary" : "lesson-button-outline"}`} aria-pressed={source === "import"} onClick={() => setSource("import")}>Đưa giáo án hoặc ý tưởng vào</button>
+            <button type="button" className={`lesson-button ${source === "custom" ? "lesson-button-primary" : "lesson-button-outline"}`} aria-pressed={source === "custom"} onClick={() => { setSource("custom"); setPackageId(""); }}>Tạo từ ý tưởng</button>
+            <button type="button" className={`lesson-button ${source === "import" ? "lesson-button-primary" : "lesson-button-outline"}`} aria-pressed={source === "import"} onClick={() => { setSource("import"); setPackageId(""); }}>Đưa giáo án hoặc ý tưởng vào</button>
           </div>
+          {source === "custom" && <><p><strong>Bản nháp · cần giáo viên duyệt.</strong> Tùy môn/tùy khối; giáo viên rà soát nguồn, câu hỏi và đáp án trước khi dùng với lớp.</p><div className="lesson-field-group"><label htmlFor="creation-subject">Môn hoặc chủ đề</label><input id="creation-subject" className="lesson-input" value={subject} maxLength={80} onChange={event => { setSubject(event.target.value); setPackageId(""); }} placeholder="Ví dụ: Sinh học, Lịch sử, Khoa học tự nhiên" /></div></>}
           {source === "import" && <p>Ở màn tiếp theo, tải DOCX, PDF, Markdown hoặc nhập ý tưởng. Sau khi soạn nội dung, thầy cô xem gợi ý thiết lập trò chơi và chỉnh lại.</p>}
           {source === "library" && <div className="lesson-field-group">
             <label htmlFor="creation-search">Tìm tên bài hoặc số tiết</label>

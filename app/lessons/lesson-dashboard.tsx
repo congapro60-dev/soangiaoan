@@ -24,7 +24,7 @@ import { useLessonSession, formatDuration, LessonProjection } from "../../compon
 import { buildLessonProposal } from "../../lib/lesson/proposal.js";
 
 export interface LessonDashboardProps {
-  creation?: {purpose:string;source:string;grade:number;minutes:number;packageId:string|null;launch?:"quick"}|null;
+  creation?: {purpose:string;source:string;subject?:string;grade:number;minutes:number;packageId:string|null;launch?:"quick"}|null;
   user: {
     userId: string;
     displayName: string;
@@ -733,7 +733,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
   const [isSessionRestored, setIsSessionRestored] = useState<boolean>(false);
 
   // Studio sub-tab: Preview vs Director vs Edit vs Import
-  const [studioSubTab, setRawStudioSubTab] = useState<"preview" | "director" | "edit" | "import">(creation?.source === "import" ? "import" : "preview");
+  const [studioSubTab, setRawStudioSubTab] = useState<"preview" | "director" | "edit" | "import">(["import", "custom"].includes(creation?.source || "") ? "import" : "preview");
   const isEditing = studioSubTab === "edit";
 
   // Studio state
@@ -782,7 +782,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
   const [importProposal, setImportProposal] = useState<LessonProposal | null>(null);
   const [generationJob, setGenerationJob] = useState<LessonGenerationJob | null>(null);
   const [isStartingGeneration, setIsStartingGeneration] = useState(false);
-  const [generationSettings, setGenerationSettings] = useState<{slotMinutes:number;subject:string;grade:number;scope?:ScopeRequest;purpose?:string}>({ slotMinutes: creation?.minutes||40, subject: "math", grade: creation?.grade||11, ...(creation?{purpose:creation.purpose}:{}) });
+  const [generationSettings, setGenerationSettings] = useState<{slotMinutes:number;subject:string;grade:number;scope?:ScopeRequest;purpose?:string}>({ slotMinutes: creation?.minutes||40, subject: creation?.subject || "math", grade: creation?.grade||11, ...(creation?{purpose:creation.purpose}:{}) });
   const [scopeConsent, setScopeConsent] = useState<Record<string, unknown> | null>(null);
   const [scopeLabels, setScopeLabels] = useState<string[]>([]);
   const [generationProviderHost, setGenerationProviderHost] = useState("");
@@ -1242,7 +1242,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const isNewImport=creation?.source==='import';
+      const isNewImport=['import','custom'].includes(creation?.source || '');
       const hasSession=new URLSearchParams(window.location.search).has('session');
       void loadStudio(!isNewImport&&!hasSession);
     }, 0);
@@ -1521,6 +1521,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
   }, [creation?.launch, currentPackage, currentPackage?.id, currentPackage?.contentHash, isLoadingStudio, quickLaunch]);
 
   // Handle import file change
+
   const [typedBrief, setTypedBrief] = useState("");
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2202,7 +2203,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
 
           <details open={teacherSetup.deviceMode==='B'||teacherSetup.deviceMode==='C'} className="lesson-card" style={{ padding: "1rem", marginBottom: "1rem" }}><summary>Lớp, tổ và hộ chiếu cộng dồn</summary><ClassRosterPanel onSelectClass={setSelectedClassId} /><LeaguePanel classId={selectedClassId} sessionId={activeSessionId || undefined} /></details>
           {currentPackage&&<TeacherSetupPanel lesson={currentPackage as unknown as Record<string,unknown>} value={teacherSetup} onChange={value=>setSetupDraft({key:setupKey,value})}/>}
-          {currentPackage && <ContentScopePicker<LessonPackage> catalogue={lessonCatalogue} packageId={currentPackage.id} packageKey={String(currentPackage.contentHash || currentPackage.id)} packageObjectives={currentPackage.objectives || []} onPreview={async selection => { const response = await fetch("/api/lessons/scope", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ package: currentPackage, selection }) }); return response.json(); }} onRequestScope={async scope => { const request=++scopeRequestRef.current,sourceRevision=sourceOperationRef.current; setScopeConsent(null);setScopeLabels([]);setGenerationConsentKey(""); const settings={...generationSettings,scope}; setGenerationSettings(settings); if(!importSourceId){setImportError("Nhập giáo án hoặc nội dung muốn dạy trước khi soạn phần bài này.");setStudioSubTab("import");return;} const response=await fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings})});const data=await response.json() as {aiConsent?:Record<string,unknown>;scope?:{sections?:Array<{title:string}>};generation?:{providerHost:string};error?:string};if(request!==scopeRequestRef.current||sourceRevision!==sourceOperationRef.current)return;if(!response.ok||!data.aiConsent){setImportError(data.error||"Chưa đối soát được phạm vi đã chọn với nguồn.");return;}setScopeConsent(data.aiConsent);setScopeLabels(data.scope?.sections?.map(section=>section.title)||[]);setGenerationProviderHost(data.generation?.providerHost||generationProviderHost);setStudioSubTab("import"); }} onSelect={draft => { setCurrentPackage(draft); setEditedPackage(draft); setSelectedRecord(null); setStudioSubTab("edit"); }} />}
+          {currentPackage && creation?.source !== "custom" && <ContentScopePicker<LessonPackage> catalogue={lessonCatalogue} packageId={currentPackage.id} packageKey={String(currentPackage.contentHash || currentPackage.id)} packageObjectives={currentPackage.objectives || []} onPreview={async selection => { const response = await fetch("/api/lessons/scope", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ package: currentPackage, selection }) }); return response.json(); }} onRequestScope={async scope => { const request=++scopeRequestRef.current,sourceRevision=sourceOperationRef.current; setScopeConsent(null);setScopeLabels([]);setGenerationConsentKey(""); const settings={...generationSettings,scope}; setGenerationSettings(settings); if(!importSourceId){setImportError("Nhập giáo án hoặc nội dung muốn dạy trước khi soạn phần bài này.");setStudioSubTab("import");return;} const response=await fetch("/api/lessons/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"consent",sourceId:importSourceId,settings})});const data=await response.json() as {aiConsent?:Record<string,unknown>;scope?:{sections?:Array<{title:string}>};generation?:{providerHost:string};error?:string};if(request!==scopeRequestRef.current||sourceRevision!==sourceOperationRef.current)return;if(!response.ok||!data.aiConsent){setImportError(data.error||"Chưa đối soát được phạm vi đã chọn với nguồn.");return;}setScopeConsent(data.aiConsent);setScopeLabels(data.scope?.sections?.map(section=>section.title)||[]);setGenerationProviderHost(data.generation?.providerHost||generationProviderHost);setStudioSubTab("import"); }} onSelect={draft => { setCurrentPackage(draft); setEditedPackage(draft); setSelectedRecord(null); setStudioSubTab("edit"); }} />}
           {/* Action Header Bar */}
           <div className="cockpit-toolbar">
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -2430,8 +2431,8 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                     </div>
                   )}
                   <div className="lesson-inline-actions" style={{ marginTop: "0.85rem" }}>
-                    <label>Môn <select className="lesson-select" value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }}><option value="math">Toán</option><option value="literature">Ngữ văn</option><option value="english">Tiếng Anh</option></select></label>
-                    <label>Lớp <select className="lesson-select" value={generationSettings.grade} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, grade: Number(event.target.value) }); }}><option value={10}>10</option><option value={11}>11</option><option value={12}>12</option></select></label>
+                    <label>Môn {creation?.source === "custom" ? <input className="lesson-input" aria-label="Môn hoặc chủ đề" maxLength={80} value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }} /> : <select className="lesson-select" value={generationSettings.subject} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, subject: event.target.value }); }}><option value="math">Toán</option><option value="literature">Ngữ văn</option><option value="english">Tiếng Anh</option></select>}</label>
+                    <label>Lớp <select className="lesson-select" value={generationSettings.grade} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, grade: Number(event.target.value) }); }}>{(creation?.source === "custom" ? Array.from({length: 12}, (_, index) => index + 1) : [10, 11, 12]).map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                     <label>Phút <input className="lesson-input" type="number" min={1} max={240} value={generationSettings.slotMinutes} disabled={isStartingGeneration} onChange={event => { scopeRequestRef.current++; setGenerationConsentKey(""); setScopeConsent(null); setScopeLabels([]); setGenerationSettings({ ...generationSettings, slotMinutes: Number(event.target.value) }); }} /></label>
                     {generationSettings.purpose&&!scopeConsent&&<button type="button" className="lesson-button lesson-button-outline" disabled={isStartingGeneration||!importSourceId||importSourceStatus!=="ready"} onClick={()=>{setGenerationConsentKey("");setGenerationSettings({...generationSettings});}}>Kiểm tra lại kết nối AI và cấu hình</button>}
                     <button
@@ -2454,6 +2455,7 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                     )}
                   </div>
                   {scopeLabels.length>0&&<p>Chỉ soạn phần đã chọn: {scopeLabels.join("; ")}. Các phần khác nằm ngoài bản nháp này.</p>}
+                  {creation?.source === "custom" && <p className="task-muted-block">Bản nháp tùy môn/tùy khối · cần giáo viên duyệt. Không tự xác nhận chuẩn chương trình.</p>}
                   <LessonAIConsentPanel providerHost={generationProviderHost} extraction={generationExtraction} settings={generationSettings}
                     confirmed={Boolean(aiConsentKey && generationConsentKey === aiConsentKey)} disabled={!aiConsentKey || isStartingGeneration || Boolean((generationSettings.scope || generationSettings.purpose) && !scopeConsent)}
                     onChange={confirmed => setGenerationConsentKey(confirmed ? aiConsentKey : "")} />

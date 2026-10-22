@@ -74,6 +74,17 @@ test('pilot drafts and source review block execution', () => {
   assert.ok(Array.isArray(descriptor.activities));
 });
 
+test('custom grade-8 non-Math draft stays preview-only until teacher approval', () => {
+  const custom = { ...original, subject: 'Sinh học', grade: 8, status: 'needs_review', sourceRefs: original.sourceRefs.map((source) => ({ ...source, verification: 'teacher_review_required' })) };
+  delete custom.contentHash;
+  custom.contentHash = hashPackage(custom);
+  const draft = pilotDraft({ package: custom, theme: 'modern', map: 'modern', seed: 3 });
+  const descriptor = pilotGameDescriptor({ draft, package: custom });
+  assert.equal(descriptor.execution.allowed, false);
+  assert.equal(descriptor.execution.code, 'SOURCE_REVIEW_REQUIRED');
+  assert.throws(() => createGameAdapter({ plan, package: custom }), (error) => error.code === 'SOURCE_REVIEW_REQUIRED');
+});
+
 test('reward ledger is exactly once and game events are not mastery', () => {
   const first = recordGameReward({}, { sessionId: 's', activityId: 'a', taskId: 't', recipientId: 'l', amount: 5 });
   const second = recordGameReward(first.ledger, { sessionId: 's', activityId: 'a', taskId: 't', recipientId: 'l', amount: 50 });

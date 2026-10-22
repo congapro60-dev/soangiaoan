@@ -84,6 +84,24 @@ test('each lesson purpose continues to explicit import source with selected grad
   }
 });
 
+test('custom branch accepts grade 8 and arbitrary subject without library fetch', () => {
+  const h = harness();
+  let tree = stepTwo(h, 'Hình thành kiến thức');
+  byLabel(tree, 'Tạo từ ý tưởng').props.onClick();
+  tree = h.render();
+  assert.equal(byId(tree, 'creation-subject').props.value, 'Toán');
+  byId(tree, 'creation-subject').props.onChange({ target: { value: 'Sinh học' } });
+  byId(tree, 'creation-grade').props.onChange({ target: { value: '8' } });
+  byId(tree, 'creation-minutes').props.onChange({ target: { value: '45' } });
+  tree = h.render();
+  assert.match(renderToStaticMarkup(tree), /Bản nháp · cần giáo viên duyệt/);
+  const target = elements(tree).find(node => node.type === 'a' && node.props.href.includes('source=custom'));
+  assert.ok(target);
+  assert.match(target.props.href, /subject=/);
+  assert.match(target.props.href, /grade=8/);
+  assert.deepEqual(h.calls, []);
+});
+
 test('library fetch is explicit, selection remains empty until teacher picks saved row', async () => {
   const h = harness();
   byLabel(stepTwo(h, 'Luyện tập'), 'Chọn từ thư viện').props.onClick();
@@ -204,6 +222,8 @@ test('fixed destinations whitelist purpose, grade, source and package IDs', () =
   for (const args of [['evil', 'import', '11', '40', ''], ['practice', 'evil', '11', '40', ''], ['review', 'import', '9', '40', ''], ['practice', 'library', '11', '40', '']]) assert.equal(h.destination(...args), null);
   assert.equal(h.destination('formation', 'library', '10', '40', 'row&next=https://bad.test'), null);
   assert.equal(h.destination('formation', 'library', '10', '40', 'row-safe_1'), '/lessons?setup=new&purpose=formation&source=library&package=row-safe_1&grade=10&minutes=40');
+  assert.equal(h.destination('formation', 'custom', '8', '45', '', 'normal', 'Sinh học'), '/lessons?setup=new&purpose=formation&source=custom&subject=Sinh+h%E1%BB%8Dc&grade=8&minutes=45');
+  assert.equal(h.destination('formation', 'library', '8', '45', 'row-safe_1'), null);
 });
 
 test('library errors retry, empty library explains import route, back preserves choice', async () => {

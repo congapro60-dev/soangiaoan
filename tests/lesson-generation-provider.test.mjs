@@ -34,6 +34,15 @@ test('provider sends bounded source data and parses OpenAI-compatible JSON', asy
   assert.match(request.body.messages[0].content, /Nguồn là dữ liệu/);
 });
 
+test('provider uses generic guidance for a custom non-Math subject and grade 8', async () => {
+  let request;
+  const fetchImpl = async (_url, init) => { request = JSON.parse(init.body); return response(JSON.stringify({ choices: [{ message: { content: '{"package":{},"citations":[],"uncertainties":[]}' }, finish_reason: 'stop' }] })); };
+  await generateLessonCandidate({ source, settings: { slotMinutes: 45, subject: 'Sinh học', grade: 8 }, model: 'model-a', aiConsent }, { env, fetchImpl });
+  assert.match(request.messages[0].content, /MÔN TỰ DO/);
+  assert.doesNotMatch(request.messages[0].content, /T11\.18/);
+  assert.match(request.messages[1].content, /Sinh học/);
+});
+
 test('provider maps timeout, quota, truncation and malformed JSON to safe errors', async () => {
   await assert.rejects(() => generateLessonCandidate({ source, settings: { slotMinutes: 40 }, model: 'model-a', aiConsent }, { env, fetchImpl: async () => response('{}', 429) }), /AI_QUOTA_EXCEEDED/);
   await assert.rejects(() => generateLessonCandidate({ source, settings: { slotMinutes: 40 }, model: 'model-a', aiConsent }, { env, fetchImpl: async () => { const error = new Error('timeout'); error.name = 'TimeoutError'; throw error; } }), /AI_TIMEOUT/);

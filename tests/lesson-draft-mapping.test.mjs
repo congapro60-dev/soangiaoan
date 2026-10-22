@@ -111,6 +111,11 @@ test('creation import loads no package while saved choice loads only the explici
  }
 });
 
+test('custom creation uses the import studio without curated scope controls', () => {
+  assert.match(source, /\["import", "custom"\]\.includes\(creation\?\.source/);
+  assert.match(source, /creation\?\.source === "custom"/);
+});
+
 test('sync removes deleted and reassigned reciprocal links without mutating the draft', () => {
   const draft = {
     objectives: [{ id: 'o1', prerequisiteIds: ['deleted'] }],
@@ -426,6 +431,8 @@ function formHarness(fetch = async () => { throw new Error('Unexpected request')
     if (name.endsWith("lesson-catalogue.json")) return { default: { lessons: [] } };
     if (name.endsWith("/PracticePanel")) return { PracticePanel: () => null };
     if (name.endsWith("/TeacherGroupAssessment")) return { TeacherGroupAssessment: () => null };
+    if (name.endsWith("/LearningEvidencePanel")) return { TeacherLearningEvidence: () => null };
+    if (name.endsWith("/PupilReports")) return { TeacherBugReports: () => null };
     if (name.endsWith("/StructuredQuestionEditor")) return { StructuredQuestionEditor: () => null };
     if (name.endsWith("/lib/lesson/values.js")) return { REFLECTION_PROMPTS: {} };
     if (name.endsWith("/TeacherLessonTools")) return { TeacherLessonTools: () => null };
