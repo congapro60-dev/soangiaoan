@@ -5,17 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) có xem trước & xác minh 100% — 22/10 (GÓI · Gemini 3.8 Flash)
+## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) qua Server Proxy — 23/10 (GÓI · Gemini 3.8 Flash)
 
-- **Mục tiêu**: Người dùng yêu cầu web tự tính điểm LO dựa trên bài nộp đã duyệt trên web rồi đẩy ngược lại lên SSM tương ứng cho từng HS (chiều web → SSM thay vì chỉ tải file mẫu).
+- **Mục tiêu**: Người dùng yêu cầu bỏ hoàn toàn việc cài extension trình duyệt vì hay lỗi. Thay thế bằng kiến trúc Server Proxy gọi thẳng `https://api-ssm.edufit.vn/api/` từ backend web.
 - **Đã làm**:
-  - Dò bundle JS công khai SSM (`umi.e3306a2c` + chunk 8173 + 521): xác định 100% cấu trúc `class-subject-assessment`, `score_configs`, point map, và endpoint POST `grading-student-by-assessment-form` / `update-result-grading-student`.
-  - Tiện ích `extension/ssm-bridge`: thêm các op `evaluationQuarters`, `subjectClass`, `criteriaAssessment`, `classSubjectAssessment`, `writeLoGrades`. Bump version `0.4.0`, test và đóng gói `public/downloads/ssm-bridge.zip` (11.377 byte).
-  - Parser & Write Engine: `src/lib/ssm/loSsmParser.ts` (dẹt cây FP→PS→LO, parse thang, parse điểm đã có) và `src/lib/ssm/loSsmWrite.ts` (so sánh diff, tạo payload POST, đọc lại để xác minh `verifyWritten`).
-  - Giao diện: `src/components/features/classroom/LoPushPreviewModal.tsx` (xem trước chi tiết: ô thêm mới, ô ghi đè, cảnh báo an toàn) và `SsmPanel.tsx` (nút tải trực tiếp từ SSM, tính bằng AI, xem trước và đẩy điểm 1-click có xác minh).
+  - `api/_ssm-proxy.ts`: Relay tất cả các API của SSM (profile, schoolYears, teacherClasses, classStudents, subjectClass, evaluationQuarters, criteriaAssessment, classSubjectAssessment, writeLoGrades) có kiểm tra quyền giáo viên và allowlist đường dẫn.
+  - Tích hợp vào `api/classroom.ts` (`action: 'ssmProxy'`) — không tăng số lượng Vercel Serverless Function (vẫn trong trần 12).
+  - `src/lib/ssm/ssmBridge.ts`: Chuyển sang ưu tiên Server Proxy nếu có phiên lưu (`getStoredSsmSession`), dự phòng extension nếu chưa có phiên. Thêm `testAndSaveSsmConnection` và `parseSsmConnectionInput` (nhận JSON `{token, workspace}`, hash URL, hoặc token thô).
+  - UI: `src/components/features/classroom/SsmConnectModal.tsx` cho phép kết nối trong 1 chạm bằng Bookmarklet (Dấu trang) hoặc dán F12 Console. Tích hợp vào `SsmPanel.tsx` và `SsmLinkPanel.tsx`.
 - **Kết quả kiểm thử**:
-  - `npm run build`: **PASS (built in 1m 27s, 0 lỗi TypeScript)**
-  - Vitest SSM & Extension: **111/111 test PASS (100% xanh)**
+  - `npm run build`: **PASS (built in 58s, 0 lỗi TypeScript)**
+  - `npm run lint:api`: **PASS (0 lỗi)**
+  - Vitest: **100/100 test PASS** (6 test server proxy, 88 test SSM).
 
 ## Tích hợp V8.8 Runtime + Compiler + 3 luồng bài học tương tác — 22/10 (GÓI · Gemini 3.8 Flash)
 
