@@ -9,7 +9,7 @@ import { getLinkedGoogleEmail } from '../adminLink';
 import { ADMIN_EMAILS, isAdminEmail } from '../admin/adminConfig';
 
 export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm'
-  | 'evaluationQuarters' | 'criteriaAssessment' | 'classSubjectAssessment';
+  | 'evaluationQuarters' | 'subjectClass' | 'criteriaAssessment' | 'classSubjectAssessment' | 'writeLoGrades';
 
 // Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
 const PING_TIMEOUTS_MS = [2000, 8000] as const;
@@ -154,6 +154,10 @@ export const autofillSsmFields = (fields: {key:string;value:string}[], target: '
 export const readSsmEvaluationQuarters = (classId: number, subjectId: number, schoolYearId: number) =>
   ssmRequest('evaluationQuarters', { classId, subjectId, schoolYearId });
 
+/** Các môn học của lớp trong năm (vd 12 = VN TOÁN). */
+export const readSsmSubjects = (classId: number, schoolYearId: number) =>
+  ssmRequest('subjectClass', { classId, schoolYearId });
+
 /** Cây FP → PS → LO + thang điểm của MỘT bài đánh giá (vd F1, IA1). */
 export const readSsmCriteriaAssessment = (assessmentFormId: number) =>
   ssmRequest('criteriaAssessment', { assessmentFormId });
@@ -161,6 +165,30 @@ export const readSsmCriteriaAssessment = (assessmentFormId: number) =>
 /** Trạng thái chấm của bài đánh giá cho lớp: quarter_has_branch_id, result_assessment_form_id, is_approved… */
 export const readSsmClassSubjectAssessment = (assessmentFormId: number, criteriaId: number, classId: number) =>
   ssmRequest('classSubjectAssessment', { assessmentFormId, criteriaId, classId });
+
+/** Payload ghi điểm — app xây sẵn từ thang SSM trả về; tiện ích chỉ POST nguyên trạng. */
+export interface SsmGradeWriteBody {
+  class_id: number;
+  criteria_id: number;
+  quarter_has_branch_id: number;
+  students: Array<{ id: number; name: string; result: SsmGradeResultEntry[] }>;
+}
+
+export interface SsmGradeResultEntry {
+  learning_outcome_id: number;
+  scoring_setting_id: number;
+  is_number: boolean;
+  point: string;
+  /** Chỉ có khi SỬA ô đã chấm trước đó; thiếu = ô mới. */
+  grading_student_id?: number;
+}
+
+/**
+ * Đợt 4 (GHI): gửi điểm LO lên SSM. `resultAssessmentFormId` vắng → endpoint thêm mới;
+ * có → endpoint cập nhật kết quả đã có. ĐỌC LẠI sau khi ghi belongs to caller (verify riêng).
+ */
+export const writeSsmLoGrades = (params: { assessmentFormId: number; resultAssessmentFormId?: number; body: SsmGradeWriteBody }, classId: string) =>
+  ssmRequest('writeLoGrades', { ...params, ...writeScope(classId) });
 export const syncSsmRosterMissing = async (classId: string, students: {id:string;name:string;code:string}[]) => {
   const user = auth.currentUser;
   if (!user || user.isAnonymous) throw new Error('Đăng nhập giáo viên trước khi đồng bộ.');
