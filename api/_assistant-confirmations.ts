@@ -116,7 +116,7 @@ const normalizeScopes = (value: unknown): Array<Omit<ResourceScope, 'ownerUid' |
       resourceType: resourceType as AssistantResourceType,
       resourceId,
       ...(requiredRole === undefined ? {} : { requiredRole: requiredRole as AssistantRole }),
-      ...(ownerUid === undefined ? {} : { ownerUid }),
+      ...(ownerUid === undefined ? {} : { ownerUid: ownerUid as string }),
     };
   });
 };
