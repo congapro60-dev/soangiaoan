@@ -5,6 +5,23 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Bảng "Máy cần em xác nhận": gửi MỘT lượt thay vì xác nhận từng câu — 22/10 (opencode)
+
+Chủ dự án báo (kèm ảnh chụp production): bài "Thi giữa HK1" còn **14 câu** chờ xác nhận, mỗi câu phải bấm "Xác nhận câu này" rồi chờ tải lại — 14 lần chờ cho một bài. Ảnh bài chấm chiếm nửa trên thẻ nên ô chọn A/B/C/D bị đẩy khỏi màn hình phải cuộn.
+- **Đổi ở `ClarifyPanel.tsx` (CHỈ client, không đụng API):** đáp án gom vào state của bảng (`drafts`, vẫn ghi `localStorage` theo từng câu nên tải lại trang không mất), nút **"Lưu tất cả (n/tổng)"** gửi MỌI câu đã trả lời trong **một** lệnh `clarifyAnswers`. Máy chủ vốn đã chấm cả mảng trong một giao dịch (`api/_clarify.ts`, trần 100 câu/lượt) — trước đây client chỉ gửi mảng 1 phần tử. "Để thầy cô xem hết" gửi `skip` cả lượt. Lỗi hiện theo từng câu bị từ chối (`rejected[]`), không chặn cả lượt.
+- **Bố cục:** câu tự luận (`kind: 'photo'`, cần ảnh) đứng **trên cùng**; câu trắc nghiệm / đúng-sai / trả lời ngắn xếp thành danh sách gọn kèm đếm "(đã chọn n/tổng)". Câu tự luận vẫn gửi ngay khi chụp/thử lại (ảnh phải lên storage riêng từng câu), không gộp vào nút lưu.
+- **Giả định ngầm:** thanh toán/hạn mức AI không đổi — `clarifyAnswers` là chấm tất định, không gọi model. Nếu sau này một bài >100 câu chờ xác nhận thì lệnh sẽ cắt ở 100 (chưa gặp; bài tối đa 100 câu theo bộ đọc kết quả chấm).
+- **Nghiệm thu (chạy trên cây đã merge `origin/main` 0788423):**
+  ```powershell
+  npx vitest run src/components/features/classroom/student/ api/__tests__/clarify.test.ts   # 65/65
+  npx vitest run                                                                             # 330 file · 3451/3451 PASS
+  npm run lint    # tsc 0 lỗi
+  npm run build   # xanh
+  ```
+  Test thêm ở `ClarifyPanel.test.tsx`: đúng MỘT nút lưu, chưa chọn gì thì khoá, câu tự luận đứng trước danh sách đáp án.
+- **Chưa làm / cố ý bỏ:** không gộp ảnh bài chấm thành gallery thu gọn; panel vẫn vẽ lại ảnh cho từng câu có `questionResults` (chỉ là overlay vùng đọc — cần cho test PH). Câu trả lời ngắn vẫn chỉ nhận số (`NUMBER_ANSWER`), chưa cho chữ.
+
+
 ## Sổ điểm định kì: gộp luồng Codex + badge nguồn điểm + hàng rào chống cột trùng — 22/10 (opencode)
 
 Chủ dự án báo rối khi dùng Sổ điểm với file điểm Google Sheet (tab MOET/TDS) + SSM: nhiều nút, mỗi nút một luật, không biết điểm của mình đến từ đâu; vụ "Thi GHKI" và "Giữa học kì I" thành hai cột. Đã đọc lại thread Codex `01a15777-67df-7420-a588-5c9965ada2cf` (20–21/10) để đối chiếu.
