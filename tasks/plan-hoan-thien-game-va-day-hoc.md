@@ -1595,3 +1595,6 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] Cải tiến `short_answer_4`: tự động chuyển focus sang ô kế tiếp khi nhập 1 ký tự, lùi về ô trước khi bấm Backspace.
 - [x] Sửa triệt để lặp câu r107 (Định lý Thalès) và r108 (Luyện tập hai mặt phẳng song song) trong `content/lessons/hki-2026-g11.json` và `content/hki-2026-catalogue.json`: thay 12 câu lặp số bằng chuỗi bài tập hình học phân hóa chuẩn SGK Kết nối tri thức.
 - [x] Typecheck 0 errors, build exit 0, tests 15 focused pass.
+- [x] Phát hành Site **v25** từ `3756114cc6eb8a7f6ef0167e858658af4008cd60`, deployment `appgdep_6ada761b7a7481918150e958d33d4ff3`, audience giữ `public`; HTTP 200, trạng thái `succeeded`.
+- [x] Kiểm chứng bundle deployed: client `useLessonSession-bQOny2mo.js` chứa `desmos`, `short_answer_4`, "vẽ tay"/Photo; server `semester-content-C0VPD1sz.js` chứa đúng blob gzip base64 của r22-g11-discover-r107 (`27a4e1c80f6d991c`) và r108 (`deaa2769073e5ff7`) khớp catalogue nguồn. Homepage live 0 lỗi console.
+- [ ] QA tương tác sâu trên phòng học thật còn mở: `/hosts` yêu cầu "Sign in with ChatGPT"; lớp đã tạo trước v25 giữ snapshot D1 theo `content_hash` (không tự nhận nội dung r107/r108 đã sửa — cần tạo lại bài từ catalogue).
