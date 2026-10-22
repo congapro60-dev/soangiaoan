@@ -48,6 +48,14 @@ it.each([
  expect(await runGradingRefreshItem(db,'job',vi.fn(async()=>({success:true})))).toMatchObject({outcome:'graded',remaining:1});
  expect(store['gradingRefreshJobs/job/items/s'].status).toBe('graded');
 });
+it('per-minute limit keeps the cursor, does not pause, and redoes the item next call',async()=>{
+ const limited=vi.fn(async()=>({success:false,gradePreserved:true,failureCode:'provider_rate_limit',failureMessage:'đợi 30 giây',retryAfterMs:30_000}));
+ expect(await runGradingRefreshItem(db,'job',limited)).toMatchObject({busy:true,remaining:1,retryAfterMs:30_000,failureMessage:'đợi 30 giây'});
+ expect(store['gradingRefreshJobs/job']).toMatchObject({status:'running',cursor:0,leaseUntil:0,runId:''});
+ expect(store['gradingRefreshJobs/job/items/s']).toMatchObject({status:'waiting_rate_limit',failureCode:'provider_rate_limit'});
+ expect(await runGradingRefreshItem(db,'job',vi.fn(async()=>({success:true})))).toMatchObject({outcome:'graded',done:true});
+ expect(store['gradingRefreshJobs/job'].counts).toEqual({graded:1});
+});
 it('non-key failure advances and stores its short code',async()=>{
  const grade=vi.fn(async()=>({success:false,gradePreserved:true,failureCode:'provider_http'}));
  expect(await runGradingRefreshItem(db,'job',grade)).toMatchObject({outcome:'failed_preserved',failureCode:'provider_http',done:true});
