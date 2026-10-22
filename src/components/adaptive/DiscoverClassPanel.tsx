@@ -5,6 +5,7 @@ import { moTaLoiHttp } from '../../lib/httpErrorText';
 import { listAccessibleClasses, type AccessibleClassDoc } from '../../lib/classroom/classroomService';
 import { buildAssignmentStats } from '../../lib/adaptive/assignmentStats';
 import type { AdaptiveLesson } from '../../lib/adaptive/types';
+import type { CloseArtifacts } from '../../lib/adaptive/closeAssignment';
 
 type Row = Record<string, unknown> & { id: string };
 
@@ -20,6 +21,40 @@ const assignLesson = async (classId: string, lessonId: string): Promise<void> =>
   if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
 };
 
+type Closed = { assignmentId: string; artifacts: CloseArtifacts; names: Record<string, string> };
+const closeAssignment = async (assignmentId: string): Promise<Closed> => {
+  const user = auth.currentUser;
+  if (!user || user.isAnonymous) throw new Error('Cần đăng nhập bằng tài khoản giáo viên.');
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'teacherCloseAdaptiveAssignment', assignmentId, idToken: await user.getIdToken() }),
+  });
+  const data = await response.json().catch(() => null) as (Closed & { error?: unknown }) | null;
+  if (!response.ok || !data) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
+  return data;
+};
+
+const CloseResult = ({ closed }: { closed: Closed }) => {
+  const [tab, setTab] = useState<'summary' | 'feedback' | 'homework'>('summary');
+  const { artifacts, names } = closed;
+  const label = (id: string) => names[id] || id;
+  const tabs = [['summary', 'Tổng kết lớp'], ['feedback', 'Nhận xét từng HS'], ['homework', 'BTVN từng HS']] as const;
+  return (
+    <div className="mt-4 rounded-2xl border border-slate-200 p-4">
+      <div role="tablist" className="flex gap-2">{tabs.map(([key, text]) => <button key={key} role="tab" aria-selected={tab === key} type="button" onClick={() => setTab(key)} className={`rounded-xl px-3 py-2 text-sm font-black ${tab === key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}>{text}</button>)}</div>
+      {tab === 'summary' && <div className="mt-3 space-y-2 text-2xl font-black text-slate-900">
+        <p>{artifacts.summary.students} học sinh đã làm bài</p>
+        {artifacts.summary.objectives.map(o => <p key={o.title}>{o.title}: {o.avgPercent}%</p>)}
+        {artifacts.summary.misconceptions.length > 0 && <p className="pt-2 text-xl">Lỗi sai phổ biến</p>}
+        {artifacts.summary.misconceptions.map(m => <p key={m.title} className="text-xl">{m.title} · {m.count} HS</p>)}
+      </div>}
+      {tab === 'feedback' && <ul className="mt-3 space-y-3 text-sm">{Object.entries(artifacts.feedback).map(([id, lines]) => <li key={id}><p className="font-black">{label(id)}</p>{lines.map((line, i) => <p key={i}>{line}</p>)}</li>)}</ul>}
+      {tab === 'homework' && <ul className="mt-3 space-y-2 text-sm">{Object.entries(artifacts.homework).map(([id, refs]) => <li key={id}><span className="font-black">{label(id)}:</span> {refs.length ? refs.map(r => r.questionId).join(', ') : 'Không có'}</li>)}</ul>}
+    </div>
+  );
+};
+
 export const DiscoverClassPanel = ({ lessons }: { lessons: AdaptiveLesson[] }) => {
   const published = useMemo(() => lessons.filter(lesson => lesson.status === 'published'), [lessons]);
   const [classes, setClasses] = useState<AccessibleClassDoc[]>([]);
@@ -30,6 +65,14 @@ export const DiscoverClassPanel = ({ lessons }: { lessons: AdaptiveLesson[] }) =
   const [events, setEvents] = useState<Row[]>([]);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [closed, setClosed] = useState<Closed | null>(null);
+  const close = async (assignmentId: string) => {
+    if (!window.confirm('Đóng bài này? HS sẽ không nộp thêm được và sẽ nhận nhận xét + BTVN.')) return;
+    setBusy(true); setMessage(null);
+    try { setClosed(await closeAssignment(assignmentId)); await load(classId); }
+    catch (error) { setMessage({ ok: false, text: error instanceof Error ? error.message : 'Đóng bài không thành công.' }); }
+    finally { setBusy(false); }
+  };
 
   useEffect(() => { listAccessibleClasses().then(setClasses).catch(error => setMessage({ ok: false, text: error instanceof Error ? error.message : 'Không tải được danh sách lớp.' })); }, []);
 
@@ -82,7 +125,7 @@ export const DiscoverClassPanel = ({ lessons }: { lessons: AdaptiveLesson[] }) =
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr><th className="px-3 py-2">Bài / seed</th><th className="px-3 py-2">Đã học / xong</th><th className="px-3 py-2">Mục tiêu (TB %)</th><th className="px-3 py-2">Lỗi sai hay gặp</th><th className="px-3 py-2">Hỗ trợ (nộp lại)</th></tr>
+              <tr><th className="px-3 py-2">Bài / seed</th><th className="px-3 py-2">Đã học / xong</th><th className="px-3 py-2">Mục tiêu (TB %)</th><th className="px-3 py-2">Lỗi sai hay gặp</th><th className="px-3 py-2">Hỗ trợ (nộp lại)</th><th className="px-3 py-2"></th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {stats.map(item => (
@@ -92,12 +135,14 @@ export const DiscoverClassPanel = ({ lessons }: { lessons: AdaptiveLesson[] }) =
                   <td className="px-3 py-3">{item.objectives.map(o => <p key={o.objectiveId}>{o.objectiveId}: {o.avgPercent}%</p>)}</td>
                   <td className="px-3 py-3">{item.misconceptions.length ? item.misconceptions.map(m => <p key={m.id}>{m.id} ×{m.count}</p>) : '—'}{item.wrongQuestions.map(q => <p key={q.id} className="text-xs text-slate-500">Câu {q.id} sai ×{q.count}</p>)}</td>
                   <td className="px-3 py-3">{item.support.studentsRetrying} HS · {item.support.retryEvents} lượt</td>
+                  <td className="px-3 py-3"><button type="button" disabled={busy} onClick={() => void close(item.assignmentId)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-50">Đóng bài</button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ))}
+      {closed && <CloseResult closed={closed} />}
     </section>
   );
 };

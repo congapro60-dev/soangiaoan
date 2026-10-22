@@ -31,6 +31,7 @@ import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.
 import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
 import { isSafeDocId } from '../src/lib/classroom/parentAccess.js';
 import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
+import { buildCloseArtifacts, type StudentAttempts } from '../src/lib/adaptive/closeAssignment.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -86,6 +87,28 @@ export const handleAssignAdaptiveLesson = async (db: Db, body: Body, res: Vercel
   const assignment = compact({ teacherId: context.uid, classId, lessonId, discoverSeedId: typeof body.discoverSeedId === 'string' ? body.discoverSeedId.trim() : lesson.discoverSeedId, title: typeof body.title === 'string' && body.title.trim() ? body.title.trim() : lesson.title, targetStudentIds: targetStudentIds === undefined ? current.data()?.targetStudentIds : targetStudentIds, isOpen: body.isOpen !== false, createdAt: current.exists ? current.data()?.createdAt : now, updatedAt: now });
   await ref.set(assignment);
   return void res.status(200).json({ assignmentId: id, assignment });
+};
+
+export const handleCloseAdaptiveAssignment = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
+  if (!isSafeDocId(assignmentId)) return void res.status(400).json({ error: 'Invalid assignment code.' });
+  const assignmentRef = db.collection('adaptiveAssignments').doc(assignmentId);
+  const assignmentSnap = await assignmentRef.get();
+  const assignment = assignmentSnap.data() || {};
+  if (!assignmentSnap.exists || typeof assignment.classId !== 'string' || !isSafeDocId(assignment.lessonId)) return void res.status(404).json({ error: 'Assignment not found.' });
+  const context = await teacherContext(db, { ...body, classId: assignment.classId }, res);
+  if (!context) return;
+  if (assignment.teacherId !== context.uid) return void res.status(403).json({ error: 'Assignment is not owned by the teacher.' });
+  const lesson = normalizeAdaptiveLesson((await db.collection('adaptiveLessons').doc(assignment.lessonId).get()).data(), assignment.lessonId);
+  if (!lesson || lesson.teacherId !== context.uid) return void res.status(404).json({ error: 'Lesson not found.' });
+  const progress = await db.collection('adaptiveAssignmentProgress').where('assignmentId', '==', assignmentId).get();
+  const students: StudentAttempts = {};
+  progress.docs.forEach(doc => { const data = doc.data(); if (typeof data.studentId === 'string' && data.attempts && typeof data.attempts === 'object') students[data.studentId] = data.attempts; });
+  const artifacts = buildCloseArtifacts(lesson, students, nowIso());
+  await assignmentRef.set({ isOpen: false, closeArtifacts: artifacts, updatedAt: artifacts.closedAt }, { merge: true });
+  const names: Record<string, string> = {};
+  await Promise.all(Object.keys(students).map(async id => { const name = (await context.classRef.collection('students').doc(id).get()).data()?.name; if (typeof name === 'string') names[id] = name; }));
+  return void res.status(200).json({ assignmentId, artifacts, names });
 };
 
 const safeId = (value: unknown, fallback: string): string => {
@@ -1338,6 +1361,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'teacherRoster') { await handleTeacherRoster(db, body, res); return true; }
   if (action === 'createAssignment') { await handleCreateAssignment(db, body, res); return true; }
   if (action === 'teacherAssignAdaptiveLesson') { await handleAssignAdaptiveLesson(db, body, res); return true; }
+  if (action === 'teacherCloseAdaptiveAssignment') { await handleCloseAdaptiveAssignment(db, body, res); return true; }
   if (action === 'createExamAssignment') { await handleCreateExamAssignment(db, body, res); return true; }
   if (action === 'createSupportActivity') { await handleCreateSupportActivity(db, body, res); return true; }
   if (['renameAssignment', 'updateAssignmentContent', 'updateAssignmentDeadline', 'setAssignmentOpen'].includes(action)) { await handleUpdateAssignment(db, body, res); return true; }
