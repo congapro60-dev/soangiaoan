@@ -38,6 +38,8 @@ export const submitAdaptiveAssessment = async (db: Db, context: Context, assignm
   const result = await db.runTransaction(async tx => {
     const progressSnap = await tx.get(progressRef);
     const progress = progressSnap.exists ? progressSnap.data() || {} : {};
+    // Firestore transaction: mọi đọc phải đứng trước mọi ghi.
+    const profileSnap = await tx.get(profileRef);
     if (kind !== 'diagnostic' && !progress.attempts?.diagnostic) throw new Error('DIAGNOSTIC_REQUIRED');
     const stored = progress.attempts?.[selected.key] as AssessmentAttempt | undefined;
     const graded = gradeAssessment(selected.assessment, answers, durationSeconds);
@@ -50,36 +52,37 @@ export const submitAdaptiveAssessment = async (db: Db, context: Context, assignm
       // merge: giữ trường người khác đã ghi vào cùng doc tiến độ (không ghi đè bằng bản thiếu field).
       tx.set(progressRef, { teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), status: kind === 'exitTicket' ? 'completed' : (progress.status || 'in_progress'), attempts: { ...(progress.attempts || {}), [selected.key]: truncateAttempt(attempt) }, startedAt: progress.startedAt || now, updatedAt: now, ...(kind === 'exitTicket' ? { completedAt: now } : {}) }, { merge: true });
       tx.set(sessionRef, { teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, lessonTitle: text(lesson.title), status: kind === 'exitTicket' ? 'completed' : 'in_progress', score, maxScore, updatedAt: now, ...(kind === 'exitTicket' ? { completedAt: now } : {}) }, { merge: true });
-      // Hồ sơ năng lực: ghi thêm classId, KHÔNG ghi tên/lớp (không biết ở server) để không xoá tên đang có.
-      const profileSnap = await tx.get(profileRef);
-      const previousProfile = (profileSnap.exists ? profileSnap.data() : {}) as {
-        objectiveMemory?: StudentObjectiveMemory[];
-        misconceptionCounts?: Record<string, number>;
-        totalSessions?: number;
-        averageMastery?: number;
-        createdAt?: string;
-      };
-      const totalSessions = (previousProfile.totalSessions || 0) + 1;
-      const previousAverage = previousProfile.averageMastery || 0;
-      const sessionMastery = averageMastery([attempt]);
-      tx.set(profileRef, {
-        id: context.studentId,
-        studentId: context.studentId,
-        teacherId: context.teacherId,
-        classId: context.classId,
-        totalSessions,
-        averageMastery: Number((((previousAverage * (totalSessions - 1)) + sessionMastery) / totalSessions).toFixed(2)),
-        objectiveMemory: mergeObjectiveMemory(lesson, [attempt], previousProfile.objectiveMemory || []),
-        misconceptionCounts: countMisconceptions([attempt], previousProfile.misconceptionCounts || {}),
-        lastLessonId: lesson.id,
-        lastLessonTitle: text(lesson.title),
-        lastActiveAt: now,
-        createdAt: previousProfile.createdAt || now,
-        updatedAt: now,
-      }, { merge: true });
     }
+    // Hồ sơ năng lực: ghi thêm classId, KHÔNG ghi tên/lớp (không biết ở server) để không xoá tên đang có.
+    // Lượt nộp lại (retry) vẫn cập nhật hồ sơ (năng lực + lỗi sai) nhưng không tính thêm buổi/điểm trung bình.
+    const previousProfile = (profileSnap.exists ? profileSnap.data() : {}) as {
+      objectiveMemory?: StudentObjectiveMemory[];
+      misconceptionCounts?: Record<string, number>;
+      totalSessions?: number;
+      averageMastery?: number;
+      createdAt?: string;
+    };
+    const totalSessions = (previousProfile.totalSessions || 0) + (scored ? 1 : 0);
+    const previousAverage = previousProfile.averageMastery || 0;
+    const sessionMastery = averageMastery([attempt]);
+    tx.set(profileRef, {
+      id: context.studentId,
+      studentId: context.studentId,
+      teacherId: context.teacherId,
+      classId: context.classId,
+      ...(scored ? { totalSessions, averageMastery: Number((((previousAverage * (totalSessions - 1)) + sessionMastery) / totalSessions).toFixed(2)) } : {}),
+      objectiveMemory: mergeObjectiveMemory(lesson, [attempt], previousProfile.objectiveMemory || []),
+      misconceptionCounts: countMisconceptions([attempt], previousProfile.misconceptionCounts || {}),
+      lastLessonId: lesson.id,
+      lastLessonTitle: text(lesson.title),
+      lastActiveAt: now,
+      createdAt: previousProfile.createdAt || now,
+      updatedAt: now,
+    }, { merge: true });
     tx.create(db.collection('adaptiveEvents').doc(), { type: scored ? 'attempt' : 'retry', kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), score, maxScore, objectiveScores: attempt.objectiveScores, wrongQuestionIds: attempt.answers.filter(answer => !answer.isCorrect).map(answer => answer.questionId), misconceptionIds: [...new Set(attempt.answers.flatMap(answer => answer.detectedMisconceptionIds || []))], durationSeconds, createdAt: now });
-    return { attempt, scored, status: kind === 'exitTicket' && scored ? 'completed' : (progress.status || 'in_progress') };
+    // Nộp lại: không trả lại lời giải/giải thích (chỉ giữ nhận xét lỗi sai qua detectedMisconceptionIds).
+    const shown: AssessmentAttempt = scored ? attempt : { ...attempt, answers: attempt.answers.map(({ feedback, ...answer }) => answer) };
+    return { attempt: shown, scored, status: kind === 'exitTicket' && scored ? 'completed' : (progress.status || 'in_progress') };
   });
   return { assignmentId, kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), scored: result.scored, status: result.status, attempt: result.attempt, ...(kind === 'diagnostic' && result.attempt.recommendedRoute ? { nextRoute: result.attempt.recommendedRoute } : {}) };
 };

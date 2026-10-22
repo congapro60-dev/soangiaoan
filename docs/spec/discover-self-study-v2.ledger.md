@@ -65,3 +65,34 @@ Review: tác giả Claude → reviewer khác hãng khi Codex hồi (sau 12:28) h
 - Test: +1 api (merge + classId + hồ sơ), +3 service client (list/open/submit — nộp KHÔNG gửi điểm), +1 UI dashboard (nút mở khoá).
 - Gate: full **3404/3404**, `lint` + `lint:api` exit 0, `build` exit 0. Chưa deployed; chưa QA trình duyệt với bài giao thật (cần bài Discover đã giao cho lớp).
 - Còn lại: T5 (bảng thống kê GV), T6 (rules `adaptiveAssignments`/`adaptiveEvents`), T7 (QA GV giao → HS nộp → GV xem), và câu hỏi sản phẩm "lời giải có hiện sau mỗi lần nộp lại không".
+
+## T5+T7 — bàn giao Claude 22/10
+Worker: requested `cc/claude-sonnet-5-5`, served `unknown` (opencode không lộ served model). Không commit, không tạo nhánh, không `git switch`.
+
+| task | trạng thái |
+|---|---|
+| Push nhánh (mục 1) | blocked: `git push origin feat/discover-t3b-t4` bị harness từ chối quyền shell. `origin/feat/discover-t3b-t4` = 4e9f9ed, chưa chứa 6bc7161 (`merge-base --is-ancestor` = 1). Supervisor push. |
+| T5 | implemented, tested (unit). Chưa QA trình duyệt. |
+| Nộp lại (mục 3) | implemented, tested |
+| T7 QA trình duyệt | blocked: cần tài khoản GV + lớp + HS thật và bài Discover đã giao; phiên này không có. Không ghi dữ liệu production. |
+| Deploy rules | KHÔNG deploy. Chờ người dùng duyệt (rules không đổi trong phiên này). |
+
+### Thay đổi
+- `src/lib/adaptive/assignmentStats.ts` (+test): gộp theo bài giao/seed: số HS bắt đầu/xong, % mục tiêu TB, lỗi sai (misconception) + câu sai hay gặp, mức hỗ trợ (HS/lượt nộp lại). Chỉ sự kiện `attempt` tính điểm/lỗi sai; `retry` chỉ đếm hỗ trợ.
+- `src/components/adaptive/DiscoverClassPanel.tsx`: chọn lớp + bài đã xuất bản → `teacherAssignAdaptiveLesson`; bảng thống kê đọc `adaptiveAssignments`/`adaptiveAssignmentProgress`/`adaptiveEvents` lọc `classId` (rules T6 cho GV chủ lớp đọc). Gắn vào `AdaptiveLessonListPage.tsx`.
+- `api/_adaptive-submit.ts`: lượt `retry` cập nhật `studentLearningProfiles` (objectiveMemory, misconceptionCounts) nhưng KHÔNG đổi `totalSessions`/`averageMastery`, KHÔNG đổi điểm progress/session; response retry bỏ `feedback` (không xem lại lời giải). Đọc profile trước mọi ghi trong transaction.
+- Test mới: `student-adaptive-submit.test.ts` +1 (retry), `assignmentStats.test.ts` +1.
+
+### Evidence Pack
+| check | kết quả | bằng chứng |
+|---|---|---|
+| `npm run test:rules` | xanh | 11/11 file, 314 test, exit 0 |
+| `npm run test` | xanh | 329 file, 3434/3434, exit 0 (gồm function-count ≤12; không thêm file `api/`) |
+| `npm run lint` | xanh | exit 0 |
+| `npm run lint:api` | xanh | exit 0 |
+| `npm run build` | xanh | exit 0 (cảnh báo chunk có sẵn) |
+
+### New proposals (không làm)
+- Chọn `targetStudentIds` khi giao bài (action đã hỗ trợ, UI chưa).
+- Tên objective/misconception hiển thị là ID; nên map sang tiêu đề từ lesson.
+- Bảng thống kê đọc client-side qua rules; nếu lớp lớn nên chuyển sang action server tổng hợp.

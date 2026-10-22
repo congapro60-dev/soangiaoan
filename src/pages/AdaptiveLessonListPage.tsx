@@ -6,6 +6,7 @@ import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
 import type { TeacherClass } from '../types';
 import type { ClassDoc } from '../lib/classroom/types';
+import { DiscoverClassPanel } from '../components/adaptive/DiscoverClassPanel';
 import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher';
 import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson';
 import { getBanToanV4PackageForLesson } from '../lib/liveLesson/v4';
@@ -297,6 +298,8 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
             );
           })()}
         </section>
+
+        {user && !loading && <DiscoverClassPanel lessons={lessons} />}
 
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           {loading ? (

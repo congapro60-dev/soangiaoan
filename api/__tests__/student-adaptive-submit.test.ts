@@ -34,6 +34,17 @@ describe('studentAdaptiveSubmit', () => {
     expect(store['adaptiveAssignmentProgress/assignment-1_roster-a'].attempts.diagnostic.answers[0].isCorrect).toBe(false);
     const events = Object.entries(store).filter(([key]) => key.startsWith('adaptiveEvents/')).map(([, value]) => value); expect(events).toHaveLength(2); expect(events[1].type).toBe('retry'); expect(JSON.stringify(events)).not.toContain('wrong answer');
   });
+  it('retry: giữ điểm lượt đầu, không trả lời giải, vẫn cập nhật hồ sơ năng lực', async () => {
+    const store = baseStore(); await invoke(store, submit('diagnostic', { [diagnostic.id]: 'wrong answer' }));
+    const before = store['studentLearningProfiles/roster-a']; const scoreBefore = store['adaptiveSessionProgress/assignment-1_roster-a'].score;
+    const retry = await invoke(store, submit('diagnostic', { [diagnostic.id]: diagnostic.correctAnswer }));
+    expect(retry.payload.scored).toBe(false); expect(retry.payload.attempt.answers.every((answer: Data) => answer.feedback === undefined)).toBe(true);
+    const after = store['studentLearningProfiles/roster-a'];
+    expect(after.totalSessions).toBe(before.totalSessions); expect(after.averageMastery).toBe(before.averageMastery);
+    expect(after.objectiveMemory[0].attempts).toBeGreaterThan(before.objectiveMemory[0].attempts);
+    expect(store['adaptiveSessionProgress/assignment-1_roster-a'].score).toBe(scoreBefore);
+    expect(store['adaptiveAssignmentProgress/assignment-1_roster-a'].attempts.diagnostic.answers[0].isCorrect).toBe(false);
+  });
   it('requires diagnostic first; only exit ticket completes', async () => {
     const store = baseStore(); expect((await invoke(store, submit('quickCheck', { [quick.id]: quick.correctAnswer }, { unitId }))).statusCode).toBe(409);
     expect((await invoke(store, submit('diagnostic', { [diagnostic.id]: diagnostic.correctAnswer }))).payload.status).toBe('in_progress');
