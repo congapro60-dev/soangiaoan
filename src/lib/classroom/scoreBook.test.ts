@@ -6,6 +6,7 @@ import {
   dedupeExamColumns,
   examScoreSource,
   shadowedAssignmentScore,
+  examColumnsNeedingSheetPush,
   hs1Average,
   parseHs1Weight,
   scoreToTen,
@@ -243,5 +244,32 @@ describe('sổ điểm', () => {
     expect(shadowedAssignmentScore(both, 'a', 'Thi GHKI')).toBe(9);
     // Không có điểm sửa tay thì không có gì bị che.
     expect(shadowedAssignmentScore(withAssignment, 'a', 'Thi GHKI')).toBeUndefined();
+  });
+
+  it('chỉ gợi ý đẩy lên Sheet cột có điểm sửa tay/chấm tay mới hơn lần đồng bộ gần nhất', () => {
+    const book = normalizeScoreBook('lop-1', {
+      // Sheet đã đồng bộ lúc 10:00.
+      examsSyncedAt: '2026-10-02T10:00:00.000Z',
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }, { label: 'Cuối học kì I', score: 7 }], tds: [] } },
+      examOverrides: {
+        // a: sửa GHKI sau khi đồng bộ → cần đẩy.
+        a: { ghki: { label: 'Giữa học kì I', score: 6.5, updatedAt: '2026-10-02T11:00:00.000Z' } },
+      },
+      paperExams: {
+        // b: chấm tay CKII trước khi đồng bộ → Sheet đã có, không cần đẩy.
+        b: [{ label: 'Cuối học kì I', score: 8, assignmentId: 'bt2', confirmedAt: '2026-10-02T09:00:00.000Z' }],
+      },
+    });
+    // Ô chưa sửa lần nào: không gợi ý, tránh đẩy lại toàn bộ sổ.
+    expect(examColumnsNeedingSheetPush(book).map(item => item.label)).toEqual(['Giữa học kì I']);
+
+    // Chưa đồng bộ lần nào thì chỉ gợi ý khi có điểm sửa tay.
+    const fresh = normalizeScoreBook('lop-1', {
+      examOverrides: { a: { ghki: { label: 'Giữa học kì I', score: 6.5, updatedAt: '2026-10-02T11:00:00.000Z' } } },
+    });
+    expect(examColumnsNeedingSheetPush(fresh).map(item => item.label)).toEqual(['Giữa học kì I']);
+
+    // Sổ trống → không gợi ý.
+    expect(examColumnsNeedingSheetPush(normalizeScoreBook('lop-1', {}))).toEqual([]);
   });
 });

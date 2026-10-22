@@ -354,11 +354,13 @@ const handleSaveExamColumn = async (db: Db, body: Body, res: VercelResponse): Pr
   }
   const overrides = { ...(book.examOverrides ?? {}) };
   const roster = await rosterIds(context.classRef);
+  // Mốc thời gian để biết ô nào sửa SAU lần đồng bộ Sheet gần nhất (gợi ý đẩy lên Sheet).
+  const editedAt = nowIso();
   for (const [studentId, raw] of Object.entries(scores)) {
     if (!roster.has(studentId)) continue;
     const score = raw === null || raw === '' ? null : Number(raw);
     if (!(score === null || (Number.isFinite(score) && score >= 0 && score <= 10))) return void res.status(422).json({ error: 'Điểm phải từ 0 đến 10.' });
-    overrides[studentId] = { ...(overrides[studentId] ?? {}), [key]: { label, score } };
+    overrides[studentId] = { ...(overrides[studentId] ?? {}), [key]: { label, score, updatedAt: editedAt } };
   }
   // An empty cell means "use the current Sheet/paper value" for that student.
   // Only persist an override when it differs from that current source.

@@ -80,8 +80,8 @@ export interface ScoreBookDoc {
   examsSpreadsheetTitle?: string;
   /** studentId → điểm thầy cô xác nhận từ ảnh bài chấm tay. Ghép vào `exams` khi đọc, chỉ ở cột file điểm chưa có. */
   paperExams?: Record<string, PaperExamMark[]>;
-  /** Điểm giáo viên sửa/xóa; null là xóa mốc đó khỏi sổ. */
-  examOverrides?: Record<string, Record<string, { label: string; score: number | null }>>;
+  /** Điểm giáo viên sửa/xóa; null là xóa mốc đó khỏi sổ. `updatedAt` để biết ô nào mới hơn lần đồng bộ Sheet. */
+  examOverrides?: Record<string, Record<string, { label: string; score: number | null; updatedAt?: string }>>;
   examColumnLabels?: Record<string, string>;
   hiddenExamColumns?: string[];
   /** Header các cột điểm đọc từ file MOET/TDS, kể cả khi cả lớp chưa có điểm. */
@@ -321,12 +321,16 @@ const sanitizeExamOverrides = (raw: unknown): NonNullable<ScoreBookDoc['examOver
   if (!isRecord(raw)) return out;
   for (const [studentId, values] of Object.entries(raw)) {
     if (!isRecord(values)) continue;
-    const row: Record<string, { label: string; score: number | null }> = {};
+    const row: Record<string, { label: string; score: number | null; updatedAt?: string }> = {};
     for (const [key, value] of Object.entries(values)) {
       if (!isRecord(value) || typeof value.label !== 'string') continue;
       const score = value.score === null ? null : (typeof value.score === 'number' && Number.isFinite(value.score) ? round2(value.score) : NaN);
       if (!(score === null || (score >= 0 && score <= HS1_MAX))) continue;
-      row[examLabelKey(key || value.label)] = { label: cleanLabel(value.label), score };
+      row[examLabelKey(key || value.label)] = {
+        label: cleanLabel(value.label),
+        score,
+        ...(typeof value.updatedAt === 'string' && value.updatedAt ? { updatedAt: value.updatedAt } : {}),
+      };
     }
     if (Object.keys(row).length > 0) out[studentId] = row;
   }
@@ -343,7 +347,7 @@ export const applyExamOverrides = (exams: ScoreBookDoc['exams'], overrides: NonN
     for (const [key, override] of Object.entries(values)) {
       row.moet = row.moet.filter(mark => examLabelKey(mark.label) !== key);
       row.tds = row.tds.filter(mark => examLabelKey(mark.label) !== key);
-      if (override.score !== null) row.moet.push({ label: override.label, score: override.score });
+      if (override.score !== null) row.moet.push({ label: override.label, score: override.score, ...(override.updatedAt ? { updatedAt: override.updatedAt } : {}) });
     }
   }
   return out;
@@ -472,6 +476,40 @@ export const shadowedAssignmentScore = (book: ScoreBookDoc, studentId: string, l
   if (!manual || manual.score === null) return undefined;
   const periodic = book.auto?.periodic?.[key]?.[studentId];
   return typeof periodic === 'number' ? periodic : undefined;
+};
+
+/**
+ * Cột định kì có điểm thầy cô sửa tay / chấm tay **mới hơn** lần đồng bộ Sheet gần nhất.
+ *
+ * Sau khi duyệt chấm bài, sổ đã có điểm mà file điểm chưa → đây là danh sách để gợi ý "đẩy lên Sheet".
+ * Cố ý không gợi ý khi ô chưa từng sửa tay: tránh đẩy lại cả sổ mỗi lần duyệt bài.
+ */
+export const examColumnsNeedingSheetPush = (book: ScoreBookDoc): Array<{ label: string; studentIds: string[] }> => {
+  const syncedAt = book.examsSyncedAt ? Date.parse(book.examsSyncedAt) : NaN;
+  // Chưa từng đồng bộ: coi như mọi điểm sửa tay đều chưa có trên Sheet. Thời điểm hỏng: an toàn hơn là đẩy cả sổ.
+  const newer = (time: string | undefined): boolean => {
+    if (typeof time !== 'string' || time === '') return false;
+    if (Number.isNaN(syncedAt)) return true;
+    const stamp = Date.parse(time);
+    return !Number.isNaN(stamp) && stamp > syncedAt;
+  };
+  const labels = new Map<string, string>();
+  const studentsByKey = new Map<string, Set<string>>();
+  const add = (label: string, studentId: string) => {
+    const key = examLabelKey(label);
+    if (!key) return;
+    labels.set(key, book.examColumnLabels?.[key] ?? label);
+    const set = studentsByKey.get(key) ?? new Set<string>();
+    set.add(studentId);
+    studentsByKey.set(key, set);
+  };
+  for (const [studentId, values] of Object.entries(book.examOverrides ?? {})) {
+    for (const override of Object.values(values)) if (override.updatedAt && newer(override.updatedAt)) add(override.label, studentId);
+  }
+  for (const [studentId, marks] of Object.entries(book.paperExams ?? {})) {
+    for (const mark of marks) if (newer(mark.confirmedAt)) add(mark.label, studentId);
+  }
+  return [...labels].map(([key, label]) => ({ label, studentIds: [...(studentsByKey.get(key) ?? [])] }));
 };
 
 const sameExamLabel = (left: string, right: string): boolean => examLabelKey(left) === examLabelKey(right);

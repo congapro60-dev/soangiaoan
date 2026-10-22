@@ -12,8 +12,16 @@ Chủ dự án báo rối khi dùng Sổ điểm với file điểm Google Sheet
 - **Badge nguồn điểm (mục 1):** mỗi ô điểm thi định kỳ có nhãn nguồn `Bài nộp` / `Sửa tay` / `Chấm tay` / `Sheet` (`examScoreSource` trong `scoreBook.ts`) + chú giải dưới bảng.
 - **Ưu tiên điểm (chủ dự án chọn phương án B):** **sửa tay > bài nộp > chấm tay > Sheet**; bài nộp đã gán chỉ **điền vào ô trống**, không đè điểm thầy cô đã sửa hay điểm từ Sheet (trước đây bài nộp đè cả điểm sửa tay → bấm lưu mà ô vẫn hiện điểm AI chấm). Xoá điểm sửa tay = ô trống → điểm bài nộp hiện lại. Khi điểm bài nộp bị che, badge hiện `↩` kèm tooltip (`shadowedAssignmentScore`), chú giải cuối bảng có dòng giải thích. Sửa kèm 1 bug thật do test lộ ra: điểm bài nộp điền vào ô trống bị gắn nhãn bằng mã thô (`ghki`) thay vì tên cột — nay lấy tên cột trong sổ → tên đã đổi → tên ở mốc của em khác.
 - **Hàng rào chống cột trùng (mục 4):** `api/_score-book.ts` chặn tạo cột định kỳ trùng mã chuẩn (422, kèm tên cột cũ, không ghi gì); cột nhập tay trước đây bị đẩy vào **cả** nhóm MOET và TDS (sinh cột kép ở hai nhóm) nay chỉ vào MOET; `dedupeExamColumns` tự gộp cột trùng khi đọc sổ cũ, cột đang mang điểm thật thì giữ.
-- **Test:** `scoreBook.test.ts` 18/18 (thêm "sửa tay thắng bài nộp; bài nộp chỉ điền ô trống", viết lại test cũ "bài nộp thắng Sheet"), `api/__tests__/score-book.test.ts` 19/19 (xem qua `studentScoreView` vì sổ chỉ lưu ô có điểm), `examConversion.test.ts` +2 (file mới). `lint` + `lint:api` 0 lỗi; vite build xanh. Production trước đó `dpl_816SFQiSJzMhrY7wDZ6JpBGaGptX` đã kiểm đủ 88 chunk có nhãn nguồn + chú giải.
-- **Còn lại (chưa làm):** mục 2 "Trung tâm điểm định kỳ" (gộp nút) + mục 3 (tự đề xuất đẩy điểm lên Sheet sau khi duyệt bài). SSM hiện tính LO từ **submission thô** (`loClassScores.ts`: `assignment.periodicTest` → nhóm định kỳ, 0.4/0.6), KHÔNG đọc điểm hiệu quả của sổ → HS thiếu bài IA1/IA2 vẫn phải đồng bộ 2 chiều trước khi tính 60/40. `examConversion` mới có test đọc file, CHƯA có test hành vi ghi (preview → ghi → đọc lại).
+- **Test:** `scoreBook.test.ts` 19/19, `api/__tests__/score-book.test.ts` 20/20 (xem qua `studentScoreView` vì sổ chỉ lưu ô có điểm), `examConversion.test.ts` 2/2. `lint` + `lint:api` 0 lỗi; vite build xanh.
+
+### Trung tâm điểm định kỳ + gợi ý đẩy điểm lên Sheet — 22/10 (opencode, cùng nhánh)
+
+- **Mục 2 — gộp nút:** 7 nút rời ở đầu Sổ điểm gom vào một khối **“Trung tâm điểm định kỳ”** với 3 tab: `Đồng bộ file điểm` (2 chiều / chỉ đẩy lên / nối file / quy đổi MOET→TDS), `Gán bài nộp` (vào cột hệ số hoặc cột định kì), `Tạo cột điểm` (hệ số 1 hoặc định kì). Khối “Điểm thi định kì (MOET + TDS)” cũ đã gỡ, chỉ giữ hàng “Cột đã xóa khỏi sổ”. Không đổi API, không đổi luật tính điểm.
+- **Mục 3 — gợi ý đẩy lên Sheet:** `examColumnsNeedingSheetPush(book)` liệt kê cột có ô thầy cô **sửa tay** (`examOverrides[*][key].updatedAt`) hoặc **chấm tay** (`paperExams[*].confirmedAt`) **mới hơn** `examsSyncedAt`. Sổ điểm hiện dải nhắc vàng “Có điểm mới chưa lên Google Sheet: <cột> (n em)” + nút mở đúng luồng xem-trước-rồi-ghi. Chưa từng đồng bộ → coi như mọi điểm sửa tay đều chưa lên. Ô chưa sửa lần nào **không** gợi ý (tránh đẩy lại cả sổ mỗi lần duyệt bài).
+- **Sửa bug do test lộ ra:** `applyExamOverrides` dựng lại mark nên làm rơi `updatedAt` → tín hiệu “cần đẩy” sẽ mất ngay sau lần đọc sổ. Nay chuyển tiếp `updatedAt` vào `ExamMark`. `handleSaveExamColumn` ghi `updatedAt = nowIso()` mỗi lần lưu.
+- **Test:** thêm 1 test lib (`examColumnsNeedingSheetPush`) + 1 test API (sửa tay phải có `updatedAt` đọc được). Hai test API cũ so `toEqual` cả mark nay so `{ label, score }` để không phụ thuộc giờ chạy.
+- **Lưu ý vận hành:** gợi ý chỉ dựa trên thời gian, KHÔNG so giá trị — nếu thầy cô sửa tay rồi tự đẩy Sheet bằng tay (không qua nút đồng bộ hai chiều, nên `examsSyncedAt` không đổi) thì dải nhắc vẫn hiện. Đẩy lại đúng giá trị là vô hại.
+- **Còn lại (chưa làm):** SSM hiện tính LO từ **submission thô** (`loClassScores.ts`: `assignment.periodicTest` → nhóm định kỳ, 0.4/0.6), KHÔNG đọc điểm hiệu quả của sổ → HS thiếu bài IA1/IA2 vẫn phải đồng bộ 2 chiều trước khi tính 60/40. `examConversion` mới có test đọc file, CHƯA có test hành vi ghi (preview → ghi → đọc lại). Mục 2/3 đã làm, xem mục dưới.
 
 ## Discover tự học: GV giao bài cho lớp, HS mở bài đã bỏ đáp án — 17/10 (Claude, tiếp nhận từ Codex) + T3b/T4/T6 (22/10, opencode)
 
@@ -126,18 +134,5 @@ Retry `photo-refresh-20261015-retry` đã được resume từ cursor 0 sau khi 
 Danh sách bài nộp dùng chung 7 cột: HS, trạng thái, hạn nộp, lưu ý, điểm, duyệt, giờ/tệp. Hàng chưa nộp cùng cột; mã đề riêng có chiều rộng cố định. Nhãn ngắn một dòng, giải thích và điểm GV đối chiếu giữ trong chú thích. Container hẹp chuyển bố cục gọn, không thay callback hoặc dữ liệu chấm.
 
 Lint, 17 test liên quan và build cuối đạt. QA fixture qua trình duyệt: 1100px có/không mã đề, 7 cột thẳng qua 6 hàng; 390px không tràn ngang/nhãn. Không ghi vào lớp thật. Lần 320px timeout nên chưa chứng nhận. Ảnh fixture lưu cục bộ `visualizations/.../submission-columns/desktop.png`; không chứa dữ liệu HS thật.
-
-## Bản chấm tay và bài chữa nộp hộ — 15/10
-
-Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài chữa. Nhánh `codex/handmarked-corrections`; kế hoạch `docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md`, bằng chứng `tasks/handmarked-correction-ledger.md`.
-
-- GV tải ảnh/PDF gắn đúng lượt nộp; mặc định ẩn. Công bố riêng, độc lập điểm AI; bản mới tự về ẩn. File riêng, không token tải vĩnh viễn; URL đọc có hạn 60 giây sau kiểm quyền. Tắt chặn lần mở tiếp theo, không thu hồi nội dung đã tải.
-- GV/HS/PH được lưu, xem, gọi AI cho bài chữa đúng quyền. Lịch sử ảnh vẫn xem được sau khi thu hồi công bố điểm; lưu/đánh giá mới cần nguồn chấm công bố. Nhận xét cũ được ẩn khi nguồn thay đổi. Không sửa điểm gốc.
-- Chấm tay chưa có AI grade: chỉ đưa ảnh/ghi chú chấm tay công bố vào AI. PDF-only trả “Chưa đủ căn cứ”, cần ảnh chấm tay để đối chiếu; ảnh bài chữa vẫn lưu.
-- Ảnh chấm tay xem ngay trong card; PDF mở tab. Nguồn đổi thì UI bỏ nhận xét cũ, giữ nháp. Xóa bài có fence và lease retry, dọn mọi revision/file/audit, không để upload đồng thời tạo tệp mồ côi.
-- Đã tích hợp main 2407c50, giữ các sửa lỗi khác. Full 3.146/3.146, Rules 309/309, app/API strict/non-strict và build cuối đạt (index 1.532,10 kB; cảnh báo chunk có sẵn). Rules đã deploy; native Astra xhigh review PASS. Đích tích hợp: main. Chi tiết: `tasks/qa-handmarked-corrections-20261015.md`.
-- Tab GV và tab QA cục bộ timeout khi kết nối; chưa có bằng chứng QA upload thật/mobile/iPad cho tính năng mới. Không đổi điểm, nộp ảnh giả hoặc gửi tin cho lớp thật. Người dùng yêu cầu ngừng model bên ngoài, chỉ dùng native Astra xhigh cho subagent.
-- Source `33b21cd` đã push main. API Typecheck CI thành công; Quality Gate và Vercel Git deployment đang chạy tại snapshot. Không deploy/promote Vercel thủ công. Phần chưa nghiệm thu duy nhất trong phạm vi tính năng: QA trình duyệt thật và chất lượng nhận xét trên bài chữa thật mới.
-
-_Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
+_Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) và mục 15/10 (bản chấm tay + bài chữa nộp hộ) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
 

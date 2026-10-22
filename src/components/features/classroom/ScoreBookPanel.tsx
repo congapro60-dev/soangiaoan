@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FileSpreadsheet, Link2, Loader2, NotebookPen, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { FileSpreadsheet, Link2, Loader2, NotebookPen, Pencil, Plus, RefreshCw, Trash2, Upload, X } from 'lucide-react';
 import type { ClassExamSheet } from '../../../lib/classroom/types';
 import type { Student } from '../../../types';
 import { examLabelKey, type StudentExamScores } from '../../../lib/classroom/examScores';
@@ -7,7 +7,7 @@ import { parseExamConversionFile, type ExamConversionRow } from '../../../lib/cl
 import { fetchClassExamScores, inspectExamSheet, planExamSheetWrites, writeExamSheetValues, type ExamSheetWrite } from '../../../lib/classroom/examService';
 import { spreadsheetIdFromUrl } from '../../../lib/classroom/sheetsApi';
 import { deleteHs1Column, linkAssignmentColumns, linkPeriodicAssignments, loadScoreBook, saveExamColumn, saveExamColumnSettings, saveExamScores, saveExamWeights, saveHs1Column, setClassExamSheet } from '../../../lib/classroom/teacherService';
-import { applyExamColumnSettings, EXAM_SOURCE_INFO, HS1_MAX, columnScore, examScoreSource, parseHs1Score, parseHs1Weight, shadowedAssignmentScore, sortedHs1Columns, studentScoreView, type ExamScoreSource, type Hs1Column, type Hs1Weight, type ScoreBookDoc } from '../../../lib/classroom/scoreBook';
+import { applyExamColumnSettings, EXAM_SOURCE_INFO, HS1_MAX, columnScore, examColumnsNeedingSheetPush, examScoreSource, parseHs1Score, parseHs1Weight, shadowedAssignmentScore, sortedHs1Columns, studentScoreView, type ExamScoreSource, type Hs1Column, type Hs1Weight, type ScoreBookDoc } from '../../../lib/classroom/scoreBook';
 
 interface Props {
   classId: string;
@@ -47,6 +47,13 @@ interface TwoWayPreview {
 const AUTO_REFRESH_MS = 30_000;
 
 const WEIGHTS: Hs1Weight[] = [1, 2, 3];
+
+/** Ba nhóm việc của Trung tâm điểm định kỳ — thay cho 7 nút rời rạc trước đây. */
+const CENTER_TABS: Array<{ id: 'sheet' | 'assign' | 'column'; label: string; hint: string; Icon: typeof FileSpreadsheet }> = [
+  { id: 'sheet', label: 'Đồng bộ file điểm', hint: 'Kéo/đẩy điểm với Google Sheet, quy đổi MOET → TDS', Icon: FileSpreadsheet },
+  { id: 'assign', label: 'Gán bài nộp', hint: 'Đưa điểm bài đã chấm vào cột hệ số hoặc cột định kì', Icon: Link2 },
+  { id: 'column', label: 'Tạo cột điểm', hint: 'Thêm cột điểm hệ số 1 hoặc cột định kì mới', Icon: Plus },
+];
 
 /** Màu badge nguồn điểm — để thầy cô thấy ngay điểm này đến từ đâu. */
 const SOURCE_TONE: Record<ExamScoreSource, string> = {
@@ -114,6 +121,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
   const [conversionSource, setConversionSource] = useState('');
   const [conversionTarget, setConversionTarget] = useState('');
   const [examDraft, setExamDraft] = useState<ExamDraft | null>(null);
+  const [centerTab, setCenterTab] = useState<'sheet' | 'assign' | 'column'>('sheet');
   // Tăng mỗi lần giáo viên ghi sổ: lượt làm mới ngầm xuất phát trước đó mà về sau không được đè bản vừa lưu.
   const writeVersion = useRef(0);
 
@@ -444,6 +452,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
   const moetLabels = book ? examLabels(book, 'moet') : [];
   const tdsLabels = book ? examLabels(book, 'tds') : [];
   const hs1Columns = book ? sortedHs1Columns(book.hs1Columns) : [];
+  const pendingPush = book ? examColumnsNeedingSheetPush(book) : [];
 
   return (
     <div className="mt-5 space-y-4">
@@ -453,26 +462,138 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
           <h3 className="mt-1 text-2xl font-black text-slate-900">Điểm thi định kì &amp; điểm có hệ số</h3>
           <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-slate-500">Học sinh xem được điểm của mình ở cổng học sinh; báo cáo gửi phụ huynh lấy điểm từ sổ này. Cột bài giao tự cập nhật theo bài nộp mới nhất; chuyên cần và TB BTVN luôn tự tính.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={prepareTwoWaySync} disabled={!book || !examSheet || Boolean(busy)} title={examSheet ? 'Đồng bộ hai chiều: SmartPlan ↔ Google Sheet, SmartPlan thắng xung đột' : 'Nối file điểm MOET/TDS bên dưới trước'} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-100 transition hover:bg-emerald-700 disabled:opacity-50">
-            <RefreshCw className="h-4 w-4" /> Đồng bộ hai chiều điểm định kì
-          </button>
-          <button type="button" onClick={prepareSheetWrite} disabled={!book || !examSheet || Boolean(busy)} title="Xem trước rồi ghi điểm định kì vào các ô MOET trên Google Sheet" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-300 bg-white px-4 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-50 disabled:opacity-50">
-            <FileSpreadsheet className="h-4 w-4" /> Ghi điểm lên Sheet
-          </button>
-          <button type="button" onClick={() => { setError(''); setPicker({}); }} disabled={!book || Boolean(busy)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-black text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50">
-            <Link2 className="h-4 w-4" /> Liên kết bài nộp/BTVN
-          </button>
-          <button type="button" onClick={() => { setError(''); setPeriodicPicker({}); }} disabled={!book || Boolean(busy) || examLabels(book, 'moet').length === 0} title="Chọn bài đã nộp, gán thẳng vào cột định kì từ file MOET/TDS" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-black text-violet-700 transition hover:bg-violet-50 disabled:opacity-50">
-            <Link2 className="h-4 w-4" /> Gán bài nộp vào cột định kì
-          </button>
-          <button type="button" onClick={openNewColumn} disabled={!book || Boolean(busy)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-blue-700 transition hover:bg-blue-50 disabled:opacity-50">
-            <Plus className="h-4 w-4" /> Thêm cột hệ số
-          </button>
-          <button type="button" onClick={openNewExamColumn} disabled={!book || Boolean(busy)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:opacity-50">
-            <Plus className="h-4 w-4" /> Thêm cột định kì
-          </button>
+        <div />
+      </div>
+
+      {/* Gợi ý sau khi duyệt chấm bài: sổ đã có điểm mới mà file điểm chưa có. */}
+      {pendingPush.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-xs font-semibold leading-5 text-amber-950">
+            <span className="font-black">Có điểm mới chưa lên Google Sheet:</span>{' '}
+            {pendingPush.map(item => `${item.label} (${item.studentIds.length} em)`).join(', ')}. Học sinh và phụ huynh đã thấy điểm trong Sổ điểm; file điểm của trường thì chưa.
+          </p>
+          {examSheet ? (
+            <button type="button" onClick={prepareSheetWrite} disabled={Boolean(busy)} className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-xs font-black text-white hover:bg-amber-700 disabled:opacity-50">
+              <Upload className="h-3.5 w-3.5" /> Xem trước &amp; đẩy lên Sheet
+            </button>
+          ) : (
+            <p className="text-xs font-bold text-amber-800">Chưa nối file điểm — nối ở Trung tâm điểm định kỳ bên dưới.</p>
+          )}
         </div>
+      )}
+
+      {/* Trung tâm điểm định kỳ: một chỗ cho mọi việc liên quan điểm thi — Sheet, gán bài, tạo cột. */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-black text-slate-900"><FileSpreadsheet className="h-4 w-4 text-violet-600" /> Trung tâm điểm định kỳ</p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">Đồng bộ với file điểm, gán bài đã nộp vào mốc định kì, và tạo cột — tất cả ở đây.</p>
+          </div>
+          {examSheet && <p className="text-xs font-semibold text-slate-500">File: <span className="font-black text-slate-700">{examSheet.spreadsheetTitle || examSheet.spreadsheetId}</span></p>}
+        </div>
+        <div role="tablist" aria-label="Việc cần làm với điểm định kỳ" className="mt-3 flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+          {CENTER_TABS.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={centerTab === tab.id}
+              onClick={() => { setError(''); setCenterTab(tab.id); }}
+              title={tab.hint}
+              className={`inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black transition ${centerTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <tab.Icon className="h-3.5 w-3.5" /> {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {centerTab === 'sheet' && (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs font-semibold leading-5 text-slate-600">
+              <span className="font-black text-slate-800">Hai chiều:</span> kéo điểm mới trong file về sổ, đẩy điểm sổ lên file. Xung đột thì <b>sổ SmartPlan thắng</b>. Luôn xem trước rồi mới ghi.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={prepareTwoWaySync} disabled={!book || !examSheet || Boolean(busy)} title={examSheet ? 'Đồng bộ hai chiều: SmartPlan ↔ Google Sheet, SmartPlan thắng xung đột' : 'Nối file điểm MOET/TDS bên dưới trước'} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-emerald-100 transition hover:bg-emerald-700 disabled:opacity-50 sm:flex-none">
+                <RefreshCw className="h-4 w-4" /> Đồng bộ hai chiều
+              </button>
+              <button type="button" onClick={prepareSheetWrite} disabled={!book || !examSheet || Boolean(busy)} title="Chỉ đẩy điểm định kì từ sổ lên các ô MOET trên Google Sheet" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-emerald-300 bg-white px-4 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-50 disabled:opacity-50 sm:flex-none">
+                <Upload className="h-4 w-4" /> Chỉ đẩy lên Sheet
+              </button>
+            </div>
+            {!examSheet && (
+              <div className="rounded-xl bg-violet-50 p-3">
+                <p className="text-[11px] font-semibold leading-5 text-violet-900">Chưa nối file điểm. Dán link file <b>“26-27-&lt;lớp&gt;”</b> trong folder “Lộ trình Toán THPT” (khác file đồng bộ BTVN).</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <input value={linkInput} onChange={event => setLinkInput(event.target.value)} placeholder="Dán link Google Sheet điểm của lớp (file có tab MOET/TDS)" className="min-w-0 flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400" />
+                  <button type="button" onClick={() => void linkAndSync()} disabled={Boolean(busy) || !linkInput.trim()} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
+                    {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Nối file &amp; đồng bộ
+                  </button>
+                </div>
+              </div>
+            )}
+            <p className="text-[11px] font-semibold text-slate-500">
+              {examSheet
+                ? <>Lần đồng bộ gần nhất: <span className="font-black text-slate-700">{book?.examsSyncedAt ? new Date(book.examsSyncedAt).toLocaleString('vi-VN') : 'chưa có'}</span></>
+                : 'Sau khi nối file, các nút đồng bộ ở trên sẽ mở khóa.'}
+            </p>
+            {unmatched.length > 0 && (
+              <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
+                <span className="font-black">Chưa có điểm thi trong file (hoặc Mã HS không khớp):</span> {unmatched.join(', ')}
+              </p>
+            )}
+            {examSheet && (
+              <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+                <p className="text-xs font-black text-indigo-900">Quy đổi điểm cho bài thi đang chọn</p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-500">Mỗi file áp dụng cho <b>một bài thi</b>. File cần có `Mã HS`, điểm `MOET`, điểm `TDS`. Chọn cột MOET nguồn và cột TDS đích trước khi xem trước ghi.</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Chọn file<input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void loadConversionFile(file); }} /></label>
+                  <select value={conversionSource} onChange={event => setConversionSource(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700"><option value="">Chọn bài thi MOET</option>{moetLabels.map(label => <option key={examLabelKey(label)} value={label}>{label}</option>)}</select>
+                  <select value={conversionTarget} onChange={event => setConversionTarget(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700"><option value="">Chọn cột TDS đích</option>{tdsLabels.map(label => <option key={examLabelKey(label)} value={label}>{label}</option>)}</select>
+                  <button type="button" onClick={prepareConversionWrite} disabled={!conversionRows.length || !conversionSource || !conversionTarget || Boolean(busy)} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white disabled:opacity-50">Xem trước ghi TDS</button>
+                </div>
+                {conversionRows.length > 0 && <p className="mt-1 text-[11px] font-bold text-indigo-700">Đã đọc {conversionRows.length} dòng cho bài thi {conversionSource || 'chưa chọn'}.</p>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {centerTab === 'assign' && (
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-3">
+              <p className="text-xs font-black text-emerald-900">Gán bài nộp / BTVN vào cột hệ số</p>
+              <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-600">Chọn bài, đặt hệ số 1–3. Điểm bài nộp vào đúng cột đó.</p>
+              <button type="button" onClick={() => { setError(''); setPicker({}); }} disabled={!book || Boolean(busy)} className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-50">
+                <Link2 className="h-3.5 w-3.5" /> Liên kết bài nộp/BTVN
+              </button>
+            </div>
+            <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+              <p className="text-xs font-black text-violet-900">Gán bài nộp vào cột định kì</p>
+              <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-600">Bài kiểm tra trên lớp → mốc GHKI/CK… Bài nộp chỉ điền ô trống, không đè điểm thầy cô đã sửa.</p>
+              <button type="button" onClick={() => { setError(''); setPeriodicPicker({}); }} disabled={!book || Boolean(busy) || examLabels(book, 'moet').length === 0} title="Chọn bài đã nộp, gán thẳng vào cột định kì từ file MOET/TDS" className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">
+                <Link2 className="h-3.5 w-3.5" /> Gán vào cột định kì
+              </button>
+            </div>
+          </div>
+        )}
+
+        {centerTab === 'column' && (
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+              <p className="text-xs font-black text-blue-900">Cột điểm hệ số 1</p>
+              <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-600">Điểm kiểm tra miệng, 15 phút, BTVN có hệ số.</p>
+              <button type="button" onClick={openNewColumn} disabled={!book || Boolean(busy)} className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-black text-white hover:bg-blue-700 disabled:opacity-50">
+                <Plus className="h-3.5 w-3.5" /> Thêm cột hệ số
+              </button>
+            </div>
+            <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-3">
+              <p className="text-xs font-black text-violet-900">Cột điểm định kì</p>
+              <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-600">Mốc thi chưa có trong file điểm. Cột nhập tay chỉ vào nhóm MOET, không tạo cột kép.</p>
+              <button type="button" onClick={openNewExamColumn} disabled={!book || Boolean(busy)} className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">
+                <Plus className="h-3.5 w-3.5" /> Thêm cột định kì
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {sheetPreview && (
@@ -493,53 +614,15 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
         </div>
       )}
 
-      <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 text-sm font-black text-violet-950"><FileSpreadsheet className="h-4 w-4" /> Điểm thi định kì (MOET + TDS)</p>
-            <p className="mt-0.5 break-words text-xs font-semibold text-slate-500">
-              {examSheet
-                ? <>File điểm: <span className="font-black text-slate-700">{examSheet.spreadsheetTitle || examSheet.spreadsheetId}</span>{book?.examsSyncedAt ? ` · đồng bộ lần cuối ${new Date(book.examsSyncedAt).toLocaleString('vi-VN')}` : ' · chưa đồng bộ lần nào'}</>
-                : 'Chưa nối file điểm. Dán link file "26-27-<lớp>" trong folder "Lộ trình Toán THPT" (khác file đồng bộ BTVN).'}
-            </p>
-          </div>
+      {book && (book.hiddenExamColumns ?? []).length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
+          <span>Cột đã xóa khỏi sổ:</span>
+          {book.hiddenExamColumns!.map(key => {
+            const label = (book.examColumnLabels ?? {})[key] ?? Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds]).find(mark => examLabelKey(mark.label) === key)?.label ?? key;
+            return <button key={key} type="button" onClick={() => restoreExamColumn(key)} disabled={Boolean(busy)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 font-black text-violet-700">Khôi phục {label}</button>;
+          })}
         </div>
-        {!examSheet && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <input value={linkInput} onChange={event => setLinkInput(event.target.value)} placeholder="Dán link Google Sheet điểm của lớp (file có tab MOET/TDS)" className="min-w-0 flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400" />
-            <button type="button" onClick={() => void linkAndSync()} disabled={Boolean(busy) || !linkInput.trim()} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
-              {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Nối file &amp; đồng bộ
-            </button>
-          </div>
-        )}
-        {unmatched.length > 0 && (
-          <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
-            <span className="font-black">Chưa có điểm thi trong file (hoặc Mã HS không khớp):</span> {unmatched.join(', ')}
-          </p>
-        )}
-        {examSheet && (
-          <div className="mt-3 rounded-xl border border-indigo-100 bg-white p-3">
-            <p className="text-xs font-black text-indigo-900">Quy đổi điểm cho bài thi đang chọn</p>
-            <p className="mt-1 text-[11px] font-semibold text-slate-500">Mỗi file áp dụng cho <b>một bài thi</b>. File cần có `Mã HS`, điểm `MOET`, điểm `TDS`. Chọn cột MOET nguồn và cột TDS đích trước khi xem trước ghi.</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Chọn file<input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void loadConversionFile(file); }} /></label>
-              <select value={conversionSource} onChange={event => setConversionSource(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700"><option value="">Chọn bài thi MOET</option>{moetLabels.map(label => <option key={examLabelKey(label)} value={label}>{label}</option>)}</select>
-              <select value={conversionTarget} onChange={event => setConversionTarget(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700"><option value="">Chọn cột TDS đích</option>{tdsLabels.map(label => <option key={examLabelKey(label)} value={label}>{label}</option>)}</select>
-              <button type="button" onClick={prepareConversionWrite} disabled={!conversionRows.length || !conversionSource || !conversionTarget || Boolean(busy)} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white disabled:opacity-50">Xem trước ghi TDS</button>
-            </div>
-            {conversionRows.length > 0 && <p className="mt-1 text-[11px] font-bold text-indigo-700">Đã đọc {conversionRows.length} dòng cho bài thi {conversionSource || 'chưa chọn'}.</p>}
-          </div>
-        )}
-        {book && (book.hiddenExamColumns ?? []).length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
-            <span>Cột đã xóa khỏi sổ:</span>
-            {book.hiddenExamColumns!.map(key => {
-              const label = (book.examColumnLabels ?? {})[key] ?? Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds]).find(mark => examLabelKey(mark.label) === key)?.label ?? key;
-              return <button key={key} type="button" onClick={() => restoreExamColumn(key)} disabled={Boolean(busy)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 font-black text-violet-700">Khôi phục {label}</button>;
-            })}
-          </div>
-        )}
-      </div>
+      )}
 
       {picker && book && (
         <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-4">

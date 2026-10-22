@@ -23,6 +23,8 @@ export interface ExamMark {
   letter?: string;
   /** 'paper' = điểm thầy cô xác nhận từ ảnh bài chấm tay (chưa có trong file điểm). Vắng = từ file điểm. */
   source?: 'paper';
+  /** Lúc thầy cô sửa tay điểm này — để biết cột nào mới hơn lần đồng bộ Sheet. */
+  updatedAt?: string;
 }
 
 /** Điểm thầy cô xác nhận từ ảnh bài kiểm tra chấm tay — lưu riêng để đồng bộ file điểm không xoá mất. */

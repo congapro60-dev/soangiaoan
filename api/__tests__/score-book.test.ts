@@ -44,7 +44,7 @@ const fakeDb = () => {
 };
 
 import handler from '../classroom';
-import { studentScoreView, type ScoreBookDoc } from '../../src/lib/classroom/scoreBook';
+import { examColumnsNeedingSheetPush, studentScoreView, type ScoreBookDoc } from '../../src/lib/classroom/scoreBook';
 
 const call = async (body: DocData) => {
   const res = { statusCode: 0, payload: null as DocData | null, status(c: number) { res.statusCode = c; return res; }, json(p: DocData) { res.payload = p; return res; } };
@@ -147,9 +147,10 @@ describe('sổ điểm', () => {
     h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
     const edited = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi GHKI', scores: { a: 8 } });
     expect(edited.statusCode).toBe(200);
-    expect((edited.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Thi GHKI', score: 8 }]);
+    // Chỉ xem phần điểm/tên — mark còn mang mốc thời gian sửa tay (đổi theo giờ chạy).
+    expect(((edited.payload?.scoreBook as any).exams.a.moet as any[]).map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Thi GHKI', score: 8 }]);
     const synced = await call({ action: 'saveExamScores', classId: 'lop-1', spreadsheetTitle: 'f', exams: { a: { moet: [{ label: 'Giữa học kì I', score: 7 }], tds: [] } } });
-    expect((synced.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Thi GHKI', score: 8 }]);
+    expect(((synced.payload?.scoreBook as any).exams.a.moet as any[]).map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Thi GHKI', score: 8 }]);
     const hidden = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: null } });
     expect(hidden.statusCode).toBe(200);
     expect((hidden.payload?.scoreBook as any).exams.a?.moet ?? []).toEqual([]);
@@ -173,6 +174,18 @@ describe('sổ điểm', () => {
     expect(h.store.scoreBooks['lop-1'].examOverrides).toBeUndefined();
   });
 
+  it('sửa tay ghi mốc thời gian để Sổ điểm biết ô nào chưa lên Google Sheet', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const saved = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: 6.5 } });
+    expect(saved.statusCode).toBe(200);
+    const override = (h.store.scoreBooks['lop-1'].examOverrides as any).a.ghki;
+    expect(override.score).toBe(6.5);
+    expect(typeof override.updatedAt).toBe('string');
+    expect(Number.isNaN(Date.parse(override.updatedAt))).toBe(false);
+    // Gợi ý đẩy Sheet đọc được ngay từ sổ máy chủ trả về.
+    expect(examColumnsNeedingSheetPush(saved.payload?.scoreBook as ScoreBookDoc).map(item => item.label)).toEqual(['Giữa học kì I']);
+  });
+
   it('đổi tên/xóa cột định kì trong sổ mà vẫn giữ nguồn để khôi phục', async () => {
     h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
     const renamed = await call({ action: 'saveExamColumnSettings', classId: 'lop-1', label: 'Giữa học kì I', newLabel: 'Thi giữa kỳ', hidden: false });
@@ -194,18 +207,19 @@ describe('sổ điểm', () => {
     expect(h.store.scoreBooks['lop-1'].periodicAssignmentLinks).toEqual({ ghki: 'bt1' });
     expect((linked.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(9);
     // a đã có điểm trong sổ (6) → bài nộp không đè.
-    expect((linked.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
+    expect(studentScoreView((linked.payload?.scoreBook as any) as ScoreBookDoc, 'a').exams.moet.map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
 
     // Thầy cô sửa tay 6.5 → vẫn giữ 6.5 sau khi đồng bộ lại.
     const manual = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: 6.5 } });
-    expect((manual.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
+    expect(studentScoreView((manual.payload?.scoreBook as any) as ScoreBookDoc, 'a').exams.moet.map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
 
     // Học sinh b chưa có điểm → bài nộp điền vào ô trống. Sổ chỉ lưu ô có điểm nên xem qua giao diện học sinh.
     h.store.submissions.sub2 = { classId: 'lop-1', studentId: 'b', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 14, maxScore: 20 } };
     const synced = await call({ action: 'linkPeriodicAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', examKey: 'ghki' }] });
     const view = (studentId: string) => studentScoreView((synced.payload?.scoreBook as any) as ScoreBookDoc, studentId);
-    expect(view('b').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 7 }]);
-    expect(view('a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
+    const points = (studentId: string) => view(studentId).exams.moet.map(({ label, score }) => ({ label, score }));
+    expect(points('b')).toEqual([{ label: 'Giữa học kì I', score: 7 }]);
+    expect(points('a')).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
   });
 
   it('học sinh chỉ nhận dòng của CHÍNH mình, bỏ qua studentId gửi lên', async () => {
