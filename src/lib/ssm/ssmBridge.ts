@@ -18,10 +18,151 @@ const REQUEST_TIMEOUT_MS = 20000;
 let seq = 0;
 
 const NO_EXTENSION_MESSAGE =
-  'Chưa thấy tiện ích "SmartPlan ↔ SSM" trả lời. Nếu đã cài: mở edge://extensions, kiểm tra tiện ích đang BẬT, bấm nút tải lại (↻) của nó, rồi bấm F5 trang app này.';
+  'Chưa kết nối với SSM. Hãy bấm "Kết nối SSM" để dán mã kết nối, hoặc mở edge://extensions kiểm tra tiện ích.';
 
-export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>, timeoutOverrideMs?: number): Promise<unknown> =>
-  new Promise((resolve, reject) => {
+export interface StoredSsmSession {
+  token: string;
+  workspace: string;
+  userEmail?: string;
+  userName?: string;
+  savedAt: string;
+}
+
+const SESSION_STORAGE_KEY = (uid?: string) => `smartplan.ssmSession.${uid || auth.currentUser?.uid || 'default'}`;
+
+export const getStoredSsmSession = (): StoredSsmSession | null => {
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed.token === 'string' && parsed.token.trim()
+      ? {
+          token: parsed.token.trim(),
+          workspace: typeof parsed.workspace === 'string' ? parsed.workspace.trim() : '',
+          userEmail: typeof parsed.userEmail === 'string' ? parsed.userEmail : undefined,
+          userName: typeof parsed.userName === 'string' ? parsed.userName : undefined,
+          savedAt: typeof parsed.savedAt === 'string' ? parsed.savedAt : new Date().toISOString(),
+        }
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStoredSsmSession = (session: StoredSsmSession | null): void => {
+  try {
+    if (session) {
+      localStorage.setItem(SESSION_STORAGE_KEY(), JSON.stringify(session));
+    } else {
+      localStorage.removeItem(SESSION_STORAGE_KEY());
+    }
+  } catch {
+    // Bỏ qua khi storage bị chặn
+  }
+};
+
+export const parseSsmConnectionInput = (input: string): { token: string; workspace?: string } | null => {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // Trường hợp 1: JSON { token, workspace } hoặc { access_token, workspace }
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const token = String(parsed.token || parsed.access_token || parsed.accessToken || '').trim();
+      const workspace = String(parsed.workspace || parsed.branch || '').trim();
+      if (token) return { token, ...(workspace ? { workspace } : {}) };
+    } catch {
+      // Bỏ qua nếu parse JSON lỗi
+    }
+  }
+
+  // Trường hợp 2: URL hash chứa #access_token=...&workspace=...
+  if (trimmed.includes('access_token=')) {
+    const queryPart = trimmed.includes('#') ? trimmed.split('#')[1] : trimmed;
+    const params = new URLSearchParams(queryPart);
+    const token = params.get('access_token')?.trim();
+    const workspace = params.get('workspace')?.trim();
+    if (token) return { token, ...(workspace ? { workspace } : {}) };
+  }
+
+  // Trường hợp 3: Token thô (JWT hoặc chuỗi dài)
+  const rawToken = trimmed.replace(/^Bearer\s+/i, '').trim();
+  if (rawToken.length > 20) {
+    return { token: rawToken };
+  }
+
+  return null;
+};
+
+export const testAndSaveSsmConnection = async (
+  input: string,
+  fallbackWorkspace?: string,
+): Promise<{ name: string; email: string; workspace: string }> => {
+  const parsed = parseSsmConnectionInput(input);
+  if (!parsed) throw new Error('Mã kết nối không hợp lệ. Hãy dán mã token hoặc chuỗi kết nối SSM.');
+  const workspace = parsed.workspace || fallbackWorkspace || '';
+  const user = auth.currentUser;
+  const idToken = user && !user.isAnonymous ? await user.getIdToken() : '';
+  const res = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'ssmProxy', op: 'profile', token: parsed.token, workspace, idToken }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json();
+  if (!data.ok) {
+    throw new Error(data.error || 'Không kết nối được SSM. Kiểm tra lại mã token.');
+  }
+  const prof = data.data?.data || data.data || {};
+  const name = String(prof.full_name || prof.name || 'Giáo viên');
+  const email = String(prof.email || '');
+  const realWorkspace = workspace || String(prof.workspace || '');
+
+  saveStoredSsmSession({
+    token: parsed.token,
+    workspace: realWorkspace,
+    userName: name,
+    userEmail: email,
+    savedAt: new Date().toISOString(),
+  });
+
+  return { name, email, workspace: realWorkspace };
+};
+
+export const ssmRequest = async (op: SsmOp, params?: Record<string, unknown>, timeoutOverrideMs?: number): Promise<unknown> => {
+  const session = getStoredSsmSession();
+
+  // CHẾ ĐỘ 1: Server Proxy (Chính — không cần cài extension trình duyệt)
+  if (session) {
+    const user = auth.currentUser;
+    const idToken = user && !user.isAnonymous ? await user.getIdToken() : '';
+    const timeoutMs = timeoutOverrideMs ?? REQUEST_TIMEOUT_MS;
+    const res = await fetch('/api/classroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'ssmProxy',
+        op: op === 'ping' ? 'profile' : op,
+        params,
+        token: session.token,
+        workspace: session.workspace,
+        idToken,
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    const result = await res.json();
+    if (!result.ok) {
+      if (result.status === 401) {
+        throw new Error('Phiên kết nối SSM đã hết hạn. Hãy cập nhật lại mã kết nối SSM.');
+      }
+      throw new Error(result.error || 'SSM trả lỗi không rõ.');
+    }
+    return result.data;
+  }
+
+  // CHẾ ĐỘ 2: Dự phòng Extension (Nếu máy đã có extension)
+  return new Promise((resolve, reject) => {
     const expectedEmails = [...new Set([auth.currentUser?.email, getLinkedGoogleEmail(), ...(isAdminEmail(auth.currentUser?.email) ? ADMIN_EMAILS : [])].filter((email): email is string => typeof email === 'string' && email.includes('@')).map(email => email.trim().toLowerCase()))];
     if (op !== 'ping' && (!auth.currentUser || auth.currentUser.isAnonymous || !expectedEmails.length)) { reject(new Error('Đăng nhập tài khoản giáo viên trước khi dùng SSM.')); return; }
     const id = `ssm-${Date.now()}-${++seq}`;
@@ -47,9 +188,16 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>, timeoutO
     window.addEventListener('message', onMessage);
     window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params: { ...params, expectedEmails } }, window.location.origin);
   });
+};
 
-/** Hỏi xem tiện ích có đang chạy không. Lần đầu không trả lời thì thử lại với thời gian chờ dài hơn (đánh thức service worker). */
+/** Kiểm tra kết nối SSM: ưu tiên Server Proxy (phiên lưu), sau đó thử Extension. */
 export const pingSsmBridge = async (): Promise<void> => {
+  const session = getStoredSsmSession();
+  if (session) {
+    await ssmRequest('ping');
+    return;
+  }
+
   let lastError: unknown;
   for (const timeoutMs of PING_TIMEOUTS_MS) {
     try {

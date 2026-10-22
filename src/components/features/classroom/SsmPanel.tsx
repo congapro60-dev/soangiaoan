@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
+  Key,
   Link as LinkIcon,
   Loader2,
   RefreshCw,
@@ -22,12 +23,14 @@ import { SSM_SCALE_4, type LoMark } from '../../../lib/ssm/loScore';
 import { readLoWorkbook, fillLoWorkbook } from '../../../lib/ssm/loWorkbook';
 import {
   attachLoFileToSsm,
+  getStoredSsmSession,
   readSsmLink,
   readSsmSubjects,
   readSsmEvaluationQuarters,
   readSsmClassSubjectAssessment,
   writeSsmLoGrades,
   ssmRequest,
+  type StoredSsmSession,
 } from '../../../lib/ssm/ssmBridge';
 import {
   parseSsmCriteriaLoad,
@@ -48,6 +51,7 @@ import { buildLoMappingPrompt, parseLoMappingResponse } from '../../../lib/ssm/l
 import { buildClassLoScores, type LoPeriodKey } from '../../../lib/ssm/loClassScores';
 import { fetchSsmTemplateByLink } from '../../../lib/classroom/teacherService';
 import { LoPushPreviewModal } from './LoPushPreviewModal';
+import { SsmConnectModal } from './SsmConnectModal';
 
 interface Props {
   classId: string;
@@ -99,6 +103,8 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [writeBusy, setWriteBusy] = useState(false);
   const [showExcelSection, setShowExcelSection] = useState(() => !readSsmLink(classId));
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [ssmSession, setSsmSession] = useState<StoredSsmSession | null>(() => getStoredSsmSession());
 
   const grade = asCompetencyGrade(Number(classGrade));
   const nameByCode = useMemo(() => {
@@ -154,6 +160,10 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
   };
 
   const loadFromSsm = async () => {
+    if (!getStoredSsmSession()) {
+      setShowConnectModal(true);
+      return;
+    }
     const currentLink = readSsmLink(classId);
     if (!currentLink) {
       setError('Lớp chưa ghép với SSM. Hãy sang tab "Học sinh" → "Ghép với lớp SSM" trước.');
@@ -302,7 +312,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
           resultAssessmentFormId: ssmLoad.resultAssessmentFormId ?? undefined,
           body: fullBody,
         },
-        currentLink.id,
+        classId,
       );
 
       // Đọc lại để kiểm tra
@@ -371,27 +381,38 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
 
   return (
     <div className="space-y-4">
-      {/* KHỐI 1: Đồng bộ trực tiếp qua Tiện ích SSM */}
+      {/* KHỐI 1: Đồng bộ trực tiếp qua Server Proxy SSM */}
       <div className="rounded-2xl border border-indigo-200 bg-white p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-black uppercase text-white tracking-wider">
-                SSM Direct
+                SSM Server Proxy
               </span>
               <h3 className="text-base font-black text-slate-800">
-                Đồng bộ điểm LO trực tiếp qua Tiện ích SSM
+                Đồng bộ điểm LO trực tiếp qua Server Proxy
               </h3>
             </div>
             <p className="mt-1 text-xs font-semibold text-slate-500">
-              Web tự tính điểm LO cho từng học sinh dựa trên bài nộp đã duyệt → Đẩy ngược lên SSM có xem trước và xác minh 100%.
+              Web tự tính điểm LO cho từng học sinh dựa trên bài nộp đã duyệt → Đẩy ngược lên SSM qua Server Proxy (không cần cài Extension).
             </p>
           </div>
-          {ssmLink && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700">
-              Lớp SSM: <span className="text-indigo-600">{ssmLink.name}</span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowConnectModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 shadow-sm"
+              title="Quản lý mã kết nối SSM (Server Proxy)"
+            >
+              <Key className="h-4 w-4" />
+              {ssmSession ? (ssmSession.userName || 'Đã kết nối SSM') : 'Kết nối SSM'}
+            </button>
+            {ssmLink && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700">
+                Lớp SSM: <span className="text-indigo-600">{ssmLink.name}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Action bar */}
@@ -642,6 +663,17 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
           isBusy={writeBusy}
         />
       )}
+
+      {/* Modal kết nối tài khoản SSM qua Server Proxy */}
+      <SsmConnectModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+        onConnected={(s) => {
+          setSsmSession(s);
+          void loadFromSsm();
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 };
