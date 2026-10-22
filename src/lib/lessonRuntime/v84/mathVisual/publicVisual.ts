@@ -1,8 +1,8 @@
-import type { LessonIRV83 } from '../../../lessonCompiler/v832/lessonIRSchema';
-import { parseMathVisualExtension } from './extension';
-import { resolveGeometry2D, type Point2D } from './geometry2d';
-import { sequenceRows, type SequenceRow } from './sequence';
-import { solveTrigEquation, type TrigEquationModel, type TrigSolutionFamily } from './trigEquation';
+import type { LessonIRV83 } from '../../../lessonCompiler/v832/lessonIRSchema.js';
+import { parseMathVisualExtension } from './extension.js';
+import { resolveGeometry2D, type Point2D } from './geometry2d.js';
+import { sequenceRows, type SequenceRow } from './sequence.js';
+import { solveTrigEquation, type TrigEquationModel, type TrigSolutionFamily } from './trigEquation.js';
 
 export interface PublicUnitCircleVisual {
   visualId: string;

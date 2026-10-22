@@ -1,5 +1,5 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
-import type { IssueClassification } from './repairLifecycle';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
+import type { IssueClassification } from './repairLifecycle.js';
 
 export interface ReviewFieldChange { path: string; before: unknown; after: unknown }
 const object = (value: unknown): value is Record<string, unknown> =>

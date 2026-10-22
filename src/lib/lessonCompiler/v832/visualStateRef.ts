@@ -1,5 +1,5 @@
 import type { ActivitySpec } from './lessonIR.generated';
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 
 export const resolveActivityVisualStateRef = (
   lesson: LessonIRV83,

@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 import type { QuestionBuildStep } from './lessonIR.generated';
 
 export type V832Locale = 'vi' | 'en' | 'ja';

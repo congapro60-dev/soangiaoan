@@ -1,11 +1,11 @@
-import type { LessonIRV83 } from './lessonIRSchema';
-import type { LearningQualityResult } from './qualityGate';
-import { transitionBuildStatus } from './buildLifecycle';
-import { validateLessonIRReferences } from './runtimePackage';
-import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract';
-import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension';
-import { evaluateExperienceDesign } from './experienceDesign';
-import type { SourceModel } from './sourceModel';
+import type { LessonIRV83 } from './lessonIRSchema.js';
+import type { LearningQualityResult } from './qualityGate.js';
+import { transitionBuildStatus } from './buildLifecycle.js';
+import { validateLessonIRReferences } from './runtimePackage.js';
+import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract.js';
+import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension.js';
+import { evaluateExperienceDesign } from './experienceDesign.js';
+import type { SourceModel } from './sourceModel.js';
 
 export const freezeReviewedDesign = (lesson: LessonIRV83, quality: LearningQualityResult, sourceModel?: SourceModel): LessonIRV83 => {
   if (lesson.sourceVerification.status !== 'VERIFIED' || lesson.sourceVerification.unresolved.length

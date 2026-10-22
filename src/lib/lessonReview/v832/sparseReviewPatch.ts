@@ -1,5 +1,5 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
-import type { LessonIRPatch } from './repairLifecycle';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
+import type { LessonIRPatch } from './repairLifecycle.js';
 
 const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);

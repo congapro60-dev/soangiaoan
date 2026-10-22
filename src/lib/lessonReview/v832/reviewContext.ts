@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
 
 export interface ReviewCaptureState {
   role: 'presenter' | 'student' | 'coach';

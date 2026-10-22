@@ -1,11 +1,11 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
-import { validateLessonIRReferences } from '../../lessonCompiler/v832/runtimePackage';
-import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract';
-import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension';
-import { diffReviewCandidate, inspectClassifiedChanges, type ReviewFieldChange } from './candidateChanges';
-import { expandSparseReviewPatch } from './sparseReviewPatch';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
+import { validateLessonIRReferences } from '../../lessonCompiler/v832/runtimePackage.js';
+import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract.js';
+import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension.js';
+import { diffReviewCandidate, inspectClassifiedChanges, type ReviewFieldChange } from './candidateChanges.js';
+import { expandSparseReviewPatch } from './sparseReviewPatch.js';
 import { applyIrPatchCandidate, computeLessonContentHash, getPatchTargetHash,
-  validateIssueClassification, type IssueClassification, type LessonCandidateBuild, type LessonIRPatch } from './repairLifecycle';
+  validateIssueClassification, type IssueClassification, type LessonCandidateBuild, type LessonIRPatch } from './repairLifecycle.js';
 
 export interface ReviewCandidateChecks {
   schema: 'PASS';

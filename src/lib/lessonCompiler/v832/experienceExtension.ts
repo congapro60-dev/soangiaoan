@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 
 const own = (value: object, key: string): boolean => Object.prototype.hasOwnProperty.call(value, key);
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);

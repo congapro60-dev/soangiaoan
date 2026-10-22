@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 import type { ActivitySpec, LocaleText } from './lessonIR.generated';
 
 export interface RoomProjectionState {

@@ -1,5 +1,5 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
-import { activityBudgetResult } from './timing';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
+import { activityBudgetResult } from './timing.js';
 
 type BudgetStatus = 'UNVALIDATED' | 'VALID' | 'INVALID';
 export interface BudgetValidationResult { status: BudgetStatus; issues: string[] }

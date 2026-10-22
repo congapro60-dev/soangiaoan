@@ -1,11 +1,11 @@
-import type { LessonSourceBundle } from '../../lessonGen/sourceIngestion';
-import { verifySourceBundleHash } from '../../lessonGen/sourceIngestion';
-import { canFreezeSourceBundle, type SourceVerificationRecord, type TeacherCanonicalSourceApproval } from '../../lessonGen/sourceVerification';
-import { encodePrivateJson, decodePrivateJson, type PrivateJsonEnvelope } from './privateJsonCodec';
-import type { LessonIRV83 } from './lessonIRSchema';
-import { buildSourceModel } from './sourceModel';
-import { validateExperienceAuthoringPlan, validateExperiencePlanMapping } from './experienceAuthoring';
-import { parseV871ExperienceExtension } from './experienceExtension';
+import type { LessonSourceBundle } from '../../lessonGen/sourceIngestion.js';
+import { verifySourceBundleHash } from '../../lessonGen/sourceIngestion.js';
+import { canFreezeSourceBundle, type SourceVerificationRecord, type TeacherCanonicalSourceApproval } from '../../lessonGen/sourceVerification.js';
+import { encodePrivateJson, decodePrivateJson, type PrivateJsonEnvelope } from './privateJsonCodec.js';
+import type { LessonIRV83 } from './lessonIRSchema.js';
+import { buildSourceModel } from './sourceModel.js';
+import { validateExperienceAuthoringPlan, validateExperiencePlanMapping } from './experienceAuthoring.js';
+import { parseV871ExperienceExtension } from './experienceExtension.js';
 
 export interface V871SourceSnapshot {
   ownerUid: string;

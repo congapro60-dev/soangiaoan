@@ -1,10 +1,10 @@
 import {
   projectPublicRoomSnapshot, type PublicRoomSnapshotV832, type RuntimeBuildV832,
-} from '../../lessonCompiler/v832/runtimePackage';
-import { canContinueDeviceWork, type RoomStateV832 } from '../../lessonCompiler/v832/roomState';
-import type { QuestionRun } from './questionState';
-import { finalizeQuestionStats, type PublicQuestionStats } from './questionStats';
-import { projectMathVisuals, type PublicMathVisual } from './mathVisual/publicVisual';
+} from '../../lessonCompiler/v832/runtimePackage.js';
+import { canContinueDeviceWork, type RoomStateV832 } from '../../lessonCompiler/v832/roomState.js';
+import type { QuestionRun } from './questionState.js';
+import { finalizeQuestionStats, type PublicQuestionStats } from './questionStats.js';
+import { projectMathVisuals, type PublicMathVisual } from './mathVisual/publicVisual.js';
 
 type Locale = 'vi' | 'en' | 'ja';
 

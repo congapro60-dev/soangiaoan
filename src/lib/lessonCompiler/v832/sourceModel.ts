@@ -1,6 +1,6 @@
-import { sourceTextIsReadable, type LessonSourceBundle, type LessonSourceRole } from '../../lessonGen/sourceIngestion';
+import { sourceTextIsReadable, type LessonSourceBundle, type LessonSourceRole } from '../../lessonGen/sourceIngestion.js';
 import { buildSourceVerificationRecords, type SourceVerificationKind,
-  type SourceVerificationRecord, type SourceVerificationStatus } from '../../lessonGen/sourceVerification';
+  type SourceVerificationRecord, type SourceVerificationStatus } from '../../lessonGen/sourceVerification.js';
 
 export interface ExtractedSourceBlock {
   id: string;

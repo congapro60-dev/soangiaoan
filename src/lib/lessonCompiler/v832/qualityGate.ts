@@ -1,6 +1,6 @@
-import type { LessonIRV83 } from './lessonIRSchema';
-import { validateLessonIRSchema } from './lessonIRSchema';
-import { inspectTeacherConfirmations } from './teacherConfirmation';
+import type { LessonIRV83 } from './lessonIRSchema.js';
+import { validateLessonIRSchema } from './lessonIRSchema.js';
+import { inspectTeacherConfirmations } from './teacherConfirmation.js';
 import validatorContract from './CIS_TDS_Lesson_Validator_v1.1.json';
 
 type QualityStatus = 'BLOCKED' | 'NEEDS_TEACHER_CONFIRMATION' | 'READY_WITH_WARNINGS' | 'READY';

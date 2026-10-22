@@ -1,4 +1,4 @@
-import { numberLatex } from './trigNotation';
+import { numberLatex } from './trigNotation.js';
 
 export type TrigFunction = 'sin' | 'cos' | 'tan' | 'cot';
 

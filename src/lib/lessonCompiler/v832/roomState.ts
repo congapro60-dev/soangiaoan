@@ -1,7 +1,7 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 import type { AttentionSurface } from './lessonIR.generated';
-import { availablePresenterLocales } from './localeAvailability';
-import { resolveActivityVisualStateRef } from './visualStateRef';
+import { availablePresenterLocales } from './localeAvailability.js';
+import { resolveActivityVisualStateRef } from './visualStateRef.js';
 
 export type SurfaceHandoffState =
   | 'FOCUS_PRESENTER'

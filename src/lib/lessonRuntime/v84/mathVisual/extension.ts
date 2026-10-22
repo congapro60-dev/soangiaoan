@@ -1,8 +1,8 @@
-import type { LessonIRV83 } from '../../../lessonCompiler/v832/lessonIRSchema';
+import type { LessonIRV83 } from '../../../lessonCompiler/v832/lessonIRSchema.js';
 import { resolveGeometry2D, validateGeometry2DInvariants, type Geometry2DInvariant,
-  type Geometry2DModel } from './geometry2d';
-import { sequenceRows, validateSequenceInvariants, type SequenceModel } from './sequence';
-import { solveTrigEquation, type TrigEquationModel } from './trigEquation';
+  type Geometry2DModel } from './geometry2d.js';
+import { sequenceRows, validateSequenceInvariants, type SequenceModel } from './sequence.js';
+import { solveTrigEquation, type TrigEquationModel } from './trigEquation.js';
 
 interface MathVisualBase {
   mathematicalAuthority: 'source_verified' | 'teacher_authored_verified' | 'system_authored_pending_review';

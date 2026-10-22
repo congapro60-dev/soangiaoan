@@ -1,6 +1,6 @@
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import canonicalSchema from './lesson-ir-v8.3.2.schema.json';
-import { encodePrivateJson } from './privateJsonCodec';
+import { encodePrivateJson } from './privateJsonCodec.js';
 import {
   V871_ARCHETYPES,
   V871_CANONICAL_ARCHETYPES,
@@ -15,7 +15,7 @@ import {
   V871_PROTECTED_ROLES,
   parseV871ExperienceExtension,
   type V871ExperienceV11,
-} from './experienceExtension';
+} from './experienceExtension.js';
 import type {
   LocaleText,
   LearningDesign,
@@ -26,13 +26,13 @@ import type {
   ReflectionContract,
   ClosingContract,
 } from './lessonIR.generated';
-import type { SourceModel } from './sourceModel';
-import { validateLessonIRSchema, type LessonIRV83 } from './lessonIRSchema';
-import { validateLessonIRReferences } from './runtimePackage';
-import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension';
-import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract';
-import { activityBudgetResult } from '../../lessonRuntime/v84/timing';
-import { V88_1_LABEL } from './v88Version';
+import type { SourceModel } from './sourceModel.js';
+import { validateLessonIRSchema, type LessonIRV83 } from './lessonIRSchema.js';
+import { validateLessonIRReferences } from './runtimePackage.js';
+import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension.js';
+import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract.js';
+import { activityBudgetResult } from '../../lessonRuntime/v84/timing.js';
+import { V88_1_LABEL } from './v88Version.js';
 
 export const PEDAGOGICAL_ROLES = [
   'PROBLEM',

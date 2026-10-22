@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 
 export interface PendingTeacherConfirmation {
   id: string;

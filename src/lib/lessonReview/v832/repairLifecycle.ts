@@ -1,5 +1,5 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
-import { validateLessonIRSchema } from '../../lessonCompiler/v832/lessonIRSchema';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
+import { validateLessonIRSchema } from '../../lessonCompiler/v832/lessonIRSchema.js';
 
 export const ISSUE_CATEGORIES = [
   'CONTENT_IR', 'PEDAGOGY_IR', 'LEARNER_EVIDENCE_IR', 'SUCCESS_CRITERIA_IR',

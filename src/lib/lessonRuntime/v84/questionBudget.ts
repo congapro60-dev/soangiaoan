@@ -1,4 +1,4 @@
-import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema';
+import type { LessonIRV83 } from '../../lessonCompiler/v832/lessonIRSchema.js';
 
 type Activity = LessonIRV83['timeline'][number];
 

@@ -1,4 +1,4 @@
-import type { QuestionRun } from './questionState';
+import type { QuestionRun } from './questionState.js';
 
 export type PublicQuestionStats =
   | { kind: 'completion'; validResponses: number }

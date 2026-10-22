@@ -1,13 +1,13 @@
-import type { LessonIRV83 } from './lessonIRSchema';
+import type { LessonIRV83 } from './lessonIRSchema.js';
 import type { AttentionSurface } from './lessonIR.generated';
-import type { SourceModel } from './sourceModel';
+import type { SourceModel } from './sourceModel.js';
 import {
   parseV871ExperienceExtension,
   type V871Experience,
   type V871ExperienceV11,
   type V871Target,
   type V871ActivityMetadata,
-} from './experienceExtension';
+} from './experienceExtension.js';
 
 export interface ExperienceResult {
   status: 'LEGACY' | 'BLOCKED' | 'REVIEW_REQUIRED' | 'STRUCTURALLY_VALID';

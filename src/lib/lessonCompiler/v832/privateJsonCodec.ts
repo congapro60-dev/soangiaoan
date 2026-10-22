@@ -1,4 +1,4 @@
-import { validateLessonIRSchema, type LessonIRV83 } from './lessonIRSchema';
+import { validateLessonIRSchema, type LessonIRV83 } from './lessonIRSchema.js';
 
 export const MAX_PRIVATE_JSON_BYTES = 1_048_576;
 export const MAX_PRIVATE_JSON_DEPTH = 64;

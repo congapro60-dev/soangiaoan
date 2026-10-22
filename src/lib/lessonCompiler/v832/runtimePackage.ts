@@ -1,17 +1,17 @@
-import type { LessonIRV83 } from './lessonIRSchema';
-import { validateLessonIRSchema } from './lessonIRSchema';
-import { evaluateLearningQuality, type SemanticRuleAttestation } from './qualityGate';
-import { projectPresenterSurface, projectStudentSurface } from './surfaceProjection';
-import { computeLessonContentHash } from '../../lessonReview/v832/repairLifecycle';
-import type { RoomStateV832 } from './roomState';
-import { availablePresenterLocales, availableStudentLocales } from './localeAvailability';
-import { resolveActivityVisualStateRef } from './visualStateRef';
-import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension';
-import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract';
-import { evaluateExperienceDesign } from './experienceDesign';
-import type { SourceModel } from './sourceModel';
-import type { PrivateJsonEnvelope } from './privateJsonCodec';
-import { decodePrivateJson } from './privateJsonCodec';
+import type { LessonIRV83 } from './lessonIRSchema.js';
+import { validateLessonIRSchema } from './lessonIRSchema.js';
+import { evaluateLearningQuality, type SemanticRuleAttestation } from './qualityGate.js';
+import { projectPresenterSurface, projectStudentSurface } from './surfaceProjection.js';
+import { computeLessonContentHash } from '../../lessonReview/v832/repairLifecycle.js';
+import type { RoomStateV832 } from './roomState.js';
+import { availablePresenterLocales, availableStudentLocales } from './localeAvailability.js';
+import { resolveActivityVisualStateRef } from './visualStateRef.js';
+import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension.js';
+import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract.js';
+import { evaluateExperienceDesign } from './experienceDesign.js';
+import type { SourceModel } from './sourceModel.js';
+import type { PrivateJsonEnvelope } from './privateJsonCodec.js';
+import { decodePrivateJson } from './privateJsonCodec.js';
 
 export interface RuntimeBuildManifestV832 {
   packageId: string;

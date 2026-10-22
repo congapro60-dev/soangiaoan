@@ -1,6 +1,6 @@
-import type { UnitCircleVisualContract } from './extension';
-import type { UnitCirclePosition } from './unitCircle';
-import { extractUnitCircleEvidence, unitCirclePosition } from './unitCircle';
+import type { UnitCircleVisualContract } from './extension.js';
+import type { UnitCirclePosition } from './unitCircle.js';
+import { extractUnitCircleEvidence, unitCirclePosition } from './unitCircle.js';
 
 export interface UnitCircleEvidence {
   angleRad: number;

@@ -1,4 +1,4 @@
-import type { ReviewContext } from './reviewContext';
+import type { ReviewContext } from './reviewContext.js';
 
 export type ReviewScope = 'auto' | 'screen' | 'activity' | 'lesson' | 'runtime';
 export type ReviewRequestStatus =

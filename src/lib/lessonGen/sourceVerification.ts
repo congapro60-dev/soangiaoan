@@ -1,4 +1,4 @@
-import { sourceTextIsReadable, type LessonSourceBundle, type LessonSourceRecord } from './sourceIngestion';
+import { sourceTextIsReadable, type LessonSourceBundle, type LessonSourceRecord } from './sourceIngestion.js';
 
 export type SourceVerificationKind = 'math_expression' | 'table_or_figure' | 'canonical_gap';
 export type SourceVerificationStatus = 'needs_review' | 'verified' | 'rejected';
