@@ -1988,16 +1988,18 @@ export const AnnotateSubmissionPhotosButton = ({ submission, disabled = false, o
   const [message, setMessage] = useState('');
   const images = [...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(submission.grade?.questionResults?.flatMap(row => row.clarify?.photoUrls ?? []) ?? [])];
   if (submission.status !== 'graded' || !submission.grade || !images.length || !submission.grade.questionResults?.some(row => !row.photoMarksCleared && !row.ignoredByTeacherInstruction && !isBlankAnswer(row.studentAnswer))) return null;
-  return <div>
-    <button type="button" disabled={busy || disabled} title="Chỉ bổ sung vị trí câu trên ảnh; giữ điểm, nội dung và trạng thái duyệt." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-teal-900 disabled:opacity-50" onClick={() => {
-      if (busy || disabled) return;
-      setBusy(true); setMessage('');
-      void annotateSubmissionPhotos({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id).then(result => {
-        setMessage(result.total === 0 ? 'Không có câu cần định vị thêm.' : `Đã có vị trí ${result.mapped}/${result.total} câu.${result.unlocated ? ` ${result.unlocated} câu chưa có vị trí đủ chắc; xem lời chữa trong danh sách câu.` : ''} Giữ nguyên điểm và trạng thái duyệt.`);
-        onChanged();
-      }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
-    }}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
-    {message && <p role="status" className="mt-1 max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
+  const run = (force: boolean) => {
+    if (busy || disabled) return;
+    setBusy(true); setMessage('');
+    void annotateSubmissionPhotos({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, force).then(result => {
+      setMessage(result.total === 0 ? 'Không có câu cần định vị thêm.' : `Đã có vị trí ${result.mapped}/${result.total} câu.${result.unlocated ? ` ${result.unlocated} câu chưa có vị trí đủ chắc; xem lời chữa trong danh sách câu.` : ''}${force ? ' Câu tự luận có bút đỏ từng bước khi máy chia điểm khớp điểm câu.' : ''} Giữ nguyên điểm và trạng thái duyệt.`);
+      onChanged();
+    }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
+  };
+  return <div className="flex flex-wrap gap-2">
+    <button type="button" disabled={busy || disabled} title="Chỉ bổ sung vị trí câu trên ảnh; giữ điểm, nội dung và trạng thái duyệt." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-teal-900 disabled:opacity-50" onClick={() => run(false)}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
+    <button type="button" disabled={busy || disabled} title="Vẽ lại dấu và chia điểm câu tự luận theo từng bước (Đ/S + điểm cạnh dòng, lời sửa dưới dòng sai). Không chấm lại: điểm, nhận xét, trạng thái duyệt giữ nguyên. Tốn một lượt AI." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-800 disabled:opacity-50" onClick={() => run(true)}><PenLine className="h-4 w-4" />Vẽ bút đỏ từng bước</button>
+    {message && <p role="status" className="w-full max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
   </div>;
 };
 

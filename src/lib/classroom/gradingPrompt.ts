@@ -2,7 +2,7 @@ import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type { CompetencyTag } from './competency/framework.js';
 import { repairLatexEscapes, type PracticeMistake } from './practiceBasis.js';
-import { sanitizePhotoMarks, sanitizeReadingRegions } from './photoMarks.js';
+import { sanitizePhotoMarks, sanitizePhotoSteps, sanitizeReadingRegions } from './photoMarks.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -121,6 +121,14 @@ nếu không có thì em học sinh phải chụp cả đề lẫn bài làm tro
 Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu với bài làm của em.
 Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
 
+/** Bút đỏ từng bước (câu tự luận). Dùng chung cho lượt chấm và lượt chỉ vẽ dấu. */
+export const PHOTO_STEPS_RULES = `BÚT ĐỎ TỪNG BƯỚC (photoSteps) — CHỈ cho câu TỰ LUẬN có từ 2 bước lập luận trở lên; câu trắc nghiệm, Đúng/Sai, điền đáp số, bỏ trống hoặc bỏ qua theo lệnh GV: "photoSteps": [].
+- Có HƯỚNG DẪN CHẤM chia bước thì dùng ĐÚNG các bước và điểm tối đa từng bước trong đó (maxScore bước theo hướng dẫn); chỉ khi không có mới tự chia.
+- Chia câu thành 2..8 bước theo dòng em viết (đặt ẩn, lập phương trình, biến đổi, giải, đối chiếu điều kiện, kết luận…). Mỗi bước: {"text":"tóm tắt bước ≤ 12 từ","verdict":"correct|partial|wrong","score":0.25,"maxScore":0.25,"note":"lời sửa ngắn ≤ 20 từ, chỉ khi partial/wrong","mark":{"imageIndex":1,"x":0.1,"y":0.3,"width":0.8,"height":0.04,"confidence":0.9}}.
+- BẮT BUỘC: tổng score các bước = đúng score của câu; tổng maxScore các bước = đúng maxScore của câu. Chia điểm theo bội 0,125 nếu được. Bước dù sai vẫn liệt kê với score 0.
+- mark là dải ngang bao dòng em viết cho bước đó (cùng luật toạ độ ở trên, confidence >= 0.85); không chắc vị trí thì bỏ mark, vẫn giữ bước.
+- Ghi lời sửa bằng lời của thầy cô, cụ thể chỗ sai ("Loại x = −19 vì x > 0"); không chép lại đề.`;
+
 export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageCount: number): string => studentImageCount > 0
   ? `VÙNG CÂU TRÊN ẢNH BÀI LÀM (trả photoMarks và readingRegions cho mỗi câu, cùng lượt chấm này):
 - Bỏ qua ${referenceImageCount} ảnh ĐỀ/ĐÁP ÁN đầu tiên. Các ảnh HS còn lại có imageIndex 1..${studentImageCount}, theo thứ tự gửi; không dùng số thứ tự ảnh chung.
@@ -128,8 +136,9 @@ export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageC
 - readingRegions riêng là vùng TRUNG TÍNH cho câu đọc chưa chắc: độ chắc vị trí độc lập confidence đọc chữ. Có thấy chữ nhưng chưa đọc chắc vẫn định vị khi confidence vị trí >= 0.85. Không thấy nét nào thì [] và không khoanh bừa.
 - Tối đa 3 vùng bài làm/câu, kể cả câu đúng. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
 - Chỉ trả khi chắc vị trí confidence >= 0.85; không chắc thì photoMarks: [], giữ lời chữa dạng chữ. Không đoán vị trí, không chọn URL, không viết imageUrl.
-- Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.`
-  : 'Không có ảnh bài HS: không trả photoMarks hoặc readingRegions.';
+- Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.
+${PHOTO_STEPS_RULES}`
+  : 'Không có ảnh bài HS: không trả photoMarks, readingRegions hoặc photoSteps.';
 
 export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
   const soAnhDe = input.assignmentImageCount ?? 0;
@@ -281,7 +290,8 @@ CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
     "ignoredByTeacherInstruction": false,
     "needsTeacherReview": false,
     "photoMarks": [],
-    "readingRegions": []
+    "readingRegions": [],
+    "photoSteps": []
   }]
 }`;
 };
@@ -348,6 +358,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
 
       const photoMarks = sanitizePhotoMarks(q.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
       const readingRegions = sanitizeReadingRegions(q.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
+      const photoSteps = sanitizePhotoSteps(q.photoSteps, { status, studentAnswer, ignoredByTeacherInstruction });
       return {
         questionNumber,
         status,
@@ -364,6 +375,7 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
         needsTeacherReview,
         ...(photoMarks.length ? { photoMarks } : {}),
         ...(readingRegions.length ? { readingRegions } : {}),
+        ...(photoSteps.length ? { photoSteps } : {}),
       } as QuestionResult;
     })
     .filter((item): item is QuestionResult => item !== null);
@@ -558,6 +570,7 @@ const parseStrictQuestionResult = (
 
   const photoMarks = sanitizePhotoMarks(record.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
   const readingRegions = sanitizeReadingRegions(record.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
+  const photoSteps = sanitizePhotoSteps(record.photoSteps, { status, studentAnswer, ignoredByTeacherInstruction });
   return {
     questionNumber,
     status,
@@ -574,6 +587,7 @@ const parseStrictQuestionResult = (
     needsTeacherReview,
     ...(photoMarks.length ? { photoMarks } : {}),
         ...(readingRegions.length ? { readingRegions } : {}),
+    ...(photoSteps.length ? { photoSteps } : {}),
   };
 };
 
@@ -1057,7 +1071,8 @@ Viết hướng dẫn chấm để người khác chấm cũng ra cùng kết qu
 ${lenh
     ? `- Chia ${maxScore} điểm cho TỪNG câu/phần THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, ghi rõ số điểm mỗi phần. Tổng đúng bằng ${maxScore}.`
     : `- Chia ${maxScore} điểm cho từng câu, ghi rõ số điểm mỗi câu. Tổng đúng bằng ${maxScore}.`}
-- Trong mỗi câu, nêu các mốc cho điểm thành phần: làm được bước nào thì được bao nhiêu.
+- Câu TỰ LUẬN: chia điểm câu theo TỪNG BƯỚC, mỗi bước một dòng đánh số, dạng "Bước 1: đặt ẩn, điều kiện — 0,25đ". Điểm bước là bội 0,125 hoặc 0,25; tổng các bước đúng bằng điểm câu. Máy chấm dùng đúng các bước này để ghi Đ/S và điểm cạnh từng dòng bài em.
+- Câu trắc nghiệm, Đúng/Sai, điền đáp số: chỉ ghi điểm cả câu (Đúng/Sai theo thang của đề), không chia bước.
 - Nêu lỗi thường gặp ở dạng bài này và mức trừ tương ứng.
 - Nói rõ chỗ nào vẫn cho điểm dù kết quả cuối sai (ví dụ sai số học nhưng phương pháp đúng).
 

@@ -672,7 +672,7 @@ describe('AI đề xuất hướng dẫn chấm', () => {
   it('bắt nêu mốc điểm thành phần và chỗ vẫn cho điểm dù kết quả sai', () => {
     const p = buildRubricPrompt('x', 10);
 
-    expect(p).toContain('điểm thành phần');
+    expect(p).toContain('theo TỪNG BƯỚC');
     expect(p).toContain('phương pháp đúng');
   });
 

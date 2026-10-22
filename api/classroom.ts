@@ -5,7 +5,7 @@ import { workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'node:crypto';
-import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
+import { projectPhotoMarks, projectPhotoSteps, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
@@ -1050,6 +1050,7 @@ export const projectStudentSubmission = (id: string, data: FirebaseFirestore.Doc
         needsTeacherReview: Boolean(item.needsTeacherReview),
         ...(rawGrade?.teacherApproved === true && projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
           ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
+        ...(rawGrade?.teacherApproved === true && projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { photoSteps: projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
         ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
       } as QuestionResult))
     : undefined;

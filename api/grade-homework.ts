@@ -116,7 +116,7 @@ import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
 import { questionKey, reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
-import { bindQuestionPhotoMarks, projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
+import { bindQuestionPhotoMarks, projectPhotoMarks, validPhotoSteps } from '../src/lib/classroom/photoMarks.js';
 import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError } from './_submission-actors.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
@@ -617,17 +617,19 @@ const gradeOneSubmission = async (
     const reconciled = reconcileAiGrade(attempt.grade, gradeCtx.answerKeyFixes, previous.grade?.questionResults);
     const clearedMarks = new Set((previous.grade?.questionResults || []).filter(q => q.photoMarksCleared).map(q => questionKey(q.questionNumber)));
     reconciled.questionResults = (reconciled.questionResults || []).map(q => {
-      const { photoMarks: _old, ...rest } = q;
+      const { photoMarks: _old, photoSteps: _steps, ...rest } = q;
       if (clearedMarks.has(questionKey(q.questionNumber))) return { ...rest, photoMarksCleared: true };
       const photoMarks = projectPhotoMarks(q, studentImageUrls);
-      return { ...rest, ...(photoMarks.length ? { photoMarks } : {}) };
+      // Bước bút đỏ chỉ giữ khi cộng lại đúng điểm câu SAU hậu kiểm; lệch là AI chia sai → bỏ, không sửa điểm theo bước.
+      const photoSteps = validPhotoSteps(q);
+      return { ...rest, ...(photoMarks.length ? { photoMarks } : {}), ...(photoSteps.length ? { photoSteps } : {}) };
     });
     // The scoring model can omit geometry even when it reads the answer correctly.
     // Use the existing location-only contract; failure must not discard a valid grade.
     const unlocated = missingAnnotationRows(reconciled.questionResults, studentImageUrls);
     if (images.length && unlocated.length && conLaiMs() > MIN_GEMINI_BUDGET_MS + FINISH_MARGIN_MS) {
       try {
-        const raw = await callGeminiVision(buildAnnotationPrompt({ ...previous, grade: reconciled }, unlocated, images.length), images, apiKey, GRADING_MODEL,
+        const raw = await callGeminiVision(buildAnnotationPrompt({ ...previous, grade: reconciled }, unlocated, images.length, gradeCtx.rubric), images, apiKey, GRADING_MODEL,
           { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(60_000, conLaiMs() - FINISH_MARGIN_MS) });
         reconciled.questionResults = mergeAnnotationResult(reconciled.questionResults, unlocated, studentImageUrls, raw);
       } catch { console.warn('[grade-homework] chưa định vị đủ ảnh; giữ kết quả chấm và cho phép bổ sung dấu sau.'); }
@@ -2185,7 +2187,8 @@ const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boo
       }
       const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
       if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
-      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+      const rubric = submission.assignmentId ? String((await db.collection('assignments').doc(submission.assignmentId).get()).data()?.rubric || '') : '';
+      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length, rubric), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
