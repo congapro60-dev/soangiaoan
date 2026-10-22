@@ -81,6 +81,7 @@ export const submitAdaptiveAssessment = async (db: Db, context: Context, assignm
     }, { merge: true });
     tx.create(db.collection('adaptiveEvents').doc(), { type: scored ? 'attempt' : 'retry', kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), score, maxScore, objectiveScores: attempt.objectiveScores, wrongQuestionIds: attempt.answers.filter(answer => !answer.isCorrect).map(answer => answer.questionId), misconceptionIds: [...new Set(attempt.answers.flatMap(answer => answer.detectedMisconceptionIds || []))], durationSeconds, createdAt: now });
     // Nộp lại: không trả lại lời giải/giải thích (chỉ giữ nhận xét lỗi sai qua detectedMisconceptionIds).
+
     const shown: AssessmentAttempt = scored ? attempt : { ...attempt, answers: attempt.answers.map(({ feedback, ...answer }) => answer) };
     return { attempt: shown, scored, status: kind === 'exitTicket' && scored ? 'completed' : (progress.status || 'in_progress') };
   });

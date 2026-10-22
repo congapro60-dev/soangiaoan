@@ -96,3 +96,37 @@ Worker: requested `cc/claude-sonnet-5-5`, served `unknown` (opencode không lộ
 - Chọn `targetStudentIds` khi giao bài (action đã hỗ trợ, UI chưa).
 - Tên objective/misconception hiển thị là ID; nên map sang tiêu đề từ lesson.
 - Bảng thống kê đọc client-side qua rules; nếu lớp lớn nên chuyển sang action server tổng hợp.
+
+## T7 QA trình duyệt — lượt 22/10 (chủ dự án duyệt ghi dữ liệu thật)
+Worker: requested `cc/claude-sonnet-5-5`, served `unknown`. Không commit/push/deploy/switch. Không sửa code. Không ghi dữ liệu production (0 lượt giao, 0 lượt nộp).
+
+**Transport**: `npm run dev` trong worktree, Chrome debug 9222 (profile `%TEMP%\chrome-smartplan-session`, đã chạy sẵn), tab MỚI riêng (page 2), không đụng tab người khác. API: dev-proxy `/api` → `giaoandewey.vercel.app` (banner "Localhost đang dùng API production" hiện đúng).
+
+| bước | kết quả | bằng chứng |
+|---|---|---|
+| 0. dev server | pass (port 3000) | `localhost:5173` KHÔNG dùng được: bấm Đăng nhập → `Firebase: Error (auth/requests-from-referer-http://localhost:5173-are-blocked.)` (API key Firebase chỉ cho referer `localhost:3000`). Đổi sang `npm run dev -- --strictPort` (3000) → popup mở được. Giả định "localhost whitelist mặc định" của Decision Pack chỉ đúng cổng 3000. |
+| 1. GV đăng nhập Google | **blocked** | Popup tới `accounts.google.com/v3/signin/identifier` ở form nhập email: profile `chrome-smartplan-session` KHÔNG có sẵn tài khoản GV (trái giả định Decision Pack). Worker không có thông tin đăng nhập, không tự nhập; phiên non-interactive không hỏi được người dùng. Đóng đúng popup do mình mở. |
+| 2. GV chọn lớp / giao bài (`teacherAssignAdaptiveLesson`) | blocked (phụ thuộc bước 1) | assignmentId: **không có** |
+| 3. HS `/lop` | partial pass | Mã lớp `AD4GKT` → "Chọn tên em trong lớp **12LoTrinh1**" (8 HS, có "Trần Đặng Tuấn Nam"; tên lớp hiển thị là 12LoTrinh1, không phải "12Toán LT1"). Chưa đăng nhập PIN (không có bài giao → nút "Học bài này" vẫn khoá; vào cũng không kiểm được). Không ghi gì. |
+| 4. diagnostic / nộp / thống kê GV | blocked (cần bước 1–2) | — |
+
+### Cổng (chạy từ cwd worktree, sau khi tắt dev server)
+| cổng | kết quả |
+|---|---|
+| `npm run test` | xanh: 329 file, 3434/3434, exit 0 |
+| `npm run test:rules` | xanh: exit 0 |
+| `npm run lint` | xanh: exit 0 |
+| `npm run lint:api` | xanh: exit 0 |
+| `npm run build` | xanh: exit 0 (cảnh báo chunk có sẵn) |
+
+### Đã sửa
+Không có.
+
+### Để chạy lại T7 (cần người)
+1. Người đăng nhập GV Google 1 lần trong Chrome 9222 (profile `chrome-smartplan-session`) tại `http://localhost:3000` (KHÔNG 5173), hoặc cấp tài khoản.
+2. `npm run dev -- --strictPort` (cổng 3000), mở `/adaptive` → `DiscoverClassPanel` → lớp AD4GKT (12LoTrinh1) → giao 1 bài → ghi assignmentId.
+3. `/lop` → AD4GKT → Trần Đặng Tuấn Nam, PIN 8809 → Học bài này → diagnostic sai 1–2 câu → nộp → GV tải lại panel đối chiếu thống kê.
+
+### New proposals (không làm)
+- Thêm `localhost:5173` vào referer allowlist API key Firebase, hoặc sửa Decision Pack/script dev dùng cổng 3000 (`package.json` đã khoá `--port=3000`, lệnh `--port 5173` ghi đè được nhưng Auth chặn).
+- Sửa Decision Pack: tên lớp hiển thị `12LoTrinh1`; xác nhận lớp chứa Tuấn Nam đúng là lớp đích trước khi giao.
