@@ -5,6 +5,10 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## CI API Typecheck đỏ sẵn trên main (22/10) — Claude
+
+`api/_assistant-confirmations.ts` (`normalizeScopes`) lỗi `TS2322` ở lượt `npx tsc --noEmit -p tsconfig.api.json --strict false` của workflow `api-typecheck` (`ownerUid` là `unknown`); lượt strict mặc định thì qua nên chạy tay một lượt không thấy. Main đã đỏ 3 lần liên tiếp. Sửa tối thiểu: ép `ownerUid as string` sau khi `isText` đã kiểm. Nhánh nào gộp bản sửa chính thức của main thì bỏ dòng này đi nếu xung đột. Nghiệm thu: chạy CẢ HAI lệnh `npx tsc --noEmit -p tsconfig.api.json` và `... --strict false`.
+
 ## Discover tự học: GV giao bài cho lớp, HS mở bài đã bỏ đáp án — 17/10 (Claude, tiếp nhận từ Codex 01a13816)
 
 **Đổi gì, vì sao:** nhánh `codex/elearning-muse-task1` (Codex làm catalog 204 tiết Discover 10–12, trang `/discover-self-study`, mục "Discover · Tự học" ở `/lop`). Lát này nối tiếp để HS học được an toàn: (1) `discoverSeedId` đi từ trang chọn tiết vào bài Adaptive đã lưu; (2) `src/lib/adaptive/stripAnswers.ts` tạo bản bài cho HS, bỏ đáp án/lời giải/gợi ý/ghi chú GV THEO KIỂU DỮ LIỆU (không theo tên khoá — `LearningRouteContent.explanation` là nội dung HS đọc nên giữ); (3) action mới `teacherAssignAdaptiveLesson` (`api/_classroom-teacher.ts`), `studentAdaptiveList`, `studentAdaptiveOpen` (`api/_student-workspace.ts`) trên collection MỚI `adaptiveAssignments/{classId}_{lessonId}` (chỉ Admin SDK ghi). Lý do: engine hiện chấm ở trình duyệt và `api/adaptive-progress` không xác thực nên HS soi/giả mạo được đáp án và tiến độ. Thiết kế đầy đủ + sổ tiến độ: `docs/spec/discover-self-study-v2.md` và `.ledger.md`.
