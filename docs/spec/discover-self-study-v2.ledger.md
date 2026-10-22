@@ -48,3 +48,10 @@ Review: tác giả Claude → reviewer khác hãng khi Codex hồi (sau 12:28) h
 | T8 | logic+ui | M | cx/gpt-6.1-sol (medium) | — (worktree riêng từ main: `Downloads\smart-lesson-plan-ai-t8`, nhánh `dieu-phoi/report-custom-range`) | implemented: tsc + 53 test pass; chưa build, chưa QA trình duyệt, chưa commit (brain sửa 2 import) |
 | T9a | ui | S | cx/gpt-6.1-sol (medium), worktree `Downloads\smart-lesson-plan-ai-t9a` nhánh `dieu-phoi/teacher-student-search` | — | đang chạy |
 | T9b | logic+ui | M | CHỦ LỰC | T3 | planned (`preview` chỉ đọc + route xem-thử) |
+
+## T3a — server chấm + sự kiện (22/10)
+- Worker: requested `cx/gpt-6-sol` medium (served `unknown`, model_family OpenAI). `cx/gpt-6.1-sol` lỗi 'at capacity' 2 lần nên đổi. account `unknown`, cost_class subscription.
+- Review chéo (read-only, khác họ model): `cc/claude-opus-5-5` (Anthropic) và `xk/minimax/minimax-m2.7` (MiniMax) — cả hai `blocked` lần đầu; cùng tìm ra: lộ lời giải cho câu chưa trả lời; sự kiện ghi ngoài transaction.
+- Đã sửa: ẩn `feedback` câu chưa trả lời; sự kiện ghi trong transaction (`tx.create`); báo lỗi đúng khi đáp án không phải chuỗi; `Object.create(null)` chống khoá kế thừa; `unitId` phải là doc id an toàn.
+- Chưa sửa (ghi nhận): `retry` không giới hạn số sự kiện; lời giải hiện sau mỗi lần nộp lại (quyết định sản phẩm: có giữ đến khi đóng bài không?); bài kiểm tra 0 câu không hoàn thành được; `set` chưa `merge` (T3b); mã tiến độ `${assignmentId}_${studentId}` có thể trùng nếu id chứa `_` do người tạo gài.
+- Trạng thái: tested — 30 test api đạt (student-adaptive-submit 10, student-adaptive 6, student-workspace, function-count), `tsc -p tsconfig.api.json` sạch. Chưa deployed/verified.

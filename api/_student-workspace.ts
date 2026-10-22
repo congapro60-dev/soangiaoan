@@ -17,6 +17,7 @@ import discoverManifest from '../src/data/discoverNewKnowledgeLessons.js';
 import type { DiscoverNewKnowledgeSeed, StudentDiscoverCatalogItem } from '../src/lib/discover/types.js';
 import { stripAnswers } from '../src/lib/adaptive/stripAnswers.js';
 import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
+import { submitAdaptiveAssessment } from './_adaptive-submit.js';
 
 type Data = FirebaseFirestore.DocumentData;
 type Db = FirebaseFirestore.Firestore;
@@ -190,7 +191,7 @@ const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
     }));
 
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen'].includes(body.action)) return false;
+  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
     if (body.action === 'studentDiscoverCatalog') {
@@ -242,6 +243,37 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
       const lesson = normalizeAdaptiveLesson(lessonSnap.data(), assignment.lessonId);
       if (!lessonSnap.exists || !lesson || lesson.teacherId !== assignment.teacherId || lesson.status !== 'published') throw new WorkspaceError(404, 'Lesson is not ready.');
       res.status(200).json({ assignmentId: assignmentSnap.id, lesson: stripAnswers(lesson) });
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveSubmit') {
+      if (!isSafeDocId(body.assignmentId)) throw new WorkspaceError(422, 'Mã bài tập không hợp lệ. Em hãy mở lại bài được giao rồi thử lại.');
+      const assignmentSnap = await db.collection('adaptiveAssignments').doc(body.assignmentId).get();
+      const assignment = assignmentSnap.data() || {};
+      if (!assignmentSnap.exists || !visibleAssignment(assignment, context) || assignment.isOpen !== true || !isSafeDocId(assignment.lessonId)) throw new WorkspaceError(404, 'Không tìm thấy bài học được giao. Em hãy kiểm tra lại lớp và bài được mở.');
+      const lessonSnap = await db.collection('adaptiveLessons').doc(assignment.lessonId).get();
+      const lesson = normalizeAdaptiveLesson(lessonSnap.data(), assignment.lessonId);
+      if (!lessonSnap.exists || !lesson || lesson.teacherId !== assignment.teacherId || lesson.status !== 'published') throw new WorkspaceError(404, 'Bài học chưa sẵn sàng. Em hãy quay lại sau.');
+      let result;
+      try {
+        result = await submitAdaptiveAssessment(db, context, assignmentSnap.id, assignment, lesson, body);
+      } catch (error) {
+        const code = error instanceof Error ? error.message : '';
+        const messages: Record<string, [number, string]> = {
+          INVALID_KIND: [422, 'Loại bài kiểm tra không hợp lệ. Em hãy chọn bài đầu vào, kiểm tra nhanh hoặc vé thoát.'],
+          INVALID_ANSWERS: [422, 'Câu trả lời không hợp lệ. Em hãy nhập lại đáp án rồi gửi lại.'],
+          TOO_MANY_ANSWERS: [422, 'Bài gửi có quá nhiều câu trả lời. Em hãy kiểm tra lại bài được giao.'],
+          ANSWER_TOO_LONG: [422, 'Câu trả lời vượt quá 2000 ký tự. Em hãy rút gọn rồi gửi lại.'],
+          INVALID_UNIT: [422, 'Đơn vị kiến thức không hợp lệ. Em hãy mở đúng đơn vị rồi làm lại.'],
+          INVALID_ASSESSMENT: [422, 'Bài kiểm tra không hợp lệ. Em hãy mở lại bài được giao rồi thử lại.'],
+          NO_ANSWERS: [422, 'Em chưa trả lời câu nào. Em hãy làm ít nhất một câu rồi gửi bài, vì lần gửi đầu sẽ được tính điểm.'],
+          DIAGNOSTIC_REQUIRED: [409, 'Em cần làm bài kiểm tra đầu vào trước.'],
+        };
+        const mapped = messages[code];
+        if (mapped) throw new WorkspaceError(mapped[0], mapped[1]);
+        throw error;
+      }
+      res.status(200).json(result);
       return true;
     }
 
