@@ -524,6 +524,12 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Không nối tên và mọi badge thành một dãy flex tự co giãn: mỗi loại thông tin cần ô cố định, ô rỗng vẫn giữ vị trí.
 - Người dùng yêu cầu nhãn vừa một dòng. Rút ngắn câu chữ, giữ giải thích đầy đủ trong chú thích; nhiều nhãn xếp trong cùng ô, không đẩy lệch cột điểm/duyệt.
 
+## 2026-10-19 — Phạm vi QA phải khớp lời báo hoàn tất
+- Người dùng hỏi lại giáo án, đề offline/online, dự giờ, thư viện sau báo hoàn tất; hồ sơ cũ chỉ kiểm một phần.
+- Mỗi mảng cần ghi riêng: source review, unit, emulator, browser thao tác trọn luồng, nội dung AI và file xuất. Build/test/deploy không thay thế các cột còn thiếu.
+- Rà lại phải ghim đúng SHA production hiện tại, kiểm độc lập helper client/server và tác động ghi khi chỉ mở màn hình; không tin checkbox hoặc review từ SHA cũ.
+- Công cụ browser timeout/khóa phiên là giới hạn công cụ. Ghi blocked; không suy thành website lỗi hoặc E2E đạt.
+
 ## 2026-10-17 — Job bảo trì "chỉ thêm dấu" đã chấm lại toàn bộ bài
 - Đợt làm mới dấu trên ảnh gọi `gradeOneSubmission` (chấm lại từ đầu) → 104 bài đổi điểm, 50 bài mất duyệt trên production. Bản bàn giao ghi "giữ điểm by design"; không ai đọc lại đúng dòng gọi hàm trước khi chạy hàng loạt.
 - Luật: việc ghi hàng loạt lên dữ liệu thật phải (1) có test khoá bất biến ("điểm/duyệt/nhận xét không đổi") chạy qua ĐÚNG đường mã job dùng, (2) chạy mẫu rồi SO TRƯỚC/SAU toàn bộ trường cần giữ, không chỉ nhìn trường mới thêm, (3) chụp lại dữ liệu trước khi chạy để còn đường lùi. Lời khẳng định trong HANDOFF của agent khác là giả thuyết — kiểm mã.
@@ -532,3 +538,15 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-17 — Báo lỗi bằng mã trần, không ai hiểu
 - Chủ dự án nhắc: lỗi hiện ra chỉ "409", "503", "Máy chủ trả lỗi 500", hay mã cụt `provider_quota` thì giáo viên lẫn quản trị đều mù. Mọi lỗi người đọc thấy (màn hình, Firestore quản trị đọc, log workflow) phải nói LÍ DO + VIỆC CẦN LÀM bằng tiếng Việt; mã HTTP/mã máy chỉ để cuối câu cho người sửa lỗi.
 - Chỉ có mã HTTP thì dùng `moTaLoiHttp(status)` (máy chủ của web) hoặc `moTaLoiDichVu(status, 'Gemini' | 'Google Sheets'…)` trong `src/lib/httpErrorText.ts`; lưu mã máy (`failureCode`) thì luôn lưu kèm câu (`failureMessage` / `pauseMessage`).
+# 2026-10-19 - Distinguish Zalo Bot Platform from business OA
+
+- A private bot conversation in personal Zalo can use the official Zalo Bot
+  Platform. Check current official creation/API docs before requiring a business
+  OA. Keep Bot Platform and OA identities separate; neither authorizes access
+  to existing friend/group chats. Never equate a working adapter with completed
+  natural-language tools or a verified deployment.
+
+## 2026-10-22 — Tiền của giáo viên: không âm, không trừ oan, nạp phải dễ
+- Ví từng âm được một lượt (giữ chỗ kẹp theo số dư nhưng trừ đủ giá). Mọi chỗ trừ tiền phải đọc số dư trong cùng giao dịch và kẹp ở 0; phần thiếu ghi lại, không đẩy sang người dùng.
+- Lỗi tạm thời (429 theo phút) không được kích hoạt đường "chuyển sang ví": đánh dấu khoá hết + trừ ví là trừ tiền oan. Phân biệt lỗi tạm thời / hết thật trước khi động tới tiền.
+- Chủ dự án: "khó với lằng nhằng là người dùng bỏ qua, tôi không kiếm được tiền". Hết tiền → mở thẳng QR, tiền về tự chạy tiếp; lựa chọn phụ gập lại; nghĩ cả GV dùng điện thoại (không tự quét được QR trên chính máy).

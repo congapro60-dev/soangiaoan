@@ -4,7 +4,7 @@ import { SubmissionAccessError } from './_submission-actors.js';
 import { isStaleGradingTimestamp } from '../src/lib/classroom/submissionSelection.js';
 
 type Db = FirebaseFirestore.Firestore;
-type Result = { success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string };
+type Result = { success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; retryAfterMs?: number };
 // Google refused the key itself: every later item would fail the same way, so the job pauses on this item.
 const PAUSE_CODES = new Set(['provider_quota', 'provider_key_invalid']);
 
@@ -30,7 +30,7 @@ export const runGradingRefreshItem = async (db: Db, jobId: string, grade: (submi
   if ('done' in claim) return { done: true, remaining: 0, counts: claim.job.counts || {} };
   if ('busy' in claim) return { busy: true, remaining };
 
-  let outcome = 'failed', failureCode = '', failureMessage = '', pauseCode = '';
+  let outcome = 'failed', failureCode = '', failureMessage = '', pauseCode = '', retryAfterMs = 0;
   try {
     const subRef = db.collection('submissions').doc(claim.submissionId);
     const snapshot = await subRef.get(), submission = { id: snapshot.id, ...snapshot.data() } as SubmissionDoc;
@@ -57,6 +57,8 @@ export const runGradingRefreshItem = async (db: Db, jobId: string, grade: (submi
           failureCode = result.success ? '' : result.failureCode || 'unknown';
           failureMessage = result.success ? '' : result.failureMessage || 'Chưa xử lí được bài này (máy chủ không ghi lí do); điểm cũ giữ nguyên.';
           if (PAUSE_CODES.has(failureCode)) pauseCode = failureCode;
+          // Per-minute limit: the key still has quota, so wait and redo this same item instead of failing it.
+          else if (!result.success && result.retryAfterMs) { outcome = 'retry_rate_limit'; retryAfterMs = result.retryAfterMs; }
           if (result.success) await subRef.update({ gradingRefreshJobId: jobId });
         }
       }
@@ -83,9 +85,15 @@ export const runGradingRefreshItem = async (db: Db, jobId: string, grade: (submi
     const current = (await tx.get(ref)).data();
     if (current?.runId !== runId) return;
     if (outcome === 'retry_busy') { tx.update(ref, { runId: '', leaseUntil: 0 }); return; }
+    if (outcome === 'retry_rate_limit') {
+      tx.set(ref.collection('items').doc(claim.submissionId), { status: 'waiting_rate_limit', failureCode, failureMessage }, { merge: true });
+      tx.update(ref, { runId: '', leaseUntil: 0, updatedAt: new Date().toISOString() });
+      return;
+    }
     tx.set(ref.collection('items').doc(claim.submissionId), { status: outcome, ...(failureCode ? { failureCode, failureMessage } : {}), finishedAt: new Date().toISOString() }, { merge: true });
     tx.update(ref, { cursor: current.cursor + 1, runId: '', leaseUntil: 0, updatedAt: new Date().toISOString(), counts: { ...current.counts, [outcome]: (current.counts?.[outcome] || 0) + 1 }, status: current.status === 'paused' ? 'paused' : remaining === 1 ? 'complete' : 'running' });
   });
   if (outcome === 'retry_busy') return { busy: true, remaining };
+  if (outcome === 'retry_rate_limit') return { busy: true, remaining, retryAfterMs, failureCode, failureMessage };
   return { outcome, ...(failureCode ? { failureCode, failureMessage } : {}), remaining: remaining - 1, done: remaining === 1, ...(remaining === 1 ? { counts: (await ref.get()).data()?.counts || {} } : {}) };
 };

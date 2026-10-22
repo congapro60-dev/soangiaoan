@@ -17,6 +17,7 @@ import {
   xuatTheoMau,
 } from './excel';
 import { bienBanRong, type BienBanDuGio } from './types';
+import { COMPONENTS } from '../../data/khungDanielson';
 
 const DUONG_DAN = 'public/mau/bien-ban-du-gio.xlsx';
 let mau: ArrayBuffer;
@@ -103,6 +104,26 @@ describe('oSheetChamDiem', () => {
 });
 
 describe('xuất rồi đọc lại file mẫu thật', () => {
+  it('round-trips 35 observation rows, free notes and all 22 scores', async () => {
+    const bb = bienBanThu();
+    bb.boTieuChi = 'daydu';
+    bb.bienBan = 'Ghi chép tự do: HS hỏi lại điều kiện.\nGV yêu cầu tìm phản ví dụ.';
+    bb.dongQuanSat = Array.from({ length: 35 }, (_, i) => ({ thoiGian: `9:${i}`, hoatDong: `Hoạt động ${i + 1}`, cuaGiaoVien: `GV hỏi ${i + 1}`, cuaHocSinh: `HS đáp ${i + 1}`, ghiChu: `Ghi chú ${i + 1}` }));
+    for (const c of COMPONENTS) {
+      bb.diemChot[c.ma] = 3;
+      bb.ketQua[c.ma] = { diem: 3, tinCay: 'cao', bangChung: [`Minh chứng ${c.ma}`], lyDo: '', cauHoi: [] };
+    }
+    const blob = await xuatTheoMau(bb, layMau);
+    const again = docFileExcel(await blob.arrayBuffer(), 'u1');
+    expect(again.dongQuanSat).toEqual(bb.dongQuanSat);
+    expect(again.bienBan).toBe(bb.bienBan);
+    expect(again.boTieuChi).toBe('daydu');
+    for (const c of COMPONENTS) {
+      expect(again.diemChot[c.ma], c.ma).toBe(3);
+      expect(again.ketQua[c.ma]?.bangChung.join(' '), c.ma).toContain(`Minh chứng ${c.ma}`);
+    }
+  });
+
   it('giữ đủ 2 sheet và điền đúng ô', async () => {
     const blob = await xuatTheoMau(bienBanThu(), layMau);
     const wb = XLSX.read(await blob.arrayBuffer(), { type: 'array' });

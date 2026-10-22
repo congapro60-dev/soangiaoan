@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AI_KEY_MODES, EXHAUSTED_COOLDOWN_MS, classifyGeminiKeyFailure, decideAiKey, effectiveAiMode, looksLikeGeminiKey, type AiKeyMode, type AiKeyPolicyInput } from './aiKeyPolicy';
+import { AI_KEY_MODES, EXHAUSTED_COOLDOWN_MS, classifyGeminiKeyFailure, decideAiKey, effectiveAiMode, looksLikeGeminiKey, rateLimitRetryMs, type AiKeyMode, type AiKeyPolicyInput } from './aiKeyPolicy';
 
 const NOW = Date.parse('2026-09-24T10:00:00Z');
 
@@ -93,5 +93,20 @@ describe('chọn khoá AI', () => {
     expect(looksLikeGeminiKey('  AQ.Ab8RN6' + 'x'.repeat(40) + ' ')).toBe(true);
     expect(looksLikeGeminiKey('AQ.ngan')).toBe(false);
     expect(looksLikeGeminiKey('AQ.Ab8 RN6' + 'x'.repeat(40))).toBe(false);
+  });
+});
+
+describe('rateLimitRetryMs — 429 vì gọi nhanh hay vì hết hạn mức', () => {
+  it('giới hạn mỗi phút: đợi theo retryDelay (kẹp 5 giây – 2 phút), không có retryDelay thì 60 giây', () => {
+    expect(rateLimitRetryMs(429, '{"quotaId":"GenerateRequestsPerMinutePerProjectPerModel"},{"retryDelay":"34s"}')).toBe(34_000);
+    expect(rateLimitRetryMs(429, '"retryDelay": "1s"')).toBe(5_000);
+    expect(rateLimitRetryMs(429, '"retryDelay": "900s"')).toBe(120_000);
+    expect(rateLimitRetryMs(429, 'GenerateRequestsPerMinutePerProjectPerModel')).toBe(60_000);
+  });
+  it('hết hạn mức ngày, gói free = 0, thân lỗi không rõ, hoặc không phải 429 → null (dừng đợt)', () => {
+    expect(rateLimitRetryMs(429, 'GenerateRequestsPerDayPerProjectPerModel "retryDelay":"30s"')).toBeNull();
+    expect(rateLimitRetryMs(429, 'limit: 0, model: gemini')).toBeNull();
+    expect(rateLimitRetryMs(429, 'RESOURCE_EXHAUSTED')).toBeNull();
+    expect(rateLimitRetryMs(503, '"retryDelay":"30s"')).toBeNull();
   });
 });

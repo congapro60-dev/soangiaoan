@@ -6,8 +6,45 @@
  * ngay tại cửa vào.
  */
 import { describe, expect, it } from 'vitest';
-import { docBangChung, nguonTheoPhan, vanBanQuanSat } from './phanTich';
+import { apDungKetQuaPhanTich, docBangChung, nguonTheoPhan, vanBanQuanSat } from './phanTich';
 import { bienBanRong } from './types';
+
+describe('apply AI results and retry without losing teacher decisions', () => {
+  const component = { diem: 2, tinCay: 'cao' as const, bangChung: ['new evidence'], lyDo: 'new reason', cauHoi: [], chamNguong: '' };
+  const child = { ma: '3b.1', diem: 2, chamNguong: '', bangChung: ['new child evidence'], lyDo: 'new child reason' };
+
+  it('retry populates scores, child evidence and threshold fields together', () => {
+    const result = apDungKetQuaPhanTich(bienBanRong('u1'), { '3b': component }, { '3b.1': child });
+    expect(result.diemChot['3b']).toBe(2);
+    expect(result.ketQua['3b']).toEqual(component);
+    expect(result.diemTieuChiCon['3b.1']).toBe(2);
+    expect(result.bangChungTieuChiCon['3b.1']).toEqual(['new child evidence']);
+    expect(result.lyDoTieuChiCon['3b.1']).toBe('new child reason');
+  });
+
+  it('rerun preserves manually chosen score, excluded score and threshold notes', () => {
+    const initial = apDungKetQuaPhanTich(bienBanRong('u1'), { '3b': component }, { '3b.1': child });
+    const manual = { ...initial, diemChot: { '3b': 3.5 }, daSua: { '3b': true }, chamNguong: { '3b': 'Observer note' },
+      diemTieuChiCon: { '3b.1': null }, daSuaTieuChiCon: { '3b.1': true }, chamNguongTieuChiCon: { '3b.1': 'Child note' } };
+    const result = apDungKetQuaPhanTich(manual, { '3b': { ...component, diem: 4 } }, { '3b.1': { ...child, diem: 4 } });
+    expect(result.diemChot['3b']).toBe(3.5);
+    expect(result.chamNguong['3b']).toBe('Observer note');
+    expect(result.diemTieuChiCon['3b.1']).toBeNull();
+    expect(result.chamNguongTieuChiCon['3b.1']).toBe('Child note');
+    expect(result.ketQua['3b']?.diem).toBe(4);
+  });
+
+  it('rerun updates untouched AI fields and clears obsolete evidence', () => {
+    const initial = apDungKetQuaPhanTich(bienBanRong('u1'), { '3b': { ...component, diem: 2.5, chamNguong: 'old' } }, { '3b.1': { ...child, diem: 2.5, chamNguong: 'old' } });
+    const result = apDungKetQuaPhanTich(initial, { '3b': component }, { '3b.1': { ...child, bangChung: [], lyDo: '' } });
+    expect(result.diemChot['3b']).toBe(2);
+    expect(result.chamNguong['3b']).toBe('');
+    expect(result.diemTieuChiCon['3b.1']).toBe(2);
+    expect(result.chamNguongTieuChiCon['3b.1']).toBe('');
+    expect(result.bangChungTieuChiCon['3b.1']).toEqual([]);
+    expect(result.lyDoTieuChiCon['3b.1']).toBe('');
+  });
+});
 
 /**
  * Lỗi thật trên production (2026-08-03): chấm Phần I mà minh chứng lại là các dòng

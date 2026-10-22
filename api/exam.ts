@@ -2,7 +2,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAdminDb, gradeSubmissionCore, stripAnswerKey, type CoreAnswer, type CoreQuestion } from './_exam-core.js';
 import { getAuth } from 'firebase-admin/auth';
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getBearerToken } from './_ai-gateway-core.js';
 
 /**
@@ -86,13 +86,15 @@ const handleGet = async (req: VercelRequest, res: VercelResponse) => {
     if (!safeId(proofSubmissionId)) return res.status(403).json({ error: 'Cần bài nộp hợp lệ để xem lại đề thi.' });
     const proof = await getAdminDb().collection('examSubmissions').doc(proofSubmissionId).get();
     const proofData = proof.exists ? proof.data() : undefined;
-    if (!proofData || proofData.examId !== examId || !['submitted', 'graded'].includes(String(proofData.status))) {
+    if (!proofData || proofData.examId !== examId || !['submitted', 'graded'].includes(String(proofData.status)) || typeof proofData.publicSessionId !== 'string' || typeof proofData.publicServerIssuedAt !== 'string') {
       return res.status(403).json({ error: 'Bài nộp không hợp lệ cho đề thi này.' });
     }
   }
 
-  if (code && typeof examData.password === 'string' && examData.password.length > 0 && !examPasswordMatches(examData.password, req.query.password)) {
-    const { questions: _questions, password: _password, id: _id, ...examMeta } = examData;
+  // Passwords are accepted only by POST /api/exam action=start. Never process a
+  // password from the URL, where browser history and proxy logs can retain it.
+  if (code && typeof examData.password === 'string' && examData.password.length > 0) {
+    const { questions: _questions, password: _password, id: _id, createdAt: _createdAt, ...examMeta } = examData;
     return res.status(200).json({
       passwordRequired: true,
       exam: { ...examMeta, questions: [], passwordRequired: true },
@@ -104,13 +106,176 @@ const handleGet = async (req: VercelRequest, res: VercelResponse) => {
     questions: Array.isArray(examData.questions) ? examData.questions.map(stripAnswerKey) : [],
   };
   delete publicExam.password;
+  if (code && typeof examData.password === 'string' && examData.password.length > 0) publicExam.questions = [];
 
-  res.setHeader('Cache-Control', 'public, max-age=15, s-maxage=30');
+  res.setHeader('Cache-Control', examData.password ? 'private, no-store' : 'public, max-age=15, s-maxage=30');
   return res.status(200).json({ exam: publicExam });
 };
 
 const RESULT_LEADERBOARD_SIZE = 10;
 const safeId = (value: string): boolean => Boolean(value) && value.length <= 150 && !value.includes('/');
+const publicSessionHash = (token: string) => createHash('sha256').update(token).digest('hex');
+const publicAttemptId = () => `public-${randomBytes(18).toString('hex')}`;
+const publicNonce = () => randomBytes(24).toString('hex');
+
+const publicExamView = (exam: Record<string, any>) => {
+  const { password: _password, questions, ...meta } = exam;
+  return { ...meta, questions: Array.isArray(questions) ? questions.map(stripAnswerKey) : [] };
+};
+
+const loadPublicExam = async (db: FirebaseFirestore.Firestore, code: string) => {
+  const snap = await db.collection('exams').where('code', '==', code).where('isActive', '==', true).limit(1).get();
+  if (snap.empty) throw new ExamRequestError(404, 'Không tìm thấy đề thi');
+  const first = snap.docs[0];
+  return { id: first.id, data: first.data() as Record<string, any> };
+};
+
+const verifyPublicSession = async (db: FirebaseFirestore.Firestore, token: string, examId: string) => {
+  if (!token || token.length < 32) throw new ExamRequestError(403, 'Phiên thi không hợp lệ hoặc đã hết hạn.');
+  const snap = await db.collection('publicExamSessions').doc(publicSessionHash(token)).get();
+  const session = snap.exists ? snap.data() as Record<string, any> : null;
+  if (!session || session.examId !== examId) throw new ExamRequestError(403, 'Phiên thi không hợp lệ hoặc đã hết hạn.');
+  return session;
+};
+
+const publicAttemptAnswers = (value: unknown, questions?: CoreQuestion[]) => Array.isArray(value)
+  ? value.filter((a): a is Record<string, any> => Boolean(a && typeof a === 'object' && typeof (a as any).questionId === 'string'))
+    .filter(a => !questions || questions.some(question => question.id === a.questionId))
+    .map(a => ({ questionId: a.questionId, answer: typeof a.answer === 'string' ? a.answer : '' }))
+  : [];
+
+const publicParticipantKey = (examId: string, studentName: string, studentClass: string) =>
+  createHash('sha256').update(`${examId}\0${studentName.trim().toLocaleLowerCase('vi')}\0${studentClass.trim().toLocaleLowerCase('vi')}`).digest('hex');
+
+const ensurePublicAttempt = async (
+  db: FirebaseFirestore.Firestore,
+  sessionId: string,
+  fallbackSession: Record<string, any>,
+  examId: string,
+  code: string,
+  exam: Record<string, any>,
+  body: Record<string, any>,
+  now: number,
+  allowCreate: boolean,
+) => db.runTransaction(async tx => {
+  const sessionRef = db.collection('publicExamSessions').doc(sessionId);
+  const sessionSnap = await tx.get(sessionRef);
+  const session = sessionSnap.exists ? sessionSnap.data() as Record<string, any> : fallbackSession;
+  if (typeof session.attemptId === 'string' && session.attemptId) return { session, attemptId: session.attemptId };
+  if (!allowCreate) throw new ExamRequestError(404, 'Không tìm thấy phiên làm bài.');
+
+  const studentName = typeof body.studentName === 'string' ? body.studentName.trim() : '';
+  if (studentName.length < 1 || studentName.length > 120) throw new ExamRequestError(400, 'Họ và tên không hợp lệ.');
+  const studentClass = typeof body.studentClass === 'string' ? body.studentClass.trim() : '';
+  const participantRef = db.collection('publicExamParticipants').doc(publicParticipantKey(examId, studentName, studentClass));
+  const participantSnap = await tx.get(participantRef);
+  const participant = participantSnap.exists ? participantSnap.data() as Record<string, any> : {};
+  if (typeof participant.inProgressAttemptId === 'string' && participant.inProgressAttemptId) {
+    const activeSnap = await tx.get(db.collection('examSubmissions').doc(participant.inProgressAttemptId));
+    if (activeSnap.exists && activeSnap.data()?.status === 'in_progress') {
+      throw new ExamRequestError(409, 'Bạn đang có một phiên làm bài chưa nộp. Hãy tiếp tục phiên đó.');
+    }
+  }
+  const maxAttempts = Number.isFinite(Number(exam.maxAttempts)) && Number(exam.maxAttempts) > 0 ? Math.floor(Number(exam.maxAttempts)) : 0;
+  const attempts = Number(participant.attempts) || 0;
+  if (maxAttempts > 0 && attempts >= maxAttempts) throw new ExamRequestError(409, `Bạn đã dùng đủ ${maxAttempts} lượt làm bài.`);
+
+  const attemptId = publicAttemptId();
+  const durationMs = Number.isFinite(Number(exam.durationMinutes)) && Number(exam.durationMinutes) > 0 ? Number(exam.durationMinutes) * 60_000 : null;
+  const attempt = { id: attemptId, examId, examCode: code, studentName, studentClass, startedAt: new Date(now).toISOString(), deadlineAt: durationMs ? new Date(now + durationMs).toISOString() : null, answers: [], maxScore: Number(exam.maxScore) || 0, clientNonce: publicNonce(), status: 'in_progress', publicServerIssuedAt: new Date(now).toISOString(), publicSessionId: sessionId };
+  tx.set(db.collection('examSubmissions').doc(attemptId), attempt);
+  tx.set(sessionRef, { ...session, id: sessionId, attemptId });
+  tx.set(participantRef, { examId, studentName, studentClass, attempts: attempts + 1, inProgressAttemptId: attemptId, updatedAt: new Date(now).toISOString() });
+  return { session: { ...session, id: sessionId, attemptId }, attemptId };
+});
+
+const handlePublicAttemptPost = async (req: VercelRequest, res: VercelResponse) => {
+  const body = (req.body || {}) as Record<string, any>;
+  const action = typeof body.action === 'string' ? body.action : '';
+  if (!['start', 'resume', 'save', 'submit'].includes(action)) return null;
+  const code = typeof body.code === 'string' ? body.code.trim().toUpperCase() : '';
+  if (!/^[A-Z0-9_-]{3,32}$/.test(code)) throw new ExamRequestError(400, 'Mã đề không hợp lệ.');
+  const db = getAdminDb();
+  const { id: examId, data: exam } = await loadPublicExam(db, code);
+  const password = typeof body.password === 'string' ? body.password : '';
+  if (typeof exam.password === 'string' && exam.password.length > 0) {
+    const sessionToken = typeof body.sessionToken === 'string' ? body.sessionToken : '';
+    if (action === 'start' && !sessionToken && !examPasswordMatches(exam.password, password)) {
+      throw new ExamRequestError(403, 'Mật khẩu đề thi không đúng.');
+    }
+  }
+  const now = Date.now();
+  const startAt = exam.startAt ? Date.parse(String(exam.startAt)) : NaN;
+  const endAt = exam.endAt ? Date.parse(String(exam.endAt)) : NaN;
+  if (Number.isFinite(startAt) && now < startAt) throw new ExamRequestError(409, 'Đề thi chưa mở.');
+  if (Number.isFinite(endAt) && now > endAt && ['start', 'resume', 'save'].includes(action)) throw new ExamRequestError(409, 'Đề thi đã đóng.');
+
+  let token = typeof body.sessionToken === 'string' ? body.sessionToken : '';
+  let session: Record<string, any>;
+  if (!token && action !== 'start') throw new ExamRequestError(403, 'Cần phiên thi để tiếp tục bài.');
+  if (token) {
+    session = await verifyPublicSession(db, token, examId);
+    if (typeof exam.password === 'string' && exam.password.length > 0 && session.passwordHash !== createHash('sha256').update(exam.password).digest('hex')) {
+      throw new ExamRequestError(403, 'Phiên thi đã hết hiệu lực sau khi đổi mật khẩu.');
+    }
+  } else {
+    token = randomBytes(32).toString('hex');
+    session = { id: publicSessionHash(token), examId, code, passwordHash: typeof exam.password === 'string' ? createHash('sha256').update(exam.password).digest('hex') : '', attemptId: '', createdAt: new Date(now).toISOString() };
+  }
+
+  const ensured = await ensurePublicAttempt(db, session.id, session, examId, code, exam, body, now, action === 'start');
+  session = ensured.session;
+  const attemptId = ensured.attemptId;
+
+  const attemptSnap = await db.collection('examSubmissions').doc(attemptId).get();
+  if (!attemptSnap.exists) throw new ExamRequestError(404, 'Không tìm thấy phiên làm bài.');
+  const attempt = attemptSnap.data() as Record<string, any>;
+  const questions: CoreQuestion[] = Array.isArray(exam.questions) ? exam.questions : [];
+  if (action === 'start' && attempt.status !== 'in_progress') throw new ExamRequestError(409, 'Bài đã nộp, không thể làm lại trong phiên này.');
+  if (action === 'submit' && attempt.status !== 'in_progress') {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ sessionToken: token, attempt: { id: attemptId, status: attempt.status, totalScore: attempt.totalScore, answers: attempt.answers } });
+  }
+  const deadline = attempt.deadlineAt ? Date.parse(String(attempt.deadlineAt)) : NaN;
+  const expired = (Number.isFinite(deadline) && now > deadline) || (Number.isFinite(endAt) && now > endAt);
+  let submittedNow = false;
+  if ((action === 'save' || action === 'resume') && expired) throw new ExamRequestError(409, 'Đã hết thời gian làm bài.');
+  if (action === 'save') {
+    await db.runTransaction(async tx => {
+      const fresh = await tx.get(db.collection('examSubmissions').doc(attemptId));
+      if (!fresh.exists || fresh.data()?.status !== 'in_progress') throw new ExamRequestError(409, 'Bài đã nộp.');
+      tx.update(db.collection('examSubmissions').doc(attemptId), { answers: publicAttemptAnswers(body.answers, questions), updatedAt: new Date(now).toISOString() });
+    });
+  } else if (action === 'submit') {
+    submittedNow = await db.runTransaction(async tx => {
+      const fresh = await tx.get(db.collection('examSubmissions').doc(attemptId));
+      if (!fresh.exists) throw new ExamRequestError(404, 'Không tìm thấy phiên làm bài.');
+      const current = fresh.data() as Record<string, any>;
+      if (current.status !== 'in_progress') return false;
+      const freshDeadline = current.deadlineAt ? Date.parse(String(current.deadlineAt)) : NaN;
+      const freshExpired = (Number.isFinite(freshDeadline) && now > freshDeadline) || (Number.isFinite(endAt) && now > endAt);
+      const answers = freshExpired ? publicAttemptAnswers(current.answers, questions) : publicAttemptAnswers(body.answers, questions);
+      const graded = gradeSubmissionCore(questions, answers, Boolean(exam.allowReview), exam.tfScoringMode);
+      tx.update(db.collection('examSubmissions').doc(attemptId), { answers: graded.answers, totalScore: graded.totalScore, status: graded.status, submittedAt: new Date(now).toISOString(), publicAutoGradedAt: new Date(now).toISOString() });
+      return true;
+    });
+    if (submittedNow) {
+      const participantRef = db.collection('publicExamParticipants').doc(publicParticipantKey(examId, String(attempt.studentName || ''), String(attempt.studentClass || '')));
+      try {
+        await participantRef.update({ inProgressAttemptId: '', updatedAt: new Date(now).toISOString() });
+      } catch (error) {
+        console.warn('[exam] không cập nhật được trạng thái participant sau khi nộp', error);
+      }
+    }
+  }
+  const latest = await db.collection('examSubmissions').doc(attemptId).get();
+  const latestAttempt = latest.data() as Record<string, any>;
+  res.setHeader('Cache-Control', 'no-store');
+  if (action === 'resume' || action === 'start' || action === 'save') {
+    return res.status(200).json({ sessionToken: token, exam: publicExamView(exam), attempt: { id: attemptId, status: latestAttempt.status, answers: publicAttemptAnswers(latestAttempt.answers, questions), startedAt: latestAttempt.startedAt, deadlineAt: latestAttempt.deadlineAt } });
+  }
+  return res.status(200).json({ sessionToken: token, attempt: { id: attemptId, status: latestAttempt.status, totalScore: latestAttempt.totalScore, answers: latestAttempt.answers } });
+};
 class ExamRequestError extends Error { constructor(readonly statusCode: number, message: string) { super(message); } }
 
 /** Đề cho hiện điểm chưa: theo cài đặt "Hiện kết quả khi nào" của giáo viên — máy chủ quyết, không để trình duyệt tự quyết. */
@@ -268,7 +433,11 @@ const handlePost = async (req: VercelRequest, res: VercelResponse) => {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') return await handleGet(req, res);
-    if (req.method === 'POST') return await handlePost(req, res);
+    if (req.method === 'POST') {
+      const publicAttempt = await handlePublicAttemptPost(req, res);
+      if (publicAttempt) return publicAttempt;
+      return await handlePost(req, res);
+    }
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
     if (error instanceof ExamRequestError) return res.status(error.statusCode).json({ error: error.message });

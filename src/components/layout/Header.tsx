@@ -32,6 +32,7 @@ export const filterHeaderFeatures = (query: string) => {
 interface HeaderProps {
   activeTab: string;
   data: AppData;
+  userId?: string | null;
   setIsSettingsOpen: (val: boolean) => void;
   setActiveTab: (tab: ActiveTab) => void;
   onMenuClick?: () => void;
@@ -49,7 +50,7 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip, isAdmin = false }: HeaderProps) => {
+export const Header = ({ activeTab, data, userId, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip, isAdmin = false }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [featureSearch, setFeatureSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -92,7 +93,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
     });
 
     try {
-      const raw = localStorage.getItem('testing_history');
+      const raw = localStorage.getItem(`testing_history:${userId || 'anonymous'}`);
       if (raw) {
         const entries = JSON.parse(raw) as { id: string; timestamp: number; title: string; mode: string }[];
         entries.slice(0, 5).forEach(e => {
@@ -112,7 +113,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
     } catch {}
 
     return items.sort((a, b) => b.timestamp - a.timestamp).slice(0, 15);
-  }, [data.lessonPlans, data.gradingSessions]);
+  }, [data.lessonPlans, data.gradingSessions, userId]);
 
   const getTitle = () => {
     switch (activeTab) {

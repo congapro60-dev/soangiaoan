@@ -114,6 +114,7 @@ export default function App() {
 
   // Hàng đợi soạn theo PPCT: gọi lại ĐÚNG đường soạn đơn của creator rồi lưu ngay từng tiết.
   const ppctQueue = usePpctQueue({
+    userId: user?.uid,
     soanMotTiet: (job) => creator.handleCreateLesson({
       title: job.title,
       requirement: job.requirement,
@@ -390,7 +391,7 @@ export default function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
-          activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          activeTab={activeTab} data={data} userId={user?.uid} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
           isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />

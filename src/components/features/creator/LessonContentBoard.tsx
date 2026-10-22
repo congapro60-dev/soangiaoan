@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
 import MDEditor from '@uiw/react-md-editor';
 import { LessonPlan } from '../../../types';
 import { auth, storage } from '../../../lib/firebase';
@@ -195,7 +194,7 @@ export const LessonContentBoard = ({
               <div className="prose prose-slate markdown-body max-w-none p-6 sm:p-10">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
+                  rehypePlugins={[rehypeKatex]}
                   components={{
                     blockquote: imagePromptBlockquote,
                     p: imagePromptParagraph,
@@ -298,7 +297,7 @@ export const LessonContentBoard = ({
                   preview="edit"
                   previewOptions={{
                     remarkPlugins: [remarkGfm, remarkMath],
-                    rehypePlugins: [rehypeRaw, rehypeKatex],
+                    rehypePlugins: [rehypeKatex],
                     components: {
                       blockquote: imagePromptBlockquote,
                       p: imagePromptParagraph,
@@ -379,7 +378,7 @@ export const LessonContentBoard = ({
                 <div className="wmde-markdown markdown-body bg-white p-8">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeRaw, rehypeKatex]}
+                    rehypePlugins={[rehypeKatex]}
                     components={{
                       blockquote: imagePromptBlockquote,
                       p: imagePromptParagraph,

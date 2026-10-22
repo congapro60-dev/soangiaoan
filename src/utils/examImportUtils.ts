@@ -8,6 +8,7 @@ import { storage } from '../lib/firebase';
 import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
 import { cleanImageBase64 } from './imageCleanup';
+import { validateExamQuestions } from './examScoring';
 
 type Settings = AppData['settings'];
 
@@ -231,7 +232,7 @@ export const parseExamFromFiles = async (
     const rawList = extractJSON(response);
     const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
 
-    return Promise.all(rawList.map(async (q, idx): Promise<ExamQuestion> => {
+    return validateExamQuestions(await Promise.all(rawList.map(async (q, idx): Promise<ExamQuestion> => {
       const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
       const question: ExamQuestion = {
         id: q.id ? String(q.id) : `q${idx + 1}`,
@@ -257,7 +258,7 @@ export const parseExamFromFiles = async (
       if (type === 'multiple_choice' && Array.isArray(q.options)) {
         question.options = q.options.map(o => o.toString());
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
-        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+        if (ans) question.correctAnswer = ans;
       } else if (type === 'true_false') {
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
         if (Array.isArray(q.options) && q.options.length > 0) {
@@ -272,7 +273,7 @@ export const parseExamFromFiles = async (
 
       if (q.explanation) question.explanation = q.explanation.toString();
       return question;
-    }));
+    })));
   } else {
     // Fast Text-only path (Default for PDF and DOCX)
     const examText = await extractTextFromFile(examFile);
@@ -284,7 +285,7 @@ export const parseExamFromFiles = async (
     const rawList = extractJSON(response);
     const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
 
-    return rawList.map((q, idx): ExamQuestion => {
+    const questions = rawList.map((q, idx): ExamQuestion => {
       const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
       const question: ExamQuestion = {
         id: q.id ? String(q.id) : `q${idx + 1}`,
@@ -295,19 +296,20 @@ export const parseExamFromFiles = async (
       if (type === 'multiple_choice' && Array.isArray(q.options)) {
         question.options = q.options.map(o => o.toString());
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
-        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+        if (ans) question.correctAnswer = ans;
       } else if (type === 'true_false') {
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
         // Support both single T/F and compound T/F (4 statements)
         if (Array.isArray(q.options) && q.options.length > 0) {
           question.options = q.options.map(o => o.toString());
-          // Normalize answer to comma-separated format if it's multiple parts
-          question.correctAnswer = ans.includes(',') ? ans : ans.split('').join(',');
+          // Normalize compound keys only when four statements were extracted.
+          question.correctAnswer = q.options.length === 4
+            ? (ans.includes(',') ? ans : ans.split('').join(','))
+            : ans;
         } else {
           // If AI failed to extract options but it's a T/F question, 
           // try to find statements in the content or just provide placeholders
-          question.options = ['', '', '', ''];
-          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đ,Đ,Đ,Đ' : 'S,S,S,S';
+          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đúng' : 'Sai';
         }
       } else if (type === 'short_answer') {
         question.correctAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
@@ -315,6 +317,7 @@ export const parseExamFromFiles = async (
       if (q.explanation) question.explanation = q.explanation.toString();
       return question;
     });
+    return validateExamQuestions(questions);
   }
 };
 

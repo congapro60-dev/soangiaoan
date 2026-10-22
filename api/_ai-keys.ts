@@ -229,6 +229,13 @@ const isExemptUid = async (access: AiAccessSettings, uid: string): Promise<boole
   access.exemptUids.includes(uid) || (await adminUids()).has(uid);
 
 /**
+ * Thuộc nhóm dùng thẳng khoá chung: có trong `sharedUids` hoặc là tài khoản admin. MỌI chỗ quyết định chế độ khoá phải
+ * dùng chung hàm này — trước đây chỉ `ensureGeminiKey` tính admin, nên khoá riêng của admin hỏng thì bị chặn thay vì sang ví.
+ */
+const isSharedUid = async (access: AiAccessSettings, uid: string): Promise<boolean> =>
+  access.sharedUids.includes(uid) || (await adminUids()).has(uid);
+
+/**
  * Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án.
  * Chủ dự án bật `testCharge` (công tắc "Thử trừ ví") thì bị tính như giáo viên thường để tự kiểm thử ví.
  */
@@ -285,7 +292,7 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
 
   const decision = decideAiKey({
     gateEnabled: true,
-    isShared: access.sharedUids.includes(ownerUid) || (await adminUids()).has(ownerUid),
+    isShared: await isSharedUid(access, ownerUid),
     ownKey: !options.vendor && keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,
@@ -322,7 +329,7 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
     keyStatusMessage: detail.slice(0, 300),
   }, { merge: true });
   const [keyDoc, access] = await Promise.all([loadKeyDoc(db, uid), loadAiAccess(db)]);
-  const isShared = access.sharedUids.includes(uid);
+  const isShared = await isSharedUid(access, uid);
   // Chỉ chế độ "cả hai" mới được chuyển sang ví khi khoá riêng hỏng; "chỉ khoá riêng" thì chặn dù đã đồng ý tính phí.
   if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
     throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
@@ -345,7 +352,7 @@ export const assertSharedAiAllowed = async (uid: string): Promise<'shared' | 'ow
   const keyDoc = await (access.enabled ? loadKeyDoc(db, uid) : loadKeyDoc(db, uid).catch(() => null));
   let source: 'shared' | 'owner_consent' = 'shared';
   if (access.enabled) {
-    const isShared = access.sharedUids.includes(uid);
+    const isShared = await isSharedUid(access, uid);
     // "Chỉ khoá riêng" (kể cả người trong nhóm đã chọn vậy) thì tính năng chỉ-khoá-chung này không được chạy.
     if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) === 'own') {
       throw new AiKeyRequiredError('consent_required', uid);
@@ -425,7 +432,7 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     usdVnd,
     capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null,
     gateEnabled: access.enabled,
-    shared: access.sharedUids.includes(uid),
+    shared: await isSharedUid(access, uid),
     hasKey: Boolean(keyDoc?.geminiKey),
     last4: keyDoc?.last4 ?? '',
     keyStatus: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : null,
@@ -437,7 +444,7 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     consent: keyDoc?.consent?.accepted === true,
     consentAt: keyDoc?.consent?.acceptedAt ?? null,
     /** Chế độ THỰC SỰ áp dụng (chọn ví mà chưa đồng ý tính phí thì vẫn là 'own'). */
-    mode: effectiveAiMode({ mode: keyDoc?.mode, isShared: access.sharedUids.includes(uid), consent: keyDoc?.consent?.accepted === true }),
+    mode: effectiveAiMode({ mode: keyDoc?.mode, isShared: await isSharedUid(access, uid), consent: keyDoc?.consent?.accepted === true }),
     blockedSubmissionIds: blocked.docs.map(d => d.id).slice(0, 100),
   };
 };
@@ -508,7 +515,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
     if (mode !== 'own') {
       // Dùng ví = bị trừ tiền → phải đã đồng ý (hoặc thuộc nhóm dùng thẳng khoá chung). Chọn lần đầu thì ghi luôn sự đồng ý.
       const [access, keyDoc] = await Promise.all([loadAiAccess(db), loadKeyDoc(db, me.uid)]);
-      const allowed = access.sharedUids.includes(me.uid) || keyDoc?.consent?.accepted === true;
+      const allowed = await isSharedUid(access, me.uid) || keyDoc?.consent?.accepted === true;
       if (!allowed && body.accepted !== true) {
         res.status(422).json({ error: 'Cần đồng ý tính phí theo mức dùng trước khi dùng ví web.' });
         return true;

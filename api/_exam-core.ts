@@ -101,7 +101,7 @@ const parseTFSub = (v: string): TfSubAnswers => {
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       return keys.reduce<TfSubAnswers>((result, key) => {
         const value = normalizeValue((parsed as Record<string, unknown>)[key]);
-        if (value) result[key] = value;
+        if (value === 'Đ' || value === 'S') result[key] = value;
         return result;
       }, {});
     }
@@ -110,7 +110,7 @@ const parseTFSub = (v: string): TfSubAnswers => {
   }
 
   const parts = v.split(',').map(normalizeValue);
-  if (parts.length !== keys.length || parts.some(part => !part)) return {};
+  if (parts.length !== keys.length || parts.some(part => part !== 'Đ' && part !== 'S')) return {};
   return keys.reduce<TfSubAnswers>((result, key, index) => {
     result[key] = parts[index];
     return result;

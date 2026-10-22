@@ -26,9 +26,12 @@ export const verifySubmissionScore = (
     const q = questions.find(item => item.id === a.questionId)!;
     if (q.type === 'essay') return a;
     const autoScore = computeAutoScore(q, a.answer, tfScoringMode);
-    if (autoScore === a.autoScore) return a;
+    const reviewKeyChanged = (a.correctAnswer !== undefined && a.correctAnswer !== q.correctAnswer)
+      || (a.explanation !== undefined && a.explanation !== q.explanation);
+    if (autoScore === a.autoScore && !reviewKeyChanged) return a;
     answersChanged = true;
-    return { ...a, autoScore };
+    const { correctAnswer: _oldKey, explanation: _oldExplanation, ...answer } = a;
+    return { ...answer, autoScore, ...(q.correctAnswer !== undefined ? { correctAnswer: q.correctAnswer } : {}), ...(q.explanation !== undefined ? { explanation: q.explanation } : {}) };
   });
 
   const totalScore = Math.round(answers.reduce((sum, a) => {
@@ -120,7 +123,7 @@ export const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ
     if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
       return keys.reduce<Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>>>((result, key) => {
         const value = normalizeValue((parsed as Record<string, unknown>)[key]);
-        if (value) result[key] = value as 'Đ' | 'S';
+        if (value === 'Đ' || value === 'S') result[key] = value;
         return result;
       }, {});
     }
@@ -128,7 +131,7 @@ export const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ
     // Legacy/imported answer keys use CSV: "Đ,S,Đ,S".
   }
   const parts = v.split(',').map(normalizeValue);
-  if (parts.length !== keys.length || parts.some(part => !part)) return {};
+  if (parts.length !== keys.length || parts.some(part => part !== 'Đ' && part !== 'S')) return {};
   return keys.reduce<Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>>>(
     (result, key, index) => { result[key] = parts[index] as 'Đ' | 'S'; return result; },
     {},
@@ -163,17 +166,47 @@ export const computeAutoScore = (
       return 0;
     }
     
-    // Default or simple ratio
-    return (q.points / 4) * correctCount;
+    return correctCount === 4 ? q.points : 0;
   }
 
-  if (q.type === 'short_answer') {
-    const s = answer.trim().toLowerCase();
-    const c = (q.correctAnswer || '').trim().toLowerCase();
+  if (q.type === 'short_answer' || q.type === 'true_false') {
+    const s = answer.trim().toLowerCase().replace(/\s+/g, ' ');
+    const c = (q.correctAnswer || '').trim().toLowerCase().replace(/\s+/g, ' ');
     return s === c ? q.points : 0;
   }
 
   return undefined;
+};
+
+/** Reject ambiguous answer keys before publishing or grading imported questions. */
+export const validateExamQuestions = (questions: ExamQuestion[]): ExamQuestion[] => {
+  if (!Array.isArray(questions) || !questions.length) throw new Error('Đề cần ít nhất một câu hỏi.');
+  const ids = new Set<string>();
+  return questions.map((q, index) => {
+    const fail = () => { throw new Error(`Câu ${index + 1}: nội dung, điểm hoặc đáp án chưa hợp lệ.`); };
+    if (!q || typeof q.id !== 'string' || !q.id || ids.has(q.id) || typeof q.content !== 'string' || !q.content.trim() || !Number.isFinite(q.points) || q.points <= 0) return fail();
+    ids.add(q.id);
+    if (q.type === 'essay') return q;
+    if (typeof q.correctAnswer !== 'string' || !q.correctAnswer.trim()) return fail();
+    let correctAnswer = q.correctAnswer.trim();
+    if (q.type === 'multiple_choice') {
+      if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 4 || q.options.some(o => typeof o !== 'string' || !o.trim())) return fail();
+      const optionText = (value: string) => value.replace(/^[A-D][.)]\s*/i, '').trim().toLocaleLowerCase('vi');
+      if (!/^[A-D]$/.test(correctAnswer) || correctAnswer.charCodeAt(0) - 65 >= q.options.length) {
+        const matches = q.options.map((o, i) => optionText(o) === optionText(correctAnswer) ? i : -1).filter(i => i >= 0);
+        if (matches.length !== 1) return fail();
+        correctAnswer = String.fromCharCode(65 + matches[0]);
+      }
+    } else if (isCompoundTF(q)) {
+      if (q.options!.length !== 4 || q.options!.some(o => typeof o !== 'string' || !o.trim())) return fail();
+      const parsed = parseTFSub(correctAnswer);
+      if (Object.keys(parsed).length !== 4) return fail();
+      correctAnswer = (['a', 'b', 'c', 'd'] as const).map(k => parsed[k]).join(',');
+    } else if (q.type === 'true_false') {
+      if (!['Đúng', 'Sai'].includes(correctAnswer)) return fail();
+    } else if (q.type !== 'short_answer') return fail();
+    return { ...q, correctAnswer };
+  });
 };
 
 export const recalcTotalScore = (
