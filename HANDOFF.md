@@ -27,7 +27,7 @@ Phát hiện quan trọng: **AI đọc ĐÚNG tổng điểm GV ghi tay và mã 
 
 Bài này còn ở trạng thái **chờ duyệt**; lớp bật "tự chấm & duyệt sau 60 phút" nên ~12:31 sẽ tự duyệt và công bố cho HS — chủ dự án nên soát lại bảng câu trước lúc đó.
 
-Gate trước commit: full 3357/3357 tests (73 file API + toàn bộ src), `lint` + `lint:api` exit 0, Vite build exit 0. Worktree `nop-bai-da-cham`, nhánh `feat/nop-bai-da-cham` dựng trên `origin/main` f52b00f, `rev-list origin/main...nhánh = 0/0` (không drift với các phiên khác). Chưa push.
+Gate trước commit: full 3357/3357 tests (73 file API + toàn bộ src), `lint` + `lint:api` exit 0, Vite build exit 0. Worktree `nop-bai-da-cham`, nhánh `feat/nop-bai-da-cham` dựng trên `origin/main` f52b00f, `rev-list origin/main...nhánh = 0/0` (không drift với các phiên khác). Đã push `feat/nop-bai-da-cham` và merge fast-forward vào `main`.
 
 ## Ví AI: không bao giờ âm, không trừ oan, hết tiền thì nạp 1 chạm — 22/10 (Claude)
 
@@ -44,11 +44,9 @@ Sự cố 16/10 (run 38896124428, `photo-refresh-20261015-retry`): khoá hết h
 ## Bút đỏ từng bước trên ảnh bài làm — 22/10 (Claude)
 `QuestionResult.photoSteps` (types.ts): câu TỰ LUẬN chia 2..8 bước, mỗi bước Đ/Thiếu/S + điểm + lời sửa ngắn + dải dòng (`mark`). Chủ dự án chốt: AI tự chia điểm bước, NHƯNG có hướng dẫn chấm thì theo đúng mốc bước trong đó; `buildRubricPrompt` nay bắt chia tự luận thành "Bước n — điểm". Sinh cùng lượt chấm (`PHOTO_STEPS_RULES` trong `buildPhotoMarksPrompt`) và lượt chỉ vẽ dấu (`buildAnnotationPrompt` + rubric bài giao; điểm câu cố định). Bất biến: `validPhotoSteps` — tổng điểm/thang bước phải = điểm câu HIỆN TẠI, lệch (AI chia sai, GV sửa điểm) thì bỏ khi lưu/ẩn khi vẽ, KHÔNG bao giờ sửa điểm theo bước. URL dòng do máy chủ gắn theo imageIndex (`bindQuestionPhotoMarks`/`projectPhotoSteps`); HS chỉ thấy sau duyệt. UI `SubmissionPhotoReview`: nhãn lề ngang dòng, gạch đỏ + lời sửa dưới dòng sai, "Điểm: x/y" góc ảnh, câu có bước thì bỏ khoanh cả câu; trắc nghiệm chấm ✓/✗. Bài cũ: nút "Vẽ bút đỏ từng bước" (annotate force=true) từng bài, KHÔNG chạy hàng loạt. Chưa có: tải ảnh đã chấm PNG (CORS Storage chưa kiểm).
 
-## SỰ CỐ 15–16/10: job "làm mới dấu trên ảnh" đã CHẤM LẠI toàn bộ bài — đã sửa gốc 17/10 (Claude)
+## Bút đỏ từng bước trên ảnh bài làm — 22/10 (Claude)
 
-`cron=refresh` gọi `gradeOneSubmission(..., 'thorough')` → chấm lại từ đầu + `commitAiGradeIfClaimed` ghi grade mới (lịch sử `ai_regrade` giữ grade cũ). So ảnh chụp trước đợt (`%TEMP%/grading-refresh-private/inventory.json`, 15/10 14:33) với production 17/10: 184 bài bị chấm lại trong khung job; 104 đổi điểm (10Olinda 72, 11Columbus 30, 12LoTrinh1 2), 93 trong đó đã duyệt (43 GV duyệt tay), 50 bài mất duyệt; lệch >1 điểm 16, lớn nhất 5,5. Codex báo "giữ điểm by design" — sai, mã không làm vậy.
-Sửa gốc: tách `annotateSubmission()` (lõi nút "Bổ sung dấu chấm trên ảnh") trong `_submission-annotations.ts`; job làm mới chỉ gọi nó (`locateAnnotation`), không còn `gradeOneSubmission`. Test khoá: refresh giữ score/duyệt/nhận xét/gradedAt/bảng câu, chỉ thêm photoMarks, không tạo lịch sử.
-Khôi phục dữ liệu: chủ dự án chọn "trả lại điểm cũ, giữ dấu ảnh; trừ bài GV đã tự sửa/duyệt lại SAU đợt chạy". Công cụ: tab Quản trị → "Khôi phục điểm bị chấm lại (15–16/10)" (`adminRefreshRestore`, `api/_refresh-restore.ts`): lấy bài `status=graded` trong `gradingRefreshJobs/photo-refresh-20261015-*/items`, grade cũ = lịch sử `ai_regrade` có `createdAt` TRÙNG `grade.gradedAt` hiện tại; bỏ qua bài editedByTeacher / đã chấm lại thêm (bài được duyệt sau đợt, kể cả nguồn 'teacher', VẪN khôi phục — chủ dự án xác nhận là duyệt hàng loạt); ghép photoMarks mới; lịch sử `refresh_restore`; đồng bộ minh chứng theo trạng thái duyệt cũ; lô 20 bài, đánh dấu `refreshRestoredAt`. 17/10 soát ảnh 16 bài lệch >1 điểm: lần 1 đúng 6, lần 2 đúng 8, lẫn 1, chưa rõ 1 → `KEEP_REGRADE` (18 bài: 6 bài lần 2 đúng + cả nhóm Hình học 29/09 vì lần 2 theo thang Đúng/Sai THPT) GIỮ điểm mới, GV duyệt lại; Phúc Minh GHK I ĐC1 câu 5 em khoanh B — GV sửa tay. Chủ dự án tự bấm (Claude không được ghi production).
+`cron=refresh` chỉ vẽ dấu, KHÔNG chấm lại (sự cố 15–16/10 đã sửa gốc; chi tiết ở `docs/HANDOFF-ARCHIVE.md`).
 
 ## Điểm chấm tay trên bài định kì → sổ điểm (GV xác nhận) — 16/10 (Claude)
 
