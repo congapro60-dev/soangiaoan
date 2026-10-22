@@ -7,7 +7,7 @@ import { parseExamConversionFile, type ExamConversionRow } from '../../../lib/cl
 import { fetchClassExamScores, inspectExamSheet, planExamSheetWrites, writeExamSheetValues, type ExamSheetWrite } from '../../../lib/classroom/examService';
 import { spreadsheetIdFromUrl } from '../../../lib/classroom/sheetsApi';
 import { deleteHs1Column, linkAssignmentColumns, linkPeriodicAssignments, loadScoreBook, saveExamColumn, saveExamColumnSettings, saveExamScores, saveExamWeights, saveHs1Column, setClassExamSheet } from '../../../lib/classroom/teacherService';
-import { applyExamColumnSettings, HS1_MAX, columnScore, parseHs1Score, parseHs1Weight, sortedHs1Columns, studentScoreView, type Hs1Column, type Hs1Weight, type ScoreBookDoc } from '../../../lib/classroom/scoreBook';
+import { applyExamColumnSettings, EXAM_SOURCE_INFO, HS1_MAX, columnScore, examScoreSource, parseHs1Score, parseHs1Weight, sortedHs1Columns, studentScoreView, type ExamScoreSource, type Hs1Column, type Hs1Weight, type ScoreBookDoc } from '../../../lib/classroom/scoreBook';
 
 interface Props {
   classId: string;
@@ -47,6 +47,21 @@ interface TwoWayPreview {
 const AUTO_REFRESH_MS = 30_000;
 
 const WEIGHTS: Hs1Weight[] = [1, 2, 3];
+
+/** Màu badge nguồn điểm — để thầy cô thấy ngay điểm này đến từ đâu. */
+const SOURCE_TONE: Record<ExamScoreSource, string> = {
+  assignment: 'bg-emerald-100 text-emerald-700',
+  manual: 'bg-amber-100 text-amber-700',
+  paper: 'bg-rose-100 text-rose-700',
+  sheet: 'bg-slate-100 text-slate-600',
+};
+
+/** Badge nguồn điểm: chữ nhỏ cạnh số điểm, di chuột hiện giải thích. */
+const SourceBadge = ({ source }: { source?: ExamScoreSource }) => {
+  if (!source) return null;
+  const info = EXAM_SOURCE_INFO[source];
+  return <span title={info.hint} className={`ml-1 rounded px-1 py-px align-middle text-[9px] font-black uppercase tracking-wide ${SOURCE_TONE[source]}`}>{info.label}</span>;
+};
 
 const todayIso = (): string => {
   const now = new Date();
@@ -715,12 +730,14 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
                     </td>
                     {moetLabels.map((label, i) => {
                       const mark = moet.get(label);
+                      const source = examScoreSource(book, student.id, label);
                       // Điểm thầy cô xác nhận từ ảnh bài chấm tay (chưa có trong file điểm): tô đỏ nhạt để phân biệt.
-                      return <td key={label} title={mark?.source === 'paper' ? 'Điểm chấm tay đã xác nhận từ ảnh bài — file điểm chưa có cột này' : undefined} className={`px-3 py-2.5 text-center font-black ${mark?.source === 'paper' ? 'text-rose-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark?.score ?? <span className="text-slate-300">—</span>}</td>;
+                      return <td key={label} title={source ? EXAM_SOURCE_INFO[source].hint : undefined} className={`whitespace-nowrap px-3 py-2.5 text-center font-black ${mark?.source === 'paper' ? 'text-rose-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark?.score ?? <span className="text-slate-300">—</span>}{mark ? <SourceBadge source={source} /> : null}</td>;
                     })}
                     {tdsLabels.map((label, i) => {
                       const mark = tds.get(label);
-                      return <td key={label} className={`whitespace-nowrap px-3 py-2.5 text-center font-black text-slate-800 ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark ? <>{mark.score}{mark.letter && <span className="ml-1 rounded bg-indigo-50 px-1.5 text-[11px] text-indigo-700">{mark.letter}</span>}</> : <span className="text-slate-300">—</span>}</td>;
+                      const source = examScoreSource(book, student.id, label);
+                      return <td key={label} title={source ? EXAM_SOURCE_INFO[source].hint : undefined} className={`whitespace-nowrap px-3 py-2.5 text-center font-black text-slate-800 ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark ? <>{mark.score}{mark.letter && <span className="ml-1 rounded bg-indigo-50 px-1.5 text-[11px] text-indigo-700">{mark.letter}</span>}<SourceBadge source={source} /></> : <span className="text-slate-300">—</span>}</td>;
                     })}
                     {hs1Columns.map((column, i) => {
                       const score = columnScore(book, column, student.id);
@@ -735,6 +752,15 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
               })}
             </tbody>
           </table>
+          <p className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-2 text-[11px] font-semibold text-slate-500">
+            <span className="font-black text-slate-600">Nguồn điểm:</span>
+            {(Object.keys(EXAM_SOURCE_INFO) as ExamScoreSource[]).map(source => (
+              <span key={source} className="inline-flex items-center gap-1">
+                <span className={`rounded px-1 py-px text-[9px] font-black uppercase tracking-wide ${SOURCE_TONE[source]}`}>{EXAM_SOURCE_INFO[source].label}</span>
+                <span>{EXAM_SOURCE_INFO[source].hint}</span>
+              </span>
+            ))}
+          </p>
         </div>
       )}
       {busy && <p className="flex items-center gap-2 text-xs font-bold text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {busy}</p>}

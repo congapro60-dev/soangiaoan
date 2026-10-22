@@ -158,7 +158,18 @@ describe('sổ điểm', () => {
     h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: {} } };
     const created = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi cuối kì I', scores: {}, kind: 'both' });
     expect(created.statusCode).toBe(200);
-    expect((created.payload?.scoreBook as any).examColumns).toEqual({ moet: ['Thi cuối kì I'], tds: ['Thi cuối kì I'] });
+    // Cột nhập tay thuộc nhóm MOET; đẩy vào cả TDS sẽ sinh cột kép hiện ở hai nhóm.
+    expect((created.payload?.scoreBook as any).examColumns).toEqual({ moet: ['Thi cuối kì I'], tds: [] });
+  });
+
+  it('hàng rào: không tạo được cột định kì trùng mốc đã có trong sổ', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const dup = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi GHKI', scores: { a: 8 }, kind: 'both' });
+    expect(dup.statusCode).toBe(422);
+    expect(String(dup.payload?.error)).toContain('Giữa học kì I');
+    // Bị chặn thì không ghi gì cả — kể cả điểm sửa tay.
+    expect(h.store.scoreBooks['lop-1'].examColumns).toEqual({ moet: ['Giữa học kì I'], tds: [] });
+    expect(h.store.scoreBooks['lop-1'].examOverrides).toBeUndefined();
   });
 
   it('đổi tên/xóa cột định kì trong sổ mà vẫn giữ nguồn để khôi phục', async () => {
