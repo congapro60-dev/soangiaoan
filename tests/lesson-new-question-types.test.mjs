@@ -137,3 +137,22 @@ test('late private thought restores without overwriting unsent text and clears f
  ui.props.task={...ui.props.task,id:'another-task'};ui.props.initialDraft=null;ui.render();ui.flush();tree=ui.render();
  assert.equal(find(tree,node=>node.type==='textarea')[0].props.value,'');
 });
+
+test('TaskInput renders Desmos geometry buttons, hand-drawn photo tools and diagram scaffolding', () => {
+  const openTask = {
+    id: 'open-geometry-task',
+    type: 'open',
+    prompt: 'Vẽ hình và chứng minh',
+    diagramUrl: 'https://example.com/diagram.png',
+    advertisedHints: [{ id: 'h1', tier: 'H1', opened: true, text: 'Gợi ý tầng 1', diagramUrl: 'https://example.com/hint-diagram.png' }],
+    evaluation: { rubric: { criteria: ['Vẽ đúng thiết diện'] } }
+  };
+  const ui = editor(openTask);
+  let tree = ui.render();
+  const html = renderToStaticMarkup(tree);
+  assert.match(html, /Desmos Hình học/);
+  assert.match(html, /Desmos Đồ thị/);
+  assert.match(html, /Tải ảnh vẽ tay/);
+  assert.match(html, /https:\/\/example.com\/diagram.png/);
+  assert.match(html, /https:\/\/example.com\/hint-diagram.png/);
+});

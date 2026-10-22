@@ -66,6 +66,35 @@ export interface TaskInputProps {
   currentLearnerId?: string;
 }
 
+async function shrinkDrawingPhoto(file: File): Promise<string> {
+  if (typeof document === "undefined" || typeof createImageBitmap === "undefined") {
+    return "";
+  }
+  try {
+    const bitmap = await createImageBitmap(file);
+    for (const [side, quality] of [[1200, 0.8], [1000, 0.7], [800, 0.6]] as const) {
+      const scale = Math.min(1, side / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const g = canvas.getContext("2d");
+      if (!g) break;
+      g.fillStyle = "#fff";
+      g.fillRect(0, 0, canvas.width, canvas.height);
+      g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL("image/jpeg", quality);
+      if (data.length <= 500_000) {
+        bitmap.close?.();
+        return data;
+      }
+    }
+    bitmap.close?.();
+  } catch {
+    // fallback
+  }
+  return "";
+}
+
 export function TaskInput({
   task,
   disabled = false,
@@ -86,6 +115,19 @@ export function TaskInput({
   const evalData = task.evaluation || {};
   const checkerId = evalData.checkerId || "";
   const taskType = task.type || "closed";
+
+  const cellInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [desmosMode, setDesmosMode] = useState<"none" | "geometry" | "calculator">("none");
+  const [drawingPhoto, setDrawingPhoto] = useState<string>(() => {
+    if (initialDraft && typeof initialDraft === "object" && "drawingPhoto" in initialDraft) {
+      return String((initialDraft as { drawingPhoto?: string }).drawingPhoto || "");
+    }
+    if (submission?.answer && typeof submission.answer === "object" && "drawingPhoto" in submission.answer) {
+      return String((submission.answer as { drawingPhoto?: string }).drawingPhoto || "");
+    }
+    return "";
+  });
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Determine input flavor
   const isOrdering = checkerId === "ordering_exact";
@@ -314,6 +356,11 @@ export function TaskInput({
     if (isMultiChoice) {
       return Array.isArray(value) && value.length > 0;
     }
+    if (typeof value === "object" && value !== null && ("text" in value || "drawingPhoto" in value)) {
+      const textVal = (value as { text?: unknown }).text;
+      const photoVal = (value as { drawingPhoto?: unknown }).drawingPhoto;
+      return (typeof textVal === "string" && textVal.trim().length > 0) || Boolean(photoVal);
+    }
     if (typeof value === "string") {
       return value.trim().length > 0;
     }
@@ -516,7 +563,30 @@ export function TaskInput({
     );
   }
 
+  function renderTaskDiagram() {
+    const taskImg = (task as { diagramUrl?: string; image?: string }).diagramUrl || (task as { diagramUrl?: string; image?: string }).image;
+    if (!taskImg) return null;
+    return (
+      <div className="task-diagram-card" style={{ marginBottom: "0.75rem", textAlign: "center" }}>
+        <img
+          src={taskImg}
+          alt="Hình minh họa nhiệm vụ"
+          style={{ maxWidth: "100%", maxHeight: "280px", borderRadius: "8px", border: "1px solid var(--lesson-border, #e2e8f0)" }}
+        />
+      </div>
+    );
+  }
+
   function renderInputFields() {
+    return (
+      <>
+        {renderTaskDiagram()}
+        {renderFieldContent()}
+      </>
+    );
+  }
+
+  function renderFieldContent() {
     if (isOrdering) {
       const items = schema.items || [];
       const orderedIds: string[] = Array.isArray(value) ? value as string[] : [];
@@ -733,6 +803,7 @@ export function TaskInput({
               <label key={cell.id} className="task-short-answer-cell">
                 <span className="task-short-answer-cell-label">{cell.label || `Ô ${index + 1}`}</span>
                 <input
+                  ref={el => { cellInputRefs.current[index] = el; }}
                   aria-label={cell.label || `Ô ${index + 1}`}
                   type="text"
                   inputMode={schema.format === "alphanumeric" ? "text" : "numeric"}
@@ -741,8 +812,17 @@ export function TaskInput({
                   value={answers[index] || ""}
                   onChange={(event) => {
                     const next = [...answers];
-                    next[index] = event.target.value;
+                    const val = event.target.value;
+                    next[index] = val;
                     handleValueChange(next);
+                    if (val.trim() && index < 3) {
+                      cellInputRefs.current[index + 1]?.focus();
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Backspace" && !answers[index] && index > 0) {
+                      cellInputRefs.current[index - 1]?.focus();
+                    }
                   }}
                   className="task-short-answer-input"
                 />
@@ -801,14 +881,107 @@ export function TaskInput({
         <label htmlFor={`task-open-${inputId}`} className="task-label">
           {taskType === "reflection" ? "Bài suy ngẫm & Liên hệ:" : "Lời giải và lập luận của em:"}
         </label>
+
+        <div className="task-drawing-tools" style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.6rem" }}>
+          <button
+            type="button"
+            className={`task-button task-button-sm ${desmosMode === "geometry" ? "task-button-primary" : "task-button-secondary"}`}
+            disabled={disabled}
+            onClick={() => setDesmosMode(prev => prev === "geometry" ? "none" : "geometry")}
+            style={{ fontSize: "0.85rem", padding: "0.25rem 0.6rem" }}
+          >
+            📐 {desmosMode === "geometry" ? "Đóng Desmos Hình học" : "Mở Desmos Hình học"}
+          </button>
+          <button
+            type="button"
+            className={`task-button task-button-sm ${desmosMode === "calculator" ? "task-button-primary" : "task-button-secondary"}`}
+            disabled={disabled}
+            onClick={() => setDesmosMode(prev => prev === "calculator" ? "none" : "calculator")}
+            style={{ fontSize: "0.85rem", padding: "0.25rem 0.6rem" }}
+          >
+            📈 {desmosMode === "calculator" ? "Đóng Desmos Đồ thị" : "Mở Desmos Đồ thị"}
+          </button>
+          <label className="task-button task-button-sm task-button-secondary" style={{ fontSize: "0.85rem", padding: "0.25rem 0.6rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+            📷 {isUploadingPhoto ? "Đang xử lý..." : (drawingPhoto ? "Đổi ảnh vẽ tay" : "Tải ảnh vẽ tay (giấy)")}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: "none" }}
+              disabled={disabled || isUploadingPhoto}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setIsUploadingPhoto(true);
+                try {
+                  const data = await shrinkDrawingPhoto(file);
+                  if (data) {
+                    setDrawingPhoto(data);
+                    const currentText = typeof value === "string" ? value : (typeof value === "object" && value !== null && "text" in value ? String((value as {text?: unknown}).text ?? "") : "");
+                    handleValueChange({ text: currentText, drawingPhoto: data });
+                  }
+                } finally {
+                  setIsUploadingPhoto(false);
+                }
+              }}
+            />
+          </label>
+        </div>
+
+        {desmosMode !== "none" && (
+          <div className="task-desmos-embed" style={{ marginBottom: "0.75rem", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--lesson-border, #cbd5e1)" }}>
+            <iframe
+              src={desmosMode === "geometry" ? "https://www.desmos.com/geometry?embed" : "https://www.desmos.com/calculator?embed"}
+              width="100%"
+              height="300"
+              style={{ border: "none", display: "block" }}
+              title="Desmos Workspace"
+            />
+          </div>
+        )}
+
+        {drawingPhoto && (
+          <div className="task-drawing-preview" style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem", padding: "0.5rem", background: "rgba(0,0,0,0.03)", borderRadius: "6px", border: "1px solid var(--lesson-border, #e2e8f0)" }}>
+            <img src={drawingPhoto} alt="Ảnh vẽ tay" style={{ height: "55px", width: "55px", borderRadius: "4px", objectFit: "cover" }} />
+            <span style={{ fontSize: "0.85rem" }}>Đã đính kèm ảnh vẽ tay bài làm</span>
+            <button
+              type="button"
+              className="task-button task-button-sm task-button-secondary"
+              style={{ marginLeft: "auto", fontSize: "0.8rem", padding: "0.2rem 0.5rem" }}
+              onClick={() => {
+                setDrawingPhoto("");
+                const currentText = typeof value === "string" ? value : (typeof value === "object" && value !== null && "text" in value ? String((value as {text?: unknown}).text ?? "") : "");
+                handleValueChange(currentText);
+              }}
+            >
+              Xóa ảnh
+            </button>
+          </div>
+        )}
+
         <textarea
           id={`task-open-${inputId}`}
           rows={6}
           disabled={disabled}
-          value={typeof value === "string" ? value : String(value ?? "")}
-          onChange={(e) => handleValueChange(e.target.value)}
+          value={typeof value === "string" ? value : (typeof value === "object" && value !== null && "text" in value ? String((value as {text?: unknown}).text ?? "") : String(value ?? ""))}
+          onChange={(e) => {
+            const nextText = e.target.value;
+            if (drawingPhoto) {
+              handleValueChange({ text: nextText, drawingPhoto });
+            } else {
+              handleValueChange(nextText);
+            }
+          }}
           onCompositionStart={() => { isComposingRef.current = true; }}
-          onCompositionEnd={(e) => { isComposingRef.current = false; handleValueChange(e.currentTarget.value); }}
+          onCompositionEnd={(e) => {
+            isComposingRef.current = false;
+            const nextText = e.currentTarget.value;
+            if (drawingPhoto) {
+              handleValueChange({ text: nextText, drawingPhoto });
+            } else {
+              handleValueChange(nextText);
+            }
+          }}
           placeholder="Trình bày chi tiết cách giải, biến đổi công thức và giải thích quy luật..."
           className="task-textarea"
           maxLength={4000}
@@ -856,6 +1029,15 @@ export function TaskInput({
                 <div className="task-hint-text">
                   <MathText text={h.text} inline={false} />
                 </div>
+                {((h as { diagramUrl?: string }).diagramUrl || (h as { image?: string }).image) && (
+                  <div className="task-hint-diagram" style={{ marginTop: "0.5rem" }}>
+                    <img
+                      src={(h as { diagramUrl?: string }).diagramUrl || (h as { image?: string }).image}
+                      alt={`Sơ đồ gợi ý tầng ${h.tier || i + 1}`}
+                      style={{ maxWidth: "100%", maxHeight: "240px", borderRadius: "6px", border: "1px solid var(--lesson-border, #e2e8f0)" }}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

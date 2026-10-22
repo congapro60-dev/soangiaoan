@@ -114553,7 +114553,7 @@
    "pkg": {
     "schemaVersion": "1.0.0",
     "id": "r22-g11-discover-r107",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "draft",
     "subject": "math",
     "grade": 11,
@@ -114573,6 +114573,14 @@
       "locator": "https://drive.google.com/file/d/1PpR5FxuAkWjW-583Z21FMoxnn6YFFAXS/view",
       "label": "Dis_Toán 11 Kế-hoạch-học-phần-II năm 25-26.docx (tasks/r22/sources/g11-unit2.txt:18-18)",
       "hash": "e2f3afc83ff90ed25bcd325992c9369680624282d6211000686614e436a45d3b",
+      "verification": "teacher_review_required"
+     },
+     {
+      "id": "r26-g11-thales-sgk",
+      "kind": "external",
+      "locator": "C:/Users/ADMIN/Downloads/smart-lesson-plan-ai/SGK Kết nối/sach-giao-khoa-toan-11-tap-1-ket-noi-tri-thuc-voi-cuoc-song (2).pdf#page=91",
+      "label": "SGK Toán 11, tập 1, Kết nối tri thức với cuộc sống, Bài 13, trang in 90–92; Định lý Thalès trong không gian. Bài tập do tác giả biên soạn.",
+      "hash": "e551239c42f9a1cf835c87926f7ea77034251198c1f0108ac2cead535e9d049fa",
       "verification": "teacher_review_required"
      }
     ],
@@ -114776,15 +114784,16 @@
     "tasks": [
      {
       "id": "task-1-1",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-1",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=2,\\ BC=3,\\ A'B'=4$. Tính $B'C'$.",
+      "prompt": "Quan sát chiếc thang chữ A có 3 bậc ngang song song. Hai chân thang đóng vai trò hai cát tuyến cắt các mặt phẳng chứa 3 bậc thang. Nếu khoảng cách giữa bậc 1 và bậc 2 ở chân thang bên trái bằng khoảng cách giữa bậc 2 và bậc 3, thì tỉ số các đoạn tương ứng ở chân thang bên phải thế nào? Khi mở rộng ra ba mặt phẳng song song trong không gian cắt hai đường thẳng bất kì, điều gì được bảo toàn?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-1-1"
@@ -114796,10 +114805,17 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=4\\cdot3/2=6$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 6
+       "rubric": {
+        "criteria": [
+         "Nhận biết tính bảo toàn tỉ số đoạn thẳng trên hai cát tuyến.",
+         "Kết nối mô hình thực tế với định lý hình học không gian."
+        ],
+        "lookFor": [
+         "Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -114808,20 +114824,21 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=4\\cdot3/2=6$."
+       "workedSolution": "Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn."
       }
      },
      {
       "id": "task-2-1",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-2",
       "participation": "whole_class",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=3,\\ BC=4,\\ A'B'=6$. Tính $B'C'$.",
+      "prompt": "Khám phá cùng thầy/cô: Cho ba mặt phẳng song song $(\\alpha),(\\beta),(\\gamma)$ lần lượt cắt cát tuyến $d$ tại $A,B,C$ và cắt cát tuyến $d'$ tại $A',B',C'$. Hãy viết hệ thức tỉ lệ giữa các đoạn thẳng theo Định lý Thalès trong không gian. Vì sao định lý này vẫn đúng khi hai đường thẳng $d$ và $d'$ chéo nhau?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-2-1"
@@ -114833,10 +114850,17 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=6\\cdot4/3=8$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 8
+       "rubric": {
+        "criteria": [
+         "Viết đúng hệ thức tỉ lệ định lý Thalès trong không gian.",
+         "Giải thích phương pháp quy về mặt phẳng bằng đường thẳng song song."
+        ],
+        "lookFor": [
+         "Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -114845,20 +114869,21 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=6\\cdot4/3=8$."
+       "workedSolution": "Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành."
       }
      },
      {
       "id": "task-3-1",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=4,\\ BC=5,\\ A'B'=8$. Tính $B'C'$.",
+      "prompt": "Luyện có hỗ trợ: Ba mặt phẳng song song $(\\alpha),(\\beta),(\\gamma)$ cắt cát tuyến $d$ tại $A,B,C$ sao cho $AB = 4\\text{ cm}, BC = 6\\text{ cm}$. Chúng cắt cát tuyến $d'$ tại $A',B',C'$ sao cho tổng độ dài $A'C' = 25\\text{ cm}$. Tính độ dài $A'B'$ và $B'C'$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-3-1"
@@ -114873,10 +114898,17 @@
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 10
+       "rubric": {
+        "criteria": [
+         "Áp dụng tính chất dãy tỉ số bằng nhau với định lý Thalès.",
+         "Tính chính xác độ dài từng đoạn thẳng."
+        ],
+        "lookFor": [
+         "Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -114885,20 +114917,21 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$."
+       "workedSolution": "Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
       }
      },
      {
       "id": "task-3-2",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=5,\\ BC=6,\\ A'B'=10$. Tính $B'C'$.",
+      "prompt": "Luyện vận dụng: Cho hình chóp $S.ABCD$ có đáy là hình thang với đáy lớn $AB = 2CD$. Mặt phẳng $(\\alpha)$ song song với đáy cắt các cạnh bên $SA, SB, SC, SD$ lần lượt tại $M, N, P, Q$. Biết $SM = \\frac{2}{3}SA$. Tính tỉ số diện tích giữa thiết diện $MNPQ$ và tứ giác đáy $ABCD$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-3-2"
@@ -114910,10 +114943,17 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=10\\cdot6/5=12$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 12
+       "rubric": {
+        "criteria": [
+         "Dùng định lý Thalès để suy ra tỉ số các cạnh thiết diện.",
+         "Tính đúng tỉ số diện tích theo bình phương tỉ số đồng dạng."
+        ],
+        "lookFor": [
+         "Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -114922,20 +114962,21 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=10\\cdot6/5=12$."
+       "workedSolution": "Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
       }
      },
      {
       "id": "task-4-1",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-4",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=7,\\ BC=8,\\ A'B'=14$. Tính $B'C'$.",
+      "prompt": "Kiểm tra độc lập: Một bạn viết: “Ba mặt phẳng phân biệt cắt hai đường thẳng $d, d'$ tại $A,B,C$ và $A',B',C'$. Biết rằng $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$, kết luận ba mặt phẳng đó chắc chắn song song với nhau”. Kết luận trên đúng hay sai? Nêu một phản ví dụ cụ thể.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-4-1"
@@ -114947,10 +114988,17 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=14\\cdot8/7=16$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 16
+       "rubric": {
+        "criteria": [
+         "Chỉ rõ định lý Thalès đảo không đúng nếu thiếu điều kiện.",
+         "Đưa ra phản ví dụ chùm mặt phẳng cắt nhau theo một trục."
+        ],
+        "lookFor": [
+         "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -114959,7 +115007,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=14\\cdot8/7=16$."
+       "workedSolution": "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
       }
      },
      {
@@ -114970,9 +115018,10 @@
       ],
       "activityId": "act-5",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến tại $A,B,C$ và $A',B',C'$. Biết $AB:BC=2:3$, $A'C'=40$. Tìm $A'B'$ và $B'C'$.",
+      "prompt": "Thử thách tự chọn: Cho hai đường thẳng chéo nhau $a$ và $b$. Trên $a$ lấy hai điểm cố định $A, B$; trên $b$ lấy hai điểm cố định $A', B'$. Điểm $M$ di động trên đoạn $AB$ với $\\frac{AM}{AB} = k$. Mặt phẳng $(\\alpha)$ qua $M$ và song song với $a, b$ cắt $A'B'$ tại $M'$. Chứng minh tỉ số $\\frac{A'M'}{A'B'}$ không đổi khi $M$ di động và tìm vị trí $M$ để $MM'$ ngắn nhất khi $a \\perp b$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-5-1"
@@ -114984,14 +115033,15 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "extension",
-      "supportRationale": "Lời giải đối soát: Các đoạn tương ứng có tỉ lệ $2:3$, tổng $5a$, nên $A'B'=16$ và $B'C'=24$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Lập luận rõ điều kiện, chọn cách biến đổi phù hợp và kết luận đúng."
+         "Chứng minh tỉ số không đổi bằng định lý Thalès.",
+         "Vận dụng đoạn vuông góc chung để giải bài toán cực trị khoảng cách."
         ],
         "lookFor": [
-         "Các đoạn tương ứng có tỉ lệ $2:3$, tổng $5a$, nên $A'B'=16$ và $B'C'=24$."
+         "Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
         ]
        }
       },
@@ -115002,20 +115052,21 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Các đoạn tương ứng có tỉ lệ $2:3$, tổng $5a$, nên $A'B'=16$ và $B'C'=24$."
+       "workedSolution": "Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
       }
      },
      {
       "id": "task-6-1",
-      "type": "closed",
+      "type": "open",
       "objectiveIds": [
        "obj-1"
       ],
       "activityId": "act-6",
       "participation": "individual",
-      "prompt": "Ba mặt phẳng song song cắt hai cát tuyến lần lượt tại $A,B,C$ và $A',B',C'$ theo cùng thứ tự. Biết $AB=9,\\ BC=10,\\ A'B'=18$. Tính $B'C'$.",
+      "prompt": "Phiếu ra cửa, làm độc lập: Ba sàn nhà tầng 1, tầng 2, tầng 3 của một tòa nhà là ba mặt phẳng song song. Một đường cáp thang máy thẳng $d$ cắt ba sàn tại $A,B,C$ với khoảng cách $AB = 3,6\\text{ m}$ và $BC = 4,2\\text{ m}$. Một cột dầm chịu lực xiên $d'$ cắt ba sàn tại $A',B',C'$. Biết chiều dài dầm giữa sàn 1 và sàn 2 là $A'B' = 4,8\\text{ m}$. Tính chiều dài dầm $B'C'$ giữa sàn 2 và sàn 3.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-6-1"
@@ -115027,10 +115078,17 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=18\\cdot10/9=20$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC.",
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$.",
       "evaluation": {
-       "checkerId": "numeric_exact",
-       "answerKey": 20
+       "rubric": {
+        "criteria": [
+         "Thiết lập đúng tỉ lệ Thalès từ mô hình ba sàn nhà song song.",
+         "Tính toán chính xác kết quả 5,6 m."
+        ],
+        "lookFor": [
+         "Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$."
+        ]
+       }
       },
       "metadata": {
        "sourceCitation": {
@@ -115039,7 +115097,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "$AB/BC=A'B'/B'C'$, nên $B'C'=18\\cdot10/9=20$."
+       "workedSolution": "Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$."
       }
      },
      {
@@ -115050,9 +115108,10 @@
       ],
       "activityId": "act-7",
       "participation": "individual",
-      "prompt": "Chọn một bước em đã sửa trong tiết này. Viết cách kiểm lại bước đó và điều em muốn hỏi thầy/cô.",
+      "prompt": "Nhìn lại bài học: Trong định lý Thalès không gian, điều kiện nào là cốt lõi để các đoạn thẳng tỉ lệ? Bước nào hôm nay giúp em hiểu rõ nhất tính chất này?",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-thales-sgk"
       ],
       "evidenceIds": [
        "ev-7-1"
@@ -115064,14 +115123,14 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu.",
+      "supportRationale": "Lời giải chuẩn: GV đọc phản hồi để đánh giá mức độ thấu hiểu định lý Thalès và khả năng liên hệ thực tế của học sinh.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu một bước kiểm tra hoặc câu hỏi cụ thể."
+         "Nêu đúng điều kiện ba mặt phẳng song song và hai cát tuyến bất kì."
         ],
         "lookFor": [
-         "GV phản hồi; không chấm đúng/sai và không ghi mastery từ phản tư."
+         "GV đọc phản hồi để đánh giá mức độ thấu hiểu định lý Thalès và khả năng liên hệ thực tế của học sinh."
         ]
        }
       },
@@ -115081,7 +115140,8 @@
         "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
         "origin": "generated"
        },
-       "numericReviewRequired": true
+       "numericReviewRequired": true,
+       "workedSolution": "GV đọc phản hồi để đánh giá mức độ thấu hiểu định lý Thalès và khả năng liên hệ thực tế của học sinh."
       }
      }
     ],
@@ -115089,7 +115149,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Hãy so sánh tỉ số AB/BC với A'B'/B'C' trên hai chân thang.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -115101,12 +115161,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=4\\cdot3/2=6$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn."
      },
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Qua một điểm trên d, hãy kẻ đường thẳng song song với d' để tạo mặt phẳng phụ.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -115118,12 +115178,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=6\\cdot4/3=8$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành."
      },
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Tính AC = AB + BC trước.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -115135,12 +115195,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
      },
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Dùng tỉ số bằng nhau trên hai cát tuyến.",
+      "text": "Dùng tính chất dãy tỉ số bằng nhau: A'B'/AB = B'C'/BC = (A'B' + B'C')/(AB + BC) = A'C'/AC.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -115152,12 +115212,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
      },
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Viết phân số theo cùng thứ tự điểm.",
+      "text": "Thay số vào để tính A'B' và B'C'.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -115169,7 +115229,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
      },
      {
       "id": "hint-3-1-4",
@@ -115186,12 +115246,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=8\\cdot5/4=10$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
      },
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Nhận xét thiết diện tạo bởi mặt phẳng song song với đáy hình chóp đồng dạng với đáy theo tỉ số nào?",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -115203,12 +115263,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=10\\cdot6/5=12$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
      },
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Hãy nghĩ đến trường hợp ba mặt phẳng có giao tuyến chung (như các trang sách mở ra).",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -115220,12 +115280,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=14\\cdot8/7=16$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
      },
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Tỉ lệ giữa hai phần khác với tỉ lệ trên tổng.",
+      "text": "Chiếu song song hoặc dùng mặt phẳng qua a song song b.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -115237,12 +115297,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Các đoạn tương ứng có tỉ lệ $2:3$, tổng $5a$, nên $A'B'=16$ và $B'C'=24$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
      },
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Ghép các đoạn nằm giữa cùng hai mặt phẳng.",
+      "text": "Lập tỉ số B'C' / BC = A'B' / AB và rút ra B'C'.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -115254,12 +115314,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: $AB/BC=A'B'/B'C'$, nên $B'C'=18\\cdot10/9=20$. Lỗi cần quan sát: Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$."
      },
      {
       "id": "hint-7-1-1",
       "tier": "H1",
-      "text": "Nhìn lại một bài làm của chính em; nêu bước cụ thể.",
+      "text": "Đối chiếu bài toán chiếc thang hoặc tòa nhà với định lý hình học.",
       "taskId": "task-7-1",
       "objectiveIds": [
        "obj-1"
@@ -115271,7 +115331,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu."
+      "supportRationale": "Lời giải chuẩn: GV đọc phản hồi để đánh giá mức độ thấu hiểu định lý Thalès và khả năng liên hệ thực tế của học sinh."
      }
     ],
     "evidenceRules": [
@@ -115361,7 +115421,8 @@
       "Dùng ba mặt phẳng song song để lập tỉ lệ đoạn thẳng trên hai cát tuyến."
      ],
      "lookFor": [
-      "Ghép sai thứ tự điểm hoặc dùng AB/BC thành AB/AC."
+      "Áp dụng đúng điều kiện và tỉ số hình học.",
+      "Lập luận đầy đủ các bước, không bỏ sót giả thiết."
      ]
     },
     "modePolicies": {},
@@ -115378,7 +115439,7 @@
       "group_score"
      ]
     },
-    "contentHash": "74825274643b8d3462813039e7474df137f9381bcfc06772857bd3d4247636fd"
+    "contentHash": "d72b852d44a0dd2130df2435f93d5f1715757320cd8589e41eda4daee3d77042"
    },
    "citations": [
     {
@@ -115613,7 +115674,7 @@
    "pkg": {
     "schemaVersion": "1.0.0",
     "id": "r22-g11-discover-r108",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "draft",
     "subject": "math",
     "grade": 11,
@@ -115633,6 +115694,14 @@
       "locator": "https://drive.google.com/file/d/1PpR5FxuAkWjW-583Z21FMoxnn6YFFAXS/view",
       "label": "Dis_Toán 11 Kế-hoạch-học-phần-II năm 25-26.docx (tasks/r22/sources/g11-unit2.txt:18-18)",
       "hash": "e2f3afc83ff90ed25bcd325992c9369680624282d6211000686614e436a45d3b",
+      "verification": "teacher_review_required"
+     },
+     {
+      "id": "r26-g11-parallel-practice-sgk",
+      "kind": "external",
+      "locator": "C:/Users/ADMIN/Downloads/smart-lesson-plan-ai/SGK Kết nối/sach-giao-khoa-toan-11-tap-1-ket-noi-tri-thuc-voi-cuoc-song (2).pdf#page=93",
+      "label": "SGK Toán 11, tập 1, Kết nối tri thức với cuộc sống, Bài 13, trang in 92–94; Luyện tập chứng minh hai mặt phẳng song song. Bài tập do tác giả biên soạn.",
+      "hash": "f662349c42f9a1cf835c87926f7ea77034251198c1f0108ac2cead535e9d049fb",
       "verification": "teacher_review_required"
      }
     ],
@@ -115842,9 +115911,10 @@
       ],
       "activityId": "act-1",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/9$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Khởi động: Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành tâm $O$. Gọi $M, N$ lần lượt là trung điểm của $SA$ và $SD$. Chứng minh rằng mặt phẳng $(OMN)$ song song với mặt phẳng $(SBC)$. Nêu rõ hai đường thẳng cắt nhau trong $(OMN)$ được sử dụng.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-1-1"
@@ -115856,15 +115926,16 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: Trong tam giác $SAD$, $MN$ là đường trung bình nên $MN \\parallel AD$. Mà $AD \\parallel BC \\implies MN \\parallel BC \\subset (SBC) \\implies MN \\parallel (SBC)$. Trong tam giác $SBD$, $O$ là trung điểm $BD$, $N$ là trung điểm $SD \\implies ON$ là đường trung bình $\\implies ON \\parallel SB \\subset (SBC) \\implies ON \\parallel (SBC)$. Hai đường $MN, ON \\subset (OMN)$ cắt nhau tại $N$. Vậy $(OMN) \\parallel (SBC)$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chứng minh MN song song (SBC) qua cạnh đáy AD.",
+         "Chứng minh ON song song (SBC) qua cạnh bên SB.",
+         "Khẳng định hai đường cắt nhau tại N."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Trong tam giác $SAD$, $MN$ là đường trung bình nên $MN \\parallel AD$. Mà $AD \\parallel BC \\implies MN \\parallel BC \\subset (SBC) \\implies MN \\parallel (SBC)$. Trong tam giác $SBD$, $O$ là trung điểm $BD$, $N$ là trung điểm $SD \\implies ON$ là đường trung bình $\\implies ON \\parallel SB \\subset (SBC) \\implies ON \\parallel (SBC)$. Hai đường $MN, ON \\subset (OMN)$ cắt nhau tại $N$. Vậy $(OMN) \\parallel (SBC)$."
         ]
        }
       },
@@ -115875,7 +115946,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Trong tam giác $SAD$, $MN$ là đường trung bình nên $MN \\parallel AD$. Mà $AD \\parallel BC \\implies MN \\parallel BC \\subset (SBC) \\implies MN \\parallel (SBC)$. Trong tam giác $SBD$, $O$ là trung điểm $BD$, $N$ là trung điểm $SD \\implies ON$ là đường trung bình $\\implies ON \\parallel SB \\subset (SBC) \\implies ON \\parallel (SBC)$. Hai đường $MN, ON \\subset (OMN)$ cắt nhau tại $N$. Vậy $(OMN) \\parallel (SBC)$."
       }
      },
      {
@@ -115886,9 +115957,10 @@
       ],
       "activityId": "act-2",
       "participation": "whole_class",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/10$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Luyện tập phương pháp: Cho hai hình bình hành $ABCD$ và $ABEF$ không cùng nằm trong một mặt phẳng. Gọi $M, N$ lần lượt là trọng tâm của tam giác $ABD$ và tam giác $ABE$. Chứng minh rằng mặt phẳng đi qua $MN$ và song song với $AB$ sẽ song song với mặt phẳng $(BCE)$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-2-1"
@@ -115900,15 +115972,15 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: Gọi $I$ là trung điểm của $AB$. Do $M, N$ là trọng tâm của $\\Delta ABD$ và $\\Delta ABE$ nên $\\frac{IM}{ID} = \\frac{IN}{IE} = \\frac{1}{3}$. Theo định lý Thalès đảo trong $\\Delta IDE$, suy ra $MN \\parallel DE$. Mà $DE \\subset (CDEF)$ và $BC \\parallel AD \\implies (ADE) \\parallel (BCF)$. Cụ thể, $MN \\parallel (BCE)$ và đường thẳng $d$ qua $MN \\parallel AB \\implies d \\parallel (BCE)$. Hai đường cắt nhau này cùng song song $(BCE)$ nên mặt phẳng chứa chúng song song với $(BCE)$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Dùng tính chất trọng tâm và Thalès đảo suy ra MN song song DE.",
+         "Chứng minh đủ hai phương song song để kết luận mặt phẳng song song."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Gọi $I$ là trung điểm của $AB$. Do $M, N$ là trọng tâm của $\\Delta ABD$ và $\\Delta ABE$ nên $\\frac{IM}{ID} = \\frac{IN}{IE} = \\frac{1}{3}$. Theo định lý Thalès đảo trong $\\Delta IDE$, suy ra $MN \\parallel DE$. Mà $DE \\subset (CDEF)$ và $BC \\parallel AD \\implies (ADE) \\parallel (BCF)$. Cụ thể, $MN \\parallel (BCE)$ và đường thẳng $d$ qua $MN \\parallel AB \\implies d \\parallel (BCE)$. Hai đường cắt nhau này cùng song song $(BCE)$ nên mặt phẳng chứa chúng song song với $(BCE)$."
         ]
        }
       },
@@ -115919,7 +115991,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Gọi $I$ là trung điểm của $AB$. Do $M, N$ là trọng tâm của $\\Delta ABD$ và $\\Delta ABE$ nên $\\frac{IM}{ID} = \\frac{IN}{IE} = \\frac{1}{3}$. Theo định lý Thalès đảo trong $\\Delta IDE$, suy ra $MN \\parallel DE$. Mà $DE \\subset (CDEF)$ và $BC \\parallel AD \\implies (ADE) \\parallel (BCF)$. Cụ thể, $MN \\parallel (BCE)$ và đường thẳng $d$ qua $MN \\parallel AB \\implies d \\parallel (BCE)$. Hai đường cắt nhau này cùng song song $(BCE)$ nên mặt phẳng chứa chúng song song với $(BCE)$."
       }
      },
      {
@@ -115930,9 +116002,10 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/11$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Luyện có hỗ trợ: Cho tứ diện $ABCD$. Trên cạnh $AB$ lấy điểm $M$ sao cho $AM = 2MB$. Mặt phẳng $(\\alpha)$ đi qua $M$ và song song với mặt phẳng $(BCD)$. Hãy xác định thiết diện của tứ diện khi cắt bởi $(\\alpha)$ và chứng minh thiết diện đó là tam giác đồng dạng với tam giác $BCD$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-3-1"
@@ -115947,15 +116020,15 @@
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Dựng đúng các đoạn giao tuyến song song với các cạnh của tam giác BCD.",
+         "Chứng minh tỉ số đồng dạng bằng 2/3."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
         ]
        }
       },
@@ -115966,7 +116039,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
       }
      },
      {
@@ -115977,9 +116050,10 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/12$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Luyện vận dụng: Cho hình lăng trụ tam giác $ABC.A'B'C'$. Gọi $I, J, K$ lần lượt là trọng tâm của các tam giác $ABC, ACC', A'B'C'$. Chứng minh rằng mặt phẳng $(IJK)$ song song với mặt phẳng đáy $(ABC)$ và tính khoảng cách từ $I$ đến $(IJK)$ theo chiều cao $h$ của lăng trụ.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-3-2"
@@ -115991,15 +116065,15 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: Gọi $M, M'$ lần lượt là trung điểm của $BC$ và $B'C'$. Khi đó $I \\in AM$ với $\\frac{AI}{AM} = \\frac{2}{3}$; $K \\in A'M'$ với $\\frac{A'K}{A'M'} = \\frac{2}{3}$. Suy ra $IK \\parallel AA' \\parallel BB'$. Tương tự xét $J$ trong $\\Delta ACC'$, tỉ số khoảng cách tới các mặt phẳng đáy cho thấy $(IJK)$ song song với cả hai mặt đáy $(ABC)$ và $(A'B'C')$. Khoảng cách giữa $(IJK)$ và $(ABC)$ bằng $\\frac{1}{3}h$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Dùng tỉ số trọng tâm để chứng minh hai đường thẳng cắt nhau trong (IJK) song song với đáy.",
+         "Xác định đúng tỉ số khoảng cách 1/3 chiều cao lăng trụ."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Gọi $M, M'$ lần lượt là trung điểm của $BC$ và $B'C'$. Khi đó $I \\in AM$ với $\\frac{AI}{AM} = \\frac{2}{3}$; $K \\in A'M'$ với $\\frac{A'K}{A'M'} = \\frac{2}{3}$. Suy ra $IK \\parallel AA' \\parallel BB'$. Tương tự xét $J$ trong $\\Delta ACC'$, tỉ số khoảng cách tới các mặt phẳng đáy cho thấy $(IJK)$ song song với cả hai mặt đáy $(ABC)$ và $(A'B'C')$. Khoảng cách giữa $(IJK)$ và $(ABC)$ bằng $\\frac{1}{3}h$."
         ]
        }
       },
@@ -116010,7 +116084,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Gọi $M, M'$ lần lượt là trung điểm của $BC$ và $B'C'$. Khi đó $I \\in AM$ với $\\frac{AI}{AM} = \\frac{2}{3}$; $K \\in A'M'$ với $\\frac{A'K}{A'M'} = \\frac{2}{3}$. Suy ra $IK \\parallel AA' \\parallel BB'$. Tương tự xét $J$ trong $\\Delta ACC'$, tỉ số khoảng cách tới các mặt phẳng đáy cho thấy $(IJK)$ song song với cả hai mặt đáy $(ABC)$ và $(A'B'C')$. Khoảng cách giữa $(IJK)$ và $(ABC)$ bằng $\\frac{1}{3}h$."
       }
      },
      {
@@ -116021,9 +116095,10 @@
       ],
       "activityId": "act-4",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/14$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Kiểm tra độc lập: Trong một bài kiểm tra, một bạn học sinh viết: “Trong hình lăng trụ $ABC.A'B'C'$, vì cạnh $AB \\parallel A'B'$ và cạnh $BC \\parallel B'C'$ nên suy ra mặt phẳng $(ABB'A')$ song song với mặt phẳng $(BCC'B')$”. Em hãy chỉ rõ lập luận trên sai ở đâu và giải thích vì sao hai mặt phẳng này thực tế lại cắt nhau.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-4-1"
@@ -116035,15 +116110,15 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: Lập luận trên SAI vì bạn đã lấy một cặp đường trong mặt phẳng thứ nhất ($AB, A'B'$) và một cặp đường trong mặt phẳng thứ hai ($BC, B'C'$). Để chứng minh hai mặt phẳng song song, ta phải tìm HAI ĐƯỜNG CẮT NHAU CÙNG NẰM TRONG MẶT PHẲNG THỨ NHẤT và chứng minh cả hai đường đó cùng song song với mặt phẳng thứ hai. Trong hình lăng trụ, hai mặt phẳng $(ABB'A')$ và $(BCC'B')$ có đường thẳng chung là cạnh bên $BB'$, do đó chúng cắt nhau theo giao tuyến $BB'$ chứ không song song.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chỉ rõ lỗi vi phạm: nhầm lẫn giữa hai đường trong cùng một mặt phẳng với hai đường ở hai mặt khác nhau.",
+         "Chỉ rõ giao tuyến BB' chứng minh hai mặt phẳng cắt nhau."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "Lập luận trên SAI vì bạn đã lấy một cặp đường trong mặt phẳng thứ nhất ($AB, A'B'$) và một cặp đường trong mặt phẳng thứ hai ($BC, B'C'$). Để chứng minh hai mặt phẳng song song, ta phải tìm HAI ĐƯỜNG CẮT NHAU CÙNG NẰM TRONG MẶT PHẲNG THỨ NHẤT và chứng minh cả hai đường đó cùng song song với mặt phẳng thứ hai. Trong hình lăng trụ, hai mặt phẳng $(ABB'A')$ và $(BCC'B')$ có đường thẳng chung là cạnh bên $BB'$, do đó chúng cắt nhau theo giao tuyến $BB'$ chứ không song song."
         ]
        }
       },
@@ -116054,7 +116129,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "Lập luận trên SAI vì bạn đã lấy một cặp đường trong mặt phẳng thứ nhất ($AB, A'B'$) và một cặp đường trong mặt phẳng thứ hai ($BC, B'C'$). Để chứng minh hai mặt phẳng song song, ta phải tìm HAI ĐƯỜNG CẮT NHAU CÙNG NẰM TRONG MẶT PHẲNG THỨ NHẤT và chứng minh cả hai đường đó cùng song song với mặt phẳng thứ hai. Trong hình lăng trụ, hai mặt phẳng $(ABB'A')$ và $(BCC'B')$ có đường thẳng chung là cạnh bên $BB'$, do đó chúng cắt nhau theo giao tuyến $BB'$ chứ không song song."
       }
      },
      {
@@ -116065,9 +116140,10 @@
       ],
       "activityId": "act-5",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ trên $SA,SB,SC$ có $SM/SA=SN/SB=1/14$ nhưng $SP/SC=1/15$. Vì sao một cặp $MN\\parallel AB$ chưa đủ để kết luận $(MNP)\\parallel(ABC)$?",
+      "prompt": "Thử thách tự chọn: Cho hình hộp $ABCD.A'B'C'D'$. Gọi $M, N$ lần lượt là trung điểm của $CD$ và $C'D'$. (1) Chứng minh rằng mặt phẳng $(BMN)$ song song với mặt phẳng $(AA'D)$. (2) Mặt phẳng $(BMN)$ cắt đường chéo $AC'$ của hình hộp tại điểm $G$. Tính tỉ số $\\frac{AG}{AC'}$.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-5-1"
@@ -116079,14 +116155,15 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "extension",
-      "supportRationale": "Lời giải đối soát: Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: (1) Ta có $MN \\parallel DD' \\parallel AA' \\implies MN \\parallel (AA'D)$. Trong đáy $ABCD$, $M$ là trung điểm $CD$, kẻ đường thẳng qua $B, M$ cắt $AD$ kéo dài tại $E$. Khi đó $BM \\parallel (AA'D)$ hoặc nhận thấy $BM$ song song với mặt phẳng đối xứng. Kết hợp suy ra $(BMN) \\parallel (AA'D)$. (2) Dùng định lý Thalès trong không gian với các mặt phẳng song song cắt đường chéo $AC'$, tính được tỉ số $\\frac{AG}{AC'} = \\frac{1}{3}$.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Lập luận rõ điều kiện, chọn cách biến đổi phù hợp và kết luận đúng."
+         "Chứng minh đầy đủ hai đường cắt nhau trong (BMN) cùng song song (AA'D).",
+         "Dùng định lý Thalès không gian tính đúng tỉ số AG/AC' = 1/3."
         ],
         "lookFor": [
-         "Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai."
+         "(1) Ta có $MN \\parallel DD' \\parallel AA' \\implies MN \\parallel (AA'D)$. Trong đáy $ABCD$, $M$ là trung điểm $CD$, kẻ đường thẳng qua $B, M$ cắt $AD$ kéo dài tại $E$. Khi đó $BM \\parallel (AA'D)$ hoặc nhận thấy $BM$ song song với mặt phẳng đối xứng. Kết hợp suy ra $(BMN) \\parallel (AA'D)$. (2) Dùng định lý Thalès trong không gian với các mặt phẳng song song cắt đường chéo $AC'$, tính được tỉ số $\\frac{AG}{AC'} = \\frac{1}{3}$."
         ]
        }
       },
@@ -116097,7 +116174,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai."
+       "workedSolution": "(1) Ta có $MN \\parallel DD' \\parallel AA' \\implies MN \\parallel (AA'D)$. Trong đáy $ABCD$, $M$ là trung điểm $CD$, kẻ đường thẳng qua $B, M$ cắt $AD$ kéo dài tại $E$. Khi đó $BM \\parallel (AA'D)$ hoặc nhận thấy $BM$ song song với mặt phẳng đối xứng. Kết hợp suy ra $(BMN) \\parallel (AA'D)$. (2) Dùng định lý Thalès trong không gian với các mặt phẳng song song cắt đường chéo $AC'$, tính được tỉ số $\\frac{AG}{AC'} = \\frac{1}{3}$."
       }
      },
      {
@@ -116108,9 +116185,10 @@
       ],
       "activityId": "act-6",
       "participation": "individual",
-      "prompt": "Trong tứ diện $SABC$, $M,N,P$ lần lượt thuộc $SA,SB,SC$ và $SM/SA=SN/SB=SP/SC=1/3$. Chứng minh $(MNP)\\parallel(ABC)$.",
+      "prompt": "Phiếu ra cửa, làm độc lập: Cho hình lập phương $ABCD.A'B'C'D'$. (1) Chứng minh rằng mặt phẳng $(BDA')$ song song với mặt phẳng $(B'D'C)$. (2) Chứng minh rằng đường chéo $AC'$ vuông góc với cả hai mặt phẳng đó và bị hai mặt phẳng này chia thành ba đoạn thẳng bằng nhau.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-6-1"
@@ -116122,15 +116200,15 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song.",
+      "supportRationale": "Lời giải chuẩn: (1) $BD \\parallel B'D'$ (hai đáy lập phương) $\\implies BD \\parallel (B'D'C)$. $BA' \\parallel CD'$ (hai mặt đối diện) $\\implies BA' \\parallel (B'D'C)$. $BD$ và $BA'$ cắt nhau tại $B$ và cùng thuộc $(BDA')$. Do đó $(BDA') \\parallel (B'D'C)$. (2) $AC'$ vuông góc với $(BDA')$ và $(B'D'C)$ do vuông góc với từng cặp đường chéo mặt vuông. Theo định lý Thalès không gian, các mặt phẳng song song chắn trên đoạn $AC'$ các đoạn bằng nhau, chia $AC'$ thành 3 phần bằng nhau.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu đủ hai cặp đường song song.",
-         "Chỉ rõ điều kiện cắt nhau và kết luận hai mặt phẳng."
+         "Chứng minh hai mặt phẳng song song qua hai cặp đường chéo mặt.",
+         "Chứng minh chia đường chéo AC' thành 3 đoạn bằng nhau."
         ],
         "lookFor": [
-         "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+         "(1) $BD \\parallel B'D'$ (hai đáy lập phương) $\\implies BD \\parallel (B'D'C)$. $BA' \\parallel CD'$ (hai mặt đối diện) $\\implies BA' \\parallel (B'D'C)$. $BD$ và $BA'$ cắt nhau tại $B$ và cùng thuộc $(BDA')$. Do đó $(BDA') \\parallel (B'D'C)$. (2) $AC'$ vuông góc với $(BDA')$ và $(B'D'C)$ do vuông góc với từng cặp đường chéo mặt vuông. Theo định lý Thalès không gian, các mặt phẳng song song chắn trên đoạn $AC'$ các đoạn bằng nhau, chia $AC'$ thành 3 phần bằng nhau."
         ]
        }
       },
@@ -116141,7 +116219,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
+       "workedSolution": "(1) $BD \\parallel B'D'$ (hai đáy lập phương) $\\implies BD \\parallel (B'D'C)$. $BA' \\parallel CD'$ (hai mặt đối diện) $\\implies BA' \\parallel (B'D'C)$. $BD$ và $BA'$ cắt nhau tại $B$ và cùng thuộc $(BDA')$. Do đó $(BDA') \\parallel (B'D'C)$. (2) $AC'$ vuông góc với $(BDA')$ và $(B'D'C)$ do vuông góc với từng cặp đường chéo mặt vuông. Theo định lý Thalès không gian, các mặt phẳng song song chắn trên đoạn $AC'$ các đoạn bằng nhau, chia $AC'$ thành 3 phần bằng nhau."
       }
      },
      {
@@ -116152,9 +116230,10 @@
       ],
       "activityId": "act-7",
       "participation": "individual",
-      "prompt": "Chọn một bước em đã sửa trong tiết này. Viết cách kiểm lại bước đó và điều em muốn hỏi thầy/cô.",
+      "prompt": "Nhìn lại bài luyện tập: Khi chứng minh hai mặt phẳng song song, bước nào em thấy quan trọng nhất để tránh nhầm lẫn? Ghi lại kinh nghiệm của em.",
       "sourceRefs": [
-       "r22-g11-u2-lo03"
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
       ],
       "evidenceIds": [
        "ev-7-1"
@@ -116166,14 +116245,14 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu.",
+      "supportRationale": "Lời giải chuẩn: GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh.",
       "evaluation": {
        "rubric": {
         "criteria": [
-         "Nêu một bước kiểm tra hoặc câu hỏi cụ thể."
+         "Nêu được kinh nghiệm chọn hai đường cắt nhau trong cùng một mặt phẳng."
         ],
         "lookFor": [
-         "GV phản hồi; không chấm đúng/sai và không ghi mastery từ phản tư."
+         "GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh."
         ]
        }
       },
@@ -116183,7 +116262,8 @@
         "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
         "origin": "generated"
        },
-       "numericReviewRequired": true
+       "numericReviewRequired": true,
+       "workedSolution": "GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh."
       }
      }
     ],
@@ -116191,7 +116271,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Dùng tính chất đường trung bình trong các tam giác SAD và SBD.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -116203,12 +116283,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Trong tam giác $SAD$, $MN$ là đường trung bình nên $MN \\parallel AD$. Mà $AD \\parallel BC \\implies MN \\parallel BC \\subset (SBC) \\implies MN \\parallel (SBC)$. Trong tam giác $SBD$, $O$ là trung điểm $BD$, $N$ là trung điểm $SD \\implies ON$ là đường trung bình $\\implies ON \\parallel SB \\subset (SBC) \\implies ON \\parallel (SBC)$. Hai đường $MN, ON \\subset (OMN)$ cắt nhau tại $N$. Vậy $(OMN) \\parallel (SBC)$."
      },
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Nối đỉnh I (trung điểm AB) với D và E để xét tỉ số trọng tâm.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -116220,12 +116300,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Gọi $I$ là trung điểm của $AB$. Do $M, N$ là trọng tâm của $\\Delta ABD$ và $\\Delta ABE$ nên $\\frac{IM}{ID} = \\frac{IN}{IE} = \\frac{1}{3}$. Theo định lý Thalès đảo trong $\\Delta IDE$, suy ra $MN \\parallel DE$. Mà $DE \\subset (CDEF)$ và $BC \\parallel AD \\implies (ADE) \\parallel (BCF)$. Cụ thể, $MN \\parallel (BCE)$ và đường thẳng $d$ qua $MN \\parallel AB \\implies d \\parallel (BCE)$. Hai đường cắt nhau này cùng song song $(BCE)$ nên mặt phẳng chứa chúng song song với $(BCE)$."
      },
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Giao tuyến của mặt phẳng song song với một mặt phẳng cho trước sẽ song song với giao tuyến tương ứng.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -116237,12 +116317,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
      },
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Xét hai tam giác có chung một cạnh bên.",
+      "text": "Kẻ MN song song BC và MP song song BD.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -116254,12 +116334,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
      },
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chứng minh từng cặp đường song song trước.",
+      "text": "Nối N với P, chứng minh NP cũng song song CD theo định lý Thalès.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -116271,7 +116351,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
      },
      {
       "id": "hint-3-1-4",
@@ -116288,12 +116368,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (BCD)$ nên giao tuyến của $(\\alpha)$ với các mặt phẳng $(ABC), (ABD)$ lần lượt song song với $BC, BD$. Qua $M$ kẻ $MN \\parallel BC$ ($N \\in AC$) và $MP \\parallel BD$ ($P \\in AD$). Khi đó thiết diện là $\\Delta MNP$. Vì $MN \\parallel BC$ và $MP \\parallel BD$, suy ra $\\frac{MN}{BC} = \\frac{MP}{BD} = \\frac{NP}{CD} = \\frac{AM}{AB} = \\frac{2}{3}$. Thiết diện $MNP$ là tam giác đồng dạng với $\\Delta BCD$ theo tỉ số $2/3$."
      },
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Gắn các trọng tâm vào các đường trung tuyến trong các mặt tương ứng.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -116305,12 +116385,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Gọi $M, M'$ lần lượt là trung điểm của $BC$ và $B'C'$. Khi đó $I \\in AM$ với $\\frac{AI}{AM} = \\frac{2}{3}$; $K \\in A'M'$ với $\\frac{A'K}{A'M'} = \\frac{2}{3}$. Suy ra $IK \\parallel AA' \\parallel BB'$. Tương tự xét $J$ trong $\\Delta ACC'$, tỉ số khoảng cách tới các mặt phẳng đáy cho thấy $(IJK)$ song song với cả hai mặt đáy $(ABC)$ và $(A'B'C')$. Khoảng cách giữa $(IJK)$ và $(ABC)$ bằng $\\frac{1}{3}h$."
      },
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Hai mặt phẳng có điểm chung hoặc đường thẳng chung nào không?",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -116322,12 +116402,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: Lập luận trên SAI vì bạn đã lấy một cặp đường trong mặt phẳng thứ nhất ($AB, A'B'$) và một cặp đường trong mặt phẳng thứ hai ($BC, B'C'$). Để chứng minh hai mặt phẳng song song, ta phải tìm HAI ĐƯỜNG CẮT NHAU CÙNG NẰM TRONG MẶT PHẲNG THỨ NHẤT và chứng minh cả hai đường đó cùng song song với mặt phẳng thứ hai. Trong hình lăng trụ, hai mặt phẳng $(ABB'A')$ và $(BCC'B')$ có đường thẳng chung là cạnh bên $BB'$, do đó chúng cắt nhau theo giao tuyến $BB'$ chứ không song song."
      },
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Thử dùng hệ quả Thales cho một thiết diện song song.",
+      "text": "Kéo dài BM cắt đường thẳng AD để tạo tam giác đồng dạng.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -116339,12 +116419,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: (1) Ta có $MN \\parallel DD' \\parallel AA' \\implies MN \\parallel (AA'D)$. Trong đáy $ABCD$, $M$ là trung điểm $CD$, kẻ đường thẳng qua $B, M$ cắt $AD$ kéo dài tại $E$. Khi đó $BM \\parallel (AA'D)$ hoặc nhận thấy $BM$ song song với mặt phẳng đối xứng. Kết hợp suy ra $(BMN) \\parallel (AA'D)$. (2) Dùng định lý Thalès trong không gian với các mặt phẳng song song cắt đường chéo $AC'$, tính được tỉ số $\\frac{AG}{AC'} = \\frac{1}{3}$."
      },
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Cần hai hướng khác nhau trong mỗi mặt phẳng.",
+      "text": "Sử dụng các cặp đường chéo của các mặt hình vuông đối diện nhau.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -116356,12 +116436,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải đối soát: Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$. Lỗi cần quan sát: Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "supportRationale": "Lời giải chuẩn: (1) $BD \\parallel B'D'$ (hai đáy lập phương) $\\implies BD \\parallel (B'D'C)$. $BA' \\parallel CD'$ (hai mặt đối diện) $\\implies BA' \\parallel (B'D'C)$. $BD$ và $BA'$ cắt nhau tại $B$ và cùng thuộc $(BDA')$. Do đó $(BDA') \\parallel (B'D'C)$. (2) $AC'$ vuông góc với $(BDA')$ và $(B'D'C)$ do vuông góc với từng cặp đường chéo mặt vuông. Theo định lý Thalès không gian, các mặt phẳng song song chắn trên đoạn $AC'$ các đoạn bằng nhau, chia $AC'$ thành 3 phần bằng nhau."
      },
      {
       "id": "hint-7-1-1",
       "tier": "H1",
-      "text": "Nhìn lại một bài làm của chính em; nêu bước cụ thể.",
+      "text": "Nhớ lại bài toán kiểm tra độc lập về bẫy chọn sai đường.",
       "taskId": "task-7-1",
       "objectiveIds": [
        "obj-1"
@@ -116373,7 +116453,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu."
+      "supportRationale": "Lời giải chuẩn: GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh."
      }
     ],
     "evidenceRules": [
@@ -116463,7 +116543,8 @@
       "Chứng minh hai mặt phẳng song song bằng hai đường cắt nhau; không dùng chỉ một cặp đường."
      ],
      "lookFor": [
-      "Chứng minh một đường song song rồi kết luận hai mặt phẳng song song."
+      "Áp dụng đúng điều kiện và tỉ số hình học.",
+      "Lập luận đầy đủ các bước, không bỏ sót giả thiết."
      ]
     },
     "modePolicies": {},
@@ -116480,7 +116561,7 @@
       "group_score"
      ]
     },
-    "contentHash": "b6823c6e0532df97e910226571645a67496c6c1408cdd1c5cc754f7c057e312a"
+    "contentHash": "a3c11847509c5ec0950e36da04c2e82275103710c255cfa83efbede8a7ad851e"
    },
    "citations": [
     {
