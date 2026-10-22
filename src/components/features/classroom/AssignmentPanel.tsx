@@ -2050,6 +2050,16 @@ export const PaperScoreButton = ({ submission, assignment }: { submission: Submi
         .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được vào sổ điểm.'))
         .finally(() => setBusy(false));
     }}>{busy ? 'Đang lưu…' : 'Xác nhận vào sổ'}</button>
+    {paper && <>
+      {/* Bài kiểm tra định kì nộp tay: điểm GV ghi trên giấy là chuẩn — thầy bấm để lấy làm điểm bài. */}
+      <button type="button" disabled={busy} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50" onClick={() => {
+        setBusy(true); setMessage('');
+        void updateSubmissionGradeManually(submission, { score: paper.score, maxScore: paper.maxScore, feedback: submission.grade?.feedback || '', weakTopics: submission.grade?.weakTopics || [] })
+          .then(() => setMessage(`Đã dùng điểm thầy ghi trên bài (${paper.score}/${paper.maxScore}) làm điểm bài. Bấm "Duyệt" để công bố cho học sinh.`))
+          .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm bài.'))
+          .finally(() => setBusy(false));
+      }}>Dùng làm điểm bài</button>
+    </>}
     {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
   </div>;
 };
@@ -2063,7 +2073,7 @@ export const PaperScoreAdoptButton = ({ submission }: { submission: SubmissionDo
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   if (submission.status !== 'graded' || !submission.grade) return null;
-  if (!paper) return <p className="text-xs font-semibold text-rose-800">Em khai bài thầy cô đã chấm tay — máy chưa đọc được điểm thầy ghi. Thầy xem bản chấm rồi sửa điểm tay nếu cần.</p>;
+  if (!paper) return <p className="text-xs font-semibold text-rose-800">Máy chưa đọc được điểm thầy ghi trên bài. Thầy xem bản chấm rồi sửa điểm tay nếu cần.</p>;
   return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
     <span>Điểm thầy ghi trên bài (máy đọc): {paper.score}/{paper.maxScore}</span>
     <button type="button" disabled={busy} className="min-h-9 rounded-lg bg-emerald-600 px-3 text-white disabled:opacity-50" onClick={() => {
