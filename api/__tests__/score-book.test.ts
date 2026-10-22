@@ -44,6 +44,7 @@ const fakeDb = () => {
 };
 
 import handler from '../classroom';
+import { studentScoreView, type ScoreBookDoc } from '../../src/lib/classroom/scoreBook';
 
 const call = async (body: DocData) => {
   const res = { statusCode: 0, payload: null as DocData | null, status(c: number) { res.statusCode = c; return res; }, json(p: DocData) { res.payload = p; return res; } };
@@ -184,7 +185,7 @@ describe('sổ điểm', () => {
     expect((restored.payload?.scoreBook as any).hiddenExamColumns).toEqual([]);
   });
 
-  it('gán bài đã nộp vào cột định kì có sẵn; điểm bài thắng theo học sinh', async () => {
+  it('gán bài đã nộp vào cột định kì có sẵn; bài chỉ điền ô trống, không đè điểm sửa tay', async () => {
     h.store.assignments = { bt1: { classId: 'lop-1', title: 'Bài kiểm tra giữa kì', createdAt: '2026-10-01T00:00:00Z' } };
     h.store.submissions = { sub1: { classId: 'lop-1', studentId: 'a', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 18, maxScore: 20 } } };
     h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
@@ -192,6 +193,19 @@ describe('sổ điểm', () => {
     expect(linked.statusCode).toBe(200);
     expect(h.store.scoreBooks['lop-1'].periodicAssignmentLinks).toEqual({ ghki: 'bt1' });
     expect((linked.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(9);
+    // a đã có điểm trong sổ (6) → bài nộp không đè.
+    expect((linked.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
+
+    // Thầy cô sửa tay 6.5 → vẫn giữ 6.5 sau khi đồng bộ lại.
+    const manual = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: 6.5 } });
+    expect((manual.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
+
+    // Học sinh b chưa có điểm → bài nộp điền vào ô trống. Sổ chỉ lưu ô có điểm nên xem qua giao diện học sinh.
+    h.store.submissions.sub2 = { classId: 'lop-1', studentId: 'b', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 14, maxScore: 20 } };
+    const synced = await call({ action: 'linkPeriodicAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', examKey: 'ghki' }] });
+    const view = (studentId: string) => studentScoreView((synced.payload?.scoreBook as any) as ScoreBookDoc, studentId);
+    expect(view('b').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 7 }]);
+    expect(view('a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
   });
 
   it('học sinh chỉ nhận dòng của CHÍNH mình, bỏ qua studentId gửi lên', async () => {

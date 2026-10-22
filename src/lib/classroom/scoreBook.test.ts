@@ -5,6 +5,7 @@ import {
   applyExamColumnSettings,
   dedupeExamColumns,
   examScoreSource,
+  shadowedAssignmentScore,
   hs1Average,
   parseHs1Weight,
   scoreToTen,
@@ -29,7 +30,7 @@ describe('sổ điểm', () => {
     expect(source.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
   });
 
-  it('điểm bài đã gán vào mốc định kì thắng Sheet và không còn tính vào TB BTVN', () => {
+  it('điểm bài đã gán vào mốc định kì chỉ điền ô trống, không đè điểm Sheet, và không còn tính vào TB BTVN', () => {
     const book = normalizeScoreBook('lop-1', {
       exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
       periodicAssignmentLinks: { ghki: 'bt1' },
@@ -37,8 +38,28 @@ describe('sổ điểm', () => {
     const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [{ assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20 }], ['a']);
     expect(auto.periodic.ghki.a).toBe(9);
     expect(auto.homework.a.graded).toBe(0);
-    expect(studentScoreView({ ...book, auto }, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 9 }]);
+    // Ô đã có điểm Sheet 6 → bài nộp không đè.
+    expect(studentScoreView({ ...book, auto }, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
   });
+
+  it('điểm sửa tay thắng bài nộp; bài nộp chỉ điền ô trống', () => {
+    const book = normalizeScoreBook('lop-1', {
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
+      periodicAssignmentLinks: { ghki: 'bt1' },
+      // Thầy cô đã sửa tay mốc GHKI của em a xuống 6.5.
+      examOverrides: { a: { ghki: { label: 'Giữa học kì I', score: 6.5 } } },
+    });
+    const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [
+      // a đã sửa tay → giữ 6.5 dù bài nộp ra 9.
+      { assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20 },
+      // b chưa sửa tay → bài nộp điền vào ô trống.
+      { assignmentId: 'bt1', studentId: 'b', submittedAt: '2026-10-02T00:00:00Z', score: 16, maxScore: 20 },
+    ], ['a', 'b']);
+    const withAuto = { ...book, auto };
+    expect(studentScoreView(withAuto, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
+    expect(studentScoreView(withAuto, 'b').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 8 }]);
+  });
+
   it('điểm hệ số 1: 0–10, tối đa 2 số lẻ, nhận dấu phẩy; ô trống là xoá điểm', () => {
     expect(parseHs1Score('8,5')).toBe(8.5);
     expect(parseHs1Score(10)).toBe(10);
@@ -194,7 +215,7 @@ describe('sổ điểm', () => {
     expect(book.examColumns).toEqual({ moet: ['Giữa học kì I'], tds: [] });
   });
 
-  it('biết điểm đến từ đâu: bài nộp > sửa tay > chấm tay > Sheet', () => {
+  it('biết điểm đến từ đâu: sửa tay > bài nộp > chấm tay > Sheet', () => {
     const base = normalizeScoreBook('lop-1', {
       exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
     });
@@ -215,5 +236,12 @@ describe('sổ điểm', () => {
 
     const withAssignment = { ...base, auto: { linked: {}, homework: {}, periodic: { ghki: { a: 9 } }, computedAt: '' } };
     expect(examScoreSource(withAssignment, 'a', 'Thi GHKI')).toBe('assignment');
+
+    // Có cả sửa tay lẫn bài nộp → sửa tay thắng, nhưng vẫn báo điểm bài nộp đang bị che.
+    const both = { ...withAssignment, examOverrides: { a: { ghki: { label: 'Thi GHKI', score: 6.5 } } } };
+    expect(examScoreSource(both, 'a', 'Thi GHKI')).toBe('manual');
+    expect(shadowedAssignmentScore(both, 'a', 'Thi GHKI')).toBe(9);
+    // Không có điểm sửa tay thì không có gì bị che.
+    expect(shadowedAssignmentScore(withAssignment, 'a', 'Thi GHKI')).toBeUndefined();
   });
 });
