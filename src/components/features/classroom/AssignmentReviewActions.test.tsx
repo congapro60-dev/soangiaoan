@@ -20,10 +20,16 @@ it('GV thêm vị trí trên bài đã duyệt không gọi chấm lại, báo r
   const button = element!.props.children[0];
   button.props.onClick();
   await vi.waitFor(() => expect(view.values[0]).toBe(false));
-  expect(view.annotate).toHaveBeenCalledWith({ role: 'teacher', classId: 'c', studentId: 'student' }, 's');
+  expect(view.annotate).toHaveBeenCalledWith({ role: 'teacher', classId: 'c', studentId: 'student' }, 's', false);
   expect(view.values[1]).toContain('2/3');
   expect(view.values[1]).toContain('1 câu chưa có vị trí');
   expect(onChanged).toHaveBeenCalledOnce();
+});
+it('nút bút đỏ từng bước gọi vẽ lại (force), vẫn không chấm lại', async () => {
+  view.annotate.mockResolvedValue({ mapped: 3, unlocated: 0, total: 3 });
+  const element = AnnotateSubmissionPhotosButton({ submission, onChanged: vi.fn() });
+  element!.props.children[1].props.onClick();
+  await vi.waitFor(() => expect(view.annotate).toHaveBeenCalledWith({ role: 'teacher', classId: 'c', studentId: 'student' }, 's', true));
 });
 it('không khôi phục dấu GV đã bỏ hoặc hiện nút khi thiếu ảnh/kết quả', () => {
   for (const row of [{ ...submission, fileUrls: [] }, { ...submission, grade: undefined }, { ...submission, grade: { ...submission.grade!, questionResults: [{ ...submission.grade!.questionResults![0], photoMarksCleared: true }] } }]) {

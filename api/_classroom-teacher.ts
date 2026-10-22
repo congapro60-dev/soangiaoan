@@ -1,7 +1,7 @@
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import { handMarkedProjection } from './_hand-marked-work.js';
 import type { VercelResponse } from '@vercel/node';
-import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
+import { projectPhotoMarks, projectPhotoSteps, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import {
   canLeaveClass,
@@ -205,6 +205,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             ...(item.photoMarksCleared === true ? { photoMarksCleared: true } : {}),
             ...(projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
               ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
+            ...(projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { photoSteps: projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
             ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
             ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
           }))

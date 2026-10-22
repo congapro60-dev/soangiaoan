@@ -69,6 +69,9 @@ interface Props {
   onAddMoreImages: () => void;
   onRemovePendingFile: (index: number) => void;
   onSubmitPendingFiles: () => void;
+  /** Em khai bài thầy cô đã chấm tay (máy đọc điểm thầy ghi, thầy xác nhận). */
+  handMarked?: boolean;
+  onHandMarkedChange?: (value: boolean) => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
   onLoadDetail: (assignmentId: string | null, submissionId?: string) => Promise<StudentAssignmentDetail>;
   onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
@@ -189,7 +192,7 @@ export const StudentPortalDashboard = (props: Props) => {
   const { session, assignments, submissions, onlineSubmissions, profile, scores, discoverCatalog = [], loading, uploadingId, uploadStep,
     successMessage, warningMessage, actionError, dataError, practiceSet, practiceAnswers, practiceAttempt,
     loadingPractice, submittingPractice, practiceError, uploadRef, pendingFiles, pendingAssignmentTitle, maxPendingFiles,
-    onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment,
+    onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment, handMarked = false, onHandMarkedChange,
     onAnswerExamCode, notifications, notificationsLastSeenAt, onNotificationsOpened, onSignOut, onReload,
     onLoadPractice, onPracticeAnswerChange, onSubmitPractice, onDismissSuccess, onLoadDetail } = props;
   const [section, setSection] = useState<Section>('assignments');
@@ -343,6 +346,11 @@ export const StudentPortalDashboard = (props: Props) => {
                 {uploadingId !== '' ? 'Đang nộp...' : `Nộp ${pendingFiles.length} tệp`}
               </button>
             </div>
+            <label className="mt-3 flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+              <input type="checkbox" checked={handMarked} onChange={event => onHandMarkedChange?.(event.target.checked)} disabled={uploadingId !== ''}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600" />
+              <span>Thầy cô đã chấm tay bài này rồi (có điểm, chữ đỏ trên giấy). Máy sẽ đọc điểm thầy ghi để thầy xác nhận, em không cần làm lại.</span>
+            </label>
           </section>
         )}
 

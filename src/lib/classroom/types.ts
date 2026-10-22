@@ -354,6 +354,19 @@ export interface PhotoMark {
   confidence: number;
 }
 
+/**
+ * "Bút đỏ" một bước lập luận của câu tự luận: Đ/S + điểm ghi ở lề ngang dòng em viết, lời sửa ngắn cạnh chỗ sai.
+ * Chỉ để GIẢI THÍCH điểm câu — hiện khi tổng điểm các bước khớp đúng điểm câu hiện tại (xem `validPhotoSteps`).
+ */
+export interface PhotoStep {
+  text: string;
+  verdict: 'correct' | 'partial' | 'wrong';
+  score: number;
+  maxScore: number;
+  note?: string;
+  mark?: PhotoMark;
+}
+
 /** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
 export interface QuestionResult {
   /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
@@ -377,6 +390,7 @@ export interface QuestionResult {
   confidence?: number;
   photoMarks?: PhotoMark[];
   readingRegions?: PhotoMark[];
+  photoSteps?: PhotoStep[];
   workedSolution?: string;
   workedSolutionVersion?: string;
   workedSolutionStatus?: 'ready' | 'unavailable';
@@ -531,6 +545,10 @@ export interface SubmissionDoc {
   feedbackReadAt?: string;
   handMarkedEvidence?: HandMarkedEvidence;
   handMarkedPublished?: boolean;
+  /** Giáo viên nộp bài đã chấm tay: AI quét điểm ghi tay của GV, tự duyệt và tính vào thống kê/báo cáo. */
+  handMarkedPaper?: boolean;
+  /** Ai khai bài đã chấm tay: 'teacher' = GV nộp hộ (điểm GV là điểm chính thức); 'student'/'parent' = em tự nộp (chỉ đọc điểm, GV phải xác nhận). */
+  handMarkedDeclaredBy?: 'teacher' | 'student' | 'parent';
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
   textContent?: string;

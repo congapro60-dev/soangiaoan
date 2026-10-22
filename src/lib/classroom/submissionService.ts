@@ -345,6 +345,8 @@ export interface SubmitInput {
   note?: string;
   /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
   supplementOf?: string;
+  /** Bài này thầy cô đã chấm tay rồi (máy đọc điểm GV ghi để thầy xác nhận). */
+  handMarked?: boolean;
 }
 
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
@@ -357,5 +359,6 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
   if (!files.length) throw new Error('Chưa chọn bài làm để nộp.');
   const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
   return (await submitActorSubmission({ role: 'student' }, { assignmentId: input.assignmentId, uploadGrantId,
-    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent })).submission;
+    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent,
+    ...(input.handMarked ? { handMarked: true } : {}) })).submission;
 };
