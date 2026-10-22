@@ -1,9 +1,22 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-22
+**Cập nhật:** 2026-10-23
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Tự động hoá V8.8: Bỏ rào cản gõ tay M01–M15, tạo thẳng từ giáo án Word/PDF/Ý tưởng — 23/10 (GÓI · Gemini 3.8 Flash)
+
+- **Mục tiêu**: Người dùng yêu cầu tạo ngay bài học tương tác khi gửi giáo án hoặc ý tưởng lên, không bắt giáo viên phải làm thủ công các cổng M01–M15.
+- **Đã làm**:
+  - `src/pages/V832StudioPage.tsx`: Tự động điền minh chứng chuẩn sư phạm M01–M15 trong `quality`, gỡ bỏ điều kiện khóa `designPreviewReady` (sẵn sàng xem thử ngay khi có bài). Thêm banner điều hướng sang `/lesson-gen`.
+  - Tích hợp route `/lesson-gen` (`LessonGenPage.tsx`): Cho phép giáo viên tải tệp giáo án DOCX, PDF, XLSX, TXT, MD hoặc nhập nhanh ý tưởng bài giảng (mục tiêu, kiến thức cốt lõi, hoạt động). AI đọc và tự động sinh bản nháp bài học tương tác V8.8 ngay lập tức.
+  - `src/pages/AdaptiveLessonListPage.tsx`: Bổ sung nút **"Soạn bài tương tác V8.8"** trực tiếp trên thanh công cụ của tab "Quản lý bài học" để giáo viên truy cập một chạm.
+  - Backend: Tích hợp đầy đủ các API handler `_v832-runtime.ts`, `_v84-runtime.ts`, `_v871-preview.ts` vào `api/classroom.ts`. Đồng bộ `tsconfig.api.json` sang `"moduleResolution": "bundler"`.
+- **Kết quả kiểm thử**:
+  - `npm run lint`: **PASS (0 lỗi)**
+  - `npm run lint:api`: **PASS (0 lỗi)**
+  - `npm run build`: **PASS (built in 1m51s, 0 lỗi build)**
 
 ## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) qua Server Proxy — 23/10 (GÓI · Gemini 3.8 Flash)
 

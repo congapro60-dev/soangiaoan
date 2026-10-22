@@ -14,6 +14,7 @@ window.addEventListener('vite:preloadError', event => {
 
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+const LessonGenPage = lazy(() => import('./pages/LessonGenPage').then(m => ({ default: m.LessonGenPage })));
 const V832RoomPage = lazy(() => import('./pages/V832RoomPage').then(m => ({ default: m.V832RoomPage })));
 const V832StudioPage = lazy(() => import('./pages/V832StudioPage').then(m => ({ default: m.V832StudioPage })));
 const LiveLessonPage = lazy(() => import('./pages/LiveLessonPage').then(m => ({ default: m.LiveLessonPage })));
@@ -106,6 +107,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/du-gio/:id" element={<Suspense fallback={<RouteLoading />}><DuGioPage /></Suspense>} />
           <Route path="/adaptive-lessons" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonListPage /></Suspense>} />
           <Route path="/adaptive-builder/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonBuilderPage /></Suspense>} />
+          <Route path="/lesson-gen" element={<Suspense fallback={<RouteLoading />}><LessonGenPage /></Suspense>} />
+          <Route path="/lesson-gen/:draftId" element={<Suspense fallback={<RouteLoading />}><LessonGenPage /></Suspense>} />
           <Route path="/lesson-compiler-v832" element={<Suspense fallback={<RouteLoading />}><V832StudioPage /></Suspense>} />
           <Route path="/v832-room/:roomId" element={<Suspense fallback={<RouteLoading />}><V832RoomPage /></Suspense>} />
           <Route path="/adaptive-portal/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
