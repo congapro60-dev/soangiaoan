@@ -550,3 +550,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Ví từng âm được một lượt (giữ chỗ kẹp theo số dư nhưng trừ đủ giá). Mọi chỗ trừ tiền phải đọc số dư trong cùng giao dịch và kẹp ở 0; phần thiếu ghi lại, không đẩy sang người dùng.
 - Lỗi tạm thời (429 theo phút) không được kích hoạt đường "chuyển sang ví": đánh dấu khoá hết + trừ ví là trừ tiền oan. Phân biệt lỗi tạm thời / hết thật trước khi động tới tiền.
 - Chủ dự án: "khó với lằng nhằng là người dùng bỏ qua, tôi không kiếm được tiền". Hết tiền → mở thẳng QR, tiền về tự chạy tiếp; lựa chọn phụ gập lại; nghĩ cả GV dùng điện thoại (không tự quét được QR trên chính máy).
+
+- **Cột quy đổi phải gắn bài thi nguồn trước khi ghi TDS** — file MOET/TDS chỉ áp dụng cho một bài thi; UI bắt buộc chọn cột MOET nguồn + cột TDS đích, đối chiếu Mã HS/điểm MOET, rồi mới preview ghi. Cột định kì tạo tay phải nằm trong nhóm MOET/TDS, tách khỏi cột hệ số. *(2026-10-21)*
+
+- **SSM kỳ F/IA/SE phải gom theo kỳ thời gian, không dùng toàn bộ submission chung** — F1 Aug-Sep; IA1 Oct; F2 Nov; SE1 Dec; F3 Jan; IA2 Feb; F4 Mar; SE2 Apr. Trong kỳ có bài định kì, mỗi LO dùng 60% định kì + 40% bài thường; thiếu nhóm thì dùng nhóm còn lại; thiếu minh chứng giữ N. *(2026-10-21)*

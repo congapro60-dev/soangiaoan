@@ -28,4 +28,33 @@ describe('buildClassLoScores', () => {
     const scores = buildClassLoScores(11, roster, submissions, assignments);
     expect(scores.map((s) => s.maHS)).toEqual(['HS001', 'HS002']);
   });
+
+  it('F1 gom bài tháng 8-9, loại bài ngoài kỳ', () => {
+    const scoped = buildClassLoScores(11, roster, [
+      ...submissions,
+      { studentId: 's1', assignmentId: 'a2', createdAt: '2026-10-01', grade: { score: 2, maxScore: 10, teacherApproved: true } },
+    ], [
+      ...assignments,
+      { id: 'a2', createdAt: '2026-10-01', competencyTags: [{ competencyId: COMP }] },
+    ], { period: 'F1', academicYear: 2026 });
+    expect(scoped.find((s) => s.maHS === 'HS001')?.scoreByCompetency[COMP]).toBe(8);
+  });
+
+  it('IA1 dùng 60% bài thi tháng 10 + 40% bài thường', () => {
+    const scoped = buildClassLoScores(11, roster, [
+      { studentId: 's1', assignmentId: 'regular', createdAt: '2026-10-05', grade: { score: 5, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-20', grade: { score: 9, maxScore: 10, teacherApproved: true } },
+    ], [
+      { id: 'regular', createdAt: '2026-10-05', competencyTags: [{ competencyId: COMP }] },
+      { id: 'exam', createdAt: '2026-10-20', title: 'Thi giữa HKI', periodicTest: {}, competencyTags: [{ competencyId: COMP }] },
+    ], { period: 'IA1', academicYear: 2026 });
+    expect(scoped.find((s) => s.maHS === 'HS001')?.scoreByCompetency[COMP]).toBe(7.4);
+  });
+
+  it('bài thi muộn vẫn thuộc tháng theo ngày giao, không theo ngày nộp', () => {
+    const scoped = buildClassLoScores(11, [roster[0]], [
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-11-02', grade: { score: 9, maxScore: 10, teacherApproved: true } },
+    ], [{ id: 'exam', createdAt: '2026-10-20', dueAt: '2026-10-25', periodicTest: {}, competencyTags: [{ competencyId: COMP }] }], { period: 'IA1', academicYear: 2026 });
+    expect(scoped[0].scoreByCompetency[COMP]).toBe(9);
+  });
 });

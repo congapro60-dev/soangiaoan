@@ -13,6 +13,7 @@ import {
   canAddHs1Column,
   computeAutoScores,
   mergePaperExams,
+  applyExamOverrides,
   normalizeScoreBook,
   parseHs1Score,
   parseHs1Weight,
@@ -25,6 +26,7 @@ import {
   type Hs1Weight,
   type ScoreBookDoc,
 } from '../src/lib/classroom/scoreBook.js';
+import { examLabelKey } from '../src/lib/classroom/examScores.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -244,6 +246,36 @@ const handleLinkAssignments = async (db: Db, body: Body, res: VercelResponse): P
   res.status(200).json({ saved: true, added, scoreBook: await teacherBook(db, context, book) });
 };
 
+const handleLinkPeriodicAssignments = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (items.length === 0 || items.length > 40) return void res.status(422).json({ error: 'Chọn ít nhất một bài đã nộp và cột định kì.' });
+  const wanted = new Map<string, string>();
+  for (const item of items) {
+    const assignmentId = isRecord(item) && typeof item.assignmentId === 'string' ? item.assignmentId.trim() : '';
+    const examKey = isRecord(item) && typeof item.examKey === 'string' ? item.examKey.trim() : '';
+    if (!assignmentId || assignmentId.includes('/') || !examKey) return void res.status(422).json({ error: 'Bài và cột định kì không hợp lệ.' });
+    wanted.set(examKey, assignmentId);
+  }
+  const snapshots = await db.getAll(...[...wanted.values()].map(id => db.collection('assignments').doc(id)));
+  const book = await readBook(db, context.classId);
+  const allowedKeys = new Set([...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? [])].map(examLabelKey));
+  const links = { ...(book.periodicAssignmentLinks ?? {}) };
+  for (const snap of snapshots) {
+    const data = snap.data();
+    if (!snap.exists || !data || data.classId !== context.classId) return void res.status(404).json({ error: 'Có bài không thuộc lớp này hoặc đã bị xóa.' });
+    const key = [...wanted.entries()].find(([, id]) => id === snap.id)?.[0] ?? '';
+    if (!allowedKeys.has(key)) return void res.status(422).json({ error: 'Cột định kì phải là cột đã đọc từ file MOET/TDS.' });
+    const existing = links[key];
+    if (existing && existing !== snap.id) return void res.status(409).json({ error: 'Cột định kì này đã liên kết với một bài khác.' });
+    links[key] = snap.id;
+  }
+  book.periodicAssignmentLinks = links;
+  await writeBook(db, book, context.uid);
+  res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context, book) });
+};
+
 /** Chọn hệ số (1–3) cho các mốc thi MOET; mốc không có trong danh sách = không tính vào điểm trung bình. */
 const handleSetExamWeights = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
@@ -281,12 +313,86 @@ const handleSaveExamScores = async (db: Db, body: Body, res: VercelResponse): Pr
     if (clean.moet.length > 0 || clean.tds.length > 0) exams[studentId] = clean;
   }
   const book = await readBook(db, context.classId);
-  book.exams = mergePaperExams(exams, book.paperExams ?? {});
+  book.exams = applyExamOverrides(mergePaperExams(exams, book.paperExams ?? {}), book.examOverrides ?? {});
+  if (isRecord(body.columns)) {
+    book.examColumns = {
+      moet: Array.isArray(body.columns.moet) ? body.columns.moet.filter((v): v is string => typeof v === 'string').slice(0, 40) : [],
+      tds: Array.isArray(body.columns.tds) ? body.columns.tds.filter((v): v is string => typeof v === 'string').slice(0, 40) : [],
+    };
+  }
   book.examsSyncedAt = nowIso();
   const title = typeof body.spreadsheetTitle === 'string' ? body.spreadsheetTitle.trim().slice(0, 200) : '';
   if (title) book.examsSpreadsheetTitle = title;
   await writeBook(db, book, context.uid);
   res.status(200).json({ saved: true, studentCount: Object.keys(exams).length, scoreBook: await teacherBook(db, context, book) });
+};
+
+/** Sửa/xóa điểm thi trong sổ. Không ghi ngược Google Sheet; lần đồng bộ sau vẫn tôn trọng override. */
+const handleSaveExamColumn = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const label = typeof body.label === 'string' ? body.label.normalize('NFC').replace(/\s+/g, ' ').trim().slice(0, 80) : '';
+  const scores = isRecord(body.scores) ? body.scores : {};
+  const kind = body.kind === 'moet' || body.kind === 'tds' || body.kind === 'both' ? body.kind : undefined;
+  if (!label || (!kind && !isRecord(body.scores))) return void res.status(422).json({ error: 'Thiếu tên mốc hoặc bảng điểm.' });
+  const key = examLabelKey(label);
+  const book = await readBook(db, context.classId);
+  if (kind) {
+    const examColumns = {
+      moet: [...(book.examColumns?.moet ?? [])],
+      tds: [...(book.examColumns?.tds ?? [])],
+    };
+    const targets: Array<'moet' | 'tds'> = kind === 'both' ? ['moet', 'tds'] : [kind];
+    for (const target of targets) {
+      if (!examColumns[target].some(existing => examLabelKey(existing) === key)) examColumns[target].push(label);
+    }
+    book.examColumns = examColumns;
+  }
+  const overrides = { ...(book.examOverrides ?? {}) };
+  const roster = await rosterIds(context.classRef);
+  for (const [studentId, raw] of Object.entries(scores)) {
+    if (!roster.has(studentId)) continue;
+    const score = raw === null || raw === '' ? null : Number(raw);
+    if (!(score === null || (Number.isFinite(score) && score >= 0 && score <= 10))) return void res.status(422).json({ error: 'Điểm phải từ 0 đến 10.' });
+    overrides[studentId] = { ...(overrides[studentId] ?? {}), [key]: { label, score } };
+  }
+  // An empty cell means "use the current Sheet/paper value" for that student.
+  // Only persist an override when it differs from that current source.
+  for (const [studentId, raw] of Object.entries(scores)) {
+    if (!roster.has(studentId)) continue;
+    const score = raw === null || raw === '' ? null : Number(raw);
+    const current = book.exams[studentId]?.moet.find(mark => examLabelKey(mark.label) === key)
+      ?? book.exams[studentId]?.tds.find(mark => examLabelKey(mark.label) === key);
+    if (score === (current?.score ?? null)) delete overrides[studentId]?.[key];
+  }
+  book.examOverrides = overrides;
+  book.exams = applyExamOverrides(book.exams, overrides);
+  await writeBook(db, book, context.uid);
+  res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context, book) });
+};
+
+/** Đổi tên hoặc ẩn một cột thi trong sổ; dữ liệu nguồn Google Sheet giữ nguyên. */
+const handleSaveExamColumnSettings = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const sourceLabel = typeof body.label === 'string' ? body.label.trim() : '';
+  let key = examLabelKey(sourceLabel);
+  if (!sourceLabel || !key) return void res.status(422).json({ error: 'Thiếu tên mốc thi.' });
+  const book = await readBook(db, context.classId);
+  key = Object.entries(book.examColumnLabels ?? {}).find(([storedKey, shown]) => storedKey === key || examLabelKey(shown) === key)?.[0] ?? key;
+  const nextLabel = typeof body.newLabel === 'string' ? body.newLabel.normalize('NFC').replace(/\s+/g, ' ').trim().slice(0, 80) : '';
+  if (body.newLabel !== undefined && !nextLabel) return void res.status(422).json({ error: 'Tên cột không được để trống.' });
+  const labels = { ...(book.examColumnLabels ?? {}) };
+  if (typeof body.newLabel === 'string') {
+    if (nextLabel && nextLabel !== sourceLabel) labels[key] = nextLabel;
+    else delete labels[key];
+  }
+  book.examColumnLabels = labels;
+  const hidden = new Set((book.hiddenExamColumns ?? []).map(examLabelKey));
+  if (body.hidden === true) hidden.add(key); else hidden.delete(key);
+  book.hiddenExamColumns = [...hidden];
+  await writeBook(db, book, context.uid);
+  res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context, book) });
 };
 
 /**
@@ -306,10 +412,11 @@ const handleConfirmPaperExamScore = async (db: Db, body: Body, res: VercelRespon
   if (!assignment || assignment.classId !== context.classId || !assignment.periodicTest) return void res.status(422).json({ error: 'Chỉ bài kiểm tra định kì của lớp này mới đưa điểm chấm tay vào sổ.' });
   const book = await readBook(db, context.classId);
   const paperExams = { ...(book.paperExams ?? {}) };
-  const others = (paperExams[studentId] ?? []).filter(mark => mark.label.toLocaleLowerCase('vi-VN') !== label.toLocaleLowerCase('vi-VN'));
+  const key = examLabelKey(label);
+  const others = (paperExams[studentId] ?? []).filter(mark => examLabelKey(mark.label) !== key);
   paperExams[studentId] = score === null ? others : [...others, { label, score, assignmentId, confirmedAt: nowIso() }];
   book.paperExams = paperExams;
-  book.exams = mergePaperExams(book.exams, paperExams);
+  book.exams = applyExamOverrides(mergePaperExams(book.exams, paperExams), book.examOverrides ?? {});
   await writeBook(db, book, context.uid);
   res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context, book) });
 };
@@ -334,9 +441,12 @@ export const handleScoreBookAction = async (db: Db, body: Body, res: VercelRespo
   if (action === 'teacherScoreBook') { await handleTeacherScoreBook(db, body, res); return true; }
   if (action === 'saveHs1Column') { await handleSaveHs1Column(db, body, res); return true; }
   if (action === 'linkAssignments') { await handleLinkAssignments(db, body, res); return true; }
+  if (action === 'linkPeriodicAssignments') { await handleLinkPeriodicAssignments(db, body, res); return true; }
   if (action === 'setExamWeights') { await handleSetExamWeights(db, body, res); return true; }
   if (action === 'deleteHs1Column') { await handleDeleteHs1Column(db, body, res); return true; }
   if (action === 'saveExamScores') { await handleSaveExamScores(db, body, res); return true; }
+  if (action === 'saveExamColumn') { await handleSaveExamColumn(db, body, res); return true; }
+  if (action === 'saveExamColumnSettings') { await handleSaveExamColumnSettings(db, body, res); return true; }
   if (action === 'confirmPaperExamScore') { await handleConfirmPaperExamScore(db, body, res); return true; }
   if (action === 'studentScoreBook') { await handleStudentScoreBook(db, body, res); return true; }
   return false;
