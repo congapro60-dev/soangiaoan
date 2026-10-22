@@ -115,9 +115,9 @@ const STUDENT_AI_PAUSED_MESSAGE = 'AI chấm của lớp đang tạm dừng. Bà
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
-import { questionKey, reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
+import { questionKey, reconcileAiGrade, parseExpectedAnswer } from '../src/lib/classroom/questionRescore.js';
 import { bindQuestionPhotoMarks, projectPhotoMarks, validPhotoSteps } from '../src/lib/classroom/photoMarks.js';
-import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError } from './_submission-actors.js';
+import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError, type DetectedAnswer } from './_submission-actors.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
@@ -637,7 +637,30 @@ const gradeOneSubmission = async (
     }
     // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
     // giữ nguyên câu thầy cô đã soát tay ở lần trước.
-    const reconciled = reconcileAiGrade(attempt.grade, gradeCtx.answerKeyFixes, previous.grade?.questionResults);
+    const omrDetected = (previous as SubmissionDoc & { detectedAnswers?: DetectedAnswer[] }).detectedAnswers;
+    const omrGrade = { ...attempt.grade, questionResults: attempt.grade.questionResults?.map(q => {
+      const expected = parseExpectedAnswer(q.expectedAnswer);
+      const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
+      if (expected?.kind !== 'mcq' || !match || q.teacherEdited) return q;
+      const detected = omrDetected?.find(d => d.questionNo === Number(match[1]));
+      return detected?.answer && detected.confidence >= .8
+        ? { ...q, studentAnswer: detected.answer, confidence: detected.confidence }
+        : q;
+    }) };
+    const reconciled = reconcileAiGrade(omrGrade, gradeCtx.answerKeyFixes, previous.grade?.questionResults);
+    if (omrDetected !== undefined) {
+      let uncertain = false;
+      reconciled.questionResults = reconciled.questionResults?.map(q => {
+        const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
+        if (parseExpectedAnswer(q.expectedAnswer)?.kind !== 'mcq' || !match || q.teacherEdited) return q;
+        const detected = omrDetected.find(d => d.questionNo === Number(match[1]));
+        if (detected?.answer && detected.confidence >= .8) return q;
+        uncertain = true;
+        return { ...q, needsTeacherReview: true };
+      });
+      if (uncertain || !omrDetected.length) reconciled.noteForTeacher = [reconciled.noteForTeacher,
+        'Máy dò bóng không chắc — GV kiểm tra lại phần trắc nghiệm.'].filter(Boolean).join('\n');
+    }
     const clearedMarks = new Set((previous.grade?.questionResults || []).filter(q => q.photoMarksCleared).map(q => questionKey(q.questionNumber)));
     reconciled.questionResults = (reconciled.questionResults || []).map(q => {
       const { photoMarks: _old, photoSteps: _steps, ...rest } = q;

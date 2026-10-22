@@ -177,6 +177,8 @@ export interface StudentAdaptiveAssignment {
   title: string;
   /** Mã tiết Discover gốc — dùng để gắn bài giao với danh mục hiển thị cho em. */
   discoverSeedId?: string;
+  /** GV đã đóng bài → em chỉ xem nhận xét + BTVN, không nộp thêm được. */
+  closed?: boolean;
   createdAt: string;
 }
 
@@ -198,6 +200,18 @@ export const openStudentAdaptiveAssignment = async (assignmentId: string): Promi
   if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
   const idToken = await current.getIdToken();
   return call<{ assignmentId: string; lesson: AdaptiveLesson }>({ action: 'studentAdaptiveOpen', idToken, assignmentId });
+};
+
+export interface StudentAdaptiveClosedResult {
+  assignmentId: string;
+  feedback: string[];
+  homework: Array<{ id: string; type: string; prompt: string; options?: string[]; points: number }>;
+}
+
+export const fetchStudentAdaptiveClosed = async (assignmentId: string): Promise<StudentAdaptiveClosedResult> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Can phien dang nhap hoc sinh.');
+  return call<StudentAdaptiveClosedResult>({ action: 'studentAdaptiveClosed', idToken: await current.getIdToken(), assignmentId });
 };
 
 export interface StudentAdaptiveSubmitResult {
