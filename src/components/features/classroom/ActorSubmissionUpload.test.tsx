@@ -17,4 +17,13 @@ describe('nộp hộ qua quyền hiện có', () => {
     expect(html).toContain('Nộp bài đã chấm');
     expect(html).toContain('AI sẽ tự đọc điểm ghi tay');
   });
+
+  it('trên điện thoại: có nút CHỤP ẢNH riêng (mở thẳng camera) + nút chọn ảnh/PDF', () => {
+    const credentials = { role: 'teacher' as const, classId: 'c1', studentId: 's1' };
+    const html = renderToStaticMarkup(<ActorSubmissionUpload credentials={credentials} assignmentId="assignment" onSubmitted={() => undefined} />);
+    expect(html).toContain('Chụp ảnh');
+    expect(html).toContain('capture="environment"');
+    expect(html).toContain('Chọn ảnh / PDF');
+    expect(html).toContain('multiple=""');
+  });
 });

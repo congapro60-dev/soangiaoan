@@ -1199,9 +1199,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
 
   // HỌC SINH tự chấm: trả lời ngay rồi chấm tiếp ở phía máy chủ. Em nộp bằng điện thoại xong
   // tắt máy là chuyện thường; để việc chấm nằm trong request của em thì request đứt là worker
-  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình.
-  // Nền tảng không cho chạy ngầm (chạy local, chạy test) thì tự lùi về chờ xong như cũ.
-  if (!isTeacher) {
+  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình —
+  // TRỪ KHI client (điện thoại) xin chấm nền: lúc đó trả 202 ngay, thầy cứ đóng app.
+  if (!isTeacher || body.background === true) {
     const nen = gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode)
       .catch(error => {
         console.error('[grade-homework] lượt chấm ngầm hỏng', error);

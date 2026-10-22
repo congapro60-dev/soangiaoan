@@ -16,7 +16,7 @@ import {
   type SubmissionDoc,
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
-import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
+import { dataUrlToFile, dichLoiNopBai, nenAnhBaiLamToFile } from '../utils/imageCompress';
 import { fetchRoster, fetchStudentDiscoverCatalog, fetchStudentScoreBook, loginStudent, type RosterEntry } from '../services/studentPortalApi';
 import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
 import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
@@ -502,7 +502,7 @@ export const StudentPortalPage = () => {
     setThanhCong('');
     setDangNop(mucTieu || 'tu-do');
     try {
-      const images: string[] = [];
+      const images: File[] = [];
       const rawFiles: File[] = [];
       const textParts: string[] = [];
       for (let i = 0; i < chon.length; i += 1) {
@@ -519,7 +519,7 @@ export const StudentPortalPage = () => {
           const { pdfToImages } = await import('../utils/examImportUtils');
           const trang = await pdfToImages(file);
           if (trang.length === 0) throw new Error(`Không đọc được trang nào trong ${file.name}.`);
-          images.push(...trang);
+          images.push(...trang.map((dataUrl, index) => dataUrlToFile(dataUrl, `${file.name}-trang-${index + 1}.jpg`)));
           rawFiles.push(file);
         } else if (/\.doc$/i.test(file.name)) {
           throw new Error('Định dạng .doc cũ chưa được hỗ trợ ổn định. Em lưu lại thành .docx hoặc PDF rồi nộp lại nhé.');
@@ -530,7 +530,8 @@ export const StudentPortalPage = () => {
           textParts.push(text.slice(0, MAX_STUDENT_TEXT_CHARS));
           rawFiles.push(file);
         } else {
-          images.push(await nenAnhBaiLam(file));
+          // Nén thẳng ra File (không qua base64) — tránh kẹt trình duyệt trên điện thoại.
+          images.push(await nenAnhBaiLamToFile(file));
         }
       }
       if (images.length === 0 && rawFiles.length === 0) throw new Error('Không có bài nào để nộp.');

@@ -108,6 +108,56 @@ export const nenAnhBaiLam = async (file: File): Promise<string> => {
   return ketQua;
 };
 
+/**
+ * Nén thẳng ra File (KHÔNG đi qua base64) — nhanh hơn nhiều trên điện thoại.
+ *
+ * `nenAnhBaiLam` trả data URL rồi code phải `atob` + `Uint8Array.from` ngược lại: với ảnh
+ * 2–3 MB là hàng triệu ký tự base64, thao tác đó chạy trên main thread và làm Safari
+ * iOS "treo" (không vẽ được khung hình). Ở đây dùng `canvas.toBlob` → Blob → File, không
+ * có chuỗi base64 nào.
+ *
+ * Nén xong mà ảnh rỗng/hỏng (ví dụ HEIC mà trình duyệt không giải mã được) thì GIỮ bản
+ * gốc — tốt hơn là tải lên một tấm ảnh trắng.
+ */
+export const nenAnhBaiLamToFile = async (file: File): Promise<File> => {
+  let nguon: NguonVe;
+  try {
+    nguon = await giaiMaAnh(file);
+  } catch {
+    if (file.size < GIOI_HAN_BYTE_STORAGE) return file;
+    throw new Error(
+      'Ảnh ở định dạng HEIC và quá nặng để tải lên. Em vào Cài đặt → Máy ảnh → Định dạng, chọn "Tương thích nhất" rồi chụp lại bài nhé.',
+    );
+  }
+
+  const goc = kichThuocCua(nguon);
+  const moi = tinhKichThuocMoi(goc.w, goc.h);
+  const canvas = document.createElement('canvas');
+  canvas.width = moi.w;
+  canvas.height = moi.h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    if ('close' in nguon) nguon.close();
+    throw new Error('Trình duyệt này chưa hỗ trợ xử lý ảnh. Thử trình duyệt khác giúp em nhé.');
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, moi.w, moi.h);
+  ctx.drawImage(nguon as CanvasImageSource, 0, 0, moi.w, moi.h);
+  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+  if ('close' in nguon) nguon.close();
+  // Ảnh nén ra quá nhỏ = giải mã hỏng (ảnh trắng). Giữ bản gốc cho an toàn.
+  if (!blob || blob.size < 1024) return file;
+  const ten = file.name.replace(/\.[^.]+$/, '') || 'anh';
+  return new File([blob], `${ten}.jpg`, { type: 'image/jpeg' });
+};
+
+/** Data URL (pdf.js, canvas cũ) → File. Chỉ dùng khi không còn cách nào khác. */
+export const dataUrlToFile = (dataUrl: string, name: string): File => {
+  const match = /^data:([^;,]+);base64,(.+)$/s.exec(String(dataUrl || '').trim());
+  if (!match) throw new Error('Không tạo được ảnh bài làm. Chọn ảnh rồi thử lại.');
+  return new File([Uint8Array.from(atob(match[2]), value => value.charCodeAt(0))], name, { type: match[1] });
+};
+
 /** Dịch lỗi nộp bài (Storage/Firestore/mạng) thành câu tiếng Việt nói đúng nguyên nhân. */
 export const dichLoiNopBai = (error: unknown): string => {
   const ma = typeof error === 'object' && error !== null && 'code' in error
