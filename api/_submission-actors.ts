@@ -257,7 +257,8 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       if (supplementOf && (!previous || previous.studentId !== actor.studentId || previous.classId !== actor.classId || previous.teacherId !== actor.teacherId || previous.assignmentId !== assignmentId)) error(403, 'Lượt nộp trước không thuộc đúng bài và học sinh.');
       const evidence = previous ? mergeSubmissionEvidence({ fileUrls: previous.fileUrls || [], attachments: previous.attachments || [], textContent: text(previous.textContent) }, { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) }) : { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) };
       if (evidence.fileUrls.length > 12 || evidence.textContent.length > 60000) error(422, 'Lượt bổ sung vượt giới hạn 12 tệp hoặc 60000 ký tự.');
-      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), createdAt: now, updatedAt: now };
+      const isTeacherHandMarked = actor.role === 'teacher' && body.handMarked === true;
+      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(isTeacherHandMarked ? { handMarkedPaper: true } : {}), createdAt: now, updatedAt: now };
       tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }

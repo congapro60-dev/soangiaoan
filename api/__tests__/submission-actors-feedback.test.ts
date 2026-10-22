@@ -90,6 +90,36 @@ describe('actor submission and feedback', () => {
     expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(200);
     expect(h.deleted).toContain(path);
   });
+
+  it('GV nộp bài đã chấm lưu cờ handMarkedPaper, học sinh/PH không tự đặt được cờ này', async () => {
+    // GV nộp
+    h.uid = 'teacher';
+    const teacherCredentials = { role: 'teacher', classId: 'class', studentId: 'student' };
+    const uploadGrantTeacher = await grant(teacherCredentials);
+    const teacherRes = await call({
+      action: 'submitActorSubmission',
+      ...teacherCredentials,
+      assignmentId: 'a',
+      uploadGrantId: uploadGrantTeacher,
+      handMarked: true,
+    });
+    expect(teacherRes.status).toBe(200);
+    expect(teacherRes.payload.submission.handMarkedPaper).toBe(true);
+
+    // Học sinh thử truyền handMarked: true -> bị phớt lờ
+    h.uid = 'student-uid';
+    const studentCredentials = { role: 'student' };
+    const uploadGrantStudent = await grant(studentCredentials);
+    const studentRes = await call({
+      action: 'submitActorSubmission',
+      ...studentCredentials,
+      assignmentId: 'a',
+      uploadGrantId: uploadGrantStudent,
+      handMarked: true,
+    });
+    expect(studentRes.status).toBe(200);
+    expect(studentRes.payload.submission.handMarkedPaper).toBeUndefined();
+  });
   it('lượt tải bỏ dở hết hạn được dọn; quá 10 lượt chưa dùng cùng lúc thì từ chối', async () => {
     const stale = await grant();
     store[`submissionUploadGrants/${stale}`].expiresAt = Date.now() - 1000;

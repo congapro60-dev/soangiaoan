@@ -74,6 +74,7 @@ export const mergeTeacherQuestionResults = (
       || next.studentAnswer !== old.studentAnswer || next.status !== old.status || next.expectedAnswer !== old.expectedAnswer;
     const marks = clearMarks ? [] : projectPhotoMarks(next, (old.photoMarks || []).flatMap(m => m.imageUrl ? [m.imageUrl] : []));
     delete next.photoMarks;
+    if (clearMarks) delete next.photoSteps;
     if (next.studentAnswer !== old.studentAnswer || next.expectedAnswer !== old.expectedAnswer) delete next.readingRegions;
     if (marks.length) next.photoMarks = marks;
     return changed || old.teacherEdited

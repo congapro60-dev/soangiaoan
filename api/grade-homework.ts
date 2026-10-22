@@ -1,4 +1,4 @@
-import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows, mergeAnnotationResult } from './_submission-annotations.js';
+import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
@@ -14,6 +14,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
+  callUtilityVision,
   chayNgam,
   GeminiResponseError,
   getGradingApiKey,
@@ -27,7 +28,7 @@ import {
   type QuotaDoc,
 } from './_grading-core.js';
 import {
-  buildHomeworkGradingPrompt,
+  buildHomeworkGradingSegments,
   buildPhotoMarksPrompt,
   buildHomeworkGradingRetryPrompt,
   HOMEWORK_GRADING_RECITATION_NOTE,
@@ -116,7 +117,7 @@ import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
 import { questionKey, reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
-import { bindQuestionPhotoMarks, projectPhotoMarks } from '../src/lib/classroom/photoMarks.js';
+import { bindQuestionPhotoMarks, projectPhotoMarks, validPhotoSteps } from '../src/lib/classroom/photoMarks.js';
 import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError } from './_submission-actors.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
@@ -323,6 +324,8 @@ interface GradeContext {
   answerKeyFixes: AnswerKeyFix[];
   /** Bài kiểm tra định kì: giáo viên đã chấm tay trên giấy. */
   teacherMarkedPaper: boolean;
+  /** Giáo viên nộp bài đã chấm tay: lấy điểm ghi tay làm điểm chính thức. */
+  handMarkedPaper?: boolean;
   /** Các mã đề; rỗng = bài một đề như BTVN. */
   examVariants: ExamVariant[];
   /** Cột điểm trong sổ điểm để đối chiếu tổng điểm (rỗng = không đối chiếu). */
@@ -395,10 +398,14 @@ const attemptHomeworkGrade = async (
     teacherMarkedPaper: ctx.teacherMarkedPaper,
     ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
   };
-  const basePrompt = buildHomeworkGradingPrompt(promptInput);
-  const prompt = retryCount === 0
-    ? basePrompt
-    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
+  const segments = buildHomeworkGradingSegments(promptInput);
+  const basePrompt = `${segments.prefix}\n\n${segments.suffix}`;
+  // Lượt thử lại nối thêm phần nhắc riêng của em vào CUỐI phần động — phần cố định giữ nguyên
+  // nên cache của cả lớp vẫn ăn được.
+  const suffix = retryCount === 0
+    ? segments.suffix
+    : `${segments.suffix}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
+  const prompt = retryCount === 0 ? basePrompt : `${segments.prefix}\n\n${suffix}`;
   const raw = await callGeminiVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
@@ -410,7 +417,16 @@ const attemptHomeworkGrade = async (
     // trên lớp — bài nhiều câu, mỗi câu 8 field chữ, cộng token "suy nghĩ" cũng tính vào đây, nên
     // câu trả lời bị cắt (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Ở đường chấm bài,
     // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
+    // ponytail: Với đường chấm bài thi/bài tập, đặt thinkingLevel='low' để không bị timeout 240s khi gặp bài toán phức tạp
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, thinkingLevel: 'low', timeoutMs },
+    // Đề + đáp án + luật chấm là phần CỐ ĐỊNH cho cả lớp → đặt trước phần đổi theo em để Gemini
+    // cache tiền tố đó: 39/40 bài chỉ trả giá đọc cache thay vì gửi lại từ đầu.
+    {
+      prefix: segments.prefix,
+      prefixImages: [...ctx.assignmentImages, ...ctx.answerKeyImages],
+      suffix,
+      suffixImages: images,
+    },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -423,10 +439,15 @@ const attemptHomeworkGrade = async (
       }
     : undefined;
 
+  const hasTeacherMarkedScore = Boolean(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore);
+  const isHandMarkedSubmission = Boolean(ctx.handMarkedPaper && hasTeacherMarkedScore);
+  const score = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.score : parsed.grade.score;
+  const maxScore = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.maxScore : parsed.grade.maxScore;
+
   const now = new Date().toISOString();
   const grade = {
-    score: parsed.grade.score,
-    maxScore: parsed.grade.maxScore,
+    score,
+    maxScore,
     feedback: parsed.grade.feedbackForStudent,
     noteForTeacher: parsed.grade.noteForTeacher,
     strengths: parsed.grade.strengths,
@@ -434,11 +455,9 @@ const attemptHomeworkGrade = async (
     questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
-    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc) — để thầy cô xác nhận đưa vào sổ, không dùng để chấm.
-    ...(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
+    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc)
+    ...(hasTeacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
     gradedAt: now,
-    // Mọi lượt chấm bằng máy (kể cả bài học sinh tự nộp) đều CHƯA duyệt: học sinh chỉ thấy điểm sau khi thầy cô duyệt
-    // (hoặc máy tự duyệt sau 60 phút khi lớp bật). Học sinh chỉ được hỏi lại câu máy đọc chưa chắc.
     teacherApproved: false,
     ...(gradingRecovery ? { gradingRecovery } : {}),
     ...(transcription ? { transcription } : {}),
@@ -498,8 +517,9 @@ const resolveExamCode = async (
   if (codes.length === 1) return codes[0];
   if (submission.examCode && codes.includes(submission.examCode)) return submission.examCode;
   if (images.length === 0 || timeoutMs < MIN_GEMINI_BUDGET_MS) return null;
-  // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — mấy trang đầu là đủ, gửi cả bài chỉ tốn thêm.
-  const raw = await callGeminiVision(buildDetectExamCodePrompt(codes), images.slice(0, 3), apiKey, GRADING_MODEL, {
+  // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — trang đầu là đủ, gửi thêm trang nữa chỉ tốn token.
+  // Việc đọc mã đề không cần suy luận sâu nên dùng model rẻ (có lùi về model chấm nếu bị từ chối).
+  const raw = await callUtilityVision(buildDetectExamCodePrompt(codes), images.slice(0, 1), apiKey, {
     maxOutputTokens: 'model-max',
     jsonMode: true,
     temperature: 0,
@@ -577,11 +597,14 @@ const gradeOneSubmission = async (
 
     // Bài nhiều mã đề: chấm theo đúng đề + đáp án của mã ghi trên bài.
     let gradeCtx = ctx;
-    if (ctx.examVariants.length > 0) {
-      const code = await resolveExamCode(previous, ctx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
+    if (previous.handMarkedPaper) {
+      gradeCtx = { ...gradeCtx, teacherMarkedPaper: true, handMarkedPaper: true };
+    }
+    if (gradeCtx.examVariants.length > 0) {
+      const code = await resolveExamCode(previous, gradeCtx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
       if (!code) throw new Error(UNREADABLE_EXAM_CODE_MESSAGE);
       if (code !== previous.examCode) await claim.ref.update({ examCode: code, examCodeSource: 'ai' });
-      gradeCtx = contextForVariant(ctx, code);
+      gradeCtx = contextForVariant(gradeCtx, code);
     }
 
     const solutionVersionAtGrading = gradeCtx.solutionAssignment ? workedSolutionVersion(assignmentSolutionInput(gradeCtx.solutionAssignment, gradeCtx.examCode || previous.examCode || '')) : undefined;
@@ -617,21 +640,19 @@ const gradeOneSubmission = async (
     const reconciled = reconcileAiGrade(attempt.grade, gradeCtx.answerKeyFixes, previous.grade?.questionResults);
     const clearedMarks = new Set((previous.grade?.questionResults || []).filter(q => q.photoMarksCleared).map(q => questionKey(q.questionNumber)));
     reconciled.questionResults = (reconciled.questionResults || []).map(q => {
-      const { photoMarks: _old, ...rest } = q;
+      const { photoMarks: _old, photoSteps: _steps, ...rest } = q;
       if (clearedMarks.has(questionKey(q.questionNumber))) return { ...rest, photoMarksCleared: true };
       const photoMarks = projectPhotoMarks(q, studentImageUrls);
-      return { ...rest, ...(photoMarks.length ? { photoMarks } : {}) };
+      // Bước bút đỏ chỉ giữ khi cộng lại đúng điểm câu SAU hậu kiểm; lệch là AI chia sai → bỏ, không sửa điểm theo bước.
+      const photoSteps = validPhotoSteps(q);
+      return { ...rest, ...(photoMarks.length ? { photoMarks } : {}), ...(photoSteps.length ? { photoSteps } : {}) };
     });
-    // The scoring model can omit geometry even when it reads the answer correctly.
-    // Use the existing location-only contract; failure must not discard a valid grade.
+    // KHÔNG tự gọi thêm lượt vẽ dấu sau khi chấm: lượt đó gửi lại toàn bộ ảnh bài làm (đắt
+    // nhất trong luồng chấm) chỉ để bổ sung vùng cho câu mà lượt chấm chưa định vị được.
+    // Giáo viên bấm "Bổ sung dấu" khi cần (`annotateSubmissionPhotos`) — cùng kết quả, chỉ
+    // không đốt token của cả lớp mỗi lần chấm.
     const unlocated = missingAnnotationRows(reconciled.questionResults, studentImageUrls);
-    if (images.length && unlocated.length && conLaiMs() > MIN_GEMINI_BUDGET_MS + FINISH_MARGIN_MS) {
-      try {
-        const raw = await callGeminiVision(buildAnnotationPrompt({ ...previous, grade: reconciled }, unlocated, images.length), images, apiKey, GRADING_MODEL,
-          { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(60_000, conLaiMs() - FINISH_MARGIN_MS) });
-        reconciled.questionResults = mergeAnnotationResult(reconciled.questionResults, unlocated, studentImageUrls, raw);
-      } catch { console.warn('[grade-homework] chưa định vị đủ ảnh; giữ kết quả chấm và cho phép bổ sung dấu sau.'); }
-    }
+    if (unlocated.length) console.info('[grade-homework] còn câu chưa định vị vùng trên ảnh; giáo viên bấm "Bổ sung dấu" khi cần.', { soCau: unlocated.length });
 
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
@@ -647,7 +668,15 @@ const gradeOneSubmission = async (
     // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
     const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
       ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
-    const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
+    const isTeacherHandMarked = Boolean(previous.handMarkedPaper);
+    let grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
+    if (isTeacherHandMarked) {
+      grade = {
+        ...grade,
+        teacherApproved: true,
+        approvalSource: 'teacher',
+      };
+    }
 
     if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }
     const now = grade.gradedAt;
@@ -667,6 +696,23 @@ const gradeOneSubmission = async (
       previous.assignmentId && solutionVersionAtGrading ? { assignmentId: previous.assignmentId, examCode: gradeCtx.examCode || previous.examCode || '', version: solutionVersionAtGrading } : undefined,
     );
     if (!committed.committed) return { success: false };
+
+    if (isTeacherHandMarked) {
+      await claim.ref.update({ handMarkedPublished: true, handMarkedPublishedAt: now, handMarkedPublishedBy: actorUid }).catch(() => undefined);
+      try {
+        await syncApprovedGradeEvidence(db, {
+          submissionId,
+          assignmentId: previous.assignmentId,
+          grade,
+          owner: { studentId: previous.studentId, classId: previous.classId, teacherId: previous.teacherId },
+          now,
+          approved: true,
+        });
+      } catch (syncError) {
+        console.warn('[grade-homework] Lỗi syncApprovedGradeEvidence bài chấm tay:', syncError);
+        await claim.ref.update({ evidenceSyncError: syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại' }).catch(() => undefined);
+      }
+    }
 
     // Lượt chấm mới CHƯA duyệt (cả bài học sinh tự nộp): chưa ghi vào hồ sơ học tập, và nếu bài từng có minh chứng cũ thì gỡ đi.
     // Minh chứng chỉ được ghi khi thầy cô duyệt (hoặc máy tự duyệt sau 60 phút).
@@ -1132,6 +1178,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
       }
       // Cùng một hàm với chấm cả lớp — hai đường tự dựng riêng là lệch nhau (vd quên mã đề).
       ctx = await gradeContextFor(a);
+      if (submission.handMarkedPaper) {
+        ctx.teacherMarkedPaper = true;
+      }
     }
   }
 
@@ -2185,7 +2234,8 @@ const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boo
       }
       const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
       if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
-      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+      const rubric = submission.assignmentId ? String((await db.collection('assignments').doc(submission.assignmentId).get()).data()?.rubric || '') : '';
+      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length, rubric), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

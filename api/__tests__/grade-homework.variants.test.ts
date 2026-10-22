@@ -120,7 +120,7 @@ const stubImageThenGeminiResponses = (...responses: ReturnType<typeof makeGemini
       return makeImageResponse();
     }
     const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
-    const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
+    const prompt = request.contents?.[0]?.parts?.filter(part => typeof part.text === 'string').map(part => part.text).join('\n');
     promptTexts.push(typeof prompt === 'string' ? prompt : '');
     return responses[Math.min(geminiIndex++, responses.length - 1)];
   });
@@ -193,7 +193,8 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     h.db = makeDb(harness);
     const prompts = stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
     expect((await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' })).statusCode).toBe(200);
-    expect(prompts).toHaveLength(2);
+    // Một lượt chấm thôi — không còn lượt vẽ dấu tự động sau khi chấm.
+    expect(prompts).toHaveLength(1);
   });
 
   it('AI đọc mã đề trên ảnh → chấm theo đúng đề + đáp án của mã đó, dặn bỏ qua nét chấm của giáo viên; lưu mã', async () => {
@@ -261,7 +262,7 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
 
     await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
 
-    expect(prompts).toHaveLength(2);
+    expect(prompts).toHaveLength(1);
     expect(prompts[0]).toContain('MÃ ĐỀ CỦA BÀI NÀY: 1201');
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', examCode: '1201', examCodeSource: 'teacher' });
   });
@@ -379,6 +380,25 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     });
     try { expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(200); expect(timeout.mock.calls[0][0]).toBe(120000); expect(timeout.mock.calls[1][0]).toBeLessThanOrEqual(195000); }
     finally { clock.mockRestore(); timeout.mockRestore(); }
+  });
+
+  it('bài chấm tay (handMarkedPaper: true): AI đọc điểm GV ghi trên bài -> gán làm điểm bài, tự duyệt và công bố bản chấm tay', async () => {
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher', handMarkedPaper: true });
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(
+      makeGeminiResponse(JSON.stringify({ ...JSON.parse(gradeJson(5)), teacherMarkedScore: { score: 9, maxScore: 10 } })),
+    );
+
+    const res = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(res.statusCode).toBe(200);
+
+    const sub = harness.state.submissions['sub-1'];
+    const grade = sub.grade as DocData;
+    expect(grade.score).toBe(9);
+    expect(grade.maxScore).toBe(10);
+    expect(grade.teacherApproved).toBe(true);
+    expect(grade.approvalSource).toBe('teacher');
+    expect(sub.handMarkedPublished).toBe(true);
   });
 });
 

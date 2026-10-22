@@ -226,6 +226,7 @@ interface BaiNopTheoLopProps {
 const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
   const [proxyStudent, setProxyStudent] = useState('');
   const [proxyBase, setProxyBase] = useState('');
+  const [proxyHandMarked, setProxyHandMarked] = useState(false);
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -575,14 +576,19 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold">Chưa nộp</span></span>
             <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span><span className="text-xs">—</span></span>
             <span data-column="notes" className="teacher-submission-cell">
-              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); }}>Nộp hộ</button>}
+              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && (
+                <div className="flex flex-wrap items-center gap-1">
+                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
+                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
+                </div>
+              )}
             </span>
             <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="text-xs">—</span></span>
             <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span><span className="text-xs">—</span></span>
             <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
           </div>
           </div>
-          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
         </div>
       ))}
     </div>
@@ -1988,16 +1994,18 @@ export const AnnotateSubmissionPhotosButton = ({ submission, disabled = false, o
   const [message, setMessage] = useState('');
   const images = [...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(submission.grade?.questionResults?.flatMap(row => row.clarify?.photoUrls ?? []) ?? [])];
   if (submission.status !== 'graded' || !submission.grade || !images.length || !submission.grade.questionResults?.some(row => !row.photoMarksCleared && !row.ignoredByTeacherInstruction && !isBlankAnswer(row.studentAnswer))) return null;
-  return <div>
-    <button type="button" disabled={busy || disabled} title="Chỉ bổ sung vị trí câu trên ảnh; giữ điểm, nội dung và trạng thái duyệt." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-teal-900 disabled:opacity-50" onClick={() => {
-      if (busy || disabled) return;
-      setBusy(true); setMessage('');
-      void annotateSubmissionPhotos({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id).then(result => {
-        setMessage(result.total === 0 ? 'Không có câu cần định vị thêm.' : `Đã có vị trí ${result.mapped}/${result.total} câu.${result.unlocated ? ` ${result.unlocated} câu chưa có vị trí đủ chắc; xem lời chữa trong danh sách câu.` : ''} Giữ nguyên điểm và trạng thái duyệt.`);
-        onChanged();
-      }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
-    }}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
-    {message && <p role="status" className="mt-1 max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
+  const run = (force: boolean) => {
+    if (busy || disabled) return;
+    setBusy(true); setMessage('');
+    void annotateSubmissionPhotos({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, force).then(result => {
+      setMessage(result.total === 0 ? 'Không có câu cần định vị thêm.' : `Đã có vị trí ${result.mapped}/${result.total} câu.${result.unlocated ? ` ${result.unlocated} câu chưa có vị trí đủ chắc; xem lời chữa trong danh sách câu.` : ''}${force ? ' Câu tự luận có bút đỏ từng bước khi máy chia điểm khớp điểm câu.' : ''} Giữ nguyên điểm và trạng thái duyệt.`);
+      onChanged();
+    }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
+  };
+  return <div className="flex flex-wrap gap-2">
+    <button type="button" disabled={busy || disabled} title="Chỉ bổ sung vị trí câu trên ảnh; giữ điểm, nội dung và trạng thái duyệt." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-teal-900 disabled:opacity-50" onClick={() => run(false)}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
+    <button type="button" disabled={busy || disabled} title="Vẽ lại dấu và chia điểm câu tự luận theo từng bước (Đ/S + điểm cạnh dòng, lời sửa dưới dòng sai). Không chấm lại: điểm, nhận xét, trạng thái duyệt giữ nguyên. Tốn một lượt AI." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-800 disabled:opacity-50" onClick={() => run(true)}><PenLine className="h-4 w-4" />Vẽ bút đỏ từng bước</button>
+    {message && <p role="status" className="w-full max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
   </div>;
 };
 
