@@ -1,4 +1,4 @@
-import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows, mergeAnnotationResult } from './_submission-annotations.js';
+import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
@@ -14,6 +14,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
+  callUtilityVision,
   chayNgam,
   GeminiResponseError,
   getGradingApiKey,
@@ -27,7 +28,7 @@ import {
   type QuotaDoc,
 } from './_grading-core.js';
 import {
-  buildHomeworkGradingPrompt,
+  buildHomeworkGradingSegments,
   buildPhotoMarksPrompt,
   buildHomeworkGradingRetryPrompt,
   HOMEWORK_GRADING_RECITATION_NOTE,
@@ -397,10 +398,14 @@ const attemptHomeworkGrade = async (
     teacherMarkedPaper: ctx.teacherMarkedPaper,
     ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
   };
-  const basePrompt = buildHomeworkGradingPrompt(promptInput);
-  const prompt = retryCount === 0
-    ? basePrompt
-    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
+  const segments = buildHomeworkGradingSegments(promptInput);
+  const basePrompt = `${segments.prefix}\n\n${segments.suffix}`;
+  // Lượt thử lại nối thêm phần nhắc riêng của em vào CUỐI phần động — phần cố định giữ nguyên
+  // nên cache của cả lớp vẫn ăn được.
+  const suffix = retryCount === 0
+    ? segments.suffix
+    : `${segments.suffix}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
+  const prompt = retryCount === 0 ? basePrompt : `${segments.prefix}\n\n${suffix}`;
   const raw = await callGeminiVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
@@ -414,6 +419,14 @@ const attemptHomeworkGrade = async (
     // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
     // ponytail: Với đường chấm bài thi/bài tập, đặt thinkingLevel='low' để không bị timeout 240s khi gặp bài toán phức tạp
     { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, thinkingLevel: 'low', timeoutMs },
+    // Đề + đáp án + luật chấm là phần CỐ ĐỊNH cho cả lớp → đặt trước phần đổi theo em để Gemini
+    // cache tiền tố đó: 39/40 bài chỉ trả giá đọc cache thay vì gửi lại từ đầu.
+    {
+      prefix: segments.prefix,
+      prefixImages: [...ctx.assignmentImages, ...ctx.answerKeyImages],
+      suffix,
+      suffixImages: images,
+    },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -504,8 +517,9 @@ const resolveExamCode = async (
   if (codes.length === 1) return codes[0];
   if (submission.examCode && codes.includes(submission.examCode)) return submission.examCode;
   if (images.length === 0 || timeoutMs < MIN_GEMINI_BUDGET_MS) return null;
-  // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — mấy trang đầu là đủ, gửi cả bài chỉ tốn thêm.
-  const raw = await callGeminiVision(buildDetectExamCodePrompt(codes), images.slice(0, 3), apiKey, GRADING_MODEL, {
+  // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — trang đầu là đủ, gửi thêm trang nữa chỉ tốn token.
+  // Việc đọc mã đề không cần suy luận sâu nên dùng model rẻ (có lùi về model chấm nếu bị từ chối).
+  const raw = await callUtilityVision(buildDetectExamCodePrompt(codes), images.slice(0, 1), apiKey, {
     maxOutputTokens: 'model-max',
     jsonMode: true,
     temperature: 0,
@@ -633,16 +647,12 @@ const gradeOneSubmission = async (
       const photoSteps = validPhotoSteps(q);
       return { ...rest, ...(photoMarks.length ? { photoMarks } : {}), ...(photoSteps.length ? { photoSteps } : {}) };
     });
-    // The scoring model can omit geometry even when it reads the answer correctly.
-    // Use the existing location-only contract; failure must not discard a valid grade.
+    // KHÔNG tự gọi thêm lượt vẽ dấu sau khi chấm: lượt đó gửi lại toàn bộ ảnh bài làm (đắt
+    // nhất trong luồng chấm) chỉ để bổ sung vùng cho câu mà lượt chấm chưa định vị được.
+    // Giáo viên bấm "Bổ sung dấu" khi cần (`annotateSubmissionPhotos`) — cùng kết quả, chỉ
+    // không đốt token của cả lớp mỗi lần chấm.
     const unlocated = missingAnnotationRows(reconciled.questionResults, studentImageUrls);
-    if (images.length && unlocated.length && conLaiMs() > MIN_GEMINI_BUDGET_MS + FINISH_MARGIN_MS) {
-      try {
-        const raw = await callGeminiVision(buildAnnotationPrompt({ ...previous, grade: reconciled }, unlocated, images.length, gradeCtx.rubric), images, apiKey, GRADING_MODEL,
-          { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(60_000, conLaiMs() - FINISH_MARGIN_MS) });
-        reconciled.questionResults = mergeAnnotationResult(reconciled.questionResults, unlocated, studentImageUrls, raw);
-      } catch { console.warn('[grade-homework] chưa định vị đủ ảnh; giữ kết quả chấm và cho phép bổ sung dấu sau.'); }
-    }
+    if (unlocated.length) console.info('[grade-homework] còn câu chưa định vị vùng trên ảnh; giáo viên bấm "Bổ sung dấu" khi cần.', { soCau: unlocated.length });
 
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.

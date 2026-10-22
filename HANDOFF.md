@@ -13,6 +13,12 @@ Cùng nhánh: sửa lỗi "AI xử lý quá lâu" khi chấm bài Toán khó (ph
 
 Token chi phí lớp học: đã nghiên cứu xong, chưa làm (chờ duyệt): static prefix cho implicit cache Gemini (~80–85% input lớp 40 HS), nén ảnh 1600→1200px, tắt auto annotation phase-3 (chỉ on-demand), Flash-Lite cho đọc mã đề/catalog. Ước tính ~$1.28 → ~$0.22/lớp 40 HS/lần.
 
+## Tiết kiệm token lớp học: cache tiền tố + ảnh gọn + bỏ lượt vẽ dấu thừa + model rẻ cho việc phụ — 22/10 (Claude)
+
+Chủ dự án duyệt làm hết 4 phương án. (1) **CACHE TIỀN TỐ**: `buildHomeworkGradingSegments` tách prompt chấm thành `prefix` (đề, đáp án, rubric, luật chấm, khuôn JSON — GIỐNG HỆT cho mọi em) + `suffix` (bài làm dạng chữ, số ảnh bài làm); `callGeminiVision` nhận `GeminiPromptSegment` và xếp parts theo thứ tự prefix → ảnh đề/đáp án → suffix → ảnh bài làm, nên Gemini cache tiền tố cho cả lớp (39/40 bài chỉ trả giá đọc cache). Áp cho cả đường chấm bài (`grade-homework.ts`) và đường thi trực tuyến (`_classroom-online.ts`). (2) **ẢNH**: `MAX_CANH` 1600 → **1536** (= 2×768 nên Gemini tính 4 ô thay vì 6, tiết kiệm ~33% token ảnh mà giữ gần trọn độ sắc nét); đọc mã đề chỉ gửi **1 ảnh** đầu thay vì 3. (3) **BỎ LƯỢT VẼ DẤU TỰ ĐỘNG**: sau khi chấm không còn gọi thêm Gemini để bổ sung vùng trên ảnh (lượt đó gửi lại toàn bộ ảnh bài làm — đắt nhất của luồng chấm); vùng còn thiếu thì giáo viên bấm "Bổ sung dấu" (`annotateSubmissionPhotos`) như cũ. (4) **MODEL RẺ CHO VIỆC PHỤ**: đọc mã đề chạy `gemini-2.5-flash-lite` qua `callUtilityVision` (lùi về model chấm nếu Google từ chối mã 400; 429 thì KHÔNG lùi). Cố ý KHÔNG hạ model cho `buildQuestionCatalog` — danh mục câu sai làm hỏng chấm cả lớp, mà nó chỉ chạy 1 lần/đề nên không tốn.
+
+Ước tính sau tối ưu: input mỗi bài ~27k → ~13k token (phần cache 90% rẻ hơn), bỏ thêm 1 lượt ~6–8k token ở các bài thiếu vùng, ảnh −33%. Gate: full 3364/3364, `lint` + `lint:api` exit 0, build exit 0. Test mới: `api/__tests__/grading-cache.test.ts` (thứ tự parts + fallback model), `gradingPrompt.test.ts` (prefix giống hệt giữa 2 em). Luật nhớ: test cũ bắt prompt bằng `parts.find(text)` giờ phải nối HẾT các phần chữ — prompt đã tách 2 mảnh.
+
 Gate trước commit: full 3357/3357 tests (73 file API + toàn bộ src), `lint` + `lint:api` exit 0, Vite build exit 0. Worktree `nop-bai-da-cham`, nhánh `feat/nop-bai-da-cham` dựng trên `origin/main` f52b00f, `rev-list origin/main...nhánh = 0/0` (không drift với các phiên khác). Chưa push.
 
 ## Ví AI: không bao giờ âm, không trừ oan, hết tiền thì nạp 1 chạm — 22/10 (Claude)

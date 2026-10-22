@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
+  buildHomeworkGradingSegments,
   buildHomeworkGradingRetryPrompt,
   buildPracticePrompt,
   buildPracticeGradingPrompt,
@@ -22,13 +23,47 @@ import {
   toPublicPracticeQuestions,
 } from './gradingPrompt';
 
+describe('prompt tách phần cố định / phần đổi theo học sinh', () => {
+  const chung = { answerKey: 'Câu 1: x = 2', maxScore: 10, assignmentTitle: 'KT 15 phút', rubric: 'Sai dấu trừ 0,25', assignmentImageCount: 2, answerKeyImageCount: 1 };
+
+  it('tiền tố GIỐNG HỆT cho mọi học sinh trong lớp (để Gemini cache được)', () => {
+    const a = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em A', studentImageCount: 3 });
+    const b = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em B', studentImageCount: 5 });
+    expect(a.prefix).toBe(b.prefix);
+    expect(a.prefix).not.toContain('Bài làm của em A');
+    expect(a.prefix).not.toContain('Bài làm của em B');
+    expect(a.prefix).not.toContain('imageIndex 1..3');
+    expect(a.prefix).not.toContain('imageIndex 1..5');
+  });
+
+  it('phần đổi theo em chứa bài làm và số ảnh bài làm', () => {
+    const a = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em A', studentImageCount: 3 });
+    const b = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em B', studentImageCount: 5 });
+    expect(a.suffix).toContain('Bài làm của em A');
+    expect(a.suffix).toContain('imageIndex 1..3');
+    expect(b.suffix).toContain('imageIndex 1..5');
+    expect(a.suffix).not.toBe(b.suffix);
+  });
+
+  it('prompt đầy đủ vẫn nối tiền tố + phần đổi, không mất nội dung nào', () => {
+    const input = { ...chung, studentText: 'Bài làm của em A', studentImageCount: 2 };
+    const full = buildHomeworkGradingPrompt(input);
+    const { prefix, suffix } = buildHomeworkGradingSegments(input);
+    expect(full).toBe(`${prefix}\n\n${suffix}`);
+    expect(full).toContain('ĐÁP ÁN CHUẨN');
+    expect(full).toContain('Bài làm của em A');
+    expect(full).toContain('imageIndex 1..2');
+  });
+});
+
 describe('photo marks grading contract', () => {
   it('numbers student images independently of question and answer images', () => {
     const prompt = buildHomeworkGradingPrompt({ answerKey: 'A', maxScore: 10, assignmentImageCount: 2, answerKeyImageCount: 1, studentImageCount: 3 });
     expect(prompt).toContain('imageIndex 1..3');
     expect(prompt).toContain('photoMarks');
     expect(prompt).toContain('0.85');
-    const schema = JSON.parse(prompt.split('CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:')[1]);
+    // Khuôn JSON nằm ở phần CỐ ĐỊNH (tiền tố) — phần đổi theo học sinh nằm sau nó.
+    const schema = JSON.parse(buildHomeworkGradingSegments({ answerKey: 'A', maxScore: 10, studentImageCount: 3 }).prefix.split('CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:')[1]);
     expect(schema.questionResults[0]).toHaveProperty('photoMarks');
     expect(schema.questionResults[0]).toHaveProperty('readingRegions');
   });
