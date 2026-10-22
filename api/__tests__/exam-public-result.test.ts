@@ -26,7 +26,7 @@ describe('examPasswordMatches', () => {
 
 const makeDb = (state: Record<string, Record<string, Doc>>) => {
   const collection = (name: string, filters: [string, unknown][] = [], count = Infinity, ordered = false, cursor = ''): any => ({
-    doc: (id: string) => ({ get: async () => ({ exists: Boolean(state[name]?.[id]), data: () => structuredClone(state[name]?.[id]) }),
+    doc: (id: string) => ({ id, get: async () => ({ exists: Boolean(state[name]?.[id]), data: () => structuredClone(state[name]?.[id]) }),
       update: async (patch: Doc) => { state[name][id] = { ...state[name][id], ...patch }; },
       set: async (data: Doc) => { (state[name] ||= {})[id] = structuredClone(data); } }),
     where: (field: string, _op: string, value: unknown) => collection(name, [...filters, [field, value]], count, ordered, cursor),
@@ -209,7 +209,7 @@ describe('GET /api/exam password-protected exam access', () => {
     expect(bypass.status).toBe(403);
   });
 
-  it('allows a submitted result page to load the protected exam with a matching proof submission', async () => {
+  it('rejects a forged submitted proof without a server-issued session', async () => {
     const state = seed();
     state.exams['de-1'] = {
       ...state.exams['de-1'],
@@ -221,7 +221,80 @@ describe('GET /api/exam password-protected exam access', () => {
     h.db = makeDb(state);
 
     const out = await call('GET', { examId: 'de-1', proofSubmissionId: 'proof' });
-    expect(out.status).toBe(200);
-    expect((out.body?.exam as Doc).questions).toHaveLength(1);
+    expect(out.status).toBe(403);
+  });
+});
+
+describe('server-owned public exam attempts', () => {
+  let state: Record<string, Record<string, Doc>>;
+  beforeEach(() => {
+    state = seed({ id: 'de-1', isActive: true, password: 'secret', durationMinutes: 10, maxAttempts: 1,
+      questions: [{ id: 'q1', type: 'multiple_choice', content: 'Secret question', options: ['One', 'Two'], correctAnswer: 'A', points: 2 }] });
+    h.db = makeDb(state); h.uid = 'gv';
+  });
+  const start = (extra: Doc = {}) => call('POST', {}, { action: 'start', code: 'ABC', password: 'secret', studentName: 'An', studentClass: '10', ...extra });
+  it('only starts after password and opening time checks; GET never leaks questions', async () => {
+    expect((await start({ password: 'wrong' })).status).toBe(403);
+    const intro = await call('GET', { code: 'ABC', password: 'secret' });
+    expect((intro.body?.exam as Doc).questions).toEqual([]);
+    state.exams['de-1'].startAt = new Date(Date.now() + 60_000).toISOString();
+    expect((await start()).status).toBe(409);
+    expect(Object.keys(state.examSubmissions)).toHaveLength(4);
+  });
+  it('resumes one attempt, persists answers, rejects other sessions, submits and grades idempotently', async () => {
+    const first = await start(); expect(first.status).toBe(200);
+    const token = first.body?.sessionToken as string;
+    const id = (first.body?.attempt as Doc).id as string;
+    expect(token.length).toBeGreaterThanOrEqual(32);
+    expect((first.body?.exam as Doc).questions).toEqual([expect.not.objectContaining({ correctAnswer: 'A' })]);
+    const act = (action: string, extra: Doc = {}) => call('POST', {}, { action, code: 'ABC', sessionToken: token, submissionId: id, ...extra });
+    expect((await act('save', { answers: [{ questionId: 'q1', answer: 'A', autoScore: 99 }] })).status).toBe(200);
+    const resumed = await act('resume');
+    expect((resumed.body?.attempt as Doc).answers).toEqual([{ questionId: 'q1', answer: 'A' }]);
+    expect((await start({ sessionToken: token })).body?.attempt).toMatchObject({ id });
+    expect((await act('save', { sessionToken: 'f'.repeat(64), answers: [] })).status).toBe(403);
+    expect((await call('GET', { examId: 'de-1', proofSubmissionId: id })).status).toBe(403);
+    const submitted = await act('submit', { answers: [{ questionId: 'q1', answer: 'A' }] });
+    expect(submitted.status).toBe(200);
+    expect(state.examSubmissions[id]).toMatchObject({ status: 'graded', totalScore: 2 });
+    const stored = structuredClone(state.examSubmissions[id]);
+    await act('submit', { answers: [{ questionId: 'q1', answer: 'B' }] });
+    expect(state.examSubmissions[id]).toEqual(stored);
+    expect((await start({ sessionToken: token })).status).toBe(409);
+  });
+  it('expiry freezes saved answers and password changes revoke the session', async () => {
+    const first = await start(); const token = first.body?.sessionToken as string;
+    const id = (first.body?.attempt as Doc).id as string;
+    const act = (action: string, extra: Doc = {}) => call('POST', {}, { action, code: 'ABC', sessionToken: token, submissionId: id, ...extra });
+    await act('save', { answers: [{ questionId: 'q1', answer: 'A' }] });
+    state.examSubmissions[id].deadlineAt = new Date(Date.now() - 1).toISOString();
+    expect((await act('save', { answers: [{ questionId: 'q1', answer: 'B' }] })).status).toBe(409);
+    await act('submit', { answers: [{ questionId: 'q1', answer: 'B' }] });
+    expect(state.examSubmissions[id].totalScore).toBe(2);
+    state.exams['de-1'].password = 'changed';
+    expect((await act('resume')).status).toBe(403);
+  });
+
+  it('enforces maxAttempts server-side by normalized student identity', async () => {
+    const first = await start();
+    expect(first.status).toBe(200);
+    const token = first.body?.sessionToken as string;
+    const id = (first.body?.attempt as Doc).id as string;
+    const act = (action: string, extra: Doc = {}) => call('POST', {}, { action, code: 'ABC', sessionToken: token, submissionId: id, ...extra });
+    await act('submit', { answers: [{ questionId: 'q1', answer: 'A' }] });
+    const second = await start();
+    expect(second.status).toBe(409);
+  });
+
+  it('allows final submit after endAt using the server-saved answers', async () => {
+    const first = await start();
+    const token = first.body?.sessionToken as string;
+    const id = (first.body?.attempt as Doc).id as string;
+    const act = (action: string, extra: Doc = {}) => call('POST', {}, { action, code: 'ABC', sessionToken: token, submissionId: id, ...extra });
+    await act('save', { answers: [{ questionId: 'q1', answer: 'A' }] });
+    state.exams['de-1'].endAt = new Date(Date.now() - 1).toISOString();
+    const submitted = await act('submit', { answers: [{ questionId: 'q1', answer: 'B' }] });
+    expect(submitted.status).toBe(200);
+    expect(state.examSubmissions[id]).toMatchObject({ status: 'graded', totalScore: 2 });
   });
 });

@@ -86,6 +86,19 @@ export const classifyGeminiKeyFailure = (httpStatus: number, body: string): AiKe
 };
 
 /**
+ * 429 chỉ vì gọi dồn quá nhanh (giới hạn mỗi phút) → số mili-giây nên đợi; hết hạn mức ngày / gói free = 0 → null.
+ * Cùng dấu hiệu với `cooldownMsFor` của danh sách khoá: Google ghi `PerDay`, `limit: 0` hoặc `retryDelay` trong thân lỗi.
+ * Thân lỗi không nói rõ thì coi là hết hạn mức (dừng an toàn hơn chạy đốt bài).
+ */
+export const rateLimitRetryMs = (httpStatus: number, body: string): number | null => {
+  const text = String(body || '');
+  if (httpStatus !== 429 || /PerDay|limit:\s*0\b/i.test(text)) return null;
+  const retry = text.match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/i);
+  if (retry) return Math.min(Math.max(Math.ceil(Number(retry[1]) * 1000), 5_000), 120_000);
+  return /PerMinute/i.test(text) ? 60_000 : null;
+};
+
+/**
  * Khoá Gemini (Google AI Studio): dạng cũ "AIza" + 35 ký tự, hoặc dạng MỚI bắt đầu "AQ." (dài hơn, có dấu chấm).
  * Chỉ chặn lỗi dán rõ ràng (có khoảng trắng, quá ngắn/dài); đúng hay không do Google xác nhận ở bước thử khoá.
  */

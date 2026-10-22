@@ -250,6 +250,15 @@ describe('duGio · giáo viên được dự giờ tự đánh giá', () => {
       .firestore();
     await assertSucceeds(getDoc(doc(db, 'duGio/bb-co-moi')));
   });
+
+  it('38. Tab cũ không sửa được tự đánh giá sau khi đã gửi', async () => {
+    await updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), {
+      tuDanhGia: { diem: { '3b': 3 }, ghiChu: {}, hoanThanhLuc: '2026-04-06' },
+    });
+    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), {
+      tuDanhGia: { diem: { '3b': 4 }, ghiChu: {}, hoanThanhLuc: '' },
+    }));
+  });
 });
 
 describe('duGio · truy vấn danh sách', () => {

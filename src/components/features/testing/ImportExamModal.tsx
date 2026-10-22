@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table, Image as ImageIcon, Scissors, Trash2, Sparkles, Shuffle, SortAsc, FileArchive, GripVertical } from 'lucide-react';
 import { ExamQuestion, QuestionType } from '../../../types';
 import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
-import { ensureMathWrapped, getOptionCols } from '../../../utils/examScoring';
+import { ensureMathWrapped, getOptionCols, validateExamQuestions } from '../../../utils/examScoring';
 import type { AppData } from '../../../types';
 import { callAI, getActiveApiKey } from '../../../lib/aiProviders';
 import { exportExamZip } from '../../../utils/examPermutationUtils';
@@ -33,6 +33,19 @@ type Mode = 'ai' | 'excel';
 // ─── Excel helpers ─────────────────────────────────────────────────────────────
 
 const EXCEL_HEADERS = ['type', 'content', 'optionA', 'optionB', 'optionC', 'optionD', 'correctAnswer', 'points', 'explanation'];
+
+const optionText = (value: string) => value.replace(/^[A-D][.)]\s*/i, '').trim().toLocaleLowerCase('vi');
+
+const normalizeImportedQuestions = (questions: ExamQuestion[]): ExamQuestion[] => validateExamQuestions(questions.map(question => {
+  if (question.type !== 'multiple_choice' || !question.options?.length || typeof question.correctAnswer !== 'string') return question;
+  const raw = question.correctAnswer.trim();
+  if (/^[A-D]$/i.test(raw)) return { ...question, correctAnswer: raw.toUpperCase() };
+  const match = question.options
+    .map((option, index) => optionText(option) === optionText(raw) ? index : -1)
+    .filter(index => index >= 0);
+  if (match.length !== 1) throw new Error(`Câu ${question.id}: đáp án MCQ không khớp duy nhất với lựa chọn.`);
+  return { ...question, correctAnswer: String.fromCharCode(65 + match[0]) };
+}));
 
 const SAMPLE_ROWS = [
   ['multiple_choice', 'Thủ đô của Việt Nam là?', 'Hà Nội', 'TP.HCM', 'Đà Nẵng', 'Huế', 'A', 0.25, ''],
@@ -79,7 +92,7 @@ const parseExcelFile = (file: File): Promise<ExamQuestion[]> =>
                 .map(k => String(r[k] || '').trim())
                 .filter(Boolean);
               if (opts.length > 0) q.options = opts;
-              if (correctAnswer) q.correctAnswer = correctAnswer.toUpperCase().charAt(0);
+              if (correctAnswer) q.correctAnswer = correctAnswer;
             } else if (type === 'true_false') {
               const opts = ['optionA', 'optionB', 'optionC', 'optionD']
                 .map(k => String(r[k] || '').trim())
@@ -99,7 +112,7 @@ const parseExcelFile = (file: File): Promise<ExamQuestion[]> =>
           });
 
         if (questions.length === 0) throw new Error('Không tìm thấy câu hỏi hợp lệ (cột content bị trống).');
-        resolve(questions);
+        resolve(normalizeImportedQuestions(questions));
       } catch (err: any) {
         reject(new Error(err.message || 'Lỗi đọc file Excel.'));
       }
@@ -154,7 +167,7 @@ Trả về dữ liệu dưới dạng JSON là một mảng các object (KHÔNG 
 - "type": "multiple_choice" (hoặc "true_false", "short_answer")
 - "content": nội dung câu hỏi
 - "options": mảng chứa các lựa chọn (VD: ["A. 1", "B. 2", "C. 3", "D. 4"])
-- "correctAnswer": nội dung đầy đủ của đáp án đúng (khớp chính xác 1 phần tử trong mảng options)
+- "correctAnswer": MCQ dùng ký hiệu A/B/C/D hoặc toàn văn lựa chọn; đúng/sai 4 ý dùng đúng chuỗi "Đ,S,Đ,S"; đúng/sai đơn dùng "Đúng" hoặc "Sai"
 - "explanation": giải thích đáp án
 - "points": điểm (VD: 0.25)
 - "cognitiveLevel": mức độ nhận thức (chỉ chọn 1 trong: "Nhận biết", "Thông hiểu", "Vận dụng", "Vận dụng cao")`;
@@ -171,7 +184,7 @@ Trả về dữ liệu dưới dạng JSON là một mảng các object (KHÔNG 
       const parsed = JSON.parse(jsonMatch[0]);
       if (!Array.isArray(parsed)) throw new Error("Dữ liệu không phải là mảng");
 
-      const newQuestions: ExamQuestion[] = parsed.map((q: any) => ({
+      const newQuestions: ExamQuestion[] = normalizeImportedQuestions(parsed.map((q: any) => ({
         id: `q-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: q.type || 'multiple_choice',
         content: ensureMathWrapped(q.content || ''),
@@ -180,7 +193,7 @@ Trả về dữ liệu dưới dạng JSON là một mảng các object (KHÔNG 
         explanation: ensureMathWrapped(q.explanation || ''),
         points: q.points || 0.25,
         cognitiveLevel: q.cognitiveLevel,
-      }));
+      })));
 
       setQuestions(prev => [...prev, ...newQuestions]);
       showToast(`Đã thêm ${newQuestions.length} câu hỏi bằng AI thành công!`, 'success');
