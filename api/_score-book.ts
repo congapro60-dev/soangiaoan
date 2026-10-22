@@ -338,11 +338,15 @@ const handleSaveExamColumn = async (db: Db, body: Body, res: VercelResponse): Pr
   const key = examLabelKey(label);
   const book = await readBook(db, context.classId);
   if (kind) {
+    // Hàng rào: một mốc thi chỉ có một cột. Tạo cột mới khi mốc đã có là sinh cột trùng (vụ "Thi GHKI" vs "Giữa học kì I").
+    const existing = [...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? [])].find(item => examLabelKey(item) === key);
+    if (existing) return void res.status(422).json({ error: `Mốc "${existing}" đã có trong sổ điểm. Sửa hoặc xoá cột cũ thay vì tạo cột mới.` });
     const examColumns = {
       moet: [...(book.examColumns?.moet ?? [])],
       tds: [...(book.examColumns?.tds ?? [])],
     };
-    const targets: Array<'moet' | 'tds'> = kind === 'both' ? ['moet', 'tds'] : [kind];
+    // Cột nhập tay luôn thuộc nhóm MOET (điểm sửa tay đều nằm ở moet) — đẩy vào cả hai nhóm sẽ sinh cột kép.
+    const targets: Array<'moet' | 'tds'> = kind === 'both' ? ['moet'] : [kind];
     for (const target of targets) {
       if (!examColumns[target].some(existing => examLabelKey(existing) === key)) examColumns[target].push(label);
     }
