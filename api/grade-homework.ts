@@ -773,12 +773,15 @@ const gradeOneSubmission = async (
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
     // khi đã có grade trước đó; chỉ chuyển sang error khi chưa từng có grade.
     const newStatus = hadPreviousGrade ? 'graded' : 'error';
-    const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
+    // Gemini trả 404 = không đọc được ẢNH (file chưa tải xong, link hỏng, file bị xoá) — đây là
+    // lỗi ảnh chứ không phải lỗi hệ thống: nói rõ để thầy/em biết nộp lại là xong.
+    const anhKhongDocDuoc = /\(mã 404\)/u.test(safeMessage) || /không tìm thấy tài nguyên/iu.test(safeMessage);
+    const newErrorMessage = hadPreviousGrade ? '' : (anhKhongDocDuoc ? 'Ảnh bài nộp chưa tải lên xong hoặc link hỏng. Nộp lại bài một lần nữa nhé.' : safeMessage);
     const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
     const newLastGradingErrorRaw = rawMessage;
     // Lí do lỗi cho cổng học sinh (không lộ lỗi thô): ảnh chưa rõ → em chụp lại; chưa đọc được mã đề → em chọn mã ghi trên đề.
     const errorReason = safeMessage === UNREADABLE_EXAM_CODE_MESSAGE ? 'exam_code'
-      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE ? 'photo' : 'system';
+      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE || anhKhongDocDuoc ? 'photo' : 'system';
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
