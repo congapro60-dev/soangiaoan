@@ -5,11 +5,38 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Sổ điểm định kì: gộp luồng Codex + badge nguồn điểm + hàng rào chống cột trùng — 22/10 (opencode)
+
+Chủ dự án báo rối khi dùng Sổ điểm với file điểm Google Sheet (tab MOET/TDS) + SSM: nhiều nút, mỗi nút một luật, không biết điểm của mình đến từ đâu; vụ "Thi GHKI" và "Giữa học kì I" thành hai cột. Đã đọc lại thread Codex `01a15777-67df-7420-a588-5c9965ada2cf` (20–21/10) để đối chiếu.
+- **Luồng của Codex trước đó KHÔNG có trong git**: nằm ở worktree `smart-lesson-plan-ai-score-fix` dạng chưa commit (19 file, +1006/−45) trong khi production chạy đúng mã đó. Nay commit `c85aeaf` + merge `f13b0b8` vào `main`. Nội dung: đồng bộ hai chiều SmartPlan ↔ Sheet (SmartPlan thắng xung đột; preview → xác nhận → ghi → đọc lại xác minh), ghi điểm lên Sheet, gán bài nộp vào cột định kỳ (`scoreBooks.periodicAssignmentLinks`), quy đổi MOET→TDS (`src/lib/classroom/examConversion.ts`), kỳ SSM F1–SE2 (F1 T8–9, IA1 T10, F2 T11, SE1 T12, F3 T1, IA2 T2, F4 T3, SE2 T4; có bài định kỳ thì 60% định kỳ + 40% bài thường, thiếu minh chứng giữ `N`).
+- **Badge nguồn điểm (mục 1):** mỗi ô điểm thi định kỳ có nhãn nguồn `Bài nộp` / `Sửa tay` / `Chấm tay` / `Sheet` (`examScoreSource` trong `scoreBook.ts`) + chú giải dưới bảng; thứ tự ưu tiên bám đúng logic đang hiển thị (bài nộp > sửa tay > chấm tay > Sheet).
+- **Hàng rào chống cột trùng (mục 4):** `api/_score-book.ts` chặn tạo cột định kỳ trùng mã chuẩn (422, kèm tên cột cũ, không ghi gì); cột nhập tay trước đây bị đẩy vào **cả** nhóm MOET và TDS (sinh cột kép ở hai nhóm) nay chỉ vào MOET; `dedupeExamColumns` tự gộp cột trùng khi đọc sổ cũ, cột đang mang điểm thật thì giữ.
+- **Test:** `scoreBook.test.ts` +2, `api/__tests__/score-book.test.ts` +1 (và sửa 1 test cũ đang mã hoá đúng bug cột kép), file mới `src/lib/classroom/examConversion.test.ts` +2. Full suite 3448/3450 — 2 fail là timeout flaky (`parent-portal.test.ts` chạy riêng 36/36 xanh), không liên quan. `lint` + `lint:api` 0 lỗi; vite build xanh.
+- **Còn lại (chưa làm):** mục 2 "Trung tâm điểm định kỳ" (gộp nút) + mục 3 (tự đề xuất đẩy điểm lên Sheet sau khi duyệt bài). SSM hiện tính LO từ **submission thô** (`loClassScores.ts`: `assignment.periodicTest` → nhóm định kỳ, 0.4/0.6), KHÔNG đọc điểm hiệu quả của sổ → HS thiếu bài IA1/IA2 vẫn phải đồng bộ 2 chiều trước khi tính 60/40. `examConversion` mới có test đọc file, CHƯA có test hành vi ghi (preview → ghi → đọc lại).
+
 ## Discover tự học: GV giao bài cho lớp, HS mở bài đã bỏ đáp án — 17/10 (Claude, tiếp nhận từ Codex) + T3b/T4/T6 (22/10, opencode)
 
 Nhánh `codex/elearning-muse-task1` (PR #21) + nhánh `feat/discover-t3b-t4` (nhánh này, chồng lên PR #21). Sổ tiến độ + đặc tả: `docs/spec/discover-self-study-v2.md` và `.ledger.md`. Đã làm: **T1** seed id + `stripAnswers`; **T2** `adaptiveAssignments` + action GV giao bài + `studentAdaptiveList/Open`; **T3a** `studentAdaptiveSubmit` (máy chủ chấm, không nhận điểm từ client); **T3b** ghi tiến độ bằng `merge` + `adaptiveSessionProgress`/`studentLearningProfiles` có `classId` (tính mastery/lỗi sai tách ra `src/lib/adaptive/learningProfile.ts` dùng chung client+server); **T4** chế độ bài giao `/adaptive-portal/assignment/:assignmentId` (mở + nộp qua máy chủ) + **vá lỗi P1 của Codex review** (`dewey:complete` chỉ lưu checkpoint rồi `return` → em mắc màn bài học, không bao giờ chốt xong) bằng màn "Bước 3 · Bài kiểm tra cuối" + mở nút "Học bài này" ở `/lop`; **T6** rules: thu hẹp đọc `adaptiveLessons` (trước đó MỌI user đăng nhập đọc được mọi bài học kèm đáp án) + `adaptiveAssignments`/`adaptiveAssignmentProgress`/`adaptiveEvents` chỉ GV chủ lớp đọc, client KHÔNG ghi + test `tests/rules/discoverAdaptive.rules.test.ts` (rules test chạy thật: 11/11 file xanh). **CHƯA deploy rules lên production** — cần canary rồi `firebase deploy --only firestore:rules`. **T5 xong (22/10, chưa commit):** `DiscoverClassPanel` trong `AdaptiveLessonListPage` (giao bài cho lớp + bảng thống kê theo seed/mục tiêu/lỗi sai/hỗ trợ, `assignmentStats.ts`). **Nộp lại:** `_adaptive-submit.ts` — retry cập nhật `studentLearningProfiles` nhưng giữ điểm lượt đầu, không trả lại lời giải. Gate: test 3434/3434, rules 11/11, lint + lint:api + build exit 0. **T7 QA trình duyệt lượt 22/10: blocked ở bước đăng nhập GV** — profile Chrome `chrome-smartplan-session` chưa có tài khoản Google GV; `localhost:5173` bị Firebase chặn referer (`auth/requests-from-referer-...-are-blocked`), phải dùng `localhost:3000`; chưa giao/nộp gì, không ghi dữ liệu thật; 5 cổng xanh lại; chi tiết + cách chạy lại ở `docs/spec/discover-self-study-v2.ledger.md` mục "T7 QA trình duyệt — lượt 22/10". Còn lại: **T7** (cần người đăng nhập GV 1 lần ở cổng 3000), push nhánh (bị chặn quyền), deploy rules chờ duyệt.
 
 ## Nộp bài đã chấm: GV nộp hộ bài đã chấm tay, AI đọc điểm ghi tay làm điểm chính thức — 22/10 (Claude)
+## Chuỗi dự phòng chấm bài "rẻ trước — đắt sau" (Vilao → Gemini) + provider Vilao cho người dùng — 2026-10-22
+
+Chủ dự án chốt: máy chấm đừng phụ thuộc một khoá Gemini trả phí (đã 429 vì trần chi tiêu tháng). Cảnh báo của cuộc trước: bản B1–B4 cũ nằm trên nhánh `feat/vilao-failover-chain` dùng **snapshot cũ hơn origin/main** — toàn bộ đã PORT LẠI vào tip của origin/main `fd082fa` (worktree riêng `C:\Users\ADMIN\Downloads\spai-main-port`, nhánh `feat/vilao-chain-r2`); nhánh cũ ĐỪNG merge, coi như bỏ.
+- **Chấm bài (máy chủ) — build trong `api/_grading-core.ts`:** thêm `callOpenAiCompatibleVision` (OpenAI-compatible, vision, `maxOutputTokens: 'model-max'` → bỏ trần, timeout `AbortSignal.timeout`; hỗ trợ **segment cache** — `nhoiSegment` phẳng prefix+suffix như Gemini), `getGradingChain()` (env `GRADING_VILAO_API_KEY` → đầu chuỗi, mặc định `https://api.vilao.ai/v1` + `deepseek-v4.1-flash`; cuối chuỗi Gemini từ `GRADING_GEMINI_API_KEY`/`GEMINI_API_KEY`) và `callGradingVision` (thử từng lớp, log `[grading-chain]`, **ném lại nguyên lỗi cuối** để giữ phân loại `GeminiResponseError` kinds `empty`/`max_tokens` cho lượt thử lại + mã HTTP trong thông điệp — bọc Error mới là LỖI thật của cuộc trước, test `grade-homework.deadline` bắt được). **`grade-homework.ts`: 14 call site** (chép trước, chấm, điểm chấm trên ảnh, lambda lời giải, đánh giá bản chữa, luyện tập gen + chấm, giải đề ×2, rút đáp án biến thể, tách câu hỏi, rubric, viết lại nhận xét, chú thích ảnh) hoán đổi sang `callGradingVision` — **chữ ký giữ nguyên** (`apiKey` vẫn threading vì `resolveExamCode` → `callUtilityVision` vẫn cần key; 2 tham số apiKey của `transcribeStudentWork`/`attemptHomeworkGrade` giờ không dùng nữa, không đổi để diff gọn). **BILLING GIỮ NGUYÊN:** `ensureGeminiKey(getGradingApiKey())` + `AiKeyRequiredError` + `setAiKeyOwner` + `onOwnKeyFailure` không đổi — chỉ lớp gọi model đổi, hạn mức tiền của GV/HS vẫn như cũ.
+- **Gateway:** `_ai-gateway-core.ts` cho phép env `AI_GATEWAY_BASE_URL`/`AI_GATEWAY_MODEL` đè config mặc định (`zai/glm-5.2`) — không set env thì hành vi cũ.
+- **Client:** provider `'vilao'` mới end-to-end: `types.ts` (union + `vilaoApiKey?`), `apiLimits.ts` (union), `data/models.ts` (`VILAO_MODELS` = deepseek-v4.1-flash, `PROVIDER_CONFIGS` + baseUrl), `aiProviders.ts` (nhánh vilao cho text/vision/stream, `VILAO_MAX_TOKENS = 32768`), tab Vilao trong `SettingsModal` (label lấy key tại vilao.ai), banner thiếu key trong `App.tsx` nhận vilao. Giáo viên dán key Vilao riêng của mình thì lô chấm tự ưu tiên Vilao (server) — ROLES KHÁC: client 'vilao' là khoá riêng của GV, không đụng chuỗi máy chủ.
+- **Cố ý bỏ qua (lý do):** `_classroom-online.ts` và `_parent-report.ts` VẪN gọi `callGeminiVision` trực tiếp (lane Gemini cũ) — chúng không có vòng ensure/billing riêng theo cùng kiểu; đổi thêm là mở blast radius giữa chừng. `callUtilityVision` (đọc mã đề, `gemini-2.5-flash-lite`) cũng ở ngoài chuỗi — model rẻ, không phải đường chấm. Làm tiếp ở wave sau nếu khoá Gemini lại cạn.
+- **Sắp cắn người sau:** (1) chuỗi rỗng khi Vercel chưa set `GRADING_VILAO_API_KEY` VÀ không có `GEMINI_API_KEY` → ném lỗi tiếng Việt "Máy chủ chưa cấu hình khoá chấm bài…" (502, không phải 402) — **ĐÃ set** `GRADING_VILAO_API_KEY` (production, project `giaoandewey`, Sensitive/Secret 22/10); (2) `PROVIDER_CONFIG_MAP` cast toàn bộ `Record<ApiProvider,…>` — thêm provider mới sau này cần entry `PROVIDER_CONFIGS`, còn `_classroom-online`/`_parent-report` thì khỏi; (3) nhánh cũ `feat/vilao-failover-chain` còn dơ trong worktree chính — đừng có mà merge nhầm; (4) test nào mock `callGeminiVision` kiểu spread mà assert theo vị trí tham số cũ thì phải dùng wrapper ánh xạ (mục nghiệm thu).
+- **Nghiệm thu (đã chạy tay tất cả — 0 lỗi, trên cây SAU rebase lên `fd082fa`):**
+  ```powershell
+  npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run build        # xanh (1m53s)
+  npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run lint         # tsc 0 lỗi
+  npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run lint:api     # tsc api 0 lỗi
+  npx vitest run                                                          # FULL: 320 file · 3374/3374 PASS
+  ```
+  Test sửa kèm: `correction-attempts` + `hand-marked-work` mock `callGeminiVision` → phải nhận thêm `callGradingVision` wrapper (ánh xạ về vị trí tham số cũ của `callGeminiVision` vì test đọc `mock.calls[0][4].timeoutMs`).
+
+## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 
 Chủ dự án duyệt: học sinh CHƯA nộp — GV tải ảnh/PDF bài đã chấm tay; AI tự đọc điểm GV ghi trên ảnh làm điểm bài + tự duyệt + điểm vào thống kê/báo cáo/hồ sơ. Nút "Nộp bài đã chấm" (emerald) cạnh "Nộp hộ" ở hàng Chưa nộp (`AssignmentPanel.tsx`); `ActorSubmissionUpload` thêm prop `handMarked` truyền sang `submitActorSubmission`. Server lưu `handMarkedPaper` + `handMarkedDeclaredBy` (ai khai bài đã chấm tay). Server chỉ lưu `submission.handMarkedPaper = true` khi `actor.role === 'teacher' && handMarked === true` (`_submission-actors.ts`) — HS/PH tự đặt bị phớt lờ (test cả hai chiều). Chấm (`grade-homework.ts`): `previous.handMarkedPaper` → `teacherMarkedPaper: true` trong ngữ cảnh (AI đọc `teacherMarkedScore`); có điểm ghi tay thì đó là điểm cuối (thiếu thì fallback điểm máy), `teacherApproved: true` + `approvalSource: 'teacher'` tức thì (không chờ tự duyệt 60 phút), `handMarkedPublished: true` + `syncApprovedGradeEvidence` sau commit. Không đụng luồng định kì: `paperScore` của `periodicTest` vẫn chỉ là đối chiếu, không phải điểm chính. Spec/plan: `docs/superpowers/specs|plans/2026-10-22-nop-bai-da-cham*.md`.
 
@@ -113,57 +140,3 @@ Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài
 
 _Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
 
-## Bot Cuong Vu — Zalo Bot Platform — 2026-10-21
-
-- Commit `a8ec359` adds the official Zalo Bot Platform transport at
-  `/api/assistant?transport=zalo_bot`; it is separate from the existing Zalo OA
-  adapter and Telegram identity namespace.
-- Webhook checks the fixed Zalo Bot API origin, `X-Bot-Api-Secret-Token`,
-  configured bot identity, private human sender, exact sender/chat binding,
-  bounded payload, fresh millisecond timestamp, durable replay claim, and
-  server-side per-teacher link/confirmation authorization. It replies only to
-  the inbound private chat and never sends startup or group messages.
-- Supported commands: `/help`, `/link CODE`, `/classes`, `/confirm ID HASH`,
-  `/cancel ID HASH`, `/status ID`. Natural-language `chat` remains
-  `NOT_IMPLEMENTED`; write tools stay confirmation-gated and disabled unless
-  separately implemented.
-- Verification: Bot tests `36/36`; full suite `3317/3317` before the final
-  stream/sender hardening; current `lint`, `lint:api`, `git diff --check`, and
-  Vite build pass. Existing chunk-size and browser externalization warnings
-  remain.
-- Required server-only variables: `ZALO_BOT_TOKEN`, `ZALO_BOT_ID`,
-  `ZALO_BOT_ALLOWED_IDS`,
-  `ZALO_BOT_WEBHOOK_SECRET`, and `SMARTPLAN_ASSISTANT_SECRET`. Never put them
-  in chat, `VITE_*`, logs, or committed files.
-- `ZALO_BOT_ALLOWED_USER_IDS` is optional. Leave it blank for one-use
-  `/link CODE` bootstrap; linked private senders are then checked in Firestore.
-- Remaining: Bot token/ID/webhook secret, Firebase link code, Vercel env,
-  webhook registration, production deployment, and private Zalo canary. The
-  current production deployment `b913b1c` does not contain this commit.
-- Routing used native Codex / `gpt-6-sol`; Astra was not used. No live Zalo
-  message or third-party chat was sent.
-
-
-## Assistant Gateway release — 2026-10-19
-
-- Added channel-neutral /api/assistant auth/link/read/share/confirmation/job lifecycle for Telegram + Zalo OA. Identity binds Firebase UID to exact channel account/user; payloads, previews, results, job refs, and adapter output are bounded/redacted.
-- Added draftLesson confirmation executor only. It returns persisted: false; export, Drive upload, assignments, grading, grade edits, and outbound messages remain fail-closed NOT_IMPLEMENTED.
-- Release gate: 
-pm run test (full suite), 
-pm run lint, 
-pm run lint:api, 
-pm run build; existing Vite chunk/externalization warnings remain. Focused assistant tests cover link/share/confirmation/replay/jobs/writes.
-- Zalo/Telegram adapter code lives in the separate du-lesson-automation-task7 worktree and requires its own Railway release. Zalo production needs a persistent path for ZALO_WEBHOOK_REPLAY_DB; no credentials or external canary were run.
-- Next owner action: set Vercel SMARTPLAN_ASSISTANT_SECRET and ZALO_OA_ALLOWED_IDS, Railway matching secret + bot/OA vars, then configure Zalo webhook at /api/zalo/webhook. Do not enable real write tools until Task 9 canary passes.
-- Vercel preview initially exposed a stricter TypeScript error in 
-ormalizeScopes; explicit narrowing was added in commit 197583f. Local 
-pm run lint:api, focused tests, and 
-pm run build pass afterward. Recheck both Vercel projects before production promotion.
-
-## Release checkpoint — 2026-10-21
-
-- Commit: `723c4617d45db3ad1e688a50ed8597f13c672715` on `main`; push fast-forward from `0b8d6fb` succeeded. No force push.
-- Firebase Rules: `firebase deploy --only firestore:rules --project smartplan-ai-14200` exit 0; compiled and released. Warnings only for now-unused public attempt helper functions after client-write deny.
-- Vercel: `dpl_H3zcqnStuZNVo5a5AueUGPpxe12M`, `READY`, production alias `giaoandewey.vercel.app`, Git SHA matches `723c461`.
-- Smoke: production root HTTP 200/title `Smart Lesson Plan AI`; nonexistent exam API HTTP 404 with Vietnamese error. These are deployment smoke only, not browser E2E.
-- Browser E2E and real GV/HS workflow remain unverified because the browser control session was unavailable/timeout. No production student/teacher data writes made.

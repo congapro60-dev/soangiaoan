@@ -142,6 +142,58 @@ describe('sổ điểm', () => {
     expect((removed.payload?.scoreBook as any).exams.a?.moet ?? []).toEqual([]);
   });
 
+  it('giáo viên sửa/xóa mốc thi trong sổ; lần đồng bộ sau vẫn giữ override', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const edited = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi GHKI', scores: { a: 8 } });
+    expect(edited.statusCode).toBe(200);
+    expect((edited.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Thi GHKI', score: 8 }]);
+    const synced = await call({ action: 'saveExamScores', classId: 'lop-1', spreadsheetTitle: 'f', exams: { a: { moet: [{ label: 'Giữa học kì I', score: 7 }], tds: [] } } });
+    expect((synced.payload?.scoreBook as any).exams.a.moet).toEqual([{ label: 'Thi GHKI', score: 8 }]);
+    const hidden = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: null } });
+    expect(hidden.statusCode).toBe(200);
+    expect((hidden.payload?.scoreBook as any).exams.a?.moet ?? []).toEqual([]);
+  });
+
+  it('tạo cột định kì MOET/TDS khi chưa có điểm', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: {} } };
+    const created = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi cuối kì I', scores: {}, kind: 'both' });
+    expect(created.statusCode).toBe(200);
+    // Cột nhập tay thuộc nhóm MOET; đẩy vào cả TDS sẽ sinh cột kép hiện ở hai nhóm.
+    expect((created.payload?.scoreBook as any).examColumns).toEqual({ moet: ['Thi cuối kì I'], tds: [] });
+  });
+
+  it('hàng rào: không tạo được cột định kì trùng mốc đã có trong sổ', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const dup = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Thi GHKI', scores: { a: 8 }, kind: 'both' });
+    expect(dup.statusCode).toBe(422);
+    expect(String(dup.payload?.error)).toContain('Giữa học kì I');
+    // Bị chặn thì không ghi gì cả — kể cả điểm sửa tay.
+    expect(h.store.scoreBooks['lop-1'].examColumns).toEqual({ moet: ['Giữa học kì I'], tds: [] });
+    expect(h.store.scoreBooks['lop-1'].examOverrides).toBeUndefined();
+  });
+
+  it('đổi tên/xóa cột định kì trong sổ mà vẫn giữ nguồn để khôi phục', async () => {
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const renamed = await call({ action: 'saveExamColumnSettings', classId: 'lop-1', label: 'Giữa học kì I', newLabel: 'Thi giữa kỳ', hidden: false });
+    expect((renamed.payload?.scoreBook as any).examColumnLabels).toEqual({ ghki: 'Thi giữa kỳ' });
+    expect(h.store.scoreBooks['lop-1'].exams).toEqual({ a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } });
+    const hidden = await call({ action: 'saveExamColumnSettings', classId: 'lop-1', label: 'Thi giữa kỳ', hidden: true });
+    expect((hidden.payload?.scoreBook as any).hiddenExamColumns).toEqual(['ghki']);
+    const restored = await call({ action: 'saveExamColumnSettings', classId: 'lop-1', label: 'Giữa học kì I', hidden: false });
+    expect((restored.payload?.scoreBook as any).examColumnLabels).toEqual({ ghki: 'Thi giữa kỳ' });
+    expect((restored.payload?.scoreBook as any).hiddenExamColumns).toEqual([]);
+  });
+
+  it('gán bài đã nộp vào cột định kì có sẵn; điểm bài thắng theo học sinh', async () => {
+    h.store.assignments = { bt1: { classId: 'lop-1', title: 'Bài kiểm tra giữa kì', createdAt: '2026-10-01T00:00:00Z' } };
+    h.store.submissions = { sub1: { classId: 'lop-1', studentId: 'a', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 18, maxScore: 20 } } };
+    h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
+    const linked = await call({ action: 'linkPeriodicAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', examKey: 'ghki' }] });
+    expect(linked.statusCode).toBe(200);
+    expect(h.store.scoreBooks['lop-1'].periodicAssignmentLinks).toEqual({ ghki: 'bt1' });
+    expect((linked.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(9);
+  });
+
   it('học sinh chỉ nhận dòng của CHÍNH mình, bỏ qua studentId gửi lên', async () => {
     const col = await call({ action: 'saveHs1Column', classId: 'lop-1', column: { label: 'Miệng', date: '2026-09-20' }, scores: { a: 9, b: 3 } });
     expect(col.statusCode).toBe(200);

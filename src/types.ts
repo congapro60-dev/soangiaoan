@@ -278,13 +278,14 @@ export interface AppData {
     geminiApiKeys?: string[];
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway' | 'vilao';
     selectedModel: string;
     /** Mức suy nghĩ giáo viên chọn theo hãng (xem `data/reasoningEffort.ts`); vắng = mặc định của model. */
     effort?: Partial<Record<'gemini' | 'claude' | 'openai', string>>;
     grokApiKey: string;
     deepseekApiKey: string;
     nvidiaApiKey: string;
+    vilaoApiKey?: string;
     openaiCompatibleApiKey?: string;
     openaiCompatibleBaseUrl?: string;
     openaiCompatibleModelId?: string;
@@ -318,6 +319,7 @@ export const DEFAULT_DATA: AppData = {
     grokApiKey: '',
     deepseekApiKey: '',
     nvidiaApiKey: '',
+    vilaoApiKey: '',
     openaiCompatibleApiKey: '',
     openaiCompatibleBaseUrl: 'https://digishop-api.io.vn/v1',
     openaiCompatibleModelId: 'claude-opus-4-7',
