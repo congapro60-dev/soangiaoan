@@ -40,9 +40,10 @@ service cloud.firestore {
 
     // Bài học phân hoá — service lưu document theo lesson.id, owner nằm trong field teacherId
     match /adaptiveLessons/{lessonId} {
-      // Đọc: giáo viên đã đăng nhập đọc được (listLessonsForTeacher query theo field teacherId).
-      // Học sinh ẩn danh đọc được CHỈ KHI bài đã bật cổng (portalEnabled == true) — link cổng là công khai.
-      allow read: if request.auth != null
+      // Đọc: CHỦ bài học, hoặc bài đã mở cổng công khai (link demo của GV).
+      // Trước đây `request.auth != null` là đủ → MỌI user đăng nhập (kể cả HS ẩn danh) đọc được
+      // MỌI bài học kèm đáp án. Bài giao cho lớp đi qua máy chủ (đã bỏ đáp án) nên không cần quyền này.
+      allow read: if (request.auth != null && request.auth.uid == resource.data.teacherId)
                   || resource.data.get('portalEnabled', false) == true;
       // Tạo: chỉ khi teacherId trong document trùng với uid người tạo
       allow create: if request.auth != null
@@ -52,6 +53,53 @@ service cloud.firestore {
                     && request.auth.uid == resource.data.teacherId;
       allow delete: if request.auth != null
                     && request.auth.uid == resource.data.teacherId;
+    }
+
+    // Bài học phân hoá GV giao cho lớp + tiến trình + sự kiện học tập: CHỈ máy chủ (Admin SDK) ghi.
+    // Client đọc: GV chủ lớp (để xem thống kê). Học sinh đọc qua máy chủ, không đọc thẳng.
+    match /adaptiveAssignments/{assignmentId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
+    }
+
+    match /adaptiveAssignmentProgress/{progressId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
+    }
+
+    match /adaptiveEvents/{eventId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
     }
 
     // Cache kết quả sinh lộ trình AI (Task 2)

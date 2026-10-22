@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type { ComponentProps } from 'react';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
+import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
 import { buildWorkspaceRows, filterWorkspaceRows, studentClarificationQuestions, StudentPortalDashboard } from './StudentPortalDashboard';
 
 vi.mock('./StudentAiCostChip', () => ({ StudentAiCostChip: () => null }));
@@ -22,6 +23,38 @@ const pendingGrade = { score: 0, maxScore: 10, feedback: 'SECRET', strengths: []
     score: 0, maxScore: 1, clarify: { kind: 'mcq', state: 'open', reading: 'B' } }], gradedAt: '' } as NonNullable<SubmissionDoc['grade']>;
 
 describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu', () => {
+  it('shows safe Discover catalog metadata; bài CHƯA được giao thì nút vẫn khoá', () => {
+    const discoverCatalog: StudentDiscoverCatalogItem[] = [{
+      id: 'tds-discover-g10-p2', title: 'Mệnh đề', grade: '10', week: 1, period: 2, status: 'available',
+    }];
+    const props = {
+      session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions: [],
+      onlineSubmissions: [], profile: null, scores: null, discoverCatalog, notifications: [], pendingFiles: [], practiceAnswers: {},
+      uploadRef: { current: null }, onReload: vi.fn(), onLoadDetail: vi.fn(),
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(html).toContain('Discover');
+    expect(html).toContain('Mệnh đề');
+    expect(html).toContain('Chưa được giao');
+    expect(html).not.toContain('/discover-self-study');
+  });
+
+  it('bài Discover THẦY CÔ GIAO thì nút mở được; mở qua máy chủ (bản đã bỏ đáp án)', () => {
+    const discoverCatalog: StudentDiscoverCatalogItem[] = [{
+      id: 'tds-discover-g10-p2', title: 'Mệnh đề', grade: '10', week: 1, period: 2, status: 'available',
+    }];
+    const props = {
+      session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions: [],
+      onlineSubmissions: [], profile: null, scores: null, discoverCatalog, notifications: [], pendingFiles: [], practiceAnswers: {},
+      adaptiveAssignments: [{ assignmentId: 'ad-1', lessonId: 'lesson-1', title: 'Tiết 2', discoverSeedId: 'tds-discover-g10-p2', createdAt: '2026-10-22' }],
+      onOpenAdaptive: vi.fn(), uploadRef: { current: null }, onReload: vi.fn(), onLoadDetail: vi.fn(),
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(html).toContain('Học bài này');
+    expect(html).toContain('Tiết 2');
+    expect(html).not.toContain('Chưa được giao');
+  });
+
   it('em khai "thầy cô đã chấm tay" được trước khi nộp', () => {
     vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:preview', revokeObjectURL: () => undefined });
     try {

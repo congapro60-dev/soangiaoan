@@ -29,6 +29,8 @@ import { sanitizeClarify } from '../src/lib/classroom/clarification.js';
 import { sanitizeExamVariants } from '../src/lib/classroom/examVariants.js';
 import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.js';
 import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
+import { isSafeDocId } from '../src/lib/classroom/parentAccess.js';
+import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -49,9 +51,42 @@ interface TeacherClassContext {
 
 const nowIso = (): string => new Date().toISOString();
 
+const normalizeAdaptiveLesson = (raw: unknown, fallbackId: string): AdaptiveLesson | null => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const data = raw as Record<string, unknown> & { lesson?: Record<string, unknown> };
+  const lesson = data.lesson && typeof data.lesson === 'object' && !Array.isArray(data.lesson) ? { ...data.lesson } : { ...data };
+  if (!lesson.id) lesson.id = typeof data.lessonId === 'string' ? data.lessonId : typeof data.id === 'string' ? data.id : fallbackId;
+  if (!lesson.teacherId && typeof data.teacherId === 'string') lesson.teacherId = data.teacherId;
+  if (!lesson.title && typeof data.title === 'string') lesson.title = data.title;
+  return lesson.id ? lesson as unknown as AdaptiveLesson : null;
+};
+
 const compact = <T extends Record<string, unknown>>(value: T): T => Object.fromEntries(
   Object.entries(value).filter(([, item]) => item !== undefined),
 ) as T;
+
+export const handleAssignAdaptiveLesson = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const classId = typeof body.classId === 'string' ? body.classId.trim() : '';
+  const lessonId = typeof body.lessonId === 'string' ? body.lessonId.trim() : '';
+  if (!isSafeDocId(classId) || !isSafeDocId(lessonId)) return void res.status(400).json({ error: 'Invalid class or lesson code.' });
+  const context = await teacherContext(db, { ...body, classId }, res);
+  if (!context) return;
+  if (context.classData.teacherId !== context.uid) return void res.status(403).json({ error: 'Class is not owned by the teacher.' });
+  const lessonSnapshot = await db.collection('adaptiveLessons').doc(lessonId).get();
+  const lesson = normalizeAdaptiveLesson(lessonSnapshot.data(), lessonId);
+  if (!lessonSnapshot.exists || !lesson) return void res.status(404).json({ error: 'Lesson not found.' });
+  if (lesson.teacherId !== context.uid || lesson.status !== 'published') return void res.status(403).json({ error: 'Lesson is not owned by the teacher or is not published.' });
+  const rawTargets = body.targetStudentIds;
+  const targetStudentIds = rawTargets === undefined ? undefined : Array.isArray(rawTargets) && rawTargets.every(isSafeDocId) ? [...new Set(rawTargets)] : null;
+  if (targetStudentIds === null) return void res.status(400).json({ error: 'Invalid student list.' });
+  const id = `${classId}_${lessonId}`;
+  const ref = db.collection('adaptiveAssignments').doc(id);
+  const current = await ref.get();
+  const now = nowIso();
+  const assignment = compact({ teacherId: context.uid, classId, lessonId, discoverSeedId: typeof body.discoverSeedId === 'string' ? body.discoverSeedId.trim() : lesson.discoverSeedId, title: typeof body.title === 'string' && body.title.trim() ? body.title.trim() : lesson.title, targetStudentIds: targetStudentIds === undefined ? current.data()?.targetStudentIds : targetStudentIds, isOpen: body.isOpen !== false, createdAt: current.exists ? current.data()?.createdAt : now, updatedAt: now });
+  await ref.set(assignment);
+  return void res.status(200).json({ assignmentId: id, assignment });
+};
 
 const safeId = (value: unknown, fallback: string): string => {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -1302,6 +1337,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'teacherExamSubmissions') { await handleTeacherExamSubmissions(db, body, res); return true; }
   if (action === 'teacherRoster') { await handleTeacherRoster(db, body, res); return true; }
   if (action === 'createAssignment') { await handleCreateAssignment(db, body, res); return true; }
+  if (action === 'teacherAssignAdaptiveLesson') { await handleAssignAdaptiveLesson(db, body, res); return true; }
   if (action === 'createExamAssignment') { await handleCreateExamAssignment(db, body, res); return true; }
   if (action === 'createSupportActivity') { await handleCreateSupportActivity(db, body, res); return true; }
   if (['renameAssignment', 'updateAssignmentContent', 'updateAssignmentDeadline', 'setAssignmentOpen'].includes(action)) { await handleUpdateAssignment(db, body, res); return true; }
