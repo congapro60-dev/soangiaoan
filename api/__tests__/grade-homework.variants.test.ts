@@ -197,6 +197,22 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     expect(prompts).toHaveLength(1);
   });
 
+  it('OMR chắc thay đáp án AI trước hậu kiểm tất định', async () => {
+    const harness = seed({ examCode: '1202', examCodeSource: 'teacher', detectedAnswers: [{ questionNo: 1, answer: 'B', confidence: .95 }] });
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(200);
+    expect(harness.state.submissions['sub-1'].grade).toMatchObject({ questionResults: [{ studentAnswer: 'B', score: 0, status: 'incorrect' }] });
+  });
+
+  it.each([[], [{ questionNo: 1, answer: null, confidence: 0 }], [{ questionNo: 1, answer: 'B', confidence: .4 }]].map(value => [value]))('OMR không chắc giữ đáp án cũ, báo GV: %j', async detectedAnswers => {
+    const harness = seed({ examCode: '1202', examCodeSource: 'teacher', detectedAnswers });
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(gradeJson(8)));
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1' })).statusCode).toBe(200);
+    expect(harness.state.submissions['sub-1'].grade).toMatchObject({ noteForTeacher: expect.stringContaining('Máy dò bóng không chắc'), questionResults: [{ studentAnswer: 'C', needsTeacherReview: true }] });
+  });
+
   it('AI đọc mã đề trên ảnh → chấm theo đúng đề + đáp án của mã đó, dặn bỏ qua nét chấm của giáo viên; lưu mã', async () => {
     const harness = seed();
     h.db = makeDb(harness);
