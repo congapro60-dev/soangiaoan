@@ -182,6 +182,8 @@ export const StudentPortalPage = () => {
   const [dangNopLuyen, setDangNopLuyen] = useState(false);
   const [loiLuyen, setLoiLuyen] = useState('');
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  /** Em khai "thầy cô đã chấm tay bài này" — máy đọc điểm thầy ghi, thầy xác nhận. */
+  const [baiDaChamTay, setBaiDaChamTay] = useState(false);
   // Ảnh mới chọn chỉ nằm trên máy em: đóng tab/tải lại lúc chưa nộp (hoặc đang tải lên) là mất bài → trình duyệt hỏi lại.
   const coBaiChuaGui = pendingFiles.length > 0 || dangNop !== '';
   useEffect(() => {
@@ -537,9 +539,11 @@ export const StudentPortalPage = () => {
         images,
         rawFiles,
         textContent: textParts.join('\n\n').slice(0, MAX_STUDENT_TEXT_CHARS),
+        ...(baiDaChamTay ? { handMarked: true } : {}),
       });
       submitted = true;
       setPendingFiles([]);
+      setBaiDaChamTay(false);
       targetRef.current = null;
       targetSupplementRef.current = null;
       const tenBai = mucTieu
@@ -752,6 +756,8 @@ export const StudentPortalPage = () => {
       onAddMoreImages={themAnhCho}
       onRemovePendingFile={xoaAnhCho}
       onSubmitPendingFiles={nopAnhCho}
+      handMarked={baiDaChamTay}
+      onHandMarkedChange={setBaiDaChamTay}
       onOpenAssignment={moChiTiet}
       onLoadDetail={fetchStudentAssignmentDetail}
       onAnswerExamCode={chonMaDe}

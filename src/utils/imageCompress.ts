@@ -3,8 +3,11 @@
 // Vì sao cần: điện thoại hiện đại chụp JPEG 3–12MB trong khi storage.rules chỉ nhận
 // `request.resource.size < 6 * 1024 * 1024`, và ảnh khổ lớn làm lượt gọi AI chấm tốn token hơn
 // nhiều mà không tăng độ chính xác đọc chữ. Resize về tối đa MAX_CANH pixel là đủ máy đọc.
-
-export const MAX_CANH = 1600;
+//
+// 1536 = 2 × 768: Gemini chia ảnh thành ô vuông 768px, nên ảnh dài cạnh ≤ 1536px chỉ tốn
+// 4 ô (≈1.032 token) thay vì 6 ô (≈1.548) của mốc 1600 cũ — tiết kiệm ~33% token ảnh mà
+// vẫn giữ gần như trọn độ sắc nét (nét bút đỏ của giáo viên vẫn đọc được).
+export const MAX_CANH = 1536;
 export const JPEG_QUALITY = 0.82;
 /** Phải khớp mốc 6MB trong storage.rules (`homework/{uid}` và `student-uploads`). */
 export const GIOI_HAN_BYTE_STORAGE = 6 * 1024 * 1024;

@@ -38,7 +38,7 @@ import type {
   SubmissionGradeHistoryDoc,
   SubmissionGradeRevisionAction,
 } from '../src/lib/classroom/types.js';
-import { buildHomeworkGradingPrompt, parseHomeworkGradeForCommit } from '../src/lib/classroom/gradingPrompt.js';
+import { buildHomeworkGradingSegments, parseHomeworkGradeForCommit } from '../src/lib/classroom/gradingPrompt.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -930,20 +930,23 @@ const teacherOnlineAiRegrade = async (db: Db, body: Body, res: ResponseLike): Pr
   const reservation = await reserveQuota(db, context.uid, 'teacher', asString(context.attempt.studentId));
   if (reservation.verdict.allowed <= 0) throw new ClassroomOnlineError(429, reservation.verdict.reason);
 
+  const segments = buildHomeworkGradingSegments({
+    answerKey,
+    rubric: asString(context.assignment.rubric),
+    maxScore,
+    assignmentTitle: asString(context.assignment.title) || asString(context.exam.title),
+    assignmentText: questions.map((question, index) => `Câu ${index + 1}: ${question.content}`).join('\n'),
+    gradingInstructions: asString(context.assignment.gradingInstructions),
+    studentText,
+  });
   const raw = await callGeminiVision(
-    buildHomeworkGradingPrompt({
-      answerKey,
-      rubric: asString(context.assignment.rubric),
-      maxScore,
-      assignmentTitle: asString(context.assignment.title) || asString(context.exam.title),
-      assignmentText: questions.map((question, index) => `Câu ${index + 1}: ${question.content}`).join('\n'),
-      gradingInstructions: asString(context.assignment.gradingInstructions),
-      studentText,
-    }),
+    `${segments.prefix}\n\n${segments.suffix}`,
     [],
     getGradingApiKey(),
     GRADING_MODEL,
     { maxOutputTokens: 8192, jsonMode: true },
+    // Đề + đáp án cố định cho cả đề → cache tiền tố dùng chung khi thầy chấm lại nhiều bài.
+    { prefix: segments.prefix, suffix: segments.suffix },
   );
   const parsed = parseHomeworkGradeForCommit(raw, maxScore, questions.every(question => !asString(question.correctAnswer).trim()), 0);
   const now = nowIso();

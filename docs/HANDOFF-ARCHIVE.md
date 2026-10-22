@@ -2185,3 +2185,30 @@ Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI
 - BTVN: gắn nhãn AI/tay tự dùng khung mới. **Bẫy:** bài khối 10 đã DUYỆT nhãn trước đây giữ nguyên nhãn cũ (guard `competencyTagsApproved`) — muốn thêm năng lực mới phải sửa tay trong ô nhãn.
 - Chưa chạy xuất thật trên production (cần GV bấm, popup Google). Test: framework, portfolioExport +4.
 
+## Codex follow-up — 2026-10-21 (cắt từ HANDOFF.md ngày 22/10)
+
+- Worktree: `C:/Users/ADMIN/.codex/worktrees/fix-production-qa/smart-lesson-plan-ai`, branch `codex/audit-core-workflows-20261019`, base `b913b1c`.
+- Điều phối: catalog 9Router sống; dùng route local/Codex hiện tại; không gọi Astra. Claude weekly đang giới hạn; không gọi Claude route.
+- Implemented: UID-scoped app/testing/PPCT state; preview raw HTML removed; public exam server-issued session/attempt/deadline/password POST with transactional participant maxAttempts, save/submit status guards, and final-submit-after-end handling; client exam submissions no longer write Firestore directly; Rules deny public attempt create/update; scorer parity, simple T/F UI, all import paths preserve full MCQ keys before validation, config deleteField/local timezone; observer patch save/retry/Excel 35 rows/22 components; library exam/worksheet DOCX renderer. Public maxAttempts identity is normalized name/class because anonymous exams lack a verified student identity.
+- Verification: app/API typecheck pass; full unit single-worker with `--testTimeout=20000` `314 files / 3293 tests` pass; Rules emulator `310/310` pass; final build exit 0, entry `684.52 kB`; focused API `22/22` and earlier focused QA `71/71` pass. Default 5s parallel runner timed out on heavy existing tests; isolated heavy files passed at 20s.
+- Open: browser E2E, AI/content QA, production Firebase Rules deploy, Vercel deploy and post-deploy smoke. `useLessonCreator.ts` and Word/Toan renderer WIP overlap remain excluded from this patch.
+- No production data writes. No commit/push/deploy in this checkpoint.
+
+## Release docs follow-up — 2026-10-21 (cắt từ HANDOFF.md ngày 22/10)
+
+- Documentation commit `f33d91c61aa15a0861688c8a76a245c2940a2b36` records the release checkpoint and is now on `main`.
+- Latest Vercel deployment: `dpl_E7oLUvHWXFHaLP76zb5dzcFoNEb1`, `READY`, production alias correct, SHA `f33d91c`.
+- Post-doc smoke repeated: root HTTP 200/title correct; nonexistent exam API 404 with expected message.
+
+## SỰ CỐ 15–16/10: job "làm mới dấu trên ảnh" đã CHẤM LẠI toàn bộ bài — đã sửa gốc 17/10 (cắt từ HANDOFF.md ngày 22/10)
+
+`cron=refresh` gọi `gradeOneSubmission(..., 'thorough')` → chấm lại từ đầu + `commitAiGradeIfClaimed` ghi grade mới (lịch sử `ai_regrade` giữ grade cũ). So ảnh chụp trước đợt (`%TEMP%/grading-refresh-private/inventory.json`, 15/10 14:33) với production 17/10: 184 bài bị chấm lại trong khung job; 104 đổi điểm (10Olinda 72, 11Columbus 30, 12LoTrinh1 2), 93 trong đó đã duyệt (43 GV duyệt tay), 50 bài mất duyệt; lệch >1 điểm 16, lớn nhất 5,5. Codex báo "giữ điểm by design" — sai, mã không làm vậy.
+Sửa gốc: tách `annotateSubmission()` (lõi nút "Bổ sung dấu chấm trên ảnh") trong `_submission-annotations.ts`; job làm mới chỉ gọi nó (`locateAnnotation`), không còn `gradeOneSubmission`. Test khoá: refresh giữ score/duyệt/nhận xét/gradedAt/bảng câu, chỉ thêm photoMarks, không tạo lịch sử.
+Khôi phục dữ liệu: chủ dự án chọn "trả lại điểm cũ, giữ dấu ảnh; trừ bài GV đã tự sửa/duyệt lại SAU đợt chạy". Công cụ: tab Quản trị → "Khôi phục điểm bị chấm lại (15–16/10)" (`adminRefreshRestore`, `api/_refresh-restore.ts`): lấy bài `status=graded` trong `gradingRefreshJobs/photo-refresh-20261015-*/items`, grade cũ = lịch sử `ai_regrade` có `createdAt` TRÙNG `grade.gradedAt` hiện tại; bỏ qua bài editedByTeacher / đã chấm lại thêm (bài được duyệt sau đợt, kể cả nguồn 'teacher', VẪN khôi phục — chủ dự án xác nhận là duyệt hàng loạt); ghép photoMarks mới; lịch sử `refresh_restore`; đồng bộ minh chứng theo trạng thái duyệt cũ; lô 20 bài, đánh dấu `refreshRestoredAt`. 17/10 soát ảnh 16 bài lệch >1 điểm: lần 1 đúng 6, lần 2 đúng 8, lẫn 1, chưa rõ 1 → `KEEP_REGRADE` (18 bài: 6 bài lần 2 đúng + cả nhóm Hình học 29/09 vì lần 2 theo thang Đúng/Sai THPT) GIỮ điểm mới, GV duyệt lại; Phúc Minh GHK I ĐC1 câu 5 em khoanh B — GV sửa tay. Chủ dự án tự bấm (Claude không được ghi production).
+
+## SmartPlan QA bundle follow-up — 2026-10-16 (cắt từ HANDOFF.md ngày 22/10)
+
+- Lazy-loaded standalone routes and file-heavy utilities from src/main.tsx/src/App.tsx to reduce production entry bundle from ~1.535 MB to ~672.89 kB.
+- Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
+- Remaining: large lazy chunks remain expected; no production data writes.
+

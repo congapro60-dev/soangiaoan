@@ -18,7 +18,7 @@ export const uploadActorEvidence = async (credentials: SubmissionActorCredential
   }
   return grant.uploadGrantId;
 };
-export const submitActorSubmission = (credentials: SubmissionActorCredentials, data: { assignmentId: string | null; uploadGrantId: string; supplementOf?: string; note?: string; textContent?: string }) => call<{ submission: SubmissionDoc }>('submitActorSubmission', credentials, data);
+export const submitActorSubmission = (credentials: SubmissionActorCredentials, data: { assignmentId: string | null; uploadGrantId: string; supplementOf?: string; note?: string; textContent?: string; handMarked?: boolean }) => call<{ submission: SubmissionDoc }>('submitActorSubmission', credentials, data);
 export const actorClarifyAnswers = (credentials: SubmissionActorCredentials, submissionId: string, answers: { questionNumber: string; answer: string }[], skip: string[] = []) => call<{ pending: number; rejected: { questionNumber: string; reason: string }[] }>('clarifyAnswers', credentials, { submissionId, answers, skip }, '/api/grade-homework');
 export const actorClarifyPhoto = (credentials: SubmissionActorCredentials, submissionId: string, questionNumber: string, uploadGrantId?: string) => call<{ regrading: boolean }>('clarifyPhoto', credentials, { submissionId, questionNumber, uploadGrantId }, '/api/grade-homework');
 export const actorAnswerExamCode = (credentials: SubmissionActorCredentials, submissionId: string, examCode: string) => call('answerExamCode', credentials, { submissionId, examCode }, '/api/grade-homework');

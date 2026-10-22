@@ -3,7 +3,7 @@ import type { SubmissionActorCredentials } from '../../../services/submissionAct
 import { uploadActorEvidence, submitActorSubmission, actorGradeOne } from '../../../services/submissionActorsApi';
 import { nenAnhBaiLam } from '../../../utils/imageCompress';
 import { pdfToImages } from '../../../utils/pdfToImages';
-interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; onSubmitted: () => void; onClose?: () => void }
+interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; handMarked?: boolean; onSubmitted: () => void; onClose?: () => void }
 const dataUrlFile = (data: string, name: string) => {
   const match = data.match(/^data:([^;,]+);base64,(.+)$/s);
   if (!match) throw new Error('Không tạo được ảnh bài làm. Chọn ảnh rồi thử lại.');
@@ -28,7 +28,7 @@ export const prepareActorFiles = async (files: readonly File[]): Promise<File[]>
   return prepared;
 };
 /** Bằng chứng mới tạo revision, không ghi đè lượt cũ. */
-export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, supplementOf, onSubmitted, onClose }: Props) => {
+export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, supplementOf, handMarked, onSubmitted, onClose }: Props) => {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [note, setNote] = useState('');
@@ -44,7 +44,7 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
     try {
       const prepared = await prepareActorFiles(files);
       const grant = await uploadActorEvidence(credentials, assignmentId, prepared);
-      const { submission } = await submitActorSubmission(credentials, { assignmentId, uploadGrantId: grant, supplementOf, note });
+      const { submission } = await submitActorSubmission(credentials, { assignmentId, uploadGrantId: grant, supplementOf, note, handMarked });
       if (alive.current) { setAccepted(true); setFiles([]); setNote(''); }
       // Bản nộp đã lưu ngay cả khi lượt đọc AI tạm lỗi.
       try { await actorGradeOne(credentials, submission.id); } catch { if (alive.current) setError('Bài đã lưu, máy chưa đọc được ngay. Theo dõi trạng thái bài; không cần nộp lại.'); }
@@ -52,13 +52,14 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
     } catch (reason) { if (alive.current) setError(reason instanceof Error ? reason.message : 'Chưa nộp được. Các tệp vẫn được giữ.'); }
     finally { if (alive.current) setBusy(false); }
   };
-  return <section className="my-3 space-y-3 rounded-xl border border-indigo-200 bg-white p-3" aria-label="Nộp bài hộ">
-    <p className="text-sm font-black">{supplementOf ? 'Bổ sung vào bài đã nộp' : 'Nộp bài hộ học sinh'}</p>
+  return <section className={`my-3 space-y-3 rounded-xl border p-3 ${handMarked ? 'border-emerald-200 bg-emerald-50/40' : 'border-indigo-200 bg-white'}`} aria-label={handMarked ? 'Nộp bài đã chấm tay' : 'Nộp bài hộ'}>
+    <p className="text-sm font-black">{supplementOf ? 'Bổ sung vào bài đã nộp' : handMarked ? 'Nộp bài đã chấm tay của học sinh' : 'Nộp bài hộ học sinh'}</p>
+    {handMarked && <p className="text-xs font-semibold text-emerald-800">Tải ảnh hoặc PDF bài làm đã có điểm/chữ đỏ của thầy cô. AI sẽ tự đọc điểm ghi tay làm điểm chính thức và tự duyệt bài.</p>}
     {locked ? <p role="status" className="text-sm font-bold text-amber-800">GV đã khóa chốt. Cần mở khóa trước khi nộp hoặc bổ sung.</p> : <>
       <label className="block text-xs font-bold">Ảnh / PDF bài làm<input type="file" aria-label="Chọn tệp bài làm" accept="image/*,application/pdf" multiple disabled={busy} onChange={event => { setFiles(values => [...values, ...Array.from(event.target.files ?? [])]); event.target.value = ''; }} className="mt-2 block w-full text-sm" /></label>
       <div className="flex flex-wrap gap-2">{files.map((file, index) => <div key={index} className="max-w-32 rounded-lg border p-2">{previews[index] && <img src={previews[index]} alt={`Ảnh chuẩn bị nộp ${index + 1}`} className="h-24 w-full object-contain" />}<p className="break-all text-xs">{file.name}</p><button type="button" disabled={busy} className="min-h-11 text-xs font-bold text-red-700" onClick={() => setFiles(values => values.filter((_, i) => i !== index))}>Bỏ tệp {index + 1}</button></div>)}</div>
       <label className="block text-xs font-bold">Ghi chú<textarea maxLength={2000} value={note} onChange={event => setNote(event.target.value)} disabled={busy} className="mt-1 w-full rounded-lg border p-2 text-sm" /></label>
-      <button type="button" disabled={busy || accepted || !files.length} onClick={() => void submit()} className="min-h-11 rounded-lg bg-indigo-600 px-4 text-sm font-bold text-white disabled:opacity-50">{busy ? 'Đang nộp / đọc bài…' : 'Nộp bài'}</button>
+      <button type="button" disabled={busy || accepted || !files.length} onClick={() => void submit()} className={`min-h-11 rounded-lg px-4 text-sm font-bold text-white disabled:opacity-50 ${handMarked ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}>{busy ? 'Đang nộp / đọc bài…' : handMarked ? 'Nộp bài đã chấm' : 'Nộp bài'}</button>
     </>}
     {accepted && <p role="status" className="text-sm font-bold text-emerald-800">Bài đã lưu thành công. Theo dõi kết quả đọc trên bài vừa nộp.</p>}
     {error && <p role="alert" className="text-sm text-red-700">{error}</p>}

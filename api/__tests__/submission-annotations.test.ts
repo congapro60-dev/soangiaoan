@@ -35,6 +35,14 @@ it('location fallback keeps scores and manual removals; rejects foreign labels',
  expect(next.map(row=>row.score)).toEqual([1,0,0]);expect(next[0].photoMarks?.[0].imageUrl).toBe('own');expect(next[1].readingRegions?.[0].imageUrl).toBe('own');expect(next[2]).toEqual(rows[2]);
  expect(()=>mergeAnnotationResult(rows,targets,['own'],JSON.stringify({questions:[{questionNumber:'foreign'}]}))).toThrow('nhãn câu');
 });
+it('lượt vẽ dấu: bước bút đỏ chỉ ghi khi chia đúng điểm câu đã chấm, không đổi điểm', () => {
+ const rows=[{ questionNumber:'Câu 1',status:'partially_correct',studentAnswer:'x=5',score:0.5,maxScore:1 }] as any;
+ const step=(score:number,maxScore:number)=>({text:'Bước',verdict:score===maxScore?'correct':'wrong',score,maxScore,mark:{imageIndex:1,x:.1,y:.3,width:.8,height:.04,confidence:.9}});
+ const ok=mergeAnnotationResult(rows,rows,['own'],JSON.stringify({questions:[{questionNumber:'Câu 1',score:1,photoSteps:[step(.5,.5),step(0,.5)]}]}));
+ expect(ok[0].score).toBe(0.5); expect(ok[0].photoSteps?.[0].mark?.imageUrl).toBe('own');
+ const bad=mergeAnnotationResult(rows,rows,['own'],JSON.stringify({questions:[{questionNumber:'Câu 1',photoSteps:[step(.5,.5),step(.5,.5)]}]}));
+ expect(bad[0].photoSteps).toBeUndefined();
+});
 const row = (patch: Data = {}) => ({ questionNumber: 'Câu 1', status: 'incorrect', studentAnswer: 'x=3', expectedAnswer: 'x=2', score: 0, maxScore: 1, explanation: 'GV đã sửa nhận xét', correction: 'Kiểm tra dấu', needsTeacherReview: false, teacherEdited: true, ...patch });
 const annotate = async (locate: (submission: any, targets: any[]) => Promise<any>, body: Data = {}) => {
  const result = { status: 0, payload: {} as Data }; const res = { status(code: number) { result.status = code; return res; }, json(data: Data) { result.payload = data; return res; } };

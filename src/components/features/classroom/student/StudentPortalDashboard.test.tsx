@@ -22,6 +22,21 @@ const pendingGrade = { score: 0, maxScore: 10, feedback: 'SECRET', strengths: []
     score: 0, maxScore: 1, clarify: { kind: 'mcq', state: 'open', reading: 'B' } }], gradedAt: '' } as NonNullable<SubmissionDoc['grade']>;
 
 describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu', () => {
+  it('em khai "thầy cô đã chấm tay" được trước khi nộp', () => {
+    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:preview', revokeObjectURL: () => undefined });
+    try {
+      const props = {
+        session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions: [],
+        onlineSubmissions: [], profile: null, scores: null, notifications: [], practiceAnswers: {},
+        pendingFiles: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })],
+        handMarked: true, onHandMarkedChange: vi.fn(), uploadRef: { current: null }, onReload: vi.fn(), onLoadDetail: vi.fn(),
+      } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+      const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+      expect(html).toContain('Thầy cô đã chấm tay bài này rồi');
+      expect(html).toContain('checked=""');
+    } finally { vi.unstubAllGlobals(); }
+  });
+
   it('trả lời trên lượt chấm thử cũ vẫn mở đúng lượt sau khi em bổ sung ảnh', () => {
     const submissions = [work('root', null, { createdAt: '2026-09-01T00:00:00Z' }), work('new', null, { supplementOf: 'root' })];
     const onLoadDetail = vi.fn().mockResolvedValue({ submissions, assignment: undefined });
