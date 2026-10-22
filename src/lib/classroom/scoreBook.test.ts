@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   computeAutoScores,
+  applyExamOverrides,
+  applyExamColumnSettings,
   hs1Average,
   parseHs1Weight,
   scoreToTen,
@@ -12,6 +14,29 @@ import {
 } from './scoreBook';
 
 describe('sổ điểm', () => {
+  it('gộp mốc Sheet và mốc bài giấy, override sửa/xóa thắng nguồn nền', () => {
+    const base = { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } };
+    expect(applyExamOverrides(base, { a: { ghki: { label: 'Thi GHKI', score: 8 } } }).a.moet).toEqual([{ label: 'Thi GHKI', score: 8 }]);
+    expect(applyExamOverrides(base, { a: { ghki: { label: 'Thi GHKI', score: null } } }).a.moet).toEqual([]);
+  });
+
+  it('đổi tên hoặc ẩn cột thi chỉ đổi sổ, vẫn giữ dữ liệu nguồn để khôi phục', () => {
+    const source = { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } };
+    expect(applyExamColumnSettings(source, { ghki: 'Thi giữa kì' }, []).a.moet[0].label).toBe('Thi giữa kì');
+    expect(applyExamColumnSettings(source, {}, ['GHKI']).a.moet).toEqual([]);
+    expect(source.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
+  });
+
+  it('điểm bài đã gán vào mốc định kì thắng Sheet và không còn tính vào TB BTVN', () => {
+    const book = normalizeScoreBook('lop-1', {
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
+      periodicAssignmentLinks: { ghki: 'bt1' },
+    });
+    const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [{ assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20 }], ['a']);
+    expect(auto.periodic.ghki.a).toBe(9);
+    expect(auto.homework.a.graded).toBe(0);
+    expect(studentScoreView({ ...book, auto }, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 9 }]);
+  });
   it('điểm hệ số 1: 0–10, tối đa 2 số lẻ, nhận dấu phẩy; ô trống là xoá điểm', () => {
     expect(parseHs1Score('8,5')).toBe(8.5);
     expect(parseHs1Score(10)).toBe(10);

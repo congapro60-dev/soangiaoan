@@ -532,3 +532,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-17 — Báo lỗi bằng mã trần, không ai hiểu
 - Chủ dự án nhắc: lỗi hiện ra chỉ "409", "503", "Máy chủ trả lỗi 500", hay mã cụt `provider_quota` thì giáo viên lẫn quản trị đều mù. Mọi lỗi người đọc thấy (màn hình, Firestore quản trị đọc, log workflow) phải nói LÍ DO + VIỆC CẦN LÀM bằng tiếng Việt; mã HTTP/mã máy chỉ để cuối câu cho người sửa lỗi.
 - Chỉ có mã HTTP thì dùng `moTaLoiHttp(status)` (máy chủ của web) hoặc `moTaLoiDichVu(status, 'Gemini' | 'Google Sheets'…)` trong `src/lib/httpErrorText.ts`; lưu mã máy (`failureCode`) thì luôn lưu kèm câu (`failureMessage` / `pauseMessage`).
+
+- **Cột quy đổi phải gắn bài thi nguồn trước khi ghi TDS** — file MOET/TDS chỉ áp dụng cho một bài thi; UI bắt buộc chọn cột MOET nguồn + cột TDS đích, đối chiếu Mã HS/điểm MOET, rồi mới preview ghi. Cột định kì tạo tay phải nằm trong nhóm MOET/TDS, tách khỏi cột hệ số. *(2026-10-21)*
+
+- **SSM kỳ F/IA/SE phải gom theo kỳ thời gian, không dùng toàn bộ submission chung** — F1 Aug-Sep; IA1 Oct; F2 Nov; SE1 Dec; F3 Jan; IA2 Feb; F4 Mar; SE2 Apr. Trong kỳ có bài định kì, mỗi LO dùng 60% định kì + 40% bài thường; thiếu nhóm thì dùng nhóm còn lại; thiếu minh chứng giữ N. *(2026-10-21)*
