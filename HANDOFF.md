@@ -54,9 +54,9 @@ Sự cố 16/10 (run 38896124428, `photo-refresh-20261015-retry`): khoá hết h
 ## Bút đỏ từng bước trên ảnh bài làm — 22/10 (Claude)
 `QuestionResult.photoSteps` (types.ts): câu TỰ LUẬN chia 2..8 bước, mỗi bước Đ/Thiếu/S + điểm + lời sửa ngắn + dải dòng (`mark`). Chủ dự án chốt: AI tự chia điểm bước, NHƯNG có hướng dẫn chấm thì theo đúng mốc bước trong đó; `buildRubricPrompt` nay bắt chia tự luận thành "Bước n — điểm". Sinh cùng lượt chấm (`PHOTO_STEPS_RULES` trong `buildPhotoMarksPrompt`) và lượt chỉ vẽ dấu (`buildAnnotationPrompt` + rubric bài giao; điểm câu cố định). Bất biến: `validPhotoSteps` — tổng điểm/thang bước phải = điểm câu HIỆN TẠI, lệch (AI chia sai, GV sửa điểm) thì bỏ khi lưu/ẩn khi vẽ, KHÔNG bao giờ sửa điểm theo bước. URL dòng do máy chủ gắn theo imageIndex (`bindQuestionPhotoMarks`/`projectPhotoSteps`); HS chỉ thấy sau duyệt. UI `SubmissionPhotoReview`: nhãn lề ngang dòng, gạch đỏ + lời sửa dưới dòng sai, "Điểm: x/y" góc ảnh, câu có bước thì bỏ khoanh cả câu; trắc nghiệm chấm ✓/✗. Bài cũ: nút "Vẽ bút đỏ từng bước" (annotate force=true) từng bài, KHÔNG chạy hàng loạt. Chưa có: tải ảnh đã chấm PNG (CORS Storage chưa kiểm).
 
-## Bút đỏ từng bước trên ảnh bài làm — 22/10 (Claude)
+## Nộp bài: không mất lượt nộp khi đổi em, và luôn báo rõ đã nộp chưa — 22/10 (Claude)
 
-`cron=refresh` chỉ vẽ dấu, KHÔNG chấm lại (sự cố 15–16/10 đã sửa gốc; chi tiết ở `docs/HANDOFF-ARCHIVE.md`).
+Chủ dự án báo: đang nộp bài hộ cho em này thì bấm sang em khác → **em kia mất bài**, không biết đã nộp được chưa. Nguyên nhân: panel nộp gắn theo `proxyStudent`, đổi em là panel bị gỡ → lượt nộp dở dang bị bỏ, và thông báo thành công biến mất ngay (panel đóng). Nay: (1) `ActorSubmissionUpload` báo `onBusyChange` ra ngoài → bảng bài nộp **khoá nút nộp của các em khác** + hiện dòng "Đang nộp bài cho em X — đợi xong đã nộp rồi hãy chuyển em khác"; (2) lưu xong hiện **thông báo** (toast) "Đã lưu bài cho em X lúc HH:MM. Máy đang chấm ở chế độ nền" + danh sách làm mới (lượt nộp mới hiện giờ nộp). Luật: mọi luồng nộp đều phải có thông báo kết quả (nộp hộ, nộp bài đã chấm, HS nộp, PH nộp hộ, chấm cả lớp, sửa điểm, công bố bản chấm tay).
 
 ## Điểm chấm tay trên bài định kì → sổ điểm (GV xác nhận) — 16/10 (Claude)
 

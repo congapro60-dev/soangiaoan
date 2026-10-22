@@ -3,7 +3,7 @@ import type { SubmissionActorCredentials } from '../../../services/submissionAct
 import { uploadActorEvidence, submitActorSubmission, actorGradeOne } from '../../../services/submissionActorsApi';
 import { dataUrlToFile, nenAnhBaiLamToFile } from '../../../utils/imageCompress';
 import { pdfToImages } from '../../../utils/pdfToImages';
-interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; handMarked?: boolean; onSubmitted: () => void; onClose?: () => void }
+interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; handMarked?: boolean; onSubmitted: () => void; onClose?: () => void; /** Báo ra ngoài lúc đang nộp (để khoá chuyển sang em khác) và khi đã xong. */ onBusyChange?: (busy: boolean) => void }
 /** Nhường khung hình cho trình duyệt vẽ giữa các tệp (điện thoại không bị "treo"). */
 const choKhungHinh = () => new Promise<void>(resolve => { setTimeout(() => resolve(), 0); });
 
@@ -37,7 +37,7 @@ export const prepareActorFiles = async (
   return prepared;
 };
 /** Bằng chứng mới tạo revision, không ghi đè lượt cũ. */
-export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, supplementOf, handMarked, onSubmitted, onClose }: Props) => {
+export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, supplementOf, handMarked, onSubmitted, onClose, onBusyChange }: Props) => {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [note, setNote] = useState('');
@@ -57,6 +57,7 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
   const submit = async () => {
     if (busy || locked || accepted || !files.length) return;
     setBusy(true); setError(''); setProgress('Đang chuẩn bị ảnh…');
+    onBusyChange?.(true);
     try {
       const prepared = await prepareActorFiles(files, message => { if (alive.current) setProgress(message); });
       setProgress(`Đang tải ${prepared.length} tệp lên máy chủ…`);
@@ -70,7 +71,7 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
       catch { if (alive.current) setError('Bài đã lưu, máy chưa đọc được ngay. Theo dõi trạng thái bài; không cần nộp lại.'); }
       if (alive.current) onSubmitted();
     } catch (reason) { if (alive.current) { setError(reason instanceof Error ? reason.message : 'Chưa nộp được. Các tệp vẫn được giữ.'); setProgress(''); } }
-    finally { if (alive.current) setBusy(false); }
+    finally { if (alive.current) setBusy(false); onBusyChange?.(false); }
   };
   return <section className={`my-3 space-y-3 rounded-xl border p-3 ${handMarked ? 'border-emerald-200 bg-emerald-50/40' : 'border-indigo-200 bg-white'}`} aria-label={handMarked ? 'Nộp bài đã chấm tay' : 'Nộp bài hộ'}>
     <p className="text-sm font-black">{supplementOf ? 'Bổ sung vào bài đã nộp' : handMarked ? 'Nộp bài đã chấm tay của học sinh' : 'Nộp bài hộ học sinh'}</p>

@@ -210,6 +210,8 @@ interface BaiNopTheoLopProps {
   toggleAllSubmissions: (submissionIds: readonly string[], selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
   bulkChamLai: () => void | Promise<void>;
+  /** Báo ra ngoài khi một lượt nộp vừa lưu xong (để thầy thấy rõ đã nộp được chưa). */
+  onBaiNopXong?: (message: string) => void;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
@@ -224,10 +226,12 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe, onBaiNopXong }: BaiNopTheoLopProps) => {
   const [proxyStudent, setProxyStudent] = useState('');
   const [proxyBase, setProxyBase] = useState('');
   const [proxyHandMarked, setProxyHandMarked] = useState(false);
+  /** Em đang được nộp bài: khoá chuyển sang em khác để không mất lượt nộp dở dang. */
+  const [dangNopHS, setDangNopHS] = useState('');
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -315,6 +319,12 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
         </div>
         {historyMode === 'latest' && baiNop.length > current.length && (
           <p className="text-xs font-semibold text-slate-500">Đang ẩn {baiNop.length - current.length} lượt nộp cũ; chuyển sang “Hiện cả lịch sử” để đối chiếu hoặc xóa có chủ đích.</p>
+        )}
+        {dangNopHS && (
+          <p role="status" className="mt-2 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Đang nộp bài cho em {dangNopHS} — đợi xong đã nộp rồi hãy chuyển em khác (đổi em lúc này sẽ mất lượt nộp đang chạy).
+          </p>
         )}
       </div>
       <div className="teacher-submission-head teacher-submission-row border-b border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px] font-bold text-slate-500" aria-hidden="true">
@@ -558,8 +568,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                   </button>
                 </div>
                 {assignment && <>
-                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
-                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
+                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
+                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onBusyChange={busy => setDangNopHS(busy ? ten : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${ten} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} />}
                   {s.grade?.questionResults?.some(isActionableClarifyQuestion) && <ClarifyPanel items={[{ title: assignment.title, submission: { ...s, grade: { ...s.grade, questionResults: s.grade.questionResults.filter(isActionableClarifyQuestion) } } }]} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={() => onRefresh?.()} />}
                   <SubmissionFeedback submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} onEditGrade={() => void suaDiem(s, ten)} onChanged={onRefresh} />
                   <HandMarkedWork submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={onRefresh} />
@@ -581,8 +591,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="notes" className="teacher-submission-cell">
               {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && (
                 <div className="flex flex-wrap items-center gap-1">
-                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
-                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
                 </div>
               )}
             </span>
@@ -591,7 +601,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
           </div>
           </div>
-          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onBusyChange={busy => setDangNopHS(busy ? hs.name : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${hs.name} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} /></div>}
         </div>
       ))}
     </div>
@@ -1948,6 +1958,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   <WorkedSolutionsButton assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />
                   <BaiNopTheoLop
                     assignment={a} onRefresh={() => void taiBai()}
+                    onBaiNopXong={message => showToast(message, 'success')}
                     baiNop={baiNopCua(a.id)}
                     hanNop={a.dueAt}
                     maDe={a.examVariants?.map(variant => variant.code)}
