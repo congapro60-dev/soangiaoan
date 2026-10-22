@@ -105,7 +105,7 @@ describe('adaptive assignment actions', () => {
     };
     const listed = await invokeStudent(store, { action: 'studentAdaptiveList' });
     expect(listed.statusCode).toBe(200);
-    expect(listed.payload.assignments).toEqual([{ assignmentId: 'class-a_lesson-1', lessonId: 'lesson-1', title: 'Visible', discoverSeedId: 'seed-1', createdAt: '2026-10-02' }]);
+    expect(listed.payload.assignments).toEqual([{ assignmentId: 'class-a_lesson-1', closed: false, lessonId: 'lesson-1', title: 'Visible', discoverSeedId: 'seed-1', createdAt: '2026-10-02' }]);
     expect(JSON.stringify(listed.payload)).not.toContain('Adaptive fractions');
 
     for (const assignmentId of ['class-a_excluded', 'class-a_closed', 'class-b_lesson-1']) {

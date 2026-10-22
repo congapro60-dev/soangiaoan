@@ -10,7 +10,7 @@ describe('toLiveLessonMarkdown', () => {
 
   it('separates every content line into its own block so lines do not collapse', () => {
     expect(toLiveLessonMarkdown('x: số chiếc bánh\ny: số chai nước\n15x + 10y ≤ 150')).toBe(
-      'x: số chiếc bánh\n\ny: số chai nước\n\n15x + 10y ≤ 150',
+      'x: số chiếc bánh\n\ny: số chai nước\n\n$$15x + 10y \\le 150$$',
     );
   });
 
@@ -23,6 +23,17 @@ describe('toLiveLessonMarkdown', () => {
     expect(toLiveLessonMarkdown('Tìm lỗi · phân loại · sửa · chứng minh.')).toBe(
       'Tìm lỗi · phân loại · sửa · chứng minh.',
     );
+  });
+
+  it('wraps standalone Unicode math choices in the common renderer', () => {
+    expect(toLiveLessonMarkdown('3x² − 3')).toBe('$$3x^2 - 3$$');
+    expect(toLiveLessonMarkdown('x = 1')).toBe('$$x = 1$$');
+    expect(toLiveLessonMarkdown('ℝ ∖ {3}')).toBe('$$\\mathbb{R} \\setminus \\{3\\}$$');
+    expect(toLiveLessonMarkdown('√2')).toBe('$$\\sqrt{2}$$');
+  });
+
+  it('keeps a raw inline limit fragment together inside Vietnamese prose', () => {
+    expect(toLiveLessonMarkdown('Khi x\\to+\\infty, ta có...')).toBe('Khi $x\\to+\\infty$, ta có...');
   });
 
   it('does not wrap Vietnamese prose that carries a stray LaTeX command', () => {
