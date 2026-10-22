@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  collection, query, where, getDocs, doc, setDoc, deleteDoc,
+  collection, query, where, getDocs, doc, setDoc, deleteDoc, deleteField,
   getDoc, orderBy, updateDoc
 } from 'firebase/firestore';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
-import { Exam, ExamSubmission } from '../types';
+import { Exam, ExamSubmission, StudentAnswer } from '../types';
 import { moTaLoiHttp } from '../lib/httpErrorText';
 
 /**
@@ -133,8 +133,42 @@ const fetchPublicExam = async (params: string): Promise<Exam | null> => {
 };
 
 /** Đề theo mã cho học sinh vào làm — đã lược correctAnswer/explanation. */
-export const findPublicExamByCode = (code: string, password = ''): Promise<Exam | null> =>
-  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}${password ? `&password=${encodeURIComponent(password)}` : ''}`);
+export const findPublicExamByCode = (code: string): Promise<Exam | null> =>
+  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}`);
+
+export interface PublicAttemptResponse {
+  sessionToken: string;
+  exam?: Exam;
+  attempt: Pick<ExamSubmission, 'id' | 'status' | 'answers' | 'startedAt'> & { deadlineAt?: string | null; totalScore?: number };
+}
+
+const postPublicAttempt = async (body: Record<string, unknown>): Promise<PublicAttemptResponse> => {
+  const res = await fetch('/api/exam', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Không cập nhật được bài thi. ${moTaLoiHttp(res.status)}`);
+  return data as PublicAttemptResponse;
+};
+
+export const startPublicExam = (input: {
+  code: string;
+  password?: string;
+  studentName: string;
+  studentClass?: string;
+  sessionToken?: string;
+}): Promise<PublicAttemptResponse> => postPublicAttempt({ action: 'start', ...input });
+
+export const resumePublicExam = (code: string, sessionToken: string): Promise<PublicAttemptResponse> =>
+  postPublicAttempt({ action: 'resume', code, sessionToken });
+
+export const savePublicExamAttempt = (code: string, sessionToken: string, submissionId: string, answers: StudentAnswer[]): Promise<PublicAttemptResponse> =>
+  postPublicAttempt({ action: 'save', code, sessionToken, submissionId, answers });
+
+export const submitPublicExamAttempt = (code: string, sessionToken: string, submissionId: string, answers: StudentAnswer[]): Promise<PublicAttemptResponse> =>
+  postPublicAttempt({ action: 'submit', code, sessionToken, submissionId, answers });
 
 /** Đề theo id cho trang kết quả/xem lại — đã lược đáp án (đáp án xem lại lấy từ bài nộp đã chấm). */
 export const getPublicExamById = (id: string, proofSubmissionId?: string): Promise<Exam | null> =>
@@ -227,5 +261,8 @@ export const getExamById = async (id: string): Promise<Exam | null> => {
 };
 
 export const updateExam = async (id: string, patch: Partial<Exam>): Promise<void> => {
-  await updateDoc(doc(db, 'exams', id), { ...patch, updatedAt: new Date().toISOString() });
+  const firestorePatch = Object.fromEntries(
+    Object.entries(patch).map(([key, value]) => [key, value === undefined ? deleteField() : value]),
+  );
+  await updateDoc(doc(db, 'exams', id), { ...firestorePatch, updatedAt: new Date().toISOString() });
 };

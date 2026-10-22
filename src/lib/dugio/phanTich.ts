@@ -165,6 +165,45 @@ export function vanBanQuanSat(bb: BienBanDuGio): string {
   return [bang, bb.bienBan.trim()].filter(Boolean).join('\n\n');
 }
 
+/** Áp dụng một lô AI vào biên bản, giữ nguyên mọi quyết định sửa tay. */
+export function apDungKetQuaPhanTich(
+  bb: BienBanDuGio,
+  ketQua: Partial<Record<MaThanhTo, KetQuaThanhTo>>,
+  tieuChiCon: Record<string, KetQuaTieuChiCon> = {},
+): BienBanDuGio {
+  const next = {
+    ...bb,
+    ketQua: { ...bb.ketQua },
+    diemChot: { ...bb.diemChot },
+    chamNguong: { ...bb.chamNguong },
+    diemTieuChiCon: { ...bb.diemTieuChiCon },
+    chamNguongTieuChiCon: { ...bb.chamNguongTieuChiCon },
+    bangChungTieuChiCon: { ...bb.bangChungTieuChiCon },
+    lyDoTieuChiCon: { ...bb.lyDoTieuChiCon },
+  };
+  const daSuaCon = (bb as BienBanDuGio & { daSuaTieuChiCon?: Record<string, boolean> }).daSuaTieuChiCon || {};
+
+  Object.entries(ketQua).forEach(([rawMa, value]) => {
+    if (!value) return;
+    const ma = rawMa as MaThanhTo;
+    next.ketQua[ma] = value;
+    if (!bb.daSua[ma]) {
+      next.diemChot[ma] = value.diem;
+      next.chamNguong[ma] = value.chamNguong || '';
+    }
+  });
+
+  Object.entries(tieuChiCon).forEach(([ma, value]) => {
+    if (daSuaCon[ma]) return;
+    next.diemTieuChiCon[ma] = value.diem;
+    next.chamNguongTieuChiCon[ma] = value.chamNguong || '';
+    next.bangChungTieuChiCon[ma] = value.bangChung;
+    next.lyDoTieuChiCon[ma] = value.lyDo;
+  });
+
+  return next;
+}
+
 interface DongBangChung {
   trich?: unknown;
   tieu_chi_con?: unknown;

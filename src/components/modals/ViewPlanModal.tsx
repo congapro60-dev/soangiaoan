@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
 import dayjs from 'dayjs';
 import { AppData, LessonPlan } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
@@ -168,7 +167,7 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
               <div data-testid="lesson-plan-preview" className="prose prose-slate max-w-none markdown-body">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
+                  rehypePlugins={[rehypeKatex]}
                 >
                   {plan.content || 'Chưa có nội dung giáo án.'}
                 </ReactMarkdown>

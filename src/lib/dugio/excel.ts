@@ -10,7 +10,7 @@
  */
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
-import type { MaThanhTo } from '../../data/khungDanielson';
+import { COMPONENTS, type MaThanhTo } from '../../data/khungDanielson';
 import { lamSachDongQuanSat } from './lamSach';
 import type { BienBanDuGio, DongQuanSat } from './types';
 import { bienBanRong } from './types';
@@ -27,7 +27,8 @@ export const HANG_CHAM_DIEM: Partial<Record<MaThanhTo, number>> = {
 
 /** Dòng đầu tiên của bảng quan sát trong sheet biên bản (ngay dưới hàng tiêu đề). */
 const HANG_QUAN_SAT_DAU = 8;
-const HANG_QUAN_SAT_CUOI = 27;
+const HANG_QUAN_SAT_CUOI = 42;
+const HANG_GHI_CHU_TU_DO = 44;
 
 /* ─────────────────────────── ĐỌC FILE LÊN ─────────────────────────── */
 
@@ -83,6 +84,8 @@ export function docFileExcel(data: ArrayBuffer, userId: string): BienBanDuGio {
     // TẦNG A — làm sạch máy móc ngay tại cửa vào: bỏ ký tự rác, gộp dòng bị Excel
     // ngắt giữa câu, gỡ nhãn "GV:/HS:" thừa. Không đoán chữ, không điền chỗ trống.
     bb.dongQuanSat = lamSachDongQuanSat(dong).dong;
+    bb.bienBan = chuoi(o('B' + HANG_GHI_CHU_TU_DO));
+    if (chuoi(o('C' + HANG_GHI_CHU_TU_DO)) === 'daydu') bb.boTieuChi = 'daydu';
   }
 
   const sCham = wb.Sheets[wb.SheetNames[1]];
@@ -201,6 +204,9 @@ export function datOTrongXml(xml: string, o: Record<string, GiaTriO>): string {
   return ra;
 }
 
+const moRongDimension = (xml: string, endRow: number): string =>
+  xml.replace(/(<dimension\s+ref=")[^"]*(")/, `$1A1:H${endRow}$2`);
+
 /** Các ô cần điền cho sheet biên bản. */
 export function oSheetBienBan(bb: BienBanDuGio): Record<string, GiaTriO> {
   const o: Record<string, GiaTriO> = {
@@ -220,15 +226,23 @@ export function oSheetBienBan(bb: BienBanDuGio): Record<string, GiaTriO> {
     o['D' + r] = d?.cuaHocSinh ?? '';
     o['E' + r] = d?.ghiChu ?? '';
   }
+  o['A' + HANG_GHI_CHU_TU_DO] = 'Ghi chép tự do';
+  o['B' + HANG_GHI_CHU_TU_DO] = bb.bienBan || '';
+  o['C' + HANG_GHI_CHU_TU_DO] = bb.boTieuChi;
   return o;
 }
 
 /** Các ô cần điền cho sheet chấm điểm. Không đánh giá thì để TRỐNG, không ghi 0. */
 export function oSheetChamDiem(bb: BienBanDuGio): Record<string, GiaTriO> {
   const o: Record<string, GiaTriO> = {};
-  (Object.keys(HANG_CHAM_DIEM) as MaThanhTo[]).forEach(ma => {
-    const r = HANG_CHAM_DIEM[ma]!;
+  const hangDayDu: Record<string, number> = { ...HANG_CHAM_DIEM };
+  COMPONENTS.forEach((component, index) => {
+    if (!(component.ma in hangDayDu)) hangDayDu[component.ma] = 30 + index;
+  });
+  (Object.keys(hangDayDu) as MaThanhTo[]).forEach(ma => {
+    const r = hangDayDu[ma]!;
     const d = bb.diemChot[ma];
+    if (!(ma in HANG_CHAM_DIEM)) o['B' + r] = `${ma} — ${COMPONENTS.find(component => component.ma === ma)?.ten || ma}`;
     o['G' + r] = typeof d === 'number' ? d : '';
 
     const kq = bb.ketQua[ma];
@@ -352,7 +366,8 @@ export async function xuatTheoMau(
   const sua = async (ten: string, o: Record<string, GiaTriO>) => {
     const f = zip.file(ten);
     if (!f) return;
-    zip.file(ten, datOTrongXml(await f.async('string'), o));
+    const content = datOTrongXml(await f.async('string'), o);
+    zip.file(ten, moRongDimension(content, ten.endsWith('sheet1.xml') ? HANG_GHI_CHU_TU_DO : 52));
   };
 
   await sua('xl/worksheets/sheet1.xml', oSheetBienBan(bb));

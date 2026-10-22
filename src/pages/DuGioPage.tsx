@@ -36,13 +36,14 @@ import {
 } from '../lib/dugio/deXuatSuaLoi';
 import { callAI } from '../lib/aiProviders';
 import { docJSONdon } from '../lib/dugio/docJson';
-import { phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
+import { apDungKetQuaPhanTich, phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
 import { chonThanhToGopY, soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
 import {
   danhSachCuaToi,
   danhSachThuVien,
   danhSachVeToi,
   docBienBan,
+  guiTuDanhGia,
   luuBienBan,
   xoaBienBan,
 } from '../lib/dugio/luuTru';
@@ -214,36 +215,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
       }
       const { ketQua, hong: h, boQua } = await phanTichBienBan(bienBan, caiDat(), {
         onTienDo: setDangChay,
-        onLo: (phan, con) =>
-          setBienBan(bb => {
-            if (!bb) return bb;
-            const chot = { ...bb.diemChot };
-            const cn = { ...bb.chamNguong };
-            (Object.keys(phan) as MaThanhTo[]).forEach(ma => {
-              chot[ma] = phan[ma]!.diem;
-              if (phan[ma]!.chamNguong) cn[ma] = phan[ma]!.chamNguong;
-            });
-            const dCon = { ...bb.diemTieuChiCon };
-            const cnCon = { ...bb.chamNguongTieuChiCon };
-            const bcCon = { ...bb.bangChungTieuChiCon };
-            const ldCon = { ...bb.lyDoTieuChiCon };
-            Object.values(con).forEach(t => {
-              dCon[t.ma] = t.diem;
-              if (t.chamNguong) cnCon[t.ma] = t.chamNguong;
-              if (t.bangChung.length) bcCon[t.ma] = t.bangChung;
-              if (t.lyDo) ldCon[t.ma] = t.lyDo;
-            });
-            return {
-              ...bb,
-              ketQua: { ...bb.ketQua, ...phan },
-              diemChot: chot,
-              chamNguong: cn,
-              diemTieuChiCon: dCon,
-              chamNguongTieuChiCon: cnCon,
-              bangChungTieuChiCon: bcCon,
-              lyDoTieuChiCon: ldCon,
-            };
-          }),
+        onLo: (phan, con) => setBienBan(bb => (bb ? apDungKetQuaPhanTich(bb, phan, con) : bb)),
       });
       setHong(h);
       const phanBoQua = boQua.length ? ` Bỏ qua ${boQua.join('; ')}.` : '';
@@ -531,7 +503,8 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
                     ...bienBan,
                     tuDanhGia: { ...bienBan.tuDanhGia, hoanThanhLuc: new Date().toISOString().slice(0, 10) },
                   };
-                  await luuBienBan(moi);
+                  if (!moi.id) throw new Error('Biên bản chưa có mã để gửi tự đánh giá.');
+                  await guiTuDanhGia(moi.id, moi.tuDanhGia);
                   setBienBan(moi);
                   setThongBao('Đã gửi bản tự đánh giá.');
                 })
@@ -795,7 +768,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
                     const { hong: h } = await phanTichBienBan(bienBan, caiDat(), {
                       chiCac: hong,
                       onTienDo: setDangChay,
-                      onLo: phan => setBienBan(bb => (bb ? { ...bb, ketQua: { ...bb.ketQua, ...phan } } : bb)),
+                      onLo: (phan, con) => setBienBan(bb => (bb ? apDungKetQuaPhanTich(bb, phan, con) : bb)),
                     });
                     setHong(h);
                   })}

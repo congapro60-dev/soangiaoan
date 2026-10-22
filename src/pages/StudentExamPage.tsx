@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import { Clock, AlertTriangle, CheckCircle2, Loader2, Send, BookOpen } from 'lucide-react';
 import { Exam, ExamQuestion, ExamSubmission, StudentAnswer, QuestionType } from '../types';
-import { findPublicExamByCode, createSubmission, updateSubmission, gradeExamSubmission, createSubmissionId, createSubmissionNonce } from '../hooks/useExams';
+import { findPublicExamByCode, savePublicExamAttempt, startPublicExam, submitPublicExamAttempt } from '../hooks/useExams';
 import { isCompoundTF, parseTFSub, ensureMathWrapped, getOptionCols } from '../utils/examScoring';
 
 type PageState = 'loading' | 'not_found' | 'intro' | 'taking' | 'submitting';
@@ -46,22 +46,6 @@ const getExamWindow = (exam: Exam): ExamWindowState => {
   if (startAt && !Number.isNaN(startAt.getTime()) && now < startAt.getTime()) return { state: 'not_yet', startAt, endAt };
   if (endAt && !Number.isNaN(endAt.getTime()) && now > endAt.getTime()) return { state: 'closed', startAt, endAt };
   return { state: 'open', startAt, endAt };
-};
-
-const attemptsKey = (examId: string) => `exam_attempts_${examId}`;
-
-const getLocalAttempts = (examId: string): number => {
-  try {
-    return parseInt(localStorage.getItem(attemptsKey(examId)) || '0', 10) || 0;
-  } catch {
-    return 0;
-  }
-};
-
-const bumpLocalAttempts = (examId: string) => {
-  try {
-    localStorage.setItem(attemptsKey(examId), String(getLocalAttempts(examId) + 1));
-  } catch { /* localStorage bị chặn — bỏ qua */ }
 };
 
 // ─── Section config ───────────────────────────────────────────────────────────
@@ -117,7 +101,7 @@ export const StudentExamPage = () => {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submittedRef = useRef(false);
   const submissionIdRef = useRef<string | null>(null);
-  const submissionNonceRef = useRef<string>('');
+  const sessionTokenRef = useRef<string>('');
 
   // ── Group questions by type ───────────────────────────────────────────────
   const { sections, globalNum } = useMemo(() => {
@@ -142,9 +126,20 @@ export const StudentExamPage = () => {
   // ── Load exam ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!code) { setPageState('not_found'); return; }
-    findPublicExamByCode(code)
-      .then(e => { setExam(e ?? null); setPageState(e ? 'intro' : 'not_found'); })
-      .catch(() => setPageState('not_found'));
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const e = await findPublicExamByCode(code);
+        if (cancelled) return;
+        if (!e) { setPageState('not_found'); return; }
+        setExam(e);
+        setPageState('intro');
+      } catch {
+        if (!cancelled) setPageState('not_found');
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [code]);
 
   // ── Tab switch detection ──────────────────────────────────────────────────
@@ -154,8 +149,8 @@ export const StudentExamPage = () => {
       if (document.hidden) {
         setTabSwitches(n => {
           const next = n + 1;
-          if (submissionIdRef.current) {
-            updateSubmission(submissionIdRef.current, { tabSwitches: next }).catch(console.error);
+          if (submissionIdRef.current && sessionTokenRef.current && code) {
+            savePublicExamAttempt(code, sessionTokenRef.current, submissionIdRef.current, Object.entries(answers).map(([questionId, answer]) => ({ questionId, answer }))).catch(console.error);
           }
           return next;
         });
@@ -163,7 +158,7 @@ export const StudentExamPage = () => {
     };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
-  }, [pageState]);
+  }, [pageState, code, answers]);
 
   useEffect(() => {
     if (tabSwitches === 0) return;
@@ -187,26 +182,15 @@ export const StudentExamPage = () => {
     }));
 
     try {
-      await updateSubmission(submissionId, {
-        status: 'submitted',
-        submittedAt: new Date().toISOString(),
-        answers: studentAnswers,
-        tabSwitches,
-      });
-      // Chấm server-side. Fail-safe: lỗi thì bỏ qua — bài vẫn ở 'submitted', giáo viên
-      // mở trang theo dõi sẽ tự xác minh & tính điểm từ đáp án gốc.
-      try {
-        await gradeExamSubmission(submissionId, submissionNonceRef.current);
-      } catch (gradeErr) {
-        console.warn('Chấm server-side thất bại — bài vẫn được lưu, giáo viên sẽ chấm/xác minh sau', gradeErr);
-      }
+      if (!code || !sessionTokenRef.current) throw new Error('Phiên thi đã hết hiệu lực.');
+      await submitPublicExamAttempt(code, sessionTokenRef.current, submissionId, studentAnswers);
       navigate(`/exam/${exam.code}/result/${submissionId}${auto ? '?auto=1' : ''}`);
     } catch {
       submittedRef.current = false;
       setPageState('taking');
       alert('Không nộp được bài. Vui lòng kiểm tra kết nối mạng và thử lại.');
     }
-  }, [exam, submissionId, orderedQuestions, answers, tabSwitches, navigate]);
+  }, [exam, submissionId, orderedQuestions, answers, code, navigate]);
 
   // ── Timer ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -228,7 +212,7 @@ export const StudentExamPage = () => {
       const partial: StudentAnswer[] = orderedQuestions.map(q => ({
         questionId: q.id, answer: answers[q.id] || '',
       }));
-      updateSubmission(submissionId, { answers: partial }).catch(console.error);
+      if (code && sessionTokenRef.current) savePublicExamAttempt(code, sessionTokenRef.current, submissionId, partial).catch(console.error);
     }, 3000);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [answers, pageState, submissionId, orderedQuestions]);
@@ -243,18 +227,7 @@ export const StudentExamPage = () => {
         setStartError('Nhập mật khẩu để vào thi.');
         return;
       }
-      try {
-        const unlocked = await findPublicExamByCode(code || '', examPassword.trim());
-        if (!unlocked || unlocked.passwordRequired) {
-          setStartError('Mật khẩu không đúng hoặc đề thi chưa mở.');
-          return;
-        }
-        activeExam = unlocked;
-        setExam(unlocked);
-      } catch {
-        setStartError('Không xác thực được mật khẩu. Vui lòng thử lại.');
-        return;
-      }
+      // Password is verified only by the POST start endpoint; never put it in a URL.
     }
 
     const win = getExamWindow(activeExam);
@@ -266,37 +239,34 @@ export const StudentExamPage = () => {
       setStartError(`Đề đã đóng lúc ${win.endAt?.toLocaleString('vi-VN')} — không thể vào làm bài.`);
       return;
     }
-    if ((activeExam.maxAttempts ?? 0) > 0 && getLocalAttempts(activeExam.id) >= activeExam.maxAttempts) {
-      setStartError(`Bạn đã làm đủ ${activeExam.maxAttempts} lần cho đề này trên thiết bị này.`);
-      return;
-    }
-
     setStartError(null);
     setPageState('loading');
     try {
-      const qs = activeExam.shuffleQuestions ? shuffle(activeExam.questions) : [...activeExam.questions];
-      const newId = createSubmissionId();
-      const clientNonce = createSubmissionNonce();
-      const subId = await createSubmission({
-        id: newId,
-        examId: activeExam.id,
-        examCode: activeExam.code,
-        studentName,
-        studentClass,
-        status: 'in_progress',
-        startedAt: new Date().toISOString(),
-        answers: [],
-        maxScore: activeExam.maxScore,
-        tabSwitches: 0,
-        clientNonce,
-      });
+      const stored = (() => {
+        try {
+          const token = localStorage.getItem(`public_exam_session:${code}`) || '';
+          const identity = JSON.parse(localStorage.getItem(`public_exam_identity:${code}`) || 'null') as { name?: string; studentClass?: string } | null;
+          const sameIdentity = identity?.name === studentName.trim() && (identity.studentClass || '') === studentClass.trim();
+          return sameIdentity ? token : '';
+        } catch { return ''; }
+      })();
+      const started = await startPublicExam({ code: code || '', password: examPassword.trim(), studentName, studentClass, sessionToken: stored || undefined });
+      const serverExam = started.exam || activeExam;
+      const qs = serverExam.shuffleQuestions ? shuffle(serverExam.questions) : [...serverExam.questions];
+      const subId = started.attempt.id;
+      sessionTokenRef.current = started.sessionToken;
+      try {
+        localStorage.setItem(`public_exam_session:${code}`, started.sessionToken);
+        localStorage.setItem(`public_exam_identity:${code}`, JSON.stringify({ name: studentName.trim(), studentClass: studentClass.trim() }));
+      } catch { /* storage optional */ }
+      activeExam = serverExam;
+      setExam(serverExam);
       setSubmissionId(subId);
       submissionIdRef.current = subId;
-      submissionNonceRef.current = clientNonce;
-      bumpLocalAttempts(activeExam.id);
       setOrderedQuestions(qs);
       // Thời gian làm bài không được vượt quá giờ đóng đề (endAt)
-      const durationSec = activeExam.durationMinutes * 60;
+      const serverDeadline = started.attempt.deadlineAt ? Date.parse(started.attempt.deadlineAt) : NaN;
+      const durationSec = Number.isFinite(serverDeadline) ? Math.ceil((serverDeadline - Date.now()) / 1000) : activeExam.durationMinutes * 60;
       const endCapSec = win.endAt ? Math.floor((win.endAt.getTime() - Date.now()) / 1000) : Infinity;
       setRemainingSeconds(Math.max(1, Math.min(durationSec, endCapSec)));
       setPageState('taking');
@@ -329,16 +299,12 @@ export const StudentExamPage = () => {
 
   if (pageState === 'intro') {
     const win = exam ? getExamWindow(exam) : null;
-    const attemptsUsed = exam ? getLocalAttempts(exam.id) : 0;
-    const attemptsExceeded = !!exam && (exam.maxAttempts ?? 0) > 0 && attemptsUsed >= exam.maxAttempts;
-    const entryBlocked = (win && win.state !== 'open') || attemptsExceeded;
+    const entryBlocked = win && win.state !== 'open';
     const blockMessage = win?.state === 'not_yet'
       ? `Đề sẽ mở lúc ${win.startAt?.toLocaleString('vi-VN')}. Hãy tải lại trang khi đến giờ.`
       : win?.state === 'closed'
         ? `Đề đã đóng lúc ${win.endAt?.toLocaleString('vi-VN')}.`
-        : attemptsExceeded
-          ? `Bạn đã làm đủ ${exam?.maxAttempts} lần cho đề này trên thiết bị này.`
-          : null;
+        : null;
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 shadow-2xl">
@@ -585,6 +551,25 @@ const QuestionRenderer = ({ question, value, onChange, cols = 1 }: {
             </label>
           );
         })}
+      </div>
+    );
+  }
+
+  if (question.type === 'true_false' && !isCompoundTF(question)) {
+    return (
+      <div className="flex gap-3 no-print">
+        {(['Đúng', 'Sai'] as const).map(option => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className={`flex-1 rounded-xl border px-4 py-3 text-sm font-bold transition ${
+              value === option ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {option}
+          </button>
+        ))}
       </div>
     );
   }

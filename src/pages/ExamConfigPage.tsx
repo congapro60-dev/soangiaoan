@@ -4,6 +4,15 @@ import { Loader2, AlertTriangle, ArrowLeft, Save, Settings } from 'lucide-react'
 import { Exam } from '../types';
 import { getExamById, updateExam, waitForAuth } from '../hooks/useExams';
 
+const pad2 = (value: number) => String(value).padStart(2, '0');
+const toLocalDateTimeValue = (iso?: string) => {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+};
+const fromLocalDateTimeValue = (value: string) => value ? new Date(value).toISOString() : undefined;
+
 export const ExamConfigPage = () => {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
@@ -118,16 +127,16 @@ export const ExamConfigPage = () => {
             <Field label="Mở từ (tùy chọn)">
               <input
                 type="datetime-local"
-                value={form.startAt ? form.startAt.slice(0, 16) : ''}
-                onChange={e => set('startAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                value={toLocalDateTimeValue(form.startAt)}
+                onChange={e => set('startAt', fromLocalDateTimeValue(e.target.value))}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               />
             </Field>
             <Field label="Đóng lúc (tùy chọn)">
               <input
                 type="datetime-local"
-                value={form.endAt ? form.endAt.slice(0, 16) : ''}
-                onChange={e => set('endAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                value={toLocalDateTimeValue(form.endAt)}
+                onChange={e => set('endAt', fromLocalDateTimeValue(e.target.value))}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               />
             </Field>
