@@ -14,6 +14,39 @@ import type { SubmissionActor, SubmissionDoc, StudentAssignmentView } from '../s
 
 type Db = FirebaseFirestore.Firestore;
 type Data = FirebaseFirestore.DocumentData;
+
+/** OMR-detected answer for one question: client canvas/code analysis output. */
+export interface DetectedAnswer {
+  questionNo: number;
+  answer: 'A' | 'B' | 'C' | 'D' | null;
+  confidence: number;
+}
+
+/** Validates detectedAnswers from client trust boundary. Returns valid array or throws 400. */
+const validateDetectedAnswers = (input: unknown): DetectedAnswer[] | undefined => {
+  if (input === undefined || input === null) return undefined;
+  if (!Array.isArray(input)) error(400, 'detectedAnswers phải là mảng.');
+  const entries = input as unknown[];
+  if (entries.length > 40) error(400, 'detectedAnswers tối đa 40 câu.');
+  // Empty array is valid: signals attempted OMR but no bubbles detected
+  if (entries.length === 0) return [];
+  const seen = new Set<number>();
+  const ALLOWED = new Set(['A', 'B', 'C', 'D', null]);
+  for (const item of entries) {
+    if (!item || typeof item !== 'object') error(400, 'detectedAnswers phải là object.');
+    const entry = item as Record<string, unknown>;
+    const q = entry.questionNo as number;
+    if (typeof q !== 'number' || !Number.isInteger(q) || q < 1 || q > 40) error(400, 'questionNo phải là số nguyên từ 1 đến 40.');
+    if (seen.has(q)) error(400, `questionNo ${q} lặp trong detectedAnswers.`);
+    seen.add(q);
+    const ans = entry.answer;
+    if (!(ans === null || typeof ans === 'string') || !ALLOWED.has(ans)) error(400, 'answer phải là A|B|C|D|null.');
+    const conf = entry.confidence as number;
+    if (typeof conf !== 'number' || !Number.isFinite(conf) || conf < 0 || conf > 1) error(400, 'confidence phải là số từ 0 đến 1.');
+  }
+  return input as DetectedAnswer[];
+};
+
 export class SubmissionAccessError extends Error { constructor(readonly statusCode: number, message: string) { super(message); } }
 export interface ActorContext { role: SubmissionActor['role']; uid?: string; classId: string; teacherId: string; studentId: string; pin?: string; pinRevision?: string; joinCode?: string }
 const error = (code: number, message: string): never => { throw new SubmissionAccessError(code, message); };
@@ -261,7 +294,8 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       // máy chỉ ĐỌC điểm GV ghi (lưu vào paperScore), thầy cô phải xác nhận mới chốt —
       // không để học sinh tự viết điểm rồi tự chấm.
       const handMarked = body.handMarked === true;
-      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), createdAt: now, updatedAt: now };
+      const detectedAnswers = validateDetectedAnswers(body.detectedAnswers);
+      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), ...(detectedAnswers !== undefined ? { detectedAnswers } : {}), createdAt: now, updatedAt: now };
       tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }

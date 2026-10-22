@@ -91,6 +91,19 @@ describe('actor submission and feedback', () => {
     expect(h.deleted).toContain(path);
   });
 
+  it('nhận detectedAnswers hợp lệ và [] qua upload grant', async () => {
+    for (const detectedAnswers of [[], [{ questionNo: 1, answer: 'B', confidence: .95 }]]) {
+      const uploadGrantId = await grant(parent);
+      const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId, detectedAnswers });
+      expect(sent.status).toBe(200);
+      expect(store[`submissions/${sent.payload.submission.id}`].detectedAnswers).toEqual(detectedAnswers);
+    }
+  });
+  it.each([{}, [{ questionNo: '1', answer: 'A', confidence: .9 }], [{ questionNo: 1, answer: 'X', confidence: .9 }], [{ questionNo: 1, answer: 'A', confidence: 2 }], [{ questionNo: 1, answer: 'A', confidence: .9 }, { questionNo: 1, answer: null, confidence: 0 }]])('từ chối detectedAnswers sai khuôn: %j', async detectedAnswers => {
+    const uploadGrantId = await grant(parent);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId, detectedAnswers })).status).toBe(400);
+  });
+
   it('GV nộp bài đã chấm lưu cờ handMarkedPaper; HS/PH tự khai cũng được nhưng KHÔNG được coi là điểm chính thức', async () => {
     // GV nộp
     h.uid = 'teacher';
