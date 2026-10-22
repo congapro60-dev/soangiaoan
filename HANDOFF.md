@@ -13,18 +13,15 @@ Chủ dự án chốt: máy chấm đừng phụ thuộc một khoá Gemini tr�
 - **Gateway:** `_ai-gateway-core.ts` cho phép env `AI_GATEWAY_BASE_URL`/`AI_GATEWAY_MODEL` đè config mặc định (`zai/glm-5.2`) — không set env thì hành vi cũ.
 - **Client:** provider `'vilao'` mới end-to-end: `types.ts` (union + `vilaoApiKey?`), `apiLimits.ts` (union), `data/models.ts` (`VILAO_MODELS` = deepseek-v4.1-flash, `PROVIDER_CONFIGS` + baseUrl), `aiProviders.ts` (nhánh vilao cho text/vision/stream, `VILAO_MAX_TOKENS = 32768`), tab Vilao trong `SettingsModal` (label lấy key tại vilao.ai), banner thiếu key trong `App.tsx` nhận vilao. Giáo viên dán key Vilao riêng của mình thì lô chấm tự ưu tiên Vilao (server) — ROLES KHÁC: client 'vilao' là khoá riêng của GV, không đụng chuỗi máy chủ.
 - **Cố ý bỏ qua (lý do):** `_classroom-online.ts` và `_parent-report.ts` VẪN gọi `callGeminiVision` trực tiếp (lane Gemini cũ) — chúng không có vòng ensure/billing riêng theo cùng kiểu; đổi thêm là mở blast radius giữa chừng. `callUtilityVision` (đọc mã đề, `gemini-2.5-flash-lite`) cũng ở ngoài chuỗi — model rẻ, không phải đường chấm. Làm tiếp ở wave sau nếu khoá Gemini lại cạn.
-- **Sắp cắn người sau:** (1) chuỗi rỗng khi Vercel chưa set `GRADING_VILAO_API_KEY` VÀ không có `GEMINI_API_KEY` → ném lỗi tiếng Việt "Máy chủ chưa cấu hình khoá chấm bài…" (502, không phải 402) — phải set biến môi trường trong Vercel sau khi deploy; (2) `PROVIDER_CONFIG_MAP` cast toàn bộ `Record<ApiProvider,…>` — thêm provider mới sau này cần entry `PROVIDER_CONFIGS`, còn `_classroom-online`/`_parent-report` thì khỏi; (3) nhánh cũ `feat/vilao-failover-chain` còn dơ trong worktree chính — đừng có mà merge nhầm.
-- **Nghiệm thu (đã chạy tay tất cả — 0 lỗi):**
+- **Sắp cắn người sau:** (1) chuỗi rỗng khi Vercel chưa set `GRADING_VILAO_API_KEY` VÀ không có `GEMINI_API_KEY` → ném lỗi tiếng Việt "Máy chủ chưa cấu hình khoá chấm bài…" (502, không phải 402) — **ĐÃ set** `GRADING_VILAO_API_KEY` (production, project `giaoandewey`, Sensitive/Secret 22/10); (2) `PROVIDER_CONFIG_MAP` cast toàn bộ `Record<ApiProvider,…>` — thêm provider mới sau này cần entry `PROVIDER_CONFIGS`, còn `_classroom-online`/`_parent-report` thì khỏi; (3) nhánh cũ `feat/vilao-failover-chain` còn dơ trong worktree chính — đừng có mà merge nhầm; (4) test nào mock `callGeminiVision` kiểu spread mà assert theo vị trí tham số cũ thì phải dùng wrapper ánh xạ (mục nghiệm thu).
+- **Nghiệm thu (đã chạy tay tất cả — 0 lỗi, trên cây SAU rebase lên `fd082fa`):**
   ```powershell
-  npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run build        # xanh + dist
+  npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run build        # xanh (1m53s)
   npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run lint         # tsc 0 lỗi
   npm --prefix "C:\Users\ADMIN\Downloads\spai-main-port" run lint:api     # tsc api 0 lỗi
+  npx vitest run                                                          # FULL: 320 file · 3374/3374 PASS
   ```
-  ```powershell
-  Set-Location "C:\Users\ADMIN\Downloads\spai-main-port"
-  npx vitest run api/__tests__/grading-core.test.ts api/__tests__/grade-homework.deadline.test.ts api/__tests__/grade-homework.auto.test.ts api/__tests__/grade-homework.dispatch.test.ts api/__tests__/grade-homework.stale.test.ts api/__tests__/grade-homework.regrade.test.ts src/hooks/useTokenTracker.test.ts
-  # 7 file · 74 test PASS (deadline từng fail vì wrapper bọc lỗi — đã sửa bằng ném lại nguyên lỗi cuối)
-  ```
+  Test sửa kèm: `correction-attempts` + `hand-marked-work` mock `callGeminiVision` → phải nhận thêm `callGradingVision` wrapper (ánh xạ về vị trí tham số cũ của `callGeminiVision` vì test đọc `mock.calls[0][4].timeoutMs`).
 
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 
