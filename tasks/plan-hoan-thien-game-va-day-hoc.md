@@ -1543,3 +1543,55 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
   3. HS **thoát ra vào lại**: chọn/gõ đúng y hệt tên mình → tiếp tục đúng vị trí cũ (máy khác vẫn được; máy cũ mất quyền).
   4. Màn vào phòng hiện **danh sách tên đã vào** để chọn; HS mới tự gõ tên. Tên chỉ khác hoa/thường/dấu → báo để thêm họ/tên đệm (tránh 2 bạn trùng tên).
   **Đã code (Claude):** `plannedGateIndex`/`placeLateLearner` (self-pace.js, gắn vào ADD_LEARNER), vào lại bằng đúng tên trong `attemptJoin` (service.js, phòng không dùng hồ sơ lớp), `names` trong tra cứu phòng (escape route) + nút chọn tên ở /play. Test 1405/1405. Phòng dùng hồ sơ lớp (mã HS + PIN) giữ nguyên cách cũ.
+
+### R24 — nghiệm thu và phát hành 17/10
+- [x] Critical review runtime/self-paced/presence/quest/rule/quick launch; sửa P2 near-duplicate tên bằng `learnerNameKey()`; test 37/37.
+- [x] Full suite 1407/1407 assertion pass; workerd generation/source chạy riêng pass; typecheck, lint, build, assets 53/53 pass.
+- [x] Migration 0024 replay local pass; Sites hosted migration chạy trước Worker upload; production readback có `last_seen_at`.
+- [x] Native Sites v22 deployed succeeded: source `39f0449545f2bcaa2d6b49fbc9126d448e4d5e6f`, deployment `appgdep_6ad2d61dca84819197a75a9b9753f0ce`.
+- [x] Live fake QA: wizard 4 loại tiết, library `Ôn tập chương II`, quick launch draft, HS tự đi, rule guide/comparison, 4 fake pupils, presence 4/4, teacher pause, student pause overlay; rooms `63D9F0` và `3B7326` vào Trash.
+- [ ] Live browser chưa đủ: late join, exact-name old-token denial, wrong-alert, auto class quest, 3D→2D lesson/exam; local reducer/service tests đã cover phần logic. Real-pupil/device pilot, canonical SGK/SBT, GiaoAnDewey pilot vẫn mở.
+
+### R25 và sửa lỗi lớp thật — 19/10, đang làm
+- [x] Theo chỉ đạo mới: native Astra xhigh, không điều phối AI/9router.
+- [x] Xác định Hai mặt phẳng song song r106 lặp cùng dạng chứng minh; không coi đổi số là đa dạng nhiệm vụ.
+- [x] Runtime khóa nộp lại câu hoàn tất; selfFinished trả tasks=[]; focused R25/service/self-paced 57/57.
+- [x] Soạn lại riêng r106 theo mạch dạy học và SGK trang88–89, minh chứng nguồn và math audit. v1.1.0 draft; thêm hướng dẫn GV trong cockpit. Live metadata xác nhận đúng bài HS vừa thử.
+- [x] Báo lỗi trong menu HS cá nhân/nhóm, lưu và tổng hợp theo phòng/cổng/loại lỗi; GV xem/xử lý/Thùng rác/khôi phục; migration0026 local.
+- [x] R25 AI phiếu cuối giờ có preview/consent/GV duyệt, thống kê thiếu câu/chờ chấm đúng nhánh; kết quả riêng và tự đánh giá3mức.
+- [x] Review native + full1444/1444, sau patch modal cuối20/20; typecheck/build/assets54/54; lint0errors; native Worker/D1 replay0000–0026 PASS. `tasks/r25-final-report.md`.
+- [ ] Browser375px/desktop chưa đủ: Edge CDP timeout, IAB attach không thành công. Chưa release/migration production; native Site vẫn v22.
+
+### 21/10 — R25–R27 QA bổ sung và trạng thái phát hành hiện tại
+- [x] Fresh verification tại checkout phát hành: `npm test` 1463/1463; `npm run typecheck`; `npm run build`; `npm run verify:assets` 54/54; lint 0 errors (454 warnings cũ).
+- [x] Production Site version 23 đã deploy thành công (`appgdep_6ad86023e67c8191822f58610a46833b`), HTTP 200, title đúng; không có source code mới sau bản deploy này.
+- [x] Browser desktop: landing, cockpit GV, wizard 4 loại tiết, quick launch thư viện, bộ lọc, bài `Ôn tập chương II`, hướng dẫn 9 luật/bảng so sánh và 14 hoạt động chung đều hiển thị.
+- [x] Browser responsive 375×812: `/lessons/new`, `/?view=teacher`, cockpit GV không tràn ngang (`scrollWidth <= clientWidth`). Đây là smoke UI, chưa thay cho full pupil journey.
+- [x] Live D1 read-only: bảng `lesson_assessment_jobs` và `lesson_pupil_reports` tồn tại đúng schema, hiện không có dòng; không tạo dữ liệu HS mới trong lượt QA.
+- [ ] Chưa nghiệm thu live đầy đủ late join, exact-name rejoin, wrong-alert, class quest, 3D→2D và pilot thiết bị thật; không dùng phòng đang có tên HS để thử tiếp.
+- [ ] Backlog P2: console ghi lặp Vinext RSC prefetch `TypeError: f is not a function` tại `link-NF6FNuXz.js`; chưa thấy hỏng UI/API trong smoke, tách xử lý framework ở đợt sau.
+- [x] Audit807gói với prompt+inputSchema:801có nhóm chỉ đổi số,176bài formation có cùng khuôn qua formation–recheck/exit. Đây là heuristic ưu tiên rà, không phải tỷ lệ bài lỗi.
+- [ ] Rà sâu và sửa học liệu còn lại, ưu tiên r108/r117/r135/r152/r162 rồi176bài formation trong `tasks/r25-content-repetition-audit.json`; kiểm SGK/LO và lời giải độc lập. Không claim807gói đã đạt sư phạm.
+
+### 22/10 — Custom content mọi môn/mọi khối
+- [x] Thiết kế + plan đã duyệt: thư viện Toán 10–12 giữ nguyên; nhánh custom dùng game shell chung, mọi môn/khối 1–12.
+- [x] UI/context chấp nhận `source=custom`, subject tự nhập, lớp 1–12, quick launch không cần package ID.
+- [x] Generation settings/provider chấp nhận subject Unicode có giới hạn và grade 1–12; Math guidance tách khỏi non-Math guidance; custom không dùng catalogue scope.
+- [x] Custom package giữ `needs_review`/`teacher_review_required`; live adapter guard không cho chạy trước approval.
+- [x] Full serial 1467/1467, focused/API/runtime/input pass, typecheck/build/assets pass, lint 0 errors.
+- [ ] Browser preview local auth route không sẵn; live Site QA sau deploy còn mở.
+
+### 22/10 — Version24 custom content QA/release
+- [x] Site version24 deployed from `5665a9f48f1665dabb1b0555bac6761a25c8ba0`; live custom wizard/dashboard smoke PASS.
+- [x] Desktop + 375px: mọi khối 1–12, subject tự nhập, nhãn draft cần GV duyệt, lớp8 Sinh học, không tràn ngang.
+- [x] Không tạo phòng/dữ liệu HS; AI provider không bị gọi trong QA.
+- [ ] Pilot tạo draft AI bằng nguồn thật vẫn cần GV thực hiện sau khi nhập source/key.
+
+### 23/10 — Công cụ câu hỏi (Desmos/Vẽ tay) và Sửa lặp học liệu (r107/r108)
+- [x] Xác minh Site online: Site v24 public live 200 OK (`mat-ma-da-gioi.cuong-vuviet.chatgpt.site`).
+- [x] Tích hợp Desmos vào `TaskInput.tsx`: nút mở Desmos Hình học (`geometry?embed`) & Desmos Đồ thị (`calculator?embed`) nhúng trực tiếp trong giao diện làm bài.
+- [x] Tích hợp chụp/tải ảnh vẽ tay trên giấy (`TaskInput.tsx`): tự động nén canvas JPEG <=500KB, thumbnail preview và đính kèm bài làm nộp lên server.
+- [x] Hiển thị hình minh họa đề bài (`diagramUrl`/`image`) và hình minh họa gợi ý giàn giáo (`hints[i].diagramUrl`). Bổ sung khóa được phép vào `lib/lesson/validate.js`.
+- [x] Cải tiến `short_answer_4`: tự động chuyển focus sang ô kế tiếp khi nhập 1 ký tự, lùi về ô trước khi bấm Backspace.
+- [x] Sửa triệt để lặp câu r107 (Định lý Thalès) và r108 (Luyện tập hai mặt phẳng song song) trong `content/lessons/hki-2026-g11.json` và `content/hki-2026-catalogue.json`: thay 12 câu lặp số bằng chuỗi bài tập hình học phân hóa chuẩn SGK Kết nối tri thức.
+- [x] Typecheck 0 errors, build exit 0, tests 15 focused pass.
