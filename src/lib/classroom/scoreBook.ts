@@ -260,6 +260,12 @@ export const normalizeScoreBook = (classId: string, raw: unknown): ScoreBookDoc 
   const auto = normalizeAutoScores(raw.auto);
   const paperExams = sanitizePaperExams(raw.paperExams);
   const examOverrides = sanitizeExamOverrides(raw.examOverrides);
+  // Mốc thi đang có điểm thật, tách theo nhóm — cột trùng mà không có điểm thì mới bị bỏ.
+  const examDataKeys = { moet: new Set<string>(), tds: new Set<string>() };
+  for (const row of Object.values(exams)) {
+    for (const mark of row.moet) examDataKeys.moet.add(examLabelKey(mark.label));
+    for (const mark of row.tds) examDataKeys.tds.add(examLabelKey(mark.label));
+  }
   return {
     classId,
     hs1Columns,
@@ -269,7 +275,10 @@ export const normalizeScoreBook = (classId: string, raw: unknown): ScoreBookDoc 
     ...(Object.keys(examOverrides).length > 0 ? { examOverrides } : {}),
     ...(sanitizeExamColumnLabels(raw.examColumnLabels) ? { examColumnLabels: sanitizeExamColumnLabels(raw.examColumnLabels)! } : {}),
     ...(Array.isArray(raw.hiddenExamColumns) ? { hiddenExamColumns: [...new Set(raw.hiddenExamColumns.filter((key): key is string => typeof key === 'string').map(examLabelKey))] } : {}),
-    ...(isRecord(raw.examColumns) ? { examColumns: { moet: Array.isArray(raw.examColumns.moet) ? raw.examColumns.moet.filter((v): v is string => typeof v === 'string') : [], tds: Array.isArray(raw.examColumns.tds) ? raw.examColumns.tds.filter((v): v is string => typeof v === 'string') : [] } } : {}),
+    ...(isRecord(raw.examColumns) ? { examColumns: dedupeExamColumns({
+      moet: Array.isArray(raw.examColumns.moet) ? raw.examColumns.moet.filter((v): v is string => typeof v === 'string') : [],
+      tds: Array.isArray(raw.examColumns.tds) ? raw.examColumns.tds.filter((v): v is string => typeof v === 'string') : [],
+    }, examDataKeys) } : {}),
     ...(isRecord(raw.periodicAssignmentLinks) ? { periodicAssignmentLinks: Object.fromEntries(Object.entries(raw.periodicAssignmentLinks).filter(([, id]) => typeof id === 'string')) as Record<string, string> } : {}),
     ...(Object.keys(examWeights).length > 0 ? { examWeights } : {}),
     ...(typeof raw.examsSyncedAt === 'string' ? { examsSyncedAt: raw.examsSyncedAt } : {}),
@@ -360,6 +369,62 @@ export const applyExamColumnSettings = (exams: ScoreBookDoc['exams'], rawLabels:
     out[studentId] = { moet: map(row.moet), tds: map(row.tds) };
   }
   return out;
+};
+
+/**
+ * Bỏ cột trùng mốc: hai tên khác nhau nhưng cùng mã chuẩn (vd "Thi GHKI" và "Giữa học kì I")
+ * là MỘT mốc thi — giữ cột đầu, bỏ bóng ma. Cột trùng mà đang có điểm thật thì giữ lại để không mất dữ liệu.
+ */
+export const dedupeExamColumns = (
+  columns: { moet: string[]; tds: string[] },
+  dataKeys: { moet?: ReadonlySet<string>; tds?: ReadonlySet<string> } = {},
+): { moet: string[]; tds: string[] } => {
+  const moet: string[] = [];
+  const moetKeys = new Set<string>();
+  for (const label of columns.moet) {
+    const key = examLabelKey(label);
+    if (!key || moetKeys.has(key)) continue;
+    moetKeys.add(key);
+    moet.push(label);
+  }
+  const tds: string[] = [];
+  const tdsKeys = new Set<string>();
+  for (const label of columns.tds) {
+    const key = examLabelKey(label);
+    if (!key || tdsKeys.has(key)) continue;
+    tdsKeys.add(key);
+    // Cùng mã với cột MOET: chỉ giữ khi chính nhóm TDS đang mang điểm thật.
+    if (moetKeys.has(key) && !dataKeys.tds?.has(key)) continue;
+    tds.push(label);
+  }
+  return { moet, tds };
+};
+
+/** Nguồn của một ô điểm thi định kì trong sổ — để giáo viên biết điểm đến từ đâu. */
+export type ExamScoreSource = 'assignment' | 'manual' | 'paper' | 'sheet';
+
+/** Nhãn + gợi ý của từng nguồn điểm (dùng chung cho cả GV, HS và phụ huynh). */
+export const EXAM_SOURCE_INFO: Record<ExamScoreSource, { label: string; hint: string }> = {
+  assignment: { label: 'Bài nộp', hint: 'Điểm lấy từ bài học sinh đã nộp, gán vào mốc này.' },
+  manual: { label: 'Sửa tay', hint: 'Điểm giáo viên sửa tay trong sổ điểm.' },
+  paper: { label: 'Chấm tay', hint: 'Điểm chấm tay đã xác nhận từ ảnh bài thi.' },
+  sheet: { label: 'Sheet', hint: 'Điểm đọc từ file điểm Google Sheet của lớp.' },
+};
+
+/**
+ * Nguồn thật của ô điểm, đúng thứ tự ưu tiên đang dùng để hiển thị:
+ * bài nộp > sửa tay > chấm tay > Sheet. Ô trống → undefined.
+ */
+export const examScoreSource = (book: ScoreBookDoc, studentId: string, label: string): ExamScoreSource | undefined => {
+  const key = examLabelKey(label);
+  if (!key) return undefined;
+  if (typeof book.auto?.periodic?.[key]?.[studentId] === 'number') return 'assignment';
+  const override = book.examOverrides?.[studentId]?.[key];
+  if (override && override.score !== null) return 'manual';
+  const view = applyExamColumnSettings({ [studentId]: book.exams[studentId] ?? { moet: [], tds: [] } }, book.examColumnLabels, book.hiddenExamColumns)[studentId];
+  const mark = [...view.moet, ...view.tds].find(item => examLabelKey(item.label) === key);
+  if (!mark) return undefined;
+  return mark.source === 'paper' ? 'paper' : 'sheet';
 };
 
 export const examColumnDisplayLabels = (book: ScoreBookDoc): string[] => {

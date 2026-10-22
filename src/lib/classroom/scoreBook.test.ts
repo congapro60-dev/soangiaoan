@@ -3,6 +3,8 @@ import {
   computeAutoScores,
   applyExamOverrides,
   applyExamColumnSettings,
+  dedupeExamColumns,
+  examScoreSource,
   hs1Average,
   parseHs1Weight,
   scoreToTen,
@@ -174,5 +176,44 @@ describe('sổ điểm', () => {
     const entries = assignments.slice(0, 7).map(a => ({ assignmentId: a.id, studentId: 'a', submittedAt: '2026-09-02T00:00:00Z', score: null, maxScore: 10 }));
     const { homework } = computeAutoScores(normalizeScoreBook('l', {}), assignments, entries, ['a'], Date.parse('2026-10-01T00:00:00Z'));
     expect(homework.a.attendance).toBe(7.8);
+  });
+
+  it('một mốc thi chỉ có một cột: cột trùng mốc bị gộp, cột đang có điểm thì giữ', () => {
+    // "Thi GHKI" và "Giữa học kì I" là cùng một mốc (mã chuẩn ghki) → không được hiện thành hai cột.
+    expect(dedupeExamColumns({ moet: ['Giữa học kì I'], tds: ['Thi GHKI'] })).toEqual({ moet: ['Giữa học kì I'], tds: [] });
+    expect(dedupeExamColumns({ moet: ['Thi GHKI', 'Giữa học kì I'], tds: [] })).toEqual({ moet: ['Thi GHKI'], tds: [] });
+    // Cột trùng mà đang mang điểm thật ở chính nhóm TDS → giữ lại để không mất dữ liệu.
+    expect(dedupeExamColumns({ moet: ['Giữa học kì I'], tds: ['Thi GHKI'] }, { tds: new Set(['ghki']) }).tds).toEqual(['Thi GHKI']);
+    // Điểm ở nhóm MOET không bảo vệ cột kép ở nhóm TDS.
+    expect(dedupeExamColumns({ moet: ['Giữa học kì I'], tds: ['Thi GHKI'] }, { moet: new Set(['ghki']) }).tds).toEqual([]);
+    // Sổ cũ đã sinh cột kép: đọc lên phải tự gộp.
+    const book = normalizeScoreBook('lop-1', {
+      examColumns: { moet: ['Giữa học kì I'], tds: ['Thi GHKI'] },
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
+    });
+    expect(book.examColumns).toEqual({ moet: ['Giữa học kì I'], tds: [] });
+  });
+
+  it('biết điểm đến từ đâu: bài nộp > sửa tay > chấm tay > Sheet', () => {
+    const base = normalizeScoreBook('lop-1', {
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
+    });
+    expect(examScoreSource(base, 'a', 'Giữa học kì I')).toBe('sheet');
+    expect(examScoreSource(base, 'a', 'Khảo sát đầu năm')).toBeUndefined();
+
+    const manual = normalizeScoreBook('lop-1', {
+      exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
+      examOverrides: { a: { ghki: { label: 'Thi GHKI', score: 8 } } },
+    });
+    expect(examScoreSource(manual, 'a', 'Thi GHKI')).toBe('manual');
+
+    // Điểm chấm tay từ ảnh bài nằm ở paperExams (không phải exams).
+    const paper = normalizeScoreBook('lop-1', {
+      paperExams: { a: [{ label: 'Thi GHKI', score: 7, assignmentId: 'bt1', confirmedAt: '2026-10-02T00:00:00Z' }] },
+    });
+    expect(examScoreSource(paper, 'a', 'Thi GHKI')).toBe('paper');
+
+    const withAssignment = { ...base, auto: { linked: {}, homework: {}, periodic: { ghki: { a: 9 } }, computedAt: '' } };
+    expect(examScoreSource(withAssignment, 'a', 'Thi GHKI')).toBe('assignment');
   });
 });
