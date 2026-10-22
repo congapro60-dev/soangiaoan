@@ -85,6 +85,12 @@ export const NVIDIA_MODELS: ProviderModel[] = [
   { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', contextWindow: 4_096, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['reasoning', 'coding'] },
 ];
 
+// Vilao = chợ API trả theo request (2026-10-22): key riêng của giáo viên/chủ dự án, không có trần cứng.
+// rpm/rpd/tpm dưới đây là mức THAM CHIẾU để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
+export const VILAO_MODELS: ProviderModel[] = [
+  { id: 'deepseek-v4.1-flash', name: 'DeepSeek v4.1 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
+];
+
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
   { key: 'gemini', label: 'Google Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', models: GEMINI_MODELS },
   { key: 'claude', label: 'Anthropic Claude', baseUrl: 'https://api.anthropic.com/v1', models: CLAUDE_MODELS },
@@ -92,6 +98,7 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
   { key: 'grok', label: 'xAI Grok', baseUrl: 'https://api.x.ai/v1', models: GROK_MODELS },
   { key: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com', models: DEEPSEEK_MODELS },
   { key: 'nvidia', label: 'NVIDIA NIM', baseUrl: 'https://integrate.api.nvidia.com/v1', models: NVIDIA_MODELS },
+  { key: 'vilao', label: 'Vilao', baseUrl: 'https://api.vilao.ai/v1', models: VILAO_MODELS },
 ];
 
 export const PROVIDER_CONFIG_MAP = Object.fromEntries(PROVIDER_CONFIGS.map(config => [config.key, config])) as Record<ApiProvider, ProviderConfig>;

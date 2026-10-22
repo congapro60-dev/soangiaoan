@@ -41,6 +41,18 @@ export interface StudentExamScores {
   tds: ExamMark[];
 }
 
+/** Mã ổn định cho cùng một mốc thi, bất kể nhãn hiển thị. */
+export const examLabelKey = (value: unknown): string => {
+  const text = norm(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const compact = text.replace(/[^a-z0-9]+/g, '');
+  if (/ghkii|dgg[h]?kii/.test(compact) || /giua.*(hoc.?ki|hk).*ii/.test(text)) return 'ghkii';
+  if (/ghki|dgg[h]?ghki|dgg[h]?hki/.test(compact) || /giua.*(hoc.?ki|hk).*\bi\b/.test(text)) return 'ghki';
+  if (/chkii|dgchkii|dgchkii/.test(compact) || /cuoi.*(hoc.?ki|hk).*ii/.test(text)) return 'chkii';
+  if (/chki|dgcchki|dgchki/.test(compact) || /cuoi.*(hoc.?ki|hk).*\bi\b/.test(text)) return 'chki';
+  if (/ksdn/.test(compact) || /khao sat dau nam|dau nam/.test(text)) return 'ksdn';
+  return compact;
+};
+
 const norm = (value: unknown): string => String(value == null ? '' : value).normalize('NFC').replace(/\s+/g, ' ').trim();
 
 /** Dòng tiêu đề = dòng đầu tiên có ô đầu là "Mã HS"; không thấy thì mặc định dòng 3 (index 2). */
@@ -125,3 +137,23 @@ export const parseStudentExamScores = (
   moet: parseMoet(moetRows, studentCode),
   tds: parseTds(tdsRows, studentCode),
 });
+
+export const parseExamColumns = (moetRows: readonly unknown[][], tdsRows: readonly unknown[][]): { moet: string[]; tds: string[] } => {
+  const columns = (rows: readonly unknown[][], predicate: (header: string) => boolean, mapLabel: (header: string) => string): string[] => {
+    const header = rows[headerRowIndex(rows)] ?? [];
+    const seen = new Set<string>();
+    const labels: string[] = [];
+    for (const cell of header) {
+      const value = norm(cell);
+      if (!predicate(value)) continue;
+      const label = mapLabel(value);
+      const key = examLabelKey(label);
+      if (!seen.has(key)) { seen.add(key); labels.push(label); }
+    }
+    return labels;
+  };
+  return {
+    moet: columns(moetRows, isMoetScoreHeader, moetLabel),
+    tds: columns(tdsRows, isTdsScoreHeader, value => value.replace(/^đi[eể]m\s*/i, '').trim() || value),
+  };
+};

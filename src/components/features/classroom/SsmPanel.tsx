@@ -12,7 +12,7 @@ import { readLoWorkbook, fillLoWorkbook } from '../../../lib/ssm/loWorkbook';
 import { attachLoFileToSsm } from '../../../lib/ssm/ssmBridge';
 import { parseLoInfo, suggestGrid, type LoInfo, type LoMapping } from '../../../lib/ssm/loMapping';
 import { buildLoMappingPrompt, parseLoMappingResponse } from '../../../lib/ssm/loMappingPrompt';
-import { buildClassLoScores } from '../../../lib/ssm/loClassScores';
+import { buildClassLoScores, type LoPeriodKey } from '../../../lib/ssm/loClassScores';
 import { fetchSsmTemplateByLink } from '../../../lib/classroom/teacherService';
 
 interface Props {
@@ -25,7 +25,14 @@ interface Props {
 }
 
 const MARK_OPTIONS: LoMark[] = ['N', ...SSM_SCALE_4];
+const PERIOD_OPTIONS: Array<{ key: LoPeriodKey; label: string }> = [
+  { key: 'F1', label: 'F1 · tháng 8–9' }, { key: 'IA1', label: 'IA1 · tháng 10' },
+  { key: 'F2', label: 'F2 · tháng 11' }, { key: 'SE1', label: 'SE1 · tháng 12' },
+  { key: 'F3', label: 'F3 · tháng 1' }, { key: 'IA2', label: 'IA2 · tháng 2' },
+  { key: 'F4', label: 'F4 · tháng 3' }, { key: 'SE2', label: 'SE2 · tháng 4' },
+];
 const errorText = (e: unknown): string => (e instanceof Error ? e.message : 'Có lỗi, thử lại sau.');
+const academicYearStart = (): number => { const now = new Date(); return now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1; };
 
 /**
  * Thẻ "Điểm LO" trong tab SSM: cô tải file mẫu SSM xuất ra → app điền sẵn điểm từ bài đã duyệt
@@ -44,6 +51,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
   const [link, setLink] = useState('');
+  const [period, setPeriod] = useState<LoPeriodKey>('F1');
 
   const grade = asCompetencyGrade(Number(classGrade));
   const nameByCode = useMemo(() => {
@@ -107,6 +115,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
         students.map((s) => ({ id: s.id, code: s.code })),
         await listSubmissionsForClass(classId, teacherId),
         await listAssignmentsForClass(classId, teacherId),
+        { period, academicYear: academicYearStart() },
       );
       const byMa = new Map(scores.map((s) => [s.maHS, s]));
       const suggested = suggestGrid(los, map, fileMaHS.map((ma) => byMa.get(ma) ?? { maHS: ma, scoreByCompetency: {} }));
@@ -198,6 +207,12 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
               <LinkIcon className="h-4 w-4" /> Tải
             </button>
           </div>
+          <label className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm font-black text-indigo-900">
+            Kỳ SSM
+            <select value={period} onChange={(e) => setPeriod(e.target.value as LoPeriodKey)} disabled={!!busy} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold">
+              {PERIOD_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+            </select>
+          </label>
           {los.length > 0 && (
             <button type="button" disabled={!!busy || !grade} onClick={() => void suggestWithAi()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">
               <Sparkles className="h-4 w-4" /> Gợi ý điểm bằng AI
@@ -214,6 +229,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
             </>
           )}
         </div>
+        <p className="mt-2 text-xs font-semibold text-slate-600">Nguồn kỳ <b>{period}</b>: bài thường 100%; nếu có IA/SE trong kỳ, bài thường 40% + bài định kì 60%. Thiếu minh chứng giữ `N`.</p>
         {fileName && <p className="mt-2 text-xs font-semibold text-slate-500">File: {fileName}</p>}
         {busy && <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> {busy}</p>}
         {note && !error && <p className="mt-2 text-sm font-medium text-indigo-700">{note}</p>}

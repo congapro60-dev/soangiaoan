@@ -61,6 +61,28 @@ beforeEach(() => {
 });
 
 describe('student workspace private read', () => {
+  it('returns only safe Discover seed metadata for the linked class grade', async () => {
+    store['classes/class'].grade = '10';
+    store['adaptiveLessons/private'] = {
+      teacherId: 'teacher', classId: 'class', answerKey: 'SECRET KEY', privateNotes: 'SECRET',
+    };
+    const result = await call({ action: 'studentDiscoverCatalog' });
+    expect(result.status).toBe(200);
+    expect(result.payload.catalog).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'tds-discover-g10-p2', title: 'Mệnh đề', grade: '10', week: 1, period: 2, status: 'available' }),
+    ]));
+    expect((result.payload.catalog as Data[]).every(item => Object.keys(item).sort().join(',') === 'grade,id,period,status,title,week')).toBe(true);
+    expect((result.payload.catalog as Data[]).every(item => item.grade === '10')).toBe(true);
+    expect(JSON.stringify(result.payload)).not.toContain('SECRET');
+  });
+
+  it('keeps Discover catalog behind the linked student session', async () => {
+    store['classes/class'].grade = '10';
+    expect((await call({ action: 'studentDiscoverCatalog', idToken: 'bad' })).status).toBe(401);
+    delete store['classes/class/students/student'];
+    expect((await call({ action: 'studentDiscoverCatalog' })).status).toBe(403);
+  });
+
   it('keeps all 300 assignments / 500 attempts including closed history, without heavy or hidden content', async () => {
     delete store['assignments/a']; delete store['submissions/s'];
     for (let i = 0; i < 300; i++) store[`assignments/a${i}`] = assignment({ isOpen: i > 100, createdAt: `2026-10-${String(i % 30 + 1).padStart(2, '0')}` });

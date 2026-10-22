@@ -25,6 +25,7 @@ const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m
 const StudentPortalPage = lazy(() => import('./pages/StudentPortalPage').then(m => ({ default: m.StudentPortalPage })));
 const ParentPortalPage = lazy(() => import('./pages/ParentPortalPage').then(m => ({ default: m.ParentPortalPage })));
 const StudentClassExamPage = lazy(() => import('./pages/StudentClassExamPage').then(m => ({ default: m.StudentClassExamPage })));
+const DiscoverSelfStudyPage = lazy(() => import('./pages/DiscoverSelfStudyPage').then(m => ({ default: m.DiscoverSelfStudyPage })));
 
 const RouteLoading = () => (
   <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-700">
@@ -104,9 +105,12 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/adaptive-lessons" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonListPage /></Suspense>} />
           <Route path="/adaptive-builder/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonBuilderPage /></Suspense>} />
           <Route path="/adaptive-portal/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          {/* Bài học phân hoá THẦY CÔ GIAO cho lớp: mở qua máy chủ (bản đã bỏ đáp án). */}
+          <Route path="/adaptive-portal/assignment/:assignmentId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           <Route path="/adaptive-portal" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           <Route path="/adaptive-live/:sessionId" element={<Suspense fallback={<RouteLoading />}><LiveLessonPage /></Suspense>} />
           <Route path="/adaptive/student/:teacherId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          <Route path="/discover-self-study" element={<Suspense fallback={<RouteLoading />}><DiscoverSelfStudyPage /></Suspense>} />
           <Route path="/exam/:code/review/:submissionId" element={<Suspense fallback={<RouteLoading />}><AnswerReviewPage /></Suspense>} />
           <Route path="/exam/:code/result/:submissionId" element={<Suspense fallback={<RouteLoading />}><StudentResultPage /></Suspense>} />
           <Route path="/exam/:examId/grade" element={<Suspense fallback={<RouteLoading />}><TeacherGradingPage /></Suspense>} />

@@ -9,7 +9,7 @@ vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: async (
 vi.mock('../_exam-core.js', () => ({ getAdminDb: () => h.db, getAdminStorage: () => ({ name: 'test.firebasestorage.app', file: (path: string) => ({ getMetadata: async () => [h.metadata[path]], getSignedUrl: h.signed, createResumableUpload: h.signed, setMetadata: h.setMetadata, copy: h.copy, delete: async () => undefined }) }), stripAnswerKey: (q: Data) => q }));
 vi.mock('../_grading-core.js', async importOriginal => {
  const original = await importOriginal<typeof import('../_grading-core.js')>();
- return { ...original, callGeminiVision: h.ai, reserveQuota: async (...args: Parameters<typeof original.reserveQuota>) => { const result = await original.reserveQuota(...args); h.afterQuota?.(); return result; } };
+ return { ...original, callGeminiVision: h.ai, callGradingVision: h.ai as unknown as typeof original.callGradingVision, reserveQuota: async (...args: Parameters<typeof original.reserveQuota>) => { const result = await original.reserveQuota(...args); h.afterQuota?.(); return result; } };
 });
 const makeDb = (store: Record<string, Data>) => {
   const doc = (path: string) => ({ id: path.split('/').at(-1)!, path, get: async () => ({ id: path.split('/').at(-1)!, exists: path in store, data: () => store[path] && structuredClone(store[path]), ref: doc(path) }), collection: (name: string) => collection(`${path}/${name}`), set: async (data: Data) => { store[path] = structuredClone(data); }, update: async (data: Data) => { store[path] = { ...store[path], ...structuredClone(data) }; } });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildAdaptiveLessonFromReviewedPlan,
   buildAdaptiveLessonFromContentJson,
   runAdaptivePipeline,
   validateAdaptiveLessonPublishReadiness,
@@ -8,6 +9,7 @@ import { mapObjectiveToSkill } from '../learning/skillBridge';
 import { sampleAdaptiveLesson } from './sampleAdaptiveLesson';
 import type { AdaptiveLessonSource } from './adaptiveFromLessonPlan';
 import type { AdaptiveLesson } from './types';
+import type { LessonMediaRef } from './media';
 
 const buildMinimalLesson = (): AdaptiveLesson => {
   const objectiveId = 'obj-1';
@@ -72,6 +74,30 @@ const buildMinimalLesson = (): AdaptiveLesson => {
 };
 
 describe('validateAdaptiveLessonPublishReadiness', () => {
+  it('blocks unapproved media and media without an accessibility transcript', () => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [{
+      id: 'media-1', kind: 'video', url: '/media/intro.mp4', altText: 'Video mở bài', status: 'draft', version: 1,
+    }];
+
+    const issues = validateAdaptiveLessonPublishReadiness(lesson);
+
+    expect(issues.filter(issue => issue.severity === 'error').map(issue => issue.code)).toEqual(expect.arrayContaining([
+      'unapproved_media', 'missing_media_text_alternative',
+    ]));
+  });
+
+  it('accepts an approved image media reference without a transcript', () => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [{
+      id: 'media-1', kind: 'image', url: '/media/intro.png', altText: 'Minh hoạ mở bài', status: 'approved', version: 1,
+    }];
+
+    const issues = validateAdaptiveLessonPublishReadiness(lesson);
+
+    expect(issues.filter(issue => issue.code.startsWith('media_'))).toEqual([]);
+  });
+
   it('accepts short math and numeric multiple-choice options when they are real answer choices', () => {
     const issues = validateAdaptiveLessonPublishReadiness(buildMinimalLesson());
 
@@ -89,6 +115,56 @@ describe('validateAdaptiveLessonPublishReadiness', () => {
     const issues = validateAdaptiveLessonPublishReadiness(lesson);
 
     expect(issues.filter((issue) => issue.code === 'invalid_question_options')).toEqual([]);
+  });
+
+  const media = (overrides: Partial<LessonMediaRef> = {}): LessonMediaRef => ({
+    id: 'media-1',
+    kind: 'image',
+    url: '/media/example.png',
+    altText: 'Hình minh hoạ bài học',
+    status: 'approved',
+    version: 1,
+    ...overrides,
+  });
+
+  it('allows legacy lessons with no media manifest', () => {
+    const issues = validateAdaptiveLessonPublishReadiness(buildMinimalLesson());
+
+    expect(issues.filter((issue) => issue.path?.startsWith('mediaManifest'))).toEqual([]);
+  });
+
+  it('rejects media that is not teacher-approved', () => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [media({ status: 'draft' })];
+
+    expect(validateAdaptiveLessonPublishReadiness(lesson)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ severity: 'error', code: 'unapproved_media', path: 'mediaManifest[0].status' }),
+    ]));
+  });
+
+  it('rejects image media without alt text', () => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [media({ altText: '' })];
+
+    expect(validateAdaptiveLessonPublishReadiness(lesson)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ severity: 'error', code: 'missing_media_alt_text', path: 'mediaManifest[0].altText' }),
+    ]));
+  });
+
+  it.each(['video', 'audio'] as const)('requires captions or transcript for %s media', (kind) => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [media({ kind, altText: 'Nội dung âm thanh dễ tiếp cận' })];
+
+    expect(validateAdaptiveLessonPublishReadiness(lesson)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ severity: 'error', code: 'missing_media_text_alternative', path: 'mediaManifest[0]' }),
+    ]));
+  });
+
+  it('accepts video with either captions or a transcript', () => {
+    const lesson = buildMinimalLesson();
+    lesson.mediaManifest = [media({ kind: 'video', captionUrl: '/media/example.vtt' })];
+
+    expect(validateAdaptiveLessonPublishReadiness(lesson).filter((issue) => issue.path?.startsWith('mediaManifest'))).toEqual([]);
   });
 });
 
@@ -175,12 +251,19 @@ ${padding}
 `;
 
   const source: AdaptiveLessonSource = {
+    seedId: 'discover-seed-1',
     title: 'Ba đường Conic',
     content: 'Giáo án nguồn về ba đường conic trong mặt phẳng tọa độ.',
     grade: '10',
     week: '30',
     sourceLabel: 'Test',
   };
+
+  it('carries the Discover seed id into the built lesson', () => {
+    const lesson = buildAdaptiveLessonFromReviewedPlan(source, reviewedPlan, 'teacher-1');
+
+    expect(lesson.discoverSeedId).toBe('discover-seed-1');
+  });
 
   const blueprintJson = JSON.stringify({
     title: 'Ba đường Conic',

@@ -141,6 +141,14 @@ export const linkAssignmentColumns = async (
   return normalizeScoreBook(classId, scoreBook);
 };
 
+export const linkPeriodicAssignments = async (
+  classId: string,
+  items: Array<{ assignmentId: string; examKey: string }>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'linkPeriodicAssignments', classId, items });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
 /** Chọn hệ số cho các mốc thi MOET (mốc vắng trong `weights` = không tính vào điểm trung bình). */
 export const saveExamWeights = async (classId: string, weights: Record<string, Hs1Weight>): Promise<ScoreBookDoc> => {
   const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'setExamWeights', classId, weights });
@@ -156,8 +164,29 @@ export const saveExamScores = async (
   classId: string,
   spreadsheetTitle: string,
   exams: Record<string, StudentExamScores>,
+  columns?: { moet: string[]; tds: string[] },
 ): Promise<ScoreBookDoc> => {
-  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamScores', classId, spreadsheetTitle, exams });
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamScores', classId, spreadsheetTitle, exams, columns });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Sửa/xóa một mốc thi trong sổ; không ghi ngược Google Sheet. `null` = ẩn/xóa mốc. */
+export const saveExamColumn = async (
+  classId: string,
+  label: string,
+  scores: Record<string, number | null>,
+  kind?: 'moet' | 'tds' | 'both',
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamColumn', classId, label, scores, ...(kind ? { kind } : {}) });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+export const saveExamColumnSettings = async (
+  classId: string,
+  label: string,
+  input: { newLabel?: string; hidden: boolean },
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamColumnSettings', classId, label, ...input });
   return normalizeScoreBook(classId, scoreBook);
 };
 

@@ -10,10 +10,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import {
-  GRADING_MODEL,
   QUOTA_LIMITS,
   bumpQuota,
-  callGeminiVision,
+  callGradingVision,
   callUtilityVision,
   chayNgam,
   GeminiResponseError,
@@ -359,11 +358,9 @@ interface GradeAttemptResult {
  */
 const transcribeStudentWork = async (images: InlineImage[], apiKey: string, timeoutMs: number): Promise<string> => {
   if (images.length === 0) return '';
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildTranscriptionPrompt(),
     images,
-    apiKey,
-    GRADING_MODEL,
     { maxOutputTokens: 4096, jsonMode: true, temperature: 0, timeoutMs },
   );
   return parseTranscription(raw);
@@ -408,11 +405,9 @@ const attemptHomeworkGrade = async (
     ? segments.suffix
     : `${segments.suffix}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
   const prompt = retryCount === 0 ? basePrompt : `${segments.prefix}\n\n${suffix}`;
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
-    apiKey,
-    GRADING_MODEL,
     // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
     //
     // Trần token: KHÔNG đặt, để model dùng trần tối đa của chính nó. Mức 8192 cũ đã gây lỗi thật
@@ -773,12 +768,15 @@ const gradeOneSubmission = async (
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
     // khi đã có grade trước đó; chỉ chuyển sang error khi chưa từng có grade.
     const newStatus = hadPreviousGrade ? 'graded' : 'error';
-    const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
+    // Gemini trả 404 = không đọc được ẢNH (file chưa tải xong, link hỏng, file bị xoá) — đây là
+    // lỗi ảnh chứ không phải lỗi hệ thống: nói rõ để thầy/em biết nộp lại là xong.
+    const anhKhongDocDuoc = /\(mã 404\)/u.test(safeMessage) || /không tìm thấy tài nguyên/iu.test(safeMessage);
+    const newErrorMessage = hadPreviousGrade ? '' : (anhKhongDocDuoc ? 'Ảnh bài nộp chưa tải lên xong hoặc link hỏng. Nộp lại bài một lần nữa nhé.' : safeMessage);
     const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
     const newLastGradingErrorRaw = rawMessage;
     // Lí do lỗi cho cổng học sinh (không lộ lỗi thô): ảnh chưa rõ → em chụp lại; chưa đọc được mã đề → em chọn mã ghi trên đề.
     const errorReason = safeMessage === UNREADABLE_EXAM_CODE_MESSAGE ? 'exam_code'
-      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE ? 'photo' : 'system';
+      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE || anhKhongDocDuoc ? 'photo' : 'system';
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
@@ -916,11 +914,9 @@ const regradeClarifiedQuestion = async (
     ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
   }) + '\n\n' + buildPhotoMarksPrompt(photos.length, ctx.assignmentImages.length + ctx.answerKeyImages.length)
     + '\nKết quả chỉ có một câu: đặt photoMarks ngay trong object JSON kết quả, không bọc questionResults.';
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...photos],
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
   );
   const regraded = parseQuestionRegrade(raw, question);
@@ -974,7 +970,7 @@ const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, bod
   if (quotaVerdict.allowed <= 0) return res.status(429).json({ error: quotaVerdict.reason });
   const images = (await Promise.all((input.sourceUrls || []).map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
   if (FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Đọc đề mất nhiều thời gian. Thử lại để tạo lời giải.' });
-  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => callGeminiVision(prompt, images, getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
+  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => callGradingVision(prompt, images, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
   const saved = await db.runTransaction(async tx => {
     const fresh = (await tx.get(ref)).data();
@@ -1115,7 +1111,7 @@ const handleReviewCorrection = async (db: FirebaseFirestore.Firestore, body: Rec
     if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
     const modelBudget = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
     if (modelBudget < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Chuẩn bị đánh giá mất nhiều thời gian. Ảnh vẫn được giữ, em thử lại.');
-    return callGeminiVision(buildCorrectionReviewPrompt(contextSubmission, attempt, originalEntries.length, sourceText, correctionEntries.length, sourceImages.length), [...originalEntries, ...correctionEntries, ...sourceImages], getGradingApiKey(), GRADING_MODEL,
+    return callGradingVision(buildCorrectionReviewPrompt(contextSubmission, attempt, originalEntries.length, sourceText, correctionEntries.length, sourceImages.length), [...originalEntries, ...correctionEntries, ...sourceImages],
       { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(GRADING_BUDGET_MS, modelBudget) });
   },
 });
@@ -1199,9 +1195,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
 
   // HỌC SINH tự chấm: trả lời ngay rồi chấm tiếp ở phía máy chủ. Em nộp bằng điện thoại xong
   // tắt máy là chuyện thường; để việc chấm nằm trong request của em thì request đứt là worker
-  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình.
-  // Nền tảng không cho chạy ngầm (chạy local, chạy test) thì tự lùi về chờ xong như cũ.
-  if (!isTeacher) {
+  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình —
+  // TRỪ KHI client (điện thoại) xin chấm nền: lúc đó trả 202 ngay, thầy cứ đóng app.
+  if (!isTeacher || body.background === true) {
     const nen = gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode)
       .catch(error => {
         console.error('[grade-homework] lượt chấm ngầm hỏng', error);
@@ -1416,7 +1412,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   setAiKeyOwner(link.teacherId);
   let raw: string;
   try {
-    raw = await callGeminiVision(
+    raw = await callGradingVision(
       buildPracticePrompt({
         grade: String(classSnap.data()?.grade || ''),
         topics,
@@ -1424,8 +1420,6 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
         avoidQuestions: basis.avoidQuestions,
       }),
       [],
-      getGradingApiKey(),
-      GRADING_MODEL,
       { maxOutputTokens: 16384, jsonMode: true },
     );
   } catch (error) {
@@ -1652,7 +1646,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
 
   const profileRef = db.collection('studentProfiles').doc(link.studentId);
   try {
-    const raw = await callGeminiVision(
+    const raw = await callGradingVision(
       buildPracticeGradingPrompt({
         topics: Array.isArray(set.topics) ? set.topics : [],
         questions: keyQuestions.map(question => ({
@@ -1664,8 +1658,6 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
         answers,
       }),
       [],
-      getGradingApiKey(),
-      GRADING_MODEL,
       { maxOutputTokens: 4096, jsonMode: true },
     );
     const assessment = parsePracticeAssessment(raw, keyQuestions.map(question => ({
@@ -1794,7 +1786,7 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     periodic: body.periodic === true,
   });
   // Giải cả một đề, từng câu kèm các bước — dài hơn hẳn chấm một bài, nên trần phải rộng.
-  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callGradingVision(prompt, examImages, {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -1835,7 +1827,7 @@ const handleExtractExamVariantKeys = async (db: FirebaseFirestore.Firestore, bod
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGeminiVision(buildExtractVariantKeysPrompt(codes, answerMaterial, hints), [], getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callGradingVision(buildExtractVariantKeysPrompt(codes, answerMaterial, hints), [], {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -1966,7 +1958,7 @@ const readAssignmentQuestionCatalog = async (
   // Khối của lớp → chỉ đưa AI đúng danh sách năng lực khối đó để gắn nhãn (Toán 10/11/12).
   const grade = await resolveAssignmentGrade(db, assignment);
 
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildQuestionCatalogPrompt({
       examText,
       examImageCount: examImages.length,
@@ -1974,8 +1966,6 @@ const readAssignmentQuestionCatalog = async (
       ...(grade && !assignment.solutionCatalogOnly ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
     }) + (assignment.solutionCatalogOnly ? `\nƯU TIÊN CHO LỜI GIẢI CHUNG: chỉ đọc mã đề ${assignment.solutionExamCode || 'mặc định'}. Nhãn phải khớp từng câu trong đáp án bên dưới (Phần I/II/III + Câu/Bài), không tách câu Đúng/Sai thành 4 câu; giữ nội dung a–d trong content của một câu. Chép expectedAnswer của đúng câu từ đáp án GV, không tự giải hoặc đoán. ĐÁP ÁN GV: ${assignment.answerKey || ''}` : ''),
     examImages,
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
@@ -2041,7 +2031,7 @@ const handleSolveAnswerKeyForAssignment = async (db: FirebaseFirestore.Firestore
     maxScore: Number(assignment.maxScore) || 10,
     gradingInstructions,
   });
-  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callGradingVision(prompt, examImages, {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -2072,11 +2062,9 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildRubricPrompt(answerKey, Number(body.maxScore) || 10, String(body.gradingInstructions || '')),
     [],
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 8192, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
@@ -2105,7 +2093,7 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildRewriteFeedbackPrompt({
       teacherNote,
       currentFeedback: String(body.currentFeedback || ''),
@@ -2114,8 +2102,6 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
       weakTopics: Array.isArray(body.weakTopics) ? body.weakTopics.map(String) : [],
     }),
     [],
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 2048, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
@@ -2248,7 +2234,7 @@ const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boo
       const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
       if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
       const rubric = submission.assignmentId ? String((await db.collection('assignments').doc(submission.assignmentId).get()).data()?.rubric || '') : '';
-      return { raw: await callGeminiVision(buildAnnotationPrompt(submission, targets, entries.length, rubric), entries.map(entry => entry.image), getGradingApiKey(), GRADING_MODEL, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+      return { raw: await callGradingVision(buildAnnotationPrompt(submission, targets, entries.length, rubric), entries.map(entry => entry.image), { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

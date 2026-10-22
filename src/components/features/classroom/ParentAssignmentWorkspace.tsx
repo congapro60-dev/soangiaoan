@@ -110,10 +110,14 @@ export const ParentAssignmentWorkspace = ({ credentials }: { credentials: Submis
       {upload !== null && detail.assignment.type !== 'exam' && detail.assignment.deliveryMode !== 'online' && <ActorSubmissionUpload key={detail.assignment.id + ':' + upload} credentials={credentials} assignmentId={detail.assignment.id} locked={detail.assignment.submissionLocked} supplementOf={upload || undefined} onClose={() => setUpload(null)} onSubmitted={() => { setUpload(null); void refresh().catch(reason => setError(reason.message)); }} />}
       {[...detail.submissions].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((submission, index) => {
         const grade = submission.grade; const approved = grade?.teacherApproved === true && !grade.scoreHidden && !grade.awaitingClarification;
-        const images = [...new Set([...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(grade?.questionResults?.flatMap(question => question.clarify?.photoUrls ?? []) ?? [])])];
+        // Bài GV nộp hộ đã chấm tay: ảnh bài nộp CHÍNH LÀ bài chấm tay (có điểm, chữ đỏ) →
+        // phụ huynh chỉ được xem sau khi thầy cô bấm công bố. HS vẫn xem bài của chính mình.
+        const chamTayChuaCongBo = submission.handMarkedPaper === true && submission.handMarkedPublished !== true;
+        const images = chamTayChuaCongBo ? [] : [...new Set([...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(grade?.questionResults?.flatMap(question => question.clarify?.photoUrls ?? []) ?? [])])];
         const actionable = grade?.questionResults?.filter(isActionableClarifyQuestion) ?? [];
         return <article key={submission.id} className="rounded-xl border bg-white p-3"><p className="mb-2 text-xs font-bold">{index === 0 ? 'Lượt mới nhất' : 'Lượt trước'} · {new Date(submission.createdAt).toLocaleString('vi-VN')}</p>
           {index === 0 && !detail.assignment.submissionLocked && detail.assignment.type !== 'exam' && detail.assignment.deliveryMode !== 'online' && <button type="button" className="mb-2 min-h-11 rounded-lg border px-3 text-sm font-bold text-indigo-700" onClick={() => setUpload(submission.id)}>Bổ sung ảnh lượt này</button>}
+          {chamTayChuaCongBo && <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">Bài này thầy cô đã chấm tay. Thầy cô chưa công bố ảnh bài chấm cho phụ huynh xem.</p>}
           {!!images.length && <SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt="Bài làm của con" questionResults={approved ? grade?.questionResults ?? [] : []} approved={approved} grade={approved ? grade : undefined} hideScores={Boolean(detail.assignment.periodicTest)} />}
           {approved && !images.length && <QuestionResultsList results={grade?.questionResults} hideScores={Boolean(detail.assignment.periodicTest)} />}
           <HandMarkedWork submission={submission} credentials={credentials} />

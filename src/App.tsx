@@ -401,9 +401,9 @@ export default function App() {
           const activeProvider = s.selectedProvider || 'gemini';
           if (activeProvider === 'vercel-gateway') return null;
           if (activeProvider === 'gemini' && walletCoversGemini) return null;
-          const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey;
-          const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey };
-          const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API' };
+          const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey && !s.vilaoApiKey;
+          const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey, vilao: s.vilaoApiKey };
+          const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API', vilao: 'Vilao' };
           const activeKeyMissing = !allEmpty && !providerKey[activeProvider];
           if (!allEmpty && !activeKeyMissing) return null;
           return (
