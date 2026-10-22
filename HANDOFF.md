@@ -5,6 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) có xem trước & xác minh 100% — 22/10 (GÓI · Gemini 3.8 Flash)
+
+- **Mục tiêu**: Người dùng yêu cầu web tự tính điểm LO dựa trên bài nộp đã duyệt trên web rồi đẩy ngược lại lên SSM tương ứng cho từng HS (chiều web → SSM thay vì chỉ tải file mẫu).
+- **Đã làm**:
+  - Dò bundle JS công khai SSM (`umi.e3306a2c` + chunk 8173 + 521): xác định 100% cấu trúc `class-subject-assessment`, `score_configs`, point map, và endpoint POST `grading-student-by-assessment-form` / `update-result-grading-student`.
+  - Tiện ích `extension/ssm-bridge`: thêm các op `evaluationQuarters`, `subjectClass`, `criteriaAssessment`, `classSubjectAssessment`, `writeLoGrades`. Bump version `0.4.0`, test và đóng gói `public/downloads/ssm-bridge.zip` (11.377 byte).
+  - Parser & Write Engine: `src/lib/ssm/loSsmParser.ts` (dẹt cây FP→PS→LO, parse thang, parse điểm đã có) và `src/lib/ssm/loSsmWrite.ts` (so sánh diff, tạo payload POST, đọc lại để xác minh `verifyWritten`).
+  - Giao diện: `src/components/features/classroom/LoPushPreviewModal.tsx` (xem trước chi tiết: ô thêm mới, ô ghi đè, cảnh báo an toàn) và `SsmPanel.tsx` (nút tải trực tiếp từ SSM, tính bằng AI, xem trước và đẩy điểm 1-click có xác minh).
+- **Kết quả kiểm thử**:
+  - `npm run build`: **PASS (built in 1m 27s, 0 lỗi TypeScript)**
+  - Vitest SSM & Extension: **111/111 test PASS (100% xanh)**
+
 ## Tích hợp V8.8 Runtime + Compiler + 3 luồng bài học tương tác — 22/10 (GÓI · Gemini 3.8 Flash)
 
 - **Mục tiêu**: Hoàn tất tích hợp nhánh runtime V8.8 và V8.3.2 studio/room, compiler giáo án đầy đủ vào nhánh feat để chuẩn bị đưa vào production.
