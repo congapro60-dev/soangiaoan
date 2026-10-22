@@ -326,6 +326,8 @@ interface GradeContext {
   teacherMarkedPaper: boolean;
   /** Giáo viên nộp bài đã chấm tay: lấy điểm ghi tay làm điểm chính thức. */
   handMarkedPaper?: boolean;
+  /** Bài do GV nộp hộ (không phải HS tự khai) → điểm ghi tay được coi là điểm chính thức. */
+  handMarkedOfficial?: boolean;
   /** Các mã đề; rỗng = bài một đề như BTVN. */
   examVariants: ExamVariant[];
   /** Cột điểm trong sổ điểm để đối chiếu tổng điểm (rỗng = không đối chiếu). */
@@ -440,7 +442,7 @@ const attemptHomeworkGrade = async (
     : undefined;
 
   const hasTeacherMarkedScore = Boolean(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore);
-  const isHandMarkedSubmission = Boolean(ctx.handMarkedPaper && hasTeacherMarkedScore);
+  const isHandMarkedSubmission = Boolean(ctx.handMarkedOfficial && hasTeacherMarkedScore);
   const score = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.score : parsed.grade.score;
   const maxScore = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.maxScore : parsed.grade.maxScore;
 
@@ -598,7 +600,10 @@ const gradeOneSubmission = async (
     // Bài nhiều mã đề: chấm theo đúng đề + đáp án của mã ghi trên bài.
     let gradeCtx = ctx;
     if (previous.handMarkedPaper) {
-      gradeCtx = { ...gradeCtx, teacherMarkedPaper: true, handMarkedPaper: true };
+      // GV nộp hộ → điểm ghi tay là điểm chính thức. HS tự khai → chỉ ĐỌC điểm ghi tay
+      // (để thầy xác nhận), không tự chấm điểm.
+      const doGvNopHo = previous.handMarkedDeclaredBy === undefined || previous.handMarkedDeclaredBy === 'teacher';
+      gradeCtx = { ...gradeCtx, teacherMarkedPaper: true, handMarkedPaper: true, handMarkedOfficial: doGvNopHo };
     }
     if (gradeCtx.examVariants.length > 0) {
       const code = await resolveExamCode(previous, gradeCtx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
@@ -668,13 +673,21 @@ const gradeOneSubmission = async (
     // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
     const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
       ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
-    const isTeacherHandMarked = Boolean(previous.handMarkedPaper);
+    // Chỉ GV nộp hộ mới được tự duyệt (điểm ghi tay là điểm chính thức). HS/PH tự khai bài đã
+    // chấm tay → bài CHỜ giáo viên xác nhận, điểm GV ghi tay nằm ở paperScore để thầy dùng.
+    const isTeacherHandMarked = Boolean(previous.handMarkedPaper)
+      && (previous.handMarkedDeclaredBy === undefined || previous.handMarkedDeclaredBy === 'teacher');
     let grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
     if (isTeacherHandMarked) {
       grade = {
         ...grade,
         teacherApproved: true,
         approvalSource: 'teacher',
+      };
+    } else if (previous.handMarkedPaper && clarified.grade.paperScore) {
+      grade = {
+        ...grade,
+        noteForTeacher: `${clarified.grade.noteForTeacher || ''} Em khai bài này thầy cô đã chấm tay: máy đọc được ${clarified.grade.paperScore.score}/${clarified.grade.paperScore.maxScore} điểm thầy ghi. Thầy xác nhận giúp em bằng nút "Dùng điểm GV ghi trên bài".`.trim(),
       };
     }
 

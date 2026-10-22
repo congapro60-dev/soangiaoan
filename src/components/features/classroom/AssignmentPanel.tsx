@@ -494,6 +494,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                 <div className="flex flex-wrap items-center gap-2">
                   {assignment?.type !== 'exam' && assignment?.deliveryMode !== 'online' && <AnnotateSubmissionPhotosButton submission={s} disabled={gradingLockFresh || tienDo !== ''} onChanged={() => onRefresh?.()} />}
                   {assignment?.periodicTest && <PaperScoreButton submission={s} assignment={assignment} />}
+                  {s.handMarkedPaper && s.handMarkedDeclaredBy !== 'teacher' && <PaperScoreAdoptButton submission={s} />}
                   <button
                     type="button"
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
@@ -2039,8 +2040,35 @@ export const PaperScoreButton = ({ submission, assignment }: { submission: Submi
   </div>;
 };
 
-export const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {
-  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
+/**
+ * Bài HS tự khai "thầy cô đã chấm tay": máy đọc được điểm thầy ghi trên giấy. Thầy bấm để
+ * DÙNG đúng số đó làm điểm bài (bấm 1 lần, không phải gõ tay) — điểm GV là chuẩn.
+ */
+export const PaperScoreAdoptButton = ({ submission }: { submission: SubmissionDoc }) => {
+  const paper = submission.grade?.paperScore;
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  if (submission.status !== 'graded' || !submission.grade) return null;
+  if (!paper) return <p className="text-xs font-semibold text-rose-800">Em khai bài thầy cô đã chấm tay — máy chưa đọc được điểm thầy ghi. Thầy xem bản chấm rồi sửa điểm tay nếu cần.</p>;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>Điểm thầy ghi trên bài (máy đọc): {paper.score}/{paper.maxScore}</span>
+    <button type="button" disabled={busy} className="min-h-9 rounded-lg bg-emerald-600 px-3 text-white disabled:opacity-50" onClick={() => {
+      setBusy(true); setMessage('');
+      void updateSubmissionGradeManually(submission, {
+        score: paper.score,
+        maxScore: paper.maxScore,
+        feedback: submission.grade?.feedback || '',
+        weakTopics: submission.grade?.weakTopics || [],
+      })
+        .then(() => setMessage(`Đã dùng điểm thầy ghi (${paper.score}/${paper.maxScore}) làm điểm bài.`))
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm.'))
+        .finally(() => setBusy(false));
+    }}>{busy ? 'Đang lưu…' : 'Dùng điểm GV ghi trên bài'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+export const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   return <div className="my-3 rounded-xl border border-slate-200 bg-white p-3">

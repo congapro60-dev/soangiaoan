@@ -547,6 +547,8 @@ export interface SubmissionDoc {
   handMarkedPublished?: boolean;
   /** Giáo viên nộp bài đã chấm tay: AI quét điểm ghi tay của GV, tự duyệt và tính vào thống kê/báo cáo. */
   handMarkedPaper?: boolean;
+  /** Ai khai bài đã chấm tay: 'teacher' = GV nộp hộ (điểm GV là điểm chính thức); 'student'/'parent' = em tự nộp (chỉ đọc điểm, GV phải xác nhận). */
+  handMarkedDeclaredBy?: 'teacher' | 'student' | 'parent';
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
   textContent?: string;

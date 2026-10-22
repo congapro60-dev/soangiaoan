@@ -257,8 +257,11 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       if (supplementOf && (!previous || previous.studentId !== actor.studentId || previous.classId !== actor.classId || previous.teacherId !== actor.teacherId || previous.assignmentId !== assignmentId)) error(403, 'Lượt nộp trước không thuộc đúng bài và học sinh.');
       const evidence = previous ? mergeSubmissionEvidence({ fileUrls: previous.fileUrls || [], attachments: previous.attachments || [], textContent: text(previous.textContent) }, { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) }) : { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) };
       if (evidence.fileUrls.length > 12 || evidence.textContent.length > 60000) error(422, 'Lượt bổ sung vượt giới hạn 12 tệp hoặc 60000 ký tự.');
-      const isTeacherHandMarked = actor.role === 'teacher' && body.handMarked === true;
-      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(isTeacherHandMarked ? { handMarkedPaper: true } : {}), createdAt: now, updatedAt: now };
+      // Bài ĐÃ CHẤM TAY: GV nộp hộ → điểm GV ghi tay là điểm chính thức. HS/PH tự nộp →
+      // máy chỉ ĐỌC điểm GV ghi (lưu vào paperScore), thầy cô phải xác nhận mới chốt —
+      // không để học sinh tự viết điểm rồi tự chấm.
+      const handMarked = body.handMarked === true;
+      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), createdAt: now, updatedAt: now };
       tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
