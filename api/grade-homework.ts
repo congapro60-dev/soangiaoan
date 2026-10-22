@@ -452,9 +452,14 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
   || error instanceof JsonRecoveryError
   || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens' || error.kind === 'recitation'));
 
+/** Gemini chỉ giới hạn mỗi phút: đợt chấm nền đợi rồi làm lại đúng bài này, không dừng đợt cũng không bỏ bài. */
+const retryAfterOf = (error: unknown): { retryAfterMs?: number } =>
+  (error instanceof GeminiResponseError && error.retryAfterMs ? { retryAfterMs: error.retryAfterMs } : {});
+
 /** Mã lỗi ngắn (không kèm khoá/chi tiết Google) ghi vào hồ sơ đợt chấm nền. `provider_quota`/`provider_key_invalid` làm đợt dừng. */
 const gradeFailureCode = (error: unknown): string => {
   if (error instanceof GeminiResponseError) {
+    if (error.retryAfterMs) return 'provider_rate_limit';
     if (error.keyFailure === 'exhausted') return 'provider_quota';
     if (error.keyFailure === 'invalid') return 'provider_key_invalid';
     return `provider_${error.kind}`;
@@ -541,7 +546,7 @@ const gradeOneSubmission = async (
   isTeacher: boolean,
   mode: HomeworkGradingMode,
   refreshSnapshot?: SubmissionDoc,
-): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; syncPending?: boolean; syncError?: string }> => {
+): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; retryAfterMs?: number; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
   const claim = await claimSubmissionForGrading(db, submissionId, isTeacher, refreshSnapshot);
@@ -723,7 +728,7 @@ const gradeOneSubmission = async (
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage };
+    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage, ...retryAfterOf(error) };
   }
 };
 
@@ -2206,7 +2211,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } catch (error) {
             if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
             if (error instanceof AiKeyRequiredError) throw error;
-            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error), failureMessage: safeGradeErrorMessage(error) };
+            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error), failureMessage: safeGradeErrorMessage(error), ...retryAfterOf(error) };
           }
         });
       });

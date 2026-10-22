@@ -263,6 +263,17 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(String(state.body?.error)).toMatch(/Đợt chấm đã tạm dừng ở bài sub-1: Gemini báo lỗi/);
     expect(harness.state.submissions['sub-1'].grade).toEqual(before.grade);
   });
+  it('maintenance refresh waits and redoes the same item when Gemini only limits requests per minute', async () => {
+    const {harness,gemini,before}=seedRefreshWithPhoto({status:429,body:'{"quotaId":"GenerateRequestsPerMinutePerProjectPerModel"},{"retryDelay":"30s"}'});
+    const state=await runRefresh();
+    expect(gemini).toHaveBeenCalled();
+    expect(state.statusCode).toBe(200);
+    expect(state.body).toMatchObject({busy:true,remaining:1,retryAfterMs:30000,failureCode:'provider_rate_limit',failureMessage:expect.stringContaining('giới hạn số lượt mỗi phút')});
+    expect(harness.state.gradingRefreshJobs.job).toMatchObject({status:'running',cursor:0,runId:'',leaseUntil:0});
+    expect(harness.state.gradingRefreshJobs.job.counts).toBeUndefined();
+    expect(harness.state['gradingRefreshJobs/job/items']['sub-1']).toMatchObject({status:'waiting_rate_limit',failureCode:'provider_rate_limit'});
+    expect(harness.state.submissions['sub-1'].grade).toEqual(before.grade);
+  });
   it('maintenance refresh records a short failure code and keeps going on a non-key provider error', async () => {
     const {harness,gemini}=seedRefreshWithPhoto({status:503,body:'overloaded'});
     const state=await runRefresh();

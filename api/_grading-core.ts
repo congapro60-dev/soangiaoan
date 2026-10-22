@@ -5,8 +5,8 @@ import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys
 import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
-import { classifyGeminiKeyFailure, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
-import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
+import { classifyGeminiKeyFailure, rateLimitRetryMs, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
+import { moTaGioiHanPhut, moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -235,6 +235,8 @@ export class GeminiResponseError extends Error {
     cause?: unknown,
     /** Google từ chối vì chính khoá (hết hạn mức / hỏng) — đợt chấm nền dựa vào đây để dừng thay vì đốt bài. */
     readonly keyFailure?: AiKeyStatus | null,
+    /** 429 chỉ vì gọi quá nhanh (giới hạn mỗi phút): đợi chừng này rồi thử lại, không phải hết hạn mức. */
+    readonly retryAfterMs?: number | null,
   ) {
     super(message, cause === undefined ? undefined : { cause });
     this.name = 'GeminiResponseError';
@@ -402,18 +404,26 @@ const callGeminiRawHeld = async (
     const detail = await res.clone().text().catch(() => '');
     const keyFailure = classifyGeminiKeyFailure(res.status, detail);
     if (!keyFailure) break;
+    // Chỉ gọi quá nhanh (giới hạn mỗi phút): khoá vẫn còn hạn mức. KHÔNG đánh dấu "hết" 60 phút, KHÔNG chuyển sang ví
+    // (GV sẽ bị trừ tiền oan) — báo lỗi kèm thời gian chờ ở dưới, lượt sau lại dùng khoá riêng.
+    if (rateLimitRetryMs(res.status, detail)) break;
     keyChoice = await onOwnKeyFailure(keyChoice, keyFailure, detail, apiKey);
   }
 
   if (!res.ok) {
     // Kèm mã HTTP: 429 (hết hạn mức), 400 (payload sai), 503 (Gemini quá tải) đòi ba cách xử lý
     // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
+    const detail = await Promise.resolve().then(() => res.clone().text()).catch(() => '');
+    const retryAfterMs = rateLimitRetryMs(res.status, detail);
     throw new GeminiResponseError(
       'http',
-      moTaLoiDichVu(res.status, 'Gemini'),
+      retryAfterMs
+        ? moTaGioiHanPhut(retryAfterMs)
+        : moTaLoiDichVu(res.status, 'Gemini'),
       undefined,
       undefined,
-      classifyGeminiKeyFailure(res.status, await Promise.resolve().then(() => res.clone().text()).catch(() => '')),
+      classifyGeminiKeyFailure(res.status, detail),
+      retryAfterMs,
     );
   }
 

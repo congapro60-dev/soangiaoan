@@ -28,6 +28,7 @@ jobs:
               raise SystemExit('Thiếu khoá bí mật AUTO_GRADE_CRON_SECRET trong GitHub Secrets nên không gọi được máy chủ.')
           # A provider outage the server cannot recognise as a quota stop must not burn the rest of the job.
           max_consecutive_failures, consecutive_failures = 3, 0
+          max_rate_limit_waits, rate_limit_waits = 10, 0
           for iteration in range(1000):
               request = urllib.request.Request(
                   'https://giaoandewey.vercel.app/api/grade-homework?cron=refresh',
@@ -64,6 +65,16 @@ jobs:
                   if any(counts.get(key, 0) for key in ('failed', 'failed_preserved', 'skipped_scope', 'skipped_busy')):
                       raise SystemExit(f'Đợt chấm chạy xong nhưng còn bài cần xem lại (lí do từng bài ở items/{{id}}.failureMessage): {json.dumps(counts, ensure_ascii=False)}')
                   break
+              if result.get('retryAfterMs'):
+                  # Per-minute limit only: the same item is retried after the wait Google asked for.
+                  rate_limit_waits += 1
+                  if rate_limit_waits >= max_rate_limit_waits:
+                      raise SystemExit(f'Dừng vì Gemini giới hạn số lượt mỗi phút {rate_limit_waits} lần liền ở cùng một bài: {result.get("failureMessage")}. Khoá vẫn còn hạn mức; chạy lại workflow sau ít phút để làm tiếp.')
+                  wait = min(max(int(result['retryAfterMs']) // 1000, 20), 120)
+                  print(f'Gemini đang giới hạn số lượt mỗi phút; đợi {wait} giây rồi làm lại đúng bài này.', flush=True)
+                  time.sleep(wait)
+                  continue
+              rate_limit_waits = 0
               time.sleep(20 if result.get('busy') else 1)
           else:
               raise SystemExit('Đợt chấm chưa xong sau 1000 lượt gọi; chạy lại workflow để làm tiếp.')

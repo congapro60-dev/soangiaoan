@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Wallet } from 'lucide-react';
 import { useAiBillingStatus } from '../../../hooks/useAiBillingStatus';
-import { chipView, type ChipTone } from '../../../lib/ai/usageToday';
+import { chipView, walletJustEmptied, type ChipTone } from '../../../lib/ai/usageToday';
+import { AI_WALLET_EMPTY_EVENT } from '../../../lib/ai/aiKeyGate';
+import type { AiKeyStatus } from '../../../lib/ai/aiBillingApi';
 import { AiUsagePopup } from './AiUsagePopup';
 
 const TONE_CLASS: Record<ChipTone, string> = {
@@ -19,6 +21,13 @@ export const AiWalletChip = ({ onOpenBilling }: { onOpenBilling: () => void }) =
   const { status, refresh } = useAiBillingStatus();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const previous = useRef<AiKeyStatus | null>(null);
+
+  useEffect(() => {
+    if (!status) return;
+    if (walletJustEmptied(previous.current, status)) window.dispatchEvent(new Event(AI_WALLET_EMPTY_EVENT));
+    previous.current = status;
+  }, [status]);
 
   useEffect(() => {
     if (!open) return undefined;

@@ -42,6 +42,13 @@ export const chipView = (status: AiKeyStatus): ChipView => {
   return { wallet: `Ví ${formatVnd(Math.max(0, balance))}`, today: status.todayVnd > 0 ? `hôm nay −${formatVnd(status.todayVnd)}` : 'hôm nay 0đ', tone };
 };
 
+/**
+ * Ví vừa hết tiền giữa lúc đang dùng (lần đọc trước còn tiền, lần này chip chuyển đỏ) → mời nạp ngay, đừng đợi tới lúc
+ * thao tác sau bị chặn. Ví chỉ là dự phòng (khoá riêng đang chạy) hoặc không trừ ví thì không làm phiền.
+ */
+export const walletJustEmptied = (previous: AiKeyStatus | null, next: AiKeyStatus): boolean =>
+  previous !== null && previous.balanceVnd > 0 && chipView(previous).tone !== 'empty' && chipView(next).tone === 'empty';
+
 export interface DaySummary {
   calls: number;
   inputTokens: number;

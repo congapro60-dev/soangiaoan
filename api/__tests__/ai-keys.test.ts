@@ -213,8 +213,11 @@ describe('khoá AI + trần chi tiêu', () => {
       release();
       await first;
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      // Âm đúng MỘT lượt (không nhân theo số lượt song song); giữ chỗ đã được thay bằng số tiền thật
-      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 1_000 - 19_500, heldVnd: 0 });
+      // Ví KHÔNG âm: lượt đắt hơn số dư chỉ trừ hết số dư (về 0đ), phần thiếu chủ dự án chịu và ghi lại trên sao kê
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 0, heldVnd: 0 });
+      const usage = Object.entries(h.store).find(([path]) => path.startsWith('aiUsage/'))?.[1];
+      expect(usage).toMatchObject({ chargeVnd: 1_000, uncoveredVnd: 18_500 });
+      expect(h.store[`aiSpend/gv-ngoai_${month}`]).toMatchObject({ chargeVnd: 1_000 });
     });
 
     it('trần tháng cũng tính phần đang giữ chỗ: trần 1.000đ thì lượt song song thứ hai bị chặn, không cùng lọt qua', async () => {
@@ -381,6 +384,37 @@ describe('khoá AI + trần chi tiêu', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(h.store['teacherAiKeys/gv-ngoai']).toMatchObject({ keyStatus: 'exhausted' });
       expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
+    });
+
+    it('CẢ HAI: khoá riêng chỉ bị giới hạn mỗi phút thì KHÔNG đánh dấu hết, KHÔNG sang ví, báo đợi bằng câu dễ hiểu', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'both' });
+      const fetchMock = vi.fn(async () => ({ ok: false, status: 429, clone: () => ({ text: async () => '{"quotaId":"GenerateRequestsPerMinutePerProjectPerModel"},{"retryDelay":"20s"}' }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      await expect(inRequest('gv-ngoai', () => callGeminiVision('chấm', [], OWNER_KEY))).rejects.toMatchObject({
+        retryAfterMs: 20_000, message: expect.stringContaining('không bị trừ ví'),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(h.store['teacherAiKeys/gv-ngoai'].keyStatus).toBe('ok');
+      expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
+    });
+
+    it('admin (ADMIN_EMAILS) chế độ CẢ HAI: khoá riêng hết hạn mức thì chuyển sang khoá chung ngay lượt đó, không bị chặn', async () => {
+      h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+      h.store['teacherAiKeys/admin-truong'] = { geminiKey: OWN_KEY, keyStatus: 'ok', mode: 'both' };
+      const keys: string[] = [];
+      vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        keys.push(new URL(url).searchParams.get('key') || '');
+        return keys.length === 1
+          ? { ok: false, status: 429, clone: () => ({ text: async () => 'RESOURCE_EXHAUSTED PerDay' }) }
+          : { ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'đã chấm' }] } }] }) };
+      }));
+      expect(await inRequest('admin-truong', () => callGeminiVision('chấm', [], OWNER_KEY))).toContain('đã chấm');
+      expect(keys).toEqual([OWN_KEY, OWNER_KEY]);
+      expect(h.store['teacherAiKeys/admin-truong']).toMatchObject({ keyStatus: 'exhausted' });
+      const res: any = { statusCode: 0, payload: null, status(c: number) { res.statusCode = c; return res; }, json(p: any) { res.payload = p; return res; } };
+      h.claims = { uid: 'admin-truong', email: 'cuong.vuviet@thedeweyschools.edu.vn' };
+      await handleAiKeyAction(fakeDb() as never, { idToken: 't', action: 'aiKeyStatus' }, res);
+      expect(res.payload).toMatchObject({ shared: true, mode: 'both' });
     });
 
     it('tính năng chỉ chạy bằng khoá chung (GLM): chế độ chỉ-khoá-riêng bị chặn, kể cả người trong nhóm; ví/cả hai thì qua', async () => {
