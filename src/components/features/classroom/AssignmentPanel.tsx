@@ -226,6 +226,7 @@ interface BaiNopTheoLopProps {
 const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
   const [proxyStudent, setProxyStudent] = useState('');
   const [proxyBase, setProxyBase] = useState('');
+  const [proxyHandMarked, setProxyHandMarked] = useState(false);
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -575,14 +576,19 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold">Chưa nộp</span></span>
             <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span><span className="text-xs">—</span></span>
             <span data-column="notes" className="teacher-submission-cell">
-              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); }}>Nộp hộ</button>}
+              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && (
+                <div className="flex flex-wrap items-center gap-1">
+                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
+                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
+                </div>
+              )}
             </span>
             <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="text-xs">—</span></span>
             <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span><span className="text-xs">—</span></span>
             <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
           </div>
           </div>
-          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
         </div>
       ))}
     </div>

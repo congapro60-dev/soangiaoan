@@ -1097,6 +1097,7 @@ export const projectStudentSubmission = (id: string, data: FirebaseFirestore.Doc
     ...(data.feedbackSummary && typeof data.feedbackSummary === 'object' ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, ...(typeof data.feedbackSummary.lastReplyAt === 'string' ? { lastReplyAt: data.feedbackSummary.lastReplyAt } : {}) } } : {}),
     ...(typeof data.feedbackReadAt === 'string' ? { feedbackReadAt: data.feedbackReadAt } : {}),
     ...handMarkedProjection(data, false),
+    ...(typeof data.handMarkedPaper === 'boolean' ? { handMarkedPaper: data.handMarkedPaper } : {}),
     ...(data.submittedBy && ['teacher','student','parent'].includes(data.submittedBy.role) ? { submittedBy: { role: data.submittedBy.role, studentId: String(data.submittedBy.studentId || ''), at: String(data.submittedBy.at || '') } } : {}),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,

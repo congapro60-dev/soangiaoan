@@ -323,6 +323,8 @@ interface GradeContext {
   answerKeyFixes: AnswerKeyFix[];
   /** Bài kiểm tra định kì: giáo viên đã chấm tay trên giấy. */
   teacherMarkedPaper: boolean;
+  /** Giáo viên nộp bài đã chấm tay: lấy điểm ghi tay làm điểm chính thức. */
+  handMarkedPaper?: boolean;
   /** Các mã đề; rỗng = bài một đề như BTVN. */
   examVariants: ExamVariant[];
   /** Cột điểm trong sổ điểm để đối chiếu tổng điểm (rỗng = không đối chiếu). */
@@ -410,7 +412,8 @@ const attemptHomeworkGrade = async (
     // trên lớp — bài nhiều câu, mỗi câu 8 field chữ, cộng token "suy nghĩ" cũng tính vào đây, nên
     // câu trả lời bị cắt (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Ở đường chấm bài,
     // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
+    // ponytail: Với đường chấm bài thi/bài tập, đặt thinkingLevel='low' để không bị timeout 240s khi gặp bài toán phức tạp
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, thinkingLevel: 'low', timeoutMs },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -423,10 +426,15 @@ const attemptHomeworkGrade = async (
       }
     : undefined;
 
+  const hasTeacherMarkedScore = Boolean(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore);
+  const isHandMarkedSubmission = Boolean(ctx.handMarkedPaper && hasTeacherMarkedScore);
+  const score = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.score : parsed.grade.score;
+  const maxScore = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.maxScore : parsed.grade.maxScore;
+
   const now = new Date().toISOString();
   const grade = {
-    score: parsed.grade.score,
-    maxScore: parsed.grade.maxScore,
+    score,
+    maxScore,
     feedback: parsed.grade.feedbackForStudent,
     noteForTeacher: parsed.grade.noteForTeacher,
     strengths: parsed.grade.strengths,
@@ -434,11 +442,9 @@ const attemptHomeworkGrade = async (
     questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
-    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc) — để thầy cô xác nhận đưa vào sổ, không dùng để chấm.
-    ...(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
+    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc)
+    ...(hasTeacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
     gradedAt: now,
-    // Mọi lượt chấm bằng máy (kể cả bài học sinh tự nộp) đều CHƯA duyệt: học sinh chỉ thấy điểm sau khi thầy cô duyệt
-    // (hoặc máy tự duyệt sau 60 phút khi lớp bật). Học sinh chỉ được hỏi lại câu máy đọc chưa chắc.
     teacherApproved: false,
     ...(gradingRecovery ? { gradingRecovery } : {}),
     ...(transcription ? { transcription } : {}),
@@ -577,11 +583,14 @@ const gradeOneSubmission = async (
 
     // Bài nhiều mã đề: chấm theo đúng đề + đáp án của mã ghi trên bài.
     let gradeCtx = ctx;
-    if (ctx.examVariants.length > 0) {
-      const code = await resolveExamCode(previous, ctx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
+    if (previous.handMarkedPaper) {
+      gradeCtx = { ...gradeCtx, teacherMarkedPaper: true, handMarkedPaper: true };
+    }
+    if (gradeCtx.examVariants.length > 0) {
+      const code = await resolveExamCode(previous, gradeCtx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
       if (!code) throw new Error(UNREADABLE_EXAM_CODE_MESSAGE);
       if (code !== previous.examCode) await claim.ref.update({ examCode: code, examCodeSource: 'ai' });
-      gradeCtx = contextForVariant(ctx, code);
+      gradeCtx = contextForVariant(gradeCtx, code);
     }
 
     const solutionVersionAtGrading = gradeCtx.solutionAssignment ? workedSolutionVersion(assignmentSolutionInput(gradeCtx.solutionAssignment, gradeCtx.examCode || previous.examCode || '')) : undefined;
@@ -649,7 +658,15 @@ const gradeOneSubmission = async (
     // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
     const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
       ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
-    const grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
+    const isTeacherHandMarked = Boolean(previous.handMarkedPaper);
+    let grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
+    if (isTeacherHandMarked) {
+      grade = {
+        ...grade,
+        teacherApproved: true,
+        approvalSource: 'teacher',
+      };
+    }
 
     if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }
     const now = grade.gradedAt;
@@ -669,6 +686,23 @@ const gradeOneSubmission = async (
       previous.assignmentId && solutionVersionAtGrading ? { assignmentId: previous.assignmentId, examCode: gradeCtx.examCode || previous.examCode || '', version: solutionVersionAtGrading } : undefined,
     );
     if (!committed.committed) return { success: false };
+
+    if (isTeacherHandMarked) {
+      await claim.ref.update({ handMarkedPublished: true, handMarkedPublishedAt: now, handMarkedPublishedBy: actorUid }).catch(() => undefined);
+      try {
+        await syncApprovedGradeEvidence(db, {
+          submissionId,
+          assignmentId: previous.assignmentId,
+          grade,
+          owner: { studentId: previous.studentId, classId: previous.classId, teacherId: previous.teacherId },
+          now,
+          approved: true,
+        });
+      } catch (syncError) {
+        console.warn('[grade-homework] Lỗi syncApprovedGradeEvidence bài chấm tay:', syncError);
+        await claim.ref.update({ evidenceSyncError: syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại' }).catch(() => undefined);
+      }
+    }
 
     // Lượt chấm mới CHƯA duyệt (cả bài học sinh tự nộp): chưa ghi vào hồ sơ học tập, và nếu bài từng có minh chứng cũ thì gỡ đi.
     // Minh chứng chỉ được ghi khi thầy cô duyệt (hoặc máy tự duyệt sau 60 phút).
@@ -1134,6 +1168,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
       }
       // Cùng một hàm với chấm cả lớp — hai đường tự dựng riêng là lệch nhau (vd quên mã đề).
       ctx = await gradeContextFor(a);
+      if (submission.handMarkedPaper) {
+        ctx.teacherMarkedPaper = true;
+      }
     }
   }
 

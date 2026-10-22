@@ -2185,3 +2185,9 @@ Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI
 - BTVN: gắn nhãn AI/tay tự dùng khung mới. **Bẫy:** bài khối 10 đã DUYỆT nhãn trước đây giữ nguyên nhãn cũ (guard `competencyTagsApproved`) — muốn thêm năng lực mới phải sửa tay trong ô nhãn.
 - Chưa chạy xuất thật trên production (cần GV bấm, popup Google). Test: framework, portfolioExport +4.
 
+## SmartPlan QA bundle follow-up — 2026-10-16 (cắt từ HANDOFF.md ngày 22/10)
+
+- Lazy-loaded standalone routes and file-heavy utilities from src/main.tsx/src/App.tsx to reduce production entry bundle from ~1.535 MB to ~672.89 kB.
+- Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
+- Remaining: large lazy chunks remain expected; no production data writes.
+

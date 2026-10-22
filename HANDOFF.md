@@ -5,6 +5,16 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Nộp bài đã chấm: GV nộp hộ bài đã chấm tay, AI đọc điểm ghi tay làm điểm chính thức — 22/10 (Claude)
+
+Chủ dự án duyệt: học sinh CHƯA nộp — GV tải ảnh/PDF bài đã chấm tay; AI tự đọc điểm GV ghi trên ảnh làm điểm bài + tự duyệt + điểm vào thống kê/báo cáo/hồ sơ. Nút "Nộp bài đã chấm" (emerald) cạnh "Nộp hộ" ở hàng Chưa nộp (`AssignmentPanel.tsx`); `ActorSubmissionUpload` thêm prop `handMarked` truyền sang `submitActorSubmission`. Server chỉ lưu `submission.handMarkedPaper = true` khi `actor.role === 'teacher' && handMarked === true` (`_submission-actors.ts`) — HS/PH tự đặt bị phớt lờ (test cả hai chiều). Chấm (`grade-homework.ts`): `previous.handMarkedPaper` → `teacherMarkedPaper: true` trong ngữ cảnh (AI đọc `teacherMarkedScore`); có điểm ghi tay thì đó là điểm cuối (thiếu thì fallback điểm máy), `teacherApproved: true` + `approvalSource: 'teacher'` tức thì (không chờ tự duyệt 60 phút), `handMarkedPublished: true` + `syncApprovedGradeEvidence` sau commit. Không đụng luồng định kì: `paperScore` của `periodicTest` vẫn chỉ là đối chiếu, không phải điểm chính. Spec/plan: `docs/superpowers/specs|plans/2026-10-22-nop-bai-da-cham*.md`.
+
+Cùng nhánh: sửa lỗi "AI xử lý quá lâu" khi chấm bài Toán khó (phản ánh thực tế bài 12 LT1) — `attemptHomeworkGrade` gửi `thinkingLevel: 'low'`: gemini-3.8-flash thinking không có trần sinh hàng chục nghìn token suy nghĩ ẩn, hết `timeoutMs` giữa chừng rồi abort (chẩn đoán full trong phiên, report subagent `deep-debug`). Nếu chủ dự án muốn giữ thinking tối đa, xoá 1 dòng này.
+
+Token chi phí lớp học: đã nghiên cứu xong, chưa làm (chờ duyệt): static prefix cho implicit cache Gemini (~80–85% input lớp 40 HS), nén ảnh 1600→1200px, tắt auto annotation phase-3 (chỉ on-demand), Flash-Lite cho đọc mã đề/catalog. Ước tính ~$1.28 → ~$0.22/lớp 40 HS/lần.
+
+Gate trước commit: full 3357/3357 tests (73 file API + toàn bộ src), `lint` + `lint:api` exit 0, Vite build exit 0. Worktree `nop-bai-da-cham`, nhánh `feat/nop-bai-da-cham` dựng trên `origin/main` f52b00f, `rev-list origin/main...nhánh = 0/0` (không drift với các phiên khác). Chưa push.
+
 ## Ví AI: không bao giờ âm, không trừ oan, hết tiền thì nạp 1 chạm — 22/10 (Claude)
 
 Chủ dự án: tiền bạc phải dễ, lằng nhằng là GV bỏ. (1) `settleUsage` (`_ai-usage.ts`) đọc số dư trong cùng giao dịch, trừ tối đa bằng số dư — ví về 0đ chứ không âm; phần thiếu ghi `aiUsage.uncoveredVnd` (chủ dự án chịu, tối đa ~1 lượt). (2) Khoá RIÊNG bị 429 chỉ vì giới hạn mỗi phút (`rateLimitRetryMs`) → KHÔNG đánh dấu hết 60 phút, KHÔNG sang ví; báo `moTaGioiHanPhut` "đợi N giây, không bị trừ ví". Áp ở `_grading-core`, `generate-simulation`, `_ai-image-handler`. (3) Hết tiền: `AiKeyGateModal` với `no_balance` mở `TopupFirstDialog` — QR nạp hiện ngay (mức 50k–500k, nội dung điền sẵn), hỏi số dư mỗi 5 giây, tiền về → "Đã nhận +X" rồi TỰ gửi lại thao tác vừa dừng; khoá riêng/mã giảm giá gập dưới "Cách khác"; điện thoại có link "Mở ảnh QR" để lưu rồi quét từ app ngân hàng. Ví vừa về 0đ sau một lượt dùng (`walletJustEmptied`, chip phát `AI_WALLET_EMPTY_EVENT`) cũng tự mời nạp; ví chỉ là dự phòng / không trừ ví thì không làm phiền. `TopupQrForm` tách khỏi `TopupDialog` dùng chung. QA trình duyệt bằng trang thử giả lập máy chủ (đã xoá): mở QR ngay, tiền về 2 giây → tự chạy tiếp, 375px không tràn. Chưa QA với tài khoản ngân hàng thật (ảnh QR thật do SePay sinh).
@@ -74,12 +84,6 @@ Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài
 - Source `33b21cd` đã push main. API Typecheck CI thành công; Quality Gate và Vercel Git deployment đang chạy tại snapshot. Không deploy/promote Vercel thủ công. Phần chưa nghiệm thu duy nhất trong phạm vi tính năng: QA trình duyệt thật và chất lượng nhận xét trên bài chữa thật mới.
 
 _Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
-
-## SmartPlan QA bundle follow-up 2026-10-16
-
-- Lazy-loaded standalone routes and file-heavy utilities from src/main.tsx/src/App.tsx to reduce production entry bundle from ~1.535 MB to ~672.89 kB.
-- Tests: full unit 3174/3174; focused QA and typechecks pass; build pass.
-- Remaining: large lazy chunks remain expected; no production data writes.
 
 ## Bot Cuong Vu — Zalo Bot Platform — 2026-10-21
 

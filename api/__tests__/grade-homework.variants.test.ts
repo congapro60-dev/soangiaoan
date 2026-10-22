@@ -380,5 +380,24 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     try { expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(200); expect(timeout.mock.calls[0][0]).toBe(120000); expect(timeout.mock.calls[1][0]).toBeLessThanOrEqual(195000); }
     finally { clock.mockRestore(); timeout.mockRestore(); }
   });
+
+  it('bài chấm tay (handMarkedPaper: true): AI đọc điểm GV ghi trên bài -> gán làm điểm bài, tự duyệt và công bố bản chấm tay', async () => {
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher', handMarkedPaper: true });
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(
+      makeGeminiResponse(JSON.stringify({ ...JSON.parse(gradeJson(5)), teacherMarkedScore: { score: 9, maxScore: 10 } })),
+    );
+
+    const res = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(res.statusCode).toBe(200);
+
+    const sub = harness.state.submissions['sub-1'];
+    const grade = sub.grade as DocData;
+    expect(grade.score).toBe(9);
+    expect(grade.maxScore).toBe(10);
+    expect(grade.teacherApproved).toBe(true);
+    expect(grade.approvalSource).toBe('teacher');
+    expect(sub.handMarkedPublished).toBe(true);
+  });
 });
 
