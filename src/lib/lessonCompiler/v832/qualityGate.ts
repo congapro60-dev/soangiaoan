@@ -1,7 +1,7 @@
 import type { LessonIRV83 } from './lessonIRSchema.js';
 import { validateLessonIRSchema } from './lessonIRSchema.js';
 import { inspectTeacherConfirmations } from './teacherConfirmation.js';
-import validatorContract from './CIS_TDS_Lesson_Validator_v1.1.json';
+import validatorContract from './CIS_TDS_Lesson_Validator_v1.1.json' with { type: 'json' };
 
 type QualityStatus = 'BLOCKED' | 'NEEDS_TEACHER_CONFIRMATION' | 'READY_WITH_WARNINGS' | 'READY';
 type Pillar = 'differentiation' | 'global_intercultural' | 'digital_citizenship' | 'assessment_for_learning';

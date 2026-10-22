@@ -7,7 +7,7 @@ import { evaluateLearningQuality, type LearningQualityResult } from './qualityGa
 import { validateLessonIRReferences } from './runtimePackage';
 import { validateV84ActivityBudgets } from '../../lessonRuntime/v84/budgetContract';
 import { parseMathVisualExtension } from '../../lessonRuntime/v84/mathVisual/extension';
-import schema from './lesson-ir-v8.3.2.schema.json';
+import schema from './lesson-ir-v8.3.2.schema.json' with { type: 'json' };
 import { AUTHORING_CONTEXT } from './authoringContext';
 import { evaluateExperienceDesign, type ExperienceResult } from './experienceDesign';
 import { buildExperienceAuthoringPrompt, validateExperienceAuthoringPlan, validateExperiencePlanMapping,
