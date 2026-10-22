@@ -19,6 +19,14 @@ Chủ dự án duyệt làm hết 4 phương án. (1) **CACHE TIỀN TỐ**: `bu
 
 Ước tính sau tối ưu: input mỗi bài ~27k → ~13k token (phần cache 90% rẻ hơn), bỏ thêm 1 lượt ~6–8k token ở các bài thiếu vùng, ảnh −33%. Gate: full 3364/3364, `lint` + `lint:api` exit 0, build exit 0. Test mới: `api/__tests__/grading-cache.test.ts` (thứ tự parts + fallback model), `gradingPrompt.test.ts` (prefix giống hệt giữa 2 em). Luật nhớ: test cũ bắt prompt bằng `parts.find(text)` giờ phải nối HẾT các phần chữ — prompt đã tách 2 mảnh.
 
+## Bài Tuấn Nam (12 Toán LT1, Thi GHKI) — đã chấm được sau khi vá timeout — 22/10 (Claude)
+
+Lượt nộp 08:42 22/10 (`27a4df8f…`) trước đó lỗi "AI xử lý quá lâu"; sau khi deploy bản vá `thinkingLevel: 'low'` thì **chấm thành công trong ~20 giây**: mã đề AI đọc = **102** (đúng), điểm GV ghi tay AI đọc = **3,25/10** (đúng tuyệt đối — bản chấm tay viết đỏ "3,25" ở ô "Điểm tự luận"), điểm máy 3,2 → `examCheck` lệch 0,05 = "Khớp điểm GV", 22 câu, confidence 0,95–1,0. Bài này là **bài chấm tay của chính GV** (ảnh phiếu trắc nghiệm có nét đỏ từng câu).
+
+Phát hiện quan trọng: **AI đọc ĐÚNG tổng điểm GV ghi tay và mã đề, nhưng đọc SAI một số đáp án trắc nghiệm** (bóng trả lời trên bản scan mờ): Phần I AI 1,5 điểm vs GV ghi 1,0; Phần II AI 1,2 vs GV 1,75; Phần III khớp 0,5. Tổng lại gần đúng (3,2 vs 3,25) nhưng **phân bổ theo câu thì không đáng tin** → với bài chấm tay, điểm GV mới là chuẩn, và app đã có đường "Xác nhánh vào sổ" lấy đúng `paperScore`; luồng "Nộp bài đã chấm" (mục trên) làm điểm GV thành điểm chính thức khi GV tự nộp bài chấm tay. Gợi ý cho chủ dự án: bài kiểm tra định kỳ nộp tay nên cho GV chọn "lấy điểm GV ghi trên bài làm điểm chính thức" (chưa làm).
+
+Bài này còn ở trạng thái **chờ duyệt**; lớp bật "tự chấm & duyệt sau 60 phút" nên ~12:31 sẽ tự duyệt và công bố cho HS — chủ dự án nên soát lại bảng câu trước lúc đó.
+
 Gate trước commit: full 3357/3357 tests (73 file API + toàn bộ src), `lint` + `lint:api` exit 0, Vite build exit 0. Worktree `nop-bai-da-cham`, nhánh `feat/nop-bai-da-cham` dựng trên `origin/main` f52b00f, `rev-list origin/main...nhánh = 0/0` (không drift với các phiên khác). Chưa push.
 
 ## Ví AI: không bao giờ âm, không trừ oan, hết tiền thì nạp 1 chạm — 22/10 (Claude)
