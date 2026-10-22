@@ -117,6 +117,26 @@ describe('cầu nối SSM — service worker', () => {
     expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v1/students/class/9681?skipPagination=true&page=1&limit=500');
   });
 
+  it('đọc quý điểm LO: đúng path v3 với class×subject×năm', async () => {
+    await ask({ op: 'evaluationQuarters', params: { classId: 9681, subjectId: 12, schoolYearId: 6 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v3/evaluation/classes/9681/subjects/12/quarters?school_year_id=6');
+    expect((await ask({ op: 'evaluationQuarters', params: { classId: 9681, subjectId: 12 } })).ok).toBe(false);
+    expect((await ask({ op: 'evaluationQuarters', params: { classId: -1, subjectId: 12, schoolYearId: 6 } })).ok).toBe(false);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/v3/')).length).toBe(1);
+  });
+
+  it('đọc cây LO: path v2 theo assessment form', async () => {
+    await ask({ op: 'criteriaAssessment', params: { assessmentFormId: 42 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/criteria-has-assessment-form/42');
+    expect((await ask({ op: 'criteriaAssessment', params: { assessmentFormId: 'x/../y' } })).ok).toBe(false);
+  });
+
+  it('đọc trạng thái chấm: class-subject-assessment đủ 3 tham số', async () => {
+    await ask({ op: 'classSubjectAssessment', params: { assessmentFormId: 42, criteriaId: 7, classId: 9681 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/class-subject-assessment?assessment_form_id=42&criteria_id=7&class_id=9681');
+    expect((await ask({ op: 'classSubjectAssessment', params: { assessmentFormId: 42, criteriaId: 7 } })).ok).toBe(false);
+  });
+
   describe('Hạng mục 5: Token Cache & Auto-Wake', () => {
     it('a live tab wins over a valid cache from another account', async () => {
       storageGet.mockResolvedValue({ ssmToken: 'old-account', ssmWorkspace: 'old-tenant', ssmCachedAt: Date.now() });

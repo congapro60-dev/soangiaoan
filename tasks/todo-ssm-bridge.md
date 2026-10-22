@@ -97,3 +97,80 @@ Mục mới "Lịch báo giảng" trên thanh bên (`src/components/tabs/LessonS
 - Kiểm: TDS 10Olinda tuần 5 trùng ảnh mẫu; MOET tuần 1/4/5/6 trùng file LBG thầy Cường; Excel đọc lại đúng; UI thử trên dev (demo) + mobile width.
 - Chưa kiểm được trên dev: nút "Tải" link Prime (dev proxy sang production chưa có action) và luồng AI (demo không có key) → kiểm sau khi lên production với tài khoản trường.
 - Bẫy dữ liệu: PPCT tds-g10 có 6 tiết subject "Tự chọn" nhưng isElective=false (tds-g12 có 1) — UI đã bỏ khỏi danh sách phân môn.
+
+## Đợt 4 — Đẩy điểm LO từ web lên SSM (2026-10-22)
+
+**Mục tiêu**: Web tính điểm LO từ bài đã duyệt → đọc cây LO + id học sinh trực tiếp từ SSM qua tiện ích → hiện bảng preview → giáo viên xác nhận → ghi điểm lên SSM bằng API. Không dùng file Excel trung gian.
+
+**Ràng buộc cứng:**
+- SSM gửi thông báo phụ huynh NGAY khi lưu điểm → app KHÔNG tự ghi. Luôn: preview → GV bấm xác nhận → ghi → đọc lại kiểm tra.
+- Token SSM không rời trình duyệt (giữ nguyên kiến trúc extension).
+- Ghi điểm = thao tác GHI trong `background.js`, phải qua `readSession(true)` và kiểm workspace.
+
+**Kiến trúc API SSM (từ khảo sát 2026-09-24, cần verify thật ở Task 1):**
+```
+Đọc quý:     GET /v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=X
+Đọc form:    GET /v2/evaluation/class-subject-assessment?assessment_form_id&criteria_id&class_id
+Đọc LO tree: GET /v2/evaluation/criteria-has-assessment-form/{assessmentFormId} ← CHƯA ĐỌC ĐƯỢC
+Đọc HS:      GET /v2/evaluation/student-by-subject (hoặc classStudents đã có)
+Ghi nháp:    POST /v1/evaluation/grading-student-draft-by-assessment-form/{id}
+Ghi chính:   POST /v2/evaluation/grading-student-by-assessment-form/{assessmentFormId}
+Cập nhật:    POST /v2/evaluation/update-result-grading-student/{result_assessment_form_id}
+Duyệt:       POST /v2/evaluation/approve-assessment-form
+Body ghi:    {class_id, criteria_id, quarter_has_branch_id, students:[{id,name,result:[{learning_outcome_id,scoring_setting_id,is_number,point,grading_student_id}]}]}
+```
+
+### Task 1: Dò cấu trúc JSON thật của SSM API LO (CHẶN — cần dữ liệu thật)
+- [ ] Thêm op `readLoTree` vào `OPS` trong `background.js`: gọi `GET /v2/evaluation/criteria-has-assessment-form/{assessmentFormId}`, trả raw JSON về app.
+- [ ] Thêm op `readQuarters` vào `OPS`: gọi `GET /v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=X`.
+- [ ] Thêm type `SsmOp` tương ứng trong `ssmBridge.ts`.
+- [ ] **Verify**: Cài extension dev → mở tab SSM có lớp 11Columbus Toán Q1 → gọi từng op → dump JSON ra file `tasks/ssm-api-samples/quarters.json`, `lo-tree.json`. Đọc JSON để biết field names thật + tìm chỗ đọc ĐIỂM ĐÃ CÓ để làm preview.
+- [ ] Commit riêng: `"chore(ssm): add read ops for LO tree and quarters"`.
+
+### Task 2: Parser LO tree từ JSON SSM → cấu trúc app dùng được
+- [ ] Tạo `src/lib/ssm/loSsmParser.ts`: parse JSON từ Task 1 → `{ loCode, loId, scoringSettingId, text }[]` + map `studentSsmId ↔ maHS`.
+- [ ] Test: `loSsmParser.test.ts` với fixture JSON từ Task 1.
+- [ ] Cache mapping vào localStorage theo `classId_subjectId_quarterId` để không gọi lại mỗi lần.
+- [ ] Commit: `"feat(ssm): parse SSM LO tree into app structures"`.
+
+### Task 3: Tái dùng pipeline tính điểm LO hiện có (không sửa logic chấm)
+- [ ] `SsmPanel.tsx` hiện tại: tải file → AI ghép → `buildClassLoScores` → `suggestGrid` → grid. Giữ nguyên nhánh cũ (file Excel).
+- [ ] Thêm nhánh mới: nếu đã có LO tree từ Task 2 (không cần file Excel), dùng `los` từ parser thay vì từ `readLoWorkbook`.
+- [ ] Khớp học sinh: `maHS` từ app ↔ `student_code` từ SSM API (dùng `student_code`, không dùng id số của SSM). HS lệch → cảnh báo, không tự tạo/xoá.
+- [ ] Giữ nguyên cách chấm (chấm thô, không trọng số, không lọc kỳ) — user đã chốt giữ như hiện tại.
+- [ ] Commit: `"feat(ssm): compute LO scores without Excel template"`.
+
+### Task 4: UI Preview trước khi ghi
+- [ ] Thêm bảng diff trong `SsmPanel.tsx`: cột "Điểm cũ (SSM)" | "Điểm mới (web)" | "Thay đổi?" cho từng HS × LO.
+- [ ] Ô không thay đổi → xám. Ô thay đổi → highlight. Ô SSM có điểm mà web không có → cảnh báo đỏ (ghi đè điểm đã có = PH nhận thông báo sai).
+- [ ] Nút "Xem trước thay đổi" → hiện bảng diff. Nút "Xác nhận đẩy lên SSM" → gọi Task 5.
+- [ ] Commit: `"feat(ssm): preview diff before pushing LO scores"`.
+
+### Task 5: Op ghi điểm qua extension
+- [ ] Thêm op `writeLoScores` vào `OPS` (`background.js`): `POST /v2/evaluation/grading-student-by-assessment-form/{assessmentFormId}`.
+- [ ] Body xây từ grid đã confirm: `{class_id, criteria_id, quarter_has_branch_id, students: [{id: ssmStudentId, name, result: [{learning_outcome_id, scoring_setting_id, is_number, point: "4"/"3.5"/…"N", grading_student_id}]}]}`.
+- [ ] Kiểm workspace match trước khi ghi (như `attachLoFile`).
+- [ ] Sau khi ghi: gọi lại read → so sánh điểm vừa ghi với kết quả đọc về → báo "Đã ghi X/Y ô, Z ô lệch".
+- [ ] `callSsm` hiện chỉ GET → phải nhánh riêng cho POST trong `handle()` (method + body).
+- [ ] `ssmBridge.ts`: thêm `writeLoScoresToSsm()`.
+- [ ] Commit: `"feat(ssm): write LO scores via bridge with verification"`.
+
+### Task 6: Cập nhật tiện ích + phát hành
+- [ ] Bump version `manifest.json` (0.3.4 → 0.4.0 vì thêm write op).
+- [ ] Cập nhật `README.md` trong `extension/ssm-bridge/`.
+- [ ] Build zip → đặt vào `public/downloads/ssm-bridge.zip`.
+- [ ] Thông báo user cài lại extension.
+- [ ] Commit: `"chore(ssm): bump bridge to 0.4.0 with LO write ops"`.
+
+### Task 7: Verify E2E + build
+- [ ] `npm run build` pass (zero TS errors).
+- [ ] `npm run lint` pass.
+- [ ] Test toàn bộ suite: `npm --prefix "C:\Users\ADMIN\Downloads\spai-merge-main" run test -- --run`.
+- [ ] Thử thật: đăng nhập GV → mở tab SSM → chọn lớp 11Columbus → đọc LO tree → tính điểm → preview → ghi → kiểm trên SSM → đọc lại verify.
+- [ ] Commit: `"test(ssm): e2e verify LO push flow"`.
+
+### Chưa làm (YAGNI)
+- Tự động approve trên SSM: GV tự bấm "Gửi Phê Duyệt" trên SSM.
+- Ghi nhận xét môn (`PUT /v2/evaluation/subject-comments`): đợt sau.
+- Sync ngược điểm TDS SSM → app: item 4 cũ vẫn chờ Q1 có data.
+- Trọng số LO theo chương trình trường: user chọn giữ thô.

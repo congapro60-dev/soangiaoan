@@ -8,7 +8,8 @@ import { auth, db } from '../firebase';
 import { getLinkedGoogleEmail } from '../adminLink';
 import { ADMIN_EMAILS, isAdminEmail } from '../admin/adminConfig';
 
-export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm';
+export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm'
+  | 'evaluationQuarters' | 'criteriaAssessment' | 'classSubjectAssessment';
 
 // Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
 const PING_TIMEOUTS_MS = [2000, 8000] as const;
@@ -146,6 +147,20 @@ export const saveSsmLinkCloud = async (uid: string, classId: string, link: SsmCl
 };
 /** Fill only exact fields or the single editable field GV deliberately focused on SSM. */
 export const autofillSsmFields = (fields: {key:string;value:string}[], target: 'exact' | 'focused' = 'exact', classId?: string) => ssmRequest('autofillSsm', {fields,target,...writeScope(classId)}) as Promise<{filled:number;total:number}>;
+
+// ── Đợt 4: đọc cây điểm LO (TDS V2) — CHỈ ĐỌC. Trả JSON nguyên dạng SSM để app tự damp/ghi cache. ──
+
+/** 4 quý đánh giá của lớp×môn trong năm: đó là nơi tìm assessment_form_id + criteria_id. */
+export const readSsmEvaluationQuarters = (classId: number, subjectId: number, schoolYearId: number) =>
+  ssmRequest('evaluationQuarters', { classId, subjectId, schoolYearId });
+
+/** Cây FP → PS → LO + thang điểm của MỘT bài đánh giá (vd F1, IA1). */
+export const readSsmCriteriaAssessment = (assessmentFormId: number) =>
+  ssmRequest('criteriaAssessment', { assessmentFormId });
+
+/** Trạng thái chấm của bài đánh giá cho lớp: quarter_has_branch_id, result_assessment_form_id, is_approved… */
+export const readSsmClassSubjectAssessment = (assessmentFormId: number, criteriaId: number, classId: number) =>
+  ssmRequest('classSubjectAssessment', { assessmentFormId, criteriaId, classId });
 export const syncSsmRosterMissing = async (classId: string, students: {id:string;name:string;code:string}[]) => {
   const user = auth.currentUser;
   if (!user || user.isAnonymous) throw new Error('Đăng nhập giáo viên trước khi đồng bộ.');

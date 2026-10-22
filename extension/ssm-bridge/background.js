@@ -37,6 +37,27 @@ const OPS = {
     // API SSM phân trang mặc định 20 dòng — xin đủ cả lớp.
     return classId ? `v1/students/class/${classId}?skipPagination=true&page=1&limit=500` : null;
   },
+  // ── Đợt 4: đọc cây điểm LO (TDS V2) — CHỈ ĐỌC, để app tính điểm rồi GV xác nhận ghi. ──
+  evaluationQuarters: (p) => {
+    const classId = posInt(p?.classId);
+    const subjectId = posInt(p?.subjectId);
+    const schoolYearId = posInt(p?.schoolYearId);
+    return classId && subjectId && schoolYearId
+      ? `v3/evaluation/classes/${classId}/subjects/${subjectId}/quarters?school_year_id=${schoolYearId}`
+      : null;
+  },
+  criteriaAssessment: (p) => {
+    const formId = posInt(p?.assessmentFormId);
+    return formId ? `v2/evaluation/criteria-has-assessment-form/${formId}` : null;
+  },
+  classSubjectAssessment: (p) => {
+    const formId = posInt(p?.assessmentFormId);
+    const criteriaId = posInt(p?.criteriaId);
+    const classId = posInt(p?.classId);
+    return formId && criteriaId && classId
+      ? `v2/evaluation/class-subject-assessment?assessment_form_id=${formId}&criteria_id=${criteriaId}&class_id=${classId}`
+      : null;
+  },
 };
 
 const findSsmTab = async () => {
