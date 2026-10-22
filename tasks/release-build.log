@@ -1,0 +1,103 @@
+
+> site-creator-vinext-starter@0.1.0 build
+> node scripts/run-framework.mjs build
+
+
+  vinext build  (Vite 8.0.13)
+
+[1/5] analyze client references...
+[2K
+transforming...✓ 398 modules transformed.
+rendering chunks...
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - rsc:virtual-client-package (15%)
+  - vinext:og-inline-fetch-assets (14%)
+  - vinext:css-data-url (12%)
+  - alias (10%)
+  - vinext:validate-middleware-exports (6%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✓ built in 9.54s
+[2/5] analyze server references...
+[2K
+transforming...✓ 214 modules transformed.
+rendering chunks...
+✓ built in 2.61s
+[3/5] build rsc environment...
+[2K
+transforming...✓ 395 modules transformed.
+rendering chunks...
+computing gzip size...
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - rsc:virtual-client-package (14%)
+  - vinext:og-inline-fetch-assets (13%)
+  - vinext:css-data-url (11%)
+  - alias (8%)
+  - vinext:middleware-server-only (7%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✓ built in 5.41s
+[4/5] build client environment...
+[2K
+[plugin rolldown:vite-resolve] Module "node:crypto" has been externalized for browser compatibility, imported by "C:/Users/ADMIN/.codex/worktrees/universal-content-release/lib/lesson/generation-consent.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "node:crypto" has been externalized for browser compatibility, imported by "C:/Users/ADMIN/.codex/worktrees/universal-content-release/lib/lesson/schema.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+transforming...✓ 223 modules transformed.
+rendering chunks...
+computing gzip size...
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - vinext:og-inline-fetch-assets (27%)
+  - alias (9%)
+  - rsc:virtual-client-package (8%)
+  - vinext:middleware-server-only (6%)
+  - vinext:validate-middleware-exports (5%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✓ built in 4.27s
+[5/5] build ssr environment...
+[2K
+transforming...✓ 216 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 2.17s
+[0m
+  Route (app)
+  ┌ ? /                              
+  ├ λ /api/ai-settings               
+  ├ λ /api/escape                    
+  ├ λ /api/exam-play                 
+  ├ λ /api/exams                     
+  ├ λ /api/exams/extract             
+  ├ λ /api/hosts                     
+  ├ λ /api/lesson-classes            
+  ├ λ /api/lesson-content            
+  ├ λ /api/lesson-devices            
+  ├ λ /api/lesson-leagues            
+  ├ λ /api/lesson-sessions           
+  ├ λ /api/lesson-sessions/assessment
+  ├ λ /api/lesson-sessions/reports   
+  ├ λ /api/lessons                   
+  ├ λ /api/lessons/import            
+  ├ λ /api/lessons/proposal          
+  ├ λ /api/lessons/scope             
+  ├ λ /api/lessons/sources           
+  ├ λ /api/trash                     
+  ├ ƒ /exam                          
+  ├ ƒ /exams                         
+  ├ ƒ /hosts                         
+  ├ ƒ /learning-records              
+  ├ ƒ /lessons                       
+  ├ ƒ /lessons/new                   
+  ├ ? /passport                      
+  ├ ? /play                          
+  ├ ? /presenter                     
+  ├ ? /shared                        
+  └ ? /trash                         
+
+  λ API  ƒ Dynamic  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
