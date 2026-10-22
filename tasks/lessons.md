@@ -15,6 +15,10 @@
 
 - **Server thêm 1 field vào payload REST là phải đọc lại mọi assert `toEqual` trong test ở đúng nhánh đó** — `closed` (commit 7377728, "đóng bài 3 output") và test `student-adaptive.test.ts` ở `ea9266a` (nhánh T3B, trước khi merge) chạm nhau khi merge; full-suite fail nhưng chạy file riêng lại PASS. Test `submission-actors-feedback.test.ts` PASS khi chạy riêng, FAIL trong full-suite → chỉ là nhiễu chạy song song, không phải lỗi thật. Quy tắc khi full-suite fail: (1) chạy file riêng, (2) nếu riêng vẫn fail → kiểm `git log -S"<field>"` xem commit nào thêm vào, chạy lại trên `origin/main` bản trần; (3) nếu riêng PASS → chạy lại cả suite một lần nữa trước khi sửa gì. *(2026-10-22)*
 
+- **Import `.json` trong cây dùng chung client+serverless phải luôn kèm `with { type: 'json' }` ngay trong source** — @vercel/node transpile ESM từng file (không bundle), lệnh import còn nguyên khi Node load; Node ≥20.10/22 đòi attribute cho JSON module, thiếu là function crash `ERR_IMPORT_ATTRIBUTE_MISSING` ngay cold start → 500 HÀNG LOẠT mọi action (`/api/classroom` sập cả buổi 23/10 sau khi merge v8.8). `tsc`, vitest, `vite build` đều KHÔNG bắt được lỗi này; chỉ chạy chính builder `@vercel/node` cục bộ (hoặc đọc runtime log `npx vercel logs <deployment>`) mới thấy. Đừng trông vào transpiler giữ hộ: esbuild non-bundle `--target=es2022` trở xuống MẮT attribute, SWC của @vercel/node thì giữ. *(2026-10-23)*
+
+- **Full-suite fail vì hash fixture trên Windows là dữ liệu, không phải code** — `goldenCandidates.test.ts` so sha256 của bytes fixture; checkout Windows với `core.autocrlf=true` đổi LF→CRLF làm hash lệch (fail y hệt trên `origin/main` trần sau `git stash`, và không xảy ra trên Linux/Vercel). Quy tắc: trước khi sửa test so hash, `git stash` rồi chạy lại bản trần để tách môi trường khỏi code; muốn triệt để thì thêm `.gitattributes` với `tests/fixtures/** -text` (chưa làm trong phiên hotfix này). *(2026-10-23)*
+
 ---
 
 ## TypeScript
