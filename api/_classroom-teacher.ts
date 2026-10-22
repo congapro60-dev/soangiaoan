@@ -873,6 +873,15 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
     for (const key of ['answerKey', 'rubric', 'gradingInstructions', 'sourceText', 'teacherNote']) {
       if (typeof (raw as Body)[key] === 'string') patch[key] = (raw as Body)[key];
     }
+    // Sửa/thêm MÃ ĐỀ + ĐÁP ÁN của bài kiểm tra định kì (thầy cô sửa sau khi đã giao).
+    if (Array.isArray((raw as Body).examVariants)) {
+      if (!found.assignment.periodicTest) return void res.status(422).json({ error: 'Chỉ bài kiểm tra định kì mới có mã đề.' });
+      const variants = sanitizeExamVariants((raw as Body).examVariants);
+      if (variants.length === 0) return void res.status(422).json({ error: 'Bài kiểm tra định kì cần ít nhất một mã đề có đáp án.' });
+      const thieuDapAn = variants.filter(variant => !variant.answerKey.trim()).map(variant => variant.code);
+      if (thieuDapAn.length) return void res.status(422).json({ error: `Mã đề ${thieuDapAn.join(', ')} chưa có đáp án.` });
+      patch.examVariants = variants;
+    }
   } else if (action === 'updateAssignmentDeadline') {
     if (body.dueAt !== null && typeof body.dueAt !== 'string') return void res.status(422).json({ error: 'Hạn nộp không hợp lệ.' });
     patch.dueAt = body.dueAt || null;

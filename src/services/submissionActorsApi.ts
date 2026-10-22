@@ -37,4 +37,6 @@ export const annotateSubmissionPhotos = (credentials: SubmissionActorCredentials
 
 export const saveHandMarkedWork = (credentials: SubmissionActorCredentials, submissionId: string, uploadGrantId: string, note?: string) => call<{ handMarkedEvidence: NonNullable<SubmissionDoc['handMarkedEvidence']>; handMarkedPublished: boolean }>('saveHandMarkedWork', credentials, { submissionId, uploadGrantId, note });
 export const setHandMarkedVisibility = (credentials: SubmissionActorCredentials, submissionId: string, expectedReviewId: string, published: boolean) => call<{ handMarkedPublished: boolean }>('setHandMarkedVisibility', credentials, { submissionId, expectedReviewId, published });
+/** Bài GV nộp hộ đã chấm tay: bật/ẩn ẢNH bài nộp với phụ huynh (HS vẫn xem bài của mình). */
+export const setSubmissionPhotosVisibility = (credentials: SubmissionActorCredentials, submissionId: string, published: boolean) => call<{ handMarkedPublished: boolean }>('setSubmissionPhotosVisibility', credentials, { submissionId, published });
 export const readHandMarkedFile = (credentials: SubmissionActorCredentials, submissionId: string, reviewId: string, fileId: string) => call<{ url: string; expiresAt: number }>('readHandMarkedFile', credentials, { submissionId, reviewId, fileId });

@@ -197,7 +197,7 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
+  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string; examVariants?: { code: string; sourceText?: string; answerKey: string }[] },
 ): Promise<void> => {
   await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };

@@ -29,12 +29,13 @@ import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { ActorSubmissionUpload } from './ActorSubmissionUpload';
+import { ExamVariantsEditor } from './ExamVariantsEditor';
 import { SubmissionFeedback } from './SubmissionFeedback';
 import { CorrectionAttempts } from './CorrectionAttempts';
 import { HandMarkedWork } from './HandMarkedWork';
 import { ClarifyPanel } from './student/ClarifyPanel';
 import { isActionableClarifyQuestion } from '../../../lib/classroom/clarification';
-import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos } from '../../../services/submissionActorsApi';
+import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos, setSubmissionPhotosVisibility } from '../../../services/submissionActorsApi';
 import { isBlankAnswer } from '../../../lib/classroom/questionRescore';
 import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
@@ -495,6 +496,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                   {assignment?.type !== 'exam' && assignment?.deliveryMode !== 'online' && <AnnotateSubmissionPhotosButton submission={s} disabled={gradingLockFresh || tienDo !== ''} onChanged={() => onRefresh?.()} />}
                   {assignment?.periodicTest && <PaperScoreButton submission={s} assignment={assignment} />}
                   {s.handMarkedPaper && s.handMarkedDeclaredBy !== 'teacher' && <PaperScoreAdoptButton submission={s} />}
+                  {s.handMarkedPaper && <HandMarkedPhotosButton submission={s} onChanged={() => onRefresh?.()} />}
                   <button
                     type="button"
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
@@ -1796,6 +1798,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         “Sửa điểm” ở bài của một em mã đó và sửa câu đó cho cả lớp — chỉ bài cùng mã được tính lại.
                         Điểm chính thức vẫn là điểm trong sổ điểm; bài này không cộng vào điểm BTVN.
                       </p>
+                      <ExamVariantsEditor assignment={a} onSaved={() => void taiBai()} />
                     </div>
                   )}
                   {!submissionsOnly && !a.periodicTest && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
@@ -2064,6 +2067,27 @@ export const PaperScoreAdoptButton = ({ submission }: { submission: SubmissionDo
         .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm.'))
         .finally(() => setBusy(false));
     }}>{busy ? 'Đang lưu…' : 'Dùng điểm GV ghi trên bài'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài GV nộp hộ đã chấm tay: ẢNH bài nộp chính là bài chấm tay (có điểm, chữ đỏ).
+ * Phụ huynh CHỈ được xem sau khi thầy cô bấm công bố; học sinh vẫn xem bài của mình.
+ */
+export const HandMarkedPhotosButton = ({ submission, onChanged }: { submission: SubmissionDoc; onChanged?: () => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const published = submission.handMarkedPublished === true;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>{published ? 'Đã cho phụ huynh xem bài chấm tay' : 'Phụ huynh chưa được xem bài chấm tay'}</span>
+    <button type="button" disabled={busy} onClick={() => {
+      setBusy(true); setMessage('');
+      void setSubmissionPhotosVisibility({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, !published)
+        .then(() => { setMessage(published ? 'Đã ẩn bài chấm tay với phụ huynh.' : 'Đã cho phụ huynh xem bài chấm tay.'); onChanged?.(); })
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được.'))
+        .finally(() => setBusy(false));
+    }} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50">{busy ? 'Đang lưu…' : published ? 'Ẩn với phụ huynh' : 'Cho phụ huynh xem'}</button>
     {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
   </div>;
 };
