@@ -22,7 +22,8 @@ import { getAdminStorage } from './_exam-core.js';
 import { getGradingApiKey } from './_grading-core.js';
 import { acquireCallHoldWaiting, recordImageUsage, releaseWalletHold, setAiKeyOwner } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
-import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
+import { classifyGeminiKeyFailure, rateLimitRetryMs } from '../src/lib/admin/aiKeyPolicy.js';
+import { moTaGioiHanPhut } from '../src/lib/httpErrorText.js';
 
 /** Imagen 4 (bản chuẩn) — giá/ảnh niêm yết trong `aiPricing.ts` để sao kê quy ra tiền. */
 const IMAGE_MODEL = 'imagen-4.0-generate-001';
@@ -167,6 +168,9 @@ export const handleGenerateImage = async (
       if (choice.source !== 'own' || !keyFailure) {
         return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
       }
+      // Khoá riêng chỉ bị giới hạn mỗi phút: không đánh dấu hết, không sang ví (trừ tiền oan) — báo đợi rồi thử lại.
+      const retryAfterMs = rateLimitRetryMs(Number((error as { status?: unknown }).status) || 0, detail);
+      if (retryAfterMs) return res.status(429).json({ error: moTaGioiHanPhut(retryAfterMs) });
       // Khoá riêng của giáo viên bị Google từ chối → chuyển khoá chung (nếu được phép) rồi thử lại.
       choice = await onOwnKeyFailure(choice, keyFailure, detail, fallbackKey);
       holdVnd = await acquire();

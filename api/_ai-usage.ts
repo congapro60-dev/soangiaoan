@@ -285,8 +285,14 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
   const usageRef = db.collection(AI_USAGE_COL).doc(randomUUID());
   const spendRef = db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month)));
   const walletRef = db.collection(AI_WALLETS_COL).doc(ownerUid);
-  const debit = o.charge?.chargeVnd ?? 0;
   await db.runTransaction(async transaction => {
+    // Ví KHÔNG BAO GIỜ âm: tiền giữ chỗ chỉ bằng số dư còn lại, nên lượt cuối có thể đắt hơn số dư. Trừ tối đa bằng số dư;
+    // phần thiếu chủ dự án chịu và ghi `uncoveredVnd` để sao kê tự giải thích. Đọc trong cùng giao dịch, trước mọi lần ghi.
+    const fullVnd = o.charge?.chargeVnd ?? 0;
+    const balanceVnd = fullVnd > 0 ? Math.max(0, Number((await transaction.get(walletRef)).data()?.balanceVnd) || 0) : 0;
+    const debit = Math.min(fullVnd, balanceVnd);
+    const charge = o.charge ? { chargeVnd: debit } : null;
+    if (debit < fullVnd) Object.assign(record, { chargeVnd: debit, uncoveredVnd: fullVnd - debit });
     transaction.set(usageRef, record);
     // Sổ chi tiêu tháng của giáo viên chịu phí — để hiện "đã dùng" và chặn khi chạm trần tự đặt.
     transaction.set(spendRef, {
@@ -295,8 +301,8 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
       costUsd: FieldValue.increment(o.costUsd),
       calls: FieldValue.increment(1),
       ...(o.images ? { images: FieldValue.increment(o.images) } : {}),
-      ...(o.charge ? { chargeVnd: FieldValue.increment(o.charge.chargeVnd) } : {}),
-      ...spendByDay(record.day, o.costUsd, o.charge),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      ...spendByDay(record.day, o.costUsd, charge),
       updatedAt: record.at,
     }, { merge: true });
     if (debit > 0 || o.holdVnd) {

@@ -48,3 +48,7 @@ export const moTaLoiHttp = (status: number, source = 'Máy chủ'): string =>
 /** "Gemini báo lỗi: đã hết hạn mức của khoá… (mã 429)." */
 export const moTaLoiDichVu = (status: number, source: string): string =>
   `${source} báo lỗi: ${PROVIDER_REASONS[status] ?? fallbackReason(status)} (mã ${status}).`;
+
+/** 429 chỉ vì gọi quá nhanh: khoá vẫn còn hạn mức, không bị trừ ví, chỉ cần đợi. */
+export const moTaGioiHanPhut = (retryAfterMs: number, source = 'Gemini'): string =>
+  `${source} báo lỗi: đang gọi quá nhanh, vượt giới hạn số lượt mỗi phút của khoá (khoá vẫn còn hạn mức, không bị trừ ví). Đợi khoảng ${Math.ceil(retryAfterMs / 1000)} giây rồi thử lại (mã 429).`;

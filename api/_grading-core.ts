@@ -6,7 +6,7 @@ import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKe
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure, rateLimitRetryMs, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
-import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
+import { moTaGioiHanPhut, moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -404,6 +404,9 @@ const callGeminiRawHeld = async (
     const detail = await res.clone().text().catch(() => '');
     const keyFailure = classifyGeminiKeyFailure(res.status, detail);
     if (!keyFailure) break;
+    // Chỉ gọi quá nhanh (giới hạn mỗi phút): khoá vẫn còn hạn mức. KHÔNG đánh dấu "hết" 60 phút, KHÔNG chuyển sang ví
+    // (GV sẽ bị trừ tiền oan) — báo lỗi kèm thời gian chờ ở dưới, lượt sau lại dùng khoá riêng.
+    if (rateLimitRetryMs(res.status, detail)) break;
     keyChoice = await onOwnKeyFailure(keyChoice, keyFailure, detail, apiKey);
   }
 
@@ -415,7 +418,7 @@ const callGeminiRawHeld = async (
     throw new GeminiResponseError(
       'http',
       retryAfterMs
-        ? `Gemini báo lỗi: đang gọi quá nhanh, vượt giới hạn số lượt mỗi phút của khoá (khoá vẫn còn hạn mức). Đợi khoảng ${Math.ceil(retryAfterMs / 1000)} giây rồi thử lại (mã 429).`
+        ? moTaGioiHanPhut(retryAfterMs)
         : moTaLoiDichVu(res.status, 'Gemini'),
       undefined,
       undefined,

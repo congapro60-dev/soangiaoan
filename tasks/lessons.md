@@ -545,3 +545,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
   OA. Keep Bot Platform and OA identities separate; neither authorizes access
   to existing friend/group chats. Never equate a working adapter with completed
   natural-language tools or a verified deployment.
+
+## 2026-10-22 — Tiền của giáo viên: không âm, không trừ oan, nạp phải dễ
+- Ví từng âm được một lượt (giữ chỗ kẹp theo số dư nhưng trừ đủ giá). Mọi chỗ trừ tiền phải đọc số dư trong cùng giao dịch và kẹp ở 0; phần thiếu ghi lại, không đẩy sang người dùng.
+- Lỗi tạm thời (429 theo phút) không được kích hoạt đường "chuyển sang ví": đánh dấu khoá hết + trừ ví là trừ tiền oan. Phân biệt lỗi tạm thời / hết thật trước khi động tới tiền.
+- Chủ dự án: "khó với lằng nhằng là người dùng bỏ qua, tôi không kiếm được tiền". Hết tiền → mở thẳng QR, tiền về tự chạy tiếp; lựa chọn phụ gập lại; nghĩ cả GV dùng điện thoại (không tự quét được QR trên chính máy).

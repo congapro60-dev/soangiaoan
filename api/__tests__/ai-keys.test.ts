@@ -213,8 +213,11 @@ describe('khoá AI + trần chi tiêu', () => {
       release();
       await first;
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      // Âm đúng MỘT lượt (không nhân theo số lượt song song); giữ chỗ đã được thay bằng số tiền thật
-      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 1_000 - 19_500, heldVnd: 0 });
+      // Ví KHÔNG âm: lượt đắt hơn số dư chỉ trừ hết số dư (về 0đ), phần thiếu chủ dự án chịu và ghi lại trên sao kê
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 0, heldVnd: 0 });
+      const usage = Object.entries(h.store).find(([path]) => path.startsWith('aiUsage/'))?.[1];
+      expect(usage).toMatchObject({ chargeVnd: 1_000, uncoveredVnd: 18_500 });
+      expect(h.store[`aiSpend/gv-ngoai_${month}`]).toMatchObject({ chargeVnd: 1_000 });
     });
 
     it('trần tháng cũng tính phần đang giữ chỗ: trần 1.000đ thì lượt song song thứ hai bị chặn, không cùng lọt qua', async () => {
@@ -380,6 +383,18 @@ describe('khoá AI + trần chi tiêu', () => {
       await expect(inRequest('gv-ngoai', () => callGeminiVision('chấm', [], OWNER_KEY))).rejects.toMatchObject({ reason: 'exhausted' });
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(h.store['teacherAiKeys/gv-ngoai']).toMatchObject({ keyStatus: 'exhausted' });
+      expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
+    });
+
+    it('CẢ HAI: khoá riêng chỉ bị giới hạn mỗi phút thì KHÔNG đánh dấu hết, KHÔNG sang ví, báo đợi bằng câu dễ hiểu', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'both' });
+      const fetchMock = vi.fn(async () => ({ ok: false, status: 429, clone: () => ({ text: async () => '{"quotaId":"GenerateRequestsPerMinutePerProjectPerModel"},{"retryDelay":"20s"}' }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      await expect(inRequest('gv-ngoai', () => callGeminiVision('chấm', [], OWNER_KEY))).rejects.toMatchObject({
+        retryAfterMs: 20_000, message: expect.stringContaining('không bị trừ ví'),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(h.store['teacherAiKeys/gv-ngoai'].keyStatus).toBe('ok');
       expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
     });
 

@@ -6,7 +6,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { acquireCallHoldWaiting, createAiUsageContext, geminiUsageCounts, recordAiUsage, releaseWalletHold, runWithAiUsage } from './_ai-usage.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
-import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
+import { classifyGeminiKeyFailure, rateLimitRetryMs } from '../src/lib/admin/aiKeyPolicy.js';
+import { moTaGioiHanPhut } from '../src/lib/httpErrorText.js';
 
 const GEMINI_MODEL = 'gemini-3.8-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
@@ -242,6 +243,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const detail = error instanceof Error ? error.message : String(error);
             const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
             if (choice.source !== 'own' || !keyFailure) throw error;
+            // Khoá riêng chỉ bị giới hạn mỗi phút: không đánh dấu hết, không sang ví (trừ tiền oan) — báo đợi rồi thử lại.
+            const retryAfterMs = rateLimitRetryMs(Number((error as { status?: unknown }).status) || 0, detail);
+            if (retryAfterMs) throw new Error(moTaGioiHanPhut(retryAfterMs));
             choice = await onOwnKeyFailure(choice, keyFailure, detail, apiKey);
             holdVnd = await acquire();
             generated = await generate(choice.key);
