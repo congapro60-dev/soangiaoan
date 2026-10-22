@@ -12,6 +12,17 @@ Kế hoạch hiện hành: `docs/superpowers/plans/2026-10-15-smartplan-producti
 - [ ] Browser E2E 5 luồng: công cụ không nhận tab phiên khác; tab QA Edge/IAB timeout. Chưa kiểm AI thật/nội dung mới/file xuất hiện tại.
 - [ ] Triển khai và nghiệm thu 12 gói trong kế hoạch; chưa sửa app, commit, push hoặc deploy ở lượt rà soát 19/10.
 
+## Xác nhận câu máy đọc chưa chắc: gửi một lượt — 22/10/2026
+
+Chủ dự án báo: bảng "Máy cần em xác nhận" bắt bấm "Xác nhận câu này" từng câu rồi mỗi câu chờ tải lại, làm 14 câu rất lâu; ảnh bài chấm chiếm nửa trên nên ô chọn đáp án bị đẩy khỏi màn hình.
+
+- [x] `ClarifyPanel`: đáp án nằm ở state của bảng (không phải từng ô), nút "Lưu tất cả" gửi MỌI câu đã trả lời trong MỘT lệnh `clarifyAnswers` (máy chủ đã chấm cả lượt trong một giao dịch, giới hạn 100 câu/lần).
+- [x] "Để thầy cô xem hết" gửi `skip` cả lượt; lỗi tách ra theo từng câu bị từ chối chứ không chặn cả lượt.
+- [x] Câu gõ A/B/C/D, Đúng/Sai, số xếp thành danh sách gọn (mỗi câu một dòng, không ảnh); câu tự luận (cần ảnh) đứng trên cùng; câu tự luận vẫn gửi ngay khi chụp/thử lại như cũ.
+- [x] Nháp vẫn ghi localStorage theo từng câu (đổi vai trò vẫn không lẫn nháp).
+- [x] Test: 5/5 `ClarifyPanel.test.tsx` (thêm test câu tự luận đứng trước danh sách đáp án), 46/46 thư mục `student/`, 39/39 `api/__tests__/clarify.test.ts` + `clarification.test.ts`; `npm run lint` (tsc) và `npm run build` sạch.
+- [ ] Chưa push/deploy: chờ chủ dự án xem trên bản chạy máy.
+
 ## Triển khai tiếp 21/10/2026
 
 - [x] Sửa 5 nhóm P1: cách ly UID, attempt server, scorer, dự giờ giữ dữ liệu, Rules chặn ghi trực tiếp.
