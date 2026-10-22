@@ -197,7 +197,7 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
+  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string; examVariants?: { code: string; sourceText?: string; answerKey: string }[] },
 ): Promise<void> => {
   await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };
@@ -336,8 +336,8 @@ export interface SubmitInput {
   teacherId: string;
   /** null = bài em tự nộp, không phải bài được giao. */
   assignmentId: string | null;
-  /** Ảnh dạng data URL. */
-  images: string[];
+  /** Ảnh bài làm (đã nén sẵn trên máy em). */
+  images: File[];
   /** File giữ nguyên (PDF/DOCX) để giáo viên mở bản gốc. */
   rawFiles?: File[];
   /** Chữ rút từ DOCX — đường chấm dùng khi không có ảnh. */
@@ -345,17 +345,16 @@ export interface SubmitInput {
   note?: string;
   /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
   supplementOf?: string;
+  /** Bài này thầy cô đã chấm tay rồi (máy đọc điểm GV ghi để thầy xác nhận). */
+  handMarked?: boolean;
 }
 
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
   if (!auth.currentUser) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
-  const imageFiles = await Promise.all(input.images.map(async (dataUrl, index) => {
-    const blob = await (await fetch(dataUrl)).blob();
-    return new File([blob], `Ảnh bài làm ${index + 1}.${blob.type.split('/')[1] || 'jpg'}`, { type: blob.type || 'image/jpeg' });
-  }));
-  const files = [...imageFiles, ...(input.rawFiles || [])];
+  const files = [...input.images, ...(input.rawFiles || [])];
   if (!files.length) throw new Error('Chưa chọn bài làm để nộp.');
   const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
   return (await submitActorSubmission({ role: 'student' }, { assignmentId: input.assignmentId, uploadGrantId,
-    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent })).submission;
+    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent,
+    ...(input.handMarked ? { handMarked: true } : {}) })).submission;
 };

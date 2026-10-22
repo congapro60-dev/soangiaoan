@@ -1,7 +1,7 @@
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import { handMarkedProjection } from './_hand-marked-work.js';
 import type { VercelResponse } from '@vercel/node';
-import { projectPhotoMarks, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
+import { projectPhotoMarks, projectPhotoSteps, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import {
   canLeaveClass,
@@ -205,6 +205,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             ...(item.photoMarksCleared === true ? { photoMarksCleared: true } : {}),
             ...(projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
               ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
+            ...(projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { photoSteps: projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
             ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
             ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
           }))
@@ -906,6 +907,15 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return void res.status(422).json({ error: 'Nội dung cập nhật không hợp lệ.' });
     for (const key of ['answerKey', 'rubric', 'gradingInstructions', 'sourceText', 'teacherNote']) {
       if (typeof (raw as Body)[key] === 'string') patch[key] = (raw as Body)[key];
+    }
+    // Sửa/thêm MÃ ĐỀ + ĐÁP ÁN của bài kiểm tra định kì (thầy cô sửa sau khi đã giao).
+    if (Array.isArray((raw as Body).examVariants)) {
+      if (!found.assignment.periodicTest) return void res.status(422).json({ error: 'Chỉ bài kiểm tra định kì mới có mã đề.' });
+      const variants = sanitizeExamVariants((raw as Body).examVariants);
+      if (variants.length === 0) return void res.status(422).json({ error: 'Bài kiểm tra định kì cần ít nhất một mã đề có đáp án.' });
+      const thieuDapAn = variants.filter(variant => !variant.answerKey.trim()).map(variant => variant.code);
+      if (thieuDapAn.length) return void res.status(422).json({ error: `Mã đề ${thieuDapAn.join(', ')} chưa có đáp án.` });
+      patch.examVariants = variants;
     }
   } else if (action === 'updateAssignmentDeadline') {
     if (body.dueAt !== null && typeof body.dueAt !== 'string') return void res.status(422).json({ error: 'Hạn nộp không hợp lệ.' });

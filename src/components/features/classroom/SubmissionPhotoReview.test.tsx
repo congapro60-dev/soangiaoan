@@ -34,13 +34,13 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
   it('22 vùng gần nhau chỉ hiện số trên câu đang chọn, các vùng khác dùng chấm nhỏ và vẫn có nút 44px', () => {
     const results = Array.from({ length: 22 }, (_, i) => row([{ ...mark, y: .1 + i * .025 }], { questionNumber: `Câu ${i + 1}` }));
     const initial = render(results);
-    expect(initial.match(/h-2 w-2/g)).toHaveLength(22);
+    expect(initial.match(/h-4 w-4/g)).toHaveLength(22);
     expect(initial.match(/aria-label="Dấu /g)).toHaveLength(22);
     expect(initial.match(/absolute flex h-11 w-11/g)).toHaveLength(22);
     view.active = 5;
     const selected = render(results);
     expect(selected.match(/h-6 w-6/g)).toHaveLength(1);
-    expect(selected.match(/h-2 w-2/g)).toHaveLength(21);
+    expect(selected.match(/h-4 w-4/g)).toHaveLength(21);
     expect(selected).toContain('Dấu 6 · Câu 6');
     expect(selected).toContain('>6</span>');
     expect(selected.match(/<ellipse/g)).toHaveLength(22);
@@ -149,5 +149,32 @@ describe('dấu đỏ trên đúng ảnh gốc', () => {
     const html = renderToStaticMarkup(<SubmissionPhotoReview imageUrl={url} imageUrls={[url, other]} selectedQuestion="Câu 2" alt="Bài" approved questionResults={[question]} />);
     expect(html).toContain('Trang ảnh'); expect(html).toContain('2/2'); expect(html).toContain('PRIVATE EXPLANATION');
     expect(validPhotoRegion({ ...mark, imageUrl: undefined }, [url])).toBe(false);
+  });
+});
+
+describe('bút đỏ từng bước trên ảnh', () => {
+  const line = { imageIndex: 1, imageUrl: url, x: .1, y: .3, width: .6, height: .05, confidence: .9 };
+  const stepped = row([mark], { status: 'partially_correct', score: .375, maxScore: .75, photoSteps: [
+    { text: 'Đặt ẩn', verdict: 'correct', score: .25, maxScore: .25, mark: line },
+    { text: 'Đối chiếu điều kiện', verdict: 'partial', score: .125, maxScore: .25, note: 'Loại x = −19 vì x > 0', mark: { ...line, y: .5 } },
+    { text: 'Kết luận', verdict: 'wrong', score: 0, maxScore: .25, note: 'Rộng 5m, dài 19m', mark: { ...line, y: .7 } },
+  ] });
+  const html = (results: QuestionResult[], approved = true) => renderToStaticMarkup(
+    <SubmissionPhotoReview imageUrl={url} alt="Ảnh" questionResults={results} approved={approved} grade={{ score: 1.125, maxScore: 1.5 } as never} />);
+  it('Đ/S + điểm ngang dòng, lời sửa dưới dòng sai, tổng điểm góc ảnh; thay khoanh cả câu', () => {
+    const out = html([stepped]);
+    expect(out).toContain('>Đ 0,25<');
+    expect(out).toContain('>Thiếu 0,125<');
+    expect(out).toContain('>S 0<');
+    expect(out).toContain('Loại x = −19 vì x &gt; 0');
+    expect(out).toContain('Điểm: 1,125/1,5');
+    expect(out.match(/<line /g)).toHaveLength(2);
+    expect(out).not.toContain('<ellipse');
+  });
+  it('tổng bước lệch điểm câu (GV đã sửa điểm) → về khoanh cả câu như cũ; chưa duyệt HS không thấy', () => {
+    const out = html([{ ...stepped, score: .5 }]);
+    expect(out).not.toContain('Thiếu 0,125');
+    expect(out).toContain('<ellipse');
+    expect(html([stepped], false)).not.toContain('Loại x');
   });
 });

@@ -9,4 +9,21 @@ describe('nộp hộ qua quyền hiện có', () => {
     const locked = renderToStaticMarkup(<ActorSubmissionUpload credentials={credentials} assignmentId="assignment" locked onSubmitted={() => undefined} onClose={() => undefined} />);
     expect(locked).toContain('GV đã khóa chốt'); expect(locked).not.toContain('type="file"'); expect(locked).toContain('Đóng');
   });
+
+  it('GV nộp bài đã chấm hiển thị giao diện và nút Nộp bài đã chấm', () => {
+    const credentials = { role: 'teacher' as const, classId: 'c1', studentId: 's1' };
+    const html = renderToStaticMarkup(<ActorSubmissionUpload credentials={credentials} assignmentId="assignment" handMarked={true} onSubmitted={() => undefined} />);
+    expect(html).toContain('Nộp bài đã chấm tay của học sinh');
+    expect(html).toContain('Nộp bài đã chấm');
+    expect(html).toContain('AI sẽ tự đọc điểm ghi tay');
+  });
+
+  it('trên điện thoại: có nút CHỤP ẢNH riêng (mở thẳng camera) + nút chọn ảnh/PDF', () => {
+    const credentials = { role: 'teacher' as const, classId: 'c1', studentId: 's1' };
+    const html = renderToStaticMarkup(<ActorSubmissionUpload credentials={credentials} assignmentId="assignment" onSubmitted={() => undefined} />);
+    expect(html).toContain('Chụp ảnh');
+    expect(html).toContain('capture="environment"');
+    expect(html).toContain('Chọn ảnh / PDF');
+    expect(html).toContain('multiple=""');
+  });
 });

@@ -3,8 +3,11 @@
 // Vì sao cần: điện thoại hiện đại chụp JPEG 3–12MB trong khi storage.rules chỉ nhận
 // `request.resource.size < 6 * 1024 * 1024`, và ảnh khổ lớn làm lượt gọi AI chấm tốn token hơn
 // nhiều mà không tăng độ chính xác đọc chữ. Resize về tối đa MAX_CANH pixel là đủ máy đọc.
-
-export const MAX_CANH = 1600;
+//
+// 1536 = 2 × 768: Gemini chia ảnh thành ô vuông 768px, nên ảnh dài cạnh ≤ 1536px chỉ tốn
+// 4 ô (≈1.032 token) thay vì 6 ô (≈1.548) của mốc 1600 cũ — tiết kiệm ~33% token ảnh mà
+// vẫn giữ gần như trọn độ sắc nét (nét bút đỏ của giáo viên vẫn đọc được).
+export const MAX_CANH = 1536;
 export const JPEG_QUALITY = 0.82;
 /** Phải khớp mốc 6MB trong storage.rules (`homework/{uid}` và `student-uploads`). */
 export const GIOI_HAN_BYTE_STORAGE = 6 * 1024 * 1024;
@@ -103,6 +106,56 @@ export const nenAnhBaiLam = async (file: File): Promise<string> => {
   const ketQua = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
   if ('close' in nguon) nguon.close();
   return ketQua;
+};
+
+/**
+ * Nén thẳng ra File (KHÔNG đi qua base64) — nhanh hơn nhiều trên điện thoại.
+ *
+ * `nenAnhBaiLam` trả data URL rồi code phải `atob` + `Uint8Array.from` ngược lại: với ảnh
+ * 2–3 MB là hàng triệu ký tự base64, thao tác đó chạy trên main thread và làm Safari
+ * iOS "treo" (không vẽ được khung hình). Ở đây dùng `canvas.toBlob` → Blob → File, không
+ * có chuỗi base64 nào.
+ *
+ * Nén xong mà ảnh rỗng/hỏng (ví dụ HEIC mà trình duyệt không giải mã được) thì GIỮ bản
+ * gốc — tốt hơn là tải lên một tấm ảnh trắng.
+ */
+export const nenAnhBaiLamToFile = async (file: File): Promise<File> => {
+  let nguon: NguonVe;
+  try {
+    nguon = await giaiMaAnh(file);
+  } catch {
+    if (file.size < GIOI_HAN_BYTE_STORAGE) return file;
+    throw new Error(
+      'Ảnh ở định dạng HEIC và quá nặng để tải lên. Em vào Cài đặt → Máy ảnh → Định dạng, chọn "Tương thích nhất" rồi chụp lại bài nhé.',
+    );
+  }
+
+  const goc = kichThuocCua(nguon);
+  const moi = tinhKichThuocMoi(goc.w, goc.h);
+  const canvas = document.createElement('canvas');
+  canvas.width = moi.w;
+  canvas.height = moi.h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    if ('close' in nguon) nguon.close();
+    throw new Error('Trình duyệt này chưa hỗ trợ xử lý ảnh. Thử trình duyệt khác giúp em nhé.');
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, moi.w, moi.h);
+  ctx.drawImage(nguon as CanvasImageSource, 0, 0, moi.w, moi.h);
+  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+  if ('close' in nguon) nguon.close();
+  // Ảnh nén ra quá nhỏ = giải mã hỏng (ảnh trắng). Giữ bản gốc cho an toàn.
+  if (!blob || blob.size < 1024) return file;
+  const ten = file.name.replace(/\.[^.]+$/, '') || 'anh';
+  return new File([blob], `${ten}.jpg`, { type: 'image/jpeg' });
+};
+
+/** Data URL (pdf.js, canvas cũ) → File. Chỉ dùng khi không còn cách nào khác. */
+export const dataUrlToFile = (dataUrl: string, name: string): File => {
+  const match = /^data:([^;,]+);base64,(.+)$/s.exec(String(dataUrl || '').trim());
+  if (!match) throw new Error('Không tạo được ảnh bài làm. Chọn ảnh rồi thử lại.');
+  return new File([Uint8Array.from(atob(match[2]), value => value.charCodeAt(0))], name, { type: match[1] });
 };
 
 /** Dịch lỗi nộp bài (Storage/Firestore/mạng) thành câu tiếng Việt nói đúng nguyên nhân. */

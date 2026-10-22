@@ -117,7 +117,7 @@ const stubGeminiResponses = (...responses: ReturnType<typeof makeGeminiResponse>
   const promptTexts: string[] = [];
   h.fetch = vi.fn(async (_url: unknown, init?: { body?: unknown }) => {
     const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
-    const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
+    const prompt = request.contents?.[0]?.parts?.filter(part => typeof part.text === 'string').map(part => part.text).join('\n');
     promptTexts.push(typeof prompt === 'string' ? prompt : '');
     return responses[Math.min(index++, responses.length - 1)];
   });
@@ -133,7 +133,7 @@ const stubImageThenGeminiResponses = (...responses: ReturnType<typeof makeGemini
       return makeImageResponse();
     }
     const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
-    const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
+    const prompt = request.contents?.[0]?.parts?.filter(part => typeof part.text === 'string').map(part => part.text).join('\n');
     promptTexts.push(typeof prompt === 'string' ? prompt : '');
     return responses[Math.min(geminiIndex++, responses.length - 1)];
   });
@@ -222,7 +222,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     const prompts:string[]=[];
     vi.stubGlobal('fetch',vi.fn(async(url:unknown,init?:{body?:unknown})=>{
       if(String(url).startsWith('https://storage.test/'))return makeImageResponse();
-      prompts.push(String((JSON.parse(String(init?.body||'{}')) as GeminiRequestBody).contents?.[0]?.parts?.find(p=>typeof p.text==='string')?.text));
+      prompts.push(String((JSON.parse(String(init?.body||'{}')) as GeminiRequestBody).contents?.[0]?.parts?.filter(p=>typeof p.text==='string').map(p=>p.text).join('\n')));
       return makeGeminiResponse(JSON.stringify({questions:[{questionNumber:'Câu 1',photoMarks:[{imageIndex:1,x:.1,y:.2,width:.3,height:.1,confidence:.95}],readingRegions:[]}]}));
     }));
     const {response,state}=makeResponse();
@@ -295,7 +295,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       if (String(url).endsWith('original.pdf')) return { ...makeImageResponse(), headers: { get: () => 'application/pdf' } };
       if (String(url).endsWith('actual.jpg')) return makeImageResponse();
       const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
-      promptTexts.push(String(request.contents?.[0]?.parts?.find(p => typeof p.text === 'string')?.text));
+      promptTexts.push(String(request.contents?.[0]?.parts?.filter(p => typeof p.text === 'string').map(p => p.text).join('\n')));
       return makeGeminiResponse(JSON.stringify({ ...JSON.parse(validGradeJson(0)), questionResults: [row] }));
     });
     vi.stubGlobal('fetch', h.fetch);
@@ -307,14 +307,18 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(promptTexts).toHaveLength(1);
     expect(promptTexts[0]).toContain('imageIndex 1..1');
   });
-  it('locates missing regions in a separate pass without replacing the grade', async () => {
+  it('chấm xong KHÔNG tự gọi thêm lượt vẽ dấu (đắt token nhất); giáo viên bấm "Bổ sung dấu" mới định vị vùng', async () => {
     const harness=seed(); harness.state.submissions['sub-1'].fileUrls=['https://storage.test/actual.jpg']; h.db=makeDb(harness);
     const row={questionNumber:'Câu 1',status:'correct',score:10,maxScore:10,studentAnswer:'B',expectedAnswer:'B',errorType:'',explanation:'Đúng',correction:'',nextPractice:'',confidence:1,needsTeacherReview:false};
     const mark={imageIndex:1,x:.1,y:.2,width:.2,height:.1,confidence:.95};
     const prompts=stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({...JSON.parse(validGradeJson(10)),questionResults:[row]})),makeGeminiResponse(JSON.stringify({questions:[{questionNumber:'Câu 1',photoMarks:[mark]}]})));
     expect((await call({action:'gradeOne',submissionId:'sub-1'})).statusCode).toBe(200);
+    // MỘT lượt gọi Gemini cho lượt chấm: không còn lượt vẽ dấu tự động sau khi chấm.
+    expect(prompts).toHaveLength(1);
     const grade=harness.state.submissions['sub-1'].grade as any;
-    expect(grade.score).toBe(10);expect(grade.questionResults[0].photoMarks[0].imageUrl).toBe('https://storage.test/actual.jpg');expect(prompts[1]).toContain('KHÔNG chấm lại');
+    expect(grade.score).toBe(10);
+    // Câu chưa có vùng vẫn giữ điểm; định vị vùng là việc khi giáo viên bấm, không phải lúc chấm.
+    expect(grade.questionResults[0].photoMarks).toBeUndefined();
   });
 
   it('AI chấm lại lưu grade cũ vào history và kết quả mới chưa duyệt', async () => {

@@ -185,6 +185,30 @@ describe('gradeOne · trần thời gian và trần token', () => {
     expect(String(lanHai.contents?.[0]?.parts?.[0]?.text)).toMatch(/viết GỌN|quá dài/i);
   });
 
+  it('GV xin chấm NỀN (điện thoại): trả lời ngay, chấm tiếp ở nền — thầy không phải đứng chờ AI', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    h.uid = 'gv-1';
+    h.db = makeDb(harness);
+    vi.stubGlobal('fetch', vi.fn(async () => geminiOk(validGradeJson)));
+
+    const nen: Promise<unknown>[] = [];
+    (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] = {
+      get: () => ({ waitUntil: (promise: Promise<unknown>) => { nen.push(promise); } }),
+    };
+
+    try {
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1', background: true });
+      expect(result.statusCode).toBe(202);
+      expect(result.body).toMatchObject({ pending: true });
+      expect(nen).toHaveLength(1);
+      await Promise.all(nen);
+      expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
+    } finally {
+      delete (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')];
+    }
+  });
+
   it('học sinh tự chấm: trả lời NGAY rồi chấm ngầm, em tắt máy vẫn ra điểm', async () => {
     const harness = seed();
     harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };

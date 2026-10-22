@@ -41,7 +41,7 @@ export const publishedHandMarkedImages = async (db: Db, submission: SubmissionDo
   return Promise.all(paths.map(async path => (await getAdminStorage().file(path).getSignedUrl({version:'v4',action:'read',expires:Date.now()+60000}))[0]));
 };
 export const handleHandMarkedWorkAction = async (db: Db, body: Data, res: VercelResponse): Promise<boolean> => {
-  if (!['saveHandMarkedWork', 'setHandMarkedVisibility', 'readHandMarkedFile'].includes(body.action)) return false;
+  if (!['saveHandMarkedWork', 'setHandMarkedVisibility', 'setSubmissionPhotosVisibility', 'readHandMarkedFile'].includes(body.action)) return false;
   try {
     res.setHeader('Cache-Control', 'no-store');
     const auth = await authorizeSubmissionActor(db, body, res); if (!auth) return true;
@@ -80,6 +80,20 @@ export const handleHandMarkedWorkAction = async (db: Db, body: Data, res: Vercel
         tx.create(db.collection('submissionHandMarkedAudit').doc(randomUUID()), { submissionId, reviewId, action: body.published ? 'publish' : 'unpublish', actor: actorStamp(actor, now), at: now });
       });
       res.status(200).json({ handMarkedPublished: body.published }); return true;
+    }
+    if (body.action === 'setSubmissionPhotosVisibility') {
+      // Bài GV nộp hộ đã chấm tay: ẢNH BÀI NỘP chính là bài chấm tay. Mặc định PH chưa được
+      // xem (phải bấm nút công bố), HS vẫn xem bài của chính mình.
+      const published = body.published === true;
+      await db.runTransaction(async tx => {
+        const latest = await current(db, tx, actor, submissionId);
+        if (actor.role !== 'teacher') fail(403, 'Chỉ giáo viên được công bố bài chấm tay.');
+        if (!latest.handMarkedPaper) fail(409, 'Bài này không phải bài đã chấm tay.');
+        const now = new Date().toISOString();
+        tx.update(ref, { handMarkedPublished: published, handMarkedPublishedAt: now, handMarkedPublishedBy: actor.uid!, updatedAt: now });
+        tx.create(db.collection('submissionHandMarkedAudit').doc(randomUUID()), { submissionId, action: published ? 'publish' : 'unpublish', actor: actorStamp(actor, now), at: now });
+      });
+      res.status(200).json({ handMarkedPublished: published }); return true;
     }
     const reviewId = id(body.reviewId), fileId = id(body.fileId);
     const readPath = async (tx: FirebaseFirestore.Transaction) => {

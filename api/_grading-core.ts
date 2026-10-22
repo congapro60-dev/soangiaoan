@@ -183,6 +183,33 @@ export const getGradingApiKey = (): string => {
 // Doi model = sua dong nay roi deploy, de trang thai that luon nam trong git.
 export const GRADING_MODEL = 'gemini-3.8-flash';
 
+/**
+ * Model cho VIỆC PHỤ (đọc mã đề trên ảnh, tách danh mục câu hỏi): nhẹ hơn hẳn model chấm
+ * chính nên rẻ hơn nhiều, mà hai việc này không cần suy luận sâu.
+ *
+ * Nếu khoá của lớp không dùng được model này thì `callUtilityVision` lùi về model chấm
+ * chính — không bao giờ để lượt chấm hỏng vì tiết kiệm token.
+ */
+export const UTILITY_MODEL = 'gemini-2.5-flash-lite';
+
+/**
+ * Tách prompt thành phần CỐ ĐỊNH và phần ĐỔI theo từng học sinh.
+ *
+ * Gemini cache tiền tố (implicit prompt caching) cho phần đầu request giống hệt nhau:
+ * phần cố định (đề, đáp án, luật chấm) + ảnh đề/đáp án đặt trước mọi phần đổi theo em, thì
+ * cả lớp chấm chung một cache — 39/40 bài chỉ trả giá đọc cache thay vì đọc lại từ đầu.
+ */
+export interface GeminiPromptSegment {
+  /** Chữ cố định cho cả lớp. Đặt TRƯỚC mọi phần động để được cache. */
+  prefix: string;
+  /** Ảnh cố định cho cả lớp (ảnh đề, ảnh đáp án) — đặt ngay sau prefix. */
+  prefixImages?: InlineImage[];
+  /** Chữ đổi theo từng học sinh (bài làm dạng chữ, số ảnh bài làm). */
+  suffix: string;
+  /** Ảnh bài làm của học sinh. */
+  suffixImages?: InlineImage[];
+}
+
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
   const match = /^data:([^;,]+);base64,(.+)$/.exec(String(dataUrl || '').trim());
@@ -283,10 +310,11 @@ export const callGeminiRaw = async (
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
 ): Promise<{ text: string; finishReason?: string }> => {
   const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
   try {
-    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold);
+    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold, segment);
   } finally {
     // Đã giữ chỗ tiền mà lượt gọi hỏng TRƯỚC khi tới bước ghi/trừ tiền (lỗi mạng, Google từ chối…) thì trả lại phần giữ.
     if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
@@ -309,6 +337,7 @@ const callGeminiRawHeld = async (
   model: string,
   options: GeminiOptions,
   hold: CallHold,
+  segment?: GeminiPromptSegment,
 ): Promise<{ text: string; finishReason?: string }> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
@@ -362,10 +391,19 @@ const callGeminiRawHeld = async (
           body: JSON.stringify({
             contents: [{
               role: 'user',
-              parts: [
-                { text: prompt },
-                ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-              ],
+              parts: segment
+                // Thứ tự parts = thứ tự token của request. Phần cố định (chữ + ảnh đề/đáp án)
+                // đứng trước phần đổi theo học sinh để Gemini cache được tiền tố đó cho cả lớp.
+                ? [
+                  ...(segment.prefix ? [{ text: segment.prefix }] : []),
+                  ...(segment.prefixImages ?? []).map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                  ...(segment.suffix ? [{ text: segment.suffix }] : []),
+                  ...(segment.suffixImages ?? []).map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                ]
+                : [
+                  { text: prompt },
+                  ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                ],
             }],
             generationConfig,
             ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
@@ -473,8 +511,10 @@ export const callGeminiVision = async (
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
+  /** Khi có: dùng đúng các parts này (prefix cố định trước, phần đổi theo học sinh sau) thay cho prompt+images. */
+  segment?: GeminiPromptSegment,
 ): Promise<string> => {
-  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options);
+  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options, segment);
   const hasText = text.trim().length > 0;
 
   if (finishReason === 'MAX_TOKENS') {
@@ -510,4 +550,29 @@ export const callGeminiVision = async (
   }
 
   return text;
+};
+
+/**
+ * Gọi model RẺ cho việc phụ (đọc mã đề, tách danh mục câu).
+ *
+ * Chỉ lùi về model chấm chính khi Google TỪ CHỐI model rẻ (mã 400: model không dùng được
+ * với khoá này). 429/hết hạn mức thì KHÔNG lùi — lùi chỉ tốn thêm một lượt gọi đắt tiền
+ * trong khi nguyên nhân vẫn là hết hạn mức.
+ */
+export const callUtilityVision = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  options: GeminiOptions = {},
+): Promise<string> => {
+  try {
+    return await callGeminiVision(prompt, images, apiKey, UTILITY_MODEL, options);
+  } catch (error) {
+    const modelBiTuChoi = error instanceof GeminiResponseError
+      && error.kind === 'http'
+      && /\(mã 400\)/.test(error.message);
+    if (!modelBiTuChoi) throw error;
+    console.warn('[gemini] model phụ bị Google từ chối, dùng model chấm chính:', error.message);
+    return await callGeminiVision(prompt, images, apiKey, GRADING_MODEL, options);
+  }
 };

@@ -40,6 +40,22 @@ it('PH sees only published hand-marked files and can submit a correction under p
   expect(html).toContain('Bản chấm tay của giáo viên'); expect(html).toContain('Đã chấm.pdf'); expect(html).toContain('Nộp hộ bài chữa / làm lại'); expect(html).not.toContain('secret');
 });
 
+it('bài GV nộp hộ đã chấm tay: phụ huynh CHƯA được xem ảnh cho tới khi thầy cô bấm công bố', () => {
+  const base = { id:'s',studentId:'child',classId:'c',teacherId:'t',assignmentId:'a',status:'graded',fileUrls:['https://storage.test/bai-cham-tay.jpg'],note:'',createdAt:'',updatedAt:'',grade:{score:8,maxScore:10,teacherApproved:true,feedback:'',strengths:[],weaknesses:[],gradedAt:''} };
+  const chuaCongBo = { ...base, handMarkedPaper:true, handMarkedPublished:false } as unknown as SubmissionDoc;
+  const daCongBo = { ...base, handMarkedPaper:true, handMarkedPublished:true } as unknown as SubmissionDoc;
+  const assignmentHandMarked = { ...assignment, id:'a' };
+  state.values = [[assignmentHandMarked], [chuaCongBo], '', 1, { assignment: assignmentHandMarked, submissions:[chuaCongBo] }, 'a', null, '', false, 0];
+  const html = renderToStaticMarkup(<ParentAssignmentWorkspace credentials={{role:'parent',joinCode:'private',studentId:'child',pin:'secret'}}/>);
+  expect(html).toContain('Thầy cô chưa công bố ảnh bài chấm cho phụ huynh xem');
+  expect(html).not.toContain('bai-cham-tay.jpg');
+  state.values = [[assignmentHandMarked], [daCongBo], '', 1, { assignment: assignmentHandMarked, submissions:[daCongBo] }, 'a', null, '', false, 0];
+  state.index = 0;
+  const html2 = renderToStaticMarkup(<ParentAssignmentWorkspace credentials={{role:'parent',joinCode:'private',studentId:'child',pin:'secret'}}/>);
+  expect(html2).toContain('bai-cham-tay.jpg');
+  expect(html2).not.toContain('Thầy cô chưa công bố');
+});
+
 describe('phụ huynh · tự làm mới khi chờ chấm', () => {
   const sub = (id: string, createdAt: string, status: SubmissionDoc['status']) => ({ id, createdAt, status } as SubmissionDoc);
   it('chỉ xét lượt mới nhất: bài cũ kẹt "Đã nộp" không làm trang hỏi máy chủ mãi', () => {
