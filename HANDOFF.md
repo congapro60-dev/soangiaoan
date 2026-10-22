@@ -51,6 +51,23 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
   - Khi triển khai backend V8.8 lên Vercel, các hàm xử lý phòng học trong `_v832-runtime.ts` và `_v84-runtime.ts` cần được cấu hình đúng chuẩn ESM module resolution (`tsconfig.api.json`).
   - Dữ liệu bài mẫu 11T38 đã có sẵn tại `tests/fixtures/v832/11T38.lesson-ir-v8.3.2.validated.json`.
 
+## Bảng "Máy cần em xác nhận": gửi MỘT lượt thay vì xác nhận từng câu — 22/10 (opencode)
+
+Chủ dự án báo (kèm ảnh chụp production): bài "Thi giữa HK1" còn **14 câu** chờ xác nhận, mỗi câu phải bấm "Xác nhận câu này" rồi chờ tải lại — 14 lần chờ cho một bài. Ảnh bài chấm chiếm nửa trên thẻ nên ô chọn A/B/C/D bị đẩy khỏi màn hình phải cuộn.
+- **Đổi ở `ClarifyPanel.tsx` (CHỈ client, không đụng API):** đáp án gom vào state của bảng (`drafts`, vẫn ghi `localStorage` theo từng câu nên tải lại trang không mất), nút **"Lưu tất cả (n/tổng)"** gửi MỌI câu đã trả lời trong **một** lệnh `clarifyAnswers`. Máy chủ vốn đã chấm cả mảng trong một giao dịch (`api/_clarify.ts`, trần 100 câu/lượt) — trước đây client chỉ gửi mảng 1 phần tử. "Để thầy cô xem hết" gửi `skip` cả lượt. Lỗi hiện theo từng câu bị từ chối (`rejected[]`), không chặn cả lượt.
+- **Bố cục:** câu tự luận (`kind: 'photo'`, cần ảnh) đứng **trên cùng**; câu trắc nghiệm / đúng-sai / trả lời ngắn xếp thành danh sách gọn kèm đếm "(đã chọn n/tổng)". Câu tự luận vẫn gửi ngay khi chụp/thử lại (ảnh phải lên storage riêng từng câu), không gộp vào nút lưu.
+- **Giả định ngầm:** thanh toán/hạn mức AI không đổi — `clarifyAnswers` là chấm tất định, không gọi model. Nếu sau này một bài >100 câu chờ xác nhận thì lệnh sẽ cắt ở 100 (chưa gặp; bài tối đa 100 câu theo bộ đọc kết quả chấm).
+- **Nghiệm thu (chạy trên cây đã merge `origin/main` 1529e52):**
+  ```powershell
+  npx vitest run src/components/features/classroom/student/ api/__tests__/clarify.test.ts   # 65/65
+  npx vitest run                                                                             # 333 file · 3489/3489 PASS (sau khi sửa test adaptive)
+  npm run lint    # tsc 0 lỗi
+  npm run build   # xanh (1m19s)
+  ```
+  Test thêm ở `ClarifyPanel.test.tsx`: đúng MỘT nút lưu, chưa chọn gì thì khoá, câu tự luận đứng trước danh sách đáp án.
+- **Sửa kèm:** test `api/__tests__/student-adaptive.test.ts` fail PREDATES trên `origin/main` (server thêm cờ `closed` ở commit 7377728 nhưng test chưa cập nhật — xác minh bằng chạy test trên worktree trần `origin/main` trước khi sửa). Cập nhật assert thêm `closed: false`. Ghi lesson vào `tasks/lessons.md`.
+- **Chưa làm / cố ý bỏ:** không gộp ảnh bài chấm thành gallery thu gọn; panel vẫn vẽ lại ảnh cho từng câu có `questionResults` (chỉ là overlay vùng đọc — cần cho test PH). Câu trả lời ngắn vẫn chỉ nhận số (`NUMBER_ANSWER`), chưa cho chữ.
+
 ## Sổ điểm định kì: gộp luồng Codex + badge nguồn điểm + hàng rào chống cột trùng — 22/10 (opencode)
 
 Chủ dự án báo rối khi dùng Sổ điểm với file điểm Google Sheet (tab MOET/TDS) + SSM: nhiều nút, mỗi nút một luật, không biết điểm của mình đến từ đâu; vụ "Thi GHKI" và "Giữa học kì I" thành hai cột. Đã đọc lại thread Codex `01a15777-67df-7420-a588-5c9965ada2cf` (20–21/10) để đối chiếu.
@@ -90,6 +107,15 @@ Chủ dự án chốt: máy chấm đừng phụ thuộc một khoá Gemini tr�
   npx vitest run                                                          # FULL: 320 file · 3374/3374 PASS
   ```
   Test sửa kèm: `correction-attempts` + `hand-marked-work` mock `callGeminiVision` → phải nhận thêm `callGradingVision` wrapper (ánh xạ về vị trí tham số cũ của `callGeminiVision` vì test đọc `mock.calls[0][4].timeoutMs`).
+
+## Chuỗi chấm bài thêm lớp xKiro (model free) + dọn worktree bẩn — 22/10 (OpenCode)
+
+- **Thêm lớp giữa trong `getGradingChain()` (`api/_grading-core.ts`):** Vilao → **xKiro** → Gemini. xKiro lấy env `GRADING_XKIRO_API_KEY` (không set thì lớp này không có — hành vi cũ giữ nguyên), mặc định `GRADING_XKIRO_BASE_URL=https://api.xkiro.com/v1`, `GRADING_XKIRO_MODEL=qwen/qwen3.8-max:free`. Dùng lại nguyên `callOpenAiCompatibleVision` (OpenAI-compatible + vision) nên không có code gọi mới. **Billing GV/HS không đổi** (`ensureGeminiKey`/`AiKeyRequiredError`/quota giữ nguyên) — chỉ thêm một lớp dự phòng không tốn tiền. Muốn đổi thứ tự (đưa xKiro lên đầu vì free) thì sửa thứ tự `chain.push` — cố ý KHÔNG thêm cờ/env thừa.
+- **Bằng chứng sống (22/10):** key xKiro `sk-xt-…5455` (cũng là key đang chạy lane `xk` trong 9Router). Canary 18/18 request `qwen/qwen3.8-max:free` → 200, không 429 (burst 12 + 6 sau nghỉ 10s). Vision thật: ảnh SGK Toán 12 819 KB → **200 trong 9.4s**, model đọc đúng tiêu đề trang ("B - TỰ LUẬN (Bài 2.35 đến 2.42)"). Lưu ý kỹ thuật: Cloudflare của xKiro chặn UA `python-urllib` (403/1010) — Node/curl bình thường; và `curl` với body >1 MB phải tắt `Expect: 100-continue` (Node fetch không gửi header này nên app không dính).
+- **Test:** `api/__tests__/grading-chain.test.ts` (7 case: thứ tự 3 lớp, thiếu key thì bỏ lớp, mặc định baseURL/model, ghi đè bằng env, failover Vilao→xKiro qua fetch mock, chuỗi rỗng thì báo lỗi nêu biến cần set).
+- **Cấu hình ngoài repo:** `~/.config/opencode/opencode.json` đã thêm provider `xkiro` (`@ai-sdk/openai-compatible`, baseURL `https://api.xkiro.com/v1`) với 4 model `:free` — dùng `opencode run -m xkiro/qwen/qwen3.8-max:free`.
+- **Dọn "worktree bẩn" (22/10):** thư mục `C:\Users\ADMIN\Downloads\smart-lesson-plan-ai` (worktree chính) trước đó đứng nhánh STALE `feat/vilao-failover-chain` với 41 file sửa chưa commit + ~319 file chưa track (git status 360 dòng). Nay: nhánh **`archive/snapshot-pre-cleanup`** (5 commit local) chứa toàn bộ 41 file M + bộ dữ liệu giáo án `manual_g1*.json`/`verify_*`/`apply_*` + docs/tasks/src file chưa track; `.gitignore` bổ sung để **git status sạch tuyệt đối (360 → 0)**. Nhánh archive **KHÔNG BAO GIỜ merge** và chưa push. `temp/` (11 GB ảnh nguồn) + 4 thư mục tài liệu tiếng Việt chỉ còn trên đĩa, không theo dõi git.
+- **Giá trị còn nằm trong archive (chưa port, phải port tay khi cần):** (1) pipeline soạn Ban Toán — `Coordinator.ts` bypass Planning/Format khi `templateFormat==='Toan'` + `ContentAgent.ts` prompt `directToan` (+ 3 file test); (2) `toanContentCompleteness.ts` (audit 4 mục), `toanLessonQuality.ts` (`repairToanLesson`, `assertToanLessonExportable`), `wordExportA4.ts` gọi cổng chặn xuất, `toanFormats.ts` thêm rule "ĐÁP ÁN DÀNH CHO GIÁO VIÊN" (+ 4 file test); (3) `schoolFormLayout.invariants.test.ts` (+10 dòng). **Phần còn lại của archive là bản CŨ hơn main — KHÔNG port.**
 
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 

@@ -676,9 +676,11 @@ export interface GradingAdapter {
 
 /**
  * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
- * Đầu chuỗi: Vilao (env GRADING_VILAO_API_KEY). Cuối chuỗi: Gemini (env
- * GRADING_GEMINI_API_KEY/GEMINI_API_KEY). Không có key Vilao thì chuỗi chỉ còn
- * Gemini — hành vi cũ giữ nguyên, không bắt buộc phải set thêm biến mới.
+ * Thứ tự: Vilao (env GRADING_VILAO_API_KEY) → xKiro (env GRADING_XKIRO_API_KEY,
+ * model :free nên không tốn tiền) → Gemini (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY).
+ * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
+ * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
+ * dưới đây — không có cờ/env thừa.
  */
 export const getGradingChain = (): GradingAdapter[] => {
   const chain: GradingAdapter[] = [];
@@ -692,6 +694,18 @@ export const getGradingChain = (): GradingAdapter[] => {
       name: `vilao/${vilaoOptions.model}`,
       tier: 're',
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment),
+    });
+  }
+  const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
+  if (xkiroKey) {
+    const xkiroOptions: OpenAiVisionOptions = {
+      baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1',
+      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'qwen/qwen3.8-max:free',
+    };
+    chain.push({
+      name: `xkiro/${xkiroOptions.model}`,
+      tier: 're',
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment),
     });
   }
   const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
@@ -720,7 +734,7 @@ export const callGradingVision = async (
 ): Promise<string> => {
   const chain = getGradingChain();
   if (chain.length === 0) {
-    throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
+    throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
   }
   let lastError: unknown;
   for (const adapter of chain) {

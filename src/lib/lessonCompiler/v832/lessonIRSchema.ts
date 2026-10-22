@@ -1,4 +1,4 @@
-import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
+import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js';
 import schema from './lesson-ir-v8.3.2.schema.json';
 import type { LessonIRV832 } from './lessonIR.generated';
 
