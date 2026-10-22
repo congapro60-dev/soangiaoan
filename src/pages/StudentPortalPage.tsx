@@ -17,7 +17,7 @@ import {
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
-import { fetchRoster, fetchStudentDiscoverCatalog, fetchStudentScoreBook, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { fetchRoster, fetchStudentAdaptiveAssignments, fetchStudentDiscoverCatalog, fetchStudentScoreBook, loginStudent, type RosterEntry, type StudentAdaptiveAssignment } from '../services/studentPortalApi';
 import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
 import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
@@ -167,6 +167,7 @@ export const StudentPortalPage = () => {
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [scores, setScores] = useState<StudentScoreView | null>(null);
   const [discoverCatalog, setDiscoverCatalog] = useState<StudentDiscoverCatalogItem[]>([]);
+  const [adaptiveAssignments, setAdaptiveAssignments] = useState<StudentAdaptiveAssignment[]>([]);
   const [notifications, setNotifications] = useState<StudentNotificationDoc[]>([]);
   const [notificationsSeenAt, setNotificationsSeenAt] = useState<string | null>(null);
   const [dangTaiDu, setDangTaiDu] = useState(true);
@@ -376,7 +377,7 @@ export const StudentPortalPage = () => {
     if (!uid) return;
     setDangTaiDu(true);
     try {
-      const [workspace, hoSo, thongBao, soDiem, discoverCatalogResult] = await Promise.all([
+      const [workspace, hoSo, thongBao, soDiem, discoverCatalogResult, adaptiveAssignmentsResult] = await Promise.all([
         fetchStudentWorkspace(),
         getDoc(doc(db, STUDENT_PROFILES_COL, phien.studentId)),
         // Chuông hỏng không được làm hỏng cả màn hình bài tập.
@@ -385,6 +386,8 @@ export const StudentPortalPage = () => {
         fetchStudentScoreBook().catch(() => null),
         // Discover chỉ là danh mục phụ; lỗi không được chặn cổng bài tập.
         fetchStudentDiscoverCatalog().catch(() => [] as StudentDiscoverCatalogItem[]),
+        // Bài học phân hoá thầy cô giao: lỗi thì chỉ thiếu mục tự học, không chặn nộp bài.
+        fetchStudentAdaptiveAssignments().catch(() => [] as StudentAdaptiveAssignment[]),
       ]);
       if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
       setAssignments(workspace.assignments);
@@ -394,6 +397,7 @@ export const StudentPortalPage = () => {
       setNotifications(thongBao);
       setScores(soDiem);
       setDiscoverCatalog(discoverCatalogResult);
+      setAdaptiveAssignments(adaptiveAssignmentsResult);
       setLoiDuLieu('');
 
       const stored = readStoredPractice(phien);
@@ -737,6 +741,8 @@ export const StudentPortalPage = () => {
       profile={profile}
       scores={scores}
       discoverCatalog={discoverCatalog}
+      adaptiveAssignments={adaptiveAssignments}
+      onOpenAdaptive={assignmentId => navigate(`/adaptive-portal/assignment/${encodeURIComponent(assignmentId)}`)}
       loading={dangTaiDu}
       uploadingId={dangNop}
       uploadStep={buocNop}

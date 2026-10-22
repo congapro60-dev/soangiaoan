@@ -1,6 +1,7 @@
 import { gradeAssessment } from '../src/lib/adaptive/diagnosticEngine.js';
+import { averageMastery, countMisconceptions, mergeObjectiveMemory } from '../src/lib/adaptive/learningProfile.js';
 import { isSafeDocId } from '../src/lib/classroom/parentAccess.js';
-import type { AdaptiveAssessment, AdaptiveLesson, AssessmentAttempt } from '../src/lib/adaptive/types.js';
+import type { AdaptiveAssessment, AdaptiveLesson, AssessmentAttempt, StudentObjectiveMemory } from '../src/lib/adaptive/types.js';
 
 type Data = FirebaseFirestore.DocumentData;
 type Db = FirebaseFirestore.Firestore;
@@ -31,6 +32,9 @@ export const submitAdaptiveAssessment = async (db: Db, context: Context, assignm
   if (!Object.values(answers).some(answer => answer.trim())) throw new Error('NO_ANSWERS');
   const durationSeconds = Math.max(0, Math.min(86400, Number.isFinite(Number(body.durationSeconds)) ? Number(body.durationSeconds) : 0));
   const progressRef = db.collection('adaptiveAssignmentProgress').doc(`${assignmentId}_${context.studentId}`);
+  // T3b: tiến độ + hồ sơ ghi KÈM classId để bảng GV đúng lớp đọc được.
+  const sessionRef = db.collection('adaptiveSessionProgress').doc(`${assignmentId}_${context.studentId}`);
+  const profileRef = db.collection('studentLearningProfiles').doc(context.studentId);
   const result = await db.runTransaction(async tx => {
     const progressSnap = await tx.get(progressRef);
     const progress = progressSnap.exists ? progressSnap.data() || {} : {};
@@ -39,11 +43,42 @@ export const submitAdaptiveAssessment = async (db: Db, context: Context, assignm
     const graded = gradeAssessment(selected.assessment, answers, durationSeconds);
     const attempt: AssessmentAttempt = { ...graded, answers: graded.answers.map(({ feedback, ...answer }) => answers[answer.questionId]?.trim() ? { ...answer, feedback } : answer) };
     const scored = !stored;
+    const now = new Date().toISOString();
+    const score = attempt.answers.reduce<number>((sum, answer) => sum + answer.score, 0);
+    const maxScore = selected.assessment.questions.reduce<number>((sum, question) => sum + question.points, 0);
     if (scored) {
-      const now = new Date().toISOString();
-      tx.set(progressRef, { teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), status: kind === 'exitTicket' ? 'completed' : (progress.status || 'in_progress'), attempts: { ...(progress.attempts || {}), [selected.key]: truncateAttempt(attempt) }, startedAt: progress.startedAt || now, updatedAt: now, ...(kind === 'exitTicket' ? { completedAt: now } : {}) });
+      // merge: giữ trường người khác đã ghi vào cùng doc tiến độ (không ghi đè bằng bản thiếu field).
+      tx.set(progressRef, { teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), status: kind === 'exitTicket' ? 'completed' : (progress.status || 'in_progress'), attempts: { ...(progress.attempts || {}), [selected.key]: truncateAttempt(attempt) }, startedAt: progress.startedAt || now, updatedAt: now, ...(kind === 'exitTicket' ? { completedAt: now } : {}) }, { merge: true });
+      tx.set(sessionRef, { teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, lessonTitle: text(lesson.title), status: kind === 'exitTicket' ? 'completed' : 'in_progress', score, maxScore, updatedAt: now, ...(kind === 'exitTicket' ? { completedAt: now } : {}) }, { merge: true });
+      // Hồ sơ năng lực: ghi thêm classId, KHÔNG ghi tên/lớp (không biết ở server) để không xoá tên đang có.
+      const profileSnap = await tx.get(profileRef);
+      const previousProfile = (profileSnap.exists ? profileSnap.data() : {}) as {
+        objectiveMemory?: StudentObjectiveMemory[];
+        misconceptionCounts?: Record<string, number>;
+        totalSessions?: number;
+        averageMastery?: number;
+        createdAt?: string;
+      };
+      const totalSessions = (previousProfile.totalSessions || 0) + 1;
+      const previousAverage = previousProfile.averageMastery || 0;
+      const sessionMastery = averageMastery([attempt]);
+      tx.set(profileRef, {
+        id: context.studentId,
+        studentId: context.studentId,
+        teacherId: context.teacherId,
+        classId: context.classId,
+        totalSessions,
+        averageMastery: Number((((previousAverage * (totalSessions - 1)) + sessionMastery) / totalSessions).toFixed(2)),
+        objectiveMemory: mergeObjectiveMemory(lesson, [attempt], previousProfile.objectiveMemory || []),
+        misconceptionCounts: countMisconceptions([attempt], previousProfile.misconceptionCounts || {}),
+        lastLessonId: lesson.id,
+        lastLessonTitle: text(lesson.title),
+        lastActiveAt: now,
+        createdAt: previousProfile.createdAt || now,
+        updatedAt: now,
+      }, { merge: true });
     }
-    tx.create(db.collection('adaptiveEvents').doc(), { type: scored ? 'attempt' : 'retry', kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), score: attempt.answers.reduce<number>((sum, answer) => sum + answer.score, 0), maxScore: selected.assessment.questions.reduce<number>((sum, question) => sum + question.points, 0), objectiveScores: attempt.objectiveScores, wrongQuestionIds: attempt.answers.filter(answer => !answer.isCorrect).map(answer => answer.questionId), misconceptionIds: [...new Set(attempt.answers.flatMap(answer => answer.detectedMisconceptionIds || []))], durationSeconds, createdAt: new Date().toISOString() });
+    tx.create(db.collection('adaptiveEvents').doc(), { type: scored ? 'attempt' : 'retry', kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), teacherId: context.teacherId, classId: context.classId, studentId: context.studentId, assignmentId, lessonId: lesson.id, ...(assignment.discoverSeedId ? { discoverSeedId: assignment.discoverSeedId } : {}), score, maxScore, objectiveScores: attempt.objectiveScores, wrongQuestionIds: attempt.answers.filter(answer => !answer.isCorrect).map(answer => answer.questionId), misconceptionIds: [...new Set(attempt.answers.flatMap(answer => answer.detectedMisconceptionIds || []))], durationSeconds, createdAt: now });
     return { attempt, scored, status: kind === 'exitTicket' && scored ? 'completed' : (progress.status || 'in_progress') };
   });
   return { assignmentId, kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), scored: result.scored, status: result.status, attempt: result.attempt, ...(kind === 'diagnostic' && result.attempt.recommendedRoute ? { nextRoute: result.attempt.recommendedRoute } : {}) };

@@ -11,9 +11,9 @@ Spec: `discover-self-study-v2.md`. Brain: Claude Sonnet 5.5 (Claude Code). Cập
 | id | kind | size | model (effort) | depends | trạng thái |
 |---|---|---|---|---|---|
 | T1 | logic | M | cx/gpt-6.1-sol (medium) | — | tested: vitest src/lib/adaptive 99 pass, tsc api pass; tsc có 2 lỗi cast readonly cũ ở Discover (từ 58e1d53), sửa ở T7 |
-| T2 | logic | M | cx/gpt-6.1-sol (medium) | T1 | đang chạy |
-| T3 | logic | M | cc/claude-sonnet-5-5 | T1,T2 | planned |
-| T4 | ui+logic | M | cc/claude-sonnet-5-5 | T3 | planned |
+| T2 | logic | M | cx/gpt-6.1-sol (medium) | T1 | tested: `studentAdaptiveList`/`studentAdaptiveOpen` + action GV giao bài |
+| T3 | logic | M | cc/claude-sonnet-5-5 | T1,T2 | tested (T3a xong 22/10) |
+| T4 | ui+logic | M | cc/claude-sonnet-5-5 | T3 | tested (22/10, PR #21 → nhánh `feat/discover-t3b-t4`) |
 | T5 | ui | M | cc/claude-sonnet-5-5 | T3 | planned |
 | T6 | rules | S | cc/claude-sonnet-5-5 | T2 | planned |
 | T7 | verify | — | brain | all | planned |
@@ -55,3 +55,13 @@ Review: tác giả Claude → reviewer khác hãng khi Codex hồi (sau 12:28) h
 - Đã sửa: ẩn `feedback` câu chưa trả lời; sự kiện ghi trong transaction (`tx.create`); báo lỗi đúng khi đáp án không phải chuỗi; `Object.create(null)` chống khoá kế thừa; `unitId` phải là doc id an toàn.
 - Chưa sửa (ghi nhận): `retry` không giới hạn số sự kiện; lời giải hiện sau mỗi lần nộp lại (quyết định sản phẩm: có giữ đến khi đóng bài không?); bài kiểm tra 0 câu không hoàn thành được; `set` chưa `merge` (T3b); mã tiến độ `${assignmentId}_${studentId}` có thể trùng nếu id chứa `_` do người tạo gài.
 - Trạng thái: tested — 30 test api đạt (student-adaptive-submit 10, student-adaptive 6, student-workspace, function-count), `tsc -p tsconfig.api.json` sạch. Chưa deployed/verified.
+
+## T3b + T4 — tiến độ có classId + player HS dùng máy chủ (22/10, opencode)
+- Nhánh: `feat/discover-t3b-t4` (worktree `~/.config/superpowers/worktrees/smart-lesson-plan-ai/discover-t3b-t4`), base `origin/codex/elearning-muse-task1` (PR #21). Không sửa worktree của phiên Claude/Codex.
+- **T3b (server)**: `api/_adaptive-submit.ts` — ghi tiến độ bằng `set(..., { merge: true })` (trước đó đè mất field người khác đã ghi); thêm ghi `adaptiveSessionProgress/{assignmentId}_{studentId}` và `studentLearningProfiles/{studentId}` **có `classId`** để bảng GV đúng lớp đọc được. Tính mastery/lỗi sai tách ra `src/lib/adaptive/learningProfile.ts` (dùng CHUNG cho client và server → không lệch nhau).
+- **T4 (client)**: `AdaptiveStudentPortalPage` có chế độ bài giao (`/adaptive-portal/assignment/:assignmentId`): mở qua `studentAdaptiveOpen` (bản **đã bỏ đáp án**), nộp qua `studentAdaptiveSubmit` (**máy chủ chấm**, client không gửi điểm); link công khai giữ chấm ở trình duyệt như cũ để demo GV còn chạy.
+- **Vá lỗi P1 của Codex review** (`dewey:complete` chỉ lưu checkpoint rồi `return` → em mắc màn bài học, không bao giờ chốt xong): thêm màn **Bước 3 · Bài kiểm tra cuối** (stage `exit-ticket`), `dewey:complete` → chuyển sang màn đó, chỉ "xong" khi đã nộp vé thoát.
+- **Mở khoá nút ở `/lop`**: mục "Discover · Tự học" nay bấm được khi thầy cô đã giao (nút "Học bài này"); chưa được giao thì vẫn khoá, ghi rõ "Chưa được giao" (trước ghi "Đang chuẩn bị bài" gây hiểu nhầm).
+- Test: +1 api (merge + classId + hồ sơ), +3 service client (list/open/submit — nộp KHÔNG gửi điểm), +1 UI dashboard (nút mở khoá).
+- Gate: full **3404/3404**, `lint` + `lint:api` exit 0, `build` exit 0. Chưa deployed; chưa QA trình duyệt với bài giao thật (cần bài Discover đã giao cho lớp).
+- Còn lại: T5 (bảng thống kê GV), T6 (rules `adaptiveAssignments`/`adaptiveEvents`), T7 (QA GV giao → HS nộp → GV xem), và câu hỏi sản phẩm "lời giải có hiện sau mỗi lần nộp lại không".

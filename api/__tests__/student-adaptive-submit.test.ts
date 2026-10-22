@@ -8,7 +8,7 @@ vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: async (
 const makeDb = (store: Record<string, Data>) => {
   const doc = (path: string) => ({ path, id: path.split('/').at(-1), get: async () => ({ id: path.split('/').at(-1), exists: path in store, data: () => store[path], ref: doc(path) }), set: async (value: Data) => { store[path] = { ...value }; }, update: async (value: Data) => { store[path] = { ...(store[path] || {}), ...value }; }, collection: (name: string) => collection(`${path}/${name}`) });
   const collection = (path: string, filters: Array<[string, unknown]> = []) => ({ doc: (id: string = `event-${Object.keys(store).length}`) => doc(`${path}/${id}`), where: (field: string, _op: string, value: unknown) => collection(path, [...filters, [field, value]]), get: async () => ({ docs: Object.entries(store).filter(([key, value]) => key.startsWith(`${path}/`) && !key.slice(path.length + 1).includes('/') && filters.every(([field, expected]) => value[field] === expected)).map(([key, value]) => ({ id: key.split('/').at(-1)!, data: () => value, ref: doc(key) })) }), add: async (value: Data) => { const id = `event-${Object.keys(store).length}`; store[`${path}/${id}`] = { ...value }; return { id }; } });
-  return { collection, runTransaction: async (work: (tx: any) => Promise<any>) => work({ get: (ref: any) => ref.get(), set: (ref: any, value: Data) => { store[ref.path || `adaptiveAssignmentProgress/${ref.id}`] = { ...value }; }, create: (ref: any, value: Data) => { store[ref.path] = { ...value }; } }) };
+  return { collection, runTransaction: async (work: (tx: any) => Promise<any>) => work({ get: (ref: any) => ref.get(), set: (ref: any, value: Data, options?: { merge?: boolean }) => { const path = ref.path || `adaptiveAssignmentProgress/${ref.id}`; store[path] = options?.merge ? { ...(store[path] || {}), ...value } : { ...value }; }, create: (ref: any, value: Data) => { store[ref.path] = { ...value }; } }) };
 };
 const response = () => { const result = { statusCode: 0, payload: {} as Data }; const res = { status(code: number) { result.statusCode = code; return res; }, json(payload: Data) { result.payload = payload; return res; } }; return { result, res }; };
 const lesson = { ...sampleAdaptiveLesson, id: 'lesson-1', teacherId: 'teacher-a', status: 'published' as const };
@@ -56,6 +56,21 @@ describe('studentAdaptiveSubmit', () => {
   it('rejects non-string answers with a clear message and ignores inherited object keys', async () => {
     const bad = await invoke(baseStore(), submit('diagnostic', { [diagnostic.id]: 5 })); expect(bad.statusCode).toBe(422); expect(String(bad.payload.error)).not.toContain('2000');
     const proto = await invoke(baseStore(), submit('diagnostic', { constructor: 'x', [diagnostic.id]: diagnostic.correctAnswer })); expect(proto.statusCode).toBe(200);
+  });
+  it('ghi tiến độ + hồ sơ theo classId và KHÔNG xoá trường đã có (merge)', async () => {
+    const store = baseStore();
+    // Lượt trước đã ghi thêm field vào doc tiến độ (ví dụ GV ghi chú) — lượt nộp sau không được xoá mất.
+    store['adaptiveAssignmentProgress/assignment-1_roster-a'] = { teacherId: 'teacher-a', classId: 'class-a', studentId: 'roster-a', assignmentId: 'assignment-1', lessonId: 'lesson-1', ghiChuGv: 'xem lại câu 3' };
+    const result = await invoke(store, submit('diagnostic', { [diagnostic.id]: diagnostic.correctAnswer }));
+    expect(result.statusCode).toBe(200);
+    const progress = store['adaptiveAssignmentProgress/assignment-1_roster-a'];
+    expect(progress.ghiChuGv).toBe('xem lại câu 3');
+    expect(progress.classId).toBe('class-a');
+    expect(store['adaptiveSessionProgress/assignment-1_roster-a']).toMatchObject({ classId: 'class-a', status: 'in_progress' });
+    const profile = store['studentLearningProfiles/roster-a'];
+    expect(profile).toMatchObject({ classId: 'class-a', studentId: 'roster-a' });
+    expect(profile.objectiveMemory.length).toBeGreaterThan(0);
+    expect(profile.totalSessions).toBe(1);
   });
   it('returns 401 for missing or invalid tokens', async () => { expect((await invoke(baseStore(), submit('diagnostic', {}), '')).statusCode).toBe(401); expect((await invoke(baseStore(), submit('diagnostic', {}), 'bad')).statusCode).toBe(401); });
   it('rejects unknown unit and oversized answers', async () => { expect((await invoke(baseStore(), submit('quickCheck', {}, { unitId: 'missing' }))).statusCode).toBe(422); expect((await invoke(baseStore(), submit('diagnostic', { [diagnostic.id]: 'x'.repeat(2001) }))).statusCode).toBe(422); });

@@ -37,6 +37,10 @@ import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
+import {
+  openStudentAdaptiveAssignment,
+  submitStudentAdaptiveAssessment,
+} from '../services/studentPortalApi';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
 import { GEMINI_MODELS } from '../lib/aiProviders';
 import {
@@ -56,10 +60,10 @@ import {
   AdaptiveLesson,
   AssessmentAttempt,
   LearningRoute,
-  MasteryStatus,
   StudentLearningProfile,
   StudentSessionProgressRecord,
 } from '../lib/adaptive/types';
+import { averageMastery, countMisconceptions, mergeObjectiveMemory } from '../lib/adaptive/learningProfile';
 import { cn } from '../lib/utils';
 import {
   saveAdaptiveProgressOffline,
@@ -72,7 +76,7 @@ import { sanitizeDisplayText } from '../lib/adaptive/mathText';
 import { getLearningPurposePlan, learningPurposeOptions, type LearningPurpose } from '../lib/adaptive/learningPurpose';
 import { createDeweyCheckpoint, isTrustedDeweyMessage } from '../lib/dewey/checkpoint';
 
-type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
+type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'exit-ticket' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
 
 type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
@@ -237,12 +241,6 @@ const uploadWorkedExampleImage = async ({
   return { downloadUrl, path };
 };
 
-const averageMastery = (attempts: AssessmentAttempt[]) => {
-  const scores = attempts.flatMap(attempt => attempt.objectiveScores.map(score => score.masteryEstimate));
-  if (scores.length === 0) return 0;
-  return Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2));
-};
-
 const buildProfile = ({
   existingProfile,
   teacherId,
@@ -266,38 +264,10 @@ const buildProfile = ({
 }): StudentLearningProfile => {
   const now = new Date().toISOString();
   const previousMemory = existingProfile?.objectiveMemory || [];
-  const objectiveMemory = lesson.objectives.map(objective => {
-    const evidence = attempts.flatMap(attempt => attempt.objectiveScores.filter(score => score.objectiveId === objective.id));
-    const latestEvidence = evidence[evidence.length - 1];
-    const previous = previousMemory.find(item => item.objectiveId === objective.id);
-    const masteryEstimate = latestEvidence?.masteryEstimate ?? previous?.masteryEstimate ?? 0;
-
-    const lastStatus: MasteryStatus = masteryEstimate >= objective.masteryThreshold
-      ? 'mastered'
-      : masteryEstimate >= 0.55
-        ? 'near_mastery'
-        : 'weak';
-
-    return {
-      objectiveId: objective.id,
-      objectiveCode: objective.code,
-      ...(objective.skillId ? { skillId: objective.skillId } : {}),
-      title: objective.title,
-      attempts: (previous?.attempts || 0) + evidence.length,
-      masteryEstimate,
-      lastStatus,
-      lastUpdatedAt: now,
-    };
-  });
-  const misconceptionCounts = { ...(existingProfile?.misconceptionCounts || {}) };
-
-  attempts.forEach(attempt => {
-    attempt.answers.forEach(answer => {
-      (answer.detectedMisconceptionIds || []).forEach(misconceptionId => {
-        misconceptionCounts[misconceptionId] = (misconceptionCounts[misconceptionId] || 0) + 1;
-      });
-    });
-  });
+  // Tính mastery dùng chung với máy chủ (src/lib/adaptive/learningProfile.ts) để bảng GV
+  // và hồ sơ trình duyệt không lệch nhau.
+  const objectiveMemory = mergeObjectiveMemory(lesson, attempts, previousMemory);
+  const misconceptionCounts = countMisconceptions(attempts, existingProfile?.misconceptionCounts || {});
 
   const sessionMastery = averageMastery(attempts);
   const totalSessions = (existingProfile?.totalSessions || 0) + 1;
@@ -326,7 +296,7 @@ const buildProfile = ({
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || 'unknown');
 
 export const AdaptiveStudentPortalPage = () => {
-  const { id, teacherId } = useParams<{ id?: string; teacherId?: string }>();
+  const { id, teacherId, assignmentId } = useParams<{ id?: string; teacherId?: string; assignmentId?: string }>();
   const [stage, setStage] = useState<PortalStage>('loading');
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
   const [portalError, setPortalError] = useState<string | null>(null);
@@ -364,6 +334,15 @@ export const AdaptiveStudentPortalPage = () => {
       setLesson(null);
 
       try {
+        // Bài THẦY CÔ GIAO cho lớp: mở qua máy chủ để em không đọc được đáp án trong mạng.
+        if (assignmentId) {
+          const opened = await openStudentAdaptiveAssignment(assignmentId);
+          setLesson(opened.lesson);
+          setStage('identify');
+          setNotice({ tone: 'info', message: 'Bài này thầy cô đã giao cho em. Máy sẽ chấm giúp em khi em nộp.' });
+          return;
+        }
+
         if (teacherId) {
           const snapshot = await getDoc(doc(db, 'adaptiveLessons', teacherId));
           if (!snapshot.exists()) {
@@ -399,7 +378,7 @@ export const AdaptiveStudentPortalPage = () => {
     };
 
     void loadLesson();
-  }, [id, teacherId]);
+  }, [id, teacherId, assignmentId]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 1000);
@@ -613,7 +592,15 @@ export const AdaptiveStudentPortalPage = () => {
   const handleDiagnosticSubmit = async () => {
     if (!lesson) return;
     const plannedSeconds = lesson.diagnosticTest.durationMinutes * 60;
-    const attempt = gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
+    // Bài được giao: MÁY CHỦ chấm (đáp án không bao giờ về máy em). Link công khai: chấm tại
+    // trình duyệt như cũ để bản demo của GV vẫn chạy được.
+    const attempt = assignmentId
+      ? (await submitStudentAdaptiveAssessment(assignmentId, {
+        kind: 'diagnostic',
+        answers: diagnosticAnswers,
+        durationSeconds: measuredDurationFor('diagnostic', plannedSeconds),
+      })).attempt
+      : gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
     setDiagnosticAttempt(attempt);
     setQuickCheckAttempts([]);
     setQuickCheckAttemptStateForNextUnit(0);
@@ -665,7 +652,10 @@ export const AdaptiveStudentPortalPage = () => {
     } catch {
       // A full/private storage area must not turn a partial lesson into a completed one.
     }
-    setNotice({ tone: 'info', message: 'Đã lưu vị trí học. Bài chưa được đánh dấu hoàn thành vì còn thiếu bài kiểm tra cuối.' });
+    // Vừa học xong bài → sang BƯỚC CUỐI (bài kiểm tra cuối). Không chuyển thì em mắc màn
+    // bài học vĩnh viễn và bài không bao giờ được chốt là hoàn thành (lỗi P1 của Codex review).
+    setStage('exit-ticket');
+    setNotice({ tone: 'info', message: 'Đã lưu vị trí học. Làm bài kiểm tra cuối để khép lại bài này nhé.' });
     setIsSaving(false);
     return;
 
@@ -675,8 +665,22 @@ export const AdaptiveStudentPortalPage = () => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
 
     const plannedSeconds = lesson.exitTicket.durationMinutes * 60;
-    const finalExitTicketAttempt = gradeAssessment(lesson.exitTicket, exitTicketAnswers, measuredDurationFor('exit-ticket', plannedSeconds));
+    const finalExitTicketAttempt = assignmentId
+      ? (await submitStudentAdaptiveAssessment(assignmentId, {
+        kind: 'exitTicket',
+        answers: exitTicketAnswers,
+        durationSeconds: measuredDurationFor('exit-ticket', plannedSeconds),
+      })).attempt
+      : gradeAssessment(lesson.exitTicket, exitTicketAnswers, measuredDurationFor('exit-ticket', plannedSeconds));
     setExitTicketAttempt(finalExitTicketAttempt);
+
+    // Bài được giao: máy chủ đã ghi tiến độ + hồ sơ (có classId) trong lúc chấm.
+    // Không ghi thêm từ trình duyệt để không tạo bản tiến độ trùng lớp.
+    if (assignmentId) {
+      setStage('complete');
+      setNotice({ tone: 'info', message: 'Em đã hoàn thành bài. Thầy cô sẽ xem kết quả trên bảng lớp.' });
+      return;
+    }
 
     const attempts = [diagnosticAttempt, ...quickCheckAttempts, finalExitTicketAttempt];
     const studentId = buildStudentId(activeTeacherId, studentCode);
@@ -915,7 +919,9 @@ export const AdaptiveStudentPortalPage = () => {
       ? 1
       : stage === 'dewey-lesson'
         ? 2
-        : 4;
+        : stage === 'exit-ticket'
+          ? 3
+          : 4;
 
   return (
     <div className={cn(
@@ -1143,6 +1149,23 @@ export const AdaptiveStudentPortalPage = () => {
                 }}
               />
             </>
+        )}
+
+        {stage === 'exit-ticket' && (
+          <StudentAssessmentCard
+            title="Bước 3. Bài kiểm tra cuối"
+            description={`Làm trong khoảng ${lesson.exitTicket.durationMinutes} phút để khép lại bài học này.`}
+            questions={lesson.exitTicket.questions}
+            answers={exitTicketAnswers}
+            setAnswers={setExitTicketAnswers}
+            submitLabel="Nộp bài kiểm tra cuối"
+            onSubmit={handleExitTicketSubmit}
+            timer={{
+              plannedSeconds: lesson.exitTicket.durationMinutes * 60,
+              elapsedSeconds: elapsedSecondsFor('exit-ticket'),
+              remainingSeconds: remainingSecondsFor('exit-ticket', lesson.exitTicket.durationMinutes * 60),
+            }}
+          />
         )}
 
         {stage === 'dewey-lesson' && deweyHtml && (
