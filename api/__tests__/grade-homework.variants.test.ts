@@ -400,5 +400,24 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     expect(grade.approvalSource).toBe('teacher');
     expect(sub.handMarkedPublished).toBe(true);
   });
+
+  it('HS tự khai bài thầy đã chấm tay: điểm GV đọc được nhưng KHÔNG tự thành điểm bài, chờ thầy xác nhận', async () => {
+    const harness = seed({ examCode: '1201', examCodeSource: 'teacher', handMarkedPaper: true, handMarkedDeclaredBy: 'student' });
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(
+      makeGeminiResponse(JSON.stringify({ ...JSON.parse(gradeJson(5)), teacherMarkedScore: { score: 9, maxScore: 10 } })),
+    );
+
+    const res = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(res.statusCode).toBe(200);
+
+    const sub = harness.state.submissions['sub-1'];
+    const grade = sub.grade as DocData;
+    // Điểm bài vẫn là điểm máy chấm; điểm thầy ghi nằm ở paperScore để thầy bấm "Dùng điểm GV".
+    expect(grade.score).toBe(5);
+    expect(grade.paperScore).toMatchObject({ score: 9, maxScore: 10 });
+    expect(grade.teacherApproved).toBe(false);
+    expect(grade.noteForTeacher).toContain('9/10');
+  });
 });
 

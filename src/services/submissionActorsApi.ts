@@ -26,7 +26,7 @@ export const submissionFeedback = (submissionId: string, credentials: Submission
 export const sendSubmissionFeedback = (submissionId: string, message: string, questionNumber?: string) => call<{ feedback: SubmissionFeedbackDoc }>('sendSubmissionFeedback', {}, { submissionId, message, questionNumber });
 export const replySubmissionFeedback = (credentials: SubmissionActorCredentials, submissionId: string, feedbackId: string, message: string, resolved = false) => call<{ feedback: SubmissionFeedbackDoc }>('replySubmissionFeedback', credentials, { submissionId, feedbackId, message, resolved });
 export const readSubmissionFeedback = (submissionId: string, lastReplyAt: string) => call('readSubmissionFeedback', {}, { submissionId, lastReplyAt });
-export const actorGradeOne = (credentials: SubmissionActorCredentials, submissionId: string, mode: 'quick' | 'thorough' = 'quick') => call('gradeOne', credentials, { submissionId, mode }, '/api/grade-homework');
+export const actorGradeOne = (credentials: SubmissionActorCredentials, submissionId: string, mode: 'quick' | 'thorough' = 'quick', options: { background?: boolean } = {}) => call('gradeOne', credentials, { submissionId, mode, ...(options.background ? { background: true } : {}) }, '/api/grade-homework');
 export const prepareWorkedSolutions = (credentials: SubmissionActorCredentials, assignmentId: string, examCode?: string, force = false) => call<{ cache: import('../lib/classroom/types').WorkedSolutionCache }>('prepareWorkedSolutions', credentials, { assignmentId, examCode, force }, '/api/grade-homework');
 
 export const listCorrectionAttempts = (submissionId: string, credentials: SubmissionActorCredentials = {}) => call<{ attempts: import('../lib/classroom/types').CorrectionAttemptDoc[] }>('correctionAttempts', credentials, { submissionId });
@@ -37,4 +37,6 @@ export const annotateSubmissionPhotos = (credentials: SubmissionActorCredentials
 
 export const saveHandMarkedWork = (credentials: SubmissionActorCredentials, submissionId: string, uploadGrantId: string, note?: string) => call<{ handMarkedEvidence: NonNullable<SubmissionDoc['handMarkedEvidence']>; handMarkedPublished: boolean }>('saveHandMarkedWork', credentials, { submissionId, uploadGrantId, note });
 export const setHandMarkedVisibility = (credentials: SubmissionActorCredentials, submissionId: string, expectedReviewId: string, published: boolean) => call<{ handMarkedPublished: boolean }>('setHandMarkedVisibility', credentials, { submissionId, expectedReviewId, published });
+/** Bài GV nộp hộ đã chấm tay: bật/ẩn ẢNH bài nộp với phụ huynh (HS vẫn xem bài của mình). */
+export const setSubmissionPhotosVisibility = (credentials: SubmissionActorCredentials, submissionId: string, published: boolean) => call<{ handMarkedPublished: boolean }>('setSubmissionPhotosVisibility', credentials, { submissionId, published });
 export const readHandMarkedFile = (credentials: SubmissionActorCredentials, submissionId: string, reviewId: string, fileId: string) => call<{ url: string; expiresAt: number }>('readHandMarkedFile', credentials, { submissionId, reviewId, fileId });

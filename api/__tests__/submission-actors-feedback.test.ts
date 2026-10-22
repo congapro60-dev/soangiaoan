@@ -91,7 +91,7 @@ describe('actor submission and feedback', () => {
     expect(h.deleted).toContain(path);
   });
 
-  it('GV nộp bài đã chấm lưu cờ handMarkedPaper, học sinh/PH không tự đặt được cờ này', async () => {
+  it('GV nộp bài đã chấm lưu cờ handMarkedPaper; HS/PH tự khai cũng được nhưng KHÔNG được coi là điểm chính thức', async () => {
     // GV nộp
     h.uid = 'teacher';
     const teacherCredentials = { role: 'teacher', classId: 'class', studentId: 'student' };
@@ -105,8 +105,9 @@ describe('actor submission and feedback', () => {
     });
     expect(teacherRes.status).toBe(200);
     expect(teacherRes.payload.submission.handMarkedPaper).toBe(true);
+    expect(teacherRes.payload.submission.handMarkedDeclaredBy).toBe('teacher');
 
-    // Học sinh thử truyền handMarked: true -> bị phớt lờ
+    // Học sinh tự khai bài thầy đã chấm tay → máy đọc điểm, nhưng thầy phải xác nhận
     h.uid = 'student-uid';
     const studentCredentials = { role: 'student' };
     const uploadGrantStudent = await grant(studentCredentials);
@@ -118,7 +119,8 @@ describe('actor submission and feedback', () => {
       handMarked: true,
     });
     expect(studentRes.status).toBe(200);
-    expect(studentRes.payload.submission.handMarkedPaper).toBeUndefined();
+    expect(studentRes.payload.submission.handMarkedPaper).toBe(true);
+    expect(studentRes.payload.submission.handMarkedDeclaredBy).toBe('student');
   });
   it('lượt tải bỏ dở hết hạn được dọn; quá 10 lượt chưa dùng cùng lúc thì từ chối', async () => {
     const stale = await grant();

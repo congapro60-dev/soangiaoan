@@ -9,8 +9,10 @@ import {
   VERCEL_AI_GATEWAY_MODEL,
 } from '../src/lib/vercelGatewayConfig.js';
 
-export const AI_GATEWAY_BASE_URL = VERCEL_AI_GATEWAY_BASE_URL;
-export const AI_GATEWAY_MODEL = VERCEL_AI_GATEWAY_MODEL;
+// Cho phép đè bằng env (Vercel > Settings > Environment Variables) mà không phải sửa code.
+// Không set env thì dùng đúng cấu hình mặc định như trước — hành vi cũ giữ nguyên.
+export const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL?.trim() || VERCEL_AI_GATEWAY_BASE_URL;
+export const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL?.trim() || VERCEL_AI_GATEWAY_MODEL;
 export const AI_GATEWAY_MAX_OUTPUT_TOKENS = VERCEL_AI_GATEWAY_MAX_OUTPUT_TOKENS;
 export const AI_GATEWAY_MAX_PROMPT_LENGTH = VERCEL_AI_GATEWAY_MAX_PROMPT_LENGTH;
 

@@ -6,6 +6,32 @@ import { buildStudentCompetencyPortfolio } from '../classroom/competency/portfol
 import type { CompetencyGrade } from '../classroom/competency/framework';
 import type { StudentCompetencyScores } from './loMapping';
 
+export type LoPeriodKey = 'F1' | 'IA1' | 'F2' | 'SE1' | 'F3' | 'IA2' | 'F4' | 'SE2';
+
+export interface LoScoreOptions {
+  period: LoPeriodKey;
+  /** Năm bắt đầu học kỳ, vd 2026 cho năm học 2026–2027. */
+  academicYear: number;
+}
+
+export interface LoPeriodDefinition {
+  key: LoPeriodKey;
+  from: string;
+  to: string;
+}
+
+/** Khoảng kỳ theo lịch học: F1 = tháng 8–9, sau đó mỗi mốc một tháng. */
+export const loPeriodDefinition = (key: LoPeriodKey, academicYear: number): LoPeriodDefinition => {
+  const month = key === 'F1' ? 8 : key === 'IA1' ? 10 : key === 'F2' ? 11 : key === 'SE1' ? 12 : key === 'F3' ? 1 : key === 'IA2' ? 2 : key === 'F4' ? 3 : 4;
+  const year = month >= 8 ? academicYear : academicYear + 1;
+  const fromMonth = key === 'F1' ? 8 : month;
+  const fromYear = key === 'F1' ? academicYear : year;
+  const endMonth = key === 'F1' ? 9 : month;
+  const endYear = key === 'F1' ? academicYear : year;
+  const lastDay = new Date(Date.UTC(endYear, endMonth, 0)).getUTCDate();
+  return { key, from: `${fromYear}-${String(fromMonth).padStart(2, '0')}-01`, to: `${endYear}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` };
+};
+
 export interface RosterEntry {
   id: string;
   /** Mã học sinh của trường — khoá khớp với file Excel SSM. */
@@ -21,6 +47,10 @@ export interface ClassSubmission {
 
 export interface ClassAssignment {
   id: string;
+  title?: string;
+  createdAt?: string;
+  dueAt?: string;
+  periodicTest?: unknown;
   competencyTags?: ReadonlyArray<{ competencyId: string }>;
 }
 
@@ -30,7 +60,9 @@ export const buildClassLoScores = (
   roster: readonly RosterEntry[],
   submissions: readonly ClassSubmission[],
   assignments: readonly ClassAssignment[],
+  options?: LoScoreOptions,
 ): StudentCompetencyScores[] => {
+  if (options) return buildScopedClassLoScores(grade, roster, submissions, assignments, options);
   const asgs = assignments.map((a) => ({ id: a.id, competencyTags: a.competencyTags }));
   const byStudent = new Map<string, ClassSubmission[]>();
   for (const sub of submissions) {
@@ -59,4 +91,47 @@ export const buildClassLoScores = (
       }
       return { maHS: entry.code.trim(), scoreByCompetency };
     });
+};
+
+const average = (values: readonly number[]): number => Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+
+/** Tính điểm theo đúng kỳ SSM; chỉ gọi khi có `options` để giữ nguyên API cũ. */
+const buildScopedClassLoScores = (
+  _grade: CompetencyGrade,
+  roster: readonly RosterEntry[],
+  submissions: readonly ClassSubmission[],
+  assignments: readonly ClassAssignment[],
+  options: LoScoreOptions,
+): StudentCompetencyScores[] => {
+  const period = loPeriodDefinition(options.period, options.academicYear);
+  const from = Date.parse(`${period.from}T00:00:00+07:00`);
+  const to = Date.parse(`${period.to}T23:59:59+07:00`);
+  const byAssignment = new Map(assignments.map((assignment) => [assignment.id, assignment]));
+  const evidence = new Map<string, Map<string, { regular: number[]; periodic: number[] }>>();
+  for (const submission of submissions) {
+    if (!submission.grade || !submission.grade.teacherApproved || !submission.assignmentId) continue;
+    const assignment = byAssignment.get(submission.assignmentId);
+    if (!assignment) continue;
+    const date = Date.parse(`${(assignment.dueAt ?? assignment.createdAt ?? submission.createdAt).slice(0, 10)}T12:00:00+07:00`);
+    if (!Number.isFinite(date) || date < from || date > to) continue;
+    const score = submission.grade.maxScore > 0 ? Math.max(0, Math.min(submission.grade.score, submission.grade.maxScore)) / submission.grade.maxScore * 10 : NaN;
+    if (!Number.isFinite(score)) continue;
+    const target = evidence.get(submission.studentId) ?? new Map<string, { regular: number[]; periodic: number[] }>();
+    for (const tag of assignment.competencyTags ?? []) {
+      const row = target.get(tag.competencyId) ?? { regular: [], periodic: [] };
+      (assignment.periodicTest ? row.periodic : row.regular).push(score);
+      target.set(tag.competencyId, row);
+    }
+    evidence.set(submission.studentId, target);
+  }
+  return roster.filter((entry) => entry.code.trim()).map((entry) => {
+    const rows = evidence.get(entry.id) ?? new Map();
+    const scoreByCompetency: Record<string, number> = {};
+    for (const [competencyId, values] of rows) {
+      if (values.regular.length && values.periodic.length) scoreByCompetency[competencyId] = Math.round((average(values.regular) * 0.4 + average(values.periodic) * 0.6) * 10) / 10;
+      else if (values.periodic.length) scoreByCompetency[competencyId] = average(values.periodic);
+      else if (values.regular.length) scoreByCompetency[competencyId] = average(values.regular);
+    }
+    return { maHS: entry.code.trim(), scoreByCompetency };
+  });
 };

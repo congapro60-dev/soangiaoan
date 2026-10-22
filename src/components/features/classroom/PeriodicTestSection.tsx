@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, FileText, Loader2, RefreshCw, Sparkles, Trash2, Upload } from 'lucide-react';
 import {
-  countKeyQuestions, examMarkLabels, keyFromMaterial, splitVariantSources, type ExamVariant, type VariantPageRef,
+  countKeyQuestions, keyFromMaterial, splitVariantSources, type ExamVariant, type VariantPageRef,
 } from '../../../lib/classroom/examVariants';
 import { readExamSourceFile, renderVariantPages } from '../../../lib/classroom/readExamSourceFile';
 import { readSourceFile } from '../../../lib/classroom/readSourceFile';
 import { loadScoreBook } from '../../../lib/classroom/teacherService';
+import { examColumnDisplayLabels } from '../../../lib/classroom/scoreBook';
 import { extractExamVariantKeys, solveAnswerKey, suggestRubric } from '../../../services/gradingApi';
 
 export interface PeriodicTestState {
@@ -87,7 +88,7 @@ export const PeriodicTestSection = ({ classId, maxScore, gradingInstructions, on
 
   useEffect(() => {
     let cancelled = false;
-    loadScoreBook(classId).then(book => { if (!cancelled) setLabels(examMarkLabels(book.exams)); }).catch(() => undefined);
+    loadScoreBook(classId).then(book => { if (!cancelled) setLabels(examColumnDisplayLabels(book)); }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [classId]);
 

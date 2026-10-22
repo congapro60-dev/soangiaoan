@@ -29,12 +29,13 @@ import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { ActorSubmissionUpload } from './ActorSubmissionUpload';
+import { ExamVariantsEditor } from './ExamVariantsEditor';
 import { SubmissionFeedback } from './SubmissionFeedback';
 import { CorrectionAttempts } from './CorrectionAttempts';
 import { HandMarkedWork } from './HandMarkedWork';
 import { ClarifyPanel } from './student/ClarifyPanel';
 import { isActionableClarifyQuestion } from '../../../lib/classroom/clarification';
-import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos } from '../../../services/submissionActorsApi';
+import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos, setSubmissionPhotosVisibility } from '../../../services/submissionActorsApi';
 import { isBlankAnswer } from '../../../lib/classroom/questionRescore';
 import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
@@ -209,6 +210,8 @@ interface BaiNopTheoLopProps {
   toggleAllSubmissions: (submissionIds: readonly string[], selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
   bulkChamLai: () => void | Promise<void>;
+  /** Báo ra ngoài khi một lượt nộp vừa lưu xong (để thầy thấy rõ đã nộp được chưa). */
+  onBaiNopXong?: (message: string) => void;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
@@ -223,10 +226,12 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe, onBaiNopXong }: BaiNopTheoLopProps) => {
   const [proxyStudent, setProxyStudent] = useState('');
   const [proxyBase, setProxyBase] = useState('');
   const [proxyHandMarked, setProxyHandMarked] = useState(false);
+  /** Em đang được nộp bài: khoá chuyển sang em khác để không mất lượt nộp dở dang. */
+  const [dangNopHS, setDangNopHS] = useState('');
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -314,6 +319,12 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
         </div>
         {historyMode === 'latest' && baiNop.length > current.length && (
           <p className="text-xs font-semibold text-slate-500">Đang ẩn {baiNop.length - current.length} lượt nộp cũ; chuyển sang “Hiện cả lịch sử” để đối chiếu hoặc xóa có chủ đích.</p>
+        )}
+        {dangNopHS && (
+          <p role="status" className="mt-2 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Đang nộp bài cho em {dangNopHS} — đợi xong đã nộp rồi hãy chuyển em khác (đổi em lúc này sẽ mất lượt nộp đang chạy).
+          </p>
         )}
       </div>
       <div className="teacher-submission-head teacher-submission-row border-b border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px] font-bold text-slate-500" aria-hidden="true">
@@ -494,6 +505,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                 <div className="flex flex-wrap items-center gap-2">
                   {assignment?.type !== 'exam' && assignment?.deliveryMode !== 'online' && <AnnotateSubmissionPhotosButton submission={s} disabled={gradingLockFresh || tienDo !== ''} onChanged={() => onRefresh?.()} />}
                   {assignment?.periodicTest && <PaperScoreButton submission={s} assignment={assignment} />}
+                  {s.handMarkedPaper && s.handMarkedDeclaredBy !== 'teacher' && <PaperScoreAdoptButton submission={s} />}
+                  {s.handMarkedPaper && <HandMarkedPhotosButton submission={s} onChanged={() => onRefresh?.()} />}
                   <button
                     type="button"
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
@@ -555,8 +568,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                   </button>
                 </div>
                 {assignment && <>
-                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700" onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
-                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} />}
+                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
+                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onBusyChange={busy => setDangNopHS(busy ? ten : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${ten} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} />}
                   {s.grade?.questionResults?.some(isActionableClarifyQuestion) && <ClarifyPanel items={[{ title: assignment.title, submission: { ...s, grade: { ...s.grade, questionResults: s.grade.questionResults.filter(isActionableClarifyQuestion) } } }]} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={() => onRefresh?.()} />}
                   <SubmissionFeedback submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} onEditGrade={() => void suaDiem(s, ten)} onChanged={onRefresh} />
                   <HandMarkedWork submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={onRefresh} />
@@ -578,8 +591,8 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="notes" className="teacher-submission-cell">
               {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && (
                 <div className="flex flex-wrap items-center gap-1">
-                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
-                  <button type="button" className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100" onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
                 </div>
               )}
             </span>
@@ -588,7 +601,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
             <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
           </div>
           </div>
-          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); }} /></div>}
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onBusyChange={busy => setDangNopHS(busy ? hs.name : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${hs.name} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} /></div>}
         </div>
       ))}
     </div>
@@ -1795,6 +1808,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         “Sửa điểm” ở bài của một em mã đó và sửa câu đó cho cả lớp — chỉ bài cùng mã được tính lại.
                         Điểm chính thức vẫn là điểm trong sổ điểm; bài này không cộng vào điểm BTVN.
                       </p>
+                      <ExamVariantsEditor assignment={a} onSaved={() => void taiBai()} />
                     </div>
                   )}
                   {!submissionsOnly && !a.periodicTest && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
@@ -1944,6 +1958,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   <WorkedSolutionsButton assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />
                   <BaiNopTheoLop
                     assignment={a} onRefresh={() => void taiBai()}
+                    onBaiNopXong={message => showToast(message, 'success')}
                     baiNop={baiNopCua(a.id)}
                     hanNop={a.dueAt}
                     maDe={a.examVariants?.map(variant => variant.code)}
@@ -2035,12 +2050,70 @@ export const PaperScoreButton = ({ submission, assignment }: { submission: Submi
         .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được vào sổ điểm.'))
         .finally(() => setBusy(false));
     }}>{busy ? 'Đang lưu…' : 'Xác nhận vào sổ'}</button>
+    {paper && <>
+      {/* Bài kiểm tra định kì nộp tay: điểm GV ghi trên giấy là chuẩn — thầy bấm để lấy làm điểm bài. */}
+      <button type="button" disabled={busy} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50" onClick={() => {
+        setBusy(true); setMessage('');
+        void updateSubmissionGradeManually(submission, { score: paper.score, maxScore: paper.maxScore, feedback: submission.grade?.feedback || '', weakTopics: submission.grade?.weakTopics || [] })
+          .then(() => setMessage(`Đã dùng điểm thầy ghi trên bài (${paper.score}/${paper.maxScore}) làm điểm bài. Bấm "Duyệt" để công bố cho học sinh.`))
+          .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm bài.'))
+          .finally(() => setBusy(false));
+      }}>Dùng làm điểm bài</button>
+    </>}
     {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
   </div>;
 };
 
-export const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {
-  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
+/**
+ * Bài HS tự khai "thầy cô đã chấm tay": máy đọc được điểm thầy ghi trên giấy. Thầy bấm để
+ * DÙNG đúng số đó làm điểm bài (bấm 1 lần, không phải gõ tay) — điểm GV là chuẩn.
+ */
+export const PaperScoreAdoptButton = ({ submission }: { submission: SubmissionDoc }) => {
+  const paper = submission.grade?.paperScore;
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  if (submission.status !== 'graded' || !submission.grade) return null;
+  if (!paper) return <p className="text-xs font-semibold text-rose-800">Máy chưa đọc được điểm thầy ghi trên bài. Thầy xem bản chấm rồi sửa điểm tay nếu cần.</p>;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>Điểm thầy ghi trên bài (máy đọc): {paper.score}/{paper.maxScore}</span>
+    <button type="button" disabled={busy} className="min-h-9 rounded-lg bg-emerald-600 px-3 text-white disabled:opacity-50" onClick={() => {
+      setBusy(true); setMessage('');
+      void updateSubmissionGradeManually(submission, {
+        score: paper.score,
+        maxScore: paper.maxScore,
+        feedback: submission.grade?.feedback || '',
+        weakTopics: submission.grade?.weakTopics || [],
+      })
+        .then(() => setMessage(`Đã dùng điểm thầy ghi (${paper.score}/${paper.maxScore}) làm điểm bài.`))
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm.'))
+        .finally(() => setBusy(false));
+    }}>{busy ? 'Đang lưu…' : 'Dùng điểm GV ghi trên bài'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài GV nộp hộ đã chấm tay: ẢNH bài nộp chính là bài chấm tay (có điểm, chữ đỏ).
+ * Phụ huynh CHỈ được xem sau khi thầy cô bấm công bố; học sinh vẫn xem bài của mình.
+ */
+export const HandMarkedPhotosButton = ({ submission, onChanged }: { submission: SubmissionDoc; onChanged?: () => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const published = submission.handMarkedPublished === true;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>{published ? 'Đã cho phụ huynh xem bài chấm tay' : 'Phụ huynh chưa được xem bài chấm tay'}</span>
+    <button type="button" disabled={busy} onClick={() => {
+      setBusy(true); setMessage('');
+      void setSubmissionPhotosVisibility({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, !published)
+        .then(() => { setMessage(published ? 'Đã ẩn bài chấm tay với phụ huynh.' : 'Đã cho phụ huynh xem bài chấm tay.'); onChanged?.(); })
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được.'))
+        .finally(() => setBusy(false));
+    }} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50">{busy ? 'Đang lưu…' : published ? 'Ẩn với phụ huynh' : 'Cho phụ huynh xem'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+export const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   return <div className="my-3 rounded-xl border border-slate-200 bg-white p-3">

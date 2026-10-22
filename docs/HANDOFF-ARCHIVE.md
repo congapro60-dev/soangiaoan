@@ -1,5 +1,63 @@
 # HANDOFF — LƯU TRỮ
 
+## [2] Chuyển từ HANDOFF.md ngày 2026-10-22 (chuỗi dự phòng Vilao chứa commit Vilao → Gemini)
+
+## Bot Cuong Vu — Zalo Bot Platform — 2026-10-21
+
+- Commit `a8ec359` adds the official Zalo Bot Platform transport at
+  `/api/assistant?transport=zalo_bot`; it is separate from the existing Zalo OA
+  adapter and Telegram identity namespace.
+- Webhook checks the fixed Zalo Bot API origin, `X-Bot-Api-Secret-Token`,
+  configured bot identity, private human sender, exact sender/chat binding,
+  bounded payload, fresh millisecond timestamp, durable replay claim, and
+  server-side per-teacher link/confirmation authorization. It replies only to
+  the inbound private chat and never sends startup or group messages.
+- Supported commands: `/help`, `/link CODE`, `/classes`, `/confirm ID HASH`,
+  `/cancel ID HASH`, `/status ID`. Natural-language `chat` remains
+  `NOT_IMPLEMENTED`; write tools stay confirmation-gated and disabled unless
+  separately implemented.
+- Verification: Bot tests `36/36`; full suite `3317/3317` before the final
+  stream/sender hardening; current `lint`, `lint:api`, `git diff --check`, and
+  Vite build pass. Existing chunk-size and browser externalization warnings
+  remain.
+- Required server-only variables: `ZALO_BOT_TOKEN`, `ZALO_BOT_ID`,
+  `ZALO_BOT_ALLOWED_IDS`,
+  `ZALO_BOT_WEBHOOK_SECRET`, and `SMARTPLAN_ASSISTANT_SECRET`. Never put them
+  in chat, `VITE_*`, logs, or committed files.
+- `ZALO_BOT_ALLOWED_USER_IDS` is optional. Leave it blank for one-use
+  `/link CODE` bootstrap; linked private senders are then checked in Firestore.
+- Remaining: Bot token/ID/webhook secret, Firebase link code, Vercel env,
+  webhook registration, production deployment, and private Zalo canary. The
+  current production deployment `b913b1c` does not contain this commit.
+- Routing used native Codex / `gpt-6-sol`; Astra was not used. No live Zalo
+  message or third-party chat was sent.
+
+
+## Assistant Gateway release — 2026-10-19
+
+- Added channel-neutral /api/assistant auth/link/read/share/confirmation/job lifecycle for Telegram + Zalo OA. Identity binds Firebase UID to exact channel account/user; payloads, previews, results, job refs, and adapter output are bounded/redacted.
+- Added draftLesson confirmation executor only. It returns persisted: false; export, Drive upload, assignments, grading, grade edits, and outbound messages remain fail-closed NOT_IMPLEMENTED.
+- Release gate: 
+pm run test (full suite), 
+pm run lint, 
+pm run lint:api, 
+pm run build; existing Vite chunk/externalization warnings remain. Focused assistant tests cover link/share/confirmation/replay/jobs/writes.
+- Zalo/Telegram adapter code lives in the separate du-lesson-automation-task7 worktree and requires its own Railway release. Zalo production needs a persistent path for ZALO_WEBHOOK_REPLAY_DB; no credentials or external canary were run.
+- Next owner action: set Vercel SMARTPLAN_ASSISTANT_SECRET and ZALO_OA_ALLOWED_IDS, Railway matching secret + bot/OA vars, then configure Zalo webhook at /api/zalo/webhook. Do not enable real write tools until Task 9 canary passes.
+- Vercel preview initially exposed a stricter TypeScript error in 
+ormalizeScopes; explicit narrowing was added in commit 197583f. Local 
+pm run lint:api, focused tests, and 
+pm run build pass afterward. Recheck both Vercel projects before production promotion.
+
+## Release checkpoint — 2026-10-21
+
+- Commit: `723c4617d45db3ad1e688a50ed8597f13c672715` on `main`; push fast-forward from `0b8d6fb` succeeded. No force push.
+- Firebase Rules: `firebase deploy --only firestore:rules --project smartplan-ai-14200` exit 0; compiled and released. Warnings only for now-unused public attempt helper functions after client-write deny.
+- Vercel: `dpl_H3zcqnStuZNVo5a5AueUGPpxe12M`, `READY`, production alias `giaoandewey.vercel.app`, Git SHA matches `723c461`.
+- Smoke: production root HTTP 200/title `Smart Lesson Plan AI`; nonexistent exam API HTTP 404 with Vietnamese error. These are deployment smoke only, not browser E2E.
+- Browser E2E and real GV/HS workflow remain unverified because the browser control session was unavailable/timeout. No production student/teacher data writes made.
+
+
 Các mục phiên cũ và phần tham chiếu dài, cắt khỏi `HANDOFF.md` ngày 2026-08-03 khi file chạm 843 dòng.
 File chính giữ trần ~150 dòng để phiên/AI sau đọc được nhanh; chỗ này giữ nguyên văn để truy vết.
 Cần chi tiết hơn nữa thì dùng `git log`, `git show`.
@@ -2199,6 +2257,12 @@ Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI
 - Documentation commit `f33d91c61aa15a0861688c8a76a245c2940a2b36` records the release checkpoint and is now on `main`.
 - Latest Vercel deployment: `dpl_E7oLUvHWXFHaLP76zb5dzcFoNEb1`, `READY`, production alias correct, SHA `f33d91c`.
 - Post-doc smoke repeated: root HTTP 200/title correct; nonexistent exam API 404 with expected message.
+
+## SỰ CỐ 15–16/10: job "làm mới dấu trên ảnh" đã CHẤM LẠI toàn bộ bài — đã sửa gốc 17/10 (cắt từ HANDOFF.md ngày 22/10)
+
+`cron=refresh` gọi `gradeOneSubmission(..., 'thorough')` → chấm lại từ đầu + `commitAiGradeIfClaimed` ghi grade mới (lịch sử `ai_regrade` giữ grade cũ). So ảnh chụp trước đợt (`%TEMP%/grading-refresh-private/inventory.json`, 15/10 14:33) với production 17/10: 184 bài bị chấm lại trong khung job; 104 đổi điểm (10Olinda 72, 11Columbus 30, 12LoTrinh1 2), 93 trong đó đã duyệt (43 GV duyệt tay), 50 bài mất duyệt; lệch >1 điểm 16, lớn nhất 5,5. Codex báo "giữ điểm by design" — sai, mã không làm vậy.
+Sửa gốc: tách `annotateSubmission()` (lõi nút "Bổ sung dấu chấm trên ảnh") trong `_submission-annotations.ts`; job làm mới chỉ gọi nó (`locateAnnotation`), không còn `gradeOneSubmission`. Test khoá: refresh giữ score/duyệt/nhận xét/gradedAt/bảng câu, chỉ thêm photoMarks, không tạo lịch sử.
+Khôi phục dữ liệu: chủ dự án chọn "trả lại điểm cũ, giữ dấu ảnh; trừ bài GV đã tự sửa/duyệt lại SAU đợt chạy". Công cụ: tab Quản trị → "Khôi phục điểm bị chấm lại (15–16/10)" (`adminRefreshRestore`, `api/_refresh-restore.ts`): lấy bài `status=graded` trong `gradingRefreshJobs/photo-refresh-20261015-*/items`, grade cũ = lịch sử `ai_regrade` có `createdAt` TRÙNG `grade.gradedAt` hiện tại; bỏ qua bài editedByTeacher / đã chấm lại thêm (bài được duyệt sau đợt, kể cả nguồn 'teacher', VẪN khôi phục — chủ dự án xác nhận là duyệt hàng loạt); ghép photoMarks mới; lịch sử `refresh_restore`; đồng bộ minh chứng theo trạng thái duyệt cũ; lô 20 bài, đánh dấu `refreshRestoredAt`. 17/10 soát ảnh 16 bài lệch >1 điểm: lần 1 đúng 6, lần 2 đúng 8, lẫn 1, chưa rõ 1 → `KEEP_REGRADE` (18 bài: 6 bài lần 2 đúng + cả nhóm Hình học 29/09 vì lần 2 theo thang Đúng/Sai THPT) GIỮ điểm mới, GV duyệt lại; Phúc Minh GHK I ĐC1 câu 5 em khoanh B — GV sửa tay. Chủ dự án tự bấm (Claude không được ghi production).
 
 ## SmartPlan QA bundle follow-up — 2026-10-16 (cắt từ HANDOFF.md ngày 22/10)
 

@@ -22,6 +22,8 @@ import { PracticeScaffold } from './PracticeScaffold';
 import { ClarifyPanel } from './ClarifyPanel';
 import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
 import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
+import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
+import type { StudentAdaptiveAssignment } from '../../../../services/studentPortalApi';
 
 const StudentPublishedReports = lazy(() => import('./StudentPublishedReports').then(module => ({ default: module.StudentPublishedReports })));
 
@@ -44,6 +46,11 @@ interface Props {
   profile: StudentProfileDoc | null;
   /** Sổ điểm của em (thi định kì + hệ số 1); null khi chưa tải được. */
   scores: StudentScoreView | null;
+  /** Danh mục Discover an toàn theo khối lớp; bài chưa được giao nên chưa mở từ đây. */
+  discoverCatalog?: readonly StudentDiscoverCatalogItem[];
+  /** Bài học phân hoá thầy cô đã giao cho lớp — mở qua máy chủ (bản đã bỏ đáp án). */
+  adaptiveAssignments?: readonly StudentAdaptiveAssignment[];
+  onOpenAdaptive?: (assignmentId: string) => void;
   loading: boolean;
   uploadingId: string;
   uploadStep: string;
@@ -66,6 +73,9 @@ interface Props {
   onAddMoreImages: () => void;
   onRemovePendingFile: (index: number) => void;
   onSubmitPendingFiles: () => void;
+  /** Em khai bài thầy cô đã chấm tay (máy đọc điểm thầy ghi, thầy xác nhận). */
+  handMarked?: boolean;
+  onHandMarkedChange?: (value: boolean) => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
   onLoadDetail: (assignmentId: string | null, submissionId?: string) => Promise<StudentAssignmentDetail>;
   onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
@@ -183,10 +193,10 @@ const Pagination = ({ page, count, onPage }: { page: number; count: number; onPa
   </div>;
 };
 export const StudentPortalDashboard = (props: Props) => {
-  const { session, assignments, submissions, onlineSubmissions, profile, scores, loading, uploadingId, uploadStep,
+  const { session, assignments, submissions, onlineSubmissions, profile, scores, discoverCatalog = [], adaptiveAssignments = [], onOpenAdaptive, loading, uploadingId, uploadStep,
     successMessage, warningMessage, actionError, dataError, practiceSet, practiceAnswers, practiceAttempt,
     loadingPractice, submittingPractice, practiceError, uploadRef, pendingFiles, pendingAssignmentTitle, maxPendingFiles,
-    onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment,
+    onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment, handMarked = false, onHandMarkedChange,
     onAnswerExamCode, notifications, notificationsLastSeenAt, onNotificationsOpened, onSignOut, onReload,
     onLoadPractice, onPracticeAnswerChange, onSubmitPractice, onDismissSuccess, onLoadDetail } = props;
   const [section, setSection] = useState<Section>('assignments');
@@ -340,6 +350,11 @@ export const StudentPortalDashboard = (props: Props) => {
                 {uploadingId !== '' ? 'Đang nộp...' : `Nộp ${pendingFiles.length} tệp`}
               </button>
             </div>
+            <label className="mt-3 flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+              <input type="checkbox" checked={handMarked} onChange={event => onHandMarkedChange?.(event.target.checked)} disabled={uploadingId !== ''}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600" />
+              <span>Thầy cô đã chấm tay bài này rồi (có điểm, chữ đỏ trên giấy). Máy sẽ đọc điểm thầy ghi để thầy xác nhận, em không cần làm lại.</span>
+            </label>
           </section>
         )}
 
@@ -349,6 +364,38 @@ export const StudentPortalDashboard = (props: Props) => {
           <div className="flex gap-2"><button type="button" className={buttonClass} onClick={() => setShowPractice(true)}>Luyện tập</button><button type="button" className={buttonClass} disabled={uploadingId !== ''} onClick={() => onChooseImage(null)}><Camera className="h-4 w-4" />Chấm thử</button></div>
         </div>
         <p className="mt-1 text-sm text-slate-500">{rows.filter(workspaceNeedsAction).length} bài cần xử lý · Chấm thử không tính điểm chính thức.</p>
+        <section aria-labelledby="student-discover-heading" className="mt-4 rounded-[1.5rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">Discover · Tự học</p>
+              <h2 id="student-discover-heading" className="mt-1 text-lg font-black text-slate-900">Tiết kiến thức mới</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">{discoverCatalog.length ? `${discoverCatalog.length} tiết theo khối lớp của em.` : 'Chưa có tiết Discover cho khối lớp này.'}</p>
+            </div>
+            <BookOpenCheck className="h-6 w-6 shrink-0 text-blue-500" />
+          </div>
+          {discoverCatalog.length > 0 && <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
+            {discoverCatalog.map(seed => {
+              const daGiao = (adaptiveAssignments || []).find(item => item.discoverSeedId === seed.id);
+              return <article key={seed.id} className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-white/90 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="break-words text-sm font-black text-slate-900">{seed.title}</h3>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">Khối {seed.grade} · Tuần {seed.week ?? '—'} · Tiết {seed.period ?? '—'}</p>
+                </div>
+                {daGiao && onOpenAdaptive
+                  ? <button type="button" onClick={() => onOpenAdaptive(daGiao.assignmentId)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 transition hover:bg-blue-100">Học bài này</button>
+                  : <button type="button" disabled className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-black text-slate-500">{seed.status === 'available' ? 'Chưa được giao' : 'Chưa sẵn sàng'}</button>}
+              </article>;
+            })}
+          </div>}
+          {(adaptiveAssignments || []).length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {(adaptiveAssignments || []).map(item => <li key={item.assignmentId} className="flex flex-col gap-2 rounded-2xl border border-blue-100 bg-white/90 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="min-w-0 break-words text-sm font-black text-slate-900">{item.title || 'Bài tự học'}</p>
+                {onOpenAdaptive && <button type="button" onClick={() => onOpenAdaptive(item.assignmentId)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 transition hover:bg-blue-100">Vào bài</button>}
+              </li>)}
+            </ul>
+          )}
+        </section>
         <div className="mt-3 grid gap-2 sm:grid-cols-2"><label className="relative"><span className="sr-only">Tìm bài tập</span><Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm tên bài…" className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-base" /></label>
           <label><span className="sr-only">Trạng thái bài tập</span><select value={filter} onChange={event => { setFilter(event.target.value as FilterKey); setPage(1); }} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base"><option value="all">Tất cả trạng thái</option><option value="action">Cần xử lý</option><option value="waiting">Chờ chấm / Chờ GV</option><option value="graded">Đã có điểm</option></select></label>
         </div>

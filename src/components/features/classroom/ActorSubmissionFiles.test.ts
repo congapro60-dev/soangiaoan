@@ -1,9 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const fixtures = vi.hoisted(() => ({ pdf: vi.fn(), compress: vi.fn() }));
 vi.mock('../../../utils/pdfToImages', () => ({ pdfToImages: fixtures.pdf }));
-vi.mock('../../../utils/imageCompress', () => ({ nenAnhBaiLam: fixtures.compress }));
+vi.mock('../../../utils/imageCompress', () => ({
+  // Ảnh nén thẳng ra File (không qua base64) — xem `nenAnhBaiLamToFile` trong utils/imageCompress.
+  nenAnhBaiLamToFile: fixtures.compress,
+  dataUrlToFile: (dataUrl: string, name: string) => {
+    const base64 = String(dataUrl).split(',')[1] || '';
+    const bytes = Uint8Array.from(atob(base64), value => value.charCodeAt(0));
+    return new File([bytes], name, { type: 'image/jpeg' });
+  },
+}));
 import { prepareActorFiles } from './ActorSubmissionUpload';
-beforeEach(() => { fixtures.pdf.mockReset().mockResolvedValue(['data:image/jpeg;base64,YQ==', 'data:image/jpeg;base64,Yg==']); fixtures.compress.mockReset().mockResolvedValue('data:image/jpeg;base64,Yw=='); });
+beforeEach(() => { fixtures.pdf.mockReset().mockResolvedValue(['data:image/jpeg;base64,YQ==', 'data:image/jpeg;base64,Yg==']); fixtures.compress.mockReset().mockResolvedValue(new File(['c'], 'paper.jpg', { type: 'image/jpeg' })); });
 describe('nộp hộ PDF/ảnh đủ bằng chứng để chấm', () => {
   it('PDF thành mọi trang ảnh cùng PDF gốc; grant nhận ảnh, không chỉ PDF', async () => {
     const original = new File(['pdf content'], 'baithi.pdf', { type: 'application/pdf' });

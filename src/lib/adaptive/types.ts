@@ -1,4 +1,5 @@
 import type { AdaptiveSimulationSpec } from './simulationTypes.js';
+import type { LessonMediaRef } from './media.js';
 
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';
@@ -194,6 +195,7 @@ export interface PracticeSet {
 
 export interface AdaptiveLesson {
   id: string;
+  discoverSeedId?: string;
   title: string;
   subjectId: 'math';
   grade: '10' | '11' | '12';
@@ -227,6 +229,8 @@ export interface AdaptiveLesson {
   };
   generationWarnings?: string[];
   generationSource?: 'ai_json' | 'regex_fallback';
+  /** Teacher-reviewed, versioned media references. Media never carries answer-bearing content. */
+  mediaManifest?: LessonMediaRef[];
 }
 
 export interface StudentParticipant {
@@ -347,6 +351,7 @@ export interface StudentSessionProgressRecord {
   studentCode: string;
   studentName: string;
   studentClass?: string;
+  learningPurpose?: 'preparation' | 'remediation' | 'self_paced';
   route: LearningRoute;
   status: 'in_progress' | 'needs_support' | 'completed';
   diagnosticAttempt: AssessmentAttempt;
