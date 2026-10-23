@@ -429,16 +429,17 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
 export async function callAIWithVision(
   prompt: string,
   imageDataUrls: string | string[],
-  settings: Settings
+  settings: Settings,
+  opts?: { thinkingBudget?: number; maxOutputTokens?: number }
 ): Promise<string> {
   const wallet = walletVendor(settings);
-  if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings);
+  if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings, opts);
   const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
   const viaWallet = async (): Promise<string> =>
     (await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel), images: urls, effort: effortFor(settings, wallet.vendor, relayVendorModelFor(wallet.vendor, settings.selectedModel)) })).text;
   if (wallet.route === 'relay') return viaWallet();
   try {
-    return await callAIWithVisionDirect(prompt, imageDataUrls, settings);
+    return await callAIWithVisionDirect(prompt, imageDataUrls, settings, opts);
   } catch (ownKeyError) {
     if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
     return viaWallet();
@@ -448,7 +449,8 @@ export async function callAIWithVision(
 async function callAIWithVisionDirect(
   prompt: string,
   imageDataUrls: string | string[],
-  settings: Settings
+  settings: Settings,
+  opts?: { thinkingBudget?: number; maxOutputTokens?: number }
 ): Promise<string> {
   const provider = settings.selectedProvider ?? 'gemini';
   assertOwnApiKey(settings);
@@ -642,7 +644,14 @@ async function callAIWithVisionDirect(
         const result = await withGeminiKeys(geminiKeysOf(settings), key => new GoogleGenAI({ apiKey: key, httpOptions: { apiVersion: 'v1beta' } }).models.generateContent({
           model: modelName,
           contents: [{ parts: [{ text: prompt }, ...imageParts] }],
-          config: { temperature: 0.1, maxOutputTokens: 65536 },
+          config: {
+            temperature: 0.1,
+            maxOutputTokens: opts?.maxOutputTokens ?? 65536,
+            // thinkingConfig chỉ áp cho nhánh Flash/Lite — model Pro yêu cầu thinking tối thiểu
+            ...(opts?.thinkingBudget !== undefined && /flash/i.test(modelName)
+              ? { thinkingConfig: { thinkingBudget: opts.thinkingBudget } }
+              : {}),
+          },
         }));
         const usageMetadata = (result as any)?.usageMetadata;
         const text = result.text || '';
