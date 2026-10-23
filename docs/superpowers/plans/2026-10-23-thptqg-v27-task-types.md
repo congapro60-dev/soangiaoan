@@ -335,10 +335,12 @@ Bằng:
   const verdict = CHECKER_REGISTRY[task.evaluation.checkerId](input.answer, task);
   const correct = Boolean(verdict.ok);
   const ratio = Number.isFinite(verdict.ratio) ? verdict.ratio : (correct ? 1 : 0);
-  let points = correct ? Math.round((cell?.points || 10) * ratio) : 0;
+  // Tỉ lệ nhân thẳng (không bọc `correct ?`): câu đúng/sai trúng một phần có correct=false nhưng vẫn phải có điểm.
+  // Trúng 0 ý → ratio 0 → 0 điểm; số học sai/sai hoàn toàn → ratio 0 → 0 điểm (hành vi cũ giữ nguyên).
+  let points = Math.round((cell?.points || 10) * ratio);
   const surfCombo = event.type === 'surf' && event.comboVersion === 1;
   const streak = surfCombo && correct ? Math.min(3,(player.streak || 0)+1) : 0;
-  if (surfCombo) points = correct ? Math.round(10*streak*ratio) : 0;
+  if (surfCombo) points = Math.round(10*streak*ratio); // streak=0 khi chưa đủ 4/4 → surf không combo, không điểm
 ```
 
 Không đổi: cooldown (181), nhánh `estimate` (173-176 — numeric_exact không có ratio → 1), `correct/score` cập nhật (178), thăng tiến (183-188).
