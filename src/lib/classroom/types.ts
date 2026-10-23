@@ -505,7 +505,7 @@ export interface SubmissionGrade {
   paperScore?: { score: number; maxScore: number };
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix' | 'refresh_restore';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix' | 'refresh_restore' | 'incident_restore';
 
 /** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
 export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';
