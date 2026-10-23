@@ -2,13 +2,14 @@
 
 > Bàn giao cho Claude QA. Bối cảnh tổng hợp xem `HANDOFF.md` + `tasks/plan-hoan-thien-game-va-day-hoc.md` (mục 23/10 — V27).
 
-## Kết quả deploy (điền sau khi phát hành)
+## Kết quả deploy (đã phát hành 23/10/2026)
 
-- [ ] Site version: v__ (get_site `latest_version_number` kỳ vọng **27**, access_mode `public`)
-- [ ] deployment_id: `<appgdep_...>`
-- [ ] source_commit: `<sha>` (workflow commit "Update Site source" trên HEAD `7b9cf6a`)
-- [ ] HTTP live: `https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site/` → kỳ vọng 200
-- [ ] Marker live: chunk `useLessonSession-*.js` chứa "Bàn phím thập phân" (fetch bundle rồi grep)
+- [x] Site version: **v27** (get_site `latest_version_number` = 27, access_mode `public`)
+- [x] deployment_id: `appgdep_6adafbba79e08191a2e2b3b17d2d7f94`
+- [x] source_commit: `ea14e0a9bed7bab882dd420099207b85f42bfa15` (commit "Update Site source" trên HEAD `ea14e0a` — docs + QA checklist nằm trong lô này)
+- [x] HTTP live: `https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site/` → **200**, title "Mật Mã Đa Giới · Toán 10–12"; `/lessons` → 307 (auth flow như cũ)
+- [x] Marker live: chunk `useLessonSession-CdAVDDx3.js` fetch về **byte-đúng dist**, chứa cả 3 marker "Bàn phím thập phân", "Điểm ý", `decimal_4`
+- [x] Server bundle: `server/_next/static/semester-content-DJyaWVY0.js` trong archive chứa đủ 3 blob pilot r013/r028/r108 (gzip base64 khớp catalogue nguồn). Chú ý: đây là bundle server-side (import qua `lib/lesson/semester-content.js`), KHÔNG serve qua URL tĩnh — kiểm tra nội dung live phải qua app (API `/api/lesson-content` yêu cầu đăng nhập, trả 401 cho anonymous — bình thường).
 
 ## Điều kiện tiên quyết
 
