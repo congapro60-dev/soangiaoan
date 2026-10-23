@@ -92,6 +92,27 @@ export interface RefreshRestoreResult { plan: RefreshRestoreItem[]; restored: nu
 /** `run=false`: chỉ xem trước. `run=true`: khôi phục một lô (tối đa `batch` bài) rồi trả kế hoạch mới. */
 export const refreshRestore = (run: boolean) => callAdmin<RefreshRestoreResult>({ action: 'adminRefreshRestore', run });
 
+export interface GhkiRestoreItem {
+  submissionId: string;
+  studentName: string;
+  assignment: string;
+  currentScore: number | null;
+  newScore: number | null;
+  maxScore: number | null;
+  currentApproved: boolean | null;
+  newApproved: boolean | null;
+  currentBroken: boolean;
+  newBroken: boolean;
+  feedbackPreview: string;
+  action: 'restore' | 'skip';
+  reason: string;
+}
+
+export interface GhkiRestoreResult { plan: GhkiRestoreItem[]; restored: number; failed: number; pending: number; batch: number }
+
+/** Khôi phục sau sự cố GHKI 23/10. `run=false`: chỉ xem trước. */
+export const ghkiRestore = (run: boolean) => callAdmin<GhkiRestoreResult>({ action: 'adminGhkiRestore', run });
+
 export const loadAdminUsage = (fromDay: string, toDay: string) => callAdmin<AdminUsage>({ action: 'adminUsage', fromDay, toDay });
 
 export const saveAdminSettings = (settings: AdminBillingSettings) =>
