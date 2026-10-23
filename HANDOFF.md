@@ -1,9 +1,19 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-22
+**Cập nhật:** 2026-10-23
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Chấm ảnh giá rẻ qua Vilao chib + điểm = Σ từng dòng — 23/10 (opencode)
+
+Chủ dự án duyệt (23/10): (1) ảnh học sinh đi qua pool rẻ Vilao được; (2) chuyển chấm ảnh sang lane chib `gemini-3.8-flash` (~5₫/bài) + gộp patch thinking 0/16k; (3) subscribe lane chib cho key Vilao mới `SmartPlan-lane2` (đang set ở env Vercel `GRADING_VILAO_API_KEY`) — **đã xong** (POST subscribe 201; `GET /v1/models` bằng key mới thấy `gemini-3.8-flash`). Key cũ `SmartPlan-lane` (sk-a3ee…) chờ chủ dự án tự thu hồi.
+- **A/B kiểm chứng (23/10, 56,18₫, 10/10 đạt):** chib giá 400/1600₫/1M token (min 3₫/request), `reasoning_effort: 'none'` → thinking 0, trung bình ~30s/lượt; phần trắc nghiệm 12 câu chuẩn tuyệt đối 10/10. Chi tiết `C:\Users\ADMIN\AppData\Local\Temp\opencode\ab_test\BAOCAO_VILAO_38.md`.
+- **Khoá chốt đặc tính model — field `score` KHÔNG đáng tin khi bảng chấm đủ thang:** A/B 22 lượt × 5 hãng (kể cả Gemini trực tiếp) cho `score` lệch Σ dòng ở gần hết lượt → `coerceHomeworkGrade` (gradingPrompt.ts) nay lấy **điểm = Σ(questionResults) KHI dòng phủ thang** (Σ maxScore các dòng ≈ maxScore bài, lệch ≤ 0,01 — 17/18 lượt A/B rơi vào trường hợp này); dòng KHÔNG phủ thang (AI chỉ đọc tổng điểm thầy ghi tay trên bài — luồng bài kiểm tra định kì) thì **giữ field `score`** của model. Cùng nguyên tắc với `recomputeTotal` sẵn có (`questionRescore.ts`). Kèm guard loại hàng "Tổng kết" model tự chèn (`laHangTongKet`) khỏi bảng + khỏi Σ; câu thật có chữ "Tổng hợp"/"Phần 2" không bị nhầm.
+- **Parser khoan dung:** `parseJsonWithRecovery` giờ phá được **trailing comma** (`, }` / `, ]`, string-aware, kind mới `trailing_comma`) — lỗi model hay mắc nhất khi trả JSON dài.
+- **`api/_grading-core.ts`:** leg Vilao của chuỗi chấm đổi default model `deepseek-v4.1-flash` → **`gemini-3.8-flash`** + gửi `reasoning_effort: 'none'` (ghim trong code như `GRADING_MODEL`; env `GRADING_VILAO_MODEL` vẫn đè được khi nguy cấp). Lớp Gemini cuối chuỗi giữ nguyên (`thinkingLevel: 'low'` ở grade-homework chưa đụng).
+- **Driver (commit `2f177ae` từ nhánh grader, kèm đợt này):** đường chấm driver gửi `{ thinkingBudget: 0, maxOutputTokens: 16384 }`; prompt thêm 2 luật tự kiểm (score PHẢI = tổng cột Điểm; cấm lấy số/mực đỏ trên ảnh nộp).
+- **Cố ý bỏ qua:** nén ảnh 1280px vô ích (Google tự downscale khi tile 768 — token không giảm); Flex processing không tồn tại trên Developer API (chỉ Vertex AI; hướng tiết kiệm sau là `batchGenerateContent` −50%).
 
 ## Sổ điểm định kì: gộp luồng Codex + badge nguồn điểm + hàng rào chống cột trùng — 22/10 (opencode)
 
