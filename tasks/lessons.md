@@ -564,3 +564,10 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Cột quy đổi phải gắn bài thi nguồn trước khi ghi TDS** — file MOET/TDS chỉ áp dụng cho một bài thi; UI bắt buộc chọn cột MOET nguồn + cột TDS đích, đối chiếu Mã HS/điểm MOET, rồi mới preview ghi. Cột định kì tạo tay phải nằm trong nhóm MOET/TDS, tách khỏi cột hệ số. *(2026-10-21)*
 
 - **SSM kỳ F/IA/SE phải gom theo kỳ thời gian, không dùng toàn bộ submission chung** — F1 Aug-Sep; IA1 Oct; F2 Nov; SE1 Dec; F3 Jan; IA2 Feb; F4 Mar; SE2 Apr. Trong kỳ có bài định kì, mỗi LO dùng 60% định kì + 40% bài thường; thiếu nhóm thì dùng nhóm còn lại; thiếu minh chứng giữ N. *(2026-10-21)*
+
+## 2026-10-23 — Sự cố GHKI: agent ngoài chấm lại + ghi điểm qua API bằng token GV
+- Khôi phục điểm LUÔN lấy từ `submissionGradeHistory` (máy chủ cất bản TRƯỚC mỗi lần đổi), không từ file chụp tạm: agent cũ so với bản chụp SAU lô lỗi nên tin "điểm không đổi" trong khi 24/26 bài bị ghi đè.
+- "Giữ điểm" sau `gradeOne` không được lấy điểm vừa chấm lại; chấm lại toàn lớp phải kèm bảng điểm CŨ ↔ MỚI để GV so trước khi duyệt.
+- Script Windows PowerShell 5.1 gửi tiếng Việt bằng `-Body` chuỗi → U+FFFD (45 bài, lan vào hồ sơ năng lực khi duyệt). Ghi dữ liệu thật phải qua công cụ trong app, không qua script cầm token GV.
+- Không `vercel --prod` tay từ thư mục khác main: bản 09:52 lùi web 14 commit. Không deploy luật Firestore từ cây chưa commit. Không tự xác nhận quyết định sư phạm dưới UID của GV. Không đưa ảnh bài HS thật vào repo.
+- Đổi chuỗi máy chấm (Vilao/xKiro trước Gemini) là quyết định của chủ dự án và phải đo độ khớp với điểm GV trước khi bật.
