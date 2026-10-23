@@ -11,7 +11,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 **Còn dở / cố ý bỏ:** đích hiện là trang học sinh CÓ SẴN, chưa phải giao diện HS thật. Chủ dự án muốn "xem như HS thật, chỉ đọc" (T9b): máy chủ `studentContext` nhận `preview` chỉ khi token là GV sở hữu lớp — đặc tả ở `docs/spec/discover-self-study-v2.md` (nhánh `codex/elearning-muse-task1`). Chưa chạy thử trên trình duyệt.
 
-**Bẫy:** lần đầu focus/gõ ô tìm, Header nạp thêm lớp truy cập từ máy chủ (`listAccessibleClasses` + `teacherClassFromServer` dùng chung với `ClassesTab`, cache một Promise) nên kết quả của lớp đồng sở hữu hiện sau request đầu. Đích mở em được áp đúng một lần (nonce) rồi xoá focus ở `App`; `đ/Đ` được chuẩn hoá thành `d`.
+**Bẫy:** lần đầu focus/gõ ô tìm, Header nạp thêm lớp truy cập từ máy chủ (`listAccessibleClasses` + `teacherClassFromServer` dùng chung với `ClassesTab`, cache một Promise) nên kết quả của lớp đồng sở hữu hiện sau request đầu. Bộ nhớ đệm lớp của Header gắn với `user.uid` (đổi tài khoản không dùng lại danh sách cũ, kể cả yêu cầu đang bay). Đích mở em được áp đúng một lần (nonce); chỉ focus CÓ học sinh mới bị xoá ở `App` — focus mở danh sách bài chưa chấm của một lớp (`onOpenClassBacklog`) phải giữ nonce cho `AssignmentPanel`; `đ/Đ` được chuẩn hoá thành `d`.
 
 **Nghiệm thu:** `npx vitest run src/components/layout/headerStudentSearch.test.ts` rồi `npx tsc --noEmit`. Tay: gõ tên em ở lớp khác với lớp đang mở → bấm → vào đúng lớp, đúng em.
 ## Nộp bài đã chấm: GV nộp hộ bài đã chấm tay, AI đọc điểm ghi tay làm điểm chính thức — 22/10 (Claude)

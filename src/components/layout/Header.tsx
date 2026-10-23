@@ -67,9 +67,13 @@ export const Header = ({ activeTab, data, userId, setIsSettingsOpen, setActiveTa
   }, [accessibleClasses, data]);
   const studentResults = useMemo(() => filterHeaderStudents(featureSearch, searchData), [featureSearch, searchData]);
 
+  const searchUserId = useRef(userId);
+  searchUserId.current = userId;
+  useEffect(() => { setAccessibleClasses(null); }, [userId]);
   const loadAccessibleClasses = () => {
     if (!loadStudentSearchClasses || accessibleClasses) return;
-    void loadStudentSearchClasses().then(setAccessibleClasses).catch(() => {});
+    const requestedFor = userId;
+    void loadStudentSearchClasses().then(loaded => { if (searchUserId.current === requestedFor) setAccessibleClasses(loaded); }).catch(() => {});
   };
 
   useEffect(() => {

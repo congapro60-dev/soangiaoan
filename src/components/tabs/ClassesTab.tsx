@@ -122,7 +122,7 @@ export const ClassesTab = ({ data, setData, user, showToast, focus, onFocusAppli
     setViewingStudent(targetStudent || null);
     setWorkspaceView(targetStudent ? 'overview' : 'submissions');
     lastAppliedFocusNonce.current = focus.nonce;
-    onFocusApplied?.(focus.nonce);
+    if (focus.studentId) onFocusApplied?.(focus.nonce);
   }, [classes, focus, onFocusApplied]);
   const [managingClassId, setManagingClassId] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);

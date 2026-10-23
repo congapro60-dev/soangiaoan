@@ -78,6 +78,7 @@ export default function App() {
   // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
   const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number; studentId?: string } | null>(null);
   const headerStudentClassesPromise = useRef<Promise<TeacherClass[]> | null>(null);
+  useEffect(() => { headerStudentClassesPromise.current = null; }, [user?.uid]);
   const loadHeaderStudentClasses = useCallback(() => {
     if (!headerStudentClassesPromise.current) {
       headerStudentClassesPromise.current = Promise.all([
