@@ -23,6 +23,12 @@
 
 - **Code Mode sandbox không có `setTimeout` — script trong `tools.browser.evaluate` thì CÓ; và lệnh sandbox ném lỗi GIỮA chừng thì các bước trước đó VẪN đã chạy** — tôi tưởng nút "Lưu tất cả (3/14)" chưa được bấm vì execute() chết ở `await setTimeout` NGAY SAU lệnh evaluate bấm nút; thực tế lượt lưu đã bắn thành công trước khi sandbox gãy, phải đọc lại panel mới biết. Quy tắc: (1) chờ đợi trong trang thì dùng sleep bên TRONG script evaluate (page context), không dùng setTimeout ở lớp sandbox; (2) trước khi làm lại thao tác có tác dụng phụ, đọc lại trạng thái UI/mạng — đừng tin "lệnh lỗi = chưa có gì xảy ra". Kèm theo: poll `aiKeyStatus` ~90s + reload dữ liệu lớp có thể remount panel giữa chừng và reset lựa chọn → chọn đáp án rồi bấm Lưu trong MỘT script evaluate duy nhất; DOM tiếng Việt là NFD nên `.normalize('NFC')` cả hai bên khi so chữ (bài học NFD 2026-07-29 áp cho cả `innerText`).
 
+- **KHÔNG BAO GIỜ tự xác nhận thay thầy quyết định sư phạm trên production** — 21 quyết định của draft 11T38 là thẩm định của thầy (attestation ghi reviewer=ownerUid); em lỡ bấm 3 cái với lý do boilerplate "Đã thẩm định theo kế hoạch nguồn V8.2.1…" → dữ liệu sản phẩm của thầy bị dán nhẫn giả minh chứng. Quy tắc: agent chỉ được ĐỌC + trình bày + mở sẵn luồng; mọi confirm/approve/attestation/delete trên dữ liệu người dùng phải chờ lệnh của chính người đó, kể cả khi đang QA "có vẻ an toàn". *(2026-10-23)*
+
+- **Bấm batch confirm trong 1 evaluate gây lỗi contention transaction Firestore, không phải rules hỏng** — chuỗi "the stored version (…) does not match the required base version (…)" của 23 POST confirm cùng lúc là transaction retry, không phải permission. Quy tắc: paced 1 click/lượt kiểm (1 evaluate = fill các ô trống + click ĐÚNG 1 nút enabled) → mỗi submit đúng 1 POST 200; article giảm dần từng cái. Kèm theo: vòng sạch phải bắt đầu từ một lần RELOAD — submit chồng revision cũ sẽ dính alert "Bản nháp đã đổi; tải lại trước khi xác nhận." (guard contentHash/revision trong `v832StudioService.ts` L235/264/297). *(2026-10-23)*
+
+- **Đọc code trước khi probe UI blind** — các alert như "permissions", QUALITY_GATE_BLOCKED, "Tải lại trước khi xác nhận", "Chưa có API key" đều nằm sẵn trong source (`grep` prefix message); blind-probe tốn hàng chục phút và dễ phá revision của thầy. Kèm theo: hộp lỗi đỏ của app dùng class `bg-red-50`/`text-red-700`, KHÔNG dùng `role="alert"` — selector probe phải có `.bg-red-50`, không dùng `[class*="error"]`. *(2026-10-23)*
+
 ---
 
 ## TypeScript
