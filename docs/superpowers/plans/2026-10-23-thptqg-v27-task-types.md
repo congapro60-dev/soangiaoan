@@ -59,8 +59,9 @@ test('true_false_4 trả ratio theo thang THPT 2025, ok nhị phân giữ nguyê
   assert.equal(half.ok, false);
   assert.deepEqual(half.perItem, [true, true, false, true]);
   assert.equal(half.ratio, 0.5);
-  assert.equal(checker([true, false, false, false], tfTask).ratio, 0.25);
-  assert.equal(checker([true, false, true, true], tfTask).ratio, 0.1);
+  assert.equal(checker([true, false, true, true], tfTask).ratio, 0.1); // trúng 1/4 (chỉ ô 1 khớp)
+  assert.equal(checker([true, false, false, true], tfTask).ratio, 0.25); // trúng 2/4
+  assert.equal(checker([true, false, false, false], tfTask).ratio, 0.5); // trúng 3/4
 });
 ```
 
