@@ -122,7 +122,10 @@
       ],
       "taskIds": [
        "task-3-1",
-       "task-3-2"
+       "task-3-2",
+       "thptqg-r013-mc",
+       "thptqg-r013-tf",
+       "thptqg-r013-sa"
       ],
       "participation": "individual",
       "studentAction": "Mỗi em làm tuyến hỗ trợ hoặc cơ bản theo hướng dẫn của GV. Có thể đổi tuyến sau khi trao đổi; không cần làm cả hai. Tuyến mở rộng chỉ có sau kiểm tra lại.",
@@ -330,7 +333,7 @@
        "hint-3-1-3",
        "hint-3-1-4"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
@@ -367,7 +370,7 @@
       "hintIds": [
        "hint-3-2-1"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
@@ -543,6 +546,166 @@
         "origin": "generated"
        },
        "numericReviewRequired": true
+      }
+     },
+     {
+      "id": "thptqg-r013-mc",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Góc $120^\\circ$ có số đo bằng bao nhiêu radian?",
+      "sourceRefs": [
+       "r22-g11-u1-lo01"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r013-mc"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $120^\\circ=120\\cdot\\frac{\\pi}{180}=\\frac{2\\pi}{3}$ rad, chọn B. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "choice_exact",
+       "answerKey": "B"
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo01",
+        "quote": "Học sinh có thể tính được các giá trị của các góc lượng giác và ghi nhớ các công thức lượng giác.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$120^\\circ=120\\cdot\\frac{\\pi}{180}=\\frac{2\\pi}{3}$ rad, chọn B."
+      },
+      "inputSchema": {
+       "options": [
+        {
+         "id": "A",
+         "label": "$\\frac{\\pi}{3}$"
+        },
+        {
+         "id": "B",
+         "label": "$\\frac{2\\pi}{3}$"
+        },
+        {
+         "id": "C",
+         "label": "$\\frac{3\\pi}{4}$"
+        },
+        {
+         "id": "D",
+         "label": "$\\frac{5\\pi}{6}$"
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r013-tf",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Xét tính đúng/sai của các khẳng định sau:",
+      "sourceRefs": [
+       "r22-g11-u1-lo01"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r013-tf"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $270^\\circ=\\frac{3\\pi}{2}\\ne\\frac{3\\pi}{4}$ nên ý 3 sai; các ý còn lại đúng theo công thức đổi độ sang radian và $l=r\\alpha$. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "true_false_4",
+       "answerKey": [
+        true,
+        true,
+        false,
+        true
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo01",
+        "quote": "Học sinh có thể tính được các giá trị của các góc lượng giác và ghi nhớ các công thức lượng giác.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$270^\\circ=\\frac{3\\pi}{2}\\ne\\frac{3\\pi}{4}$ nên ý 3 sai; các ý còn lại đúng theo công thức đổi độ sang radian và $l=r\\alpha$."
+      },
+      "inputSchema": {
+       "type": "true_false_4",
+       "statements": [
+        {
+         "id": "s1",
+         "label": "Góc $120^\\circ$ có số đo $\\frac{2\\pi}{3}$ rad."
+        },
+        {
+         "id": "s2",
+         "label": "Góc $45^\\circ$ có số đo $\\frac{\\pi}{4}$ rad."
+        },
+        {
+         "id": "s3",
+         "label": "Góc $270^\\circ$ có số đo $\\frac{3\\pi}{4}$ rad."
+        },
+        {
+         "id": "s4",
+         "label": "Trên đường tròn đơn vị, cung ứng góc $60^\\circ$ có chiều dài $\\frac{\\pi}{3}$."
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r013-sa",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Dùng $\\pi \\approx 3{,}14$. Số đo radian của góc $100^\\circ$ (làm tròn đến hàng phần trăm) là bao nhiêu? Ghi kết quả vào bốn ô, ví dụ $1{,}23$.",
+      "sourceRefs": [
+       "r22-g11-u1-lo01"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r013-sa"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $100\\cdot\\frac{3{,}14}{180}\\approx 1{,}7444\\ldots\\approx 1{,}74$. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "short_answer_4",
+       "answerKey": [
+        "1",
+        ",",
+        "7",
+        "4"
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo01",
+        "quote": "Học sinh có thể tính được các giá trị của các góc lượng giác và ghi nhớ các công thức lượng giác.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$100\\cdot\\frac{3{,}14}{180}\\approx 1{,}7444\\ldots\\approx 1{,}74$."
+      },
+      "inputSchema": {
+       "type": "short_answer_4",
+       "format": "decimal_4"
       }
      }
     ],
@@ -733,6 +896,57 @@
        "freeze": 0
       },
       "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu."
+     },
+     {
+      "id": "hint-thptqg-r013-mc",
+      "tier": "H1",
+      "text": "Đổi độ sang radian: nhân $\\frac{\\pi}{180}$.",
+      "taskId": "thptqg-r013-mc",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đổi độ sang radian: nhân $\\frac{\\pi}{180}$."
+     },
+     {
+      "id": "hint-thptqg-r013-tf",
+      "tier": "H1",
+      "text": "Nhớ $270^\\circ=\\frac{3\\pi}{2}$; chiều dài cung là $l=r\\alpha$ với $r=1$.",
+      "taskId": "thptqg-r013-tf",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Nhớ $270^\\circ=\\frac{3\\pi}{2}$; chiều dài cung là $l=r\\alpha$ với $r=1$."
+     },
+     {
+      "id": "hint-thptqg-r013-sa",
+      "tier": "H1",
+      "text": "$100^\\circ=100\\cdot\\frac{\\pi}{180}$; thay $\\pi\\approx 3{,}14$ rồi làm tròn.",
+      "taskId": "thptqg-r013-sa",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $100^\\circ=100\\cdot\\frac{\\pi}{180}$; thay $\\pi\\approx 3{,}14$ rồi làm tròn."
      }
     ],
     "evidenceRules": [
@@ -839,7 +1053,7 @@
       "group_score"
      ]
     },
-    "contentHash": "15806af08f2f7cfd52db5f3e7eeb93611a8d130c60ebbc33bc97bf2dfa56e624"
+    "contentHash": "717a17cae4048e48b95020760a72377b5fb14e089a6c37d7fa35a9816da14fc6"
    },
    "citations": [
     {
@@ -10456,7 +10670,10 @@
       ],
       "taskIds": [
        "task-3-1",
-       "task-3-2"
+       "task-3-2",
+       "thptqg-r028-mc",
+       "thptqg-r028-tf",
+       "thptqg-r028-sa"
       ],
       "participation": "individual",
       "studentAction": "Mỗi em làm tuyến hỗ trợ hoặc cơ bản theo hướng dẫn của GV. Có thể đổi tuyến sau khi trao đổi; không cần làm cả hai. Tuyến mở rộng chỉ có sau kiểm tra lại.",
@@ -10678,7 +10895,7 @@
        "hint-3-1-3",
        "hint-3-1-4"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
@@ -10722,7 +10939,7 @@
       "hintIds": [
        "hint-3-2-1"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
@@ -10920,6 +11137,168 @@
        },
        "numericReviewRequired": true
       }
+     },
+     {
+      "id": "thptqg-r028-mc",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Tứ diện đều $ABCD$ cạnh $a$ có thể tích khối tứ diện $ABCD$ bằng:",
+      "sourceRefs": [
+       "r22-g11-u1-lo05"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r028-mc"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $S_{\\triangle BCD}=\\frac{a^2\\sqrt{3}}{4}$, $h=a\\sqrt{\\frac{2}{3}}$, nên $V=\\frac{1}{3}\\cdot\\frac{a^2\\sqrt{3}}{4}\\cdot a\\sqrt{\\frac{2}{3}}=\\frac{a^3\\sqrt{2}}{12}$, chọn A. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "choice_exact",
+       "answerKey": "A"
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo05",
+        "quote": "Học sinh hiểu được cách xác định điểm và mặt phẳng trong không gian, hiểu và xác định được hình chóp – hình tứ diện",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$S_{\\triangle BCD}=\\frac{a^2\\sqrt{3}}{4}$, $h=a\\sqrt{\\frac{2}{3}}$, nên $V=\\frac{1}{3}\\cdot\\frac{a^2\\sqrt{3}}{4}\\cdot a\\sqrt{\\frac{2}{3}}=\\frac{a^3\\sqrt{2}}{12}$, chọn A."
+      },
+      "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23f8fafc%22%2F%3E%3Cpolygon%20points%3D%22120%2C18%2034%2C132%20206%2C132%22%20fill%3D%22%23dbeafe%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%2F%3E%3Cline%20x1%3D%22120%22%20y1%3D%2218%22%20x2%3D%22120%22%20y2%3D%22108%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%221.5%22%2F%3E%3Ctext%20x%3D%22112%22%20y%3D%2214%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EA%3C%2Ftext%3E%3Ctext%20x%3D%2220%22%20y%3D%22150%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EB%3C%2Ftext%3E%3Ctext%20x%3D%22198%22%20y%3D%22150%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EC%3C%2Ftext%3E%3Ctext%20x%3D%22112%22%20y%3D%22124%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3ED%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "inputSchema": {
+       "options": [
+        {
+         "id": "A",
+         "label": "$\\frac{a^3\\sqrt{2}}{12}$"
+        },
+        {
+         "id": "B",
+         "label": "$\\frac{a^3}{6}$"
+        },
+        {
+         "id": "C",
+         "label": "$\\frac{a^3\\sqrt{3}}{12}$"
+        },
+        {
+         "id": "D",
+         "label": "$\\frac{a^3}{12}$"
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r028-tf",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Cho hình chóp $S.ABC$ có $SA\\perp (ABC)$ (xem hình). Xét tính đúng/sai của các khẳng định sau:",
+      "sourceRefs": [
+       "r22-g11-u1-lo05"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r028-tf"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: Ý 1 đúng vì đường thẳng vuông góc với mặt phẳng thì vuông góc với mọi đường thẳng nằm trong đó. Ý 2 sai vì chỉ có $BC$ vuông góc với $SA$ trong $(SAB)$, chưa có $AB\\perp BC$. Ý 3 dùng định nghĩa giao tuyến của hai mặt phẳng có chung hai điểm $S$, $C$. Ý 4 đúng vì $SA\\perp(ABC)$ tại $A$. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "true_false_4",
+       "answerKey": [
+        true,
+        false,
+        true,
+        true
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo05",
+        "quote": "Học sinh hiểu được cách xác định điểm và mặt phẳng trong không gian, hiểu và xác định được hình chóp – hình tứ diện",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "Ý 1 đúng vì đường thẳng vuông góc với mặt phẳng thì vuông góc với mọi đường thẳng nằm trong đó. Ý 2 sai vì chỉ có $BC$ vuông góc với $SA$ trong $(SAB)$, chưa có $AB\\perp BC$. Ý 3 dùng định nghĩa giao tuyến của hai mặt phẳng có chung hai điểm $S$, $C$. Ý 4 đúng vì $SA\\perp(ABC)$ tại $A$."
+      },
+      "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23f8fafc%22%2F%3E%3Cpolygon%20points%3D%22120%2C16%2030%2C110%20210%2C110%22%20fill%3D%22%23dbeafe%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%2F%3E%3Cpolygon%20points%3D%2230%2C110%20210%2C110%20178%2C146%2062%2C146%22%20fill%3D%22%23eff6ff%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%2F%3E%3Cline%20x1%3D%22120%22%20y1%3D%2216%22%20x2%3D%22120%22%20y2%3D%22128%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%221.5%22%20stroke-dasharray%3D%224%203%22%2F%3E%3Ctext%20x%3D%22114%22%20y%3D%2212%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3ES%3C%2Ftext%3E%3Ctext%20x%3D%2214%22%20y%3D%22128%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EA%3C%2Ftext%3E%3Ctext%20x%3D%22214%22%20y%3D%22128%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EB%3C%2Ftext%3E%3Ctext%20x%3D%22184%22%20y%3D%22158%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3EC%3C%2Ftext%3E%3Ctext%20x%3D%2252%22%20y%3D%22158%22%20font-size%3D%2213%22%20fill%3D%22%231e40af%22%3ED%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "inputSchema": {
+       "type": "true_false_4",
+       "statements": [
+        {
+         "id": "s1",
+         "label": "$SA$ vuông góc với đường thẳng $BC$."
+        },
+        {
+         "id": "s2",
+         "label": "$BC$ vuông góc với mặt phẳng $(SAB)$."
+        },
+        {
+         "id": "s3",
+         "label": "Hai mặt phẳng $(SBC)$ và $(SAC)$ cắt nhau theo giao tuyến $SC$."
+        },
+        {
+         "id": "s4",
+         "label": "Hình chiếu vuông góc của $S$ trên mặt phẳng $(ABC)$ là điểm $A$."
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r028-sa",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Hình chóp có đáy là hình vuông cạnh $3$ và chiều cao $2{,}5$. Thể tích khối chóp bằng bao nhiêu? Ghi kết quả vào bốn ô, ví dụ $7{,}50$.",
+      "sourceRefs": [
+       "r22-g11-u1-lo05"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r028-sa"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $V=\\frac{1}{3}\\cdot 9\\cdot 2{,}5=7{,}5$. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "short_answer_4",
+       "answerKey": [
+        "7",
+        ",",
+        "5",
+        "0"
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u1-lo05",
+        "quote": "Học sinh hiểu được cách xác định điểm và mặt phẳng trong không gian, hiểu và xác định được hình chóp – hình tứ diện",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$V=\\frac{1}{3}\\cdot 9\\cdot 2{,}5=7{,}5$."
+      },
+      "inputSchema": {
+       "type": "short_answer_4",
+       "format": "decimal_4"
+      }
      }
     ],
     "hints": [
@@ -11109,6 +11488,57 @@
        "freeze": 0
       },
       "supportRationale": "Phản hồi để GV hướng dẫn tiết sau; không dùng làm minh chứng đạt mục tiêu."
+     },
+     {
+      "id": "hint-thptqg-r028-mc",
+      "tier": "H1",
+      "text": "Dùng $V=\\frac{1}{3}S_{\\triangle BCD}\\cdot h$, với $h$ là khoảng cách từ $A$ đến mặt $(BCD)$.",
+      "taskId": "thptqg-r028-mc",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Dùng $V=\\frac{1}{3}S_{\\triangle BCD}\\cdot h$, với $h$ là khoảng cách từ $A$ đến mặt $(BCD)$."
+     },
+     {
+      "id": "hint-thptqg-r028-tf",
+      "tier": "H1",
+      "text": "$SA\\perp (ABC)$ nên $SA$ vuông góc với mọi đường thẳng trong $(ABC)$; để $BC\\perp(SAB)$ phải có thêm $AB\\perp BC$.",
+      "taskId": "thptqg-r028-tf",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $SA\\perp (ABC)$ nên $SA$ vuông góc với mọi đường thẳng trong $(ABC)$; để $BC\\perp(SAB)$ phải có thêm $AB\\perp BC$."
+     },
+     {
+      "id": "hint-thptqg-r028-sa",
+      "tier": "H1",
+      "text": "$V=\\frac{1}{3}S_{đáy}\\cdot h=\\frac{1}{3}\\cdot 3^2\\cdot 2{,}5$.",
+      "taskId": "thptqg-r028-sa",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $V=\\frac{1}{3}S_{đáy}\\cdot h=\\frac{1}{3}\\cdot 3^2\\cdot 2{,}5$."
      }
     ],
     "evidenceRules": [
@@ -11215,7 +11645,7 @@
       "group_score"
      ]
     },
-    "contentHash": "288f93861b6c3c101ad2978d8f701174285cc38731330483a2287db340e534ed"
+    "contentHash": "dc553cb87c87fbd55b78415d22a7d46d44988652172f63c46a82ed786a8705f1"
    },
    "citations": [
     {
@@ -115790,7 +116220,10 @@
       ],
       "taskIds": [
        "task-3-1",
-       "task-3-2"
+       "task-3-2",
+       "thptqg-r108-mc",
+       "thptqg-r108-tf",
+       "thptqg-r108-sa"
       ],
       "participation": "individual",
       "studentAction": "Mỗi em làm tuyến hỗ trợ hoặc cơ bản theo hướng dẫn của GV. Có thể đổi tuyến sau khi trao đổi; không cần làm cả hai. Tuyến mở rộng chỉ có sau kiểm tra lại.",
@@ -116016,7 +116449,7 @@
        "hint-3-1-3",
        "hint-3-1-4"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": false,
       "requiresFullScaffold": true,
       "branch": "support",
@@ -116061,7 +116494,7 @@
       "hintIds": [
        "hint-3-2-1"
       ],
-      "minutes": 10,
+      "minutes": 4,
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "core",
@@ -116265,6 +116698,169 @@
        "numericReviewRequired": true,
        "workedSolution": "GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh."
       }
+     },
+     {
+      "id": "thptqg-r108-mc",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Cho tam giác $ABC$, $M\\in AB$, $N\\in AC$ sao cho $MN\\parallel BC$. Biết $AM=4$, $MB=6$, $BC=10$. Độ dài $MN$ là:",
+      "sourceRefs": [
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r108-mc"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $\\frac{AM}{AB}=\\frac{4}{10}$, nên $MN=\\frac{4}{10}\\cdot 10=4$, chọn B. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "choice_exact",
+       "answerKey": "B"
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u2-lo03",
+        "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$\\frac{AM}{AB}=\\frac{4}{10}$, nên $MN=\\frac{4}{10}\\cdot 10=4$, chọn B."
+      },
+      "inputSchema": {
+       "options": [
+        {
+         "id": "A",
+         "label": "$5$"
+        },
+        {
+         "id": "B",
+         "label": "$4$"
+        },
+        {
+         "id": "C",
+         "label": "$6$"
+        },
+        {
+         "id": "D",
+         "label": "$8$"
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r108-tf",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Về quan hệ song song, xét tính đúng/sai của các khẳng định sau:",
+      "sourceRefs": [
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r108-tf"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: Ý 2 sai vì đường thẳng có thể chéo với đường thẳng trong mặt phẳng. Ý 1 là tính chất transitive của song song, ý 3 là dấu hiệu nhận biết, ý 4 là tính chất giao tuyến — đều đúng. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "true_false_4",
+       "answerKey": [
+        true,
+        false,
+        true,
+        true
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u2-lo03",
+        "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "Ý 2 sai vì đường thẳng có thể chéo với đường thẳng trong mặt phẳng. Ý 1 là tính chất transitive của song song, ý 3 là dấu hiệu nhận biết, ý 4 là tính chất giao tuyến — đều đúng."
+      },
+      "inputSchema": {
+       "type": "true_false_4",
+       "statements": [
+        {
+         "id": "s1",
+         "label": "Hai mặt phẳng phân biệt cùng song song với một mặt phẳng thứ ba thì song song với nhau."
+        },
+        {
+         "id": "s2",
+         "label": "Một đường thẳng song song với một mặt phẳng thì song song với mọi đường thẳng nằm trong mặt phẳng đó."
+        },
+        {
+         "id": "s3",
+         "label": "Nếu một mặt phẳng chứa hai đường thẳng cắt nhau lần lượt song song với hai đường thẳng cắt nhau của mặt phẳng khác thì hai mặt phẳng đó song song."
+        },
+        {
+         "id": "s4",
+         "label": "Nếu $(\\alpha)\\parallel (\\beta)$, $(\\alpha)\\cap (\\gamma)=a$ và $(\\beta)\\cap (\\gamma)=b$ thì $a\\parallel b$."
+        }
+       ]
+      }
+     },
+     {
+      "id": "thptqg-r108-sa",
+      "type": "closed",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "activityId": "act-3",
+      "participation": "individual",
+      "prompt": "Cho tam giác $ABC$, $M\\in AB$, $N\\in AC$, $MN\\parallel BC$. Biết $\\frac{AM}{AB}=0{,}4$ và $BC=12$. Độ dài $MN$ là bao nhiêu? Ghi kết quả vào bốn ô, ví dụ $4{,}80$.",
+      "sourceRefs": [
+       "r22-g11-u2-lo03",
+       "r26-g11-parallel-practice-sgk"
+      ],
+      "evidenceIds": [],
+      "hintIds": [
+       "hint-thptqg-r108-sa"
+      ],
+      "minutes": 2,
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "branch": "shared",
+      "supportRationale": "Lời giải đối soát: $MN=0{,}4\\cdot 12=4{,}8$. Lỗi cần quan sát: làm tròn sai bước cuối; đọc nhầm dữ kiện đề.",
+      "evaluation": {
+       "checkerId": "short_answer_4",
+       "answerKey": [
+        "4",
+        ",",
+        "8",
+        "0"
+       ]
+      },
+      "metadata": {
+       "sourceCitation": {
+        "segmentId": "r22-g11-u2-lo03",
+        "quote": "Học sinh chứng minh được hai mặt phẳng song song và biết cách sử dụng phép chiếu song song trong các vấn đề toán học và thực tế.",
+        "origin": "generated"
+       },
+       "numericReviewRequired": true,
+       "workedSolution": "$MN=0{,}4\\cdot 12=4{,}8$."
+      },
+      "inputSchema": {
+       "type": "short_answer_4",
+       "format": "decimal_4"
+      }
      }
     ],
     "hints": [
@@ -116454,6 +117050,57 @@
        "freeze": 0
       },
       "supportRationale": "Lời giải chuẩn: GV đọc phản hồi để ghi nhận khả năng tự đánh giá và khắc phục lỗi lập luận của học sinh."
+     },
+     {
+      "id": "hint-thptqg-r108-mc",
+      "tier": "H1",
+      "text": "Định lý Thales: $\\frac{AM}{AB}=\\frac{MN}{BC}$ với $AB=AM+MB$.",
+      "taskId": "thptqg-r108-mc",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Định lý Thales: $\\frac{AM}{AB}=\\frac{MN}{BC}$ với $AB=AM+MB$."
+     },
+     {
+      "id": "hint-thptqg-r108-tf",
+      "tier": "H1",
+      "text": "Đường thẳng song song với mặt phẳng có thể chéo nhau với các đường thẳng trong mặt phẳng đó; tính chất giao tuyến cho ý 4.",
+      "taskId": "thptqg-r108-tf",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đường thẳng song song với mặt phẳng có thể chéo nhau với các đường thẳng trong mặt phẳng đó; tính chất giao tuyến cho ý 4."
+     },
+     {
+      "id": "hint-thptqg-r108-sa",
+      "tier": "H1",
+      "text": "Theo Thales: $MN=\\frac{AM}{AB}\\cdot BC$.",
+      "taskId": "thptqg-r108-sa",
+      "objectiveIds": [
+       "obj-1"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+       "time": 0,
+       "score": 0,
+       "freeze": 0
+      },
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Theo Thales: $MN=\\frac{AM}{AB}\\cdot BC$."
      }
     ],
     "evidenceRules": [
@@ -116561,7 +117208,7 @@
       "group_score"
      ]
     },
-    "contentHash": "a3c11847509c5ec0950e36da04c2e82275103710c255cfa83efbede8a7ad851e"
+    "contentHash": "d0b348506cf75edd7d6fcb1b06009d45c048cc2b12780231590a68b623bb75f8"
    },
    "citations": [
     {

@@ -151,3 +151,50 @@ test('prompt bộ soạn AI yêu cầu đủ 4 dạng THPTQG + minh họa hình 
     assert.ok(source.includes(marker), 'thiếu hướng dẫn: ' + marker);
   }
 });
+
+test('nội dung pilot THPTQG hki-2026-g11: đủ 3 dạng × 3 entry, đáp án đúng, validator xanh', async () => {
+  const { validateLessonPackage } = await import('../lib/lesson/validate.js');
+  const db = JSON.parse(await readFile(new URL('../content/lessons/hki-2026-g11.json', import.meta.url), 'utf8'));
+  for (const periodId of ['g11-discover-r013', 'g11-discover-r028', 'g11-discover-r108']) {
+    const entry = db.entries.find((e) => e.sourcePeriodId === periodId);
+    assert.ok(entry, 'thiếu entry ' + periodId);
+    const pkg = entry.pkg;
+    const checkResult = validateLessonPackage(pkg);
+    assert.equal(checkResult.ok, true, periodId + ' validator sai: ' + JSON.stringify((checkResult.errors || []).slice(0, 3)));
+    const pilot = pkg.tasks.filter((t) => String(t.id).startsWith('thptqg-'));
+    assert.equal(pilot.length, 3, periodId + ' phải có đúng 3 nhiệm vụ thptqg-');
+    assert.deepEqual(
+      pilot.map((t) => t.evaluation.checkerId).sort(),
+      ['choice_exact', 'short_answer_4', 'true_false_4'],
+      periodId + ' thiếu dạng nhiệm vụ'
+    );
+    for (const task of pilot) {
+      assert.equal(task.branch, 'shared', periodId + ' nhiệm vụ mới phải dùng chung mọi nhánh');
+      assert.equal(task.hintIds.length, 1, periodId + ' mỗi nhiệm vụ mới cần 1 gợi ý H1');
+      assert.ok(pkg.hints.some((h) => h.id === task.hintIds[0]), 'gợi ý phải tồn tại trong pkg.hints');
+      const checker = CHECKER_REGISTRY[task.evaluation.checkerId];
+      assert.equal(checker(task.evaluation.answerKey, task).ok, true, periodId + ' đáp án chính thức phải đạt: ' + task.id);
+      if (task.evaluation.checkerId === 'choice_exact') {
+        assert.equal(task.inputSchema.options.length, 4, 'trắc nghiệm cần 4 lựa chọn');
+        const wrong = task.inputSchema.options.map((o) => o.id).find((id) => id !== task.evaluation.answerKey);
+        assert.equal(checker(wrong, task).ok, false, 'lựa chọn sai phải không đạt');
+      } else if (task.evaluation.checkerId === 'true_false_4') {
+        assert.equal(task.inputSchema.statements.length, 4, 'đúng/sai cần 4 phát biểu');
+        assert.ok(task.evaluation.answerKey.some((v) => v === false), 'phải có ít nhất 1 ý sai');
+        const flippedOne = task.evaluation.answerKey.map((v, i) => (i === 0 ? !v : v));
+        const verdict = checker(flippedOne, task);
+        assert.equal(verdict.ok, false, 'trúng 3/4 phải vẫn chưa đạt đủ');
+        assert.equal(verdict.ratio, 0.5, 'trúng 3/4 phải được nửa điểm');
+      } else {
+        assert.equal(task.inputSchema.format, 'decimal_4', 'trả lời ngắn phải dùng decimal_4');
+        assert.equal(task.evaluation.answerKey.length, 4, 'decimal_4 cần đúng 4 ký tự');
+        const dotted = task.evaluation.answerKey.map((ch) => (ch === ',' ? '.' : ch));
+        assert.equal(checker(dotted, task).ok, true, 'chấm↔phẩy phải tương đương');
+      }
+    }
+  }
+  const r028 = db.entries.find((e) => e.sourcePeriodId === 'g11-discover-r028').pkg;
+  const illustrated = r028.tasks.filter((t) => String(t.id).startsWith('thptqg-') && typeof t.image === 'string');
+  assert.equal(illustrated.length, 2, 'r028 cần 2 nhiệm vụ có hình minh họa');
+  assert.ok(illustrated.every((t) => t.image.startsWith('data:image/svg+xml')), 'hình minh họa phải là SVG data-URI');
+});
