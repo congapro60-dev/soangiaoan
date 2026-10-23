@@ -39,7 +39,7 @@
 
 1. ~~Deploy v27~~ → **ĐÃ PHÁT HÀNH 23/10**: version 27, deployment_id `appgdep_6adafbba79e08191a2e2b3b17d2d7f94`, source_commit `ea14e0a9bed7bab882dd420099207b85f42bfa15`, live HTTP 200. Xác minh live đạt: chunk client `useLessonSession-CdAVDDx3.js` byte-đúng dist (đủ marker "Bàn phím thập phân"/"Điểm ý"/`decimal_4`); server tree archive chứa 3 blob pilot r013/r028/r108.
 2. ~~Ghi release record~~ → Đã ghi vào plan + lessons + `tasks/qa-v27-checklist.md` (checklist đầy đủ cho Claude, kèm đáp án 9 task pilot).
-3. **QA bàn giao Claude**: làm theo `tasks/qa-v27-checklist.md` — pilot r013/r028/r108 từ catalogue → mở tiết → HS thấy MC / đúng/sai ✓/✗ từng ý + chip "Điểm ý" (trúng 3/4 = 0,5; đủ 4/4 = 1) → trả lời ngắn 4 ô bàn phím thập phân (1,74 ≡ 1.74) → mini-game trao điểm một phần. QA nộp ảnh v26 vẫn chờ GV đăng nhập lại (phòng 7E42C2 hết giờ tiết).
+3. **QA bàn giao Claude**: làm theo `tasks/qa-v27-checklist.md` — pilot r013/r028/r108 từ catalogue → mở tiết → HS thấy MC / đúng/sai ✓/✗ từng ý + chip "Điểm ý" (trúng 3/4 = 0,5; đủ 4/4 = 1) → trả lời ngắn 4 ô bàn phím thập phân (1,74 ≡ 1.74) → mini-game trao điểm một phần. QA nộp ảnh v26 vẫn chờ GV đăng nhập lại (phòng 7E42C2 hết giờ tiết). **Chẩn đoán alert "Đang có thao tác đang xử lý" (23/10 chiều)**: không phải lỗi v27 — guard chống double-submit (`useLessonSession.ts:295-297`, nhả lock trong `finally`) + `window.alert()` native chặn tab khi automation không dismiss dialog; chạy QA tuần tự 1 tab HS, gặp alert thì dismiss rồi thử lại (chi tiết `tasks/qa-v27-checklist.md`).
 
 ### Giới hạn không đụng
 
