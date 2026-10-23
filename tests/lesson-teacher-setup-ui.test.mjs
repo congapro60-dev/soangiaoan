@@ -6,7 +6,8 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as setup from '../lib/lesson/teacher-setup.js';
-const exports={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../components/lesson/TeacherSetupPanel.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React,esModuleInterop:true}}).outputText,{exports,require:name=>name==='react'?React:setup});
+import * as ruleGuide from '../lib/rule-guide.js';
+const exports={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../components/lesson/TeacherSetupPanel.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React,esModuleInterop:true}}).outputText,{exports,require:name=>name==='react'?React:(name.endsWith('rule-guide.js')?ruleGuide:setup)});
 const lesson={objectives:[{code:'T11.18'}],budget:{reserveMinutes:4},activities:[{phase:'practice',taskIds:['t']}],tasks:[{id:'t',type:'closed',participation:'individual',prompt:'Hàng ghế',evaluation:{checkerId:'numeric_exact'}}]};
 const find=(node,predicate)=>{if(!node||typeof node!=='object')return; if(predicate(node))return node;for(const child of React.Children.toArray(node.props?.children)){const found=find(child,predicate);if(found)return found;}};
 test('before launch proposal exposes primary choices before collapsed advanced controls',()=>{

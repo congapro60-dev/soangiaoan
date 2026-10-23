@@ -2587,3 +2587,70 @@ test('legacy branch switches preserve privacy and downgrade waits through teache
   assert.equal(command('SELECT_BRANCH', pupil, { branch: 'support' }, 180000 - active).ok, true, 'exactly three active minutes opens downgrade');
   assert.equal(serializeForStudent(state, 'a').branchSwitchesLeft, 0);
 });
+
+test('photo answers within published caps save and submit; submit clears the draft', () => {
+  let session = createLessonSession({
+    package: fixture,
+    mode: 'preview',
+    sessionId: 's-photo',
+    hostId: 'teacher-main',
+    learners: [{ id: 'hs-1', name: 'Học sinh 1' }],
+    now: 1000
+  });
+
+  session = reduceLessonSession(
+    session,
+    { eventId: 'e-start', type: 'START', round: 1, revision: 0, payload: {} },
+    { actor: { role: 'teacher', id: 'teacher-main' }, now: 1100 }
+  ).state;
+
+  // Client compress ladder targets a ≤150,000-char data URL; guards must accept it.
+  const drawingPhoto = 'data:image/jpeg;base64,' + 'A'.repeat(150000);
+  const answer = { text: 'Bài làm viết trên giấy', drawingPhoto };
+
+  const saved = reduceLessonSession(
+    session,
+    { eventId: 'draft-photo-1', type: 'SAVE_DRAFT', activityId: 'act-exp', round: 1, revision: 1, payload: { taskId: 'task-exp-predict', answer } },
+    { actor: { role: 'student', id: 'hs-1' }, now: 1200 }
+  );
+  assert.equal(saved.result.ok, true, JSON.stringify(saved.result));
+  assert.equal(saved.state.drafts['hs-1']?.['task-exp-predict']?.answer?.drawingPhoto, drawingPhoto);
+
+  const submitted = reduceLessonSession(
+    saved.state,
+    { eventId: 'sub-photo-1', type: 'SUBMIT', activityId: 'act-exp', round: 1, revision: 2, payload: { taskId: 'task-exp-predict', answer } },
+    { actor: { role: 'student', id: 'hs-1' }, now: 1300 }
+  );
+  assert.equal(submitted.result.ok, true, JSON.stringify(submitted.result));
+  const submission = Object.values(submitted.state.submissions).find((s) => s.learnerId === 'hs-1' && s.taskId === 'task-exp-predict');
+  assert.ok(submission, 'submission stored');
+  assert.equal(submission.answer.drawingPhoto, drawingPhoto);
+  // Submit supersedes the draft so a photo is not stored twice in state.
+  assert.equal(submitted.state.drafts['hs-1']?.['task-exp-predict'], undefined);
+});
+
+test('oversized photo answers are rejected as INVALID_ANSWER instead of silently failing', () => {
+  let session = createLessonSession({
+    package: fixture,
+    mode: 'preview',
+    sessionId: 's-photo-big',
+    hostId: 'teacher-main',
+    learners: [{ id: 'hs-1', name: 'Học sinh 1' }],
+    now: 1000
+  });
+
+  session = reduceLessonSession(
+    session,
+    { eventId: 'e-start', type: 'START', round: 1, revision: 0, payload: {} },
+    { actor: { role: 'teacher', id: 'teacher-main' }, now: 1100 }
+  ).state;
+
+  const oversized = 'data:image/jpeg;base64,' + 'A'.repeat(300000);
+  const rejected = reduceLessonSession(
+    session,
+    { eventId: 'draft-photo-2', type: 'SAVE_DRAFT', activityId: 'act-exp', round: 1, revision: 1, payload: { taskId: 'task-exp-predict', answer: { text: 'x', drawingPhoto: oversized } } },
+    { actor: { role: 'student', id: 'hs-1' }, now: 1200 }
+  );
+  assert.equal(rejected.result.ok, false);
+  assert.equal(rejected.result.code, 'INVALID_ANSWER');
+});

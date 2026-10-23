@@ -598,6 +598,8 @@ test('PlayPage integrates LessonThemedRoute, separated wallets, and server-proje
       if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
       if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
       if (name.endsWith("/ValueReflection")) return { ValueReflection: () => null };
+      if (name.endsWith("/LearningEvidencePanel")) return { StudentLearningEvidence: () => null, TeacherLearningEvidence: () => null, __esModule: true };
+      if (name.endsWith("/PupilReports")) return { StudentBugReport: () => null, TeacherBugReports: () => null, __esModule: true };
         if (name === "next/link") return { default: ({href, children}) => React.createElement("a", {href}, children), __esModule: true };
         throw new Error(`Unexpected import: ${name}`);
     }

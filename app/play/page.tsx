@@ -923,7 +923,7 @@ export default function PlayPage() {
       } catch {
         // ignore storage limits
       }
-      void dispatchCommand("SAVE_DRAFT", { taskId, answer });
+      return dispatchCommand("SAVE_DRAFT", { taskId, answer });
     },
     [sessionId, learnerId, view, dispatchCommand]
   );
@@ -1283,7 +1283,7 @@ export default function PlayPage() {
                       onSubmit={async (ans) => {
                         const res = await dispatchCommand("SUBMIT", { taskId: task.id, answer: ans });
                         if (!res.ok) {
-                          alert(res.error || "Nộp bài thất bại.");
+                          alert(SUBMIT_ERRORS[res.code || ""] || res.error || "Nộp bài thất bại.");
                         } else if (!(res.result as { pending?: boolean } | undefined)?.pending) {
                           media.triggerReaction((res.result as { correct?: boolean } | undefined)?.correct === false ? "wrong" : "correct");
                         }
@@ -1460,6 +1460,15 @@ const LEVEL_ERRORS: Record<string, string> = {
   BRANCH_SWITCH_LIMIT: "Em đã đổi mức 2 lần ở chặng này rồi.",
   BRANCH_DOWN_TOO_SOON: "Hãy thử làm câu ở mức này trước: đổi xuống được sau 1 lần sai hoặc sau 3 phút.",
   BRANCH_LOCKED: "Mức này chưa mở ở chặng này.",
+};
+
+const SUBMIT_ERRORS: Record<string, string> = {
+  BODY_TOO_LARGE: "Bài làm (kèm ảnh) vẫn quá lớn sau khi nén. Em xóa ảnh, chụp gọn hơn rồi nộp lại.",
+  STATE_TOO_LARGE: "Lớp đã đầy dữ liệu bài làm. Em báo thầy cô xử lý nhé.",
+  INVALID_ANSWER: "Bài làm chưa đúng định dạng. Em kiểm tra lại rồi nộp nhé.",
+  TASK_NOT_AVAILABLE: "Câu này chưa mở cho em ở chặng hiện tại.",
+  TASK_ALREADY_COMPLETED: "Em đã nộp câu này rồi.",
+  INTEGRITY_REQUIRED: "Em cần xác nhận phần tự làm trước khi nộp.",
 };
 
 function LevelBar({ view, disabled, extension, onSelect }: {

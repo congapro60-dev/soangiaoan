@@ -43,7 +43,7 @@ export interface TaskInputProps {
     assisted?: boolean;
     at?: number;
   } | null;
-  onSaveDraft?: (answer: unknown) => void;
+  onSaveDraft?: (answer: unknown) => unknown;
   onSubmit?: (answer: unknown) => Promise<void> | void;
   onOpenHint?: (hintId: string) => Promise<void> | void;
   isGroupMode?: boolean;
@@ -72,7 +72,10 @@ async function shrinkDrawingPhoto(file: File): Promise<string> {
   }
   try {
     const bitmap = await createImageBitmap(file);
-    for (const [side, quality] of [[1200, 0.8], [1000, 0.7], [800, 0.6]] as const) {
+    // Ladder targets ≤150KB data URLs: a lesson event may carry ≤256KB and whole-room
+    // state must hold photo submissions for every learner in class.
+    let lastData = "";
+    for (const [side, quality] of [[1200, 0.75], [1000, 0.65], [900, 0.55], [800, 0.45]] as const) {
       const scale = Math.min(1, side / Math.max(bitmap.width, bitmap.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(bitmap.width * scale);
@@ -83,17 +86,25 @@ async function shrinkDrawingPhoto(file: File): Promise<string> {
       g.fillRect(0, 0, canvas.width, canvas.height);
       g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       const data = canvas.toDataURL("image/jpeg", quality);
-      if (data.length <= 500_000) {
+      lastData = data;
+      if (data.length <= 150_000) {
         bitmap.close?.();
         return data;
       }
     }
     bitmap.close?.();
+    return lastData;
   } catch {
     // fallback
   }
   return "";
 }
+
+const DRAFT_ERROR_MESSAGES: Record<string, string> = {
+  BODY_TOO_LARGE: "Ảnh bài làm vẫn quá lớn sau khi nén. Xóa ảnh, chụp gọn hơn rồi thử lại.",
+  STATE_TOO_LARGE: "Lớp đã đầy dữ liệu bài làm. Em báo thầy cô xử lý nhé.",
+  INVALID_ANSWER: "Bài làm chưa đúng định dạng. Em kiểm tra lại rồi lưu nhé.",
+};
 
 export function TaskInput({
   task,
@@ -178,6 +189,8 @@ export function TaskInput({
 
   const [value, setValue] = useState<unknown>(getInitialAnswer);
   const [isDirty, setIsDirty] = useState(false);
+  const [draftError, setDraftError] = useState("");
+  const draftSaveSeqRef = useRef(0);
   const incomingRef = useRef<{
     taskId: string;
     submissionId?: string;
@@ -231,7 +244,10 @@ export function TaskInput({
       } else {
         setValue("");
       }
-      if (taskChanged) setIsDirty(false);
+      if (taskChanged) {
+        setIsDirty(false);
+        setDraftError("");
+      }
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -265,7 +281,23 @@ export function TaskInput({
       clearTimeout(saveTimeoutRef.current);
     }
     saveTimeoutRef.current = setTimeout(() => {
-      if (!isComposingRef.current) onSaveDraft?.(nextVal);
+      void (async () => {
+        if (isComposingRef.current) return;
+        const seq = ++draftSaveSeqRef.current;
+        try {
+          const res = await onSaveDraft?.(nextVal);
+          if (seq !== draftSaveSeqRef.current) return; // a newer save superseded this response
+          const okFlag = (res as { ok?: boolean } | null | undefined)?.ok;
+          if (okFlag === false) {
+            setDraftError(String((res as { code?: unknown; error?: unknown }).code || (res as { error?: unknown }).error || "SAVE_FAILED"));
+            return;
+          }
+          setDraftError("");
+          setIsDirty(false);
+        } catch {
+          if (seq === draftSaveSeqRef.current) setDraftError("SAVE_FAILED");
+        }
+      })();
     }, 800);
   };
 
@@ -987,11 +1019,13 @@ export function TaskInput({
           maxLength={4000}
         />
         <div className="task-textarea-footer">
-          <small className="task-draft-indicator">
-            {isDirty ? "Đang lưu nháp..." : "Đã đồng bộ nháp với phiên học"}
+          <small className="task-draft-indicator" style={draftError ? { color: "#b91c1c", fontWeight: 600 } : undefined}>
+            {draftError
+              ? DRAFT_ERROR_MESSAGES[draftError] || "Không lưu được bài làm. Kiểm tra mạng rồi thử lại."
+              : isDirty ? "Đang lưu nháp..." : "Đã đồng bộ nháp với phiên học"}
           </small>
           <small className="task-char-count">
-            {typeof value === "string" ? value.length : 0} / 4000 ký tự
+            {typeof value === "string" ? value.length : (typeof value === "object" && value !== null && "text" in value ? String((value as { text?: unknown }).text ?? "").length : 0)} / 4000 ký tự
           </small>
         </div>
       </div>
