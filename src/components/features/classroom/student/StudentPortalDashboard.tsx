@@ -24,6 +24,7 @@ import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
 import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
 import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
 import type { StudentAdaptiveAssignment } from '../../../../services/studentPortalApi';
+import { StudentClosedAdaptive } from './StudentClosedAdaptive';
 
 const StudentPublishedReports = lazy(() => import('./StudentPublishedReports').then(module => ({ default: module.StudentPublishedReports })));
 
@@ -391,7 +392,7 @@ export const StudentPortalDashboard = (props: Props) => {
             <ul className="mt-3 space-y-2">
               {(adaptiveAssignments || []).map(item => <li key={item.assignmentId} className="flex flex-col gap-2 rounded-2xl border border-blue-100 bg-white/90 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="min-w-0 break-words text-sm font-black text-slate-900">{item.title || 'Bài tự học'}</p>
-                {onOpenAdaptive && <button type="button" onClick={() => onOpenAdaptive(item.assignmentId)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 transition hover:bg-blue-100">Vào bài</button>}
+                {item.closed ? <StudentClosedAdaptive assignmentId={item.assignmentId} /> : onOpenAdaptive && <button type="button" onClick={() => onOpenAdaptive(item.assignmentId)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 transition hover:bg-blue-100">Vào bài</button>}
               </li>)}
             </ul>
           )}

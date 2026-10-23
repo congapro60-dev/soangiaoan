@@ -10,7 +10,7 @@ import {
   type SubmissionDoc,
 } from './types';
 import type { ExamVariant } from './examVariants';
-import { nenAnhBaiLam } from '../../utils/imageCompress';
+import { nenAnhBaiLam, detectAnswersFromFiles } from '../../utils/imageCompress';
 import { moTaLoiHttp } from '../httpErrorText';
 
 const newId = (prefix: string): string => {
@@ -353,8 +353,10 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
   if (!auth.currentUser) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
   const files = [...input.images, ...(input.rawFiles || [])];
   if (!files.length) throw new Error('Chưa chọn bài làm để nộp.');
+  const detectedAnswers = await detectAnswersFromFiles(input.images);
   const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
-  return (await submitActorSubmission({ role: 'student' }, { assignmentId: input.assignmentId, uploadGrantId,
+  const payload = { assignmentId: input.assignmentId, uploadGrantId, detectedAnswers,
     ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent,
-    ...(input.handMarked ? { handMarked: true } : {}) })).submission;
+    ...(input.handMarked ? { handMarked: true } : {}) };
+  return (await submitActorSubmission({ role: 'student' }, payload)).submission;
 };

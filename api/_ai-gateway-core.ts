@@ -1,7 +1,7 @@
 import type {
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
-} from 'openai/resources/chat/completions';
+} from 'openai/resources/chat/completions.js';
 import {
   VERCEL_AI_GATEWAY_BASE_URL,
   VERCEL_AI_GATEWAY_MAX_OUTPUT_TOKENS,

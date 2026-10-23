@@ -366,7 +366,7 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
 
 // ── Đáp án ────────────────────────────────────────────────────────────────────
 
-const QUESTION_LINE = /^\s*(?:phần\s+[ivx\d]+\s*[-–—.:]\s*)?(?:câu|bài)\s*\d+/iu;
+export const QUESTION_LINE = /^\s*(?:phần\s+[ivx\d]+\s*[-–—.:]\s*)?(?:câu|bài)\s*\d+/iu;
 
 /** Số câu trong một đáp án chuẩn hoá (mỗi câu một dòng "Câu N: …" / "Phần II – Câu N: …"). */
 export const countKeyQuestions = (answerKey: string): number =>

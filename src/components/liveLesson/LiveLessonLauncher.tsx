@@ -22,6 +22,8 @@ export interface LiveLessonLauncherProps {
   user?: User | null;
   classes?: ClassContext[];
   onClose?: () => void;
+  definitionOverride?: LiveLessonDefinition;
+  definitionKeyOverride?: string;
 }
 
 export interface LiveLessonUrls {
@@ -149,7 +151,7 @@ const LinkRow = ({ label, url, hint }: { label: string; url: string; hint?: stri
   );
 };
 
-export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: contextUser, classes, onClose }: LiveLessonLauncherProps) => {
+export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: contextUser, classes, onClose, definitionOverride, definitionKeyOverride }: LiveLessonLauncherProps) => {
   const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(selectedLesson ?? null);
   const [definition, setDefinition] = useState<LiveLessonDefinition | null>(null);
@@ -169,6 +171,11 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
       setLessonLoading(true);
       setError(null);
       try {
+        if (definitionOverride) {
+          if (!active) return;
+          setDefinition(definitionOverride);
+          return;
+        }
         const loaded = selectedLesson ?? (lessonId ? await getLessonFromFirestore(lessonId) : null);
         if (!loaded) throw new Error('Không tìm thấy bài học phân hoá để mở tiết trực tiếp.');
         const liveDefinition = getLiveDefinitionForLesson(loaded);
@@ -185,7 +192,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
     };
     void loadLesson();
     return () => { active = false; };
-  }, [lessonId, selectedLesson]);
+  }, [definitionOverride, lessonId, selectedLesson]);
 
   useEffect(() => {
     let active = true;
