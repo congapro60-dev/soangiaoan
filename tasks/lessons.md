@@ -29,7 +29,7 @@
 
 - **Đọc code trước khi probe UI blind** — các alert như "permissions", QUALITY_GATE_BLOCKED, "Tải lại trước khi xác nhận", "Chưa có API key" đều nằm sẵn trong source (`grep` prefix message); blind-probe tốn hàng chục phút và dễ phá revision của thầy. Kèm theo: hộp lỗi đỏ của app dùng class `bg-red-50`/`text-red-700`, KHÔNG dùng `role="alert"` — selector probe phải có `.bg-red-50`, không dùng `[class*="error"]`. *(2026-10-23)*
 
----
+- **Mô hình nhiều worktree: kiểm `git worktree list` + `git branch --show-current` TRƯỚC mọi thao tác nhánh** — worktree gốc có thể đang checkout nhánh khác (vd `archive/snapshot-pre-cleanup`), khi đó `git merge --ff-only feature/…` cố FF SAI nhánh và báo "Diverging branches" dù ancestry cho phép. `main` không được checkout ở worktree nào thì cập nhật ref bằng `git branch -f main <sha>`; file `M` chưa commit cũng chặn checkout — lưu `git diff` ra file patch rồi `git stash push -m <thông điệp rõ>` trước khi chuyển. *(2026-10-23)*
 
 ---
 
