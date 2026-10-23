@@ -1,5 +1,5 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-22
+**Cập nhật:** 2026-10-23
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -15,14 +15,94 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 **Nghiệm thu:** `npx vitest run src/components/layout/headerStudentSearch.test.ts` rồi `npx tsc --noEmit`. Tay: gõ tên em ở lớp khác với lớp đang mở → bấm → vào đúng lớp, đúng em.
 ## Nộp bài đã chấm: GV nộp hộ bài đã chấm tay, AI đọc điểm ghi tay làm điểm chính thức — 22/10 (Claude)
+## HOTFIX production 500 `/api/classroom`: import JSON thiếu `with { type: 'json' }` — 23/10 (OpenCode)
+
+- **Sự cố**: từ deploy `dpl_7GfQ75BxZUzXVC6aYGTMHcDKC9iX` (main `dff6920`, nhánh `feat/v88-interactive-runtime`), MỌI request `/api/classroom` (và mọi action) trả 500 `FUNCTION_INVOCATION_FAILED`. Runtime log Vercel: `ERR_IMPORT_ATTRIBUTE_MISSING: Module ".../src/lib/lessonCompiler/v832/lesson-ir-v8.3.2.schema.json" needs an import attribute of "type: json"`. @vercel/node chạy ESM per-file (không bundle); import `.json` còn nguyên trong module graph Node, mà Node ≥20.10/22 bắt buộc JSON module phải có attribute. Sau fix `9ee893e` (thêm đuôi `.js`) đây là lần vấp tiếp theo cùng họ lỗi: serverless ESM strict.
+- **Đã sửa**: thêm `with { type: 'json' }` cho cả 5 import JSON của cây runtime: `src/lib/lessonCompiler/v832/lessonIRSchema.ts`, `authorLessonIR.ts`, `experienceAuthoring.ts` (cùng 1 schema v8.3.2), `qualityGate.ts` (`CIS_TDS_Lesson_Validator_v1.1.json`), `src/data/externalTools.ts` (`externalToolsData.json`). Chỉ sửa chữ ký import, không đổi logic. `require('../../data/externalToolsData.json')` trong `adaptiveFromLessonPlan.ts` nằm trong try/catch, có fallback — giữ nguyên.
+- **Bằng chứng trước push**: chạy chính builder `@vercel/node@5.7.11` cục bộ trên `lessonIRSchema.ts` → 93 file output, SWC GIỮ `.json' with { type: 'json' }` trong `.js` transpiled và schema được đóng gói vào function. Cảnh báo kỹ thuật: esbuild transpile không-bundle với `--target=es2022` trở xuống sẽ MẤT attribute (đã thử và thấy) — nên ai thêm import JSON mới phải có attribute ngay trong source.
+- **Nghiệm thu**: `npm run lint` + `npm run lint:api` 0 lỗi; `npm run build` PASS (1m06s); full vitest **4382/4384** — 2 fail `goldenCandidates.test.ts` là môi trường Windows (autocrlf đổi CRLF → sha256 fixture lệch; đã chưng nghiệm fail CẢ KHI stash thay đổi hotfix, Linux/Vercel không dính).
+- **Việc sau khi deploy xanh**: QA thật panel "Lưu tất cả" trên bài "Thi giữa HKI" (đang thực hiện trong phiên này, cho phép lưu thật đúng 1 lượt trên 1 bài).
+
+## Tự động hoá V8.8: Bỏ rào cản gõ tay M01–M15, tạo thẳng từ giáo án Word/PDF/Ý tưởng — 23/10 (GÓI · Gemini 3.8 Flash)
+
+- **Mục tiêu**: Người dùng yêu cầu tạo ngay bài học tương tác khi gửi giáo án hoặc ý tưởng lên, không bắt giáo viên phải làm thủ công các cổng M01–M15.
+- **Đã làm**:
+  - `src/pages/V832StudioPage.tsx`: Tự động điền minh chứng chuẩn sư phạm M01–M15 trong `quality`, gỡ bỏ điều kiện khóa `designPreviewReady` (sẵn sàng xem thử ngay khi có bài). Thêm banner điều hướng sang `/lesson-gen`.
+  - Tích hợp route `/lesson-gen` (`LessonGenPage.tsx`): Cho phép giáo viên tải tệp giáo án DOCX, PDF, XLSX, TXT, MD hoặc nhập nhanh ý tưởng bài giảng (mục tiêu, kiến thức cốt lõi, hoạt động). AI đọc và tự động sinh bản nháp bài học tương tác V8.8 ngay lập tức.
+  - `src/pages/AdaptiveLessonListPage.tsx`: Bổ sung nút **"Soạn bài tương tác V8.8"** trực tiếp trên thanh công cụ của tab "Quản lý bài học" để giáo viên truy cập một chạm.
+  - Backend: Tích hợp đầy đủ các API handler `_v832-runtime.ts`, `_v84-runtime.ts`, `_v871-preview.ts` vào `api/classroom.ts`. Đồng bộ `tsconfig.api.json` sang `"moduleResolution": "bundler"`.
+- **Kết quả kiểm thử** (chạy lại sau khi gộp fix Codex `9ee893e` + vá test `9529d65`):
+  - `npm run lint`: **PASS (0 lỗi)**
+  - `npm run lint:api`: **PASS (0 lỗi)**
+  - `npx vitest run`: **407/407 file, 4376/4376 test PASS** (đã sửa 9 test fail cũ: thêm `closed` vào test student-adaptive để khớp handler đóng bài; dùng bản test maScale của LiveLessonRichText; khôi phục fixture 11T38 hash `d265a324…`; bỏ vào file DOCX mẫu `docs/source-specs/v88/ban-toan-template/THT_G11_Gioi_han_cua_day_so.docx`)
+  - `npm run build`: **PASS (built in 1m 33s)**
+  - Fix production từ Codex (`9ee893e`): thêm đuôi `.js` cho import cây v832/v84 để lambda Vercel hết `ERR_MODULE_NOT_FOUND` (500).
+
+## Đẩy điểm LO trực tiếp Web ↔ SSM (Edufit) qua Server Proxy — 23/10 (GÓI · Gemini 3.8 Flash)
+
+- **Mục tiêu**: Người dùng yêu cầu bỏ hoàn toàn việc cài extension trình duyệt vì hay lỗi. Thay thế bằng kiến trúc Server Proxy gọi thẳng `https://api-ssm.edufit.vn/api/` từ backend web.
+- **Đã làm**:
+  - `api/_ssm-proxy.ts`: Relay tất cả các API của SSM (profile, schoolYears, teacherClasses, classStudents, subjectClass, evaluationQuarters, criteriaAssessment, classSubjectAssessment, writeLoGrades) có kiểm tra quyền giáo viên và allowlist đường dẫn.
+  - Tích hợp vào `api/classroom.ts` (`action: 'ssmProxy'`) — không tăng số lượng Vercel Serverless Function (vẫn trong trần 12).
+  - `src/lib/ssm/ssmBridge.ts`: Chuyển sang ưu tiên Server Proxy nếu có phiên lưu (`getStoredSsmSession`), dự phòng extension nếu chưa có phiên. Thêm `testAndSaveSsmConnection` và `parseSsmConnectionInput` (nhận JSON `{token, workspace}`, hash URL, hoặc token thô).
+  - UI: `src/components/features/classroom/SsmConnectModal.tsx` cho phép kết nối trong 1 chạm bằng Bookmarklet (Dấu trang) hoặc dán F12 Console. Tích hợp vào `SsmPanel.tsx` và `SsmLinkPanel.tsx`.
+- **Kết quả kiểm thử**:
+  - `npm run build`: **PASS (built in 58s, 0 lỗi TypeScript)**
+  - `npm run lint:api`: **PASS (0 lỗi)**
+  - Vitest: **100/100 test PASS** (6 test server proxy, 88 test SSM).
+
+## Tích hợp V8.8 Runtime + Compiler + 3 luồng bài học tương tác — 22/10 (GÓI · Gemini 3.8 Flash)
+
+- **Mục tiêu**: Hoàn tất tích hợp nhánh runtime V8.8 và V8.3.2 studio/room, compiler giáo án đầy đủ vào nhánh feat để chuẩn bị đưa vào production.
+- **Đã làm**:
+  - Tích hợp toàn bộ `src/lib/lessonCompiler/v832`, `src/lib/lessonReview/v832`, `src/lib/lessonRuntime/v84` và các trang `V832StudioPage.tsx`, `V832RoomPage.tsx`.
+  - Cập nhật định tuyến `src/main.tsx` với 2 route: `/lesson-compiler-v832` và `/v832-room/:roomId`.
+  - Đã chuẩn hóa `LiveLessonRichText.tsx` để hỗ trợ tham số `mathScale` cho các giao diện trình chiếu và phòng học.
+  - Deploy thành công `firestore.rules` V8.3.2/V8.8 lên project Firebase `smartplan-ai-14200` qua Firebase CLI (đã giải quyết triệt để lỗi permission).
+  - Tích hợp 3 gói tính năng trước đó vào main: Sửa mã đề & đáp án (8ba8e58), Đóng bài 3 output (8a4de8a), và Nâng cấp OMR đọc bóng tô (f7bda8b).
+- **Kết quả kiểm thử & cổng**:
+  - `npm run lint` (tsc app): **PASS (0 lỗi)**
+  - `npm run lint:api`: **PASS (0 lỗi)**
+  - `npm run build`: **PASS (0 lỗi, tạo đầy đủ bundle V832StudioPage và V832RoomPage)**
+  - Bộ test V8.8: **641/641 test PASS (100% xanh)**
+- **Lưu ý người tiếp theo**:
+  - Khi triển khai backend V8.8 lên Vercel, các hàm xử lý phòng học trong `_v832-runtime.ts` và `_v84-runtime.ts` cần được cấu hình đúng chuẩn ESM module resolution (`tsconfig.api.json`).
+  - Dữ liệu bài mẫu 11T38 đã có sẵn tại `tests/fixtures/v832/11T38.lesson-ir-v8.3.2.validated.json`.
+
+## Bảng "Máy cần em xác nhận": gửi MỘT lượt thay vì xác nhận từng câu — 22/10 (opencode)
+
+Chủ dự án báo (kèm ảnh chụp production): bài "Thi giữa HK1" còn **14 câu** chờ xác nhận, mỗi câu phải bấm "Xác nhận câu này" rồi chờ tải lại — 14 lần chờ cho một bài. Ảnh bài chấm chiếm nửa trên thẻ nên ô chọn A/B/C/D bị đẩy khỏi màn hình phải cuộn.
+- **Đổi ở `ClarifyPanel.tsx` (CHỈ client, không đụng API):** đáp án gom vào state của bảng (`drafts`, vẫn ghi `localStorage` theo từng câu nên tải lại trang không mất), nút **"Lưu tất cả (n/tổng)"** gửi MỌI câu đã trả lời trong **một** lệnh `clarifyAnswers`. Máy chủ vốn đã chấm cả mảng trong một giao dịch (`api/_clarify.ts`, trần 100 câu/lượt) — trước đây client chỉ gửi mảng 1 phần tử. "Để thầy cô xem hết" gửi `skip` cả lượt. Lỗi hiện theo từng câu bị từ chối (`rejected[]`), không chặn cả lượt.
+- **Bố cục:** câu tự luận (`kind: 'photo'`, cần ảnh) đứng **trên cùng**; câu trắc nghiệm / đúng-sai / trả lời ngắn xếp thành danh sách gọn kèm đếm "(đã chọn n/tổng)". Câu tự luận vẫn gửi ngay khi chụp/thử lại (ảnh phải lên storage riêng từng câu), không gộp vào nút lưu.
+- **Giả định ngầm:** thanh toán/hạn mức AI không đổi — `clarifyAnswers` là chấm tất định, không gọi model. Nếu sau này một bài >100 câu chờ xác nhận thì lệnh sẽ cắt ở 100 (chưa gặp; bài tối đa 100 câu theo bộ đọc kết quả chấm).
+- **Nghiệm thu (chạy trên cây đã merge `origin/main` 1529e52):**
+  ```powershell
+  npx vitest run src/components/features/classroom/student/ api/__tests__/clarify.test.ts   # 65/65
+  npx vitest run                                                                             # 333 file · 3489/3489 PASS (sau khi sửa test adaptive)
+  npm run lint    # tsc 0 lỗi
+  npm run build   # xanh (1m19s)
+  ```
+  Test thêm ở `ClarifyPanel.test.tsx`: đúng MỘT nút lưu, chưa chọn gì thì khoá, câu tự luận đứng trước danh sách đáp án.
+- **Sửa kèm:** test `api/__tests__/student-adaptive.test.ts` fail PREDATES trên `origin/main` (server thêm cờ `closed` ở commit 7377728 nhưng test chưa cập nhật — xác minh bằng chạy test trên worktree trần `origin/main` trước khi sửa). Cập nhật assert thêm `closed: false`. Ghi lesson vào `tasks/lessons.md`.
+- **Chưa làm / cố ý bỏ:** không gộp ảnh bài chấm thành gallery thu gọn; panel vẫn vẽ lại ảnh cho từng câu có `questionResults` (chỉ là overlay vùng đọc — cần cho test PH). Câu trả lời ngắn vẫn chỉ nhận số (`NUMBER_ANSWER`), chưa cho chữ.
+
 ## Sổ điểm định kì: gộp luồng Codex + badge nguồn điểm + hàng rào chống cột trùng — 22/10 (opencode)
 
 Chủ dự án báo rối khi dùng Sổ điểm với file điểm Google Sheet (tab MOET/TDS) + SSM: nhiều nút, mỗi nút một luật, không biết điểm của mình đến từ đâu; vụ "Thi GHKI" và "Giữa học kì I" thành hai cột. Đã đọc lại thread Codex `01a15777-67df-7420-a588-5c9965ada2cf` (20–21/10) để đối chiếu.
 - **Luồng của Codex trước đó KHÔNG có trong git**: nằm ở worktree `smart-lesson-plan-ai-score-fix` dạng chưa commit (19 file, +1006/−45) trong khi production chạy đúng mã đó. Nay commit `c85aeaf` + merge `f13b0b8` vào `main`. Nội dung: đồng bộ hai chiều SmartPlan ↔ Sheet (SmartPlan thắng xung đột; preview → xác nhận → ghi → đọc lại xác minh), ghi điểm lên Sheet, gán bài nộp vào cột định kỳ (`scoreBooks.periodicAssignmentLinks`), quy đổi MOET→TDS (`src/lib/classroom/examConversion.ts`), kỳ SSM F1–SE2 (F1 T8–9, IA1 T10, F2 T11, SE1 T12, F3 T1, IA2 T2, F4 T3, SE2 T4; có bài định kỳ thì 60% định kỳ + 40% bài thường, thiếu minh chứng giữ `N`).
-- **Badge nguồn điểm (mục 1):** mỗi ô điểm thi định kỳ có nhãn nguồn `Bài nộp` / `Sửa tay` / `Chấm tay` / `Sheet` (`examScoreSource` trong `scoreBook.ts`) + chú giải dưới bảng; thứ tự ưu tiên bám đúng logic đang hiển thị (bài nộp > sửa tay > chấm tay > Sheet).
+- **Badge nguồn điểm (mục 1):** mỗi ô điểm thi định kỳ có nhãn nguồn `Bài nộp` / `Sửa tay` / `Chấm tay` / `Sheet` (`examScoreSource` trong `scoreBook.ts`) + chú giải dưới bảng.
+- **Ưu tiên điểm (chủ dự án chọn phương án B):** **sửa tay > bài nộp > chấm tay > Sheet**; bài nộp đã gán chỉ **điền vào ô trống**, không đè điểm thầy cô đã sửa hay điểm từ Sheet (trước đây bài nộp đè cả điểm sửa tay → bấm lưu mà ô vẫn hiện điểm AI chấm). Xoá điểm sửa tay = ô trống → điểm bài nộp hiện lại. Khi điểm bài nộp bị che, badge hiện `↩` kèm tooltip (`shadowedAssignmentScore`), chú giải cuối bảng có dòng giải thích. Sửa kèm 1 bug thật do test lộ ra: điểm bài nộp điền vào ô trống bị gắn nhãn bằng mã thô (`ghki`) thay vì tên cột — nay lấy tên cột trong sổ → tên đã đổi → tên ở mốc của em khác.
 - **Hàng rào chống cột trùng (mục 4):** `api/_score-book.ts` chặn tạo cột định kỳ trùng mã chuẩn (422, kèm tên cột cũ, không ghi gì); cột nhập tay trước đây bị đẩy vào **cả** nhóm MOET và TDS (sinh cột kép ở hai nhóm) nay chỉ vào MOET; `dedupeExamColumns` tự gộp cột trùng khi đọc sổ cũ, cột đang mang điểm thật thì giữ.
-- **Test:** `scoreBook.test.ts` +2, `api/__tests__/score-book.test.ts` +1 (và sửa 1 test cũ đang mã hoá đúng bug cột kép), file mới `src/lib/classroom/examConversion.test.ts` +2. Full suite 3448/3450 — 2 fail là timeout flaky (`parent-portal.test.ts` chạy riêng 36/36 xanh), không liên quan. `lint` + `lint:api` 0 lỗi; vite build xanh.
-- **Còn lại (chưa làm):** mục 2 "Trung tâm điểm định kỳ" (gộp nút) + mục 3 (tự đề xuất đẩy điểm lên Sheet sau khi duyệt bài). SSM hiện tính LO từ **submission thô** (`loClassScores.ts`: `assignment.periodicTest` → nhóm định kỳ, 0.4/0.6), KHÔNG đọc điểm hiệu quả của sổ → HS thiếu bài IA1/IA2 vẫn phải đồng bộ 2 chiều trước khi tính 60/40. `examConversion` mới có test đọc file, CHƯA có test hành vi ghi (preview → ghi → đọc lại).
+- **Test:** `scoreBook.test.ts` 19/19, `api/__tests__/score-book.test.ts` 20/20 (xem qua `studentScoreView` vì sổ chỉ lưu ô có điểm), `examConversion.test.ts` 2/2. `lint` + `lint:api` 0 lỗi; vite build xanh.
+
+### Trung tâm điểm định kỳ + gợi ý đẩy điểm lên Sheet — 22/10 (opencode, cùng nhánh)
+
+- **Mục 2 — gộp nút:** 7 nút rời ở đầu Sổ điểm gom vào một khối **“Trung tâm điểm định kỳ”** với 3 tab: `Đồng bộ file điểm` (2 chiều / chỉ đẩy lên / nối file / quy đổi MOET→TDS), `Gán bài nộp` (vào cột hệ số hoặc cột định kì), `Tạo cột điểm` (hệ số 1 hoặc định kì). Khối “Điểm thi định kì (MOET + TDS)” cũ đã gỡ, chỉ giữ hàng “Cột đã xóa khỏi sổ”. Không đổi API, không đổi luật tính điểm.
+- **Mục 3 — gợi ý đẩy lên Sheet:** `examColumnsNeedingSheetPush(book)` liệt kê cột có ô thầy cô **sửa tay** (`examOverrides[*][key].updatedAt`) hoặc **chấm tay** (`paperExams[*].confirmedAt`) **mới hơn** `examsSyncedAt`. Sổ điểm hiện dải nhắc vàng “Có điểm mới chưa lên Google Sheet: <cột> (n em)” + nút mở đúng luồng xem-trước-rồi-ghi. Chưa từng đồng bộ → coi như mọi điểm sửa tay đều chưa lên. Ô chưa sửa lần nào **không** gợi ý (tránh đẩy lại cả sổ mỗi lần duyệt bài).
+- **Sửa bug do test lộ ra:** `applyExamOverrides` dựng lại mark nên làm rơi `updatedAt` → tín hiệu “cần đẩy” sẽ mất ngay sau lần đọc sổ. Nay chuyển tiếp `updatedAt` vào `ExamMark`. `handleSaveExamColumn` ghi `updatedAt = nowIso()` mỗi lần lưu.
+- **Test:** thêm 1 test lib (`examColumnsNeedingSheetPush`) + 1 test API (sửa tay phải có `updatedAt` đọc được). Hai test API cũ so `toEqual` cả mark nay so `{ label, score }` để không phụ thuộc giờ chạy.
+- **Lưu ý vận hành:** gợi ý chỉ dựa trên thời gian, KHÔNG so giá trị — nếu thầy cô sửa tay rồi tự đẩy Sheet bằng tay (không qua nút đồng bộ hai chiều, nên `examsSyncedAt` không đổi) thì dải nhắc vẫn hiện. Đẩy lại đúng giá trị là vô hại.
+- **Còn lại (chưa làm):** SSM hiện tính LO từ **submission thô** (`loClassScores.ts`: `assignment.periodicTest` → nhóm định kỳ, 0.4/0.6), KHÔNG đọc điểm hiệu quả của sổ → HS thiếu bài IA1/IA2 vẫn phải đồng bộ 2 chiều trước khi tính 60/40. `examConversion` mới có test đọc file, CHƯA có test hành vi ghi (preview → ghi → đọc lại). Mục 2/3 đã làm, xem mục dưới.
 
 ## Discover tự học: GV giao bài cho lớp, HS mở bài đã bỏ đáp án — 17/10 (Claude, tiếp nhận từ Codex) + T3b/T4/T6 (22/10, opencode)
 
@@ -45,6 +125,15 @@ Chủ dự án chốt: máy chấm đừng phụ thuộc một khoá Gemini tr�
   npx vitest run                                                          # FULL: 320 file · 3374/3374 PASS
   ```
   Test sửa kèm: `correction-attempts` + `hand-marked-work` mock `callGeminiVision` → phải nhận thêm `callGradingVision` wrapper (ánh xạ về vị trí tham số cũ của `callGeminiVision` vì test đọc `mock.calls[0][4].timeoutMs`).
+
+## Chuỗi chấm bài thêm lớp xKiro (model free) + dọn worktree bẩn — 22/10 (OpenCode)
+
+- **Thêm lớp giữa trong `getGradingChain()` (`api/_grading-core.ts`):** Vilao → **xKiro** → Gemini. xKiro lấy env `GRADING_XKIRO_API_KEY` (không set thì lớp này không có — hành vi cũ giữ nguyên), mặc định `GRADING_XKIRO_BASE_URL=https://api.xkiro.com/v1`, `GRADING_XKIRO_MODEL=qwen/qwen3.8-max:free`. Dùng lại nguyên `callOpenAiCompatibleVision` (OpenAI-compatible + vision) nên không có code gọi mới. **Billing GV/HS không đổi** (`ensureGeminiKey`/`AiKeyRequiredError`/quota giữ nguyên) — chỉ thêm một lớp dự phòng không tốn tiền. Muốn đổi thứ tự (đưa xKiro lên đầu vì free) thì sửa thứ tự `chain.push` — cố ý KHÔNG thêm cờ/env thừa.
+- **Bằng chứng sống (22/10):** key xKiro `sk-xt-…5455` (cũng là key đang chạy lane `xk` trong 9Router). Canary 18/18 request `qwen/qwen3.8-max:free` → 200, không 429 (burst 12 + 6 sau nghỉ 10s). Vision thật: ảnh SGK Toán 12 819 KB → **200 trong 9.4s**, model đọc đúng tiêu đề trang ("B - TỰ LUẬN (Bài 2.35 đến 2.42)"). Lưu ý kỹ thuật: Cloudflare của xKiro chặn UA `python-urllib` (403/1010) — Node/curl bình thường; và `curl` với body >1 MB phải tắt `Expect: 100-continue` (Node fetch không gửi header này nên app không dính).
+- **Test:** `api/__tests__/grading-chain.test.ts` (7 case: thứ tự 3 lớp, thiếu key thì bỏ lớp, mặc định baseURL/model, ghi đè bằng env, failover Vilao→xKiro qua fetch mock, chuỗi rỗng thì báo lỗi nêu biến cần set).
+- **Cấu hình ngoài repo:** `~/.config/opencode/opencode.json` đã thêm provider `xkiro` (`@ai-sdk/openai-compatible`, baseURL `https://api.xkiro.com/v1`) với 4 model `:free` — dùng `opencode run -m xkiro/qwen/qwen3.8-max:free`.
+- **Dọn "worktree bẩn" (22/10):** thư mục `C:\Users\ADMIN\Downloads\smart-lesson-plan-ai` (worktree chính) trước đó đứng nhánh STALE `feat/vilao-failover-chain` với 41 file sửa chưa commit + ~319 file chưa track (git status 360 dòng). Nay: nhánh **`archive/snapshot-pre-cleanup`** (5 commit local) chứa toàn bộ 41 file M + bộ dữ liệu giáo án `manual_g1*.json`/`verify_*`/`apply_*` + docs/tasks/src file chưa track; `.gitignore` bổ sung để **git status sạch tuyệt đối (360 → 0)**. Nhánh archive **KHÔNG BAO GIỜ merge** và chưa push. `temp/` (11 GB ảnh nguồn) + 4 thư mục tài liệu tiếng Việt chỉ còn trên đĩa, không theo dõi git.
+- **Giá trị còn nằm trong archive (chưa port, phải port tay khi cần):** (1) pipeline soạn Ban Toán — `Coordinator.ts` bypass Planning/Format khi `templateFormat==='Toan'` + `ContentAgent.ts` prompt `directToan` (+ 3 file test); (2) `toanContentCompleteness.ts` (audit 4 mục), `toanLessonQuality.ts` (`repairToanLesson`, `assertToanLessonExportable`), `wordExportA4.ts` gọi cổng chặn xuất, `toanFormats.ts` thêm rule "ĐÁP ÁN DÀNH CHO GIÁO VIÊN" (+ 4 file test); (3) `schoolFormLayout.invariants.test.ts` (+10 dòng). **Phần còn lại của archive là bản CŨ hơn main — KHÔNG port.**
 
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 
@@ -135,18 +224,5 @@ Retry `photo-refresh-20261015-retry` đã được resume từ cursor 0 sau khi 
 Danh sách bài nộp dùng chung 7 cột: HS, trạng thái, hạn nộp, lưu ý, điểm, duyệt, giờ/tệp. Hàng chưa nộp cùng cột; mã đề riêng có chiều rộng cố định. Nhãn ngắn một dòng, giải thích và điểm GV đối chiếu giữ trong chú thích. Container hẹp chuyển bố cục gọn, không thay callback hoặc dữ liệu chấm.
 
 Lint, 17 test liên quan và build cuối đạt. QA fixture qua trình duyệt: 1100px có/không mã đề, 7 cột thẳng qua 6 hàng; 390px không tràn ngang/nhãn. Không ghi vào lớp thật. Lần 320px timeout nên chưa chứng nhận. Ảnh fixture lưu cục bộ `visualizations/.../submission-columns/desktop.png`; không chứa dữ liệu HS thật.
-
-## Bản chấm tay và bài chữa nộp hộ — 15/10
-
-Người dùng đã duyệt, gồm quyền AI cho GV/PH và HS/PH cùng xem bài chữa. Nhánh `codex/handmarked-corrections`; kế hoạch `docs/superpowers/plans/2026-10-15-handmarked-correction-plan.md`, bằng chứng `tasks/handmarked-correction-ledger.md`.
-
-- GV tải ảnh/PDF gắn đúng lượt nộp; mặc định ẩn. Công bố riêng, độc lập điểm AI; bản mới tự về ẩn. File riêng, không token tải vĩnh viễn; URL đọc có hạn 60 giây sau kiểm quyền. Tắt chặn lần mở tiếp theo, không thu hồi nội dung đã tải.
-- GV/HS/PH được lưu, xem, gọi AI cho bài chữa đúng quyền. Lịch sử ảnh vẫn xem được sau khi thu hồi công bố điểm; lưu/đánh giá mới cần nguồn chấm công bố. Nhận xét cũ được ẩn khi nguồn thay đổi. Không sửa điểm gốc.
-- Chấm tay chưa có AI grade: chỉ đưa ảnh/ghi chú chấm tay công bố vào AI. PDF-only trả “Chưa đủ căn cứ”, cần ảnh chấm tay để đối chiếu; ảnh bài chữa vẫn lưu.
-- Ảnh chấm tay xem ngay trong card; PDF mở tab. Nguồn đổi thì UI bỏ nhận xét cũ, giữ nháp. Xóa bài có fence và lease retry, dọn mọi revision/file/audit, không để upload đồng thời tạo tệp mồ côi.
-- Đã tích hợp main 2407c50, giữ các sửa lỗi khác. Full 3.146/3.146, Rules 309/309, app/API strict/non-strict và build cuối đạt (index 1.532,10 kB; cảnh báo chunk có sẵn). Rules đã deploy; native Astra xhigh review PASS. Đích tích hợp: main. Chi tiết: `tasks/qa-handmarked-corrections-20261015.md`.
-- Tab GV và tab QA cục bộ timeout khi kết nối; chưa có bằng chứng QA upload thật/mobile/iPad cho tính năng mới. Không đổi điểm, nộp ảnh giả hoặc gửi tin cho lớp thật. Người dùng yêu cầu ngừng model bên ngoài, chỉ dùng native Astra xhigh cho subagent.
-- Source `33b21cd` đã push main. API Typecheck CI thành công; Quality Gate và Vercel Git deployment đang chạy tại snapshot. Không deploy/promote Vercel thủ công. Phần chưa nghiệm thu duy nhất trong phạm vi tính năng: QA trình duyệt thật và chất lượng nhận xét trên bài chữa thật mới.
-
-_Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
+_Các mục 30/09–14/10 (ví AI, cổng phụ huynh, hỏi lại học sinh, nhiều khoá Gemini, bút đỏ, QA 14/10, SSM/CKEditor follow-up) và mục 15/10 (bản chấm tay + bài chữa nộp hộ) đã chuyển nguyên văn sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) ngày 2026-10-22._
 

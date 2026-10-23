@@ -18,6 +18,7 @@ import type { DiscoverNewKnowledgeSeed, StudentDiscoverCatalogItem } from '../sr
 import { stripAnswers } from '../src/lib/adaptive/stripAnswers.js';
 import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
 import { submitAdaptiveAssessment } from './_adaptive-submit.js';
+import { resolveHomework, type CloseArtifacts } from '../src/lib/adaptive/closeAssignment.js';
 
 type Data = FirebaseFirestore.DocumentData;
 type Db = FirebaseFirestore.Firestore;
@@ -191,7 +192,7 @@ const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
     }));
 
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit'].includes(body.action)) return false;
+  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit', 'studentAdaptiveClosed'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
     if (body.action === 'studentDiscoverCatalog') {
@@ -226,7 +227,8 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
 
     if (body.action === 'studentAdaptiveList') {
       const snapshot = await db.collection('adaptiveAssignments').where('classId', '==', context.classId).get();
-      const assignments = snapshot.docs.filter(doc => visibleAssignment(doc.data(), context) && doc.data().isOpen === true).map(doc => ({
+      const assignments = snapshot.docs.filter(doc => visibleAssignment(doc.data(), context) && (doc.data().isOpen === true || !!doc.data().closeArtifacts)).map(doc => ({
+        closed: doc.data().isOpen !== true,
         assignmentId: doc.id, lessonId: text(doc.data().lessonId), title: text(doc.data().title),
         discoverSeedId: typeof doc.data().discoverSeedId === 'string' ? doc.data().discoverSeedId : undefined, createdAt: text(doc.data().createdAt),
       }));
@@ -243,6 +245,18 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
       const lesson = normalizeAdaptiveLesson(lessonSnap.data(), assignment.lessonId);
       if (!lessonSnap.exists || !lesson || lesson.teacherId !== assignment.teacherId || lesson.status !== 'published') throw new WorkspaceError(404, 'Lesson is not ready.');
       res.status(200).json({ assignmentId: assignmentSnap.id, lesson: stripAnswers(lesson) });
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveClosed') {
+      if (!isSafeDocId(body.assignmentId)) throw new WorkspaceError(422, 'Invalid lesson code.');
+      const assignmentSnap = await db.collection('adaptiveAssignments').doc(body.assignmentId).get();
+      const assignment = assignmentSnap.data() || {};
+      const artifacts = assignment.closeArtifacts as CloseArtifacts | undefined;
+      if (!assignmentSnap.exists || !visibleAssignment(assignment, context) || !artifacts || !isSafeDocId(assignment.lessonId)) throw new WorkspaceError(404, 'Lesson is not closed yet.');
+      const lesson = normalizeAdaptiveLesson((await db.collection('adaptiveLessons').doc(assignment.lessonId).get()).data(), assignment.lessonId);
+      if (!lesson) throw new WorkspaceError(404, 'Lesson is not ready.');
+      res.status(200).json({ assignmentId: assignmentSnap.id, feedback: artifacts.feedback?.[context.studentId] || [], homework: resolveHomework(lesson, artifacts.homework?.[context.studentId] || []) });
       return true;
     }
 

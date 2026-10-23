@@ -117,6 +117,68 @@ describe('cầu nối SSM — service worker', () => {
     expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v1/students/class/9681?skipPagination=true&page=1&limit=500');
   });
 
+  it('đọc quý điểm LO: đúng path v3 với class×subject×năm', async () => {
+    await ask({ op: 'evaluationQuarters', params: { classId: 9681, subjectId: 12, schoolYearId: 6 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v3/evaluation/classes/9681/subjects/12/quarters?school_year_id=6');
+    expect((await ask({ op: 'evaluationQuarters', params: { classId: 9681, subjectId: 12 } })).ok).toBe(false);
+    expect((await ask({ op: 'evaluationQuarters', params: { classId: -1, subjectId: 12, schoolYearId: 6 } })).ok).toBe(false);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/v3/')).length).toBe(1);
+  });
+
+  it('đọc môn học của lớp: subject-class đúng path v1', async () => {
+    await ask({ op: 'subjectClass', params: { classId: 9681, schoolYearId: 6 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v1/subject-class?class_id=9681&school_year_id=6');
+    expect((await ask({ op: 'subjectClass', params: { classId: 9681 } })).ok).toBe(false);
+  });
+
+  it('đọc cây LO: path v2 theo assessment form', async () => {
+    await ask({ op: 'criteriaAssessment', params: { assessmentFormId: 42 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/criteria-has-assessment-form/42');
+    expect((await ask({ op: 'criteriaAssessment', params: { assessmentFormId: 'x/../y' } })).ok).toBe(false);
+  });
+
+  it('đọc trạng thái chấm: class-subject-assessment đủ 3 tham số', async () => {
+    await ask({ op: 'classSubjectAssessment', params: { assessmentFormId: 42, criteriaId: 7, classId: 9681 } });
+    expect(fetchMock.mock.calls.at(-1)![0]).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/class-subject-assessment?assessment_form_id=42&criteria_id=7&class_id=9681');
+    expect((await ask({ op: 'classSubjectAssessment', params: { assessmentFormId: 42, criteriaId: 7 } })).ok).toBe(false);
+  });
+
+  it('ghi điểm LO: thêm mới khi chưa có resultAssessmentFormId', async () => {
+    const validBody = {
+      class_id: 9681,
+      criteria_id: 7,
+      quarter_has_branch_id: 5871,
+      students: [{ id: 551, name: 'Minh', result: [{ learning_outcome_id: 34745, scoring_setting_id: 902, is_number: true, point: '4' }] }],
+    };
+    const res = await ask({ op: 'writeLoGrades', params: { assessmentFormId: 42, body: validBody } });
+    expect(res.ok).toBe(true);
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(url).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/grading-student-by-assessment-form/42');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual(validBody);
+  });
+
+  it('ghi điểm LO: cập nhật khi đã có resultAssessmentFormId', async () => {
+    const validBody = {
+      class_id: 9681,
+      criteria_id: 7,
+      quarter_has_branch_id: 5871,
+      students: [{ id: 551, name: 'Minh', result: [{ learning_outcome_id: 34745, scoring_setting_id: 902, is_number: true, point: '4', grading_student_id: 123 }] }],
+    };
+    const res = await ask({ op: 'writeLoGrades', params: { resultAssessmentFormId: 88, body: validBody } });
+    expect(res.ok).toBe(true);
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(url).toBe('https://api-ssm.edufit.vn/api/v2/evaluation/update-result-grading-student/88');
+    expect(init.method).toBe('POST');
+  });
+
+  it('ghi điểm LO: từ chối body sai hoặc thiếu trường bắt buộc', async () => {
+    const badBody = { class_id: 9681, students: [] };
+    const res = await ask({ op: 'writeLoGrades', params: { assessmentFormId: 42, body: badBody } });
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/thiếu/);
+  });
+
   describe('Hạng mục 5: Token Cache & Auto-Wake', () => {
     it('a live tab wins over a valid cache from another account', async () => {
       storageGet.mockResolvedValue({ ssmToken: 'old-account', ssmWorkspace: 'old-tenant', ssmCachedAt: Date.now() });
