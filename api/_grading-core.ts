@@ -587,6 +587,12 @@ export const callUtilityVision = async (
 export interface OpenAiVisionOptions {
   baseUrl: string;
   model: string;
+  /**
+   * Mức suy nghĩ (`reasoning_effort`) của API OpenAI-compatible. Model Gemini trên Vilao
+   * nhận 'none' = tắt hẳn suy nghĩ: nhanh hơn hẳn mà chất lượng chấm không giảm (A/B
+   * 10/2026 chấm 5 bài × 2 lượt: 10/10 đạt chuẩn phần 1), tiền token suy nghĩ về 0.
+   */
+  reasoningEffort?: string;
 }
 
 /** Phẳng bucket cache (segment) thành prompt+ảnh phẳng cho đường OpenAI-compatible. */
@@ -626,6 +632,7 @@ export const callOpenAiCompatibleVision = async (
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: options.model,
+        ...(options.reasoningEffort ? { reasoning_effort: options.reasoningEffort } : {}),
         ...(options.maxOutputTokens && options.maxOutputTokens !== 'model-max'
           ? { max_tokens: options.maxOutputTokens }
           : {}),
@@ -686,9 +693,13 @@ export const getGradingChain = (): GradingAdapter[] => {
   const chain: GradingAdapter[] = [];
   const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
   if (vilaoKey) {
+    // Model + thinking 0 là cấu hình ĐÃ KIỂM CHỨNG chấm ảnh (A/B 10/2026: 5 bài × 2 lượt qua
+    // lane chib 10/10 đạt, ~5₫/bài, trung bình 30s/lượt). Ghim trong code như GRADING_MODEL:
+    // đổi model = sửa dòng này rồi deploy, đừng lật qua env để kẻo trạng thái thật lệch với git.
     const vilaoOptions: OpenAiVisionOptions = {
       baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1',
-      model: process.env.GRADING_VILAO_MODEL?.trim() || 'deepseek-v4.1-flash',
+      model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
+      reasoningEffort: 'none',
     };
     chain.push({
       name: `vilao/${vilaoOptions.model}`,

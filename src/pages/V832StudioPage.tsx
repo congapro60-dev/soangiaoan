@@ -10,6 +10,7 @@ import { callAIWithVision } from '../lib/aiProviders';
 import { DEFAULT_DATA, type AppData } from '../types';
 import { listAccessibleClasses } from '../lib/classroom/classroomService';
 import { evaluateLearningQuality, type SemanticRuleAttestation } from '../lib/lessonCompiler/v832/qualityGate';
+import { translateV832Reason } from '../lib/lessonCompiler/v832/reasonVi';
 import { validateLessonIRSchema, isLessonIRV83, type LessonIRV83 } from '../lib/lessonCompiler/v832/lessonIRSchema';
 import { inspectTeacherConfirmations } from '../lib/lessonCompiler/v832/teacherConfirmation';
 import { computeLessonContentHash } from '../lib/lessonReview/v832/repairLifecycle';
@@ -340,7 +341,7 @@ export const V832StudioPage = () => {
       if (routeReviewIssueLayer(parsed.classification) !== 'LESSON_IR' || !parsed.proposal) {
         const recorded = await recordV832ReviewTriage(item.id, parsed.classification);
         setRepairNotice(current => ({ ...current, [item.id]:
-          `Phân loại: ${parsed.classification.primary} → ${recorded.targetLayer}. ${parsed.classification.rationale} Cần người phụ trách đúng tầng rà soát; chưa tạo ứng viên bài học.` }));
+          `Phân loại: ${parsed.classification.primary} → ${recorded.targetLayer}. ${translateV832Reason(parsed.classification.rationale)} Cần người phụ trách đúng tầng rà soát; chưa tạo ứng viên bài học.` }));
         return;
       }
       const result = await proposeV832RepairCandidate(item.id, parsed.classification, parsed.proposal);
@@ -667,7 +668,7 @@ export const V832StudioPage = () => {
               </div>
               {repairNotice[item.id] && <p role="status" className="mt-3 rounded-xl bg-sky-50 p-3 text-sm text-sky-950">{repairNotice[item.id]}</p>}
               {item.classification && !item.candidateId && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950">
-                {item.classification.primary} → {item.classification.targetLayer}: {item.classification.rationale}. Chưa có ứng viên sửa bài.
+                {item.classification.primary} → {item.classification.targetLayer}: {translateV832Reason(item.classification.rationale)}. Chưa có ứng viên sửa bài.
               </p>}
               {selectedReviewId === item.id && reviewImageUrl && <img className="mt-3 w-full rounded-xl border border-slate-300"
                 src={reviewImageUrl} alt="Ảnh màn hình kèm yêu cầu sửa của giáo viên" />}
@@ -720,7 +721,7 @@ export const V832StudioPage = () => {
               {confirmation.pending.map(item => {
                 const ref = `${item.source}:${item.id}`;
                 return <label key={ref} data-v832-confirmation-ref={ref} className="grid gap-2 rounded-xl border border-slate-200 p-3 text-sm sm:grid-cols-[1fr_220px] sm:items-center">
-                  <span>{item.reason}</span>
+                  <span>{translateV832Reason(item.reason)}</span>
                   <select value={confirmationGroups[ref] ?? ''}
                     onChange={event => setConfirmationGroups(current => ({ ...current, [ref]: event.target.value }))}
                     className="min-h-12 rounded-lg border-2 border-slate-300 bg-white px-3 focus-visible:outline-3 focus-visible:outline-teal-600">

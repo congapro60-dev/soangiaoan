@@ -128,6 +128,9 @@ const stubImageThenGeminiResponses = (...responses: ReturnType<typeof makeGemini
   return promptTexts;
 };
 
+// Luồng bài kiểm tra định kì: model đọc TỔNG điểm (field score) và bảng câu có thể KHÔNG phủ
+// thang (rowMax 0,25 ≪ maxScore 10) → chính sách giữ điểm model đọc, không cộng dòng khuyết thang
+// (cùng nguyên tắc với recomputeTotal khi sai khác thang).
 const gradeJson = (score: number) => JSON.stringify({
   score,
   maxScore: 10,
@@ -137,7 +140,7 @@ const gradeJson = (score: number) => JSON.stringify({
   weaknesses: [],
   weakTopics: [],
   questionResults: [{
-    questionNumber: 'Phần I – Câu 1', status: 'correct', score: 0.25, maxScore: 0.25, studentAnswer: 'C', expectedAnswer: 'C',
+    questionNumber: 'Phần I - Câu 1', status: 'correct', score: 0.25, maxScore: 0.25, studentAnswer: 'C', expectedAnswer: 'C',
     errorType: 'Không có', explanation: 'Đúng.', correction: '', nextPractice: '', needsTeacherReview: false, confidence: 0.95,
   }],
 });

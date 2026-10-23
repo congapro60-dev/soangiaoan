@@ -12,7 +12,8 @@ export type JsonParseMode = 'strict' | 'repaired';
 export type JsonRepairKind =
   | 'latex_backslash'
   | 'invalid_unicode_escape'
-  | 'control_character';
+  | 'control_character'
+  | 'trailing_comma';
 
 export interface JsonRecoveryResult<T> {
   value: T;
@@ -77,6 +78,14 @@ const KNOWN_LATEX_SYMBOL_COMMANDS = new Set([
 
 const isHexDigit = (character: string | undefined): boolean =>
   character !== undefined && /^[0-9A-Fa-f]$/.test(character);
+
+/** Ký tự ý nghĩa (không phải khoảng trắng) đầu tiên kể từ vị trí cho trước. */
+const nextMeaningfulCharacter = (raw: string, from: number): string | undefined => {
+  for (let index = from; index < raw.length; index += 1) {
+    if (!/\s/.test(raw[index])) return raw[index];
+  }
+  return undefined;
+};
 
 const latexCommandToken = (raw: string, slashIndex: number): string | undefined =>
   raw.slice(slashIndex + 1).match(/^[A-Za-z]+/)?.[0];
@@ -157,6 +166,12 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
     const character = raw[index];
 
     if (!inString) {
+      // Dấu phẩy dư ngay trước đóng ngoặc (`, }` / `, ]`) — lỗi model hay mắc nhất khi trả
+      // JSON dài: bỏ dấu phẩy, phần còn lại giữ nguyên từng ký tự.
+      if (character === ',' && ['}', ']'].includes(nextMeaningfulCharacter(raw, index + 1) ?? '')) {
+        addRepairKind(repairKinds, 'trailing_comma');
+        continue;
+      }
       repaired.push(character);
       if (character === '"') {
         inString = true;
