@@ -1603,3 +1603,17 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] Phát hành Site **v26** từ `d147ff365db3fd08f283e0482f12d2346af0b4d7`, deployment `appgdep_6adad4aad47081919e8dcc6b49a67ee6`, audience giữ `public`; HTTP 200, trạng thái `succeeded`.
 - [x] Kiểm chứng bundle deployed: chunk live `useLessonSession-DwWLyq2X.js` chứa ladder `<=15e4` (150KB), quality `0.75`, fallback bậc cuối, `DRAFT_ERROR_MESSAGES` ("Ảnh bài làm vẫn quá lớn sau khi nén…") và "Đã đồng bộ nháp với phiên học".
 - [ ] QA nộp ảnh trên tiết còn mở: phòng 7E42C2 đã "Hành trình chơi đã kết thúc" (HS mới "QA-Tester v26" vào được nhưng mọi nút nộp bị khoá); GV cockpit còn redirect login — cần phiên GV còn hạn để mở lại tiết hoặc tạo phòng mới từ catalogue, rồi gắn ảnh → autosave 200 → nộp 200 → kiểm báo lỗi nháp đỏ.
+
+### 23/10 — V27 "Chuẩn THPTQG cho nhiệm vụ Toán" (thang 0.1 điểm, decimal_4, mini-game một phần)
+- [x] Spec + plan duyệt trước khi code (commit `8cb8891`, docs/superpowers/specs/2026-10-23-thptqg-task-types-design.md), phát triển trên branch `codex/universal-content-release`, mỗi task TDD một commit.
+- [x] Task 1 (commit `20ef5f7`): thang điểm đúng/sai THPT 2025 — `TF_RATIO`/`verdictMeta` trong `lib/lesson/schema.js`, đúng/sai 4 ý trúng k ý nhận `ratio = k/4` (chấm 0/0.1/0.25/0.5/1).
+- [x] Task 2 (commit `378ba92`): định dạng `decimal_4` cho trả lời ngắn — 4 ô ký tự, nhận chấm/phẩy, checker chuẩn hoá khi chấm.
+- [x] Task 3 (commit `39a48fe`): runtime SUBMIT/GROUP_SUBMIT lưu `ratio`/`perItem` lên submissions và group products (`class-events.js`).
+- [x] Task 4 (commit `8aef4c9`): mini-game trao điểm một phần `points = Math.round(base × ratio)` — không bọc `correct ?` (trúng 3/4 vẫn có điểm); reward ledger runtime giữ nhị phân.
+- [x] Task 5 (commit `ca386ef`): UI `TaskInput.tsx` — phản hồi ✓/✗ từng phát biểu + chip "Điểm ý", bàn phím thập phân 12 phím cho `decimal_4`; CSS trong `app/lessons/lesson.css`.
+- [x] Task 6 (commit `d67c870`): prompt bộ soạn AI yêu cầu đủ 4 dạng THPTQG + bắt buộc `image`/`diagramUrl` cho hình học.
+- [x] Task 7 (commit `065c018`): nội dung pilot r013/r028/r108 qua `scripts/thptqg-v27-pilot.mjs` (validate từng pkg trước khi ghi; tái phân bổ lane 10→4 phút + 6 phút shared trong act-3 giữ nguyên `slotMinutes` 40; r028 kèm 2 hình SVG data-URI tứ diện/chóp) + rebuild `content/hki-2026-catalogue.json`.
+- [x] Gates phát hành tại HEAD `065c018`: `npm run test` 1416/1416 pass; `npm run typecheck` 0 lỗi; `npm run build` exit 0.
+- [ ] Phát hành Site **v27** từ HEAD `065c018` theo recipe v26 (baseline live 26 → version 27, archive `release-20261023-v27.tar.gz`), audience giữ `public` — đang thực hiện.
+- [ ] Sau deploy: xác minh live HTTP 200 + chunk `useLessonSession-*.js` chứa "Bàn phím thập phân" → ghi release record (deployment id) + cập nhật lessons/HANDOFF.
+- [ ] QA bàn giao Claude: pilot r013/r028/r108 trong catalogue — HS thấy MC / đúng/sai ✓/✗ từng ý + chip "Điểm ý" (trúng 3/4 = 0,5; đủ 4/4 = 1) / trả lời ngắn 4 ô bàn phím thập phân / mini-game một phần. QA nộp ảnh v26 vẫn chờ GV đăng nhập lại (phòng 7E42C2 hết giờ tiết).
