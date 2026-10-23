@@ -544,6 +544,74 @@
   color: var(--lesson-text-muted);
 }
 
+.task-tf-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+.task-tf-item {
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+
+.task-tf-item-ok {
+  color: var(--lesson-success);
+  background: var(--lesson-success-bg);
+}
+
+.task-tf-item-miss {
+  color: var(--lesson-danger);
+  background: var(--lesson-danger-bg);
+}
+
+.task-ratio-chip {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--lesson-primary);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.task-decimal-keypad {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(44px, 56px));
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.task-short-answer-key {
+  padding: 0.6rem 0;
+  border: 1px solid var(--lesson-border);
+  border-radius: var(--lesson-radius-sm);
+  background: var(--lesson-surface-2);
+  color: var(--lesson-text);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.task-short-answer-key:hover:not(:disabled) {
+  background: var(--lesson-surface-hover);
+  border-color: var(--lesson-border-strong);
+}
+
+.task-short-answer-key:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-helper-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--lesson-text-muted);
+  font-size: 0.8rem;
+}
+
 .task-options-grid {
   display: flex;
   flex-direction: column;

@@ -89,3 +89,58 @@ test('mini-game trao điểm thưởng một phần cho đúng/sai theo ratio TH
   assert.equal(answered2.lastResult.correct, true);
   assert.equal(answered2.participants.b.score, 10);
 });
+
+// ---- Harness render TaskInput (khuôn tests/lesson-new-question-types.test.mjs:35-60) ----
+const ts = (await import('typescript')).default;
+const vm = (await import('node:vm')).default;
+const React = (await import('react')).default;
+const { renderToStaticMarkup } = await import('react-dom/server');
+const taskInputSource = await readFile(new URL('../components/lesson/TaskInput.tsx', import.meta.url), 'utf8');
+const taskInputCode = ts.transpileModule(taskInputSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
+
+function taskEditor(task, extras = {}) {
+  const hooks = [], timers = new Map();
+  let cursor = 0, serial = 0;
+  const mockReact = { ...React,
+    useId() { cursor++; return 'question-input'; },
+    useState(initial) { const at = cursor++; if (!(at in hooks)) hooks[at] = typeof initial === 'function' ? initial() : initial; return [hooks[at], value => { hooks[at] = typeof value === 'function' ? value(hooks[at]) : value; }]; },
+    useRef(initial) { const at = cursor++; return hooks[at] ||= { current: initial }; },
+    useEffect(effect, dependencies) { const at = cursor++, previous = hooks[at]; if (!previous || dependencies.some((value, i) => !Object.is(value, previous.dependencies[i]))) { previous?.cleanup?.(); hooks[at] = { dependencies, cleanup: effect() }; } }
+  };
+  const schedule = callback => { const id = ++serial; timers.set(id, callback); return id; };
+  const component = { exports: {} };
+  vm.runInNewContext(taskInputCode, { module: component, exports: component.exports,
+    require: name => name === 'react' ? mockReact : { default: props => React.createElement('span', null, props.text), __esModule: true },
+    crypto: globalThis.crypto,
+    setTimeout: schedule, clearTimeout: id => timers.delete(id), window: { setTimeout: schedule, clearTimeout: id => timers.delete(id) } });
+  const publicTask = structuredClone(task); delete publicTask.evaluation.answerKey;
+  const props = { task: publicTask, ...extras };
+  return { render() { cursor = 0; return component.exports.TaskInput(props); } };
+}
+
+test('TaskInput: keypad thập phân + phản hồi từng phát biểu từ submission', () => {
+  const decTask = {
+    id: 't-decimal', type: 'closed', prompt: 'Viết 0,25 vào bốn ô',
+    inputSchema: { type: 'short_answer_4', format: 'decimal_4' },
+    evaluation: { checkerId: 'short_answer_4', answerKey: ['0', ',', '2', '5'] }
+  };
+  const decHtml = renderToStaticMarkup(taskEditor(decTask).render());
+  assert.ok(decHtml.includes('Bàn phím thập phân'), 'thiếu keypad decimal_4');
+  assert.ok(decHtml.includes('Dấu phẩy là dấu thập phân'), 'thiếu hướng dẫn dấu phẩy');
+  assert.ok(!decHtml.includes('answerKey'), 'không được lộ đáp án');
+
+  const tfTask = {
+    id: 't-tf', type: 'closed', prompt: 'Đúng sai',
+    inputSchema: { type: 'true_false_4', statements: [
+      { id: 's1', label: 'a' }, { id: 's2', label: 'b' }, { id: 's3', label: 'c' }, { id: 's4', label: 'd' }
+    ] },
+    evaluation: { checkerId: 'true_false_4', answerKey: [true, true, false, false] }
+  };
+  const tfHtml = renderToStaticMarkup(taskEditor(tfTask, { submission: { submissionId: 'sv1', ok: false, ratio: 0.5, perItem: [true, true, false, false] } }).render());
+  assert.ok(tfHtml.includes('task-tf-item'), 'thiếu phản hồi từng phát biểu');
+  assert.ok(tfHtml.includes('Phát biểu 3'), 'thiếu nhãn phát biểu');
+  assert.ok(tfHtml.includes('✗'), 'thiếu dấu ✗');
+  assert.ok(tfHtml.includes('Điểm ý'), 'thiếu chip điểm một phần');
+  const tfHtml2 = renderToStaticMarkup(taskEditor(tfTask).render());
+  assert.ok(!tfHtml2.includes('task-tf-item'), 'không hiện phản hồi khi chưa có submission');
+});

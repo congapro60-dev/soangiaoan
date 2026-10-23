@@ -19,7 +19,7 @@ export interface TaskInputProps {
       categories?: Array<{ id: string; label: string }>;
       statements?: Array<{ id: string; label: string }>;
       cells?: Array<{ id: string; label: string }>;
-      format?: "digits" | "signed_digits" | "alphanumeric";
+      format?: "digits" | "signed_digits" | "alphanumeric" | "decimal_4";
     };
     evaluation?: {
       checkerId?: string;
@@ -42,6 +42,8 @@ export interface TaskInputProps {
     assessmentStatus?: string;
     assisted?: boolean;
     at?: number;
+    ratio?: number;
+    perItem?: boolean[];
   } | null;
   onSaveDraft?: (answer: unknown) => unknown;
   onSubmit?: (answer: unknown) => Promise<void> | void;
@@ -691,6 +693,18 @@ export function TaskInput({
               </div>
             ))}
           </div>
+          {Array.isArray(submission?.perItem) && (
+            <div className="task-tf-feedback" role="status">
+              {(submission?.perItem as boolean[]).map((itemOk, index) => (
+                <span key={index} className={itemOk ? "task-tf-item task-tf-item-ok" : "task-tf-item task-tf-item-miss"}>
+                  Phát biểu {index + 1}: {itemOk ? "✓" : "✗"}
+                </span>
+              ))}
+              {typeof submission?.ratio === "number" && (
+                <span className="task-ratio-chip">Điểm ý: {Math.round((submission?.ratio ?? 0) * 100) / 100}</span>
+              )}
+            </div>
+          )}
         </fieldset>
       );
     }
@@ -861,6 +875,32 @@ export function TaskInput({
               </label>
             ))}
           </div>
+          {schema.format === "decimal_4" && (
+            <>
+              <div className="task-decimal-keypad" role="group" aria-label="Bàn phím thập phân">
+                {["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ",", "-"].map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className="task-short-answer-key"
+                    disabled={disabled}
+                    onClick={() => {
+                      const next: string[] = [...answers];
+                      const empty = next.findIndex(cell => !cell);
+                      const target = empty === -1 ? 3 : empty;
+                      next[target] = key;
+                      handleValueChange(next);
+                      const nextEmpty = next.findIndex(cell => !cell);
+                      cellInputRefs.current[nextEmpty === -1 ? 3 : nextEmpty]?.focus();
+                    }}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+              <small className="task-helper-text">Dấu phẩy là dấu thập phân (ví dụ 0,25). Ô đầu có thể là dấu trừ.</small>
+            </>
+          )}
         </fieldset>
       );
     }
