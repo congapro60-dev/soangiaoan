@@ -49,3 +49,10 @@ test('short_answer_4 decimal_4: chấm↔phẩy tương đương, luật vị tr
   assert.equal(checker(['1', '2', '0', '6'], digitsTask).ok, true);
   assert.equal(checker(['1', '2', '0', '7'], digitsTask).ok, false);
 });
+
+test('verdictMeta chuẩn hóa ratio/perItem cho mọi checker', async () => {
+  const { verdictMeta } = await import('../lib/lesson/schema.js');
+  assert.deepEqual(verdictMeta({ ok: true, perItem: [true, false, true, true], ratio: 0.75 }, false), { ratio: 0.75, perItem: [true, false, true, true] });
+  assert.deepEqual(verdictMeta({ ok: true }, true), { ratio: 1, perItem: undefined });
+  assert.deepEqual(verdictMeta({ ok: false }, false), { ratio: 0, perItem: undefined });
+});
