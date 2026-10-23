@@ -144,3 +144,10 @@ test('TaskInput: keypad thập phân + phản hồi từng phát biểu từ sub
   const tfHtml2 = renderToStaticMarkup(taskEditor(tfTask).render());
   assert.ok(!tfHtml2.includes('task-tf-item'), 'không hiện phản hồi khi chưa có submission');
 });
+
+test('prompt bộ soạn AI yêu cầu đủ 4 dạng THPTQG + minh họa hình học', async () => {
+  const source = await readFile(new URL('../lib/lesson/generation-provider.js', import.meta.url), 'utf8');
+  for (const marker of ['true_false_4', 'short_answer_4', 'decimal_4', 'diagramUrl', 'image']) {
+    assert.ok(source.includes(marker), 'thiếu hướng dẫn: ' + marker);
+  }
+});
