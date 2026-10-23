@@ -5,6 +5,10 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## CI API Typecheck đỏ sẵn trên main: `api/_submission-actors.ts` (23/10) — Claude
+
+Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` lỗi `TS2345` ở dòng 43 (`ALLOWED.has(ans)` với `ans` là `unknown`). Nhánh `dieu-phoi/report-custom-range` chỉ ép `ans as string` để CI của PR này qua; nếu `main` đã sửa theo cách khác khi gộp thì lấy bản của `main` và bỏ mục này. Nghiệm thu: chạy CẢ HAI lệnh `npx tsc --noEmit -p tsconfig.api.json` và `... --strict false`.
+
 ## GV tự chọn khoảng ngày khi xuất / công bố báo cáo phụ huynh — 17/10 (Claude)
 
 **Đổi gì, vì sao:** trước đây GV chỉ chọn tháng / giữa-cuối kì / cả năm; loại `custom` (từ ngày — đến ngày) chỉ phụ huynh dùng trên `/ph` và bị chủ ý loại khỏi `REPORT_KINDS`. Chủ dự án muốn GV cũng chọn khoảng ngày tuỳ ý. Thêm `TEACHER_REPORT_KINDS` (= `REPORT_KINDS` + `custom` "Tự chọn khoảng ngày") dùng ở 2 ô chọn của GV (`StudentReport`, `ClassParentReportExport`), nhãn công bố, và hai bộ kiểm loại ở máy chủ (`api/_parent-portal.ts`, `api/_parent-report.ts`). `REPORT_KINDS` giữ nguyên nên cổng `/ph` không đổi.
