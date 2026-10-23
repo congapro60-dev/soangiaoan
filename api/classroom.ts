@@ -48,11 +48,16 @@ import {
 } from './_grade-lifecycle.js';
 import { stripUndefinedDeep } from './_firestore-sanitize.js';
 import { handleTeacherAction } from './_classroom-teacher.js';
+import { handleV832Action } from './_v832-runtime.js';
+import { handleV832RepairAction } from './_v832-review-repair.js';
+import { handleV84Action } from './_v84-runtime.js';
+import { handleV871PreparePreview } from './_v871-preview.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
 import { handleScoreBookAction } from './_score-book.js';
 import { handleParentReportAction } from './_parent-report.js';
 import { handleSsmTemplateAction } from './_ssm-template.js';
+import { handleSsmProxyAction } from './_ssm-proxy.js';
 import { handleTimetableAction } from './_timetable.js';
 import { handlePortfolioAction } from './_portfolio.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction, handleStudentAiKeyAction } from './_ai-keys.js';
@@ -1540,6 +1545,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     const db = getAdminDb();
+    if (await handleV871PreparePreview(db, body, res)) return;
+    if (await handleV832Action(db, body, res)) return;
+    if (await handleV832RepairAction(db, body, res)) return;
+    if (await handleV84Action(db, body, res)) return;
     if (await handleAdminAction(db, body, res)) return;
     if (await handleSubmissionActorAction(db, body, res, { projectStudentAssignment, projectStudentSubmission })) return;
     if (await handleHandMarkedWorkAction(db, body, res)) return;
@@ -1550,6 +1559,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleScoreBookAction(db, body, res)) return;
     if (await handleParentReportAction(db, body, res)) return;
     if (await handleSsmTemplateAction(body, res)) return;
+    if (await handleSsmProxyAction(body, res)) return;
     if (await handleTimetableAction(body, res)) return;
     if (await handlePortfolioAction(db, body, res)) return;
     if (await handleAiKeyAction(db, body, res)) return;

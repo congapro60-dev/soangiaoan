@@ -253,6 +253,9 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               <button disabled={hasPilotLesson || seedingPilot || !user} onClick={() => void handleSeedPilot()} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
                 <WandSparkles className="h-4 w-4" /> {seedingPilot ? 'Đang cài bài demo...' : hasPilotLesson ? 'Đã có bài demo G10 P31' : 'Cài bài demo G10 P31'}
               </button>
+              <button onClick={() => navigate('/lesson-gen')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 py-3 text-sm font-black text-slate-900 shadow-lg shadow-amber-900/10 transition hover:bg-amber-300">
+                <WandSparkles className="h-4 w-4" /> Soạn bài tương tác V8.8
+              </button>
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
                 <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
               </button>

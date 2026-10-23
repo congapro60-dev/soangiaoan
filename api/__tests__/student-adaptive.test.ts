@@ -105,7 +105,8 @@ describe('adaptive assignment actions', () => {
     };
     const listed = await invokeStudent(store, { action: 'studentAdaptiveList' });
     expect(listed.statusCode).toBe(200);
-    expect(listed.payload.assignments).toEqual([{ assignmentId: 'class-a_lesson-1', lessonId: 'lesson-1', title: 'Visible', discoverSeedId: 'seed-1', createdAt: '2026-10-02' }]);
+    // `closed` có từ bản "đóng bài 3 output" (7377728): danh sách trả cả bài đã đóng kèm closeArtifacts, cờ này để HS biết.
+    expect(listed.payload.assignments).toEqual([{ closed: false, assignmentId: 'class-a_lesson-1', lessonId: 'lesson-1', title: 'Visible', discoverSeedId: 'seed-1', createdAt: '2026-10-02' }]);
     expect(JSON.stringify(listed.payload)).not.toContain('Adaptive fractions');
 
     for (const assignmentId of ['class-a_excluded', 'class-a_closed', 'class-b_lesson-1']) {
