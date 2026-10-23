@@ -368,6 +368,21 @@ const normalizeQuestionStatus = (value: unknown): QuestionResultStatus => {
   return 'unreadable';
 };
 
+/**
+ * Nhận diện hàng "tổng" model tự ghi cuối bảng câu (Tổng kết, Tổng cộng, Cộng lại…).
+ * Gỡ dấu + khoảng trắng + số đuôi rồi so với bộ từ khóa, để khỏi nhầm câu thật có tên
+ * kiều "Phần 2 – Tổng hợp" (những câu đó không khớp trọn một từ khóa).
+ */
+const laHangTongKet = (questionNumber: string): boolean => {
+  const key = questionNumber
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s|[-–—_.,:：/()]+/g, '')
+    .replace(/\d.*$/, '');
+  return ['tongket', 'tong', 'tongcong', 'tongdiem', 'tongso', 'cong', 'conglai'].includes(key);
+};
+
 const toQuestionResults = (value: unknown): QuestionResult[] => {
   if (!Array.isArray(value)) return [];
 
@@ -378,6 +393,9 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
       const q = item as Record<string, unknown>;
       const questionNumber = String(q.questionNumber ?? q.question ?? '').trim();
       if (!questionNumber) return null;
+      // Hàng "tổng kết" model tự chèn cuối bảng (A/B 10/2026 gặp ở nhiều hãng): không phải
+      // câu hỏi thật, để lọt là đội cả bảng điểm lẫn tổng Σ → loại ngay.
+      if (laHangTongKet(questionNumber)) return null;
 
       const max = Number(q.maxScore);
       const maxScore = Number.isFinite(max) && max >= 0 ? max : 0;
@@ -453,9 +471,19 @@ const coerceHomeworkGrade = (
   const questionResults = toQuestionResults(parsed.questionResults ?? parsed.questionDetails);
   const rawScore = Number(parsed.score);
   const summedScore = questionResults.reduce((sum, q) => sum + (Number.isFinite(q.score) ? q.score : 0), 0);
-  const baseScore = Number.isFinite(rawScore)
-    ? rawScore
-    : (questionResults.length > 0 ? summedScore : 0);
+  // Điểm hiển thị = Σ các dòng CHỈ KHI các dòng phủ thang bài (tổng maxScore của dòng ≈ maxScore) —
+  // cùng một nguyên tắc với `recomputeTotal` sau khi chấm lại đáp án khách quan. A/B 10/2026
+  // (5 bài × 22 lượt × 5 hãng): 17/18 lượt trả bảng đủ thang và field score lệch Σ gần hết lượt
+  // (kể cả Google direct) → Σ thắng; lượt lệch còn lại model lặp bảng (rowMax 20/10). Khi dòng
+  // KHÔNG phủ thang (bảng rất ngắn; luồng bài kiểm tra định kì model chỉ ĐỌC TỔNG điểm thầy ghi
+  // trên bài) thì giữ score model đọc — cộng dòng khuyết thang là mất tổng.
+  const rowMaxScore = questionResults.reduce((sum, q) => sum + (Number.isFinite(q.maxScore) ? q.maxScore : 0), 0);
+  const rowsCoverScale = rowMaxScore > 0 && Math.abs(rowMaxScore - effectiveMax) <= 0.01;
+  const baseScore = rowsCoverScale
+    ? summedScore
+    : (Number.isFinite(rawScore)
+      ? rawScore
+      : (questionResults.length > 0 ? summedScore : 0));
 
   return {
     score: clamp(baseScore, 0, effectiveMax),

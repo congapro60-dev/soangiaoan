@@ -183,6 +183,18 @@ describe('parseHomeworkGrade', () => {
       correction: 'Thay lại x = 2.',
       nextPractice: 'Luyện 2 bài tương tự.',
       needsTeacherReview: false,
+    }, {
+      questionNumber: 'Câu 2',
+      status: 'correct',
+      score: 8,
+      maxScore: 10,
+      studentAnswer: 'x = 2',
+      expectedAnswer: 'x = 2',
+      errorType: 'Không có',
+      explanation: 'Em làm đúng.',
+      correction: 'Không cần sửa.',
+      nextPractice: 'Giữ độ chính xác này.',
+      needsTeacherReview: false,
     }],
   };
 
@@ -203,24 +215,84 @@ describe('parseHomeworkGrade', () => {
   });
 
   it('kẹp điểm vượt thang về đúng thang', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 12 }), 10, false);
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], score: 8, maxScore: 4 },
+        { ...mau.questionResults[1], questionNumber: 'Câu 3', score: 6, maxScore: 6 },
+      ],
+    }), 10, false);
     expect(g.score).toBe(10);
   });
 
-  it('kẹp điểm âm về 0', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: -3 }), 10, false);
-    expect(g.score).toBe(0);
+  // Quyết định 10/2026 (tinh chỉnh đêm 23/10): khi các dòng PHỦ THANG (ΣmaxScore dòng ≈ maxScore)
+  // thì điểm hiển thị = Σ từng dòng, không tin "score" của model (A/B 22 lượt × 5 hãng: điểm bảng
+  // chuẩn, score lệch Σ gần hết lượt). Dòng KHÔNG phủ thang (mô hình chỉ đọc tổng điểm thầy ghi trên
+  // bài ở luồng bài kiểm tra định kì) thì giữ score model đọc — giống nguyên tắc recomputeTotal.
+  const dongPhuThang = [
+    { ...mau.questionResults[0] },
+    { ...mau.questionResults[1], maxScore: 8 },
+  ];
+
+  it('điểm gồm tổng các dòng, bỏ score của model khi đã có dòng', () => {
+    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 9.75, questionResults: dongPhuThang }), 10, false);
+    expect(g.score).toBe(8);
+  });
+
+  it('không có dòng câu nào thì lấy score của model', () => {
+    const g = parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: [] }), 10, false);
+    expect(g.score).toBe(8);
+  });
+
+  it('score âm hoặc không đọc được của model đều bị bỏ', () => {
+    expect(parseHomeworkGrade(JSON.stringify({ ...mau, score: -3, questionResults: dongPhuThang }), 10, false).score).toBe(8);
+    expect(parseHomeworkGrade(JSON.stringify({ ...mau, score: 'tám', questionResults: dongPhuThang }), 10, false).score).toBe(8);
   });
 
   it('giữ nguyên thang điểm giáo viên dù AI trả maxScore khác', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, maxScore: 4, score: 4 }), 10, false);
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      maxScore: 4,
+      questionResults: [
+        { ...mau.questionResults[1], score: 2, maxScore: 5 },
+        { ...mau.questionResults[1], questionNumber: 'Câu 3', score: 2, maxScore: 5 },
+      ],
+    }), 10, false);
     expect(g.maxScore).toBe(10);
     expect(g.score).toBe(4);
   });
 
-  it('điểm không đọc được thì về 0 chứ không thành NaN', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 'tám' }), 10, false);
+  it('loại hàng tổng kết model tự chèn khỏi bảng và khỏi tổng điểm', () => {
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], score: 6 },
+        { questionNumber: 'Tổng kết', status: 'correct', score: 20, maxScore: 10, studentAnswer: 'x = ?', expectedAnswer: 'x = ?' },
+      ],
+    }), 10, false);
+    expect(g.questionResults.map(r => r.questionNumber)).toEqual(['Câu 2']);
+    expect(g.score).toBe(6);
+  });
+
+  it('không nhầm câu thật có tên kèm chữ tổng', () => {
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], questionNumber: 'Phần 2 – Tổng hợp', score: 5 },
+      ],
+    }), 10, false);
+    expect(g.questionResults.map(r => r.questionNumber)).toEqual(['Phần 2 – Tổng hợp']);
+    expect(g.score).toBe(5);
+  });
+
+  it('chịu được JSON có dấu phẩy thừa trước đóng ngoặc', () => {
+    const g = parseHomeworkGrade(
+      '{"score": 99, "maxScore": 10, "questionResults": [' + JSON.stringify({ ...mau.questionResults[0], maxScore: 10 }) + ',],}',
+      10,
+      false,
+    );
     expect(g.score).toBe(0);
+    expect(g.questionResults).toHaveLength(1);
   });
 
   it('mảng thiếu hoặc sai kiểu thì thành mảng rỗng, không vỡ', () => {
@@ -230,6 +302,7 @@ describe('parseHomeworkGrade', () => {
     expect(g.weakTopics).toEqual([]);
     expect(g.maxScore).toBe(10);
     expect(g.questionResults).toEqual([]);
+    expect(g.score).toBe(5);
   });
 
   it('kẹp điểm từng câu và đánh dấu dữ liệu thiếu là cần giáo viên soát', () => {
@@ -410,7 +483,11 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
   });
 
   it('chuẩn hoá maxScore AI trả lệch (20) về thang assignment (10)', () => {
-    const result = parse({ ...valid, maxScore: 20, score: 9 });
+    const result = parse({
+      ...valid,
+      maxScore: 20,
+      questionResults: [{ ...valid.questionResults[0], score: 9 }],
+    });
     expect(result.grade.maxScore).toBe(10);
     expect(result.grade.score).toBe(9);
   });

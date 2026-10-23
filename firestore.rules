@@ -1254,5 +1254,106 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ============================================================
+    // V8.3.2 Studio + phòng học 3 luồng (V8.4/V8.8)
+    // Quy ước: toàn bộ GHI vận hành phòng (tạo phòng, phản hồi, điểm danh,
+    // đóng bài, phân tích, yêu cầu sửa) đi qua /api/classroom bằng
+    // firebase-admin nên không cần rules. Browser chỉ ĐỌC trực tiếp,
+    // giáo viên tự ghi bản nháp studio của chính mình.
+    // ============================================================
+
+    // Bản nháp studio: import V8.3.2 + tạo từ ý tưởng V8.8 — chỉ chủ sở hữu
+    match /lessonGenDrafts/{draftId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Bản build runtime: chỉ chủ bài đọc (chứa lesson IR riêng tư)
+    match /lessonV832Builds/{packageId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Hộp thư "Yêu cầu sửa từ bản xem trước" + ứng viên sửa chữa:
+    // giáo viên đọc yêu cầu của mình, server mới được ghi
+    match /lessonV832ReviewRequests/{requestId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+    match /lessonV832RepairCandidates/{candidateId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Gói bài AI tạo: bản riêng và bản public đều chỉ chủ sở hữu thao tác
+    // (bản public chứa runtime definition — học sinh nhận bài qua phòng,
+    // không đọc trực tiếp collection này)
+    match /lessonGenPackages/{packageId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+    match /lessonGenPublicPackages/{packageId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Phòng học: tổng riêng tư chỉ chủ phòng; ảnh công khai ai đã đăng nhập
+    // (kể cả ẩn danh khi vào phòng) đều đọc được vì chỉ chứa dữ liệu tổng hợp
+    match /lessonV832Rooms/{roomId} {
+      function roomOwner() {
+        return get(/databases/$(database)/documents/lessonV832Rooms/$(roomId)).data.ownerUid;
+      }
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+
+      // Ảnh chạy lớp + tổng kết công khai (đã tổng hợp, không cá nhân)
+      match /public/{docId} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+      match /publicClosing/{rev} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+      // Kết quả đóng bài của từng học sinh: chính người đó (đã vào phòng)
+      // hoặc chủ phòng đọc
+      match /studentClosing/{studentId}/revisions/{rev} {
+        allow read: if request.auth != null
+          && (exists(/databases/$(database)/documents/lessonV832Rooms/$(roomId)/participants/$(request.auth.uid))
+              || roomOwner() == request.auth.uid);
+        allow write: if false;
+      }
+      // Phân tích giáo viên theo từng em: chỉ chủ phòng
+      match /teacherAnalytics/{docId}/revisions/{rev} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      // Bài làm và nháp mô phỏng: chỉ chủ phòng
+      match /responses/{responseId} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      match /simulationDrafts/{draftKey} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      // Người trong phòng đọc được chính mình; chủ phòng đọc tất cả
+      match /participants/{participantUid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == participantUid || roomOwner() == request.auth.uid);
+        allow write: if false;
+      }
+    }
+
   }
 }
