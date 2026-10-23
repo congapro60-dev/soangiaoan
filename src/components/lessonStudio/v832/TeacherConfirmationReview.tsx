@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { LessonIRV83 } from '../../../lib/lessonCompiler/v832/lessonIRSchema';
+import { translateV832Reason } from '../../../lib/lessonCompiler/v832/reasonVi';
 import {
   buildTeacherConfirmationCards,
   confirmTeacherDecision,
@@ -59,7 +60,7 @@ export const TeacherConfirmationReview = ({
         {card.materialForReadyToTeach && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-900">Chặn sẵn sàng dạy</span>}
       </div>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-800">
-        {card.reasons.map((reason, index) => <li key={`${card.refs[index]}-${index}`}>{reason}</li>)}
+        {card.reasons.map((reason, index) => <li key={`${card.refs[index]}-${index}`}>{translateV832Reason(reason)}</li>)}
       </ul>
       <label className="mt-4 block text-sm font-bold text-slate-800" htmlFor={`v832-reason-${card.key}`}>Căn cứ để chốt quyết định</label>
       <textarea id={`v832-reason-${card.key}`} value={rationales[card.key] ?? ''}
