@@ -1,0 +1,2830 @@
+/**
+ * Bản rã của contract schema Lesson IR V8.3.2 dùng cho cả client và lambda.
+ * SINH TỰ ĐỘNG từ lesson-ir-v8.3.2.schema.json — KHÔNG sửa tay. Muốn đổi, sửa file JSON chuẩn
+ * rồi chạy lại bước sinh (test ghép keo cùng thư mục sẽ chặn hai bản lệch nhau).
+ * Lý do không static-import JSON: compiler serverless của Vercel làm rơi import
+ * attribute `with { type: 'json' }` khi transform TS -> ESM, khiến lambda chết
+ * ngay lúc nạp module (ERR_IMPORT_ATTRIBUTE_MISSING).
+ */
+export const lessonIrV832Schema = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/lesson-ir-v8.3.2.schema.json",
+  "title": "Lesson IR V8.3.2",
+  "description": "Canonical machine-readable Lesson Intermediate Representation for V8.3.2 Teacher-Ready Adaptive Classroom.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "compatibility",
+    "lesson",
+    "sourcePriorityTracks",
+    "sourceVerification",
+    "learnerContext",
+    "learningDesign",
+    "archetype",
+    "timeline",
+    "questions",
+    "visuals",
+    "languageSupport",
+    "formativeDecisionCycles",
+    "conditionalFeatures",
+    "cisEvidenceMap",
+    "reflectionContract",
+    "runtimePolicy",
+    "qaContract",
+    "qualityAudit",
+    "buildStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "8.3.2"
+    },
+    "compatibility": {
+      "$ref": "#/$defs/Compatibility"
+    },
+    "lesson": {
+      "$ref": "#/$defs/LessonMeta"
+    },
+    "sourcePriorityTracks": {
+      "$ref": "#/$defs/SourcePriorityTracks"
+    },
+    "sourceVerification": {
+      "$ref": "#/$defs/SourceVerification"
+    },
+    "provenance": {
+      "$ref": "#/$defs/ProvenanceBundle"
+    },
+    "learnerContext": {
+      "$ref": "#/$defs/LearnerContext"
+    },
+    "learningDesign": {
+      "$ref": "#/$defs/LearningDesign"
+    },
+    "archetype": {
+      "$ref": "#/$defs/LessonArchetype"
+    },
+    "anchorContext": {
+      "$ref": "#/$defs/AnchorContext"
+    },
+    "timeline": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/ActivitySpec"
+      }
+    },
+    "questions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/QuestionSpec"
+      }
+    },
+    "visuals": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/VisualAssetSpec"
+      }
+    },
+    "languageSupport": {
+      "$ref": "#/$defs/LanguageSupportLibrary"
+    },
+    "formativeDecisionCycles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FormativeDecisionCycle"
+      }
+    },
+    "conditionalFeatures": {
+      "$ref": "#/$defs/ConditionalFeatureSet"
+    },
+    "cisEvidenceMap": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CISEvidenceEntry"
+      }
+    },
+    "reflectionContract": {
+      "$ref": "#/$defs/ReflectionContract"
+    },
+    "closingContract": {
+      "$ref": "#/$defs/ClosingContract"
+    },
+    "runtimePolicy": {
+      "$ref": "#/$defs/RuntimePolicy"
+    },
+    "qaContract": {
+      "$ref": "#/$defs/QAContract"
+    },
+    "qualityAudit": {
+      "$ref": "#/$defs/QualityAudit"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/GeneratedArtifactIndex"
+    },
+    "buildStatus": {
+      "$ref": "#/$defs/BuildStatus"
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Reserved extension namespace. Core runtime must not depend on unknown extension keys."
+    }
+  },
+  "$defs": {
+    "LocaleText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vi"
+      ],
+      "properties": {
+        "vi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en": {
+          "type": "string"
+        },
+        "ja": {
+          "type": "string"
+        }
+      }
+    },
+    "Compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "masterSpecVersion",
+        "qualityStandardVersion",
+        "qualityValidatorVersion",
+        "compilerSpecVersion",
+        "reviewFixSpecVersion"
+      ],
+      "properties": {
+        "masterSpecVersion": {
+          "const": "8.3.2"
+        },
+        "qualityStandardVersion": {
+          "const": "1.1.0"
+        },
+        "qualityValidatorVersion": {
+          "const": "1.1.0"
+        },
+        "compilerSpecVersion": {
+          "const": "1.3"
+        },
+        "reviewFixSpecVersion": {
+          "const": "1.2"
+        },
+        "runtimeVersion": {
+          "type": "string"
+        }
+      }
+    },
+    "LessonMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lessonId",
+        "lessonVersion",
+        "title",
+        "subject",
+        "runtimeMin"
+      ],
+      "properties": {
+        "lessonId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lessonVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grade": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "className": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "teacher": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtimeMin": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "periodCount": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "curriculumUnit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roomMode": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "presenter": {
+              "type": "boolean"
+            },
+            "student": {
+              "type": "boolean"
+            },
+            "coach": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "SourcePriorityTracks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "productArchitecture",
+        "mathematicalCurriculum",
+        "pedagogicalQuality"
+      ],
+      "properties": {
+        "productArchitecture": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "mathematicalCurriculum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "pedagogicalQuality": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "SourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "textbook",
+            "curriculum",
+            "unit_plan",
+            "teacher_lesson_plan",
+            "worksheet",
+            "presentation",
+            "assessment",
+            "reference",
+            "user_instruction",
+            "runtime_observation",
+            "unknown"
+          ]
+        },
+        "page": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "slide": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "sheet": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "range": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "uri": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "SourceVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "canonicalSources",
+        "canonicalTerms",
+        "canonicalFormulas",
+        "authoredBySystem",
+        "unresolved"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "SOURCE_VERIFICATION_REQUIRED",
+            "CONFLICT_REVIEW_REQUIRED"
+          ]
+        },
+        "canonicalSources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          }
+        },
+        "canonicalTerms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canonicalFormulas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authoredBySystem": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "referencedButNotCanonical": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ProvenanceBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          }
+        },
+        "contentHash": {
+          "type": "string"
+        },
+        "sourceHash": {
+          "type": "string"
+        }
+      }
+    },
+    "LearnerEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "summary",
+        "requiresTeacherConfirmation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "teacher_provided",
+            "assessment_result",
+            "student_work",
+            "runtime_observation",
+            "previous_lesson",
+            "teacher_observed",
+            "planning_assumption",
+            "unknown"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capturedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lessonRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "activityRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conceptRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requiresTeacherConfirmation": {
+          "type": "boolean"
+        },
+        "materialForReadyToTeach": {
+          "type": "boolean",
+          "default": false
+        },
+        "confirmedByTeacher": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "planning_assumption",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "requiresTeacherConfirmation": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "teacher_provided",
+                  "assessment_result",
+                  "student_work",
+                  "runtime_observation",
+                  "previous_lesson",
+                  "teacher_observed"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "sourceRef"
+                ],
+                "properties": {
+                  "sourceRef": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "required": [
+                  "lessonRef",
+                  "capturedAt"
+                ],
+                "properties": {
+                  "lessonRef": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "capturedAt": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "required": [
+                  "activityRef",
+                  "capturedAt"
+                ],
+                "properties": {
+                  "activityRef": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "capturedAt": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Learner evidence with truth-preserving provenance. sourceRef is not universally required; planning_assumption/unknown may have null sourceRef but require teacher confirmation."
+    },
+    "PlanningImplication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "evidenceRefs",
+        "implication"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "implication": {
+          "type": "string"
+        },
+        "affectedActivityRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "LearnerContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence",
+        "planningImplications"
+      ],
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LearnerEvidence"
+          }
+        },
+        "planningImplications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PlanningImplication"
+          }
+        }
+      }
+    },
+    "SuccessCriterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "statement",
+        "observableEvidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "statement": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "observableEvidence": {
+          "type": "string"
+        },
+        "mappedQuestionRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mappedActivityRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LearningDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningIntention",
+        "successCriteria",
+        "intellectualDemand"
+      ],
+      "properties": {
+        "learningIntention": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "successCriteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SuccessCriterion"
+          }
+        },
+        "mustShouldCould": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "must": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "should": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "could": {
+              "$ref": "#/$defs/LocaleText"
+            }
+          }
+        },
+        "intellectualDemand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "coreRichThinkingMoment"
+          ],
+          "properties": {
+            "coreRichThinkingMoment": {
+              "type": "string"
+            },
+            "modes": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "justify",
+                  "compare",
+                  "critique",
+                  "generalize",
+                  "model",
+                  "prove",
+                  "error_analysis",
+                  "choose_method_and_explain",
+                  "create"
+                ]
+              }
+            }
+          }
+        },
+        "priorKnowledge": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "misconceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MisconceptionSpec"
+          }
+        }
+      }
+    },
+    "MisconceptionSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "provenanceType"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "provenanceType": {
+          "enum": [
+            "observed",
+            "teacher_provided",
+            "source_based",
+            "planning_assumption",
+            "unknown"
+          ]
+        },
+        "evidenceRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requiresTeacherConfirmation": {
+          "type": "boolean"
+        },
+        "responsePlan": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "LessonArchetype": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "rationale"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "concept_formation",
+            "practice",
+            "review_diagnostic",
+            "flipped",
+            "modeling_application"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "AnchorContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "used": {
+          "type": "boolean"
+        },
+        "context": {
+          "type": "string"
+        },
+        "mathematicalNeed": {
+          "type": "string"
+        },
+        "openingUse": {
+          "type": "string"
+        },
+        "midLessonReturn": {
+          "type": "string"
+        },
+        "finalReturn": {
+          "type": "string"
+        },
+        "notUsedRationale": {
+          "type": "string"
+        }
+      }
+    },
+    "AttentionBeacon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "copy"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "LOOK_UP",
+            "DEVICE",
+            "NOTEBOOK",
+            "BOARD",
+            "PAIR_GROUP",
+            "THINK"
+          ]
+        },
+        "copy": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "showTime": {
+          "type": "boolean"
+        },
+        "durationSec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "CompletionTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minSubmissionRate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxTimeSec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "manualOverride": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "SurfaceHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fromSurface",
+        "toSurface",
+        "entry",
+        "work",
+        "recall"
+      ],
+      "properties": {
+        "fromSurface": {
+          "$ref": "#/$defs/AttentionSurface"
+        },
+        "toSurface": {
+          "$ref": "#/$defs/AttentionSurface"
+        },
+        "entry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "presenterCue",
+            "studentState",
+            "coachState",
+            "durationSec"
+          ],
+          "properties": {
+            "presenterCue": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "studentState": {
+              "type": "string"
+            },
+            "coachState": {
+              "type": "string"
+            },
+            "durationSec": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "work": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "durationSec",
+            "presenterMode",
+            "studentMode",
+            "coachMode"
+          ],
+          "properties": {
+            "durationSec": {
+              "type": "number",
+              "minimum": 0
+            },
+            "presenterMode": {
+              "type": "string"
+            },
+            "studentMode": {
+              "type": "string"
+            },
+            "coachMode": {
+              "type": "string"
+            }
+          }
+        },
+        "completionTrigger": {
+          "$ref": "#/$defs/CompletionTrigger"
+        },
+        "recall": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "presenterCue",
+            "studentCue",
+            "coachAction",
+            "durationSec"
+          ],
+          "properties": {
+            "presenterCue": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "studentCue": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "coachAction": {
+              "type": "string"
+            },
+            "durationSec": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "AttentionSurface": {
+      "enum": [
+        "presenter",
+        "student_device",
+        "board",
+        "notebook",
+        "pair_group",
+        "teacher_demonstration"
+      ]
+    },
+    "ThreeWayOrchestration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primaryAttentionSurface",
+        "presenterRole",
+        "studentRole",
+        "coachRole",
+        "sharedContextRequired"
+      ],
+      "properties": {
+        "primaryAttentionSurface": {
+          "$ref": "#/$defs/AttentionSurface"
+        },
+        "secondarySurface": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttentionSurface"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "presenterRole": {
+          "type": "string"
+        },
+        "studentRole": {
+          "type": "string"
+        },
+        "coachRole": {
+          "type": "string"
+        },
+        "sharedContextRequired": {
+          "type": "boolean"
+        },
+        "handoffIn": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "handoffOut": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "CoachStudentMirror": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "studentPrompt",
+        "inputType",
+        "expectedProduct",
+        "misconceptions",
+        "recommendedTeacherAction",
+        "nextControl"
+      ],
+      "properties": {
+        "studentPrompt": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "visualRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputType": {
+          "type": "string"
+        },
+        "expectedProduct": {
+          "type": "string"
+        },
+        "timeRemaining": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "submissionCount": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "submitted": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "correctAnswerOrRubric": {},
+        "misconceptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hintRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aflThresholds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendedTeacherAction": {
+          "type": "string"
+        },
+        "why": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recheckRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nextControl": {
+          "type": "string"
+        }
+      }
+    },
+    "InteractionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blockId",
+        "keepOnSurface",
+        "containedActivityRefs",
+        "recallAfterBlock"
+      ],
+      "properties": {
+        "blockId": {
+          "type": "string"
+        },
+        "keepOnSurface": {
+          "$ref": "#/$defs/AttentionSurface"
+        },
+        "containedActivityRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recallAfterBlock": {
+          "type": "boolean"
+        },
+        "rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "DeviceAdaptation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "presenterLaptop",
+        "presenterTabletLandscape",
+        "presenterTabletPortrait",
+        "presenterPhone",
+        "studentLaptop",
+        "studentTabletLandscape",
+        "studentTabletPortrait",
+        "studentPhone",
+        "coachPhone",
+        "coachTablet",
+        "keyboardBehavior",
+        "orientationBehavior"
+      ],
+      "properties": {
+        "presenterLaptop": {
+          "type": "string"
+        },
+        "presenterTabletLandscape": {
+          "type": "string"
+        },
+        "presenterTabletPortrait": {
+          "type": "string"
+        },
+        "presenterPhone": {
+          "type": "string"
+        },
+        "studentLaptop": {
+          "type": "string"
+        },
+        "studentTabletLandscape": {
+          "type": "string"
+        },
+        "studentTabletPortrait": {
+          "type": "string"
+        },
+        "studentPhone": {
+          "type": "string"
+        },
+        "coachPhone": {
+          "type": "string"
+        },
+        "coachTablet": {
+          "type": "string"
+        },
+        "keyboardBehavior": {
+          "type": "string"
+        },
+        "orientationBehavior": {
+          "type": "string"
+        }
+      }
+    },
+    "DifferentiationSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commonCoreLearning",
+        "scaffolds",
+        "challenge"
+      ],
+      "properties": {
+        "commonCoreLearning": {
+          "type": "string"
+        },
+        "scaffolds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScaffoldSpec"
+          }
+        },
+        "challenge": {
+          "$ref": "#/$defs/ChallengeSpec"
+        },
+        "supportBranch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "earlyFinisher": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fixedAbilityLabelsForbidden": {
+          "const": true
+        }
+      }
+    },
+    "ScaffoldSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "content",
+        "fadeCondition"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "hint",
+            "alternative_representation",
+            "worked_example",
+            "question_decomposition",
+            "language_support",
+            "time_support",
+            "other"
+          ]
+        },
+        "content": {
+          "type": "string"
+        },
+        "fadeCondition": {
+          "type": "string"
+        }
+      }
+    },
+    "ChallengeSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "description"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "justify",
+            "generalize",
+            "compare",
+            "prove",
+            "model",
+            "create",
+            "evaluate",
+            "none"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "addsDepth": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "CISActivitySpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "differentiation",
+        "assessmentForLearning",
+        "globalIntercultural",
+        "digitalCitizenship"
+      ],
+      "properties": {
+        "differentiation": {
+          "type": "boolean"
+        },
+        "assessmentForLearning": {
+          "type": "boolean"
+        },
+        "globalIntercultural": {
+          "type": "boolean"
+        },
+        "digitalCitizenship": {
+          "type": "boolean"
+        },
+        "studentBehavior": {
+          "type": "string"
+        },
+        "observerEvidence": {
+          "type": "string"
+        }
+      }
+    },
+    "PresenterActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "exactCopy",
+        "controls"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "exactCopy": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "layout": {
+          "type": "string"
+        },
+        "visualRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskBridge": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mustNotShow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "StudentActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "exactCopy",
+        "interaction",
+        "onSubmitState"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "locked",
+            "view_only",
+            "interactive"
+          ]
+        },
+        "exactCopy": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "visualRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interaction": {
+          "type": "string"
+        },
+        "requiredProduct": {
+          "type": "string"
+        },
+        "safeInSelfNav": {
+          "type": "boolean"
+        },
+        "onSubmitState": {
+          "type": "string"
+        }
+      }
+    },
+    "CoachActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "ask",
+        "observe",
+        "transitionWhen",
+        "studentMirror"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string"
+        },
+        "ask": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "waitSec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "observe": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "board": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ifManyStruggle": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transitionWhen": {
+          "type": "string"
+        },
+        "studentMirror": {
+          "$ref": "#/$defs/CoachStudentMirror"
+        },
+        "decisionCard": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "whatISee": {
+              "type": "string"
+            },
+            "whatItMayMean": {
+              "type": "string"
+            },
+            "recommendedAction": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string"
+            },
+            "howToRecheck": {
+              "type": "string"
+            },
+            "nextControl": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "QuestionBuildStep": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "content"
+          ],
+          "properties": {
+            "type": {
+              "const": "question"
+            },
+            "id": {
+              "type": "string"
+            },
+            "content": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "waitTimeSec": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "listenFor": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "label",
+            "content"
+          ],
+          "properties": {
+            "type": {
+              "const": "reveal"
+            },
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "$ref": "#/$defs/LocaleText"
+            },
+            "content": {
+              "$ref": "#/$defs/LocaleText"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "visualStateId"
+          ],
+          "properties": {
+            "type": {
+              "const": "highlight"
+            },
+            "visualStateId": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "QuestionBuildSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "steps"
+      ],
+      "properties": {
+        "mode": {
+          "const": "teacher_led_progressive"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/QuestionBuildStep"
+          }
+        }
+      }
+    },
+    "QuestionInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instanceId",
+        "questionId",
+        "activityId",
+        "attemptMode",
+        "required",
+        "order"
+      ],
+      "properties": {
+        "instanceId": {
+          "type": "string"
+        },
+        "questionId": {
+          "type": "string"
+        },
+        "activityId": {
+          "type": "string"
+        },
+        "attemptMode": {
+          "enum": [
+            "fresh",
+            "revision"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "TimingPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plannedDurationSec",
+        "surfaceSwitchCostSec",
+        "neverAutoNext"
+      ],
+      "properties": {
+        "plannedDurationSec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "surfaceSwitchCostSec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "protected": {
+          "type": "boolean"
+        },
+        "compressibleMinSec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "neverAutoNext": {
+          "const": true
+        }
+      }
+    },
+    "ActivitySpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "order",
+        "title",
+        "durationSec",
+        "phase",
+        "objectiveRefs",
+        "successCriteriaRefs",
+        "studentAction",
+        "teacherAction",
+        "cognitiveDemand",
+        "expectedEvidence",
+        "successLookFor",
+        "threeWayOrchestration",
+        "attentionBeacon",
+        "deviceAdaptation",
+        "presenter",
+        "student",
+        "coach",
+        "differentiation",
+        "cis",
+        "revealPolicy",
+        "transitionPolicy",
+        "timingPolicy"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "durationSec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "phase": {
+          "type": "string"
+        },
+        "archetypeRole": {
+          "type": "string"
+        },
+        "template": {
+          "type": "string"
+        },
+        "objectiveRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "successCriteriaRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "formativeCycleRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "studentAction": {
+          "type": "string"
+        },
+        "teacherAction": {
+          "type": "string"
+        },
+        "cognitiveDemand": {
+          "type": "string"
+        },
+        "expectedEvidence": {
+          "type": "string"
+        },
+        "successLookFor": {
+          "type": "string"
+        },
+        "materials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "threeWayOrchestration": {
+          "$ref": "#/$defs/ThreeWayOrchestration"
+        },
+        "attentionBeacon": {
+          "$ref": "#/$defs/AttentionBeacon"
+        },
+        "surfaceHandoff": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SurfaceHandoff"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "interactionBlock": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InteractionBlock"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deviceAdaptation": {
+          "$ref": "#/$defs/DeviceAdaptation"
+        },
+        "presenter": {
+          "$ref": "#/$defs/PresenterActivity"
+        },
+        "student": {
+          "$ref": "#/$defs/StudentActivity"
+        },
+        "coach": {
+          "$ref": "#/$defs/CoachActivity"
+        },
+        "questionBuild": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuestionBuildSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "questionInstances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QuestionInstance"
+          }
+        },
+        "visualStateRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "languageSupportRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "differentiation": {
+          "$ref": "#/$defs/DifferentiationSpec"
+        },
+        "cis": {
+          "$ref": "#/$defs/CISActivitySpec"
+        },
+        "boardAction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notebookAction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revealPolicy": {
+          "enum": [
+            "teacher_manual",
+            "auto_on_next",
+            "show_after_submit",
+            "no_reveal"
+          ]
+        },
+        "transitionPolicy": {
+          "type": "string"
+        },
+        "privacy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "persistencePolicy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fallback": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timingPolicy": {
+          "$ref": "#/$defs/TimingPolicy"
+        }
+      }
+    },
+    "HintSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "content"
+      ],
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content": {
+          "$ref": "#/$defs/LocaleText"
+        }
+      }
+    },
+    "QuestionSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "prompt",
+        "responseType",
+        "hints",
+        "misconceptions",
+        "evidenceTargets",
+        "submissionModes",
+        "estimatedWorkTimeSec",
+        "authoredSource"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "prompt": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "responseType": {
+          "enum": [
+            "mcq",
+            "multi",
+            "true_false_matrix",
+            "short",
+            "math_input",
+            "text",
+            "multimodal",
+            "ordering",
+            "error_analysis",
+            "self_assessment"
+          ]
+        },
+        "options": {
+          "type": "array"
+        },
+        "correctAnswer": {},
+        "rubric": {},
+        "workedSolution": {},
+        "hints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HintSpec"
+          }
+        },
+        "reveal": {},
+        "misconceptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidenceTargets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "submissionModes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "typed",
+              "math",
+              "draw",
+              "photo"
+            ]
+          }
+        },
+        "privacy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estimatedWorkTimeSec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "handoffOverheadSec": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "visualRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "languageSupportRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authoredSource": {
+          "enum": [
+            "canonical",
+            "teacher",
+            "system_authored"
+          ]
+        }
+      }
+    },
+    "VisualState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visibleObjects"
+      ],
+      "properties": {
+        "visibleObjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hiddenObjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emphasizedObjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dimmedObjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "camera": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "annotations": {
+          "type": "array"
+        }
+      }
+    },
+    "VisualAssetSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "semanticPurpose",
+        "states",
+        "defaultStateId",
+        "noGo"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "deterministic_math_visual",
+            "interactive_simulation",
+            "table",
+            "chart",
+            "diagram_2d",
+            "diagram_3d",
+            "context_image"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          }
+        },
+        "authoredBy": {
+          "enum": [
+            "code",
+            "teacher",
+            "ai_image"
+          ]
+        },
+        "semanticPurpose": {
+          "type": "string"
+        },
+        "mathematicalInvariants": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "states": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/VisualState"
+          }
+        },
+        "defaultStateId": {
+          "type": "string"
+        },
+        "presenterVariant": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "studentVariant": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deviceVariants": {
+          "type": "object"
+        },
+        "interaction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accessibility": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fallback": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "noGo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LanguageSupportTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "vi",
+        "en",
+        "ja",
+        "simpleVi"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "vi": {
+          "type": "string"
+        },
+        "en": {
+          "type": "string"
+        },
+        "ja": {
+          "type": "string"
+        },
+        "simpleVi": {
+          "type": "string"
+        },
+        "mathMeaning": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ActivityLanguageSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "keywords",
+        "plainTask",
+        "sentenceFrames",
+        "allowOnDemand"
+      ],
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plainTask": {
+          "$ref": "#/$defs/LocaleText"
+        },
+        "sentenceFrames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LocaleText"
+          }
+        },
+        "allowOnDemand": {
+          "type": "boolean"
+        }
+      }
+    },
+    "LanguageSupportLibrary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terms",
+        "activitySupport"
+      ],
+      "properties": {
+        "terms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LanguageSupportTerm"
+          }
+        },
+        "activitySupport": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ActivityLanguageSupport"
+          }
+        }
+      }
+    },
+    "DecisionBranch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interpretation",
+        "decision",
+        "action"
+      ],
+      "properties": {
+        "interpretation": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        }
+      }
+    },
+    "FormativeDecisionCycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mappedSuccessCriteria",
+        "activityRef",
+        "collect",
+        "decisionRule",
+        "recheck"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "mappedSuccessCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "activityRef": {
+          "type": "string"
+        },
+        "collect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "evidenceCollected"
+          ],
+          "properties": {
+            "method": {
+              "type": "string"
+            },
+            "evidenceCollected": {
+              "type": "string"
+            }
+          }
+        },
+        "decisionRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "below",
+            "onTrack",
+            "above"
+          ],
+          "properties": {
+            "below": {
+              "$ref": "#/$defs/DecisionBranch"
+            },
+            "onTrack": {
+              "$ref": "#/$defs/DecisionBranch"
+            },
+            "above": {
+              "$ref": "#/$defs/DecisionBranch"
+            }
+          }
+        },
+        "recheck": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "newEvidence",
+            "timing"
+          ],
+          "properties": {
+            "method": {
+              "type": "string"
+            },
+            "newEvidence": {
+              "type": "string"
+            },
+            "timing": {
+              "type": "string"
+            }
+          }
+        },
+        "feedbackNextStep": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "below": {
+              "type": "string"
+            },
+            "onTrack": {
+              "type": "string"
+            },
+            "above": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ConditionalFeature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "triggered"
+      ],
+      "properties": {
+        "triggered": {
+          "type": "boolean"
+        },
+        "triggerReason": {
+          "type": "string"
+        },
+        "learningValue": {
+          "type": "string"
+        },
+        "studentAction": {
+          "type": "string"
+        },
+        "expectedEvidence": {
+          "type": "string"
+        },
+        "observerEvidence": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "triggered": {
+                "const": true
+              }
+            },
+            "required": [
+              "triggered"
+            ]
+          },
+          "then": {
+            "required": [
+              "triggerReason",
+              "learningValue",
+              "studentAction",
+              "expectedEvidence"
+            ]
+          }
+        }
+      ],
+      "description": "Conditional learning feature. When triggered=false, no learning-value fields are required. When triggered=true, triggerReason, learningValue, studentAction and expectedEvidence are required. observerEvidence is optional at feature level; CIS badge evidence is managed separately in cisEvidenceMap."
+    },
+    "ConditionalFeatureSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "globalIntercultural",
+        "digitalCitizenship",
+        "technologyEnhancedMathematics",
+        "realWorldExperiential",
+        "groupWork",
+        "peerAssessment",
+        "flippedLearning",
+        "intensiveLanguageSupport"
+      ],
+      "properties": {
+        "globalIntercultural": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "digitalCitizenship": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "technologyEnhancedMathematics": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "realWorldExperiential": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "groupWork": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "peerAssessment": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "flippedLearning": {
+          "$ref": "#/$defs/ConditionalFeature"
+        },
+        "intensiveLanguageSupport": {
+          "$ref": "#/$defs/ConditionalFeature"
+        }
+      }
+    },
+    "CISEvidenceEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pillar",
+        "activityRef",
+        "studentBehavior",
+        "observerEvidence",
+        "badgeEligible"
+      ],
+      "properties": {
+        "pillar": {
+          "enum": [
+            "differentiation",
+            "global_intercultural",
+            "digital_citizenship",
+            "assessment_for_learning"
+          ]
+        },
+        "activityRef": {
+          "type": "string"
+        },
+        "studentBehavior": {
+          "type": "string"
+        },
+        "observerEvidence": {
+          "type": "string"
+        },
+        "derivedFromConditionalFeature": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "badgeEligible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ReflectionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mappedSuccessCriteria",
+        "studentReflection",
+        "nextStep"
+      ],
+      "properties": {
+        "mappedSuccessCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "studentReflection": {
+          "type": "string"
+        },
+        "nextStep": {
+          "type": "string"
+        }
+      }
+    },
+    "ClosingContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "presenterClassSummary": {
+          "type": "string"
+        },
+        "studentPersonalFeedback": {
+          "type": "string"
+        },
+        "coachPrivateAnalytics": {
+          "type": "string"
+        }
+      }
+    },
+    "RuntimePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authoritativeState",
+        "followPresenterDefault",
+        "reconnect"
+      ],
+      "properties": {
+        "authoritativeState": {
+          "const": "server"
+        },
+        "followPresenterDefault": {
+          "const": true
+        },
+        "expectedVisibleSyncMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "activityChangeForceRender": {
+          "type": "boolean"
+        },
+        "sameActivityPreserveFocusedDraft": {
+          "type": "boolean"
+        },
+        "reconnect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "restoreIdentity",
+            "restoreRoom",
+            "restoreActivity",
+            "restoreDraft"
+          ],
+          "properties": {
+            "restoreIdentity": {
+              "type": "boolean"
+            },
+            "restoreRoom": {
+              "type": "boolean"
+            },
+            "restoreActivity": {
+              "type": "boolean"
+            },
+            "restoreDraft": {
+              "type": "boolean"
+            },
+            "restoreHint": {
+              "type": "boolean"
+            },
+            "restoreVisualToolState": {
+              "type": "boolean"
+            }
+          }
+        },
+        "polling": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "visibleIntervalMs": {
+              "type": "integer",
+              "minimum": 100
+            },
+            "hiddenIntervalMs": {
+              "type": "integer",
+              "minimum": 100
+            },
+            "sequentialOnly": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "QAContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiredViewports",
+        "threeWayScenarioRequired",
+        "browserQARequired"
+      ],
+      "properties": {
+        "requiredViewports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "threeWayScenarioRequired": {
+          "const": true
+        },
+        "browserQARequired": {
+          "const": true
+        },
+        "privacyQARequired": {
+          "type": "boolean"
+        },
+        "reconnectQARequired": {
+          "type": "boolean"
+        },
+        "orientationQARequired": {
+          "type": "boolean"
+        },
+        "mobileKeyboardQARequired": {
+          "type": "boolean"
+        },
+        "visualRegressionRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "QualityAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "standardVersion",
+        "validatorVersion",
+        "passedRules",
+        "failedRules",
+        "warnings",
+        "teacherConfirmationsRequired"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "BLOCKED",
+            "NEEDS_TEACHER_CONFIRMATION",
+            "READY_WITH_WARNINGS",
+            "READY"
+          ]
+        },
+        "standardVersion": {
+          "const": "1.1.0"
+        },
+        "validatorVersion": {
+          "const": "1.1.0"
+        },
+        "passedRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failedRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "teacherConfirmationsRequired": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "reason",
+              "materialForReadyToTeach",
+              "resolved"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "materialForReadyToTeach": {
+                "type": "boolean"
+              },
+              "resolved": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "evidenceMap": {
+          "type": "object"
+        },
+        "remediation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GeneratedArtifactIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "choreography": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "teacherRunbook": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtimePackage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "questionBank": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "assetManifest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "qaReport": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "BuildStatus": {
+      "enum": [
+        "UPLOADED",
+        "EXTRACTED",
+        "ANALYZED",
+        "SOURCE_REVIEW_REQUIRED",
+        "SOURCE_FROZEN",
+        "PLAN_DRAFT",
+        "PLAN_VALIDATED",
+        "PLAN_FROZEN",
+        "QUALITY_AUDIT",
+        "QUALITY_REVIEW_REQUIRED",
+        "QUALITY_FROZEN",
+        "DESIGN_DRAFT",
+        "DESIGN_VALIDATED",
+        "DESIGN_FROZEN",
+        "COMPILE_READY",
+        "COMPILED",
+        "QA_RUNNING",
+        "QA_FAILED",
+        "READY_FOR_PREVIEW",
+        "TEACHER_APPROVED",
+        "READY_TO_TEACH",
+        "PUBLISHED"
+      ]
+    }
+  }
+};
