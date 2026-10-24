@@ -14,10 +14,10 @@ const paragraph = (value: string): string => `<p>${escapeHtml(value)}</p>`;
 
 const safeId = (value: string): string => escapeAttribute(value.replace(/[^a-zA-Z0-9_-]/g, '-'));
 
-const renderOptions = (name: string, options: string[], correctIndex?: number, includeCorrectMarker = true): string => options
+const renderOptions = (name: string, options: string[]): string => options
   .map((option, index) => `
     <label class="option-lbl">
-      <input type="radio" name="${escapeAttribute(name)}" value="${index}" ${includeCorrectMarker && correctIndex === index ? 'data-correct-option="true"' : ''}>
+      <input type="radio" name="${escapeAttribute(name)}" value="${index}">
       ${escapeHtml(option)}
     </label>`)
   .join('');
@@ -75,11 +75,10 @@ const renderPretest = (content: DeweyLessonContent): string => `
   <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
   <div class="activity-box">${paragraph(content.pretest.reviewSummary)}</div>
   ${content.pretest.questions.map((question, index) => `
-  <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}" data-explanation="${escapeAttribute(question.explanation)}">
+  <article class="question-card" data-pretest-question data-qid="${safeId(question.id)}">
     <p><span class="step-pill">${index + 1}</span> ${escapeHtml(question.prompt)}</p>
-    ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex, false)}
+    ${renderOptions(`pretest-${question.id}`, question.options)}
     <div class="feedback-msg hidden"></div>
-    <div class="pretest-explanation theory-box hidden">${escapeHtml(question.explanation)}</div>
   </article>`).join('\n')}
   <button class="btn-primary-navy" data-pretest-submit type="button" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
 </section>`;
@@ -160,7 +159,7 @@ const renderImageUploadBlock = (stepId: string, step: DeweyKnowledgeUnit['socrat
         <img style="max-height:260px;width:100%;object-fit:contain;" alt="Ảnh bài làm">
       </div>
       <p class="image-name hidden" style="margin-top:6px;font-size:12px;font-weight:700;color:#64748b;"></p>
-      <button class="btn grade-image-btn hidden" type="button" style="margin-top:8px;background:#7c3aed;color:white;" onclick="requestImageGrade('${safeId(stepId)}')" data-grade-problem="${escapeAttribute(step.prompt)}" data-grade-solution="${escapeAttribute(step.feedback)}" data-grade-rubric="${escapeAttribute(step.aiRubric || '')}">✨ Nhờ AI chấm ảnh tham khảo</button>
+      <button class="btn grade-image-btn hidden" type="button" style="margin-top:8px;background:#7c3aed;color:white;" onclick="requestImageGrade('${safeId(stepId)}')">✨ Nhờ AI chấm ảnh tham khảo</button>
       <div class="ai-grade-feedback hidden"></div>
       <div class="ai-grade-error hidden"></div>
     </div>`;
@@ -209,15 +208,9 @@ const renderKnowledgeUnit = (unit: DeweyKnowledgeUnit, index: number, nextScreen
   </div>
 </section>`;
 
-const correctValueFor = (question: DeweyAdaptiveQuestion): string => {
-  if (question.type === 'multiple_choice') return String(question.correctIndex ?? '');
-  if (question.type === 'short_answer') return String(question.correctNumeric ?? '');
-  return '';
-};
-
 const renderQuestionInput = (question: DeweyAdaptiveQuestion, name: string): string => {
   if (question.type === 'multiple_choice') {
-    return renderOptions(name, question.options || [], question.correctIndex);
+    return renderOptions(name, question.options || []);
   }
   if (question.type === 'true_false_group') {
     return `
@@ -225,7 +218,7 @@ const renderQuestionInput = (question: DeweyAdaptiveQuestion, name: string): str
       <thead><tr><th>Mệnh đề</th><th>Đúng</th><th>Sai</th><th>Đáp án</th></tr></thead>
       <tbody>
         ${(question.statements || []).map((statement, index) => `
-        <tr data-statement-correct="${statement.correct ? 'true' : 'false'}">
+        <tr>
           <td>${escapeHtml(statement.text)}${statement.hint ? `<div class="tf-hint-wrap"><button type="button" class="tf-hint-btn" onclick="toggleStatementHint(this)">💡 Gợi ý</button><div class="tf-hint hidden">${escapeHtml(statement.hint)}</div></div>` : ''}</td>
           <td><input type="radio" name="${escapeAttribute(`${name}-tf-${index}`)}" value="true"></td>
           <td><input type="radio" name="${escapeAttribute(`${name}-tf-${index}`)}" value="false"></td>
@@ -249,8 +242,8 @@ const renderEssayCard = (question: DeweyAdaptiveQuestion, index: number, pack: D
       <button class="btn secondary" type="button" onclick="revealEssayHints(this)">💡 Hiện gợi ý từng ý</button>
       <button class="btn secondary essay-answer-btn hidden" type="button" onclick="revealEssayAnswers(this)">Hiện đáp án chi tiết</button>
     </div>
-    <div class="essay-hints hidden">${parts.map((p, i) => `<div class="box"><strong>Gợi ý ý ${i + 1}:</strong> <span class="bonus-text">${escapeHtml(p.hint)}</span></div>`).join('')}</div>
-    <div class="essay-answers hidden">${parts.map((p, i) => `<div class="box"><strong>Đáp án ý ${i + 1}:</strong> <span class="bonus-text">${escapeHtml(p.answer)}</span></div>`).join('')}</div>
+    <div class="essay-hints hidden"></div>
+    <div class="essay-answers hidden"></div>
     <div class="essay-selfscore hidden box">
       <p><strong>Em tự chấm bài (tối đa ${question.points} điểm):</strong></p>
       <button class="btn" type="button" onclick="selfScoreEssay(this, 0)">Chưa đạt (0đ)</button>
@@ -265,7 +258,7 @@ const renderEssayCard = (question: DeweyAdaptiveQuestion, index: number, pack: D
 const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, pack: DeweyOlympiaPack): string => {
   if (question.type === 'essay') return renderEssayCard(question, index, pack);
   return `
-  <article class="question-card${index === 0 ? '' : ' hidden'}" data-question-card data-qid="${safeId(question.id)}" data-type="${question.type satisfies DeweyQuestionType}" data-correct="${escapeAttribute(correctValueFor(question))}" data-tolerance="${question.tolerance ?? 0}" data-points="${question.points}">
+  <article class="question-card${index === 0 ? '' : ' hidden'}" data-question-card data-qid="${safeId(question.id)}" data-type="${question.type satisfies DeweyQuestionType}" data-points="${question.points}">
     <h3><span class="step-badge">${index + 1}</span>${escapeHtml(pack.packLabel)} - ${escapeHtml(question.prompt)}</h3>
     ${question.illustrationHtml ? `<div class="question-figure">${question.illustrationHtml}</div>` : ''}
     ${question.context ? `<div class="box">${escapeHtml(question.context)}</div>` : ''}
@@ -276,7 +269,7 @@ const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, 
     <div class="hint1-box hidden">${escapeHtml(question.hint1)}</div>
     <div class="hint2-box hidden">${escapeHtml(question.hint2)}</div>
     <div class="hint3-box hidden">${escapeHtml(question.hint3)}</div>
-    <div class="solution-box hidden">${escapeHtml(question.solution)}</div>
+    <div class="solution-box hidden"></div>
     <button class="btn secondary adaptive-next-btn hidden" type="button" onclick="nextQuestion(this)">Câu tiếp theo</button>
   </article>`;
 };

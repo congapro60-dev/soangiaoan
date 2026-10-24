@@ -1,4 +1,88 @@
-export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string): string {
+import type { DeweyLessonContent, DeweyOlympiaPack, DeweyQuestionType } from './types';
+
+/**
+ * P0 (b) — chống lộ đáp án: toàn bộ đáp án/lời giải KHÔNG còn nằm trong DOM
+ * (attr data-correct*, div ẩn) mà nằm trong map này, được nhúng vào closure
+ * của engine script (biến ANSWER_KEY bên trong IIFE — không quét DOM được).
+ * Tradeoff đã trình thầy: ai mở tab Sources vẫn đọc được script ⇒ không chặn
+ * học sinh giỏi công nghệ tuyệt đối, chỉ chặn quét tầm thường qua F12 Elements.
+ */
+export interface DeweyAnswerKeyQuestion {
+  type: DeweyQuestionType;
+  correct: string;
+  tolerance?: number;
+  statements?: boolean[];
+  solution: string;
+  essayHints?: string[];
+  essayAnswers?: string[];
+}
+
+export interface DeweyAnswerKey {
+  pretest: Record<string, { correctIndex: number; explanation: string }>;
+  questions: Record<string, DeweyAnswerKeyQuestion>;
+  grade: Record<string, { problem: string; solution: string; rubric?: string }>;
+}
+
+const safeQuestionKey = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, '-');
+
+/** Gom đáp án từ content thành map key theo data-qid trong DOM. */
+export const buildDeweyAnswerKey = (content?: DeweyLessonContent): DeweyAnswerKey => {
+  const key: DeweyAnswerKey = { pretest: {}, questions: {}, grade: {} };
+  if (!content) return key;
+  (content.pretest?.questions || []).forEach(question => {
+    key.pretest[safeQuestionKey(question.id)] = {
+      correctIndex: question.correctIndex,
+      explanation: question.explanation,
+    };
+  });
+  (content.knowledgeUnits || []).forEach(unit => {
+    unit.socraticSteps.forEach(step => {
+      key.grade[safeQuestionKey(`${unit.id}-step-${step.id}`)] = {
+        problem: step.prompt,
+        solution: step.feedback,
+        rubric: step.aiRubric || '',
+      };
+    });
+  });
+  ((content.olympia?.packs || []) as DeweyOlympiaPack[]).forEach(pack => {
+    pack.questions.forEach(question => {
+      const isEssay = question.type === 'essay';
+      key.questions[safeQuestionKey(question.id)] = {
+        type: question.type,
+        correct: question.type === 'multiple_choice'
+          ? String(question.correctIndex ?? '')
+          : question.type === 'short_answer'
+            ? String(question.correctNumeric ?? '')
+            : '',
+        ...(question.type === 'short_answer' && question.tolerance ? { tolerance: question.tolerance } : {}),
+        ...(question.type === 'true_false_group'
+          ? { statements: (question.statements || []).map(statement => Boolean(statement.correct)) }
+          : {}),
+        solution: question.solution || '',
+        ...(isEssay
+          ? {
+            essayHints: (question.essayParts || []).map(part => part.hint || ''),
+            essayAnswers: (question.essayParts || []).map(part => part.answer || ''),
+          }
+          : {}),
+      };
+    });
+  });
+  return key;
+};
+
+// Map nhúng vào script phải không break <script> khi content chứa "</script>".
+const jsSafeJson = (value: unknown): string => JSON.stringify(value)
+  .replace(/</g, '\\u003c')
+  .replace(/>/g, '\\u003e')
+  .replace(/\u2028/g, '\\u2028')
+  .replace(/\u2029/g, '\\u2029');
+
+export function getAdaptiveEngineScript(
+  lessonId?: string,
+  studentCode?: string,
+  content?: DeweyLessonContent,
+): string {
   // F3 (QA đợt 9): key vở ghi PHẢI gắn mã học sinh — máy phòng tin học dùng chung,
   // key theo máy làm học sinh thấy/ghi đè vở của nhau + note cũ "ma" che mất fix mới.
   // Bump v2→v3 đồng thời là version bump: note format cũ không rò lên UI nữa.
@@ -7,9 +91,16 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     .toUpperCase()
     .replace(/[^A-Z0-9_-]/g, '-') || 'chung';
   const notebookKey = `dewey-notebook-v3-${lessonId || 'na'}-${studentSuffix}`;
+  // P0 (f) — checkpoint làm lại khi reload giữa chừng: cùng kênh localStorage theo mã HS.
+  const checkpointKey = `dewey-ckpt-v1-${lessonId || 'na'}-${studentSuffix}`;
   return String.raw`
 (function () {
   'use strict';
+
+  var ANSWER_KEY = ${jsSafeJson(buildDeweyAnswerKey(content))};
+  var K_PRE = ANSWER_KEY.pretest || {};
+  var K_Q = ANSWER_KEY.questions || {};
+  var K_GRADE = ANSWER_KEY.grade || {};
 
   var state = {
     score: 0,
@@ -17,6 +108,8 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     currentQuestionIndex: 0,
     wrongCounts: {},
     completedPacks: {},
+    answered: {},
+    pretestDone: false,
     totalSeconds: Number(document.body.dataset.durationMinutes || '40') * 60,
     activeScreenId: document.body.dataset.initialScreen || 'screen-pretest',
     startTime: Date.now(),
@@ -37,6 +130,79 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
 
   function hide(el) {
     if (el) el.classList.add('hidden');
+  }
+
+  // ── P0 (f) checkpoint: lưu/phục hồi tiến trình giữa chừng ─────────────────
+  function saveCheckpoint() {
+    try {
+      window.localStorage.setItem('${checkpointKey}', JSON.stringify({
+        score: state.score,
+        totalSeconds: state.totalSeconds,
+        activeScreenId: state.activeScreenId,
+        pretestDone: state.pretestDone,
+        completedUnitIds: state.completedUnitIds,
+        completedPacks: state.completedPacks,
+        wrongCounts: state.wrongCounts,
+        answered: state.answered
+      }));
+    } catch (_error) {}
+  }
+
+  function restoreCheckpoint() {
+    var saved = null;
+    try { saved = JSON.parse(window.localStorage.getItem('${checkpointKey}') || 'null'); } catch (_error) {}
+    if (!saved || typeof saved !== 'object') return;
+    if (typeof saved.score === 'number') state.score = saved.score;
+    if (typeof saved.totalSeconds === 'number' && saved.totalSeconds > 0) state.totalSeconds = saved.totalSeconds;
+    if (typeof saved.activeScreenId === 'string' && saved.activeScreenId) state.activeScreenId = saved.activeScreenId;
+    if (Array.isArray(saved.completedUnitIds)) state.completedUnitIds = saved.completedUnitIds;
+    ['completedPacks', 'wrongCounts', 'answered'].forEach(function (field) {
+      if (saved[field] && typeof saved[field] === 'object') state[field] = saved[field];
+    });
+    state.pretestDone = Boolean(saved.pretestDone);
+
+    var scoreEl = byId('score-value');
+    if (scoreEl) scoreEl.textContent = String(state.score);
+
+    if (state.pretestDone) {
+      all('[data-pretest-question]').forEach(function (card) { card.classList.add('hidden'); });
+      hide(document.querySelector('[data-pretest-submit]'));
+      var resultScreen = byId('screen-pretest-result');
+      if (resultScreen) resultScreen.classList.remove('hidden');
+    }
+
+    // Câu đã chấm điểm: ẩn card, mở sẵn lời giải + nút next → học sinh chạy tiếp, không chấm lại cộng điểm lần 2.
+    all('[data-question-card]').forEach(function (card) {
+      if (!(card.dataset.qid in state.answered)) return;
+      var pack = card.closest('[data-olympia-pack]');
+      if (pack && state.completedPacks[pack.dataset.packIndex || ''] === true) return;
+      revealSolution(card);
+      show(card.querySelector('.adaptive-next-btn'));
+      hide(card);
+    });
+
+    // Gói làm đủ câu → tính hoàn thành luôn (kể cả chưa kịp bấm "Câu tiếp theo" cuối).
+    all('[data-olympia-pack]').forEach(function (pack) {
+      var cards = all('[data-question-card]', pack);
+      var packIndex = pack.dataset.packIndex || '';
+      if (cards.length > 0 && cards.every(function (item) { return item.dataset.qid in state.answered; })) {
+        state.completedPacks[packIndex] = true;
+        show(pack.querySelector('.pack-complete-msg'));
+      }
+    });
+    if (state.completedPacks[0] && state.completedPacks[1] && state.completedPacks[2]) {
+      unlockScreen('screen-extend');
+      show(byId('olympia-finish-btn'));
+    }
+
+    // Mảnh kiến thức đã hoàn thành → mở nút "Sang hoạt động tiếp theo" + panel kết luận.
+    state.completedUnitIds.forEach(function (unitId) {
+      var unitScreen = byId('screen-' + unitId);
+      var panel = unitScreen ? unitScreen.querySelector('[data-unit-completion]') : null;
+      if (panel) show(panel);
+      var nextId = unitScreen ? unitScreen.dataset.nextScreen : '';
+      if (nextId) unlockScreen(nextId);
+    });
   }
 
   function updateMath(root) {
@@ -128,6 +294,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     all('.toc-item').forEach(function (item) {
       item.classList.toggle('active', item.dataset.target === id);
     });
+    saveCheckpoint();
   }
 
   function setupTocObserver() {
@@ -211,7 +378,9 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     if (feedbackList) feedbackList.innerHTML = '';
 
     cards.forEach(function (card, index) {
-      var correct = Number(card.dataset.correctIndex || '-1');
+      // P0 (b): đáp án + giải thích nằm trong ANSWER_KEY (closure), không còn trên dataset.
+      var key = K_PRE[card.dataset.qid || ''] || {};
+      var correct = typeof key.correctIndex === 'number' ? key.correctIndex : -1;
       var checked = card.querySelector('input[type="radio"]:checked');
       var isCorrect = Boolean(checked && Number(checked.value) === correct);
       if (isCorrect) score += 1;
@@ -219,13 +388,14 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
       if (feedbackList) {
         var item = document.createElement('div');
         item.className = 'feedback-card ' + (isCorrect ? 'correct' : 'wrong');
-        item.innerHTML = '<strong>Câu ' + (index + 1) + ' - ' + (isCorrect ? 'Đúng' : 'Sai') + '</strong><br>' + (card.dataset.explanation || 'Xem lại kiến thức ôn tập trước khi vào bài mới.');
+        item.innerHTML = '<strong>Câu ' + (index + 1) + ' - ' + (isCorrect ? 'Đúng' : 'Sai') + '</strong><br>' + (key.explanation || 'Xem lại kiến thức ôn tập trước khi vào bài mới.');
         feedbackList.appendChild(item);
       }
 
       hide(card);
     });
 
+    state.pretestDone = true;
     var submitBtn = document.querySelector('[data-pretest-submit]');
     hide(submitBtn);
 
@@ -242,6 +412,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     updateMath(byId('screen-pretest-result'));
+    saveCheckpoint();
   };
 
   window.goToEngage = function goToEngage() {
@@ -296,6 +467,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     show(panel);
     if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     updateMath(panel || screen);
+    saveCheckpoint();
   };
 
   window.goNextActivity = function goNextActivity(button) {
@@ -332,25 +504,44 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     updateMath(pack);
   }
 
+  function keyFor(card) {
+    return K_Q[card.dataset.qid || ''] || {};
+  }
+
+  function tfRows(card) {
+    return all('.tf-table tbody tr', card);
+  }
+
+  // P0 (b): lời giải chỉ được điền vào DOM TẠI THỜI ĐIỂM mở cho học sinh.
+  function revealSolution(card) {
+    var box = card.querySelector('.solution-box');
+    if (!box) return;
+    var key = keyFor(card);
+    if (key.solution) box.textContent = key.solution;
+    show(box);
+  }
+
   function isAdaptiveCorrect(card) {
+    var key = keyFor(card);
     var type = card.dataset.type;
     if (type === 'multiple_choice') {
       var checked = card.querySelector('input[type="radio"]:checked');
-      return Boolean(checked && checked.value === card.dataset.correct);
+      return Boolean(checked && key.correct !== undefined && checked.value === String(key.correct));
     }
     if (type === 'true_false_group') {
-      var statements = all('[data-statement-correct]', card);
-      return statements.length > 0 && statements.every(function (row) {
+      var statements = key.statements || [];
+      var rows = tfRows(card);
+      return rows.length > 0 && rows.every(function (row, index) {
         var chosen = row.querySelector('input[type="radio"]:checked');
-        return Boolean(chosen && chosen.value === row.dataset.statementCorrect);
+        return Boolean(chosen && chosen.value === String(Boolean(statements[index])));
       });
     }
     if (type === 'short_answer') {
       var input = card.querySelector('input[type="number"], input[type="text"]');
-      var expected = Number(card.dataset.correct);
-      var tolerance = Number(card.dataset.tolerance || '0');
+      var expected = Number(key.correct);
+      var tolerance = Number(key.tolerance || '0');
       var actual = Number(input ? input.value.replace(',', '.') : NaN);
-      return Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance;
+      return Number.isFinite(actual) && Number.isFinite(expected) && Math.abs(actual - expected) <= tolerance;
     }
     return false;
   }
@@ -362,12 +553,14 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
   }
 
   function submitTrueFalse(card, button) {
-    var rows = all('[data-statement-correct]', card);
+    var key = keyFor(card);
+    var statements = key.statements || [];
+    var rows = tfRows(card);
     if (!rows.length) return;
     var correct = 0;
-    rows.forEach(function (row) {
+    rows.forEach(function (row, index) {
+      var right = String(Boolean(statements[index]));
       var chosen = row.querySelector('input[type="radio"]:checked');
-      var right = row.dataset.statementCorrect;
       var isRight = Boolean(chosen && chosen.value === right);
       if (isRight) correct += 1;
       row.classList.remove('tf-right', 'tf-wrong');
@@ -378,19 +571,24 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     });
     var total = rows.length;
     var points = tfPartialScore(correct, total, Number(card.dataset.points || '10'));
-    state.score += points;
+    var qid = card.dataset.qid || '';
+    if (!(qid in state.answered)) {
+      state.answered[qid] = points;
+      state.score += points;
+    }
     var score = byId('score-value');
     if (score) score.textContent = String(state.score);
     var feedback = card.querySelector('.feedback-msg');
     if (feedback) {
       feedback.className = 'feedback-msg feedback-correct';
-      feedback.textContent = 'Em đúng ' + correct + '/' + total + ' ý → nhận ' + points + ' điểm. Đọc giải thích bên dưới rồi sang câu tiếp theo.';
+      feedback.textContent = 'Em đúng ' + correct + '/' + total + ' ý → nhận ' + state.answered[qid] + ' điểm. Đọc giải thích bên dưới rồi sang câu tiếp theo.';
       show(feedback);
     }
-    show(card.querySelector('.solution-box'));
+    revealSolution(card);
     if (button) hide(button);
     show(card.querySelector('.adaptive-next-btn'));
     updateMath(card);
+    saveCheckpoint();
   }
 
   window.toggleStatementHint = function toggleStatementHint(button) {
@@ -402,7 +600,17 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
   window.revealEssayHints = function revealEssayHints(button) {
     var card = button.closest('[data-question-card]');
     if (!card) return;
-    show(card.querySelector('.essay-hints'));
+    var key = keyFor(card);
+    var box = card.querySelector('.essay-hints');
+    if (box && !box.dataset.filled) {
+      var hints = key.essayHints || [];
+      box.innerHTML = hints.map(function (_hint, index) {
+        return '<div class="box"><strong>Gợi ý ý ' + (index + 1) + ':</strong> <span class="bonus-text"></span></div>';
+      }).join('');
+      all('.bonus-text', box).forEach(function (el, index) { el.textContent = hints[index]; });
+      box.dataset.filled = '1';
+    }
+    show(box);
     show(card.querySelector('.essay-answer-btn'));
     if (button) hide(button);
     updateMath(card);
@@ -411,7 +619,17 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
   window.revealEssayAnswers = function revealEssayAnswers(button) {
     var card = button.closest('[data-question-card]');
     if (!card) return;
-    show(card.querySelector('.essay-answers'));
+    var key = keyFor(card);
+    var box = card.querySelector('.essay-answers');
+    if (box && !box.dataset.filled) {
+      var answers = key.essayAnswers || [];
+      box.innerHTML = answers.map(function (_answer, index) {
+        return '<div class="box"><strong>Đáp án ý ' + (index + 1) + ':</strong> <span class="bonus-text"></span></div>';
+      }).join('');
+      all('.bonus-text', box).forEach(function (el, index) { el.textContent = answers[index]; });
+      box.dataset.filled = '1';
+    }
+    show(box);
     show(card.querySelector('.essay-selfscore'));
     if (button) hide(button);
     updateMath(card);
@@ -420,7 +638,12 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
   window.selfScoreEssay = function selfScoreEssay(button, points) {
     var card = button.closest('[data-question-card]');
     if (!card) return;
-    state.score += Number(points) || 0;
+    var granted = Number(points) || 0;
+    var qid = card.dataset.qid || '';
+    if (!(qid in state.answered)) {
+      state.answered[qid] = granted;
+      state.score += granted;
+    }
     var score = byId('score-value');
     if (score) score.textContent = String(state.score);
     var sel = card.querySelector('.essay-selfscore');
@@ -432,6 +655,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
       show(feedback);
     }
     show(card.querySelector('.adaptive-next-btn'));
+    saveCheckpoint();
   };
 
   window.submitAdaptiveAnswer = function submitAdaptiveAnswer(button) {
@@ -443,17 +667,21 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     var correct = isAdaptiveCorrect(card);
     if (correct) {
       var points = Number(card.dataset.points || '0');
-      state.score += points;
+      if (!(qid in state.answered)) {
+        state.answered[qid] = points;
+        state.score += points;
+      }
       var score = byId('score-value');
       if (score) score.textContent = String(state.score);
       if (feedback) {
         feedback.className = 'feedback-msg feedback-correct';
-        feedback.textContent = 'Chính xác! Em nhận ' + points + ' điểm. Đọc lời giải chi tiết bên dưới rồi sang câu tiếp theo.';
+        feedback.textContent = 'Chính xác! Em nhận ' + (state.answered[qid] || 0) + ' điểm. Đọc lời giải chi tiết bên dưới rồi sang câu tiếp theo.';
         show(feedback);
       }
       // Đúng ở bất kỳ lần nào → vẫn hiện LỜI GIẢI CHI TIẾT cho học sinh đọc trước khi sang câu tiếp.
-      show(card.querySelector('.solution-box'));
+      revealSolution(card);
       show(card.querySelector('.adaptive-next-btn'));
+      saveCheckpoint();
       return;
     }
 
@@ -467,10 +695,12 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
       show(feedback);
     }
     if (wrong >= 4) {
-      show(card.querySelector('.solution-box'));
+      state.answered[qid] = 0;
+      revealSolution(card);
       show(card.querySelector('.adaptive-next-btn'));
     }
     updateMath(card);
+    saveCheckpoint();
   };
 
   window.nextQuestion = function nextQuestion(button) {
@@ -496,6 +726,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
       show(finish);
       window.addNote('Đã hoàn thành 3 gói luyện tập. Tổng điểm: ' + state.score + ' điểm.', 'luyentap');
     }
+    saveCheckpoint();
   };
 
   window.checkExtend = function checkExtend() {
@@ -508,6 +739,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     unlockScreen('screen-summary');
     show(byId('extend-next-btn'));
     window.addNote('Đã hoàn thành phần Vận dụng — liên hệ kiến thức vào tình huống thực tế.', 'vandung');
+    saveCheckpoint();
   };
 
   // ── Image upload + AI grading bridge (ISSUE-01) ──────────────────────────
@@ -559,6 +791,8 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     hide(block.querySelector('.ai-grade-feedback'));
     var gradeBtn = block.querySelector('.grade-image-btn');
     if (gradeBtn) { gradeBtn.disabled = true; gradeBtn.textContent = '⏳ AI đang chấm ảnh...'; }
+    // P0 (b): đề bài/lời giải chuẩn lấy từ ANSWER_KEY (closure), không còn trên data-grade-* của nút.
+    var gradeKey = K_GRADE[stepId] || {};
     var reader = new FileReader();
     reader.onload = function () {
       var dataUrl = reader.result;
@@ -574,9 +808,9 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
             stepId: stepId,
             imageBase64: base64,
             imageMimeType: file.type,
-            problem: gradeBtn ? (gradeBtn.dataset.gradeProblem || '') : '',
-            solution: gradeBtn ? (gradeBtn.dataset.gradeSolution || '') : '',
-            aiRubric: gradeBtn ? (gradeBtn.dataset.gradeRubric || '') : ''
+            problem: gradeKey.problem || '',
+            solution: gradeKey.solution || '',
+            aiRubric: gradeKey.rubric || ''
           }
         }, '*');
       }
@@ -621,6 +855,8 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
         }
       }, '*');
     }
+    // Bài học đã hoàn tất → xóa checkpoint (mở lại portal sẽ là phiên mới).
+    try { window.localStorage.removeItem('${checkpointKey}'); } catch (_error) {}
     window.navTo('screen-summary');
   };
 
@@ -649,6 +885,7 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
   }, { passive: false });
 
   document.addEventListener('DOMContentLoaded', function () {
+    restoreCheckpoint();
     restoreNotebook();
     var initial = byId(state.activeScreenId) || document.querySelector('.screen.active') || document.querySelector('.screen');
     if (initial) {

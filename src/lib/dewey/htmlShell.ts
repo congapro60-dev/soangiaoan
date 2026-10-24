@@ -19,13 +19,6 @@ export const escapeHtml = (value: string): string => value
 
 export const escapeAttribute = (value: string): string => escapeHtml(value).replace(/`/g, '&#96;');
 
-export const escapeJsonForHtml = (value: unknown): string => JSON.stringify(value)
-  .replace(/</g, '\\u003c')
-  .replace(/>/g, '\\u003e')
-  .replace(/&/g, '\\u0026')
-  .replace(/\u2028/g, '\\u2028')
-  .replace(/\u2029/g, '\\u2029');
-
 const BASE_CSS = String.raw`
   * { box-sizing: border-box; }
   /* F6: KHÔNG dùng scroll-behavior:smooth ở html — nghi phạm làm wheel scroll chết/ì trong iframe;
@@ -445,9 +438,8 @@ ${BASE_CSS}
   </style>
 </head>
 <body data-duration-minutes="${content.durationMinutes}" data-initial-screen="${content.skipPretest ? 'screen-engage' : 'screen-pretest'}">
-  <script id="dewey-content" type="application/json">${escapeJsonForHtml(content)}</script>
 ${bodyHtml}
-  <script>${getAdaptiveEngineScript(content.lessonId, studentCode)}</script>
+  <script>${getAdaptiveEngineScript(content.lessonId, studentCode, content)}</script>
 </body>
 </html>`;
 }

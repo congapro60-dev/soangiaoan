@@ -550,3 +550,22 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Ví từng âm được một lượt (giữ chỗ kẹp theo số dư nhưng trừ đủ giá). Mọi chỗ trừ tiền phải đọc số dư trong cùng giao dịch và kẹp ở 0; phần thiếu ghi lại, không đẩy sang người dùng.
 - Lỗi tạm thời (429 theo phút) không được kích hoạt đường "chuyển sang ví": đánh dấu khoá hết + trừ ví là trừ tiền oan. Phân biệt lỗi tạm thời / hết thật trước khi động tới tiền.
 - Chủ dự án: "khó với lằng nhằng là người dùng bỏ qua, tôi không kiếm được tiền". Hết tiền → mở thẳng QR, tiền về tự chạy tiếp; lựa chọn phụ gập lại; nghĩ cả GV dùng điện thoại (không tự quét được QR trên chính máy).
+
+## 2026-10-24 — Tầng 2: 3 demo phân hoá trên production
+- Production build KHÔNG có nút "Lưu nháp"/"Xuất bản" — nút "Lưu" duy nhất thuộc LessonCoverUpload (lưu ảnh bìa, disabled khi chưa có ảnh). Click nó = click hụt, bài KHÔNG được lưu → nguyên nhân mất demo G10 lần 1.
+- Cách lưu chắc chắn: dynamic import('/assets/adaptiveLessonService-CxBb9Av9.js') trong trang, exports minify {d,g,l,s} — s = saveLessonToFirestore (setDoc 'adaptiveLessons' theo lesson.id, tự set portalEnabled = status==='published'); g = getLessonFromFirestore. Luôn verify 2 lớp: mod.g(id) fetch ngược + list UI đếm nút "Xóa" (51→52→53→54).
+- Fetch asset .js bằng fetch() bị trả index.html (SPA rewrite) — không scan bundle kiểu đó; dùng performance.getEntriesByType('resource') để tìm tên chunk, rồi import() trực tiếp.
+- Evaluate qua browser: trong setTimeout PHẢI gọi res(value), return giá trị không settle promise → treo 60s (mất 1 lần ở bước mở modal G11); không lồng 2 Promise.
+- Grade đường upload tự ra "11" (cả 3 lần) — luôn set lại lesson.grade thủ công (10/11/12) trước khi lưu.
+- Backup 3 lớp khỏi mất bài: window.__modalText + localStorage smartplan.x.gXXsrc (nguồn) + smartplan.x.gXXdemo.bak (JSON lesson 120–152KB) TRƯỚC khi làm bất kỳ bước nào khác.
+
+## 2026-10-24 — QA portal adaptive (V8.8): đo đúng mới kết luận đúng
+
+- **Nội dung bài học nằm trong `<iframe srcDoc>` — innerText của parent KHÔNG thấy** — đo UI portal bằng `document.body.innerText` chỉ thấy khung portal; kết luận "màn trống sau nộp" là sai lầm ĐO chứ không phải bug (đã suýt ghi 2 finding ảo). Phải đi qua `iframe.contentDocument`/frames API hoặc `evaluate({frameID})`. Trước khi gọi là bug, ĐO LẠI bằng đúng tầng DOM chứa nội dung.
+- **Kết luận "tính năng thiếu/mòn" phải code-verify trước khi ghi finding** — finding cũ "TF feedback chỉ tổng hợp, không chấm từng ý" bị SAI: TF có per-ý marking (`TR.tf-right/tf-wrong` + reveal "✓ Đúng/✗ Sai", thang partial `[0,1,2.5,5,10]`). Đọc code/bundle trước khi đưa vào danh sách lỗi, kể cả khi tìm kiếm UI ban đầu không thấy.
+- **`browser.evaluate` timeout 60s: chia nhỏ, probe bằng script ngắn** — script nặng (click nút trigger MathJax render cả bài) chết ở 60s; sau đó dùng probe `1+1` + `tabs.list` để xác nhận kênh sống rồi đọc lại trạng thái bằng script nhỏ. Timer (`setTimeout`) KHÔNG có trong Code Mode runtime — chỉ dùng trong script chạy trên trang; giữa 2 evaluate cần chờ thật thì dùng shell sleep.
+- **`browser.network.get` nhận `id` (không phải requestID) + `includeBody: true`; requestBody/responseBody trả về dạng object `{state:"text", text}`** — đừng dùng chuỗi trực tiếp; và tool này có thể không Retorna status — đọc body là đủ.
+- **Backup lesson data xONG thì đi QA đúng vai HS: 3 phiên 3 mã** — 1 phiên 1 mã chỉ test được 1 tuyến; routing threshold (telemetry weak/mid/hard) phải đối chiếu bằng pattern trả lời thật (5/5 → challenge, 1/5 → foundation, 3/5 → standard), không chỉ đọc code.
+- **Persistence test phải soi network tại đúng thời điểm ghi** — POST `/api/adaptive-progress` chỉ xảy ra lúc nộp exit-ticket (không phải lúc nộp diagnostic/unit); GET profile có thể 400 do shape — có POST `ok:true` + body full là bằng chứng đủ, đừng kết luận "không lưu" khi GET hỏng.
+- **Đoạn code sinh chuỗi JS lớn phải kèm test cú pháp (`node --check` trên chính chuỗi sinh ra)** — engine script là String.raw + interpolation JSON, từng vỡ vì escape; test render + `--check` phát hiện ngay, đừng chờ QA runtime mới biết. *(2026-10-24)*
+- **Đáp án trong bài học sinh chỉ được sống trong closure engine, không bao giờ qua DOM** — mọi kênh rò (attr `data-correct*`, div ẩn chứa đáp án, JSON blob) đều là leak; thêm field đáp án mới phải cập nhật `buildDeweyAnswerKey` cùng lúc với template. *(2026-10-24)*
