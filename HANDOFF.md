@@ -5,6 +5,12 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## G3 — Sinh ảnh + AI học sinh sang Vilao — 24/10 (opencode)
+Ảnh minh hoạ giáo án bỏ SDK Imagen, gọi Vilao `/v1/images/generations` bằng khoá Vilao server (model env `AI_IMAGE_MODEL`, mặc định `gpt-image-2` 90₫/ảnh; giá Vilao đã vào `aiPricing.ts`, cả `gemini-3.1-flash-image` 85₫). AI học sinh đổi chính sách: HS nhập key riêng MỘT lần (nhận cả Gemini `AIza…` lẫn Vilao `sk-…`, tự nhận diện) → ưu tiên key riêng; không có key hoặc key lỗi thì nhờ server qua `/api/ai-relay` nhánh `studentAi` — hạn mức `STUDENT_AI_DAILY_LIMIT` (20 HS/ngày, env) + trần tổng `STUDENT_AI_DAY_TOTAL` (500/ngày) bảo vệ khoá server. Portal bỏ bước bắt nhập key.
+- **Sao lưu:** thay đổi chính `api/_ai-image-handler.ts` (Vilao + hold/refund giữ nguyên), `api/_ai-relay-handler.ts` (nhánh HS ẩn danh xác thực bằng idToken anonymous qua `Authorization`), `src/lib/adaptive/studentAiKey.ts`, `src/pages/AdaptiveStudentPortalPage.tsx` (gỡ chặn key). Relay giữ `RELAY_MODELS = ['gemini-3.8-flash']` — HS dùng model mặc định server.
+- **Cắn người sau:** ảnh Vilao chậm 26–52s, timeout handler 120s nằm trong maxDuration 300s của dispatcher; branch từ `aiPricing` cần rule model mới nếu đổi `AI_IMAGE_MODEL`. G4 (cắt Google khỏi chuỗi chấm) còn nợ.
+- **Nghiệm thu:** `tsc --noEmit` 0 lỗi; vitest ai-image-handler + studentAiKey + ai-relay 48/48 pass; E2E thật chưa chạy (chờ deploy preview).
+
 - **E2E nghiệm thật (24/10 14:52, preview 3d6p8haiv):** login Google GV owner trên localhost (VITE_API_TARGET trỏ preview) → gọi /api/ai-relay model gemini-3.8-flash → 200 "OK" 8,6s xuyên Vilao chib; phía Vilao key SmartPlan-preview ghi 2 req / 2 success / 6₫; phía web adminUsage thấy nhóm vilao/gemini-3.8-flash calls=1, cost 0,17₫ đúng bảng giá, 106 thoughts token đúng cột. Preview env có GRADING_VILAO_API_KEY = key riêng SmartPlan-preview (lane2 chỉ Production như cũ).
 - **Giá cập nhật:** Vilao trả `price_per_cached_read_token` 160₫/1M (≈1/10 giá vào) — bảng aiPricing đổi cached 400→160₫ quy đổi (trước chốt cached=input khi chưa có số). Lượt exempt owner không vào items sao kê (chỉ lượt trừ ví) — xem sổ qua adminUsage.
 - **Nghiệm thu:** npm run build xanh; vitest ai-relay + client-sync 36/36 pass.
