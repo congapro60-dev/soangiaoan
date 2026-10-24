@@ -5,6 +5,19 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## FIX P0 cổng học sinh: ẩn đáp án + checkpoint resume — 24/10 (OpenCode, worktree `nop-bai-da-cham`)
+
+**Đã làm gì, vì sao:** QA 3 tuyến portal V8.8 bắt được 2 lỗi P0 — (b) đáp án lộ thẳng trong DOM (attr `data-correct*`, div ẩn `.solution-box`, và JSON blob `#dewey-content` chứa toàn bộ đáp án/lời giải); (f) HS reload là mất sạch tiến trình.
+- `src/lib/dewey/adaptiveEngine.ts`: gom đáp án vào `buildDeweyAnswerKey()` → closure `ANSWER_KEY` trong IIFE engine (không qua DOM); pretest/MC/TF/SA chấm từ key. Checkpoint localStorage `dewey-ckpt-v1-{lessonId}-{mãHS}`: lưu mỗi lần chuyển màn/chấm/nộp; boot restore (điểm, màn dở dang, câu đã chấm bị ẩn, chấm lại không cộng điểm lần 2); `finishLesson()` xóa checkpoint.
+- `template.ts`: xóa mọi attr đáp án; div solution/essay để rỗng, engine điền chữ tại thời điểm mở cho HS. `htmlShell.ts`: bỏ JSON blob `dewey-content`.
+- Merge `origin/main` vào branch: conflict `api/_submission-actors.ts` giữ bản main (`ans as string`) — chính là fix TS2345 ở mục CI API Typecheck dưới đây; `tasks/lessons.md` + `tasks/todo.md` ghép nhật trình cả hai bên theo thứ tự ngày.
+
+**Còn dở / bỏ qua cố ý:** AI mở F12 tab Sources vẫn đọc được `ANSWER_KEY` trong JS — chấp nhận vì chấm client-side bắt buộc JS có key; chỉ chặn quét DOM tầm thường. P1/P2 từ QA (quickCheck không render, practiceTasks rỗng…) chưa sửa. 10 bài Tuần 11 đã publish trên production chạy bản CŨ (còn leak) tới khi deploy xong.
+
+**Sắp cắn người sau:** thêm field đáp án mới phải cập nhật `buildDeweyAnswerKey` cùng lúc với template — test chặn hồi quy ở `src/lib/dewey/template.test.ts` (kiểm leak + `node --check` script engine). Build dài ~5–6 phút; warning chunk >500kB là trạng thái sẵn có.
+
+**Nghiệm thu:** `npm run build` (0 TS error); `npx vitest run src/lib/dewey` (6/6 pass) — đã chạy trên branch này. Sau deploy: mở 1 portal → F12 Elements phải KHÔNG còn `data-correct*` / `id="dewey-content"`; reload giữa bài giữ đúng điểm + màn.
+
 ## CI API Typecheck đỏ sẵn trên main: `api/_submission-actors.ts` (23/10) — Claude
 
 Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` lỗi `TS2345` ở dòng 43 (`ALLOWED.has(ans)` với `ans` là `unknown`). Nhánh `dieu-phoi/report-custom-range` chỉ ép `ans as string` để CI của PR này qua; nếu `main` đã sửa theo cách khác khi gộp thì lấy bản của `main` và bỏ mục này. Nghiệm thu: chạy CẢ HAI lệnh `npx tsc --noEmit -p tsconfig.api.json` và `... --strict false`.
