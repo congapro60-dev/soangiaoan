@@ -343,7 +343,7 @@ Thay toàn bộ case bằng:
   });
 ```
 
-(Đối chiếu: seed có `'chua-chac'` — grade confidence 0.2, `:99` — trước đây bị giữ lại, nay được cron duyệt.)
+(Đối chiếu: seed có `'chua-chac'` — grade confidence 0.2, `:99` — trước đây bị giữ lại, nay được cron duyệt. **Thêm 2 assert khoá "duyệt mà không xoá cờ"** (đề xuất từ code review Task 1): sau khi duyệt, `s['chua-chac'].grade` vẫn giữ dữ liệu cờ gốc — đọc helper `grade` của file test để lấy shape chính xác, kỳ vọng `questionResults` với `confidence: 0.2` (hoặc shape tương đương) VẪN TỒN TẠI trong grade đã duyệt; tương tự `lech`… nếu seed có examCheck thì examCheck phải còn nguyên.)
 
 - [ ] **Step 4.2: Chạy test xác nhận PASS**
 
@@ -362,7 +362,8 @@ git -C "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader" commit -m "test(gr
 ### Task 5: UI "Chấm & duyệt tất cả" — bỏ ô tick, duyệt cả cần soát
 
 **Files:**
-- Modify: `src/components/features/classroom/AssignmentPanel.tsx:1007-1060`
+- Modify: `src/components/features/classroom/AssignmentPanel.tsx:997-1069`
+- Modify: `src/components/features/classroom/TeacherBacklogCard.tsx:24` (đếm tổng tồn — hệ quả Task 2)
 
 Không có harness test UI cho AssignmentPanel — verify bằng `npm run build` (Task 6). Không dựng harness mới (YAGNI).
 
@@ -389,10 +390,10 @@ Không có harness test UI cho AssignmentPanel — verify bằng `npm run build`
     if (!result.isConfirmed) return;
 ```
 
-2. Sau Swal — bỏ biến `duyetCaChuaChac` (dòng 1026). Đổi dòng chọn danh sách duyệt (dòng 1048):
+2. Sau Swal — bỏ biến `duyetCaChuaChac` (dòng 1026). Đổi dòng chọn danh sách duyệt (dòng 1048). **CHÚ Ý sau Task 2: `tonSau.uncertain` đã là TẬP CON của `tonSau.toApprove` — KHÔNG được concat 2 mảng (sẽ duyệt bài cần soát 2 lần, đếm gấp đôi):**
 
 ```typescript
-      const canDuyet = [...tonSau.toApprove, ...tonSau.uncertain];
+      const canDuyet = tonSau.toApprove;
 ```
 
 3. Bỏ biến `conChuaChac` (dòng 1058); đổi chính đoạn toast (dòng 1058-1062):
@@ -404,6 +405,10 @@ Không có harness test UI cho AssignmentPanel — verify bằng `npm run build`
       );
 ```
 
+4. Đếm tổng tồn KHÔNG trùng (hệ quả trực tiếp Task 2: `uncertain ⊆ toApprove` — cộng cả hai là đếm bài cần soát 2 lần):
+   - `AssignmentPanel.tsx:673` — dòng `const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length + tonDong.uncertain.length;` → bỏ vế `+ tonDong.uncertain.length`.
+   - `TeacherBacklogCard.tsx:24` — hàm `tong` tương tự → bỏ vế `b.uncertain.length`. (Hiển thị số uncertain RIÊNG nếu card có — giữ nguyên, uncertain vẫn là số "cần soát" hợp lệ; chỉ sửa dòng TỔNG.)
+
 - [ ] **Step 5.2: Tự kiểm tra không còn tham chiếu sót**
 
 Run: `Select-String -Path "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader\src\components\features\classroom\AssignmentPanel.tsx" -Pattern 'duyetCaChuaChac|conChuaChac|trừ khi tick' | Measure-Object | Select-Object -ExpandProperty Count`
@@ -412,7 +417,7 @@ Expected: `0`.
 - [ ] **Step 5.3: Commit**
 
 ```powershell
-git -C "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader" add src/components/features/classroom/AssignmentPanel.tsx
+git -C "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader" add src/components/features/classroom/AssignmentPanel.tsx src/components/features/classroom/TeacherBacklogCard.tsx
 git -C "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader" commit -m "feat(classroom-ui): cham & duyet tat ca duyet luon bai can soat, bo o tick"
 ```
 
@@ -440,7 +445,7 @@ Expected: working tree sạch những `{spec,plan} mới + code thay đổi`.
 - [ ] **Step 6.4: Kiểm lại mapa thay đổi**
 
 Run: `git -C "C:\Users\ADMIN\AppData\Local\Temp\opencode\wt-grader" diff 82d0b54 HEAD --stat`
-Expected: đúng 7 file (autoGrade.ts, submissionSelection.ts, AssignmentPanel.tsx + 4 test-file).
+Expected: đúng 9 file — `autoGrade.ts`, `autoGrade.test.ts`, `submissionSelection.ts`, `submissionSelection.test.ts`, `manualGrade.test.ts`, `loClassScores.test.ts`, `grade-homework.auto.test.ts`, `AssignmentPanel.tsx`, `TeacherBacklogCard.tsx`.
 
 - [ ] **Step 6.5: Báo thầy — chờ quyết merge/deploy**
 
@@ -453,4 +458,4 @@ Không tự merge `origin main` — chờ thầy duyệt (quy ước: merge fast
 1. **Spec coverage:** Mục 1 spec → Task 1 (cron + fresh auto) + Task 2 (classBacklog) + Task 5 (UI bỏ tick); mục 2 (chip) → không code mới, khoá dữ liệu thuần ở Task 1-2; không harness UI nên không có test chip render (spec ghi "nếu harness sẵn" — không sẵn, đã ghi rõ tại Task 5); mục 3 → Task 2 (editedByTeacher) + Task 3 (examCheck rời grade + thống kê điểm mới) + Task 4 (chuỗi cron end-to-end). Nghiệm thu spec #1-8 đều có task/chứng cứ tương ứng. ✅
 2. **Placeholder scan:** mọi step có code/lệnh → kết quả mong đợi cụ thể; không TBD/TODO/“tương tự Task N”. ✅
 3. **Type consistency:** `needsTeacherCheck(submission.grade)` giữ thân hàm; `olderThanWindow`, `READ_CONFIDENCE_FLOOR` là hằng có sẵn trong file; `buildClassLoScores(11, roster, submissions, assignments)` khớp gọi hiện có (`loClassScores.test.ts:16`); `update['grade.examCheck']` khớp patch field-dot của `buildManualGradeUpdate`. ✅
-4. **Rủi ro sót:** Task 6 kiểm đúng 8 file thay đổi (7 code/test + spec đã commit riêng `82d0b54`). ✅
+4. **Rủi ro sót:** Task 6 kiểm đúng 9 file thay đổi (spec đã commit riêng `82d0b54`). Task 5 đã hiệu chỉnh sau code review Task 2: `canDuyet = tonSau.toApprove` ([] uncertain ⊆ toApprove — không concat) + đếm tổng tồn bỏ vế uncertain ở 2 chỗ. Task 4 thêm assert dữ liệu cờ giữ nguyên sau duyệt. ✅
