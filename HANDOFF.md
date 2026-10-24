@@ -5,6 +5,12 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Nghiên cứu logic cây LO SSM (khối 10→12, VN MATH) — 24/10 (OpenCode)
+
+- **Đã map trọn bộ id theo khối (không theo lớp)** — khối 10: criteria 2218, forms 15319-26; khối 11: 2219, 15327-34; khối 12: 2220, 15335-42. Endpoint mapping: `GET v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=6` → mỗi quý 2 form: F (ratio 0, nhập không tính) + IA 30% (Q1/Q3) hoặc SE 70% (Q2/Q4); `radio` = trọng số, `status` 2=đã gửi.
+- **Cây 4 tầng**: criteria → focal_points (mảng kiến thức) → power_standards ("The student can…") → learning_outcomes (đơn vị chấm, code `LO_DIS_TO_*`); thang `Thang4_26-27` (N không tính + 4→0 bậc 0.5, point_id 85-92). Điểm HS từng LO đọc ở `student-by-subject` → `point.focal_points[…]` nhân bản cây kèm `point/point_id` từng LO; điểm bài = trung bình LO (bỏ N); điểm kỳ = IA×30% + SE×70%.
+- **Phủ LO tăng theo tiến độ**: khối 10 6→8→6→9 LO, khối 12 tới 17 LO (IA2); SE rộng hơn IA; có FP "Practical activities" riêng ở khối 11. Chi tiết ma trận + kế hoạch tích hợp báo cáo app (mục "Năng lực theo LO SSM", công thức tier thang 4, quy tắc đọc động id) ghi ở `tasks/todo.md` mục "Logic cây LO trên SSM". CHƯA code — chờ chốt bố cục.
+
 ## Nhận xét môn học SSM: đọc web thật + sửa giọng app — 24/10 (OpenCode)
 
 - **Web SSM năm 26-27 chưa có nhận xét nào** (mọi lớp × quý "Chưa nhập"); **11Columbus (9681) thiếu cả trong danh sách nhận xét** (`/api/v2/evaluation/subject-comments` chỉ 5 lớp; detail cho 9681 → HTTP 500) dù có trong dropdown chấm điểm ⇒ SSM chưa cấu hình nhận xét cho lớp này, cần admin SSM bật; app không tự sửa được.

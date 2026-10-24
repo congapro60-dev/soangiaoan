@@ -488,3 +488,66 @@ Natural-language assistant remains incomplete; transport tests are not live proo
 - [ ] QA trên preview sau deploy: tải IA1 (kỳ vọng "N LO, 26 học sinh") → gợi ý AI → xem trước diff → xác nhận đẩy → đọc lại verify 100%.
 - [ ] Rủi ro mở: endpoint GHI điểm (`writeLoGrades`) có thể cũng đã đổi shape — nếu lỗi khi đẩy, bắt network POST trang chấm SSM rồi sửa proxy.
 
+## Logic cây LO trên SSM (khối 10→12, VN MATH) — khảo sát 24/10/2026
+
+> Nguồn: đọc API thật cloud browser (chrome-devtools) trang Đánh Giá Năng Lực Học Sinh V2, năm học 26-27 (`school_year_id=6`, branch 23). Mục đích: nền để sau này đưa đánh giá LO vào báo cáo của app. CHƯA code.
+
+### Mapping id đã soi (cố định theo KHỐI, không theo lớp)
+
+| Khối | criteria | F1 | IA1 | F2 | SE1 | F3 | IA2 | F4 | SE2 |
+|---|---|---|---|---|---|---|---|---|---|
+| 10 | 2218 | 15319 | 15320 | 15321 | 15322 | 15323 | 15324 | 15325 | 15326 |
+| 11 | 2219 | 15327 | 15328 | 15329 | 15330 | 15331 | 15332 | 15333 | 15334 |
+| 12 | 2220 | 15335 | 15336 | 15337 | 15338 | 15339 | 15340 | 15341 | 15342 |
+
+- Endpoint mapping: `GET v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=6` → 4 quý, mỗi quý `assessment_forms: [{id, assessment_name (F1/IA1…), assessment_id, radio (=trọng số %), status (2=đã gửi, 0=chưa), total_student_graded, total_student, criteria_id}]`. 3 lớp cùng khối trả CÙNG bảng form (form id chung) — `total_student` tính theo lớp gọi.
+- Trọng số: **IA (giữa kỳ) 30% + SE (cuối kỳ) 70% = 100% mỗi học kỳ**; form F (F1-F4) ratio **0%** (vẫn nhập, không tính điểm; cùng LO với IA cùng quý, weeks 6→8 trước IA weeks 10→12).
+- Mốc tuần (26-27): F1 w6-8 · IA1 w10-12 · SE1 w18-20 · IA2 w29-31 · SE2 w35-37. Quý 1 = IA1, quý 2 = SE1, quý 3 = IA2, quý 4 = SE2.
+
+### Cây LO 4 tầng (identity của khối)
+
+`criteria (theo khối+môn) → focal_points (FP, mảng kiến thức) → power_standards (PS, chuẩn "The student can…") → learning_outcomes (LO, đơn vị chấm nhỏ nhất "Students can…")`.
+
+1. Mỗi node có `code` đặt tên quy ước: `FP_DIS_TO_8601` / `PS_DIS_TO_20108` / `LO_DIS_TO_34344` (DIS=chương trình DISCOVER, TO=Toán) + `coefficient_type: 1` (ngang hàng, không có trọng số lệch trong cây) + `total` = số node con.
+2. Cây + thang: `GET v2/evaluation/criteria-has-assessment-form/{criteriaId}?assessment_form_id={formId}` — response chứa form đang chấm (`assessment_forms.data`: name/ratio/weeks/**focal_points**) + đồng thời `assessment_forms_brand` (các form còn lại của khối, PS/LO nằm flat) + `scoring_scale` ở ROOT.
+3. **Thang `Thang4_26-27` (id 21)**: configs `N(point_id 84, không số, is_calculate_score=0)` rồi 4(85), 3.5(86), 3(87), 2.5(88), 2(89), 1.5(90), 1(91), 0(92) — bậc 0.5. `N` = "not evaluated", bị loại khỏi trung bình.
+4. Điểm của HS: `GET v2/evaluation/student-by-subject?assessment_form_id&criteria_id&class_id&subject_id` → `{class_id, subject_id, assessment_id, updated_at, students: [{id, full_name, code, point}]}`. Khi chưa chấm `point: null`; khi đã chấm `point` = **cây FP→PS→LO nhân bản kèm điểm từng LO**: `{id: LO id, grading_student_id, point_id: 88, point: "2.5", is_calculate_score: 1, is_number: 1}`. Điểm bài = trung bình các LO (bỏ N) theo ví dụ 9698: [3,2.5,2.5,2.5,2.5,2.5] → ~2.58; [3.5,3.5,3.5,3.5,3,4] → 3.5.
+5. Draft chưa gửi: `GET v1/evaluation/result-draft-assessment-form/{formId}?class_id&criteria_id&quarter_id` (rỗng khi đã gửi hết). Write shape (đã ghi ở todo-ssm-bridge.md): POST `grading-student-by-assessment-form/{formId}` / `update-result-grading-student/{resultId}`.
+
+### Phủ LO theo form (FP/PS/LO) — nội dung dạy 2 học kỳ tách theo bài
+
+| Khối | Form | FP | PS | LO | Nhận xét |
+|---|---|---|---|---|---|
+| 10 | F1 | 2 | 3 | 5 | Đ-Số (tập hợp, BPT bậc nhất) + Hình (đại lượng, tam giác) |
+| 10 | IA1 | 2 | 4 | 6 | + vectơ; "Arithmetics, algebra and calculus", "Geometry and measurement" |
+| 10 | SE1 | 3 | 4 | 8 | thêm FP **Statistics and probability** (số gần đúng, đo tập trung) |
+| 10 | IA2 | 2 | 2 | 6 | hàm bậc hai, tổ hợp |
+| 10 | SE2 | 3 | 4 | 9 | + phương pháp toạ độ (đt, đtròn, Passive conic), xác suất |
+| 11 | F1/IA1 | 3 | 4 | 6 | Lượng giác, cấp số; hình không gian **song song**; FP "Practical activities and experiences" (1 LO thái độ/thực hành) |
+| 11 | SE1 | 4 | 7 | 12 | + thống kê-xác suất, hình học quang/nhị diện |
+| 11 | IA2 | 4 | 5 | 10 | → 3 FP kiến thức + FP thực hành xuyên suốt |
+| 11 | SE2 | 4 | 6 | 13 | phủ rộng nhất khối 11 |
+| 12 | F1 | 2 | 2 | 7 | "Algebra and Calculus" + "Geometry" (không FP thực hành) |
+| 12 | IA1 | 2 | 2 | 8 | hàm số biến thiên (5 LO), vectơ/tọa độ không gian (3 LO) |
+| 12 | SE1 | 3 | 4 | 11 | + thống kê-xác suất |
+| 12 | IA2 | 3 | 6 | 17 | phủ rộng nhất 3 khối (vi tích nguyên hàm, số phức…) |
+| 12 | SE2 | 3 | 6 | 16 | ôn toàn bộ ct lớp 12 |
+
+- Số LO **không cố định theo quý**: tăng dần theo tiến độ chương trình (khối 10: 6→8→6→9; khối 12: 8→11→17→16). SE thường rộng hơn IA cùng học kỳ; IA2/SE2 lớp 12 dày đặc nhất.
+- LO giữa các bài **bổ sung cho nhau, không lặp ngược**: mỗi form chỉ chứa phần LO dạy trong khoảng weeks đó (SE1 khối 10 giữ lại 1 PS của IA1 là vector, mở rộng 1→4 LO).
+
+### Logic rút ra cho app (đây là phần sẽ cài)
+
+1. **Nguồn sự thật**: app phải đi qua chuỗi `v3 quarters (mapping bài+trọng số+criteria) → criteria-has-assessment-form (cây + thang) → student-by-subject (điểm từng LO)`; không hardcode criteria/form id — đọc động vì đổi năm học sẽ đổi id (năm 5 khác hẳn).
+2. **Tính điểm LO HS**: với mỗi (khối, quý): xác định form chốt (IA Q lẻ / SE Q chẵn, trọng số ~30/70); điểm bài = mean(LO có is_calculate_score=1, bỏ N); điểm học kỳ = IA×30% + SE×70%; quy thang 4 → mức: ≥3.5 "Tốt/Xuất sắc", 2.5-3.49 "Khá", 1.5-2.49 "Đạt", <1.5 "Chưa đạt" (đối chiếu letter AD/A/B/EM-PR đã thấy ở trang nhận xét).
+3. **Báo cáo app thêm mục "LO"**: ngoài điểm % bài chấm app, thêm khối "Năng lực theo LO SSM": điểm LO trung bình từng FP (Đại số-Tích phân / Hình học / Thống kê-Xác suất / Thực hành) → rút ra mạnh-yếu theo mảng, ví dụ "vector 2.5/4, hàm bậc hai 3.5/4". Kèm câu nhận xét tự động: tên FP + điểm TB + khoảng cách với 4.
+4. **Đối chiếu cross-system**: bài chấm app (%, 10 điểm) ↔ LO SSM (thang 4): map tier %→thang4 rồi so; nếu lệch ≥1 bậc thì đưa lên GV duyệt (app đo thấy "khá" nhưng LO SSM "chưa đạt" = tín hiệu quan trọng).
+5. **Dữ liệu lớp khối 8 (8Kemi, 9715)** cũng dùng cùng cơ chế — không cần nhánh riêng.
+6. Lưu ý EXPLORE vs DISCOVER: response criteria liệt kê programs EXPLORE+DISCOVER; FP/PS/LO code chỉ thấy nhánh DIS. Lớp hiện có đều DISCOVER — app mặc định đọc cây trong response (đã là nhánh đúng), không suy rộng thêm.
+
+### Việc kế (chưa code, chờ chốt)
+- [ ] Chốt bố cục báo cáo LO trong tab report app (bảng FP × điểm TB + câu văn nhận xét tự động theo giọng GV đã dùng ở nhận xét môn).
+- [ ] Bổ sung bridge đọc động: mở rộng `ssmBridge` thêm `readSsmQuarterMapping(classId, subjectId)` (v3) + caching theo (khối, quý) — hoặc tái dùng URL đã có trong SsmPanel flow.
+- [ ] Sau khi QA luồng đẩy điểm xong: chạy thử tính điểm kỳ từ dữ liệu thật 9698 IA1 (2.58/3.5/…) đối chiếu cột "Điểm Quy Đổi" trang nhận xét (3.69, 2.46) để chốt công thức trung bình có trọng số (LO→bài→kỳ).
+- [ ] Nếu nên: báo cáo PH (parentSafeReport) chỉ thêm mục LO khi lớp đã GHÉP SSM + có điểm LO (không bắt buộc).
+
