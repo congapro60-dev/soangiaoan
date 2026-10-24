@@ -1,12 +1,15 @@
 /**
  * TỰ CHẤM + TỰ DUYỆT SAU 60 PHÚT — thuần, dùng chung máy chủ + giao diện.
  *
- * Chủ dự án chốt (2026-09-25): bài học sinh nộp mà sau 60 phút giáo viên chưa chấm thì AI tự chấm;
- * bài đã chấm mà sau 60 phút chưa duyệt thì tự duyệt. Áp dụng mọi lớp, giáo viên TẮT được cho lớp
- * mình. Bài máy đọc chưa chắc, hoặc bài định kì lệch điểm giáo viên, KHÔNG tự duyệt — giữ lại cho giáo viên xem.
+ * Chính sách chủ dự án (2026-10-24) thay chính sách giữ lại bài nghi ngờ của 2026-09-25:
+ * bài học sinh nộp mà sau 60 phút giáo viên chưa chấm thì AI tự chấm; bài đã chấm mà sau 60 phút
+ * chưa duyệt thì tự duyệt — KỂ CẢ bài máy đọc chưa chắc hoặc lệch điểm sổ (bài kiểm tra định kì).
+ * Bài cần soát được duyệt kèm cờ ("Đọc chưa rõ" / "Lệch điểm GV") ở dòng bài để giáo viên
+ * chấm lại; sau khi thầy sửa tay (editedByTeacher) thì cờ tự tắt. Áp dụng mọi lớp, giáo viên
+ * TẮT được cho lớp mình.
  */
 import type { SubmissionDoc } from './types.js';
-import { currentSubmissionsForAssignment, isStaleGradingTimestamp, needsTeacherCheck } from './submissionSelection.js';
+import { currentSubmissionsForAssignment, isStaleGradingTimestamp } from './submissionSelection.js';
 
 export const AUTO_GRADE_AFTER_MS = 60 * 60 * 1000;
 
@@ -29,7 +32,7 @@ const olderThanWindow = (value: string | undefined, nowMs: number): boolean => {
 export interface AutoSweepPlan {
   /** Chờ chấm quá 60 phút tính từ lúc nộp (kể cả khoá chấm đã chết). Bài lỗi để giáo viên xử lý. */
   toGrade: SubmissionDoc[];
-  /** Đã chấm, chưa duyệt, quá 60 phút tính từ lúc chấm, máy đọc chắc chắn. */
+  /** Đã chấm, chưa duyệt, quá 60 phút tính từ lúc chấm. */
   toApprove: SubmissionDoc[];
 }
 
@@ -47,14 +50,12 @@ export const planAutoSweep = (submissions: readonly SubmissionDoc[], nowMs = Dat
       submission.status === 'graded'
       && Boolean(submission.grade)
       && submission.grade?.teacherApproved !== true
-      && !needsTeacherCheck(submission.grade)
       && olderThanWindow(submission.grade?.gradedAt || submission.updatedAt, nowMs)),
   };
 };
 
-/** Bài vừa được máy tự chấm xong: duyệt luôn nếu máy đọc chắc chắn. */
+/** Bài vừa được máy tự chấm xong: duyệt luôn (bài đọc chưa chắc thì cờ nhắc thầy ở dòng bài). */
 export const canAutoApproveFreshGrade = (submission: SubmissionDoc): boolean =>
   submission.status === 'graded'
   && Boolean(submission.grade)
-  && submission.grade?.teacherApproved !== true
-  && !needsTeacherCheck(submission.grade);
+  && submission.grade?.teacherApproved !== true;

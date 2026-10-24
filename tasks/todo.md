@@ -40,7 +40,7 @@ Chủ dự án duyệt cả 3: (1) privacy OK cho ảnh HS qua pool rẻ; (2) g�
 Còn lại của đợt: commit + push feature → fast-forward `main` → push origin → Vercel deploy → verify. Báo cáo QA cho Claude viết sau deploy.
 
 ## Việc còn đợi chủ dự án
-- [ ] **Thu hồi key Vilao cũ** "SmartPlan-lane" (`sk-a3ee…b034`) trên trang Vilao — chỉ còn key mới dùng env Vercel.
+- [x] **Key Vilao cũ "SmartPlan-lane" (`sk-a3ee…b034`): GIỮ LẠI** theo quyết định 24/10 của chủ dự án — dành cho OpenCode tooling sau này; production chỉ dùng `SmartPlan-lane2` (env Vercel).
 - [ ] Canary thật: GV chấm 1 bài thật trong app → log Vercel phải thấy `[grading-chain] vilao/...` đứng đầu.
 - [ ] Xoá project rác trên Vercel `spai-main-port` (link nhầm đã tạo; `vercel project rm` cần interactive, chưa xoá được máy chủ từ chối `--yes`).
 - [ ] Nháp cũ: xoá/forgotten branch `feat/vilao-failover-chain` (stale, KHÔNG merge).

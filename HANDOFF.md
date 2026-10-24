@@ -1,5 +1,5 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-23
+**Cập nhật:** 2026-10-24
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -18,9 +18,16 @@ Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` 
 **Bẫy:** mã báo cáo đã công bố có cả ngày bắt đầu/kết thúc (`a__custom__2026-09-01__2026-09-15`) nên hai khoảng khác nhau là hai bản riêng, không ghi đè; công bố lại cùng khoảng thì ghi đè bản cũ. Nhận xét GV lưu theo `{kind, from, to}` nên mỗi khoảng custom có nhận xét riêng.
 
 **Nghiệm thu:** `npx vitest run src/lib/classroom/reportPeriod.test.ts api/__tests__/parent-portal.test.ts api/__tests__/parent-report.test.ts api/__tests__/function-count.test.ts`, `npx tsc --noEmit`, `npx tsc --noEmit -p tsconfig.api.json`.
+## Duyệt tự động bài cần soát + cờ cảnh báo — 24/10 (opencode)
+
+Chủ dự án duyệt 3 quyết: **(1)** "Duyệt tự động + cờ" — cron 60' và nút "Chấm & duyệt tất cả" duyệt LUÔN bài ước lượng chưa chắc (uncertain, kể cả lệch sổ ≥ 0,5), thay vì kẹt ở Chờ duyệt; **(2)** thầy cô sửa tay thì bài quay về "Chờ duyệt" qua cờ `editedByTeacher`; **(3)** chip cờ CHỈ ở bảng điểm lớp, còn nguyên SAU khi duyệt (duyệt chỉ patch `teacherApproved`/`approvalSource` — `api/grade-homework.ts:2151`).
+- Nhánh `feature/auto-approve-uncertain-flag` (9 commits, base `527ba4e`): bỏ 2 chặn duyệt `autoGrade.ts`; `toApprove` nới chứa uncertain; UI `AssignmentPanel`/`TeacherBacklogCard` bỏ ô tick "vẫn giữ lại".
+- **Cái sắp cắn người sau:** (1) `uncertain ⊆ toApprove` — ĐỪNG cộng 2 vế khi đếm tồn (`AssignmentPanel.tsx:673`, `TeacherBacklogCard.tsx:24`, concat cũ đã xoá); bài vừa uncertain vừa sửa tay không auto-duyệt (cron tính 60' từ lúc sửa). (2) Comment stale mô tả chính sách CŨ "lệch nhiều thì không tự duyệt" tại `api/grade-homework.ts:690-691` — nợ sửa sau merge. (3) 4 test hash vẫn đỏ trên Windows (CRLF, `contractData`×2 + `goldenCandidates`×2) — môi trường, Linux/Vercel xanh; nợ `.gitattributes` sau.
+- **Nghiệm thu:** build xanh (tsc 0 lỗi); vitest **4379/4384** pass (5 fail = 4 CRLF + 1 flaky timeout, rerun riêng 14/14 PASS); final review Yes — KHÔNG có lệnh ghi Firestore mới, đếm không trùng, chip còn sau duyệt.
+
 ## Chấm ảnh giá rẻ qua Vilao chib + điểm = Σ từng dòng — 23/10 (opencode)
 
-Chủ dự án duyệt (23/10): (1) ảnh học sinh đi qua pool rẻ Vilao được; (2) chuyển chấm ảnh sang lane chib `gemini-3.8-flash` (~5₫/bài) + gộp patch thinking 0/16k; (3) subscribe lane chib cho key Vilao mới `SmartPlan-lane2` (đang set ở env Vercel `GRADING_VILAO_API_KEY`) — **đã xong** (POST subscribe 201; `GET /v1/models` bằng key mới thấy `gemini-3.8-flash`). Key cũ `SmartPlan-lane` (sk-a3ee…) chờ chủ dự án tự thu hồi.
+Chủ dự án duyệt (23/10): (1) ảnh học sinh đi qua pool rẻ Vilao được; (2) chuyển chấm ảnh sang lane chib `gemini-3.8-flash` (~5₫/bài) + gộp patch thinking 0/16k; (3) subscribe lane chib cho key Vilao mới `SmartPlan-lane2` (đang set ở env Vercel `GRADING_VILAO_API_KEY`) — **đã xong** (POST subscribe 201; `GET /v1/models` bằng key mới thấy `gemini-3.8-flash`). Key cũ `SmartPlan-lane` (sk-a3ee…) **giữ lại** theo quyết định 24/10 của chủ dự án — dành cho OpenCode tooling sau này, không dùng cho chấm bài.
 - **A/B kiểm chứng (23/10, 56,18₫, 10/10 đạt):** chib giá 400/1600₫/1M token (min 3₫/request), `reasoning_effort: 'none'` → thinking 0, trung bình ~30s/lượt; phần trắc nghiệm 12 câu chuẩn tuyệt đối 10/10. Chi tiết `C:\Users\ADMIN\AppData\Local\Temp\opencode\ab_test\BAOCAO_VILAO_38.md`.
 - **Khoá chốt đặc tính model — field `score` KHÔNG đáng tin khi bảng chấm đủ thang:** A/B 22 lượt × 5 hãng (kể cả Gemini trực tiếp) cho `score` lệch Σ dòng ở gần hết lượt → `coerceHomeworkGrade` (gradingPrompt.ts) nay lấy **điểm = Σ(questionResults) KHI dòng phủ thang** (Σ maxScore các dòng ≈ maxScore bài, lệch ≤ 0,01 — 17/18 lượt A/B rơi vào trường hợp này); dòng KHÔNG phủ thang (AI chỉ đọc tổng điểm thầy ghi tay trên bài — luồng bài kiểm tra định kì) thì **giữ field `score`** của model. Cùng nguyên tắc với `recomputeTotal` sẵn có (`questionRescore.ts`). Kèm guard loại hàng "Tổng kết" model tự chèn (`laHangTongKet`) khỏi bảng + khỏi Σ; câu thật có chữ "Tổng hợp"/"Phần 2" không bị nhầm.
 - **Parser khoan dung:** `parseJsonWithRecovery` giờ phá được **trailing comma** (`, }` / `, ]`, string-aware, kind mới `trailing_comma`) — lỗi model hay mắc nhất khi trả JSON dài.
