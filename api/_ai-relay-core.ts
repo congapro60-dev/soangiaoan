@@ -123,7 +123,8 @@ export const parseRelayBody = (body: unknown): RelayParse => {
   }
 
   // Mức không hợp model thì bỏ (không báo lỗi): gửi lên hãng sẽ bị 400, còn bỏ đi chỉ là chạy mặc định.
-  const effort = resolveEffort(provider as string, model, typeof source.effort === 'string' ? source.effort : undefined);
+  // Provider 'gemini' giờ chạy TRÊN Vilao (G1): mức hiệu lực theo rules Vilao (POC xác thực none/low).
+  const effort = resolveEffort(provider === 'gemini' ? 'vilao' : (provider as string), model, typeof source.effort === 'string' ? source.effort : undefined);
 
   return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images, ...(effort ? { effort } : {}) } };
 };

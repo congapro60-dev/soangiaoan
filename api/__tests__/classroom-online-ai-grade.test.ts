@@ -15,9 +15,7 @@ vi.mock('../_exam-core.js', () => ({
 }));
 
 vi.mock('../_grading-core.js', () => ({
-  GRADING_MODEL: 'test-model',
-  getGradingApiKey: () => 'test-key',
-  callGeminiVision: vi.fn(async () => h.aiRaw),
+  callGradingVision: vi.fn(async () => h.aiRaw),
   reserveQuota: vi.fn(async () => ({ quota: {}, verdict: { allowed: 1, reason: '' } })),
 }));
 

@@ -88,7 +88,8 @@ export const NVIDIA_MODELS: ProviderModel[] = [
 // Vilao = chợ API trả theo request (2026-10-22): key riêng của giáo viên/chủ dự án, không có trần cứng.
 // rpm/rpd/tpm dưới đây là mức THAM CHIẾU để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
 export const VILAO_MODELS: ProviderModel[] = [
-  { id: 'deepseek-v4.1-flash', name: 'DeepSeek v4.1 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Vilao)', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['reasoning', 'vision', 'fast', '1M-ctx', 'cheap'] },
+  { id: 'deepseek-v4.1-flash', name: 'DeepSeek v4.1 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
 ];
 
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
