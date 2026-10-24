@@ -15,7 +15,7 @@
   <circle cx="245" cy="207" r="4" fill="#7c3aed"/>
   <text x="260" y="48" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
   <text x="314" y="120" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
-  <text x="368" y="214" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="366" y="182" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
   <text x="108" y="86" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#7c3aed">A'</text>
   <text x="166" y="156" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#7c3aed">B'</text>
   <text x="222" y="226" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#7c3aed">C'</text>
