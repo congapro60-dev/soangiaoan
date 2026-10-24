@@ -12,6 +12,7 @@ import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher'
 import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson';
 import { getBanToanV4PackageForLesson } from '../lib/liveLesson/v4';
 import { publishSequentially, summarizeReports, getAllSourceKeys, type PublicationReport } from '../lib/liveLesson/v4/sequentialPublication';
+import { getBanToanV4PackageCount } from '../lib/liveLesson/v4/lessonRegistry';
 import { deleteLessonFromFirestore, listLessonsForTeacher, saveLessonToFirestore } from '../services/adaptiveLessonService';
 
 export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
@@ -141,6 +142,8 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
       setSeedingPilot(false);
     }
   };
+
+  const banToanPackageCount = getBanToanV4PackageCount();
 
   const handleSequentialPublish = async () => {
     const currentUser = auth.currentUser ?? user;
@@ -286,11 +289,11 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
         <section className="rounded-3xl border border-indigo-100 bg-indigo-50/70 p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">V4 · Ban Toán W5–W6</p>
-              <h2 className="mt-1 text-xl font-black text-indigo-950">48 gói bài học phân hoá</h2>
-              <p className="mt-1 text-sm font-semibold text-indigo-800">Nguồn Ban Toán Khối 10–12, Tuần 5–6. Tạo và xuất bản tuần tự từng bài, cập nhật bảng bài ngay sau mỗi lần.</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">V4 · Ban Toán W5–W6 + bài tương tác Tuần 11</p>
+              <h2 className="mt-1 text-xl font-black text-indigo-950">{banToanPackageCount} gói bài học phân hoá</h2>
+              <p className="mt-1 text-sm font-semibold text-indigo-800">Nguồn Ban Toán Khối 10–12 (Tuần 5–6 và 3 bài tương tác Tuần 11). Tạo và xuất bản tuần tự từng bài, cập nhật bảng bài ngay sau mỗi lần.</p>
             </div>
-            <button disabled={sequentialPublishing || !user} onClick={() => void handleSequentialPublish()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> {sequentialPublishing ? `Đang xuất bản ${sequentialProgress?.current ?? 0}/${sequentialProgress?.total ?? 48}...` : 'Tạo và xuất bản 48 bài'}</button>
+            <button disabled={sequentialPublishing || !user} onClick={() => void handleSequentialPublish()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> {sequentialPublishing ? `Đang xuất bản ${sequentialProgress?.current ?? 0}/${sequentialProgress?.total ?? banToanPackageCount}...` : `Tạo và xuất bản ${banToanPackageCount} bài`}</button>
           </div>
           {sequentialProgress && (
             <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
