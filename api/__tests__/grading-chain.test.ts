@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { callGradingVision, getGradingChain } from '../_grading-core.js';
+import { callGradingVision, callUtilityVision, getGradingChain, GRADING_MODEL, UTILITY_MODEL } from '../_grading-core.js';
 
 /** Dựng response OpenAI-compatible mà callOpenAiCompatibleVision hiểu. */
 const okResponse = (text: string) => ({
@@ -127,5 +127,131 @@ describe('callGradingVision — rơi xuống lớp xKiro khi lớp trước hỏ
     stubEnv({ GRADING_VILAO_API_KEY: '', GRADING_XKIRO_API_KEY: '', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
 
     await expect(callGradingVision('prompt', [], {})).rejects.toThrow(/GRADING_XKIRO_API_KEY/);
+  });
+});
+
+// ── G4: đọc mã đề (việc phụ) cũng đi qua chuỗi, Google chỉ là lớp đỡ cuối ──────
+
+describe('G4 — callUtilityVision đi qua chuỗi dự phòng', () => {
+  it('Google chết vẫn đọc được mã đề nhờ Vilao, KHÔNG cần tới Google', async () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: 'k-vilao',
+      GRADING_XKIRO_API_KEY: 'k-xkiro',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+    });
+
+    const fetchMock = vi.fn(async (url: string) => (
+      String(url).includes('api.vilao.ai') ? okResponse('{"code":"102"}') : failResponse(503)
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const text = await callUtilityVision('đọc mã đề', [{ mimeType: 'image/jpeg', data: 'AAA' }], 'k-gem');
+
+    expect(text).toBe('{"code":"102"}');
+    // Chỉ một lượt gọi: Vilao sống thì không đụng xKiro lẫn Google.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('api.vilao.ai');
+  });
+
+  it('Vilao chết thì xKiro đọc mã đề, không rơi xuống Google', async () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: 'k-vilao',
+      GRADING_XKIRO_API_KEY: 'k-xkiro',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+    });
+
+    const fetchMock = vi.fn(async (url: string) => (
+      String(url).includes('api.xkiro.com') ? okResponse('{"code":"103"}') : failResponse(500)
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const text = await callUtilityVision('đọc mã đề', [], 'k-gem');
+
+    expect(text).toBe('{"code":"103"}');
+    const urls = fetchMock.mock.calls.map(c => String(c[0]));
+    expect(urls).toHaveLength(2);
+    expect(urls[0]).toContain('api.vilao.ai');
+    expect(urls[1]).toContain('api.xkiro.com');
+    expect(urls.some(u => u.includes('generativelanguage'))).toBe(false);
+  });
+
+  it('cả hai kênh rẻ chết thì Google đỡ, và dùng model RẺ (UTILITY_MODEL) chứ không phải model chấm', async () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: 'k-vilao',
+      GRADING_XKIRO_API_KEY: 'k-xkiro',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+    });
+
+    // Gemini trả format riêng (candidates/parts), KHÔNG phải choices của OpenAI-compatible.
+    const geminiOk = () => ({
+      ok: true,
+      status: 200,
+      clone: () => ({ text: async () => '' }),
+      json: async () => ({
+        candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"code":"104"}' }] } }],
+      }),
+    });
+    const fetchMock = vi.fn(async (url: string) => (
+      String(url).includes('generativelanguage') ? geminiOk() : failResponse(500)
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const text = await callUtilityVision('đọc mã đề', [], 'k-gem');
+
+    expect(text).toBe('{"code":"104"}');
+    const urls = fetchMock.mock.calls.map(c => String(c[0]));
+    expect(urls).toHaveLength(3);
+    expect(urls[2]).toContain(UTILITY_MODEL);
+    expect(urls[2]).not.toContain(GRADING_MODEL);
+  });
+
+  it('GRADING_GEMINI_FALLBACK=off thì chuỗi KHÔNG có tầng Google nào', () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: 'k-vilao',
+      GRADING_XKIRO_API_KEY: 'k-xkiro',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+      GRADING_GEMINI_FALLBACK: 'off',
+    });
+
+    expect(getGradingChain().map(a => a.name)).toEqual([
+      'vilao/gemini-3.8-flash',
+      'xkiro/qwen/qwen3.8-max:free',
+    ]);
+    expect(getGradingChain('utility').some(a => a.name.startsWith('gemini/'))).toBe(false);
+  });
+
+  it('GRADING_GEMINI_FALLBACK=off thì không có kênh rẻ nào là báo lỗi, không gọi mạng', async () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: '',
+      GRADING_XKIRO_API_KEY: '',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+      GRADING_GEMINI_FALLBACK: 'off',
+    });
+
+    const fetchMock = vi.fn(async () => okResponse('không được gọi'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(callUtilityVision('đọc mã đề', [], 'k-gem')).rejects.toThrow(/GRADING_VILAO_API_KEY/);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('giá trị cờ lạ (không phải off/0/false/no) vẫn coi là BẬT — mặc định an toàn', () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: '',
+      GRADING_XKIRO_API_KEY: '',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+      GRADING_GEMINI_FALLBACK: 'yes',
+    });
+
+    expect(getGradingChain().map(a => a.name)).toEqual([`gemini/${GRADING_MODEL}`]);
   });
 });

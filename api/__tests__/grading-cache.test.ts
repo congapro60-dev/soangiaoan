@@ -138,7 +138,7 @@ describe('lượt gọi Gemini: phần cố định đứng trước phần đ�
     expect(parts.map(part => part.text ?? `ảnh:${part.inlineData?.data}`)).toEqual(['chấm bài', 'ảnh:CCC']);
   });
 
-  it('model rẻ bị Google từ chối (mã 400) thì lùi về model chấm chính, không làm hỏng lượt chấm', async () => {
+  it('model rẻ bị Google từ chối (mã 400) thì KHÔNG lùi sang model chấm chính — lượt gọi đã ở lớp rẻ nhất', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, init: { body?: unknown }) => {
       urls.push(String(url));
       bodies.push(JSON.parse(String(init?.body || '{}')) as RequestBody);
@@ -148,13 +148,12 @@ describe('lượt gọi Gemini: phần cố định đứng trước phần đ�
       return okResponse();
     }));
 
-    const text = await inRequest('gv-ngoai', () => callUtilityVision('đọc mã đề', [], OWNER_KEY));
-    expect(text).toBe('đã chấm');
+    await expect(inRequest('gv-ngoai', () => callUtilityVision('đọc mã đề', [], OWNER_KEY))).rejects.toThrow();
+    expect(urls).toHaveLength(1);
     expect(urls[0]).toContain(UTILITY_MODEL);
-    expect(urls[1]).toContain(GRADING_MODEL);
   });
 
-  it('hết hạn mức (429) thì KHÔNG lùi model — lùi chỉ tốn thêm một lượt gọi đắt tiền', async () => {
+  it('hết hạn mức (429) thì không lùi model — lùi chỉ tốn thêm một lượt gọi đắt tiền', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       urls.push(String(url));
       return { ok: false, status: 429, clone: () => ({ text: async () => 'RESOURCE_EXHAUSTED' }) };

@@ -187,8 +187,9 @@ export const GRADING_MODEL = 'gemini-3.8-flash';
  * Model cho VIỆC PHỤ (đọc mã đề trên ảnh, tách danh mục câu hỏi): nhẹ hơn hẳn model chấm
  * chính nên rẻ hơn nhiều, mà hai việc này không cần suy luận sâu.
  *
- * Nếu khoá của lớp không dùng được model này thì `callUtilityVision` lùi về model chấm
- * chính — không bao giờ để lượt chấm hỏng vì tiết kiệm token.
+ * Nếu khoá của lớp không dùng được model này thì đường đọc mã đề đã có chuỗi
+ * `callUtilityVision` đỡ (Vilao → xKiro → Gemini rẻ) — không bao giờ để lượt chấm
+ * hỏng vì tiết kiệm token.
  */
 export const UTILITY_MODEL = 'gemini-2.5-flash-lite';
 
@@ -555,26 +556,36 @@ export const callGeminiVision = async (
 /**
  * Gọi model RẺ cho việc phụ (đọc mã đề, tách danh mục câu).
  *
- * Chỉ lùi về model chấm chính khi Google TỪ CHỐI model rẻ (mã 400: model không dùng được
- * với khoá này). 429/hết hạn mức thì KHÔNG lùi — lùi chỉ tốn thêm một lượt gọi đắt tiền
- * trong khi nguyên nhân vẫn là hết hạn mức.
+ * Đã vào CHUỖI DỰ PHÒNG (G4): ngày trước hàm này gọi thẳng Google, nên khoá Google
+ * chết là khâu đọc mã đề chết theo dù Vilao/xKiro còn sống. Nay thứ tự là
+ * Vilao → xKiro → Gemini, và lớp Google dùng UTILITY_MODEL (model rẻ) chứ không phải
+ * model chấm chính — giữ đặc tính "việc phụ thì model rẻ trước".
+ *
+ * Vì lượt gọi đã ở lớp rẻ nhất, KHÔNG lùi thêm sang model chấm chính nữa: mọi lớp
+ * đều thử rồi mới hỏng, lùi nữa chỉ tốn thêm một lượt gọi đắt tiền cùng khoá Google.
+ * Riêng tầng Google có thể tắt hẳn bằng `GRADING_GEMINI_FALLBACK=off`.
  */
 export const callUtilityVision = async (
   prompt: string,
   images: InlineImage[],
-  apiKey: string,
+  _apiKey: string,
   options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
 ): Promise<string> => {
-  try {
-    return await callGeminiVision(prompt, images, apiKey, UTILITY_MODEL, options);
-  } catch (error) {
-    const modelBiTuChoi = error instanceof GeminiResponseError
-      && error.kind === 'http'
-      && /\(mã 400\)/.test(error.message);
-    if (!modelBiTuChoi) throw error;
-    console.warn('[gemini] model phụ bị Google từ chối, dùng model chấm chính:', error.message);
-    return await callGeminiVision(prompt, images, apiKey, GRADING_MODEL, options);
+  const chain = getGradingChain('utility');
+  if (chain.length === 0) {
+    throw new Error('Máy chủ chưa cấu hình khoá cho việc đọc mã đề (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
   }
+  let lastError: unknown;
+  for (const adapter of chain) {
+    try {
+      return await adapter.call(prompt, images, options, segment);
+    } catch (error) {
+      lastError = error;
+      console.warn(`[grading-chain/utility] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+    }
+  }
+  throw lastError;
 };
 
 // ── Chuỗi dự phòng "rẻ trước, đắt sau" (2026-10-22) ──────────────────────────
@@ -682,14 +693,31 @@ export interface GradingAdapter {
 }
 
 /**
+ * Tầng Google có được phép làm lớp đỡ cuối hay không.
+ *
+ * Mặc định BẬT: giữ nguyên hành vi cũ (Google là lớp chót của mọi chuỗi).
+ * Đặt `GRADING_GEMINI_FALLBACK=off` (hoặc 0/false/no) để tắt hẳn tầng Google mà
+ * không phải sửa code — dùng khi muốn cắt chi phí Google hoàn toàn hoặc khi
+ * khoá Google đã cạn hạn mức và ta không muốn lượt chấm chờ nó timeout.
+ */
+export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRADING_GEMINI_FALLBACK): boolean => {
+  const v = raw?.trim().toLowerCase();
+  return !(v === 'off' || v === '0' || v === 'false' || v === 'no');
+};
+
+/**
  * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
  * Thứ tự: Vilao (env GRADING_VILAO_API_KEY) → xKiro (env GRADING_XKIRO_API_KEY,
  * model :free nên không tốn tiền) → Gemini (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY).
  * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
  * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
  * dưới đây — không có cờ/env thừa.
+ *
+ * `variant = 'utility'` đổi model của lớp Google sang `UTILITY_MODEL` (model rẻ dùng
+ * cho việc phụ như đọc mã đề) thay vì model chấm chính: hai đường dùng cùng thứ tự
+ * nhà cung cấp nhưng khác mức giá, đúng đặc tính "việc phụ thì model rẻ trước".
  */
-export const getGradingChain = (): GradingAdapter[] => {
+export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
   const chain: GradingAdapter[] = [];
   const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
   if (vilaoKey) {
@@ -720,12 +748,13 @@ export const getGradingChain = (): GradingAdapter[] => {
     });
   }
   const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
-  if (geminiKey) {
+  if (geminiKey && geminiFallbackEnabled()) {
     const key = geminiKey;
+    const model = variant === 'utility' ? UTILITY_MODEL : GRADING_MODEL;
     chain.push({
-      name: `gemini/${GRADING_MODEL}`,
+      name: `gemini/${model}`,
       tier: 'phi',
-      call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, GRADING_MODEL, options, segment),
+      call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, model, options, segment),
     });
   }
   return chain;

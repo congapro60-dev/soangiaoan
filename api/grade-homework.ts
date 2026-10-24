@@ -515,7 +515,7 @@ const resolveExamCode = async (
   if (submission.examCode && codes.includes(submission.examCode)) return submission.examCode;
   if (images.length === 0 || timeoutMs < MIN_GEMINI_BUDGET_MS) return null;
   // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — trang đầu là đủ, gửi thêm trang nữa chỉ tốn token.
-  // Việc đọc mã đề không cần suy luận sâu nên dùng model rẻ (có lùi về model chấm nếu bị từ chối).
+  // Việc đọc mã đề không cần suy luận sâu nên đi lớp rẻ trước (Vilao → xKiro → Gemini rẻ).
   const raw = await callUtilityVision(buildDetectExamCodePrompt(codes), images.slice(0, 1), apiKey, {
     maxOutputTokens: 'model-max',
     jsonMode: true,
