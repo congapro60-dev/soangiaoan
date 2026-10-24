@@ -8,6 +8,6 @@
   <text x="372" y="155" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">b</text>
   <text x="180" y="165" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">c</text>
   <text x="276" y="88" font-size="14" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">r</text>
-  <text x="268" y="122" font-size="14" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">I</text>
-  <text x="96" y="264" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">p = (a+b+c)/2 · S = √(p(p−a)(p−b)(p−c)) · S = p·r</text>
+  <text x="302" y="130" font-size="14" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">I</text>
+  <text x="34" y="272" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">p = (a+b+c)/2;  S = √(p(p−a)(p−b)(p−c));  S = p·r  ⇒  r = S/p</text>
 </svg>

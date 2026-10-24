@@ -2,11 +2,12 @@
   <path d="M 60 240 L 360 240 L 285 110 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
   <path d="M 106 240 A 46 46 0 0 0 102 217" fill="none" stroke="#2563eb" stroke-width="1.8"/>
   <path d="M 320 240 A 40 40 0 0 1 340 206" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+  <path d="M 272.9 117 L 279.9 129.1 L 292 122.1" fill="none" stroke="#0f172a" stroke-width="1.8"/>
   <text x="42" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
   <text x="368" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
   <text x="274" y="100" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
-  <text x="74" y="222" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">30°</text>
+  <text x="92" y="236" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">30°</text>
   <text x="298" y="224" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">60°</text>
   <text x="196" y="258" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">AB = k (m)</text>
-  <text x="60" y="150" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">góc C = 90° ⇒ dùng định lí sin</text>
+  <text x="60" y="150" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">góc C = ? (tổng ba góc = 180°)</text>
 </svg>

@@ -1,17 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" role="img" aria-label="Tứ diện SABC với M, N, P lần lượt là trung điểm SA, SB, SC; thiết diện MNP song song với đáy ABC">
-  <path d="M 90 240 L 330 240 L 230 195 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 90 240 L 330 240 L 230 195 Z" fill="#fef9c3" fill-opacity="0.55" stroke="none"/>
+  <line x1="90" y1="240" x2="330" y2="240" stroke="#0f172a" stroke-width="2"/>
+  <line x1="330" y1="240" x2="230" y2="195" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="230" y1="195" x2="90" y2="240" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="210" y1="40" x2="90" y2="240" stroke="#0f172a" stroke-width="2"/>
   <line x1="210" y1="40" x2="330" y2="240" stroke="#0f172a" stroke-width="2"/>
-  <line x1="210" y1="40" x2="230" y2="195" stroke="#0f172a" stroke-width="2"/>
-  <polygon points="150,140 270,140 220,217" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <line x1="210" y1="40" x2="230" y2="195" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="150" y1="140" x2="270" y2="140" stroke="#2563eb" stroke-width="2.5"/>
+  <line x1="150" y1="140" x2="220" y2="118" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <line x1="270" y1="140" x2="220" y2="118" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
   <circle cx="150" cy="140" r="3.5" fill="#2563eb"/>
   <circle cx="270" cy="140" r="3.5" fill="#2563eb"/>
   <circle cx="220" cy="118" r="3.5" fill="#2563eb"/>
   <text x="200" y="34" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">S</text>
   <text x="72" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
   <text x="338" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
-  <text x="224" y="190" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="236" y="192" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
   <text x="128" y="134" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">M</text>
   <text x="278" y="134" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">N</text>
   <text x="226" y="112" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">P</text>
-  <text x="66" y="280" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">MNP là tam giác giữa các trung điểm: MN ∥ AB, MP ∥ AC, NP ∥ BC</text>
+  <text x="66" y="280" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">MN ∥ AB, MP ∥ AC, NP ∥ BC ⇒ (MNP) ∥ (ABC)</text>
 </svg>

@@ -1,22 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Hình chữ nhật ABCD: chuỗi vectơ AB, BC, CD ghép thành AD; điểm I trung điểm AB với IA + IB = 0">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 384" role="img" aria-label="Hình chữ nhật ABCD có AB nhỏ hơn AD: chuỗi vectơ AB, BC, CD ghép thành AD; điểm I là trung điểm AB nên IA + IB = 0">
   <defs>
     <marker id="ab" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/></marker>
     <marker id="ar" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#dc2626"/></marker>
     <marker id="ag" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/></marker>
   </defs>
-  <path d="M 60 50 L 360 50 L 360 230 L 60 230 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
-  <line x1="60" y1="50" x2="350" y2="50" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
-  <line x1="360" y1="50" x2="360" y2="220" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
-  <line x1="360" y1="230" x2="70" y2="230" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
-  <line x1="60" y1="50" x2="62" y2="222" stroke="#dc2626" stroke-width="2.5" marker-end="url(#ar)"/>
-  <circle cx="210" cy="50" r="4" fill="#16a34a"/>
-  <line x1="210" y1="50" x2="72" y2="50" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
-  <line x1="210" y1="50" x2="348" y2="50" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
-  <text x="46" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
-  <text x="368" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
-  <text x="368" y="252" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
-  <text x="46" y="252" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
-  <text x="200" y="26" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">I</text>
-  <text x="120" y="76" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">IA + IB = 0</text>
-  <text x="60" y="266" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">AB + BC + CD = AD (đỏ); cộng tiếp DA được tổng khép kín</text>
+  <path d="M 90 50 L 300 50 L 300 290 L 90 290 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <line x1="90" y1="50" x2="290" y2="50" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="300" y1="50" x2="300" y2="280" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="300" y1="290" x2="100" y2="290" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="90" y1="50" x2="90" y2="280" stroke="#dc2626" stroke-width="2.5" marker-end="url(#ar)"/>
+  <line x1="90" y1="100" x2="300" y2="100" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="4 4"/>
+  <circle cx="195" cy="100" r="4" fill="#16a34a"/>
+  <line x1="195" y1="100" x2="100" y2="100" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="195" y1="100" x2="290" y2="100" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="90" y1="50" x2="90" y2="100" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <line x1="300" y1="50" x2="300" y2="100" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="76" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="308" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="308" y="304" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="76" y="304" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
+  <text x="199" y="84" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">I</text>
+  <text x="40" y="130" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">vectơ IA + vectơ IB = vectơ 0</text>
+  <text x="40" y="370" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">vectơ AB + BC + CD = AD (đỏ); cộng tiếp DA được vectơ 0</text>
 </svg>
