@@ -81,10 +81,12 @@ export default function App() {
   useEffect(() => { headerStudentClassesPromise.current = null; }, [user?.uid]);
   const loadHeaderStudentClasses = useCallback(() => {
     if (!headerStudentClassesPromise.current) {
-      headerStudentClassesPromise.current = Promise.all([
+      const request = Promise.all([
         listAccessibleClasses(),
         import('./components/tabs/ClassesTab'),
       ]).then(([remoteClasses, classesModule]) => remoteClasses.map(remote => classesModule.teacherClassFromServer(remote)));
+      headerStudentClassesPromise.current = request;
+      request.catch(() => { if (headerStudentClassesPromise.current === request) headerStudentClassesPromise.current = null; });
     }
     return headerStudentClassesPromise.current;
   }, []);
