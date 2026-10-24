@@ -438,8 +438,17 @@ export function buildCanonicalDraft(
   return buildBanToanV4AdaptiveLessonDraft(sourceKey, teacherId);
 }
 
-export interface SequentialPublicationOptions {
-  /** Existing lessons indexed by sourceKey (curriculumRef.lessonCode). */
+/**
+ * Ba bài Tuần 11 là Bài học tương tác V8.8 (Gate D duyệt 2026-10-25), chạy 3 luồng
+ * Presenter / Student / Coach trong tiết thật — khác Bài tự học phân hoá.
+ */
+export const INTERACTIVE_SOURCE_KEYS: ReadonlySet<string> = new Set([
+  '10-11-79',
+  '11-11-75',
+  '12-11-80',
+]);
+
+export interface SequentialPublicationOptions {  /** Existing lessons indexed by sourceKey (curriculumRef.lessonCode). */
   existingLessons: Map<string, AdaptiveLesson>;
   /** Teacher ID for new canonical drafts. */
   teacherId: string;
@@ -558,9 +567,14 @@ export async function publishSequentially(
     }
 
     // Publish: set status and persist
+    // Ba bài Tuần 11 là Bài học tương tác V8.8 (Gate D duyệt 2026-10-25), không phải
+    // Bài tự học phân hoá. Đánh dấu ở đây để tab "Bài học tương tác" nhận đúng bài;
+    // 48 bài Tuần 5–6 giữ lessonKind mặc định (self_study) như cũ.
+    const isInteractiveLesson = INTERACTIVE_SOURCE_KEYS.has(sourceKey);
     const publishedLesson: AdaptiveLesson = {
       ...lessonToPublish,
       status: 'published',
+      ...(isInteractiveLesson ? { lessonKind: 'interactive' as const } : {}),
       updatedAt: new Date().toISOString(),
     };
 

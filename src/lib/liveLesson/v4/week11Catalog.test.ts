@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getBanToanV4Contract, getBanToanV4PackageMetadata } from './lessonAdapter';
 import { getBanToanV4ContractByPackageId, getBanToanV4SourceKeyForLesson } from './lessonRegistry';
 import { validateV4Contract } from './validateContract';
+import { INTERACTIVE_SOURCE_KEYS } from './sequentialPublication';
 
 // sourceKey = grade-week-period, với period là số tiết PPCT thật (periodNo).
 const W11 = [
@@ -45,5 +46,13 @@ describe('Ba bài Tuần 11 nạp được vào registry', () => {
     const metadata = getBanToanV4PackageMetadata().find(item => item.sourceKey === '11-11-75');
     expect(metadata).toBeTruthy();
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe('11-11-75');
+  });
+
+  it('chỉ 3 bài Tuần 11 được đánh dấu interactive, 48 bài cũ giữ self_study', () => {
+    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '11-11-75', '12-11-80']);
+    for (const key of INTERACTIVE_SOURCE_KEYS) {
+      expect(getBanToanV4Contract(key).sourceKey).toBe(key);
+    }
+    expect(INTERACTIVE_SOURCE_KEYS.has('10-5-31')).toBe(false);
   });
 });

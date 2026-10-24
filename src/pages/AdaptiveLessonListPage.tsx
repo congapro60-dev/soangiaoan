@@ -13,6 +13,7 @@ import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson'
 import { getBanToanV4PackageForLesson } from '../lib/liveLesson/v4';
 import { publishSequentially, summarizeReports, getAllSourceKeys, type PublicationReport } from '../lib/liveLesson/v4/sequentialPublication';
 import { getBanToanV4PackageCount } from '../lib/liveLesson/v4/lessonRegistry';
+import { INTERACTIVE_SOURCE_KEYS } from '../lib/liveLesson/v4/sequentialPublication';
 import { deleteLessonFromFirestore, listLessonsForTeacher, saveLessonToFirestore } from '../services/adaptiveLessonService';
 
 export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
@@ -145,7 +146,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
 
   const banToanPackageCount = getBanToanV4PackageCount();
 
-  const handleSequentialPublish = async () => {
+  const handleSequentialPublish = async (keysOverride?: string[]) => {
     const currentUser = auth.currentUser ?? user;
     if (!currentUser) {
       setError('Bạn cần đăng nhập để xuất bản các gói V4.');
@@ -166,7 +167,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
         }
       }
 
-      const sourceKeys = getAllSourceKeys();
+      const sourceKeys = keysOverride ?? getAllSourceKeys();
       setSequentialProgress({ current: 0, total: sourceKeys.length, currentKey: '' });
       const reports: PublicationReport[] = [];
 
@@ -294,6 +295,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               <p className="mt-1 text-sm font-semibold text-indigo-800">Nguồn Ban Toán Khối 10–12 (Tuần 5–6 và 3 bài tương tác Tuần 11). Tạo và xuất bản tuần tự từng bài, cập nhật bảng bài ngay sau mỗi lần.</p>
             </div>
             <button disabled={sequentialPublishing || !user} onClick={() => void handleSequentialPublish()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> {sequentialPublishing ? `Đang xuất bản ${sequentialProgress?.current ?? 0}/${sequentialProgress?.total ?? banToanPackageCount}...` : `Tạo và xuất bản ${banToanPackageCount} bài`}</button>
+            <button disabled={sequentialPublishing || !user} onClick={() => void handleSequentialPublish([...INTERACTIVE_SOURCE_KEYS])} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-300 bg-white px-5 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> Xuất bản 3 bài tương tác Tuần 11</button>
           </div>
           {sequentialProgress && (
             <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
