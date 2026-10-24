@@ -2,7 +2,7 @@ import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { stripAnswerKey } from './_exam-core.js';
 import { readClassAccess, type ClassAccess } from './_classroom-access.js';
-import { callGeminiVision, getGradingApiKey, GRADING_MODEL, reserveQuota } from './_grading-core.js';
+import { callGradingVision, reserveQuota } from './_grading-core.js';
 import {
   buildExamContentSnapshot,
   type ExamContentSnapshot,
@@ -38,7 +38,7 @@ import type {
   SubmissionGradeHistoryDoc,
   SubmissionGradeRevisionAction,
 } from '../src/lib/classroom/types.js';
-import { buildHomeworkGradingSegments, parseHomeworkGradeForCommit } from '../src/lib/classroom/gradingPrompt.js';
+import { buildHomeworkGradingSegments, parseHomeworkGradeForCommit, HomeworkGradeContractError } from '../src/lib/classroom/gradingPrompt.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -939,16 +939,27 @@ const teacherOnlineAiRegrade = async (db: Db, body: Body, res: ResponseLike): Pr
     gradingInstructions: asString(context.assignment.gradingInstructions),
     studentText,
   });
-  const raw = await callGeminiVision(
+  // Đề + đáp án cố định cho cả đề → cache tiền tố dùng chung khi thầy chấm lại nhiều bài.
+  const segment = { prefix: segments.prefix, suffix: segments.suffix };
+  const chamlai = (): Promise<string> => callGradingVision(
     `${segments.prefix}\n\n${segments.suffix}`,
     [],
-    getGradingApiKey(),
-    GRADING_MODEL,
-    { maxOutputTokens: 8192, jsonMode: true },
-    // Đề + đáp án cố định cho cả đề → cache tiền tố dùng chung khi thầy chấm lại nhiều bài.
-    { prefix: segments.prefix, suffix: segments.suffix },
+    { maxOutputTokens: 8192 },
+    segment,
   );
-  const parsed = parseHomeworkGradeForCommit(raw, maxScore, questions.every(question => !asString(question.correctAnswer).trim()), 0);
+  const khongDapAn = questions.every(question => !asString(question.correctAnswer).trim());
+  let parsed: ReturnType<typeof parseHomeworkGradeForCommit>;
+  try {
+    parsed = parseHomeworkGradeForCommit(await chamlai(), maxScore, khongDapAn, 0);
+  } catch (error) {
+    // Vilao không có jsonMode như Gemini cũ: thỉnh thoảng AI trả lời lệch JSON — nhờ chấm lại ĐÚNG MỘT lần rồi mới báo lỗi.
+    if (!(error instanceof HomeworkGradeContractError)) throw error;
+    try {
+      parsed = parseHomeworkGradeForCommit(await chamlai(), maxScore, khongDapAn, 0);
+    } catch {
+      throw new ClassroomOnlineError(502, 'AI chấm lại chưa trả được kết quả đúng chuẩn. Bấm "Chấm lại bằng AI" lần nữa.');
+    }
+  }
   const now = nowIso();
   const update = applyAiOnlineGradeSuggestion({ answers: rawAnswers, maxScore }, questions, {
     score: parsed.grade.score,

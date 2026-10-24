@@ -1,6 +1,7 @@
 /// <reference types="node" />
 /**
- * Relay cho hãng KHÁC Gemini (Claude, ChatGPT) — dùng chung hàm `api/ai-relay.ts`, KHÔNG thêm Vercel Function (đang sát trần 12).
+ * Relay gọi hãng ngoài: Claude, ChatGPT, và đích Vilao của provider 'gemini' (từ G1 24/10/2026 máy chủ không gọi Google
+ * trực tiếp nữa) — dùng chung hàm `api/ai-relay.ts`, KHÔNG thêm Vercel Function (đang sát trần 12).
  *
  * Cùng luật khoá/ví/trần như lượt Gemini: `ensureGeminiKey(…, { vendor: true })` chọn nguồn (khoá riêng của hãng nằm ở trình
  * duyệt nên ở đây luôn là khoá chung), giữ chỗ tiền trước khi gọi, ghi lượt + trừ ví trong một giao dịch khi xong, trả lại
@@ -17,14 +18,14 @@ import {
 } from './_ai-usage.js';
 import { GeminiResponseError, type InlineImage } from './_grading-core.js';
 import { getAdminDb } from './_exam-core.js';
-import { RELAY_VENDOR_MAX_OUTPUT_TOKENS, type RelayVendor } from './_ai-relay-core.js';
+import { RELAY_VENDOR_MAX_OUTPUT_TOKENS, type RelayApiVendor } from './_ai-relay-core.js';
 import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
-const LABEL: Record<RelayVendor, string> = { claude: 'Claude', openai: 'ChatGPT' };
+const LABEL: Record<RelayApiVendor, string> = { claude: 'Claude', openai: 'ChatGPT', vilao: 'Vilao' };
 const ANTHROPIC_VERSION = '2023-06-01';
 
 export interface VendorCall {
-  vendor: RelayVendor;
+  vendor: RelayApiVendor;
   apiKey: string;
   model: string;
   prompt: string;
@@ -65,13 +66,18 @@ const buildRequest = (call: VendorCall): { url: string; headers: Record<string, 
       },
     };
   }
+  // Vilao và OpenAI cùng dạng OpenAI-compatible, khác URL, tên trần token và mức effort đã kiểm chứng.
   return {
-    url: 'https://api.openai.com/v1/chat/completions',
+    url: call.vendor === 'vilao' ? 'https://api.vilao.ai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions',
     headers: { authorization: `Bearer ${call.apiKey}`, 'content-type': 'application/json' },
     body: {
       model: call.model,
-      max_completion_tokens: maxTokens,
-      ...(call.effort ? { reasoning_effort: call.effort } : {}),
+      // Vilao (POC 24/10/2026) là cổng OpenAI-compatible chuẩn → nhận `max_tokens`; OpenAI chính thức muốn `max_completion_tokens`.
+      ...(call.vendor === 'vilao' ? { max_tokens: maxTokens } : { max_completion_tokens: maxTokens }),
+      // Chỉ gửi mức đã xác thực: trên Vilao mới thử được 'none'/'low', các mức khác để model tự chạy mặc định.
+      ...(call.effort && (call.vendor !== 'vilao' || call.effort === 'none' || call.effort === 'low')
+        ? { reasoning_effort: call.effort }
+        : {}),
       messages: [
         ...(call.system ? [{ role: 'system', content: call.system }] : []),
         {
@@ -91,7 +97,7 @@ interface Parsed extends VendorResult {
   finishReason?: string;
 }
 
-const parseResponse = (vendor: RelayVendor, data: unknown): Parsed | null => {
+const parseResponse = (vendor: RelayApiVendor, data: unknown): Parsed | null => {
   if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
   if (vendor === 'claude') {
     const d = data as { content?: Array<{ type?: string; text?: string }>; stop_reason?: string; usage?: unknown };
@@ -135,9 +141,11 @@ export const callVendor = async (call: VendorCall): Promise<VendorResult> => {
     }
     const parsed = parseResponse(call.vendor, await res.json().catch(() => null));
     if (!parsed) throw new GeminiResponseError('provider', `${label} trả về phản hồi không hợp lệ. Thử lại sau ít phút.`);
-    // Ghi token TRƯỚC mọi nhánh báo lỗi: hãng tính tiền cả lượt bị cắt/bị từ chối. `recordAiUsage` nhận luôn phần giữ chỗ.
+// Ghi token TRƯỚC mọi nhánh báo lỗi: hãng tính tiền cả lượt bị cắt/bị từ chối. `recordAiUsage` nhận luôn phần giữ chỗ.
     handedOver = true;
-    await recordAiUsage(call.vendor, call.model, parsed.counts, { finishReason: parsed.finishReason, holdVnd: held.holdVnd });
+    // Lượt Vilao ghi với tiền tố `vilao/` để bảng giá (`aiPricing.ts`) và sao kê phân biệt được với Gemini gốc.
+    const usageModel = (vendor: RelayApiVendor, model: string): string => (vendor === 'vilao' ? `vilao/${model}` : model);
+    await recordAiUsage(call.vendor, usageModel(call.vendor, call.model), parsed.counts, { finishReason: parsed.finishReason, holdVnd: held.holdVnd });
     return { text: parsed.text, truncated: parsed.truncated, refused: parsed.refused };
   } finally {
     if (held.holdVnd > 0 && !handedOver && choice.ownerUid) {

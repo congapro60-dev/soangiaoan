@@ -39,6 +39,7 @@ export const PRICE_SOURCES = {
   gateway: 'vercel.com/ai-gateway/models/glm-5.2 (tra 2026-09-24)',
   claude: 'trang giá Anthropic (tra 2026-09-30, xem src/data/providerGuide.ts)',
   openai: 'trang giá OpenAI (tra 2026-09-30, xem src/data/providerGuide.ts)',
+  vilao: 'chợ Vilao — console, model chib/gemini-3.8-flash (24/10/2026)',
 } as const;
 
 /** Claude/OpenAI: các trang giá không nêu giá cache nên tính cache bằng giá đầu vào — không bao giờ tính thấp hơn thực tế. */
@@ -76,6 +77,13 @@ const RULES: PriceRule[] = [
   { label: 'GPT-6 Luna', matches: m => m.startsWith('gpt-6-luna'), periods: flatPrice(0.1, 0.5) },
   { label: 'GPT-6 Astra', matches: m => m.startsWith('gpt-6-astra'), periods: flatPrice(10, 50) },
   { label: 'GLM 5.2 (Vercel AI Gateway)', matches: m => m === 'zai/glm-5.2', periods: [{ price: { input: 0.5625, output: 1.8, cached: 0.5625 } }] },
+  {
+    label: 'Vilao gemini-3.8-flash (chợ API)',
+    matches: m => m.startsWith('vilao/'),
+    // Chợ Vilao, model chib (console 24/10/2026): 400₫/1M vào · 1.600₫/1M ra, tối thiểu 3₫/request (không mô hình hoá mức tối thiểu).
+    // Quy sang USD bằng chính tỉ giá ghi sổ (26.190₫/USD) nên khi quy ngược ra VNĐ đúng giá niêm yết.
+    periods: [{ price: { input: 400 / 26_190, output: 1_600 / 26_190, cached: 400 / 26_190 } }],
+  },
 ];
 
 const normalizeModel = (model: string): string => String(model || '').trim().toLowerCase().replace(/^models\//, '');

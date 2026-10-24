@@ -8,11 +8,12 @@
 import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
-import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
+import { callGradingVision } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
 import { sanitizeReportOverrides, type ReportOverrides } from '../src/lib/classroom/reportOverrides.js';
 import { PARENT_REPORTS_SUB, parentReportDocId } from '../src/lib/classroom/parentAccess.js';
 import { asProgram, stageForPeriod } from '../src/lib/classroom/reportStage.js';
+import { parseLooseJson } from '../src/utils/jsonRepair.js';
 import {
   aggregateRequirementLines, applyRequirementNotes, mapRequirementQuestions, sanitizeRequirementLines, yccdOptionsForPrompt,
   type EvidenceSubmission, type ParentRequirementLine,
@@ -155,15 +156,29 @@ const readEvidence = (facts: unknown): EvidenceSubmission[] => {
 };
 
 const parseDraftJson = (raw: string): Record<string, unknown> | null => {
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start < 0 || end <= start) return null;
   try {
-    const parsed = JSON.parse(raw.slice(start, end + 1));
-    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
+    // parseLooseJson: bọc ```json, escape lệch… của đường Vilao (không có jsonMode như Gemini cũ).
+    const parsed = parseLooseJson<Record<string, unknown>>(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
   } catch {
     return null;
   }
+};
+
+type DraftParse = { kind: 'slow' } | { kind: 'bad' } | { kind: 'ok'; value: Record<string, unknown> };
+
+/**
+ * Gọi AI xin khối JSON: parse lệch thì nhờ gửi lại ĐÚNG MỘT lần nữa (Vilao không khoá JSON như jsonMode cũ);
+ * `null` -hết giờ- vẫn theo `callWithinTime` để phân biệt 504 với 502.
+ */
+const callDraftJson = async (call: () => Promise<string>, timeoutMs?: number): Promise<DraftParse> => {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const raw = await callWithinTime(call, timeoutMs);
+    if (raw === null) return { kind: 'slow' };
+    const parsed = parseDraftJson(raw);
+    if (parsed) return { kind: 'ok', value: parsed };
+  }
+  return { kind: 'bad' };
 };
 
 const cleanComment = (value: unknown): string => (
@@ -227,7 +242,7 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   const evidence = readEvidence(body.facts);
   // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
   if (!yccdOptions || evidence.length === 0) {
-    const raw = await callWithinTime(() => callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
+    const raw = await callWithinTime(() => callGradingVision(buildParentCommentPrompt(factsJson), [], {
       temperature: 0.4,
       maxOutputTokens: 'model-max',
       timeoutMs: AI_TIMEOUT_MS,
@@ -241,26 +256,24 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   const startedAt = Date.now();
   const overview = { ...(body.facts as Record<string, unknown>) };
   delete overview.baiDaDuyet;
-  const [commentRaw, ...mappingRaws] = await Promise.all([
-    callWithinTime(() => callGeminiVision(buildParentCommentPrompt(JSON.stringify(overview)), [], getGradingApiKey(), GRADING_MODEL, {
+  const [commentRaw, ...mappingDrafts] = await Promise.all([
+    callWithinTime(() => callGradingVision(buildParentCommentPrompt(JSON.stringify(overview)), [], {
       temperature: 0.4,
       maxOutputTokens: 'model-max',
       timeoutMs: AI_TIMEOUT_MS,
     })),
-    ...chunkEvidence(evidence).map(chunk => callWithinTime(() => callGeminiVision(
-      buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
+    ...chunkEvidence(evidence).map(chunk => callDraftJson(() => callGradingVision(
+      buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], {
         temperature: 0.2,
         maxOutputTokens: 'model-max',
-        jsonMode: true,
         timeoutMs: AI_TIMEOUT_MS,
       }))),
   ]);
-  if (commentRaw === null || mappingRaws.some(raw => raw === null)) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
+  if (commentRaw === null || mappingDrafts.some(draft => draft.kind === 'slow')) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
   const text = cleanComment(commentRaw);
-  const mappings = mappingRaws.map(raw => parseDraftJson(raw as string));
   // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
-  if (!text || mappings.some(m => m === null)) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
-  const merged = { yccd: mappings.flatMap(m => (Array.isArray(m!.yccd) ? m!.yccd : [])) };
+  if (!text || mappingDrafts.some(draft => draft.kind === 'bad')) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  const merged = { yccd: mappingDrafts.flatMap(draft => (draft.kind === 'ok' && Array.isArray(draft.value.yccd) ? draft.value.yccd : [])) };
   const grouped = mapRequirementQuestions(grade, evidence, merged, stage);
   let requirements = aggregateRequirementLines(grade, evidence, merged, stage);
 
@@ -273,13 +286,12 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
       tiLeDiem: `${Math.round(requirements[index].percent)}%`,
       cau: questions,
     })));
-    const notesRaw = await callWithinTime(() => callGeminiVision(buildRequirementNotesPrompt(groupsJson), [], getGradingApiKey(), GRADING_MODEL, {
+    const notesDraft = await callDraftJson(() => callGradingVision(buildRequirementNotesPrompt(groupsJson), [], {
       temperature: 0.2,
       maxOutputTokens: 'model-max',
-      jsonMode: true,
       timeoutMs: remainingMs,
     }), remainingMs);
-    if (notesRaw !== null) requirements = applyRequirementNotes(requirements, parseDraftJson(notesRaw));
+    if (notesDraft.kind === 'ok') requirements = applyRequirementNotes(requirements, notesDraft.value);
   }
   res.status(200).json({ text, requirements });
 };
