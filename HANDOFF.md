@@ -1,9 +1,16 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-23
+**Cập nhật:** 2026-10-24
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Duyệt tự động bài cần soát + cờ cảnh báo — 24/10 (opencode)
+
+Chủ dự án duyệt 3 quyết: **(1)** "Duyệt tự động + cờ" — cron 60' và nút "Chấm & duyệt tất cả" duyệt LUÔN bài ước lượng chưa chắc (uncertain, kể cả lệch sổ ≥ 0,5), thay vì kẹt ở Chờ duyệt; **(2)** thầy cô sửa tay thì bài quay về "Chờ duyệt" qua cờ `editedByTeacher`; **(3)** chip cờ CHỈ ở bảng điểm lớp, còn nguyên SAU khi duyệt (duyệt chỉ patch `teacherApproved`/`approvalSource` — `api/grade-homework.ts:2151`).
+- Nhánh `feature/auto-approve-uncertain-flag` (9 commits, base `527ba4e`): bỏ 2 chặn duyệt `autoGrade.ts`; `toApprove` nới chứa uncertain; UI `AssignmentPanel`/`TeacherBacklogCard` bỏ ô tick "vẫn giữ lại".
+- **Cái sắp cắn người sau:** (1) `uncertain ⊆ toApprove` — ĐỪNG cộng 2 vế khi đếm tồn (`AssignmentPanel.tsx:673`, `TeacherBacklogCard.tsx:24`, concat cũ đã xoá); bài vừa uncertain vừa sửa tay không auto-duyệt (cron tính 60' từ lúc sửa). (2) Comment stale mô tả chính sách CŨ "lệch nhiều thì không tự duyệt" tại `api/grade-homework.ts:690-691` — nợ sửa sau merge. (3) 4 test hash vẫn đỏ trên Windows (CRLF, `contractData`×2 + `goldenCandidates`×2) — môi trường, Linux/Vercel xanh; nợ `.gitattributes` sau.
+- **Nghiệm thu:** build xanh (tsc 0 lỗi); vitest **4379/4384** pass (5 fail = 4 CRLF + 1 flaky timeout, rerun riêng 14/14 PASS); final review Yes — KHÔNG có lệnh ghi Firestore mới, đếm không trùng, chip còn sau duyệt.
 
 ## Chấm ảnh giá rẻ qua Vilao chib + điểm = Σ từng dòng — 23/10 (opencode)
 
