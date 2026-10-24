@@ -46,6 +46,7 @@ export interface TaskInputProps {
     at?: number;
     ratio?: number;
     perItem?: boolean[];
+    aiComment?: { feedback?: string; model?: string; at?: number } | null;
   } | null;
   onSaveDraft?: (answer: unknown) => unknown;
   onSubmit?: (answer: unknown) => Promise<void> | void;
@@ -658,6 +659,19 @@ export function TaskInput({
         <div className="task-status-banner task-status-pending">
           <span className="task-badge task-badge-pending">⏳ Chờ giáo viên đánh giá</span>
           <p>Bài làm của em đã được nộp. Giáo viên sẽ nhận xét và đánh giá theo chuẩn đầu ra.</p>
+        </div>
+      );
+    }
+
+    if (submission.assessmentStatus === "submitted") {
+      // V28 Phase C — luyện tập nền B: nộp là hoàn thành; AI có thể kèm nhận xét gợi ý, không kết luận đạt/không đạt.
+      return (
+        <div className="task-status-banner task-status-pending">
+          <span className="task-badge task-badge-pending">✓ Đã nộp bài luyện tập</span>
+          <p>Bài làm của em đã hoàn thành nhiệm vụ luyện tập này.</p>
+          {submission.aiComment?.feedback && (
+            <p><strong>Nhận xét gợi ý: </strong><MathText text={submission.aiComment.feedback} /></p>
+          )}
         </div>
       );
     }

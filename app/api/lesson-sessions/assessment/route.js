@@ -16,8 +16,8 @@ export async function POST(request){
   const chunks=[];let bytes=0;
   for(;;){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;if(bytes>2048){await reader.cancel();throw Error('INVALID_BODY');}chunks.push(part.value);}
   let body;try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw Error('INVALID_BODY');}
-  const keys=body?.action==='preview'?['action','id']:body?.action==='automatic'?['action','id','requestId']:['action','id','fingerprint','requestId','confirmed'];
-  if(!body||typeof body!=='object'||Array.isArray(body)||!['preview','propose','automatic'].includes(body.action)||Object.keys(body).length!==keys.length||keys.some(k=>!Object.hasOwn(body,k))||typeof body.id!=='string'||!body.id||body.id.length>128||body.action==='automatic'&&(typeof body.requestId!=='string'||!/^[-\w]{1,120}$/.test(body.requestId)))throw Error('INVALID_BODY');
+  const keys=body?.action==='preview'?['action','id']:body?.action==='automatic'?(body?.includePractice===undefined?['action','id','requestId']:['action','id','requestId','includePractice']):['action','id','fingerprint','requestId','confirmed'];
+  if(!body||typeof body!=='object'||Array.isArray(body)||!['preview','propose','automatic'].includes(body.action)||Object.keys(body).length!==keys.length||keys.some(k=>!Object.hasOwn(body,k))||typeof body.id!=='string'||!body.id||body.id.length>128||body.action==='automatic'&&(typeof body.requestId!=='string'||!/^[-\w]{1,120}$/.test(body.requestId)||body.includePractice!==undefined&&typeof body.includePractice!=='boolean'))throw Error('INVALID_BODY');
   const database=db(),lessonService=createLessonService({db:database});
   await lessonService.assessmentContext({id:body.id,accountId:user.userId});
   await loadStoredAI(database);

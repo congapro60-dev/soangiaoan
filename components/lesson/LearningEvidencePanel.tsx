@@ -7,7 +7,7 @@ import { QuestionPager } from "./QuestionPager";
 type Rating = "not_started" | "working" | "met";
 type Levels = Record<"must" | "should" | "could", Rating>;
 type Command = (type: string, payload: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
-type TeacherView = { revision?:number; status?:string; learningEvidence?: LearningEvidenceView; openAssessments?:Record<string,AssessmentRecord>; submissions?:Record<string,{submissionId:string;learnerId:string;taskId:string;activityId:string;answer:unknown;assessmentStatus:string;ok:boolean|null;at:number;aiAssessment?:{reason?:string;model?:string}}>; roster?:Record<string,{name:string;present?:boolean}>; tasks?:Array<{id:string;prompt?:string}> };
+type TeacherView = { revision?:number; status?:string; practiceGradingAI?:boolean; learningEvidence?: LearningEvidenceView; openAssessments?:Record<string,AssessmentRecord>; submissions?:Record<string,{submissionId:string;learnerId:string;taskId:string;activityId:string;answer:unknown;assessmentStatus:string;ok:boolean|null;at:number;aiAssessment?:{reason?:string;model?:string}}>; roster?:Record<string,{name:string;present?:boolean}>; tasks?:Array<{id:string;prompt?:string}> };
 type AssessmentRecord = {submissionId:string;learnerId:string;taskId:string;activityId:string;answer:unknown;status:string;criteriaMet?:boolean;feedback?:string;reason?:string;model?:string;createdAt:number;assessmentSource?:string;assessedAt?:number};
 export type LearningEvidenceView = { stats?: { total: number; submitted: number; passed: number; notPassed: number; pendingTeacher: number; needsReview?: number; incomplete?: number; aiAssessed?:number; teacherAssessed?:number; notSubmitted: number; rate: number | null }; selfAssessments?: Record<string, { name: string; levels: Levels; updatedAt: number }>; submitted?:number; passed?:number; notPassed?:number;needsReview?:number;pending?:number;items?:{taskId:string;status:string;criteriaMet:boolean|null;feedback:string|null;submittedAt:number}[] };
 type StudentView = { learningEvidence?: LearningEvidenceView; selfAssessment?: (Levels & { updatedAt: number }) | null; objectives?: { level: string; statement: string }[] };
@@ -40,17 +40,20 @@ function TeacherEvidenceSession({ sessionId, view, onCommand, disabled = false }
     finally { setBusy(false); }
   }
   const pendingIds = Object.values(view.openAssessments || {}).filter(item => item.status === "pending").map(item => item.submissionId).sort();
-  const automaticKey = `${sessionId}:${view.revision || 0}:${pendingIds.slice(0, 20).join(",")}`;
+  const commentIds = Object.values(view.openAssessments || {}).filter(item => item.status === "comment_pending").map(item => item.submissionId).sort();
+  const aiQueue = [...pendingIds, ...commentIds];
+  const automaticKey = `${sessionId}:${view.revision || 0}:${aiQueue.slice(0, 24).join(",")}`;
   useEffect(() => {
-    if (disabled || busy || !pendingIds.length || attempted.current.has(automaticKey)) return;
+    if (disabled || busy || !aiQueue.length || attempted.current.has(automaticKey)) return;
     attempted.current.add(automaticKey);
     void run(async () => {
-      const data = await assessmentRequest({ action: "automatic", id: sessionId, requestId: `auto-${view.revision || 0}` });
+      const data = await assessmentRequest({ action: "automatic", id: sessionId, requestId: `auto-${view.revision || 0}`, ...(view.practiceGradingAI ? { includePractice: true } : {}) });
       const rows = data.automatic?.assessments || [];
       const reviewCount = rows.filter(row => row.status === "needs_review").length;
-      setAutomaticMessage(reviewCount ? `${reviewCount} phiếu cần giáo viên rà soát.` : `${rows.length} phiếu đã được AI chấm tự động.`);
+      const commentCount = rows.filter(row => row.status === "ai_commented").length;
+      setAutomaticMessage([reviewCount ? `${reviewCount} phiếu cần giáo viên rà soát.` : "", commentCount ? `${commentCount} bài luyện tập đã có nhận xét gợi ý.` : "", rows.length - reviewCount - commentCount ? `${rows.length - reviewCount - commentCount} phiếu đã được AI chấm tự động.` : ""].filter(Boolean).join(" ") || "AI chưa ghi được kết quả mới.");
     });
-  }, [automaticKey, disabled, busy, sessionId, view.revision, pendingIds.length]);
+  }, [automaticKey, disabled, busy, sessionId, view.revision, aiQueue.length, view.practiceGradingAI]);
   async function regradeOne() {
     if (!regrade) return;
     await run(async () => {
@@ -71,6 +74,10 @@ function TeacherEvidenceSession({ sessionId, view, onCommand, disabled = false }
     <p>Tỉ lệ đạt trong số đã nộp: {stats.rate === null ? "Chưa có dữ liệu" : `${stats.rate}%`}</p>
     <p className="lesson-muted">Kết quả AI được ghi tự động khi đủ tin cậy; kết quả mơ hồ chuyển sang cần rà soát. AI không tự cấp năng lực.</p>
     {automaticMessage && <p role="status">{automaticMessage}</p>}
+    <label style={{ display: "flex", gap: ".5rem", alignItems: "center", fontSize: ".9rem" }}>
+      <input type="checkbox" checked={Boolean(view.practiceGradingAI)} disabled={disabled || busy} onChange={event => { const enabled = event.target.checked; void run(async () => { const result = await onCommand("SET_PRACTICE_GRADING", { enabled }); if (!result.ok) throw new Error(result.error || "Chưa đổi được công tắc."); }); }}/>
+      AI chấm cả bài luyện tập (đạt/chưa đạt như vé; AI không chắc thì GV rà)
+    </label>
     <details><summary>Xem bài cần rà soát hoặc chấm lại ({Object.values(view.openAssessments || {}).filter(item => ['needs_review','ai_assessed','pending'].includes(item.status)).length})</summary>
       {Object.values(view.openAssessments || {}).filter(item => ['needs_review','ai_assessed','pending'].includes(item.status)).map(item => {
         const submission = view.submissions?.[item.submissionId];
