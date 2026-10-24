@@ -11,8 +11,8 @@
  * File thuần, dùng chung cho trình duyệt và máy chủ (máy chủ nhập qua đuôi `.js`).
  */
 
-export type EffortProvider = 'gemini' | 'claude' | 'openai';
-export const EFFORT_PROVIDERS: readonly EffortProvider[] = ['gemini', 'claude', 'openai'];
+export type EffortProvider = 'gemini' | 'claude' | 'openai' | 'vilao';
+export const EFFORT_PROVIDERS: readonly EffortProvider[] = ['gemini', 'claude', 'openai', 'vilao'];
 
 export interface EffortLevelInfo {
   label: string;
@@ -65,6 +65,11 @@ const RULES: Record<EffortProvider, EffortRule[]> = {
     { matches: m => m.startsWith('gpt-6.1-sol'), support: { levels: FIVE, defaultLevel: 'medium' } },
     { matches: m => m.startsWith('gpt-6-luna'), support: { levels: ['none', ...FIVE], defaultLevel: 'medium' } },
     { matches: m => m.startsWith('gpt-6-astra'), support: { levels: ['minimal', ...FIVE], defaultLevel: null } },
+  ],
+  // Vilao chạy model Gemini của chợ chib: chỉ 'none'/'low' là đã POC xác thực 24/10 — các mức khác để model tự chạy mặc định.
+  // defaultLevel null: không gửi tham số thì model tự suy (532 reasoning tokens/câu test).
+  vilao: [
+    { matches: m => m.startsWith('gemini-3.8-flash'), support: { levels: ['none', 'low'], defaultLevel: null } },
   ],
 };
 

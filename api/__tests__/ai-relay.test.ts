@@ -468,7 +468,7 @@ describe('mức suy nghĩ qua relay — mỗi mức là tham số thật gửi c
     delete process.env.OPENAI_API_KEY;
   });
 
-  it('Vilao (provider gemini): chỉ gửi reasoning_effort cho "none" và "low"; mức khác bị bỏ, không chọn thì không gửi', async () => {
+  it('Vilao (provider gemini): gửi "none"/"low" (đã POC); mức medium/high còn lại để model tự chạy mặc định, vắng thì không gửi', async () => {
     const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     const efforts: Array<string | undefined> = [];
@@ -476,7 +476,7 @@ describe('mức suy nghĩ qua relay — mỗi mức là tham số thật gửi c
       expect((await call({ prompt: 'x', model: 'gemini-3.8-flash', ...(effort ? { effort } : {}) })).statusCode).toBe(200);
       efforts.push(sentBody(fetchMock).reasoning_effort);
     }
-    expect(efforts).toEqual([undefined, 'low', undefined, undefined, undefined]);
+    expect(efforts).toEqual(['none', 'low', undefined, undefined, undefined]);
   });
 
   it('Vilao (provider gemini): mức model không nhận (3.8 Flash không có "minimal") bị bỏ, lượt vẫn chạy bình thường; model không tồn tại bị 400', async () => {

@@ -7,7 +7,6 @@ const h = vi.hoisted(() => ({
   allowed: true,
   grade: '' as string,
   reply: '**Con** học chăm, cần luyện thêm hàm số.',
-  jsonMode: false as boolean | undefined,
   fail: '' as '' | 'slow' | 'fast' | 'notesSlow',
   notesReply: '{"ghiChu": []}',
   mapReply: '{"yccd": []}',
@@ -27,11 +26,8 @@ vi.mock('../_classroom-teacher.js', () => ({
 }));
 vi.mock('../_ai-usage.js', () => ({ setAiKeyOwner: (uid: string | null) => { h.owner = uid; } }));
 vi.mock('../_grading-core.js', () => ({
-  GRADING_MODEL: 'gemini-test',
-  getGradingApiKey: () => 'k',
-  callGeminiVision: async (prompt: string, _files: unknown, _key: string, _model: string, options: { jsonMode?: boolean }) => {
+  callGradingVision: async (prompt: string, _files: unknown, _options: { timeoutMs?: number }) => {
     h.prompt = prompt;
-    h.jsonMode = options.jsonMode;
     h.calls.push(prompt);
     if (h.fail === 'slow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
     if (h.fail === 'fast') throw new Error('Chưa có khoá Gemini');
@@ -66,7 +62,7 @@ const key = { studentId: 'hs1', kind: 'gk1', from: '2026-09-01', to: '2026-10-31
 describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   beforeEach(() => {
     h.store = {}; h.owner = ''; h.prompt = ''; h.allowed = true; h.grade = '';
-    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = ''; h.mapReply = '{"yccd": []}'; h.notesReply = '{"ghiChu": []}'; h.calls = [];
+    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.fail = ''; h.mapReply = '{"yccd": []}'; h.notesReply = '{"ghiChu": []}'; h.calls = [];
     vi.useRealTimers();
   });
 

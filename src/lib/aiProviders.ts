@@ -13,7 +13,7 @@ import { VERCEL_AI_GATEWAY_MODEL } from './vercelGatewayConfig';
 type Settings = AppData['settings'];
 
 /** Mức suy nghĩ sẽ gửi cho (hãng, model) theo Cài đặt; undefined = không gửi (model chạy mặc định). */
-const effortFor = (settings: Settings, provider: 'gemini' | 'claude' | 'openai', model: string): string | undefined =>
+const effortFor = (settings: Settings, provider: 'gemini' | 'claude' | 'openai' | 'vilao', model: string): string | undefined =>
   resolveEffort(provider, model, chosenEffortOf(settings.effort, provider));
 
 /** Tham số mức suy nghĩ của Claude (`output_config.effort`); SDK cũ chưa có kiểu cho `xhigh` nên ép kiểu. */
@@ -26,6 +26,12 @@ const claudeEffortParams = (settings: Settings, model: string): { output_config?
 const openaiEffortParams = (settings: Settings, model: string): { reasoning_effort?: 'low' | 'medium' | 'high' } => {
   const effort = effortFor(settings, 'openai', model);
   return effort ? { reasoning_effort: effort as 'low' | 'medium' | 'high' } : {};
+};
+
+/** Vilao (OpenAI-compatible): POC xác thực 'none'/'low' cho model Gemini của chợ — mức khác resolveEffort đã lọc bỏ. */
+const vilaoEffortParams = (settings: Settings, model: string): { reasoning_effort?: string } => {
+  const effort = effortFor(settings, 'vilao', model);
+  return effort ? { reasoning_effort: effort } : {};
 };
 
 // --- Token limits per provider (kịch trần model hỗ trợ) ---
@@ -92,6 +98,8 @@ function assertOwnApiKey(settings: Settings): void {
   if (provider === 'vercel-gateway') return;
   // Ví web trả thay cho khoá: chế độ "chỉ ví" (hoặc "cả hai" khi chưa có khoá riêng) thì không cần khoá trên trình duyệt.
   if (provider === 'gemini' && geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot()) === 'relay') return;
+  // Vilao từ G2 cũng có đường ví (máy chủ chạy Vilao bằng khoá chung): không cần key riêng khi đi relay.
+  if (provider === 'vilao' && geminiRouteFor(Boolean(settings.vilaoApiKey), getAiModeSnapshot()) === 'relay') return;
   if (walletVendor(settings)?.route === 'relay') return;
 
   const message = provider === 'free-router'
@@ -326,21 +334,38 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
     }
 
     if (provider === 'vilao') {
-      const OpenAI = (await import('openai')).default;
-      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
-      const res = await client.chat.completions.create({
-        model,
-        max_tokens: VILAO_MAX_TOKENS,
-        messages: [{ role: 'user', content: prompt }],
-      });
-      const choice = res.choices[0];
-      recordExactUsage(provider, model, {
-        promptTokens: res.usage?.prompt_tokens,
-        completionTokens: res.usage?.completion_tokens,
-        totalTokens: res.usage?.total_tokens,
-      });
-      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
+      // Chế độ VÍ (mặc định G2): chưa dán key riêng thì nhờ máy chủ gọi Vilao bằng khoá chung (trừ ví như luồng Gemini).
+      const vilaoRoute = geminiRouteFor(Boolean(settings.vilaoApiKey), getAiModeSnapshot());
+      const viaVilaoWallet = async (): Promise<RawResult> => {
+        const relayed = await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), system: EXAM_FORMAT_SYSTEM_INSTRUCTION, effort: effortFor(settings, 'vilao', relayModelFor(settings.selectedModel)) });
+        return { text: relayed.text, truncated: relayed.truncated };
+      };
+      if (vilaoRoute === 'relay') return await viaVilaoWallet();
+      const viaOwnKey = async (): Promise<RawResult> => {
+        const OpenAI = (await import('openai')).default;
+        const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+        const model = getActiveModelId(provider, settings);
+        const res = await client.chat.completions.create({
+          model,
+          max_tokens: VILAO_MAX_TOKENS,
+          ...vilaoEffortParams(settings, model),
+          messages: [{ role: 'user', content: prompt }],
+        });
+        const choice = res.choices[0];
+        recordExactUsage(provider, model, {
+          promptTokens: res.usage?.prompt_tokens,
+          completionTokens: res.usage?.completion_tokens,
+          totalTokens: res.usage?.total_tokens,
+        });
+        return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
+      };
+      if (vilaoRoute === 'own') return await viaOwnKey();
+      try {
+        return await viaOwnKey();
+      } catch (ownKeyError) {
+        if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+        return await viaVilaoWallet();
+      }
     }
 
     // default: gemini
@@ -599,27 +624,42 @@ async function callAIWithVisionDirect(
     }
 
     if (provider === 'vilao') {
-      const OpenAI = (await import('openai')).default;
-      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
-      const imageBlocks = parsedImages.map(({ url }) => ({
-        type: 'image_url' as const,
-        image_url: { url },
-      }));
-      const model = getActiveModelId(provider, settings);
-      const res = await client.chat.completions.create({
-        model,
-        max_tokens: VILAO_MAX_TOKENS,
-        messages: [{
-          role: 'user',
-          content: [...imageBlocks, { type: 'text' as const, text: prompt }],
-        }],
-      });
-      recordExactUsage(provider, model, {
-        promptTokens: res.usage?.prompt_tokens,
-        completionTokens: res.usage?.completion_tokens,
-        totalTokens: res.usage?.total_tokens,
-      });
-      return res.choices[0]?.message?.content ?? '';
+      // Chế độ VÍ (mặc định G2): chưa dán key riêng thì nhờ máy chủ gọi Vilao (kèm ảnh — POC xác thực vision).
+      const vilaoRoute = geminiRouteFor(Boolean(settings.vilaoApiKey), getAiModeSnapshot());
+      const viaVilaoWallet = async (): Promise<string> =>
+        (await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), images: urls, effort: effortFor(settings, 'vilao', relayModelFor(settings.selectedModel)) })).text;
+      if (vilaoRoute === 'relay') return await viaVilaoWallet();
+      const viaOwnKey = async (): Promise<string> => {
+        const OpenAI = (await import('openai')).default;
+        const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+        const imageBlocks = parsedImages.map(({ url }) => ({
+          type: 'image_url' as const,
+          image_url: { url },
+        }));
+        const model = getActiveModelId(provider, settings);
+        const res = await client.chat.completions.create({
+          model,
+          max_tokens: VILAO_MAX_TOKENS,
+          ...vilaoEffortParams(settings, model),
+          messages: [{
+            role: 'user',
+            content: [...imageBlocks, { type: 'text' as const, text: prompt }],
+          }],
+        });
+        recordExactUsage(provider, model, {
+          promptTokens: res.usage?.prompt_tokens,
+          completionTokens: res.usage?.completion_tokens,
+          totalTokens: res.usage?.total_tokens,
+        });
+        return res.choices[0]?.message?.content ?? '';
+      };
+      if (vilaoRoute === 'own') return await viaOwnKey();
+      try {
+        return await viaOwnKey();
+      } catch (ownKeyError) {
+        if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+        return await viaVilaoWallet();
+      }
     }
 
     // Gemini — ví web đi qua máy chủ (ảnh được nén cho lọt trần thân request 4,5MB của Vercel)
@@ -874,24 +914,46 @@ async function callAIStreamDirect(
     }
 
     if (provider === 'vilao') {
-      const OpenAI = (await import('openai')).default;
-      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings, modelOverride);
-      const stream = await client.chat.completions.create({
-        model,
-        max_tokens: VILAO_MAX_TOKENS,
-        messages: [{ role: 'user', content: prompt }],
-        stream: true,
-      });
-      let output = '';
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content ?? '';
-        if (text) {
-          output += text;
-          onChunk(text);
+      // Ví không stream: máy chủ trả trọn một lần (spec G2 — Vilao stream POC rớt thì tắt).
+      const viaVilaoWallet = async (): Promise<void> => {
+        const relayed = await callAiRelay({ prompt, model: relayModelFor(modelOverride, settings.selectedModel), effort: effortFor(settings, 'vilao', relayModelFor(modelOverride, settings.selectedModel)) });
+        onChunk(relayed.text);
+      };
+      const vilaoRoute = geminiRouteFor(Boolean(settings.vilaoApiKey), getAiModeSnapshot());
+      if (vilaoRoute === 'relay') return await viaVilaoWallet();
+      let emitted = false;
+      const viaOwnTracked = async (): Promise<void> => {
+        // Đánh dấu đã bắn chữ ngay khi fragment đầu tới (lỗi giữa chừng thì không bắn lại qua ví — nội dung bị lặp hai lần).
+        const OpenAI = (await import('openai')).default;
+        const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+        const model = getActiveModelId(provider, settings, modelOverride);
+        const stream = await client.chat.completions.create({
+          model,
+          max_tokens: VILAO_MAX_TOKENS,
+          ...vilaoEffortParams(settings, model),
+          messages: [{ role: 'user', content: prompt }],
+          stream: true,
+        });
+        let output = '';
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? '';
+          if (text) {
+            output += text;
+            emitted = true;
+            onChunk(text);
+          }
         }
+        recordEstimatedUsage(provider, model, prompt, output);
+      };
+      if (vilaoRoute === 'own') return await viaOwnTracked();
+      try {
+        await viaOwnTracked();
+        return;
+      } catch (ownKeyError) {
+        // Chỉ chuyển sang ví khi chưa có chữ nào hiện ra — nếu không nội dung bị lặp hai lần.
+        if (emitted || !isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+        await viaVilaoWallet();
       }
-      recordEstimatedUsage(provider, model, prompt, output);
       return;
     }
 

@@ -9,6 +9,10 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 - **Giá cập nhật:** Vilao trả `price_per_cached_read_token` 160₫/1M (≈1/10 giá vào) — bảng aiPricing đổi cached 400→160₫ quy đổi (trước chốt cached=input khi chưa có số). Lượt exempt owner không vào items sao kê (chỉ lượt trừ ví) — xem sổ qua adminUsage.
 - **Nghiệm thu:** npm run build xanh; vitest ai-relay + client-sync 36/36 pass.
 
+
+## G2 — Browser GV mặc định Vilao — 24/10 (opencode)
+Trình duyệt GV mặc định chạy Vilao, giữ nguyên cơ chế khoá/ví. `selectedProvider` mặc định đổi gemini→vilao (settings mới; settings cũ vẫn chạy vì relay backend đã Vilao sau G1). Ba nhánh Vilao trong `aiProviders.ts` (text/vision/stream) có CHẾ ĐỘ VÍ: chưa dán key riêng hoặc "cả hai" + key hết → nhờ máy chủ gọi qua relay (trừ ví như luồng Gemini), đã dán key thì gọi thẳng api.vilao.ai/v1 bằng key riêng; lỗi của khoá riêng tự chuyển sang ví. `reasoning_effort` gửi từ `settings.effort` (rules mới cho hãng vilao: POC xác nhận none/low, mức khác để model tự chạy); server relay cũng resolve effort theo rules Vilao cho đích gemini. `VILAO_MODELS` += gemini-3.8-flash (đầu danh sách).
+- Nghiệm thu: build xanh; vitest đã chạy lại các file liên quan (parent-report 6, classroom-online-ai-grade 1, generate-simulation.hold 4, ai-relay+sync 31+5, aiKeyGate 2, ai-gateway 12, aiProviders.wallet 14, aiModeStore 12, reasoningEffort 7 — đều pass; bỏ 4 fail hash CRLF nợ cũ Windows).
 ## Duyệt tự động bài cần soát + cờ cảnh báo — 24/10 (opencode)
 
 ## G1 � Server relay + 3 duong chuyen sang Vilao � 24/10 (opencode)
