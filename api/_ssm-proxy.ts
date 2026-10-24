@@ -159,7 +159,15 @@ export const handleSsmProxyAction = async (body: Body, res: VercelResponse): Pro
     }
 
     if (!upstream.ok) {
-      res.status(200).json({ ok: false, status: upstream.status, error: `SSM trả lỗi ${upstream.status}.` });
+      const raw = await upstream.text().catch(() => '');
+      let detail = raw.slice(0, 500);
+      try {
+        const j = JSON.parse(raw) as unknown;
+        detail = JSON.stringify(j).slice(0, 1200);
+      } catch {
+        /* giữ nguyên text gốc */
+      }
+      res.status(200).json({ ok: false, status: upstream.status, error: `SSM trả lỗi ${upstream.status}${detail ? `: ${detail}` : '.'}` });
       return true;
     }
 
