@@ -16,6 +16,25 @@ const LEGACY_DEFAULT_MODEL = 'gemini-3.7-flash';
 export const withCurrentDefaultModel = (settings: AppData['settings']): AppData['settings'] =>
   settings.selectedModel === LEGACY_DEFAULT_MODEL ? { ...settings, selectedModel: DEFAULT_DATA.settings.selectedModel } : settings;
 
+/**
+ * Chuyển nhà cung cấp cũ sang Vilao (10/2026).
+ *
+ * Vì sao: từ G2, Vilao là đường chính — khoá nằm ở máy chủ, giáo viên không phải trả gì thêm. Nhưng
+ * cài đặt lưu từ trước vẫn mang `'gemini'`, mà chọn Gemini khi CHƯA có key riêng thì chỉ nhận câu
+ * "chưa có API key" — bẫy đã gặp thật: giáo viên tưởng phải mua key Google, dán key trả phí vào rồi
+ * mất tiền trong khi đường Vilao vẫn sống.
+ *
+ * Chỉ chuyển khi người dùng LƯU LẠI đúng giá trị mặc định cũ và KHÔNG có key Gemini riêng: ai đã tự
+ * chọn Gemini và có key thì giữ nguyên ý định của họ.
+ */
+export const withVilaoDefaultProvider = (settings: AppData['settings']): AppData['settings'] => {
+  const hasOwnGeminiKey = Boolean(
+    (settings.geminiApiKeys ?? []).some(key => String(key ?? '').trim()) || String(settings.geminiApiKey ?? '').trim(),
+  );
+  if (settings.selectedProvider !== 'gemini' || hasOwnGeminiKey) return settings;
+  return { ...settings, selectedProvider: DEFAULT_DATA.settings.selectedProvider };
+};
+
 const buildLocalCache = (data: AppData) => ({
   settings: data.settings,
   authorName: data.authorName,
@@ -35,7 +54,7 @@ const readLocalCache = (uid?: string | null): AppData => {
       templates: parsed.templates || DEFAULT_DATA.templates,
       distributions: parsed.distributions || [],
       classes: parsed.classes || [],
-      settings: withCurrentDefaultModel({ ...DEFAULT_DATA.settings, ...(parsed.settings || {}) }),
+      settings: withVilaoDefaultProvider(withCurrentDefaultModel({ ...DEFAULT_DATA.settings, ...(parsed.settings || {}) })),
       authorName: parsed.authorName || '',
     };
   } catch (error) {
@@ -187,7 +206,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
               distributions: cloudDist,
               classes: cloudSettingsResult.cloudClasses ?? prev.classes,
               authorName: cloudSettingsResult.cloudAuthorName,
-              settings: withCurrentDefaultModel({ ...prev.settings, ...cloudSettingsResult.cloudSettings }),
+              settings: withVilaoDefaultProvider(withCurrentDefaultModel({ ...prev.settings, ...cloudSettingsResult.cloudSettings })),
               gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });

@@ -87,9 +87,14 @@ export const NVIDIA_MODELS: ProviderModel[] = [
 
 // Vilao = chợ API trả theo request (2026-10-22): key riêng của giáo viên/chủ dự án, không có trần cứng.
 // rpm/rpd/tpm dưới đây là mức THAM CHIẾU để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
+//
+// DANH SÁCH NÀY PHẢI LÀ MODEL THẬT ĐÃ MUA TRÊN KEY: `GET /v1/models` của khoá hiện tại chỉ trả
+// gemini-3.8-flash, gpt-image-2, gemini-3.1-flash-image (kiểm 25/10/2026). Mục DeepSeek từng
+// nằm ở đây nhưng Vilao KHÔNG bán model đó cho key này → chọn xong gọi là 400 "chưa dùng được
+// bằng ví web". Bán thêm model nào thì thêm đúng id ở đây VÀ đăng ký vào `RELAY_MODELS`
+// (api/_ai-relay-core.ts) — hai danh sách có test khoá bằng nhau.
 export const VILAO_MODELS: ProviderModel[] = [
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Vilao)', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['reasoning', 'vision', 'fast', '1M-ctx', 'cheap'] },
-  { id: 'deepseek-v4.1-flash', name: 'DeepSeek v4.1 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
 ];
 
 export const PROVIDER_CONFIGS: ProviderConfig[] = [

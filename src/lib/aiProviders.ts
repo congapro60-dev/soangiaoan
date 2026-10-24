@@ -75,6 +75,22 @@ VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp l�
 const NO_KEY_MESSAGE =
   'Chưa có API key. Các tính năng AI cần API key của riêng bạn — vào Cài đặt, chọn nhà cung cấp và dán key (Gemini có key miễn phí tại aistudio.google.com/apikey).';
 
+/**
+ * Nhà cung cấp đang chọn KHÔNG có key riêng, nhưng web có đường ví (dùng khoá chung của máy chủ).
+ * Nói rõ đường thoát thay vì để giáo viên đi mua key: đây là bẫy đã gặp thật (10/2026 — giáo viên
+ * thấy câu "chưa có API key" ở tab Lớp học, tưởng phải mua, dán key Google trả phí vào rồi mất tiền
+ * trong khi khoá Vilao của máy chủ vẫn sống).
+ */
+const walletSuggestion = (provider: string): string | null => {
+  if (provider === 'gemini') return 'Chọn nhà cung cấp "Vilao" là dùng được ngay bằng ví web, không cần key riêng.';
+  return null;
+};
+
+const noKeyMessageFor = (provider: string): string => {
+  const suggest = walletSuggestion(provider);
+  return suggest ? `${NO_KEY_MESSAGE} Hoặc ${suggest.charAt(0).toLowerCase()}${suggest.slice(1)}` : NO_KEY_MESSAGE;
+};
+
 const MISSING_KEY_ERROR_NAME = 'MissingApiKeyError';
 
 /** Nhận diện lỗi thiếu key để UI hiển thị nguyên văn hướng dẫn thay vì thông báo lỗi chung. */
@@ -104,7 +120,7 @@ function assertOwnApiKey(settings: Settings): void {
 
   const message = provider === 'free-router'
     ? `Chế độ "Router Free" (key dùng chung) đã ngừng hỗ trợ. ${NO_KEY_MESSAGE}`
-    : NO_KEY_MESSAGE;
+    : noKeyMessageFor(provider);
   if (provider === 'free-router' || !ownApiKey(settings)) {
     const err = new Error(message);
     err.name = MISSING_KEY_ERROR_NAME;

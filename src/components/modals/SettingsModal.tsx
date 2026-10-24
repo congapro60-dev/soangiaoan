@@ -48,6 +48,12 @@ interface SettingsModalProps {
   data: AppData;
   setData: React.Dispatch<React.SetStateAction<AppData>>;
   showToast: (msg: string) => void;
+  /**
+   * Chỉ quản trị mới thấy ô API key riêng. Giáo viên thường đi đường ví (khoá chung của hệ thống),
+   * nên không được mời họ dán key — bẫy đã gặp thật 10/2026: giáo viên thấy ô này, tưởng bắt buộc,
+   * dán key Google TRẢ PHÍ vào rồi mất tiền trong khi khoá chung vẫn sống bình thường.
+   */
+  isAdmin?: boolean;
 }
 
 type Provider = ApiProvider;
@@ -118,7 +124,8 @@ export const SettingsModal = ({
   onClose,
   data,
   setData,
-  showToast
+  showToast,
+  isAdmin = false,
 }: SettingsModalProps) => {
   const [linkCode, setLinkCode] = useState<{ code: string; expiresAt: number; linkId: string } | null>(null);
   const [linkBusy, setLinkBusy] = useState(false);
@@ -373,6 +380,19 @@ export const SettingsModal = ({
                         <span>
                           {glmNotice.text}
                           {glmNotice.warning && <span className="mt-2 block rounded-lg bg-amber-100 px-2 py-1 text-amber-800">{glmNotice.warning}</span>}
+                        </span>
+                      </div>
+                    ) : !isAdmin && !activeApiKey ? (
+                      // Giáo viên thường: KHÔNG mời dán key. Ô nhập key từng khiến giáo viên tưởng phải
+                      // mua key Google rồi dán key trả phí vào (10/2026) — trong khi ví web đã trả sẵn.
+                      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                        <span>
+                          Hệ thống đã có khoá AI dùng chung — thầy cô <b>không cần</b> nhập API key.
+                          Chọn model bên dưới rồi bấm Lưu là dùng được ngay.
+                          <span className="mt-1 block text-[11px] font-medium text-emerald-700">
+                            Chỉ cần dán key riêng khi muốn tự trả tiền bằng khoá của mình.
+                          </span>
                         </span>
                       </div>
                     ) : (

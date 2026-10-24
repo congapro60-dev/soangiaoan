@@ -611,7 +611,7 @@ export default function App() {
         </div>
       </main>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} data={data} setData={setData} showToast={showToast} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} data={data} setData={setData} showToast={showToast} isAdmin={isAdmin} />
       
       <LatexModal 
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
