@@ -5,6 +5,7 @@
 // Chạy: node scripts/content/fix-trig-hints.mjs [--dry]
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { hashPackage } from '../../lib/lesson/schema.js';
 
 const FILE = 'content/lessons/hki-2026-g11.json';
 const DRY = process.argv.includes('--dry');
@@ -89,6 +90,13 @@ const RULES = [
     },
   },
   {
+    match: /Rút gọn \$P=\\sin\(\d+x\+\\pi\/3\)\\cos\(\d+x\)-\\cos\(\d+x\+\\pi\/3\)\\sin\(\d+x\)\$/,
+    why: 'rút gọn bằng công thức sin hiệu',
+    hints: {
+      H1: 'Nhận dạng $\\sin a\\cos b-\\cos a\\sin b=\\sin(a-b)$ rồi trừ hai góc — phần chứa $x$ sẽ triệt tiêu.',
+    },
+  },
+  {
     match: /Có góc \$x\$ thỏa đồng thời/,
     why: 'kiểm tính tương thích dữ kiện',
     hints: {
@@ -134,6 +142,25 @@ if (unmatched.length) {
 for (const r of report) console.log(`  ${r.pkg} ${r.task} ${r.hint} [${r.tier}] "${r.from}" -> "${r.to.slice(0, 60)}…"`);
 
 if (!DRY) {
+  // Tính lại contentHash cho MỌI pkg có hint đã bị đổi ở bất kỳ lần chạy nào.
+  // Không dựa vào report: lần chạy sau (idempotent) report rỗng nhưng hash vẫn
+  // có thể còn lệch. Dấu hiệu pkg đã bị đổi: còn hint mang câu mới do script
+  // sinh ra, hoặc contentHash hiện tại không khớp nội dung.
+  const NEW_TEXTS = new Set();
+  for (const rule of RULES) for (const t of Object.values(rule.hints)) NEW_TEXTS.add(t);
+
+  let rehashed = 0;
+  for (const entry of db.entries || []) {
+    const pkg = entry.pkg;
+    if (!pkg) continue;
+    const touched = (pkg.hints || []).some(h => NEW_TEXTS.has(h.text));
+    if (!touched) continue;
+    const next = hashPackage(pkg);
+    if (next !== pkg.contentHash) { rehashed++; }
+    pkg.contentHash = next;
+  }
+  console.log(`Đã tính lại contentHash: ${rehashed} pkg đổi hash`);
+
   // giữ đúng format gốc của file
   writeFileSync(FILE, JSON.stringify(db, null, 1) + '\r\n', 'utf8');
   console.log('\nĐÃ GHI', FILE);

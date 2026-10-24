@@ -1,29 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320" role="img" aria-label="Chóp S.ABCD có đáy là hình thang AB song song CD và AB = 2CD; mặt phẳng song song đáy cắt các cạnh bên tại M, N, P, Q">
-  <polygon points="60,240 230,260 245,190 160,180" fill="#f8fafc" stroke="none"/>
-  <line x1="60" y1="240" x2="230" y2="260" stroke="#0f172a" stroke-width="2"/>
-  <line x1="230" y1="260" x2="245" y2="190" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
-  <line x1="245" y1="190" x2="160" y2="180" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
-  <line x1="160" y1="180" x2="60" y2="240" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
-  <line x1="210" y1="40" x2="60" y2="240" stroke="#0f172a" stroke-width="2"/>
-  <line x1="210" y1="40" x2="230" y2="260" stroke="#0f172a" stroke-width="2"/>
-  <line x1="210" y1="40" x2="245" y2="190" stroke="#0f172a" stroke-width="2"/>
-  <line x1="210" y1="40" x2="160" y2="180" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
-  <line x1="110" y1="173.33" x2="223.33" y2="186.67" stroke="#2563eb" stroke-width="2.5"/>
-  <line x1="223.33" y1="186.67" x2="233.33" y2="140" stroke="#2563eb" stroke-width="2.5"/>
-  <line x1="233.33" y1="140" x2="176.67" y2="133.33" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
-  <line x1="176.67" y1="133.33" x2="110" y2="173.33" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
-  <circle cx="110" cy="173.33" r="3.5" fill="#2563eb"/>
-  <circle cx="223.33" cy="186.67" r="3.5" fill="#2563eb"/>
-  <circle cx="233.33" cy="140" r="3.5" fill="#2563eb"/>
-  <circle cx="176.67" cy="133.33" r="3.5" fill="#2563eb"/>
-  <text x="200" y="34" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">S</text>
-  <text x="44" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
-  <text x="236" y="278" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
-  <text x="252" y="180" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
-  <text x="138" y="176" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
-  <text x="86" y="186" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">M</text>
-  <text x="238" y="212" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">N</text>
-  <text x="240" y="136" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">P</text>
-  <text x="158" y="126" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">Q</text>
-  <text x="40" y="302" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">Đáy: AB ∥ CD, AB = 2CD; (α) ∥ đáy cắt SA, SB, SC, SD tại M, N, P, Q</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330" role="img" aria-label="Chóp S.ABCD có đáy là hình thang AB song song CD và AB = 2CD; mặt phẳng song song đáy cắt các cạnh bên tại M, N, P, Q với SM = 2/3 SA">
+  <polygon points="90,250 330,250 170,195 50,195" fill="#f8fafc" stroke="none"/>
+  <polygon points="123.33,186.67 283.33,186.67 176.67,150 96.67,150" fill="#93c5fd" fill-opacity="0.45" stroke="none"/>
+  <line x1="90" y1="250" x2="330" y2="250" stroke="#0f172a" stroke-width="2"/>
+  <line x1="330" y1="250" x2="170" y2="195" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="170" y1="195" x2="50" y2="195" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="50" y1="195" x2="90" y2="250" stroke="#0f172a" stroke-width="2"/>
+  <line x1="190" y1="60" x2="90" y2="250" stroke="#0f172a" stroke-width="2"/>
+  <line x1="190" y1="60" x2="330" y2="250" stroke="#0f172a" stroke-width="2"/>
+  <line x1="190" y1="60" x2="170" y2="195" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="190" y1="60" x2="50" y2="195" stroke="#0f172a" stroke-width="2"/>
+  <line x1="123.33" y1="186.67" x2="283.33" y2="186.67" stroke="#1d4ed8" stroke-width="3"/>
+  <line x1="283.33" y1="186.67" x2="176.67" y2="150" stroke="#1d4ed8" stroke-width="3" stroke-dasharray="6 4"/>
+  <line x1="176.67" y1="150" x2="96.67" y2="150" stroke="#1d4ed8" stroke-width="3" stroke-dasharray="6 4"/>
+  <line x1="96.67" y1="150" x2="123.33" y2="186.67" stroke="#1d4ed8" stroke-width="3"/>
+  <circle cx="123.33" cy="186.67" r="4.5" fill="#1d4ed8"/>
+  <circle cx="283.33" cy="186.67" r="4.5" fill="#1d4ed8"/>
+  <circle cx="176.67" cy="150" r="4.5" fill="#1d4ed8"/>
+  <circle cx="96.67" cy="150" r="4.5" fill="#1d4ed8"/>
+  <text x="196" y="56" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">S</text>
+  <text x="74" y="270" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="336" y="270" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="176" y="216" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="28" y="212" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
+  <text x="89" y="182" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#1d4ed8">M</text>
+  <text x="290" y="182" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#1d4ed8">N</text>
+  <text x="184" y="144" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#1d4ed8">P</text>
+  <text x="78" y="144" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#1d4ed8">Q</text>
+  <text x="16" y="296" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">Đáy: AB ∥ CD, AB = 2CD; (α) ∥ đáy, SM = 2/3 SA</text>
+  <text x="16" y="316" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">⇒ MNPQ ∼ ABCD, k = 2/3</text>
 </svg>

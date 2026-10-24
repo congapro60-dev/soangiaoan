@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" role="img" aria-label="Hai mặt phẳng P và Q cắt nhau theo giao tuyến d; trong P có hai đường a, b song song với d và khác d">
-  <polygon points="60,190 400,190 350,60 20,60" fill="#dbeafe" fill-opacity="0.6" stroke="#2563eb" stroke-width="2"/>
-  <polygon points="60,190 400,190 440,320 100,320" fill="#fee2e2" fill-opacity="0.6" stroke="#dc2626" stroke-width="2"/>
-  <line x1="40" y1="190" x2="420" y2="190" stroke="#0f172a" stroke-width="3"/>
-  <line x1="74" y1="104" x2="336" y2="104" stroke="#16a34a" stroke-width="2.5"/>
-  <line x1="74" y1="146" x2="336" y2="146" stroke="#7c3aed" stroke-width="2.5"/>
-  <text x="28" y="182" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">(P)</text>
-  <text x="404" y="296" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">(Q)</text>
-  <text x="426" y="182" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">d</text>
-  <text x="344" y="100" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">a</text>
-  <text x="344" y="142" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#7c3aed">b</text>
-  <text x="40" y="332" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">(P) ∩ (Q) = d; a, b ⊂ (P); a ∥ b ∥ d, a ≠ d ⇒ a ∥ (Q), b ∥ (Q)</text>
+  <polygon points="80,40 400,40 400,170 80,170" fill="#fee2e2" fill-opacity="0.6" stroke="#dc2626" stroke-width="2"/>
+  <polygon points="80,170 400,170 340,260 20,260" fill="#dbeafe" fill-opacity="0.6" stroke="#2563eb" stroke-width="2"/>
+  <line x1="60" y1="170" x2="420" y2="170" stroke="#0f172a" stroke-width="3"/>
+  <line x1="70" y1="200" x2="370" y2="200" stroke="#16a34a" stroke-width="2.5"/>
+  <line x1="50" y1="230" x2="350" y2="230" stroke="#7c3aed" stroke-width="2.5"/>
+  <text x="34" y="252" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">(P)</text>
+  <text x="90" y="64" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">(Q)</text>
+  <text x="426" y="175" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">d</text>
+  <text x="340" y="206" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">a</text>
+  <text x="320" y="222" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#7c3aed">b</text>
+  <text x="40" y="300" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">(P) ∩ (Q) = d; a, b ⊂ (P); a ∥ b ∥ d, a ≠ d ⇒ a ∥ (Q), b ∥ (Q)</text>
 </svg>

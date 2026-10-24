@@ -5341,7 +5341,7 @@
       "group_score"
      ]
     },
-    "contentHash": "2965e4affb45d7649d39553dd6498fef7f83d77e9bc5255812b27b3854184d40"
+    "contentHash": "b79b8cc7954e13c88f3fcd10d1edbae7e83e45b515821cc3fdafb9f0886ce4d5"
    },
    "citations": [
     {
@@ -6401,7 +6401,7 @@
       "group_score"
      ]
     },
-    "contentHash": "b6c9c5923dc28ec50230fa8573e06112b16ea8480d1f68dc8de2db835212341e"
+    "contentHash": "e685bb696808b245f4ea20af33bb4e69659320c3a851b187bc1027eda979c5e7"
    },
    "citations": [
     {
@@ -8020,7 +8020,7 @@
       "group_score"
      ]
     },
-    "contentHash": "adfe6fa46425530310e15e9cfa24b5c83fc32647be1a3afc57e14bdbc74c5657"
+    "contentHash": "c89cbd9de5b1d78b212fd10cf3ce5dacd2f49e6801699796c738e474b3effc3e"
    },
    "citations": [
     {
@@ -9078,7 +9078,7 @@
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Nhận hai góc toàn phần thay vì khai triển mọi tích.",
+      "text": "Nhận dạng $\\sin a\\cos b-\\cos a\\sin b=\\sin(a-b)$ rồi trừ hai góc — phần chứa $x$ sẽ triệt tiêu.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -9231,7 +9231,7 @@
       "group_score"
      ]
     },
-    "contentHash": "e2c731eeacc6618244d7a0ca33bc8a771c4a36a1d7b21b2a8cd28a530fc1ba25"
+    "contentHash": "bffd269dc031bbae69edf93d7927234c4a8e082952cc50a48e2ca2f680a1b6b1"
    },
    "citations": [
     {
@@ -18813,7 +18813,7 @@
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Nhận hai góc toàn phần thay vì khai triển mọi tích.",
+      "text": "Nhận dạng $\\sin a\\cos b-\\cos a\\sin b=\\sin(a-b)$ rồi trừ hai góc — phần chứa $x$ sẽ triệt tiêu.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -19074,7 +19074,7 @@
       "group_score"
      ]
     },
-    "contentHash": "2fce77a2b5baccf00322b012b7f7291218a30e44fb319ddf367e2506dc906c7b"
+    "contentHash": "ec30c74cae937c1456304c2c421cf4c72758ff812758246f1446edafa950e619"
    },
    "citations": [
     {
@@ -24928,7 +24928,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d50a23d851e4a5cf1509d9042339dd413914c4e67df79acf9cb2a6fef52af648"
+    "contentHash": "fe7e39056835e85e68e0d11d8fce07ac041e4e330b5d0f8234022fd443884437"
    },
    "citations": [
     {
@@ -26731,7 +26731,7 @@
       "group_score"
      ]
     },
-    "contentHash": "2c8452ca2e1402943cb38426a34eefd2d4b1e6a5fcafd91ee380efe9c19aac27"
+    "contentHash": "05cac10cc91914541a41dcc53c20d0458c8d5907980fea0263d5279827ab0e62"
    },
    "citations": [
     {
@@ -44031,7 +44031,7 @@
       "group_score"
      ]
     },
-    "contentHash": "7cbf7acfb8b3c16fe3ad08a36dfd036629865ec769adf485310bcff46acc2cce"
+    "contentHash": "1b891e5437601b9c897f552a707bb5e55ae91adc3e69e12a1b3b4c1d48c8aa9d"
    },
    "citations": [
     {
@@ -48565,7 +48565,7 @@
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Nhận hai góc toàn phần thay vì khai triển mọi tích.",
+      "text": "Nhận dạng $\\sin a\\cos b-\\cos a\\sin b=\\sin(a-b)$ rồi trừ hai góc — phần chứa $x$ sẽ triệt tiêu.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -48826,7 +48826,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d3cad3f2d4fbbb5631eeeef998efa4c65263fdf78ae587974339ca1df725dcf9"
+    "contentHash": "63312dbe93111653036ab1c79d55afee3df7128ec60f9b6799d92b3364cfd0ab"
    },
    "citations": [
     {
@@ -54692,7 +54692,7 @@
       "group_score"
      ]
     },
-    "contentHash": "ec58f83f31b623d4affe61f3e64a07c0ad841bcd029c4e3a7b5b7217dc28c0e0"
+    "contentHash": "93a6466933c12a9f08522a82fec19ba1461ff718fde815f4341b6652c7eb3c8c"
    },
    "citations": [
     {
@@ -56563,7 +56563,7 @@
       "group_score"
      ]
     },
-    "contentHash": "f2f807e7131a974d709d33c06528cc22c038dbcd6cb881242a10b2080b48b4cb"
+    "contentHash": "1853b84f6f185f06f8eaa6203f55ef3e8718d3a4f62988d3d46eb39f9d60e2f1"
    },
    "citations": [
     {
@@ -73360,7 +73360,7 @@
      {
       "id": "hint-5-2-1",
       "tier": "H1",
-      "text": "Nhận hai góc toàn phần thay vì khai triển mọi tích.",
+      "text": "Nhận dạng $\\sin a\\cos b-\\cos a\\sin b=\\sin(a-b)$ rồi trừ hai góc — phần chứa $x$ sẽ triệt tiêu.",
       "taskId": "task-5-2",
       "objectiveIds": [
        "obj-2"
@@ -73604,7 +73604,7 @@
       "group_score"
      ]
     },
-    "contentHash": "c27c4948770d497c5472c1cfb6e97b19a0fcd2ef3d9f41b3eccb82ed2c7c8262"
+    "contentHash": "3bb026e897c8bff27d70b3b1168514d13528c86942ac14b272353e591c3eb9dc"
    },
    "citations": [
     {
@@ -97647,7 +97647,7 @@
       "group_score"
      ]
     },
-    "contentHash": "9147f35a4b1546c9f55d8762c314729698c4af8401ae59f63182405b2ea17b57"
+    "contentHash": "979dbbe4332c71734f6e7f89cebd9cc7a23d09013e3e84be309fa9d3afc5ff60"
    },
    "citations": [
     {
@@ -115442,7 +115442,7 @@
       "isCore": true,
       "requiresFullScaffold": false,
       "branch": "shared",
-      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song.",
+      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng phân biệt cùng chứa đường thẳng $\\Delta$. Lấy $d$ cắt ba mặt phẳng tại $A,B,C$, rồi lấy $d'$ là ảnh của $d$ qua phép tịnh tiến theo một vectơ chỉ phương của $\\Delta$. Phép tịnh tiến này giữ nguyên từng mặt phẳng, nên $A',B',C'$ là ảnh của $A,B,C$ và $A'B'=AB$, $B'C'=BC$. Tỉ số bằng nhau nhưng ba mặt phẳng cắt nhau theo $\\Delta$, không song song.",
       "evaluation": {
        "rubric": {
         "criteria": [
@@ -115450,7 +115450,7 @@
          "Đưa ra phản ví dụ chùm mặt phẳng cắt nhau theo một trục."
         ],
         "lookFor": [
-         "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
+         "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng phân biệt cùng chứa đường thẳng $\\Delta$. Lấy $d$ cắt ba mặt phẳng tại $A,B,C$, rồi lấy $d'$ là ảnh của $d$ qua phép tịnh tiến theo một vectơ chỉ phương của $\\Delta$. Phép tịnh tiến này giữ nguyên từng mặt phẳng, nên $A',B',C'$ là ảnh của $A,B,C$ và $A'B'=AB$, $B'C'=BC$. Tỉ số bằng nhau nhưng ba mặt phẳng cắt nhau theo $\\Delta$, không song song."
         ]
        }
       },
@@ -115461,7 +115461,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
+       "workedSolution": "Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng phân biệt cùng chứa đường thẳng $\\Delta$. Lấy $d$ cắt ba mặt phẳng tại $A,B,C$, rồi lấy $d'$ là ảnh của $d$ qua phép tịnh tiến theo một vectơ chỉ phương của $\\Delta$. Phép tịnh tiến này giữ nguyên từng mặt phẳng, nên $A',B',C'$ là ảnh của $A,B,C$ và $A'B'=AB$, $B'C'=BC$. Tỉ số bằng nhau nhưng ba mặt phẳng cắt nhau theo $\\Delta$, không song song."
       }
      },
      {
@@ -115472,7 +115472,7 @@
       ],
       "activityId": "act-5",
       "participation": "individual",
-      "prompt": "Thử thách tự chọn: Cho hai đường thẳng chéo nhau $a$ và $b$. Trên $a$ lấy hai điểm cố định $A, B$; trên $b$ lấy hai điểm cố định $A', B'$. Điểm $M$ di động trên đoạn $AB$ với $\\frac{AM}{AB} = k$. Mặt phẳng $(\\alpha)$ qua $M$ và song song với $a, b$ cắt $A'B'$ tại $M'$. Chứng minh tỉ số $\\frac{A'M'}{A'B'}$ không đổi khi $M$ di động và tìm vị trí $M$ để $MM'$ ngắn nhất khi $a \\perp b$.",
+      "prompt": "Thử thách tự chọn: Cho hai đường thẳng chéo nhau $a$ và $b$. Trên $a$ lấy hai điểm cố định $A, B$; trên $b$ lấy hai điểm cố định $A', B'$. Điểm $M$ di động trên đoạn $AB$ với $\\frac{AM}{AB} = k$. Gọi $(P)$ là mặt phẳng chứa $AA'$ và song song với $BB'$. Mặt phẳng $(\\alpha)$ qua $M$ và song song với $(P)$ cắt $b$ tại $M'$. Chứng minh $\\frac{A'M'}{A'B'} = k$ và đường thẳng $MM'$ luôn song song với một mặt phẳng cố định.",
       "sourceRefs": [
        "r22-g11-u2-lo03",
        "r26-g11-thales-sgk"
@@ -115487,15 +115487,15 @@
       "isCore": false,
       "requiresFullScaffold": false,
       "branch": "extension",
-      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$.",
+      "supportRationale": "Lời giải chuẩn: Gọi $(Q)$ là mặt phẳng qua $B$ song song với $(P)$; vì $BB'\\parallel(P)$ nên $BB'\\subset(Q)$. Ba mặt phẳng song song $(P),(\\alpha),(Q)$ cắt $a$ tại $A,M,B$ và cắt $b$ tại $A',M',B'$. Theo định lí Thalès: $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Vì $MM'\\subset(\\alpha)$ và $(\\alpha)\\parallel(P)$ nên $MM'$ luôn song song với mặt phẳng cố định $(P)$ (nằm trong $(P)$ khi $M\\equiv A$).",
       "evaluation": {
        "rubric": {
         "criteria": [
          "Chứng minh tỉ số không đổi bằng định lý Thalès.",
-         "Vận dụng đoạn vuông góc chung để giải bài toán cực trị khoảng cách."
+         "Chỉ ra MM' song song với mặt phẳng cố định (P)."
         ],
         "lookFor": [
-         "Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
+         "Gọi $(Q)$ là mặt phẳng qua $B$ song song với $(P)$; vì $BB'\\parallel(P)$ nên $BB'\\subset(Q)$. Ba mặt phẳng song song $(P),(\\alpha),(Q)$ cắt $a$ tại $A,M,B$ và cắt $b$ tại $A',M',B'$. Theo định lí Thalès: $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Vì $MM'\\subset(\\alpha)$ và $(\\alpha)\\parallel(P)$ nên $MM'$ luôn song song với mặt phẳng cố định $(P)$ (nằm trong $(P)$ khi $M\\equiv A$)."
         ]
        }
       },
@@ -115506,7 +115506,7 @@
         "origin": "generated"
        },
        "numericReviewRequired": true,
-       "workedSolution": "Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
+       "workedSolution": "Gọi $(Q)$ là mặt phẳng qua $B$ song song với $(P)$; vì $BB'\\parallel(P)$ nên $BB'\\subset(Q)$. Ba mặt phẳng song song $(P),(\\alpha),(Q)$ cắt $a$ tại $A,M,B$ và cắt $b$ tại $A',M',B'$. Theo định lí Thalès: $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Vì $MM'\\subset(\\alpha)$ và $(\\alpha)\\parallel(P)$ nên $MM'$ luôn song song với mặt phẳng cố định $(P)$ (nằm trong $(P)$ khi $M\\equiv A$)."
       }
      },
      {
@@ -115739,12 +115739,12 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng cùng đi qua một đường thẳng (chùm mặt phẳng có trục giao tuyến chung). Khi đó hai cát tuyến cắt chùm mặt phẳng vẫn tạo ra các đoạn tỉ lệ nhưng ba mặt phẳng cắt nhau, không hề song song."
+      "supportRationale": "Lời giải chuẩn: Kết luận trên SAI (định lý Thalès đảo không đúng tổng quát trong không gian nếu không có thêm điều kiện). Phản ví dụ: Cho ba mặt phẳng phân biệt cùng chứa đường thẳng $\\Delta$. Lấy $d$ cắt ba mặt phẳng tại $A,B,C$, rồi lấy $d'$ là ảnh của $d$ qua phép tịnh tiến theo một vectơ chỉ phương của $\\Delta$. Phép tịnh tiến này giữ nguyên từng mặt phẳng, nên $A',B',C'$ là ảnh của $A,B,C$ và $A'B'=AB$, $B'C'=BC$. Tỉ số bằng nhau nhưng ba mặt phẳng cắt nhau theo $\\Delta$, không song song."
      },
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Chiếu song song hoặc dùng mặt phẳng qua a song song b.",
+      "text": "Dựng thêm mặt phẳng qua B song song với (P) để có ba mặt phẳng song song.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -115756,7 +115756,7 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha)$ song song với $a, b$ nên theo tính chất ba mặt phẳng song song hoặc chiếu song song, $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Khi $a \\perp b$, dựng đoạn vuông góc chung $HK$ của $a, b$. Khoảng cách $MM'$ đạt giá trị nhỏ nhất bằng chính độ dài đoạn vuông góc chung $HK$ khi $M \\equiv H$ và $M' \\equiv K$."
+      "supportRationale": "Lời giải chuẩn: Gọi $(Q)$ là mặt phẳng qua $B$ song song với $(P)$; vì $BB'\\parallel(P)$ nên $BB'\\subset(Q)$. Ba mặt phẳng song song $(P),(\\alpha),(Q)$ cắt $a$ tại $A,M,B$ và cắt $b$ tại $A',M',B'$. Theo định lí Thalès: $\\frac{A'M'}{A'B'} = \\frac{AM}{AB} = k$ không đổi. Vì $MM'\\subset(\\alpha)$ và $(\\alpha)\\parallel(P)$ nên $MM'$ luôn song song với mặt phẳng cố định $(P)$ (nằm trong $(P)$ khi $M\\equiv A$)."
      },
      {
       "id": "hint-6-1-1",
@@ -207339,7 +207339,7 @@
       "group_score"
      ]
     },
-    "contentHash": "aa3c2a33875bc80229afb467846782a557fa960acd0adc1233bf365580f0f6e2"
+    "contentHash": "02b9918e37917e25010d540fd3eb2c828f724d67a86bf13a269c2be33f390794"
    },
    "citations": [
     {
@@ -209232,7 +209232,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d7b6699f1226d9a4ecad07f22f59b32c159bb77e3991ed79c99b282213077836"
+    "contentHash": "664265fa286064db4e29a7812839a57a24dfbd6b4c09eed0c2ecd3e9718eba03"
    },
    "citations": [
     {
