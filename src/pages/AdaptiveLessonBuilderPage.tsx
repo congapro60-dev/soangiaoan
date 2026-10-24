@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, BookOpenCheck, Brain, CheckCircle2, Clock, Eye, FileUp, Image as ImageIcon, Layers3, Loader2, Plus, Save, Send, Sparkles, Target, Trash2, X } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -172,6 +172,7 @@ const makeSourceFromPlan = (plan: LessonPlan): AdaptiveLessonSource => ({
 
 export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings, lessonPlans = [], onBackToList, onPreviewLesson, onNeedSettings, showToast }: AdaptiveLessonBuilderPageProps) => {
   const { id: routeId } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const id = lessonId ?? routeId;
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(auth.currentUser);
@@ -243,7 +244,19 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
           setExpandedUnitId(draft.knowledgeUnits[0]?.id || null);
           setIsSourceApproved(false);
           setReviewedPlan('');
-          setSourceLesson(null);
+          const discoverDraft = searchParams.get('discover') === '1'
+            ? sessionStorage.getItem('discover-source-draft')
+            : null;
+          if (discoverDraft) {
+            try {
+              setSourceLesson(JSON.parse(discoverDraft) as AdaptiveLessonSource);
+              sessionStorage.removeItem('discover-source-draft');
+            } catch {
+              setSourceLesson(null);
+            }
+          } else {
+            setSourceLesson(null);
+          }
           return;
         }
 
@@ -268,7 +281,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     };
 
     void load();
-  }, [id, authReady]);
+  }, [id, authReady, searchParams]);
 
   const objectiveOptions = lesson?.objectives || [];
   const steps = ['Thông tin cơ bản', 'Mục tiêu & Chẩn đoán', 'Các mảnh kiến thức', 'Hoàn tất & Xuất bản'];
@@ -563,7 +576,12 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
             </div>
           </div>
 
-          {sourceLesson && <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">Nguồn đang rà soát: {sourceLesson.sourceLabel || sourceLesson.title}</div>}
+          {sourceLesson && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+              <span>Nguồn đang rà soát: {sourceLesson.sourceLabel || sourceLesson.title}</span>
+              {!reviewedPlan && <button type="button" onClick={() => void reviewSourceWithAI(sourceLesson)} disabled={isReviewingSource} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-60"><Sparkles className="h-3.5 w-3.5" /> AI rà soát nguồn Discover</button>}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={approveReviewedSource} disabled={!reviewedPlan.trim() || isReviewingSource || uploadingSource || isGeneratingContent} className={primaryButtonClass}>

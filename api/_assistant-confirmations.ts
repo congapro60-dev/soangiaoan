@@ -114,9 +114,9 @@ const normalizeScopes = (value: unknown): Array<Omit<ResourceScope, 'ownerUid' |
       || (ownerUid !== undefined && !isText(ownerUid))) throw new Error('Invalid resource scope');
     return {
       resourceType: resourceType as AssistantResourceType,
-      resourceId,
+      resourceId: String(resourceId),
       ...(requiredRole === undefined ? {} : { requiredRole: requiredRole as AssistantRole }),
-      ...(ownerUid === undefined ? {} : { ownerUid }),
+      ...(ownerUid === undefined ? {} : { ownerUid: String(ownerUid) }),
     };
   });
 };

@@ -194,6 +194,7 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   });
 
   it('từ chối dữ liệu sai hoặc người ngoài lớp; action khác thì bỏ qua', async () => {
+    expect((await call({ action: 'saveParentReportNote', ...key, kind: 'custom' })).status).toBe(200);
     expect((await call({ action: 'saveParentReportNote', ...key, kind: 'quy1' })).status).toBe(422);
     expect((await call({ action: 'saveParentReportNote', ...key, from: '2026-12-01' })).status).toBe(422);
     expect((await call({ action: 'draftParentReportComment', ...key, facts: { x: 'a'.repeat(61000) } })).status).toBe(422);

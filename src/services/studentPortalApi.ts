@@ -5,6 +5,8 @@ import type { ExamSubmission } from '../types';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import type { CompetencyPortfolioDoc, PortfolioEntry } from '../lib/classroom/competency/studentPortfolio';
 import type { StudentAiCostView } from '../lib/classroom/studentAiCost';
+import type { StudentDiscoverCatalogItem } from '../lib/discover/types';
+import type { AdaptiveLesson, AssessmentAttempt } from '../lib/adaptive/types';
 import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export interface RosterEntry {
@@ -158,6 +160,83 @@ export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]>
   const idToken = await current.getIdToken();
   const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
   return response.submissions || [];
+};
+
+/** Danh mục Discover an toàn theo khối của lớp; máy chủ tự ràng buộc theo phiên HS. */
+export const fetchStudentDiscoverCatalog = async (): Promise<StudentDiscoverCatalogItem[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ catalog: StudentDiscoverCatalogItem[] }>({ action: 'studentDiscoverCatalog', idToken });
+  return response.catalog || [];
+};
+
+export interface StudentAdaptiveAssignment {
+  assignmentId: string;
+  lessonId: string;
+  title: string;
+  /** Mã tiết Discover gốc — dùng để gắn bài giao với danh mục hiển thị cho em. */
+  discoverSeedId?: string;
+  /** GV đã đóng bài → em chỉ xem nhận xét + BTVN, không nộp thêm được. */
+  closed?: boolean;
+  createdAt: string;
+}
+
+/** Bài học phân hoá GV đã giao cho lớp — máy chủ lọc theo phiên HS (lớp khác bị từ chối). */
+export const fetchStudentAdaptiveAssignments = async (): Promise<StudentAdaptiveAssignment[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ assignments: StudentAdaptiveAssignment[] }>({ action: 'studentAdaptiveList', idToken });
+  return response.assignments || [];
+};
+
+/**
+ * Mở bài học phân hoá được giao. Máy chủ trả bản ĐÃ BỎ ĐÁP ÁN — em không đọc được
+ * đáp án trong mạng, mọi lượt nộp đều phải qua máy chủ chấm.
+ */
+export const openStudentAdaptiveAssignment = async (assignmentId: string): Promise<{ assignmentId: string; lesson: AdaptiveLesson }> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call<{ assignmentId: string; lesson: AdaptiveLesson }>({ action: 'studentAdaptiveOpen', idToken, assignmentId });
+};
+
+export interface StudentAdaptiveClosedResult {
+  assignmentId: string;
+  feedback: string[];
+  homework: Array<{ id: string; type: string; prompt: string; options?: string[]; points: number }>;
+}
+
+export const fetchStudentAdaptiveClosed = async (assignmentId: string): Promise<StudentAdaptiveClosedResult> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Can phien dang nhap hoc sinh.');
+  return call<StudentAdaptiveClosedResult>({ action: 'studentAdaptiveClosed', idToken: await current.getIdToken(), assignmentId });
+};
+
+export interface StudentAdaptiveSubmitResult {
+  assignmentId: string;
+  kind: 'diagnostic' | 'quickCheck' | 'exitTicket';
+  unitId?: string;
+  /** true = lượt nộp đầu được tính điểm; false = lượt làm lại (không nâng điểm). */
+  scored: boolean;
+  status: string;
+  attempt: AssessmentAttempt;
+  nextRoute?: string;
+}
+
+/**
+ * Nộp bài: MÁY CHỦ chấm bằng đáp án đầy đủ. Client chỉ gửi câu trả lời — không gửi điểm,
+ * nên em không thể tự chấm hoặc soi đáp án trong mạng.
+ */
+export const submitStudentAdaptiveAssessment = async (
+  assignmentId: string,
+  body: { kind: 'diagnostic' | 'quickCheck' | 'exitTicket'; unitId?: string; answers: Record<string, string>; durationSeconds?: number },
+): Promise<StudentAdaptiveSubmitResult> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call<StudentAdaptiveSubmitResult>({ action: 'studentAdaptiveSubmit', idToken, assignmentId, ...body });
 };
 
 /** Chi phí AI của chính học sinh (token + tiền ước tính) — chỉ để em biết; máy chủ lọc theo phiên, không nhận studentId. */

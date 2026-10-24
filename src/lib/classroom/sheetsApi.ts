@@ -89,6 +89,21 @@ export const readSheetValues = async (
   return ranges.map((_, index) => data.valueRanges?.[index]?.values ?? []);
 };
 
+/** Ghi giá trị ô đã được chuẩn bị sẵn; chỉ dùng sau preview + xác nhận của giáo viên. */
+export const writeSheetValues = async (
+  spreadsheetId: string,
+  updates: ReadonlyArray<{ range: string; value: string | number | null }>,
+): Promise<void> => {
+  if (updates.length === 0) return;
+  await sheetsFetch(`${SHEETS_BASE}/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify({
+      valueInputOption: 'USER_ENTERED',
+      data: updates.map(update => ({ range: update.range, majorDimension: 'ROWS', values: [[update.value]] })),
+    }),
+  });
+};
+
 interface GridValue {
   userEnteredValue?: { formulaValue?: string };
   effectiveValue?: { stringValue?: string; numberValue?: number; boolValue?: boolean };

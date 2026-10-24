@@ -8,6 +8,7 @@
  */
 import type { VercelResponse } from '@vercel/node';
 import { handleRefreshRestore } from './_refresh-restore.js';
+import { handleGhkiRestore } from './_ghki-restore.js';
 import { getAuth } from 'firebase-admin/auth';
 import { isAdminEmail, METERING_START_DAY } from '../src/lib/admin/adminConfig.js';
 import { aggregateUsage, type UsageRecord } from '../src/lib/admin/billing.js';
@@ -292,6 +293,7 @@ export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse)
   if (!admin) return true;
   if (action === 'adminOverview') { await handleOverview(db, res); return true; }
   if (action === 'adminRefreshRestore') { await handleRefreshRestore(db, body, admin.uid, res); return true; }
+  if (action === 'adminGhkiRestore') { await handleGhkiRestore(db, body, admin.uid, res); return true; }
   if (action === 'adminUsage') { await handleUsage(db, body, res); return true; }
   if (action === 'adminSaveSettings') { await handleSaveSettings(db, body, res); return true; }
   if (action === 'adminFetchVcbRate') { await handleFetchVcbRate(res); return true; }

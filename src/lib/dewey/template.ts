@@ -7,10 +7,15 @@ import type {
   DeweyTheme,
 } from './types';
 import { escapeAttribute, escapeHtml, renderHtmlShell } from './htmlShell';
+import { renderNativeMediaDescriptor } from '../adaptive/media';
 
 const labels = ['A', 'B', 'C', 'D'];
 
 const paragraph = (value: string): string => `<p>${escapeHtml(value)}</p>`;
+
+const renderLessonMedia = (media: DeweyLessonContent['engage']['media']): string => media?.length
+  ? `<div class="lesson-media-list">${media.map(renderNativeMediaDescriptor).join('\n')}</div>`
+  : '';
 
 const safeId = (value: string): string => escapeAttribute(value.replace(/[^a-zA-Z0-9_-]/g, '-'));
 
@@ -126,6 +131,7 @@ const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUni
     ${engage.realityCheckMessage ? `<div class="eval-box feedback-wrong">${escapeHtml(engage.realityCheckMessage)}</div>` : ''}
   </div>
   ${renderEngageIllustration(content)}
+  ${renderLessonMedia(engage.media)}
   ${engage.interactiveWidget ? `
   <div class="activity-box" data-engage-widget="${escapeAttribute(engage.interactiveWidget.type)}">
     <h3>${escapeHtml(engage.interactiveWidget.title)}</h3>
@@ -200,6 +206,7 @@ const renderKnowledgeUnit = (unit: DeweyKnowledgeUnit, index: number, nextScreen
 <section class="screen" id="screen-${safeId(unit.id)}" data-next-screen="${safeId(nextScreenId)}" data-notebook-formula="${escapeAttribute(unit.formulaForNotebook || '')}">
   <h2>${index + 3}. ${escapeHtml(unit.title)}</h2>
   ${renderUnitSimulation(unit)}
+  ${renderLessonMedia(unit.media)}
   ${unit.socraticSteps.map((_step, stepIndex) => renderSocraticStep(unit, stepIndex)).join('\n')}
   <div class="box unit-completion-panel hidden" data-unit-completion>
     <strong>Kết luận:</strong> ${escapeHtml(unit.conclusion)}

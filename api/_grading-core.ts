@@ -576,3 +576,185 @@ export const callUtilityVision = async (
     return await callGeminiVision(prompt, images, apiKey, GRADING_MODEL, options);
   }
 };
+
+// ── Chuỗi dự phòng "rẻ trước, đắt sau" (2026-10-22) ──────────────────────────
+// Luồng chấm bài tiêu khoá CHỦ DỰ ÁN. Quyết định của chủ dự án: Vilao (chợ API,
+// đóng tiền nhỏ theo từng request) đứng đầu chuỗi, Gemini trả phí là lớp chót.
+// Hạn mức tính tiền cho giáo viên/học sinh KHÔNG đổi — lớp gọi model này chỉ
+// quyết định "tiền thật của chủ dự án chảy vào đâu" (ensureGeminiKey/ví vẫn
+// chạy như cũ ở nơi gọi).
+
+export interface OpenAiVisionOptions {
+  baseUrl: string;
+  model: string;
+  /**
+   * Mức suy nghĩ (`reasoning_effort`) của API OpenAI-compatible. Model Gemini trên Vilao
+   * nhận 'none' = tắt hẳn suy nghĩ: nhanh hơn hẳn mà chất lượng chấm không giảm (A/B
+   * 10/2026 chấm 5 bài × 2 lượt: 10/10 đạt chuẩn phần 1), tiền token suy nghĩ về 0.
+   */
+  reasoningEffort?: string;
+}
+
+/** Phẳng bucket cache (segment) thành prompt+ảnh phẳng cho đường OpenAI-compatible. */
+const nhoiSegment = (
+  prompt: string,
+  images: InlineImage[],
+  segment?: GeminiPromptSegment,
+): { prompt: string; images: InlineImage[] } => (
+  segment
+    ? {
+        prompt: [segment.prefix, segment.suffix].filter(Boolean).join('\n\n'),
+        images: [...(segment.prefixImages ?? []), ...(segment.suffixImages ?? [])],
+      }
+    : { prompt, images }
+);
+
+/**
+ * Gọi API OpenAI-compatible có vision (Vilao…). Hợp đồng giống callGeminiVision:
+ * trả text, ném lỗi có thông điệp người dùng đọc hiểu và phân loại được (kinds
+ * 'max_tokens'/'empty' khớp bộ retry của đường chấm). jsonMode của Gemini không có
+ * tương đương chuẩn trên đường này — prompt đã yêu cầu trả JSON, bộ parse bọc ```json
+ * vốn đã xử lý. `'model-max'` → bỏ gửi max_tokens, để model dùng trần riêng của nó.
+ */
+export const callOpenAiCompatibleVision = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  options: OpenAiVisionOptions & Pick<GeminiOptions, 'maxOutputTokens' | 'temperature' | 'timeoutMs'>,
+  segment?: GeminiPromptSegment,
+): Promise<string> => {
+  const dung = nhoiSegment(prompt, images, segment);
+  const res = await fetch(
+    `${options.baseUrl.replace(/\/+$/, '')}/chat/completions`,
+    {
+      method: 'POST',
+      signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: options.model,
+        ...(options.reasoningEffort ? { reasoning_effort: options.reasoningEffort } : {}),
+        ...(options.maxOutputTokens && options.maxOutputTokens !== 'model-max'
+          ? { max_tokens: options.maxOutputTokens }
+          : {}),
+        temperature: options.temperature ?? 0.2,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: dung.prompt },
+            ...dung.images.map(img => ({
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType};base64,${img.data}` },
+            })),
+          ],
+        }],
+      }),
+    },
+  );
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new GeminiResponseError('http', `kênh rẻ trả lỗi ${res.status}: ${detail.slice(0, 200)}`, String(res.status));
+  }
+
+  const data = await res.json() as {
+    choices?: Array<{ finish_reason?: string; message?: { content?: string | Array<{ text?: string }> } }>;
+  };
+  const choice = data.choices?.[0];
+  const rawContent = choice?.message?.content;
+  const text = typeof rawContent === 'string'
+    ? rawContent
+    : Array.isArray(rawContent) ? rawContent.map(part => part?.text || '').join('') : '';
+
+  if (choice?.finish_reason === 'length') {
+    throw new GeminiResponseError('max_tokens', moTaFinishReason('MAX_TOKENS', true) || 'AI trả lời dài quá trần cho phép.', 'MAX_TOKENS');
+  }
+  if (!text.trim()) {
+    throw new GeminiResponseError('empty', `Kênh rẻ không trả về chữ nào${choice?.finish_reason ? ` (dừng vì ${choice.finish_reason})` : ''}.`);
+  }
+  return text;
+};
+
+export interface GradingAdapter {
+  name: string;
+  /** Vai trong chuỗi chi phí: 're' (rẻ) | 'phi' (trả phí cao hơn). */
+  tier: 're' | 'phi';
+  call: (prompt: string, images: InlineImage[], options: GeminiOptions, segment?: GeminiPromptSegment) => Promise<string>;
+}
+
+/**
+ * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
+ * Thứ tự: Vilao (env GRADING_VILAO_API_KEY) → xKiro (env GRADING_XKIRO_API_KEY,
+ * model :free nên không tốn tiền) → Gemini (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY).
+ * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
+ * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
+ * dưới đây — không có cờ/env thừa.
+ */
+export const getGradingChain = (): GradingAdapter[] => {
+  const chain: GradingAdapter[] = [];
+  const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
+  if (vilaoKey) {
+    // Model + thinking 0 là cấu hình ĐÃ KIỂM CHỨNG chấm ảnh (A/B 10/2026: 5 bài × 2 lượt qua
+    // lane chib 10/10 đạt, ~5₫/bài, trung bình 30s/lượt). Ghim trong code như GRADING_MODEL:
+    // đổi model = sửa dòng này rồi deploy, đừng lật qua env để kẻo trạng thái thật lệch với git.
+    const vilaoOptions: OpenAiVisionOptions = {
+      baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1',
+      model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
+      reasoningEffort: 'none',
+    };
+    chain.push({
+      name: `vilao/${vilaoOptions.model}`,
+      tier: 're',
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment),
+    });
+  }
+  const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
+  if (xkiroKey) {
+    const xkiroOptions: OpenAiVisionOptions = {
+      baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1',
+      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'qwen/qwen3.8-max:free',
+    };
+    chain.push({
+      name: `xkiro/${xkiroOptions.model}`,
+      tier: 're',
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment),
+    });
+  }
+  const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
+  if (geminiKey) {
+    const key = geminiKey;
+    chain.push({
+      name: `gemini/${GRADING_MODEL}`,
+      tier: 'phi',
+      call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, GRADING_MODEL, options, segment),
+    });
+  }
+  return chain;
+};
+
+/**
+ * Gọi chấm bài đi qua chuỗi dự phòng: thử từng nhà cung cấp theo thứ tự chi phí,
+ * lớp trước hỏng thì nhảy sang lớp kế. Lỗi cuối cùng được ném NGUYÊN — nơi gọi
+ * vẫn phân loại được (retry lớp empty/max_tokens, thông điệp đọc hiểu) và log
+ * ghi rõ lớp nào đã đi qua.
+ */
+export const callGradingVision = async (
+  prompt: string,
+  images: InlineImage[],
+  options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
+): Promise<string> => {
+  const chain = getGradingChain();
+  if (chain.length === 0) {
+    throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
+  }
+  let lastError: unknown;
+  for (const adapter of chain) {
+    try {
+      return await adapter.call(prompt, images, options, segment);
+    } catch (error) {
+      lastError = error;
+      console.warn(`[grading-chain] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+    }
+  }
+  throw lastError;
+};

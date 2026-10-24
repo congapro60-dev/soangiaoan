@@ -41,6 +41,7 @@ import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { confirmPaperExamScore, renameAssignment } from '../../../lib/classroom/teacherService';
 import { countKeyQuestions } from '../../../lib/classroom/examVariants';
+import type { VariantChange } from '../../../lib/classroom/examVariantDiff';
 import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
@@ -635,6 +636,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Chỉ lưu id submission, không lưu cả object — sau khi refresh không bị dùng bản grade cũ.
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
   const [dangBulk, setDangBulk] = useState('');
+  // Bảng gợi ý chấm lại theo mã của lần Lưu mã đề gần nhất — giữ ở đây vì taiBai() dựng lại màn sửa mã đề.
+  const [goiYChamLai, setGoiYChamLai] = useState<Record<string, VariantChange[]>>({});
   // Bản nháp đang sửa của bài đang mở. Rỗng = chưa sửa gì.
   const [nhap, setNhap] = useState<{ answerKey: string; rubric: string; gradingInstructions: string } | null>(null);
   const [dangLuu, setDangLuu] = useState(false);
@@ -667,7 +670,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Việc tồn của cả lớp qua MỌI bài giao nộp ảnh — kể cả bài cũ học sinh nộp muộn.
   const idsBaiNopAnh = useMemo(() => new Set(assignments.filter(a => a.type !== 'exam').map(a => a.id)), [assignments]);
   const tonDong = useMemo(() => classBacklog(tatCaBaiNop, idsBaiNopAnh), [tatCaBaiNop, idsBaiNopAnh]);
-  const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length + tonDong.uncertain.length;
+  const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length;
   const [nhomMo, setNhomMo] = useState<NhomTon | ''>('');
   const khungTonRef = useRef<HTMLDivElement>(null);
   // Mở từ Bảng điều khiển: bung nhóm đầu tiên còn việc rồi cuộn tới khung việc tồn.
@@ -896,8 +899,14 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
    * đã lo phần còn lại: bài đã duyệt bị chấm lại sẽ về "chờ duyệt lại" và bằng chứng cũ được gỡ
    * khỏi hồ sơ tích luỹ; điểm cũ được giữ nếu lượt chấm lại lỗi.
    */
-  const chamLaiDaChon = async (assignment: AssignmentDoc) => {
-    const chon = selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'graded' && Boolean(s.grade));
+  const chamLaiDaChon = (assignment: AssignmentDoc) =>
+    chamLaiCacBai(selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'graded' && Boolean(s.grade)), 'đã chọn');
+
+  /** Chấm lại THEO MÃ ĐỀ (gợi ý sau khi sửa mã đề): cùng đường "Chấm lại" loạt, chỉ bài đã chấm bằng AI của đúng mã. */
+  const chamLaiTheoMa = (assignment: AssignmentDoc, code: string) =>
+    chamLaiCacBai(currentSubmissionsForAssignment(baiNopCua(assignment.id)).filter(s => s.examCode === code && s.status === 'graded' && Boolean(s.grade)), `mã ${code}`);
+
+  const chamLaiCacBai = async (chon: SubmissionDoc[], nhan: string) => {
     const selected = chon.filter(s => s.grade?.editedByTeacher !== true);
     const boQuaSuaTay = chon.length - selected.length;
     if (selected.length === 0) {
@@ -908,7 +917,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
     const { isConfirmed } = await Swal.fire({
       icon: 'question',
-      title: `Chấm lại ${selected.length} bài đã chấm bằng AI?`,
+      title: `Chấm lại ${selected.length} bài ${nhan} (đã chấm bằng AI)?`,
       html: `Điểm và nhận xét cũ do AI chấm sẽ bị thay bằng kết quả mới theo đáp án hiện tại.<br/>Bài đã <b>duyệt</b> sẽ quay về <b>chờ duyệt lại</b>.${boQuaSuaTay > 0 ? `<br/><span style="font-size:12px;color:#94a3b8;">Bỏ qua ${boQuaSuaTay} bài thầy cô đã sửa tay.</span>` : ''}`,
       showCancelButton: true,
       confirmButtonText: 'Chấm lại',
@@ -982,7 +991,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /**
    * Chấm AI mọi lượt mới nhất còn chờ chấm, rồi duyệt mọi bài đã chấm chưa duyệt — trên TẤT CẢ bài giao
-   * của lớp. Bài máy đọc chưa chắc giữ lại cho giáo viên xem, trừ khi giáo viên tick duyệt luôn.
+   * của lớp; bài cần soát (đọc chưa chắc, lệch sổ) cũng được duyệt kèm cờ nhắc thầy cô ở dòng bài.
    * Chạy tuần tự như các nút loạt khác để hồ sơ tích luỹ không ghi đè nhau.
    */
   const chamDuyetTatCa = async () => {
@@ -1000,21 +1009,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         <ul style="text-align:left;margin:8px 0 0 18px;list-style:disc">
           ${toGrade.length > 0 ? `<li>Chấm AI <b>${toGrade.length}</b> bài chưa chấm${tonDong.errored.length > 0 ? ` (gồm ${tonDong.errored.length} bài chấm lỗi — thử lại)` : ''} (mỗi bài một lượt AI).</li>` : ''}
           <li>Duyệt <b>${toApprove.length}</b> bài đã chấm${toGrade.length > 0 ? ' và các bài vừa chấm xong' : ''} — học sinh, phụ huynh thấy điểm chính thức.</li>
-          ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc được giữ lại để thầy cô xem, trừ khi tick ô bên dưới.</li>` : ''}
+          ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc cũng được duyệt — dòng bài có cờ "Lệch điểm GV" hoặc "Đọc chưa rõ" để thầy cô soát lại sau.</li>` : ''}
         </ul>
-        <p style="margin-top:8px;font-size:12px;color:#64748b">Bài đã duyệt giữ nguyên. Bài chấm xong mà máy đọc chưa chắc cũng được giữ lại như trên.</p>`,
-      ...(uncertain.length > 0 || toGrade.length > 0 ? {
-        input: 'checkbox' as const,
-        inputValue: 0,
-        inputPlaceholder: 'Duyệt luôn cả bài máy đọc chưa chắc',
-      } : {}),
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Bài đã duyệt giữ nguyên.</p>`,
       showCancelButton: true,
       confirmButtonText: 'Chấm & duyệt',
       cancelButtonText: 'Thôi',
       confirmButtonColor: '#4f46e5',
     });
     if (!result.isConfirmed) return;
-    const duyetCaChuaChac = result.value === 1;
 
     setDangBulk('all');
     let daCham = 0;
@@ -1036,7 +1039,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       setTatCaBaiNop(sauCham);
       setLoiBaiNop(null);
       const tonSau = classBacklog(sauCham, idsBaiNopAnh);
-      const canDuyet = duyetCaChuaChac ? [...tonSau.toApprove, ...tonSau.uncertain] : tonSau.toApprove;
+      const canDuyet = tonSau.toApprove;
       for (let i = 0; i < canDuyet.length; i += 1) {
         setTienDoTatCa(`Đang duyệt ${i + 1}/${canDuyet.length}...`);
         try {
@@ -1046,9 +1049,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
           loiDuyet += 1;
         }
       }
-      const conChuaChac = duyetCaChuaChac ? 0 : tonSau.uncertain.length;
       showToast(
-        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${conChuaChac > 0 ? `; ${conChuaChac} bài máy đọc chưa chắc đang chờ thầy cô xem` : ''}.`,
+        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${tonSau.uncertain.length > 0 ? `; có cờ ở ${tonSau.uncertain.length} bài cần thầy cô soát lại` : ''}.`,
         loiCham + loiDuyet > 0 ? 'warning' : 'success',
       );
       setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
@@ -1608,7 +1610,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       {tuChamSau60 !== null && (
         <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
           <input type="checkbox" checked={tuChamSau60} onChange={event => void doiTuChamSau60(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
-          <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài máy đọc chưa chắc vẫn giữ lại cho thầy cô xem).</span>
+          <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài cần soát được duyệt kèm cờ nhắc thầy cô ở dòng bài).</span>
         </label>
       )}
 
@@ -1808,7 +1810,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         “Sửa điểm” ở bài của một em mã đó và sửa câu đó cho cả lớp — chỉ bài cùng mã được tính lại.
                         Điểm chính thức vẫn là điểm trong sổ điểm; bài này không cộng vào điểm BTVN.
                       </p>
-                      <ExamVariantsEditor assignment={a} onSaved={() => void taiBai()} />
+                      <ExamVariantsEditor
+                        assignment={a}
+                        submissions={baiNopCua(a.id)}
+                        initialChanges={goiYChamLai[a.id]}
+                        onSaved={changes => { setGoiYChamLai(previous => ({ ...previous, [a.id]: changes })); void taiBai(); }}
+                        onRegradeCode={code => chamLaiTheoMa(a, code)}
+                      />
                     </div>
                   )}
                   {!submissionsOnly && !a.periodicTest && <div className="mb-5 rounded-2xl bg-slate-50 p-4">

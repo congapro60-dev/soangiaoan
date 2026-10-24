@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Download, Link2, Loader2, RefreshCw, Unlink, UserPlus } from 'lucide-react';
+import { Download, Key, Link2, Loader2, RefreshCw, Unlink, UserPlus } from 'lucide-react';
 import type { Student } from '../../../types';
-import { pingSsmBridge, readSsmLink, readSsmLinkCloud, saveSsmLink, saveSsmLinkCloud, ssmRequest } from '../../../lib/ssm/ssmBridge';
+import {
+  getStoredSsmSession,
+  pingSsmBridge,
+  readSsmLink,
+  readSsmLinkCloud,
+  saveSsmLink,
+  saveSsmLinkCloud,
+  ssmRequest,
+  type StoredSsmSession,
+} from '../../../lib/ssm/ssmBridge';
+import { SsmConnectModal } from './SsmConnectModal';
 import { getLinkedGoogleEmail } from '../../../lib/adminLink';
 import {
   guessSsmClass,
@@ -44,6 +54,8 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
   const [error, setError] = useState('');
   const [needInstall, setNeedInstall] = useState(false);
   const [workspace, setWorkspace] = useState('');
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [ssmSession, setSsmSession] = useState<StoredSsmSession | null>(() => getStoredSsmSession());
 
   // HẠNG MỤC 4: lúc mở panel, thử lấy ghép lớp từ cloud (trường hợp đổi máy / xoá cache).
   useEffect(() => {
@@ -74,6 +86,9 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
       await pingSsmBridge();
       setNeedInstall(false);
     } catch (err) {
+      if (!getStoredSsmSession()) {
+        setShowConnectModal(true);
+      }
       setNeedInstall(true);
       throw err;
     }
@@ -160,7 +175,17 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
             {link ? <>Đã ghép với lớp SSM <b>{link.name}</b></> : 'Chưa ghép lớp này với SSM.'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowConnectModal(true)}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
+            title="Quản lý mã kết nối SSM (Server Proxy — không cần tiện ích)"
+          >
+            <Key className="h-4 w-4" />
+            {ssmSession ? (ssmSession.userName || 'Đã kết nối SSM') : 'Kết nối SSM'}
+          </button>
+
           {link ? (
             <>
               <button type="button" disabled={!!busy} onClick={() => void compareRoster()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">
@@ -197,15 +222,21 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
       {busy && <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> {busy}</p>}
       {error && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
 
-      {needInstall && (
-        <div className="mt-3 rounded-xl border border-indigo-100 bg-white p-3 text-sm text-slate-700">
-          <p className="font-black text-slate-900">Cài tiện ích SSM cho Edge (làm 1 lần, khoảng 1 phút)</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 font-medium">
-            <li><a href="/downloads/ssm-bridge.zip" download className="inline-flex items-center gap-1 font-black text-indigo-700 underline"><Download className="h-4 w-4" /> Tải tiện ích</a>, rồi giải nén (chuột phải → Extract All).</li>
-            <li>Mở tab mới, gõ <b>edge://extensions</b>, bật <b>Chế độ nhà phát triển</b> (công tắc cạnh trái).</li>
-            <li>Bấm <b>Tải tiện ích đã giải nén</b>, chọn thư mục <b>ssm-bridge</b> vừa giải nén.</li>
-            <li>Đăng nhập <b>ssm.edufit.vn</b> bằng mail trường một lần — tiện ích tự nhớ phiên, không cần mở tab SSM thủ công nữa.</li>
-          </ol>
+      {needInstall && !ssmSession && (
+        <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/70 p-3.5 text-xs text-slate-700 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-black text-indigo-950">Chưa kết nối SSM — Không cần cài đặt Extension</span>
+            <button
+              type="button"
+              onClick={() => setShowConnectModal(true)}
+              className="rounded-lg bg-indigo-600 px-3 py-1 font-black text-white hover:bg-indigo-700"
+            >
+              Kết nối ngay
+            </button>
+          </div>
+          <p className="font-medium text-slate-600">
+            Hệ thống hỗ trợ <b>Server Proxy trực tiếp</b>: bấm <b>Kết nối ngay</b> để dán mã kết nối (token) mà không cần cài thêm bất kỳ tiện ích trình duyệt nào.
+          </p>
         </div>
       )}
 
@@ -222,6 +253,17 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, 
           <p className="text-xs font-medium text-slate-500">Nút "Cập nhật DS từ SSM" chỉ thêm học sinh mới — không xoá, không sửa học sinh đã có.</p>
         </div>
       )}
+
+      <SsmConnectModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+        onConnected={(s) => {
+          setSsmSession(s);
+          setNeedInstall(false);
+          void loadClasses();
+        }}
+        showToast={() => {}}
+      />
     </div>
   );
 };

@@ -9,7 +9,7 @@ import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
-import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import { TEACHER_REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
 import { sanitizeReportOverrides, type ReportOverrides } from '../src/lib/classroom/reportOverrides.js';
 import { PARENT_REPORTS_SUB, parentReportDocId } from '../src/lib/classroom/parentAccess.js';
 import { asProgram, stageForPeriod } from '../src/lib/classroom/reportStage.js';
@@ -57,7 +57,7 @@ const readKey = (body: Body): NoteKey | { error: string } => {
   const from = String(body.from || '');
   const to = String(body.to || '');
   if (!studentId || studentId.includes('/')) return { error: 'Thiếu học sinh.' };
-  if (kind !== ALL_PERIOD_KIND && !REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
+  if (kind !== ALL_PERIOD_KIND && !TEACHER_REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
   if (!DAY_RE.test(from) || !DAY_RE.test(to) || from > to) return { error: 'Khoảng thời gian không hợp lệ.' };
   return { studentId, kind, from, to };
 };

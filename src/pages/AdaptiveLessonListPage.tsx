@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Edit3, Eye, Trash2, WandSparkles } from 'lucide-react';
+import { BarChart3, BookOpenCheck, Edit3, Eye, Trash2, WandSparkles } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
 import type { TeacherClass } from '../types';
 import type { ClassDoc } from '../lib/classroom/types';
+import { DiscoverClassPanel } from '../components/adaptive/DiscoverClassPanel';
 import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher';
 import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson';
 import { getBanToanV4PackageForLesson } from '../lib/liveLesson/v4';
@@ -252,8 +253,14 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               <button disabled={hasPilotLesson || seedingPilot || !user} onClick={() => void handleSeedPilot()} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
                 <WandSparkles className="h-4 w-4" /> {seedingPilot ? 'Đang cài bài demo...' : hasPilotLesson ? 'Đã có bài demo G10 P31' : 'Cài bài demo G10 P31'}
               </button>
+              <button onClick={() => navigate('/lesson-gen')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 py-3 text-sm font-black text-slate-900 shadow-lg shadow-amber-900/10 transition hover:bg-amber-300">
+                <WandSparkles className="h-4 w-4" /> Soạn bài tương tác V8.8
+              </button>
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
                 <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
+              </button>
+              <button onClick={() => navigate('/discover-self-study')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25">
+                <BookOpenCheck className="h-4 w-4" /> Chọn tiết Discover
               </button>
             </div>
           </div>
@@ -294,6 +301,8 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
             );
           })()}
         </section>
+
+        {user && !loading && <DiscoverClassPanel lessons={lessons} />}
 
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           {loading ? (

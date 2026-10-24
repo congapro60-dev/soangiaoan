@@ -37,6 +37,40 @@ const OPS = {
     // API SSM phân trang mặc định 20 dòng — xin đủ cả lớp.
     return classId ? `v1/students/class/${classId}?skipPagination=true&page=1&limit=500` : null;
   },
+  // ── Đợt 4: đọc cây điểm LO (TDS V2) — CHỈ ĐỌC, để app tính điểm rồi GV xác nhận ghi. ──
+  evaluationQuarters: (p) => {
+    const classId = posInt(p?.classId);
+    const subjectId = posInt(p?.subjectId);
+    const schoolYearId = posInt(p?.schoolYearId);
+    return classId && subjectId && schoolYearId
+      ? `v3/evaluation/classes/${classId}/subjects/${subjectId}/quarters?school_year_id=${schoolYearId}`
+      : null;
+  },
+  subjectClass: (p) => {
+    const classId = posInt(p?.classId);
+    const schoolYearId = posInt(p?.schoolYearId);
+    return classId && schoolYearId ? `v1/subject-class?class_id=${classId}&school_year_id=${schoolYearId}` : null;
+  },
+  criteriaAssessment: (p) => {
+    const formId = posInt(p?.assessmentFormId);
+    return formId ? `v2/evaluation/criteria-has-assessment-form/${formId}` : null;
+  },
+  classSubjectAssessment: (p) => {
+    const formId = posInt(p?.assessmentFormId);
+    const criteriaId = posInt(p?.criteriaId);
+    const classId = posInt(p?.classId);
+    return formId && criteriaId && classId
+      ? `v2/evaluation/class-subject-assessment?assessment_form_id=${formId}&criteria_id=${criteriaId}&class_id=${classId}`
+      : null;
+  },
+  // Đợt 4: GHI điểm LO. App gói sẵn payload (dựa trên thang SSM trả về), tiện ích chỉ POST nguyên trạng
+  // tới đúng 1 trong 2 endpoint — KHÔNG có phát minh gì thêm.
+  writeLoGrades: (p) => {
+    const formId = posInt(p?.assessmentFormId);
+    const resultId = posInt(p?.resultAssessmentFormId);
+    if (!formId && !resultId) return null;
+    return { path: resultId ? `v2/evaluation/update-result-grading-student/${resultId}` : `v2/evaluation/grading-student-by-assessment-form/${formId}`, resultId: Boolean(resultId) };
+  },
 };
 
 const findSsmTab = async () => {
@@ -192,11 +226,13 @@ const readSession = async (forWrite = false) => {
   return wakeSsmInBackground();
 };
 
-const callSsm = async (path, session) => {
+const callSsm = async (path, session, init = null) => {
   let response;
   try {
     response = await fetch(API + path, {
-      method: 'GET', signal: AbortSignal.timeout(10000),
+      method: init?.method || 'GET',
+      ...(init?.body ? { body: init.body, headers: { 'Content-Type': 'application/json' } } : {}),
+      signal: AbortSignal.timeout(10000),
       // Giống hệt trang SSM: thiếu header `workspace` thì API trả danh sách rỗng.
       headers: {
         Accept: 'application/json',
@@ -223,6 +259,32 @@ const callSsm = async (path, session) => {
   }
 };
 
+/**
+ * Đợt 4 (GHI điểm LO): nhận payload app đã gói sẵn, POST tới endpoint add hoặc update.
+ * Chỉ nhận body đúng hình {class_id, criteria_id, quarter_has_branch_id, students: [...]};
+ * chênh kích thước quá lớn thì từ chối — không có phát minh gì ngoài payload app gửi.
+ */
+const validateGradePayload = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Body điểm không hợp lệ.';
+  const { class_id, criteria_id, quarter_has_branch_id, students } = body;
+  if (!posInt(class_id) || !posInt(criteria_id) || !posInt(quarter_has_branch_id) || !Array.isArray(students) || students.length === 0) {
+    return 'Body điểm thiếu lớp / tiêu chí / kỳ / danh sách học sinh.';
+  }
+  const ok = students.every((s) => s && posInt(s.id) && Array.isArray(s.result));
+  return ok ? null : 'Danh sách học sinh trong body điểm không hợp lệ.';
+};
+
+const writeLoGradesNow = async (params, session) => {
+  const body = params?.body;
+  const problem = validateGradePayload(body);
+  if (problem) return { ok: false, error: problem };
+  const json = JSON.stringify(body);
+  if (json.length > MAX_BODY) return { ok: false, error: 'Payload điểm quá lớn.' };
+  const build = OPS.writeLoGrades(params);
+  if (!build) return { ok: false, error: 'Tham số endpoint ghi không hợp lệ.' };
+  return callSsm(build.path, session, { method: 'POST', body: json });
+};
+
 const handle = async (message, sender) => {
   const origin = sender.origin || (sender.url ? new URL(sender.url).origin : '');
   if (!APP_ORIGINS.includes(origin)) return { ok: false, error: 'Trang này không được phép dùng cầu nối SSM.' };
@@ -233,7 +295,7 @@ const handle = async (message, sender) => {
   if (message.op === 'ping') return { ok: true, data: { version: chrome.runtime.getManifest().version } };
   const expectedEmails = Array.isArray(message.params?.expectedEmails) ? message.params.expectedEmails.filter(email => typeof email === 'string' && email.includes('@')).map(email => email.trim().toLowerCase()) : [];
   if (!expectedEmails.length) return { ok: false, error: 'Đăng nhập tài khoản giáo viên trên app trước khi dùng SSM.' };
-  const forWrite = ['attachLoFile','autofillSsm'].includes(message.op);
+  const forWrite = ['attachLoFile', 'autofillSsm', 'writeLoGrades'].includes(message.op);
   const { session, error, tab } = await readSession(forWrite);
   if (error) return { ok: false, error };
   const profile = await callSsm('v1/profile', session);
@@ -244,6 +306,7 @@ const handle = async (message, sender) => {
   if (message.params?.expectedWorkspace && message.params.expectedWorkspace !== session.workspace) return { ok: false, error: 'Chi nhánh SSM đã đổi. Ghép lại đúng lớp trước khi so hoặc cập nhật danh sách.' };
   if (message.op === 'attachLoFile') return attachFileToSsmTab({ ...message.params, sessionToken: session.token, workspace: session.workspace }, tab);
   if (message.op === 'autofillSsm') return autofillSsmTab({ ...message.params, sessionToken: session.token, workspace: session.workspace }, tab);
+  if (message.op === 'writeLoGrades') return writeLoGradesNow(message.params, session);
   return callSsm(path, session);
 };
 

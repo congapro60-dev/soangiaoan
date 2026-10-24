@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
-import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS, NVIDIA_MODELS } from '../../lib/aiProviders';
+import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS, NVIDIA_MODELS, VILAO_MODELS } from '../../lib/aiProviders';
 import { useTokenTracker } from '../../hooks/useTokenTracker';
 import { parseFolderId } from '../../lib/googleDrive';
 import type { DriveFolderKey } from '../../services/pushLessonToDrive';
@@ -61,6 +61,7 @@ const PROVIDERS: { id: Provider; label: string; color: string; bg: string; borde
   { id: 'nvidia', label: 'NVIDIA NIM', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-500', accent: 'from-green-500 to-lime-400' },
   { id: 'openai-compatible', label: 'Custom API', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-400', accent: 'from-slate-500 to-gray-400' },
   { id: 'vercel-gateway', label: 'GLM 5.2', color: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-500', accent: 'from-pink-500 to-rose-400' },
+  { id: 'vilao', label: 'Vilao', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-500', accent: 'from-indigo-500 to-violet-400' },
 ];
 
 const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
@@ -72,6 +73,7 @@ const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string
   nvidia: NVIDIA_MODELS,
   'openai-compatible': [],
   'vercel-gateway': [{ id: 'zai/glm-5.2', name: 'GLM 5.2 · Vercel AI Gateway', desc: 'Server-side · 1M ngữ cảnh · coding/agentic · không cần dán key ở đây' }],
+  vilao: VILAO_MODELS,
 };
 
 const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
@@ -83,6 +85,7 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   nvidia: { url: 'https://build.nvidia.com/explore/models', label: 'Lấy NVIDIA API Key' },
   'openai-compatible': { url: '#', label: 'API Tuỳ chỉnh' },
   'vercel-gateway': { url: 'https://vercel.com/ai-gateway/models/glm-5.2', label: 'Xem GLM 5.2' },
+  vilao: { url: 'https://vilao.ai', label: 'Lấy Vilao API Key' },
 };
 
 const providerName = (provider: Provider): string => {
@@ -93,6 +96,7 @@ const providerName = (provider: Provider): string => {
   if (provider === 'nvidia') return 'NVIDIA NIM';
   if (provider === 'openai-compatible') return 'OpenAI Compatible';
   if (provider === 'vercel-gateway') return 'Vercel AI Gateway · GLM 5.2';
+  if (provider === 'vilao') return 'Vilao (chợ API trả theo request)';
   return 'OpenAI ChatGPT';
 };
 
@@ -191,6 +195,8 @@ export const SettingsModal = ({
       setData(prev => ({ ...prev, settings: { ...prev.settings, nvidiaApiKey: value } }));
     } else if (provider === 'openai-compatible') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, openaiCompatibleApiKey: value } }));
+    } else if (provider === 'vilao') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, vilaoApiKey: value } }));
     } else {
       setData(prev => ({ ...prev, settings: { ...prev.settings, openaiApiKey: value } }));
     }
@@ -204,6 +210,7 @@ export const SettingsModal = ({
     if (provider === 'nvidia') return data.settings.nvidiaApiKey || '';
     if (provider === 'openai-compatible') return data.settings.openaiCompatibleApiKey || '';
     if (provider === 'vercel-gateway') return '';
+    if (provider === 'vilao') return data.settings.vilaoApiKey || '';
     return data.settings.openaiApiKey || '';
   };
 

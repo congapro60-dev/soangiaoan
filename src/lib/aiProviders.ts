@@ -4,7 +4,7 @@ import { callAiRelay, relayModelFor, relayVendorModelFor, type RelayVendorId } f
 import { chosenEffortOf, resolveEffort } from '../data/reasoningEffort';
 import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, vendorRouteFor } from './ai/aiModeStore';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
-import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
+import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, VILAO_MODELS as TRACKER_VILAO_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
 import { callVercelGateway, SERVER_MANAGED_API_KEY, streamVercelGateway } from './vercelGateway';
@@ -33,6 +33,7 @@ const CLAUDE_MAX_TOKENS = 32768;
 const OPENAI_MAX_TOKENS = 16384;
 const GROK_MAX_TOKENS = 16384;
 const DEEPSEEK_MAX_TOKENS = 32768;           // deepseek-flash / v4-pro cho phép tới 384K; 32K đủ cho một giáo án dài
+const VILAO_MAX_TOKENS = 32768;              // Vilao phục vụ cùng họ deepseek-v4.1-flash — cùng trần với đường DeepSeek chính thức.
 
 // Số lần auto-continue tối đa khi output bị cắt (an toàn ngân sách)
 const MAX_CONTINUATIONS = 3;
@@ -108,6 +109,7 @@ export const OPENAI_MODELS = TRACKER_OPENAI_MODELS.map(toModelOption);
 export const GROK_MODELS = TRACKER_GROK_MODELS.map(toModelOption);
 export const DEEPSEEK_MODELS = TRACKER_DEEPSEEK_MODELS.map(toModelOption);
 export const NVIDIA_MODELS = TRACKER_NVIDIA_MODELS.map(toModelOption);
+export const VILAO_MODELS = TRACKER_VILAO_MODELS.map(toModelOption);
 const GEMINI_TAG_TRANSLATIONS: Record<string, string> = {
   'reasoning': 'suy luận',
   'vision': 'đọc ảnh',
@@ -137,6 +139,7 @@ function ownApiKey(settings: Settings): string {
   if (provider === 'deepseek') return settings.deepseekApiKey || '';
   if (provider === 'nvidia') return settings.nvidiaApiKey || '';
   if (provider === 'openai-compatible') return settings.openaiCompatibleApiKey || '';
+  if (provider === 'vilao') return settings.vilaoApiKey || '';
   // 'free-router' (đã ngừng hỗ trợ) rơi xuống đây → trả '' để mọi nơi coi là thiếu key.
   if ((provider as string) === 'free-router') return '';
   return settings.geminiApiKey || '';
@@ -169,6 +172,7 @@ const getActiveModelId = (provider: ApiProvider, settings: Settings, override?: 
   if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
   if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
   if (provider === 'nvidia') return settings.selectedModel || NVIDIA_MODELS[0].id;
+  if (provider === 'vilao') return settings.selectedModel || VILAO_MODELS[0].id;
   if (provider === 'openai-compatible') return settings.openaiCompatibleModelId || 'claude-opus-4-7';
   const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
   return idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
@@ -321,6 +325,24 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
       return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
+    if (provider === 'vilao') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: VILAO_MAX_TOKENS,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
+    }
+
     // default: gemini
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
     const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
@@ -407,16 +429,17 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
 export async function callAIWithVision(
   prompt: string,
   imageDataUrls: string | string[],
-  settings: Settings
+  settings: Settings,
+  opts?: { thinkingBudget?: number; maxOutputTokens?: number }
 ): Promise<string> {
   const wallet = walletVendor(settings);
-  if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings);
+  if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings, opts);
   const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
   const viaWallet = async (): Promise<string> =>
     (await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel), images: urls, effort: effortFor(settings, wallet.vendor, relayVendorModelFor(wallet.vendor, settings.selectedModel)) })).text;
   if (wallet.route === 'relay') return viaWallet();
   try {
-    return await callAIWithVisionDirect(prompt, imageDataUrls, settings);
+    return await callAIWithVisionDirect(prompt, imageDataUrls, settings, opts);
   } catch (ownKeyError) {
     if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
     return viaWallet();
@@ -426,7 +449,8 @@ export async function callAIWithVision(
 async function callAIWithVisionDirect(
   prompt: string,
   imageDataUrls: string | string[],
-  settings: Settings
+  settings: Settings,
+  opts?: { thinkingBudget?: number; maxOutputTokens?: number }
 ): Promise<string> {
   const provider = settings.selectedProvider ?? 'gemini';
   assertOwnApiKey(settings);
@@ -574,6 +598,30 @@ async function callAIWithVisionDirect(
       return res.choices[0]?.message?.content ?? '';
     }
 
+    if (provider === 'vilao') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+      const imageBlocks = parsedImages.map(({ url }) => ({
+        type: 'image_url' as const,
+        image_url: { url },
+      }));
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: VILAO_MAX_TOKENS,
+        messages: [{
+          role: 'user',
+          content: [...imageBlocks, { type: 'text' as const, text: prompt }],
+        }],
+      });
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
     // Gemini — ví web đi qua máy chủ (ảnh được nén cho lọt trần thân request 4,5MB của Vercel)
     const visionRoute = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
     const visionViaWallet = async (): Promise<string> =>
@@ -596,7 +644,14 @@ async function callAIWithVisionDirect(
         const result = await withGeminiKeys(geminiKeysOf(settings), key => new GoogleGenAI({ apiKey: key, httpOptions: { apiVersion: 'v1beta' } }).models.generateContent({
           model: modelName,
           contents: [{ parts: [{ text: prompt }, ...imageParts] }],
-          config: { temperature: 0.1, maxOutputTokens: 65536 },
+          config: {
+            temperature: 0.1,
+            maxOutputTokens: opts?.maxOutputTokens ?? 65536,
+            // thinkingConfig chỉ áp cho nhánh Flash/Lite — model Pro yêu cầu thinking tối thiểu
+            ...(opts?.thinkingBudget !== undefined && /flash/i.test(modelName)
+              ? { thinkingConfig: { thinkingBudget: opts.thinkingBudget } }
+              : {}),
+          },
         }));
         const usageMetadata = (result as any)?.usageMetadata;
         const text = result.text || '';
@@ -803,6 +858,28 @@ async function callAIStreamDirect(
       const stream = await client.chat.completions.create({
         model,
         max_tokens: OPENAI_MAX_TOKENS,
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      let output = '';
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
+      }
+      recordEstimatedUsage(provider, model, prompt, output);
+      return;
+    }
+
+    if (provider === 'vilao') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.vilaoApiKey || 'sk-none', baseURL: 'https://api.vilao.ai/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings, modelOverride);
+      const stream = await client.chat.completions.create({
+        model,
+        max_tokens: VILAO_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });

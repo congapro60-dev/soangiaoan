@@ -50,6 +50,27 @@ service firebase.storage {
     match /hand-marked-homework/{classId}/{studentId}/{fileName} { allow read, write: if false; }
 
 
+    // Nguồn giáo án giáo viên tải lên cho luồng AI (DOCX/PDF/JSON) và ảnh chụp
+    // kèm yêu cầu sửa bản xem trước. Đường dẫn gắn UID của người ghi.
+    match /lessonGen/{uid}/{rest=**} {
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.size < 25 * 1024 * 1024
+                    && (request.resource.contentType.matches('image/.*')
+                        || request.resource.contentType in [
+                          'application/pdf',
+                          'application/msword',
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                          'application/vnd.ms-excel',
+                          'application/json',
+                          'text/plain',
+                          'text/markdown'
+                        ]);
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /{path=**} {
       allow read, write: if false;
     }
