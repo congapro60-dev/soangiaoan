@@ -145,7 +145,7 @@ export const handleGenerateImage = async (
     uid = (await getAuth().verifyIdToken(body.idToken)).uid;
   } catch (error) {
     console.error('[ai-image] verify idToken lỗi:', error instanceof Error ? error.message : error);
-    return res.status(401).json({ error: `Cần đăng nhập tài khoản giáo viên. (debug: ${error instanceof Error ? error.message.slice(0, 200) : 'không rõ'})` });
+    return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
   }
 
   if (!checkRateLimit(uid)) {
@@ -198,7 +198,7 @@ export const handleGenerateImage = async (
     }
 
     if (!bytes) {
-      return res.status(502).json({ error: `Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này. (debug: ${upstreamError.slice(0, 200) || 'không rõ'})` });
+      return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
     }
 
     // Ghi lượt + trừ ví TRƯỚC khi trả về (lượt này đã tính tiền dù bước lưu có lỗi). `recordImageUsage` nhận luôn phần giữ chỗ.
