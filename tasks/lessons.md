@@ -577,3 +577,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Script Windows PowerShell 5.1 gửi tiếng Việt bằng `-Body` chuỗi → U+FFFD (45 bài, lan vào hồ sơ năng lực khi duyệt). Ghi dữ liệu thật phải qua công cụ trong app, không qua script cầm token GV.
 - Không `vercel --prod` tay từ thư mục khác main: bản 09:52 lùi web 14 commit. Không deploy luật Firestore từ cây chưa commit. Không tự xác nhận quyết định sư phạm dưới UID của GV. Không đưa ảnh bài HS thật vào repo.
 - Đổi chuỗi máy chấm (Vilao/xKiro trước Gemini) là quyết định của chủ dự án và phải đo độ khớp với điểm GV trước khi bật.
+
+## 2026-10-24 — tasks/todo.md là checklist chung nhiều phiên: chỉ ghép, không ghi đè
+- Overwrite `tasks/todo.md` bằng plan riêng đã xoá mất 365 dòng checklist OMR/Zalo của phiên khác; khôi phục được nhờ git (`ba44405^`) nên thành 2 commit thay vì 1. Luật: file quản trị dùng chung (`tasks/todo.md`, `HANDOFF.md`) chỉ được APPEND mục mới có tiêu đề ngày, trước khi đụng phải `git status --porcelain` + đọc nội dung hiện có.
+- Chạy `git diff --stat` TRƯỚC khi commit khối sửa lớn để thấy số dòng xoá bất thường (thấy `-461` là biết có gì sai), đừng phát hiện sau commit.
+- Khối nội dung dài đổ vào file bằng edit/write dễ lẫn token rác ("Whitespace-7", " dispositivos") — ngay sau mỗi khối sửa phải chạy tsc/test liền, không gom chờ cuối phiên.
