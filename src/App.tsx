@@ -56,6 +56,7 @@ const loadExportUtils = () => import('./utils/exportUtils');
 import { TemplateFile } from './types';
 import type { AdaptiveLesson } from './lib/adaptive/types';
 import { listAccessibleClasses } from './lib/classroom/classroomService';
+import { teacherClassFromServer } from './lib/classroom/teacherClassFromServer';
 import type { TeacherClass } from './types';
 
 export default function App() {
@@ -81,10 +82,7 @@ export default function App() {
   useEffect(() => { headerStudentClassesPromise.current = null; }, [user?.uid]);
   const loadHeaderStudentClasses = useCallback(() => {
     if (!headerStudentClassesPromise.current) {
-      const request = Promise.all([
-        listAccessibleClasses(),
-        import('./components/tabs/ClassesTab'),
-      ]).then(([remoteClasses, classesModule]) => remoteClasses.map(remote => classesModule.teacherClassFromServer(remote)));
+      const request = listAccessibleClasses().then(remoteClasses => remoteClasses.map(remote => teacherClassFromServer(remote)));
       headerStudentClassesPromise.current = request;
       request.catch(() => { if (headerStudentClassesPromise.current === request) headerStudentClassesPromise.current = null; });
     }
