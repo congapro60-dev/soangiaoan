@@ -383,6 +383,24 @@ Chủ dự án chốt: (1) làm trang quản trị cho tài khoản congapro60@g
 - [ ] Xuất bảng kê (CSV) từng người để thu tiền.
 - [ ] Chuẩn bị lớp cho các cô: xem lớp đã có; tạo lớp mới từ danh sách file Drive — BỎ QUA lớp đã tồn tại.
 
+## Nhận xét môn học SSM — đọc nhận xét trên web + sửa giọng app (24/10)
+
+### Kiểm chứng trên web SSM (SSM 24/10, chrome-devtools cloud browser)
+- Năm học hiện tại (school_year 6, 26-27): **chưa có nhận xét nào** — mọi lớp × 4 quý `"Chưa nhập"`, detail API trả `comment: ""` cho 15/15 HS (9680 Q1).
+- **11Columbus (9681) KHÔNG có trong danh sách nhận xét**: `GET /api/v2/evaluation/subject-comments?key...&school_year_id=6` trả đúng 5 lớp (9680/9698/9715/10265/10266); gọi thẳng `class_id=9681` → rỗng; mở URL detail trực tiếp (`/tds/6/comment/9681/class/12/subject/15/quarter`) → trang load nhưng 0 HS; API detail cho 9681 trả **HTTP 500**. Dropdown trang chấm điểm vẫn có 9681 ⇒ SSM chỉ gán quyền chấm điểm, chưa gán/đủ dữ liệu "nhận xét môn" cho lớp này ⇒ **cần admin SSM cấu hình** cho 11Columbus; app không thể tự sửa.
+- Route chi tiết nhận xét (dùng để QA sau): `/academic/student-assessment-v2/tds/6/comment/{classId}/class/{subjectId}/subject/{quarterId}/quarter`, API `GET /api/v2/evaluation/subject-comments/detail?class_id&school_year_id&subject_id&quarter_id` → `{data:[{id,name,comment,student_code,avatar,point,status}]}`.
+- Năm học trước (sy 5): 242/514 ô có nhận xét, chỉ Q2 + Q4 (Q1, Q3 trống). Hai giọng: (a) **giọng GV viết tay** "Con…, xưng cô/thầy cô", 200-600 ký tự, riêng hoá tốt (10Ottawa, 10Olinda, 11KHTN, 11 KHXH, 12 VN Toán, 12Denver) — chuẩn; (b) **giọng AI rõ** (12Detroit Q2, 10Victoria Q2/Q4 — 74 em, 700-900 ký tự: "khoảng trống kiến thức tích tụ", "cảnh báo nghiêm trọng", cấu trúc "Đại số/Hình học/Tổng" lặp y hệt, có chỗ tự mâu thuẫn "kết quả… tăng tiến. Mặc dù… sụt giảm", lỗi cắt "sụt giảm nh ."); 10Victoria Q4 gọi HS bằng "Học sinh". Một số lớp copy lặp: 10Ottawa Q2 11 HS chỉ 3 văn bản; 12 VN Toán 2 Q4 15 HS 5 văn bản.
+
+### Đã sửa app (giọng nhận xét khớp GV, không "ngôn ngữ AI")
+- [x] `src/lib/ssm/ssmDrafts.ts`: viết lại `buildSubjectComment` theo giọng GV thật (gọi "con", xưng "thầy cô", 3-5 câu): mức điểm % + xu hướng + phần cần luyện + bài chưa nộp + câu động viên theo tier; bỏ nhãn "Điểm mạnh:/Cần rèn thêm:" và câu dặn phụ huynh cố định (trước đây các em cùng bin có văn bản y hệt nhau).
+- [x] `SsmDraftCards.tsx`: CommentCard nối dữ liệu từng em (`officialAveragePercent`, `progress.trend`, `missingCount`); đổi tên thẻ thành "Nhận xét môn học".
+- [x] `ssmDrafts.test.ts`: 6 test mới (tổng 10/10 PASS); `npm run build` exit 0.
+
+### Cần làm tiếp
+- [ ] Admin SSM bật nhận xét môn cho lớp 9681 (11Columbus), QA lại thấy 26 HS trong trang chi tiết.
+- [ ] GV soát hẳn nhóm nhận xét cũ giọng AI (12Detroit Q2, 10Victoria Q2/Q4 năm 25-26) trước khi trình duyệt/đưa vào sổ.
+- [ ] Nhóm copy lặp (10Ottawa Q2, 12 VN Toán 2 Q4): nếu dựa app soạn, mỗi em giờ đã có số liệu riêng nên văn bản tự khác nhau; sau nhập Q1 26-27 đọc lại để so giọng.
+
 ## GĐ3 — Sổ điểm (HS xem, báo cáo PH dùng chung) — kế hoạch chi tiết 2026-09-24
 Quyết định: 1 document `scoreBooks/{classId}` (≤ vài chục HS, xa trần 1MB), CHỈ máy chủ đọc/ghi (rules mặc định chặn →
 KHÔNG phải phát hành lại firestore.rules). HS đọc qua action `studentScoreBook` (lọc đúng dòng của mình theo studentLinks,

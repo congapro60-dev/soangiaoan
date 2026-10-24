@@ -1,5 +1,5 @@
 /**
- * Soạn sẵn nội dung để giáo viên DÁN vào SSM: lịch báo giảng, BTVN, nhận xét môn cho phụ huynh.
+ * Soạn sẵn nội dung để giáo viên DÁN vào SSM: lịch báo giảng, BTVN, nhận xét môn học.
  * Thuần. App không tự ghi vào SSM — chỉ tạo nội dung để cô chép qua.
  */
 
@@ -60,20 +60,53 @@ export const buildHomeworkDraft = (hw: HomeworkSource): HomeworkDraft => ({
 });
 
 export interface CommentSource {
-  overallSummary: string;
+  /** % trung bình các bài đã chấm chính thức (0-100); null khi chưa có bài nào. */
+  averagePercent: number | null;
+  /** Số bài đã chấm chính thức. */
+  officialCount: number;
+  /** Xu hướng kết quả qua các bài chấm gần nhất. */
+  trend: 'up' | 'down' | 'flat' | 'not_enough_data';
+  /** Số bài còn chưa nộp. */
+  missingCount: number;
   strengths: readonly string[];
   areasToPractice: readonly string[];
-  parentActions: readonly string[];
 }
 
 /**
- * Nhận xét môn cho phụ huynh: gộp từ bản báo cáo an toàn (đã lọc, không lộ số câu/đáp án).
- * Một đoạn liền mạch để cô dán vào ô nhận xét môn học của SSM; cô sửa lại giọng nếu muốn.
+ * Nhận xét môn theo giọng giáo viên thật trên SSM: gọi "con", xưng "thầy cô", 3-5 câu liền mạch
+ * gồm mức điểm + xu hướng + phần cần luyện + việc còn thiếu + câu động viên.
+ * Không dùng nhãn biểu mẫu ("Điểm mạnh:", "Cần rèn thêm:") và không chốt cùng một câu cho mọi em
+ * — mỗi câu đều có định lượng/dữ liệu riêng của em để văn bản tự nhiên, không ra "ngôn ngữ AI".
  */
 export const buildSubjectComment = (c: CommentSource): string => {
-  const parts: string[] = [c.overallSummary.trim()];
-  if (c.strengths.length > 0) parts.push(`Điểm mạnh: ${c.strengths.join('; ')}.`);
-  if (c.areasToPractice.length > 0) parts.push(`Cần rèn thêm: ${c.areasToPractice.join('; ')}.`);
-  if (c.parentActions.length > 0) parts.push(c.parentActions[0].trim());
-  return parts.filter(Boolean).join(' ');
+  const sentences: string[] = [];
+  const avg = c.averagePercent === null || c.officialCount === 0 ? null : Math.round(c.averagePercent);
+  const tier = avg === null ? null : avg >= 80 ? 3 : avg >= 65 ? 2 : avg >= 50 ? 1 : 0;
+
+  if (tier === null) {
+    sentences.push('Hiện chưa có đủ bài chấm chính thức để nhận xét tổng quát, thầy cô sẽ cập nhật khi có kết quả.');
+  } else if (tier === 3) {
+    sentences.push(`Con nắm chắc kiến thức, làm bài có hệ thống (trung bình các bài chấm đạt khoảng ${avg}%).`);
+  } else if (tier === 2) {
+    sentences.push(`Con nắm được kiến thức cơ bản, làm bài khá ổn (trung bình khoảng ${avg}%), còn vài phần cần củng cố thêm.`);
+  } else if (tier === 1) {
+    sentences.push(`Con đã có nền tảng nhưng kết quả còn chưa cao (trung bình khoảng ${avg}%), cần luyện đều hơn.`);
+  } else {
+    sentences.push(`Kết quả của con hiện còn thấp (trung bình khoảng ${avg}%), cần nhắc con ôn lại phần cơ bản hằng ngày.`);
+  }
+
+  if (c.trend === 'up') sentences.push('So với đầu kỳ con tiến bộ rõ rệt, cần giữ nhịp học này.');
+  else if (c.trend === 'down') sentences.push('Dạo gần đây kết quả đang đi xuống, con cần ôn lại sớm phần đã hổng.');
+
+  if (c.strengths.length > 0) sentences.push(`Con thể hiện thế mạnh ở ${c.strengths.join(', ')}.`);
+  if (c.areasToPractice.length > 0) sentences.push(`Phần ${c.areasToPractice.join(', ')} cần luyện lại cho vững.`);
+
+  if (c.missingCount > 0) sentences.push(`Còn ${c.missingCount} bài chưa nộp, con hoàn tất để thầy cô nắm đủ sức học của mình.`);
+
+  if (tier === 3) sentences.push('Thầy cô tin con sẽ giữ vững phong độ và mạnh dạn thử sức các phần nâng cao hơn.');
+  else if (tier === 2) sentences.push('Giữ nhịp luyện tập đều như hiện tại, con sẽ tiến bộ thêm nhiều.');
+  else if (tier === 1) sentences.push('Mỗi ngày ôn một chút phần chưa vững, con sẽ tiến bộ nhanh hơn.');
+  else if (tier === 0) sentences.push('Con đừng nản, ôn từ phần cơ bản trở lên; có chỗ khó cứ hỏi thầy cô.');
+
+  return sentences.join(' ');
 };

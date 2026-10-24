@@ -169,12 +169,19 @@ const CommentCard = ({ classId, className, students, assignments, submissions, s
   }, [submissions]);
 
   return (
-    <Card icon={MessageSquareText} title="Nhận xét môn cho phụ huynh" desc="Soạn sẵn nhận xét từng em (chỉ từ bài đã duyệt). Cô soát rồi dán vào ô nhận xét môn học của SSM.">
+    <Card icon={MessageSquareText} title="Nhận xét môn học" desc="Soạn sẵn nhận xét từng em giọng giáo viên (chỉ từ bài đã duyệt). Cô soát rồi dán vào ô Nhận Xét Môn Học của SSM.">
       {students.length === 0 ? <p className="text-sm text-slate-400">Lớp chưa có học sinh.</p> : (
         <div className="space-y-2">
           {students.map((st) => {
             const report = buildParentSafeReport({ studentId: st.id, studentName: st.name, className, assignments: asgInput, submissions: byStudent.get(st.id) ?? [], profile: null });
-            const comment = buildSubjectComment(report);
+            const comment = buildSubjectComment({
+              averagePercent: report.officialAveragePercent,
+              officialCount: report.officialCount,
+              trend: report.progress.trend,
+              missingCount: report.missingCount,
+              strengths: report.strengths,
+              areasToPractice: report.areasToPractice,
+            });
             return (
               <div key={st.id} className="rounded-xl border border-slate-100 p-3">
                 <div className="flex items-center justify-between gap-2">

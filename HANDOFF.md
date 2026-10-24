@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Nhận xét môn học SSM: đọc web thật + sửa giọng app — 24/10 (OpenCode)
+
+- **Web SSM năm 26-27 chưa có nhận xét nào** (mọi lớp × quý "Chưa nhập"); **11Columbus (9681) thiếu cả trong danh sách nhận xét** (`/api/v2/evaluation/subject-comments` chỉ 5 lớp; detail cho 9681 → HTTP 500) dù có trong dropdown chấm điểm ⇒ SSM chưa cấu hình nhận xét cho lớp này, cần admin SSM bật; app không tự sửa được.
+- Nhận xét năm 25-26: 242/514 ô có nội dung, chỉ Q2 + Q4. Giọng GV viết tay (10Ottawa, 11KHTN, 12 VN Toán…) tự nhiên, riêng hoá tốt; nhưng 12Detroit Q2 + 10Victoria Q2/Q4 (74 em, 700-900 ký tự) là **giọng AI rõ** ("khoảng trống kiến thức tích tụ"…, có câu tự mâu thuẫn, lỗi cắt chữ); vài lớp copy lặp (10Ottawa Q2: 11 HS / 3 văn bản).
+- **Đã sửa app**: `ssmDrafts.ts` viết lại `buildSubjectComment` theo giọng GV thật (gọi "con", xưng "thầy cô", mức % + xu hướng + phần cần luyện + bài chưa nộp + động viên theo tier; bỏ nhãn "Điểm mạnh:/Cần rèn thêm:" và câu chốt cố định khiến các em cùng mức giống hệt nhau); `SsmDraftCards.tsx` nối dữ liệu từng em, đổi tên thẻ "Nhận xét môn học"; test 10/10 PASS, build PASS.
+- **Việc kế** (chi tiết `tasks/todo.md`): admin SSM bật nhận xét cho 9681; GV soát nhóm nhận xét cũ giọng AI trước khi duyệt; sau khi GV nhập Q1 26-27 đọc lại để so giọng.
+- Route chi tiết (QA sau): `/tds/6/comment/{classId}/class/{subjectId}/subject/{quarterId}/quarter`; API `subject-comments/detail?class_id&school_year_id&subject_id&quarter_id`.
+
 ## Sửa luồng điểm LO web→SSM: SSM đổi API shape — 24/10 (OpenCode)
 
 - **Đã đổi và vì sao** (`7b2b412`, nhánh feat/v88-interactive-runtime): panel SSM luôn ra "0 LO, 0 học sinh" vì SSM đổi luồng API — bắt network thật trang chấm IA1 xác nhận: (1) `class-subject-assessment` chỉ còn metadata; (2) cây LO + thang nằm ở `v2/evaluation/criteria-has-assessment-form/{criteriaId}?assessment_form_id={formId}` (proxy cũ gọi `{formId}` → 422; thang giờ ở ROOT, không phải trong `assessment_forms`); (3) HS + điểm ở endpoint mới `v2/evaluation/student-by-subject`. Sửa 4 file: `api/_ssm-proxy.ts` (map đúng + op `studentBySubject`), `ssmBridge.ts` (`readSsmCriteriaAssessment(criteriaId, formId)` + `readSsmStudentsBySubject`), `loSsmParser.ts` (scale từ root, fallback legacy + `mergeSsmLoad`), `SsmPanel.tsx` (`fetchSsmCriteriaPayload` tải 3 endpoints song song, dùng cho cả load lẫn verify sau đẩy).

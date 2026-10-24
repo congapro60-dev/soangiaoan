@@ -35,16 +35,37 @@ describe('buildHomeworkDraft', () => {
 });
 
 describe('buildSubjectComment', () => {
-  it('gộp một đoạn liền mạch', () => {
-    const c = buildSubjectComment({
-      overallSummary: 'Con tiến bộ đều.',
-      strengths: ['tính toán nhanh'],
-      areasToPractice: ['trình bày lời giải'],
-      parentActions: ['Cùng con ôn lại bài mỗi tối.'],
-    });
-    expect(c).toBe('Con tiến bộ đều. Điểm mạnh: tính toán nhanh. Cần rèn thêm: trình bày lời giải. Cùng con ôn lại bài mỗi tối.');
+  const base = { officialCount: 4, trend: 'flat' as const, missingCount: 0, strengths: [], areasToPractice: [] };
+  it('học khá: nêu mức % theo dữ liệu, không nhãn biểu mẫu, không gạch ngang AI', () => {
+    const c = buildSubjectComment({ ...base, averagePercent: 71, areasToPractice: ['Hệ thức lượng trong tam giác'] });
+    expect(c).toContain('trung bình khoảng 71%');
+    expect(c).toContain('Hệ thức lượng trong tam giác');
+    expect(c).not.toContain('Điểm mạnh:');
+    expect(c).not.toContain('Cần rèn thêm:');
+    expect(c).not.toContain(' — ');
   });
-  it('bỏ phần rỗng', () => {
-    expect(buildSubjectComment({ overallSummary: 'Ổn.', strengths: [], areasToPractice: [], parentActions: [] })).toBe('Ổn.');
+  it('đi xuống + còn bài chưa nộp: có cả hai ý', () => {
+    const c = buildSubjectComment({ ...base, averagePercent: 55, trend: 'down', missingCount: 2 });
+    expect(c).toContain('đang đi xuống');
+    expect(c).toContain('Còn 2 bài chưa nộp');
+  });
+  it('tier giỏi và tier yếu khác cả câu mở lẫn câu kết', () => {
+    const good = buildSubjectComment({ ...base, averagePercent: 92 });
+    const weak = buildSubjectComment({ ...base, averagePercent: 32 });
+    expect(good.startsWith('Con nắm chắc kiến thức')).toBe(true);
+    expect(weak.startsWith('Kết quả của con')).toBe(true);
+    expect(good).toContain('nâng cao');
+    expect(weak).toContain('phần cơ bản');
+    expect(good).not.toContain('32%');
+    expect(weak).not.toContain('92%');
+  });
+  it('tiến bộ: có câu xu hướng đứng', () => {
+    const c = buildSubjectComment({ ...base, averagePercent: 68, trend: 'up' });
+    expect(c).toContain('tiến bộ rõ rệt');
+  });
+  it('chưa đủ bài chấm chính thức: không nêu số, không kết mức', () => {
+    const c = buildSubjectComment({ ...base, averagePercent: null, officialCount: 0 });
+    expect(c).toContain('chưa có đủ bài chấm chính thức');
+    expect(c).not.toContain('%');
   });
 });
