@@ -5473,13 +5473,20 @@ export default function LessonDashboard({ user, creation = null }: LessonDashboa
                       🧭 HS tự đi · {cockpitView.selfProgress?.finished || 0}/{cockpitView.selfProgress?.total || 0} em đã về đích
                     </span>
                   ) : null}
-                  {cockpitView?.pacing === "self" && cockpitView.classQuest ? (
-                    cockpitView.classQuest.status === "open" ? <span className="lesson-muted">🎯 Đang chơi “{cockpitView.classQuest.eventLabel}”</span>
-                    : <button className="lesson-button lesson-button-outline" title="Tự mở khi cả lớp qua cổng mốc; thầy cô có thể mở sớm" disabled={isCockpitBusy || status !== "active"}
-                        onClick={() => dispatchCommand("CLASS_EVENT_OPEN", { type: cockpitView.classQuest?.eventType, durationMs: 180000 })}>
-                        🎯 Cổng {cockpitView.classQuest.gate}: {cockpitView.classQuest.passed}/{cockpitView.classQuest.total} em · Mở “{cockpitView.classQuest.eventLabel}”
-                      </button>
-                  ) : null}
+                  {cockpitView?.pacing === "self" && (cockpitView.classQuests || []).length ? cockpitView.classQuests!.map(quest => quest.status === "open" ? (
+                    <span key={quest.slot} className="lesson-muted" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                      {quest.mandatory ? "🎯 Đang chơi (bắt buộc)" : "🎉 Đang chơi (tuỳ chọn)"} “{quest.eventLabel}” · {quest.joined}/{quest.total} em tham gia
+                      <button className="lesson-button lesson-button-outline" title={quest.mandatory ? "Kết thúc sớm khi còn HS vắng hoặc trễ" : "Kết thúc sự kiện"} disabled={isCockpitBusy}
+                        onClick={() => dispatchCommand("CLASS_EVENT_CLOSE", {})}>Kết thúc sớm</button>
+                    </span>
+                  ) : quest.status === "closed" ? (
+                    <span key={quest.slot} className="lesson-muted">✅ {quest.mandatory ? "Bắt buộc" : "Tuỳ chọn"} “{quest.eventLabel}” · {quest.joined}/{quest.total} em tham gia</span>
+                  ) : (
+                    <button key={quest.slot} className="lesson-button lesson-button-outline" title="Tự mở khi cả lớp qua cổng mốc; thầy cô có thể mở sớm" disabled={isCockpitBusy || status !== "active"}
+                      onClick={() => dispatchCommand("CLASS_EVENT_OPEN", { type: quest.eventType, durationMs: 180000, slot: quest.slot })}>
+                      {quest.mandatory ? "🎯" : "🎉"} Cổng {quest.gate}: {quest.passed}/{quest.total} em · Mở “{quest.eventLabel}”{quest.mandatory ? " (bắt buộc)" : " (tuỳ chọn)"}
+                    </button>
+                  )) : null}
                   {cockpitView?.pacing === "self" ? null : (
                   <button
                     className="lesson-button lesson-button-primary"

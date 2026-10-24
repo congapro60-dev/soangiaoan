@@ -128,7 +128,7 @@ test('when every pupil present has passed the quest gate, the class game opens b
   const gate = state.package.activities.findIndex(x => x.id === 'act-prac-csn');
   state.selfProgress = { a: gate + 1, b: gate };
   state = answerAll(state, 'b');
-  assert.equal(state.classQuest.status, 'open', state.classQuest.reason);
+  assert.equal(state.classQuests.find(q => q.slot === 0).status, 'open', state.classQuests.find(q => q.slot === 0).reason);
   assert.equal(state.classEvent.type, 'boss');
   assert.equal(serializeForStudent(state, 'b').classQuest.status, 'open');
   assert.equal(send(state, pupil('a'), 'ROLL').result.ok, false, 'main game waits while the class plays together');

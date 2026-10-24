@@ -115,7 +115,8 @@ export interface LessonProjection {
   storyOpening?: string;
   pacing?: "self" | "teacher";
   selfFinished?: boolean;
-  classQuest?: { gate: number; activityId: string; eventType: string; eventLabel: string; status: "pending" | "ready" | "open"; passed: number; total: number } | null;
+  classQuest?: { gate: number; activityId: string; eventType: string; eventLabel: string; status: "pending" | "ready" | "open" | "closed"; passed: number; total: number } | null;
+  classQuests?: Array<{ slot: number; gate: number; activityId: string; eventType: string; eventLabel: string; status: "pending" | "ready" | "open" | "closed"; mandatory: boolean; passed: number; total: number; joined: number }> | null;
   gateStars?: Array<{ activityId: string; stars: number }>;
   levelInvite?: boolean;
   branchSwitchesLeft?: number;

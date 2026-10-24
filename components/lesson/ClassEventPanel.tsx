@@ -7,7 +7,7 @@ import TaskImage, { taskImageOf } from "./TaskImage";
 import ClassEventScene from "./ClassEventScene";
 
 export interface ClassEventView {
-  id: string; type: string; label: string; status: string; remainingMs: number; players: number;
+  id: string; type: string; label: string; status: string; remainingMs: number; players: number; mandatory?: boolean; hold?: boolean;
   progress: { label: string; value: number; max?: number; unit?: string };
   teams: { label: string; points: number; players: number }[];
   own: { step: number; questions: number; score: number; correct: number; canAnswer: boolean; task: TaskInputProps["task"] | null; bingo: boolean[]; bingoFree?: boolean[]; opponentScore?: number | null; opponentId?:string|null; sharedDuel?:boolean;
@@ -25,7 +25,8 @@ export function ClassEventPanel({ view, onAnswer, onPick, onBuzz, onClose, disab
   const [pickBusy, setPickBusy] = useState(false);
   const [pickError, setPickError] = useState("");
   const [buzzBusy,setBuzzBusy]=useState(false),[buzzError,setBuzzError]=useState("");
-  if (!view) return null;
+  const [dismissed,setDismissed]=useState<string | null>(null);
+  if (!view || dismissed === view.id) return null;
   const own = view.own;
   const choose = async (cellId: string) => {
     if (!onPick) return;
@@ -43,8 +44,9 @@ export function ClassEventPanel({ view, onAnswer, onPick, onBuzz, onClose, disab
     <section aria-label={`Sự kiện lớp: ${view.label}`} className="lesson-card" style={{ padding: "1rem", border: "2px solid #f6d481" }}>
       <p className="lesson-kicker">Sự kiện lớp · {view.players} người</p>
       <h2>{view.label}</h2>
+      {view.mandatory && view.status !== "closed" && <p className="lesson-muted" role="note">Hoạt động tập thể bắt buộc — cả lớp cùng vào. Hoạt động đang làm được bảo lưu và tiếp tục sau sự kiện.</p>}
       <ClassEventScene view={view}/>
-      <p role="status">{view.status === "closed" ? "Sự kiện đã kết thúc" : `Còn ${Math.ceil(view.remainingMs / 1000)} giây`} · {view.progress.label}: {view.progress.value}{view.progress.unit ? ` ${view.progress.unit}` : ""}</p>
+      <p role="status">{view.status === "closed" ? "Sự kiện đã kết thúc" : view.hold ? "Chờ các bạn còn lại tham gia…" : `Còn ${Math.ceil(view.remainingMs / 1000)} giây`} · {view.progress.label}: {view.progress.value}{view.progress.unit ? ` ${view.progress.unit}` : ""}</p>
       {typeof view.progress.max === "number" && view.type !== "tug" && <progress value={view.progress.value} max={view.progress.max} aria-label={view.progress.label} style={{ width: "100%" }} />}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
         {view.teams.map(team => <p key={team.label}>{team.label}: {team.points} điểm chơi · {team.players} người</p>)}
@@ -74,7 +76,13 @@ export function ClassEventPanel({ view, onAnswer, onPick, onBuzz, onClose, disab
         onSubmit={answer => onAnswer({ answer, step: own.step })} />}
       {own && !own.canAnswer && view.status !== "closed" && <p>{own.step >= own.questions ? "Em đã làm xong các câu của sự kiện." : own.board && own.canPick ? "Em chọn một ô trên bảng rồi trả lời." : "Em chờ hết thời gian nghỉ hoặc tới lượt của đội."}</p>}
       <p className="lesson-muted">Điểm chơi của sự kiện được tính riêng. Hộ chiếu học tập dùng bằng chứng từ nhiệm vụ cá nhân.</p>
-      {onClose && <button type="button" className="lesson-button lesson-button-outline" disabled={disabled} onClick={onClose} style={{ minHeight: 44 }}>Kết thúc sự kiện</button>}
+      {own && !view.mandatory && view.status !== "closed" && (
+        <p style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+          Hoạt động tuỳ chọn — trả lời là tính tham gia; không tham gia không ảnh hưởng điểm.
+          <button type="button" className="lesson-button lesson-button-outline" style={{ minHeight: 44 }} onClick={() => setDismissed(view.id)}>Bỏ qua — không ảnh hưởng điểm</button>
+        </p>
+      )}
+      {onClose && <button type="button" className="lesson-button lesson-button-outline" disabled={disabled} onClick={onClose} style={{ minHeight: 44 }} title={view.mandatory ? "Kết thúc khi còn bạn vắng hoặc trễ; sự kiện bắt buộc không tự đóng theo giờ" : undefined}>{view.mandatory ? "Kết thúc sớm" : "Kết thúc sự kiện"}</button>}
     </section>
   );
 }
