@@ -1,96 +1,87 @@
 # GATE D · Khối 11 — Mẫu số liệu ghép nhóm (Tiết 1) · V8.8
 
-> `adaptive-1792831747929` · Archetype `PRACTICE_REVIEW` · 40' · Trọng tâm: quy trình 4 bước thành kỹ năng
-> Chuẩn chung: `tasks/gate-d-3-bai-tuan11.md`. Gate P: `tasks/gate-p-3-bai-tuan11.md` PHẦN 2.
-> Nguồn: SGK KNTT Toán 11 – tập 1, bài về mẫu số liệu ghép nhóm (tập/trang đối chiếu sau OCR — PDF scan); giáo án Ban Toán đã sinh, body chờ tải từ Thư viện.
+> `adaptive-1792831747929` · **BẢN SỬA 2026-10-25: bám giáo án gốc** `tasks/giaoan-goc-g11.md`
+> Chuẩn chung: `tasks/gate-d-3-bai-tuan11.md`. Chênh lệch với bản trước: `tasks/doi-chieu-gate-d-voi-giao-an-goc.md`.
+> Quyết định thầy: bảng con thay bằng máy HS · số % chỉ tham khảo, dùng số thật · **bỏ "K–B–Đ–T"** (không có trong giáo án gốc).
 
-## 0. Đối chiếu ngân sách Gate P → Gate D — xử lý cảnh báo vượt ngân sách
+## 0. Ánh xạ giáo án gốc → V8.8, và xử lý ngân sách
 
-Gate P tự phát hiện core ≈ 40' > coreBudget 33'. **Gate D xử lý bằng 3 động tác:**
+| Giáo án gốc | Dải P | Luồng |
+|---|---|---|
+| HĐ1 Trải nghiệm: 40 số liệu Internet + mục tiêu | P0–P8 | Presenter dẫn + máy HS trả lời nhanh |
+| HĐ2 Hình thành (một khối liền): Nội dung 1 khái niệm (11') + Nội dung 2 quy trình (13') | P8–P32 | Presenter reveal + máy HS điền Phiếu số 1, Phiếu số 2 |
+| HĐ3 Rèn luyện: KT nhanh 4' + mở rộng AQI 2' | P32–P38 | Máy HS 3 câu trắc nghiệm + Presenter AQI |
+| HĐ4 Sơ kết + exit ticket | P38–P40 | Thẻ thoát hiểm điện tử |
 
-1. **B09 (biểu quyết lựa chọn số nhóm) chuyển sang reserve** — chạy ở khe 2' P36–P38 nếu kịp; nếu đội giờ thì bỏ, trả 2' cho B07 (copy có sẵn khi bỏ).
-2. Rút minutes hoạt động cho khít dải P cứng: B02 7→6, B04 5→4, B05 4→2, B06 7→5 (B05 2' vì B04 đã nêu khái niệm trước đó; B06 5' được bù bởi fast-path).
-3. Đếm lại trung thực: **core hoạt động = 31'** (B01 3 + B02 6 + B03 3 + B04 4 + B05 2 + B06 5 + B07 4 + B08 4) + 7' cấu trúc (ổn định lớp 2' + XĐMT 3' + sơ kết 2') + 2' khe MỞ RỘNG = 40'. Reserve 7' = B09 (2') + buffer 5'. Protected: B04, B05, B06 (chỗ sinh bằng chứng quy trình).
+**Bỏ "K–B–Đ–T"** (chữ tắt tôi tự đặt ở bản trước). Thay bằng đúng nội dung gốc:
+- **4 quy tắc ghép nhóm** (kiến thức, kiểm được): các nhóm **liên tiếp** · **không chồng chéo** · **bao phủ toàn bộ** x_min → x_max · mỗi nhóm là **nửa khoảng [aᵢ; aᵢ₊₁)**.
+- **Quy trình 3 bước** (theo Phiếu số 2 của gốc): **①** tìm x_min, x_max, R = x_max − x_min → **②** chọn k, tính độ dài h → **③** lập bảng tần số và kiểm tra tổng tần số = n.
+- **4 bước sư phạm** của GV: Kết nối – Hình thành – Kiểm tra – Chuẩn hoá.
 
-## 1. Sửa một đỏm của Gate P (trung thực)
+**Ngân sách:** core hoạt động 31' + 7' cấu trúc (ổn định 2 + XĐMT 3 + sơ kết 2) + 2' khe mở rộng = 40'. Reserve 7' = buffer + fast-path; không có hoạt động riêng phải cắt.
 
-Gate P ghi "cặp đôi là đơn vị tương tác chính". Ràng buộc ≤ 8 nhóm (chuẩn chung) mâu thuẫn khi sĩ số 26 → 13 cặp. **Gate D chốt:** đơn vị gửi bài = **nhóm 2–4 HS** (sĩ số ≤ 16: nhóm đôi; 17–26: nhóm 3–4, vẫn ≤ 8 nhóm); bên trong nhóm các thành viên cùng làm trên một bản; kiểm tra chéo B07 vẫn **giữa hai nhóm** (bản ẩn danh).
+## 1. Storyboard theo dải P
 
-## 2. Storyboard theo dải P
+### P0–P2 · Ổn định + mã phòng
+- V1: "Mẫu số liệu ghép nhóm — Toán 11 · Tuần 11 · Tiết 1" + mã phòng + đồng hồ P.
+- Student: mã + SBD → nhóm N[x] (2–4 HS, ≤ 8 nhóm). **Copy chốt:** "Hôm nay lớp không nhận công thức trước — lớp tự gom 40 con số trước đã."
 
-### P0–P2 · Ổn định lớp + mã phòng
-- V1: "Mẫu số liệu ghép nhóm — Toán 11 · Tuần 11 · Tiết 1" + mã phòng. Student nhập mã + SBD → nhóm N[x].
-- **Copy chốt:** "Hôm nay lớp không học 'công thức' trước — lớp tự gom 26 con số trước đã."
+### P2–P5 · KHỞI ĐỘNG — 40 số liệu Internet (theo gốc)
+- V2: bảng **40 số liệu thời gian dùng Internet hằng ngày (phút) của lớp 11A, từ 35 đến 235** (dùng số liệu thật của lớp nếu có; nếu không, dùng bảng mẫu trong giáo án — GV chốt nguồn).
+- **Câu hỏi thiết yếu treo suốt tiết (nguyên văn gốc):** "Làm thế nào để nhìn vào một tập hợp số liệu lớn mà nhận biết ngay được bức tranh tổng thể và xu hướng tập trung của dữ liệu?"
+- **Ôn nền — chờ hai nhịp (máy thay bảng con):**
+  - `[SO SÁNH]` So sánh x_max và x_min của mẫu.
+  - `[SỐ HỌC]` Tính khoảng biến thiên R = x_max − x_min.
+  - `[SUY LUẬN]` Lập bảng tần số đơn lẻ từng giá trị (lớp 10) có nhược điểm gì?
+- V3: phân bố 3 câu. V4 thu gọn: bảng tần số đơn lẻ quá dài, nhiều giá trị tần số bằng 1, khó nhìn.
+- **Copy chốt:** "Để khắc phục, ta gom các số gần nhau thành từng nhóm — đó là bài hôm nay."
 
-### P2–P5 · B01 KHỞI ĐỘNG — "Bảng 26 số làm người ta mệt" (3')
-- V2: bảng 26 điểm kiểm tra (số liệu thật của lớp/SGK, không phần trăm bịa). Câu `[PHÁT HIỆN]`: "Nhìn 10 giây: lớp mình làm bài tốt tới đâu? Có cách nào tóm gọn 26 số mà không mất xu hướng?"
-- Student: thăm dò nhanh 1/3 (Đọc được ngay / Khó nhìn / Cần gom lại) — V3 đếm phương án, không chấm.
-- V4: "Từ 26 số về một bảng vài dòng — gọi là GHÉP NHÓM. Hình trong đầu: đồi cỏ ('xu hướng') còn lại, cây riêng lẻ bỏ đi."
-- **Copy chốt chuyển:** "26 số → một bảng nhỏ. Bắt tay thử nhé."
-- `[🟣 ĐGTX]` (vị trí XĐMT): thăm dò B01 → GV chọn nhịp HĐ1. Offline: bảng in trong phiếu.
+### P5–P8 · XÁC ĐỊNH MỤC TIÊU (theo gốc, Must–Should–Could)
+- **Must:** đọc và tính được các đại lượng của nhóm [aᵢ; aᵢ₊₁).
+- **Should:** tự lập bảng ghép nhóm từ dãy số liệu thô.
+- **Could:** phân tích mất mát thông tin / phản biện cách chia nhóm.
+- Student: chọn mức thử thách trên máy (Coach ghi nhận, không xếp loại).
+- `[🟣 ĐGTX]` (vị trí XĐMT): tỉ lệ đúng 3 câu ôn nền → GV chọn nhịp cho Nội dung 1.
 
-### P5–P8 · XÁC ĐỊNH MỤC TIÊU (3')
-- V2: "Sau tiết học, tôi có thể: (1) tự chia mẫu số liệu thành các nhóm nửa khoảng; (2) chạy đúng quy trình 4 bước; (3) chỉ ra chỗ sai khi bạn chia sai biên." Student: thẻ NGHE GV.
-- **Copy chốt:** "Kiểm tra của tiết này là kiểm tra chéo — em phải nhìn ra lỗi biên của nhóm bạn."
+### P8–P19 · Bước 1–4 sư phạm — KHÁI NIỆM mẫu ghép nhóm (11')
+Theo đúng 4 bước của gốc:
+- **Bước 1 Kết nối (2'):** V2 hiện dãy khoảng 40 phút: [30;70), [70;110), [110;150), [150;190), [190;230), [230;270). `[PHÁT HIỆN]` "Các khoảng có gì đặc biệt về ngoặc và độ dài?" → nửa khoảng trái đóng, độ dài đều 40. Hạ thang: "70 − 30 = ? 110 − 70 = ? Hai phép trừ nói lên điều gì?"
+- **Bước 2 Hình thành (4'):** Student nhận **Phiếu số 1** (3 mức NB/TH/VD). `[KHÁI QUÁT]` "Thế nào là một nhóm số liệu? Ký hiệu [aᵢ; aᵢ₊₁) nói gì về giá trị x thuộc nhóm?" · `[PHẢN BIỆN]` "An nói: giá trị đại diện của [a;b) luôn là số nguyên chính giữa. Đúng hay sai? Cho phản chứng." `[🔴 PHÂN HÓA]` NB: xác định mút và độ dài nhóm cho trước · TH: tính giá trị đại diện · VD: phản biện bài toán mất mát thông tin.
+- **Bước 3 Kiểm tra (3'):** máy thay bảng con — viết độ dài nhóm và giá trị đại diện của [60;90) · `[PHẢN BIỆN]` "Bình dùng Internet đúng 90 phút — thuộc [60;90) hay [90;120)? Vì sao?" → **Vinh danh lỗi sai**: GV chọn một bài ghi nhầm [60;90) chiếu lên (ẩn danh), phân tích ngoặc vuông lấy ≥, ngoặc tròn lấy <.
+- **Bước 4 Chuẩn hoá (2'):** đóng khung định nghĩa + công thức giá trị đại diện cᵢ = (aᵢ + aᵢ₊₁)/2. `[SÁNG TẠO]` "Nhóm cuối cùng của mẫu số liệu có gì khác?" → nhóm cuối đóng cả hai đầu.
+- Visual: trục số tô màu từng nửa khoảng; con trỏ kéo biên cho thấy 90 nhảy sang nhóm sau; invariant: không giá trị nào nằm ngoài mọi nhóm.
 
-### P8–P14 · B02 — "Thử tự chia nhóm theo cách nhóm mình" (6', nhóm)
-- Handoff → "Giao task về máy"; Student: LÀM TRÊN MÁY. **Copy:** "Nhóm mình chọn số nhóm k, chọn biên — bấm GỬI khi xong. Nhớ: nhóm nửa khoảng."
-- V2/Student: 26 số xếp hàng; nhập **k** (khung gợi ý 5–10), **biên đầu mỗi nhóm** với giá trị đại diện tự tính; hai cột (biên | tần số) cập nhật sống theo ô nhập.
-- Coach: bảng cách chia từng nhóm (k, biên, tần số). `[🔴 PHÂN HÓA]` nhóm gửi sớm hợp lệ → DEEP "tìm cách chia thứ 3". Hypothesis: "chọn L không gọn, nhóm cuối lẻ" — mẹo kiểm: "hỏi nhóm: nhóm cuối kết thúc ở đâu?".
-- Fast-path: DEEP ngay. Offline: phiếu + ô vuông.
-- **Copy chốt thu:** "Cùng 26 số, mỗi nhóm một cách gom — giờ so nhé."
+### P19–P32 · NỘI DUNG 2 — QUY TRÌNH ghép nhóm (13')
+- V2: Phiếu số 2 — dữ liệu khí thải/dữ liệu thật (theo gốc) — **quy trình 3 bước** hiện dần:
+  - **①** Tìm x_min, x_max, tính R = x_max − x_min
+  - **②** Chọn k (5–10 tham khảo), tính độ dài h
+  - **③** Lập bảng tần số, **kiểm tra tổng tần số = n**
+- **4 quy tắc ghép nhóm** hiện thành thẻ: liên tiếp · không chồng chéo · bao phủ x_min→x_max · nửa khoảng [aᵢ; aᵢ₊₁).
+- Student: điền từng bước (không làm cả bài một lượt): nhập x_min/x_max/R → nhập h → điền bảng tần số; máy tự kiểm tổng tần số và báo **"tổng = n ✔"** hoặc **"thiếu … số"**.
+- Cue GV: "hỏng ở đâu thì quay về bước đó, không sửa bảng."
+- Fast-path: nhóm xong sớm → "nhiệm vụ neo: mẫu dữ liệu 10 bạn trong tổ, đề xuất cách chia 3 nhóm tối ưu" (nguyên văn gốc).
+- `[🔴 PHÂN HÓA]` Coach thấy nhóm dừng ở bước nào.
+- **Copy chốt:** "Ba bước — và một cái khoá an toàn: tổng tần số phải bằng n."
 
-### P14–P17 · B03 — Công bố so sánh 2 cách chia (3')
-- Handoff → "Công bố"; Student NGHE GV, bản nhóm giữ nguyên. V3: hai bảng cạnh nhau (ẩn danh đến khi GV bật).
-- Câu `[SO SÁNH]`: "Hai cách chia — bảng nào dễ đọc hơn? Xu hướng 'đa số điểm cao' còn giữ được không?"
-- V4 thu gọn: "k quá nhiều → mất tóm gọn; k quá ít → xoá chi tiết. SGK tham khảo k từ 5 tới 10."
-- `[🟣 ĐGTX]` nhận xét HS được dẫn thẳng vào chốt. no-spoiler: đánh giá "đẹp hơn" thuộc về HS, không phải máy.
-- **Copy chốt:** "Không có cách chia duy nhất đúng — có cách gợi nhớ."
+### P32–P36 · HĐ3 phần 1 — Kiểm tra nhanh 3 câu (4') `[🟣 ĐGTX]`
+- Câu 1 [NB] *(SGK Bài 1 tr.65)*: bảng [20;30), [30;40), [40;50) → giá trị đại diện nhóm thứ hai = 35.
+- Câu 2 [TH] *(SBT tr.42)*: cự ly chạy 100 m có x_min = 12,1 s, x_max = 15,5 s; chia 4 nhóm đều bắt đầu từ 12,0 s → h ≥ 3,5/4 = 0,875 → chọn **h = 1,0**, các nhóm [12;13), [13;14), [14;15), [15;16).
+- Câu 3 [VDC] *(GV tự thiết kế)*: bảng ghi [10;20), [20;30), **[31;40)** — sai ở đâu, hậu quả gì với HS đạt 30,5? → bỏ hổng (30;31), giá trị 30,5 không thuộc nhóm nào.
+- Checkpoint `dewey-ckpt-v1-{lessonId}-{mãHS}` — không cộng điểm lần 2.
 
-### P17–P21 · B04 — Chốt: nhóm nửa khoảng + giá trị đại diện (4')
-- V2 reveal theo phần: (1) ký hiệu nhóm **[a; a + L)** — tô màu, invariant: biên trái thuộc nhóm, biên phải thuộc nhóm sau (điểm số trôi khi kéo biên); (2) giá trị đại diện x_i = điểm giữa nhóm; (3) Student quick-fill 1 câu: số 10,5 rơi vào nhóm nào, cho [8; 10,5) và [10,5; 13)? — reveal sau trả lời.
-- Câu `[KHÁI QUÁT]`: "Vì sao phải định nghĩa nửa khoảng [a; a+L) thay vì [a; a+L]?"
-- V4: "Trừ việc trùng lặp không sót. Riêng nhóm cuối đóng cả hai đầu — cho đủ max."
-- `[🔴 PHÂN HÓA]`: HS trả lời đúng chỗ biên → GV đánh dấu nhóm chính xác tên (máy GV).
-- **Copy chốt:** "Quy tắc biên: trái thuộc, phải không — riêng nhóm cuối, cả hai."
-
-### P21–P23 · B05 — Quy trình 4 bước (2')
-- V2: 4 thẻ lộn xộn (K: chọn k & khoảng · B: chốt biên nửa khoảng · Đ: tính giá trị đại diện · T: lập bảng tần số). Student chọn thứ tự đúng 1 lần; reveal + câu nhớ **"K–B–Đ–T: Khoảng, Biên, Đại diện, Bảng"**.
-- **Copy chốt:** "Quy trình này chạy được trên giấy lẫn máy — thuộc K–B–Đ–T."
-
-### P23–P28 · B06 — Luyện từng bước (5', cá nhân) — protected
-- Handoff: "Giờ từng em làm 3 nhiệm vụ rời — một nhiệm vụ một bước." Student: LÀM TRÊN MÁY.
-  - N1 `[PHÁT HIỆN]` (đọc bảng): bảng tần số 3 nhóm cho sẵn — tần số nhóm [12; 15) là bao nhiêu?
-  - N2 (lập biên): min = 6, max = 21, k = 5 → điền biên nhóm thứ 3 (hint: "L = (max−min)/k").
-  - N3 (đủ K–B–Đ–T): mẫu 12 số 6–21 → dựng bảng hoàn chỉnh (điền tần số từng nhóm).
-- Hint 1→3; xong sớm → nhiệm vụ khó "k = 7 cho mẫu 30 số". Coach: từng bước lưu riêng. `[🔴 PHÂN HÓA]` đúng ≥ 2/3 nhiệm vụ. Hypothesis: "hiểu [a; b] đóng hai đầu" — mẹo kiểm: "số 10 là đầu của nhóm nào?". Offline: phiếu + ảnh.
-- **Copy chốt:** "Ba nhiệm vụ = ba bước đầu của K–B–Đ–T; bước thứ tư là ghép lại."
-
-### P28–P32 · B07 — Kiểm tra chéo giữa hai nhóm (4')
-- Student: LÀM TRÊN MÁY — nhận bảng ẩn danh "Nhóm 4"; chấm 3 tiêu chí (k hợp lý · biên đúng quy tắc nửa khoảng · bảng tần số đúng) + **bắt buộc** 1 nhận xét chữ ("1 điều làm tốt + 1 điều nên sửa"); gửi về — nhóm được chấm thấy trên máy mình: "Nhóm 2 nhận xét: …".
-- Câu dẫn `[PHẢN BIỆN]`: "Tìm 1 chỗ cách bạn chọn biên mà em không đồng ý — đưa lý do."
-- Coach: nhận xét đã gửi/về; `[🔴 PHÂN HÓA]` chất lượng nhận xét là bằng chứng hiểu sâu. Không chấm điểm nhận xét.
-- **Copy chốt:** "Chấm được lỗi của bạn nghĩa là em thuộc quy trình."
-
-### P32–P36 · B08 — KIỂM TRA NHANH: exit 3 câu (4')
-- Checkpoint riêng `dewey-ckpt-v1-{lessonId}-{mãHS}` — không cộng điểm lần 2.
-- Câu 1: sơ đồ nửa khoảng đúng/sai theo hình; Câu 2: giá trị đại diện của một nhóm; Câu 3 `[KHÁI QUÁT]`: nhóm cuối đóng hai đầu — vì sao?
-- **Copy:** "3 câu viết nhẹ trước khi tan."
-
-### P36–P38 · MỞ RỘNG — B09 biểu quyết (2') — **TIÊU RESERVE, chạy nếu kịp**
-- V2: mẫu 100 số — 3 phương án k (5 / 10 / 25) — biểu quyết cả lớp; câu `[SÁNG TẠO]`: "Nếu em là người trình bày báo cáo, em chọn k thế nào — vì sao?"
-- V4: "k = 25 → bảng dài như bảng gốc; k = 5 → thô quá. Người chọn k phải nghĩ đến NGƯỜI ĐỌC."
-- `[🔵 CÔNG DÂN SỐ]`: báo cáo thống kê công khai (dân số, giá cả, điểm thi) — chọn số nhóm vì người đọc, không vì đẹp biểu đồ.
-- **Điều kiện quay về:** nếu B06/B07 đội giờ → bỏ B09; khi bỏ, Student thấy: "Câu biểu quyết hoãn đầu tiết sau — 1 phút."
-- **Copy chốt:** "Số nhóm là quyết định của người làm báo cáo — làm vì người đọc."
+### P36–P38 · HĐ3 phần 2 — MỞ RỘNG AQI (2') `[🔵 CÔNG DÂN SỐ]` `[🟢 CÔNG DÂN TOÀN CẦU]`
+- V2 (theo gốc): giao diện AQI (AirVisual) theo nhóm màu [0;50) Tốt, [50;100) Trung bình, [100;150) Kém…
+- `[HỆ QUẢ]` "Nếu hệ thống quan trắc nhầm mút biên, xếp giá trị 100 từ 'Trung bình' sang 'Kém', hệ quả với người dân và trường học là gì?" → hoang mang, quyết định sinh hoạt ngoài trời và cảnh báo y tế sai lệch.
+- **Copy chốt:** "Một dấu ngoặc sai — cả một cộng đồng hành động sai."
 
 ### P38–P40 · SƠ KẾT (2')
-- V2: 3 dòng chốt (K–B–Đ–T · quy tắc biên · k vì người đọc); Student: phiếu thoát (icon + câu lấn cấn); GV ghi rút kinh nghiệm (máy GV).
-- **Copy chốt:** "Hẹn tiết sau: từ bảng ghép nhóm tính trung bình — và tự hỏi khi nào trung bình 'nói dối'."
+- Student điền cột **L (Learned)** và **I (Interesting)** của KWLI-Chart trên máy (thay phiếu giấy).
+- `[KHÁI QUÁT]` "Nêu lại 4 quy tắc cốt lõi để ghép nhóm một mẫu số liệu thô."
+- V2 tổng kết (nguyên văn gốc): 1) ghép nhóm giúp biểu diễn xu hướng tập trung của tập dữ liệu lớn · 2) nhóm [aᵢ; aᵢ₊₁) lấy ≥ ở mút trái, < ở mút phải · 3) cᵢ = (aᵢ + aᵢ₊₁)/2 · 4) các nhóm liên tiếp, không chồng chéo, bao phủ x_min→x_max.
 
-## 3. Giáo án in — mẫu Ban Toán 16 thành phần (P0→P40)
+## 2. Giáo án in — mẫu Ban Toán 16 thành phần (P0→P40)
 
-**KẾ HOẠCH DẠY HỌC** — Tiết luyện quy trình: học sinh tự gom một bảng 26 số liệu thành các mẫu số liệu ghép nhóm theo cách mình chọn, đối chiếu hai cách chia của hai nhóm, rồi chuẩn hoá khái niệm nhóm nửa khoảng và quy trình 4 bước (K–B–Đ–T). Trọng tâm là đưa quy trình thành kỹ năng có thể nhìn ra lỗi biên của người khác qua kiểm tra chéo. Tiết chạy trên bài học tương tác V8.8 (Presenter – Student – Coach); dạy không mạng theo phiếu dự phòng.
+**KẾ HOẠCH DẠY HỌC** — Tiết hình thành khái niệm mẫu số liệu ghép nhóm và quy trình ghép nhóm, xuất phát từ bảng 40 số liệu thời gian dùng Internet của lớp để học sinh thấy bảng tần số đơn lẻ không còn quan sát được; từ đó hình thành nhóm nửa khoảng [aᵢ; aᵢ₊₁), giá trị đại diện, bốn quy tắc ghép nhóm và quy trình ba bước (khoảng biến thiên → chọn độ dài → lập bảng tần số có kiểm tra tổng bằng n). Tiết kết thúc bằng kiểm nhanh ba mức và tình huống AQI để thấy hậu quả thật của một mút biên sai. Chạy trên bài học tương tác V8.8; dạy không mạng theo phiếu in dự phòng.
 
 | Lớp | 11 | Tên bài học | Mẫu số liệu ghép nhóm — Tiết 1 |
 |---|---|---|---|
@@ -100,101 +91,103 @@ Gate P ghi "cặp đôi là đơn vị tương tác chính". Ràng buộc ≤ 8 
 **I. THÔNG TIN CHUNG** *(bảng 1×1)*
 
 **1. Tiêu chuẩn năng lực cốt lõi**
-- Xử lý được mẫu số liệu có kích thước lớn bằng cách ghép nhóm.
-- Thực hiện được quy trình 4 bước chọn k — chốt biên — tính đại diện — lập bảng tần số.
-- Phê phán được cách chia nhóm của người khác (kiểm tra chéo) và bảo vệ được cách của mình.
-- Hợp tác nhóm: cùng gõ một bản; vai báo cáo thay phiên.
-- Thái độ trung thực với số liệu; tôn trọng cách tổ chức dữ liệu của người khác.
+- Tư duy và lập luận toán học: nhận biết khi nào cần ghép nhóm; phân biệt bảng tần số rời rạc với bảng ghép nhóm.
+- Mô hình hoá toán học: chuyển dãy số liệu thô thành bảng ghép nhóm có quy tắc.
+- Giải quyết vấn đề: xử lý đúng giá trị nằm đúng mút biên; phát hiện bảng sai (hổng khoảng, chồng chéo).
+- Giao tiếp toán học: dùng đúng ký hiệu nửa khoảng, phát biểu quy tắc bằng lời.
+- Tự học và tự nghiên cứu: khai thác bảng số liệu mở để hình thành quy trình xử lý dữ liệu thống kê.
 
 **2. Mục tiêu học tập** *(bảng 1×1 + "Sau tiết học, tôi có thể:" + bảng 3×2 + Phân hóa)*
 Sau tiết học, tôi có thể:
 
-| Cơ bản | Trọng tâm | Nâng cao |
+| Cơ bản (Must) | Trọng tâm (Should) | Nâng cao (Could) |
 |---|---|---|
-| Đọc được bảng tần số của mẫu ghép nhóm; nêu quy tắc nửa khoảng [a; a+L) | Chạy đủ quy trình K–B–Đ–T cho một mẫu thực tế; xử lý đúng nhóm cuối đóng hai đầu | Tìm cách chia thứ ba hợp lý hơn; giải thích việc chọn số nhóm k phục vụ người đọc báo cáo |
+| Đọc và tính được các đại lượng của nhóm [aᵢ; aᵢ₊₁): mút, độ dài, giá trị đại diện | Tự lập bảng ghép nhóm từ dãy số liệu thô: tìm x_min, x_max, chọn k, tính h, lập bảng tần số | Phân tích mất mát thông tin khi ghép nhóm; phản biện cách chia nhóm của người khác |
 
-Phân hóa mục tiêu: HS yếu/TB đạt Cơ bản qua N1–N2 và phiếu nhóm; HS khá đạt Trọng tâm qua N3 + B07; HS giỏi mở rộng qua DEEP (cách chia thứ ba) và B09 (k cho mẫu 100 số).
+Phân hóa mục tiêu: NB xác định mút và độ dài nhóm cho trước; TH tính giá trị đại diện và lập bảng; VD phản biện bài toán mất mát thông tin.
 
 **3. Tài liệu dạy học**
-- SGK Kết nối tri thức Toán 11 – tập 1, bài về mẫu số liệu ghép nhóm (trang đối chiếu sau OCR scan).
-- Bảng 26 điểm kiểm tra (phiếu in dự phòng); bài học tương tác V8.8 (`adaptive-1792831747929`) với mã phòng.
-- Căn cứ điều chỉnh từ đánh giá tiết trước: một số HS có thể còn nhầm bảng thống kê tần số với bảng ghép nhóm — tiết này phân biệt ngay ở B01.
+- SGK Toán 11 — bài Mẫu số liệu ghép nhóm (**SGK Bài 1 tr.65**); **SBT tr.42**.
+- Phiếu số 1 (khám phá cấu trúc mẫu ghép nhóm, 3 mức) · Phiếu số 2 (quy trình ghép nhóm, 3 bước) · KWLI-Chart.
+- Bài học tương tác V8.8 (`adaptive-1792831747929`): ô trả lời nhanh thay bảng con, tự kiểm tổng tần số.
+- Máy chiếu bảng 40 số liệu + giao diện AQI.
+- Căn cứ điều chỉnh từ đánh giá tiết trước: dùng số liệu thật của lớp về lỗi mút biên và lỗi bỏ hổng khoảng — tiết này dành riêng Bước 3 "Vinh danh lỗi sai".
 
 **MINH CHỨNG HQT / CIS** *(bảng 3 cột)*
 
 | Minh chứng | HS làm gì → GV thu được gì → mục đích | Vị trí |
 |---|---|---|
-| `[🔴 PHÂN HÓA]` Bảng nhóm B02 | NH: chọn k + biên + tần số cho 26 số → GV: thấy ngay cách chia của từng nhóm → mục đích: cấp DEEP hoặc can thiệp đúng nhóm | P8–P14 |
-| `[🟣 ĐGTX]` Nhận xét B03 | NH: so sánh hai bảng cạnh nhau bằng lời → GV: "dễ đọc" được HS nói ra, không phải máy → mục đích: chốt tiêu chí chọn k | P14–P17 |
-| `[🔴 PHÂN HÓA]` Nhận xét chéo B07 | NH: chấm 3 tiêu chí + nhận xét chữ → GV: bằng chứng hiểu sâu hơn bài kiểm tra trắc nghiệm → mục đích: phân tuyến luyện Tiết 2 | P28–P32 |
-| `[🔵 CÔNG DÂN SỐ]` Biểu quyết B09 | HS: chọn k cho mẫu 100 số → GV: thái độ "làm báo cáo vì người đọc" → mục đích: đạo đức trình bày dữ liệu | P36–P38 (reserve — bỏ nếu đội giờ) |
-| `[🟢 CÔNG DÂN TOÀN CẦU]` — Không phải tiết trọng tâm | — | — |
-| Ghi chú tuần: `[🔴]`/`[🟣]` còn lại của Tuần 11 đặt ở Tiết 2 (chữa bài, luyện tập mức 2) để đạt ≥3 minh chứng/tuần mỗi loại. | | |
+| `[🔴 PHÂN HÓA]` Phiếu số 1 ba mức | HS làm theo năng lực (NB mút/độ dài, TH giá trị đại diện, VD phản biện mất mát thông tin) → GV thấy nhóm nào còn nhầm biên → mục đích: hỗ trợ đúng chỗ | P12–P16 |
+| `[🟣 ĐGTX]` Trả lời nhanh thay bảng con | HS gửi đáp án qua máy → GV thấy tỉ lệ hiểu thật, dừng lại sửa lỗi biên ngay tại Bước 3 | P2–P5, P15, P32–P36 |
+| `[🔴 PHÂN HÓA]` Phiếu số 2 quy trình 3 bước | HS điền từng bước, máy kiểm tổng tần số = n → GV thấy nhóm dừng ở bước nào → mục đích: phân tuyến luyện tiết sau | P19–P32 |
+| `[🔵 CÔNG DÂN SỐ]` `[🟢 CÔNG DÂN TOÀN CẦU]` Tình huống AQI | HS phân tích hậu quả xã hội khi hệ thống quan trắc xếp sai mút biên → GV thu được ý thức trách nhiệm dữ liệu | P36–P38 |
 
 **II. TIẾN TRÌNH HOẠT ĐỘNG** *(bảng 1×1)*
 
 **3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH** *(bảng 1×1)*
 
-**1. KHỞI ĐỘNG — Bảng 26 số làm người ta mệt — Thời lượng: 5 phút, P0–P2 ổn định lớp + B01 P2–P5**
+**1. KHỞI ĐỘNG — 40 số liệu Internet — Thời lượng: 5 phút, P0–P5**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P0–P2 | GV mở phòng; HS nhập mã + SBD; gán nhóm 2–4 HS (≤ 8 nhóm). | Mã phòng; danh nhóm thiếu. |
-| P2–P5 | GV hỏi `[PHÁT HIỆN]` về cách tóm gọn 26 số; HS thăm dò; chốt dẫn vào ghép nhóm. `[🟣 ĐGTX]` | Bảng 26 số hiện trên Presenter; V3 đếm phương án. |
+| P0–P2 | GV mở phòng, HS nhập mã + SBD, gán nhóm. | Mã phòng, đồng hồ P. |
+| P2–P5 | GV chiếu bảng 40 số liệu (35–235 phút), nêu câu hỏi thiết yếu; HS trả lời 3 câu ôn nền qua máy (chờ hai nhịp). `[🟣 ĐGTX]` | x_max, x_min, R; nhược điểm bảng tần số đơn lẻ. |
 
 **2. XÁC ĐỊNH MỤC TIÊU — Thời lượng: 3 phút, P5–P8**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P5–P8 | GV nêu 3 mục tiêu; bấm giao nhiệm vụ nhóm. | "Tự chia — so — chuẩn hoá — chạy quy trình — chéo." |
+| P5–P8 | GV công bố Must–Should–Could; HS chọn mức trên máy. | Mục tiêu gắn Phiếu số 1, số 2. |
 
-**HĐ1 — Tự chia nhóm và chuẩn hoá — Thời lượng: 15 phút, P8–P23**
-
-| Thời gian thực | Giáo viên và Học sinh | Nội dung |
-|---|---|---|
-| P8–P14 (B02) | Nhóm chọn k + biên, công bố tần số sống; GV theo Coach, hỏi nhóm có biên lẻ. `[🔴 PHÂN HÓA]` | Bảng 26 số tương tác trên máy nhóm. |
-| P14–P17 (B03) | GV công bố hai bảng; câu `[SO SÁNH]` "bảng nào dễ đọc hơn?"; chốt k 5–10 tham khảo. `[🟣 ĐGTX]` | Hai bảng cạnh nhau, ẩn danh tới khi bật tên. |
-| P17–P21 (B04) | Reveal theo phần nhóm [a; a+L), giá trị đại diện; `[KHÁI QUÁT]` "vì sao nửa khoảng?"; quick-fill biên. | Tô màu biên; điểm số trôi khi kéo biên (invariant). |
-| P21–P23 (B05) | Lớp sắp 4 thẻ K–B–Đ–T; reveal thứ tự đúng + câu nhớ. | 4 thẻ lộn xộn trên Presenter + chọn thứ tự trên máy. |
-
-**HĐ2 — Luyện từng bước và kiểm tra chéo — Thời lượng: 9 phút, P23–P32**
+**HĐ1 — Khái niệm mẫu số liệu ghép nhóm — Thời lượng: 11 phút, P8–P19**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P23–P28 (B06) | HS cá nhân N1–N3 (đọc bảng → lập biên → đủ K–B–Đ–T), hint 1→3; xong sớm làm nhiệm vụ khó. `[🔴 PHÂN HÓA]` | Ba nhiệm vụ rời trên máy; offline: phiếu + ảnh. |
-| P28–P32 (B07) | Hai nhóm chéo bản ẩn danh: 3 tiêu chí + nhận xét chữ bắt buộc; câu `[PHẢN BIỆN]` bảo vệ cách chọn biên. | Bản nhóm B nhận nhóm A; nhận xét về tới máy nhóm A. |
+| P8–P10 | Bước 1 Kết nối: chiếu dãy khoảng 40 phút; `[PHÁT HIỆN]` ngoặc và độ dài; hạ thang bằng phép trừ. | [30;70) … [230;270), độ dài đều 40. |
+| P10–P14 | Bước 2 Hình thành: HS làm Phiếu số 1 theo mức; `[KHÁI QUÁT]` và `[PHẢN BIỆN]` về giá trị đại diện. `[🔴 PHÂN HÓA]` | Nhóm số liệu, nửa khoảng, giá trị đại diện. |
+| P14–P17 | Bước 3 Kiểm tra: hai câu qua máy; Vinh danh lỗi sai với bài ghi nhầm [60;90). `[🟣 ĐGTX]` | Độ dài 30, đại diện 75; 90 thuộc [90;120). |
+| P17–P19 | Bước 4 Chuẩn hoá: đóng khung định nghĩa, cᵢ = (aᵢ + aᵢ₊₁)/2; `[SÁNG TẠO]` nhóm cuối đóng hai đầu. | Định nghĩa + công thức. |
+
+**HĐ2 — Quy trình ghép nhóm — Thời lượng: 13 phút, P19–P32**
+
+| Thời gian thực | Giáo viên và Học sinh | Nội dung |
+|---|---|---|
+| P19–P32 | HS làm Phiếu số 2 theo 3 bước: ① x_min, x_max, R → ② chọn k, tính h → ③ lập bảng tần số, kiểm tổng = n. Bốn quy tắc ghép nhóm hiện thành thẻ. GV nhắc "hỏng ở đâu quay về bước đó". Xong sớm làm nhiệm vụ neo. `[🔴 PHÂN HÓA]` | Ví dụ mẫu [0;5) 2,5 · 4; [5;10) 7,5 · 6 … tổng n = 20. |
 
 **4. KIỂM TRA NHANH — MỞ RỘNG — Thời lượng: 6 phút, P32–P38**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P32–P36 (B08) | Exit 3 câu (checkpoint riêng, không cộng điểm lần 2); GV theo dõi hoàn thành, không xếp hạng. | 3 câu chọn/diền; kết quả chỉ GV thấy. |
-| P36–P38 (B09, reserve) | Biểu quyết k cho mẫu 100 số; `[SÁNG TẠO]` "em chọn k thế nào vì sao"; `[🔵 CÔNG DÂN SỐ]` chốt "vì người đọc". Nếu đội giờ: bỏ, hoãn đầu tiết sau. | Ba phương án k + reveal ý kiến lớp. |
+| P32–P36 | Ba câu trắc nghiệm trên máy (cặp đôi); checkpoint riêng, không cộng điểm lần 2. `[🟣 ĐGTX]` | Câu 1: 35 · Câu 2: h = 1,0 với [12;13)…[15;16) · Câu 3: bảng bỏ hổng (30;31), giá trị 30,5 vô chủ. |
+| P36–P38 | Chiếu AQI theo nhóm màu; `[HỆ QUẢ]` xếp sai mút biên 100 thì sao? `[🔵 CÔNG DÂN SỐ]` `[🟢 CÔNG DÂN TOÀN CẦU]` | [0;50) Tốt · [50;100) Trung bình · [100;150) Kém. |
 
 **5. SƠ KẾT — Thời lượng: 2 phút, P38–P40**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P38–P40 | GV chốt K–B–Đ–T + quy tắc biên; phiếu thoát; rút kinh nghiệm GV (máy GV). | Ba chốt + hẹn Tiết 2 (trung bình số liệu ghép nhóm). |
+| P38–P40 | HS điền L và I của KWLI trên máy; `[KHÁI QUÁT]` nêu lại 4 quy tắc ghép nhóm; GV chốt 4 dòng tổng kết. | 4 quy tắc + cᵢ + ý nghĩa ghép nhóm. |
 
 **6. BTVN**
 
 | Nhóm HS | Bài tập |
 |---|---|
-| HS yếu/TB | Hoàn thành N1–N2 tương tự trên một mẫu 3 nhóm; học thuộc "K–B–Đ–T" + quy tắc biên. |
-| HS khá | Chạy đủ 4 bước cho bảng 5 nhóm trong SGK; ghi rõ bước nào quyết định tần số nào. |
-| HS giỏi | Cùng một mẫu, lập hai bảng với k khác nhau; viết 5 dòng so sánh ưu nhược điểm (chuẩn bị cho B09 tiết sau). |
-| Toàn lớp | Hoàn thành practiceSet đã gắn bài học trong app; xem lại nhận xét chéo của nhóm bạn. |
+| HS yếu/TB | Đọc bảng ghép nhóm cho sẵn: nêu mút, độ dài, giá trị đại diện của 3 nhóm (SGK Bài 1 tr.65). |
+| HS khá | Lập bảng ghép nhóm cho dãy số liệu thô trong SBT tr.42; ghi rõ 3 bước và kiểm tổng tần số. |
+| HS giỏi | Cùng một mẫu, lập hai bảng với k khác nhau; phân tích mất mát thông tin của mỗi cách (chuẩn bị phản biện). |
+| Toàn lớp | Hoàn thành Phiếu số 2 (nếu chưa xong); xem lại lỗi mút biên đã vinh danh trên lớp. |
 
-## 4. Kiểm nhanh trước khi nộp (tự đối chiếu mẫu)
+## 3. Kiểm nhanh trước khi nộp
 
-1. 16 thành phần đủ, đúng thứ tự ✔ (giàn lại đúng dạng bảng khi xuất DOCX).
-2. Dải P: 0–2–5–8–14–17–21–23–28–32–36–38–40 → phủ kín, không hở, không trùng ✔.
-3. Không phần trăm HS bịa ✔.
-4. Nhãn CIS đầu dòng: [🔴]×3, [🟣]×2 (kể XĐMT), [🔵]×1; [🟢] "Không phải tiết trọng tâm" ✔ (phần còn lại của tuần ở Tiết 2).
-5. Không lấn nội dung Tiết 2 (số đặc trưng của mẫu ghép nhóm) ✔; công thức OMML khi xuất DOCX (Cambria Math).
+1. 16 thành phần đủ ✔; dải P: 0–2–5–8–10–14–17–19–32–36–38–40 phủ kín ✔.
+2. Không phần trăm bịa; căn cứ điều chỉnh dùng số liệu thật ✔.
+3. Nhãn CIS đầu dòng: [🔴]×2, [🟣]×2, [🔵]+[🟢]×1 ✔.
+4. Bám đúng phạm vi Tiết 1; không lấn tiết sau (các số đặc trưng của mẫu ghép nhóm) ✔.
+5. Không còn "K–B–Đ–T" — thay bằng 4 quy tắc ghép nhóm + quy trình 3 bước của gốc ✔.
 
-## 5. Việc treo (không chặn Gate C, chặn đối chiếu)
+## 4. Khác biệt so với giáo án gốc (có chủ ý)
 
-- Body giáo án Ban Toán nguyên bài ở Thư viện (cần tab app phiên GV) — đối chiếu câu chữ và số liệu bảng 26 số.
-- Trang SGK KNTT Toán 11 cụ thể (scan chưa OCR) — đối chiếu số trang + bài tập BTVN.
+- **Bảng con → máy HS**: giữ chờ hai nhịp; GV vẫn thấy tỉ lệ lớp.
+- **Vinh danh lỗi sai** giữ nguyên nhưng bài sai được chiếu **ẩn danh** trên Presenter thay vì cầm bảng con thật.
+- **Phiếu KWLI giấy → KWLI trên máy**; Phiếu số 1, số 2 chuyển thành nhiệm vụ máy (vẫn in bản giấy dự phòng).
+- **Thêm**: mã phòng/nhóm, tự kiểm tổng tần số = n, checkpoint không cộng điểm lần 2, nhiệm vụ neo cho em xong sớm, đồng hồ P-zone.
+- **Giữ nguyên**: toàn bộ số liệu, câu hỏi nhãn, bài tập SGK/SBT, tình huống AQI, 4 quy tắc ghép nhóm và quy trình 3 bước.

@@ -1,89 +1,102 @@
 # GATE D · Khối 10 — Số gần đúng và sai số (Tiết 1) · V8.8
 
-> `adaptive-1792827090625` · Archetype `KNOWLEDGE_FORMATION` · 40' (core 33' hoạt động + 7' cấu trúc) · reserve 6'
-> Chuẩn chung: `tasks/gate-d-3-bai-tuan11.md`. Gate P: `tasks/gate-p-3-bai-tuan11.md` PHẦN 1.
-> Nguồn: SGK KNTT Toán 10, bài "Số gần đúng và sai số" (tập/trang đối chiếu sau OCR — PDF scan); giáo án Ban Toán đã sinh, body chờ tải từ Thư viện.
+> `adaptive-1792827090625` · **BẢN SỬA 2026-10-25: bám giáo án gốc** `tasks/giaoan-goc-g10.md`
+> Chuẩn chung: `tasks/gate-d-3-bai-tuan11.md`. Chênh lệch với bản trước: `tasks/doi-chieu-gate-d-voi-giao-an-goc.md`.
+> Quyết định thầy 2026-10-25: (1) **bảng con thay bằng máy HS**; (2) số % trong giáo án gốc **chỉ tham khảo — dùng số thật**; (4) Casio HS bấm máy thật, màn hình hướng dẫn từng phím.
 
-## 0. Đối chiếu ngân sách Gate P → Gate D (trung thực)
+## 0. Ánh xạ giáo án gốc → 3 luồng V8.8
 
-- Gate P tính core hoạt động = 34' (A05 4', A06 6'). Ghép vào dải P cứng của mẫu Ban Toán thì HĐ2 (P24–P32) chỉ có 8'.
-- **Gate D chốt:** A05 3', A06 5' (hoạt động core = 33'); 2' nhường cho "ổn định lớp + mã phòng" (P0–P2) và sơ kết trọn P38–P40. A07 4' (dải KTNH 6' = A07 4' + A08 2'). Không cắt A06 dưới 5' (protected).
-- Reserve 6' = buffer đôn đốc + fast-path DEEP; không có hoạt động riêng nào nằm trong reserve.
+| Giáo án gốc | Dải P | Luồng tương tác |
+|---|---|---|
+| HĐ1 Trải nghiệm (KHĐ + XĐMT) | P0–P8 | Presenter dẫn + máy HS trả lời nhanh (thay bảng con) |
+| HĐ2 Hình thành kiến thức | P8–P22 | Presenter reveal từng phần + máy HS điền chỗ trống |
+| HĐ3 Rèn luyện phân hoá | P22–P32 | Máy HS 3 mức NB/TH/VD + KT nhanh |
+| HĐ4 Sơ kết + KT nhanh + Mở rộng | P32–P40 | Máy HS trắc nghiệm 3 câu + Presenter mở rộng |
+
+**Thay bảng con (quyết định 1):** mọi câu "giơ bảng con" của giáo án gốc chuyển thành **ô trả lời nhanh trên máy HS**, giữ nguyên kỹ thuật chờ hai nhịp: nhịp 1 máy khoá ô nhập (GV đọc câu, chờ 10–15 giây), nhịp 2 máy mở ô và HS gửi; GV thấy tỉ lệ trên V3. Không hiện đúng/sai từng em; chỉ hiện phân bố phương án.
 
 ## 1. Storyboard theo dải P
 
-### P0–P2 · Ổn định lớp + mã phòng
-- Presenter V1: "Số gần đúng và sai số — Toán 10 · Tuần 11 · Tiết 1" + mã phòng. V4: cue đọc danh nhóm chưa vào — "Có nhóm nào chưa đủ người?."
-- Student: nhập mã phòng + SBD → gán **nhóm N[x]** (2–4 HS, ≤ 8 nhóm); màn thu thành thẻ "NGHE GV".
-- Coach: danh sách nhóm, toàn UNKNOWN (chưa gửi dữ liệu nào — không suy năng lực).
+### P0–P2 · Ổn định + mã phòng
+- V1: "Số gần đúng và sai số — Toán 10 · Tuần 11 · Tiết 1" + mã phòng + đồng hồ P.
+- Student: nhập mã + SBD → nhóm N[x] (nhóm 2–4 HS, ≤ 8 nhóm).
 
-### P2–P5 · A01 KHỞI ĐỘNG — "Con số nào là đúng?" (3')
-- V2: ảnh cái bàn + thước dây. Câu hỏi `[PHÁT HIỆN]`: "Thầy đo bàn này được 1,20 m. Con số 1,20 m là ĐÚNG hay chỉ GẦN ĐÚNG? Vì sao?"
-- Student: trả lời nhanh 1/3 (Đúng / Gần đúng / Cần đo lại) — thăm dò, không chấm, không hiện đúng/sai.
-- V3: số HS chọn mỗi phương án (ẩn danh).
-- V4 cue: "Chỉ GẦN ĐÚNG — không thước nào đo ĐÚNG tuyệt đối. Dẫn sang độ chia của thước."
-- **Copy chốt chuyển:** "Mọi phép đo đều có sai khác — hôm nay ta đo lường được chính sai khác đó."
-- Offline: bỏ biểu quyết, giơ tay đếm.
+### P2–P5 · KHỞI ĐỘNG — Fansipan (theo gốc)
+- V2: ảnh đỉnh Fansipan + mốc trắc địa. Lời GV (nguyên văn gốc): "Năm 2019, Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam công bố chiều cao đỉnh Fansipan là **3.147,3 m**. Trong khi đó, sách giáo khoa cũ ghi **3.143 m**. Liệu con số 3.147,3 m đã là số đúng tuyệt đối chưa?"
+- **Câu hỏi thiết yếu treo suốt tiết (giữ nguyên gốc):** "Tại sao trong thực tế chúng ta hầu như không bao giờ biết được số đúng tuyệt đối của một đại lượng đo lường, và làm sao để kiểm soát được sai số đó?"
+- **Ôn nền — chờ hai nhịp (máy thay bảng con):**
+  - `[SO SÁNH]` 1/3 viết dạng thập phân có dừng được không? Khác gì 0,25?
+  - `[SỐ HỌC]` Làm tròn 3,14159 đến hàng phần trăm.
+  - `[SỐ HỌC]` |3,14 − 3,14159| = ?
+- V3: phân bố 3 câu; V4 đáp án thu gọn: 1/3 = 0,333… (vô hạn tuần hoàn) vs 0,25 hữu hạn; 3,14159 ≈ 3,14; hiệu = 0,00159.
+- **Copy chốt:** "Hiệu đó chính là mức độ sai lệch giữa số gần đúng và số đúng — hôm nay ta học cách kiểm soát nó."
 
-### P5–P8 · XÁC ĐỊNH MỤC TIÊU (3')
-- V2: "Sau tiết học, tôi có thể: (1) phân biệt số đúng / số gần đúng; (2) tính sai số tuyệt đối d và nêu khoảng chứa giá trị đúng; (3) cảnh giác lỗi làm tròn tích luỹ." Student: thẻ NGHE GV.
-- `[🟣 ĐGTX]` (vị trí XĐMT): kết quả thăm dò A01 → GV chọn nhịp HĐ1 (nhanh/chậm).
-- **Copy chốt:** "Nhiệm vụ: mỗi nhóm đo 4 vật, ghi cả số đọc và độ chia — rồi cả lớp chốt cách ghi số gần đúng."
+### P5–P8 · XÁC ĐỊNH MỤC TIÊU (theo gốc, Must–Should–Could)
+- V2: 3 mức mục tiêu (giữ đúng nội dung gốc):
+  - **Must:** phân biệt số đúng / số gần đúng; tính Δa = |a − ā|.
+  - **Should:** xác định khoảng chặn từ d; tính sai số tương đối δa ≤ d/|a|; quy tròn đúng hàng.
+  - **Could:** so sánh hai phép đo khác quy mô bằng δ; phân tích rủi ro làm tròn sai hàng trong hệ thống số.
+- Student: máy hiện 3 mức, HS chọn mức thử thách (Coach ghi nhận — chỉ để GV điều nhịp, không xếp loại).
+- `[🟣 ĐGTX]` (vị trí XĐMT): tỉ lệ đúng 3 câu ôn nền ở P2–P5 → GV chọn nhịp HĐ2 (nếu nhiều em sai câu 2 thì dừng lâu ở quy tắc quy tròn).
 
-### P8–P16 · A02 — Đo 4 vật, ghi số đọc + độ chia (8', nhóm)
-- Handoff → "Giao task về máy"; Student: "LÀM TRÊN MÁY". **Copy:** "Mỗi nhóm lấy thước, đo 4 vật trên phiếu — bấm GỬI khi xong."
-- V2/Student: 4 thẻ vật (chiều dài quyển vở Toán · bề rộng cánh cửa · đường kính đồng xu 5000đ · chiều dài bút chì), mỗi thẻ 3 ô: **số đọc / độ chia d / đơn vị**.
-- nonNegotiable: phải ghi đủ độ chia + đơn vị; vai nhóm tự phân (đo · ghi · chỉ huy · báo cáo); 1 HS gửi thay nhóm kèm chọn tên báo cáo viên.
-- Coach: đã gửi chưa, ô trống nào. `[🔴 PHÂN HÓA]` nhóm gửi sớm đủ 4/4 kèm độ chia → nhận câu DEEP "so 2 phép đo cùng vật, khác thước". Hypothesis: "chưa tách số đọc và độ chia" — mẹo kiểm: "số đọc trên thước trước khi làm tròn là bao nhiêu?".
-- Fast-path: DEEP ngay, không chờ lớp. Offline: phiếu giấy in sẵn, có mạng chụp gửi.
-- **Copy chốt thu bài:** "Số đọc trên thước là số gần đúng; độ chia cho biết con số tin được tới đâu."
+### P8–P15 · HĐ2 phần 1 — Số đúng, số gần đúng, sai số tuyệt đối (7')
+- V2: GV mời 1 HS lên đo mép bàn bằng thước cuộn; HS đọc "1,205 m (hay 120,5 cm)" — **dùng số đo thật của lớp**, không bịa.
+- `[PHÁT HIỆN]` "Liệu mép bàn có đúng tuyệt đối 1,205000… m không? Yếu tố nào làm kết quả không thể chính xác vô hạn?" → đáp án gốc: mắt nhìn góc nghiêng, vạch thước có bề dày, mép bàn mòn, nhiệt độ làm thước co giãn.
+- `[KHÁI QUÁT]` "Con số 1,205 m gọi là gì, độ dài thật gọi là gì?" → số gần đúng / số đúng.
+- **Dự phòng hạ thang (giữ nguyên gốc):** nếu sau 2 câu vẫn chưa ra → "π ≈ 3,14. Số nào là số đúng, số nào gần đúng?"
+- `[SUY LUẬN]` "Độ lệch tính bằng biểu thức nào? Tại sao phải có dấu giá trị tuyệt đối?" → |a − ā| vì khoảng cách không âm.
+- Chốt: **Δa = |a − ā|**; tìm d > 0 sao cho Δa ≤ d → **ā = a ± d** ⇔ **a − d ≤ ā ≤ a + d**.
+- Visual: trục số có khoảng xanh [a−d; a+d], điểm a, điểm ā nằm trong khoảng; kéo d → khoảng co/giãn (invariant: ā luôn trong khoảng).
+- Student: điền chỗ trống "Δa = |… − …|" và "… ≤ ā ≤ …" (reveal sau khi lớp trả lời).
+- **Copy chốt:** "Số gần đúng luôn đi kèm độ chính xác d — thiếu d, con số nói dối."
 
-### P16–P20 · A03 — Công bố + kiểm tra chéo (4')
-- Handoff → "Công bố"; Student về NGHE GV, nháp giữ nguyên. V3: bảng 4 vật × số đọc các nhóm (tên nhóm chỉ hiện khi GV bật).
-- Câu `[SO SÁNH]`: "Cùng đo quyển vở — nhóm này ghi 29,0 cm, nhóm kia 29,00 cm. Khác nhau ở chỗ nào? Cách nào tin hơn?"
-- V4 đáp án thu gọn: "29,0 cm — tin tới mm (d = 1 mm); 29,00 cm — tin tới 0,1 mm (d = 0,1 mm). Số 0 cuối KHÔNG thừa."
-- `[🟣 ĐGTX]` nhận xét của HS trên V3 được GV dẫn thẳng vào chốt. `[🔴 PHÂN HÓA]` GV đánh dấu nhóm phát hiện sai cách ghi (chỉ trên máy GV).
-- **Copy chốt:** "Cách ghi số nói lên độ tin cậy của phép đo — ghi bao nhiêu chữ số là một quyết định."
+### P15–P22 · HĐ2 phần 2 — Sai số tương đối + quy tắc quy tròn (7')
+- V2: hai phép đo cạnh nhau (**nguyên văn gốc**):
+  - Cầu: L₁ = 100 m ± 1 cm → δ₁ ≤ 0,01/100 = 0,01%
+  - Bút chì: L₂ = 10 cm ± 1 cm → δ₂ ≤ 1/10 = 10%
+- `[SO SÁNH]` "Cùng sai số tuyệt đối 1 cm, phép đo nào tốt hơn? Vì sao nhìn Δa không trả lời được?" → phải so với quy mô vật thể.
+- Chốt: **δa ≤ d/|a|**.
+- Quy tắc quy tròn (nguyên văn gốc): "Xác định hàng của chữ số khác 0 đầu tiên của d, rồi quy tròn số gần đúng đến **hàng liền trước** hàng đó."
+- Student: 1 câu áp quy tắc ngay (a = 5.418,2; d = 30 → hàng quy tròn là hàng trăm → 5.400).
+- **Copy chốt:** "Cùng 1 cm sai số — cây cầu xuất sắc, cây bút chì vô dụng."
 
-### P20–P24 · A04 — Chuẩn hoá: định nghĩa + khoảng (4')
-- V2 reveal **theo phần** (chỉ hiện sau khi lớp trả lời chỗ trống):
-  1. a là số gần đúng của ā với sai số tuyệt đối d khi |a − ā| ≤ d. Student quick-fill: "ký hiệu sai số tuyệt đối là việc chọn d = …" (chọn: độ chia máy đo / độ dài vật / tuổi HS).
-  2. Khoảng chứa giá trị đúng: ā ∈ [a − d; a + d] — con trỏ chạy trên trục khi đổi d (dynamic); invariant hiển thị: giá trị đúng luôn nằm trong khoảng.
-- Câu `[KHÁI QUÁT]`: "Vì sao ghi một khoảng [a−d; a+d] thay vì một con số?"
-- V4: "Vì không biết chính xác chỗ nằm — chỉ biết chắc nó trong khoảng. Thước chia càng nhỏ, d càng bé, khoảng càng hẹp."
-- no-spoiler: ANSWER_KEY trong closure, không có trong DOM trước Reveal (đúng luật fix P0).
-- **Copy chốt:** "Số gần đúng luôn đi kèm sai số — thiếu d, con số 'nói dối'."
+### P22–P28 · HĐ3 — Luyện phân hoá 3 mức (6', nhóm đồng mức)
+Handoff → "Giao nhiệm vụ theo mức"; Student thấy **đúng mức của nhóm mình** (GV gán hoặc nhóm tự chọn — ghi Coach):
+- **NB:** (1) ā = 10, a = 9,8 → Δa; viết khoảng chặn với a = 15, d = 0,2. (2) Fansipan a = 3.147,3 m, d = 0,2 m → quy tròn a *(SGK Bài 3 tr.23)*.
+- **TH:** (1) Ruộng 45,6 m ± 0,1 m → khoảng chặn; bác nông dân nói 45,75 m đúng hay sai? *(SGK Bài 2 tr.23)*. (2) δ của bán kính Trái Đất R = 6.371 km ± 1 km; quy tròn 125.432 với d = 200 *(SGK Bài 4 tr.23)*.
+- **VD:** (1) Chu vi đảo C = 128 km ± 0,5 km → min/max của chu vi đúng; đánh giá sai số khi nhân đôi. (2) Trái Đất–Mặt Trăng 384.400 km ± 50 km → δ theo %, quy tròn theo chuẩn quốc tế.
+- Cue GV (gốc): "không đảo dấu bất đẳng thức — **cận dưới trừ đi, cận trên cộng vào**."
+- `[🔴 PHÂN HÓA]` Coach thấy nhóm nào đảo dấu. Fast-path: xong sớm → "nhiệm vụ neo: ước lượng chu vi sân trường bằng bước chân + tính δ".
+- Offline: phiếu 3 mức in sẵn.
 
-### P24–P27 · A05 — Ví dụ mẫu (3')
-- V2: đo chiều dài lớp được a = 8,24 m, thước chia tới cm. Bước trung gian Student nhập: "d = …?" (Nấc 1 mẹo: "d = độ chia thước"; Nấc 2 sớm-xong: nhập luôn khoảng [8,23; 8,25]).
-- Reveal bảng tính từng bước sau bước trung gian. `[🔴 PHÂN HÓA]`: ai làm nấc 2 (chỉ Coach thấy).
-- **Copy chốt:** "Mỗi lần đo: tìm a → tìm d → viết khoảng."
+### P28–P32 · HĐ3 — Kiểm tra nhanh + phản biện lỗi (4') — `[🟣 ĐGTX]`
+- Máy thay bảng con, chờ hai nhịp:
+  - Lượt 1: bao xi măng 50 ± 0,5 kg → viết khoảng chặn của ā. (15 giây)
+  - Lượt 2: quy tròn a = 5.418,2 với d = 30.
+- `[PHẢN BIỆN]` (gốc): tình huống bẫy "d = 30 có chữ số khác 0 ở hàng chục nên quy tròn đến hàng chục" → sai; đúng là hàng **liền trước** hàng đó.
+- V3: tỉ lệ đúng từng lượt; GV quét nhanh, dừng hỗ trợ em sai khoảng chặn.
+- **Copy chốt:** "Sai hàng quy tròn là sai cả con số — không phải sai làm tròn."
 
-### P27–P32 · A06 — Luyện có hướng dẫn (5', cá nhân)
-- Handoff: "Giờ đến lượt em tự làm — 3 câu, có hint." Student: LÀM TRÊN MÁY.
-  - C1 `[PHÁT HIỆN]`: bút chì đo được 17,8 cm, thước chia 0,1 cm — d = ? (0,1 cm / 1 cm / 0,01 m).
-  - C2: viết khoảng chứa giá trị đúng (input định dạng sẵn).
-  - C3 `[SO SÁNH]`: An ghi 6,1 m, Bình ghi 6,12 m cùng căn phòng — ai dùng thước chia nhỏ hơn?
-- Hint 1→3 mở dần; xong sớm → EXPLORE "1,005 × 1000 trên bảng tính để ra gì?". Coach: 3 câu lưu; `[🔴 PHÂN HÓA]` đúng ≥ 2/3; hypothesis quên đơn vị → kiểm "đơn vị của d là gì?".
-- Offline: 3 câu in trên phiếu, gửi ảnh.
-- **Copy chốt:** "Ba bước quen: d → khoảng → so độ tin."
+### P32–P36 · HĐ4 — Kiểm tra nhanh 3 câu trắc nghiệm (4', cặp đôi)
+- Câu 1 [NB] *(SGK tr.22)*: số nào là số **đúng**? A. Lớp 10A1 có 42 học sinh · B. Hà Nội–Hải Phòng 102 km · C. nhiệt độ 28°C · D. núi cao 2.000 m → **A**.
+- Câu 2 [TH]: x = 12,5 cm ± 0,05 cm → hàng quy tròn: A. phần trăm · B. phần mười · C. đơn vị · D. chục → **B** (d = 0,05 ở hàng phần trăm → quy tròn hàng phần mười → x ≈ 12,5 cm).
+- Câu 3 [VDC]: vật thể 1: 40.000 km ± 200 km; vật thể 2: 500 km ± 5 km → phép nào chính xác **tương đối** cao hơn? (δ₁ = 0,5%; δ₂ = 1% → vật thể 1).
+- Checkpoint `dewey-ckpt-v1-{lessonId}-{mãHS}` — không cộng điểm lần 2.
 
-### P32–P36 · A07 — KIỂM TRA NHANH: exit 3 câu (4')
-- Checkpoint riêng `dewey-ckpt-v1-{lessonId}-{mãHS}` — **không cộng điểm lần 2** (luật fix P0). 1 câu/thẻ, không hiện điểm ngay.
-- **Copy:** "3 câu cuối — chọn, gửi, xong nghỉ tay."
+### P36–P38 · MỞ RỘNG — Ariane 5 + `[🔵 CÔNG DÂN SỐ]` (2')
+- V2 (nguyên văn gốc): vụ nổ Ariane 5 ngày 04/06/1996, tên lửa 500 triệu USD nổ sau 37 giây do chuyển số thực 64-bit sang số nguyên 16-bit bị tràn số và sai số làm tròn.
+- `[HỆ QUẢ]` "Nếu kỹ sư xe tự hành/máy bay làm tròn vội toạ độ GPS, hậu quả với hành khách thế nào?" → lệch hàng mét → va chạm, nguy hiểm tính mạng.
+- **Copy chốt:** "Làm tròn là quyết định kỹ thuật — sai một hàng, mất cả hệ thống."
 
-### P36–P38 · A08 — MỞ RỘNG: lỗi làm tròn (2') `[🔵 CÔNG DÂN SỐ]`
-- V2: 1,005 × 1000 = ? — biểu quyết 2 phương án (1005 / 1004,999…); reveal sau: máy tính hiện 1004,99999… Câu `[PHẢN BIỆN]`: "Máy tính sai à — hay ai sai?"
-- V4: "làm tròn nhiều bước → sai số tích luỹ; bảng tính tiền/kho phải quy định làm tròn ở bước cuối."
-- **Copy chốt:** "Làm tròn là quyết định của người dùng máy — không phải của máy."
-
-### P38–P40 · SƠ KẾT (2')
-- V2: 3 dòng chốt; Student: phiếu thoát (1 icon cảm nhận + 1 câu "điều còn lấn cấn" — không bắt buộc). GV ghi mục "Rút kinh nghiệm" vào máy GV (không công khai).
-- **Copy chốt:** "Hẹn tiết sau: biến đổi số gần đúng — sai số đi theo đường nào?"
+### P38–P40 · SƠ KẾT + EXIT TICKET (2')
+- V2 tổng kết 4 dòng (nguyên văn gốc): ā = a ± d ⇔ a − d ≤ ā ≤ a + d · Δa = |a − ā| ≤ d · δa ≤ d/|a| · quy tắc hàng quy tròn.
+- `[KHÁI QUÁT]` "Nêu quy tắc chọn hàng quy tròn khi biết d trong một câu."
+- `[SÁNG TẠO]` "Trường hợp nào sai số tuyệt đối rất lớn mà phép đo vẫn xuất sắc?" → thiên văn: lệch hàng triệu km nhưng δ chỉ phần triệu.
+- Student: thẻ thoát hiểm trên máy (✓ điều nắm chắc · ? điều còn băn khoăn) — thay phiếu giấy.
 
 ## 2. Giáo án in — mẫu Ban Toán 16 thành phần (P0→P40)
 
-**KẾ HOẠCH DẠY HỌC** — Tiết học hình thành khái niệm số gần đúng và sai số tuyệt đối thông qua hoạt động đo lường thật: học sinh đo 4 vật bằng thước sẵn có, phát hiện hai cách ghi 29,0 cm và 29,00 cm khác nhau về độ tin cậy, từ đó cần có khái niệm sai số tuyệt đối d và khoảng chứa giá trị đúng. Tiết chạy trên bài học tương tác V8.8 (Presenter – Student – Coach); dạy không mạng theo phiếu dự phòng.
+**KẾ HOẠCH DẠY HỌC** — Tiết hình thành khái niệm số gần đúng, sai số tuyệt đối, sai số tương đối và quy tắc quy tròn qua tình huống trắc địa thật (chiều cao Fansipan công bố 2019 so với số liệu cũ) và hai phép đo tương phản (cầu 100 m sai 1 cm với bút chì 10 cm sai 1 cm) để học sinh thấy vì sao cần sai số tương đối. Học sinh luyện theo ba mức NB–TH–VD gắn bài tập SGK tr.22–24; tiết khép bằng sự cố Ariane 5 để thấy hậu quả thật của làm tròn sai. Tiết chạy trên bài học tương tác V8.8; dạy không mạng theo phiếu in dự phòng.
 
 | Lớp | 10 | Tên bài học | Số gần đúng và sai số — Tiết 1 |
 |---|---|---|---|
@@ -92,102 +105,101 @@
 
 **I. THÔNG TIN CHUNG** *(bảng 1×1)*
 
-**1. Tiêu chuẩn năng lực cốt lõi**
-- Sử dụng được công cụ đo thông thường; thu được số gần đúng kèm độ chia của dụng cụ.
-- Ước lượng được kết quả đo trước khi đo; đánh giá được độ tin cậy của kết quả.
-- Tính toán với số gần đúng; nhận biết được hậu quả của việc làm tròn nhiều bước.
-- Hợp tác nhóm: phân vai đo — ghi — chỉ huy — báo cáo; trình bày kết quả.
-- Thái độ cẩn thận khi đo đạc và trung thực khi ghi số liệu.
+**1. Tiêu chuẩn năng lực cốt lõi** *(nguyên văn giáo án gốc)*
+- Tư duy và lập luận toán học: so sánh, phân biệt bản chất số đúng và số gần đúng; thiết lập quan hệ giữa sai số tuyệt đối và độ chính xác của phép đo.
+- Mô hình hoá toán học: chuyển kết quả đo đạc thực tế (kích thước, dữ liệu địa lý) thành biểu thức dạng khoảng chặn a − d ≤ ā ≤ a + d.
+- Giải quyết vấn đề toán học: xác định khoảng giá trị của số đúng từ độ chính xác, tính sai số tương đối, chọn đúng hàng quy tròn.
+- Giao tiếp toán học: dùng chuẩn xác thuật ngữ "số đúng", "số gần đúng", "độ chính xác", "sai số tuyệt đối", "sai số tương đối"; trình bày kết quả kèm đơn vị đo.
 
 **2. Mục tiêu học tập** *(bảng 1×1 + "Sau tiết học, tôi có thể:" + bảng 3×2 + Phân hóa)*
 Sau tiết học, tôi có thể:
 
-| Cơ bản | Trọng tâm | Nâng cao |
+| Cơ bản (Must) | Trọng tâm (Should) | Nâng cao (Could) |
 |---|---|---|
-| Phân biệt số đúng và số gần đúng; ghi kết quả đo kèm độ chia và đơn vị | Tính sai số tuyệt đối d; viết khoảng [a − d; a + d] chứa giá trị đúng | Giải thích hậu quả làm tròn tích luỹ (1,005 × 1000); so độ tin cậy hai phép đo cùng vật |
+| Phân biệt số đúng và số gần đúng trong tình huống thực tế; tính Δa = \|a − ā\| khi biết ā và a | Xác định khoảng chặn khi biết d; tính δa ≤ d/\|a\|; quy tròn số gần đúng đúng hàng tương ứng d | So sánh chất lượng hai phép đo khác quy mô bằng δ; phân tích rủi ro làm tròn sai hàng trong hệ thống kỹ thuật số |
 
-Phân hóa mục tiêu: HS yếu/TB đạt mức Cơ bản qua phiếu 4 vật + bài luyện C1; HS khá đạt Trọng tâm qua C2–C3; HS giỏi mở rộng qua DEEP/EXPLORE (so hai phép đo khác thước; phân tích lỗi bảng tính).
+Phân hóa mục tiêu: HS trung bình làm Phiếu mức NB (Bài 1 SGK tr.22); HS khá mức TH (Bài 2, 3 SGK tr.23); HS giỏi mức VD (Bài 4 SGK tr.23 + mở rộng).
 
 **3. Tài liệu dạy học**
-- SGK Kết nối tri thức Toán 10, bài "Số gần đúng và sai số" (trang đối chiếu sau OCR scan).
-- Thước thẳng chia milimét, thước dây, đồng xu 5000đ; phiếu đo 4 vật (bản giấy dự phòng).
-- Bài học tương tác V8.8 (`adaptive-1792827090625`): Presenter – Student – Coach, mã phòng.
-- Căn cứ điều chỉnh từ đánh giá tiết trước: sau bài kiểm tra giữa kỳ, một số HS có thể còn ghi kết quả đo thiếu độ chia — tiết này nhấn nonNegotiable "ghi đủ d và đơn vị".
+- SGK Toán 10 — phần Số gần đúng và sai số, **tr. 20–24**.
+- Phiếu học tập: Phiếu số 1 (số gần đúng và sai số tuyệt đối), Phiếu số 2 (sai số tương đối và quy tròn) — 3 mức NB/TH/VD.
+- Bài học tương tác V8.8 (`adaptive-1792827090625`): mã phòng, ô trả lời nhanh thay bảng con, thẻ thoát hiểm điện tử.
+- Thước cuộn kim loại (đo mép bàn thật); máy chiếu tư liệu trắc địa và sự cố Ariane 5.
+- Căn cứ điều chỉnh từ đánh giá tiết trước: **dùng số liệu thật của lớp** (tỉ lệ làm tròn đúng, tỉ lệ nhầm giá trị tuyệt đối) — tiết này bổ sung bài quy tròn số nguyên lớn và số âm, và 1 phút ôn |x − y| ngay P2–P5.
 
-**MINH CHỨNG HQT / CIS** *(bảng 3 cột)*
+**MINH CHỨNG HQT / CIS** *(bảng 3 cột — giữ nhãn và nội dung gốc)*
 
 | Minh chứng | HS làm gì → GV thu được gì → mục đích | Vị trí |
 |---|---|---|
-| `[🔴 PHÂN HÓA]` Phiếu nhóm A02 | NH: đo và ghi 4 ô số đọc + độ chia → GV: nhận diện nhóm thiếu độ chia → mục đích: cấp DEEP hoặc hỗ trợ đúng chỗ | P8–P16 |
-| `[🟣 ĐGTX]` Nhận xét A03 | NH: so sánh 29,0 cm và 29,00 cm → GV: bằng chứng "số 0 có nghĩa" được đọc thành lời của HS → mục đích: chốt khái niệm bằng tiếng nói của lớp | P16–P20 |
-| `[🔴 PHÂN HÓA]` Ba câu A06 | HS: làm 3 câu tăng dần + dùng hint → GV: phân tuyến luyện tiếp Tiết 2 → mục đích: giao BTVN đúng mức | P27–P32 |
-| `[🔵 CÔNG DÂN SỐ]` Biểu quyết A08 | HS: dự đoán 1,005 × 1000 → GV: nối sang rủi ro làm tròn trong bảng tính tiền/kho → mục đích: ý thức dùng công cụ số trung thực | P36–P38 |
-| `[🟢 CÔNG DÂN TOÀN CẦU]` — Không phải tiết trọng tâm | — | — |
-| Ghi chú tuần: `[🔴]`/[🟣] còn lại của Tuần 10 đặt ở Tiết 2 (chữa bài, luyện tập) để đạt ≥3 minh chứng/tuần mỗi loại. | | |
+| `[🟣 ĐGTX]` Trả lời nhanh thay bảng con | HS gửi đáp án qua máy (chờ hai nhịp) → GV thấy tỉ lệ hiểu thật để điều chỉnh nhịp, dừng hỗ trợ em sai khoảng chặn trước khi chuyển bước | P2–P5, P15, P28, P32–P36 |
+| `[🔴 PHÂN HÓA]` Phiếu 3 mức NB/TH/VD | HS làm đúng mức của mình → GV thấy nhóm nào đảo dấu bất đẳng thức, nhóm nào chưa quy tròn đúng hàng → mục đích: hỗ trợ đúng chỗ, neo việc cho em xong sớm | P22–P32 |
+| `[🔵 CÔNG DÂN SỐ]` Sự cố Ariane 5 | HS phân tích hậu quả làm tròn sai hàng trong hệ thống điều khiển → GV thu được ý thức trách nhiệm số → mục đích: nối toán với an toàn kỹ thuật | P36–P38 |
+| `[🟢 CÔNG DÂN TOÀN CẦU]` Dữ liệu trắc địa quốc tế | HS đối chiếu chuẩn quy tròn và ước lượng số liệu đo theo tổ chức trắc địa quốc tế → GV thu được năng lực giao tiếp toán học toàn cầu | P0–P8 (mở đầu), P18–P20 |
 
 **II. TIẾN TRÌNH HOẠT ĐỘNG** *(bảng 1×1)*
 
 **3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH** *(bảng 1×1)*
 
-**1. KHỞI ĐỘNG — Con số nào là đúng? — Thời lượng: 5 phút, P0–P2 ổn định lớp + A01 P2–P5**
+**1. KHỞI ĐỘNG — Fansipan và ôn nền — Thời lượng: 5 phút, P0–P5**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P0–P2 | GV mở phòng, HS nhập mã + SBD, gán nhóm 2–4 HS (≤ 8 nhóm). | Trình chiếu mã phòng; đọc danh nhóm thiếu. |
-| P2–P5 | GV hỏi `[PHÁT HIỆN]` "1,20 m là ĐÚNG hay GẦN ĐÚNG?" — HS trả lời nhanh (máy/giơ tay); GV chốt dẫn: "Mọi phép đo đều có sai khác." | Ảnh bàn + thước dây; V3 đếm nhanh 3 phương án. |
+| P0–P2 | GV mở phòng, HS nhập mã + SBD, gán nhóm. | Mã phòng, đồng hồ P. |
+| P2–P5 | GV chiếu ảnh Fansipan + mốc trắc địa, nêu số 3.147,3 m (2019) vs 3.143 m (SGK cũ); treo câu hỏi thiết yếu. HS trả lời 3 câu ôn nền qua máy theo chờ hai nhịp. `[🟣 ĐGTX]` `[🟢 CÔNG DÂN TOÀN CẦU]` | Ôn: 1/3 = 0,333…; 3,14159 ≈ 3,14; \|3,14 − 3,14159\| = 0,00159. |
 
 **2. XÁC ĐỊNH MỤC TIÊU — Thời lượng: 3 phút, P5–P8**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P5–P8 | GV nêu "Sau tiết học, tôi có thể …" (3 dòng); HS đọc; GV bấm giao nhiệm vụ nhóm. | 3 mục tiêu buổi học + nhiệm vụ đo 4 vật. |
+| P5–P8 | GV công bố mục tiêu Must–Should–Could; HS chọn mức thử thách trên máy (chỉ GV thấy). | 3 mức mục tiêu gắn bài tập SGK tr.22–24. |
 
-**HĐ1 — Đo — So sánh — Chuẩn hoá — Thời lượng: 16 phút, P8–P24**
-
-| Thời gian thực | Giáo viên và Học sinh | Nội dung |
-|---|---|---|
-| P8–P16 (A02) | Nhóm đo 4 vật, ghi số đọc + độ chia + đơn vị; 1 HS gửi. GV theo Coach, hỏi nhanh nhóm chưa tách số đọc/độ chia. `[🔴 PHÂN HÓA]` | Phiếu 4 vật trên máy HS (offline: phiếu giấy). |
-| P16–P20 (A03) | GV công bố bảng nhóm; câu `[SO SÁNH]` 29,0 cm vs 29,00 cm; HS nhận xét; GV chốt "số 0 có nghĩa". `[🟣 ĐGTX]` | Bảng 4 vật × các nhóm (ẩn danh đến khi GV bật tên). |
-| P20–P24 (A04) | Reveal theo phần: |a − ā| ≤ d rồi ā ∈ [a − d; a + d]; câu `[KHÁI QUÁT]` "vì sao là một khoảng?"; con trỏ trên trục số khi đổi d. | Công thức hiện sau câu trả lời; không spoiler. |
-
-**HĐ2 — Ví dụ mẫu và luyện có hướng dẫn — Thời lượng: 8 phút, P24–P32**
+**HĐ1 — Hình thành kiến thức: số gần đúng, sai số tuyệt đối, sai số tương đối, quy tròn — Thời lượng: 14 phút, P8–P22**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P24–P27 (A05) | GV trình bày ví dụ 8,24 m chia cm; HS làm bước trung gian "d = ?" (nấc 1/nấc 2); reveal từng bước. | Bảng tính mẫu; nấc hỗ trợ 2 hiện nấc 1. |
-| P27–P32 (A06) | HS cá nhân 3 câu (d → khoảng → so sánh `[SO SÁNH]`), hint 1→3; xong sớm làm EXPLORE 1,005 × 1000. `[🔴 PHÂN HÓA]` | 3 câu trên máy; offline: phiếu + ảnh. |
+| P8–P15 | GV mời 1 HS đo mép bàn bằng thước cuộn, đọc kết quả thật. `[PHÁT HIỆN]` "có đúng tuyệt đối không, vì sao?"; `[KHÁI QUÁT]` "số nào là số đúng, số nào gần đúng?"; `[SUY LUẬN]` "vì sao có dấu giá trị tuyệt đối?" | Δa = \|a − ā\|; ā = a ± d ⇔ a − d ≤ ā ≤ a + d; trục số có khoảng chặn. |
+| P15–P22 | GV chiếu hai phép đo cầu 100 m ± 1 cm và bút chì 10 cm ± 1 cm; `[SO SÁNH]` "phép nào tốt hơn?"; chốt δa ≤ d/\|a\|; nêu quy tắc hàng quy tròn; HS áp ngay 1 câu. | δ₁ ≤ 0,01%; δ₂ ≤ 10%; quy tắc: hàng của chữ số khác 0 đầu tiên của d → quy tròn đến hàng liền trước. |
 
-**4. KIỂM TRA NHANH — MỞ RỘNG — Thời lượng: 6 phút, P32–P38**
+**HĐ2 — Rèn luyện phân hoá — Thời lượng: 10 phút, P22–P32**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P32–P36 (A07) | HS làm exit 3 câu (checkpoint riêng, không cộng điểm lần 2); GV theo dõi tỉ lệ hoàn thành, không xếp hạng. | 3 câu chọn; kết quả chỉ GV thấy. |
-| P36–P38 (A08) | `[🔵 CÔNG DÂN SỐ]` biểu quyết 1,005 × 1000; câu `[PHẢN BIỆN]` "máy sai à?"; chốt: làm tròn ở bước cuối. | Hai phương án + reveal kết quả máy tính. |
+| P22–P28 | Nhóm làm phiếu theo mức được giao (NB/TH/VD); GV quét hỗ trợ, nhắc "cận dưới trừ đi, cận trên cộng vào". `[🔴 PHÂN HÓA]` | NB: Δa, khoảng chặn, quy tròn Fansipan. TH: ruộng 45,6 ± 0,1 m; δ Trái Đất; quy tròn 125.432 với d = 200. VD: chu vi đảo; Trái Đất–Mặt Trăng. |
+| P28–P32 | Hai lượt trả lời nhanh qua máy (chờ hai nhịp): bao xi măng 50 ± 0,5 kg; quy tròn 5.418,2 với d = 30. GV nêu tình huống bẫy về hàng quy tròn. `[🟣 ĐGTX]` | Đáp án: khoảng [49,5; 50,5]; 5.418,2 ≈ 5.400. |
+
+**4. KIỂM TRA NHANH — MỞ RỘNG — Thời lượng: 8 phút, P32–P40**
+
+| Thời gian thực | Giáo viên và Học sinh | Nội dung |
+|---|---|---|
+| P32–P36 | HS làm cặp đôi 3 câu trắc nghiệm trên máy; checkpoint riêng, không cộng điểm lần 2. | Câu 1 A; Câu 2 B; Câu 3 vật thể 1 (δ 0,5% < 1%). |
+| P36–P38 | GV chiếu sự cố Ariane 5 (04/06/1996); `[HỆ QUẢ]` "làm tròn vội toạ độ GPS thì sao?" `[🔵 CÔNG DÂN SỐ]` | Tràn số 64-bit → 16-bit; 500 triệu USD, nổ sau 37 giây. |
 
 **5. SƠ KẾT — Thời lượng: 2 phút, P38–P40**
 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
-| P38–P40 | GV chốt 3 dòng; HS gửi phiếu thoát (icon + câu lấn cấn); GV ghi rút kinh nghiệm (máy GV). | Ba chốt: số gần đúng — d và khoảng — lỗi làm tròn. |
+| P38–P40 | GV chốt 4 dòng; `[KHÁI QUÁT]` quy tắc hàng quy tròn trong 1 câu; `[SÁNG TẠO]` "sai số tuyệt đối lớn mà vẫn xuất sắc?"; HS gửi thẻ thoát hiểm điện tử. | 4 tổng kết + thẻ thoát hiểm (✓ / ?). |
 
-**6. BTVN**
+**6. BTVN** *(theo nguyên văn gốc)*
 
 | Nhóm HS | Bài tập |
 |---|---|
-| HS yếu/TB | 2 bài cho sẵn số đo: tính d và viết khoảng chứa giá trị đúng (phiếu / practiceSet mức nhận biết). |
-| HS khá | 1 bài viết khoảng + 1 bài so hai phép đo cùng vật với thước khác độ chia (kết luận cách nào tin hơn). |
-| HS giỏi | Diễn giải vì sao bảng tính nhân 1,005 × 1000 cho 1004,999…; nêu quy tắc làm tròn hạn chế sai số tích luỹ. |
-| Toàn lớp | Học thuộc: a gần đúng ↔ d ↔ khoảng [a − d; a + d]; hoàn thành practiceSet đã gắn bài học trong app. |
+| HS yếu/TB | Bài 1, Bài 2 SGK tr. 22, 23 (phân biệt số đúng/gần đúng, tính sai số tuyệt đối cơ bản). |
+| HS khá | Bài 3, Bài 4 SGK tr. 23 (tính sai số tương đối, quy tròn số liệu thực tế địa lý). |
+| HS giỏi | Bài 5 SGK tr. 24 và đọc mục "Em có biết?" về sai số đồng hồ nguyên tử trong GPS. |
+| Toàn lớp | Đọc trước bài "Các số đặc trưng đo xu thế trung tâm"; chuẩn bị máy tính cầm tay cho tiết sau. |
 
-## 3. Kiểm nhanh trước khi nộp (tự đối chiếu mẫu)
+## 3. Kiểm nhanh trước khi nộp
 
-1. 16 thành phần đủ, đúng thứ tự ✔ (dạng bảng 1×1 / 3 cột sẽ giàn lại khi xuất DOCX từ nội dung này).
-2. Dải P: 0–2–5–8–16–20–24–27–32–36–38–40 → phủ kín, không hở, không trùng ✔.
-3. Không có phần trăm HS bịa ✔ ("một số HS có thể…").
-4. Nhãn CIS đầu dòng: [🔴]×2, [🟣]×2 (kể vị trí XĐMT), [🔵]×1; [🟢] ghi "Không phải tiết trọng tâm" ✔ (phần còn lại của tuần đặt ở Tiết 2).
-5. Không lấn nội dung Tiết 2 (luyện tập / biến đổi số gần đúng) ✔. Công thức ghi dưới dạng chữ/symbol; khi xuất DOCX sẽ dùng OMML khai font Cambria Math.
+1. 16 thành phần đủ, đúng thứ tự ✔; dải P: 0–2–5–8–15–22–28–32–36–38–40 phủ kín ✔.
+2. Không còn phần trăm bịa; "căn cứ điều chỉnh" dùng số liệu thật của lớp ✔.
+3. Nhãn CIS đầu dòng: [🟣]×2 vị trí, [🔴]×1, [🔵]×1, [🟢]×1 ✔.
+4. Bám đúng phạm vi tiết 1 theo PPCT; không lấn tiết 2 (Các số đặc trưng đo xu thế trung tâm) ✔.
+5. Công thức khi xuất DOCX dùng OMML (Cambria Math) ✔.
 
-## 4. Việc treo (không chặn Gate C, chặn đối chiếu)
+## 4. Khác biệt so với giáo án gốc (có chủ ý)
 
-- Body giáo án Ban Toán nguyên bài ở Thư viện (cần tab app phiên GV) — đối chiếu câu chữ giáo án in.
-- Trang SGK KNTT Toán 10 cụ thể (scan chưa OCR) — chỉ đối chiếu số liệu và bài tập BTVN.
+- **Bảng con → máy HS** (quyết định của thầy): giữ kỹ thuật chờ hai nhịp, GV vẫn thấy tỉ lệ lớp; không hiện đúng/sai từng em.
+- **Phiếu KWLI → thẻ thoát hiểm điện tử** và chọn mức mục tiêu trên máy (Coach chỉ ghi nhận, không xếp loại).
+- **Thêm**: mã phòng/nhóm, checkpoint không cộng điểm lần 2, fast-path "nhiệm vụ neo" cho HS xong sớm, đồng hồ P-zone.
+- **Giữ nguyên**: toàn bộ nội dung toán, số liệu, câu hỏi nhãn [PHÁT HIỆN]/[SO SÁNH]/[SUY LUẬN]/[KHÁI QUÁT]/[PHẢN BIỆN]/[SÁNG TẠO], bài tập SGK, tình huống Fansipan và Ariane 5.
