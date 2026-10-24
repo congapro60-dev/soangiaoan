@@ -5,6 +5,7 @@ import { LiveLessonStatus } from './LiveLessonStatus';
 import { LiveLessonRichText } from './LiveLessonRichText';
 import { lookupTvMedia, type TvMediaEntry } from '../../lib/liveLesson/v4/mediaManifest';
 import { TvStatsPanel } from './TvStatsPanel';
+import { formatPTimerLabel, getPTimerState } from '../../lib/liveLesson/pTimer';
 import './liveClassroom.css';
 
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
@@ -131,6 +132,32 @@ export const formatClock = (seconds: number): string => {
   return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, '0')}`;
 };
 
+/**
+ * Số giây đã trôi TÍNH TỪ ĐẦU TIẾT (không phải trong cue hiện tại) — đây là con số
+ * P-timer cần, vì giáo án in đánh dải P theo phút của cả tiết 40 phút.
+ * Mốc đầu tiết suy từ `atSeconds` của cue đang chạy trừ thời gian đã trôi trong cue.
+ */
+export const getElapsedInLesson = ({
+  cueTimeline,
+  cueId,
+  anchorAt,
+  now,
+  running,
+  accumulatedSeconds = 0,
+}: {
+  cueTimeline: TvCueTiming[];
+  cueId: string;
+  anchorAt: number;
+  now: number;
+  running: boolean;
+  accumulatedSeconds?: number;
+}): number => {
+  const cue = cueTimeline.find(item => item.id === cueId);
+  if (!cue) return Math.max(0, accumulatedSeconds);
+  const insideCue = Math.max(0, accumulatedSeconds) + (running ? Math.max(0, (now - anchorAt) / 1000) : 0);
+  return Math.max(0, Math.floor(cue.atSeconds + insideCue));
+};
+
 const STATUS_LABEL: Record<LiveSessionStatus, string> = {
   lobby: 'Chờ vào tiết',
   running: 'Đang học',
@@ -190,6 +217,16 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
     running: publicState.status === 'running',
   });
 
+  const elapsedInLesson = getElapsedInLesson({
+    cueTimeline,
+    cueId: publicState.cueId,
+    anchorAt: publicState.cueStartedAt ?? publicState.updatedAt,
+    accumulatedSeconds: publicState.cueElapsedSeconds ?? 0,
+    now,
+    running: publicState.status === 'running',
+  });
+  const pTimer = durationSeconds > 0 ? getPTimerState(elapsedInLesson, Math.round(durationSeconds / 60)) : null;
+
   const playbackState = getTvMediaPlaybackState({
     definitionKey,
     screenId: screen?.id ?? '',
@@ -235,8 +272,24 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
               </span>
             )}
             <span className={`tv-status-pill is-${publicState.status}`}>{STATUS_LABEL[publicState.status]}</span>
+            {pTimer && (
+              <span
+                className={`tv-p-band is-${pTimer.tone}`}
+                aria-label={`Nhịp P trong tiết: phút ${pTimer.minute}, ${pTimer.tone === 'normal' ? 'đúng nhịp' : pTimer.notice ?? ''}`}
+                title={pTimer.notice ?? 'Khớp với dải P trên giáo án in'}
+              >
+                {formatPTimerLabel(pTimer)}
+                {pTimer.notice && <small className="block font-semibold">{pTimer.notice}</small>}
+              </span>
+            )}
           </div>
         </header>
+
+        {pTimer && pTimer.tone !== 'normal' && (
+          <div className="tv-p-band-banner" role="status">
+            <LiveLessonStatus tone={pTimer.tone === 'overrun' ? 'error' : 'warning'}>{pTimer.notice}</LiveLessonStatus>
+          </div>
+        )}
 
         {pacing && (
           <div className="tv-progress-rail" role="presentation">

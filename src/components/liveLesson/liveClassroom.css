@@ -70,6 +70,27 @@
 .tv-status-pill.is-paused { border-color: #fbbf2480; color: #fcd34d; }
 .tv-status-pill.is-closed { border-color: #f8717180; color: #fca5a5; }
 
+/* P-timer: dải phút khớp giáo án in Ban Toán (P0→P40). */
+.tv-p-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(12px, 1.05vw, 20px);
+  font-weight: 800;
+  line-height: 1.15;
+  padding: clamp(4px, 0.45vh, 8px) clamp(8px, 0.8vw, 14px);
+  border-radius: 12px;
+  background: #ffffff0f;
+  color: var(--tv-muted);
+  white-space: nowrap;
+}
+.tv-p-band small { font-size: clamp(9px, 0.72vw, 13px); opacity: 0.9; }
+.tv-p-band.is-warn { background: #fbbf2419; color: #fcd34d; }
+.tv-p-band.is-urgent { background: #fb923c26; color: #fdba74; }
+.tv-p-band.is-overrun { background: #f8717126; color: #fca5a5; }
+.tv-p-band-banner { flex-shrink: 0; margin-top: 6px; }
+
 .tv-progress-rail { display: flex; gap: 4px; flex-shrink: 0; }
 .tv-progress-seg { flex: 1; height: 5px; border-radius: 999px; background: #ffffff1a; transition: background-color .25s; }
 .tv-progress-seg.is-done { background: #67e8f955; }

@@ -11,6 +11,7 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import type { StudentDefinitionProjection } from '../../pages/LiveLessonPage';
 import type { LiveResponseType, LivePublicState, SubmitLiveResponseInput } from '../../lib/liveLesson/types';
+import { ThinkWindowBanner, useThinkWindow } from './ThinkWindow';
 import {
   enqueueLiveResponse,
   flushLiveResponseQueue,
@@ -585,6 +586,14 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
+  // Chờ hai nhịp: câu thăm dò mở ngay, còn câu cần suy nghĩ thì khoá 10 giây
+  // (giáo án gốc dùng 10–15 giây). Đổi câu hỏi là đồng hồ chạy lại.
+  const thinkWindow = useThinkWindow({
+    roundKey: `${publicState.cueId}:${step?.id ?? ''}`,
+    thinkSeconds: 10,
+    skip: Boolean(step?.options?.length && step.options.length <= 2),
+    running: publicState.status === 'running',
+  });
   const goalStep = definition.responseSteps.find(item => item.id === 'cp-student-goal' || item.id === 'goals');
   const reflectionMoment = publicState.cueId === 'P35' || publicState.cueId === 'P39' || Boolean(step?.responseTypes.includes('exit_ticket')) || studentScreen?.id === 'HS9';
   const insertIntoAnswer = (content: string) => {
@@ -677,13 +686,14 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
         <LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" />
         {localizedStep && languageView.language !== 'vi' && <LiveLessonRichText text={stepLabel} className="student-support-translation" />}
         <div className="mt-4 space-y-4">
-          <StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' ? insertIntoAnswer : undefined} />
-          <ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />
+          <ThinkWindowBanner window={thinkWindow} />
+          <StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' && thinkWindow.canAnswer ? insertIntoAnswer : undefined} />
+          <ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { if (!thinkWindow.canAnswer) return; setSelectedValue(value); void submit(type, value); }} />
           {textControl && <div className="space-y-2">
-            <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" />
+            <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" readOnly={!thinkWindow.canAnswer} aria-disabled={!thinkWindow.canAnswer} />
             <div className="student-draft-meta"><span role="status">{responseDraft.storageFailed ? 'Chưa lưu được nháp trên máy; hãy giữ tab mở và chép phần cần giữ vào vở.' : responseDraft.hasDraft ? responseDraft.hasUnsentChanges ? 'Nháp đã lưu trên máy · chưa gửi' : 'Nháp đã lưu trên máy' : 'Bài em viết được giữ khi thầy cô chuyển hoạt động.'}</span><span>{textValue.length}/{step.maxTextLength ?? 2000}</span></div>
             {insertionNotice && <p role="alert" className="student-insert-notice">{insertionNotice}</p>}
-            <button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button>
+            <button type="button" disabled={!thinkWindow.canAnswer} onClick={() => { if (!thinkWindow.canAnswer) return; void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue); }} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50">{thinkWindow.canAnswer ? 'Gửi câu trả lời' : `Chờ ${thinkWindow.remainingSeconds}s`}</button>
           </div>}
           {status && (status.tone !== 'success' || !responseDraft.hasUnsentChanges) && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}
           {hasSubmitted && <aside className="student-after-submit"><strong>Tiếp theo</strong><p>Giữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.</p><p className="mt-2">Nếu đổi ý, em có thể gửi lại câu trả lời ở bước này.</p></aside>}

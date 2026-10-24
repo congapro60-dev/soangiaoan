@@ -1,6 +1,6 @@
 # GATE D — BÀI HỌC TƯƠNG TÁC V8.8 · 3 bài Tuần 11 (10 / 11 / 12)
 
-> Ngày soạn: 2026-10-25 · Trạng thái: **ĐÃ SOẠN XONG CẢ 3 BÀI — CHỜ THẦY DUYỆT, chưa code Gate C**
+> Ngày soạn: 2026-10-25 · Trạng thái: **✅ THẦY DUYỆT 2026-10-25 — ĐÃ MỞ GATE C (hạ tầng trước, nội dung sau)**
 > Đầu vào: Gate P đã khoá (`tasks/gate-p-3-bai-tuan11.md`), guide V8.8 (zip), mẫu giáo án chuẩn `MAU_GIAO_AN_BAN_TOAN.md`, SGK KNTT (SGK 12 nguyên văn WORD trang 80; SGK 10/11 scan).
 > Quy tắc: sau khi thầy duyệt Gate D mới mở Gate C (code Presenter/Student/Coach trên `/adaptive-live`).
 
