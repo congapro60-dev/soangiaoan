@@ -117,7 +117,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     if (isStudent) {
       const totalSnap = await transaction.get(studentTotalRef);
       const totalData = totalSnap.exists ? totalSnap.data() ?? {} : {};
-      const total = totalData.day === day ? Number(total.count) || 0 : 0;
+      const total = totalData.day === day ? Number(totalData.count) || 0 : 0;
       if (total >= studentTotalCap) totalLeft = false;
     }
     if (count >= limit) return `Hôm nay tài khoản này đã dùng hết ${limit} lượt AI. Thử lại vào ngày mai.`;

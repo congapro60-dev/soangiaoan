@@ -144,7 +144,33 @@ process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
     expect((await call({ prompt: 'x', model: 'khong-co' })).statusCode).toBe(403); // ẩn danh bị chặn trước cả kiểm đầu vào
   });
 
-it('đầu vào sai thì 400, không gọi Vilao', async () => {
+  it('nhánh AI HỌC SINH: token ẩn danh + studentAi:true đi qua được, đếm cả doc tổng ngày (hồi quy lỗi total)', async () => {
+    h.claims = { uid: 'hs-1', firebase: { sign_in_provider: 'anonymous' } };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', model: 'gemini-3.8-flash', studentAi: true });
+    expect(res.statusCode).toBe(200);
+    expect(h.store[`aiRelayQuota/hs-1`]).toMatchObject({ day: today, count: 1, student: true });
+    expect(h.store[`aiRelayQuota/_studentDayTotal`]).toMatchObject({ day: today, count: 1 });
+  });
+
+  it('nhánh AI HỌC SINH dừng khi chạm trần tổng cả hệ thống trong ngày', async () => {
+    h.claims = { uid: 'hs-2', firebase: { sign_in_provider: 'anonymous' } };
+    vi.stubGlobal('fetch', vilaoOk('OK'));
+    process.env.STUDENT_AI_DAY_TOTAL = '1';
+    try {
+      h.store['aiRelayQuota/_studentDayTotal'] = { day: today, count: 1 };
+      const res = await call({ prompt: 'x', studentAi: true });
+      expect(res.statusCode).toBe(429);
+      expect(String(res.payload?.error)).toContain('trần chung');
+      expect(h.store['aiRelayQuota/hs-2']).toBeUndefined(); // không giữ chỗ khi đã hết trần
+    } finally {
+      delete process.env.STUDENT_AI_DAY_TOTAL;
+    }
+  });
+
+  it('đầu vào sai thì 400, không gọi Vilao', async () => {
     const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     expect((await call({ prompt: '', model: 'gemini-3.8-flash' })).statusCode).toBe(400);
