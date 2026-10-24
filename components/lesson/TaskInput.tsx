@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import MathText from "./MathText";
+import MathSymbolSheet from "./MathSymbolSheet";
+import { QUICK_CHIPS, expandChipInsert, type MathChip } from "../../lib/lesson/math-symbols";
 
 export interface TaskInputProps {
   task: {
@@ -308,6 +310,93 @@ export function TaskInput({
     triggerDraftSave(newVal);
   };
 
+  // V28 Phase B: bảng ký hiệu Toán cho textarea tự luận / cộng tác
+  const [symbolSheetOpen, setSymbolSheetOpen] = useState(false);
+  const openTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const contribTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const openSelRef = useRef({ start: 0, end: 0 });
+  const contribSelRef = useRef({ start: 0, end: 0 });
+  const lastMathTargetRef = useRef<"open" | "contrib">("open");
+
+  const trackMathSelection = (target: "open" | "contrib") => {
+    const el = target === "open" ? openTextRef.current : contribTextRef.current;
+    if (!el) return;
+    const sel = target === "open" ? openSelRef : contribSelRef;
+    sel.current = { start: el.selectionStart ?? el.value.length, end: el.selectionEnd ?? el.value.length };
+  };
+
+  const applyMathChip = (target: "open" | "contrib", chip: MathChip) => {
+    const el = target === "open" ? openTextRef.current : contribTextRef.current;
+    if (!el || disabled) return;
+    lastMathTargetRef.current = target;
+    const sel = target === "open" ? openSelRef.current : contribSelRef.current;
+    const start = Math.min(sel.start, el.value.length);
+    const end = Math.min(sel.end, el.value.length);
+    const { text, caretOffset } = expandChipInsert(chip.insert);
+    const nextText = el.value.slice(0, start) + text + el.value.slice(end);
+    const caret = Math.min(start + caretOffset, nextText.length);
+    if (target === "open") {
+      handleValueChange(drawingPhoto ? { text: nextText, drawingPhoto } : nextText);
+    } else {
+      thoughtEditorRef.current.dirty = true;
+      setContributionText(nextText);
+    }
+    requestAnimationFrame(() => {
+      const elNext = target === "open" ? openTextRef.current : contribTextRef.current;
+      if (!elNext) return;
+      elNext.focus();
+      try { elNext.setSelectionRange(caret, caret); } catch { /* ignore */ }
+      trackMathSelection(target);
+    });
+  };
+
+  const closeSymbolSheet = () => {
+    setSymbolSheetOpen(false);
+    requestAnimationFrame(() => {
+      const el = lastMathTargetRef.current === "contrib" ? contribTextRef.current : openTextRef.current;
+      el?.focus();
+    });
+  };
+
+  const renderMathToolbar = (target: "open" | "contrib") => (
+    <div className="task-math-toolbar" role="toolbar" aria-label="Chèn ký hiệu Toán">
+      {QUICK_CHIPS.map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          className="task-math-chip"
+          title={chip.name}
+          aria-label={`Chèn ${chip.name}`}
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => applyMathChip(target, chip)}
+        >
+          <MathText text={`$${chip.label}$`} />
+        </button>
+      ))}
+      <button
+        type="button"
+        className="task-math-sheet-btn"
+        disabled={disabled}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => {
+          lastMathTargetRef.current = target;
+          setSymbolSheetOpen(true);
+        }}
+      >
+        <span aria-hidden="true">√x</span> Bảng ký hiệu
+      </button>
+    </div>
+  );
+
+  const symbolSheet = (
+    <MathSymbolSheet
+      open={symbolSheetOpen}
+      onClose={closeSymbolSheet}
+      onInsert={(chip) => applyMathChip(lastMathTargetRef.current, chip)}
+    />
+  );
+
   // Group discussion state
   const [groupTab, setGroupTab] = useState<"contribute" | "submit">("contribute");
   const [contributionText, setContributionText] = useState(privateThought ? (initialDraft as {thought:string}).thought : "");
@@ -473,8 +562,11 @@ export function TaskInput({
               <label htmlFor={`${inputId}-contrib`} className="task-label">
                 Ý kiến đóng góp của em:
               </label>
+              {renderMathToolbar("contrib")}
               <textarea
                 id={`${inputId}-contrib`}
+                ref={(el) => { contribTextRef.current = el; }}
+                onSelect={() => trackMathSelection("contrib")}
                 rows={2}
                 disabled={disabled || isSendingContrib}
                 value={contributionText}
@@ -528,6 +620,7 @@ export function TaskInput({
           </div>
         )}
 
+        {symbolSheet}
         {renderHintsDrawer()}
       </div>
     );
@@ -552,6 +645,7 @@ export function TaskInput({
         </div>
       </form>
 
+      {symbolSheet}
       {renderHintsDrawer()}
     </div>
   );
@@ -1032,8 +1126,11 @@ export function TaskInput({
           </div>
         )}
 
+        {renderMathToolbar("open")}
         <textarea
           id={`task-open-${inputId}`}
+          ref={(el) => { openTextRef.current = el; }}
+          onSelect={() => trackMathSelection("open")}
           rows={6}
           disabled={disabled}
           value={typeof value === "string" ? value : (typeof value === "object" && value !== null && "text" in value ? String((value as {text?: unknown}).text ?? "") : String(value ?? ""))}

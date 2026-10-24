@@ -720,6 +720,195 @@
   background: #fff;
 }
 
+/* V28 Phase B: toolbar ký hiệu nhanh + bảng ký hiệu Toán */
+.task-math-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  margin: 0.35rem 0;
+}
+
+.task-math-chip {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--lesson-border);
+  border-radius: 8px;
+  background: var(--lesson-surface);
+  color: var(--lesson-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-math-chip:hover:not(:disabled) {
+  border-color: var(--lesson-primary);
+}
+
+.task-math-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-math-sheet-btn {
+  min-height: 36px;
+  padding: 0.15rem 0.6rem;
+  border-radius: 8px;
+  border: 1px dashed var(--lesson-border-strong);
+  background: transparent;
+  color: var(--lesson-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.task-math-sheet-btn:hover:not(:disabled) {
+  border-color: var(--lesson-primary);
+  color: var(--lesson-primary);
+}
+
+.math-symbol-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.math-symbol-sheet {
+  width: 100%;
+  max-width: 720px;
+  max-height: min(62vh, 500px);
+  background: var(--lesson-surface, #fff);
+  border: 1px solid var(--lesson-border);
+  border-radius: 16px 16px 0 0;
+  padding: 0.75rem 0.9rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 -8px 30px rgba(2, 6, 23, 0.25);
+}
+
+.math-symbol-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.math-symbol-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--lesson-text);
+}
+
+.math-symbol-head-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.math-symbol-done,
+.math-symbol-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--lesson-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--lesson-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.math-symbol-done {
+  border-style: solid;
+  background: var(--lesson-primary);
+  border-color: var(--lesson-primary);
+  color: #fff;
+}
+
+.math-symbol-tip {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--lesson-text-muted);
+}
+
+.math-symbol-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.math-symbol-tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--lesson-border);
+  background: transparent;
+  color: var(--lesson-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.math-symbol-tab-active {
+  background: var(--lesson-primary);
+  border-color: var(--lesson-primary);
+  color: #fff;
+}
+
+.math-symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 0.3rem;
+  overflow-y: auto;
+  padding: 0.25rem 0.1rem 0.4rem;
+}
+
+.math-symbol-chip {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--lesson-border);
+  border-radius: 8px;
+  background: var(--lesson-surface);
+  color: var(--lesson-text);
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  overflow: hidden;
+}
+
+.math-symbol-chip:hover {
+  border-color: var(--lesson-primary);
+}
+
+.math-symbol-chip .math-rendered {
+  font-size: 0.95rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .math-symbol-overlay {
+    align-items: center;
+  }
+
+  .math-symbol-sheet {
+    border-radius: 16px;
+  }
+}
+
 .task-hints-drawer {
   background: rgba(15, 23, 42, 0.7);
   border: 1px dashed var(--lesson-border-strong);
