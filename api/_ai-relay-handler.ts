@@ -29,6 +29,8 @@ import {
   relayDailyLimit,
   relayGeminiBackendKey,
   relayVendorKey,
+  studentDailyLimit,
+  studentDayTotalCap,
   type RelayApiVendor,
 } from './_ai-relay-core.js';
 
@@ -70,8 +72,10 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     void sendError(res, 401, 'Bạn cần đăng nhập để dùng AI bằng ví web.');
     return;
   }
-  // Học sinh vào bằng mã lớp là tài khoản ẩn danh: không được đốt khoá/ví của giáo viên bằng đường này.
-  if (user.anonymous) {
+  const isStudent = Boolean(user.anonymous && (readBody(req) as Record<string, unknown>)?.studentAi === true);
+  // Học sinh vào bằng mã lớp là tài khoản ẩn danh: không được đốt khoá/ví của giáo viên bằng đường này,
+  // trừ nhánh AI HỌC SINH riêng (G3) — hạn mức/ngày riêng, tiền là khoá Vilao server của thầy lớp/chủ dự án.
+  if (user.anonymous && !isStudent) {
     void sendError(res, 403, 'AI bằng ví web chỉ dùng được với tài khoản giáo viên đã đăng nhập.');
     return;
   }
@@ -82,8 +86,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     return;
   }
   const { provider, model, prompt, system, images, effort } = parsed.value;
-  // Đích máy chủ: provider 'gemini' chạy trên chợ Vilao; Claude/ChatGPT giữ khoá riêng hãng. Kiểm key BEFORE
-  // khi giữ chỗ/đếm hạn mức ngày — lỗi cấu hình không được đốt lượt.
+  // Hãng khác Gemini chỉ chạy khi chủ dự án đã đặt khoá của hãng đó trên máy chủ — kiểm TRƯỚC khi giữ chỗ/đếm hạn mức ngày.
   const apiVendor: RelayApiVendor = provider === 'gemini' ? 'vilao' : provider;
   const vendorKey = provider === 'gemini' ? relayGeminiBackendKey() : relayVendorKey(provider);
   if (!vendorKey) {
@@ -96,9 +99,12 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   const db = getAdminDb();
   const day = vnDate(new Date()).day;
   const quotaRef = db.collection(AI_RELAY_QUOTA_COL).doc(user.uid);
-  const limit = relayDailyLimit();
+  const limit = isStudent ? studentDailyLimit() : relayDailyLimit();
+  // Trần TỔNG lượt AI học sinh cả hệ thống mỗi ngày (chống lạm dụng khoá Vilao server) — một doc chung, editable bằng env.
+  const studentTotalRef = db.collection(AI_RELAY_QUOTA_COL).doc('_studentDayTotal');
+  const studentTotalCap = studentDayTotalCap();
 
-  // GIỮ CHỖ trước khi gọi AI, trong một giao dịch: đọc-rồi-ghi tách rời thì ba lượt song song cùng thấy "còn chỗ"
+  // GIỮ CHỐ trước khi gọi AI, trong một giao dịch: đọc-rồi-ghi tách rời thì ba lượt song song cùng thấy "còn chỗ"
   // và cùng đi qua (QA F2). Đồng thời giữ tối đa RELAY_MAX_INFLIGHT lượt chạy cùng lúc để chặn ví âm quá sâu.
   const now = Date.now();
   const reserved = await db.runTransaction(async transaction => {
@@ -106,9 +112,19 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     const data = snap.exists ? snap.data() ?? {} : {};
     const count = data.day === day ? Number(data.count) || 0 : 0;
     const inflight = Number(data.inflightAt) > now - RELAY_INFLIGHT_STALE_MS ? Number(data.inflight) || 0 : 0;
-    if (count >= limit) return `Hôm nay tài khoản này đã dùng hết ${limit} lượt AI qua ví web. Thử lại vào ngày mai.`;
+    // Riêng nhánh HS: thêm một doc đếm tổng cả hệ thống — hết trần tổng thì mọi HS chờ sang ngày mới.
+    let totalLeft = true;
+    if (isStudent) {
+      const totalSnap = await transaction.get(studentTotalRef);
+      const totalData = totalSnap.exists ? totalSnap.data() ?? {} : {};
+      const total = totalData.day === day ? Number(total.count) || 0 : 0;
+      if (total >= studentTotalCap) totalLeft = false;
+    }
+    if (count >= limit) return `Hôm nay tài khoản này đã dùng hết ${limit} lượt AI. Thử lại vào ngày mai.`;
+    if (!totalLeft) return 'Hệ thống đã hết lượt AI học sinh hôm nay (trần chung). Em thử lại vào ngày mai nhé.';
     if (inflight >= RELAY_MAX_INFLIGHT) return `Đang có ${RELAY_MAX_INFLIGHT} lượt AI chạy cùng lúc. Chờ một lượt xong rồi thử lại.`;
-    transaction.set(quotaRef, { day, count: count + 1, inflight: inflight + 1, inflightAt: now }, { merge: true });
+    transaction.set(quotaRef, { day, count: count + 1, inflight: inflight + 1, inflightAt: now, ...(isStudent ? { student: true } : {}) }, { merge: true });
+    if (isStudent) transaction.set(studentTotalRef, { day, count: FieldValue.increment(1) }, { merge: true });
     return null;
   });
   if (reserved) {
@@ -122,8 +138,8 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     { merge: true },
   );
 
-  // Người chịu khoá/tiền = chính giáo viên gọi; feature cố định để sao kê gọi tên "AI của web".
-  const context = createAiUsageContext(getBearerToken(req.headers.authorization), 'aiRelay', {});
+  // Người chịu khoá/tiền = chính giáo viên gọi (HS thì suy về thầy cô chủ lớp qua studentLinks); feature để sao kê phân biệt.
+  const context = createAiUsageContext(getBearerToken(req.headers.authorization), isStudent ? 'studentAi' : 'aiRelay', {});
   context.keyOwnerUid = user.uid;
 
   try {

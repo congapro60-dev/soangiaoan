@@ -618,17 +618,11 @@ export const AdaptiveStudentPortalPage = () => {
     setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[deweyRoute]}. Đang cá nhân hóa nội dung...` });
 
     // Call PA3 Engine — falls back to original lesson if it times out or fails.
-    // Dùng key AI của học sinh (nhập ở cổng); không có key → học bài gốc theo tuyến,
-    // không coi là lỗi.
+    // G3: không cần key AI trên máy — có key riêng (Gemini/Vilao) thì ưu tiên, không thì AI của thầy qua server.
     const callApiFn = async (prompt: string) =>
       callStudentGemini(prompt, { model: DEFAULT_PERSONALIZATION_MODEL });
 
-    const personalizedLesson = getStudentAiKey()
-      ? await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn)
-      : lesson;
-    if (!getStudentAiKey()) {
-      console.info('[portal] Chưa có API key AI của học sinh — dùng bài học gốc theo tuyến, bỏ qua cá nhân hóa.');
-    }
+    const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
 
     const deweyAssets = await loadDeweyAssets(personalizedLesson);
     const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets, learningPurpose);
@@ -864,10 +858,7 @@ export const AdaptiveStudentPortalPage = () => {
       return;
     }
 
-    if (!getStudentAiKey()) {
-      sendResult({ requestId: data.requestId, error: 'Em cần nhập API key AI ở bước đầu để dùng tính năng chấm ảnh. Tải lại trang và nhập key trước khi bắt đầu học.' });
-      return;
-    }
+    // G3: không yêu cầu key ở máy em nữa — có key riêng thì ưu tiên, không thì AI của thầy qua server.
 
     try {
       const prompt = [

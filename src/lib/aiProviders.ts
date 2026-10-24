@@ -29,9 +29,9 @@ const openaiEffortParams = (settings: Settings, model: string): { reasoning_effo
 };
 
 /** Vilao (OpenAI-compatible): POC xác thực 'none'/'low' cho model Gemini của chợ — mức khác resolveEffort đã lọc bỏ. */
-const vilaoEffortParams = (settings: Settings, model: string): { reasoning_effort?: string } => {
+const vilaoEffortParams = (settings: Settings, model: string): { reasoning_effort?: 'none' | 'low' } => {
   const effort = effortFor(settings, 'vilao', model);
-  return effort ? { reasoning_effort: effort } : {};
+  return effort ? { reasoning_effort: effort as 'none' | 'low' } : {};
 };
 
 // --- Token limits per provider (kịch trần model hỗ trợ) ---

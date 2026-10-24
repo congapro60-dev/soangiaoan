@@ -144,6 +144,9 @@ const IMAGE_RULES: ImagePriceRule[] = [
   { label: 'Imagen 4 Ultra', matches: m => m.startsWith('imagen-4') && m.includes('ultra'), periods: [{ usdPerImage: 0.06 }] },
   { label: 'Imagen 4 Fast', matches: m => m.startsWith('imagen-4') && m.includes('fast'), periods: [{ usdPerImage: 0.02 }] },
   { label: 'Imagen 4', matches: m => m.startsWith('imagen-4') || m.startsWith('imagen'), periods: [{ usdPerImage: 0.04 }] },
+  // Giá ảnh Vilao niêm yết (console 24/10/2026), quy theo tỉ giá ghi sổ 26.190₫/USD: 90₫ & 85₫/ảnh.
+  { label: 'Vilao gpt-image-2 (chợ API)', matches: m => m.startsWith('gpt-image-2'), periods: [{ usdPerImage: 90 / 26_190 }] },
+  { label: 'Vilao gemini-3.1-flash-image (chợ API)', matches: m => m.startsWith('gemini-3.1-flash-image'), periods: [{ usdPerImage: 85 / 26_190 }] },
 ];
 
 /** Nhãn model ảnh (Imagen…) để hiện trong sao kê; trả nguyên model nếu chưa có trong bảng. */
