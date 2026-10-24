@@ -120,19 +120,21 @@ export function StudentLearningEvidence({ view, onCommand, disabled = false }: {
     finally { setBusy(false); }
   }
   const evidence = view.learningEvidence;
+  const ownItems = evidence?.items || [];
+  const ownCommented = ownItems.filter(item => item.feedback).length;
   return <section className="lesson-card" aria-label="Kết quả học tập của em" style={{ ...box, padding: "1rem" }}>
     <h2>Kết quả học tập của em</h2>
     {evidence && <>
-      <p>Đã nộp: {evidence.submitted} · Đạt: {evidence.passed} · Chưa đạt: {evidence.notPassed} · Chờ giáo viên: {evidence.pending} · Cần rà soát: {evidence.needsReview || 0}</p>
+      <p>Đã nộp: {evidence.submitted} · Đã có nhận xét: {ownCommented} · Chờ nhận xét: {evidence.pending} · Cần rà soát: {evidence.needsReview || 0}</p>
       <QuestionPager identity="own-results" label="Kết quả" items={(evidence.items || []).map((item, index) => ({id:item.taskId,content:<article className="lesson-section-box">
-        <h3>Phiếu cuối giờ · Câu {index + 1}</h3><p>{item.status === "needs_review" ? "Cần giáo viên rà soát" : item.status === "ai_assessed" ? `AI chấm: ${item.criteriaMet ? "đạt tiêu chí" : "cần hoàn thiện"} · Thầy/cô có thể rà lại` : item.criteriaMet === null ? "Chờ AI xử lý" : item.criteriaMet ? "Đạt tiêu chí" : "Cần hoàn thiện"}</p>
+        <h3>Phiếu cuối giờ · Câu {index + 1}</h3><p>{item.status === "needs_review" ? "Cần giáo viên rà soát" : item.feedback ? "Thầy/cô đã nhận xét — em đọc bên dưới nhé" : item.status === "ai_assessed" ? "Thầy/cô đã nhận xét bài của em" : "Đã nộp — chờ nhận xét"}</p>
         {item.feedback && <MathText text={item.feedback}/>}
       </article>}))}/>
     </>}
     <form onSubmit={submit} style={box}>
-      <fieldset disabled={disabled || busy} style={box}><legend>Em tự đánh giá Must / Should / Could</legend>
+      <fieldset disabled={disabled || busy} style={box}><legend>Em tự đánh giá theo mục tiêu của bài</legend>
         <p>Đây là cảm nhận của em để giáo viên hỗ trợ; không tự xác nhận năng lực.</p>
-        {levels.map(level => <label key={level} style={box}>{level.toUpperCase()}
+        {levels.filter(level => (view.objectives || []).some(objective => objective.level?.toLowerCase() === level)).map(level => <label key={level} style={box}>{level.toUpperCase()}
           {view.objectives?.filter(objective => objective.level.toLowerCase() === level).map((objective, index) => <span key={index}><MathText text={objective.statement}/></span>)}
           <select style={{ minHeight: 44, width: "100%" }} value={value[level]} onChange={event => setDraft({ must: value.must, should: value.should, could: value.could, [level]: event.target.value as Rating })}>
             {Object.entries(ratings).map(([rating, label]) => <option key={rating} value={rating}>{label}</option>)}
