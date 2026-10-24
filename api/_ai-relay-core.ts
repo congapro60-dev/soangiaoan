@@ -65,6 +65,10 @@ export const RELAY_MAX_IMAGE_BASE64_CHARS = 3_600_000;
 
 /** Chặn vét khoá: số lượt relay tối đa mỗi giáo viên mỗi ngày (tiền vẫn do ví giới hạn). */
 export const relayDailyLimit = (env: NodeJS.ProcessEnv = process.env): number => Number(env.AI_RELAY_DAILY_LIMIT) || 400;
+/** Nhánh AI học sinh (G3): số lượt fallback server tối đa MỖI HỌC SINH mỗi ngày. */
+export const studentDailyLimit = (env: NodeJS.ProcessEnv = process.env): number => Number(env.STUDENT_AI_DAILY_LIMIT) || 20;
+/** Trần TỔNG lượt AI học sinh cả hệ thống mỗi ngày — bảo vệ khoá Vilao server khỏi lạm dụng. */
+export const studentDayTotalCap = (env: NodeJS.ProcessEnv = process.env): number => Number(env.STUDENT_AI_DAY_TOTAL) || 500;
 
 export interface RelayRequest {
   provider: RelayProvider;
