@@ -459,7 +459,7 @@ Natural-language assistant remains incomplete; transport tests are not live proo
   - criteria-tree: `{data: {…, assessment_forms: {data: {id, name:'IA1', ratio, focal_points: {data:[…]}}}, scoring_scale: {data: {id:21, name:'Thang4_26-27', score_configs: {data:[{id:84, point:"N", is_number:false},{id:85, point:4, is_number:true}…]}}}}}`.
   - students: `{class_id, subject_id, students: [{id, full_name, code, point(null khi chưa chấm)}]}`.
 
-### Đã làm (commit `ba44405`)
+### Đã làm (commit `7b2b412` — lần đầu `ba44405`, rebase lên `af1b84b`, đã push 24/10)
 - [x] `api/_ssm-proxy.ts`: map đúng `criteriaAssessment` (criteriaId + formId, giữ fallback cũ) + thêm op `studentBySubject`.
 - [x] `src/lib/ssm/ssmBridge.ts`: `readSsmCriteriaAssessment(criteriaId, formId)` + thêm `readSsmStudentsBySubject`.
 - [x] `src/lib/ssm/loSsmParser.ts`: scale từ root (fallback legacy assessment_forms) + thêm `mergeSsmLoad(meta, tree, students)`.
