@@ -80,9 +80,10 @@ const RULES: PriceRule[] = [
   {
     label: 'Vilao gemini-3.8-flash (chợ API)',
     matches: m => m.startsWith('vilao/'),
-    // Chợ Vilao, model chib (console 24/10/2026): 400₫/1M vào · 1.600₫/1M ra, tối thiểu 3₫/request (không mô hình hoá mức tối thiểu).
+    // Chợ Vilao, model chib (console 24/10/2026): 400₫/1M vào · 1.600₫/1M ra · cache đọc 160₫/1M (API trả
+    // `price_per_cached_read_token`), tối thiểu 3₫/request (không mô hình hoá mức tối thiểu).
     // Quy sang USD bằng chính tỉ giá ghi sổ (26.190₫/USD) nên khi quy ngược ra VNĐ đúng giá niêm yết.
-    periods: [{ price: { input: 400 / 26_190, output: 1_600 / 26_190, cached: 400 / 26_190 } }],
+    periods: [{ price: { input: 400 / 26_190, output: 1_600 / 26_190, cached: 160 / 26_190 } }],
   },
 ];
 
