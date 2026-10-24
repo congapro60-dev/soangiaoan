@@ -400,7 +400,7 @@ Không có harness test UI cho AssignmentPanel — verify bằng `npm run build`
 
 ```typescript
       showToast(
-        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${tonSau.uncertain.length > 0 ? `; cờ vàng ở ${tonSau.uncertain.length} bài cần thầy cô soát lại` : ''}.`,
+        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${tonSau.uncertain.length > 0 ? `; có cờ ở ${tonSau.uncertain.length} bài cần thầy cô soát lại` : ''}.`,
         loiCham + loiDuyet > 0 ? 'warning' : 'success',
       );
 ```
