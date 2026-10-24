@@ -1,16 +1,26 @@
-# TODO — 24/10/2026 (tối): G3 ảnh + AI học sinh sang Vilao — ĐANG NGHIỆM, chờ PIN HS
+# TODO — 25/10/2026: G1–G4 Vilao xong, đã vào `main`
 
-Nhánh `feature/vilao-all-flows`, worktree `wt-grader`. Commits: `dd44a86` (code G3) → `0b9d134` (HANDOFF) → `c90598c` (revert debug-text) → `24e3286` (fix crash HS) → `2fb3a75` (HANDOFF E2E).
+Nhánh `feature/vilao-all-flows`, worktree `wt-grader`. G1–G3 đã rebase qua 41 commit mới của `main` và hợp nhất: `2649eed..ca5598a`. G4 làm tiếp trên `main`.
 
 - [x] **Code G3**: `_ai-image-handler.ts` gọi Vilao `/v1/images/generations`; `aiPricing` rule `gpt-image-2` 90₫ + `gemini-3.1-flash-image` 85₫; relay nhánh HS ẩn danh; client `studentAiKey` 2 tầng; portal gỡ chặn nhập key.
 - [x] **Key Vilao**: gắn listing Reli `gpt-image-2` 90₫/req cho khoá `SmartPlan-preview` (trước đó 403 `Please subscribe to model`).
 - [x] **E2E ảnh thật** (preview `nqr8aofy3`→`etqogqg1l`): 200 sau 54s → PNG trên Firebase Storage → lần 2 `cached:true` 3s. Ảnh ngoài 200 `image/png`.
 - [x] **BUG crash nhánh HS** tìm qua E2E: `ReferenceError: Cannot access 'total' before initialization` (`_ai-relay-handler.ts`, gõ nhầm `total.count`). Đã sửa + 2 test hồi quy, đã chứng minh test bắt đúng bug.
-- [x] Nghiệm thu: 50/50 test pass; `tsc --noEmit` 0 lỗi.
-- [x] **E2E TRỌN đường AI học sinh** — PASS 24/10 khuya: PIN `2655` (thầy gửi), uid HS `1cbepxeC…`, `studentAi:true` → 200 "OK" 8,4s; thiếu cờ → 403. Lưu ý: PIN `0101` thầy đọc trên web là PIN **phụ huynh** ("PH tự đặt"), không dùng cho cổng học sinh — PIN học sinh là mã "Thầy cô cấp".
-- [ ] **Hợp nhất `feature/vilao-all-flows` → `main`** — thầy đã cho phép; E2E ảnh + HS đều xanh → ĐỦ ĐIỀU KIỆN MERGE.
-- [ ] **G4**: giữ Google làm backup cuối (KHÔNG xoá code). Chuỗi chấm đã đúng thứ tự Vilao → xKiro → Gemini; còn nợ: `callUtilityVision` (đọc mã đề) vẫn gọi thẳng Google, cần đưa qua chuỗi.
-- [ ] Dọn `vite.config.e2e.ts` (đồ nghề E2E, KHÔNG commit) trước khi merge.
+- [x] **E2E TRỌN đường AI học sinh** — PASS: PIN `2655`, uid HS `1cbepxeC…`, `studentAi:true` → 200 "OK" 8,4s; thiếu cờ → 403. Lưu ý: PIN `0101` thầy đọc trên web là PIN **phụ huynh** ("PH tự đặt"), không dùng cho cổng học sinh — PIN học sinh là mã "Thầy cô cấp".
+- [x] **Hợp nhất `feature/vilao-all-flows` → `main`** — `2649eed..ca5598a`, sau rebase 60/60 test + tsc 0 lỗi + build xanh.
+- [x] **G4** — `callUtilityVision` (đọc mã đề) đã vào chuỗi dự phòng, Google giữ làm lớp đỡ cuối (KHÔNG xoá code):
+  - `getGradingChain(variant)` nhận `'grading' | 'utility'`; lớp Google dùng `UTILITY_MODEL` cho đường việc phụ (trước đây ghim `GRADING_MODEL` cho mọi đường → đẩy utility qua chuỗi sẽ hoá ra chạy model đắt).
+  - Bỏ nhánh "lùi sang model chấm chính khi Google trả 400": lượt gọi đã ở lớp rẻ nhất, lùi nữa chỉ tốn thêm tiền cùng một khoá.
+  - Cờ `GRADING_GEMINI_FALLBACK` (off/0/false/no → tắt hẳn tầng Google, không cần sửa code). Mặc định BẬT = hành vi cũ.
+  - `callUtilityVision` nhận thêm `segment` (hiện chưa nơi gọi nào truyền).
+  - Test `grading-chain.test.ts` +6: Google chết vẫn đọc mã đề qua Vilao; Vilao chết → xKiro; cả hai chết → Google dùng `UTILITY_MODEL`; cờ off bỏ tầng Google; cờ off không gọi mạng; cờ lạ vẫn BẬT. Đã chứng minh **5/6 test đỏ** khi revert code.
+  - Sửa 1 test cũ ở `grading-cache.test.ts` (đang khoá hành vi "lùi sang model đắt" — hành vi G4 cố ý bỏ).
+- [x] Dọn đồ nghề `vite.config.e2e.ts` khỏi repo (giữ bản ngoài worktree).
+
+## Việc còn đợi thầy
+- [ ] **Bài "Kiểm tra giữa HKI" của Hà Chi**: HS không thấy điểm vì **GV chưa duyệt**, không phải lỗi. `api/classroom.ts:1064-1071` giữ điểm ở máy chủ tới khi `teacherApproved === true`. Thầy mở tab Nộp bài đã chấm → Duyệt là em thấy điểm.
+- [ ] Canary sau khi deploy G4: log Vercel phải thấy `[grading-chain/utility]` khi khâu đọc mã đề chạy.
+
 
 ---
 
