@@ -24,6 +24,18 @@ describe('buildClassLoScores', () => {
     expect(hs2?.scoreByCompetency[COMP]).toBeUndefined();
   });
 
+  it('thầy sửa điểm + duyệt lại → điểm mới thay điểm cũ khi gọi lại với dữ liệu mới', () => {
+    const truoc = buildClassLoScores(11, roster, submissions, assignments);
+    // Grade của thầy sửa tay có thêm `editedByTeacher` — gán biến trước để TS không chặn field thừa.
+    const sauSuaSubmissions = [
+      { studentId: 's1', assignmentId: 'a1', createdAt: '2026-09-01', grade: { score: 5.5, maxScore: 10, teacherApproved: true, editedByTeacher: true } },
+      { studentId: 's2', assignmentId: 'a1', createdAt: '2026-09-01', grade: { score: 6, maxScore: 10, teacherApproved: false } },
+    ];
+    const sauSua = buildClassLoScores(11, roster, sauSuaSubmissions, assignments);
+    expect(truoc.find((s) => s.maHS === 'HS001')?.scoreByCompetency[COMP]).toBe(8);
+    expect(sauSua.find((s) => s.maHS === 'HS001')?.scoreByCompetency[COMP]).toBe(5.5);
+  });
+
   it('bỏ học sinh không có Mã HS', () => {
     const scores = buildClassLoScores(11, roster, submissions, assignments);
     expect(scores.map((s) => s.maHS)).toEqual(['HS001', 'HS002']);
