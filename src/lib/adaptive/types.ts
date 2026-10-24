@@ -193,6 +193,27 @@ export interface PracticeSet {
   application: { short: PracticeShort[]; essay: PracticeEssay | null }; // 2 ngắn × 5đ + 1 tự luận × 10đ
 }
 
+/**
+ * Loại bài học — quyết định bề mặt chạy và bộ nút trên danh sách.
+ * - `self_study`  : Bài tự học phân hoá — 1 HS tự học qua cổng HS (`/adaptive-portal/:id`).
+ * - `interactive` : Bài học tương tác V8.8 — Presenter / Student / Coach trong tiết thật (`/adaptive-live/:sessionId`).
+ * - `differentiated` : Bài học phân hoá (đa trình độ trong lớp) — CHƯA có runtime, để dành mở rộng.
+ * Bài cũ chưa có trường này được suy ra `self_study` (xem `resolveLessonKind`).
+ */
+export type LessonKind = 'self_study' | 'interactive' | 'differentiated';
+
+export const LESSON_KIND_LABELS: Record<LessonKind, string> = {
+  self_study: 'Bài tự học phân hoá',
+  interactive: 'Bài học tương tác',
+  differentiated: 'Bài học phân hoá',
+};
+
+/** Bài tự học là mặc định lịch sử: mọi bài tạo trước khi có `lessonKind` đều thuộc nhóm này. */
+export const DEFAULT_LESSON_KIND: LessonKind = 'self_study';
+
+export const resolveLessonKind = (lesson: { lessonKind?: LessonKind | null }): LessonKind =>
+  lesson.lessonKind ?? DEFAULT_LESSON_KIND;
+
 export interface AdaptiveLesson {
   id: string;
   discoverSeedId?: string;
@@ -202,6 +223,8 @@ export interface AdaptiveLesson {
   curriculumRef?: CurriculumReference;
   durationMinutes: 40;
   status: LessonStatus;
+  /** Loại bài học — thiếu thì coi là `self_study` (bài tạo trước khi tách hai sản phẩm). */
+  lessonKind?: LessonKind;
   teacherId: string;
   createdAt: string;
   updatedAt: string;

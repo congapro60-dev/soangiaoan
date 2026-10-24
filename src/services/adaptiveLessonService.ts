@@ -1,7 +1,7 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { db, removeUndefinedFields } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
-import { AdaptiveLesson } from '../lib/adaptive/types';
+import { AdaptiveLesson, DEFAULT_LESSON_KIND } from '../lib/adaptive/types';
 
 const COL = 'adaptiveLessons';
 
@@ -25,6 +25,8 @@ function normalizeAdaptiveLessonDocument(raw: unknown, fallbackId?: string): Ada
   if (!lesson.id) lesson.id = data.lessonId || data.id || fallbackId || '';
   if (!lesson.teacherId && data.teacherId) lesson.teacherId = data.teacherId;
   if (!lesson.title && data.title) lesson.title = data.title;
+  // Bài tạo trước khi tách "tự học / tương tác" không có lessonKind → mặc định tự học.
+  if (!lesson.lessonKind) lesson.lessonKind = DEFAULT_LESSON_KIND;
 
   return lesson.id ? lesson : null;
 }

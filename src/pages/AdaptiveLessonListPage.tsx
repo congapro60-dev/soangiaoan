@@ -4,6 +4,7 @@ import { BarChart3, BookOpenCheck, Edit3, Eye, Trash2, WandSparkles } from 'luci
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
+import { LESSON_KIND_LABELS, resolveLessonKind, type LessonKind } from '../lib/adaptive/types';
 import type { TeacherClass } from '../types';
 import type { ClassDoc } from '../lib/classroom/types';
 import { DiscoverClassPanel } from '../components/adaptive/DiscoverClassPanel';
@@ -16,8 +17,12 @@ import { deleteLessonFromFirestore, listLessonsForTeacher, saveLessonToFirestore
 export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
 export const resolveAdaptivePortalUrl = (lessonId: string): string => `/adaptive-portal/${encodeURIComponent(lessonId)}`;
 export const getDeleteLessonConfirmation = (title: string): string => `Xóa bài học "${title.trim() || 'chưa đặt tên'}"? Thao tác này không thể hoàn tác.`;
-export const shouldShowLiveLessonAction = (lesson: Pick<AdaptiveLesson, 'status'> & Partial<Pick<AdaptiveLesson, 'id' | 'grade' | 'curriculumRef'>>): boolean => {
+export const shouldShowLiveLessonAction = (
+  lesson: Pick<AdaptiveLesson, 'status'> & Partial<Pick<AdaptiveLesson, 'id' | 'grade' | 'curriculumRef' | 'lessonKind'>>,
+): boolean => {
   if (lesson.status !== 'published') return false;
+  // Giai đoạn tách sản phẩm: chỉ bài khai báo `interactive` mới được chạy tiết trực tiếp.
+  if (lesson.lessonKind) return lesson.lessonKind === 'interactive';
   // Preserve the legacy helper contract for callers that only pass status.
   if (!lesson.id) return true;
   return lesson.id === 'tds-g10-30-pilot' || Boolean(getBanToanV4PackageForLesson(lesson));
@@ -58,6 +63,8 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
   const [sequentialPublishing, setSequentialPublishing] = useState(false);
   const [sequentialProgress, setSequentialProgress] = useState<{ current: number; total: number; currentKey: string } | null>(null);
   const [sequentialResult, setSequentialResult] = useState<PublicationReport[] | null>(null);
+  /** Tab lọc theo loại bài: hai sản phẩm không trộn nhau trên cùng một bảng. */
+  const [kindTab, setKindTab] = useState<LessonKind>('self_study');
 
   useEffect(() => onAuthStateChanged(auth, setUser), []);
 
@@ -234,15 +241,22 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
     else setInternalLiveLesson(lesson);
   };
 
+  const kindCounts = lessons.reduce<Record<LessonKind, number>>((acc, lesson) => {
+    acc[resolveLessonKind(lesson)] += 1;
+    return acc;
+  }, { self_study: 0, interactive: 0, differentiated: 0 });
+  const visibleLessons = lessons.filter(lesson => resolveLessonKind(lesson) === kindTab);
+  const kindTabs: LessonKind[] = ['self_study', 'interactive', 'differentiated'];
+
   return (
     <div className={embedded ? 'text-slate-900' : 'min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-8'}>
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 text-white shadow-xl shadow-blue-100">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Bài học phân hoá</p>
-              <h1 className="mt-2 text-3xl font-black">Quản lý bài học phân hoá</h1>
-              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Tạo bài học từ giáo án phân hoá đã soạn hoặc tải giáo án lên, sau đó mở giao diện học sinh để phát bài.</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Kho bài học</p>
+              <h1 className="mt-2 text-3xl font-black">Bài tự học phân hoá · Bài học tương tác</h1>
+              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Hai loại bài chạy ở hai nơi khác nhau: bài tự học cho học sinh học một mình; bài học tương tác để dạy trong tiết thật có giáo viên điều khiển.</p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               {onOpenLearnerStats && (
@@ -305,6 +319,30 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
         {user && !loading && <DiscoverClassPanel lessons={lessons} />}
 
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div role="tablist" aria-label="Loại bài học" className="mb-4 flex flex-wrap gap-2">
+            {kindTabs.map(kind => (
+              <button
+                key={kind}
+                type="button"
+                role="tab"
+                aria-selected={kindTab === kind}
+                onClick={() => setKindTab(kind)}
+                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-black transition ${
+                  kindTab === kind
+                    ? 'border-blue-200 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                {LESSON_KIND_LABELS[kind]}
+                <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-black text-slate-500">{kindCounts[kind]}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mb-4 text-xs font-semibold text-slate-500">
+            {kindTab === 'self_study' && 'Học sinh tự học một mình qua cổng HS. Không có giáo viên điều khiển, không có màn hình lớp.'}
+            {kindTab === 'interactive' && 'Dạy trong tiết thật: màn hình lớp (Presenter) · máy học sinh (Student) · coach cho GV. Cần gói bài tương tác V8.8.'}
+            {kindTab === 'differentiated' && 'Bài học phân hoá theo nhiều trình độ trong cùng một lớp — chưa có màn hình chạy, đang để dành mở rộng.'}
+          </p>
           {loading ? (
             <div className="py-12 text-center text-sm font-bold text-slate-500">Đang tải danh sách bài học...</div>
           ) : lessons.length === 0 ? (
@@ -320,6 +358,17 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                 </button>
               </div>
             </div>
+          ) : visibleLessons.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+              <h2 className="text-lg font-black text-slate-800">Chưa có {LESSON_KIND_LABELS[kindTab].toLowerCase()}</h2>
+              <p className="mt-2 text-sm font-semibold text-slate-500">
+                {kindTab === 'self_study'
+                  ? 'Tạo bài tự học bằng cách chọn giáo án nguồn rồi bấm "Tạo từ giáo án nguồn".'
+                  : kindTab === 'interactive'
+                    ? 'Bài học tương tác cần gói bài V8.8 (Gate P → Gate D → Gate C). Hiện chưa có bài nào thuộc loại này.'
+                    : 'Bài học phân hoá chưa được mở; loại này để dành khi có đặc tả.'}
+              </p>
+            </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-slate-100">
               <table className="w-full min-w-[760px] text-left text-sm">
@@ -333,10 +382,11 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {lessons.map(lesson => (
+                  {visibleLessons.map(lesson => (
                     <tr key={lesson.id} onClick={() => openLesson(lesson.id)} className="cursor-pointer bg-white align-top transition hover:bg-blue-50/40">
                       <td className="px-4 py-4">
                         <p className="font-black text-slate-800">{lesson.title || 'Bài học chưa đặt tên'}</p>
+                        <p className="mt-1 text-[11px] font-black uppercase tracking-wide text-slate-400">{LESSON_KIND_LABELS[resolveLessonKind(lesson)]}</p>
                         {(() => {
                           const binding = getBanToanV4PackageForLesson(lesson);
                           if (!binding) return <p className="mt-1 text-xs font-semibold text-slate-400">{lesson.id}</p>;

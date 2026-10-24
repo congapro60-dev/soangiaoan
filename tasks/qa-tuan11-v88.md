@@ -103,3 +103,20 @@
   - **QA runtime Chrome CDP** (file demo dựng từ code mới): leak 0 attr + 0 solution tĩnh; MC 0→10đ; TF 4 ý đúng ("✓ Đúng/✗ Sai" theo key) +20đ; SA +30đ; solution/next chỉ điền khi mở; checkpoint `{score:60, activeScreenId:'screen-engage', answered:3}` → reload → restore đúng điểm/màn, TF card ẩn, chấm lại **không cộng thêm**; 0 exception suốt phiên.
 - **Còn lại:** deploy cần thầy duyệt push main; 10 bài Tuần 11 trên production vẫn chạy bản cũ (có leak) cho tới khi deploy xong.
 
+## DEPLOY FIX P0 lên production — 21:20–21:35 (ĐÃ LÊN SÓNG)
+
+- **Push:** `95f40d4..08df138  HEAD -> main` (fast-forward, không force). Chuỗi commit: `7c93517` (fix P0) → `f7bda8b` (OMR của thầy) → `489ce1c` (merge origin/main, 3 conflict đã resolve: `_submission-actors.ts` lấy bản main có `as string`; `lessons.md`/`todo.md` ghép nhật trình 2 bên theo ngày) → `08df138` (HANDOFF.md — pre-push hook của repo chặn push khi HANDOFF chưa cập nhật; **không dùng `--no-verify`**).
+- **Vercel deploy xong:** chunk mới `assets/deweyAssets-OmIM0O1C.js` (83.062 bytes) — kiểm bằng fetch trực tiếp trên production:
+  - `var ANSWER_KEY = ...` nằm trong IIFE `'use strict'` ✅
+  - `dewey-ckpt-v1-...` có mặt ✅, guard `answered` + hàm restore ✅
+  - `data-correct-option` / `data-correct-index` / `data-statement-correct` / `data-tolerance` / `data-correct=` / `id="dewey-content"`: **tất cả false (không còn trong bundle)** ✅
+- **Smoke portal thật (bài #1 `adaptive-1792826324771`)** — đi đủ luồng HS: nhập form → nộp test đầu giờ 5 câu → vào bài:
+  `{ engineKey: true, ckpt: true, leakTags: [], staticSolutions: 0, cards: 9 }` → **PASS**.
+- **Test trên code đã merge:** `npx vitest run src/lib/dewey` → **8/8 pass** (5 test chống lộ đáp án + `node --check` + 2 test checkpoint của main).
+- **Runtime kiểm bổ sung trên production:**
+  - Làm bài bằng mã HS `QA-CKPT-01` → localStorage trong iframe sinh đúng `dewey-ckpt-v1-adaptive-1792826324771-QA-CKPT-01` (key tách theo mã HS đúng thiết kế).
+  - Mở lại portal + nhập đúng mã HS cũ → vào bài 5,7s, **6 card đã trả lời bị ẩn sẵn** (phiên mới = 0), màn mở đúng `screen-engage`, đủ 9 card ⇒ resume chạy thật end-to-end.
+  - Ghi chú khi test: mở nhiều tab portal song song → trang hiện "Chưa tìm thấy bài học"; đóng hết tab rồi mở lại thì bình thường (không liên quan fix).
+- **Giới hạn của lần smoke này:** tool browser tích hợp không giữ nổi 10 phiên nặng liên tiếp (timeout `tabs.open`/`evaluate` khi quét 9 bài còn lại), Chrome 9222 của thầy đã đóng nên không chạy lại được script CDP. Vì vậy bằng chứng phủ 10 bài nằm ở **bundle dùng chung** (mọi bài cùng một engine chunk) + 1 phiên runtime đầy đủ; nếu cần smoke từng bài thì mở lại Chrome 9222 rồi chạy `qa_portal.mjs`.
+- **Còn nợ:** kiểm runtime checkpoint trên production mới chỉ gián tiếp (unit test 2/2 + bundle có code); P1/P2 (quickCheck, practiceTasks, nhãn step) chưa sửa.
+
