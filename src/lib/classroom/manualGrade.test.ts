@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { QuestionResult, SubmissionDoc } from './types';
+import type { QuestionResult, SubmissionDoc, SubmissionGrade } from './types';
 import { buildManualGradeUpdate, mergeTeacherQuestionResults } from './manualGrade';
+import { needsTeacherCheck } from './submissionSelection';
 
 describe('manual photo marks', () => {
   const old = { questionNumber: 'Câu 1', status: 'incorrect' as const, score: 0, maxScore: 1, studentAnswer: 'x=2',
@@ -112,4 +113,25 @@ it('sửa điểm MỘT câu khi bài đã có lời giải chung: các câu kh�
   const edited = mergeTeacherQuestionResults(stored, seen.map(q => ({ ...q, workedSolution: q.questionNumber === 'Câu 2' ? 'GV viết lại' : q.workedSolution })), seen);
   expect(edited[1]).toMatchObject({ workedSolution: 'GV viết lại', teacherEdited: true });
   expect(edited[0].teacherEdited).toBeUndefined();
+});
+
+describe('sửa tay tắt cờ lệch sổ điểm', () => {
+  it('lượt AI có examCheck.mismatch — grade thầy sửa không còn examCheck, needsTeacherCheck false', () => {
+    const aiGrade = {
+      score: 8, maxScore: 10, feedback: 'AI chấm', strengths: [], weaknesses: [],
+      teacherApproved: true, approvalSource: 'auto_timeout', gradedAt: '2026-10-24T00:00:00.000Z',
+      examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 7, diff: 1, mismatch: true },
+    } as unknown as SubmissionGrade;
+    const update = buildManualGradeUpdate(submission(aiGrade), {
+      score: 7, maxScore: 10, feedback: 'Thầy chốt', weakTopics: [],
+    }, '2026-10-24T01:00:00.000Z');
+
+    expect(update['grade.examCheck']).toBeUndefined();
+    expect(update['grade.teacherApproved']).toBe(false);
+    expect(update['grade.editedByTeacher']).toBe(true);
+    // Cờ (nếu nhìn grade mới trọn vẹn) phải tắt:
+    expect(needsTeacherCheck({
+      score: 7, maxScore: 10, teacherApproved: false, editedByTeacher: true, gradedAt: '2026-10-24T01:00:00.000Z',
+    } as unknown as SubmissionGrade)).toBe(false);
+  });
 });

@@ -21,7 +21,7 @@ const CHIPS: Array<{ key: keyof Omit<ClassBacklog, 'assignmentCount'>; nhan: str
   { key: 'uncertain', nhan: 'máy đọc chưa chắc', mau: 'bg-violet-50 text-violet-800' },
 ];
 
-const tong = (b: ClassBacklog): number => b.toGrade.length + b.errored.length + b.toApprove.length + b.uncertain.length;
+const tong = (b: ClassBacklog): number => b.toGrade.length + b.errored.length + b.toApprove.length;
 
 /**
  * Bảng điều khiển: việc chấm/duyệt còn tồn của MỌI lớp giáo viên dạy — bấm lớp nào là mở thẳng khung

@@ -35,33 +35,33 @@ describe('tự chấm + tự duyệt sau 60 phút', () => {
     expect(plan.toGrade).toEqual([]);
   });
 
-  it('duyệt bài đã chấm quá 60 phút tính từ lúc chấm; bài máy đọc chưa chắc giữ lại', () => {
+  it('duyệt bài đã chấm quá 60 phút tính từ lúc chấm; cả bài đọc chưa chắc cũng được duyệt', () => {
     const plan = planAutoSweep([
       sub('duyet', 'A', ago(300), { status: 'graded', grade: grade(false, ago(70)) }),
       sub('moi-cham', 'B', ago(300), { status: 'graded', grade: grade(false, ago(10)) }),
       sub('chua-chac', 'C', ago(300), { status: 'graded', grade: grade(false, ago(70), 0.3) }),
       sub('da-duyet', 'D', ago(300), { status: 'graded', grade: grade(true, ago(70)) }),
     ], NOW);
-    expect(plan.toApprove.map(s => s.id)).toEqual(['duyet']);
+    expect(plan.toApprove.map(s => s.id).sort()).toEqual(['chua-chac', 'duyet']);
   });
 
   it('bài máy vừa tự chấm: duyệt luôn nếu đọc chắc; lớp tắt thì không chạy', () => {
     expect(canAutoApproveFreshGrade(sub('x', 'A', ago(70), { status: 'graded', grade: grade(false, ago(0)) }))).toBe(true);
-    expect(canAutoApproveFreshGrade(sub('y', 'A', ago(70), { status: 'graded', grade: grade(false, ago(0), 0.2) }))).toBe(false);
+    expect(canAutoApproveFreshGrade(sub('y', 'A', ago(70), { status: 'graded', grade: grade(false, ago(0), 0.2) }))).toBe(true);
     expect(autoGradeEnabledFor(undefined)).toBe(true);
     expect(autoGradeEnabledFor({ autoGradeAfterHour: false })).toBe(false);
     expect(AUTO_GRADE_AFTER_MS).toBe(3_600_000);
   });
 
-  it('bài kiểm tra định kì lệch điểm giáo viên (sổ điểm) không tự duyệt; khớp thì duyệt như thường', () => {
+  it('bài kiểm tra định kì lệch điểm giáo viên (sổ điểm) cũng được tự duyệt như bài khớp', () => {
     const lech = { ...grade(false, ago(70)), examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 8, diff: 1.5, mismatch: true } };
     const khop = { ...grade(false, ago(70)), examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 7, diff: 0, mismatch: false } };
     const plan = planAutoSweep([
       sub('lech', 'A', ago(300), { status: 'graded', grade: lech }),
       sub('khop', 'B', ago(300), { status: 'graded', grade: khop }),
     ], NOW);
-    expect(plan.toApprove.map(s => s.id)).toEqual(['khop']);
-    expect(canAutoApproveFreshGrade(sub('x', 'A', ago(70), { status: 'graded', grade: lech }))).toBe(false);
+    expect(plan.toApprove.map(s => s.id).sort()).toEqual(['khop', 'lech']);
+    expect(canAutoApproveFreshGrade(sub('x', 'A', ago(70), { status: 'graded', grade: lech }))).toBe(true);
   });
 });
 
