@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix: ghép LO↔năng lực bằng bảng cố định, bỏ AI — 25/10 (OpenCode)
+
+- **Bug thật** (QA đẩy điểm LO lớp 10Olinda↔SSM 9697): nút "Gợi ý điểm bằng AI" để **model tự ghép** LO của SSM với năng lực khung app. Với lớp 10, model được đưa đúng khung lớp 10 (`grade=10` verified qua fiber) và khung có đủ năng lực khớp từng chữ, **nhưng vẫn ghép 6 LO về cùng một năng lực "vectơ"** ⇒ 18/19 ô điểm dồn vào một cột, 5 cột kia trắng. Nhìn là thấy vô lý vì LO về mệnh đề/tập hợp/bất phương trình không thể ăn điểm từ vectơ.
+- **Cách sửa:** thêm `src/lib/ssm/loFixedMapping.ts` — bảng viết tay mã LO SSM → id năng lực, chia 3 khối, **không gọi AI**. `SsmPanel.suggestWithAi` dùng `fixedLoMapping(...)`; bỏ import `callAI` + `buildLoMappingPrompt` trong panel. LO không có trong bảng thì để `"N"` và ghi rõ mã trong ghi chú để giáo viên tự điền — thà trống còn hơn ghi sai điểm vào SSM của trường.
+- **Bảng ghép (chủ dự án duyệt từng dòng):** khối 10 là 1-1 (34344→`g10-tap-hop-va-menh-de`, 34345→`g10-phep-toan-tren-tap-hop`, 34346→`g10-bpt-bac-nhat-hai-an`, 34352→`g10-gia-tri-luong-giac-0-180`, 34353→`g10-he-thuc-luong-tam-giac`, 34354→`g10-vecto-va-phep-toan`); khối 11 gộp 34745+34746→`g11-ham-va-pt-luong-giac`, 34756→`g11-duong-thang-mat-phang-kg`, 34757→`g11-quan-he-song-song`; khối 12 gộp 34383–34387→`g12-khao-sat-ham-so`, các LO vectơ không gian (34390/34391/34392) **để trống** vì khung lớp 12 chưa có năng lực tương ứng.
+- **Test:** `src/lib/ssm/loFixedMapping.test.ts` 5 ca (đúng từng khối, gộp đúng chỗ đã chốt, chặn ghép chéo khối, LO lạ để trống) — xanh.
+- **Dữ liệu SSM đã xác minh:** 10Olinda = SSM **9697**, IA1 form **15320** (6 LO), F1 form **15319** (5 LO), khớp danh sách 19/19; 11Columbus = 9681, IA1 form **15328**; 12LoTrinh1 = SSM **"12 VN Toán 1" (10264)**, IA1 form **15336** (8 LO), khớp 8/8.
+- **Còn dở:** sau deploy phải gợi ý lại cho 10Olinda và 12 VN Toán 1 (IA1 + F1), trình diff cho chủ dự án chốt rồi mới đẩy. Bảng ghép khối 11 nên được rà lại trên điểm đã đẩy của 11Columbus vì lần đẩy đó dùng bảng AI cũ.
+
 ## Fix: bài kiểm tra định kì không gắn được nhãn năng lực → điểm LO thiếu 60% trọng số — 24/10 (OpenCode)
 
 - **Luật kỳ đã đổi theo chốt của chủ dự án** (`af64139`): điểm kỳ IA/SE = **40% tích luỹ** mọi bài thường từ đầu năm học (mốc `loYearStart` = 01/08) tới hết tháng của kỳ + **60% bài kiểm tra định kì** của chính kỳ. Trước đây chỉ lấy bài trong đúng tháng của kỳ ⇒ 78/142 lượt nộp đã duyệt (tháng 8–9) bị bỏ phí khỏi mọi kết quả.

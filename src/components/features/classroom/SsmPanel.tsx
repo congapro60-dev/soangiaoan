@@ -16,7 +16,6 @@ import {
 import type { AppData, Student } from '../../../types';
 
 type Settings = AppData['settings'];
-import { callAI } from '../../../lib/aiProviders';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
 import { asCompetencyGrade, competenciesByGrade } from '../../../lib/classroom/competency/framework';
 import { SSM_SCALE_4, type LoMark } from '../../../lib/ssm/loScore';
@@ -50,7 +49,7 @@ import {
 } from '../../../lib/ssm/loSsmWrite';
 import { pickCurrentSchoolYear } from '../../../lib/ssm/ssmModel';
 import { parseLoInfo, suggestGrid, type LoInfo, type LoMapping } from '../../../lib/ssm/loMapping';
-import { buildLoMappingPrompt, parseLoMappingResponse } from '../../../lib/ssm/loMappingPrompt';
+import { fixedLoMapping } from '../../../lib/ssm/loFixedMapping';
 import { buildClassLoScores, type LoPeriodKey } from '../../../lib/ssm/loClassScores';
 import { fetchSsmTemplateByLink } from '../../../lib/classroom/teacherService';
 import { LoPushPreviewModal } from './LoPushPreviewModal';
@@ -267,8 +266,9 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
     setError('');
     try {
       const comps = competenciesByGrade(grade);
-      const raw = await callAI(buildLoMappingPrompt(grade, los, comps), settings);
-      const map = parseLoMappingResponse(raw, los.map((l) => l.loCode), comps.map((c) => c.id));
+      // Ghép LO bằng BẢNG CỐ ĐỊNH đã duyệt — không gọi AI. AI tự ghép từng làm 6 LO lớp 10 dồn
+      // hết về một cột "vectơ" (QA 25/10); mã LO của SSM ổn định nên ánh xạ viết tay là đúng nhất.
+      const map: LoMapping = fixedLoMapping(los.map((lo) => lo.loCode), comps.map((c) => c.id));
       const scores = buildClassLoScores(
         grade,
         students.map((s) => ({ id: s.id, code: s.code })),
@@ -281,7 +281,12 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
       setMapping(map);
       setGrid(suggested);
       const mapped = Object.values(map).filter((ids) => ids.length > 0).length;
-      setNote(`AI ghép được ${mapped}/${los.length} LO. Ô chưa có căn cứ để "N" — cô soát và sửa trước khi đẩy lên SSM.`);
+      const unmappedCodes = los.filter((lo) => !map[lo.loCode]).map((lo) => lo.loCode);
+      setNote(
+        `Ghép được ${mapped}/${los.length} LO theo bảng cố định.` +
+          (unmappedCodes.length > 0 ? ` Chưa có trong bảng ghép: ${unmappedCodes.join(', ')} (để "N", cô tự điền).` : '') +
+          ' Ô chưa có căn cứ để "N" — cô soát và sửa trước khi đẩy lên SSM.',
+      );
     } catch (e) {
       setError(errorText(e));
     } finally {
