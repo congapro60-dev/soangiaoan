@@ -1931,9 +1931,6 @@ const handleSetAssignmentCompetencyTags = async (db: FirebaseFirestore.Firestore
     return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
 
-  if (assignment.periodicTest) {
-    return res.status(400).json({ error: 'Bài kiểm tra định kì không gắn nhãn năng lực — điểm chính thức nằm ở sổ điểm.' });
-  }
   const grade = await resolveAssignmentGrade(db, assignment);
   if (!grade) return res.status(400).json({ error: 'Lớp chưa rõ khối 10/11/12 nên chưa gắn được nhãn năng lực.' });
   const allowed = competencyIdSet(grade);
