@@ -132105,7 +132105,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $f(x)=x^3-27x+0$. Tính giá trị cực tiểu của hàm số.",
+            "prompt": "Cho $f(x)=x^3-27x$. Tính giá trị cực tiểu của hàm số.",
             "sourceRefs": [
               "r22-g12-u1-lo02"
             ],
@@ -132294,7 +132294,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $f(x)=x^3-3x+0$. Tính giá trị cực tiểu của hàm số.",
+            "prompt": "Cho $f(x)=x^3-3x$. Tính giá trị cực tiểu của hàm số.",
             "sourceRefs": [
               "r22-g12-u1-lo02"
             ],
@@ -133317,7 +133317,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e94074631af6b11551f90714a0e470be6d01e8261016df34ed470536cb828c89"
+        "contentHash": "3527b87a1da741d0e9ae00e282a70a7804b584a50c980f34d4acc2fcbff4e4d1"
       },
       "citations": [
         {
@@ -136102,7 +136102,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=2x$? Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=2x$? Đạo hàm của $x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -136324,7 +136324,7 @@
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=1x^2+1$"
+                  "label": "$F(x)=x^2+1$"
                 }
               ]
             },
@@ -136349,7 +136349,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "C",
@@ -136495,7 +136495,7 @@
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=1x^2+3$"
+                  "label": "$F(x)=x^2+3$"
                 }
               ]
             },
@@ -136523,7 +136523,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "C",
@@ -136551,7 +136551,7 @@
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=1x^2+2$"
+                  "label": "$F(x)=x^2+2$"
                 },
                 {
                   "id": "C",
@@ -136580,7 +136580,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "B",
@@ -136835,7 +136835,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-3-1-1",
@@ -136886,7 +136886,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-2",
@@ -136903,7 +136903,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-3",
@@ -136920,7 +136920,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-4",
@@ -136937,7 +136937,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-2-1",
@@ -136954,7 +136954,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-3-1",
@@ -137149,7 +137149,7 @@
             "group_score"
           ]
         },
-        "contentHash": "cfca3345fd7dcd1c5b3f24e18acb4a108bfb898bcf9900b784b8f3b169fd07d1"
+        "contentHash": "f44bc7b64566d627a68378d3fd5bc049124a3aa6e628d3e2c879434981b3c727"
       },
       "citations": [
         {
@@ -137531,7 +137531,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Nguyên hàm với điều kiện: Tìm họ nguyên hàm trước, thay điều kiện $F(x_0)=y_0$ để xác định $C$, rồi mới tính giá trị được hỏi. Ví dụ trên bảng: Biết $F'(x)=2x$ và $F(0)=4$. Tính $F(1)$. $F(x)=1x^2+C$. Điều kiện cho $C=4$; $F(1)=5$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Nguyên hàm với điều kiện: Tìm họ nguyên hàm trước, thay điều kiện $F(x_0)=y_0$ để xác định $C$, rồi mới tính giá trị được hỏi. Ví dụ trên bảng: Biết $F'(x)=2x$ và $F(0)=4$. Tính $F(1)$. $F(x)=x^2+C$. Điều kiện cho $C=4$; $F(1)=5$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -137741,7 +137741,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=4$; $F(1)=5$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=4$; $F(1)=5$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 5
@@ -137813,7 +137813,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=3$; $F(1)=4$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=3$; $F(1)=4$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 4
@@ -137852,7 +137852,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 2
@@ -137888,7 +137888,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=5$; $F(1)=6$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=5$; $F(1)=6$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 6
@@ -138096,7 +138096,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=4$; $F(1)=5$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=4$; $F(1)=5$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-3-1-1",
@@ -138130,7 +138130,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=3$; $F(1)=4$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=3$; $F(1)=4$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-1-1",
@@ -138147,7 +138147,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-1-2",
@@ -138164,7 +138164,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-1-3",
@@ -138181,7 +138181,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-1-4",
@@ -138198,7 +138198,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=1$; $F(1)=2$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-2-1",
@@ -138215,7 +138215,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $F(x)=1x^2+C$. Điều kiện cho $C=5$; $F(1)=6$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
+            "supportRationale": "Lời giải dành cho GV: $F(x)=x^2+C$. Điều kiện cho $C=5$; $F(1)=6$. Lỗi cần quan sát: Không thay điều kiện vào hàm dưới dấu nguyên hàm."
           },
           {
             "id": "hint-5-3-1",
@@ -138410,7 +138410,7 @@
             "group_score"
           ]
         },
-        "contentHash": "1959d66921576ca4d0fb0650f508bcf29c5f05ad9bbeab94f35e7d11d0637b8c"
+        "contentHash": "a26789b57899b1516ddb66358336948371a663cd19a1819e7c388261d89ad39c"
       },
       "citations": [
         {
@@ -142104,7 +142104,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Phương sai và độ lệch chuẩn ghép nhóm: Thay mỗi nhóm bằng điểm giữa $x_i$. Tính $\\bar x=\\sum n_ix_i/n$, $s^2=\\sum n_i(x_i-\\bar x)^2/n$, $s=\\sqrt{s^2}$. Công thức ở đây chia cho $n$. Ví dụ trên bảng: Các nhóm $[0;2),[2;4),[4;6)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng. Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Phương sai và độ lệch chuẩn ghép nhóm: Thay mỗi nhóm bằng điểm giữa $x_i$. Tính $\\bar x=\\sum n_ix_i/n$, $s^2=\\sum n_i(x_i-\\bar x)^2/n$, $s=\\sqrt{s^2}$. Công thức ở đây chia cho $n$. Ví dụ trên bảng: Các nhóm $[0;2),[2;4),[4;6)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng. Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -142261,7 +142261,7 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$s^2=2,\\ s=1\\sqrt2$"
+                  "label": "$s^2=2,\\ s=\\sqrt2$"
                 },
                 {
                   "id": "B",
@@ -142269,7 +142269,7 @@
                 },
                 {
                   "id": "C",
-                  "label": "$s^2=1\\sqrt2,\\ s=2$"
+                  "label": "$s^2=\\sqrt2,\\ s=2$"
                 }
               ]
             },
@@ -142294,7 +142294,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "A",
@@ -142318,7 +142318,7 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$s^2=2,\\ s=1\\sqrt2$"
+                  "label": "$s^2=2,\\ s=\\sqrt2$"
                 },
                 {
                   "id": "B",
@@ -142326,7 +142326,7 @@
                 },
                 {
                   "id": "C",
-                  "label": "$s^2=1\\sqrt2,\\ s=2$"
+                  "label": "$s^2=\\sqrt2,\\ s=2$"
                 }
               ]
             },
@@ -142351,7 +142351,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "A",
@@ -142549,7 +142549,7 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$s^2=2,\\ s=1\\sqrt2$"
+                  "label": "$s^2=2,\\ s=\\sqrt2$"
                 },
                 {
                   "id": "B",
@@ -142557,7 +142557,7 @@
                 },
                 {
                   "id": "C",
-                  "label": "$s^2=1\\sqrt2,\\ s=2$"
+                  "label": "$s^2=\\sqrt2,\\ s=2$"
                 }
               ]
             },
@@ -142582,7 +142582,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $31,33,35$, $\\bar x=33$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $31,33,35$, $\\bar x=33$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "A",
@@ -142609,7 +142609,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Các nhóm $[10;12),[12;14),[14;16)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.\nA. $s^2=2,\\ s=1\\sqrt2$\nB. $s^2=4,\\ s=2$\nC. $s^2=1\\sqrt2,\\ s=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Các nhóm $[10;12),[12;14),[14;16)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.\nA. $s^2=2,\\ s=\\sqrt2$\nB. $s^2=4,\\ s=2$\nC. $s^2=\\sqrt2,\\ s=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u2-lo14"
             ],
@@ -142623,7 +142623,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -142632,7 +142632,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$."
+                  "Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$."
                 ]
               }
             },
@@ -142820,7 +142820,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
           },
           {
             "id": "hint-2-1-1",
@@ -142837,7 +142837,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $1,3,5$, $\\bar x=3$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
           },
           {
             "id": "hint-3-1-1",
@@ -142956,7 +142956,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $31,33,35$, $\\bar x=33$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $31,33,35$, $\\bar x=33$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
           },
           {
             "id": "hint-5-3-1",
@@ -142973,7 +142973,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
+            "supportRationale": "Lời giải dành cho GV: Điểm giữa là $11,13,15$, $\\bar x=13$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=\\sqrt2$. Lỗi cần quan sát: Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai."
           },
           {
             "id": "hint-6-1-1",
@@ -143151,7 +143151,7 @@
             "group_score"
           ]
         },
-        "contentHash": "6dccc479cd3f0a542cb74aa12aeb28514b65a93bd6a76774aaa4a49a09d57922"
+        "contentHash": "d3862a18db1be6a60ce9edd1affbe5c9f426f7c3539c4b9b2cc441dd727d323e"
       },
       "citations": [
         {

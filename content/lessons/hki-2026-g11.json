@@ -109310,7 +109310,7 @@
        "hint-2-1-1",
        "hint-2-2-1"
       ],
-      "teacherLookFor": "Vẽ đường thẳng ngang cắt đường tròn ở hai điểm. Nếu $\\sin x=\\sin a$, nghiệm là $x=a+2k\\pi$ hoặc $x=\\pi-a+2k\\pi$. Kiểm điều kiện giá trị nằm trong $[-1;1]$. Ví dụ trên TV: Giải phương trình $\\sin(5x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$. Lời giải GV: $x=\\pi/30+2k\\pi/5$ hoặc $x=5\\pi/30+2k\\pi/5$.\nLập bảng số lần cộng: từ $u_1$ đến $u_n$ có $n-1$ bước. Chốt $u_n=u_1+(n-1)d$. Ví dụ trên TV: Cấp số cộng có $u_1=8$, $d=1$. Tính $u_{9}$. Lời giải GV: $u_{9}=8+(9-1)\\cdot1=16$.",
+      "teacherLookFor": "Vẽ đường thẳng ngang cắt đường tròn ở hai điểm. Nếu $\\sin x=\\sin a$, nghiệm là $x=a+2k\\pi$ hoặc $x=\\pi-a+2k\\pi$. Kiểm điều kiện giá trị nằm trong $[-1;1]$. Ví dụ trên TV: Giải phương trình $\\sin(5x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$. Lời giải GV: $x=\\pi/30+2k\\pi/5$ hoặc $x=5\\pi/30+2k\\pi/5$.\nLập bảng số lần cộng: từ $u_1$ đến $u_n$ có $n-1$ bước. Chốt $u_n=u_1+(n-1)d$. Ví dụ trên TV: Cấp số cộng có $u_1=8$, $d=1$. Tính $u_{9}$. Lời giải GV: $u_{9}=8+(9-1)\\cdot1=16$.",
       "transition": "GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo."
      },
      {
@@ -109467,7 +109467,7 @@
       ],
       "activityId": "act-1",
       "participation": "individual",
-      "prompt": "Giải phương trình $\\sin(4x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(4x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -109548,7 +109548,7 @@
       ],
       "activityId": "act-2",
       "participation": "whole_class",
-      "prompt": "Giải phương trình $\\sin(5x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(5x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -109629,7 +109629,7 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Giải phương trình $\\sin(6x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(6x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -109676,7 +109676,7 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Giải phương trình $\\sin(7x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(7x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -109797,7 +109797,7 @@
       ],
       "activityId": "act-4",
       "participation": "individual",
-      "prompt": "Giải phương trình $\\sin(9x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(9x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -109964,7 +109964,7 @@
       ],
       "activityId": "act-6",
       "participation": "individual",
-      "prompt": "Giải phương trình $\\sin(11x)=\\frac12$., ghi rõ $k\\in\\mathbb Z$.",
+      "prompt": "Giải phương trình $\\sin(11x)=\\frac12$, ghi rõ $k\\in\\mathbb Z$.",
       "sourceRefs": [
        "r22-g11-u1-lo02"
       ],
@@ -110618,7 +110618,7 @@
       "group_score"
      ]
     },
-    "contentHash": "6745e5dbb6bc164bfef6f18ee066f3a88e83fe65ddcbc0187c38a61386ca358c"
+    "contentHash": "116a5395c4503f4f6a5c38edccf299965a5e7ba485fe4636601c849e07b395ef"
    },
    "citations": [
     {
@@ -112449,7 +112449,7 @@
       ],
       "activityId": "act-2",
       "participation": "whole_class",
-      "prompt": "Hai nhóm $[4;8)$, $[8;12)$ có tần số lần lượt 3, 4. Tính số trung bình mẫu ghép nhóm.",
+      "prompt": "Hai nhóm $[4;8)$, $[8;12)$ có tần số lần lượt 3, 4. Tính số trung bình mẫu ghép nhóm. Nhập kết quả dưới dạng phân số tối giản, dùng dấu / (ví dụ: 12/5).",
       "sourceRefs": [
        "r22-g11-u2-lo01"
       ],
@@ -112523,7 +112523,7 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Hai nhóm $[5;9)$, $[9;13)$ có tần số lần lượt 4, 5. Tính số trung bình mẫu ghép nhóm.",
+      "prompt": "Hai nhóm $[5;9)$, $[9;13)$ có tần số lần lượt 4, 5. Tính số trung bình mẫu ghép nhóm. Nhập kết quả dưới dạng phân số tối giản, dùng dấu / (ví dụ: 12/5).",
       "sourceRefs": [
        "r22-g11-u2-lo01"
       ],
@@ -112563,7 +112563,7 @@
       ],
       "activityId": "act-3",
       "participation": "individual",
-      "prompt": "Hai nhóm $[6;10)$, $[10;14)$ có tần số lần lượt 5, 6. Tính số trung bình mẫu ghép nhóm.",
+      "prompt": "Hai nhóm $[6;10)$, $[10;14)$ có tần số lần lượt 5, 6. Tính số trung bình mẫu ghép nhóm. Nhập kết quả dưới dạng phân số tối giản, dùng dấu / (ví dụ: 12/5).",
       "sourceRefs": [
        "r22-g11-u2-lo01"
       ],
@@ -112677,7 +112677,7 @@
       ],
       "activityId": "act-4",
       "participation": "individual",
-      "prompt": "Hai nhóm $[8;12)$, $[12;16)$ có tần số lần lượt 3, 8. Tính số trung bình mẫu ghép nhóm.",
+      "prompt": "Hai nhóm $[8;12)$, $[12;16)$ có tần số lần lượt 3, 8. Tính số trung bình mẫu ghép nhóm. Nhập kết quả dưới dạng phân số tối giản, dùng dấu / (ví dụ: 12/5).",
       "sourceRefs": [
        "r22-g11-u2-lo01"
       ],
@@ -113484,7 +113484,7 @@
       "group_score"
      ]
     },
-    "contentHash": "c90e1c5a94d3b1e7a965dd3ca9f3edccd55720bfa9b68e929ca23a5c04e41e13"
+    "contentHash": "cb80f79f197b13cb119652cc1fdd8e28706f3d2fd943efed63361c3cac9e62bd"
    },
    "citations": [
     {
@@ -114189,7 +114189,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "(1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ."
-      }
+      },
+      "imageUrl": "/content/hinh/r106-g11-hai-mp-cat-theo-d.svg"
      },
      {
       "id": "task-3-1",
@@ -114237,7 +114238,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "imageUrl": "/content/hinh/r106-g11-tu-dien-sabc-trung-diem.svg"
      },
      {
       "id": "task-3-2",
@@ -114282,7 +114284,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
-      }
+      },
+      "imageUrl": "/content/hinh/r106-g11-hinh-hop-2-mat-doi-dien.svg"
      },
      {
       "id": "task-4-1",
@@ -114328,7 +114331,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$."
-      }
+      },
+      "imageUrl": "/content/hinh/r106-g11-hai-mp-cat-theo-d.svg"
      },
      {
       "id": "task-5-1",
@@ -114499,7 +114503,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải dành cho GV: (1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ."
+      "supportRationale": "Lời giải dành cho GV: (1) Có. Nếu $a$ có điểm chung với $(Q)$ thì điểm ấy thuộc $d$, trái với $a\\parallel d$; nhưng $(P)\\cap(Q)=d$. (2) $(P)\\parallel(Q)$. Điểm quyết định là có hai đường cắt nhau trong $(P)$, mỗi đường đều song song với $(Q)$; một đường hoặc hai đường song song với nhau chưa đủ.",
+      "diagramUrl": "/content/hinh/r106-g11-hai-mp-cat-theo-d.svg"
      },
      {
       "id": "hint-3-1-1",
@@ -114516,7 +114521,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
+      "supportRationale": "Lời giải dành cho GV: $MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$.",
+      "diagramUrl": "/content/hinh/r106-g11-tu-dien-sabc-trung-diem.svg"
      },
      {
       "id": "hint-3-1-2",
@@ -114584,7 +114590,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải dành cho GV: Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
+      "supportRationale": "Lời giải dành cho GV: Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng.",
+      "diagramUrl": "/content/hinh/r106-g11-hinh-hop-2-mat-doi-dien.svg"
      },
      {
       "id": "hint-4-1-1",
@@ -114601,7 +114608,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải dành cho GV: Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$."
+      "supportRationale": "Lời giải dành cho GV: Sai ở việc bỏ điều kiện hai đường cắt nhau. Chọn $(P)\\cap(Q)=d$; trong $(P)$ vẽ hai đường phân biệt $a,b$ cùng song song với $d$ và khác $d$. Mỗi đường đều không có điểm chung với $(Q)$, nhưng hai mặt phẳng vẫn cắt nhau theo $d$. Thay $a\\parallel b$ bằng $a,b$ cắt nhau, giữ $a,b\\subset(P)$ và $a\\parallel(Q),b\\parallel(Q)$, thì định lí cho $(P)\\parallel(Q)$.",
+      "diagramUrl": "/content/hinh/r106-g11-hai-mp-cat-theo-d.svg"
      },
      {
       "id": "hint-5-1-1",
@@ -114760,7 +114768,7 @@
       "group_score"
      ]
     },
-    "contentHash": "402fd35dae5ea4b92389fe02eefcce11aca54aa3dfac83f2a6205d46fb1b552f"
+    "contentHash": "9e0b7d9dec0efdf9f8ff6c01a105a6dd18c879e5c0fa251378ba0aa2a3896e09"
    },
    "citations": [
     {
@@ -115267,7 +115275,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn."
-      }
+      },
+      "imageUrl": "/content/hinh/r107-g11-thang-chu-a.svg"
      },
      {
       "id": "task-2-1",
@@ -115312,7 +115321,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành."
-      }
+      },
+      "imageUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "task-3-1",
@@ -115360,7 +115370,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
-      }
+      },
+      "imageUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "task-3-2",
@@ -115405,7 +115416,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
-      }
+      },
+      "imageUrl": "/content/hinh/r107-g11-chop-sabcd-thiet-dien.svg"
      },
      {
       "id": "task-4-1",
@@ -115540,7 +115552,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$."
-      }
+      },
+      "imageUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "task-7-1",
@@ -115603,7 +115616,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn."
+      "supportRationale": "Lời giải chuẩn: Tỉ số giữa các đoạn thẳng tương ứng trên chân thang bên phải cũng bằng tỉ số trên chân thang bên trái (đều bằng 1). Khi ba mặt phẳng song song cắt hai cát tuyến bất kì trong không gian, tỉ số độ dài giữa các đoạn thẳng tương ứng trên hai cát tuyến được bảo toàn.",
+      "diagramUrl": "/content/hinh/r107-g11-thang-chu-a.svg"
      },
      {
       "id": "hint-2-1-1",
@@ -115620,7 +115634,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành."
+      "supportRationale": "Lời giải chuẩn: Hệ thức tỉ lệ: $\\frac{AB}{A'B'} = \\frac{BC}{B'C'} = \\frac{AC}{A'C'}$ (hoặc $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$). Định lý vẫn đúng khi $d, d'$ chéo nhau vì qua $A$ ta có thể kẻ đường thẳng $d'' \\parallel d'$ cắt $(\\beta),(\\gamma)$ tại $B'',C''$. Khi đó $d$ và $d''$ cùng nằm trong một mặt phẳng nên áp dụng được định lý Thalès phẳng, đồng thời $A'B'=AB'', B'C'=B''C''$ do các tứ giác là hình bình hành.",
+      "diagramUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "hint-3-1-1",
@@ -115637,7 +115652,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} = \\frac{A'C'}{AC} = \\frac{25}{4+6} = 2,5$. Do đó $A'B' = 4 \\times 2,5 = 10\\text{ cm}$; $B'C' = 6 \\times 2,5 = 15\\text{ cm}$.",
+      "diagramUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "hint-3-1-2",
@@ -115705,7 +115721,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
+      "supportRationale": "Lời giải chuẩn: Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$.",
+      "diagramUrl": "/content/hinh/r107-g11-chop-sabcd-thiet-dien.svg"
      },
      {
       "id": "hint-4-1-1",
@@ -115756,7 +115773,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$."
+      "supportRationale": "Lời giải chuẩn: Theo định lý Thalès trong không gian cho ba mặt sàn song song: $\\frac{A'B'}{AB} = \\frac{B'C'}{BC} \\implies B'C' = \\frac{A'B' \\cdot BC}{AB} = \\frac{4,8 \\cdot 4,2}{3,6} = 5,6\\text{ m}$. Chiều dài đoạn dầm giữa sàn 2 và sàn 3 là $5,6\\text{ m}$.",
+      "diagramUrl": "/content/hinh/r107-g11-thales-3-mat-phang.svg"
      },
      {
       "id": "hint-7-1-1",
@@ -115881,7 +115899,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d72b852d44a0dd2130df2435f93d5f1715757320cd8589e41eda4daee3d77042"
+    "contentHash": "bab852e8ca06ae8222ec6456a6a229cb73dddcb40d7c4ff18513eece33b4c450"
    },
    "citations": [
     {

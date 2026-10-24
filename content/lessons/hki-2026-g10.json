@@ -195353,7 +195353,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $31$ cm, giá trị gần đúng là $30$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $30.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $31$ cm, giá trị gần đúng là $30$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $30{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195378,7 +195378,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|31-30|=1$ cm; $\\delta=1/30$, tương ứng $100/30\\%$. Số $30.47$ quy tròn đến hàng đơn vị là $30$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|31-30|=1$ cm; $\\delta=1/30$, tương ứng $100/30\\%$. Số $30{,}47$ quy tròn đến hàng đơn vị là $30$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195389,7 +195389,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|31-30|=1$ cm; $\\delta=1/30$, tương ứng $100/30\\%$. Số $30.47$ quy tròn đến hàng đơn vị là $30$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|31-30|=1$ cm; $\\delta=1/30$, tương ứng $100/30\\%$. Số $30{,}47$ quy tròn đến hàng đơn vị là $30$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195400,7 +195400,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Giá trị đúng là $99$ cm, giá trị gần đúng là $100$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $100.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $99$ cm, giá trị gần đúng là $100$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $100{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195425,7 +195425,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|99-100|=1$ cm; $\\delta=1/100$, tương ứng $100/100\\%$. Số $100.47$ quy tròn đến hàng đơn vị là $100$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|99-100|=1$ cm; $\\delta=1/100$, tương ứng $100/100\\%$. Số $100{,}47$ quy tròn đến hàng đơn vị là $100$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195436,7 +195436,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|99-100|=1$ cm; $\\delta=1/100$, tương ứng $100/100\\%$. Số $100.47$ quy tròn đến hàng đơn vị là $100$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|99-100|=1$ cm; $\\delta=1/100$, tương ứng $100/100\\%$. Số $100{,}47$ quy tròn đến hàng đơn vị là $100$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195447,7 +195447,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195472,7 +195472,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195483,7 +195483,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195494,7 +195494,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195519,7 +195519,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195530,7 +195530,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195541,7 +195541,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $71$ cm, giá trị gần đúng là $70$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $70.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $71$ cm, giá trị gần đúng là $70$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $70{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195566,7 +195566,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|71-70|=1$ cm; $\\delta=1/70$, tương ứng $100/70\\%$. Số $70.47$ quy tròn đến hàng đơn vị là $70$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|71-70|=1$ cm; $\\delta=1/70$, tương ứng $100/70\\%$. Số $70{,}47$ quy tròn đến hàng đơn vị là $70$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195577,7 +195577,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|71-70|=1$ cm; $\\delta=1/70$, tương ứng $100/70\\%$. Số $70.47$ quy tròn đến hàng đơn vị là $70$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|71-70|=1$ cm; $\\delta=1/70$, tương ứng $100/70\\%$. Số $70{,}47$ quy tròn đến hàng đơn vị là $70$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195588,7 +195588,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $139$ cm, giá trị gần đúng là $140$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $140.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $139$ cm, giá trị gần đúng là $140$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $140{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195613,7 +195613,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|139-140|=1$ cm; $\\delta=1/140$, tương ứng $100/140\\%$. Số $140.47$ quy tròn đến hàng đơn vị là $140$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|139-140|=1$ cm; $\\delta=1/140$, tương ứng $100/140\\%$. Số $140{,}47$ quy tròn đến hàng đơn vị là $140$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195624,7 +195624,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|139-140|=1$ cm; $\\delta=1/140$, tương ứng $100/140\\%$. Số $140.47$ quy tròn đến hàng đơn vị là $140$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|139-140|=1$ cm; $\\delta=1/140$, tương ứng $100/140\\%$. Số $140{,}47$ quy tròn đến hàng đơn vị là $140$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -195635,7 +195635,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $41$ cm, giá trị gần đúng là $40$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $40.47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $41$ cm, giá trị gần đúng là $40$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $40{,}47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -195660,7 +195660,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "$\\Delta=|41-40|=1$ cm; $\\delta=1/40$, tương ứng $100/40\\%$. Số $40.47$ quy tròn đến hàng đơn vị là $40$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "$\\Delta=|41-40|=1$ cm; $\\delta=1/40$, tương ứng $100/40\\%$. Số $40{,}47$ quy tròn đến hàng đơn vị là $40$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -195671,7 +195671,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "$\\Delta=|41-40|=1$ cm; $\\delta=1/40$, tương ứng $100/40\\%$. Số $40.47$ quy tròn đến hàng đơn vị là $40$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "$\\Delta=|41-40|=1$ cm; $\\delta=1/40$, tương ứng $100/40\\%$. Số $40{,}47$ quy tròn đến hàng đơn vị là $40$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -196312,7 +196312,7 @@
             "group_score"
           ]
         },
-        "contentHash": "57b832bbab3315a0627c480443740cf7a40b9c3f8352713c88c4657af2a3b0bc"
+        "contentHash": "1990286e5897afb86b62462848abd50c2c2e177bc22c7442aa91d23750bcafdc"
       },
       "citations": [
         {
@@ -198600,7 +198600,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc hình bình hành, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(42)^2+(56)^2}=70$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "task-2-1",
@@ -198647,7 +198648,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc ba điểm, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(12)^2+(16)^2}=20$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "task-3-1",
@@ -198694,7 +198696,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc hình bình hành, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(33)^2+(44)^2}=55$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "task-3-2",
@@ -198741,7 +198744,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc ba điểm, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(30)^2+(40)^2}=50$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "task-4-1",
@@ -198788,7 +198792,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc hình bình hành, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(54)^2+(72)^2}=90$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "task-5-1",
@@ -198835,7 +198840,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc ba điểm, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(24)^2+(32)^2}=40$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "task-6-1",
@@ -198882,7 +198888,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Theo quy tắc hình bình hành, tổng là $\\overrightarrow{AC}$. $AC=\\sqrt{(45)^2+(60)^2}=75$ cm; không phải tổng hai cạnh."
-            }
+            },
+            "imageUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "task-7-1",
@@ -198943,7 +198950,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "hint-1-1-2",
@@ -199011,7 +199019,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "hint-2-1-2",
@@ -199079,7 +199088,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "hint-3-1-2",
@@ -199147,7 +199157,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "hint-3-2-2",
@@ -199215,7 +199226,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "hint-4-1-2",
@@ -199283,7 +199295,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-quy-tac-ba-diem.svg"
           },
           {
             "id": "hint-5-1-2",
@@ -199351,7 +199364,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi."
+            "supportRationale": "Cộng hai độ dài dù hai vectơ không cùng hướng; ghép sai đầu-đuôi.",
+            "diagramUrl": "/content/hinh/r103-g10-tong-vecto-hinh-binh-hanh.svg"
           },
           {
             "id": "hint-6-1-2",
@@ -199522,7 +199536,7 @@
             "group_score"
           ]
         },
-        "contentHash": "59777b052b2622427af322a4f552786f16f0bcf9baba621693ba8438dff25767"
+        "contentHash": "276c64c6eea7bab8ed8d670f6dcfb0f2bbf312ae53d2fa41fbc658a5c0cda748"
       },
       "citations": [
         {
@@ -200205,7 +200219,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Ba vectơ đầu ghép thành $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ cho $\\overrightarrow0$. Với I là trung điểm, IA và IB đối nhau nên tổng cũng bằng $\\overrightarrow0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-2-1",
@@ -200252,7 +200267,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Ba vectơ đầu ghép thành $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ cho $\\overrightarrow0$. Với I là trung điểm, IA và IB đối nhau nên tổng cũng bằng $\\overrightarrow0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-3-1",
@@ -200299,7 +200315,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Ba vectơ đầu ghép thành $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ cho $\\overrightarrow0$. Với I là trung điểm, IA và IB đối nhau nên tổng cũng bằng $\\overrightarrow0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-3-2",
@@ -200346,7 +200363,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Ba vectơ đầu ghép thành $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ cho $\\overrightarrow0$. Với I là trung điểm, IA và IB đối nhau nên tổng cũng bằng $\\overrightarrow0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-4-1",
@@ -200393,7 +200411,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Tổng ba vectơ đầu là $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ tạo đường khép kín nên tổng là $\\vec0$. I là trung điểm nên $\\overrightarrow{IA}$ và $\\overrightarrow{IB}$ đối nhau, tổng cũng là $\\vec0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-5-1",
@@ -200440,7 +200459,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Tổng ba vectơ đầu là $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ tạo đường khép kín nên tổng là $\\vec0$. I là trung điểm nên $\\overrightarrow{IA}$ và $\\overrightarrow{IB}$ đối nhau, tổng cũng là $\\vec0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-6-1",
@@ -200487,7 +200507,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Tổng ba vectơ đầu là $\\overrightarrow{AD}$. Thêm $\\overrightarrow{DA}$ tạo đường khép kín nên tổng là $\\vec0$. I là trung điểm nên $\\overrightarrow{IA}$ và $\\overrightarrow{IB}$ đối nhau, tổng cũng là $\\vec0$."
-            }
+            },
+            "imageUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "task-7-1",
@@ -200548,7 +200569,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-1-1-2",
@@ -200616,7 +200638,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-2-1-2",
@@ -200684,7 +200707,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-3-1-2",
@@ -200752,7 +200776,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-3-2-2",
@@ -200820,7 +200845,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-4-1-2",
@@ -200888,7 +200914,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-5-1-2",
@@ -200956,7 +200983,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm."
+            "supportRationale": "Cho tổng khép kín bằng tổng độ dài; bỏ chiều khi thay điểm.",
+            "diagramUrl": "/content/hinh/r104-g10-chuoi-vecto-trung-diem.svg"
           },
           {
             "id": "hint-6-1-2",
@@ -201127,7 +201155,7 @@
             "group_score"
           ]
         },
-        "contentHash": "f32eb4352681648f7ead4455e46f42e22f85ffe25d7ba79b86cf3e9a76a9d222"
+        "contentHash": "a8430b850e9afe7a99e2bf46f99c69e5f24a5679b45d591aca678fe2ccfb96ae"
       },
       "citations": [
         {
@@ -201810,7 +201838,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{CB}$. Độ dài $BC=\\sqrt{(24)^2+(32)^2}=40$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "task-2-1",
@@ -201857,7 +201886,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{BC}$. Độ dài $BC=\\sqrt{(45)^2+(60)^2}=75$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "task-3-1",
@@ -201904,7 +201934,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{CB}$. Độ dài $BC=\\sqrt{(15)^2+(20)^2}=25$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "task-3-2",
@@ -201951,7 +201982,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{BC}$. Độ dài $BC=\\sqrt{(12)^2+(16)^2}=20$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "task-4-1",
@@ -201998,7 +202030,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{CB}$. Độ dài $BC=\\sqrt{(36)^2+(48)^2}=60$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "task-5-1",
@@ -202045,7 +202078,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{BC}$. Độ dài $BC=\\sqrt{(6)^2+(8)^2}=10$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "task-6-1",
@@ -202092,7 +202126,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Hiệu là $\\overrightarrow{CB}$. Độ dài $BC=\\sqrt{(27)^2+(36)^2}=45$ cm. Hai thứ tự hiệu cho vectơ đối nhau, cùng độ dài."
-            }
+            },
+            "imageUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "task-7-1",
@@ -202153,7 +202188,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "hint-1-1-2",
@@ -202221,7 +202257,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "hint-2-1-2",
@@ -202289,7 +202326,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "hint-3-1-2",
@@ -202357,7 +202395,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "hint-3-2-2",
@@ -202425,7 +202464,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "hint-4-1-2",
@@ -202493,7 +202533,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ac-ab.svg"
           },
           {
             "id": "hint-5-1-2",
@@ -202561,7 +202602,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ."
+            "supportRationale": "Cho AB−AC=BC; đổi nhầm cả hai vectơ.",
+            "diagramUrl": "/content/hinh/r105-g10-hieu-vecto-ab-ac.svg"
           },
           {
             "id": "hint-6-1-2",
@@ -202732,7 +202774,7 @@
             "group_score"
           ]
         },
-        "contentHash": "6dcc287430d65e6b76a1b2daac03d3a55948db9c960a7054de81d8b640818833"
+        "contentHash": "4f13147c1fcfca0f982e7b773c66271fecebfeb32a34ed88286d9017dd39e94a"
       },
       "citations": [
         {
@@ -203472,7 +203514,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=30$; $S=\\sqrt{30\\cdot15\\cdot10\\cdot5}=150$. $r=S/p=5$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-1-2",
@@ -203519,7 +203562,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=8$ m, $AC=AB\\sin60^\\circ=8\\sqrt3$ m. Khoảng cách hỏi là $8\\sqrt3$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-2-1",
@@ -203559,7 +203603,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=72$; $S=\\sqrt{72\\cdot36\\cdot24\\cdot12}=864$. $r=S/p=12$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-2-2",
@@ -203606,7 +203651,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=15$ m, $AC=AB\\sin60^\\circ=15\\sqrt3$ m. Khoảng cách hỏi là $15$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-3-1",
@@ -203646,7 +203692,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=12$; $S=\\sqrt{12\\cdot6\\cdot4\\cdot2}=24$. $r=S/p=2$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-3-2",
@@ -203686,7 +203733,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=108$; $S=\\sqrt{108\\cdot54\\cdot36\\cdot18}=1944$. $r=S/p=18$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-3-3",
@@ -203733,7 +203781,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=5$ m, $AC=AB\\sin60^\\circ=5\\sqrt3$ m. Khoảng cách hỏi là $5\\sqrt3$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-3-4",
@@ -203780,7 +203829,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=4$ m, $AC=AB\\sin60^\\circ=4\\sqrt3$ m. Khoảng cách hỏi là $4$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-4-1",
@@ -203820,7 +203870,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=54$; $S=\\sqrt{54\\cdot27\\cdot18\\cdot9}=486$. $r=S/p=9$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-4-2",
@@ -203867,7 +203918,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=12$ m, $AC=AB\\sin60^\\circ=12\\sqrt3$ m. Khoảng cách hỏi là $12\\sqrt3$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-5-1",
@@ -203907,7 +203959,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=96$; $S=\\sqrt{96\\cdot48\\cdot32\\cdot16}=1536$. $r=S/p=16$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-5-2",
@@ -203954,7 +204007,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=2$ m, $AC=AB\\sin60^\\circ=2\\sqrt3$ m. Khoảng cách hỏi là $2$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-6-1",
@@ -203994,7 +204048,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$p=36$; $S=\\sqrt{36\\cdot18\\cdot12\\cdot6}=216$. $r=S/p=6$."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "task-6-2",
@@ -204041,7 +204096,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Góc C bằng $90^\\circ$. Theo định lí sin, $BC=AB\\sin30^\\circ=9$ m, $AC=AB\\sin60^\\circ=9\\sqrt3$ m. Khoảng cách hỏi là $9\\sqrt3$ m; không lấy tổng hai đoạn."
-            }
+            },
+            "imageUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "task-7-1",
@@ -204103,7 +204159,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-1-1-2",
@@ -204171,7 +204228,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-1-2-2",
@@ -204239,7 +204297,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-2-1-2",
@@ -204307,7 +204366,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-2-2-2",
@@ -204375,7 +204435,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-3-1-2",
@@ -204443,7 +204504,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-3-2-2",
@@ -204511,7 +204573,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-3-3-2",
@@ -204579,7 +204642,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-3-4-2",
@@ -204647,7 +204711,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-4-1-2",
@@ -204715,7 +204780,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-4-2-2",
@@ -204783,7 +204849,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-5-1-2",
@@ -204851,7 +204918,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-5-2-2",
@@ -204919,7 +204987,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron."
+            "supportRationale": "Dùng chu vi thay nửa chu vi; quên căn trong Heron.",
+            "diagramUrl": "/content/hinh/r106-g10-heron-noi-tiep.svg"
           },
           {
             "id": "hint-6-1-2",
@@ -204987,7 +205056,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong."
+            "supportRationale": "Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.",
+            "diagramUrl": "/content/hinh/r106-g10-dinh-li-sin-hai-tram.svg"
           },
           {
             "id": "hint-6-2-2",
@@ -205230,7 +205300,7 @@
             "group_score"
           ]
         },
-        "contentHash": "103eda47109b095bbd25fee8e10f7313a94c2947dd3ff29569cd7b5e43183400"
+        "contentHash": "cb69395b78a91d21cc19a9c1495c04b4749bf137addeff68836afce2f02e148d"
       },
       "citations": [
         {
@@ -207013,7 +207083,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(6;0),(4;4),(0;6)$. Hai đường xiên cho x=y rồi $3x=12$, nên giao là $(4;4)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-1-2",
@@ -207053,7 +207124,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Các đỉnh $(0;0),(15;0),(10;10),(0;15)$ cho F lần lượt $0;45;70;60$. Giá trị lớn nhất là $70$ triệu đồng."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-2-1",
@@ -207100,7 +207172,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(27;0),(18;18),(0;27)$. Hai đường xiên cho x=y rồi $3x=54$, nên giao là $(18;18)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-2-2",
@@ -207140,7 +207213,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Các đỉnh $(0;0),(36;0),(24;24),(0;36)$ cho F lần lượt $0;180;168;72$. Giá trị lớn nhất là $180$ triệu đồng."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-3-1",
@@ -207187,7 +207261,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(48;0),(32;32),(0;48)$. Hai đường xiên cho x=y rồi $3x=96$, nên giao là $(32;32)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-3-2",
@@ -207234,7 +207309,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(45;0),(30;30),(0;45)$. Hai đường xiên cho x=y rồi $3x=90$, nên giao là $(30;30)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-3-3",
@@ -207274,7 +207350,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Các đỉnh $(0;0),(6;0),(4;4),(0;6)$ cho F lần lượt $0;18;28;24$. Giá trị lớn nhất là $28$ triệu đồng."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-3-4",
@@ -207314,7 +207391,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Các đỉnh $(0;0),(54;0),(36;36),(0;54)$ cho F lần lượt $0;270;252;108$. Giá trị lớn nhất là $270$ triệu đồng."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-4-1",
@@ -207361,7 +207439,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(18;0),(12;12),(0;18)$. Hai đường xiên cho x=y rồi $3x=36$, nên giao là $(12;12)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-4-2",
@@ -207408,7 +207487,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$x,y\\ge0$ (số sản phẩm nguyên), $x+2y\\le54$ cho máy I, $2x+y\\le54$ cho máy II. $F=3x+4y$. Các đỉnh cho $F=0;81;126;108$; lãi lớn nhất $126$ tại $(x;y)=(18;18)$. Đỉnh tối ưu có tọa độ nguyên nên dùng được trong mô hình sản phẩm."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-5-1",
@@ -207455,7 +207535,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(39;0),(26;26),(0;39)$. Hai đường xiên cho x=y rồi $3x=78$, nên giao là $(26;26)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-5-2",
@@ -207502,7 +207583,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$x,y\\ge0$ (số sản phẩm nguyên), $x+2y\\le96$ cho máy I, $2x+y\\le96$ cho máy II. $F=5x+2y$. Các đỉnh cho $F=0;240;224;96$; lãi lớn nhất $240$ tại $(x;y)=(48;0)$. Đỉnh tối ưu có tọa độ nguyên nên dùng được trong mô hình sản phẩm."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-6-1",
@@ -207549,7 +207631,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "Miền tứ giác có đỉnh $(0;0),(9;0),(6;6),(0;9)$. Hai đường xiên cho x=y rồi $3x=18$, nên giao là $(6;6)$, thỏa tất cả điều kiện."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-6-2",
@@ -207596,7 +207679,8 @@
               },
               "numericReviewRequired": true,
               "workedSolution": "$x,y\\ge0$ (số sản phẩm nguyên), $x+2y\\le36$ cho máy I, $2x+y\\le36$ cho máy II. $F=3x+4y$. Các đỉnh cho $F=0;54;84;72$; lãi lớn nhất $84$ tại $(x;y)=(12;12)$. Đỉnh tối ưu có tọa độ nguyên nên dùng được trong mô hình sản phẩm."
-            }
+            },
+            "imageUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "task-7-1",
@@ -207658,7 +207742,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-1-1-2",
@@ -207726,7 +207811,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-1-2-2",
@@ -207794,7 +207880,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-2-1-2",
@@ -207862,7 +207949,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-2-2-2",
@@ -207930,7 +208018,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-3-1-2",
@@ -207998,7 +208087,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-3-2-2",
@@ -208066,7 +208156,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-3-3-2",
@@ -208134,7 +208225,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-3-4-2",
@@ -208202,7 +208294,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-4-1-2",
@@ -208270,7 +208363,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-4-2-2",
@@ -208338,7 +208432,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-5-1-2",
@@ -208406,7 +208501,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-5-2-2",
@@ -208474,7 +208570,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng."
+            "supportRationale": "Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-6-1-2",
@@ -208542,7 +208639,8 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh."
+            "supportRationale": "Tối đa hóa số sản phẩm thay lợi nhuận; bỏ một đỉnh.",
+            "diagramUrl": "/content/hinh/r107-g10-mien-nghiem-doi-giac.svg"
           },
           {
             "id": "hint-6-2-2",
@@ -208785,7 +208883,7 @@
             "group_score"
           ]
         },
-        "contentHash": "46b7f92485f02424bc0d44586ce7b3e19830ebad20c21017d1e8ca11c185a260"
+        "contentHash": "6750c891f0620e6375b928d9b3e0718d3dff103ce3dc3a5e36fe671a334616c5"
       },
       "citations": [
         {
