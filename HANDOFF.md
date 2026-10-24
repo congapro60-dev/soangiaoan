@@ -18,6 +18,16 @@ Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` 
 **Bẫy:** mã báo cáo đã công bố có cả ngày bắt đầu/kết thúc (`a__custom__2026-09-01__2026-09-15`) nên hai khoảng khác nhau là hai bản riêng, không ghi đè; công bố lại cùng khoảng thì ghi đè bản cũ. Nhận xét GV lưu theo `{kind, from, to}` nên mỗi khoảng custom có nhận xét riêng.
 
 **Nghiệm thu:** `npx vitest run src/lib/classroom/reportPeriod.test.ts api/__tests__/parent-portal.test.ts api/__tests__/parent-report.test.ts api/__tests__/function-count.test.ts`, `npx tsc --noEmit`, `npx tsc --noEmit -p tsconfig.api.json`.
+## GV tìm học sinh ở mọi lớp từ ô tìm của Header — 17/10 (Claude)
+
+**Đổi gì, vì sao:** GV phải chọn lớp rồi mới tìm được em. Nay ô tìm có sẵn ở Header ("Tìm tính năng…") còn liệt kê học sinh mọi lớp (tên/Mã HS, không phân biệt dấu, tối đa 8, kèm tên lớp); bấm kết quả thì mở tab Lớp học, chọn đúng lớp và mở trang của em (`setClassFocus` ở `App.tsx` → `ClassesTab`). Dùng `data.classes` có sẵn, không đọc Firestore thêm. Hàm khớp: `src/components/layout/headerStudentSearch.ts`.
+
+**Còn dở / cố ý bỏ:** đích hiện là trang học sinh CÓ SẴN, chưa phải giao diện HS thật. Chủ dự án muốn "xem như HS thật, chỉ đọc" (T9b): máy chủ `studentContext` nhận `preview` chỉ khi token là GV sở hữu lớp — đặc tả ở `docs/spec/discover-self-study-v2.md` (nhánh `codex/elearning-muse-task1`). Chưa chạy thử trên trình duyệt.
+
+**Bẫy:** lần đầu focus/gõ ô tìm, Header nạp thêm lớp truy cập từ máy chủ (`listAccessibleClasses` + `teacherClassFromServer` nằm ở `src/lib/classroom/teacherClassFromServer.ts`, module nhẹ, KHÔNG import `ClassesTab` nên không kéo XLSX/giao diện lớp học vào ô tìm; cache một Promise); chọn kết quả sẽ gộp các lớp đã nạp vào `data.classes` (chỉ thêm lớp CHƯA có cục bộ) để `ClassesTab` mở được em ngay cả khi lần nạp riêng của nó lỗi — nếu lớp đã có cục bộ nhưng thiếu em đó thì vẫn phụ thuộc lần nạp của `ClassesTab` nên kết quả của lớp đồng sở hữu hiện sau request đầu. Bộ nhớ đệm lớp của Header gắn với `user.uid` (đổi tài khoản không dùng lại danh sách cũ, kể cả yêu cầu đang bay; yêu cầu lỗi mạng/chunk thì bỏ khỏi bộ nhớ đệm để lần gõ sau thử lại). Đích mở em được áp đúng một lần (nonce); chỉ focus CÓ học sinh mới bị xoá ở `App` — focus mở danh sách bài chưa chấm của một lớp (`onOpenClassBacklog`) phải giữ nonce cho `AssignmentPanel`; `đ/Đ` được chuẩn hoá thành `d`.
+
+**Nghiệm thu:** `npx vitest run src/components/layout/headerStudentSearch.test.ts` rồi `npx tsc --noEmit`. Tay: gõ tên em ở lớp khác với lớp đang mở → bấm → vào đúng lớp, đúng em.
+## Nộp bài đã chấm: GV nộp hộ bài đã chấm tay, AI đọc điểm ghi tay làm điểm chính thức — 22/10 (Claude)
 ## Duyệt tự động bài cần soát + cờ cảnh báo — 24/10 (opencode)
 
 Chủ dự án duyệt 3 quyết: **(1)** "Duyệt tự động + cờ" — cron 60' và nút "Chấm & duyệt tất cả" duyệt LUÔN bài ước lượng chưa chắc (uncertain, kể cả lệch sổ ≥ 0,5), thay vì kẹt ở Chờ duyệt; **(2)** thầy cô sửa tay thì bài quay về "Chờ duyệt" qua cờ `editedByTeacher`; **(3)** chip cờ CHỈ ở bảng điểm lớp, còn nguyên SAU khi duyệt (duyệt chỉ patch `teacherApproved`/`approvalSource` — `api/grade-homework.ts:2151`).

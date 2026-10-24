@@ -6,6 +6,7 @@ import { User } from 'firebase/auth';
 import { AppData, ClassAssignment, Exam, Student, TeacherClass } from '../../types';
 import { useExams } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
+import { teacherClassFromServer } from '../../lib/classroom/teacherClassFromServer';
 import { countUnmigratedClasses, getClassDoc, listAccessibleClasses, migrateLegacyClasses, themHocSinhLenServer, type AccessibleClassDoc } from '../../lib/classroom/classroomService';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
 import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, setStudentCode as setStudentCodeOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
@@ -28,7 +29,8 @@ interface ClassesTabProps {
   user: User | null;
   showToast: (msg: string, icon?: any) => void;
   /** Yêu cầu mở một lớp ở tab Bài nộp và bung khung việc tồn (từ Bảng điều khiển). */
-  focus?: { classId: string; nonce: number } | null;
+  focus?: { classId: string; nonce: number; studentId?: string } | null;
+  onFocusApplied?: (nonce: number) => void;
 }
 
 const escapeHtml = (value: string) => value.replace(/[<>&"]/g, ch => (
@@ -70,51 +72,24 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
 
 const EMPTY_CLASS_ASSIGNMENTS: ClassAssignment[] = [];
 
-const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass): TeacherClass => {
-  const onlineAssignments = remote.assignments
-    .filter(assignment => assignment.type === 'exam' && Boolean(assignment.examId))
-    .map(assignment => ({
-      examId: assignment.examId as string,
-      examCode: '',
-      examTitle: assignment.title,
-      assignedAt: assignment.createdAt,
-    }));
-  const students: Student[] = remote.students.map(student => ({
-    id: student.id,
-    name: student.name,
-    code: student.code,
-    progress: Number.isFinite(student.progress) ? student.progress : 0,
-    status: student.status,
-  }));
-  return {
-    id: remote.id,
-    name: remote.name,
-    previousNames: remote.previousNames,
-    track: remote.track,
-    grade: remote.grade,
-    // Đếm theo roster THẬT vừa tải, không tin `studentCount` denormalized — trường đó từng lệch
-    // (xem migrateLegacyClasses) nên card báo sĩ số cũ dù danh sách đã có em mới.
-    studentCount: students.length,
-    activeAssignments: remote.assignments.filter(assignment => assignment.isOpen !== false).length,
-    progress: local?.progress ?? 0,
-    tone: local?.tone ?? 'primary',
-    students,
-    assignments: onlineAssignments,
-    sheetSync: remote.sheetSync ?? null,
-    examSheet: remote.examSheet ?? null,
-  };
-};
-
-export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTabProps) => {
+export const ClassesTab = ({ data, setData, user, showToast, focus, onFocusApplied }: ClassesTabProps) => {
   const classes = data.classes || [];
   const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('overview');
+  const lastAppliedFocusNonce = useRef<number | null>(null);
   useEffect(() => {
-    if (!focus) return;
+    if (!focus || focus.nonce === lastAppliedFocusNonce.current) return;
     setSelectedClassId(focus.classId);
-    setWorkspaceView('submissions');
-  }, [focus]);
+    const targetStudent = focus.studentId
+      ? classes.find(item => item.id === focus.classId)?.students.find(student => student.id === focus.studentId)
+      : null;
+    if (focus.studentId && !targetStudent) return;
+    setViewingStudent(targetStudent || null);
+    setWorkspaceView(targetStudent ? 'overview' : 'submissions');
+    lastAppliedFocusNonce.current = focus.nonce;
+    if (focus.studentId) onFocusApplied?.(focus.nonce);
+  }, [classes, focus, onFocusApplied]);
   const [managingClassId, setManagingClassId] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);
 
@@ -1345,4 +1320,3 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
     </div>
   );
 };
-
