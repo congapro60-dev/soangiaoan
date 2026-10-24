@@ -28,11 +28,14 @@ import {
   readSsmSubjects,
   readSsmEvaluationQuarters,
   readSsmClassSubjectAssessment,
+  readSsmCriteriaAssessment,
+  readSsmStudentsBySubject,
   writeSsmLoGrades,
   ssmRequest,
   type StoredSsmSession,
 } from '../../../lib/ssm/ssmBridge';
 import {
+  mergeSsmLoad,
   parseSsmCriteriaLoad,
   parseSsmQuarters,
   parseSsmSubjects,
@@ -119,12 +122,25 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
     return g;
   };
 
+  /**
+   * SSM V2 (10/2026): tải đầy đủ 1 bài đánh giá bằng 3 endpoints song song:
+   * metadata (class-subject-assessment) + cây LO/thang (criteria-has-assessment-form) + học sinh (student-by-subject).
+   */
+  const fetchSsmCriteriaPayload = async (target: SsmFormChoice, ssmClassId: number): Promise<unknown> => {
+    const [metaRaw, treeRaw, studentsRaw] = await Promise.all([
+      readSsmClassSubjectAssessment(target.formId, target.criteriaId, ssmClassId),
+      readSsmCriteriaAssessment(target.criteriaId, target.formId),
+      readSsmStudentsBySubject(target.formId, target.criteriaId, ssmClassId, target.subjectId),
+    ]);
+    return mergeSsmLoad(metaRaw, treeRaw, studentsRaw);
+  };
+
   const loadAssessmentForm = async (target: SsmFormChoice, ssmClassId: number) => {
     setActiveForm(target);
     setBusy(`Đang tải bảng điểm ${target.formName} (${target.quarterName}) từ SSM…`);
     setError('');
     try {
-      const raw = await readSsmClassSubjectAssessment(target.formId, target.criteriaId, ssmClassId);
+      const raw = await fetchSsmCriteriaPayload(target, ssmClassId);
       const parsed = parseSsmCriteriaLoad(raw);
       setSsmLoad(parsed);
       setLos(parsed.los);
@@ -315,8 +331,8 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
         classId,
       );
 
-      // Đọc lại để kiểm tra
-      const verifyRaw = await readSsmClassSubjectAssessment(activeForm.formId, activeForm.criteriaId, currentLink.id);
+      // Đọc lại để kiểm tra (SSM V2: cùng 3 endpoints như khi tải)
+      const verifyRaw = await fetchSsmCriteriaPayload(activeForm, currentLink.id);
       const parsedAfter = parseSsmCriteriaLoad(verifyRaw);
       const mismatches = verifyWritten(parsedAfter, fullBody);
       if (mismatches.length > 0) {

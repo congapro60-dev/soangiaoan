@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findScaleRow, parseSsmCriteriaLoad, parseSsmQuarters } from './loSsmParser';
+import { findScaleRow, mergeSsmLoad, parseSsmCriteriaLoad, parseSsmQuarters } from './loSsmParser';
 import type { SsmScoreConfig } from './loSsmParser';
 
 /**
@@ -172,5 +172,89 @@ describe('loSsmParser', () => {
     });
     expect(bare.los.map((l) => l.loCode)).toEqual(['LO_X_1']);
     expect(bare.scale).toEqual([{ id: 10, point: '4', isNumber: true, isCalculateScore: false }]);
+  });
+
+  // ── SSM V2 (bắt network ssm.edufit.vn 24/10/2026): 3 nguồn hợp nhất ──
+  const META_V2 = {
+    data: {
+      id: 9681,
+      name: '11Columbus',
+      subject_id: 12,
+      result_assessment_form_id: null,
+      can_edit: true,
+      is_approved: false,
+      quarter_has_branch_id: 35,
+    },
+  };
+  const TREE_V2 = {
+    data: {
+      id: 2219,
+      assessment_forms: {
+        data: {
+          id: 15328,
+          name: 'IA1',
+          ratio: 30,
+          focal_points: {
+            data: [
+              {
+                id: 8774,
+                code: 'FP_DIS_TO_8774',
+                power_standards: {
+                  data: [
+                    {
+                      id: 20478,
+                      code: 'PS_DIS_TO_20478',
+                      learning_outcomes: {
+                        data: [
+                          { id: 34745, code: 'LO_DIS_TO_34745', name: 'Giá trị LG', coefficient_type: 2 },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+      scoring_scale: {
+        data: {
+          id: 21,
+          name: 'Thang4_26-27',
+          score_configs: {
+            data: [
+              { id: 84, point: 'N', description: null, is_calculate_score: 0, is_number: false },
+              { id: 85, point: 4, description: 'Theo từng ban chuyên môn', is_calculate_score: 1, is_number: true },
+            ],
+          },
+        },
+      },
+    },
+  };
+  const STUDENTS_V2 = {
+    class_id: 9681,
+    subject_id: 12,
+    students: [
+      { id: 551, first_name: 'Đặng Lam', last_name: 'Anh', full_name: 'Đặng Lam Anh', code: 'GB0116011256', point: null },
+      { id: 10843, first_name: 'Trịnh Tường', last_name: 'Anh', full_name: 'Trịnh Tường Anh', code: '82185676', point: null },
+    ],
+  };
+
+  it('SSM V2: mergeSsmLoad ghép metadata + cây/thang ở root + students', () => {
+    const merged = mergeSsmLoad(META_V2, TREE_V2, STUDENTS_V2);
+    const load = parseSsmCriteriaLoad(merged);
+    expect(load.quarterHasBranchId).toBe(35);
+    expect(load.isApproved).toBe(false);
+    expect(load.resultAssessmentFormId).toBe(null);
+    expect(load.los.map((l) => l.loCode)).toEqual(['LO_DIS_TO_34745']);
+    expect(load.scale).toEqual([
+      { id: 84, point: 'N', isNumber: false, isCalculateScore: false },
+      { id: 85, point: '4', isNumber: true, isCalculateScore: true },
+    ]);
+    expect(load.students).toHaveLength(2);
+    expect(load.students[0].maHS).toBe('GB0116011256');
+    expect(load.students[0].name).toBe('Đặng Lam Anh');
+    expect(load.students[0].existingPointId.size).toBe(0);
+    expect(findScaleRow(load.scale, 'N')?.id).toBe(84);
   });
 });

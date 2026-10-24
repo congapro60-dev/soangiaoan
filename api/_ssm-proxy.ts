@@ -60,8 +60,24 @@ const buildTarget = (op: string, params: Record<string, unknown> | undefined): P
         : null;
     }
     case 'criteriaAssessment': {
+      // SSM V2 (10/2026): cây LO + thang nằm ở criteria-has-assessment-form/{criteriaId}?assessment_form_id={formId}.
+      // Giữ fallback path cũ {formId} cho luồng còn thiếu criteriaId.
+      const criteriaId = posInt(params?.criteriaId);
       const formId = posInt(params?.assessmentFormId);
+      if (criteriaId && formId) {
+        return { path: `v2/evaluation/criteria-has-assessment-form/${criteriaId}?assessment_form_id=${formId}` };
+      }
       return formId ? { path: `v2/evaluation/criteria-has-assessment-form/${formId}` } : null;
+    }
+    case 'studentBySubject': {
+      // SSM V2 (10/2026): học sinh + điểm hiện có của bài đánh giá (class-subject-assessment không còn trả students).
+      const formId = posInt(params?.assessmentFormId);
+      const criteriaId = posInt(params?.criteriaId);
+      const classId = posInt(params?.classId);
+      const subjectId = posInt(params?.subjectId);
+      return formId && criteriaId && classId && subjectId
+        ? { path: `v2/evaluation/student-by-subject?assessment_form_id=${formId}&criteria_id=${criteriaId}&class_id=${classId}&subject_id=${subjectId}` }
+        : null;
     }
     case 'classSubjectAssessment': {
       const formId = posInt(params?.assessmentFormId);

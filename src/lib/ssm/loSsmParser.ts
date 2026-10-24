@@ -115,9 +115,8 @@ const flattenLos = (focalPoints: unknown): RawLo[] =>
     });
   });
 
-const parseScale = (assessmentForm: unknown): SsmScoreConfig[] => {
-  const formObj = toObj(assessmentForm);
-  const sc = unwrapData(pick(formObj, 'scoring_scale'));
+const parseScale = (scoringScaleRaw: unknown): SsmScoreConfig[] => {
+  const sc = unwrapData(scoringScaleRaw);
   const scObj = Array.isArray(sc) ? toObj(sc[0]) : toObj(sc);
   const configs = toArr(pick(scObj, 'score_configs'));
   return configs
@@ -174,7 +173,28 @@ const studentName = (raw: unknown): string => {
 };
 
 /**
+ * Ghép 3 nguồn SSM V2 (10/2026) thành payload duy nhất cho `parseSsmCriteriaLoad`:
+ * - `meta`: class-subject-assessment (metadata: quarter_has_branch_id, is_approved, can_edit, result_assessment_form_id…)
+ * - `tree`: criteria-has-assessment-form (assessment_forms + scoring_scale)
+ * - `studentsRaw`: student-by-subject (students + point)
+ * Nguồn mới đè nguồn legacy khi trùng tên. Thuần, không mạng.
+ */
+export const mergeSsmLoad = (meta: unknown, tree: unknown, studentsRaw: unknown): unknown => {
+  const m = toObj(meta);
+  const t = toObj(tree);
+  const s = toObj(studentsRaw);
+  return {
+    ...m,
+    assessment_forms: t.assessment_forms ?? m.assessment_forms,
+    scoring_scale: t.scoring_scale ?? m.scoring_scale,
+    students: s.students ?? m.students,
+  };
+};
+
+/**
  * Parse toàn bộ response `GET /v2/evaluation/class-subject-assessment?assessment_form_id&criteria_id&class_id`.
+ * SSM V2 (10/2026): endpoint này chỉ còn metadata; cây LO + thang từ `criteria-has-assessment-form`,
+ * students từ `student-by-subject` — dùng `mergeSsmLoad` để ghép 3 nguồn trước khi parse.
  * Ném lỗi tiếng Việt khi JSON không đúng hình để UI báo "SSM trả dữ liệu khác dự đoán".
  */
 export const parseSsmCriteriaLoad = (payload: unknown): SsmCriteriaLoad => {
@@ -183,7 +203,9 @@ export const parseSsmCriteriaLoad = (payload: unknown): SsmCriteriaLoad => {
     throw new Error('SSM trả dữ liệu không đúng cấu trúc — cập nhật tiện ích rồi thử lại.');
   }
   const assessmentForm = toObj(pick(root, 'assessment_forms'));
-  const scale = parseScale(assessmentForm);
+  // Thang điểm: SSM V2 để ở root; shape cũ để trong assessment_forms — chịu cả hai.
+  const scaleRaw = pick(root, 'scoring_scale') ?? pick(assessmentForm, 'scoring_scale');
+  const scale = parseScale(scaleRaw);
   const students = toArr(pick(root, 'students')).flatMap((raw) => {
     if (!isObj(raw)) return [];
     const id = num(raw.id);

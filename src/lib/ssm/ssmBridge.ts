@@ -9,7 +9,7 @@ import { getLinkedGoogleEmail } from '../adminLink';
 import { ADMIN_EMAILS, isAdminEmail } from '../admin/adminConfig';
 
 export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm'
-  | 'evaluationQuarters' | 'subjectClass' | 'criteriaAssessment' | 'classSubjectAssessment' | 'writeLoGrades';
+  | 'evaluationQuarters' | 'subjectClass' | 'criteriaAssessment' | 'classSubjectAssessment' | 'studentBySubject' | 'writeLoGrades';
 
 // Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
 const PING_TIMEOUTS_MS = [2000, 8000] as const;
@@ -306,9 +306,13 @@ export const readSsmEvaluationQuarters = (classId: number, subjectId: number, sc
 export const readSsmSubjects = (classId: number, schoolYearId: number) =>
   ssmRequest('subjectClass', { classId, schoolYearId });
 
-/** Cây FP → PS → LO + thang điểm của MỘT bài đánh giá (vd F1, IA1). */
-export const readSsmCriteriaAssessment = (assessmentFormId: number) =>
-  ssmRequest('criteriaAssessment', { assessmentFormId });
+/** Cây FP → PS → LO + thang điểm của MỘT bài đánh giá (vd F1, IA1). SSM V2: gọi theo criteriaId + formId. */
+export const readSsmCriteriaAssessment = (criteriaId: number, assessmentFormId: number) =>
+  ssmRequest('criteriaAssessment', { criteriaId, assessmentFormId });
+
+/** SSM V2 (10/2026): học sinh + điểm hiện có của bài đánh giá (thay cho students từng nằm trong class-subject-assessment). */
+export const readSsmStudentsBySubject = (assessmentFormId: number, criteriaId: number, classId: number, subjectId: number) =>
+  ssmRequest('studentBySubject', { assessmentFormId, criteriaId, classId, subjectId });
 
 /** Trạng thái chấm của bài đánh giá cho lớp: quarter_has_branch_id, result_assessment_form_id, is_approved… */
 export const readSsmClassSubjectAssessment = (assessmentFormId: number, criteriaId: number, classId: number) =>
