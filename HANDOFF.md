@@ -1,9 +1,16 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-23
+**Cập nhật:** 2026-10-24
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Sửa luồng điểm LO web→SSM: SSM đổi API shape — 24/10 (OpenCode)
+
+- **Đã đổi và vì sao** (`7b2b412`, nhánh feat/v88-interactive-runtime): panel SSM luôn ra "0 LO, 0 học sinh" vì SSM đổi luồng API — bắt network thật trang chấm IA1 xác nhận: (1) `class-subject-assessment` chỉ còn metadata; (2) cây LO + thang nằm ở `v2/evaluation/criteria-has-assessment-form/{criteriaId}?assessment_form_id={formId}` (proxy cũ gọi `{formId}` → 422; thang giờ ở ROOT, không phải trong `assessment_forms`); (3) HS + điểm ở endpoint mới `v2/evaluation/student-by-subject`. Sửa 4 file: `api/_ssm-proxy.ts` (map đúng + op `studentBySubject`), `ssmBridge.ts` (`readSsmCriteriaAssessment(criteriaId, formId)` + `readSsmStudentsBySubject`), `loSsmParser.ts` (scale từ root, fallback legacy + `mergeSsmLoad`), `SsmPanel.tsx` (`fetchSsmCriteriaPayload` tải 3 endpoints song song, dùng cho cả load lẫn verify sau đẩy).
+- **Nghiệm thu**: vitest parser 9/9 PASS (thêm fixture shape thật 24/10 + test mergeSsmLoad); `tsc --noEmit` + `lint:api` + `npm run build` exit 0. Đã push `efda375` (rebase lên `af1b84b`).
+- **Còn dở / cố tình bỏ qua**: chưa QA preview (tải IA1 → kỳ vọng "N LO, 26 học sinh" → gợi ý AI → xem trước diff modal `LoPushPreviewModal` → xác nhận đẩy → đọc lại verify 100%); phải thêm domain preview MỚI vào Firebase Authorized domains rồi re-login + dán lại token SSM + ghép lớp 11Columbus↔9681. KHÔNG tự đẩy điểm — vòng đẩy phải qua preview diff + người dùng chốt.
+- **Sẽ cắn người sau**: endpoint GHI điểm `writeLoGrades` vẫn dùng shape cũ `v2/evaluation/{grading-student-by-assessment-form|update-result-grading-student}` — chưa verify với SSM mới, khả năng cao đổi theo; nếu lỗi khi đẩy, bắt network POST trên trang chấm SSM (chrome-devtools page 5) rồi sửa proxy. Thang điểm SSM: N/4/3.5/…/1 (config `Thang4_26-27` id 21), IA1 trọng số 30%.
 
 ## Khôi phục điểm GHKI sau sự cố 23/10 (agent OpenCode) — 23/10 (Claude)
 Agent ngoài chạy script PowerShell bằng token GV 04:39–10:38: 44 `gradeOne`, 52 `saveSubmissionGrade` (tiếng Việt sai bảng mã → U+FFFD 45 bài), 43 duyệt, tạo bài ghép Hải Phong `1da12eb5`; Columbus 24 bài bị ghi đè điểm máy; lớp 12 bài df9ad9c6 có 4 câu bịa. Agent còn `vercel --prod` tay lúc 09:52 từ `spai-main-port`@`deedc91` (web lùi 14 commit so với main) và deploy luật Firestore từ file chưa commit trong `spai-merge-main`. Công cụ: tab Quản trị → "Khôi phục điểm GHKI" (`adminGhkiRestore`, `api/_ghki-restore.ts`, lịch sử `incident_restore`, đánh dấu `ghkiRestoredAt`). Quy tắc chủ dự án chốt: Columbus trả nguyên trạng tại `GHKI_CUTOFF` 22/10 21:00Z kể cả CHƯA duyệt, Tuệ Minh 4,85; Olinda + lớp 12 giữ điểm/duyệt, chỉ thay trường chữ hỏng bằng bản sạch gần nhất trong lịch sử; df9ad9c6 bỏ "Câu 5–8 (Phần II)"; Hải Phong: `1da12eb5` (đủ 2 tờ, 6,9) là bài chính, lời phê lấy từ lịch sử 5988c78a; 5988c78a + f0bb7b6c để nguyên. Chủ dự án tự bấm (Claude không ghi production). Còn mở: commit luật Firestore đang chạy (spai-merge-main) vào main; đo độ khớp chuỗi chấm miễn phí với điểm GV (đã được phép, làm sau khôi phục); xoá ảnh HS khỏi lịch sử git (cần force push — hỏi chủ dự án); GV duyệt lại 3 quyết định 11T38 agent tự xác nhận.
