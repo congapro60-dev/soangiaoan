@@ -3255,11 +3255,22 @@
   border-radius: var(--lesson-radius-sm);
 }
 
+.task-rubric-box summary {
+  cursor: pointer;
+}
+
+.task-rubric-box summary::marker {
+  color: var(--lesson-accent);
+}
+
 .task-rubric-title {
   display: block;
-  margin-bottom: 0.35rem;
   font-size: 0.875rem;
   font-weight: 700;
+}
+
+.task-rubric-box[open] .task-rubric-title {
+  margin-bottom: 0.35rem;
 }
 
 .task-rubric-list {

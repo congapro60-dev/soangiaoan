@@ -1047,8 +1047,8 @@ export function TaskInput({
     return (
       <div className="task-input-field">
         {rubricCriteria.length > 0 && (
-          <div className="task-rubric-box">
-            <span className="task-rubric-title">📋 Tiêu chí đánh giá của giáo viên:</span>
+          <details className="task-rubric-box">
+            <summary className="task-rubric-title">📋 Tiêu chí đánh giá của giáo viên (bấm để xem)</summary>
             <ul className="task-rubric-list">
               {rubricCriteria.map((c, i) => (
                 <li key={i}>
@@ -1056,7 +1056,7 @@ export function TaskInput({
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         )}
 
         <label htmlFor={`task-open-${inputId}`} className="task-label">
