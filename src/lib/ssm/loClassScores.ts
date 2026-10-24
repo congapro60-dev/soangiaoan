@@ -107,14 +107,22 @@ const buildScopedClassLoScores = (
   const from = Date.parse(`${period.from}T00:00:00+07:00`);
   const to = Date.parse(`${period.to}T23:59:59+07:00`);
   const byAssignment = new Map(assignments.map((assignment) => [assignment.id, assignment]));
-  const evidence = new Map<string, Map<string, { regular: number[]; periodic: number[] }>>();
+  // Mỗi em chỉ lấy MỘT lượt nộp mới nhất cho mỗi bài giao: học sinh nộp lại (attempt mới) thì điểm
+  // của lượt cũ không được cộng dồn vào trung bình của năng lực.
+  const latestByKey = new Map<string, ClassSubmission>();
   for (const submission of submissions) {
     if (!submission.grade || !submission.grade.teacherApproved || !submission.assignmentId) continue;
-    const assignment = byAssignment.get(submission.assignmentId);
-    if (!assignment) continue;
+    if (!byAssignment.has(submission.assignmentId)) continue;
+    const key = `${submission.studentId}::${submission.assignmentId}`;
+    const current = latestByKey.get(key);
+    if (!current || Date.parse(submission.createdAt) > Date.parse(current.createdAt)) latestByKey.set(key, submission);
+  }
+  const evidence = new Map<string, Map<string, { regular: number[]; periodic: number[] }>>();
+  for (const submission of latestByKey.values()) {
+    const assignment = byAssignment.get(submission.assignmentId!)!;
     const date = Date.parse(`${(assignment.dueAt ?? assignment.createdAt ?? submission.createdAt).slice(0, 10)}T12:00:00+07:00`);
     if (!Number.isFinite(date) || date < from || date > to) continue;
-    const score = submission.grade.maxScore > 0 ? Math.max(0, Math.min(submission.grade.score, submission.grade.maxScore)) / submission.grade.maxScore * 10 : NaN;
+    const score = submission.grade!.maxScore > 0 ? Math.max(0, Math.min(submission.grade!.score, submission.grade!.maxScore)) / submission.grade!.maxScore * 10 : NaN;
     if (!Number.isFinite(score)) continue;
     const target = evidence.get(submission.studentId) ?? new Map<string, { regular: number[]; periodic: number[] }>();
     for (const tag of assignment.competencyTags ?? []) {

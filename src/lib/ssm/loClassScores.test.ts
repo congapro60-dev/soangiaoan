@@ -57,4 +57,20 @@ describe('buildClassLoScores', () => {
     ], [{ id: 'exam', createdAt: '2026-10-20', dueAt: '2026-10-25', periodicTest: {}, competencyTags: [{ competencyId: COMP }] }], { period: 'IA1', academicYear: 2026 });
     expect(scoped[0].scoreByCompetency[COMP]).toBe(9);
   });
+
+  it('nộp lại nhiều lượt thì chỉ tính lượt MỚI NHẤT, không cộng dồn', () => {
+    const scoped = buildClassLoScores(11, [roster[0]], [
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-10', grade: { score: 3, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-22', grade: { score: 9, maxScore: 10, teacherApproved: true } },
+    ], [{ id: 'exam', createdAt: '2026-10-20', periodicTest: {}, competencyTags: [{ competencyId: COMP }] }], { period: 'IA1', academicYear: 2026 });
+    expect(scoped[0].scoreByCompetency[COMP]).toBe(9);
+  });
+
+  it('lượt nộp lại CHƯA duyệt không chen được điểm cũ đã duyệt', () => {
+    const scoped = buildClassLoScores(11, [roster[0]], [
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-10', grade: { score: 8, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-22', grade: { score: 2, maxScore: 10, teacherApproved: false } },
+    ], [{ id: 'exam', createdAt: '2026-10-20', periodicTest: {}, competencyTags: [{ competencyId: COMP }] }], { period: 'IA1', academicYear: 2026 });
+    expect(scoped[0].scoreByCompetency[COMP]).toBe(8);
+  });
 });

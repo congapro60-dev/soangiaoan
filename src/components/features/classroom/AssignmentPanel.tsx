@@ -1966,7 +1966,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     </div>
                   </div>}
 
-                  {!submissionsOnly && competencyGrade && !a.periodicTest && (
+                  {!submissionsOnly && competencyGrade && (
                     <CompetencyTagEditor assignment={a} grade={competencyGrade} showToast={showToast} onSaved={taiBai} />
                   )}
 
