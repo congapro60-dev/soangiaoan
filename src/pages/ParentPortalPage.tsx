@@ -19,7 +19,7 @@ const ReportViewer = ({ input }: { input: ParentReportPrintInput }) => {
   );
 };
 
-const kindLabel = (kind: string): string => TEACHER_REPORT_KINDS.find(item => item.kind === kind)?.label ?? kind;
+const kindLabel = (kind: string): string => kind === 'custom' ? 'Thầy cô gửi theo khoảng ngày' : TEACHER_REPORT_KINDS.find(item => item.kind === kind)?.label ?? kind;
 const dayLabel = (iso: string): string => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN');
@@ -429,7 +429,10 @@ export const ParentPortalPage = () => {
               ))}
             </div>
             {open && open.id === TU_CHON_ID && (
-              <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100 text-pretty">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tự tính từ kết quả đã được thầy cô duyệt. Báo cáo chưa có <span className="whitespace-nowrap">nhận xét</span> hay <span className="whitespace-nowrap">chỉnh sửa của thầy cô</span>, nên có thể khác báo cáo thầy cô đã gửi cho cùng giai đoạn.</p>
+              <div className="mt-2 space-y-2">
+                <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100 text-pretty">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tự tính từ kết quả đã được thầy cô duyệt. Báo cáo chưa có <span className="whitespace-nowrap">nhận xét</span> hay <span className="whitespace-nowrap">chỉnh sửa của thầy cô</span>, nên có thể khác báo cáo thầy cô đã gửi cho cùng giai đoạn.</p>
+                <button type="button" onClick={() => { setTuChon(null); setOpenId(shown[0]?.id ?? reports[0]?.id ?? ''); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">Xoá báo cáo tự chọn này</button>
+              </div>
             )}
             {open && <div ref={vungXem} className="mt-3 scroll-mt-20"><ReportViewer input={open.input as ParentReportPrintInput} /></div>}
           </>

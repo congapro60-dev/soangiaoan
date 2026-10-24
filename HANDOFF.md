@@ -13,7 +13,7 @@ Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` 
 
 **Đổi gì, vì sao:** trước đây GV chỉ chọn tháng / giữa-cuối kì / cả năm; loại `custom` (từ ngày — đến ngày) chỉ phụ huynh dùng trên `/ph` và bị chủ ý loại khỏi `REPORT_KINDS`. Chủ dự án muốn GV cũng chọn khoảng ngày tuỳ ý. Thêm `TEACHER_REPORT_KINDS` (= `REPORT_KINDS` + `custom` "Tự chọn khoảng ngày") dùng ở 2 ô chọn của GV (`StudentReport`, `ClassParentReportExport`), nhãn công bố, và hai bộ kiểm loại ở máy chủ (`api/_parent-portal.ts`, `api/_parent-report.ts`). `REPORT_KINDS` giữ nguyên nên cổng `/ph` không đổi.
 
-**Còn dở / cố ý bỏ:** chưa chạy thử trên trình duyệt, chưa `npm run build`. Báo cáo tự chọn của phụ huynh (id `TU_CHON_ID`) giữ nguyên.
+**Còn dở / cố ý bỏ:** chưa chạy thử trên trình duyệt, chưa `npm run build`. Phía phụ huynh: báo cáo khoảng ngày do GV gửi hiện nhãn "Thầy cô gửi theo khoảng ngày" (không lẫn với "Bạn tự chọn") và KHÔNG xoá được; báo cáo phụ huynh tự chọn (`TU_CHON_ID`, chỉ nằm trên màn hình, không lưu máy chủ) có nút "Xoá báo cáo tự chọn này". Đã thử tay trên localhost 24/10: tạo → xoá → về báo cáo GV.
 
 **Bẫy:** mã báo cáo đã công bố có cả ngày bắt đầu/kết thúc (`a__custom__2026-09-01__2026-09-15`) nên hai khoảng khác nhau là hai bản riêng, không ghi đè; công bố lại cùng khoảng thì ghi đè bản cũ. Nhận xét GV lưu theo `{kind, from, to}` nên mỗi khoảng custom có nhận xét riêng.
 
