@@ -5052,7 +5052,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -5069,7 +5069,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -5086,7 +5086,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -5154,7 +5154,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -5171,7 +5171,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -5205,7 +5205,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -6112,7 +6112,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -6129,7 +6129,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -6146,7 +6146,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -6163,7 +6163,7 @@
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Theo dõi tọa độ biểu diễn hàm đang hỏi.",
+      "text": "Điểm biểu diễn $\\pi+x$ đối xứng với điểm của $x$ qua gốc tọa độ nên cả hai tọa độ đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -6180,7 +6180,7 @@
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chỉ thay số sau khi đã viết quan hệ dấu.",
+      "text": "Viết $\\sin(\\pi+x)=-\\sin x$ rồi mới thay số đã cho.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -6197,7 +6197,7 @@
      {
       "id": "hint-3-1-4",
       "tier": "H4",
-      "text": "Ví dụ khác: điểm đối xứng qua tâm có cả hai tọa độ đổi dấu.",
+      "text": "Ví dụ khác: điểm biểu diễn $\\pi+30^\\circ$ là điểm đối tâm của điểm $30^\\circ$ trên đường tròn lượng giác.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -6214,7 +6214,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -6231,7 +6231,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -6265,7 +6265,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -7504,7 +7504,7 @@
      {
       "id": "hint-1-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-1-2",
       "objectiveIds": [
        "obj-2"
@@ -7538,7 +7538,7 @@
      {
       "id": "hint-2-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-2-2",
       "objectiveIds": [
        "obj-2"
@@ -7640,7 +7640,7 @@
      {
       "id": "hint-3-3-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-3-3",
       "objectiveIds": [
        "obj-2"
@@ -7657,7 +7657,7 @@
      {
       "id": "hint-3-3-2",
       "tier": "H2",
-      "text": "Theo dõi tọa độ biểu diễn hàm đang hỏi.",
+      "text": "Điểm biểu diễn $\\pi+x$ đối xứng với điểm của $x$ qua gốc tọa độ nên cả hai tọa độ đổi dấu.",
       "taskId": "task-3-3",
       "objectiveIds": [
        "obj-2"
@@ -7674,7 +7674,7 @@
      {
       "id": "hint-3-3-3",
       "tier": "H3",
-      "text": "Chỉ thay số sau khi đã viết quan hệ dấu.",
+      "text": "Viết $\\sin(\\pi+x)=-\\sin x$ rồi mới thay số đã cho.",
       "taskId": "task-3-3",
       "objectiveIds": [
        "obj-2"
@@ -7691,7 +7691,7 @@
      {
       "id": "hint-3-3-4",
       "tier": "H4",
-      "text": "Ví dụ khác: điểm đối xứng qua tâm có cả hai tọa độ đổi dấu.",
+      "text": "Ví dụ khác: điểm biểu diễn $\\pi+30^\\circ$ là điểm đối tâm của điểm $30^\\circ$ trên đường tròn lượng giác.",
       "taskId": "task-3-3",
       "objectiveIds": [
        "obj-2"
@@ -7708,7 +7708,7 @@
      {
       "id": "hint-3-4-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-3-4",
       "objectiveIds": [
        "obj-2"
@@ -7742,7 +7742,7 @@
      {
       "id": "hint-4-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-4-2",
       "objectiveIds": [
        "obj-2"
@@ -7810,7 +7810,7 @@
      {
       "id": "hint-6-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-6-2",
       "objectiveIds": [
        "obj-2"
@@ -24395,7 +24395,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -24429,7 +24429,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -24463,7 +24463,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -24531,7 +24531,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -24633,7 +24633,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -24701,7 +24701,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -26198,7 +26198,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -26232,7 +26232,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -26266,7 +26266,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -26283,7 +26283,7 @@
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Theo dõi tọa độ biểu diễn hàm đang hỏi.",
+      "text": "Điểm biểu diễn $\\pi+x$ đối xứng với điểm của $x$ qua gốc tọa độ nên cả hai tọa độ đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -26300,7 +26300,7 @@
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chỉ thay số sau khi đã viết quan hệ dấu.",
+      "text": "Viết $\\sin(\\pi+x)=-\\sin x$ rồi mới thay số đã cho.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -26317,7 +26317,7 @@
      {
       "id": "hint-3-1-4",
       "tier": "H4",
-      "text": "Ví dụ khác: điểm đối xứng qua tâm có cả hai tọa độ đổi dấu.",
+      "text": "Ví dụ khác: điểm biểu diễn $\\pi+30^\\circ$ là điểm đối tâm của điểm $30^\\circ$ trên đường tròn lượng giác.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -26334,7 +26334,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -26436,7 +26436,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -26504,7 +26504,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -43498,7 +43498,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -43532,7 +43532,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -43566,7 +43566,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -43634,7 +43634,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -43736,7 +43736,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -43804,7 +43804,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -54159,7 +54159,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -54193,7 +54193,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -54227,7 +54227,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -54295,7 +54295,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -54397,7 +54397,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -54465,7 +54465,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -56030,7 +56030,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -56064,7 +56064,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -56098,7 +56098,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -56115,7 +56115,7 @@
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Theo dõi tọa độ biểu diễn hàm đang hỏi.",
+      "text": "Điểm biểu diễn $\\pi+x$ đối xứng với điểm của $x$ qua gốc tọa độ nên cả hai tọa độ đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -56132,7 +56132,7 @@
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chỉ thay số sau khi đã viết quan hệ dấu.",
+      "text": "Viết $\\sin(\\pi+x)=-\\sin x$ rồi mới thay số đã cho.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -56149,7 +56149,7 @@
      {
       "id": "hint-3-1-4",
       "tier": "H4",
-      "text": "Ví dụ khác: điểm đối xứng qua tâm có cả hai tọa độ đổi dấu.",
+      "text": "Ví dụ khác: điểm biểu diễn $\\pi+30^\\circ$ là điểm đối tâm của điểm $30^\\circ$ trên đường tròn lượng giác.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -56166,7 +56166,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -56268,7 +56268,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -56336,7 +56336,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -97131,7 +97131,7 @@
      {
       "id": "hint-1-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-2",
       "objectiveIds": [
        "obj-2"
@@ -97165,7 +97165,7 @@
      {
       "id": "hint-2-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-2",
       "objectiveIds": [
        "obj-2"
@@ -97267,7 +97267,7 @@
      {
       "id": "hint-3-3-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-3",
       "objectiveIds": [
        "obj-2"
@@ -97335,7 +97335,7 @@
      {
       "id": "hint-3-4-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-4",
       "objectiveIds": [
        "obj-2"
@@ -97369,7 +97369,7 @@
      {
       "id": "hint-4-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-2",
       "objectiveIds": [
        "obj-2"
@@ -97437,7 +97437,7 @@
      {
       "id": "hint-6-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-2",
       "objectiveIds": [
        "obj-2"
@@ -206806,7 +206806,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -206840,7 +206840,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -206874,7 +206874,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $-x$ là góc đối của $x$, không phải góc phụ; với sin, góc đối cho giá trị ngược dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -206942,7 +206942,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -207044,7 +207044,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -207112,7 +207112,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Phân biệt góc đối với góc phụ.",
+      "text": "Góc $\\pi/2-x$ là góc phụ của $x$; cos của góc phụ bằng sin của góc gốc, giữ nguyên dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -208699,7 +208699,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -208733,7 +208733,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -208767,7 +208767,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi+x$ hơn góc $x$ đúng nửa vòng; với sin, giá trị đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -208784,7 +208784,7 @@
      {
       "id": "hint-3-1-2",
       "tier": "H2",
-      "text": "Theo dõi tọa độ biểu diễn hàm đang hỏi.",
+      "text": "Điểm biểu diễn $\\pi+x$ đối xứng với điểm của $x$ qua gốc tọa độ nên cả hai tọa độ đổi dấu.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -208801,7 +208801,7 @@
      {
       "id": "hint-3-1-3",
       "tier": "H3",
-      "text": "Chỉ thay số sau khi đã viết quan hệ dấu.",
+      "text": "Viết $\\sin(\\pi+x)=-\\sin x$ rồi mới thay số đã cho.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -208818,7 +208818,7 @@
      {
       "id": "hint-3-1-4",
       "tier": "H4",
-      "text": "Ví dụ khác: điểm đối xứng qua tâm có cả hai tọa độ đổi dấu.",
+      "text": "Ví dụ khác: điểm biểu diễn $\\pi+30^\\circ$ là điểm đối tâm của điểm $30^\\circ$ trên đường tròn lượng giác.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -208835,7 +208835,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -208937,7 +208937,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -209005,7 +209005,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Xác định phép đối xứng tương ứng.",
+      "text": "Góc $\\pi-x$ là góc bù của $x$; với cos, góc bù cho giá trị ngược dấu.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
