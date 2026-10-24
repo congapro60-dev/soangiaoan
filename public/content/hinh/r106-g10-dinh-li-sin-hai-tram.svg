@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Hai trạm A, B; điểm C với góc A bằng 30 độ, góc B bằng 60 độ nên tam giác vuông tại C">
+  <path d="M 60 240 L 360 240 L 285 110 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 106 240 A 46 46 0 0 0 102 217" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+  <path d="M 320 240 A 40 40 0 0 1 340 206" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="42" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="368" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="274" y="100" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="74" y="222" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">30°</text>
+  <text x="298" y="224" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">60°</text>
+  <text x="196" y="258" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">AB = k (m)</text>
+  <text x="60" y="150" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">góc C = 90° ⇒ dùng định lí sin</text>
+</svg>

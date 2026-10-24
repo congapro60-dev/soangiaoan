@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Tam giác ABC vuông tại A: hiệu AC - AB = BC">
+  <defs>
+    <marker id="ab" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/></marker>
+    <marker id="ag" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/></marker>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#dc2626"/></marker>
+  </defs>
+  <path d="M 70 230 L 350 230 L 70 60 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 70 216 L 84 216 L 84 230" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <line x1="70" y1="230" x2="340" y2="230" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="70" y1="230" x2="70" y2="70" stroke="#16a34a" stroke-width="2.5" marker-end="url(#ag)"/>
+  <line x1="350" y1="230" x2="82" y2="62" stroke="#dc2626" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="52" y="250" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="358" y="250" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="52" y="52" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="200" y="252" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">AB</text>
+  <text x="30" y="150" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">AC</text>
+  <text x="215" y="138" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">BC</text>
+  <text x="105" y="266" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">Cùng gốc A: AC − AB = BC (đổi chiều mũi tên đỏ)</text>
+</svg>

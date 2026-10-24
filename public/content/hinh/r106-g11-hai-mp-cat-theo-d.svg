@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" role="img" aria-label="Hai mặt phẳng P và Q cắt nhau theo giao tuyến d; đường thẳng a nằm trong P và song song với d">
+  <polygon points="60,40 300,60 260,280 20,260" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="120,20 380,80 340,300 80,240" fill="#fee2e2" fill-opacity="0.5" stroke="#dc2626" stroke-width="2"/>
+  <line x1="150" y1="56" x2="106" y2="241" stroke="#0f172a" stroke-width="3"/>
+  <line x1="280" y1="75" x2="236" y2="260" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="34" y="66" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">(P)</text>
+  <text x="356" y="48" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">(Q)</text>
+  <text x="130" y="36" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">d</text>
+  <text x="286" y="66" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#16a34a">a</text>
+  <text x="46" y="326" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">a ⊂ (P), a ∥ d ⇒ a ∥ (Q)</text>
+</svg>

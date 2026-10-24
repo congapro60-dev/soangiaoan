@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Hình chữ nhật ABCD: vectơ AB và AD cùng gốc A, vectơ tổng AC theo quy tắc hình bình hành">
+  <defs>
+    <marker id="ab" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/></marker>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#dc2626"/></marker>
+  </defs>
+  <path d="M 60 50 L 360 50 L 360 230 L 60 230 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <line x1="60" y1="50" x2="350" y2="50" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="60" y1="50" x2="60" y2="220" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <line x1="60" y1="50" x2="346" y2="216" stroke="#dc2626" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="46" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="368" y="38" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="368" y="252" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="46" y="252" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
+  <text x="196" y="36" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">AB</text>
+  <text x="22" y="140" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">AD</text>
+  <text x="200" y="138" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">AC</text>
+  <text x="120" y="268" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">AB + AD = AC (đường chéo hình bình hành)</text>
+</svg>

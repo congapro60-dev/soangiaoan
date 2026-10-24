@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320" role="img" aria-label="Chóp S.ABCD, các điểm M, N, P, Q lần lượt thỏa SM/SA = 2/3; thiết diện MNPQ song song với đáy, diện tích bằng 4/9 diện tích đáy">
+  <polygon points="60,240 230,260 330,200 160,180" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <line x1="210" y1="40" x2="60" y2="240" stroke="#0f172a" stroke-width="2"/>
+  <line x1="210" y1="40" x2="230" y2="260" stroke="#0f172a" stroke-width="2"/>
+  <line x1="210" y1="40" x2="330" y2="200" stroke="#0f172a" stroke-width="2"/>
+  <line x1="210" y1="40" x2="160" y2="180" stroke="#0f172a" stroke-width="2"/>
+  <polygon points="110,173 223,187 290,147 177,133" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <circle cx="110" cy="173" r="3.5" fill="#2563eb"/>
+  <circle cx="223" cy="187" r="3.5" fill="#2563eb"/>
+  <circle cx="290" cy="147" r="3.5" fill="#2563eb"/>
+  <circle cx="177" cy="133" r="3.5" fill="#2563eb"/>
+  <text x="200" y="34" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">S</text>
+  <text x="44" y="258" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="236" y="278" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="338" y="198" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="136" y="176" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
+  <text x="86" y="186" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">M</text>
+  <text x="230" y="202" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">N</text>
+  <text x="296" y="142" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">P</text>
+  <text x="158" y="124" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">Q</text>
+  <text x="56" y="300" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">SM/SA = 2/3 ⇒ S(MNPQ)/S(ABCD) = (2/3)² = 4/9</text>
+</svg>
