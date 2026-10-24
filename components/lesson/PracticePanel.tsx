@@ -2,6 +2,7 @@
 import React from "react";
 import MathText from "./MathText";
 import TaskInput, { type TaskInputProps } from "./TaskInput";
+import TaskImage, { taskImageOf } from "./TaskImage";
 
 export type PracticeView = { activityId: string; attemptId: string; assessed: boolean; correct?: boolean; task: TaskInputProps["task"]; submission?: TaskInputProps["submission"] };
 export function PracticePanel({ practice, gates, enabled, busy, onCommand }: {
@@ -39,7 +40,7 @@ export function PracticePanel({ practice, gates, enabled, busy, onCommand }: {
 function PracticeInput({practice,busy,onSubmit}:{practice:PracticeView;busy:boolean;onSubmit:(answer:unknown,confirmed:boolean,usedAI:boolean)=>Promise<unknown>}) {
  const [confirmed,setConfirmed]=React.useState(false),[usedAI,setUsedAI]=React.useState(false);
  const disabled=busy || practice.assessed || practice.submission?.assessmentStatus === "pending";
- return <div><MathText text={practice.task.prompt || ""}/><fieldset disabled={disabled}><legend>Cam kết bài luyện này</legend>
+ return <div><TaskImage image={taskImageOf(practice.task)} /><MathText text={practice.task.prompt || ""}/><fieldset disabled={disabled}><legend>Cam kết bài luyện này</legend>
  <label style={{display:"block",padding:12}}><input type="checkbox" checked={usedAI} onChange={event=>setUsedAI(event.target.checked)}/> Em đã dùng AI hoặc được người khác giúp bài này</label>
  <label style={{display:"block",padding:12}}><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> Em khai đúng phần tự làm và trợ giúp đã dùng</label>
  </fieldset><TaskInput task={practice.task} disabled={disabled || !confirmed} submission={practice.submission} onSubmit={async answer=>{await onSubmit(answer,confirmed,usedAI);}}/></div>;

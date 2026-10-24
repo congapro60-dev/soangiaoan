@@ -601,7 +601,8 @@
          "label": "$\\frac{5\\pi}{6}$"
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r013-goc-120.svg"
      },
      {
       "id": "thptqg-r013-tf",
@@ -662,7 +663,8 @@
          "label": "Trên đường tròn đơn vị, cung ứng góc $60^\\circ$ có chiều dài $\\frac{\\pi}{3}$."
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r013-duong-tron-don-vi.svg"
      },
      {
       "id": "thptqg-r013-sa",
@@ -706,7 +708,8 @@
       "inputSchema": {
        "type": "short_answer_4",
        "format": "decimal_4"
-      }
+      },
+      "imageUrl": "/content/hinh/r013-goc-100.svg"
      }
     ],
     "hints": [
@@ -912,7 +915,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đổi độ sang radian: nhân $\\frac{\\pi}{180}$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đổi độ sang radian: nhân $\\frac{\\pi}{180}$.",
+      "diagramUrl": "/content/hinh/r013-goc-120.svg"
      },
      {
       "id": "hint-thptqg-r013-tf",
@@ -929,7 +933,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Nhớ $270^\\circ=\\frac{3\\pi}{2}$; chiều dài cung là $l=r\\alpha$ với $r=1$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Nhớ $270^\\circ=\\frac{3\\pi}{2}$; chiều dài cung là $l=r\\alpha$ với $r=1$.",
+      "diagramUrl": "/content/hinh/r013-duong-tron-don-vi.svg"
      },
      {
       "id": "hint-thptqg-r013-sa",
@@ -946,7 +951,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $100^\\circ=100\\cdot\\frac{\\pi}{180}$; thay $\\pi\\approx 3{,}14$ rồi làm tròn."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $100^\\circ=100\\cdot\\frac{\\pi}{180}$; thay $\\pi\\approx 3{,}14$ rồi làm tròn.",
+      "diagramUrl": "/content/hinh/r013-goc-100.svg"
      }
     ],
     "evidenceRules": [
@@ -1053,7 +1059,7 @@
       "group_score"
      ]
     },
-    "contentHash": "717a17cae4048e48b95020760a72377b5fb14e089a6c37d7fa35a9816da14fc6"
+    "contentHash": "a27a9a2e6bb77a03751daed23fdd59b22e7ee3e1bcf773739906e8902c109b9b"
    },
    "citations": [
     {
@@ -11192,7 +11198,8 @@
          "label": "$\\frac{a^3}{12}$"
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r028-tu-dien-abc.svg"
      },
      {
       "id": "thptqg-r028-tf",
@@ -11254,7 +11261,8 @@
          "label": "Hình chiếu vuông góc của $S$ trên mặt phẳng $(ABC)$ là điểm $A$."
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r028-chop-sabc.svg"
      },
      {
       "id": "thptqg-r028-sa",
@@ -11298,7 +11306,8 @@
       "inputSchema": {
        "type": "short_answer_4",
        "format": "decimal_4"
-      }
+      },
+      "imageUrl": "/content/hinh/r028-chop-day-vuong.svg"
      }
     ],
     "hints": [
@@ -11504,7 +11513,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Dùng $V=\\frac{1}{3}S_{\\triangle BCD}\\cdot h$, với $h$ là khoảng cách từ $A$ đến mặt $(BCD)$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Dùng $V=\\frac{1}{3}S_{\\triangle BCD}\\cdot h$, với $h$ là khoảng cách từ $A$ đến mặt $(BCD)$.",
+      "diagramUrl": "/content/hinh/r028-tu-dien-chieu-cao.svg"
      },
      {
       "id": "hint-thptqg-r028-tf",
@@ -11521,7 +11531,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $SA\\perp (ABC)$ nên $SA$ vuông góc với mọi đường thẳng trong $(ABC)$; để $BC\\perp(SAB)$ phải có thêm $AB\\perp BC$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $SA\\perp (ABC)$ nên $SA$ vuông góc với mọi đường thẳng trong $(ABC)$; để $BC\\perp(SAB)$ phải có thêm $AB\\perp BC$.",
+      "diagramUrl": "/content/hinh/r028-chop-sabc.svg"
      },
      {
       "id": "hint-thptqg-r028-sa",
@@ -11538,7 +11549,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $V=\\frac{1}{3}S_{đáy}\\cdot h=\\frac{1}{3}\\cdot 3^2\\cdot 2{,}5$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: $V=\\frac{1}{3}S_{đáy}\\cdot h=\\frac{1}{3}\\cdot 3^2\\cdot 2{,}5$.",
+      "diagramUrl": "/content/hinh/r028-chop-day-vuong.svg"
      }
     ],
     "evidenceRules": [
@@ -11645,7 +11657,7 @@
       "group_score"
      ]
     },
-    "contentHash": "dc553cb87c87fbd55b78415d22a7d46d44988652172f63c46a82ed786a8705f1"
+    "contentHash": "7ebe94ff21d0d3d7ab8d3c9b6f7e75570be2d827c9f7119ee1e82a5da15d1ffa"
    },
    "citations": [
     {
@@ -116753,7 +116765,8 @@
          "label": "$8$"
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r108-tam-giac-thales.svg"
      },
      {
       "id": "thptqg-r108-tf",
@@ -116815,7 +116828,8 @@
          "label": "Nếu $(\\alpha)\\parallel (\\beta)$, $(\\alpha)\\cap (\\gamma)=a$ và $(\\beta)\\cap (\\gamma)=b$ thì $a\\parallel b$."
         }
        ]
-      }
+      },
+      "imageUrl": "/content/hinh/r108-hai-mat-phang.svg"
      },
      {
       "id": "thptqg-r108-sa",
@@ -116860,7 +116874,8 @@
       "inputSchema": {
        "type": "short_answer_4",
        "format": "decimal_4"
-      }
+      },
+      "imageUrl": "/content/hinh/r108-tam-giac-tiso.svg"
      }
     ],
     "hints": [
@@ -117066,7 +117081,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Định lý Thales: $\\frac{AM}{AB}=\\frac{MN}{BC}$ với $AB=AM+MB$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Định lý Thales: $\\frac{AM}{AB}=\\frac{MN}{BC}$ với $AB=AM+MB$.",
+      "diagramUrl": "/content/hinh/r108-tam-giac-thales.svg"
      },
      {
       "id": "hint-thptqg-r108-tf",
@@ -117083,7 +117099,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đường thẳng song song với mặt phẳng có thể chéo nhau với các đường thẳng trong mặt phẳng đó; tính chất giao tuyến cho ý 4."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Đường thẳng song song với mặt phẳng có thể chéo nhau với các đường thẳng trong mặt phẳng đó; tính chất giao tuyến cho ý 4.",
+      "diagramUrl": "/content/hinh/r108-hai-mat-phang.svg"
      },
      {
       "id": "hint-thptqg-r108-sa",
@@ -117100,7 +117117,8 @@
        "score": 0,
        "freeze": 0
       },
-      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Theo Thales: $MN=\\frac{AM}{AB}\\cdot BC$."
+      "supportRationale": "Gợi mở hướng giải, không chứa đáp số: Theo Thales: $MN=\\frac{AM}{AB}\\cdot BC$.",
+      "diagramUrl": "/content/hinh/r108-tam-giac-tiso.svg"
      }
     ],
     "evidenceRules": [
@@ -117208,7 +117226,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d0b348506cf75edd7d6fcb1b06009d45c048cc2b12780231590a68b623bb75f8"
+    "contentHash": "35c6f65912afbe9b634107d2300fb930e4771361b0cadb7d614e060b60545bda"
    },
    "citations": [
     {

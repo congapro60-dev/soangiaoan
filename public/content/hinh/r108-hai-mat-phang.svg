@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 300" role="img" aria-label="Hai mặt phẳng song song cắt bởi mặt phẳng thứ ba, giao tuyến a song song b">
+  <path d="M 40 70 L 220 45 L 320 95 L 140 120 Z" fill="rgba(56,189,248,0.13)" stroke="#0369a1" stroke-width="2"/>
+  <path d="M 40 205 L 220 182 L 320 230 L 140 252 Z" fill="rgba(16,185,129,0.12)" stroke="#047857" stroke-width="2"/>
+  <path d="M 250 15 L 345 45 L 345 275 L 250 245 Z" fill="rgba(124,58,237,0.12)" stroke="#6d28d9" stroke-width="2"/>
+  <line x1="258" y1="88" x2="336" y2="112" stroke="#dc2626" stroke-width="3"/>
+  <line x1="258" y1="212" x2="336" y2="236" stroke="#dc2626" stroke-width="3"/>
+  <text x="60" y="62" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0369a1">(α)</text>
+  <text x="60" y="238" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#047857">(β)</text>
+  <text x="292" y="266" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#6d28d9">(γ)</text>
+  <text x="342" y="100" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">a</text>
+  <text x="342" y="226" font-size="15" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#dc2626">b</text>
+  <text x="42" y="286" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#475569">(α) ∥ (β); (γ) cắt (α), (β) theo giao tuyến a ∥ b</text>
+</svg>

@@ -598,7 +598,8 @@ export function TaskInput({
   }
 
   function renderTaskDiagram() {
-    const taskImg = (task as { diagramUrl?: string; image?: string }).diagramUrl || (task as { diagramUrl?: string; image?: string }).image;
+    const t = task as { imageUrl?: string; diagramUrl?: string; image?: string };
+    const taskImg = t.imageUrl || t.diagramUrl || t.image;
     if (!taskImg) return null;
     return (
       <div className="task-diagram-card" style={{ marginBottom: "0.75rem", textAlign: "center" }}>

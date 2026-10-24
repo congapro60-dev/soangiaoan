@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import MathText from "./MathText";
 import TaskInput, { TaskInputProps } from "./TaskInput";
+import TaskImage, { taskImageOf } from "./TaskImage";
 import ClassEventScene from "./ClassEventScene";
 
 export interface ClassEventView {
@@ -67,6 +68,7 @@ export function ClassEventPanel({ view, onAnswer, onPick, onBuzz, onClose, disab
         {own.buzzer.canBuzz&&<button type="button" className="lesson-button lesson-button-primary" style={{minHeight:44}} disabled={disabled||buzzBusy||!onBuzz} onClick={buzz}>Bấm chuông để trả lời</button>}
         {buzzError&&<p role="alert">{buzzError}</p>}
       </div>}
+      {own?.task && <TaskImage image={taskImageOf(own.task)} />}
       {own?.task && <MathText text={own.task.prompt || ""}/>}
       {own?.task && onAnswer && <TaskInput key={`${view.id}:${own.step}`} task={own.task} disabled={disabled || buzzBusy || !own.canAnswer}
         onSubmit={answer => onAnswer({ answer, step: own.step })} />}

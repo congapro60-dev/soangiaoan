@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Góc 120 độ trên đường tròn lượng giác">
+  <circle cx="150" cy="150" r="100" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="150" y1="150" x2="270" y2="150" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 250 150 A 100 100 0 0 0 100 63.4" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <line x1="150" y1="150" x2="100" y2="63.4" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 96 70 L 100 63.4 L 108 64.8" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="150" cy="150" r="3.5" fill="#0f172a"/>
+  <text x="278" y="156" font-size="15" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">Ox</text>
+  <text x="182" y="92" font-size="16" font-weight="600" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">120°</text>
+  <text x="40" y="252" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#475569">Cung quay một vòng bằng 360° = 2π (rad)</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Hình chóp đều có đáy hình vuông cạnh 3, chiều cao 2,5">
+  <path d="M 100 230 L 240 250 L 330 200" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 100 230 L 190 180 L 330 200" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="215" y1="55" x2="100" y2="230" stroke="#0f172a" stroke-width="2"/>
+  <line x1="215" y1="55" x2="240" y2="250" stroke="#0f172a" stroke-width="2"/>
+  <line x1="215" y1="55" x2="330" y2="200" stroke="#64748b" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="215" y1="55" x2="190" y2="180" stroke="#64748b" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="215" y1="55" x2="215" y2="213" stroke="#2563eb" stroke-width="2" stroke-dasharray="7 5"/>
+  <path d="M 215 199 L 223 199 L 223 207" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <circle cx="215" cy="55" r="3.5" fill="#0f172a"/>
+  <circle cx="215" cy="213" r="3" fill="#2563eb"/>
+  <text x="205" y="44" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">S</text>
+  <text x="82" y="234" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">A</text>
+  <text x="236" y="268" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">B</text>
+  <text x="338" y="202" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">C</text>
+  <text x="174" y="176" font-size="16" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">D</text>
+  <text x="155" y="236" font-size="14" font-weight="600" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">3</text>
+  <text x="222" y="132" font-size="14" font-weight="600" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">h = 2,5</text>
+  <text x="118" y="272" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif" fill="#475569">Đáy hình vuông cạnh 3; cạnh khuất nét đứt</text>
+</svg>

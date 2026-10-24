@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" role="img" aria-label="Đường tròn đơn vị với các góc 45, 60, 120, 270 độ">
+  <circle cx="210" cy="140" r="95" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="210" y1="140" x2="322" y2="140" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 305 140 A 95 95 0 0 0 257.5 57.7" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <line x1="210" y1="140" x2="257.5" y2="57.7" stroke="#0f172a" stroke-width="1.6"/>
+  <circle cx="277.2" cy="72.8" r="3.5" fill="#334155"/>
+  <circle cx="162.5" cy="57.7" r="3.5" fill="#334155"/>
+  <circle cx="210" cy="235" r="3.5" fill="#334155"/>
+  <circle cx="210" cy="140" r="3.5" fill="#0f172a"/>
+  <text x="252" y="103" font-size="15" font-weight="600" font-family="ui-sans-serif, system-ui, sans-serif" fill="#2563eb">60°</text>
+  <text x="283" y="66" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">45°</text>
+  <text x="118" y="55" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">120°</text>
+  <text x="216" y="256" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#334155">270°</text>
+  <text x="330" y="146" font-size="15" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">Ox</text>
+  <text x="40" y="266" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#475569">Trên đường tròn đơn vị: chiều dài cung = số đo radian</text>
+</svg>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import MathText from "../../components/lesson/MathText";
+import TaskImage, { taskImageOf } from "../../components/lesson/TaskImage";
 import LessonThemedRoute from "../../components/lesson/LessonThemedRoute";
 import { LessonWorldMap } from "../../components/lesson/LessonWorldMap";
 import { useLessonSession, formatDuration } from "../../components/lesson/useLessonSession";
@@ -544,6 +545,7 @@ export default function PresenterPage() {
                   return (
                     <div key={task.id} className="presenter-task-card">
                       <div className="presenter-task-prompt">
+                        <TaskImage image={taskImageOf(task)} alt="Hình minh hoạ đề bài" />
                         <MathText text={task.prompt} inline={false} />
                       </div>
 

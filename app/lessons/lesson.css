@@ -699,6 +699,27 @@
   color: var(--lesson-text);
 }
 
+/* V28: ảnh minh hoạ cạnh đề bài và trong gợi ý (SVG pilot r013/r028/r108) */
+.task-prompt-image {
+  margin: 0 0 0.75rem;
+  text-align: center;
+}
+
+.task-prompt-image img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--lesson-border, #e2e8f0);
+  background: #fff;
+}
+
+.task-hint-diagram img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+}
+
 .task-hints-drawer {
   background: rgba(15, 23, 42, 0.7);
   border: 1px dashed var(--lesson-border-strong);
