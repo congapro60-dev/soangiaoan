@@ -1,90 +1,38 @@
-# TODO — 22/10/2026: thoát phụ thuộc Gemini trả phí cho webapp
+# TODO — 24/10/2026 (tối): G3 ảnh + AI học sinh sang Vilao — ĐANG NGHIỆM, chờ PIN HS
 
-<<<<<<< HEAD
-## OMR dò bóng tô — trạng thái
+Nhánh `feature/vilao-all-flows`, worktree `wt-grader`. Commits: `dd44a86` (code G3) → `0b9d134` (HANDOFF) → `c90598c` (revert debug-text) → `24e3286` (fix crash HS) → `2fb3a75` (HANDOFF E2E).
 
-### Vòng 3 — thực hiện lệnh supervisor 22/10/2026
-
-- [x] Nhận chuẩn nguyên lý 6/7 của vòng 2; không mở lại kết luận đã duyệt. Không commit/switch.
-- [x] Khóa nhóm theo bước ngang/dọc, nội suy đủ 10 hàng, hàng trống trả null; kiểm ảnh nén Chrome 9222.
-- [ ] Nối detectedAnswers vào luồng nộp và chấm; kiểm dữ liệu đầu vào, ưu tiên câu chắc, cờ GV khi không chắc.
-- [ ] Unit synthetic + API + kiểm ảnh thật; ghi kết quả từng câu.
-- [ ] Full test, lint, lint:api, build, function-count ≤12; ghi exit code và giới hạn.
-
-Phạm vi: đúng pack; script probe được phép lưu tại `tasks/omr-sample/probe.mjs` theo chỉnh lệnh. Các thay đổi có sẵn giữ nguyên.
-
-#### Bằng chứng vòng 3
-
-- `node tasks/omr-sample/probe.mjs`: exit 0, Chrome `http://127.0.0.1:9222`, ảnh gốc `tasks/omr-sample/bai-tuan-nam.jpg`, canvas 1152×1536, JPEG 0,82. Chạy chính hàm production, không dùng bản thuật toán riêng của probe. `filePathMatches: true`: hàm nhận File blob trả giống hàm ImageData.
-- Kết quả đủ 40 hàng, không trượt số khi mất component Q8/Q9: Q1=A, Q2=C, Q3=B, Q4=null, Q5=B, Q6=D, Q7=C, Q8=C, Q9=D, Q10=C, Q11=B, Q12=C; Q13–Q40=null. Mọi đáp án khác null confidence=0,95; null confidence=0. Chuẩn 7 câu: 6/7 khớp chắc, Q4 giữ không chắc đúng lệnh.
-- Đối chiếu ảnh gốc: khối trái in 1–10, khối kế in 11–20, tiếp 21–30 và 31–40. Không dùng bốn góc định vị; lưới lấy từ các vòng ô cùng hàng, thứ tự khối theo x. Chỉ hỗ trợ mẫu 4×10 A–D này; Phần II/III không tự đoán.
-- Bộ lọc bước ngang 46–51 px tại rộng 1152 (dung sai quanh mẫu đo 47–48,5); pitch dọc 23–25 px. Loại vùng y<25% chiều cao; yêu cầu bốn khối đồng hàng, mỗi khối ≥6/10 hàng. Pitch lấy median khoảng cách đã chia bội; nội suy hàng giữa/hai hàng cuối; không nối hàng theo chỉ số component.
-- Ngưỡng tối 130 và bỏ đỏ giữ nguyên chứng cứ vòng 2: tỷ lệ ≥0,8 và cách bóng thứ hai >0,35 mới confidence=0,95. Tỷ lệ 0,3–0,8 trả ứng viên confidence=0; dưới 0,3 trả null, không đoán A. Mẫu Q4 ~0,097 không được nhận; sáu câu chuẩn còn lại ~0,95–1 được nhận.
-- Synthetic mới: 5/5 đạt (bỏ đỏ, ô trắng, khối 10 hàng, thiếu bốn hàng gồm hai hàng cuối, nghiêng nhẹ, nhiều bóng, bóng mờ, vùng đầu trang, gap sai, thiếu quá nhiều hàng). Client mới: 2/2 đạt (gửi File và detectedAnswers; không dò được gửi []). Bộ test nén/UI hiện hữu đã chạy đạt.
-- Bổ sung test File lỗi/không có ảnh: synthetic + fallback hiện 6/6 đạt. Probe chạy lại sau giới hạn canvas tối đa 1536 vẫn exit 0, `filePathMatches=true`; output lưu `C:\Users\ADMIN\AppData\Local\Temp\opencode\omr-round3-chrome.json`. Chrome cũ đóng giữa phiên gây ECONNREFUSED một lần; đã mở profile QA riêng bằng port 9222 đúng pack rồi kiểm lại đạt, không ghi dữ liệu lớp thật.
-- Full test lần đầu timeout harness 120 giây, không coi đạt. Chạy lại `npm run test -- --maxWorkers=2`: exit 0, **322 files / 3381 tests đạt**, 223,78 giây; log `C:\Users\ADMIN\AppData\Local\Temp\opencode\omr-round3-tests.log`. Đây là snapshot trước khi API worker chốt test mới; sẽ chạy lại gate cuối.
-
-#### New proposals — vòng 3
-
-Không triển khai ngoài phạm vi. Hỗ trợ mẫu phiếu khác/Phần II–III hoặc OCR chữ số cần pack riêng; hiện dùng fallback và cảnh báo GV.
-
-### Tiếp tục theo pack cập nhật — 22/10/2026
-
-**Trạng thái hiện tại: blocked ở bước xác nhận lưới; chưa triển khai production.** Đây là giới hạn của phép dò thử, KHÔNG phải kết luận phiếu thật không dò được. Trạng thái thiếu mẫu bên dưới chỉ là lịch sử, không còn áp dụng.
-
-- [x] Đọc lại pack, trạng thái cũ, HANDOFF và lessons; giữ nguyên thay đổi có sẵn trong `tasks/todo.md`.
-- [x] Đã có bốn ảnh thật trong `tasks/omr-sample/`; không còn blocker thiếu ảnh. Không dùng giả định bốn góc của lượt trước.
-- [x] Kiểm canvas Chrome trên ảnh nén 1152×1536, JPEG 0,82, qua `http://127.0.0.1:9222`; ảnh đầu vào `tasks/omr-sample/bai-tuan-nam.jpg` (1200×1600). Không dùng bốn ô định vị.
-- [ ] Nghiệm thu lưới: phép dò thử nhận 8/10 hàng ở khối trái, mất Q8/Q9; chưa nhận dạng/khóa số câu theo cột số thứ tự như pack. Không coi phép thử là hàm OMR hoàn chỉnh dù sáu câu mẫu có bóng rõ khớp chuẩn.
-- [ ] Test tổng hợp trước; dò theo hàng/cột, bỏ nét đỏ, confidence thấp khi thiếu hoặc nhiều bóng.
-- [ ] Nối `detectedAnswers` qua luồng nộp hiện hữu, kiểm dữ liệu ở server, ưu tiên đáp án chắc và giữ cờ GV kiểm tra khi fallback.
-- [ ] Chạy test toàn bộ, flaky riêng nếu cần, lint, lint:api, build và function-count; ghi bằng chứng cuối.
-
-Rủi ro chính: nhầm vùng mã dự thi với câu trả lời, nhầm bóng trắng có chữ in với bóng tô. Cần xác nhận lưới và độ tương phản cục bộ, không chỉ đếm pixel tối tuyệt đối. Phạm vi thay đổi giữ đúng pack; không thêm dependency/API function hoặc vòng xác nhận.
-
-#### Bằng chứng Chrome
-
-| Câu | Chuẩn supervisor | Dò thử | Confidence thử | Tỉ lệ tối ô chọn sau bỏ đỏ |
-| --- | --- | --- | --- | --- |
-| 1 | A | A | 0,95 | 0,991 |
-| 2 | C | C | 0,95 | 1,000 |
-| 3 | B | B | 0,95 | 1,000 |
-| 4 | A | A nhưng không chắc | 0 | 0,097 |
-| 5 | B | B | 0,95 | 1,000 |
-| 11 | B | B | 0,95 | 0,950 |
-| 12 | C | C | 0,95 | 1,000 |
-
-- Sáu kết quả chắc khớp 6/7; Q4 chọn A chỉ vì có tín hiệu cao nhất rất yếu, KHÔNG chứng minh bóng A. Không bác đáp án chuẩn supervisor, không kết luận Q4 chỉ có nét đỏ.
-- Dò thử connected components + nhóm bốn ô có khoảng cách tương tự; loại đỏ khi `r > g + 15 && r > b + 10`. Ngưỡng tối 170 thất bại: ô trắng nền xám cũng có tỉ lệ 0,938–0,982. Ngưỡng thử 130 tách được sáu bóng rõ; chưa kiểm bền vững ánh sáng/nghiêng/Phần II.
-- Nhóm ô mã dự thi cũng tạo ứng viên 10 hàng ở `(802;147,5)` và `(823,5;147)` trên ảnh nén; bộ lọc bốn khối đồng hàng loại được trong mẫu này, nhưng chưa thay thế việc đọc cột số. Khối trái `(128;588,5)` chỉ còn tám hàng; khối câu 11 `(366,5;586,5)` đủ mười hàng.
-- Script thử ngoài repo: `C:\Users\ADMIN\AppData\Local\Temp\opencode\omr-probe.mjs`; output từng câu: `C:\Users\ADMIN\AppData\Local\Temp\opencode\omr-probe-result.json`. Chạy lại tại worktree: `Get-Content "C:\Users\ADMIN\AppData\Local\Temp\opencode\omr-probe.mjs" -Raw | node --input-type=module`. Data URL chỉ dùng nạp fixture trong trang blank; chưa đổi đường File blob của ứng dụng.
-- Chỉ sửa checklist trong repo; không sửa source/test. Cổng test/lint/lint:api/build/function-count **chưa chạy**, không ghi PASS. Không tạo nhánh, switch, commit, push, merge hoặc sửa `_assistant-confirmations.ts`.
-
-#### New proposals — chưa làm
-
-- Tiếp tục nghiên cứu khóa hàng bằng cột số thực, không nhận số câu qua chỉ số khối hoặc tọa độ cố định. Cần supervisor duyệt tiếp sau blocker theo điều 19; không đề nghị thay mẫu phiếu hoặc thêm dependency.
-
-### Lịch sử lượt trước — đã hết blocker thiếu mẫu
-
-**Trạng thái: blocked — 22/10/2026.** Dừng theo `tasks/dispatch-codex-omr.md:19`: mẫu phiếu tìm thấy trong repo khác giả định của pack; chưa đủ căn cứ xác định lưới phiếu Tuấn Nam. Không tự chế lưới thay thế.
-
-- [x] Đọc `HANDOFF.md`, mục “ĐO TỈ LỆ ĐỌC BÓNG TÔ”, trước Decision Pack; đọc `tasks/lessons.md`.
-- [x] Kiểm tra Git ban đầu: `git status --short` chỉ có `?? tasks/dispatch-codex-omr.md`; không sửa file bàn giao này. Không tạo nhánh, switch, commit, push hoặc merge.
-- [x] Kiểm tra mẫu phiếu hiện hữu: `src/utils/answerSheetTemplate.ts:1–227` sinh “Phiếu Trả Lời” nhưng không có bốn ô vuông định vị. Phần I (`:139–150`) hướng dẫn khoanh tròn A/B/C/D, xếp 40 câu bằng CSS grid bốn cột; phần II (`:154–189`) yêu cầu ghi chữ Đ/S vào ô bảng, không phải khối bóng tô Đúng/Sai như pack.
-- [x] Tìm tài liệu/lưới OMR: tìm `OMR|fiducial|registration.mark|ô vuông đen|bóng tô|detectedAnswers` trong `*.ts`, `*.tsx`, `*.md` chỉ thấy HANDOFF và Decision Pack. Quét `**/*.{png,jpg,jpeg,webp,pdf}` trả bảy tệp, không có ảnh phiếu Tuấn Nam; `screenshot.png` là ảnh IDE, không phải phiếu. Chưa kiểm được phiếu thật sau nén 1536px; không kết luận phiếu thật thiếu ô định vị.
-- [ ] Dò bóng trên canvas, bỏ pixel đỏ, chuẩn hoá theo bốn góc: bị chặn vì chưa có mẫu/lưới của phiếu đích. Sinh ảnh tổng hợp từ lưới tự đặt chỉ chứng minh thuật toán trên mẫu tự đặt, không chứng minh đúng phiếu đích.
-- [ ] Truyền/kiểm tra `detectedAnswers`, ưu tiên đáp án đáng tin, cờ GV kiểm tra: chưa sửa; tránh đưa hợp đồng dữ liệu dở dang vào luồng chấm.
-- [ ] Unit OMR + API: chưa viết/chạy; chưa có ảnh test đầu vào/đầu ra.
-- [ ] `npm run test` toàn bộ; nếu flaky thì chạy riêng `src/lib/adaptive/adaptiveToDewey.test.ts`: chưa chạy do dừng trước triển khai; không ghi nhận PASS.
-- [ ] `npm run lint`, `npm run lint:api`, `npm run build`, test `function-count` (≤12): chưa chạy do dừng trước triển khai; không ghi nhận PASS.
-
-**Để tiếp tục:** supervisor cung cấp ảnh phiếu đích hoặc đặc tả lưới có vị trí bốn ô định vị, thứ tự câu/phần, vị trí A/B/C/D và Đúng/Sai. Nếu muốn hỗ trợ mẫu `answerSheetTemplate.ts` hiện hữu thì cần Decision Pack mới; file này ngoài danh sách được sửa.
-
-### New proposals
-
-Không triển khai đề xuất ngoài phạm vi. Không sửa mẫu phiếu, không thêm dependency/API function, không đổi cơ chế chấm hoặc quyền duyệt.
+- [x] **Code G3**: `_ai-image-handler.ts` gọi Vilao `/v1/images/generations`; `aiPricing` rule `gpt-image-2` 90₫ + `gemini-3.1-flash-image` 85₫; relay nhánh HS ẩn danh; client `studentAiKey` 2 tầng; portal gỡ chặn nhập key.
+- [x] **Key Vilao**: gắn listing Reli `gpt-image-2` 90₫/req cho khoá `SmartPlan-preview` (trước đó 403 `Please subscribe to model`).
+- [x] **E2E ảnh thật** (preview `nqr8aofy3`→`etqogqg1l`): 200 sau 54s → PNG trên Firebase Storage → lần 2 `cached:true` 3s. Ảnh ngoài 200 `image/png`.
+- [x] **BUG crash nhánh HS** tìm qua E2E: `ReferenceError: Cannot access 'total' before initialization` (`_ai-relay-handler.ts`, gõ nhầm `total.count`). Đã sửa + 2 test hồi quy, đã chứng minh test bắt đúng bug.
+- [x] Nghiệm thu: 50/50 test pass; `tsc --noEmit` 0 lỗi.
+- [x] **E2E TRỌN đường AI học sinh** — PASS 24/10 khuya: PIN `2655` (thầy gửi), uid HS `1cbepxeC…`, `studentAi:true` → 200 "OK" 8,4s; thiếu cờ → 403. Lưu ý: PIN `0101` thầy đọc trên web là PIN **phụ huynh** ("PH tự đặt"), không dùng cho cổng học sinh — PIN học sinh là mã "Thầy cô cấp".
+- [ ] **Hợp nhất `feature/vilao-all-flows` → `main`** — thầy đã cho phép; E2E ảnh + HS đều xanh → ĐỦ ĐIỀU KIỆN MERGE.
+- [ ] **G4**: giữ Google làm backup cuối (KHÔNG xoá code). Chuỗi chấm đã đúng thứ tự Vilao → xKiro → Gemini; còn nợ: `callUtilityVision` (đọc mã đề) vẫn gọi thẳng Google, cần đưa qua chuỗi.
+- [ ] Dọn `vite.config.e2e.ts` (đồ nghề E2E, KHÔNG commit) trước khi merge.
 
 ---
+
+# TODO — 24/10/2026: duyệt tự động bài cần soát + cờ cảnh báo — CODE XONG ✅ (chờ quyết merge)
+
+Plan `docs/superpowers/plans/2026-10-24-auto-approve-review-flag.md` · spec `docs/superpowers/specs/2026-10-24-auto-approve-review-flag-design.md` · worktree `wt-grader` nhánh `feature/auto-approve-uncertain-flag`, 9 commits `82d0b54..7dd910a`, base = origin/main tip `527ba4e` → merge sẽ là **fast-forward thuần**.
+
+- [x] Task 1 `e935577` — bỏ 2 chặn duyệt trong `autoGrade.ts` + đảo 3 case test (5/5; spec review PASS, code review Yes).
+- [x] Task 2 `20a84d4` — `editedByTeacher` set đủ mọi đường sửa tay + `toApprove` nới (uncertain ⊆ toApprove) (15/15; 2 lớp review Yes).
+- [x] Task 3 `14b18eb` — test khoá "sửa tay giữ Chờ duyệt" (8/8 + 7/7; test-only, gộp 2 lớp review — đã duyệt).
+- [x] Task 4 `c60cbad` — cron e2e `approved: 3` + assert `questionResults` giữ nguyên `toEqual` (3/3; test-only, gộp 2 lớp review — đã duyệt).
+- [x] Task 5 `5f2e662` — UI `AssignmentPanel` + `TeacherBacklogCard`: ô tick "vẫn giữ lại" bỏ hẳn, `canDuyet = tonSau.toApprove` (KHÔNG concat — uncertain đã nằm trong toApprove), `tongTon`/`tong` bỏ vế uncertain, toast "có cờ ở" (sửa từ "cờ vàng ở" rồi amend) (tsc 0 lỗi; spec + code review Yes, 6 case smoke đề xuất).
+- [x] Task 6 — build xanh 7m 5s (0 lỗi TS, chỉ warning chunk lớn đã biết) · **final code review toàn nhánh `527ba4e..HEAD`: Yes, 0 BLOCKER/MAJOR**, 3/3 ràng buộc PASS (không ghi Firestore mới — grep 0 match `setDoc|updateDoc|...`; đếm không trùng — `uncertain ⊆ toApprove` ở `submissionSelection.ts:163-164`; chip cờ còn sau duyệt — duyệt chỉ patch `teacherApproved`/`approvalSource` tại `api/grade-homework.ts:2151-2153`). Full vitest: xem dòng dưới.
+- [x] Full `vitest run src api` — 408 file / 4384 tests **4379 PASS, 5 FAIL + 1 worker error, 11m 12s**. Đối chiếu baseline main `527ba4e` (QA Claude+Codex): 4 hash CRLF (`contractData`×2 `60bf770f`/`155919c6`, `goldenCandidates`×2 `d265a324`/`1a5f142b`) đúng từng mã = baseline Windows; worker error `onTaskUpdate` = đúng kiểu Codex gặp; 2 timeout (`ai-gateway-handler:194`, ngoài danh sách) + `docxSource` (flaky chuẩn Codex) — **rerun riêng 14/14 PASS trong 20s** → flaky CPU khi máy chạy song song build/review. **0 fail thật liên quan nhánh.**
+
+**Nợ sau merge (không chặn, từ final review):** (1) MINOR — 2 dòng comment stale "lệch nhiều thì không tự duyệt" tại `api/grade-homework.ts:690-691` (file plan cố tình không đụng); (2) MINOR — e2e cron chưa seed case `examCheck.mismatch` (chỉ khoá ở lib unit `autoGrade.test.ts:3`); (3) NIT — spec snapshot `:36` còn text toast cũ "cờ vàng ở"; (4) NIT — comment sai ở `loClassScores.test.ts:29`; (5) NIT — nút "Chấm & duyệt tất cả" vẫn bấm được khi lớp trống (pre-existing). Cần thêm `.gitattributes` (*.json eol=lf) hoặc băm theo blob git để hết 4 test hash đỏ trên Windows.
+
+**X lý trạng thái cũ (đã xong):** test đỏ tạm thời từ `e935577` đã được Task 4 `c60cbad` đảo expectation — full suite không còn đỏ có chủ đích.
+
+---
+
+# TODO — 22/10/2026: thoát phụ thuộc Gemini trả phí cho webapp
 
 ## Trạng thái: PORT LẠI LÊN MAIN THẬT + DEPLOY XONG ✅ (bản main 22/10)
 
