@@ -5,6 +5,19 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## CI API Typecheck đỏ sẵn trên main: `api/_submission-actors.ts` (23/10) — Claude
+
+Tính năng OMR mới trên `main` làm `npx tsc --noEmit -p tsconfig.api.json` lỗi `TS2345` ở dòng 43 (`ALLOWED.has(ans)` với `ans` là `unknown`). Nhánh `dieu-phoi/report-custom-range` chỉ ép `ans as string` để CI của PR này qua; nếu `main` đã sửa theo cách khác khi gộp thì lấy bản của `main` và bỏ mục này. Nghiệm thu: chạy CẢ HAI lệnh `npx tsc --noEmit -p tsconfig.api.json` và `... --strict false`.
+
+## GV tự chọn khoảng ngày khi xuất / công bố báo cáo phụ huynh — 17/10 (Claude)
+
+**Đổi gì, vì sao:** trước đây GV chỉ chọn tháng / giữa-cuối kì / cả năm; loại `custom` (từ ngày — đến ngày) chỉ phụ huynh dùng trên `/ph` và bị chủ ý loại khỏi `REPORT_KINDS`. Chủ dự án muốn GV cũng chọn khoảng ngày tuỳ ý. Thêm `TEACHER_REPORT_KINDS` (= `REPORT_KINDS` + `custom` "Tự chọn khoảng ngày") dùng ở 2 ô chọn của GV (`StudentReport`, `ClassParentReportExport`), nhãn công bố, và hai bộ kiểm loại ở máy chủ (`api/_parent-portal.ts`, `api/_parent-report.ts`). `REPORT_KINDS` giữ nguyên nên cổng `/ph` không đổi.
+
+**Còn dở / cố ý bỏ:** chưa chạy thử trên trình duyệt, chưa `npm run build`. Phía phụ huynh: báo cáo khoảng ngày do GV gửi hiện nhãn "Thầy cô gửi theo khoảng ngày" (không lẫn với "Bạn tự chọn") và KHÔNG xoá được; báo cáo phụ huynh tự chọn (`TU_CHON_ID`, chỉ nằm trên màn hình, không lưu máy chủ) có nút "Xoá báo cáo tự chọn này". Đã thử tay trên localhost 24/10: tạo → xoá → về báo cáo GV.
+
+**Bẫy:** mã báo cáo đã công bố có cả ngày bắt đầu/kết thúc (`a__custom__2026-09-01__2026-09-15`) nên hai khoảng khác nhau là hai bản riêng, không ghi đè; công bố lại cùng khoảng thì ghi đè bản cũ. Nhận xét GV lưu theo `{kind, from, to}` nên mỗi khoảng custom có nhận xét riêng.
+
+**Nghiệm thu:** `npx vitest run src/lib/classroom/reportPeriod.test.ts api/__tests__/parent-portal.test.ts api/__tests__/parent-report.test.ts api/__tests__/function-count.test.ts`, `npx tsc --noEmit`, `npx tsc --noEmit -p tsconfig.api.json`.
 ## GV tìm học sinh ở mọi lớp từ ô tìm của Header — 17/10 (Claude)
 
 **Đổi gì, vì sao:** GV phải chọn lớp rồi mới tìm được em. Nay ô tìm có sẵn ở Header ("Tìm tính năng…") còn liệt kê học sinh mọi lớp (tên/Mã HS, không phân biệt dấu, tối đa 8, kèm tên lớp); bấm kết quả thì mở tab Lớp học, chọn đúng lớp và mở trang của em (`setClassFocus` ở `App.tsx` → `ClassesTab`). Dùng `data.classes` có sẵn, không đọc Firestore thêm. Hàm khớp: `src/components/layout/headerStudentSearch.ts`.

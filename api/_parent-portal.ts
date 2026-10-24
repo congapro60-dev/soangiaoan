@@ -19,7 +19,7 @@ import { sanitizeReportOverrides } from '../src/lib/classroom/reportOverrides.js
 import { asProgram } from '../src/lib/classroom/reportStage.js';
 import { loadLiveSource } from './_parent-live.js';
 import { publishedReportInput } from './_published-report.js';
-import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
+import { TEACHER_REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
   PARENT_BRANDING_DOC, PARENT_CACHE_SUB, PARENT_CONFIG_SUB, PARENT_INPUT_MAX_CHARS, PARENT_PIN_RULE, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, PARENT_STATS_SUB,
@@ -29,7 +29,7 @@ import {
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
 
-const KINDS: readonly string[] = REPORT_KINDS.map(item => item.kind);
+const KINDS: readonly string[] = TEACHER_REPORT_KINDS.map(item => item.kind);
 const MAX_PER_CALL = 40;
 
 const periodOf = (body: Body): { kind: string; from: string; to: string } | null => {

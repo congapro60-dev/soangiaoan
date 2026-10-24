@@ -40,7 +40,7 @@ const validateDetectedAnswers = (input: unknown): DetectedAnswer[] | undefined =
     if (seen.has(q)) error(400, `questionNo ${q} lặp trong detectedAnswers.`);
     seen.add(q);
     const ans = entry.answer;
-    if (!(ans === null || typeof ans === 'string') || !ALLOWED.has(ans)) error(400, 'answer phải là A|B|C|D|null.');
+    if (!(ans === null || typeof ans === 'string') || !ALLOWED.has(ans as string)) error(400, 'answer phải là A|B|C|D|null.');
     const conf = entry.confidence as number;
     if (typeof conf !== 'number' || !Number.isFinite(conf) || conf < 0 || conf > 1) error(400, 'confidence phải là số từ 0 đến 1.');
   }
