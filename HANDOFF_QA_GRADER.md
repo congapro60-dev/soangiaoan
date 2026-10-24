@@ -54,7 +54,7 @@ Fallback chuỗi: ViLao chib → **Gemini direct** (`GRADING_GEMINI_API_KEY`/`GE
 ## 5. Active constraints
 
 - **KHÔNG ghi Firestore trong mọi lần test** — chỉ GET. Các lần chấm thử chỉ ghi file local dưới `Temp\opencode\ab_test\`.
-- **Key cũ `SmartPlan-lane` (sk-a3ee…)** chờ chủ dự án thu hồi — đừng dùng cho inference mới. Key production là `SmartPlan-lane2` (đã lộ 1 lần trong log, đã đặt trong Vercel env `GRADING_VILAO_API_KEY`).
+- **Key cũ `SmartPlan-lane` (sk-a3ee…): GIỮ LẠI** theo quyết định chủ dự án 24/10 — để dành dùng cho OpenCode tooling sau này, KHÔNG dùng cho chấm bài production. Key production là `SmartPlan-lane2` (đã lộ 1 lần trong log, đã đặt trong Vercel env `GRADING_VILAO_API_KEY`).
 - **Điểm thầy chấm tay luôn thắng** — khi QA gặp bài có `teacherMarkedScore`, điểm hiển thị là điểm tay, không phải Σ của model.
 - `callUtilityVision`, `_classroom-online.ts`, `_parent-report.ts` ngoài chuỗi — giữ nguyên, không sửa.
 - Triết lý `GRADING_MODEL`: đổi model = sửa code rồi deploy (env chỉ để vượt lúc khẩn cấp).
