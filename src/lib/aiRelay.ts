@@ -6,8 +6,8 @@
 import { auth } from './firebase';
 import { moTaLoiHttp } from './httpErrorText';
 
-/** Trùng `RELAY_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai danh sách bằng nhau). */
-export const RELAY_MODEL_IDS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview', 'gemini-4-argon'] as const;
+/** Trùng `RELAY_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai danh sách bằng nhau). Máy chủ chạy model này TRÊN chợ API Vilao (G1 24/10/2026) — model mới phải đăng ký vào key Vilao trước. */
+export const RELAY_MODEL_IDS = ['gemini-3.8-flash'] as const;
 
 /** Hãng khác Gemini mà ví web trả được + model nhận. Trùng `RELAY_VENDOR_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai bên). */
 export const RELAY_VENDOR_MODEL_IDS = {

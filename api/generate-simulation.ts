@@ -1,15 +1,12 @@
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI } from '@google/genai';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
-import { acquireCallHoldWaiting, createAiUsageContext, geminiUsageCounts, recordAiUsage, releaseWalletHold, runWithAiUsage } from './_ai-usage.js';
-import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
-import { classifyGeminiKeyFailure, rateLimitRetryMs } from '../src/lib/admin/aiKeyPolicy.js';
-import { moTaGioiHanPhut } from '../src/lib/httpErrorText.js';
+import { acquireCallHoldWaiting, createAiUsageContext, openAiUsageCounts, recordAiUsage, releaseWalletHold, runWithAiUsage } from './_ai-usage.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
 
-const GEMINI_MODEL = 'gemini-3.8-flash';
+const VILAO_MODEL = 'gemini-3.8-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
 const MAX_HTML_SIZE_BYTES = 200000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -206,54 +203,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GRADING_VILAO_API_KEY?.trim();
     if (!apiKey) {
-      return sendError(res, 500, 'gemini_error', 'Gemini API key is not configured');
+      return sendError(res, 500, 'gemini_error', 'Vilao API key is not configured');
     }
 
-    const generate = (key: string) => new GoogleGenAI({ apiKey: key }).models.generateContent({
-      model: GEMINI_MODEL,
-      contents: [{ role: 'user', parts: [{ text: buildUserPrompt({ problemText: normalizedProblemText, style }) }] }],
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        temperature: 0.2,
-      },
-    });
+    // G1 24/10/2026: máy chủ gọi chợ Vilao (OpenAI-compatible) thay SDK Google; không stream, trả khối một lần.
+    const baseUrl = (process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1').replace(/\/+$/, '');
+    const generate = async (key: string): Promise<{ text: string; usage: unknown }> => {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: VILAO_MODEL,
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: buildUserPrompt({ problemText: normalizedProblemText, style }) },
+          ],
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text().catch(() => '');
+        throw new Error(`Vilao trả lỗi ${response.status}: ${detail.slice(0, 200)}`);
+      }
+      const data = await response.json().catch(() => null) as { choices?: Array<{ message?: { content?: unknown } }>; usage?: unknown } | null;
+      const content = data?.choices?.[0]?.message?.content;
+      return { text: typeof content === 'string' ? content : '', usage: data?.usage ?? null };
+    };
     const identity = { uid: teacherId, email: teacherEmail, anonymous: false };
     const usageContext = createAiUsageContext(null, 'generateSimulation', { lessonId: normalizedLessonId }, async () => identity);
     usageContext.keyOwnerUid = teacherId;
-    let result: Awaited<ReturnType<typeof generate>>;
+    let text: string;
     try {
-      result = await runWithAiUsage(usageContext, async () => {
-        // Cùng quy tắc với chấm bài: nhóm dùng khoá chung / khoá riêng giáo viên / khoá chung đã đồng ý.
-        let choice = await ensureGeminiKey(apiKey);
+      text = await runWithAiUsage(usageContext, async () => {
+        // Cùng quy tắc với chấm bài: lượt này luôn dùng khoá chung Vilao (vendor mode — không có khoá riêng của hãng).
+        const choice = await ensureGeminiKey(apiKey, { vendor: true });
         // Giữ chỗ tiền trước khi gọi (chỉ lượt bị trừ ví) để các lượt song song không cùng lọt qua kiểm số dư (QA F3).
         const acquire = async (): Promise<number> => {
           const held = await acquireCallHoldWaiting(choice);
           if (held.ok === false) throw new AiKeyRequiredError(held.reason === 'timeout' ? 'no_balance' : held.reason, choice.ownerUid);
           return held.holdVnd;
         };
-        let holdVnd = await acquire();
+        const holdVnd = await acquire();
         let handedOver = false;
         try {
-          let generated: Awaited<ReturnType<typeof generate>>;
-          try {
-            generated = await generate(choice.key);
-          } catch (error) {
-            const detail = error instanceof Error ? error.message : String(error);
-            const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
-            if (choice.source !== 'own' || !keyFailure) throw error;
-            // Khoá riêng chỉ bị giới hạn mỗi phút: không đánh dấu hết, không sang ví (trừ tiền oan) — báo đợi rồi thử lại.
-            const retryAfterMs = rateLimitRetryMs(Number((error as { status?: unknown }).status) || 0, detail);
-            if (retryAfterMs) throw new Error(moTaGioiHanPhut(retryAfterMs));
-            choice = await onOwnKeyFailure(choice, keyFailure, detail, apiKey);
-            holdVnd = await acquire();
-            generated = await generate(choice.key);
-          }
+          const generated = await generate(choice.key);
           // Đếm token — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền. `recordAiUsage` nhận luôn phần giữ chỗ.
           handedOver = true;
-          await recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(generated.usageMetadata), { holdVnd });
-          return generated;
+          await recordAiUsage('vilao', `vilao/${VILAO_MODEL}`, openAiUsageCounts(generated.usage), { holdVnd });
+          return generated.text;
         } finally {
           if (holdVnd > 0 && !handedOver && choice.ownerUid) {
             await releaseWalletHold(db, choice.ownerUid, holdVnd).catch(error => console.error('[simulation] không trả được chỗ giữ tiền:', error));
@@ -265,7 +264,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw error;
     }
 
-    const html = (result.text || '').trim();
+    const html = text.trim();
     if (!isValidHtmlSimulation(html)) {
       return sendError(res, 500, 'gemini_error', 'Gemini output is not valid self-contained HTML');
     }
@@ -286,7 +285,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       createdAt: new Date().toISOString(),
       createdBy: teacherId,
       htmlSizeBytes,
-      geminiModel: GEMINI_MODEL,
+      geminiModel: `vilao/${VILAO_MODEL}`,
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 

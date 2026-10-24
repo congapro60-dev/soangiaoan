@@ -73,7 +73,7 @@ export interface AiTokenCounts {
   totalTokens: number;
 }
 
-export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai';
+export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai' | 'vilao';
 
 const storage = new AsyncLocalStorage<AiUsageContext>();
 
