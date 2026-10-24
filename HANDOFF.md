@@ -11,6 +11,10 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 - **Cắn người sau:** ảnh Vilao chậm 26–52s, timeout handler 120s nằm trong maxDuration 300s của dispatcher; branch từ `aiPricing` cần rule model mới nếu đổi `AI_IMAGE_MODEL`. G4 (cắt Google khỏi chuỗi chấm) còn nợ.
 - **Nghiệm thu:** `tsc --noEmit` 0 lỗi; vitest ai-image-handler + studentAiKey + ai-relay 48/48 pass; E2E thật chưa chạy (chờ deploy preview).
 
+## Lần này đang làm (G3 debug)
+- Gọi preview `/api/grade-homework` action generateImage bằng token GV owner → 401 "Cần đăng nhập…" dù cùng token verify OK trên `/api/ai-relay` (200 "OK") và action khác (suggestRubric — verify qua body OK). Đang thêm log bắt lỗi trong catch của `_ai-image-handler.ts` để xem lỗi thật.
+- Bổ sung: trả kèm chi tiết lỗi verify trong response 401 (chữ `debug:`) để đọc trực tiếp không cần runtime logs.
+
 - **E2E nghiệm thật (24/10 14:52, preview 3d6p8haiv):** login Google GV owner trên localhost (VITE_API_TARGET trỏ preview) → gọi /api/ai-relay model gemini-3.8-flash → 200 "OK" 8,6s xuyên Vilao chib; phía Vilao key SmartPlan-preview ghi 2 req / 2 success / 6₫; phía web adminUsage thấy nhóm vilao/gemini-3.8-flash calls=1, cost 0,17₫ đúng bảng giá, 106 thoughts token đúng cột. Preview env có GRADING_VILAO_API_KEY = key riêng SmartPlan-preview (lane2 chỉ Production như cũ).
 - **Giá cập nhật:** Vilao trả `price_per_cached_read_token` 160₫/1M (≈1/10 giá vào) — bảng aiPricing đổi cached 400→160₫ quy đổi (trước chốt cached=input khi chưa có số). Lượt exempt owner không vào items sao kê (chỉ lượt trừ ví) — xem sổ qua adminUsage.
 - **Nghiệm thu:** npm run build xanh; vitest ai-relay + client-sync 36/36 pass.

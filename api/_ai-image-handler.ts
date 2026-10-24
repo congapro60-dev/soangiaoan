@@ -143,8 +143,9 @@ export const handleGenerateImage = async (
   try {
     if (typeof body.idToken !== 'string' || !body.idToken) throw new Error('no-token');
     uid = (await getAuth().verifyIdToken(body.idToken)).uid;
-  } catch {
-    return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+  } catch (error) {
+    console.error('[ai-image] verify idToken lỗi:', error instanceof Error ? error.message : error);
+    return res.status(401).json({ error: `Cần đăng nhập tài khoản giáo viên. (debug: ${error instanceof Error ? error.message.slice(0, 200) : 'không rõ'})` });
   }
 
   if (!checkRateLimit(uid)) {
