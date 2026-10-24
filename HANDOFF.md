@@ -5,14 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+- **E2E nghiệm thật (24/10 14:52, preview 3d6p8haiv):** login Google GV owner trên localhost (VITE_API_TARGET trỏ preview) → gọi /api/ai-relay model gemini-3.8-flash → 200 "OK" 8,6s xuyên Vilao chib; phía Vilao key SmartPlan-preview ghi 2 req / 2 success / 6₫; phía web adminUsage thấy nhóm vilao/gemini-3.8-flash calls=1, cost 0,17₫ đúng bảng giá, 106 thoughts token đúng cột. Preview env có GRADING_VILAO_API_KEY = key riêng SmartPlan-preview (lane2 chỉ Production như cũ).
+- **Giá cập nhật:** Vilao trả `price_per_cached_read_token` 160₫/1M (≈1/10 giá vào) — bảng aiPricing đổi cached 400→160₫ quy đổi (trước chốt cached=input khi chưa có số). Lượt exempt owner không vào items sao kê (chỉ lượt trừ ví) — xem sổ qua adminUsage.
+- **Nghiệm thu:** npm run build xanh; vitest ai-relay + client-sync 36/36 pass.
+
 ## Duyệt tự động bài cần soát + cờ cảnh báo — 24/10 (opencode)
 
-## G1 � Server relay + 3 duong chuyen sang Vilao � 24/10 (opencode)
+## G1 � Server relay + 3 duong chuyen sang Vilao � 24/10 (opencode)
 
 Chuyen toan bo luong AI server (relay vi web, bao cao PH, cham lai online, sinh mo phong) tu goi truc tiep Google Gemini sang cho API Vilao (api.vilao.ai/v1, OpenAI-compatible). Ly do: giam chi phi (~91% so Gemini tra phi), gop 1 key + 1 vi cho ca chu lan anh. Spec: docs/superpowers/specs/2026-10-24-vilao-all-flows-design.md.
 - **Da doi gi:** _ai-relay-core.ts rut RELAY_MODELS con ['gemini-3.8-flash'], them type RelayApiVendor; _ai-relay-handler.ts bo callGeminiRaw, route qua callVendor(apiVendor) voi key GRADING_VILAO_API_KEY; _ai-relay-vendors.ts build request Vilao (max_tokens, reasoning_effort chi none/low, ghi so model prefix vilao/); _parent-report.ts + _classroom-online.ts doi callGeminiVision -> callGradingVision, bo jsonMode, retry 1 lan khi parse JSON fail; generate-simulation.ts bo SDK @google/genai, fetch Vilao, ensureGeminiKey(vendor: true); aiPricing.ts them rule gia vilao/; _ai-usage.ts them 'vilao' vao union AiProvider; client aiRelay.ts dong bo RELAY_MODEL_IDS.
 - **Con do / no:** G2 (browser GV mac dinh Vilao), G3 (HS + anh Vilao), G4 (cat han Google tier cuoi chuoi cham). Chuoi cham giu nguyen 3 tang.
-- **Cai sap can:** Vilao response doi khi bao model upstream reroute (gemini-3.8-flash-high); generate-simulation.ts field geminiModel trong Firestore gio ghi vilao/gemini-3.8-flash � UI hien thi can kiem.
+- **Cai sap can:** Vilao response doi khi bao model upstream reroute (gemini-3.8-flash-high); generate-simulation.ts field geminiModel trong Firestore gio ghi vilao/gemini-3.8-flash � UI hien thi can kiem.
 - **Nghiem thu:** npm run build xanh; vitest run api/__tests__/ai-relay.test.ts api/__tests__/ai-relay.client-sync.test.ts 67/67 pass.
 
 
