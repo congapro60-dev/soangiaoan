@@ -7,10 +7,11 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 ## Fix: bài kiểm tra định kì không gắn được nhãn năng lực → điểm LO thiếu 60% trọng số — 24/10 (OpenCode)
 
-- **Bug thật** (phát hiện khi QA đẩy điểm LO lớp 11Columbus↔SSM 9681): `AssignmentPanel.tsx:1969` render `CompetencyTagEditor` sau điều kiện `!a.periodicTest` ⇒ bài thi định kì ("Thi giữa HKI", 26/26 đã chấm, 4.85–9.6/10) **không có đường nào gắn nhãn**. `buildClassLoScores` lại cần `assignment.competencyTags` để biết điểm quy về LO nào ⇒ grid LO tính ra chỉ có điểm luyện tập (BTVN + đề cương + thi thử) trong khi công thức `loClassScores.ts:131` dành 60% trọng số cho bài thi. Mọi kỳ đều sai, không riêng IA1.
-- **Đã sửa 2 chỗ:** (1) bỏ `!a.periodicTest` — bài thi gắn nhãn được như bài thường; (2) `buildClassLoScores` gom mỗi cặp (học sinh, bài giao) về **một lượt nộp mới nhất đã duyệt** (`latestByKey`), trước đây nộp lại bị cộng dồn điểm (Thi giữa HKI có 28 lượt thật nhưng UI chỉ hiện 26 → một em bị trung bình 2 điểm).
-- **Nghiệm thu:** `npx vitest run src/lib/ssm/loClassScores.test.ts` → 8/8 PASS (thêm 2 ca: nộp lại chỉ tính lượt mới nhất; lượt mới **chưa duyệt** không chen được điểm cũ đã duyệt). `npm run build` exit 0.
-- **Còn dở:** phải deploy preview mới (`df16243`) rồi mới gắn nhãn được Thi giữa HKI trên UI; sau đó tính lại IA1 và **chờ chủ dự án chốt trước khi đẩy** (111 điểm luyện tập đã bị bác — đẩy lúc này là ghi điểm sai bản chất vào SSM trường).
+- **Luật kỳ đã đổi theo chốt của chủ dự án** (`af64139`): điểm kỳ IA/SE = **40% tích luỹ** mọi bài thường từ đầu năm học (mốc `loYearStart` = 01/08) tới hết tháng của kỳ + **60% bài kiểm tra định kì** của chính kỳ. Trước đây chỉ lấy bài trong đúng tháng của kỳ ⇒ 78/142 lượt nộp đã duyệt (tháng 8–9) bị bỏ phí khỏi mọi kết quả.
+- **Bug thật** (phát hiện khi QA đẩy điểm LO lớp 11Columbus↔SSM 9681): `AssignmentPanel.tsx:1969` render `CompetencyTagEditor` sau điều kiện `!a.periodicTest` ⇒ bài thi định kì ("Thi giữa HKI", 26/26 đã chấm, 4.85–9.6/10) **không có đường nào gắn nhãn**. `buildClassLoScores` lại cần `assignment.competencyTags` để biết điểm quy về LO nào ⇒ grid LO tính ra chỉ có điểm luyện tập trong khi công thức dành 60% trọng số cho bài thi.
+- **Đã sửa 3 chỗ:** (1) bỏ `!a.periodicTest` — bài thi gắn nhãn được như bài thường; (2) gom mỗi cặp (học sinh, bài giao) về **một lượt nộp mới nhất đã duyệt** (`latestByKey`), trước đây nộp lại bị cộng dồn (Thi giữa HKI có 28 lượt thật nhưng UI chỉ hiện 26); (3) đổi luật kỳ 40/60 như trên.
+- **Nghiệm thu:** `npx vitest run src/lib/ssm` → 96/96 PASS; `npx tsc --noEmit` sạch; `npm run build` exit 0.
+- **Còn dở:** phải deploy preview mới rồi **gắn nhãn 7 bài còn trống** (6 bài tháng 8–9 + Thi giữa HKI) thì grid mới đủ dữ liệu; sau đó tính lại IA1 và **chờ chủ dự án chốt trước khi đẩy** (111 điểm luyện tập đã bị bác).
 - **Sẽ cắn người sau:** endpoint GHI `writeLoGrades` vẫn shape cũ, chưa verify với SSM mới (xem mục dưới). `.vercel-env-qa.txt` còn untracked, đừng commit.
 
 ## Nghiên cứu logic cây LO SSM (khối 10→12, VN MATH) — 24/10 (OpenCode)
