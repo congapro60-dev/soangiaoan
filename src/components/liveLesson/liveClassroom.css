@@ -457,3 +457,58 @@
 @media (prefers-reduced-motion: reduce) {
   .live-student *, .live-tv * { animation: none !important; transition: none !important; }
 }
+
+/* Ch? hai nh?p — thay b?ng con b?ng máy (Gate D 2026-10-25). */
+.student-think-banner {
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.student-think-banner.is-locked { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; }
+.student-think-banner.is-closed { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; }
+
+/* Hu?ng d?n phím Casio trên màn hình tuong tác. */
+.student-casio-guide {
+  margin-top: 12px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 16px;
+}
+.student-casio-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0e7490;
+}
+.student-casio-title { margin-top: 4px; font-size: 1.05rem; font-weight: 900; color: #0f172a; }
+.student-casio-steps { margin-top: 12px; display: grid; gap: 10px; list-style: none; padding: 0; }
+.student-casio-step { display: flex; gap: 10px; align-items: flex-start; }
+.student-casio-order {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  border-radius: 999px;
+  background: #0891b2; color: #fff;
+  font-size: 0.75rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.student-casio-body { min-width: 0; }
+.student-casio-instruction { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+.student-casio-keys { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.student-casio-key {
+  display: inline-block;
+  border-radius: 6px;
+  border: 1px solid #94a3b8;
+  border-bottom-width: 3px;
+  background: #fff;
+  padding: 2px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.student-casio-arrow { color: #94a3b8; font-weight: 800; }
+.student-casio-expected { margin-top: 6px; font-size: 0.8rem; color: #047857; }
+.student-casio-reminder { margin-top: 12px; font-size: 0.78rem; font-style: italic; color: #475569; }

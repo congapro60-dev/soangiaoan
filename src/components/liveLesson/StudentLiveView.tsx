@@ -12,6 +12,7 @@ import { auth } from '../../lib/firebase';
 import type { StudentDefinitionProjection } from '../../pages/LiveLessonPage';
 import type { LiveResponseType, LivePublicState, SubmitLiveResponseInput } from '../../lib/liveLesson/types';
 import { ThinkWindowBanner, useThinkWindow } from './ThinkWindow';
+import { CasioKeyGuide } from './CasioKeyGuide';
 import {
   enqueueLiveResponse,
   flushLiveResponseQueue,
@@ -666,6 +667,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       </div>
       <div className="student-slot" data-slot="activity-guide">
         <StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreen?.action} supportingAction={languageCoverage.content && languageView.language !== 'vi' ? localizedScreen?.action : undefined} route={currentRoute} />
+        <CasioKeyGuide lessonId={definition.lessonId} />
       </div>
 
       <div className="student-slot" data-slot="reflection">
