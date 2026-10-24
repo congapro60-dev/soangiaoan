@@ -1,6 +1,10 @@
 /**
  * Điểm năng lực (thang 10) của TỪNG em trong lớp, từ bài BTVN đã duyệt — tái dùng đúng bộ máy
  * hồ sơ năng lực (`buildStudentCompetencyPortfolio`), chỉ gom theo học sinh. Thuần.
+ *
+ * Luật kỳ (chủ dự án chốt 24/10): điểm của kỳ IA/SE = **40% tích luỹ** mọi bài thường từ đầu năm
+ * học tới hết tháng của kỳ + **60% bài kiểm tra định kì** của chính kỳ đó. Mỗi cặp (em, bài giao)
+ * chỉ lấy lượt nộp MỚI NHẤT đã duyệt.
  */
 import { buildStudentCompetencyPortfolio } from '../classroom/competency/portfolioModel';
 import type { CompetencyGrade } from '../classroom/competency/framework';
@@ -31,6 +35,12 @@ export const loPeriodDefinition = (key: LoPeriodKey, academicYear: number): LoPe
   const lastDay = new Date(Date.UTC(endYear, endMonth, 0)).getUTCDate();
   return { key, from: `${fromYear}-${String(fromMonth).padStart(2, '0')}-01`, to: `${endYear}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` };
 };
+
+/**
+ * Ngày bắt đầu năm học — mốc sớm nhất của phần "tích luỹ" (tháng 8). Bài trước mốc này
+ * (năm học trước) không được cộng vào kỳ hiện tại.
+ */
+export const loYearStart = (_key: LoPeriodKey, academicYear: number): string => `${academicYear}-08-01`;
 
 export interface RosterEntry {
   id: string;
@@ -104,7 +114,9 @@ const buildScopedClassLoScores = (
   options: LoScoreOptions,
 ): StudentCompetencyScores[] => {
   const period = loPeriodDefinition(options.period, options.academicYear);
-  const from = Date.parse(`${period.from}T00:00:00+07:00`);
+  // 40% "tích luỹ" = MỌI bài thường từ đầu năm học tới hết tháng của kỳ; 60% = bài kiểm tra định kì
+  // của chính kỳ. Bài tháng 8-9 vì thế vẫn vào điểm IA1 (qua phần 40%), không bị bỏ phí.
+  const yearStart = Date.parse(`${loYearStart(options.period, options.academicYear)}T00:00:00+07:00`);
   const to = Date.parse(`${period.to}T23:59:59+07:00`);
   const byAssignment = new Map(assignments.map((assignment) => [assignment.id, assignment]));
   // Mỗi em chỉ lấy MỘT lượt nộp mới nhất cho mỗi bài giao: học sinh nộp lại (attempt mới) thì điểm
@@ -121,7 +133,7 @@ const buildScopedClassLoScores = (
   for (const submission of latestByKey.values()) {
     const assignment = byAssignment.get(submission.assignmentId!)!;
     const date = Date.parse(`${(assignment.dueAt ?? assignment.createdAt ?? submission.createdAt).slice(0, 10)}T12:00:00+07:00`);
-    if (!Number.isFinite(date) || date < from || date > to) continue;
+    if (!Number.isFinite(date) || date < yearStart || date > to) continue;
     const score = submission.grade!.maxScore > 0 ? Math.max(0, Math.min(submission.grade!.score, submission.grade!.maxScore)) / submission.grade!.maxScore * 10 : NaN;
     if (!Number.isFinite(score)) continue;
     const target = evidence.get(submission.studentId) ?? new Map<string, { regular: number[]; periodic: number[] }>();

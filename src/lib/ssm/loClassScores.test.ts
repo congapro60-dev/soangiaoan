@@ -32,12 +32,37 @@ describe('buildClassLoScores', () => {
   it('F1 gom bài tháng 8-9, loại bài ngoài kỳ', () => {
     const scoped = buildClassLoScores(11, roster, [
       ...submissions,
-      { studentId: 's1', assignmentId: 'a2', createdAt: '2026-10-01', grade: { score: 2, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'a2', createdAt: '2026-12-01', grade: { score: 2, maxScore: 10, teacherApproved: true } },
     ], [
       ...assignments,
-      { id: 'a2', createdAt: '2026-10-01', competencyTags: [{ competencyId: COMP }] },
+      { id: 'a2', createdAt: '2026-12-01', competencyTags: [{ competencyId: COMP }] },
     ], { period: 'F1', academicYear: 2026 });
     expect(scoped.find((s) => s.maHS === 'HS001')?.scoreByCompetency[COMP]).toBe(8);
+  });
+
+  it('IA1 cộng dồn bài tháng 8-9 vào phần tích luỹ 40%', () => {
+    const scoped = buildClassLoScores(11, [roster[0]], [
+      { studentId: 's1', assignmentId: 'btvn-thang9', createdAt: '2026-09-10', grade: { score: 6, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'btvn-thang10', createdAt: '2026-10-05', grade: { score: 8, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-20', grade: { score: 9, maxScore: 10, teacherApproved: true } },
+    ], [
+      { id: 'btvn-thang9', dueAt: '2026-09-15', competencyTags: [{ competencyId: COMP }] },
+      { id: 'btvn-thang10', dueAt: '2026-10-10', competencyTags: [{ competencyId: COMP }] },
+      { id: 'exam', dueAt: '2026-10-22', periodicTest: {}, competencyTags: [{ competencyId: COMP }] },
+    ], { period: 'IA1', academicYear: 2026 });
+    // tích luỹ = trung bình(6, 8) = 7 → 7×0.4 + 9×0.6 = 8.2
+    expect(scoped[0].scoreByCompetency[COMP]).toBe(8.2);
+  });
+
+  it('bài của năm học trước không lọt vào tích luỹ', () => {
+    const scoped = buildClassLoScores(11, [roster[0]], [
+      { studentId: 's1', assignmentId: 'cu', createdAt: '2026-05-10', grade: { score: 1, maxScore: 10, teacherApproved: true } },
+      { studentId: 's1', assignmentId: 'exam', createdAt: '2026-10-20', grade: { score: 9, maxScore: 10, teacherApproved: true } },
+    ], [
+      { id: 'cu', dueAt: '2026-05-15', competencyTags: [{ competencyId: COMP }] },
+      { id: 'exam', dueAt: '2026-10-22', periodicTest: {}, competencyTags: [{ competencyId: COMP }] },
+    ], { period: 'IA1', academicYear: 2026 });
+    expect(scoped[0].scoreByCompetency[COMP]).toBe(9);
   });
 
   it('IA1 dùng 60% bài thi tháng 10 + 40% bài thường', () => {
