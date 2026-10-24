@@ -110,3 +110,45 @@ Cách chạy lại (bắt buộc để không dính lại):
 
 Finding UX (deferred — không sửa trong đợt QA này): guard nên trả `code: "BUSY"` để UI phân biệt được; hiển thị toast/inline thay vì `window.alert()` để không chặn tab; nhánh SAVE_DRAFT hiện nuốt lỗi BUSY im lặng (không alert) — nhất quán hoá sau.
 
+### Finding sự kiện lớp 23/10 tối (QA r028) — phải xử lý khi làm v28 hoạt động tập thể
+
+1. **DOM ghost · 2 element khác nhau sau khi sự kiện kết thúc.** DOM còn lại: (i) `section[aria-label^="Sự kiện lớp"]` — textContent có "Sự kiện đã kết thúc · Thời gian trả lời đúng nhanh nhất: 0 giây" nhưng **innerText rỗng** (ẩn); (ii) `.lesson-card` encounter — textContent/innerText **luôn** là "SỰ KIỆN LỚP · 1 NGƯỜI / Bấm chuông / Chuông đã ghi nhận… / Còn…", **không chứa chữ "kết thúc"**, và bên trong có `form.task-form` → bị đếm nhầm thành nhiệm vụ thường. Quy tắc bắt buộc: mọi logic đọc trạng thái sự kiện (UI lẫn automation) phải kiểm **cả textContent và innerText của cả 2 element**;bot v27 đã kẹt 600 vòng vì chỉ lọc một kiểu.
+2. **Sự kiện có thể kẹt `open` phía server khi tab HS nền.** Đếm ngược 2 phút của quest chỉ chạy client (rAF); tab nền → rAF/heartbeat dừng → server không nhận tick đóng; tab active lại → client lấy state `open` từ server → render lại live "Còn … giây" → vòng lặp vô hạn (đã tái hiện trên phòng QA r028: probe thấy DOM ghi "kết thúc" nhưng khi tab active, panel render lại live). Cần **server-side auto-expiry**: khi xử lý bất kỳ command nào đến sau deadline, server tự đóng quest trước; cân nhắc thêm tick định kỳ. Đây là điều kiện tiên quyết cho thiết kế v28 (đóng băng cả lớp, "Kết thúc sớm", cổng cuối tiết).
+
+**Bổ sung 24/10 — root cause chính xác sau probe server r028:**
+- Server có path auto-expiry (`runtime.js:687-688` chạy trong `reduceCore` khi xử lý mọi command) và **đã hoạt động**: `classEvent.status === "closed"` (probe 24/10: `remainingMs:0`, `classEventBudgetUsedMs:180000`). Nhưng **`classQuest.status` vẫn đứng ở `"open"` mãi mãi** — reducer không có đường chuyển trạng thái ra khỏi `open` (chỉ có `initClassQuest`→`pending`, `openClassQuest`→`open`/`ready`; `closeClassEvent` ở `runtime.js:228` và handler `CLASS_EVENT_CLOSE` ở `:1156` đều **không đụng `classQuest`**).
+- Hệ quả: cockpit GV mãi hiện "🎯 Đang chơi …" (lesson-dashboard.tsx:5477, không còn nút mở cổng sau); play ẩn banner quest (`play/page.tsx:1084` điều kiện `status !== "open"`); panel sự kiện ghost treo mãi ở DOM HS.
+- Yêu cầu v28 (nâng cấp so với ghi cũ): (1) `closeClassEvent` phải **đặt `classQuest.status = "closed"` + `closedAt`** — cả nhánh đóng bằng lệnh GV, nhánh expiry khi xử lý command; (2) expiry phải chạy cả trong **luồng đọc trạng thái** (`getSession`,Service), không chỉ khi có command mới tới — nếu cả lớp im lặng sau deadline, không có command nào chảy vào reducer để sức đóng; (3) giữ quy tắc kiểm DOM 2 element ở finding 1.
+
+### Cấu hình AI máy chấm (24/10) — đã xong trên live
+
+- Key Vilao mới `SmartPlan-AIGrade` (hint `sk-04e4…3e78`, key chỉ hiển thị 1 lần trên console — đã lưu vào site; key chưa gắn model mặc định → **phải "Đăng ký model" `gemini-3.8-flash` vào key** trước khi API chạy, lỗi 403 "Please subscribe to model" nếu quên).
+- Tên model khi gọi API = **`gemini-3.8-flash`** (không có tiền tố `chib/` như console hiển thị; dialog xác nhận đăng ký ghi rõ `Gọi API bằng: "model": "gemini-3.8-flash"`).
+- Đã lưu qua `/api/ai-settings` (owner): endpoint `https://api.vilao.ai/v1/chat/completions`, model `gemini-3.8-flash` — **ghi đè cấu hình cũ** (`gemini-flash-latest` @ Google, key …qLbw). Health-check `action:test` → `{ok:true,status:"OK"}`. Test trực tiếp Vilao API 200, mô hình đáp đúng.
+- UI thẻ "Cài đặt AI" không có ô endpoint (chỉ Khóa + Mô hình): muốn trỏ provider khác Gemini chính hãng phải POST `/api/ai-settings` `{action:'save', key, model, endpoint}` trực tiếp (route `app/api/ai-settings/route.js` nhận đủ 3 trường) — cân nhắc thêm ô endpoint vào thẻ khi làm v28 AI chấm.
+
+## Kết quả QA end-to-end 24/10 — bot 1 HS chạy đủ luồng (r028c `3AF0F9` + r108 `0566A5`)
+
+**Scope:** production-only, bot Puppeteer 1 tab HS (tên synthetic "QA V27 Cường"/"QA V27 Bảo"), phòng mới tạo từ catalogue r028/r108, không đụng phòng thật 7E42C2. Mã nguồn không đổi.
+
+**Kết quả tổng:** 2 phòng × 1 HS × 10/10 nhiệm vụ (act-1→7) nộp thành công; quest cổng 3 passed 1/1; sự kiện "Bấm chuông" đóng bằng cả lệnh GV lẫn expiry; AI chấm phiếu cuối giờ xác nhận **đúng cả 2 nhánh**.
+
+### Đã xác nhận tốt (v27 đạt)
+- **Đúng/sai 4 ý nộp đúng ngay**: TFTT được chấp nhận `assessed` không vòng lặp (r028c lẫn r108); trạng thái chấm và điểm phần đúng phản ánh chuẩn.
+- **MC/Trả lời ngắn khớp server**: r028c mc=`A`, sa=`7,50`; r108 mc=`B`, sa=`4,80` — server xác nhận ok=true.
+- **AI chấm exit task (act-6) chính xác cả 2 nhánh**: r028c bài bot thiếu bước Ta-lét đảo → `criteriaMet=false`, feedback đủ 2 tiêu chí ("Tiêu chí 1 Chưa đạt — thiếu chứng minh I tồn tại; Tiêu chí 2 Đạt"), confidence 0.95, chấm ~10s sau nộp; HS view hiện "Phiếu cuối giờ · AI chấm: cần hoàn thiện · Thầy/cô có thể rà lại". r108 bài đủ 2 ý (song song + toạ độ AC'⊥ chia 3 đoạn bằng nhau) → `criteriaMet=true`, feedback khen đủ 2 ý, chấm ~8.5s. `assessmentSource=ai`, model `gemini-3.8-flash`, đủ `sourceFingerprint` + `auditReceipt`. Chi tiết verdict nằm ở `openAssessments` (`submissions[].aiAssessment` chỉ là meta).
+- **Expiry sự kiện lớp server-side hoạt động**: không cần command, `classEvent.status=closed`, `remainingMs:0`. (Nhưng `classQuest.status` vẫn kẹt `open` — finding (b) dưới.)
+
+### Finding mới chuyển v28
+- **(a) ⚠️ activityDeadline khoá toàn bộ input HS → HS bế tắc vĩnh viễn (nghiêm trọng nhất).** Phòng r028 đầu tiên: act-3 hạn 10' chốt theo đồng hồ lớp, quá hạn 47' → `isInputDisabled` toàn form; HS đã sai đáp án trước đó không nộp lại được → quest cổng 3 không pass → lesson kẹt vĩnh viễn, không có đường thoát cho HS lẫn GV. V28 bắt buộc: hết giờ activity vẫn phải còn đường nộp lại (nút nộp luôn bật, tự ghi nhận "nộp muộn") hoặc GV gia hạn/huỷ deadline; không được có trạng thái nào vừa chặn nộp vừa chặn chuyển câu.
+- **(b) `classQuest.status` mãi `open` sau khi event đóng** — chi tiết ở mục "Bổ sung 24/10" trên; v28 chốt: đặt `closed`+`closedAt` ở cả nhánh lệnh GV lẫn expiry, và chạy expiry trong luồng đọc trạng thái (`getSession`), không chỉ khi có command.
+- **(c) Phòng bị join đè → client chặn submit thầm lặng.** Phòng 886E07 (join 2 lần trên session có learnerState cũ): click "Nộp câu trả lời" không sinh POST nào (chỉ GET poll), không banner lỗi, textarea đầy đủ nút enabled — UI tưởng đã nộp nhưng server `submissions=0`. **Không phải do `mode:"preview"`**: phòng 3AF0F9 cũng preview mà nộp được 10 bài. Phòng mới + join sạch chạy bình thường. V28: mọi lệnh bị chặn phía client phải hiển thị lỗi cho HS, cấm chặn im lặng; soi lại điều kiện chặn submit khi learnerState trùng tên/phòng.
+- **(d) Card nhiệm vụ rỗng vài giây khi view mới mount** (innerText rỗng trước khi đề render) — automation cần blank-guard (chờ card có nội dung, không đếm stall).
+- **(e) Tạo phòng lần 1 thường fail** ("Waiting failed: 25000ms" — app đang "Khôi phục phiên giáo viên"); chạy lại tab mới là được. Không phải lỗi v27.
+- **(f) Xóa phòng qua /hosts** là modal 2 bước: bấm "Xóa" → **nhập mã phòng 6 ký tự** → "Xác nhận xóa"; phòng chuyển Thùng rác (khôi phục được). Đã đưa 4 phòng QA rác vào Thùng rác (7062E5, 886E07/hỏng join-đè, 6B14E6, AFE3CB/kẹt deadline); giữ lại 3AF0F9 (r028c, nhánh AI fail-đúng) + 0566A5 (r108, nhánh AI pass) để đối chiếu tới khi chốt.
+
+### Ghi chú vận hành QA (cho lần sau)
+- Verify server: từ tab `/hosts` (cookie GV) chạy `GET /api/lesson-sessions?id=<session>` **không** kèm `kind=presenter` → full view: `submissions` (10 bài, status `ai_assessed`) + `openAssessments` (feedback + `criteriaMet` per tiêu chí). `kind=presenter` chỉ trả projection rút gọn, không đủ dữ liệu.
+- Bot luôn đăng ký CDP dialog-handler trước khi thao tác tab HS (alert native chặn tab — chẩn đoán 23/10); chỉ chạy 1 bot HS một lúc; tab Chrome dư cần đóng trước khi chạy bot (CDP quá tải → `Network.enable timed out`).
+- Trình tự script dùng được: `qa-room-create.mjs` → `qa-pupil-join.mjs` → `qa-teacher-start.mjs` → `qa-pupil-play.mjs` (lượt 1, dừng ở sự kiện) → `qa-temp-event-close.mjs` (env `QA_SESSION`) hoặc chờ expiry → `qa-pupil-play.mjs` (lượt 2) → verify.
+
