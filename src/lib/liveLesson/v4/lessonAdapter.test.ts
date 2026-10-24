@@ -43,15 +43,15 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
     }
   });
 
-  it('generates exactly 48 unique packages without relying on stale lesson-data.json', () => {
+  it('generates exactly 51 unique packages without relying on stale lesson-data.json', () => {
     const contracts = getAllBanToanV4Contracts();
     const metadata = getBanToanV4PackageMetadata();
 
-    expect(contracts).toHaveLength(48);
-    expect(metadata).toHaveLength(48);
-    expect(new Set(contracts.map((contract) => contract.sourceKey)).size).toBe(48);
-    expect(new Set(contracts.map((contract) => contract.id)).size).toBe(48);
-    expect(contracts.filter((contract) => contract.lessonMode === 'formation')).toHaveLength(21);
+    expect(contracts).toHaveLength(51);
+    expect(metadata).toHaveLength(51);
+    expect(new Set(contracts.map((contract) => contract.sourceKey)).size).toBe(51);
+    expect(new Set(contracts.map((contract) => contract.id)).size).toBe(51);
+    expect(contracts.filter((contract) => contract.lessonMode === 'formation')).toHaveLength(24);
     expect(contracts.filter((contract) => contract.lessonMode === 'practice')).toHaveLength(17);
     expect(contracts.filter((contract) => contract.lessonMode === 'elective-practice')).toHaveLength(10);
     expect(contracts.every((contract) => validateV4Contract(contract).ok)).toBe(true);
@@ -60,7 +60,7 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
   it('uses the searchable teacher-facing title style from the P31 demo', () => {
     expect(getBanToanV4DisplayTitle('10-5-31')).toBe('Bất phương trình bậc nhất hai ẩn — Tiết 1');
     expect(getBanToanV4DisplayTitle('10-5-32')).toBe('Biểu diễn miền nghiệm của bất phương trình — Tiết 2');
-    expect(new Set(getAllBanToanV4Contracts().map((contract) => getBanToanV4DisplayTitle(contract.sourceKey))).size).toBe(48);
+    expect(new Set(getAllBanToanV4Contracts().map((contract) => getBanToanV4DisplayTitle(contract.sourceKey))).size).toBe(51);
   });
 
   it('exposes every term used by language demands in the approved glossary', () => {

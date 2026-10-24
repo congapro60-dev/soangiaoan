@@ -65,7 +65,7 @@ describe('V4 contract → live lesson runtime definition', () => {
   it('builds a valid 40-minute runtime for every source package', () => {
     const contracts = getAllBanToanV4Contracts();
 
-    expect(contracts).toHaveLength(48);
+    expect(contracts).toHaveLength(51);
     contracts.forEach((contract) => {
       const definition = buildLiveLessonDefinitionFromV4(contract, `lesson-${contract.sourceKey}`);
 

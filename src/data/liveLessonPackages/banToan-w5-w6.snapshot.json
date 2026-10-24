@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-30T09:12:33.893Z",
+  "generatedAt": "2026-10-24T19:33:47.474Z",
   "source": {
     "directoryHint": "giao an manus tao/_qa/ban_toan_rebuild",
     "files": {
@@ -15071,6 +15071,277 @@
       "guidingQuestion": "Khi gặp các bài về Chọn nhiệm vụ mở kết hợp đồ thị, tọa độ và góc, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Đánh giá một mô hình định hướng/đo đạc có ý nghĩa quốc tế bằng dữ kiện, vectơ và phép kiểm minh bạch., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
       "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+    },
+    {
+      "key": "10-11-79",
+      "grade": 10,
+      "week": 11,
+      "period": 79,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "title": "Số gần đúng và sai số",
+      "focus": "Phân biệt số đúng và số gần đúng; tính sai số tuyệt đối, sai số tương đối và quy tròn số gần đúng đúng hàng theo độ chính xác d",
+      "formulas": [
+        "\\Delta_a = |a - \\bar{a}| \\le d",
+        "\\bar{a} = a \\pm d \\iff a - d \\le \\bar{a} \\le a + d",
+        "\\delta_a \\le \\dfrac{d}{|a|}"
+      ],
+      "examples": [
+        {
+          "question": "Một học sinh đo chiều dài mép bàn bằng thước cuộn và đọc được 1,205 m. Độ dài thật của mép bàn có đúng tuyệt đối 1,205 m không? Vì sao?",
+          "solution": "Không. Mắt nhìn có góc nghiêng, vạch thước có bề dày, mép bàn có thể mòn và nhiệt độ làm thước co giãn. Vì vậy 1,205 m là số gần đúng, còn độ dài thật là số đúng (kí hiệu ā)."
+        },
+        {
+          "question": "Chiều dài cây cầu đo được 100 m với sai số không quá 1 cm; chiều dài bút chì đo được 10 cm với sai số không quá 1 cm. Phép đo nào tốt hơn?",
+          "solution": "Cầu: δ₁ ≤ 0,01/100 = 0,01%. Bút chì: δ₂ ≤ 1/10 = 10%. Cùng sai số tuyệt đối 1 cm nhưng sai số tương đối của phép đo cầu nhỏ hơn 1000 lần, nên phép đo cầu tốt hơn hẳn."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho $\\bar a = 10$ và $a = 9,8$. Tính sai số tuyệt đối $\\Delta_a$.",
+          "answer": "$\\Delta_a = |9,8 - 10| = 0,2$."
+        },
+        {
+          "level": "NB",
+          "question": "Cho $a = 15$ và độ chính xác $d = 0,2$. Viết khoảng chặn của số đúng $\\bar a$.",
+          "answer": "$15 - 0,2 \\le \\bar a \\le 15 + 0,2$, tức $14,8 \\le \\bar a \\le 15,2$."
+        },
+        {
+          "level": "TH",
+          "question": "Chiều cao đỉnh Fansipan công bố là $3\\,147,3$ m với độ chính xác $d = 0,2$ m. Quy tròn số đó.",
+          "answer": "Chữ số khác 0 đầu tiên của $d = 0,2$ ở hàng phần mười, nên hàng quy tròn là hàng đơn vị: $3\\,147,3 \\approx 3\\,147$ m."
+        },
+        {
+          "level": "TH",
+          "question": "Chiều dài ruộng $a = 45,6$ m $\\pm 0,1$ m. Bác nông dân khẳng định chiều dài đúng là $45,75$ m. Đúng hay sai?",
+          "answer": "Sai. Khoảng chặn là $45,5 \\le \\bar a \\le 45,7$, mà $45,75 > 45,7$ nên nằm ngoài khoảng."
+        },
+        {
+          "level": "VD",
+          "question": "Bán kính Trái Đất $R = 6\\,371$ km $\\pm 1$ km. Tính sai số tương đối.",
+          "answer": "$\\delta \\le 1 / 6\\,371 \\approx 0,016\\%$, rất nhỏ dù sai số tuyệt đối tới 1 km."
+        },
+        {
+          "level": "VD",
+          "question": "Khoảng cách Trái Đất – Mặt Trăng $384\\,400$ km $\\pm 50$ km. Đánh giá sai số tương đối theo phần trăm.",
+          "answer": "$\\delta \\le 50 / 384\\,400 \\approx 0,013\\%$."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Trong các số sau, số nào là số đúng: 42 học sinh của lớp 10A1, khoảng cách Hà Nội – Hải Phòng 102 km, nhiệt độ 28°C, chiều cao ngọn núi 2 000 m?",
+          "solution": "42 học sinh là số đúng vì đếm được chính xác; các đại lượng còn lại đều phải đo nên là số gần đúng."
+        },
+        {
+          "question": "Cho $x = 12,5$ cm $\\pm 0,05$ cm. Hàng quy tròn thích hợp của $x$ là hàng nào?",
+          "solution": "$d = 0,05$ có chữ số khác 0 đầu tiên ở hàng phần trăm, nên hàng quy tròn là hàng phần mười: $x \\approx 12,5$ cm."
+        }
+      ],
+      "mistakes": [
+        "Nhầm số đếm được (42 học sinh) với số phải đo, dẫn tới coi mọi con số đều là số gần đúng.",
+        "Quy tròn về đúng hàng của chữ số khác 0 đầu tiên của $d$ thay vì hàng liền trước hàng đó.",
+        "So sánh chất lượng hai phép đo bằng sai số tuyệt đối dù hai vật có quy mô rất khác nhau."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Số đúng và số gần đúng",
+        "a. Số đúng là giá trị chính xác của đại lượng; số gần đúng là kết quả đo được.",
+        "b. Mọi phép đo đều có sai khác: góc nhìn, bề dày vạch chia, nhiệt độ, độ mòn.",
+        "2. Sai số tuyệt đối",
+        "a. $\\Delta_a = |a - \\bar a|$.",
+        "b. Nếu $\\Delta_a \\le d$ thì $d$ là độ chính xác của số gần đúng.",
+        "c. Viết $\\bar a = a \\pm d$, tức $a - d \\le \\bar a \\le a + d$.",
+        "3. Sai số tương đối",
+        "a. $\\delta_a \\le \\dfrac{d}{|a|}$.",
+        "b. Cầu $100$ m sai $1$ cm: $\\delta \\le 0,01\\%$; bút chì $10$ cm sai $1$ cm: $\\delta \\le 10\\%$.",
+        "4. Quy tắc quy tròn",
+        "a. Xác định hàng của chữ số khác 0 đầu tiên của $d$.",
+        "b. Quy tròn số gần đúng đến hàng liền trước hàng đó."
+      ]
+    },
+    {
+      "key": "11-11-75",
+      "grade": 11,
+      "week": 11,
+      "period": 75,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "title": "Mẫu số liệu ghép nhóm",
+      "focus": "Hình thành khái niệm mẫu số liệu ghép nhóm, nhóm nửa khoảng, giá trị đại diện và quy trình ba bước ghép nhóm một dãy số liệu thô",
+      "formulas": [
+        "[a_i; a_{i+1}) \\quad \\text{lấy } \\ge \\text{ ở mút trái, } < \\text{ ở mút phải}",
+        "c_i = \\dfrac{a_i + a_{i+1}}{2}",
+        "R = x_{\\max} - x_{\\min}"
+      ],
+      "examples": [
+        {
+          "question": "Bảng 40 số liệu thời gian dùng Internet hằng ngày (phút) của lớp 11A có giá trị nhỏ nhất 42 và lớn nhất 235. Tính khoảng biến thiên và nhận xét.",
+          "solution": "R = 235 − 42 = 193. Khoảng biến thiên rất rộng nên nếu lập bảng tần số cho từng giá trị riêng lẻ thì bảng quá dài, khó quan sát xu hướng."
+        },
+        {
+          "question": "Chia khoảng 42 đến 235 thành các nhóm độ dài 40 phút bắt đầu từ 30. Viết các nhóm và cho biết nhóm nào có tần số bằng 0.",
+          "solution": "Các nhóm: [30;70), [70;110), [110;150), [150;190), [190;230), [230;270). Với bảng mẫu của lớp, tần số lần lượt là 10; 15; 11; 3; 0; 1 nên nhóm [190;230) có tần số 0 nhưng vẫn phải giữ để các nhóm liên tiếp, không bỏ hổng."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho nhóm $[20; 30)$. Nêu độ dài nhóm và giá trị đại diện.",
+          "answer": "Độ dài $30 - 20 = 10$; giá trị đại diện $c = (20 + 30)/2 = 25$."
+        },
+        {
+          "level": "NB",
+          "question": "Kí hiệu nhóm $[a_i; a_{i+1})$ lấy dấu gì ở mút trái và mút phải?",
+          "answer": "Lấy $\\ge$ ở mút trái và $<$ ở mút phải."
+        },
+        {
+          "level": "TH",
+          "question": "Học sinh có thời gian dùng Internet đúng 90 phút thuộc nhóm $[60; 90)$ hay $[90; 120)$?",
+          "answer": "Thuộc $[90; 120)$ vì mút trái lấy dấu $\\ge$, còn $[60; 90)$ lấy dấu $<$ ở mút phải."
+        },
+        {
+          "level": "TH",
+          "question": "Cự ly chạy 100 m có $x_{\\min} = 12,1$ s, $x_{\\max} = 15,5$ s. Chia 4 nhóm đều bắt đầu từ 12,0 s thì độ dài nhóm bằng bao nhiêu?",
+          "answer": "$R = 15,5 - 12,0 = 3,5$; $h \\ge 3,5/4 = 0,875$ nên chọn $h = 1,0$: $[12;13), [13;14), [14;15), [15;16)$."
+        },
+        {
+          "level": "VD",
+          "question": "Bảng ghi các nhóm $[10;20)$, $[20;30)$, $[31;40)$ sai ở đâu và gây hậu quả gì với học sinh đạt 30,5?",
+          "answer": "Bảng bỏ hổng khoảng (30;31) nên giá trị 30,5 không thuộc nhóm nào; học sinh đó biến mất khỏi bảng tần số, tổng tần số nhỏ hơn n."
+        },
+        {
+          "level": "VD",
+          "question": "Vì sao trong một bảng ghép nhóm, nhóm có tần số 0 vẫn phải giữ?",
+          "answer": "Vì các nhóm phải liên tiếp và bao phủ toàn bộ khoảng từ $x_{\\min}$ tới $x_{\\max}$; bỏ nhóm rỗng sẽ tạo hổng và làm sai quy tắc ghép nhóm."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Cho bảng nhóm $[20;30), [30;40), [40;50)$. Giá trị đại diện của nhóm thứ hai bằng bao nhiêu?",
+          "solution": "$c_2 = (30 + 40)/2 = 35$."
+        },
+        {
+          "question": "Vì sao bảng tần số đơn lẻ cho từng giá trị không còn phù hợp với mẫu 40 số liệu?",
+          "solution": "Vì bảng quá dài, nhiều giá trị chỉ có tần số bằng 1 nên không nhìn ra xu hướng tập trung của dữ liệu."
+        }
+      ],
+      "mistakes": [
+        "Hiểu nhóm $[a; b)$ là đoạn đóng hai đầu nên xếp giá trị đúng bằng $b$ vào nhóm trước.",
+        "Bỏ nhóm có tần số bằng 0, làm bảng mất tính liên tiếp.",
+        "Quên kiểm tổng tần số bằng $n$ sau khi lập bảng."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Khái niệm mẫu số liệu ghép nhóm",
+        "a. Gom các giá trị gần nhau thành từng nhóm để dễ quan sát xu hướng.",
+        "b. Nhóm có dạng nửa khoảng $[a_i; a_{i+1})$: lấy $\\ge$ ở mút trái, $<$ ở mút phải.",
+        "c. Riêng nhóm cuối đóng cả hai đầu để chứa $x_{\\max}$.",
+        "2. Giá trị đại diện",
+        "a. $c_i = \\dfrac{a_i + a_{i+1}}{2}$.",
+        "b. Giá trị đại diện không nhất thiết là số nguyên.",
+        "3. Bốn quy tắc ghép nhóm",
+        "a. Các nhóm liên tiếp.",
+        "b. Không chồng chéo.",
+        "c. Bao phủ toàn bộ từ $x_{\\min}$ tới $x_{\\max}$.",
+        "d. Mỗi nhóm là nửa khoảng $[a_i; a_{i+1})$.",
+        "4. Quy trình ba bước",
+        "a. Tìm $x_{\\min}$, $x_{\\max}$, tính $R = x_{\\max} - x_{\\min}$.",
+        "b. Chọn số nhóm $k$, tính độ dài $h$.",
+        "c. Lập bảng tần số và kiểm tra tổng tần số bằng $n$."
+      ]
+    },
+    {
+      "key": "12-11-80",
+      "grade": 12,
+      "week": 11,
+      "period": 80,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "title": "Phương sai và độ lệch chuẩn",
+      "focus": "Hình thành công thức phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm; lập bảng trung gian; kiểm chứng bằng máy tính Casio",
+      "formulas": [
+        "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i",
+        "s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i (c_i - \\bar{x})^2",
+        "s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i^2 - \\bar{x}^2",
+        "s = \\sqrt{s^2} \\ge 0"
+      ],
+      "examples": [
+        {
+          "question": "Hai xạ thủ An và Bình mỗi người bắn 20 phát, cùng điểm trung bình 8,5. An có tần số 2; 16; 2 còn Bình có 7; 6; 7 trên ba nhóm [6;8), [8;10), [10;12). Ai bắn ổn định hơn?",
+          "solution": "Giá trị đại diện 7; 9; 11. Với An: Σnᵢ(cᵢ−x̄)² = 2(7−8,5)² + 16(9−8,5)² + 2(11−8,5)² = 21 nên s² = 21/20 = 1,05 và s ≈ 1,02. Với Bình: 7(7−8,5)² + 6(9−8,5)² + 7(11−8,5)² = 61 nên s² = 3,05 và s ≈ 1,75. Vì s_A < s_B nên An bắn ổn định hơn."
+        },
+        {
+          "question": "Kiểm lại kết quả của An bằng công thức rút gọn.",
+          "solution": "Σnᵢcᵢ² = 2·49 + 16·81 + 2·121 = 98 + 1296 + 242 = 1636. Khi đó s² = 1636/20 − 8,5² = 81,8 − 72,25 = 1,05, khớp với cách tính theo định nghĩa."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho mẫu ghép nhóm có $n = 10$, $\\sum n_i c_i^2 = 250$ và $\\bar x = 4$. Tính $s^2$ và $s$.",
+          "answer": "$s^2 = 250/10 - 4^2 = 25 - 16 = 9$; $s = 3$."
+        },
+        {
+          "level": "NB",
+          "question": "Độ lệch chuẩn $s$ có thể nhận giá trị âm không?",
+          "answer": "Không, vì $s = \\sqrt{s^2}$ là căn bậc hai số học nên luôn không âm."
+        },
+        {
+          "level": "TH",
+          "question": "Vì sao khi đã có $s^2$ người ta còn tính thêm $s$?",
+          "answer": "Vì $s^2$ có đơn vị là bình phương đơn vị dữ liệu (ví dụ điểm²), còn $s$ cùng đơn vị với dữ liệu gốc nên so sánh trực quan được."
+        },
+        {
+          "level": "TH",
+          "question": "Bảng có ba nhóm với tần số 2; 16; 2 và giá trị đại diện 7; 9; 11. Tính số trung bình.",
+          "answer": "$\\bar x = (2\\cdot7 + 16\\cdot9 + 2\\cdot11)/20 = (14 + 144 + 22)/20 = 180/20 = 8,5$."
+        },
+        {
+          "level": "VD",
+          "question": "Máy đo độ ẩm được kiểm định: nếu độ lệch chuẩn của mẫu đo lớn hơn $0,15$ thì đưa máy đi sửa. Em là kỹ thuật viên, dựa vào đâu để quyết định?",
+          "answer": "Phải tính $s$ từ mẫu 20 lần đo rồi so với ngưỡng $0,15$: nếu $s > 0,15$ thì máy không ổn định, cần sửa; quyết định dựa trên số liệu chứ không cảm tính."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh hai công thức phương sai tương đương.",
+          "answer": "Khai triển $(c_i - \\bar x)^2 = c_i^2 - 2\\bar x c_i + \\bar x^2$; lấy tổng có trọng số rồi chia $n$ và dùng $\\sum n_i c_i = n\\bar x$ ta được $s^2 = \\frac{1}{n}\\sum n_i c_i^2 - \\bar x^2$."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tính nhanh $s^2$ khi $n = 10$, $\\sum n_i c_i^2 = 250$, $\\bar x = 4$.",
+          "solution": "$s^2 = 25 - 16 = 9$, suy ra $s = 3$ (không phải $\\pm3$)."
+        },
+        {
+          "question": "Một bài giải ghi $s^2 = 9$ rồi kết luận $s = \\pm 3$. Bài đó sai ở đâu?",
+          "solution": "Sai vì $s = \\sqrt{s^2}$ là căn bậc hai số học nên chỉ nhận giá trị không âm; kết luận đúng là $s = 3$."
+        }
+      ],
+      "mistakes": [
+        "Quên nhân tần số $n_i$ khi tính tổng bình phương độ lệch.",
+        "Viết $s = \\pm\\sqrt{s^2}$ thay vì $s = \\sqrt{s^2} \\ge 0$.",
+        "Làm tròn số trung bình quá sớm khiến sai số tích luỹ ở bước bình phương."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Số trung bình mẫu ghép nhóm",
+        "a. $\\bar x = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i$ với $c_i$ là giá trị đại diện.",
+        "2. Phương sai",
+        "a. Theo định nghĩa: $s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i (c_i - \\bar x)^2$.",
+        "b. Công thức rút gọn: $s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i^2 - \\bar x^2$.",
+        "c. Hai công thức cho cùng một kết quả.",
+        "3. Độ lệch chuẩn",
+        "a. $s = \\sqrt{s^2}$, luôn không âm.",
+        "b. $s$ cùng đơn vị với dữ liệu nên so sánh trực quan được.",
+        "4. Ý nghĩa và kiểm chứng",
+        "a. $s^2$, $s$ càng lớn thì mẫu càng phân tán.",
+        "b. Xạ thủ An: $s^2 = 1,05$, $s \\approx 1,02$; Bình: $s^2 = 3,05$, $s \\approx 1,75$.",
+        "c. Kiểm bằng Casio fx-580VN X: MENU 6 → 1, bật Freq, nhập $c_i$ và $n_i$, OPTN → 3 để đọc $\\sigma x$."
+      ]
     }
   ],
   "aiErrors": {
@@ -15745,6 +16016,36 @@
       "libraryTitle": "Tích vô hướng: bỏ một tích tọa độ nhưng vẫn kết luận vuông góc",
       "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
+    },
+    "10-11-79": {
+      "key": "10-11-79",
+      "mode": "micro",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI viết: Chiều cao Fansipan là 3 147,3 m với độ chính xác d = 0,2 m. Vì d có chữ số khác 0 ở hàng phần mười nên quy tròn số đó đến hàng phần mười, được 3 147,3 m.",
+      "correction": "d = 0,2 có chữ số khác 0 đầu tiên ở hàng phần mười, nên hàng quy tròn là hàng liền trước, tức hàng đơn vị: 3 147,3 ≈ 3 147 m.",
+      "proof": "Quy tắc: hàng quy tròn là hàng liền trước hàng của chữ số khác 0 đầu tiên của d. Chữ số đó ở hàng phần mười nên phải quy tròn tới hàng đơn vị.",
+      "teacherPrompt": "Dòng nào trong lời giải AI sai? Em chỉ ra quy tắc bị áp dụng ngược và sửa lại kết quả.",
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi logic”, sửa thành 3 147 m và nêu quy tắc hàng liền trước."
+    },
+    "11-11-75": {
+      "key": "11-11-75",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Học sinh dùng Internet 90 phút thuộc nhóm [60; 90) vì 90 nằm ở cuối nhóm này.",
+      "correction": "Nhóm [60; 90) lấy dấu < ở mút phải nên không chứa 90; học sinh đó thuộc nhóm [90; 120) vì mút trái lấy dấu ≥.",
+      "proof": "Kí hiệu nửa khoảng: [a; b) nghĩa là a ≤ x < b. Với x = 90 và nhóm [60; 90) thì 90 < 90 là sai, nên 90 không thuộc nhóm này.",
+      "teacherPrompt": "Lời giải AI sai ở quy tắc nào? Em dùng kí hiệu nửa khoảng để chứng minh và xếp lại 90 phút vào đúng nhóm.",
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi khái niệm”, viết 90 ≥ 90 nên thuộc [90; 120) làm bằng chứng."
+    },
+    "12-11-80": {
+      "key": "12-11-80",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: s² = 9 nên độ lệch chuẩn s = ±3.",
+      "correction": "s = √(s²) là căn bậc hai số học nên chỉ nhận giá trị không âm: s = 3.",
+      "proof": "Theo định nghĩa s = √(s²) và căn bậc hai số học của một số không âm luôn không âm, nên không thể có hai giá trị ±3.",
+      "teacherPrompt": "Bài giải AI sai ở đâu? Em phân loại lỗi và chỉ ra vì sao độ lệch chuẩn không thể âm.",
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi đại số”, sửa thành s = 3 và nêu định nghĩa căn bậc hai số học."
     }
   }
 }

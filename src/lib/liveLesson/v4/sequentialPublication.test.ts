@@ -15,10 +15,10 @@ import { buildPilotAdaptiveLesson } from '../pilotAdaptiveLesson';
 describe('sequentialPublication', () => {
   // ── Pure: 48 lessons ready from generator ────────────────────────────
 
-  describe('48 source keys exist and all contracts validate', () => {
-    it('returns exactly 48 source keys', () => {
+  describe('51 source keys exist and all contracts validate', () => {
+    it('returns exactly 51 source keys', () => {
       const keys = getAllSourceKeys();
-      expect(keys).toHaveLength(48);
+      expect(keys).toHaveLength(51);
     });
 
     it('every sourceKey has a valid contract', () => {
@@ -30,7 +30,7 @@ describe('sequentialPublication', () => {
       }
     });
 
-    it('all 48 contracts pass validateV4Contract', () => {
+    it('all 51 contracts pass validateV4Contract', () => {
       for (const contract of getAllBanToanV4Contracts()) {
         const result = validateV4Contract(contract);
         expect(result.ok).toBe(true);
@@ -39,10 +39,10 @@ describe('sequentialPublication', () => {
     });
   });
 
-  describe('48 canonical drafts pass audit', () => {
-    it('builds and audits all 48 drafts successfully', () => {
+  describe('51 canonical drafts pass audit', () => {
+    it('builds and audits all 51 drafts successfully', () => {
       const keys = getAllSourceKeys();
-      expect(keys).toHaveLength(48);
+      expect(keys).toHaveLength(51);
 
       const failures: Array<{ key: string; issues: string[] }> = [];
       for (const key of keys) {
@@ -192,8 +192,8 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(48);
-      expect(publishedOrder).toHaveLength(48);
+      expect(result).toHaveLength(51);
+      expect(publishedOrder).toHaveLength(51);
 
       // Verify order matches getAllSourceKeys()
       const expectedOrder = getAllSourceKeys();
@@ -222,10 +222,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      // 48 results: 47 published + 1 error
-      expect(result).toHaveLength(48);
+      // 51 results: 50 published + 1 error
+      expect(result).toHaveLength(51);
       const stats = summarizeReports(result);
-      expect(stats.published).toBe(47);
+      expect(stats.published).toBe(50);
       expect(stats.errors).toBe(1);
 
       // The 5th key should be the error
@@ -234,7 +234,7 @@ describe('sequentialPublication', () => {
       expect(errorReport?.sourceKey).toBe(getAllSourceKeys()[4]);
 
       // Remaining lessons still published
-      expect(publishedOrder).toHaveLength(47);
+      expect(publishedOrder).toHaveLength(50);
     });
 
     it('continues after audit failure on one lesson', async () => {
@@ -255,10 +255,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(48);
+      expect(result).toHaveLength(51);
       const stats = summarizeReports(result);
       // 10-5-31 should fail audit, rest should publish
-      expect(stats.published).toBe(47);
+      expect(stats.published).toBe(50);
       expect(stats.failed).toBe(1);
       const failedReport = result.find((r) => r.sourceKey === '10-5-31');
       expect(failedReport?.status).toBe('audit_failed');
@@ -288,10 +288,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(48);
+      expect(result).toHaveLength(51);
       const stats = summarizeReports(result);
       expect(stats.skipped).toBe(3);
-      expect(stats.published).toBe(45);
+      expect(stats.published).toBe(48);
 
       // Published lessons should not include the 3 skipped
       expect(publishedOrder).not.toContain('10-5-32');
@@ -318,7 +318,7 @@ describe('sequentialPublication', () => {
 
       const stats = summarizeReports(result);
       expect(stats.skipped).toBe(1);
-      expect(stats.published).toBe(47);
+      expect(stats.published).toBe(50);
       expect(publishedOrder).not.toContain('10-5-32');
     });
   });
@@ -344,7 +344,7 @@ describe('sequentialPublication', () => {
     expect(saved?.knowledgeUnits[0]?.routes).toHaveLength(3);
   });
 
-  it('publishes 48 logical lessons when the legacy demo already occupies P31', async () => {
+  it('publishes 51 logical lessons when the legacy demo already occupies P31', async () => {
     const existingLessons = new Map<string, AdaptiveLesson>([
       ['10-5-31', buildPilotAdaptiveLesson('teacher-1', '2026-08-20T10:00:00.000Z')],
     ]);
@@ -356,12 +356,12 @@ describe('sequentialPublication', () => {
       save: async (lesson) => { saved.push(lesson); },
     });
 
-    expect(result).toHaveLength(48);
-    expect(summarizeReports(result)).toMatchObject({ published: 48, skipped: 0, failed: 0, errors: 0 });
-    expect(saved).toHaveLength(48);
+    expect(result).toHaveLength(51);
+    expect(summarizeReports(result)).toMatchObject({ published: 51, skipped: 0, failed: 0, errors: 0 });
+    expect(saved).toHaveLength(51);
     expect(saved.filter(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')).toHaveLength(1);
     expect(saved.find(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')?.id).toBe('tds-g10-30-pilot');
-    expect(new Set(saved.map(lesson => lesson.id)).size).toBe(48);
+    expect(new Set(saved.map(lesson => lesson.id)).size).toBe(51);
   });
 
   it('normalizes an existing draft to the canonical searchable title before publishing', async () => {
@@ -436,9 +436,9 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      // All 48 should be published (new canonical drafts)
+      // all 51 should be published (new canonical drafts)
       const stats = summarizeReports(result);
-      expect(stats.published).toBe(48);
+      expect(stats.published).toBe(51);
     });
 
     it('blocks lesson with tampered content that fails audit', async () => {

@@ -38,7 +38,7 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
     expect(lesson.knowledgeUnits[0]?.routes.every((route) => route.explanation.includes('có thể đổi'))).toBe(true);
   });
 
-  it('keeps all 48 generated drafts content-complete enough for the existing editor gate', () => {
+  it('keeps all 51 generated drafts content-complete enough for the existing editor gate', () => {
     for (const contract of getAllBanToanV4Contracts()) {
       const lesson = buildBanToanV4AdaptiveLessonDraft(contract.sourceKey, 'teacher-qa');
       const codes = new Set(validateAdaptiveLessonPublishReadiness(lesson).map((issue) => issue.code));

@@ -169,9 +169,9 @@ function parseSnapshot(): SourceSnapshot {
   if (snapshot.schemaVersion !== 1
     || !snapshot.source?.fingerprint
     || !Array.isArray(snapshot.lessonSpecs)
-    || snapshot.lessonSpecs.length !== 48
+    || snapshot.lessonSpecs.length !== 51
     || !snapshot.aiErrors) {
-    throw new Error('Snapshot Ban Toán phải có schema 1, 48 bài và AI error tương ứng.');
+    throw new Error('Snapshot Ban Toán phải có schema 1, 51 bài và AI error tương ứng.');
   }
   const seen = new Set<string>();
   for (const spec of snapshot.lessonSpecs) {
