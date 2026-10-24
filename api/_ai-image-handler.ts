@@ -188,11 +188,17 @@ export const handleGenerateImage = async (
   const holdVnd = acquisition.holdVnd;
   let handedOver = false;
   let bytes: Buffer | null = null;
+  let upstreamError = '';
   try {
-    bytes = await generateImageOnVilao(choice.key, prompt, aspectRatio, generationModel, vilaoImagesBaseUrl()).catch(() => null);
+    try {
+      bytes = await generateImageOnVilao(choice.key, prompt, aspectRatio, generationModel, vilaoImagesBaseUrl());
+    } catch (error) {
+      upstreamError = error instanceof Error ? error.message : String(error);
+      console.error('[ai-image] Vilao lỗi:', upstreamError.slice(0, 300));
+    }
 
     if (!bytes) {
-      return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
+      return res.status(502).json({ error: `Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này. (debug: ${upstreamError.slice(0, 200) || 'không rõ'})` });
     }
 
     // Ghi lượt + trừ ví TRƯỚC khi trả về (lượt này đã tính tiền dù bước lưu có lỗi). `recordImageUsage` nhận luôn phần giữ chỗ.
