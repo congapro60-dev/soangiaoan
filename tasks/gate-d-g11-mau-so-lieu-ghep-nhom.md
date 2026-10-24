@@ -27,11 +27,15 @@
 - Student: mã + SBD → nhóm N[x] (2–4 HS, ≤ 8 nhóm). **Copy chốt:** "Hôm nay lớp không nhận công thức trước — lớp tự gom 40 con số trước đã."
 
 ### P2–P5 · KHỞI ĐỘNG — 40 số liệu Internet (theo gốc)
-- V2: bảng **40 số liệu thời gian dùng Internet hằng ngày (phút) của lớp 11A, từ 35 đến 235** (dùng số liệu thật của lớp nếu có; nếu không, dùng bảng mẫu trong giáo án — GV chốt nguồn).
-- **Câu hỏi thiết yếu treo suốt tiết (nguyên văn gốc):** "Làm thế nào để nhìn vào một tập hợp số liệu lớn mà nhận biết ngay được bức tranh tổng thể và xu hướng tập trung của dữ liệu?"
+- **Nguồn số liệu (thầy chốt 2026-10-25): dùng số mẫu cố định trong app** — giáo án gốc chỉ mô tả "40 số liệu từ 35 đến 235 phút, phân bố rải rác", không có bảng cụ thể, nên app giữ **một bảng mẫu duy nhất** để mọi lớp học cùng một đề:
+
+  `42, 45, 48, 52, 55, 58, 61, 63, 65, 68, 70, 72, 75, 78, 80, 82, 85, 88, 90, 92, 95, 98, 100, 105, 108, 110, 112, 115, 118, 120, 125, 128, 130, 135, 140, 145, 150, 160, 175, 235`
+
+  Đã kiểm: n = 40 · x_min = 42 · x_max = 235 · **R = 193** · tần số theo 6 nhóm 40 phút của gốc = **10, 15, 11, 3, 0, 1** (tổng 40). Nhóm [190; 230) **tần số 0** — giữ lại vì quy tắc "liên tiếp, không bỏ hổng"; đây là chỗ dạy tốt: nhóm rỗng vẫn phải có trong bảng.
+- V2: bảng 40 số trên Presenter. **Câu hỏi thiết yếu treo suốt tiết (nguyên văn gốc):** "Làm thế nào để nhìn vào một tập hợp số liệu lớn mà nhận biết ngay được bức tranh tổng thể và xu hướng tập trung của dữ liệu?"
 - **Ôn nền — chờ hai nhịp (máy thay bảng con):**
-  - `[SO SÁNH]` So sánh x_max và x_min của mẫu.
-  - `[SỐ HỌC]` Tính khoảng biến thiên R = x_max − x_min.
+  - `[SO SÁNH]` So sánh x_max và x_min của mẫu → 235 và 42.
+  - `[SỐ HỌC]` Tính khoảng biến thiên R = x_max − x_min → 193.
   - `[SUY LUẬN]` Lập bảng tần số đơn lẻ từng giá trị (lớp 10) có nhược điểm gì?
 - V3: phân bố 3 câu. V4 thu gọn: bảng tần số đơn lẻ quá dài, nhiều giá trị tần số bằng 1, khó nhìn.
 - **Copy chốt:** "Để khắc phục, ta gom các số gần nhau thành từng nhóm — đó là bài hôm nay."
@@ -108,6 +112,7 @@ Phân hóa mục tiêu: NB xác định mút và độ dài nhóm cho trước; 
 
 **3. Tài liệu dạy học**
 - SGK Toán 11 — bài Mẫu số liệu ghép nhóm (**SGK Bài 1 tr.65**); **SBT tr.42**.
+- **Bảng 40 số mẫu cố định** (đã kiểm n = 40, R = 193, tần số 6 nhóm 40 phút = 10/15/11/3/0/1) — dùng chung mọi lớp, không phụ thuộc số liệu thật của lớp.
 - Phiếu số 1 (khám phá cấu trúc mẫu ghép nhóm, 3 mức) · Phiếu số 2 (quy trình ghép nhóm, 3 bước) · KWLI-Chart.
 - Bài học tương tác V8.8 (`adaptive-1792831747929`): ô trả lời nhanh thay bảng con, tự kiểm tổng tần số.
 - Máy chiếu bảng 40 số liệu + giao diện AQI.
@@ -131,7 +136,7 @@ Phân hóa mục tiêu: NB xác định mút và độ dài nhóm cho trước; 
 | Thời gian thực | Giáo viên và Học sinh | Nội dung |
 |---|---|---|
 | P0–P2 | GV mở phòng, HS nhập mã + SBD, gán nhóm. | Mã phòng, đồng hồ P. |
-| P2–P5 | GV chiếu bảng 40 số liệu (35–235 phút), nêu câu hỏi thiết yếu; HS trả lời 3 câu ôn nền qua máy (chờ hai nhịp). `[🟣 ĐGTX]` | x_max, x_min, R; nhược điểm bảng tần số đơn lẻ. |
+| P2–P5 | GV chiếu bảng 40 số mẫu cố định, nêu câu hỏi thiết yếu; HS trả lời 3 câu ôn nền qua máy (chờ hai nhịp). `[🟣 ĐGTX]` | x_max = 235; x_min = 42; R = 193; nhược điểm bảng tần số đơn lẻ. |
 
 **2. XÁC ĐỊNH MỤC TIÊU — Thời lượng: 3 phút, P5–P8**
 
@@ -191,3 +196,4 @@ Phân hóa mục tiêu: NB xác định mút và độ dài nhóm cho trước; 
 - **Phiếu KWLI giấy → KWLI trên máy**; Phiếu số 1, số 2 chuyển thành nhiệm vụ máy (vẫn in bản giấy dự phòng).
 - **Thêm**: mã phòng/nhóm, tự kiểm tổng tần số = n, checkpoint không cộng điểm lần 2, nhiệm vụ neo cho em xong sớm, đồng hồ P-zone.
 - **Giữ nguyên**: toàn bộ số liệu, câu hỏi nhãn, bài tập SGK/SBT, tình huống AQI, 4 quy tắc ghép nhóm và quy trình 3 bước.
+- **Bảng 40 số**: giáo án gốc chỉ mô tả khoảng 35–235; app dùng **một bảng mẫu cố định** (thầy chốt 2026-10-25) để mọi lớp học cùng một đề và kết quả kiểm được (R = 193; tần số 10/15/11/3/0/1). Nhóm [190;230) tần số 0 được giữ có chủ ý — dạy quy tắc "không bỏ hổng".

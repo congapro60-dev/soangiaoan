@@ -36,15 +36,14 @@ Gate D tôi soạn là **thiết kế tương tác đúng khung V8.8 nhưng sai 
 - Phát hiện vượt ngân sách G11 và cách xử lý (đẩy hoạt động phụ ra reserve).
 - Dải P phủ kín P0→P40.
 
-## 3. Điểm phải hỏi thầy (không tự quyết)
+## 3. Quyết định thầy (2026-10-25)
 
-1. **Bảng con có bị thay bằng máy không?** Giáo án gốc dựa rất nhiều vào bảng con + giơ đồng loạt (nhịp lớp nhanh, cả lớp cùng lúc). Nếu chuyển hết sang máy HS, nhịp lớp chậm hơn và mất "quét radar" của GV. Tôi đề nghị: **giữ bảng con cho câu ngắn**, máy chỉ dùng cho việc máy làm tốt hơn (nhập bảng số liệu, tính toán, kiểm tra chéo, checkpoint).
-2. **Số % trong "Căn cứ điều chỉnh"** của giáo án gốc (80%, 45%) — giữ nguyên hay thay bằng ngôn ngữ không số?
-3. **G11: bỏ hay giữ "K–B–Đ–T"** — nó không có trong giáo án gốc nhưng là cách nhớ gọn cho quy trình; nếu thầy đồng ý thì coi là phần bổ sung của bài tương tác, không ghi vào giáo án in.
-4. **Casio (G12 Should: "dùng Casio kiểm tra")** — bài tương tác có mô phỏng Casio hay chỉ nhắc HS bấm máy thật?
+1. **Bảng con → thay bằng máy HS.** Giữ kỹ thuật chờ hai nhịp; GV vẫn thấy tỉ lệ lớp, không hiện đúng/sai từng em. ✔ đã áp vào cả 3 file.
+2. **Số % trong "Căn cứ điều chỉnh" chỉ là tham khảo — làm thật thì lấy số liệu thật.** Đã bỏ mọi số % bịa (kể cả ngưỡng "≥ 85% HS giơ đúng" ở G12), đổi thành "số liệu thật của lớp" hoặc "GV thấy tỉ lệ thật trên V3". ✔
+3. **"K–B–Đ–T" bỏ** (không có trong giáo án gốc). Thay bằng 4 quy tắc ghép nhóm + quy trình 3 bước của gốc. ✔
+4. **Casio: HS bấm máy thật, màn hình hướng dẫn chi tiết từng phím.** Đã dựng bảng 4 bước kèm chuỗi phím của gốc (MENU 6→1; SHIFT MENU→▼→3→1:On; nhập cᵢ/nᵢ; OPTN→3) + đối soát σx = 1,02469…. ✔
+5. **G11 khởi động: cho phép dùng số mẫu trong giáo án.** Giáo án gốc chỉ mô tả "40 số liệu 35–235", không có bảng cụ thể → app dùng **một bảng mẫu cố định** đã kiểm: n = 40, x_min = 42, x_max = 235, R = 193, tần số 6 nhóm 40 phút = 10/15/11/3/**0**/1. Nhóm [190;230) tần số 0 giữ lại để dạy quy tắc "không bỏ hổng". ✔
 
-## 4. Việc tiếp theo (đề xuất)
+## 4. Việc tiếp theo
 
-1. Sửa 3 file Gate D theo giáo án gốc: thay tình huống mở đầu, sửa cấu trúc P, bổ sung sai số tương đối + quy tắc quy tròn (G10), dùng đúng 4 quy tắc ghép nhóm (G11), thêm bảng 5 cột + Casio (G12).
-2. Thầy trả lời 4 câu ở mục 3.
-3. Chốt Gate D → mở Gate C.
+Gate D đã sửa xong cả 3 bài. Còn chờ thầy duyệt Gate D để mở Gate C (code 3 luồng `/adaptive-live`).
