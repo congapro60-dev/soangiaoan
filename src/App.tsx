@@ -405,7 +405,11 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
           activeTab={activeTab} data={data} userId={user?.uid} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
-          onStudentSearchSelect={(classId, studentId) => { setClassFocus({ classId, studentId, nonce: Date.now() }); setActiveTab('classes'); }}
+          onStudentSearchSelect={(classId, studentId) => {
+            void loadHeaderStudentClasses().then(loaded => setData(prev => ({ ...prev, classes: [...prev.classes, ...loaded.filter(cls => !prev.classes.some(local => local.id === cls.id))] }))).catch(() => {});
+            setClassFocus({ classId, studentId, nonce: Date.now() });
+            setActiveTab('classes');
+          }}
           loadStudentSearchClasses={loadHeaderStudentClasses}
           isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
