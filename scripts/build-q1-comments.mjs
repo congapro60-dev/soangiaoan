@@ -2,10 +2,12 @@
  * Soạn nhận xét QUÝ 1 cho học bạ / báo cáo học tập của học sinh.
  *
  * Chuẩn văn phong (chủ dự án chốt 25/10):
- *   - TRANG TRỌNG, như nhận xét học bạ, không khẩu ngữ.
+ *   - TRANG TRỌNG như nhận xét học bạ, không khẩu ngữ.
  *   - CHỈ nhận xét Quý 1: không nêu việc cần làm ở Quý 2, không định hướng tương lai.
- *   - Khách quan, khen nhiều hơn chê; phần hạn chế nêu ngắn, đúng mức.
+ *   - Khách quan, khen nhiều hơn chê; phần hạn chế KHÔNG so sánh với phần khác — chỉ nêu
+ *     nội dung đó cần củng cố và rèn luyện thêm.
  *   - KHÔNG nêu số lượt nộp bài, tỉ lệ nộp, xếp hạng hay so sánh với bạn khác.
+ *   - Không lặp từ: mỗi câu dùng động từ khác nhau (nắm / tiếp thu / thực hiện / vận dụng).
  *
  * Cấu trúc 3 câu: kết quả chung của quý · năng lực nổi bật · nội dung cần củng cố (nếu có).
  *
@@ -16,7 +18,7 @@ import { resolve } from 'node:path';
 
 const scores = JSON.parse(readFileSync(resolve('docs/qa/scores-input.json'), 'utf8'));
 
-/** Tên chủ đề theo mã LO — dùng trong nhận xét học bạ. */
+/** Tên chủ đề theo mã LO. */
 const TOPIC = {
   LO_DIS_TO_34344: 'mệnh đề và các phép suy luận toán học',
   LO_DIS_TO_34345: 'các phép toán trên tập hợp',
@@ -49,8 +51,7 @@ const rankOf = (avg) => {
 };
 
 /**
- * Nhận xét học bạ Quý 1. Câu 1 nêu kết quả chung, câu 2 năng lực nổi bật, câu 3 nội dung cần
- * củng cố. Không có câu định hướng tương lai.
+ * Nhận xét học bạ Quý 1 — 3 câu, mỗi câu một ý, không lặp động từ.
  */
 const buildQ1Comment = (name, marks, los) => {
   const pairs = los
@@ -58,7 +59,7 @@ const buildQ1Comment = (name, marks, los) => {
     .filter((p) => p.lo !== 'LO_DIS_TO_34764' && typeof p.mark === 'number');
 
   if (!pairs.length) {
-    return `Trong Quý 1, em ${name} đã tham gia học tập đầy đủ các nội dung của chương trình.`;
+    return `Trong Quý 1, em ${name} đã tham gia đầy đủ các giờ học và hoàn thành các nội dung của chương trình Toán.`;
   }
 
   const avg = round1(pairs.reduce((s, p) => s + p.mark, 0) / pairs.length);
@@ -66,40 +67,41 @@ const buildQ1Comment = (name, marks, los) => {
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
   const rank = rankOf(avg);
-  const sentences = [];
+  const bestTopic = TOPIC[best.lo] || best.lo;
+  const worstTopic = TOPIC[worst.lo] || worst.lo;
+  const spread = round1(best.mark - worst.mark);
 
-  // Câu 1 — kết quả chung của quý, giọng học bạ.
-  if (rank === 'tot') {
-    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán tốt, nền tảng kiến thức vững và khả năng vận dụng thành thạo các nội dung đã học.`);
-  } else if (rank === 'kha') {
-    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán ở mức khá, nắm được phần lớn kiến thức trọng tâm của chương trình.`);
-  } else if (rank === 'tb') {
-    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán ở mức trung bình, đã tiếp thu được các nội dung cơ bản của chương trình.`);
-  } else {
-    sentences.push(`Trong Quý 1, em ${name} đã tham gia học tập và bước đầu tiếp cận các nội dung của chương trình Toán.`);
-  }
+  // Câu 1 — kết quả chung của quý.
+  const opening = {
+    tot: `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán tốt, nền tảng kiến thức vững và khả năng vận dụng thành thạo các nội dung đã học.`,
+    kha: `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức khá, nắm được phần lớn kiến thức trọng tâm của chương trình.`,
+    tb: `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức trung bình, đã nắm được các kiến thức cơ bản của chương trình.`,
+    canCoGang: `Trong Quý 1, em ${name} đã tham gia học tập và bước đầu làm quen với các nội dung của chương trình Toán.`,
+  }[rank];
 
-  // Câu 2 — năng lực nổi bật, luôn có và gọi tên chủ đề.
+  // Câu 2 — năng lực nổi bật (động từ khác câu 1 để không lặp).
+  let strength;
   if (best.mark >= 3.5) {
-    sentences.push(`Em nắm vững và vận dụng tốt nhất nội dung ${TOPIC[best.lo] || best.lo}, bài làm thể hiện sự chính xác và trình bày rõ ràng.`);
+    strength = `Em vận dụng tốt nhất ${bestTopic}, bài làm thể hiện sự chính xác và trình bày rõ ràng.`;
   } else if (best.mark >= 3) {
-    sentences.push(`Em nắm tốt nội dung ${TOPIC[best.lo] || best.lo} và thực hiện được các dạng bài cơ bản của phần này.`);
+    strength = `Em thực hiện tốt các dạng bài của ${bestTopic}.`;
   } else if (best.mark >= 2.5) {
-    sentences.push(`Trong các nội dung của quý, em tiếp thu tốt nhất phần ${TOPIC[best.lo] || best.lo}.`);
+    strength = `Em có kết quả khá nhất ở ${bestTopic}.`;
   } else {
-    sentences.push(`Em đạt kết quả cao nhất ở nội dung ${TOPIC[best.lo] || best.lo}.`);
+    strength = `Em đạt kết quả cao nhất ở ${bestTopic}.`;
   }
 
-  // Câu 3 — nội dung cần củng cố, chỉ nêu khi thật sự có khoảng trống.
+  // Câu 3 — nội dung cần củng cố. Không so sánh với phần khác.
+  let improvement;
   if (worst.mark < 2.5) {
-    sentences.push(`Nội dung ${TOPIC[worst.lo] || worst.lo} cần được củng cố thêm để kết quả học tập của em được đồng đều hơn.`);
-  } else if (round1(best.mark - worst.mark) >= 1) {
-    sentences.push(`Nội dung ${TOPIC[worst.lo] || worst.lo} còn thấp hơn các phần khác, cần được chú ý củng cố thêm.`);
+    improvement = `Nội dung ${worstTopic} cần được củng cố và rèn luyện thêm.`;
+  } else if (spread >= 1) {
+    improvement = `Em cần củng cố và rèn luyện thêm ở ${worstTopic}.`;
   } else {
-    sentences.push('Các nội dung trong quý được em tiếp thu tương đối đồng đều.');
+    improvement = 'Các nội dung trong chương trình được em tiếp thu đều.';
   }
 
-  return sentences.join(' ');
+  return `${opening} ${strength} ${improvement}`;
 };
 
 /** Gộp điểm F1 và IA1 thành một bộ điểm Q1 (trung bình hai kỳ). */
@@ -165,5 +167,5 @@ writeFileSync(resolve('docs/qa/nhan-xet-Q1.json'), JSON.stringify(detail, null, 
 console.log(JSON.stringify({
   total: detail.length,
   byClass: merged.map((c) => `${c.className}: ${c.rows.length}`),
-  samples: [detail[0], detail.find((d) => /Hồ Anh Phong/.test(d.name)), detail.find((d) => /Lê Trung Đức/.test(d.name))].map((d) => `${d.name}: ${d.comment}`),
+  samples: [detail[0], detail.find((d) => /Hoàng Tuấn Minh/.test(d.name)), detail.find((d) => /Lê Trung Đức/.test(d.name))].map((d) => `${d.name}: ${d.comment}`),
 }, null, 1));
