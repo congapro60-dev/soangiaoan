@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { KhoiXoay } from "./KhoiXoay";
+import { BangVe } from "./BangVe";
 
 /**
  * Lấy ảnh minh hoạ của task (v28): ưu tiên `imageUrl` (serializer mới),
@@ -26,6 +27,8 @@ export function taskSolidOf(task: unknown): string | undefined {
   return typeof t.solidKey === "string" && t.solidKey ? t.solidKey : undefined;
 }
 
+type Mode = "xem" | "ve";
+
 /** Slot ảnh cạnh đề bài — hiển thị dưới nhãn hoạt động, trên prompt. */
 export default function TaskImage({
   image,
@@ -38,9 +41,32 @@ export default function TaskImage({
   alt?: string;
   maxHeight?: number;
 }) {
-  // Khối 3D được ưu tiên: cho phép xoay để kiểm chứng quy ước vẽ.
+  // Mặc định là chế độ Xem: phần lớn học sinh cần THẤY hình đúng trước đã.
+  // Chế độ Vẽ là bài tập, chỉ mở khi học sinh chủ động chuyển.
+  const [mode, setMode] = useState<Mode>("xem");
+
   if (solidKey) {
-    return <KhoiXoay solidKey={solidKey} caption={alt} width={380} height={330} />;
+    return (
+      <div>
+        <div
+          role="tablist"
+          aria-label="Chế độ xem hình"
+          style={{ display: "flex", gap: 6, margin: ".5rem 0 0" }}
+        >
+          <TabButton active={mode === "xem"} onClick={() => setMode("xem")}>
+            Xem hình
+          </TabButton>
+          <TabButton active={mode === "ve"} onClick={() => setMode("ve")}>
+            Tự vẽ
+          </TabButton>
+        </div>
+        {mode === "xem" ? (
+          <KhoiXoay solidKey={solidKey} caption={alt} width={380} height={330} />
+        ) : (
+          <BangVe solidKey={solidKey} caption={alt} width={380} height={330} />
+        )}
+      </div>
+    );
   }
   if (!image) return null;
   return (
@@ -52,5 +78,35 @@ export default function TaskImage({
         style={{ maxHeight: `${maxHeight}px` }}
       />
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      style={{
+        fontSize: 13,
+        padding: "5px 12px",
+        borderRadius: 6,
+        border: `1px solid ${active ? "#1d4ed8" : "#cbd5e1"}`,
+        background: active ? "#1d4ed8" : "#fff",
+        color: active ? "#fff" : "#334155",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
   );
 }

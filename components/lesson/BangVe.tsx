@@ -5,8 +5,8 @@ import {
   computeVisibility,
   defaultViews,
   edgeKey,
+  layoutSolid,
   makeCamera,
-  project,
   solids,
   type Solid,
 } from "../../lib/geometry/solid";
@@ -40,15 +40,13 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
   const solid: Solid | undefined = solids[solidKey];
   const preset = defaultViews[solidKey];
 
-  // Vị trí gợi ý (toạ độ màn hình) cho từng đỉnh
+  // Vị trí gợi ý (toạ độ màn hình) cho từng đỉnh.
+  // Dùng CHUNG layoutSolid với chế độ Xem -> hình hai chế độ cùng kích thước.
   const hints = useMemo<Pt[]>(() => {
     if (!solid || !preset) return [];
     const cam = makeCamera(preset.target, preset.dist, preset.yaw, preset.pitch);
-    const scale = Math.min(width, height) * 0.42;
-    return solid.verts.map((v) => {
-      const p = project(v, cam);
-      return { x: width / 2 + p.x * scale, y: height / 2 + p.y * scale };
-    });
+    const { px } = layoutSolid(solid, cam, width, height);
+    return px.map(([x, y]) => ({ x, y }));
   }, [solid, preset, width, height]);
 
   // Đỉnh HS đã đặt: ban đầu null (chưa đặt), HS kéo từ gợi ý
@@ -243,9 +241,22 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
                 onClick={onVertexClick(i)}
                 style={{ cursor: "grab" }}
               />
-              <text x={p.x + 9} y={p.y - 9} fontSize={13} fill="#1d4ed8" fontStyle="italic" fontFamily="Georgia, serif" style={{ pointerEvents: "none" }}>
-                {solid.labels[i]}
-              </text>
+              {/* Nhãn đẩy ra xa tâm hình, KHÔNG dùng lệch cố định +9/-9:
+                  ở đỉnh C (76,241) lệch +9/-9 vẫn nằm trong vòng gợi ý r=13
+                  và đè lên chấm xanh. Cùng công thức với KhoiXoay. */}
+              {(() => {
+                const vx = p.x - width / 2;
+                const vy = p.y - height / 2;
+                const vlen = Math.hypot(vx, vy) || 1;
+                const push = 16;
+                const lx = p.x + (vx / vlen) * push;
+                const ly = p.y + (vy / vlen) * push;
+                return (
+                  <text x={lx} y={ly} fontSize={13} fill="#1d4ed8" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: "none" }}>
+                    {solid.labels[i]}
+                  </text>
+                );
+              })()}
             </g>
           ) : null
         )}

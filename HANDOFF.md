@@ -50,8 +50,27 @@ Chunk production `/_next/static/chunks/useLessonSession-CWZUovRi.js` (55.738 byt
 **Component**:
 - `KhoiXoay.tsx` — **che do Xem**: may tu tinh net, HS keo xoay, KHONG chinh duoc net.
 - `BangVe.tsx` — **che do Ve (Muc B)**: HS keo dat dinh, bam 2 dinh noi canh, bam canh doi net, may cham.
-- `TaskImage.tsx` nhan `solidKey` -> render `KhoiXoay` thay anh tinh.
+- `TaskImage.tsx` nhan `solidKey` -> hien 2 tab **"Xem hình" / "Tự vẽ"**, mac dinh Xem.
 - Noi `taskSolidOf` vao `PracticePanel`, `ClassEventPanel`, `app/play`, `app/presenter`, `app/shared`.
+
+### Sua sau QA doc lap (v31)
+
+QA cua Codex phat hien 1 loi MAJOR that: **`BangVe` khong co noi goi nao** — che do Ve la dead code, HS khong bao gio voi toi. Da sua:
+
+- `TaskImage.tsx`: them tab chuyen che do, nen ca 3 task co `solidKey` deu co che do Ve.
+- Tach `layoutSolid()` trong `lib/geometry/solid.ts`, dung CHUNG cho ca 2 che do. Truoc do `BangVe` dung he so `0.42` co dinh (hinh nho hon ~30%) va chep lai cong thuc auto-fit.
+- Nhan o che do Ve: doi tu lech co dinh `+9/-9` sang day ra xa tam (`push 16`) — truoc do nhan C, D, A' nam trong vong goi y r=13 nen de len cham xanh (thay ro trong anh QA).
+- 3 test moi: `layoutSolid` khong tran khung + dung >55% be rong; `toScreen` dong bo voi `px`; va test khoa tinh chat **phoi canh** (doi sang chieu song song la fail).
+
+### Ve menh de "khop 100%" (QA chi ra dung cho sai)
+
+Toa do `chop-sabcd` duoc **suy nguoc tu hinh 2D da duyet bang phep chieu SONG SONG**, va khang dinh "chieu lai khop 100%" chi dung **trong phep chieu song song**. Engine mo phong dung **phep chieu PHOI CANH**, nen chieu lai se lech M/N/P/Q lan luot ~75, 80, 7, 60 px. Day KHONG phai loi toan:
+
+- Engine tu nhat quan: cham bai so voi chinh projection cua engine.
+- HS thay mo phong (`solidKey` thay anh tinh), khong thay SVG tinh.
+- Phoi canh la chon co chu y: keo xoay phai co cam giac khoi, chieu song song xoay se "det".
+
+=> Khong sua code. Chi sua cau chu trong tai lieu cho khong gay hieu nham.
 
 ### Gan vao bai hoc
 

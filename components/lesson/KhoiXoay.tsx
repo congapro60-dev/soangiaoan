@@ -5,8 +5,8 @@ import {
   computeVisibility,
   defaultViews,
   edgeKey,
+  layoutSolid,
   makeCamera,
-  project,
   solids,
   type Solid,
 } from "../../lib/geometry/solid";
@@ -74,35 +74,10 @@ export function KhoiXoay({
     if (!solid || !preset) return null;
     const cam = makeCamera(preset.target, preset.dist, yaw, pitch);
 
-    // Chieu truoc de biet bien do hinh, roi auto-fit cho vua khung.
-    // He so 0.42 co dinh lam hinh hop nho tin chi ~1/3 khung.
-    const raw = solid.verts.map((v) => project(v, cam));
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (const p of raw) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
-    }
-    // The margin: 76px moi phia (du cho nhan va khong de nhan de len canh)
-    const marginX = 76;
-    const marginY = 66;
-    const spanX = Math.max(maxX - minX, 1e-6);
-    const spanY = Math.max(maxY - minY, 1e-6);
-    const scale = Math.min((width - marginX * 2) / spanX, (height - marginY * 2) / spanY);
-
-    // Tam hinh theo bounding box de hinh nam giua khung
-    const midX = (minX + maxX) / 2;
-    const midY = (minY + maxY) / 2;
-    const cx = width / 2 - midX * scale;
-    const cy = height / 2 - midY * scale;
+    // Chieu + auto-fit (dung chung voi che do Ve de hai che do khop kich thuoc).
+    const { px: pts, toScreen } = layoutSolid(solid, cam, width, height);
 
     const vis = computeVisibility(solid, cam);
-
-    const pts = raw.map((p) => [cx + p.x * scale, cy + p.y * scale] as [number, number]);
 
     const lines = solid.edges.map((e) => {
       const A = pts[e.a];
@@ -112,8 +87,8 @@ export function KhoiXoay({
     });
 
     const extras = (solid.extraPts ?? []).map((ep) => {
-      const p = project(ep.p, cam);
-      return { x: cx + p.x * scale, y: cy + p.y * scale, label: ep.label };
+      const [x, y] = toScreen(ep.p);
+      return { x, y, label: ep.label };
     });
 
     const solidCount = lines.filter((l) => l.isSolid).length;

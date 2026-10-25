@@ -176,6 +176,62 @@ export function solidEdgeCount(solid: Solid, cam: Camera): { solid: number; dash
   return { solid: s, dashed: total - s, total };
 }
 
+export interface ScreenLayout {
+  /** Chiếu đỉnh và quy về toạ độ viewBox. */
+  px: Vec2[];
+  scale: number;
+  /** Quy đổi một điểm 3D bất kỳ (vd. trung điểm) sang toạ độ viewBox. */
+  toScreen: (p: Vec3) => Vec2;
+}
+
+/**
+ * Chiếu + auto-fit khối vào khung vẽ.
+ *
+ * Dùng CHUNG cho chế độ Xem và chế độ Vẽ: nếu hai chế độ tự tính riêng, chúng
+ * sẽ lệch nhau (đã từng lệch vì BangVe dùng hệ số 0.42 cố định, còn KhoiXoay
+ * dùng auto-fit) khiến hình ở chế độ Vẽ nhỏ hơn ~30%.
+ *
+ * Margin để trống cho nhãn, không cho nét.
+ */
+export function layoutSolid(
+  solid: Solid,
+  cam: Camera,
+  width: number,
+  height: number,
+  marginX = 76,
+  marginY = 66
+): ScreenLayout {
+  const raw = solid.verts.map((v) => project(v, cam));
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of raw) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  const spanX = Math.max(maxX - minX, 1e-6);
+  const spanY = Math.max(maxY - minY, 1e-6);
+  const scale = Math.min((width - marginX * 2) / spanX, (height - marginY * 2) / spanY);
+
+  // Tâm hình theo bounding box để hình nằm giữa khung
+  const midX = (minX + maxX) / 2;
+  const midY = (minY + maxY) / 2;
+  const cx = width / 2 - midX * scale;
+  const cy = height / 2 - midY * scale;
+
+  return {
+    px: raw.map((p) => [cx + p.x * scale, cy + p.y * scale] as Vec2),
+    scale,
+    toScreen: (p: Vec3) => {
+      const q = project(p, cam);
+      return [cx + q.x * scale, cy + q.y * scale];
+    },
+  };
+}
+
 /* ============================================================
    DỮ LIỆU KHỐI — dựng theo đúng đề từng bài, không áp một kiểu.
    ============================================================ */

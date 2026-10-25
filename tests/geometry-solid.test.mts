@@ -11,6 +11,8 @@ import {
   hopChuNhat,
   chopSABCD,
   defaultViews,
+  layoutSolid,
+  solids,
   type Solid,
 } from '../lib/geometry/solid.ts';
 
@@ -248,4 +250,51 @@ test('hop chu nhat: cung luat "9 net lien" o moi goc thay 3 mat', () => {
     assert.equal(solidEdgeCount(hopChuNhat, c).solid, 9, `yaw ${yaw}`);
   }
   assert.ok(checked >= 8, `phai kiem duoc it nhat 8 goc, thuc te ${checked}`);
+});
+
+test('layoutSolid: hinh nam gon trong khung, khong dinh mep', () => {
+  for (const key of Object.keys(solids)) {
+    const view = defaultViews[key];
+    const c = makeCamera(view.target, view.dist, view.yaw, view.pitch);
+    const W = 380;
+    const H = 330;
+    const { px } = layoutSolid(solids[key], c, W, H);
+    for (const [x, y] of px) {
+      assert.ok(x >= 0 && x <= W, `${key}: x=${x} ngoai khung ${W}`);
+      assert.ok(y >= 0 && y <= H, `${key}: y=${y} ngoai khung ${H}`);
+    }
+    // Phai dung it nhat 55% chieu rong kha dung — neu nho hon thi da bi thu
+    // nho boi he so co dinh (loi 0.42 cu).
+    const xs = px.map((p) => p[0]);
+    const used = (Math.max(...xs) - Math.min(...xs)) / (W - 76 * 2);
+    assert.ok(used > 0.55, `${key}: hinh chi dung ${(used * 100).toFixed(0)}% be rong kha dung`);
+  }
+});
+
+test('layoutSolid: toScreen dung cung phep chieu voi px (check tren moi khoi)', () => {
+  for (const key of Object.keys(solids)) {
+    const c = cam(key);
+    const W = 380;
+    const H = 330;
+    const { px, toScreen } = layoutSolid(solids[key], c, W, H);
+    const verts = solids[key].verts;
+    for (let i = 0; i < verts.length; i++) {
+      const [x, y] = toScreen(verts[i]);
+      const d = Math.hypot(x - px[i][0], y - px[i][1]);
+      assert.ok(d < 1e-9, `${key} dinh ${i}: toScreen lech ${d}px so voi px`);
+    }
+  }
+});
+
+test('layoutSolid: phep chieu la PHOI CANH, chieu sau anh huong do lon', () => {
+  // Hai doan thang bang nhau o 3D nhung khac do sau phai ra do dai khac nhau.
+  // Day la tinh chat cua phep chieu phoi canh; neu ai doi sang chieu song song
+  // thi test nay bao ngay.
+  const c = cam('hop-chu-nhat');
+  const { toScreen } = layoutSolid(hopChuNhat, c, 380, 330);
+  const [A, B, , D] = hopChuNhat.verts; // AB va AD cung do dai (8 vs 5 -> khac)
+  const ab = Math.hypot(...(toScreen(B).map((v, i) => v - toScreen(A)[i]) as [number, number]));
+  const ad = Math.hypot(...(toScreen(D).map((v, i) => v - toScreen(A)[i]) as [number, number]));
+  // AB = 8, AD = 5 o 3D -> ti le tren man hinh phai khac 1
+  assert.ok(Math.abs(ab / ad - 1) > 0.05, `ti le AB/AD = ${(ab / ad).toFixed(3)} — nghi khong con phoi canh`);
 });
