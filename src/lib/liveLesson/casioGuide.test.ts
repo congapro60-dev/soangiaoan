@@ -40,7 +40,7 @@ describe('CASIO_FX580_STEPS', () => {
   });
 
   it('bước cuối có kết quả để học sinh đối soát trên máy thật', () => {
-    expect(CASIO_FX580_STEPS[3].expected).toBe('σx = 1,02469…');
+    expect(CASIO_FX580_STEPS[3].expected).toBe('σx = 0,89443…');
   });
 
   it('đánh số bước liên tục từ 1', () => {

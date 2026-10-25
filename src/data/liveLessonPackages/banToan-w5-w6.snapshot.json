@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-24T19:33:47.474Z",
+  "generatedAt": "2026-10-25T12:04:42.768Z",
   "source": {
     "directoryHint": "giao an manus tao/_qa/ban_toan_rebuild",
     "files": {
@@ -15271,12 +15271,12 @@
       ],
       "examples": [
         {
-          "question": "Hai xạ thủ An và Bình mỗi người bắn 20 phát, cùng điểm trung bình 8,5. An có tần số 2; 16; 2 còn Bình có 7; 6; 7 trên ba nhóm [6;8), [8;10), [10;12). Ai bắn ổn định hơn?",
-          "solution": "Giá trị đại diện 7; 9; 11. Với An: Σnᵢ(cᵢ−x̄)² = 2(7−8,5)² + 16(9−8,5)² + 2(11−8,5)² = 21 nên s² = 21/20 = 1,05 và s ≈ 1,02. Với Bình: 7(7−8,5)² + 6(9−8,5)² + 7(11−8,5)² = 61 nên s² = 3,05 và s ≈ 1,75. Vì s_A < s_B nên An bắn ổn định hơn."
+          "question": "Hai xạ thủ An và Bình mỗi người bắn 20 phát trên ba nhóm [6;8), [8;10), [10;12). An có tần số 2; 16; 2 còn Bình có 7; 6; 7. Hai người có cùng điểm trung bình không, và ai bắn ổn định hơn?",
+          "solution": "Giá trị đại diện 7; 9; 11. Số trung bình: x̄ = (2·7 + 16·9 + 2·11)/20 = 180/20 = 9 với An, và (7·7 + 6·9 + 7·11)/20 = 180/20 = 9 với Bình — hai người bằng nhau. Với An: Σnᵢ(cᵢ−x̄)² = 2(7−9)² + 16(9−9)² + 2(11−9)² = 8 + 0 + 8 = 16 nên s² = 16/20 = 0,8 và s ≈ 0,89. Với Bình: 7(7−9)² + 6(9−9)² + 7(11−9)² = 28 + 0 + 28 = 56 nên s² = 56/20 = 2,8 và s ≈ 1,67. Vì s_A < s_B nên An bắn ổn định hơn, dù điểm trung bình bằng nhau."
         },
         {
           "question": "Kiểm lại kết quả của An bằng công thức rút gọn.",
-          "solution": "Σnᵢcᵢ² = 2·49 + 16·81 + 2·121 = 98 + 1296 + 242 = 1636. Khi đó s² = 1636/20 − 8,5² = 81,8 − 72,25 = 1,05, khớp với cách tính theo định nghĩa."
+          "solution": "Σnᵢcᵢ² = 2·49 + 16·81 + 2·121 = 98 + 1296 + 242 = 1636. Khi đó s² = 1636/20 − 9² = 81,8 − 81 = 0,8, khớp với cách tính theo định nghĩa."
         }
       ],
       "exercises": [
@@ -15298,7 +15298,7 @@
         {
           "level": "TH",
           "question": "Bảng có ba nhóm với tần số 2; 16; 2 và giá trị đại diện 7; 9; 11. Tính số trung bình.",
-          "answer": "$\\bar x = (2\\cdot7 + 16\\cdot9 + 2\\cdot11)/20 = (14 + 144 + 22)/20 = 180/20 = 8,5$."
+          "answer": "$\\bar x = (2\\cdot7 + 16\\cdot9 + 2\\cdot11)/20 = (14 + 144 + 22)/20 = 180/20 = 9$."
         },
         {
           "level": "VD",
@@ -15339,7 +15339,7 @@
         "b. $s$ cùng đơn vị với dữ liệu nên so sánh trực quan được.",
         "4. Ý nghĩa và kiểm chứng",
         "a. $s^2$, $s$ càng lớn thì mẫu càng phân tán.",
-        "b. Xạ thủ An: $s^2 = 1,05$, $s \\approx 1,02$; Bình: $s^2 = 3,05$, $s \\approx 1,75$.",
+        "b. Xạ thủ An: $s^2 = 0,8$, $s \\approx 0,89$; Bình: $s^2 = 2,8$, $s \\approx 1,67$. Cùng $\\bar x = 9$ nhưng An ổn định hơn.",
         "c. Kiểm bằng Casio fx-580VN X: MENU 6 → 1, bật Freq, nhập $c_i$ và $n_i$, OPTN → 3 để đọc $\\sigma x$."
       ]
     }

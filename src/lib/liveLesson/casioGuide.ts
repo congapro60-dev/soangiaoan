@@ -44,7 +44,7 @@ export const CASIO_FX580_STEPS: CasioKeyStep[] = [
     order: 4,
     instruction: 'Đọc độ lệch chuẩn quần thể',
     keys: ['OPTN', '3'],
-    expected: 'σx = 1,02469…',
+    expected: 'σx = 0,89443…',
   },
 ];
 
