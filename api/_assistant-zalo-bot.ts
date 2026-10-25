@@ -125,23 +125,18 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const configuredSecret = text(process.env.ZALO_BOT_WEBHOOK_SECRET);
   if (!token || !botId || !allowedBots.has(botId) || !configuredSecret) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   const providedSecret = h(req.headers['x-bot-api-secret-token']);
-  // TẠM THỜI (chẩn đoán verify): ghi lại method/header/body Zalo thật sự gửi. Không log bí mật.
-  console.log('[zalo-verify-diag]', JSON.stringify({
-    method: req.method,
-    secretLen: providedSecret.length,
-    ua: h(req.headers['user-agent']).slice(0, 60),
-    ct: h(req.headers['content-type']).slice(0, 60),
-  }));
   if (!secretEqual(providedSecret, configuredSecret)) { res.status(401).json({ kind: 'error', code: 'UNAUTHORIZED' }); return true; }
   let raw = '';
-  // Zalo gọi webhook để VERIFY ngay sau setWebhook: request có thể rỗng hoặc không phải JSON.
+  // Zalo gọi webhook để VERIFY ngay sau setWebhook: body rỗng hoặc không phải JSON.
   // Trả 2xx để verify đạt; chỉ 400 khi body có nội dung mà sai cấu trúc (rác thật).
   try { raw = await readBody(req); } catch { res.status(200).json({ ok: true }); return true; }
-  console.log('[zalo-verify-diag] body', JSON.stringify(raw.slice(0, 300)));
   if (!raw.trim()) { res.status(200).json({ ok: true }); return true; }
   if (Buffer.byteLength(raw, 'utf8') > MAX_BODY) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   let body: any;
   try { body = JSON.parse(raw); } catch { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
+  // Zalo verify webhook bằng event riêng `webhook.test` (body KHÔNG có `ok`/`result` như tin nhắn).
+  // Đúng yêu cầu của Zalo: trả 200. Không phải tin nhắn người dùng nên không xử lý gì thêm.
+  if (body?.event_name === 'webhook.test') { res.status(200).json({ ok: true }); return true; }
   const m = body?.result?.message;
   if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
