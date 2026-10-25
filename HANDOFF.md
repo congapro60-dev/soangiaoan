@@ -2,80 +2,84 @@
 
 > Ảnh chụp trạng thái để phiên sau bắt nhịp ngay. Lịch sử đầy đủ (R1–R18, v6–v26): `tasks/archive/handoff-history-to-2026-10-23.md`.
 
-## Latest checkpoint - V30 DANG LAM: mo phong tuong tac (25/10/2026)
+## Latest checkpoint - V30 DA PHAT HANH: mo phong tuong tac (25/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
-### Da lam
+### Release record V30
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **30** |
+| deployment_id | `appgdep_6addc30ea94481919a3b840316e526f8` |
+| commit_sha (workflow) | `4f61dcd7da822f0da339c05da25169205e4e262d` (= `4f61dcd` local) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261025-v30.tar.gz` |
+| audience | public |
+| live | HTTP 200 |
+
+**Xac minh doc lap (tu tai bundle tu live, khong tin bao cao Codex)**:
+
+Chunk production `/_next/static/chunks/useLessonSession-CWZUovRi.js` (55.738 bytes) chua:
+
+- 4 khoi dung toa do da duyet: `tu-dien-sabc`, `hop-xien` (day `[10,5,0],[2,5,0]` = hinh binh hanh), `hop-chu-nhat` (day `[8,5,0],[0,5,0]` = chu nhat), `chop-sabcd`.
+- Ham thiet dien `B = z[4] + 2/3*(e - z[4])` — **cong thuc, khong phai so lam tron**.
+- 4 goc nhin: `-140/40`, `-70/20`, `-50/15`, `-160/35`.
+- Loi culling: `faceVisible`, `edgeSolid` deu co mat.
+- Mau net dut `"7 5"` dung nhu viet.
+- Component `KhoiXoay` (minify thanh `te`) con nguyen chu ky `{solidKey, width=380, height=330, compact, caption}`, `useRef` cho drag, `setPointerCapture`, he so `.5` khi keo.
+- He so scale cu `0.42` **khong con** -> da thay bang auto-fit.
+
+**Kiem regression v29**: 3 SVG van con nguyen tren live — `r106-g11-hinh-hop-2-mat-doi-dien.svg` co `viewBox="0 0 440 300"`, `r107-g11-thang-chu-a.svg` co `x2="74.3478"`, `r107-g11-chop-sabcd-thiet-dien.svg` co `viewBox="0 0 440 330"`.
+
+**API `/api/lessons/r22-g11-discover-r106` tra 404** -> khong kiem duoc `solidKey` qua API (khop bao cao `solidkey_verify: skipped` cua Codex). Khong phai loi.
+
+### Da lam trong v30
 
 **Engine hinh hoc** (`lib/geometry/solid.ts`):
 - Chieu 3D -> 2D phoi canh, tinh mat nhin thay va net lien/dut theo MAT.
 - Phap tuyen EP huong ra ngoai theo tam khoi -> khong phu thuoc thu tu dinh nhap tay.
-- 3 khoi: `tu-dien-sabc`, `hop-xien` (day hinh binh hanh, dung loai hop xien nguoi dung chot), `chop-sabcd` (day hinh thang AB = 2CD).
+- 4 khoi: `tu-dien-sabc` (co M,N,P trung diem), `hop-xien`, `hop-chu-nhat`, `chop-sabcd` (co M,N,P,Q thiet dien).
 - Toa do `chop-sabcd` suy nguoc tu hinh 2D da duyet, chieu lai khop 100%.
-- Thiet dien M,N,P,Q **tinh bang cong thuc** `S + 2/3(X-S)`, khong nhap so lam tron.
+- Thiet dien tinh bang **cong thuc** `S + 2/3(X-S)`, khong nhap so lam tron.
 
 **Ham cham Muc B** (`lib/geometry/grade.ts`):
 - Anh xa dinh HS dat -> nhan goc bang tham lam khoang cach gan nhat, dung sai 18px.
-- Phan biet **3 loai loi rieng**: `missing` (thieu canh), `extra` (thua canh), `wrongDash` (sai net).
+- Phan biet **3 loai loi rieng**: `missing`, `extra`, `wrongDash`.
 - So cap canh KHONG thu tu (A-B = B-A).
 
 **Component**:
-- `components/lesson/KhoiXoay.tsx` — **che do Xem**: may tu tinh net, HS keo xoay, KHONG chinh duoc net.
-- `components/lesson/BangVe.tsx` — **che do Ve (Muc B)**: HS keo dat dinh tu goi y, bam 2 dinh noi canh, bam canh doi net, may cham.
-- `TaskImage.tsx` nhan them `solidKey` -> render `KhoiXoay` thay anh tinh.
-- Da noi `taskSolidOf` vao `PracticePanel`, `ClassEventPanel`, `app/play`, `app/presenter`, `app/shared`.
+- `KhoiXoay.tsx` — **che do Xem**: may tu tinh net, HS keo xoay, KHONG chinh duoc net.
+- `BangVe.tsx` — **che do Ve (Muc B)**: HS keo dat dinh, bam 2 dinh noi canh, bam canh doi net, may cham.
+- `TaskImage.tsx` nhan `solidKey` -> render `KhoiXoay` thay anh tinh.
+- Noi `taskSolidOf` vao `PracticePanel`, `ClassEventPanel`, `app/play`, `app/presenter`, `app/shared`.
 
-**Do hoa**: auto-fit theo bounding box (truoc dung he so co dinh 0.42 lam hinh hop chi chiem 1/3 khung). Nhan day ra XA tam hinh theo huong tu tam toi dinh (truoc dich co dinh +6/-6 lam nhan A, B de len canh).
+### Gan vao bai hoc
+
+| Pkg | Task | solidKey |
+|---|---|---|
+| `r22-g11-discover-r106` | `task-3-1` | `tu-dien-sabc` |
+| `r22-g11-discover-r106` | `task-3-2` | `hop-chu-nhat` (de ghi ro "chu nhat") |
+| `r22-g11-discover-r107` | `task-3-2` | `chop-sabcd` |
+
+**KHONG gan** `task-3-1` cua r107 (thales / thang chu A) vi la hinh mat phang.
 
 ### Kiem chung
 
 | Lenh | Ket qua |
 |---|---|
-| `node --experimental-strip-types --test tests/geometry-solid.test.mts tests/geometry-grade.test.mts` | **22/22 PASS** |
-| `npx tsc --noEmit --incremental false` | 0 loi |
+| `node --experimental-strip-types --test tests/geometry-solid.test.mts tests/geometry-grade.test.mts` | **26/26 PASS** |
+| `node --test tests/hki-content.test.mjs` | PASS |
+| `tsc --noEmit --incremental false` | 0 loi |
 | `npm run build` | Build complete |
-| `node --experimental-strip-types scripts/render-simulation-qa.mjs` | 3/3 khoi render, net dut khop SGK |
+| `scripts/check-solidkey-serialize.mjs` | 3/3 task OK, moi solidKey tro toi khoi co that |
 
-Test quan trong nhat:
-- "3 canh dut luon xuat phat tu CUNG mot dinh" (hop) — luat hinh hoc, dung o moi goc.
-- "dao thu tu dinh khong doi ket qua" — chong lai dung bug da tung gay 11/12.
-- Ca 4/8 trong `geometry-grade`: sai net duoc bao RIENG, khong lan voi thieu/thua.
+### Bai hoc
 
-### Goc nhin da chot (theo ket qua quet that)
-
-| Khoi | yaw | pitch | Net dut (khop SGK) |
-|---|---|---|---|
-| `tu-dien-sabc` | -140 | 40 | BC |
-| `hop-xien` | -70 | 20 | CD, DA, DD' |
-| `chop-sabcd` | -160 | 35 | BC, CD, CS |
-
-**Bai hoc**: `chop-sabcd` ban dau dat `yaw -90` lam `A(0,0,0)` va `D(0,3,0)` chieu gan trung nhau (camera nhin doc truc y) -> nhan D, Q, M, A chong nhau. Phai quet do mo `minDist/maxDist` de chon goc, khong doan.
-
-**Bai hoc 2**: khong ghi toa do da lam tron 4 chu so vao code. Lam tron tung diem lam 2 duong gan song song bi coi la khong song song (lech 1e-4) -> test bat duoc.
-
-### Da gan vao bai hoc (sau khi nguoi dung duyet giao dien)
-
-| Pkg | Task | solidKey | Ly do |
-|---|---|---|---|
-| `r22-g11-discover-r106` | `task-3-1` | `tu-dien-sabc` | de: tu dien SABC, M/N/P trung diem SA/SB/SC |
-| `r22-g11-discover-r106` | `task-3-2` | `hop-chu-nhat` | **de ghi ro "hinh hop chu nhat"** — khong dung `hop-xien` |
-| `r22-g11-discover-r107` | `task-3-2` | `chop-sabcd` | de: chop S.ABCD, thiet dien SM = 2/3 SA |
-
-**KHONG gan** `task-3-1` cua r107 (thales / thang chu A) vi do la hinh mat phang, khong phai khoi 3D.
-
-### Loi schema phai sua
-
-`solidKey` bi `validateLessonPackage` tu choi (khong nam trong `ALLOWED_TASK_KEYS`) -> test `hki-content` FAIL. Phai them vao:
-1. `lib/lesson/validate.js` — `ALLOWED_TASK_KEYS`.
-2. `lib/lesson/serialize.js` — **ca hai** `sanitizeTaskForTeacher` va `sanitizeTaskForStudent`, neu khong client khong nhan duoc field.
-
-Da kiem bang `scripts/check-solidkey-serialize.mjs`: 3/3 task co `solidKey`, moi `solidKey` deu tro toi khoi CO THAT trong `solids`.
-
-### Con no
-
-- Chua deploy v30.
-- `chop-sabcd` do mo chi 0.39 do day hinh thang hep (AD = 3 so voi AB = 8) - dung de bai, khong phai loi code.
+- **Schema phai khai bao field moi o 3 noi**: `ALLOWED_TASK_KEYS` trong `validate.js`, va **CA HAI** `sanitizeTaskForTeacher` + `sanitizeTaskForStudent` trong `serialize.js`. Thieu mot cho -> hoac test FAIL, hoac client khong nhan duoc.
+- **De bai phai khop khoi**: r106 task-3-2 de ghi "hinh hop CHU NHAT" nen phai dung `hop-chu-nhat`, khong dung `hop-xien`. Hai khoi nay khac nhau ve toa do.
+- `chop-sabcd` ban dau dat `yaw -90` lam `A(0,0,0)` va `D(0,3,0)` chieu gan trung nhau (camera nhin doc truc y) -> nhan D, Q, M, A chong nhau. Phai quet do mo `minDist/maxDist` de chon goc.
+- Khong ghi toa do da lam tron 4 chu so vao code: lam tron tung diem lam 2 duong gan song song bi coi la lech `1e-4`.
+- **`node_modules` cua worktree tung bi rong** (chi con `.pnpm`) -> dev server chet. Khac phuc: `pnpm install --frozen-lockfile`.
 
 ## Checkpoint truoc - V29 DA PHAT HANH (25/10/2026)
 
