@@ -117,6 +117,20 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     ]);
   });
 
+  it('lượt ghép trả về chữ không đọc được thành JSON (cả 2 lần): 502, và log ghi rõ đoạn đầu/cuối câu trả lời để biết hỏng ở đâu', async () => {
+    h.grade = '10';
+    h.reply = 'Nhận xét.';
+    h.mapReply = 'Dưới đây là kết quả ghép: {"yccd": [{"ma": "T10.30", "cau": ["b1q1"]';
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(502);
+    const logs = warn.mock.calls.filter(args => String(args[0]).includes('[parent-report]'));
+    expect(logs).toHaveLength(2); // mỗi lần thử một dòng
+    expect(JSON.stringify(logs[0])).toContain('Dưới đây là kết quả ghép');
+    warn.mockRestore();
+  });
+
   it('nhiều bài: chia nhóm ≤30 câu chạy song song, gộp câu căn cứ và nối ghi chú của cùng một YCCĐ', async () => {
     h.grade = '10';
     h.reply = 'Nhận xét.';

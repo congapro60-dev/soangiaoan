@@ -177,6 +177,8 @@ const callDraftJson = async (call: () => Promise<string>, timeoutMs?: number): P
     if (raw === null) return { kind: 'slow' };
     const parsed = parseDraftJson(raw);
     if (parsed) return { kind: 'ok', value: parsed };
+    // Chỉ là mã câu/mã YCCĐ (không có dữ liệu cá nhân): ghi đầu + cuối câu trả lời để biết AI hỏng kiểu gì.
+    console.warn('[parent-report] AI trả JSON không đọc được', { attempt, length: raw.length, head: raw.slice(0, 300), tail: raw.slice(-200) });
   }
   return { kind: 'bad' };
 };
