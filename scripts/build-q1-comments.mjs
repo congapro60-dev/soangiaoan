@@ -1,29 +1,30 @@
 /**
- * Soạn nhận xét QUÝ 1 — PHÂN HOÁ theo hồ sơ học tập thật của từng em.
+ * Soạn nhận xét QUÝ 1 — PHÂN HOÁ SÂU, dựa trên chính LỖI của từng em.
  *
- * Vấn đề của bản trước: mọi em cùng một mô-týp vì chỉ dựa vào điểm trung bình. Bản này khai thác
- * thêm hành vi học tập đo được từ dữ liệu bài nộp:
- *   n      số bài đã hoàn thành
- *   avg    điểm trung bình (%)
- *   trend  chênh lệch nửa sau so với nửa đầu kỳ (>0 là tiến bộ dần)
- *   best / worst  điểm cao nhất / thấp nhất
- *   sd     độ dao động (cao = phong độ thất thường)
- *   perAvg / hwAvg  điểm trung bình bài kiểm tra định kì / bài tập thường
+ * Bốn nguồn dữ liệu (đều là số liệu thật app ghi nhận khi chấm):
+ *   docs/qa/scores-input.json    điểm từng LO (thang 4)
+ *   docs/qa/behaviour.json       số bài, điểm TB, xu hướng, độ ổn định, thi vs bài tập
+ *   docs/qa/question-stats.json  số câu đúng / bỏ trống / đúng một phần và KIỂU LỖI chủ đạo
  *
- * Mỗi em nhận một nhận xét ghép từ: mở đầu theo mức chung → NÉT RIÊNG (tiến bộ / ổn định /
- * thất thường / vững bài kiểm tra / mạnh bài tập) → năng lực nổi bật theo chủ đề → nội dung cần
- * củng cố → kết câu theo đúng nét riêng đó.
+ * Kiểu lỗi (gom từ `errorType` của AI chấm từng câu) quyết định câu "nét riêng" — vì vậy hai em
+ * cùng điểm trung bình vẫn có nhận xét khác nhau: em vướng "thiếu bước", em "bỏ câu", em
+ * "sai công thức", em "hiểu sai bản chất", em "đọc sai đề", em "tính toán".
  *
  * Chuẩn văn phong: trang trọng kiểu học bạ · chỉ Quý 1 · khen nhiều hơn chê · không nêu số bài
  * nộp, tỉ lệ, xếp hạng hay so sánh với bạn khác.
  *
  * node scripts/build-q1-comments.mjs
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const scores = JSON.parse(readFileSync(resolve('docs/qa/scores-input.json'), 'utf8'));
-const behaviour = JSON.parse(readFileSync(resolve('docs/qa/behaviour.json'), 'utf8'));
+const behaviour = existsSync(resolve('docs/qa/behaviour.json'))
+  ? JSON.parse(readFileSync(resolve('docs/qa/behaviour.json'), 'utf8'))
+  : {};
+const questionStats = existsSync(resolve('docs/qa/question-stats.json'))
+  ? JSON.parse(readFileSync(resolve('docs/qa/question-stats.json'), 'utf8'))
+  : {};
 
 /** Tên chủ đề theo mã LO. */
 const TOPIC = {
@@ -50,7 +51,6 @@ const TOPIC = {
 
 const round1 = (v) => Math.round(v * 10) / 10;
 
-/** Chỉ số hành vi của một em, tra theo mã HS. */
 const behaviourOf = (className, code) => {
   const rows = behaviour[className] || [];
   const row = rows.find((r) => r[0] === code);
@@ -59,27 +59,22 @@ const behaviourOf = (className, code) => {
   return { n, avg, trend, best, worst, sd, perAvg, hwAvg };
 };
 
-/**
- * Xác định "nét riêng" của em — chọn một nét nổi bật nhất, không liệt kê hết.
- * Thứ tự ưu tiên: tiến bộ rõ > vững bài kiểm tra > ổn định cao > mạnh bài tập thường > thất thường.
- */
-const signatureOf = (b, rank) => {
-  if (!b || b.n === 0) return 'absent';
-  if (b.trend >= 8) return 'tienBo';
-  if (b.trend <= -8) return 'chungLai';
-  if (b.sd >= 22) return 'thatThuong';  if (typeof b.perAvg === 'number' && typeof b.hwAvg === 'number' && b.perAvg - b.hwAvg >= 8) return 'vungThi';
-  if (typeof b.perAvg === 'number' && typeof b.hwAvg === 'number' && b.hwAvg - b.perAvg >= 8) return 'manhBaiTap';
-  if (b.sd <= 12) return 'onDinh';
-  if (rank === 'tot') return 'vuotTroi';
-  return 'deu';
+const questionStatsOf = (className, code) => {
+  const rows = questionStats[className] || [];
+  const row = rows.find((r) => r[0] === code);
+  if (!row) return null;
+  const [, , total, correct, blank, partial, groups] = row;
+  if (!total) return null;
+  const top = Object.entries(groups || {}).sort((a, b) => b[1] - a[1]);
+  return { total, correct, blank, partial, groups: groups || {}, topGroup: top[0]?.[0] || null, topCount: top[0]?.[1] || 0 };
 };
 
-/** Câu mở đầu theo mức chung — mỗi mức dùng từ vựng khác nhau. */
+/** Câu mở đầu theo mức chung — dùng từ vựng khác nhau cho từng mức và từng số lượng bài. */
 const openingFor = (name, rank, b) => {
   const n = b?.n ?? 0;
   if (rank === 'tot') {
     return n >= 15
-      ? `Trong Quý 1, em ${name} có kết quả học tập môn Toán tốt và duy trì được phong độ qua suốt quá trình học.`
+      ? `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán tốt và giữ được phong độ qua suốt quá trình học.`
       : `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán tốt, thể hiện nền tảng kiến thức vững.`;
   }
   if (rank === 'kha') {
@@ -93,31 +88,57 @@ const openingFor = (name, rank, b) => {
   return `Trong Quý 1, em ${name} đã tham gia học tập và bước đầu làm quen với các nội dung của chương trình Toán.`;
 };
 
-/** Câu nét riêng — phần tạo khác biệt giữa các em. */
-const signatureSentence = (signature, name, b) => {
-  switch (signature) {
-    case 'tienBo':
-      return `Điểm đáng ghi nhận là em có tiến bộ rõ rệt về sau: kết quả những bài cuối quý cao hơn hẳn giai đoạn đầu, cho thấy em đã điều chỉnh được cách học.`;
-    case 'chungLai':
-      return `Kết quả các bài cuối quý có phần giảm so với giai đoạn đầu, rất có thể do khối lượng kiến thức tăng nhanh ở giai đoạn ôn thi giữa kì.`;
-    case 'thatThuong':
-      return `Kết quả giữa các lần kiểm tra của em có độ chênh khá lớn: có lần làm rất tốt nhưng cũng có lần còn ở mức thấp, cho thấy phong độ chưa thật ổn định.`;
-    case 'vungThi':
-      return `Điểm nổi bật là em làm tốt hơn hẳn khi kiểm tra tập trung so với luyện tập thường ngày, cho thấy em có khả năng huy động kiến thức dưới áp lực thời gian.`;
-    case 'manhBaiTap':
-      return `Điểm nổi bật là phần luyện tập thường ngày của em tốt hơn hẳn khi làm đề kiểm tra, cho thấy em nắm chắc các dạng cơ bản nhưng còn lúng túng khi gặp đề tổng hợp.`;
-    case 'onDinh':
-      return `Điều đáng khen là phong độ của em rất ổn định: kết quả các bài gần như đồng đều trong suốt quý.`;
-    case 'vuotTroi':
-      return `Em thường xuyên đạt kết quả cao, nhiều lần làm gần như trọn vẹn đề.`;
-    case 'deu':
-      return `Kết quả của em tương đối đồng đều qua các lần kiểm tra, không có giai đoạn nào sa sút rõ rệt.`;
-    default:
-      return '';
+/**
+ * Nét riêng ưu tiên LỖI: kiểu lỗi chủ đạo nói rõ em vướng ở đâu khi làm bài.
+ * Chỉ nêu khi kiểu lỗi đó chiếm tỉ trọng đáng kể so với tổng số câu.
+ */
+const errorSignature = (q, rank) => {
+  if (!q || !q.total) return null;
+  const share = (key) => (q.groups[key] || 0) / q.total;
+  const { topGroup, topCount } = q;
+
+  // Em làm rất tốt: khen sự chắc chắn thay vì bới lỗi.
+  const correctRate = q.correct / q.total;
+  if (correctRate >= 0.75) {
+    return `Đáng chú ý là phần lớn câu hỏi em đều làm đúng, số câu sai không nhiều và thường chỉ là lỗi nhỏ.`;
   }
+
+  // Bỏ câu là dấu hiệu thiếu thời gian hoặc bỏ phần khó.
+  if (topGroup === 'boCau' && (share('boCau') >= 0.15 || q.blank / q.total >= 0.15)) {
+    return `Khi làm bài, em còn để trống một số câu, phần lớn rơi vào các câu khó hoặc câu cuối đề.`;
+  }
+  if (topGroup === 'thieuBuoc' && share('thieuBuoc') >= 0.1) {
+    return `Điều cần lưu ý là các bài tự luận của em còn thiếu bước lập luận hoặc thiếu kết luận, dù hướng làm đúng.`;
+  }
+  if (topGroup === 'saiCongThuc' && share('saiCongThuc') >= 0.1) {
+    return `Em còn nhầm công thức hoặc sai dấu ở một số câu, đây là dạng lỗi có thể khắc phục nhanh nếu soát kỹ lại.`;
+  }
+  if (topGroup === 'hieuSaiBanChat' && share('hieuSaiBanChat') >= 0.05) {
+    return `Một số câu em hiểu chưa đúng bản chất khái niệm nên chọn sai dù đã cố gắng.`;
+  }
+  if (topGroup === 'docSaiDe' && share('docSaiDe') >= 0.05) {
+    return `Có câu em đọc chưa kỹ yêu cầu đề bài nên làm lệch hướng.`;
+  }
+  if (topGroup === 'tinhToan' && share('tinhToan') >= 0.1) {
+    return `Phần lớn lỗi của em nằm ở bước tính toán, trong khi hướng giải vẫn đúng.`;
+  }
+  if (q.partial / q.total >= 0.2) {
+    return `Nhiều câu em làm được một phần, cho thấy em đã nắm được hướng giải nhưng chưa hoàn thiện hết các ý.`;
+  }
+  // Lỗi rải rác nhiều kiểu khác nhau (nhóm "khac" chiếm ưu thế) — không có một điểm yếu hệ thống,
+  // nhưng vẫn cần một câu để nhận xét có chiều sâu thay vì chỉ khen chung.
+  if (topGroup === 'khac' && q.total >= 40) {
+    const scattered = Object.values(q.groups).filter((v) => v >= 2).length;
+    if (scattered >= 3) {
+      return `Lỗi của em rải ở nhiều dạng khác nhau chứ không tập trung vào một phần kiến thức nào, cho thấy em cần rà soát kỹ hơn sau mỗi bài làm.`;
+    }
+  }
+  if (q.partial / q.total >= 0.12) {
+    return `Em thường làm đúng hướng nhưng dừng ở mức một phần các câu tự luận.`;
+  }
+  return null;
 };
 
-/** Câu về năng lực nổi bật theo chủ đề. */
 const strengthSentence = (best, bestTopic) => {
   if (best >= 3.5) return `Em nắm vững và vận dụng tốt nhất ${bestTopic}, bài làm thể hiện sự chính xác và trình bày rõ ràng.`;
   if (best >= 3) return `Em thực hiện tốt các dạng bài của ${bestTopic}.`;
@@ -125,20 +146,16 @@ const strengthSentence = (best, bestTopic) => {
   return `Em đạt kết quả cao nhất ở ${bestTopic}.`;
 };
 
-/**
- * Nhận xét Q1 — ghép 4 phần, mỗi em ra một câu chuyện khác nhau vì phần "nét riêng" và
- * "năng lực nổi bật" phụ thuộc dữ liệu riêng của em đó.
- */
+/** Nhận xét Q1 — ghép 4 phần, mỗi em một câu chuyện riêng. */
 const buildQ1Comment = (className, code, name, marks, los) => {
   const b = behaviourOf(className, code);
+  const q = questionStatsOf(className, code);
   const pairs = los
     .map((lo, i) => ({ lo, mark: marks[i] }))
     .filter((p) => p.lo !== 'LO_DIS_TO_34764' && typeof p.mark === 'number');
 
-  if (!b || b.n === 0 || !pairs.length) {
-    return b && b.n === 0
-      ? `Trong Quý 1, em ${name} chưa có bài làm nào được ghi nhận trong chương trình.`
-      : `Trong Quý 1, em ${name} đã tham gia đầy đủ các giờ học và hoàn thành các nội dung của chương trình Toán.`;
+  if (!pairs.length) {
+    return `Trong Quý 1, em ${name} đã tham gia đầy đủ các giờ học và hoàn thành các nội dung của chương trình Toán.`;
   }
 
   const avg = round1(pairs.reduce((s, p) => s + p.mark, 0) / pairs.length);
@@ -147,15 +164,15 @@ const buildQ1Comment = (className, code, name, marks, los) => {
   const worst = sorted[sorted.length - 1];
   const rank = avg >= 3.5 ? 'tot' : avg >= 3 ? 'kha' : avg >= 2.5 ? 'tb' : 'canCoGang';
   const span = round1(best.mark - worst.mark);
-  const signature = signatureOf(b, rank);
 
-  const parts = [
-    openingFor(name, rank, b),
-    signatureSentence(signature, name, b),
-    strengthSentence(best.mark, TOPIC[best.lo] || best.lo),
-  ];
+  const parts = [openingFor(name, rank, b)];
 
-  // Nội dung cần củng cố — chỉ nêu khi thật sự có khoảng trống so với chính em đó.
+  // Nét riêng: ưu tiên kiểu lỗi (cụ thể hơn xu hướng chung).
+  const errSig = errorSignature(q, rank);
+  if (errSig) parts.push(errSig);
+
+  parts.push(strengthSentence(best.mark, TOPIC[best.lo] || best.lo));
+
   if (worst.mark < 2.5 || (span >= 1 && worst.mark < best.mark)) {
     parts.push(`Nội dung ${TOPIC[worst.lo] || worst.lo} cần được củng cố và rèn luyện thêm.`);
   }
@@ -223,11 +240,10 @@ for (const cls of merged) {
 writeFileSync(resolve('docs/qa/nhan-xet-Q1.csv'), '\ufeff' + csvRows.join('\n'), 'utf8');
 writeFileSync(resolve('docs/qa/nhan-xet-Q1.json'), JSON.stringify(detail, null, 2), 'utf8');
 
-// Báo cáo mức phân hoá: bao nhiêu kiểu mở đầu / nét riêng khác nhau.
 const uniqOpenings = new Set(detail.map((d) => d.comment.split('.')[0]));
 console.log(JSON.stringify({
   total: detail.length,
   uniqueOpenings: uniqOpenings.size,
   byClass: merged.map((c) => `${c.className}: ${c.rows.length}`),
-  samples: [detail[0], detail[1], detail.find((d) => /Lê Trung Đức/.test(d.name))].map((d) => `${d.name}: ${d.comment}`),
+  samples: [detail[0], detail[1], detail.find((d) => /Hồ Anh Phong/.test(d.name)), detail.find((d) => /Lê Trung Đức/.test(d.name))].filter(Boolean).map((d) => `${d.name}: ${d.comment}`),
 }, null, 1));
