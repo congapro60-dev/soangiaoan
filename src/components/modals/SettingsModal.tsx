@@ -384,20 +384,6 @@ export const SettingsModal = ({
                       </div>
                     ) : (
                       <>
-                        {/* Giáo viên thường chưa có key: nói rõ KHÔNG bắt buộc, nhưng vẫn để ô nhập cho ai
-                            muốn tự trả tiền bằng khoá của mình. Bẫy 10/2026 là ô trống không kèm lời giải
-                            thích khiến giáo viên tưởng bắt buộc phải mua key rồi dán key Google trả phí vào. */}
-                        {!isAdmin && !activeApiKey && (
-                          <div className="mb-2 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-                            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                            <span>
-                              Hệ thống đã có khoá AI dùng chung — thầy cô <b>không cần</b> nhập gì ở đây, chọn model rồi bấm Lưu là dùng được.
-                              <span className="mt-1 block text-[11px] font-medium text-emerald-700">
-                                Ô dưới đây chỉ dành cho ai muốn tự trả tiền bằng khoá riêng của mình.
-                              </span>
-                            </span>
-                          </div>
-                        )}
                         {activeTab === 'gemini' ? (
                           <GeminiKeysField
                             rows={keyRowsOf(data.settings)}
@@ -416,6 +402,14 @@ export const SettingsModal = ({
                           </div>
                         )}
                         <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                        {/* Dẫn sang mục "AI của tôi" — nơi giáo viên chọn nguồn khoá (khoá riêng / ví web / cả hai).
+                            Cần có câu này ở MỌI hãng: để trống ô khoá KHÔNG phải bắt buộc đi mua key riêng (bẫy
+                            10/2026: giáo viên tưởng phải mua key Google rồi dán key trả phí vào, trong khi ví web
+                            của web đã sẵn sàng trừ tiền theo mức dùng), mà cũng KHÔNG phải "không cần quan tâm" —
+                            nguồn khoá và cách tính tiền do giáo viên chọn ở mục "AI của tôi". */}
+                        <p className="text-[11px] font-semibold leading-4 text-slate-500">
+                          Không nhập khoá riêng thì dùng khoá của web, trừ theo mức dùng — chọn “Khoá riêng”, “Ví web” hoặc “Cả hai” ở mục <b>AI của tôi</b>.
+                        </p>
                         {walletHint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-4 text-emerald-700">{walletHint}</p>}
                       </>
                     )}
