@@ -1,9 +1,9 @@
-# HANDOFF â€” Soáº¡n giÃ¡o Ã¡n / lá»›p há»c / cháº¥m AI
-**Cáº­p nháº­t:** 2026-10-24
-**Repo:** `soangiaoan` Â· **NhÃ¡nh chuáº©n:** `main`
+# HANDOFF — Soạn giáo án / lớp học / chấm AI
+**Cập nhật:** 2026-10-25
+**Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
-Snapshot tráº¡ng thÃ¡i hiá»‡n táº¡i. Lá»‹ch sá»­ dÃ i Ä‘Ã£ chuyá»ƒn vÃ o [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiáº¿t commit xem `git log`.
+Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
 ## Feature: Ä‘iá»ƒm LO theo MA TRáº¬N ÄIá»‚M cá»§a trÆ°á»ng (`loRubric`) â€” 25/10 (OpenCode)
 
@@ -144,3 +144,8 @@ Chá»§ dá»± Ã¡n bÃ¡o (kÃ¨m áº£nh chá»¥p production): bÃ i "Th
   Test thÃªm á»Ÿ `ClarifyPanel.test.tsx`: Ä‘Ãºng Má»˜T nÃºt lÆ°u, chÆ°a chá»n gÃ¬ thÃ¬ khoÃ¡, cÃ¢u tá»± luáº­n Ä‘á»©ng trÆ°á»›c danh sÃ¡ch Ä‘Ã¡p Ã¡n.
 - **Sá»­a kÃ¨m:** test `api/__tests__/student-adaptive.test.ts` fail PREDATES trÃªn `origin/main` (server thÃªm cá» `closed` á»Ÿ commit 7377728 nhÆ°ng test chÆ°a cáº­p nháº­t â€” xÃ¡c minh báº±ng cháº¡y test trÃªn worktree tráº§n `origin/main` trÆ°á»›c khi sá»­a). Cáº­p nháº­t assert thÃªm `closed: false`. Ghi lesson vÃ o `tasks/lessons.md`.
 - **ChÆ°a lÃ m / cá»‘ Ã½ bá»:** khÃ´ng gá»™p áº£nh bÃ i cháº¥m thÃ nh gallery thu gá»n; panel váº«n váº½ láº¡i áº£nh cho tá»«ng cÃ¢u cÃ³ `questionResults` (chá»‰ lÃ  overlay vÃ¹ng Ä‘á»c â€” cáº§n cho test PH). CÃ¢u tráº£ lá»i ngáº¯n váº«n chá»‰ nháº­n sá»‘ (`NUMBER_ANSWER`), chÆ°a cho chá»¯.
+
+
+- **UI đã thêm (25/10):** khối "Ma trận điểm của đề" trong tab SSM — chọn file nhập điểm của trường là app tự đọc cột "Tổng điểm", khớp LO theo **mô tả** (không theo thứ tự), rồi lưu `loRubric` cho bài đang mở. LO không khớp được thì báo rõ chứ không gán bừa.
+- **Lỗi hạ tầng gặp 25/10 (chưa sửa được):** SSM trả **422** ở `v2/evaluation/criteria-has-assessment-form/{criteriaId}?assessment_form_id={formId}` → tải bảng điểm ra "0 LO, 0 học sinh". Bốn endpoint khác cùng token đều 200, nên đây là phía SSM. SSM cũng rất chậm lúc đó (~20 giây/request HTML, bundle 7 MB > 60 giây).
+- **Điều khiển trình duyệt khi QA (25/10):** Edge/Chrome phải khởi động kèm `--remote-debugging-port=9223 --remote-allow-origins=*` **và** `--user-data-dir` riêng; profile mặc định thì single-instance bỏ qua cờ, cổng không mở. Script: `scripts/cdp.js`, `scripts/seed-ssm-session.js`, `scripts/qa-lo-run.js`.

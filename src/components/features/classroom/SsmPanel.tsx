@@ -16,7 +16,7 @@ import {
 import type { AppData, Student } from '../../../types';
 
 type Settings = AppData['settings'];
-import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
+import { listAssignmentsForClass, listSubmissionsForClass, setAssignmentLoRubric } from '../../../lib/classroom/submissionService';
 import { asCompetencyGrade, competenciesByGrade } from '../../../lib/classroom/competency/framework';
 import { SSM_SCALE_4, type LoMark } from '../../../lib/ssm/loScore';
 import { readLoWorkbook, fillLoWorkbook } from '../../../lib/ssm/loWorkbook';
@@ -50,6 +50,7 @@ import {
 import { pickCurrentSchoolYear } from '../../../lib/ssm/ssmModel';
 import { parseLoInfo, suggestGrid, type LoInfo, type LoMapping } from '../../../lib/ssm/loMapping';
 import { fixedLoMapping } from '../../../lib/ssm/loFixedMapping';
+import { readSchoolRubric } from '../../../lib/ssm/schoolRubric';
 import { buildClassLoScores, type LoPeriodKey } from '../../../lib/ssm/loClassScores';
 import { fetchSsmTemplateByLink } from '../../../lib/classroom/teacherService';
 import { LoPushPreviewModal } from './LoPushPreviewModal';
@@ -70,6 +71,8 @@ interface SsmFormChoice {
   formId: number;
   criteriaId: number;
   subjectId: number;
+  /** id bài giao trong app tương ứng (để lưu ma trận điểm); rỗng nếu chưa khớp được bài nào. */
+  assignmentId?: string;
 }
 
 const MARK_OPTIONS: LoMark[] = ['N', ...SSM_SCALE_4];
@@ -84,6 +87,7 @@ const academicYearStart = (): number => { const now = new Date(); return now.get
 
 export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, showToast }: Props) => {
   const fileInput = useRef<HTMLInputElement>(null);
+  const rubricInput = useRef<HTMLInputElement>(null);
   const [fileBytes, setFileBytes] = useState<ArrayBuffer | null>(null);
   const [fileName, setFileName] = useState('');
   const [los, setLos] = useState<LoInfo[]>([]);
@@ -107,6 +111,8 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
   const [showExcelSection, setShowExcelSection] = useState(() => !readSsmLink(classId));
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [ssmSession, setSsmSession] = useState<StoredSsmSession | null>(() => getStoredSsmSession());
+  /** Số LO đã nạp ma trận cho bài đang mở — chỉ để hiển thị, nguồn thật nằm trên assignment. */
+  const [rubricLoCount, setRubricLoCount] = useState(0);
 
   const grade = asCompetencyGrade(Number(classGrade));
   const nameByCode = useMemo(() => {
@@ -212,8 +218,37 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
         }
       }
       if (forms.length === 0) throw new Error(`Môn "${mathSub.name}" chưa có bài đánh giá nào trên SSM.`);
-      setAvailableForms(forms);
-      const chosen = forms.find((f) => f.formName.toUpperCase().includes(period)) || forms[0];
+      // Nối form SSM với bài giao trong app để lưu được ma trận điểm: khớp theo tên bài (SSM gọi
+      // "IA1"/"F1", app gọi "Thi giữa HKI"/"BTVN…"), nên so cả hai phía theo từ khoá kỳ.
+      const assignments = await listAssignmentsForClass(classId, teacherId);
+      const periodKeywords: Record<string, RegExp> = {
+        F1: /(^|\s)f1(\s|$)/i,
+        IA1: /(^|\s)ia1(\s|$)/i,
+        F2: /(^|\s)f2(\s|$)/i,
+        SE1: /(^|\s)se1(\s|$)/i,
+        F3: /(^|\s)f3(\s|$)/i,
+        IA2: /(^|\s)ia2(\s|$)/i,
+        F4: /(^|\s)f4(\s|$)/i,
+        SE2: /(^|\s)se2(\s|$)/i,
+      };
+      const normName = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const withAssignment = forms.map((form) => {
+        const formKey = normName(form.formName);
+        const match = assignments.find((assignment) => {
+          const title = normName(String(assignment.title ?? ''));
+          if (!title) return false;
+          if (title.includes(formKey)) return true;
+          if (/ia1/.test(formKey)) return /giua hki|thuong xuyen 1/.test(title);
+          if (/^f1/.test(formKey)) return /thang 8|thang 9/.test(title);
+          return false;
+        });
+        return { ...form, assignmentId: match?.id };
+      });
+      setAvailableForms(withAssignment);
+      const chosen = withAssignment.find((f) => f.formName.toUpperCase().includes(period)) || withAssignment[0];
+      setRubricLoCount(
+        (chosen.assignmentId ? assignments.find((a) => a.id === chosen.assignmentId)?.loRubric?.length : 0) ?? 0,
+      );
       await loadAssessmentForm(chosen, currentLink.id);
     } catch (e) {
       setError(errorText(e));
@@ -253,6 +288,50 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
     try {
       const { bytes, filename } = await fetchSsmTemplateByLink(link.trim());
       await loadBytes(bytes, filename);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy('');
+    }
+  };
+
+  /**
+   * Nạp MA TRẬN ĐIỂM của đề từ file nhập điểm của trường.
+   *
+   * File ghi LO1..LO6 kèm mô tả; SSM dùng mã `LO_DIS_TO_*`. Khớp hai bên bằng MÔ TẢ (bỏ dấu, so
+   * từ khoá) chứ không theo thứ tự — thứ tự có thể lệch giữa các đề. LO nào không khớp được thì
+   * để nguyên và báo rõ, thà thiếu còn hơn gán điểm sai chỗ.
+   */
+  const onPickRubricFile = async (file: File) => {
+    if (!activeForm || los.length === 0) {
+      setError('Hãy tải bảng điểm của bài đánh giá trước rồi mới nạp ma trận.');
+      return;
+    }
+    setBusy('Đang đọc ma trận điểm từ file của trường…');
+    setError('');
+    try {
+      const rows = readSchoolRubric(await file.arrayBuffer());
+      if (rows.length === 0) throw new Error('File không có bảng LO → "Tổng điểm". Kiểm tra lại sheet "Hướng dẫn".');
+      const norm = (text: string) =>
+        text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
+      const matched: Array<{ loCode: string; maxPoints: number }> = [];
+      const unmatched: string[] = [];
+      for (const row of rows) {
+        const target = norm(row.description).slice(0, 40);
+        const lo = los.find((candidate) => {
+          const text = norm(candidate.text);
+          return target.length > 12 && (text.includes(target.slice(0, 24)) || target.includes(text.slice(0, 24)));
+        });
+        if (lo) matched.push({ loCode: lo.loCode, maxPoints: row.maxPoints });
+        else unmatched.push(`${row.label} (${row.description.slice(0, 40)}…)`);
+      }
+      if (matched.length === 0) throw new Error('Không khớp được LO nào giữa file và bài đánh giá đang mở.');
+      const saved = await setAssignmentLoRubric(activeForm.assignmentId, matched);
+      setRubricLoCount(saved.loRubric.length);
+      setNote(
+        `Đã nạp ma trận: ${saved.loRubric.length}/${los.length} LO, tổng ${saved.totalPoints} điểm.` +
+          (unmatched.length ? ` Chưa khớp: ${unmatched.slice(0, 3).join('; ')}.` : ''),
+      );
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -541,6 +620,42 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
 
         {/* KHỐI 2: Fallback dùng file Excel mẫu (accordion) */}
         <div className="border-t border-slate-100 pt-3">
+          {/* Nạp MA TRẬN ĐIỂM của đề từ file nhập điểm của trường (LO → điểm tối đa). */}
+          <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 space-y-2">
+            <p className="text-xs font-bold text-emerald-900">
+              Ma trận điểm của đề ({rubricLoCount > 0 ? `${rubricLoCount} LO` : 'chưa nạp'})
+            </p>
+            <p className="text-[11px] font-medium text-emerald-800">
+              Trường chấm theo ma trận: mỗi LO chiếm một số điểm cố định, LO nặng đóng góp nhiều hơn.
+              Chọn file nhập điểm của trường để app đọc cột "Tổng điểm" và tính đúng như SSM.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={rubricInput}
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void onPickRubricFile(f);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                type="button"
+                disabled={!!busy || !activeForm}
+                onClick={() => rubricInput.current?.click()}
+                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+              >
+                <Upload className="h-3.5 w-3.5" /> Nạp ma trận từ file nhập điểm
+              </button>
+              {activeForm && (
+                <span className="text-[11px] font-semibold text-emerald-700">
+                  áp cho bài đang mở: {activeForm.formName}
+                </span>
+              )}
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => setShowExcelSection((prev) => !prev)}
