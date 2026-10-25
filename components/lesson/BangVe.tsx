@@ -63,7 +63,11 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
     const r = svg.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    // SVG duoc hien thi co gian theo khung, nen phai quy doi pixel thuc
+    // ve toa do viewBox. Neu khong, keo dinh se lech khi man hinh khac kich thuoc.
+    const sx = r.width === 0 ? 1 : width / r.width;
+    const sy = r.height === 0 ? 1 : height / r.height;
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
   };
 
   const onVertexDown = (i: number) => (e: React.PointerEvent) => {
@@ -163,24 +167,24 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
   }
 
   return (
-    <figure style={{ margin: ".75rem 0", maxWidth: width }}>
+    <figure style={{ margin: ".75rem 0", maxWidth: width, width: "100%" }}>
       <svg
         ref={svgRef}
-        width={width}
-        height={height}
+        width="100%"
         viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={`Bài tập vẽ ${caption ?? solidKey}. Kéo đỉnh, bấm hai đỉnh để nối cạnh, bấm cạnh để đổi nét.`}
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerLeave={onUp}
-        style={{ background: "#fff", border: "1px solid #cbd5e1", borderRadius: 10, touchAction: "none", userSelect: "none" }}
+        style={{ background: "#fff", border: "1px solid #cbd5e1", borderRadius: 10, touchAction: "none", userSelect: "none", display: "block", height: "auto" }}
       >
         <rect width={width} height={height} fill="#fff" rx={10} />
 
-        {/* Gợi ý đỉnh */}
+        {/* Gợi ý đỉnh: vòng lớn hơn điểm đã đặt để HS thấy vị trí gợi ý */}
         {hints.map((h, i) => (
-          <circle key={`h${i}`} cx={h.x} cy={h.y} r={9} fill="none" stroke="#cbd5e1" strokeDasharray="3 3" />
+          <circle key={`h${i}`} cx={h.x} cy={h.y} r={13} fill="none" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="3 3" />
         ))}
 
         {/* Cạnh HS đã vẽ */}

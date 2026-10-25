@@ -128,7 +128,7 @@ export function KhoiXoay({
   const { pts, lines, extras, solidCount, total, visibleFaces } = rendered;
 
   return (
-    <figure style={{ margin: ".75rem 0", maxWidth: width }}>
+    <figure style={{ margin: ".75rem 0", maxWidth: width, width: "100%" }}>
       <div
         role="img"
         aria-label={`${caption ?? solidKey}. Kéo để xoay. Nét liền ${solidCount} trên ${total}, ${visibleFaces} mặt nhìn thấy.`}
@@ -143,10 +143,17 @@ export function KhoiXoay({
           background: "#fff",
           border: "1px solid #cbd5e1",
           borderRadius: 10,
-          display: "inline-block",
+          display: "block",
+          maxWidth: "100%",
+          overflow: "hidden",
         }}
       >
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <svg
+          width="100%"
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ display: "block", height: "auto" }}
+        >
           <rect width={width} height={height} fill="#fff" rx={10} />
           {lines.map((l, i) => (
             <line
