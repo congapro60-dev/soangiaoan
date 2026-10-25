@@ -76,19 +76,38 @@ export const canRelinkActiveChannel = (existingFirebaseUid: string, targetFireba
 
 const adminDb = (db?: Firestore) => db || getAdminDb();
 
-export const resolveChannelActor = async (channel: Channel, accountId: string, userId: string, chatId?: string, db?: Firestore): Promise<AssistantActor> => {
+export const resolveChannelActor = async (channel: Channel, accountId: string, userId: string, chatId?: string, db?: Firestore, selector?: {
+  preferredRole?: 'teacher' | 'parent' | 'student'; classId?: string; studentId?: string;
+}): Promise<AssistantActor> => {
   validateChannelIdentity({ channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId, verifiedChannelAccountId: channel === 'zalo_oa' || channel === 'zalo_bot' ? accountId : undefined });
   const firestore = adminDb(db);
   const snapshot = await firestore.collection('channelLinks').where('channel', '==', channel).where('channelAccountId', '==', accountId).where('channelUserId', '==', userId).where('active', '==', true).get();
   const now = Date.now();
-  const match = snapshot.docs.find(doc => {
+  let matches = snapshot.docs.filter(doc => {
     const value = doc.data() as ChannelLinkDoc;
     return isUsableChannelLink(value, now, { channel, channelAccountId: accountId, channelUserId: userId, channelChatId: chatId })
-      && value.channelChatId === chatId;
+      && value.channelChatId === chatId
+      && (value.role === undefined || value.role === 'teacher' || value.firebaseUid === `pinlink:${value.role}:${value.classId}:${value.studentId}`)
+      && (channel === 'zalo_bot' || (value.role ?? 'teacher') === 'teacher');
   });
+  if (selector !== undefined) {
+    matches = matches.filter(doc => {
+      const link = doc.data() as ChannelLinkDoc;
+      return (selector.preferredRole === undefined || (link.role ?? 'teacher') === selector.preferredRole)
+        && (selector.classId === undefined || link.classId === selector.classId)
+        && (selector.studentId === undefined || link.studentId === selector.studentId);
+    });
+  } else {
+    const teachers = matches.filter(doc => (doc.data().role ?? 'teacher') === 'teacher');
+    if (teachers.length) matches = teachers;
+  }
+  if (matches.length > 1) throw new Error('Ambiguous channel links: specify role, classId and studentId');
+  const match = matches[0];
   if (!match) throw new Error('Channel is not linked');
   const link = match.data() as ChannelLinkDoc;
-  return { firebaseUid: link.firebaseUid, channel, channelAccountId: accountId, channelUserId: userId, ...(link.channelChatId ? { channelChatId: link.channelChatId } : {}), linkId: match.id, active: true };
+  return { firebaseUid: link.firebaseUid, channel, channelAccountId: accountId, channelUserId: userId, ...(link.channelChatId ? { channelChatId: link.channelChatId } : {}), linkId: match.id, active: true,
+    role: link.role ?? 'teacher', ...(link.classId !== undefined ? { classId: link.classId } : {}), ...(link.studentId !== undefined ? { studentId: link.studentId } : {}),
+  };
 };
 
 export const claimAssistantRequestNonce = async (nonce: string, now = Date.now(), db?: Firestore): Promise<void> => {
@@ -165,14 +184,15 @@ export const consumeLinkCode = async (
     const value = codeDoc.data() as LinkCodeDoc;
     if (value.usedAt || !value.expiresAt || value.expiresAt <= now) throw new Error('Expired or used link code');
 
-    const existing = await tx.get(firestore.collection('channelLinks')
+    const existingSnapshot = await tx.get(firestore.collection('channelLinks')
       .where('channel', '==', identity.channel)
       .where('channelAccountId', '==', identity.channelAccountId)
       .where('channelUserId', '==', identity.channelUserId)
       .where('active', '==', true));
     const linkRef = firestore.collection('channelLinks').doc(codeDoc.id);
     const linkSnapshot = await tx.get(linkRef);
-    existing.docs.forEach(doc => {
+    const existing = existingSnapshot.docs.filter(doc => (doc.data()?.role ?? 'teacher') === 'teacher');
+    existing.forEach(doc => {
       const existingUid = String(doc.data()?.firebaseUid || '');
       if (!canRelinkActiveChannel(existingUid, value.firebaseUid)) throw new Error('Channel is already linked to another account');
     });
@@ -180,7 +200,7 @@ export const consumeLinkCode = async (
       throw new Error('Link is already used');
     }
     await cancelConfirmations(tx, firestore, identity, value.firebaseUid, undefined, now, true);
-    existing.docs.forEach(doc => tx.update(doc.ref, { active: false, revokedAt: now, updatedAt: now }));
+    existing.forEach(doc => tx.update(doc.ref, { active: false, revokedAt: now, updatedAt: now }));
 
     const link: ChannelLinkDoc = {
       firebaseUid: value.firebaseUid,

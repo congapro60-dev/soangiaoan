@@ -54,6 +54,26 @@ describe('assistant authorization contracts', () => {
     expect(isUsableChannelLink({ ...link, updatedAt: undefined as never }, now)).toBe(false);
   });
 
+  it('requires class and student scope for parent or student links', () => {
+    expect(isUsableChannelLink({ ...link, role: 'parent' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, role: 'student' }, now)).toBe(false);
+    expect(isUsableChannelLink({ ...link, role: 'parent', classId: 'class-1', studentId: 'student-1' }, now)).toBe(true);
+    expect(isUsableChannelLink({ ...link, role: 'student', classId: 'class-1', studentId: 'student-1' }, now)).toBe(true);
+    expect(isUsableChannelLink(link, now)).toBe(true);
+  });
+
+  it('rejects malformed roles and scope fields without tightening legacy teacher UIDs', () => {
+    for (const role of ['admin', '', 42]) {
+      expect(isUsableChannelLink({ ...link, role } as never, now)).toBe(false);
+    }
+    for (const field of ['classId', 'studentId']) {
+      for (const value of ['', '   ', null, 42]) {
+        expect(isUsableChannelLink({ ...link, [field]: value }, now)).toBe(false);
+      }
+    }
+    expect(isUsableChannelLink({ ...link, role: 'teacher', firebaseUid: 'legacy-uid' }, now)).toBe(true);
+  });
+
   it('authorizes owner and grantee reads, but respects revocation and role escalation', () => {
     expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'read', now)).toBe(true);
     expect(canUseAssistantShare(share, 'owner', 'class', 'class-1', 'write', now)).toBe(true);

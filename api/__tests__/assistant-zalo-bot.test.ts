@@ -7,6 +7,16 @@ vi.mock('../_assistant-auth', async () => ({
   resolveChannelActor: vi.fn(async () => ({ firebaseUid: 'teacher', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'link', active: true })),
 }));
 vi.mock('../_assistant-tools', () => ({ runAssistantReadTool: vi.fn(async () => ({ data: { items: [{ name: 'Lớp 10A', id: 'class-1' }] } })) }));
+vi.mock('../_assistant-ph-hs-link', async () => ({
+  ...await vi.importActual<typeof import('../_assistant-ph-hs-link')>('../_assistant-ph-hs-link'),
+  linkByPin: vi.fn(async () => ({ status: 'linked', reply: 'Đã liên kết thành công.' })),
+}));
+vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
+vi.mock('../_assistant-ph-hs-menu', async () => ({
+  ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
+  parentMenuReply: vi.fn(async () => 'MENU_DUNG_HO_SO'),
+}));
+vi.mock('../_exam-core', () => ({ getAdminDb: () => ({}) }));
 vi.mock('../_assistant-confirmations', () => ({
   inspectAssistantConfirmation: vi.fn(async () => ({ requestHash: 'a'.repeat(64), toolName: 'exportLesson' })),
   isAssistantToolExecutable: vi.fn(() => true),
@@ -19,9 +29,12 @@ vi.mock('../_assistant-jobs', () => ({ getAssistantJobStatus: vi.fn(async () => 
 import handler from '../assistant';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from '../_assistant-auth';
 import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_assistant-confirmations';
+import { linkByPin } from '../_assistant-ph-hs-link';
+import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
+import { parentMenuReply } from '../_assistant-ph-hs-menu';
 
-const event = (text = '/help') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: 'message-1', date: Date.now() } } });
+const event = (text = '/help', messageId = 'message-1') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: messageId, date: Date.now() } } });
 let fetchMock: ReturnType<typeof vi.fn>;
 async function request(body: unknown = event(), secret: string | undefined = 'webhook-secret', transport = 'zalo_bot') {
   const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
@@ -109,6 +122,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
   it('replies only to inbound chat using fixed origin without redirects', async () => {
     expect((await request()).code).toBe(200);
     expect(fetchMock.mock.calls[0][0]).toBe('https://bot-api.zaloplatforms.com/botfake-token/getMe');
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', body: '{}', redirect: 'error' });
     expect(claimAssistantRequestNonce).toHaveBeenCalledWith(expect.stringMatching(/^zalo_bot_[0-9a-f]{64}$/));
     expect(sent()).toHaveLength(1);
     const [url, options] = sent()[0];
@@ -160,5 +174,68 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
   it('standard HTTP route cannot bypass HMAC with webhook headers or body flags', async () => {
     const result = await request({ action: 'readTool', requestId: 'injected', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', toolName: 'listClasses', authenticated: true }, 'webhook-secret', '');
     expect(result.code).toBe(401); expect(runAssistantReadTool).not.toHaveBeenCalled();
+  });
+
+  it('A7 gate: vai phụ huynh/học sinh gửi lệnh của thầy cô bị chặn đúng một câu', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce({ firebaseUid: 'pinlink:parent:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'plink', active: true, role: 'parent', classId: 'c', studentId: 's' } as any);
+    const result = await request(event('/classes', 'm-1'));
+    expect(result.code).toBe(200);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Chỉ thầy cô mới dùng được lệnh này');
+    expect(runAssistantReadTool).not.toHaveBeenCalled();
+  });
+
+  it('người chưa liên kết nhắn tự nhiên: hướng dẫn đúng 1 lần/5 phút, còn lại im lặng', async () => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
+    vi.mocked(canReplyToStranger).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    expect((await request(event('chào thầy cô ơi', 'm-1'))).code).toBe(200);
+    expect((await request(event('giúp tôi với', 'm-2'))).code).toBe(200);
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('phụ huynh');
+    expect(canReplyToStranger).toHaveBeenCalledTimes(2);
+  });
+
+  it('tin mã PIN đi hết đường linkByPin và map đúng lỗi chạm trần', async () => {
+    const message = 'phụ huynh ACDF47 1234';
+    await request(event(message, 'm-1'));
+    expect(linkByPin).toHaveBeenCalledWith(expect.anything(), 'bot-1', 'user-1', message);
+    expect(JSON.parse(sent()[0][1].body).text).toBe('Đã liên kết thành công.');
+    vi.mocked(linkByPin).mockRejectedValueOnce(new Error('PIN_LOCKED'));
+    await request(event(message, 'm-2'));
+    expect(JSON.parse(sent()[1][1].body).text).toContain('thử quá nhiều lần');
+  });
+
+  it('B4 (review MAJOR): PH có 2 link (Ambiguous) nhắn tự nhiên — không bị coi là người lạ', async () => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Ambiguous channel links: specify role, classId and studentId'));
+    const result = await request(event('cho tôi xem báo cáo', 'm-1'));
+    expect(result.code).toBe(200);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('nhiều hồ sơ');
+    expect(parentMenuReply).not.toHaveBeenCalled();
+    expect(canReplyToStranger).not.toHaveBeenCalled();
+  });
+
+  it('B5 (review NIT): tin bắt đầu bằng / không bị nhấm thành tin mã PIN', async () => {
+    vi.mocked(resolveChannelActor).mockRejectedValueOnce(new Error('Channel is not linked'));
+    const result = await request(event('/status ACDF47 1234 phu huynh', 'm-1'));
+    expect(result.code).toBe(200);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Chỉ thầy cô mới dùng được lệnh này');
+    expect(linkByPin).not.toHaveBeenCalled();
+  });
+
+  it.each(['0', '1', '7', 'menu'])('người lạ nhắn %s không thấy menu', async message => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
+    await request(event(message));
+    expect(parentMenuReply).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).not.toContain('MENU_DUNG_HO_SO');
+  });
+
+  it.each(['parent', 'student'])('menu %s chỉ nhận học sinh/lớp từ link', async role => {
+    const actor = { firebaseUid: `pinlink:${role}:c:s`, role, classId: 'c', studentId: 's' } as any;
+    vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
+      if ((args[5] as any)?.preferredRole !== role) throw new Error('Channel is not linked');
+      return actor;
+    });
+    await request(event('7'));
+    expect(parentMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's', '7');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
   });
 });

@@ -2,8 +2,12 @@ import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
-import { getAssistantJobStatus } from './_assistant-jobs.js';
+import { linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES } from './_assistant-ph-hs-link.js';
+import { recoveryReply } from './_assistant-ph-hs-recovery.js';
+import { parentMenuReply, MENU_REPLIES } from './_assistant-ph-hs-menu.js';
+import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
+import { getAdminDb } from './_exam-core.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 const MAX_BODY = 16_384;
@@ -25,6 +29,30 @@ const send = async (token: string, chatId: string, message: string) => {
   } catch { /* ambiguous send: never retry or expose credentials */ }
 };
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
+const TEACHER_COMMANDS = new Set(['/classes', '/confirm', '/cancel', '/status']);
+const STRANGER_HINT = 'Để liên kết, gửi tin theo mẫu: phụ huynh <mã lớp> <mã PIN> hoặc học sinh <mã lớp> <mã PIN> (mã PIN do thầy cô cấp).';
+type ZaloActor = Awaited<ReturnType<typeof resolveChannelActor>>;
+/**
+ * Gửi đúng 1 câu hướng dẫn mỗi 5 phút với người chưa liên kết; còn lại im lặng.
+ * Lỗi "Ambiguous channel links" nghĩa là người đó ĐÃ liên kết (vd PH có 2 con)
+ * — không được coi như người lạ.
+ */
+const resolveAnyActor = async (botId: string, userId: string, chatId: string): Promise<ZaloActor | 'ambiguous' | null> => {
+  let ambiguous = false;
+  for (const preferredRole of ['teacher', 'parent', 'student'] as const) {
+    try { return await resolveChannelActor('zalo_bot' as any, botId, userId, chatId, undefined, { preferredRole }); }
+    catch (error) { if (/Ambiguous channel links/i.test((error as Error).message ?? '')) ambiguous = true; /* thử vai kế tiếp */ }
+  }
+  return ambiguous ? 'ambiguous' : null;
+};
+const pinLinkReply = async (botId: string, userId: string, message: string): Promise<string> => {
+  try { return (await linkByPin(getAdminDb(), botId, userId, message)).reply; }
+  catch (error) {
+    const reason = error instanceof Error ? error.message : '';
+    if (/PIN_LOCKED/i.test(reason)) return PIN_LINK_REPLIES.throttled;
+    throw error;
+  }
+};
 const readBody = async (req: VercelRequest): Promise<string> => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
   if (Buffer.isBuffer(raw)) return raw.toString('utf8');
@@ -42,14 +70,24 @@ const readBody = async (req: VercelRequest): Promise<string> => {
 async function dispatch(token: string, botId: string, userId: string, chatId: string, message: string): Promise<string> {
   const id = identity(botId, userId);
   const [command, ...args] = message.trim().split(/\s+/);
-  if (command === '/help') return 'Lệnh: /link CODE, /classes, /confirm ID HASH, /cancel ID HASH, /status ID';
+  if (command === '/help') return 'Lệnh: /link CODE, /classes, /confirm ID HASH, /cancel ID HASH, /status ID\nPH quên mã PIN: /khoiphuc <mã học sinh> <số điện thoại>';
   if (command === '/link') {
     if (!args[0]) return 'Cần mã liên kết.';
     await consumeLinkCode(args[0], id as any);
     return 'Đã liên kết tài khoản giáo viên.';
   }
-  const actor = await resolveChannelActor('zalo_bot' as any, botId, userId, chatId);
-  if (command === '/classes') return output(await runAssistantReadTool('listClasses', {}, actor));
+  if (!command.startsWith('/') && parsePinLinkMessage(message).status === 'ok') return pinLinkReply(botId, userId, message);
+  if (command === '/khoiphuc') {
+    // Cooldown người lạ do recoveryReply tự quản — callback chỉ cung cấp nội dung hướng dẫn.
+    return recoveryReply(getAdminDb(), botId, userId, args, async () => STRANGER_HINT);
+  }
+  if (TEACHER_COMMANDS.has(command)) {
+    let teacherActor: ZaloActor;
+    try { teacherActor = await resolveChannelActor('zalo_bot' as any, botId, userId, chatId, undefined, { preferredRole: 'teacher' }); }
+    catch { return 'Chỉ thầy cô mới dùng được lệnh này.'; }
+    if (((teacherActor as any).role ?? 'teacher') !== 'teacher') return 'Chỉ thầy cô mới dùng được lệnh này.';
+    const actor = teacherActor;
+    if (command === '/classes') return output(await runAssistantReadTool('listClasses', {}, actor));
   if (command === '/confirm' || command === '/cancel') {
     if (!args[0] || !/^[0-9a-f]{64}$/i.test(args[1] || '')) return 'Cú pháp: /confirm ID HASH hoặc /cancel ID HASH';
     const confirmationId = args[0]; const requestHash = args[1];
@@ -62,6 +100,22 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     } }));
   }
   if (command === '/status') return output(await getAssistantJobStatus({ actor, jobId: args[0] || '' }));
+  }
+  const linked = await resolveAnyActor(botId, userId, chatId);
+  if (!linked) {
+    if (!(await canReplyToStranger(getAdminDb(), botId, userId))) return '';
+    return STRANGER_HINT;
+  }
+  if (linked === 'ambiguous') return 'Tài khoản đã liên kết nhiều hồ sơ học sinh. Vui lòng liên hệ thầy cô để chọn đúng hồ sơ cần xem.';
+  // Phase 2 — chỉ người ĐÃ liên kết role=parent|student mới tới được đây và thấy menu.
+  // Chọn link PH/HS; GV (hoặc chỉ có link teacher) giữ câu trả lời cũ.
+  const linkedActor: any = linked;
+  const role = linkedActor.role ?? 'teacher';
+  if (role === 'parent' || role === 'student') {
+    const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
+    if (!classId || !studentId) return MENU_REPLIES.noData;
+    return parentMenuReply(getAdminDb(), classId, studentId, message);
+  }
   return 'Tính năng trò chuyện tự nhiên chưa khả dụng. Dùng /help để xem lệnh.';
 }
 
@@ -79,19 +133,22 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   try { body = JSON.parse(raw); } catch { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   const m = body?.result?.message;
   if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
-  const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { redirect: 'error' }).catch(() => null);
+  const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
   const meBody = me && await me.json().catch(() => null);
   if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   const senderId = text(m.from.id);
   const command = text(m.text).split(/\s+/, 1)[0];
   if (allowedUsers.size && !allowedUsers.has(senderId)) { res.status(200).json({ ok: true }); return true; }
-  if (!allowedUsers.size && command !== '/link') {
+  if (!allowedUsers.size && command.startsWith('/') && command !== '/link' && command !== '/khoiphuc') {
     try { await resolveChannelActor('zalo_bot' as any, botId, senderId, text(m.chat.id)); }
-    catch { res.status(200).json({ ok: true }); return true; }
+    catch (error) {
+      // Ambiguous = người gửi ĐÃ liên kết (vd PH 2 con) — cho vào dispatch xử lý bình thường.
+      if (!/Ambiguous channel links/i.test((error as Error).message ?? '')) { res.status(200).json({ ok: true }); return true; }
+    }
   }
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${m.from.id}:${m.chat.id}:${m.message_id}`).digest('hex')}`;
   try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   let reply = 'Tính năng chưa khả dụng.';
   try { reply = await dispatch(token, botId, text(m.from.id), text(m.chat.id), text(m.text)); } catch { reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
-  await send(token, text(m.chat.id), reply); res.status(200).json({ ok: true }); return true;
+  if (reply) await send(token, text(m.chat.id), reply); res.status(200).json({ ok: true }); return true;
 }

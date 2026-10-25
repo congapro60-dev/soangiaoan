@@ -91,7 +91,7 @@ function canonicalJson(value: unknown): string {
 
 const actorIdentity = (actor: AssistantActor) => {
   if (!isRecord(actor) || actor.active !== true || !isNonEmptyString(actor.firebaseUid)
-    || (actor.channel !== 'telegram' && actor.channel !== 'zalo_oa')
+    || (actor.channel !== 'telegram' && actor.channel !== 'zalo_oa' && actor.channel !== 'zalo_bot')
     || !isNonEmptyString(actor.channelAccountId) || !isNonEmptyString(actor.channelUserId)
     || !isNonEmptyString(actor.linkId) || (actor.channelChatId !== undefined && !isNonEmptyString(actor.channelChatId))) {
     throw new Error('Invalid assistant actor');

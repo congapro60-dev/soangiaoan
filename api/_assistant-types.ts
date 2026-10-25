@@ -15,6 +15,9 @@ export type AssistantShareStatus = 'active' | 'revoked';
 export type AssistantConfirmationStatus = 'pending' | 'executing' | 'cancelled' | 'expired' | 'executed' | 'outcome_unknown';
 
 export interface AssistantActor {
+  role?: 'teacher' | 'parent' | 'student';
+  classId?: string;
+  studentId?: string;
   firebaseUid: string;
   channel: Channel;
   /** Telegram bot, Zalo OA, or Zalo Bot identity. Always paired with channelUserId. */
@@ -41,6 +44,9 @@ export interface AssistantRequestNonceDoc {
 }
 
 export interface ChannelLinkDoc {
+  role?: 'teacher' | 'parent' | 'student';
+  classId?: string;
+  studentId?: string;
   firebaseUid: string;
   channel: Channel;
   /** Identity is the pair (channelAccountId, channelUserId), never the UID alone. */
@@ -156,6 +162,11 @@ export function isUsableChannelLink(
       && (value.channelChatId === undefined || isNonEmptyString(value.channelChatId));
     if (!validIdentity(link) || !isNonEmptyString(link.firebaseUid)
       || (identity !== undefined && !validIdentity(identity))) return false;
+    if (link.role !== undefined && !['teacher', 'parent', 'student'].includes(link.role)) return false;
+    if ((link.classId !== undefined && !isNonEmptyString(link.classId))
+      || (link.studentId !== undefined && !isNonEmptyString(link.studentId))) return false;
+    if ((link.role === 'parent' || link.role === 'student')
+      && (!isNonEmptyString(link.classId) || !isNonEmptyString(link.studentId))) return false;
     if (link.channel === 'zalo_bot' && (link.channelChatId !== link.channelUserId
       || !link.channelChatId)) return false;
     if (identity?.channel === 'zalo_bot' && identity.channelChatId !== identity.channelUserId) return false;
