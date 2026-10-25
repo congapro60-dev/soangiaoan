@@ -382,21 +382,22 @@ export const SettingsModal = ({
                           {glmNotice.warning && <span className="mt-2 block rounded-lg bg-amber-100 px-2 py-1 text-amber-800">{glmNotice.warning}</span>}
                         </span>
                       </div>
-                    ) : !isAdmin && !activeApiKey ? (
-                      // Giáo viên thường: KHÔNG mời dán key. Ô nhập key từng khiến giáo viên tưởng phải
-                      // mua key Google rồi dán key trả phí vào (10/2026) — trong khi ví web đã trả sẵn.
-                      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-                        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                        <span>
-                          Hệ thống đã có khoá AI dùng chung — thầy cô <b>không cần</b> nhập API key.
-                          Chọn model bên dưới rồi bấm Lưu là dùng được ngay.
-                          <span className="mt-1 block text-[11px] font-medium text-emerald-700">
-                            Chỉ cần dán key riêng khi muốn tự trả tiền bằng khoá của mình.
-                          </span>
-                        </span>
-                      </div>
                     ) : (
                       <>
+                        {/* Giáo viên thường chưa có key: nói rõ KHÔNG bắt buộc, nhưng vẫn để ô nhập cho ai
+                            muốn tự trả tiền bằng khoá của mình. Bẫy 10/2026 là ô trống không kèm lời giải
+                            thích khiến giáo viên tưởng bắt buộc phải mua key rồi dán key Google trả phí vào. */}
+                        {!isAdmin && !activeApiKey && (
+                          <div className="mb-2 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                            <span>
+                              Hệ thống đã có khoá AI dùng chung — thầy cô <b>không cần</b> nhập gì ở đây, chọn model rồi bấm Lưu là dùng được.
+                              <span className="mt-1 block text-[11px] font-medium text-emerald-700">
+                                Ô dưới đây chỉ dành cho ai muốn tự trả tiền bằng khoá riêng của mình.
+                              </span>
+                            </span>
+                          </div>
+                        )}
                         {activeTab === 'gemini' ? (
                           <GeminiKeysField
                             rows={keyRowsOf(data.settings)}
