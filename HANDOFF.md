@@ -2,7 +2,34 @@
 
 > Ảnh chụp trạng thái để phiên sau bắt nhịp ngay. Lịch sử đầy đủ (R1–R18, v6–v26): `tasks/archive/handoff-history-to-2026-10-23.md`.
 
-## Latest checkpoint - V28 DA PHAT HANH + sua SVG tuan 11 - 24/10/2026
+## Latest checkpoint - V29 DA PHAT HANH (25/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Release record V29
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **29** |
+| deployment_id | `appgdep_6add4e36e8e481919cc903a47b85999d` |
+| commit_sha (workflow) | `afec0a067dbb76f21ae7d002df037dbd4994b4f9` (= `afec0a0` local) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261025-v28-fix.tar.gz` |
+| audience | public |
+| live | HTTP 200 |
+
+**Xac minh doc lap (tu tai SVG tu live, khong tin bao cao Codex)**:
+- `r107-g11-thang-chu-a.svg`: doc toa do that tu live -> `AB/BC = A'B'/B'C' = 1.000000612`, 6 diem lech khoi chan thang toi da `0.00005`. THALES DUNG.
+- `r106-g11-hinh-hop-2-mat-doi-dien.svg`: `viewBox="0 0 440 300"`, nhan `B'` o `(285,125)`, chu thich `y=292` -> ban moi.
+- `r107-g11-chop-sabcd-thiet-dien.svg`: `viewBox="0 0 440 330"`, nhan `M` o `(89,182)` -> ban moi.
+- `r106-g11-hai-mp-cat-theo-d.svg`: nhan `a(340,206)`, `b(320,222)` -> ban moi (nhan cu 376/356 khong con).
+- `r013-duong-tron-don-vi.svg`: `viewBox="0 0 420 300"`, chu thich `y=288` -> ban moi.
+- `r107-g11-thales-3-mat-phang.svg`: 6 diem giao dung toa do.
+
+**Bai hoc ve quy trinh deploy**: KHONG dung lai archive cu. Archive `release-20261024-v28.tar.gz` duoc tao tu commit `1b00030` (chua co 2 commit sua hinh). Phai tao archive moi `release-20261025-v28-fix.tar.gz`. Kiem bang `commit_sha` workflow tra ve phai KHAC commit cu.
+
+**Bai hoc ve kiem live**: HTTP 200 KHONG chung minh noi dung moi. Phai tai SVG tu live va grep toa do dac trung cua ban moi (viewBox, toa do nhan). Da lam dung viec nay.
+
+## Checkpoint truoc - V28 DA PHAT HANH + sua SVG tuan 11 - 24/10/2026
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
