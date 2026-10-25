@@ -138,7 +138,8 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   // Đúng yêu cầu của Zalo: trả 200. Không phải tin nhắn người dùng nên không xử lý gì thêm.
   if (body?.event_name === 'webhook.test') { res.status(200).json({ ok: true }); return true; }
   const m = body?.result?.message;
-  if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
+  console.log('[zalo-diag] body keys:', Object.keys(body ?? {}).join(','), '| ok:', body?.ok, '| event:', body?.result?.event_name, '| hasMsg:', Boolean(m));
+  if (body?.ok !== true || body?.result?.event_name !== 'message.text.received' || !m || m.from?.is_bot !== false || m.chat?.chat_type !== 'PRIVATE' || text(m.from?.id) !== text(m.chat?.id) || !text(m.message_id) || !text(m.text) || text(m.text).length > 2000 || !Number.isInteger(m.date) || m.date < 1e12 || Date.now() - m.date > 300000 || m.date - Date.now() > 60000) { console.log('[zalo-diag] reject: fromId==chatId?', text(m?.from?.id) === text(m?.chat?.id), '| date:', m?.date, '| now:', Date.now()); res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
   const meBody = me && await me.json().catch(() => null);
   if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
@@ -153,8 +154,8 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
     }
   }
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${m.from.id}:${m.chat.id}:${m.message_id}`).digest('hex')}`;
-  try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } console.log('[zalo-diag] nonce loi:', (error as Error)?.message?.slice(0, 300)); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   let reply = 'Tính năng chưa khả dụng.';
-  try { reply = await dispatch(token, botId, text(m.from.id), text(m.chat.id), text(m.text)); } catch { reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
+  try { reply = await dispatch(token, botId, text(m.from.id), text(m.chat.id), text(m.text)); } catch (error) { console.log('[zalo-diag] dispatch loi:', (error as Error)?.message?.slice(0, 300)); reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
   if (reply) await send(token, text(m.chat.id), reply); res.status(200).json({ ok: true }); return true;
 }
