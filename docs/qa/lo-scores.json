@@ -1,0 +1,1818 @@
+[
+  {
+    "className": "10Olinda",
+    "grade": 10,
+    "los": [
+      "LO_DIS_TO_34344",
+      "LO_DIS_TO_34345",
+      "LO_DIS_TO_34346",
+      "LO_DIS_TO_34352",
+      "LO_DIS_TO_34353",
+      "LO_DIS_TO_34354"
+    ],
+    "periods": {
+      "IA1": {
+        "period": "IA1",
+        "label": "IA1 · tháng 10",
+        "competencyIds": [
+          "g10-tap-hop-va-menh-de",
+          "g10-phep-toan-tren-tap-hop",
+          "g10-bpt-bac-nhat-hai-an",
+          "g10-gia-tri-luong-giac-0-180",
+          "g10-he-thuc-luong-tam-giac",
+          "g10-vecto-va-phep-toan"
+        ],
+        "rows": [
+          {
+            "name": "Hoàng Anh Hà Chi",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 8.2,
+              "g10-phep-toan-tren-tap-hop": 8.2,
+              "g10-bpt-bac-nhat-hai-an": 8.2,
+              "g10-gia-tri-luong-giac-0-180": 8.2,
+              "g10-he-thuc-luong-tam-giac": 8.2,
+              "g10-vecto-va-phep-toan": 8.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3.5,
+              "g10-phep-toan-tren-tap-hop": 3.5,
+              "g10-bpt-bac-nhat-hai-an": 3.5,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3.5
+            }
+          },
+          {
+            "name": "Hoàng Tuấn Minh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.7,
+              "g10-phep-toan-tren-tap-hop": 5.7,
+              "g10-bpt-bac-nhat-hai-an": 5.7,
+              "g10-gia-tri-luong-giac-0-180": 5.7,
+              "g10-he-thuc-luong-tam-giac": 5.7,
+              "g10-vecto-va-phep-toan": 7.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Hồ Khánh Phương",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 8.1,
+              "g10-phep-toan-tren-tap-hop": 8.1,
+              "g10-bpt-bac-nhat-hai-an": 8.1,
+              "g10-gia-tri-luong-giac-0-180": 8.1,
+              "g10-he-thuc-luong-tam-giac": 8.1,
+              "g10-vecto-va-phep-toan": 9.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3.5
+            }
+          },
+          {
+            "name": "Nguyễn Công Bảo Khánh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 9.1,
+              "g10-phep-toan-tren-tap-hop": 9.1,
+              "g10-bpt-bac-nhat-hai-an": 9.1,
+              "g10-gia-tri-luong-giac-0-180": 9.1,
+              "g10-he-thuc-luong-tam-giac": 9.1,
+              "g10-vecto-va-phep-toan": 7.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3.5,
+              "g10-phep-toan-tren-tap-hop": 3.5,
+              "g10-bpt-bac-nhat-hai-an": 3.5,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Đỗ Khánh Linh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7.2,
+              "g10-phep-toan-tren-tap-hop": 7.2,
+              "g10-bpt-bac-nhat-hai-an": 7.2,
+              "g10-gia-tri-luong-giac-0-180": 7.5,
+              "g10-he-thuc-luong-tam-giac": 7.5,
+              "g10-vecto-va-phep-toan": 7.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Gia Linh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 6.2,
+              "g10-phep-toan-tren-tap-hop": 6.2,
+              "g10-bpt-bac-nhat-hai-an": 6.2,
+              "g10-gia-tri-luong-giac-0-180": 6.2,
+              "g10-he-thuc-luong-tam-giac": 6.2,
+              "g10-vecto-va-phep-toan": 7.2
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Minh Châu",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.4,
+              "g10-phep-toan-tren-tap-hop": 5.4,
+              "g10-bpt-bac-nhat-hai-an": 5.4,
+              "g10-gia-tri-luong-giac-0-180": 5.4,
+              "g10-he-thuc-luong-tam-giac": 5.4,
+              "g10-vecto-va-phep-toan": 6.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Mai Anh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.9,
+              "g10-phep-toan-tren-tap-hop": 5.9,
+              "g10-bpt-bac-nhat-hai-an": 5.9,
+              "g10-gia-tri-luong-giac-0-180": 5.9,
+              "g10-he-thuc-luong-tam-giac": 5.9,
+              "g10-vecto-va-phep-toan": 7.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Ngọc Diễm",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 4.3,
+              "g10-phep-toan-tren-tap-hop": 4.3,
+              "g10-bpt-bac-nhat-hai-an": 4.3,
+              "g10-gia-tri-luong-giac-0-180": 4.2,
+              "g10-he-thuc-luong-tam-giac": 4.2,
+              "g10-vecto-va-phep-toan": 4.2
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 1.5,
+              "g10-phep-toan-tren-tap-hop": 1.5,
+              "g10-bpt-bac-nhat-hai-an": 1.5,
+              "g10-gia-tri-luong-giac-0-180": 1.5,
+              "g10-he-thuc-luong-tam-giac": 1.5,
+              "g10-vecto-va-phep-toan": 1.5
+            }
+          },
+          {
+            "name": "Nguyễn Nhật Huy",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7,
+              "g10-phep-toan-tren-tap-hop": 7,
+              "g10-bpt-bac-nhat-hai-an": 7,
+              "g10-gia-tri-luong-giac-0-180": 7,
+              "g10-he-thuc-luong-tam-giac": 7,
+              "g10-vecto-va-phep-toan": 7.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Phước Nam Phong",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.5,
+              "g10-phep-toan-tren-tap-hop": 5.5,
+              "g10-bpt-bac-nhat-hai-an": 5.5,
+              "g10-gia-tri-luong-giac-0-180": 5.5,
+              "g10-he-thuc-luong-tam-giac": 5.5,
+              "g10-vecto-va-phep-toan": 6.2
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Phạm Minh Châu",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7.2,
+              "g10-phep-toan-tren-tap-hop": 7.2,
+              "g10-bpt-bac-nhat-hai-an": 7.2,
+              "g10-gia-tri-luong-giac-0-180": 7.2,
+              "g10-he-thuc-luong-tam-giac": 7.2,
+              "g10-vecto-va-phep-toan": 6.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Phạm Ngọc Linh Chi",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 6.7,
+              "g10-phep-toan-tren-tap-hop": 6.7,
+              "g10-bpt-bac-nhat-hai-an": 6.7,
+              "g10-gia-tri-luong-giac-0-180": 6.7,
+              "g10-he-thuc-luong-tam-giac": 6.7,
+              "g10-vecto-va-phep-toan": 7.4
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Trần Anh Thư",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 8.5,
+              "g10-phep-toan-tren-tap-hop": 8.5,
+              "g10-bpt-bac-nhat-hai-an": 8.5,
+              "g10-gia-tri-luong-giac-0-180": 8.5,
+              "g10-he-thuc-luong-tam-giac": 8.5,
+              "g10-vecto-va-phep-toan": 6.9
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3.5,
+              "g10-phep-toan-tren-tap-hop": 3.5,
+              "g10-bpt-bac-nhat-hai-an": 3.5,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Trần Hữu Bảo Nam",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 4.8,
+              "g10-phep-toan-tren-tap-hop": 4.8,
+              "g10-bpt-bac-nhat-hai-an": 4.8,
+              "g10-gia-tri-luong-giac-0-180": 4.8,
+              "g10-he-thuc-luong-tam-giac": 4.8,
+              "g10-vecto-va-phep-toan": 6.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Trần Thùy Anh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 4,
+              "g10-phep-toan-tren-tap-hop": 4,
+              "g10-bpt-bac-nhat-hai-an": 4,
+              "g10-gia-tri-luong-giac-0-180": 4,
+              "g10-he-thuc-luong-tam-giac": 4,
+              "g10-vecto-va-phep-toan": 4.2
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 1.5,
+              "g10-phep-toan-tren-tap-hop": 1.5,
+              "g10-bpt-bac-nhat-hai-an": 1.5,
+              "g10-gia-tri-luong-giac-0-180": 1.5,
+              "g10-he-thuc-luong-tam-giac": 1.5,
+              "g10-vecto-va-phep-toan": 1.5
+            }
+          },
+          {
+            "name": "Trịnh Bảo Nam",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 6.2,
+              "g10-phep-toan-tren-tap-hop": 6.2,
+              "g10-bpt-bac-nhat-hai-an": 6.2,
+              "g10-gia-tri-luong-giac-0-180": 6.2,
+              "g10-he-thuc-luong-tam-giac": 6.2,
+              "g10-vecto-va-phep-toan": 7
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Vũ Bảo An",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.6,
+              "g10-phep-toan-tren-tap-hop": 5.6,
+              "g10-bpt-bac-nhat-hai-an": 5.6,
+              "g10-gia-tri-luong-giac-0-180": 5.6,
+              "g10-he-thuc-luong-tam-giac": 5.6,
+              "g10-vecto-va-phep-toan": 3.9
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 1.5
+            }
+          },
+          {
+            "name": "Vũ Nhật Anh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 4.6,
+              "g10-phep-toan-tren-tap-hop": 4.6,
+              "g10-bpt-bac-nhat-hai-an": 4.6,
+              "g10-gia-tri-luong-giac-0-180": 4.6,
+              "g10-he-thuc-luong-tam-giac": 4.6,
+              "g10-vecto-va-phep-toan": 6.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          }
+        ],
+        "usedWeighted": 48,
+        "usedPlain": 36
+      },
+      "F1": {
+        "period": "F1",
+        "label": "F1 · tháng 8–9",
+        "competencyIds": [
+          "g10-tap-hop-va-menh-de",
+          "g10-phep-toan-tren-tap-hop",
+          "g10-bpt-bac-nhat-hai-an",
+          "g10-gia-tri-luong-giac-0-180",
+          "g10-he-thuc-luong-tam-giac",
+          "g10-vecto-va-phep-toan"
+        ],
+        "rows": [
+          {
+            "name": "Hoàng Anh Hà Chi",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 6.9,
+              "g10-phep-toan-tren-tap-hop": 6.9,
+              "g10-bpt-bac-nhat-hai-an": 6.9,
+              "g10-gia-tri-luong-giac-0-180": 7.3,
+              "g10-he-thuc-luong-tam-giac": 7.3,
+              "g10-vecto-va-phep-toan": 7.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Hoàng Tuấn Minh",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 6.7,
+              "g10-he-thuc-luong-tam-giac": 6.7,
+              "g10-vecto-va-phep-toan": 6.7,
+              "g10-tap-hop-va-menh-de": 5.9,
+              "g10-phep-toan-tren-tap-hop": 5.9,
+              "g10-bpt-bac-nhat-hai-an": 5.9
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Hồ Khánh Phương",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 8.5,
+              "g10-phep-toan-tren-tap-hop": 8.5,
+              "g10-bpt-bac-nhat-hai-an": 8.5,
+              "g10-gia-tri-luong-giac-0-180": 8.5,
+              "g10-he-thuc-luong-tam-giac": 8.5,
+              "g10-vecto-va-phep-toan": 8.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3.5,
+              "g10-phep-toan-tren-tap-hop": 3.5,
+              "g10-bpt-bac-nhat-hai-an": 3.5,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3.5
+            }
+          },
+          {
+            "name": "Nguyễn Công Bảo Khánh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.9,
+              "g10-phep-toan-tren-tap-hop": 5.9,
+              "g10-bpt-bac-nhat-hai-an": 5.9,
+              "g10-gia-tri-luong-giac-0-180": 6,
+              "g10-he-thuc-luong-tam-giac": 6,
+              "g10-vecto-va-phep-toan": 6
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Đỗ Khánh Linh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 8.3,
+              "g10-phep-toan-tren-tap-hop": 8.3,
+              "g10-bpt-bac-nhat-hai-an": 8.3,
+              "g10-gia-tri-luong-giac-0-180": 8.5,
+              "g10-he-thuc-luong-tam-giac": 8.5,
+              "g10-vecto-va-phep-toan": 8.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3.5,
+              "g10-phep-toan-tren-tap-hop": 3.5,
+              "g10-bpt-bac-nhat-hai-an": 3.5,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3.5
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Gia Linh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7.4,
+              "g10-phep-toan-tren-tap-hop": 7.4,
+              "g10-bpt-bac-nhat-hai-an": 7.4,
+              "g10-gia-tri-luong-giac-0-180": 6.6,
+              "g10-he-thuc-luong-tam-giac": 6.6,
+              "g10-vecto-va-phep-toan": 6.6
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Minh Châu",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 6.3,
+              "g10-he-thuc-luong-tam-giac": 6.3,
+              "g10-vecto-va-phep-toan": 6.3,
+              "g10-tap-hop-va-menh-de": 7.3,
+              "g10-phep-toan-tren-tap-hop": 7.3,
+              "g10-bpt-bac-nhat-hai-an": 7.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Mai Anh",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 6.8,
+              "g10-he-thuc-luong-tam-giac": 6.8,
+              "g10-vecto-va-phep-toan": 6.8,
+              "g10-tap-hop-va-menh-de": 5.7,
+              "g10-phep-toan-tren-tap-hop": 5.7,
+              "g10-bpt-bac-nhat-hai-an": 5.7
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Ngọc Diễm",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 4.9,
+              "g10-phep-toan-tren-tap-hop": 4.9,
+              "g10-bpt-bac-nhat-hai-an": 4.9,
+              "g10-gia-tri-luong-giac-0-180": 6.3,
+              "g10-he-thuc-luong-tam-giac": 6.3,
+              "g10-vecto-va-phep-toan": 6.3
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Nhật Huy",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7.4,
+              "g10-phep-toan-tren-tap-hop": 7.4,
+              "g10-bpt-bac-nhat-hai-an": 7.4,
+              "g10-gia-tri-luong-giac-0-180": 6.9,
+              "g10-he-thuc-luong-tam-giac": 6.9,
+              "g10-vecto-va-phep-toan": 6.9
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Nguyễn Phước Nam Phong",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.8,
+              "g10-phep-toan-tren-tap-hop": 5.8,
+              "g10-bpt-bac-nhat-hai-an": 5.8,
+              "g10-gia-tri-luong-giac-0-180": 6.1,
+              "g10-he-thuc-luong-tam-giac": 6.1,
+              "g10-vecto-va-phep-toan": 6.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Phạm Minh Châu",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 7.2,
+              "g10-he-thuc-luong-tam-giac": 7.2,
+              "g10-vecto-va-phep-toan": 7.2,
+              "g10-tap-hop-va-menh-de": 6.8,
+              "g10-phep-toan-tren-tap-hop": 6.8,
+              "g10-bpt-bac-nhat-hai-an": 6.8
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2.5,
+              "g10-phep-toan-tren-tap-hop": 2.5,
+              "g10-bpt-bac-nhat-hai-an": 2.5,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Phạm Ngọc Linh Chi",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 5.3,
+              "g10-phep-toan-tren-tap-hop": 5.3,
+              "g10-bpt-bac-nhat-hai-an": 5.3,
+              "g10-gia-tri-luong-giac-0-180": 5.8,
+              "g10-he-thuc-luong-tam-giac": 5.8,
+              "g10-vecto-va-phep-toan": 5.8
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2.5,
+              "g10-he-thuc-luong-tam-giac": 2.5,
+              "g10-vecto-va-phep-toan": 2.5
+            }
+          },
+          {
+            "name": "Trần Anh Thư",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 7.1,
+              "g10-phep-toan-tren-tap-hop": 7.1,
+              "g10-bpt-bac-nhat-hai-an": 7.1,
+              "g10-gia-tri-luong-giac-0-180": 7.1,
+              "g10-he-thuc-luong-tam-giac": 7.1,
+              "g10-vecto-va-phep-toan": 7.1
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Trần Hữu Bảo Nam",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 6.9,
+              "g10-he-thuc-luong-tam-giac": 6.9,
+              "g10-vecto-va-phep-toan": 6.9,
+              "g10-tap-hop-va-menh-de": 5.2,
+              "g10-phep-toan-tren-tap-hop": 5.2,
+              "g10-bpt-bac-nhat-hai-an": 5.2
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 3,
+              "g10-he-thuc-luong-tam-giac": 3,
+              "g10-vecto-va-phep-toan": 3
+            }
+          },
+          {
+            "name": "Trần Thùy Anh",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 3.9,
+              "g10-he-thuc-luong-tam-giac": 3.9,
+              "g10-vecto-va-phep-toan": 3.9,
+              "g10-tap-hop-va-menh-de": 4,
+              "g10-phep-toan-tren-tap-hop": 4,
+              "g10-bpt-bac-nhat-hai-an": 4
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 1.5,
+              "g10-phep-toan-tren-tap-hop": 1.5,
+              "g10-bpt-bac-nhat-hai-an": 1.5,
+              "g10-gia-tri-luong-giac-0-180": 1.5,
+              "g10-he-thuc-luong-tam-giac": 1.5,
+              "g10-vecto-va-phep-toan": 1.5
+            }
+          },
+          {
+            "name": "Trịnh Bảo Nam",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 8.9,
+              "g10-he-thuc-luong-tam-giac": 8.9,
+              "g10-vecto-va-phep-toan": 8.9,
+              "g10-tap-hop-va-menh-de": 7.5,
+              "g10-phep-toan-tren-tap-hop": 7.5,
+              "g10-bpt-bac-nhat-hai-an": 7.5
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 3,
+              "g10-phep-toan-tren-tap-hop": 3,
+              "g10-bpt-bac-nhat-hai-an": 3,
+              "g10-gia-tri-luong-giac-0-180": 3.5,
+              "g10-he-thuc-luong-tam-giac": 3.5,
+              "g10-vecto-va-phep-toan": 3.5
+            }
+          },
+          {
+            "name": "Vũ Bảo An",
+            "code": "",
+            "mark10": {
+              "g10-gia-tri-luong-giac-0-180": 5.5,
+              "g10-he-thuc-luong-tam-giac": 5.5,
+              "g10-vecto-va-phep-toan": 5.5,
+              "g10-tap-hop-va-menh-de": 5.4,
+              "g10-phep-toan-tren-tap-hop": 5.4,
+              "g10-bpt-bac-nhat-hai-an": 5.4
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 2,
+              "g10-phep-toan-tren-tap-hop": 2,
+              "g10-bpt-bac-nhat-hai-an": 2,
+              "g10-gia-tri-luong-giac-0-180": 2,
+              "g10-he-thuc-luong-tam-giac": 2,
+              "g10-vecto-va-phep-toan": 2
+            }
+          },
+          {
+            "name": "Vũ Nhật Anh",
+            "code": "",
+            "mark10": {
+              "g10-tap-hop-va-menh-de": 3.6,
+              "g10-phep-toan-tren-tap-hop": 3.6,
+              "g10-bpt-bac-nhat-hai-an": 3.6,
+              "g10-gia-tri-luong-giac-0-180": 3.9,
+              "g10-he-thuc-luong-tam-giac": 3.9,
+              "g10-vecto-va-phep-toan": 3.9
+            },
+            "mark4": {
+              "g10-tap-hop-va-menh-de": 1.5,
+              "g10-phep-toan-tren-tap-hop": 1.5,
+              "g10-bpt-bac-nhat-hai-an": 1.5,
+              "g10-gia-tri-luong-giac-0-180": 1.5,
+              "g10-he-thuc-luong-tam-giac": 1.5,
+              "g10-vecto-va-phep-toan": 1.5
+            }
+          }
+        ],
+        "usedWeighted": 0,
+        "usedPlain": 222
+      }
+    }
+  },
+  {
+    "className": "11Columbus",
+    "grade": 11,
+    "los": [
+      "LO_DIS_TO_34745",
+      "LO_DIS_TO_34746",
+      "LO_DIS_TO_34747",
+      "LO_DIS_TO_34748",
+      "LO_DIS_TO_34756",
+      "LO_DIS_TO_34764"
+    ],
+    "periods": {
+      "IA1": {
+        "period": "IA1",
+        "label": "IA1 · tháng 10",
+        "competencyIds": [
+          "g11-ham-va-pt-luong-giac",
+          "g11-day-so-cap-so",
+          "g11-duong-thang-mat-phang-kg",
+          "g11-quan-he-song-song"
+        ],
+        "rows": [
+          {
+            "name": "Dương Phạm Tường Vi",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8.4,
+              "g11-day-so-cap-so": 8.4,
+              "g11-duong-thang-mat-phang-kg": 8.4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-day-so-cap-so": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Đặng Lam Anh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8.2,
+              "g11-day-so-cap-so": 8.2,
+              "g11-duong-thang-mat-phang-kg": 8.2
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-day-so-cap-so": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Đặng Tuệ Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 4,
+              "g11-day-so-cap-so": 4,
+              "g11-duong-thang-mat-phang-kg": 4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 1.5,
+              "g11-day-so-cap-so": 1.5,
+              "g11-duong-thang-mat-phang-kg": 1.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Đinh Bình Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.5,
+              "g11-day-so-cap-so": 6.5,
+              "g11-duong-thang-mat-phang-kg": 6.5,
+              "g11-quan-he-song-song": 5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": 2
+            }
+          },
+          {
+            "name": "Đinh Nhật Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6,
+              "g11-day-so-cap-so": 6,
+              "g11-duong-thang-mat-phang-kg": 6,
+              "g11-quan-he-song-song": 7
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": 3
+            }
+          },
+          {
+            "name": "Đoàn Thanh Vân",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.7,
+              "g11-day-so-cap-so": 6.7,
+              "g11-duong-thang-mat-phang-kg": 6.7
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Đỗ Hải Phong",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.3,
+              "g11-day-so-cap-so": 7.3,
+              "g11-duong-thang-mat-phang-kg": 7.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Hoàng Lâm",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8,
+              "g11-day-so-cap-so": 8,
+              "g11-duong-thang-mat-phang-kg": 8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Hồ Anh Phong",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 9.5,
+              "g11-day-so-cap-so": 9.5,
+              "g11-duong-thang-mat-phang-kg": 9.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 4,
+              "g11-day-so-cap-so": 4,
+              "g11-duong-thang-mat-phang-kg": 4,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Lê Anh Thư",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.8,
+              "g11-day-so-cap-so": 7.8,
+              "g11-duong-thang-mat-phang-kg": 7.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Lê Trung Đức",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 5.5,
+              "g11-day-so-cap-so": 5.5,
+              "g11-duong-thang-mat-phang-kg": 5.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2,
+              "g11-day-so-cap-so": 2,
+              "g11-duong-thang-mat-phang-kg": 2,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn An Nam",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.5,
+              "g11-day-so-cap-so": 6.5,
+              "g11-duong-thang-mat-phang-kg": 6.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Duy Tuấn Linh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.4,
+              "g11-day-so-cap-so": 6.4,
+              "g11-duong-thang-mat-phang-kg": 6.4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Bách",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 9.4,
+              "g11-day-so-cap-so": 9.4,
+              "g11-duong-thang-mat-phang-kg": 9.4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 4,
+              "g11-day-so-cap-so": 4,
+              "g11-duong-thang-mat-phang-kg": 4,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Lê Gia Phong",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.9,
+              "g11-day-so-cap-so": 6.9,
+              "g11-duong-thang-mat-phang-kg": 6.9
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Mai Phương",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.7,
+              "g11-day-so-cap-so": 7.7,
+              "g11-duong-thang-mat-phang-kg": 7.7
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Thế Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 9.1,
+              "g11-day-so-cap-so": 9.1,
+              "g11-duong-thang-mat-phang-kg": 9.1
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-day-so-cap-so": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Tiến Ích Lâm",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.4,
+              "g11-day-so-cap-so": 7.4,
+              "g11-duong-thang-mat-phang-kg": 7.4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Vũ Hà Thành",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 4.6,
+              "g11-day-so-cap-so": 4.6,
+              "g11-duong-thang-mat-phang-kg": 4.6
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2,
+              "g11-day-so-cap-so": 2,
+              "g11-duong-thang-mat-phang-kg": 2,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Phạm Đức Cường",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.5,
+              "g11-day-so-cap-so": 6.5,
+              "g11-duong-thang-mat-phang-kg": 6.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Trần Đức Khải",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.6,
+              "g11-day-so-cap-so": 7.6,
+              "g11-duong-thang-mat-phang-kg": 7.6,
+              "g11-quan-he-song-song": 7.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": 3
+            }
+          },
+          {
+            "name": "Trần Phúc Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8.2,
+              "g11-day-so-cap-so": 8.2,
+              "g11-duong-thang-mat-phang-kg": 8.2
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-day-so-cap-so": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Trịnh Trần Chí Thành",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 5.9,
+              "g11-day-so-cap-so": 5.9,
+              "g11-duong-thang-mat-phang-kg": 5.9,
+              "g11-quan-he-song-song": 8.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": 3.5
+            }
+          },
+          {
+            "name": "Trịnh Tường Anh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.2,
+              "g11-day-so-cap-so": 6.2,
+              "g11-duong-thang-mat-phang-kg": 6.2
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-day-so-cap-so": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Vũ Đặng Minh Khôi",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.1,
+              "g11-day-so-cap-so": 7.1,
+              "g11-duong-thang-mat-phang-kg": 7.1
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-day-so-cap-so": 3,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": "N"
+            }
+          },
+          {
+            "name": "Vũ Minh Ngọc",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 5.5,
+              "g11-day-so-cap-so": 5.5,
+              "g11-duong-thang-mat-phang-kg": 5.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2,
+              "g11-day-so-cap-so": 2,
+              "g11-duong-thang-mat-phang-kg": 2,
+              "g11-quan-he-song-song": "N"
+            }
+          }
+        ],
+        "usedWeighted": 60,
+        "usedPlain": 4
+      },
+      "F1": {
+        "period": "F1",
+        "label": "F1 · tháng 8–9",
+        "competencyIds": [
+          "g11-ham-va-pt-luong-giac",
+          "g11-quan-he-song-song",
+          "g11-duong-thang-mat-phang-kg"
+        ],
+        "rows": [
+          {
+            "name": "Dương Phạm Tường Vi",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6,
+              "g11-quan-he-song-song": 6.9,
+              "g11-duong-thang-mat-phang-kg": 6
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-quan-he-song-song": 3,
+              "g11-duong-thang-mat-phang-kg": 2.5
+            }
+          },
+          {
+            "name": "Đặng Lam Anh",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 8.4,
+              "g11-duong-thang-mat-phang-kg": 8.8,
+              "g11-ham-va-pt-luong-giac": 3.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 1.5,
+              "g11-quan-he-song-song": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3.5
+            }
+          },
+          {
+            "name": "Đặng Tuệ Minh",
+            "code": "",
+            "mark10": {
+              "g11-duong-thang-mat-phang-kg": 7.3,
+              "g11-quan-he-song-song": 8.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 3.5,
+              "g11-duong-thang-mat-phang-kg": 3
+            }
+          },
+          {
+            "name": "Đinh Bình Minh",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8.8,
+              "g11-duong-thang-mat-phang-kg": 3.3,
+              "g11-quan-he-song-song": 4.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-quan-he-song-song": 1.5,
+              "g11-duong-thang-mat-phang-kg": 1.5
+            }
+          },
+          {
+            "name": "Đinh Nhật Minh",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 6.3,
+              "g11-duong-thang-mat-phang-kg": 4.8,
+              "g11-ham-va-pt-luong-giac": 8.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2
+            }
+          },
+          {
+            "name": "Đoàn Thanh Vân",
+            "code": "",
+            "mark10": {
+              "g11-duong-thang-mat-phang-kg": 2.3,
+              "g11-quan-he-song-song": 4
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 1.5,
+              "g11-duong-thang-mat-phang-kg": 1
+            }
+          },
+          {
+            "name": "Đỗ Hải Phong",
+            "code": "",
+            "mark10": {
+              "g11-duong-thang-mat-phang-kg": 6.3,
+              "g11-ham-va-pt-luong-giac": 4,
+              "g11-quan-he-song-song": 8.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 1.5,
+              "g11-quan-he-song-song": 3.5,
+              "g11-duong-thang-mat-phang-kg": 2.5
+            }
+          },
+          {
+            "name": "Hoàng Lâm",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 5.4,
+              "g11-duong-thang-mat-phang-kg": 5.9,
+              "g11-ham-va-pt-luong-giac": 4.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2,
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": 2.5
+            }
+          },
+          {
+            "name": "Hồ Anh Phong",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 3,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Lê Anh Thư",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.9,
+              "g11-quan-he-song-song": 6.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Lê Trung Đức",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 6.1,
+              "g11-duong-thang-mat-phang-kg": 5.9,
+              "g11-ham-va-pt-luong-giac": 0.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 0,
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn An Nam",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 6
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Duy Tuấn Linh",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 2.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 1,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Hoàng Bách",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 5.9,
+              "g11-quan-he-song-song": 5.4,
+              "g11-duong-thang-mat-phang-kg": 4.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": 2
+            }
+          },
+          {
+            "name": "Nguyễn Lê Gia Phong",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 7.5,
+              "g11-duong-thang-mat-phang-kg": 3,
+              "g11-quan-he-song-song": 8.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3,
+              "g11-quan-he-song-song": 3.5,
+              "g11-duong-thang-mat-phang-kg": 1
+            }
+          },
+          {
+            "name": "Nguyễn Mai Phương",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 8.3,
+              "g11-duong-thang-mat-phang-kg": 8,
+              "g11-quan-he-song-song": 5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 3.5,
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": 3
+            }
+          },
+          {
+            "name": "Nguyễn Thế Minh",
+            "code": "",
+            "mark10": {
+              "g11-duong-thang-mat-phang-kg": 9.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": "N",
+              "g11-duong-thang-mat-phang-kg": 3.5
+            }
+          },
+          {
+            "name": "Nguyễn Tiến Ích Lâm",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 6.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Vũ Hà Thành",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 4.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Phạm Đức Cường",
+            "code": "",
+            "mark10": {
+              "g11-duong-thang-mat-phang-kg": 7.5,
+              "g11-ham-va-pt-luong-giac": 2.8,
+              "g11-quan-he-song-song": 7.5
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 1,
+              "g11-quan-he-song-song": 3,
+              "g11-duong-thang-mat-phang-kg": 3
+            }
+          },
+          {
+            "name": "Trần Đức Khải",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 5.1,
+              "g11-quan-he-song-song": 6.1,
+              "g11-duong-thang-mat-phang-kg": 6.3
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2,
+              "g11-quan-he-song-song": 2.5,
+              "g11-duong-thang-mat-phang-kg": 2.5
+            }
+          },
+          {
+            "name": "Trần Phúc Minh",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 4.6,
+              "g11-duong-thang-mat-phang-kg": 5.4,
+              "g11-ham-va-pt-luong-giac": 0.8
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 0,
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": 2
+            }
+          },
+          {
+            "name": "Trịnh Trần Chí Thành",
+            "code": "",
+            "mark10": {
+              "g11-quan-he-song-song": 5.3,
+              "g11-duong-thang-mat-phang-kg": 4.4,
+              "g11-ham-va-pt-luong-giac": 1.6
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 1,
+              "g11-quan-he-song-song": 2,
+              "g11-duong-thang-mat-phang-kg": 2
+            }
+          },
+          {
+            "name": "Trịnh Tường Anh",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": "N",
+              "g11-quan-he-song-song": "N",
+              "g11-duong-thang-mat-phang-kg": "N"
+            }
+          },
+          {
+            "name": "Vũ Đặng Minh Khôi",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.5,
+              "g11-duong-thang-mat-phang-kg": 1
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-quan-he-song-song": "N",
+              "g11-duong-thang-mat-phang-kg": 0
+            }
+          },
+          {
+            "name": "Vũ Minh Ngọc",
+            "code": "",
+            "mark10": {
+              "g11-ham-va-pt-luong-giac": 6.6,
+              "g11-duong-thang-mat-phang-kg": 3.8,
+              "g11-quan-he-song-song": 9
+            },
+            "mark4": {
+              "g11-ham-va-pt-luong-giac": 2.5,
+              "g11-quan-he-song-song": 3.5,
+              "g11-duong-thang-mat-phang-kg": 1.5
+            }
+          }
+        ],
+        "usedWeighted": 0,
+        "usedPlain": 78
+      }
+    }
+  },
+  {
+    "className": "12LoTrinh1",
+    "grade": 12,
+    "los": [
+      "LO_DIS_TO_34383",
+      "LO_DIS_TO_34384",
+      "LO_DIS_TO_34385",
+      "LO_DIS_TO_34386",
+      "LO_DIS_TO_34387",
+      "LO_DIS_TO_34390",
+      "LO_DIS_TO_34391",
+      "LO_DIS_TO_34392"
+    ],
+    "periods": {
+      "IA1": {
+        "period": "IA1",
+        "label": "IA1 · tháng 10",
+        "competencyIds": [
+          "g12-khao-sat-ham-so",
+          "g12-toa-do-khong-gian",
+          "g12-pt-mat-phang",
+          "g12-pt-duong-thang",
+          "g12-pt-mat-cau"
+        ],
+        "rows": [
+          {
+            "name": "Lò Mai Phương Chi",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 4.4,
+              "g12-toa-do-khong-gian": 4.4
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 2,
+              "g12-toa-do-khong-gian": 2,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Chi Mai",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 4.6,
+              "g12-toa-do-khong-gian": 4.6
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 2,
+              "g12-toa-do-khong-gian": 2,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Đức Huy",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 4.2,
+              "g12-toa-do-khong-gian": 4.2,
+              "g12-pt-mat-phang": 8.6,
+              "g12-pt-duong-thang": 8.6,
+              "g12-pt-mat-cau": 8.6
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 1.5,
+              "g12-toa-do-khong-gian": 1.5,
+              "g12-pt-mat-phang": 3.5,
+              "g12-pt-duong-thang": 3.5,
+              "g12-pt-mat-cau": 3.5
+            }
+          },
+          {
+            "name": "Nguyễn Minh Đức",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 3.1,
+              "g12-toa-do-khong-gian": 3.1
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 1,
+              "g12-toa-do-khong-gian": 1,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Thành Trung",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 2.5,
+              "g12-toa-do-khong-gian": 2.5
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 1,
+              "g12-toa-do-khong-gian": 1,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Trần Bảo Lâm",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 7.6,
+              "g12-toa-do-khong-gian": 7.6
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 3,
+              "g12-toa-do-khong-gian": 3,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Trần Đặng Tuấn Nam",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 4.6,
+              "g12-toa-do-khong-gian": 4.6
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 2,
+              "g12-toa-do-khong-gian": 2,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          },
+          {
+            "name": "Trương Lê Bình Minh",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 3.5,
+              "g12-toa-do-khong-gian": 3.5
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 1.5,
+              "g12-toa-do-khong-gian": 1.5,
+              "g12-pt-mat-phang": "N",
+              "g12-pt-duong-thang": "N",
+              "g12-pt-mat-cau": "N"
+            }
+          }
+        ],
+        "usedWeighted": 16,
+        "usedPlain": 1
+      },
+      "F1": {
+        "period": "F1",
+        "label": "F1 · tháng 8–9",
+        "competencyIds": [
+          "g12-khao-sat-ham-so"
+        ],
+        "rows": [
+          {
+            "name": "Lò Mai Phương Chi",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Chi Mai",
+            "code": "",
+            "mark10": {
+              "g12-khao-sat-ham-so": 6.8
+            },
+            "mark4": {
+              "g12-khao-sat-ham-so": 2.5
+            }
+          },
+          {
+            "name": "Nguyễn Đức Huy",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Minh Đức",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Nguyễn Thành Trung",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Trần Bảo Lâm",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Trần Đặng Tuấn Nam",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          },
+          {
+            "name": "Trương Lê Bình Minh",
+            "code": "",
+            "mark10": {},
+            "mark4": {
+              "g12-khao-sat-ham-so": "N"
+            }
+          }
+        ],
+        "usedWeighted": 0,
+        "usedPlain": 1
+      }
+    }
+  }
+]
