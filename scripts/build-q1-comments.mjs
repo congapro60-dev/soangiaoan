@@ -25,6 +25,9 @@ const behaviour = existsSync(resolve('docs/qa/behaviour.json'))
 const questionStats = existsSync(resolve('docs/qa/question-stats.json'))
   ? JSON.parse(readFileSync(resolve('docs/qa/question-stats.json'), 'utf8'))
   : {};
+const errorSignatures = existsSync(resolve('docs/qa/error-signatures.json'))
+  ? JSON.parse(readFileSync(resolve('docs/qa/error-signatures.json'), 'utf8'))
+  : {};
 
 /** Tên chủ đề theo mã LO. */
 const TOPIC = {
@@ -67,6 +70,40 @@ const questionStatsOf = (className, code) => {
   if (!total) return null;
   const top = Object.entries(groups || {}).sort((a, b) => b[1] - a[1]);
   return { total, correct, blank, partial, groups: groups || {}, topGroup: top[0]?.[0] || null, topCount: top[0]?.[1] || 0 };
+};
+
+/** Lỗi cụ thể nhất của em (từ error-type thật) + số lần. */
+const errorSignatureOf = (className, code) => {
+  const byClass = {
+    '10Olinda': 'class-1787208462088',
+    '11Columbus': 'class-1787188523562',
+    '12LoTrinh1': 'class-1787208442826',
+  };
+  const rows = errorSignatures[byClass[className]] || [];
+  const row = rows.find((r) => r[0] === code);
+  if (!row) return null;
+  const [, , firstType, firstCount, secondType, secondCount] = row;
+  return { firstType, firstCount, secondType, secondCount };
+};
+
+/** Quy error-type thô về câu nhận xét trang trọng. */
+const describeError = (type) => {
+  if (!type) return null;
+  const s = String(type).toLowerCase();
+  if (/thiếu bước|thiếu kết luận|thiếu biểu diễn|thiếu đơn vị|thiếu gọi tên|thiếu chú thích/.test(s))
+    return 'ở các câu tự luận còn thiếu bước lập luận hoặc chưa có kết luận, dù hướng giải đúng';  if (/^bỏ|bỏ câu|bỏ trống|bỏ bài|chưa hoàn thành/.test(s))
+    return 'còn để trống một số câu, phần lớn rơi vào những câu khó hoặc câu cuối đề';
+  if (/nhầm công thức|sai dấu|sai công thức|sai ký hiệu|sai kí hiệu/.test(s))
+    return 'còn nhầm công thức hoặc sai dấu ở một số câu';
+  if (/tính toán|tính sai|chép số|làm tròn/.test(s))
+    return 'phần lớn lỗi nằm ở bước tính toán, trong khi hướng giải vẫn đúng';
+  if (/sai kiến thức|nhầm khái niệm|hiểu sai|ngộ nhận|giải sai/.test(s))
+    return 'còn vướng ở một số kiến thức nền, cần được củng cố thêm';
+  if (/đọc sai|đọc nhầm|không đọc hết/.test(s))
+    return 'có câu đọc chưa kỹ yêu cầu đề bài nên làm lệch hướng';
+  if (/chọn chưa đúng|chọn nhầm/.test(s))
+    return 'còn chọn chưa đúng đáp án ở một số câu trắc nghiệm';
+  return null;
 };
 
 /** Câu mở đầu theo mức chung — dùng từ vựng khác nhau cho từng mức và từng số lượng bài. */
@@ -140,7 +177,7 @@ const errorSignature = (q, rank) => {
 };
 
 const strengthSentence = (best, bestTopic) => {
-  if (best >= 3.5) return `Em nắm vững và vận dụng tốt nhất ${bestTopic}, bài làm thể hiện sự chính xác và trình bày rõ ràng.`;
+  if (best >= 3.5) return `Em nắm vững và vận dụng tốt nhất ${bestTopic}, bài thi thể hiện sự chính xác và trình bày rõ ràng.`;
   if (best >= 3) return `Em thực hiện tốt các dạng bài của ${bestTopic}.`;
   if (best >= 2.5) return `Em có kết quả khá nhất ở ${bestTopic}.`;
   return `Em đạt kết quả cao nhất ở ${bestTopic}.`;
@@ -167,9 +204,15 @@ const buildQ1Comment = (className, code, name, marks, los) => {
 
   const parts = [openingFor(name, rank, b)];
 
-  // Nét riêng: ưu tiên kiểu lỗi (cụ thể hơn xu hướng chung).
-  const errSig = errorSignature(q, rank);
-  if (errSig) parts.push(errSig);
+  // Nét riêng: ưu tiên LỖI CỤ THỂ nhất (error-type thật của em), sau đó mới tới nhóm lỗi chung.
+  const sig = errorSignatureOf(className, code);
+  const errPhrase = describeError(sig?.firstType) || describeError(sig?.secondType);
+  if (errPhrase) {
+    parts.push(`Trong quá trình đánh giá, ${errPhrase}.`);
+  } else {
+    const errSig = errorSignature(q, rank);
+    if (errSig) parts.push(errSig);
+  }
 
   parts.push(strengthSentence(best.mark, TOPIC[best.lo] || best.lo));
 
