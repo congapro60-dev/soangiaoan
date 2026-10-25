@@ -127,7 +127,10 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const providedSecret = h(req.headers['x-bot-api-secret-token']);
   if (!secretEqual(providedSecret, configuredSecret)) { res.status(401).json({ kind: 'error', code: 'UNAUTHORIZED' }); return true; }
   let raw = '';
-  try { raw = await readBody(req); } catch { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
+  // Zalo gọi webhook để VERIFY ngay sau setWebhook: request có thể rỗng hoặc không phải JSON.
+  // Trả 2xx để verify đạt; chỉ 400 khi body có nội dung mà sai cấu trúc (rác thật).
+  try { raw = await readBody(req); } catch { res.status(200).json({ ok: true }); return true; }
+  if (!raw.trim()) { res.status(200).json({ ok: true }); return true; }
   if (Buffer.byteLength(raw, 'utf8') > MAX_BODY) { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
   let body: any;
   try { body = JSON.parse(raw); } catch { res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true; }
