@@ -221,6 +221,14 @@ export interface AssignmentCompetencyTag {
   reason: string;
 }
 
+/** Một dòng ma trận điểm: LO nào chiếm bao nhiêu điểm trong bài. */
+export interface AssignmentLoRubricEntry {
+  /** Mã LO của SSM, vd `LO_DIS_TO_34344`. */
+  loCode: string;
+  /** Điểm tối đa của LO trong bài, cùng thang với `maxScore` của assignment. */
+  maxPoints: number;
+}
+
 export interface WorkedSolutionCache {
   version: string;
   generatedAt: string;
@@ -272,6 +280,16 @@ export interface AssignmentDoc {
   competencyTags?: AssignmentCompetencyTag[];
   /** true khi giáo viên đã duyệt nhãn năng lực — đọc lại đề không đè nhãn tay nữa. */
   competencyTagsApproved?: boolean;
+  /**
+   * Trọng số điểm của từng LO trong bài này (thang điểm của đề, tổng = maxScore).
+   *
+   * Trường chấm theo ma trận: mỗi LO chiếm một số điểm cố định trong đề, LO nào nặng thì đóng góp
+   * nhiều hơn vào điểm năng lực. Thiếu trường này thì điểm LO chia đều theo số năng lực của bài —
+   * đó là xấp xỉ, không phải ma trận thật, nên bảng này ưu tiên hơn.
+   *
+   * Nạp tự động từ file nhập điểm của trường (sheet "Hướng dẫn", cột "Tổng điểm").
+   */
+  loRubric?: AssignmentLoRubricEntry[];
   /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
   sourceImageUrls?: string[];
   /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */

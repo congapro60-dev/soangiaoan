@@ -212,6 +212,28 @@ export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): 
 };
 
 /**
+ * Lưu ma trận điểm của bài (LO → điểm tối đa), đọc từ file nhập điểm của trường.
+ *
+ * Khác `setAssignmentCompetencyTags` (nhãn năng lực cho cả bài): bảng này quyết định LO nào
+ * ĐÓNG GÓP BAO NHIÊU vào điểm năng lực. Trường chấm theo ma trận nên thiếu bảng này là điểm lệch.
+ */
+export const setAssignmentLoRubric = async (
+  assignmentId: string,
+  rows: ReadonlyArray<{ loCode: string; maxPoints: number }>,
+): Promise<{ loRubric: Array<{ loCode: string; maxPoints: number }>; totalPoints: number }> => {
+  const user = auth.currentUser;
+  const idToken = user && !user.isAnonymous ? await user.getIdToken() : '';
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'setAssignmentLoRubric', idToken, assignmentId, rows }),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result?.error || 'Không lưu được ma trận điểm của bài.');
+  return result as { loRubric: Array<{ loCode: string; maxPoints: number }>; totalPoints: number };
+};
+
+/**
  * Đổi hạn nộp của bài đã giao (hoặc bỏ hẳn hạn khi truyền null). Chỉ đụng `dueAt` —
  * nhãn nộp sớm/muộn của học sinh tính ĐỘNG lúc hiển thị nên mọi bài cũ tự phân loại lại theo hạn mới.
  */

@@ -5,6 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Feature: điểm LO theo MA TRẬN ĐIỂM của trường (`loRubric`) — 25/10 (OpenCode)
+
+- **Phát hiện gốc** khi QA đẩy điểm lớp 10Olinda: app chia đều điểm theo số năng lực của bài, còn trường chấm theo **ma trận** — mỗi LO chiếm một số điểm cố định trong đề, LO nặng đóng góp nhiều hơn. Đọc 3 file nhập điểm giữa HKI của trường (`K10/K11/K12_Giua HKI_Nhap diem.xlsx`) mới lộ ra: sheet "Hướng dẫn" có bảng LO → "Tổng điểm", tổng mỗi khối = 10.0.
+- **Hệ số thật của đề giữa HKI** (cột "Tổng điểm" sheet Hướng dẫn):
+  - Lớp 10 (6 LO, LO6 vectơ **không chấm**): 0.5 / 2.75 / 3.25 / **1.5** / **2.0** / 0
+  - Lớp 11 (5 LO): 1.25 / 2.0 / 2.0 / 1.5 / 3.25
+  - Lớp 12 (8 LO, cột F "Điểm tối đa LO"): 0.4 / 0.75 / 1.0 / 1.1 / 2.0 / 0.5 / 1.5 / 2.75
+- **SSM có lưu hệ số 3 tầng** (bằng chứng: bundle `umi.b34925b6.js` chứa `assessment.tds.config.{fp,ps,lo}.coefficient` = "Hệ số Focal Point/Power Standard/Learning Outcome", `assessment.v2.setting.lbl.radio` = "Trọng số bài đánh giá (%)", và `...lo.coefficient.error` = "Hệ số Learning Outcome không được để trống"). **Nhưng không có màn/route cấu hình cho giáo viên** — quét 628 chunk + đọc toàn bộ 22 route `/academic/*`: chỉ có `evaluate-point` và `approve-scores`. Cấu hình nằm ở màn quản trị SSM. Vì vậy nguồn hệ số là **file nhập điểm của trường**.
+- **Đã làm:** `src/lib/ssm/schoolRubric.ts` đọc file Excel trường (nhận cả cột "Tổng điểm" của K10/K11 và "Điểm tối đa LO" của K12); `ClassAssignment.loRubric` + `AssignmentLoRubricEntry` trong types; `buildClassLoScores` cộng **điểm thô theo trọng số** rồi mới quy thang (40/60 giữ nguyên), LO có trọng số 0 thì **không sinh điểm** thay vì rơi về trung bình nhãn bài; API `setAssignmentLoRubric` (`/api/grade-homework`) + client `setAssignmentLoRubric`.
+- **Test:** `schoolRubric.test.ts` 4 ca, `loClassScores.rubric.test.ts` 4 ca, `loFixedMapping.test.ts` 5 ca — xanh; TSC-OK.
+- **Còn dở:** chưa có UI nhập file Excel trong tab SSM; chưa nạp ma trận cho 3 lớp và chưa tính lại điểm. Điểm 11Columbus đã đẩy lên SSM (IA1 130 ô + F1 59 ô) tính theo cách CHIA ĐỀU cũ ⇒ sẽ lệch so với ma trận, phải tính lại và xin chốt đẩy đè.
+
 ## Fix: ghép LO↔năng lực bằng bảng cố định, bỏ AI — 25/10 (OpenCode)
 
 - **Bug thật** (QA đẩy điểm LO lớp 10Olinda↔SSM 9697): nút "Gợi ý điểm bằng AI" để **model tự ghép** LO của SSM với năng lực khung app. Với lớp 10, model được đưa đúng khung lớp 10 (`grade=10` verified qua fiber) và khung có đủ năng lực khớp từng chữ, **nhưng vẫn ghép 6 LO về cùng một năng lực "vectơ"** ⇒ 18/19 ô điểm dồn vào một cột, 5 cột kia trắng. Nhìn là thấy vô lý vì LO về mệnh đề/tập hợp/bất phương trình không thể ăn điểm từ vectơ.

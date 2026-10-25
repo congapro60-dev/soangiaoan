@@ -9,6 +9,7 @@
 import { buildStudentCompetencyPortfolio } from '../classroom/competency/portfolioModel';
 import type { CompetencyGrade } from '../classroom/competency/framework';
 import type { StudentCompetencyScores } from './loMapping';
+import { fixedLoMapping } from './loFixedMapping';
 
 export type LoPeriodKey = 'F1' | 'IA1' | 'F2' | 'SE1' | 'F3' | 'IA2' | 'F4' | 'SE2';
 
@@ -62,6 +63,10 @@ export interface ClassAssignment {
   dueAt?: string;
   periodicTest?: unknown;
   competencyTags?: ReadonlyArray<{ competencyId: string }>;
+  /** Ma trận điểm của đề: LO → điểm tối đa. Thiếu thì chia đều theo số năng lực của bài. */
+  loRubric?: ReadonlyArray<{ loCode: string; maxPoints: number }>;
+  /** Cờ để biết `loRubric` tổng bằng bao nhiêu điểm (mặc định 10). */
+  maxScore?: number;
 }
 
 /** Mỗi em → điểm thang 10 của các năng lực em CÓ minh chứng (bài đã duyệt). */
@@ -105,6 +110,36 @@ export const buildClassLoScores = (
 
 const average = (values: readonly number[]): number => Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
 
+/**
+ * Điểm từng năng lực theo MA TRẬN của đề (thay vì chia đều theo nhãn bài).
+ *
+ * `loRubric` ghi theo mã LO của SSM; `competencyTags` ghi theo id năng lực khung app. Hai bên được
+ * nối bằng `fixedLoMapping` để biết LO nào ứng với năng lực nào, rồi:
+ *   điểm năng lực trong bài = điểm em đạt / điểm tối đa bài × trọng số điểm của LO đó.
+ *
+ * Cộng điểm thô qua các bài của kỳ rồi mới quy thang 10 — bài nặng đóng góp nhiều hơn bài nhẹ,
+ * đúng cách trường tính trong file nhập điểm. Trả `null` khi bài không có ma trận để nơi gọi rơi
+ * về cách chia đều.
+ */
+const rubricWeightsFor = (
+  assignment: ClassAssignment,
+): Map<string, number> | null => {
+  const rubric = assignment.loRubric ?? [];
+  if (rubric.length === 0) return null;
+  const mapping = fixedLoMapping(rubric.map((row) => row.loCode), (assignment.competencyTags ?? []).map((tag) => tag.competencyId));
+  const weights = new Map<string, number>();
+  for (const row of rubric) {
+    const points = Number.isFinite(row.maxPoints) ? Math.max(0, row.maxPoints) : 0;
+    if (points <= 0) continue;
+    for (const competencyId of mapping[row.loCode] ?? []) {
+      weights.set(competencyId, (weights.get(competencyId) ?? 0) + points);
+    }
+  }
+  return weights.size > 0 ? weights : null;
+};
+
+
+
 /** Tính điểm theo đúng kỳ SSM; chỉ gọi khi có `options` để giữ nguyên API cũ. */
 const buildScopedClassLoScores = (
   _grade: CompetencyGrade,
@@ -130,12 +165,16 @@ const buildScopedClassLoScores = (
     if (!current || Date.parse(submission.createdAt) > Date.parse(current.createdAt)) latestByKey.set(key, submission);
   }
   const evidence = new Map<string, Map<string, { regular: number[]; periodic: number[] }>>();
+  // Cộng dồn điểm THÔ theo ma trận: got = điểm em đạt quy theo trọng số LO, max = tổng trọng số.
+  const weighted = new Map<string, Map<string, { regularGot: number; regularMax: number; periodicGot: number; periodicMax: number }>>();
+  let hasRubric = false;
   for (const submission of latestByKey.values()) {
     const assignment = byAssignment.get(submission.assignmentId!)!;
     const date = Date.parse(`${(assignment.dueAt ?? assignment.createdAt ?? submission.createdAt).slice(0, 10)}T12:00:00+07:00`);
     if (!Number.isFinite(date) || date < yearStart || date > to) continue;
-    const score = submission.grade!.maxScore > 0 ? Math.max(0, Math.min(submission.grade!.score, submission.grade!.maxScore)) / submission.grade!.maxScore * 10 : NaN;
-    if (!Number.isFinite(score)) continue;
+    const ratio = submission.grade!.maxScore > 0 ? Math.max(0, Math.min(submission.grade!.score, submission.grade!.maxScore)) / submission.grade!.maxScore : NaN;
+    if (!Number.isFinite(ratio)) continue;
+    const score = ratio * 10;
     const target = evidence.get(submission.studentId) ?? new Map<string, { regular: number[]; periodic: number[] }>();
     for (const tag of assignment.competencyTags ?? []) {
       const row = target.get(tag.competencyId) ?? { regular: [], periodic: [] };
@@ -143,11 +182,43 @@ const buildScopedClassLoScores = (
       target.set(tag.competencyId, row);
     }
     evidence.set(submission.studentId, target);
+
+    const weights = rubricWeightsFor(assignment);
+    if (!weights) continue;
+    hasRubric = true;
+    const bucket = weighted.get(submission.studentId) ?? new Map<string, { regularGot: number; regularMax: number; periodicGot: number; periodicMax: number }>();
+    for (const [competencyId, maxPoints] of weights) {
+      const row = bucket.get(competencyId) ?? { regularGot: 0, regularMax: 0, periodicGot: 0, periodicMax: 0 };
+      if (assignment.periodicTest) {
+        row.periodicGot += ratio * maxPoints;
+        row.periodicMax += maxPoints;
+      } else {
+        row.regularGot += ratio * maxPoints;
+        row.regularMax += maxPoints;
+      }
+      bucket.set(competencyId, row);
+    }
+    weighted.set(submission.studentId, bucket);
   }
   return roster.filter((entry) => entry.code.trim()).map((entry) => {
-    const rows = evidence.get(entry.id) ?? new Map();
     const scoreByCompetency: Record<string, number> = {};
+    // Có ma trận thì tính theo điểm thô đã cộng dồn (40% thường + 60% định kì, đúng luật kỳ).
+    const bucket = weighted.get(entry.id);
+    if (hasRubric && bucket) {
+      for (const [competencyId, row] of bucket) {
+        const regularScore = row.regularMax > 0 ? (row.regularGot / row.regularMax) * 10 : null;
+        const periodicScore = row.periodicMax > 0 ? (row.periodicGot / row.periodicMax) * 10 : null;
+        if (regularScore !== null && periodicScore !== null) scoreByCompetency[competencyId] = Math.round((regularScore * 0.4 + periodicScore * 0.6) * 10) / 10;
+        else if (periodicScore !== null) scoreByCompetency[competencyId] = Math.round(periodicScore * 10) / 10;
+        else if (regularScore !== null) scoreByCompetency[competencyId] = Math.round(regularScore * 10) / 10;
+      }
+    }
+    const rows = evidence.get(entry.id) ?? new Map();
     for (const [competencyId, values] of rows) {
+      if (scoreByCompetency[competencyId] !== undefined) continue;
+      // Bài CÓ ma trận nhưng năng lực này không được chấm (trọng số 0, vd vectơ lớp 10 giữa HKI)
+      // thì tuyệt đối không rơi về trung bình nhãn bài — làm vậy là tự bịa điểm cho phần đề không có.
+      if (hasRubric && bucket && bucket.size > 0 && !bucket.has(competencyId)) continue;
       if (values.regular.length && values.periodic.length) scoreByCompetency[competencyId] = Math.round((average(values.regular) * 0.4 + average(values.periodic) * 0.6) * 10) / 10;
       else if (values.periodic.length) scoreByCompetency[competencyId] = average(values.periodic);
       else if (values.regular.length) scoreByCompetency[competencyId] = average(values.regular);

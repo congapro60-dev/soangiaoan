@@ -1915,6 +1915,45 @@ const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body:
  * Giáo viên DUYỆT/SỬA nhãn năng lực của một bài (GĐ3b). Chốt danh sách nhãn tay, khoá lại
  * (`competencyTagsApproved`) để lần đọc đề sau không đè. Chỉ nhận id có trong khung của khối lớp.
  */
+/**
+ * Lưu MA TRẬN ĐIỂM của bài (LO nào chiếm bao nhiêu điểm) — đọc từ file nhập điểm của trường.
+ *
+ * Trường chấm theo ma trận: LO nặng thì đóng góp nhiều hơn vào điểm năng lực. Thiếu ma trận thì
+ * app chia đều, lệch so với điểm trên SSM. Chỉ nhận mã LO và điểm dương; không lưu rác từ file.
+ */
+const handleSetAssignmentLoRubric = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  const rawRows = Array.isArray(body.rows) ? body.rows : [];
+  const seen = new Set<string>();
+  const loRubric: Array<{ loCode: string; maxPoints: number }> = [];
+  for (const item of rawRows) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const loCode = String(record.loCode ?? '').trim();
+    const maxPoints = Number(record.maxPoints);
+    if (!/^LO_[A-Za-z0-9_]+$/.test(loCode) || seen.has(loCode) || !Number.isFinite(maxPoints)) continue;
+    seen.add(loCode);
+    loRubric.push({ loCode, maxPoints: Math.max(0, Math.round(maxPoints * 100) / 100) });
+  }
+
+  await ref.update({ loRubric, updatedAt: new Date().toISOString(), updatedBy: uid });
+  return res.status(200).json({ loRubric, totalPoints: loRubric.reduce((sum, row) => sum + row.maxPoints, 0) });
+};
+
 const handleSetAssignmentCompetencyTags = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -2328,6 +2367,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'extractExamVariantKeys') return await handleExtractExamVariantKeys(db, body, res);
     if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
     if (action === 'setAssignmentCompetencyTags') return await handleSetAssignmentCompetencyTags(db, body, res);
+    if (action === 'setAssignmentLoRubric') return await handleSetAssignmentLoRubric(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     if (action === 'generateImage') return await handleGenerateImage(db, body, res);
