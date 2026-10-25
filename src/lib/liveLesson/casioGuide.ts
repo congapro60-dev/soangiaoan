@@ -53,9 +53,17 @@ export const CASIO_FX580_STEPS: CasioKeyStep[] = [
  */
 export const CASIO_REMINDER = 'Máy tính là công cụ kiểm tra, tư duy lập bảng của con người mới là gốc rễ.';
 
-/** Chỉ bài Phương sai mới có hướng dẫn Casio; bài khác trả null để view bỏ qua. */
-export const getCasioGuideForLesson = (lessonId: string): CasioKeyStep[] | null =>
-  lessonId === 'adaptive-1792834706906' ? CASIO_FX580_STEPS : null;
+/**
+ * Chỉ bài Phương sai (12-11-80) mới có hướng dẫn Casio; bài khác trả null.
+ * Nhận lessonId (adaptive-1792834706906) hoặc sourceKey (12-11-80) đều được.
+ */
+export const getCasioGuideForLesson = (
+  lessonIdOrSourceKey: string,
+): CasioKeyStep[] | null =>
+  lessonIdOrSourceKey === 'adaptive-1792834706906' ||
+  lessonIdOrSourceKey === '12-11-80'
+    ? CASIO_FX580_STEPS
+    : null;
 
 /** Nhãn dòng phím để view vẽ: "MENU → 6 → 1". */
 export const formatCasioKeys = (step: CasioKeyStep): string => step.keys.join(' → ');

@@ -13,7 +13,7 @@ import { LiveActivityPublisher } from '../components/liveLesson/LiveActivityPubl
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
 export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string; responseStepIds?: string[] };
-export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps' | 'intent'> & { studentCues: StudentCueProjection[] };
+export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'sourceKey' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps' | 'intent'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
 export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' || value === 'tv-control' ? value : null;
@@ -52,6 +52,7 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
   return {
     id: definition.id,
     lessonId: definition.lessonId,
+    sourceKey: definition.sourceKey,
     title: definition.title,
     durationSeconds: definition.durationSeconds,
     tvScreens: definition.tvScreens.map(screen => ({ ...screen })),

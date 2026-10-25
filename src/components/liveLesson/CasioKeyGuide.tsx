@@ -6,8 +6,8 @@ import { CASIO_REMINDER, formatCasioKeys, getCasioGuideForLesson } from '../../l
  *
  * Không render gì với bài không cần Casio — tránh nhồi nội dung cho đủ.
  */
-export function CasioKeyGuide({ lessonId }: { lessonId: string }) {
-  const steps = getCasioGuideForLesson(lessonId);
+export function CasioKeyGuide({ lessonIdOrSourceKey }: { lessonIdOrSourceKey: string }) {
+  const steps = getCasioGuideForLesson(lessonIdOrSourceKey);
   if (!steps) return null;
   return (
     <section className="student-casio-guide" aria-label="Hướng dẫn bấm máy tính Casio fx-580VN X">

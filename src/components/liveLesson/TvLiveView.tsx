@@ -133,29 +133,33 @@ export const formatClock = (seconds: number): string => {
 };
 
 /**
- * Số giây đã trôi TÍNH TỪ ĐẦU TIẾT (không phải trong cue hiện tại) — đây là con số
- * P-timer cần, vì giáo án in đánh dải P theo phút của cả tiết 40 phút.
- * Mốc đầu tiết suy từ `atSeconds` của cue đang chạy trừ thời gian đã trôi trong cue.
+ * Số giây đã trôi TÍNH TỪ ĐẦU TIẾT — con số P-timer cần, vì dải P của giáo án in
+ * tính theo phút của cả tiết 40 phút.
+ *
+ * Neo vào `lessonStartedAt` (ghim lúc tiết bắt đầu chạy) và `lessonElapsedSeconds`
+ * (tổng đã dạy trước lần pause). KHÔNG dùng cue.atSeconds hay cueElapsedSeconds:
+ * chuyển pha sớm/muộn sẽ kéo đồng hồ nhảy ngược.
+ *
+ * Trả về `null` khi phiên cũ chưa có hai trường này (dữ liệu tạo trước bản này) để
+ * TV ẩn P-timer thay vì hiện số sai.
  */
 export const getElapsedInLesson = ({
-  cueTimeline,
-  cueId,
-  anchorAt,
+  lessonStartedAt,
+  lessonElapsedSeconds,
   now,
   running,
-  accumulatedSeconds = 0,
 }: {
-  cueTimeline: TvCueTiming[];
-  cueId: string;
-  anchorAt: number;
+  lessonStartedAt?: number;
+  lessonElapsedSeconds?: number;
   now: number;
   running: boolean;
-  accumulatedSeconds?: number;
-}): number => {
-  const cue = cueTimeline.find(item => item.id === cueId);
-  if (!cue) return Math.max(0, accumulatedSeconds);
-  const insideCue = Math.max(0, accumulatedSeconds) + (running ? Math.max(0, (now - anchorAt) / 1000) : 0);
-  return Math.max(0, Math.floor(cue.atSeconds + insideCue));
+}): number | null => {
+  // Phiên cũ (tạo trước bản này) không có cả 2 trường ⇒ null để TV ẩn P-timer
+  // thay vì hiện số sai. Phiên mới luôn có ít nhất lessonElapsedSeconds = 0.
+  if (lessonStartedAt === undefined && lessonElapsedSeconds === undefined) return null;
+  const anchored = Boolean(lessonStartedAt);
+  const live = running && anchored ? Math.max(0, (now - lessonStartedAt!) / 1000) : 0;
+  return Math.max(0, Math.floor(Math.max(0, lessonElapsedSeconds ?? 0) + live));
 };
 
 const STATUS_LABEL: Record<LiveSessionStatus, string> = {
@@ -218,14 +222,14 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   });
 
   const elapsedInLesson = getElapsedInLesson({
-    cueTimeline,
-    cueId: publicState.cueId,
-    anchorAt: publicState.cueStartedAt ?? publicState.updatedAt,
-    accumulatedSeconds: publicState.cueElapsedSeconds ?? 0,
+    lessonStartedAt: publicState.lessonStartedAt,
+    lessonElapsedSeconds: publicState.lessonElapsedSeconds,
     now,
     running: publicState.status === 'running',
   });
-  const pTimer = durationSeconds > 0 ? getPTimerState(elapsedInLesson, Math.round(durationSeconds / 60)) : null;
+  const pTimer = elapsedInLesson !== null && durationSeconds > 0
+    ? getPTimerState(elapsedInLesson, Math.round(durationSeconds / 60))
+    : null;
 
   const playbackState = getTvMediaPlaybackState({
     definitionKey,

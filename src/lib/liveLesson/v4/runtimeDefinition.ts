@@ -300,6 +300,7 @@ export function buildLiveLessonDefinitionFromV4(
   const definition: LiveLessonDefinition = {
     id: contract.id,
     lessonId,
+    sourceKey: contract.sourceKey,
     title: contract.title,
     durationSeconds: contract.durationSeconds,
     cues: buildCues(contract, responseSteps),

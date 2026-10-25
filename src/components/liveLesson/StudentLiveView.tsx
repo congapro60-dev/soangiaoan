@@ -594,6 +594,8 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     thinkSeconds: 10,
     skip: Boolean(step?.options?.length && step.options.length <= 2),
     running: publicState.status === 'running',
+    // GV bấm Công bố (showStats) ⇒ khoá hẳn, HS không sửa bài sau khi thấy kết quả.
+    locked: publicState.showStats || publicState.status === 'closed',
   });
   const goalStep = definition.responseSteps.find(item => item.id === 'cp-student-goal' || item.id === 'goals');
   const reflectionMoment = publicState.cueId === 'P35' || publicState.cueId === 'P39' || Boolean(step?.responseTypes.includes('exit_ticket')) || studentScreen?.id === 'HS9';
@@ -667,7 +669,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       </div>
       <div className="student-slot" data-slot="activity-guide">
         <StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreen?.action} supportingAction={languageCoverage.content && languageView.language !== 'vi' ? localizedScreen?.action : undefined} route={currentRoute} />
-        <CasioKeyGuide lessonId={definition.lessonId} />
+        <CasioKeyGuide lessonIdOrSourceKey={definition.sourceKey ?? definition.lessonId} />
       </div>
 
       <div className="student-slot" data-slot="reflection">

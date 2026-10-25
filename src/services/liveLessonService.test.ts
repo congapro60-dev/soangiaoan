@@ -189,6 +189,7 @@ describe('liveLessonService Firestore boundary', () => {
       'allowedStepIds', 'classId', 'createdAt', 'currentCueId', 'currentTvScreenId', 'expiresAt',
       'lessonId', 'publicStateEnabled', 'publicStatsEnabled', 'schemaVersion', 'status', 'teacherUid',
       'title', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds',
+      'lessonStartedAt', 'lessonElapsedSeconds',
     ].sort());
     expect(payload).not.toHaveProperty('id');
     expect(payload).not.toHaveProperty('mode');
@@ -297,9 +298,9 @@ describe('liveLessonService Firestore boundary', () => {
     await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' });
     expect(liveTx.calls).toEqual([
       {kind:'update', ref:expect.objectContaining({path:'/liveLessonSessions/session-1'}),
-        data:{status:'running',currentCueId:'P01',currentTvScreenId:'S1',cueStartedAt:expect.any(Number),cueElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+        data:{status:'running',currentCueId:'P01',currentTvScreenId:'S1',cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
       {kind:'set', ref:expect.objectContaining({path:'/liveLessonSessions/session-1/public/state'}),
-        data:{status:'running',cueId:'P01',tvScreenId:'S1',showStats:true,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+        data:{status:'running',cueId:'P01',tvScreenId:'S1',showStats:true,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
     ]);
 
     await closeLiveLessonSession('session-1');

@@ -520,9 +520,15 @@ export async function publishSequentially(
       continue;
     }
 
+    // Bài tương tác Tuần 11 đã publish dạng self_study từ trước vẫn phải được
+    // nâng cấp sang interactive — nếu bỏ qua thì tab "Bài học tương tác" không bao giờ nhận.
+    const needsInteractiveUpgrade = INTERACTIVE_SOURCE_KEYS.has(sourceKey)
+      && existing?.status === 'published'
+      && existing.lessonKind !== 'interactive';
+
     // The original P31 demo is the first V4 lesson, not a second lesson.
     // Upgrade it in place so its existing link/document id remains usable.
-    if (existing?.status === 'published' && !isLegacyP31Demo(existing, sourceKey)) {
+    if (existing?.status === 'published' && !isLegacyP31Demo(existing, sourceKey) && !needsInteractiveUpgrade) {
       reports.push({
         sourceKey,
         status: 'skipped_already_published',

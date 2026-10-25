@@ -126,6 +126,8 @@ const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession 
     currentTvScreenId: value.currentTvScreenId,
     ...(isFiniteNumber(value.cueStartedAt) ? { cueStartedAt: value.cueStartedAt } : {}),
     ...(isFiniteNumber(value.cueElapsedSeconds) ? { cueElapsedSeconds: value.cueElapsedSeconds } : {}),
+    ...(isFiniteNumber(value.lessonStartedAt) ? { lessonStartedAt: value.lessonStartedAt } : {}),
+    ...(isFiniteNumber(value.lessonElapsedSeconds) ? { lessonElapsedSeconds: value.lessonElapsedSeconds } : {}),
     publicStateEnabled: value.publicStateEnabled,
     publicStatsEnabled: value.publicStatsEnabled,
     createdAt: toEpochMillis(value.createdAt, 'createdAt'),
@@ -190,6 +192,8 @@ const normalizePublicState = (value: unknown): LivePublicState => {
     showStats: value.showStats,
     ...(isFiniteNumber(value.cueStartedAt) ? { cueStartedAt: value.cueStartedAt } : {}),
     ...(isFiniteNumber(value.cueElapsedSeconds) ? { cueElapsedSeconds: value.cueElapsedSeconds } : {}),
+    ...(isFiniteNumber(value.lessonStartedAt) ? { lessonStartedAt: value.lessonStartedAt } : {}),
+    ...(isFiniteNumber(value.lessonElapsedSeconds) ? { lessonElapsedSeconds: value.lessonElapsedSeconds } : {}),
     updatedAt: toEpochMillis(value.updatedAt, 'updatedAt'),
   };
 };
@@ -241,6 +245,8 @@ const writePublicState = async (session: LiveLessonSession): Promise<void> => {
     showStats: session.publicStatsEnabled,
     ...(session.cueStartedAt !== undefined ? { cueStartedAt: session.cueStartedAt } : {}),
     ...(session.cueElapsedSeconds !== undefined ? { cueElapsedSeconds: session.cueElapsedSeconds } : {}),
+    ...(session.lessonStartedAt !== undefined ? { lessonStartedAt: session.lessonStartedAt } : {}),
+    ...(session.lessonElapsedSeconds !== undefined ? { lessonElapsedSeconds: session.lessonElapsedSeconds } : {}),
     updatedAt: serverTimestamp(),
   });
 };
@@ -275,6 +281,10 @@ export const createLiveLessonSession = async ({ definition, teacherUid, classId 
     currentTvScreenId: firstCue.tvScreenId,
     cueStartedAt: 0,
     cueElapsedSeconds: 0,
+    // P-timer neo vào 2 mốc này, không phụ thuộc cue: ghim khi tiết bắt đầu chạy,
+    // cộng dồn khi pause để resume không làm mất thời gian đã dạy.
+    lessonStartedAt: 0,
+    lessonElapsedSeconds: 0,
     publicStateEnabled: true,
     publicStatsEnabled: false,
     createdAt: serverTimestamp(),
@@ -324,13 +334,27 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
       cueStartedAt = now;
     }
     cueElapsedSeconds = Math.min(86400, cueElapsedSeconds);
-    const next = { ...current, ...patch, cueStartedAt, cueElapsedSeconds };
-    tx.update(sessionRef, { ...patch, cueStartedAt, cueElapsedSeconds, updatedAt: serverTimestamp() });
+
+    // P-timer: neo vào đầu tiết chứ không theo cue, nên chuyển cue sớm/muộn gì
+    // cũng không kéo đồng hồ nhảy ngược. Ghim đầu tiết ở lần đầu chạy.
+    let lessonStartedAt = current.lessonStartedAt ?? 0;
+    let lessonElapsedSeconds = current.lessonElapsedSeconds ?? 0;
+    if (current.status !== 'running' && nextStatus === 'running') {
+      if (!lessonStartedAt) lessonStartedAt = now;
+      // Không cộng gì vào lessonElapsedSeconds ở đây: đoạn chạy trước đã được cộng lúc pause.
+    } else if (current.status === 'running' && nextStatus !== 'running') {
+      lessonElapsedSeconds += Math.max(0, (now - lessonStartedAt) / 1000);
+      lessonStartedAt = 0;
+    }
+    lessonElapsedSeconds = Math.min(86400, Math.max(0, lessonElapsedSeconds));
+
+    const next = { ...current, ...patch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds };
+    tx.update(sessionRef, { ...patch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds, updatedAt: serverTimestamp() });
     if (next.status !== 'closed' && next.publicStateEnabled) {
       tx.set(doc(sessionRef, PUBLIC_SUB, 'state'), {
         cueId: next.currentCueId, tvScreenId: next.currentTvScreenId,
         status: next.status, showStats: next.publicStatsEnabled,
-        cueStartedAt, cueElapsedSeconds, updatedAt: serverTimestamp(),
+        cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds, updatedAt: serverTimestamp(),
       });
     }
   });
