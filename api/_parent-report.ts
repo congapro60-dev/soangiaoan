@@ -157,8 +157,9 @@ const readEvidence = (facts: unknown): EvidenceSubmission[] => {
 
 const parseDraftJson = (raw: string): Record<string, unknown> | null => {
   try {
-    // parseLooseJson: bọc ```json, escape lệch… của đường Vilao (không có jsonMode như Gemini cũ).
-    const parsed = parseLooseJson<Record<string, unknown>>(raw);
+    // Vilao không có jsonMode như Gemini cũ: hay bọc ```json … ``` hoặc thêm lời dẫn — parseLooseJson KHÔNG gỡ những thứ đó
+    // (log production 25/10: JSON đúng mà vẫn 502), nên cắt lấy khối {…} trước như các nơi đọc JSON khác; escape lệch thì parseLooseJson lo.
+    const parsed = parseLooseJson<Record<string, unknown>>(raw.match(/\{[\s\S]*\}/)?.[0] ?? raw);
     return parsed && typeof parsed === 'object' ? parsed : null;
   } catch {
     return null;

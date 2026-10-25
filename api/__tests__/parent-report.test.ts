@@ -117,6 +117,24 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     ]);
   });
 
+  it('Vilao bọc JSON trong khối ```json … ``` (đúng như log production 25/10): vẫn đọc được, trả 200 đủ dòng YCCĐ + ghi chú', async () => {
+    h.grade = '10';
+    h.reply = 'Con tiến bộ ở phần vectơ.';
+    h.mapReply = '```json\n{\n  "yccd": [\n    {\n      "ma": "T10.30",\n      "cau": ["b1q1", "b1q2"]\n    }\n  ]\n}\n```';
+    h.notesReply = '```json\n{"ghiChu": [{"ma": "T10.30", "ghiChu": "Nhầm chiều khi áp dụng quy tắc hiệu."}]}\n```';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [
+      { ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' },
+      { ma: 'b1q2', diem: 0, toiDa: 2, ketQua: 'sai' },
+    ] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(1); // đọc được ngay, không phải gọi lại
+    expect(out.body.requirements).toEqual([{
+      id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.',
+      questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q2', score: 0, max: 2 }],
+    }]);
+  });
+
   it('lượt ghép trả về chữ không đọc được thành JSON (cả 2 lần): 502, và log ghi rõ đoạn đầu/cuối câu trả lời để biết hỏng ở đâu', async () => {
     h.grade = '10';
     h.reply = 'Nhận xét.';
