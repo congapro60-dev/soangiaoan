@@ -95,8 +95,12 @@ const idsFromArgs = (args: Record<string, unknown>): string[] => ['classId', 'st
 const auditedReadTools = new Set(['getClassSummary', 'listStudents', 'getStudentTeacherSummary', 'listAssignments', 'getAssignmentSubmissionSummary', 'getStudentSubmissionHistory', 'getApprovedGradeSummary', 'getAdaptiveProgressSummary']);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const transport = String((req.query as Record<string, unknown> | undefined)?.transport || '');
+  // Zalo verify webhook bằng GET ngay sau setWebhook — phải trả 2xx thì verify mới đạt.
+  // Chỉ mở cho transport=zalo_bot; các transport khác vẫn bắt buộc POST.
+  if (transport === 'zalo_bot' && req.method !== 'POST') { res.status(200).json({ ok: true }); return; }
   if (req.method !== 'POST') return res.status(405).json({ kind: 'error', code: 'METHOD_NOT_ALLOWED' });
-  if (String((req.query as Record<string, unknown> | undefined)?.transport || '') === 'zalo_bot') {
+  if (transport === 'zalo_bot') {
     await handleZaloBotWebhook(req, res);
     return;
   }
