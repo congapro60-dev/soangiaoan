@@ -28,9 +28,11 @@ const LO_TO_COMPETENCY: Readonly<Record<string, string>> = {
   LO_DIS_TO_34353: 'g10-he-thuc-luong-tam-giac',
   LO_DIS_TO_34354: 'g10-vecto-va-phep-toan',
 
-  // ── Khối 11 (SSM 11Columbus: IA1 form 15328, F1 form 15317) ──
+  // ── Khối 11 (SSM 11Columbus: IA1 form 15328 có 6 LO, F1 form 15317 có 5 LO) ──
   LO_DIS_TO_34745: 'g11-ham-va-pt-luong-giac',
   LO_DIS_TO_34746: 'g11-ham-va-pt-luong-giac',
+  LO_DIS_TO_34747: 'g11-day-so-cap-so',
+  LO_DIS_TO_34748: 'g11-day-so-cap-so',
   LO_DIS_TO_34756: 'g11-duong-thang-mat-phang-kg',
   LO_DIS_TO_34757: 'g11-quan-he-song-song',
 

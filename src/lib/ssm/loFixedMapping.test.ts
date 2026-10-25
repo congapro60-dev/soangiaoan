@@ -30,6 +30,13 @@ describe('fixedLoMapping', () => {
     expect(mapping['LO_DIS_TO_34757']).toEqual(['g11-quan-he-song-song']);
   });
 
+  it('khối 11 IA1 có dãy số và cấp số: 34747 + 34748 cùng về năng lực dãy số', () => {
+    const mapping = fixedLoMapping(['LO_DIS_TO_34747', 'LO_DIS_TO_34748'], idsOf(11));
+
+    expect(mapping['LO_DIS_TO_34747']).toEqual(['g11-day-so-cap-so']);
+    expect(mapping['LO_DIS_TO_34748']).toEqual(['g11-day-so-cap-so']);
+  });
+
   it('khối 12: 5 LO khảo sát hàm số cùng về một năng lực, LO vectơ không gian để trống', () => {
     const mapping = fixedLoMapping(
       ['LO_DIS_TO_34383', 'LO_DIS_TO_34384', 'LO_DIS_TO_34385', 'LO_DIS_TO_34386', 'LO_DIS_TO_34387', 'LO_DIS_TO_34390'],

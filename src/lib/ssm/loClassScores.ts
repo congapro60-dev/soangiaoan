@@ -126,13 +126,17 @@ const rubricWeightsFor = (
 ): Map<string, number> | null => {
   const rubric = assignment.loRubric ?? [];
   if (rubric.length === 0) return null;
-  const mapping = fixedLoMapping(rubric.map((row) => row.loCode), (assignment.competencyTags ?? []).map((tag) => tag.competencyId));
+  // Chỉ xét LO mà bài THỰC SỰ có chấm: trọng số 0 (vd thực hành/traải nghiệm) không mang điểm nên
+  // bỏ qua. `fixedLoMapping` tự loại LO không thuộc khối, tránh ghép chéo.
+  const scored = rubric.filter((row) => Number.isFinite(row.maxPoints) && row.maxPoints > 0);
+  if (scored.length === 0) return null;
+  const mapping = fixedLoMapping(scored.map((row) => row.loCode), (assignment.competencyTags ?? []).map((tag) => tag.competencyId));
   const weights = new Map<string, number>();
-  for (const row of rubric) {
-    const points = Number.isFinite(row.maxPoints) ? Math.max(0, row.maxPoints) : 0;
-    if (points <= 0) continue;
+  for (const row of scored) {
     for (const competencyId of mapping[row.loCode] ?? []) {
-      weights.set(competencyId, (weights.get(competencyId) ?? 0) + points);
+      // Nhiều LO của một đề có thể cùng quy về một năng lực (lớp 11: dãy số + cấp số). CỘNG trọng số
+      // chứ không lấy trung bình — đó chính là tổng điểm năng lực ấy chiếm trong đề.
+      weights.set(competencyId, (weights.get(competencyId) ?? 0) + row.maxPoints);
     }
   }
   return weights.size > 0 ? weights : null;
