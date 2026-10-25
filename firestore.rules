@@ -402,7 +402,10 @@ service cloud.firestore {
         return data.keys().hasOnly([
                  'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
                  'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
-                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds',
+                 // P-timer neo vào đầu tiết (V8.8) — không có 2 trường này thì đồng hồ
+                 // không tính được tổng thời gian tiết khi đổi cue.
+                 'lessonStartedAt', 'lessonElapsedSeconds'
                ])
                && data.keys().hasAll([
                     'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
@@ -541,7 +544,7 @@ service cloud.firestore {
           && data.get('cueElapsedSeconds', 0) is number && data.get('cueElapsedSeconds', 0) >= 0 && data.get('cueElapsedSeconds', 0) <= 86400;
       }
       function llv3ValidPublicState(data) {
-        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
                && data.get('cueId', '') is string
                && data.get('cueId', '').size() > 0
@@ -715,7 +718,8 @@ service cloud.firestore {
                          .hasOnly([
                            'status', 'currentCueId', 'currentTvScreenId',
                            'publicStateEnabled', 'publicStatsEnabled',
-                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt'
+                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt',
+                           'lessonStartedAt', 'lessonElapsedSeconds'
                          ])
                     && request.resource.data.get('updatedAt', null) == request.time;
       allow delete: if llv3SessionOwner();
@@ -852,7 +856,7 @@ service cloud.firestore {
                    && llv3ActiveSession()
                    && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true;
         allow create, update: if llv3SessionOwner()
-                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                               && llv3ValidPublicState(request.resource.data)
                               && request.resource.data.get('updatedAt', null) == request.time;
         allow delete: if false;
