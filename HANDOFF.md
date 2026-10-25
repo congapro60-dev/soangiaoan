@@ -54,11 +54,28 @@ Test quan trong nhat:
 
 **Bai hoc 2**: khong ghi toa do da lam tron 4 chu so vao code. Lam tron tung diem lam 2 duong gan song song bi coi la khong song song (lech 1e-4) -> test bat duoc.
 
+### Da gan vao bai hoc (sau khi nguoi dung duyet giao dien)
+
+| Pkg | Task | solidKey | Ly do |
+|---|---|---|---|
+| `r22-g11-discover-r106` | `task-3-1` | `tu-dien-sabc` | de: tu dien SABC, M/N/P trung diem SA/SB/SC |
+| `r22-g11-discover-r106` | `task-3-2` | `hop-chu-nhat` | **de ghi ro "hinh hop chu nhat"** — khong dung `hop-xien` |
+| `r22-g11-discover-r107` | `task-3-2` | `chop-sabcd` | de: chop S.ABCD, thiet dien SM = 2/3 SA |
+
+**KHONG gan** `task-3-1` cua r107 (thales / thang chu A) vi do la hinh mat phang, khong phai khoi 3D.
+
+### Loi schema phai sua
+
+`solidKey` bi `validateLessonPackage` tu choi (khong nam trong `ALLOWED_TASK_KEYS`) -> test `hki-content` FAIL. Phai them vao:
+1. `lib/lesson/validate.js` — `ALLOWED_TASK_KEYS`.
+2. `lib/lesson/serialize.js` — **ca hai** `sanitizeTaskForTeacher` va `sanitizeTaskForStudent`, neu khong client khong nhan duoc field.
+
+Da kiem bang `scripts/check-solidkey-serialize.mjs`: 3/3 task co `solidKey`, moi `solidKey` deu tro toi khoi CO THAT trong `solids`.
+
 ### Con no
 
-- Chua co bai tap nao trong du lieu dung `solidKey` — da co component nhung chua gan vao task cu the.
 - Chua deploy v30.
-- `chop-sabcd` do mo chi 0.39 do day hinh thang hep (AD = 3 so voi AB = 8) — dung de bai, khong phai loi code.
+- `chop-sabcd` do mo chi 0.39 do day hinh thang hep (AD = 3 so voi AB = 8) - dung de bai, khong phai loi code.
 
 ## Checkpoint truoc - V29 DA PHAT HANH (25/10/2026)
 

@@ -8,6 +8,7 @@ import {
   faceNormal,
   hopXien,
   tuDienSABC,
+  hopChuNhat,
   chopSABCD,
   defaultViews,
   type Solid,
@@ -187,4 +188,64 @@ test('chop S.ABCD: goc chuan cho net dut BC, CD, CS — khop hinh SGK da duyet',
     .map((e) => L[e.a] + L[e.b])
     .sort();
   assert.deepEqual(dashed, ['BC', 'CD', 'CS'].sort(), 'net dut phai khop hinh 2D da duyet');
+});
+
+test('tu dien SABC: M, N, P dung la trung diem SA, SB, SC', () => {
+  const V = tuDienSABC.verts;
+  const S = V[3];
+  const base = [V[0], V[1], V[2]]; // A, B, C
+  const pts = tuDienSABC.extraPts ?? [];
+  assert.equal(pts.length, 3, 'phai co M, N, P');
+  assert.deepEqual(pts.map((p) => p.label), ['M', 'N', 'P']);
+
+  for (let i = 0; i < 3; i++) {
+    const P = pts[i].p;
+    const X = base[i];
+    const expect = [0, 1, 2].map((k) => (S[k] + X[k]) / 2);
+    for (let k = 0; k < 3; k++) {
+      assert.ok(Math.abs(P[k] - expect[k]) < 1e-9, `${pts[i].label} truc ${k}: ${P[k]} phai = ${expect[k]}`);
+    }
+  }
+});
+
+test('hop chu nhat: moi goc deu vuong (AB vuong AD, AA vuong AB)', () => {
+  const V = hopChuNhat.verts;
+  const L = hopChuNhat.labels;
+  const idx = (n: string) => L.indexOf(n);
+  const vec = (p: number[], q: number[]) => [q[0] - p[0], q[1] - p[1], q[2] - p[2]];
+  const dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+  const AB = vec(V[idx('A')], V[idx('B')]);
+  const AD = vec(V[idx('A')], V[idx('D')]);
+  const AA = vec(V[idx('A')], V[idx("A'")]);
+
+  assert.ok(Math.abs(dot(AB, AD)) < 1e-9, 'AB phai vuong goc AD');
+  assert.ok(Math.abs(dot(AB, AA)) < 1e-9, 'AB phai vuong goc AA');
+  assert.ok(Math.abs(dot(AD, AA)) < 1e-9, 'AD phai vuong goc AA');
+});
+
+test('hop chu nhat: goc chuan cho 9 net lien / 3 net dut, net dut tu dinh D', () => {
+  const c = cam('hop-chu-nhat');
+  const v = computeVisibility(hopChuNhat, c);
+  assert.equal(v.visibleFaceCount, 3, 'goc chuan cua hop chu nhat: thay 3 mat');
+  const L = hopChuNhat.labels;
+  const dashed = hopChuNhat.edges
+    .filter((e) => !v.edgeSolid[edgeKey(e.a, e.b)])
+    .map((e) => L[e.a] + L[e.b])
+    .sort();
+  assert.deepEqual(dashed, ['CD', "DD'", 'DA'].sort(), 'net dut phai la 3 canh tu dinh D');
+  assert.equal(solidEdgeCount(hopChuNhat, c).solid, 9);
+});
+
+test('hop chu nhat: cung luat "9 net lien" o moi goc thay 3 mat', () => {
+  const view = defaultViews['hop-chu-nhat'];
+  let checked = 0;
+  for (let yaw = -180; yaw < 180; yaw += 15) {
+    const c = makeCamera(view.target, view.dist, yaw, view.pitch);
+    const v = computeVisibility(hopChuNhat, c);
+    if (v.visibleFaceCount !== 3) continue;
+    checked++;
+    assert.equal(solidEdgeCount(hopChuNhat, c).solid, 9, `yaw ${yaw}`);
+  }
+  assert.ok(checked >= 8, `phai kiem duoc it nhat 8 goc, thuc te ${checked}`);
 });

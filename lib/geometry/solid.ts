@@ -184,13 +184,18 @@ export function solidEdgeCount(solid: Solid, cam: Camera): { solid: number; dash
  * Tứ diện SABC (bài r106, thiết diện trung điểm).
  * C đặt lệch về phía đối diện B để nhìn thấy 2 mặt SAB + SAC.
  */
+const tuDienVerts: Vec3[] = [
+  [0, 0, 0], // A
+  [6, 0, 0], // B
+  [-2.5, 4.5, 0], // C
+  [2, 2.2, 6], // S
+];
+
+/** Trung điểm 2 đỉnh: tính bằng công thức, không nhập số làm tròn. */
+const mid = (a: Vec3, b: Vec3): Vec3 => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+
 export const tuDienSABC: Solid = {
-  verts: [
-    [0, 0, 0], // A
-    [6, 0, 0], // B
-    [-2.5, 4.5, 0], // C
-    [2, 2.2, 6], // S
-  ],
+  verts: tuDienVerts,
   labels: ["A", "B", "C", "S"],
   faces: [{ v: [0, 1, 2] }, { v: [0, 1, 3] }, { v: [1, 2, 3] }, { v: [2, 0, 3] }],
   edges: [
@@ -200,6 +205,52 @@ export const tuDienSABC: Solid = {
     { a: 0, b: 3 },
     { a: 1, b: 3 },
     { a: 2, b: 3 },
+  ],
+  // M, N, P là trung điểm SA, SB, SC — đúng đề r106 task-3-1.
+  extraPts: [
+    { p: mid(tuDienVerts[3], tuDienVerts[0]), label: "M" },
+    { p: mid(tuDienVerts[3], tuDienVerts[1]), label: "N" },
+    { p: mid(tuDienVerts[3], tuDienVerts[2]), label: "P" },
+  ],
+};
+
+/**
+ * Hình hộp CHỮ NHẬT ABCD.A'B'C'D' (bài r106 task-3-2 — đề ghi rõ "chữ nhật").
+ * KHÁC với hopXien: ở đây đáy là hình chữ nhật, các mặt đều vuông góc.
+ */
+export const hopChuNhat: Solid = {
+  verts: [
+    [0, 0, 0], // A
+    [8, 0, 0], // B
+    [8, 5, 0], // C
+    [0, 5, 0], // D
+    [0, 0, 4], // A'
+    [8, 0, 4], // B'
+    [8, 5, 4], // C'
+    [0, 5, 4], // D'
+  ],
+  labels: ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
+  faces: [
+    { v: [0, 1, 2, 3] }, // đáy ABCD
+    { v: [4, 5, 6, 7] }, // trên A'B'C'D'
+    { v: [0, 1, 5, 4] }, // ABB'A'
+    { v: [1, 2, 6, 5] }, // BCC'B'
+    { v: [2, 3, 7, 6] }, // CDD'C'
+    { v: [3, 0, 4, 7] }, // DAA'D'
+  ],
+  edges: [
+    { a: 0, b: 1 },
+    { a: 1, b: 2 },
+    { a: 2, b: 3 },
+    { a: 3, b: 0 },
+    { a: 4, b: 5 },
+    { a: 5, b: 6 },
+    { a: 6, b: 7 },
+    { a: 7, b: 4 },
+    { a: 0, b: 4 },
+    { a: 1, b: 5 },
+    { a: 2, b: 6 },
+    { a: 3, b: 7 },
   ],
 };
 
@@ -301,11 +352,14 @@ export const chopSABCD: Solid = {
 export const defaultViews: Record<string, { yaw: number; pitch: number; dist: number; target: Vec3 }> = {
   'tu-dien-sabc': { yaw: -140, pitch: 40, dist: 20, target: [2, 2.2, 1.5] },
   'hop-xien': { yaw: -70, pitch: 20, dist: 24, target: [5, 2.5, 2] },
+  // Hop chu nhat: yaw -50 cho net dut CD, DA, DD' (giong chuan SGK cua hop xien)
+  'hop-chu-nhat': { yaw: -50, pitch: 15, dist: 24, target: [4, 2.5, 2] },
   'chop-sabcd': { yaw: -160, pitch: 35, dist: 26, target: [4, 1.5, 2.2] },
 };
 
 export const solids: Record<string, Solid> = {
   'tu-dien-sabc': tuDienSABC,
   'hop-xien': hopXien,
+  'hop-chu-nhat': hopChuNhat,
   'chop-sabcd': chopSABCD,
 };

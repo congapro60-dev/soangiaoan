@@ -114239,7 +114239,8 @@
               "numericReviewRequired": true,
               "workedSolution": "$MN,MP$ là các đường trung bình trong tam giác $SAB,SAC$, nên $MN\\parallel AB$, $MP\\parallel AC$. $M$ nằm ngoài $(ABC)$, vì thế $MN,MP$ không nằm trong $(ABC)$. Do $AB,AC\\subset(ABC)$, suy ra $MN\\parallel(ABC)$ và $MP\\parallel(ABC)$. Hai đường $MN,MP$ cùng thuộc $(MNP)$ và cắt nhau tại $M$. Theo định lí về hai đường cắt nhau, $(MNP)\\parallel(ABC)$."
             },
-            "imageUrl": "/content/hinh/r106-g11-tu-dien-sabc-trung-diem.svg"
+            "imageUrl": "/content/hinh/r106-g11-tu-dien-sabc-trung-diem.svg",
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-3-2",
@@ -114285,7 +114286,8 @@
               "numericReviewRequired": true,
               "workedSolution": "Chọn $AB,AA'$ cắt nhau tại $A$ và cùng thuộc $(ABB'A')$. Vì $AB\\parallel DC$, $AA'\\parallel DD'$, $DC,DD'\\subset(DCC'D')$ và $A\\notin(DCC'D')$, nên $AB\\parallel(DCC'D')$, $AA'\\parallel(DCC'D')$. Suy ra $(ABB'A')\\parallel(DCC'D')$. Hai đường $AB,A'B'$ song song với nhau, nên lựa chọn đó chưa đáp ứng điều kiện cắt nhau của định lí, dù kết luận về hai mặt phẳng vẫn đúng."
             },
-            "imageUrl": "/content/hinh/r106-g11-hinh-hop-2-mat-doi-dien.svg"
+            "imageUrl": "/content/hinh/r106-g11-hinh-hop-2-mat-doi-dien.svg",
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-4-1",
@@ -114768,7 +114770,7 @@
             "group_score"
           ]
         },
-        "contentHash": "9e0b7d9dec0efdf9f8ff6c01a105a6dd18c879e5c0fa251378ba0aa2a3896e09"
+        "contentHash": "54a1cbdde3d52bd02ce1fdd8a1d75c378d1537f10d51111c53d8ed131c1d917d"
       },
       "citations": [
         {
@@ -115417,7 +115419,8 @@
               "numericReviewRequired": true,
               "workedSolution": "Mặt phẳng $(\\alpha) \\parallel (ABCD)$ nên theo định lý Thalès: $\\frac{SM}{SA} = \\frac{SN}{SB} = \\frac{SP}{SC} = \\frac{SQ}{SD} = \\frac{2}{3}$. Thiết diện $MNPQ$ là hình thang đồng dạng với đáy $ABCD$ theo tỉ số đồng dạng $k = \\frac{2}{3}$. Do đó tỉ số diện tích bằng $k^2 = \\left(\\frac{2}{3}\\right)^2 = \\frac{4}{9}$."
             },
-            "imageUrl": "/content/hinh/r107-g11-chop-sabcd-thiet-dien.svg"
+            "imageUrl": "/content/hinh/r107-g11-chop-sabcd-thiet-dien.svg",
+            "solidKey": "chop-sabcd"
           },
           {
             "id": "task-4-1",
@@ -115899,7 +115902,7 @@
             "group_score"
           ]
         },
-        "contentHash": "0fd15f4f404f402082704522486dcb92db9fd374703371e89d022906ec0a7d0e"
+        "contentHash": "c3b9001cddc8c230dfb411c8176253197f328a53354a4ef8dd95f66a9e905dbf"
       },
       "citations": [
         {
