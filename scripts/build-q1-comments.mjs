@@ -1,24 +1,22 @@
 /**
- * Soạn nhận xét QUÝ 1 (gộp F1 + IA1) cho hồ sơ học tập của học sinh.
+ * Soạn nhận xét QUÝ 1 cho học bạ / báo cáo học tập của học sinh.
  *
- * QUAN TRỌNG — nhận xét này đi vào báo cáo học tập và hồ sơ học sinh (có thể dùng khi du học),
- * nên văn phong phải: khách quan · tích cực · khen nhiều hơn chê · KHÔNG nêu số liệu nộp bài tập
- * hay bất kỳ dữ liệu nội bộ nào (tỉ lệ nộp bài, so sánh với bạn khác, xếp hạng lớp).
+ * Chuẩn văn phong (chủ dự án chốt 25/10):
+ *   - TRANG TRỌNG, như nhận xét học bạ, không khẩu ngữ.
+ *   - CHỈ nhận xét Quý 1: không nêu việc cần làm ở Quý 2, không định hướng tương lai.
+ *   - Khách quan, khen nhiều hơn chê; phần hạn chế nêu ngắn, đúng mức.
+ *   - KHÔNG nêu số lượt nộp bài, tỉ lệ nộp, xếp hạng hay so sánh với bạn khác.
  *
- * Cấu trúc 4 câu:
- *   1. Nhận định tổng quát về kết quả học tập trong quý (luôn mở đầu tích cực)
- *   2. Năng lực nổi bật — gọi tên chủ đề cụ thể em làm tốt
- *   3. Nội dung cần củng cố — diễn đạt nhẹ, hướng tới tiến bộ (nếu có)
- *   4. Định hướng tích cực cho Quý 2
+ * Cấu trúc 3 câu: kết quả chung của quý · năng lực nổi bật · nội dung cần củng cố (nếu có).
  *
  * node scripts/build-q1-comments.mjs
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const scores = JSON.parse(readFileSync(resolve('docs/qa/scores-input.json'), 'utf8'));
 
-/** Mô tả chủ đề theo mã LO — dùng trong câu nhận xét. */
+/** Tên chủ đề theo mã LO — dùng trong nhận xét học bạ. */
 const TOPIC = {
   LO_DIS_TO_34344: 'mệnh đề và các phép suy luận toán học',
   LO_DIS_TO_34345: 'các phép toán trên tập hợp',
@@ -47,12 +45,12 @@ const rankOf = (avg) => {
   if (avg >= 3.5) return 'tot';
   if (avg >= 3) return 'kha';
   if (avg >= 2.5) return 'tb';
-  return 'yeu';
+  return 'canCoGang';
 };
 
 /**
- * Nhận xét cho hồ sơ. Nguyên tắc: luôn có ít nhất một lời ghi nhận tích cực và một định hướng
- * phát triển; phần cần củng cố nói ở giọng gợi mở, không phán xét, không so sánh.
+ * Nhận xét học bạ Quý 1. Câu 1 nêu kết quả chung, câu 2 năng lực nổi bật, câu 3 nội dung cần
+ * củng cố. Không có câu định hướng tương lai.
  */
 const buildQ1Comment = (name, marks, los) => {
   const pairs = los
@@ -60,7 +58,7 @@ const buildQ1Comment = (name, marks, los) => {
     .filter((p) => p.lo !== 'LO_DIS_TO_34764' && typeof p.mark === 'number');
 
   if (!pairs.length) {
-    return `Em ${name} đã tham gia học tập trong Quý 1. Với những nội dung đã học, em có nhiều tiềm năng phát triển nếu duy trì đều đặn việc ôn luyện. Thầy cô ghi nhận sự có mặt của em trong các giờ học và mong em sẽ thể hiện được năng lực của mình rõ nét hơn trong Quý 2.`;
+    return `Trong Quý 1, em ${name} đã tham gia học tập đầy đủ các nội dung của chương trình.`;
   }
 
   const avg = round1(pairs.reduce((s, p) => s + p.mark, 0) / pairs.length);
@@ -70,50 +68,41 @@ const buildQ1Comment = (name, marks, los) => {
   const rank = rankOf(avg);
   const sentences = [];
 
-  // 1. Nhận định tổng quát — luôn mở bằng ghi nhận tích cực
+  // Câu 1 — kết quả chung của quý, giọng học bạ.
   if (rank === 'tot') {
-    sentences.push(`Trong Quý 1, em ${name} thể hiện nền tảng kiến thức Toán vững và khả năng vận dụng tốt, kết quả học tập thuộc nhóm cao của lớp.`);
+    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán tốt, nền tảng kiến thức vững và khả năng vận dụng thành thạo các nội dung đã học.`);
   } else if (rank === 'kha') {
-    sentences.push(`Trong Quý 1, em ${name} có thái độ học tập tích cực và nắm được phần lớn kiến thức trọng tâm của chương trình.`);
+    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán ở mức khá, nắm được phần lớn kiến thức trọng tâm của chương trình.`);
   } else if (rank === 'tb') {
-    sentences.push(`Trong Quý 1, em ${name} đã có nhiều cố gắng và từng bước làm quen với các dạng toán mới của chương trình.`);
+    sentences.push(`Trong Quý 1, em ${name} có kết quả học tập môn Toán ở mức trung bình, đã tiếp thu được các nội dung cơ bản của chương trình.`);
   } else {
-    sentences.push(`Trong Quý 1, em ${name} đã tham gia học tập và có ý thức tiếp thu bài giảng của thầy cô.`);
+    sentences.push(`Trong Quý 1, em ${name} đã tham gia học tập và bước đầu tiếp cận các nội dung của chương trình Toán.`);
   }
 
-  // 2. Năng lực nổi bật — luôn có, gọi tên chủ đề
+  // Câu 2 — năng lực nổi bật, luôn có và gọi tên chủ đề.
   if (best.mark >= 3.5) {
-    sentences.push(`Em đặc biệt vững phần ${TOPIC[best.lo] || best.lo}: các bài làm thể hiện sự chính xác và trình bày rõ ràng, mạch lạc.`);
+    sentences.push(`Em nắm vững và vận dụng tốt nhất nội dung ${TOPIC[best.lo] || best.lo}, bài làm thể hiện sự chính xác và trình bày rõ ràng.`);
   } else if (best.mark >= 3) {
-    sentences.push(`Em học tốt phần ${TOPIC[best.lo] || best.lo} và đã nắm được phương pháp giải các dạng bài cơ bản ở nội dung này.`);
+    sentences.push(`Em nắm tốt nội dung ${TOPIC[best.lo] || best.lo} và thực hiện được các dạng bài cơ bản của phần này.`);
   } else if (best.mark >= 2.5) {
-    sentences.push(`Em tiếp thu tốt nhất ở phần ${TOPIC[best.lo] || best.lo}, đây là nền tảng thuận lợi để em phát triển thêm.`);
+    sentences.push(`Trong các nội dung của quý, em tiếp thu tốt nhất phần ${TOPIC[best.lo] || best.lo}.`);
   } else {
-    sentences.push(`Trong các nội dung của Quý 1, em thể hiện sự cố gắng rõ nhất ở phần ${TOPIC[best.lo] || best.lo}.`);
+    sentences.push(`Em đạt kết quả cao nhất ở nội dung ${TOPIC[best.lo] || best.lo}.`);
   }
 
-  // 3. Nội dung cần củng cố — nhẹ nhàng, hướng tới tiến bộ
+  // Câu 3 — nội dung cần củng cố, chỉ nêu khi thật sự có khoảng trống.
   if (worst.mark < 2.5) {
-    sentences.push(`Để kết quả được toàn diện hơn, em sẽ được thầy cô đồng hành củng cố thêm phần ${TOPIC[worst.lo] || worst.lo} trong thời gian tới.`);
+    sentences.push(`Nội dung ${TOPIC[worst.lo] || worst.lo} cần được củng cố thêm để kết quả học tập của em được đồng đều hơn.`);
   } else if (round1(best.mark - worst.mark) >= 1) {
-    sentences.push(`Nếu dành thêm thời gian cho phần ${TOPIC[worst.lo] || worst.lo}, kết quả học tập của em sẽ đồng đều và nổi bật hơn nữa.`);
+    sentences.push(`Nội dung ${TOPIC[worst.lo] || worst.lo} còn thấp hơn các phần khác, cần được chú ý củng cố thêm.`);
   } else {
-    sentences.push('Các nội dung trong quý đều được em tiếp thu tương đối đồng đều, tạo thuận lợi cho việc học tiếp ở Quý 2.');
-  }
-
-  // 4. Định hướng Quý 2
-  if (rank === 'tot') {
-    sentences.push('Bước sang Quý 2, với nền tảng hiện có, em hoàn toàn có thể chinh phục các bài toán vận dụng cao và chuẩn bị tốt cho kỳ thi học kỳ.');
-  } else if (rank === 'kha') {
-    sentences.push('Bước sang Quý 2, nếu duy trì được sự chuyên cần và mạnh dạn trao đổi với thầy cô khi gặp bài khó, em sẽ tiến bộ rõ rệt.');
-  } else {
-    sentences.push('Bước sang Quý 2, thầy cô tin rằng với sự đồng hành của gia đình và nhà trường, em sẽ từng bước vững vàng hơn và đạt kết quả tốt hơn.');
+    sentences.push('Các nội dung trong quý được em tiếp thu tương đối đồng đều.');
   }
 
   return sentences.join(' ');
 };
 
-/** Gộp điểm F1 và IA1 thành một bộ điểm Q1 cho mỗi em (trung bình hai kỳ). */
+/** Gộp điểm F1 và IA1 thành một bộ điểm Q1 (trung bình hai kỳ). */
 const mergeQuarter = (classGroups) => {
   const byClass = new Map();
   for (const group of classGroups) {
