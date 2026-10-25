@@ -1,6 +1,6 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { acquireCallHoldWaiting, geminiUsageCounts, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { acquireCallHoldWaiting, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
@@ -581,6 +581,8 @@ export const callUtilityVision = async (
     try {
       return await adapter.call(prompt, images, options, segment);
     } catch (error) {
+      // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
+      if (error instanceof AiKeyRequiredError) throw error;
       lastError = error;
       console.warn(`[grading-chain/utility] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
     }
@@ -626,6 +628,9 @@ const nhoiSegment = (
  * 'max_tokens'/'empty' khớp bộ retry của đường chấm). jsonMode của Gemini không có
  * tương đương chuẩn trên đường này — prompt đã yêu cầu trả JSON, bộ parse bọc ```json
  * vốn đã xử lý. `'model-max'` → bỏ gửi max_tokens, để model dùng trần riêng của nó.
+ *
+ * `meter` (các lớp của chuỗi chấm): cùng luật khoá/ví/trần như lớp Gemini — chọn người chịu phí, giữ chỗ tiền trước
+ * khi gọi, ghi lượt + trừ ví khi có phản hồi (kể cả bị cắt), trả lại phần giữ khi lượt hỏng trước bước đó.
  */
 export const callOpenAiCompatibleVision = async (
   prompt: string,
@@ -633,13 +638,46 @@ export const callOpenAiCompatibleVision = async (
   apiKey: string,
   options: OpenAiVisionOptions & Pick<GeminiOptions, 'maxOutputTokens' | 'temperature' | 'timeoutMs'>,
   segment?: GeminiPromptSegment,
+  meter?: { provider: AiProvider; model: string },
+): Promise<string> => {
+  const deadline = Date.now() + (options.timeoutMs ?? 30_000);
+  const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
+  if (meter) {
+    // Khoá dự phòng là khoá GEMINI: lựa chọn được cache cho cả request, lớp Google phía sau dùng lại `choice.key`.
+    const choice = await ensureGeminiKey(process.env.GRADING_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '');
+    const held = await acquireCallHoldWaiting(choice, deadline);
+    if (held.ok === false && held.reason === 'timeout') {
+      throw new GeminiResponseError('provider', 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại sau ít phút.');
+    }
+    if (held.ok === false) throw new AiKeyRequiredError(held.reason, choice.ownerUid);
+    hold.vnd = held.holdVnd;
+    hold.ownerUid = choice.ownerUid;
+  }
+  try {
+    return await callOpenAiCompatibleVisionHeld(prompt, images, apiKey, options, deadline, hold, segment, meter);
+  } finally {
+    if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
+      await releaseWalletHold(getAdminDb(), hold.ownerUid, hold.vnd).catch(error => console.error('[grading-chain] không trả được chỗ giữ tiền:', error));
+    }
+  }
+};
+
+const callOpenAiCompatibleVisionHeld = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  options: OpenAiVisionOptions & Pick<GeminiOptions, 'maxOutputTokens' | 'temperature' | 'timeoutMs'>,
+  deadline: number,
+  hold: CallHold,
+  segment?: GeminiPromptSegment,
+  meter?: { provider: AiProvider; model: string },
 ): Promise<string> => {
   const dung = nhoiSegment(prompt, images, segment);
   const res = await fetch(
     `${options.baseUrl.replace(/\/+$/, '')}/chat/completions`,
     {
       method: 'POST',
-      signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
+      signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: options.model,
@@ -669,8 +707,14 @@ export const callOpenAiCompatibleVision = async (
 
   const data = await res.json() as {
     choices?: Array<{ finish_reason?: string; message?: { content?: string | Array<{ text?: string }> } }>;
+    usage?: unknown;
   };
   const choice = data.choices?.[0];
+  if (meter) {
+    // Ghi token TRƯỚC mọi nhánh ném lỗi: hãng tính tiền cả lượt bị cắt. `recordAiUsage` nhận luôn phần giữ chỗ.
+    hold.handedOver = true;
+    await recordAiUsage(meter.provider, meter.model, openAiUsageCounts(data.usage), { finishReason: choice?.finish_reason, holdVnd: hold.vnd });
+  }
   const rawContent = choice?.message?.content;
   const text = typeof rawContent === 'string'
     ? rawContent
@@ -732,7 +776,7 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
     chain.push({
       name: `vilao/${vilaoOptions.model}`,
       tier: 're',
-      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment),
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment, { provider: 'vilao', model: `vilao/${vilaoOptions.model}` }),
     });
   }
   const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
@@ -744,7 +788,7 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
     chain.push({
       name: `xkiro/${xkiroOptions.model}`,
       tier: 're',
-      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment),
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${xkiroOptions.model}` }),
     });
   }
   const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
@@ -781,6 +825,8 @@ export const callGradingVision = async (
     try {
       return await adapter.call(prompt, images, options, segment);
     } catch (error) {
+      // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
+      if (error instanceof AiKeyRequiredError) throw error;
       lastError = error;
       console.warn(`[grading-chain] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
     }

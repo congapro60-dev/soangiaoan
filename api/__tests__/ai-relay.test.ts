@@ -146,6 +146,7 @@ process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
 
   it('nhánh AI HỌC SINH: token ẩn danh + studentAi:true đi qua được, đếm cả doc tổng ngày (hồi quy lỗi total)', async () => {
     h.claims = { uid: 'hs-1', firebase: { sign_in_provider: 'anonymous' } };
+    h.store['studentLinks/hs-1'] = { classId: 'lop-1', studentId: 'em-1', teacherId: 'gv-9' };
     const fetchMock = vilaoOk('OK');
     vi.stubGlobal('fetch', fetchMock);
 
@@ -155,8 +156,40 @@ process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
     expect(h.store[`aiRelayQuota/_studentDayTotal`]).toMatchObject({ day: today, count: 1 });
   });
 
+  it('nhánh AI HỌC SINH khi ĐÃ BẬT kiểm soát: chủ lớp suy từ studentLinks, chạy khoá Vilao máy chủ, KHÔNG trừ ví thầy cô', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store['studentLinks/hs-3'] = { classId: 'lop-1', studentId: 'em-3', teacherId: 'gv-9' };
+    h.store['aiWallets/gv-9'] = { balanceVnd: 5_000 };
+    h.claims = { uid: 'hs-3', firebase: { sign_in_provider: 'anonymous' } };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', studentAi: true });
+    expect(res.statusCode).toBe(200);
+    expect((fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }])[1].headers.authorization).toBe(`Bearer ${OWNER_KEY}`);
+    expect(h.store['aiWallets/gv-9']).toEqual({ balanceVnd: 5_000 }); // không trừ, không giữ chỗ
+    const usage = Object.entries(h.store).find(([p]) => p.startsWith('aiUsage/'))?.[1];
+    // Gắn chủ lớp + mã em để sao kê quy về lớp và chip "AI hôm nay" của em đọc được (`refs.studentId`).
+    expect(usage).toMatchObject({ feature: 'studentAi', keyOwnerUid: 'gv-9', keySource: 'shared', refs: { classId: 'lop-1', studentId: 'em-3' } });
+    expect(usage?.chargeVnd).toBeUndefined();
+    expect(h.store['aiSpend/hs-3_' + today.slice(0, 7)]).toBeUndefined(); // không còn sổ rác theo uid ẩn danh
+  });
+
+  it('nhánh AI HỌC SINH: phiên ẩn danh không gắn với lớp nào thì 403, không gọi Vilao, không tốn hạn mức', async () => {
+    h.claims = { uid: 'hs-lac', firebase: { sign_in_provider: 'anonymous' } };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', studentAi: true });
+    expect(res.statusCode).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(h.store['aiRelayQuota/hs-lac']).toBeUndefined();
+    expect(h.store['aiRelayQuota/_studentDayTotal']).toBeUndefined();
+  });
+
   it('nhánh AI HỌC SINH dừng khi chạm trần tổng cả hệ thống trong ngày', async () => {
     h.claims = { uid: 'hs-2', firebase: { sign_in_provider: 'anonymous' } };
+    h.store['studentLinks/hs-2'] = { classId: 'lop-1', studentId: 'em-2', teacherId: 'gv-9' };
     vi.stubGlobal('fetch', vilaoOk('OK'));
     process.env.STUDENT_AI_DAY_TOTAL = '1';
     try {

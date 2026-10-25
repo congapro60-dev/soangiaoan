@@ -74,7 +74,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   }
   const isStudent = Boolean(user.anonymous && (readBody(req) as Record<string, unknown>)?.studentAi === true);
   // Học sinh vào bằng mã lớp là tài khoản ẩn danh: không được đốt khoá/ví của giáo viên bằng đường này,
-  // trừ nhánh AI HỌC SINH riêng (G3) — hạn mức/ngày riêng, tiền là khoá Vilao server của thầy lớp/chủ dự án.
+  // trừ nhánh AI HỌC SINH riêng (G3) — hạn mức/ngày riêng, chạy khoá Vilao máy chủ (chủ dự án trả), không trừ ví thầy cô.
   if (user.anonymous && !isStudent) {
     void sendError(res, 403, 'AI bằng ví web chỉ dùng được với tài khoản giáo viên đã đăng nhập.');
     return;
@@ -97,6 +97,17 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   }
 
   const db = getAdminDb();
+  // Nhánh HS: chủ lớp lấy từ `studentLinks` của PHIÊN (không tin client). Không gắn với lớp nào thì không được dùng.
+  let studentLink: { classId: string; studentId: string; teacherId: string } | null = null;
+  if (isStudent) {
+    const data = (await db.collection('studentLinks').doc(user.uid).get()).data() ?? {};
+    const link = { classId: String(data.classId || ''), studentId: String(data.studentId || ''), teacherId: String(data.teacherId || '') };
+    if (!link.classId || !link.studentId || !link.teacherId) {
+      void sendError(res, 403, 'Em cần vào lớp bằng mã lớp trước khi dùng AI.');
+      return;
+    }
+    studentLink = link;
+  }
   const day = vnDate(new Date()).day;
   const quotaRef = db.collection(AI_RELAY_QUOTA_COL).doc(user.uid);
   const limit = isStudent ? studentDailyLimit() : relayDailyLimit();
@@ -138,9 +149,16 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     { merge: true },
   );
 
-  // Người chịu khoá/tiền = chính giáo viên gọi (HS thì suy về thầy cô chủ lớp qua studentLinks); feature để sao kê phân biệt.
-  const context = createAiUsageContext(getBearerToken(req.headers.authorization), isStudent ? 'studentAi' : 'aiRelay', {});
-  context.keyOwnerUid = user.uid;
+  // Người chịu khoá/tiền = chính giáo viên gọi (HS thì thầy cô chủ lớp từ studentLinks); feature để sao kê phân biệt.
+  const context = createAiUsageContext(
+    getBearerToken(req.headers.authorization),
+    isStudent ? 'studentAi' : 'aiRelay',
+    studentLink ? { classId: studentLink.classId, studentId: studentLink.studentId } : {},
+  );
+  context.keyOwnerUid = studentLink ? studentLink.teacherId : user.uid;
+  // HS: chạy khoá Vilao máy chủ, KHÔNG trừ ví thầy cô — đã có hạn mức riêng (mỗi em/ngày + trần tổng hệ thống) ở trên.
+  // Đặt sẵn khoá cho request thì `ensureGeminiKey` dùng luôn, không xét đồng ý/ví/trần của giáo viên.
+  if (studentLink) context.keyChoice = { key: vendorKey, source: 'shared', ownerUid: studentLink.teacherId, billing: null };
 
   try {
     const result = await runWithAiUsage(context, async (): Promise<{ text: string; finishReason?: string }> => {
