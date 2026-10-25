@@ -28,6 +28,23 @@ const questionStats = existsSync(resolve('docs/qa/question-stats.json'))
 const errorSignatures = existsSync(resolve('docs/qa/error-signatures.json'))
   ? JSON.parse(readFileSync(resolve('docs/qa/error-signatures.json'), 'utf8'))
   : {};
+/** Điểm thi giữa HKI (thang 10) — căn cứ xếp loại mức cho nhận xét. */
+const midtermScores = existsSync(resolve('docs/qa/midterm-scores.json'))
+  ? JSON.parse(readFileSync(resolve('docs/qa/midterm-scores.json'), 'utf8'))
+  : {};
+
+/**
+ * Xếp loại mức theo điểm thi giữa HKI (chủ dự án chốt 25/10):
+ *   tốt: x > 9 · khá tốt: 8 < x < 9 · khá: 6,5 < x < 8 · cơ bản: 5 < x < 6,5 · bước đầu: x < 5
+ */
+const bandOf = (score) => {
+  if (typeof score !== 'number') return null;
+  if (score > 9) return 'tot';
+  if (score > 8) return 'khaTot';
+  if (score > 6.5) return 'kha';
+  if (score > 5) return 'coBan';
+  return 'buocDau';
+};
 
 /** Tên chủ đề theo mã LO. */
 const TOPIC = {
@@ -106,23 +123,23 @@ const describeError = (type) => {
   return null;
 };
 
-/** Câu mở đầu theo mức chung — dùng từ vựng khác nhau cho từng mức và từng số lượng bài. */
-const openingFor = (name, rank, b) => {
-  const n = b?.n ?? 0;
-  if (rank === 'tot') {
-    return n >= 15
-      ? `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán tốt và giữ được phong độ qua suốt quá trình học.`
-      : `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán tốt, thể hiện nền tảng kiến thức vững.`;
+/**
+ * Câu mở đầu theo MỨC XẾP LOẠI từ điểm thi giữa HKI — mỗi mức một cách diễn đạt riêng,
+ * không dùng "trung bình": mức 5–6,5 gọi là "cơ bản".
+ */
+const openingFor = (name, band, b) => {
+  switch (band) {
+    case 'tot':
+      return `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức tốt, bài kiểm tra giữa học kì cho thấy nền tảng kiến thức vững và khả năng vận dụng thành thạo.`;
+    case 'khaTot':
+      return `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức khá tốt, nắm chắc các nội dung trọng tâm của chương trình.`;
+    case 'kha':
+      return `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức khá, đã nắm được phần lớn kiến thức của chương trình.`;
+    case 'coBan':
+      return `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức cơ bản, đã tiếp cận được các kiến thức nền của chương trình.`;
+    default:
+      return `Trong Quý 1, em ${name} bước đầu làm quen với các nội dung của chương trình Toán và đã tham gia đầy đủ các giờ học.`;
   }
-  if (rank === 'kha') {
-    return n >= 15
-      ? `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức khá, giữ được nhịp học đều đặn.`
-      : `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức khá, nắm được phần lớn kiến thức trọng tâm.`;
-  }
-  if (rank === 'tb') {
-    return `Trong Quý 1, em ${name} đạt kết quả học tập môn Toán ở mức trung bình, đã nắm được các kiến thức cơ bản của chương trình.`;
-  }
-  return `Trong Quý 1, em ${name} đã tham gia học tập và bước đầu làm quen với các nội dung của chương trình Toán.`;
 };
 
 /**
@@ -199,10 +216,13 @@ const buildQ1Comment = (className, code, name, marks, los) => {
   const sorted = [...pairs].sort((a, b2) => b2.mark - a.mark);
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
-  const rank = avg >= 3.5 ? 'tot' : avg >= 3 ? 'kha' : avg >= 2.5 ? 'tb' : 'canCoGang';
+  // Mức xếp loại lấy từ ĐIỂM THI GIỮA HKI (thang 10), không từ điểm trung bình thang 4.
+  const midterm = midtermScores[className]?.[code];
+  const band = bandOf(midterm) || 'kha';
+  const rank = band;
   const span = round1(best.mark - worst.mark);
 
-  const parts = [openingFor(name, rank, b)];
+  const parts = [openingFor(name, band, b)];
 
   // Nét riêng: ưu tiên LỖI CỤ THỂ nhất (error-type thật của em), sau đó mới tới nhóm lỗi chung.
   const sig = errorSignatureOf(className, code);
