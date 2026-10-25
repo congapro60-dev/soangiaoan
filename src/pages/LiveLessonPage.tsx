@@ -233,6 +233,9 @@ export const LiveLessonPage = () => {
       updatedAt: session.updatedAt,
       cueStartedAt: session.cueStartedAt,
       cueElapsedSeconds: session.cueElapsedSeconds,
+      // P-timer ở chế độ tv-control đọc trực tiếp từ session, không qua public/state.
+      lessonStartedAt: session.lessonStartedAt,
+      lessonElapsedSeconds: session.lessonElapsedSeconds,
     };
     const applyPresenterPatch = async (patch: Parameters<typeof updateLiveLessonState>[1]) => {
       setPresenterBusy(true);
