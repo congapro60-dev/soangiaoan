@@ -13,7 +13,7 @@ import { StudentBugReport } from "../../components/lesson/PupilReports";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import MathText from "../../components/lesson/MathText";
-import TaskImage, { taskImageOf } from "../../components/lesson/TaskImage";
+import TaskImage, { taskImageOf, taskSolidOf } from "../../components/lesson/TaskImage";
 import TaskInput from "../../components/lesson/TaskInput";
 import LessonThemedRoute, { getSafeWorldMetadata } from "../../components/lesson/LessonThemedRoute";
 import { LessonMascotChip, LessonMascotPicker } from "../../components/lesson/LessonMascotPicker";
@@ -1269,7 +1269,7 @@ export default function PlayPage() {
                       </span>
                     </div>
 
-                    <TaskImage image={taskImageOf(task)} alt="Hình minh hoạ đề bài" />
+                    <TaskImage image={taskImageOf(task)} solidKey={taskSolidOf(task)} alt="Hình minh hoạ đề bài" />
                     <div style={{ fontSize: "1rem", lineHeight: 1.5, marginBottom: "1rem" }}>
                       <MathText text={task.prompt} inline={false} />
                     </div>

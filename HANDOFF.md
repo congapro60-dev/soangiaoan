@@ -2,7 +2,65 @@
 
 > Ảnh chụp trạng thái để phiên sau bắt nhịp ngay. Lịch sử đầy đủ (R1–R18, v6–v26): `tasks/archive/handoff-history-to-2026-10-23.md`.
 
-## Latest checkpoint - V29 DA PHAT HANH (25/10/2026)
+## Latest checkpoint - V30 DANG LAM: mo phong tuong tac (25/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Da lam
+
+**Engine hinh hoc** (`lib/geometry/solid.ts`):
+- Chieu 3D -> 2D phoi canh, tinh mat nhin thay va net lien/dut theo MAT.
+- Phap tuyen EP huong ra ngoai theo tam khoi -> khong phu thuoc thu tu dinh nhap tay.
+- 3 khoi: `tu-dien-sabc`, `hop-xien` (day hinh binh hanh, dung loai hop xien nguoi dung chot), `chop-sabcd` (day hinh thang AB = 2CD).
+- Toa do `chop-sabcd` suy nguoc tu hinh 2D da duyet, chieu lai khop 100%.
+- Thiet dien M,N,P,Q **tinh bang cong thuc** `S + 2/3(X-S)`, khong nhap so lam tron.
+
+**Ham cham Muc B** (`lib/geometry/grade.ts`):
+- Anh xa dinh HS dat -> nhan goc bang tham lam khoang cach gan nhat, dung sai 18px.
+- Phan biet **3 loai loi rieng**: `missing` (thieu canh), `extra` (thua canh), `wrongDash` (sai net).
+- So cap canh KHONG thu tu (A-B = B-A).
+
+**Component**:
+- `components/lesson/KhoiXoay.tsx` — **che do Xem**: may tu tinh net, HS keo xoay, KHONG chinh duoc net.
+- `components/lesson/BangVe.tsx` — **che do Ve (Muc B)**: HS keo dat dinh tu goi y, bam 2 dinh noi canh, bam canh doi net, may cham.
+- `TaskImage.tsx` nhan them `solidKey` -> render `KhoiXoay` thay anh tinh.
+- Da noi `taskSolidOf` vao `PracticePanel`, `ClassEventPanel`, `app/play`, `app/presenter`, `app/shared`.
+
+**Do hoa**: auto-fit theo bounding box (truoc dung he so co dinh 0.42 lam hinh hop chi chiem 1/3 khung). Nhan day ra XA tam hinh theo huong tu tam toi dinh (truoc dich co dinh +6/-6 lam nhan A, B de len canh).
+
+### Kiem chung
+
+| Lenh | Ket qua |
+|---|---|
+| `node --experimental-strip-types --test tests/geometry-solid.test.mts tests/geometry-grade.test.mts` | **22/22 PASS** |
+| `npx tsc --noEmit --incremental false` | 0 loi |
+| `npm run build` | Build complete |
+| `node --experimental-strip-types scripts/render-simulation-qa.mjs` | 3/3 khoi render, net dut khop SGK |
+
+Test quan trong nhat:
+- "3 canh dut luon xuat phat tu CUNG mot dinh" (hop) — luat hinh hoc, dung o moi goc.
+- "dao thu tu dinh khong doi ket qua" — chong lai dung bug da tung gay 11/12.
+- Ca 4/8 trong `geometry-grade`: sai net duoc bao RIENG, khong lan voi thieu/thua.
+
+### Goc nhin da chot (theo ket qua quet that)
+
+| Khoi | yaw | pitch | Net dut (khop SGK) |
+|---|---|---|---|
+| `tu-dien-sabc` | -140 | 40 | BC |
+| `hop-xien` | -70 | 20 | CD, DA, DD' |
+| `chop-sabcd` | -160 | 35 | BC, CD, CS |
+
+**Bai hoc**: `chop-sabcd` ban dau dat `yaw -90` lam `A(0,0,0)` va `D(0,3,0)` chieu gan trung nhau (camera nhin doc truc y) -> nhan D, Q, M, A chong nhau. Phai quet do mo `minDist/maxDist` de chon goc, khong doan.
+
+**Bai hoc 2**: khong ghi toa do da lam tron 4 chu so vao code. Lam tron tung diem lam 2 duong gan song song bi coi la khong song song (lech 1e-4) -> test bat duoc.
+
+### Con no
+
+- Chua co bai tap nao trong du lieu dung `solidKey` — da co component nhung chua gan vao task cu the.
+- Chua deploy v30.
+- `chop-sabcd` do mo chi 0.39 do day hinh thang hep (AD = 3 so voi AB = 8) — dung de bai, khong phai loi code.
+
+## Checkpoint truoc - V29 DA PHAT HANH (25/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
