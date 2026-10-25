@@ -42,8 +42,13 @@ describe('getElapsedInLesson — neo vào đầu tiết, không theo cue', () =>
     expect(getElapsedInLesson({ now: start, running: true })).toBeNull();
   });
 
-  it('phiên mới nhưng tiết chưa chạy (lobby) trả 0 chứ không phải null', () => {
-    expect(getElapsedInLesson({ lessonStartedAt: 0, lessonElapsedSeconds: 0, now: start, running: true })).toBe(0);
+  it('tiết chưa bắt đầu (lobby) trả null — không hiện P0 · 0:00 đứng yên', () => {
+    expect(getElapsedInLesson({ lessonStartedAt: 0, lessonElapsedSeconds: 0, now: start, running: true })).toBeNull();
+    expect(getElapsedInLesson({ lessonStartedAt: 0, lessonElapsedSeconds: 0, now: start, running: false })).toBeNull();
+  });
+
+  it('tiết đã chạy rồi pause thì vẫn hiện số đã tích luỹ', () => {
+    expect(getElapsedInLesson({ lessonStartedAt: 0, lessonElapsedSeconds: 240, now: start, running: false })).toBe(240);
   });
 
   it('đồng hồ không âm khi đồng hồ máy lệch về quá khứ', () => {

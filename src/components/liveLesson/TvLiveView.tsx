@@ -154,12 +154,14 @@ export const getElapsedInLesson = ({
   now: number;
   running: boolean;
 }): number | null => {
-  // Phiên cũ (tạo trước bản này) không có cả 2 trường ⇒ null để TV ẩn P-timer
-  // thay vì hiện số sai. Phiên mới luôn có ít nhất lessonElapsedSeconds = 0.
-  if (lessonStartedAt === undefined && lessonElapsedSeconds === undefined) return null;
+  // Chưa có mốc đầu tiết (tiết chưa bắt đầu, hoặc phiên cũ tạo trước bản có P-timer)
+  // ⇒ trả null để TV ẨN P-timer. Trước đây trả 0 nên TV hiện "P0 · 0:00" đứng yên,
+  // giáo viên tưởng đồng hồ hỏng.
   const anchored = Boolean(lessonStartedAt);
+  const accumulated = lessonElapsedSeconds ?? 0;
+  if (!anchored && accumulated <= 0) return null;
   const live = running && anchored ? Math.max(0, (now - lessonStartedAt!) / 1000) : 0;
-  return Math.max(0, Math.floor(Math.max(0, lessonElapsedSeconds ?? 0) + live));
+  return Math.max(0, Math.floor(Math.max(0, accumulated) + live));
 };
 
 const STATUS_LABEL: Record<LiveSessionStatus, string> = {
