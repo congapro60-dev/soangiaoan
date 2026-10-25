@@ -132,6 +132,40 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     expect(usageRows()[0]).toMatchObject({ finishReason: 'length' });
   });
 
+  it('CẦU CHÌ: lượt bị trừ ví mà model chưa có giá (vd đổi xKiro sang model trả phí) → log cảnh báo, không im lặng 0đ', async () => {
+    h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
+    vi.stubEnv('GRADING_VILAO_API_KEY', '');
+    vi.stubEnv('GRADING_XKIRO_API_KEY', 'k-xkiro');
+    vi.stubEnv('GRADING_XKIRO_MODEL', 'qwen/qwen3.8-max');
+    vi.stubGlobal('fetch', vilaoOk('ok'));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(await asBilledTeacher(() => callGradingVision('chấm', [], {}))).toBe('ok');
+    const warned = warn.mock.calls.map(args => args.map(String).join(' ')).filter(line => line.includes('chưa có giá'));
+    expect(warned).toHaveLength(1);
+    expect(warned[0]).toContain('xkiro/qwen/qwen3.8-max');
+    expect(warned[0]).toContain('gv-1');
+    warn.mockRestore();
+  });
+
+  it('cầu chì không kêu với model ":free" (0đ là đúng) và với model đã có giá', async () => {
+    h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
+    vi.stubEnv('GRADING_GEMINI_API_KEY', '');
+    vi.stubEnv('GRADING_XKIRO_API_KEY', 'k-xkiro');
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
+      .mockImplementationOnce(vilaoOk('ok-xkiro')));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await asBilledTeacher(() => callGradingVision('chấm', [], {}));
+    h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
+    vi.stubGlobal('fetch', vilaoOk());
+    await asBilledTeacher(() => callGradingVision('chấm', [], {}));
+
+    expect(warn.mock.calls.some(args => args.map(String).join(' ').includes('chưa có giá'))).toBe(false);
+    warn.mockRestore();
+  });
+
   it('không có ngữ cảnh request (script, test cũ): vẫn chấm được, không giữ chỗ', async () => {
     vi.stubGlobal('fetch', vilaoOk('ok'));
     expect(await callGradingVision('chấm', [], {})).toBe('ok');

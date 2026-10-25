@@ -316,6 +316,15 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
   });
 };
 
+/**
+ * CẦU CHÌ: lượt bị trừ ví mà model chưa có trong bảng giá thì bị tính 0đ — kêu lên trong log thay vì im lặng tặng miễn phí
+ * (vd đổi `GRADING_XKIRO_MODEL` sang model trả phí mà quên thêm giá). Model ":free" là 0đ thật nên không kêu.
+ */
+const warnUnpriced = (model: string, costUsd: number | null, choice: AiKeyChoice | null | undefined): void => {
+  if (costUsd !== null || !choice?.billing || model.endsWith(':free')) return;
+  console.warn(`[ai-usage] model chưa có giá, lượt trừ ví bị tính 0đ: ${model} (người chịu phí ${choice.ownerUid}) — thêm giá vào src/lib/admin/aiPricing.ts`);
+};
+
 /** Ghi một lượt dùng. KHÔNG bao giờ ném lỗi ra ngoài. */
 export const recordAiUsage = async (
   provider: AiProvider,
@@ -342,7 +351,9 @@ export const recordAiUsage = async (
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;
     const billable = Boolean(ownerUid) && record.keySource !== 'own';
-    const costUsd = billable ? costUsdOfCall(model, String(record.day), counts) ?? 0 : 0;
+    const priced = billable ? costUsdOfCall(model, String(record.day), counts) : null;
+    if (billable) warnUnpriced(model, priced, choice);
+    const costUsd = priced ?? 0;
     // Ví trả trước: lượt này bị trừ bao nhiêu — ghi luôn giá gốc, tỷ giá, % giảm để sao kê tự giải thích.
     const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
     if (charge && choice?.billing) {
@@ -396,7 +407,9 @@ export const recordImageUsage = async (
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;
     const billable = Boolean(ownerUid) && record.keySource !== 'own';
-    const costUsd = billable ? costUsdOfImage(model, String(record.day), images) ?? 0 : 0;
+    const priced = billable ? costUsdOfImage(model, String(record.day), images) : null;
+    if (billable) warnUnpriced(model, priced, choice);
+    const costUsd = priced ?? 0;
     const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
