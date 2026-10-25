@@ -352,6 +352,9 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     // Nhãn năng lực + cờ đã duyệt — nền cho hồ sơ năng lực; thiếu là hồ sơ luôn trống.
     competencyTags: data.competencyTags,
     competencyTagsApproved: data.competencyTagsApproved,
+    // Ma trận điểm của đề (LO → điểm tối đa). Thiếu ở đây thì lớp đọc xong mất trọng số,
+    // quay về chia đều — điểm lệch hẳn so với ma trận của trường.
+    loRubric: data.loRubric,
     sourceImageUrls: data.sourceImageUrls,
     gradingInstructions: data.gradingInstructions,
     answerKeyImageUrls: data.answerKeyImageUrls,
