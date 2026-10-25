@@ -39,10 +39,13 @@ export function useThinkWindow({
   }, [roundKey]);
 
   useEffect(() => {
-    if (!running) return undefined;
+    // Đồng hồ chờ là thời gian SUY NGHĨ của chính học sinh cho câu đang hiện,
+    // nên phải chạy bất kể GV đang tạm dừng hay phiên vừa mở. Trước đây gắn vào
+    // `running` khiến phiên chưa chạy là ô khoá vĩnh viễn, HS không bấm được gì.
+    void running;
     const tick = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(tick);
-  }, [running, roundKey]);
+  }, [roundKey]);
 
   if (locked) return getLockedThinkWindow();
   const elapsed = (now - startedAt) / 1000;

@@ -587,6 +587,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
+  // Câu trắc nghiệm / chọn tuyến: HS chọn 1 đáp án rồi bấm Gửi — không gửi ngay khi chạm,
+  // vì lúc đang khoá nhịp suy nghĩ mà chạm nhầm là mất câu trả lời.
+  const choiceControl = useMemo(
+    () => step && !textControl
+      && (step.responseTypes.includes('choice') || step.responseTypes.includes('route') || step.responseTypes.includes('boolean')),
+    [step, textControl],
+  );
   // Chờ hai nhịp: câu thăm dò mở ngay, còn câu cần suy nghĩ thì khoá 10 giây
   // (giáo án gốc dùng 10–15 giây). Đổi câu hỏi là đồng hồ chạy lại.
   const thinkWindow = useThinkWindow({
@@ -693,6 +700,17 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
           <ThinkWindowBanner window={thinkWindow} />
           <StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' && thinkWindow.canAnswer ? insertIntoAnswer : undefined} />
           <ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { if (!thinkWindow.canAnswer) return; setSelectedValue(value); void submit(type, value); }} />
+          {choiceControl && <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={!thinkWindow.canAnswer || !selectedValue}
+              onClick={() => { if (!thinkWindow.canAnswer || !selectedValue) return; void submit(step.responseTypes.includes('route') ? 'route' : step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'choice', selectedValue); }}
+              className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {thinkWindow.canAnswer ? 'Gửi câu trả lời' : `Chờ ${thinkWindow.remainingSeconds}s`}
+            </button>
+            {selectedValue && !thinkWindow.canAnswer && <span className="text-xs font-bold text-slate-500">Đã chọn — chờ hết nhịp suy nghĩ rồi bấm gửi.</span>}
+          </div>}
           {textControl && <div className="space-y-2">
             <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" readOnly={!thinkWindow.canAnswer} aria-disabled={!thinkWindow.canAnswer} />
             <div className="student-draft-meta"><span role="status">{responseDraft.storageFailed ? 'Chưa lưu được nháp trên máy; hãy giữ tab mở và chép phần cần giữ vào vở.' : responseDraft.hasDraft ? responseDraft.hasUnsentChanges ? 'Nháp đã lưu trên máy · chưa gửi' : 'Nháp đã lưu trên máy' : 'Bài em viết được giữ khi thầy cô chuyển hoạt động.'}</span><span>{textValue.length}/{step.maxTextLength ?? 2000}</span></div>
