@@ -60,7 +60,17 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
   it('uses the searchable teacher-facing title style from the P31 demo', () => {
     expect(getBanToanV4DisplayTitle('10-5-31')).toBe('Bất phương trình bậc nhất hai ẩn — Tiết 1');
     expect(getBanToanV4DisplayTitle('10-5-32')).toBe('Biểu diễn miền nghiệm của bất phương trình — Tiết 2');
-    expect(new Set(getAllBanToanV4Contracts().map((contract) => getBanToanV4DisplayTitle(contract.sourceKey))).size).toBe(51);
+    // Tên hiển thị phải duy nhất TRONG CÙNG MỘT KHỐI. Trùng giữa hai khối khác
+    // nhau được phép (vd "Các số đặc trưng đo xu thế trung tâm — Tiết 2" sẽ có
+    // ở cả g10 và g11 từ batch 2 Tuần 11).
+    const countByGradeTitle = new Map<string, number>();
+    for (const meta of getBanToanV4PackageMetadata()) {
+      const k = `${meta.grade}|${getBanToanV4DisplayTitle(meta.sourceKey)}`;
+      countByGradeTitle.set(k, (countByGradeTitle.get(k) ?? 0) + 1);
+    }
+    for (const [k, count] of countByGradeTitle) {
+      expect(count, `Tiêu đề trùng trong cùng một khối: ${k}`).toBe(1);
+    }
   });
 
   it('exposes every term used by language demands in the approved glossary', () => {

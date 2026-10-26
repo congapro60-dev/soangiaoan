@@ -1,4 +1,5 @@
 import snapshotText from '../../../data/liveLessonPackages/banToan-w5-w6.snapshot.json?raw';
+import batch2Text from '../../../data/liveLessonPackages/banToan-w11-batch2.snapshot.json?raw';
 import type {
   AiErrorOfTheWeek,
   Checkpoint,
@@ -157,35 +158,63 @@ const TERM_LIBRARY: ReadonlyArray<{
   { id: 'cong-thuc', vietnamese: 'công thức', translations: { en: 'formula', ja: '公式', ko: '공식', zh: '公式' }, explanation: 'Biểu thức khái quát dùng để tính hoặc suy luận.' },
 ];
 
-function parseSnapshot(): SourceSnapshot {
+function parseSnapshot(raw: string, label: string, expectedCount: number | null): SourceSnapshot {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(snapshotText) as unknown;
+    parsed = JSON.parse(raw) as unknown;
   } catch {
-    throw new Error('Không đọc được snapshot Ban Toán W5–W6.');
+    throw new Error(`Không đọc được snapshot Ban Toán ${label}.`);
   }
-  if (!parsed || typeof parsed !== 'object') throw new Error('Snapshot Ban Toán không hợp lệ.');
+  if (!parsed || typeof parsed !== 'object') throw new Error(`Snapshot Ban Toán ${label} không hợp lệ.`);
   const snapshot = parsed as Partial<SourceSnapshot>;
   if (snapshot.schemaVersion !== 1
     || !snapshot.source?.fingerprint
     || !Array.isArray(snapshot.lessonSpecs)
-    || snapshot.lessonSpecs.length !== 51
+    || (expectedCount !== null && snapshot.lessonSpecs.length !== expectedCount)
     || !snapshot.aiErrors) {
-    throw new Error('Snapshot Ban Toán phải có schema 1, 51 bài và AI error tương ứng.');
+    throw new Error(`Snapshot Ban Toán ${label} phải có schema 1${expectedCount === null ? '' : `, ${expectedCount} bài`} và AI error tương ứng.`);
   }
   const seen = new Set<string>();
   for (const spec of snapshot.lessonSpecs) {
-    if (!spec.key || seen.has(spec.key)) throw new Error(`Snapshot có key trùng hoặc rỗng: ${spec.key}.`);
+    if (!spec.key || seen.has(spec.key)) throw new Error(`Snapshot ${label} có key trùng hoặc rỗng: ${spec.key}.`);
     seen.add(spec.key);
     if (spec.examples?.length !== 2 || spec.exercises?.length !== 6 || spec.quick?.length !== 2) {
-      throw new Error(`Snapshot sai số lượng nội dung ở ${spec.key}.`);
+      throw new Error(`Snapshot ${label} sai số lượng nội dung ở ${spec.key}.`);
     }
-    if (!snapshot.aiErrors[spec.key]) throw new Error(`Snapshot thiếu AI error ở ${spec.key}.`);
+    if (!snapshot.aiErrors[spec.key]) throw new Error(`Snapshot ${label} thiếu AI error ở ${spec.key}.`);
   }
   return snapshot as SourceSnapshot;
 }
 
-const SNAPSHOT = parseSnapshot();
+const MAIN_SNAPSHOT = parseSnapshot(snapshotText, 'W5–W6', 51);
+const BATCH2_SNAPSHOT = parseSnapshot(batch2Text, 'W11 batch2', null);
+
+// `source` của SNAPSHOT giữ của MAIN (fingerprint provenance W5–W6): fingerprint
+// batch2 không dùng được cho contract — validateContract bắt buộc hex-64.
+const SNAPSHOT: SourceSnapshot = {
+  ...MAIN_SNAPSHOT,
+  lessonSpecs: [...MAIN_SNAPSHOT.lessonSpecs, ...BATCH2_SNAPSHOT.lessonSpecs],
+  aiErrors: { ...MAIN_SNAPSHOT.aiErrors, ...BATCH2_SNAPSHOT.aiErrors },
+};
+
+// Chống trùng key XUYÊN file (mỗi file tự kiểm trong parseSnapshot ở trên).
+// Duyệt cả aiErrors để bắt "aiError mồ côi" trong batch2 ghi đè im lặng của MAIN:
+// key aiErrors của mỗi file phải khớp spec của CHÍNH file đó, nếu không khi merge
+// sẽ clobber aiError hợp lệ của file kia.
+{
+  const globalKeys = new Set<string>();
+  for (const key of SNAPSHOT.lessonSpecs.map((spec) => spec.key)) {
+    if (globalKeys.has(key)) throw new Error(`Key trùng giữa 2 snapshot: ${key}.`);
+    globalKeys.add(key);
+  }
+  for (const snapshot of [MAIN_SNAPSHOT, BATCH2_SNAPSHOT]) {
+    const specKeys = new Set(snapshot.lessonSpecs.map((spec) => spec.key));
+    for (const key of Object.keys(snapshot.aiErrors)) {
+      if (!specKeys.has(key)) throw new Error(`AI error mồ côi không khớp spec trong cùng snapshot: ${key}.`);
+    }
+  }
+}
+
 const SPECS_BY_KEY = new Map(SNAPSHOT.lessonSpecs.map((spec) => [spec.key, spec]));
 
 /** Tên hiển thị ngắn, cùng kiểu với bài demo; sourceKey vẫn là định danh kỹ thuật. */
