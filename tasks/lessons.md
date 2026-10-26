@@ -2,6 +2,8 @@
 
 > Updated after every correction. Reviewed at session start.
 
+- **Điểm thi đã duyệt phải vào sổ theo nguồn sống** — Theo quyết định 26/10/2026: bài đã duyệt (GV/AI/timeout) tự ghép đúng cột định kì; GV sửa bài đã duyệt thì giữ duyệt và sổ cập nhật, không ép duyệt lại. Giữ nháp nhập điểm khi stream cập nhật; chỉ lưu ô thay đổi, kiểm xung đột cùng ô. Đọc số từ Sheet gốc thay vì suy ô trống trong screenshot.
+
 - **Live lesson close mapping must separate roster IDs from adaptive IDs** — `studentLinks/{uid}.studentId` points to an arbitrary roster document ID (for example `student-a`), while adaptive records use `${teacherUid}_${normalizeStudentCode(roster.code)}`. Always verify the link against the roster document first, then derive the adaptive ID from the server roster code; never copy the roster ID into `StudentLearningProfile`/`StudentSessionProgressRecord`. *(2026-08-25)*
 - **Never infer live route from G1/G2/G3 or default it during close** — route must come from a server-confirmed `route` response or a trusted adaptive profile; mark a participant incomplete when neither exists. *(2026-08-25)*
 - **A V4 field is not implemented until its whole boundary agrees** — adding `languagePreference` required the shared type, student payload, sanitizer, Firestore allowlist/validation, privacy tests, and a real emulator write. Keep it separate from the teacher-verified `languageSupportPlan`; a UI-only field creates a false sense of completion. *(2026-08-28)*

@@ -1467,7 +1467,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
           + (kq.busy > 0 ? `, ${kq.busy} bài đang chấm nên chưa áp` : ''));
       }
       showToast(
-        `Đã lưu chấm tay cho ${dang.tenHocSinh}; cần duyệt lại kết quả.${caLop.length ? ` Sửa đáp án cả lớp — ${caLop.join('; ')}.` : ''}`,
+        `Đã lưu chấm tay cho ${dang.tenHocSinh}; ${dang.submission.grade?.teacherApproved ? 'điểm đã duyệt được cập nhật vào sổ.' : 'kết quả đang chờ duyệt.'}${caLop.length ? ` Sửa đáp án cả lớp — ${caLop.join('; ')}.` : ''}`,
         'success',
       );
       setDangChamLai(null);

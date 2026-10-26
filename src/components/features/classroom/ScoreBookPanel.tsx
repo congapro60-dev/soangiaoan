@@ -6,7 +6,8 @@ import { examLabelKey, type StudentExamScores } from '../../../lib/classroom/exa
 import { parseExamConversionFile, type ExamConversionRow } from '../../../lib/classroom/examConversion';
 import { fetchClassExamScores, inspectExamSheet, planExamSheetWrites, writeExamSheetValues, type ExamSheetWrite } from '../../../lib/classroom/examService';
 import { spreadsheetIdFromUrl } from '../../../lib/classroom/sheetsApi';
-import { deleteHs1Column, linkAssignmentColumns, linkPeriodicAssignments, loadScoreBook, saveExamColumn, saveExamColumnSettings, saveExamScores, saveExamWeights, saveHs1Column, setClassExamSheet } from '../../../lib/classroom/teacherService';
+import { deleteHs1Column, linkAssignmentColumns, linkPeriodicAssignments, loadScoreBook, saveExamColumn, saveExamColumnSettings, saveExamScores, saveExamWeights, saveHs1Column, saveScoreCells, setClassExamSheet, type ScoreCellEdit } from '../../../lib/classroom/teacherService';
+import { watchScoreBook } from '../../../lib/classroom/scoreBookStream';
 import { applyExamColumnSettings, EXAM_SOURCE_INFO, HS1_MAX, columnScore, examColumnsNeedingSheetPush, examScoreSource, parseHs1Score, parseHs1Weight, shadowedAssignmentScore, sortedHs1Columns, studentScoreView, type ExamScoreSource, type Hs1Column, type Hs1Weight, type ScoreBookDoc } from '../../../lib/classroom/scoreBook';
 
 interface Props {
@@ -42,9 +43,6 @@ interface TwoWayPreview {
   conflicts: Array<{ studentCode: string; label: string; sheetValue: number; smartValue: number }>;
   writes: ExamSheetWrite[];
 }
-
-/** Điểm tự tính được làm mới ngầm sau chừng này để thấy bài mới nộp/chấm mà không phải bấm gì. */
-const AUTO_REFRESH_MS = 30_000;
 
 const WEIGHTS: Hs1Weight[] = [1, 2, 3];
 
@@ -96,6 +94,11 @@ const examLabels = (book: ScoreBookDoc, kind: 'moet' | 'tds'): string[] => {
   for (const scores of Object.values(visible)) {
     for (const mark of scores[kind]) if (!labels.some(existing => examLabelKey(existing) === examLabelKey(mark.label))) labels.push(mark.label);
   }
+  if (kind === 'moet') for (const [key, rawLabel] of Object.entries(book.auto?.periodicLabels ?? {})) {
+    if (book.hiddenExamColumns?.includes(key)) continue;
+    const label = book.examColumnLabels?.[key] ?? rawLabel;
+    if (!labels.some(existing => existing === label || examLabelKey(existing) === key)) labels.push(label);
+  }
   return labels;
 };
 
@@ -122,43 +125,53 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
   const [conversionTarget, setConversionTarget] = useState('');
   const [examDraft, setExamDraft] = useState<ExamDraft | null>(null);
   const [centerTab, setCenterTab] = useState<'sheet' | 'assign' | 'column'>('sheet');
+  const [cellDrafts, setCellDrafts] = useState<Record<string, Omit<ScoreCellEdit, 'score'> & { text: string }>>({});
   // Tăng mỗi lần giáo viên ghi sổ: lượt làm mới ngầm xuất phát trước đó mà về sau không được đè bản vừa lưu.
   const writeVersion = useRef(0);
+  const readVersion = useRef(0);
+  const currentClass = useRef(classId); currentClass.current = classId;
 
   const sortedStudents = useMemo(() => [...students].sort((a, b) => a.name.localeCompare(b.name, 'vi')), [students]);
 
   const reload = useCallback(async () => {
+    const reading = ++readVersion.current;
+    const writing = writeVersion.current;
     setLoadError('');
     try {
-      setBook(await loadScoreBook(classId));
+      const fresh = await loadScoreBook(classId);
+      if (reading === readVersion.current && writing === writeVersion.current) setBook(fresh);
     } catch (err) {
-      setLoadError(errorText(err));
+      if (reading === readVersion.current) setLoadError(errorText(err));
     }
   }, [classId]);
 
   useEffect(() => {
     setBook(null);
     setDraft(null);
+    setCellDrafts({});
     setUnmatched([]);
     setError('');
     void reload();
+    return () => { readVersion.current += 1; writeVersion.current += 1; };
   }, [reload]);
 
-  // Điểm tự tính theo bài nộp: làm mới ngầm khi tab đang mở, và ngay khi quay lại tab. Không đụng bản nháp đang gõ.
+  useEffect(() => watchScoreBook({
+    classId,
+    onInvalidate: async current => {
+      const reading = ++readVersion.current;
+      const writing = writeVersion.current;
+      const fresh = await loadScoreBook(classId);
+      if (current() && reading === readVersion.current && writing === writeVersion.current) { setBook(fresh); setLoadError(''); }
+    },
+    onError: err => setLoadError(errorText(err)),
+  }), [classId]);
+
   useEffect(() => {
-    let stopped = false;
-    const refresh = async () => {
-      if (document.visibilityState !== 'visible') return;
-      const version = writeVersion.current;
-      try {
-        const fresh = await loadScoreBook(classId);
-        if (!stopped && version === writeVersion.current) setBook(fresh);
-      } catch { /* lần sau thử lại; lỗi tải đã có nút Thử lại */ }
-    };
-    const timer = window.setInterval(() => void refresh(), AUTO_REFRESH_MS);
-    document.addEventListener('visibilitychange', refresh);
-    return () => { stopped = true; window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
-  }, [classId]);
+    if (!Object.keys(cellDrafts).length) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [cellDrafts]);
 
   const run = async (label: string, work: () => Promise<void>) => {
     if (busy) return;
@@ -170,8 +183,50 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
     } catch (err) {
       setError(errorText(err));
     } finally {
+      writeVersion.current += 1;
       setBusy('');
     }
+  };
+
+  const cellId = (kind: ScoreCellEdit['kind'], key: string, studentId: string) => JSON.stringify([kind, key, studentId]);
+  const editCell = (kind: ScoreCellEdit['kind'], key: string, studentId: string, previous: number | null, text: string) => {
+    const id = cellId(kind, key, studentId);
+    setCellDrafts(old => {
+      const next = { ...old };
+      const initial = old[id] ? old[id].previous : previous;
+      if (parseHs1Score(text) === initial) delete next[id];
+      else next[id] = { kind, key, studentId, previous: initial, text };
+      return next;
+    });
+  };
+  const saveCells = () => {
+    const cells: ScoreCellEdit[] = [];
+    for (const cell of Object.values(cellDrafts)) {
+      const score = parseHs1Score(cell.text);
+      if (score === undefined) { setError('Điểm phải từ 0 đến 10, tối đa 2 chữ số lẻ. Ô trống = xóa điểm nhập tay.'); return; }
+      const { text: _text, ...edit } = cell;
+      cells.push({ ...edit, score });
+    }
+    if (!cells.length) return;
+    void run('Đang lưu điểm…', async () => {
+      const saved = await saveScoreCells(classId, cells);
+      if (classId !== currentClass.current) return;
+      setBook(saved);
+      setCellDrafts({});
+      showToast(`Đã lưu ${cells.length} ô điểm`, 'success');
+    });
+  };
+
+  const scoreInput = (kind: ScoreCellEdit['kind'], key: string, student: Student, score: number | undefined, label = key) => {
+    const cell = cellDrafts[cellId(kind, key, student.id)];
+    const changedElsewhere = cell && cell.previous !== (score ?? null);
+    return <>
+      <input inputMode="decimal" aria-label={`Điểm ${label} của ${student.name}`} aria-invalid={cell ? parseHs1Score(cell.text) === undefined : undefined}
+        disabled={Boolean(busy)} value={cell?.text ?? (score === undefined ? '' : String(score))} placeholder="—"
+        onChange={event => editCell(kind, key, student.id, score ?? null, event.target.value)}
+        className={`w-20 rounded-lg border px-2 py-1.5 text-center font-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60 ${cell ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'}`} />
+      {changedElsewhere && <span className="mt-1 block text-[10px] font-semibold text-amber-700">Hiện tại: {score ?? 'trống'}</span>}
+    </>;
   };
 
   /** Đọc file điểm MỘT lần cho cả lớp rồi thay phần điểm thi trong sổ. */
@@ -769,6 +824,11 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
         <p className="py-8 text-center text-sm font-semibold text-slate-400">Đang tải sổ điểm…</p>
       ) : book && (
         <div className="overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="sticky left-0 flex flex-wrap items-center gap-3 border-b border-slate-100 bg-white px-4 py-3">
+            <span className="text-xs font-semibold text-slate-500">Điền trực tiếp vào ô, rồi bấm Lưu. {Object.keys(cellDrafts).length > 0 ? `${Object.keys(cellDrafts).length} ô chưa lưu.` : ''}</span>
+            <button type="button" onClick={saveCells} disabled={Boolean(busy) || Object.keys(cellDrafts).length === 0} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-black text-white disabled:opacity-40">Lưu</button>
+            {Object.keys(cellDrafts).length > 0 && <button type="button" disabled={Boolean(busy)} onClick={() => setCellDrafts({})} className="text-xs font-bold text-slate-500 underline">Hủy thay đổi</button>}
+          </div>
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-slate-50 text-[11px] font-black uppercase tracking-wide text-slate-400">
@@ -821,7 +881,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
                       const mark = moet.get(label);
                       const source = examScoreSource(book, student.id, label);
                       // Điểm thầy cô xác nhận từ ảnh bài chấm tay (chưa có trong file điểm): tô đỏ nhạt để phân biệt.
-                      return <td key={label} title={source ? EXAM_SOURCE_INFO[source].hint : undefined} className={`whitespace-nowrap px-3 py-2.5 text-center font-black ${mark?.source === 'paper' ? 'text-rose-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{mark?.score ?? <span className="text-slate-300">—</span>}{mark ? <SourceBadge source={source} shadowed={shadowedAssignmentScore(book, student.id, label)} /> : null}</td>;
+                      return <td key={label} title={source ? EXAM_SOURCE_INFO[source].hint : undefined} className={`whitespace-nowrap px-3 py-2.5 text-center font-black ${mark?.source === 'paper' ? 'text-rose-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{scoreInput('moet', label, student, mark?.score)}{mark ? <SourceBadge source={source} shadowed={shadowedAssignmentScore(book, student.id, label)} /> : null}</td>;
                     })}
                     {tdsLabels.map((label, i) => {
                       const mark = tds.get(label);
@@ -831,7 +891,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
                     {hs1Columns.map((column, i) => {
                       const score = columnScore(book, column, student.id);
                       const overridden = column.assignmentId && typeof book.hs1[student.id]?.[column.id] === 'number';
-                      return <td key={column.id} title={overridden ? 'Đã ghi đè tay' : undefined} className={`px-3 py-2.5 text-center font-black ${overridden ? 'text-amber-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{score ?? <span className="text-slate-300">—</span>}</td>;
+                      return <td key={column.id} title={overridden ? 'Đã ghi đè tay' : undefined} className={`px-3 py-2.5 text-center font-black ${overridden ? 'text-amber-700' : 'text-slate-800'} ${i === 0 ? 'border-l border-slate-100' : ''}`}>{scoreInput('hs1', column.id, student, score, column.label)}</td>;
                     })}
                     <td className="border-l border-slate-100 px-3 py-2.5 text-center font-black text-blue-700">{view.average ?? <span className="text-slate-300">—</span>}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-center font-black text-emerald-700" title={homework ? `${homework.submitted}/${homework.total} bài đã nộp` : undefined}>{homework?.attendance ?? <span className="text-slate-300">—</span>}{homework && homework.total > 0 && <span className="ml-1 text-[10px] font-semibold text-slate-400">{homework.submitted}/{homework.total}</span>}</td>

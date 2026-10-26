@@ -121,6 +121,19 @@ export const loadScoreBook = async (classId: string): Promise<ScoreBookDoc> => {
   return normalizeScoreBook(classId, scoreBook);
 };
 
+export interface ScoreCellEdit {
+  kind: 'hs1' | 'moet';
+  key: string;
+  studentId: string;
+  score: number | null;
+  previous: number | null;
+}
+
+export const saveScoreCells = async (classId: string, cells: ScoreCellEdit[]): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveScoreCells', classId, cells });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
 /** Tạo (không truyền columnId) hoặc sửa một cột điểm hệ số 1. `scores`: studentId → điểm gõ, '' = xoá. */
 export const saveHs1Column = async (
   classId: string,

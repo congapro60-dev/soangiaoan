@@ -6,12 +6,16 @@
  */
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
+import { handleScoreBookStream } from './_score-book-stream.js';
 import { teacherContext } from './_classroom-teacher.js';
+import { classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
 import { isOnlineAttemptOfficial } from '../src/lib/classroom/onlineGradeLifecycle.js';
 import {
   SCORE_BOOKS_COL,
   canAddHs1Column,
   computeAutoScores,
+  columnScore,
+  examColumnDisplayLabels,
   mergePaperExams,
   applyExamOverrides,
   normalizeScoreBook,
@@ -62,15 +66,17 @@ const loadHomeworkInputs = async (
   db: Db,
   classId: string,
   studentId?: string,
+  transaction?: FirebaseFirestore.Transaction,
 ): Promise<{ assignments: HomeworkAssignment[]; entries: HomeworkEntry[] }> => {
   const scoped = (name: string) => {
     const base = db.collection(name).where('classId', '==', classId);
     return studentId ? base.where('studentId', '==', studentId) : base;
   };
+  const read = (source: FirebaseFirestore.Query) => transaction ? transaction.get(source) : source.get();
   const [assignmentSnap, uploadSnap, onlineSnap] = await Promise.all([
-    db.collection('assignments').where('classId', '==', classId).select('title', 'createdAt', 'dueAt', 'periodicTest', 'targetStudentIds').get(),
-    scoped('submissions').select('assignmentId', 'studentId', 'createdAt', 'grade.score', 'grade.maxScore', 'grade.awaitingClarification', 'grade.teacherApproved').get(),
-    scoped('examSubmissions').select('assignmentId', 'studentId', 'status', 'gradeState', 'startedAt', 'submittedAt', 'totalScore', 'maxScore', 'grade.score', 'grade.maxScore', 'grade.teacherApproved').get(),
+    read(db.collection('assignments').where('classId', '==', classId).select('title', 'createdAt', 'dueAt', 'periodicTest', 'targetStudentIds')),
+    read(scoped('submissions').select('assignmentId', 'studentId', 'createdAt', 'grade.score', 'grade.maxScore', 'grade.gradedAt', 'grade.awaitingClarification', 'grade.teacherApproved')),
+    read(scoped('examSubmissions').select('assignmentId', 'studentId', 'status', 'gradeState', 'startedAt', 'submittedAt', 'totalScore', 'maxScore', 'grade.score', 'grade.maxScore', 'grade.gradedAt', 'grade.teacherApproved')),
   ]);
 
   const assignments: HomeworkAssignment[] = assignmentSnap.docs.map(doc => {
@@ -82,6 +88,7 @@ const loadHomeworkInputs = async (
       createdAt: isoOf(data.createdAt),
       ...(isoOf(data.dueAt) ? { dueAt: isoOf(data.dueAt) } : {}),
       periodic: Boolean(data.periodicTest),
+      ...(data.periodicTest ? { periodicLabel: (isRecord(data.periodicTest) ? isoOf(data.periodicTest.sheetLabel).trim() : '') || isoOf(data.title) } : {}),
       ...(targets.length > 0 ? { targetStudentIds: targets } : {}),
     };
   });
@@ -93,9 +100,9 @@ const loadHomeworkInputs = async (
     const grade = isRecord(data.grade) ? data.grade : null;
     // Cổng học sinh / phụ huynh (`studentId` có) chỉ nhận điểm ĐÃ DUYỆT: điểm máy chấm chưa được thầy cô duyệt (kể cả bài còn
     // câu chờ em xác nhận) không được lọt ra qua điểm trung bình hay bảng điểm. Giáo viên vẫn thấy mọi điểm đã chấm.
-    const visible = grade && (studentId ? grade.teacherApproved === true : grade.awaitingClarification !== true);
+    const visible = grade && (studentId ? grade.teacherApproved === true : grade.teacherApproved === true || grade.awaitingClarification !== true);
     const score = visible ? numOf(grade.score) : null;
-    entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.createdAt), score, maxScore: grade ? numOf(grade.maxScore) ?? 0 : 0 });
+    entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.createdAt), score, maxScore: grade ? numOf(grade.maxScore) ?? 0 : 0, approved: grade?.teacherApproved === true, gradedAt: isoOf(grade?.gradedAt) });
   }
   for (const doc of onlineSnap.docs) {
     const data = doc.data();
@@ -109,7 +116,7 @@ const loadHomeworkInputs = async (
     });
     const graded = studentId && !official ? null : grade ? numOf(grade.score) : data.status === 'graded' ? numOf(data.totalScore) : null;
     const maxScore = (grade ? numOf(grade.maxScore) : null) ?? numOf(data.maxScore) ?? 0;
-    entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.submittedAt) || isoOf(data.startedAt), score: graded, maxScore });
+    entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.submittedAt) || isoOf(data.startedAt), score: graded, maxScore, approved: official, gradedAt: isoOf(grade?.gradedAt) });
   }
   return { assignments, entries };
 };
@@ -145,6 +152,63 @@ const handleTeacherScoreBook = async (db: Db, body: Body, res: VercelResponse): 
   const context = await teacherContext(db, body, res);
   if (!context) return;
   res.status(200).json({ scoreBook: await teacherBook(db, context) });
+};
+
+/** Lưu đúng ô đang sửa; kiểm giá trị cũ và ghi nguyên lô trong transaction. */
+const handleSaveScoreCells = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const cells = body.cells;
+  if (!Array.isArray(cells) || cells.length === 0 || cells.length > MAX_ROWS * 60
+    || cells.some(cell => !isRecord(cell) || !['hs1', 'moet'].includes(String(cell.kind))
+      || typeof cell.studentId !== 'string' || typeof cell.key !== 'string'
+      || !(cell.score === null || typeof cell.score === 'number') || parseHs1Score(cell.score) === undefined
+      || !(cell.previous === null || typeof cell.previous === 'number') || parseHs1Score(cell.previous) === undefined)) {
+    return void res.status(422).json({ error: 'Ô điểm không hợp lệ — nhập điểm 0–10, tối đa 2 chữ số lẻ.' });
+  }
+  const ref = db.collection(SCORE_BOOKS_COL).doc(context.classId);
+  let issue: { status: number; message: string } | undefined;
+  await db.runTransaction(async tx => {
+    issue = undefined;
+    const [snap, inputs, students, classroom, membership] = await Promise.all([
+      tx.get(ref), loadHomeworkInputs(db, context.classId, undefined, tx), tx.get(context.classRef.collection('students')),
+      tx.get(context.classRef), tx.get(db.collection('classMembers').doc(classMemberId(context.classId, context.uid))),
+    ]);
+    if (!classroom.exists || !deriveClassAccess(classroom.data() ?? {}, memberFromData(membership.data()), context.uid)) {
+      issue = { status: 403, message: 'Không còn quyền sửa điểm lớp này.' }; return;
+    }
+    const roster = new Set(students.docs.map(doc => doc.id));
+    const book = normalizeScoreBook(context.classId, snap.exists ? snap.data() : null);
+    const view = { ...book, auto: computeAutoScores(book, inputs.assignments, inputs.entries, [...roster]) };
+    const seen = new Set<string>();
+    const stamp = nowIso();
+    for (const cell of cells) {
+      const { studentId, key, score, previous, kind } = cell;
+      const id = JSON.stringify([studentId, kind, key]);
+      if (!roster.has(studentId) || seen.has(id)) { issue = { status: 422, message: 'Học sinh ngoài lớp hoặc ô điểm bị lặp.' }; return; }
+      seen.add(id);
+      if (kind === 'hs1') {
+        const column = book.hs1Columns.find(c => c.id === key);
+        if (!column) { issue = { status: 409, message: 'Cột điểm đã thay đổi. Kiểm tra lại bảng điểm.' }; return; }
+        if ((columnScore(view, column, studentId) ?? null) !== previous) { issue = { status: 409, message: 'Điểm vừa thay đổi ở cửa sổ khác. Bản nháp được giữ; kiểm tra điểm mới trước khi lưu.' }; return; }
+        const row = { ...(book.hs1[studentId] ?? {}) };
+        if (score === null) delete row[key]; else row[key] = score;
+        book.hs1[studentId] = row;
+      } else {
+        const sourceKey = Object.entries(book.examColumnLabels ?? {}).find(([, label]) => label === key)?.[0] ?? examLabelKey(key);
+        const labels = examColumnDisplayLabels(view);
+        const moetKeys = new Set([...(book.examColumns?.moet ?? []), ...Object.values(book.exams).flatMap(row => row.moet.map(mark => mark.label)), ...Object.values(view.auto.periodicLabels ?? {})].map(examLabelKey));
+        if (!moetKeys.has(sourceKey) || !labels.some(label => label === key) || (book.hiddenExamColumns ?? []).includes(sourceKey)) { issue = { status: 409, message: 'Cột thi đã thay đổi. Kiểm tra lại bảng điểm.' }; return; }
+        const mark = studentScoreView(view, studentId).exams.moet.find(mark => mark.label === key || examLabelKey(mark.label) === sourceKey);
+        if ((mark?.score ?? null) !== previous) { issue = { status: 409, message: 'Điểm thi vừa thay đổi. Bản nháp được giữ; kiểm tra điểm mới trước khi lưu.' }; return; }
+        book.examOverrides = { ...(book.examOverrides ?? {}), [studentId]: { ...(book.examOverrides?.[studentId] ?? {}), [sourceKey]: { label: key, score, updatedAt: stamp } } };
+      }
+    }
+    const { auto: _auto, ...stored } = snap.data() ?? {};
+    tx.set(ref, { ...stored, classId: context.classId, hs1: book.hs1, examOverrides: book.examOverrides ?? {}, updatedAt: stamp, updatedBy: context.uid });
+  });
+  if (issue) return void res.status(issue.status).json({ error: issue.message });
+  res.status(200).json({ saved: true, scoreBook: await teacherBook(db, context) });
 };
 
 /** Tạo mới hoặc sửa MỘT cột điểm hệ số 1 cùng điểm của cả lớp ở cột đó. Ô trống = xoá điểm. */
@@ -444,7 +508,9 @@ const handleStudentScoreBook = async (db: Db, body: Body, res: VercelResponse): 
 
 export const handleScoreBookAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
+  if (action === 'teacherScoreBookStream' || action === 'studentScoreBookStream') { await handleScoreBookStream(db, body, res); return true; }
   if (action === 'teacherScoreBook') { await handleTeacherScoreBook(db, body, res); return true; }
+  if (action === 'saveScoreCells') { await handleSaveScoreCells(db, body, res); return true; }
   if (action === 'saveHs1Column') { await handleSaveHs1Column(db, body, res); return true; }
   if (action === 'linkAssignments') { await handleLinkAssignments(db, body, res); return true; }
   if (action === 'linkPeriodicAssignments') { await handleLinkPeriodicAssignments(db, body, res); return true; }

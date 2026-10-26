@@ -62,6 +62,8 @@ export interface AutoScores {
   homework: Record<string, HomeworkStats>;
   /** examKey → studentId → điểm thang 10 từ bài giao đã gán vào mốc định kì. */
   periodic: Record<string, Record<string, number>>;
+  periodicUpdatedAt?: Record<string, Record<string, string>>;
+  periodicLabels?: Record<string, string>;
   assignments?: AutoAssignmentInfo[];
   examAssignments?: AutoAssignmentInfo[];
   computedAt: string;
@@ -215,11 +217,20 @@ const normalizeAutoScores = (raw: unknown): AutoScores | undefined => {
       periodic[key] = Object.fromEntries(Object.entries(row).filter(([, value]) => typeof value === 'number' && Number.isFinite(value))) as Record<string, number>;
     }
   }
+  const periodicUpdatedAt: NonNullable<AutoScores['periodicUpdatedAt']> = {};
+  if (isRecord(raw.periodicUpdatedAt)) {
+    for (const [key, row] of Object.entries(raw.periodicUpdatedAt)) {
+      if (isRecord(row)) periodicUpdatedAt[key] = Object.fromEntries(Object.entries(row).filter(([, value]) => typeof value === 'string')) as Record<string, string>;
+    }
+  }
+  const periodicLabels = isRecord(raw.periodicLabels)
+    ? Object.fromEntries(Object.entries(raw.periodicLabels).filter(([, value]) => typeof value === 'string')) as Record<string, string>
+    : undefined;
   const examAssignments = Array.isArray(raw.examAssignments)
     ? raw.examAssignments.filter((a): a is AutoAssignmentInfo => isRecord(a) && typeof a.id === 'string' && typeof a.title === 'string' && typeof a.date === 'string')
       .map(a => ({ id: a.id, title: a.title, date: a.date, graded: Number(a.graded) || 0, submitted: Number(a.submitted) || 0, ...(typeof a.periodicKey === 'string' ? { periodicKey: a.periodicKey } : {}) }))
     : undefined;
-  return { linked, homework, periodic, ...(assignments ? { assignments } : {}), ...(examAssignments ? { examAssignments } : {}), computedAt: typeof raw.computedAt === 'string' ? raw.computedAt : '' };
+  return { linked, homework, periodic, ...(raw.periodicUpdatedAt ? { periodicUpdatedAt } : {}), ...(periodicLabels ? { periodicLabels } : {}), ...(assignments ? { assignments } : {}), ...(examAssignments ? { examAssignments } : {}), computedAt: typeof raw.computedAt === 'string' ? raw.computedAt : '' };
 };
 
 /** Đọc document Firestore về dạng chuẩn, bỏ qua phần hỏng thay vì làm vỡ màn hình. */
@@ -409,34 +420,47 @@ export type ExamScoreSource = 'assignment' | 'manual' | 'paper' | 'sheet';
 
 /** Nhãn + gợi ý của từng nguồn điểm (dùng chung cho cả GV, HS và phụ huynh). */
 export const EXAM_SOURCE_INFO: Record<ExamScoreSource, { label: string; hint: string }> = {
-  assignment: { label: 'Bài nộp', hint: 'Điểm lấy từ bài học sinh đã nộp, gán vào mốc này (chỉ điền khi ô còn trống).' },
+  assignment: { label: 'Bài nộp', hint: 'Điểm bài nộp đã duyệt; sổ cập nhật theo lần sửa mới nhất.' },
   manual: { label: 'Sửa tay', hint: 'Điểm giáo viên sửa tay trong sổ điểm.' },
   paper: { label: 'Chấm tay', hint: 'Điểm chấm tay đã xác nhận từ ảnh bài thi.' },
   sheet: { label: 'Sheet', hint: 'Điểm đọc từ file điểm Google Sheet của lớp.' },
 };
 
-/**
- * Nguồn thật của ô điểm, đúng thứ tự ưu tiên đang dùng để hiển thị:
- * sửa tay > bài nộp > chấm tay > Sheet. Ô trống → undefined.
- */
+const canonicalExamKey = (book: ScoreBookDoc, label: string): string =>
+  Object.entries(book.examColumnLabels ?? {}).find(([, renamed]) => examLabelKey(renamed) === examLabelKey(label))?.[0] ?? examLabelKey(label);
+
+/** Sửa tay/chấm giấy cùng thời điểm hoặc mới hơn giữ quyền chốt của giáo viên. */
+const periodicScoreSource = (book: ScoreBookDoc, studentId: string, key: string): ExamScoreSource | undefined => {
+  if (typeof book.auto?.periodic?.[key]?.[studentId] !== 'number') return undefined;
+  const updatedAt = timeOf(book.auto.periodicUpdatedAt?.[key]?.[studentId]);
+  const manual = book.examOverrides?.[studentId]?.[key];
+  if (manual && (!timeOf(manual.updatedAt) || timeOf(manual.updatedAt) >= updatedAt)) return 'manual';
+  const paper = book.paperExams?.[studentId]?.filter(mark => examLabelKey(mark.label) === key);
+  return paper?.some(mark => timeOf(mark.confirmedAt) >= updatedAt) ? 'paper' : 'assignment';
+};
+
+/** Nguồn điểm phải dùng cùng phép chọn với điểm thực tế hiển thị. */
 export const examScoreSource = (book: ScoreBookDoc, studentId: string, label: string): ExamScoreSource | undefined => {
-  const key = examLabelKey(label);
-  if (!key) return undefined;
+  const key = canonicalExamKey(book, label);
+  if (!key || book.hiddenExamColumns?.includes(key)) return undefined;
+  const periodicSource = periodicScoreSource(book, studentId, key);
+  if (periodicSource && periodicSource !== 'manual') return periodicSource;
   const override = book.examOverrides?.[studentId]?.[key];
-  if (override && override.score !== null) return 'manual';
-  if (typeof book.auto?.periodic?.[key]?.[studentId] === 'number') return 'assignment';
-  const view = applyExamColumnSettings({ [studentId]: book.exams[studentId] ?? { moet: [], tds: [] } }, book.examColumnLabels, book.hiddenExamColumns)[studentId];
+  if (override) return override.score === null ? undefined : 'manual';
+  const view = book.exams[studentId] ?? { moet: [], tds: [] };
   const mark = [...view.moet, ...view.tds].find(item => examLabelKey(item.label) === key);
   if (!mark) return undefined;
   return mark.source === 'paper' ? 'paper' : 'sheet';
 };
 
 export const examColumnDisplayLabels = (book: ScoreBookDoc): string[] => {
-  const labels = [...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? []), ...Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds].map(mark => mark.label))];
+  const labels = [...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? []), ...Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds].map(mark => mark.label)), ...Object.keys(book.auto?.periodic ?? {}).map(key => book.auto?.periodicLabels?.[key] ?? key)];
   const out: string[] = [];
+  const seen = new Set<string>();
   for (const label of labels) {
-    const key = examLabelKey(label);
-    if ((book.hiddenExamColumns ?? []).includes(key) || out.some(item => examLabelKey(item) === key)) continue;
+    const key = canonicalExamKey(book, label);
+    if ((book.hiddenExamColumns ?? []).includes(key) || seen.has(key)) continue;
+    seen.add(key);
     out.push(book.examColumnLabels?.[key] ?? label);
   }
   return out;
@@ -445,35 +469,41 @@ export const examColumnDisplayLabels = (book: ScoreBookDoc): string[] => {
 /**
  * Ghép điểm bài nộp đã gán vào mốc định kì.
  *
- * Nguyên tắc: **điểm thầy cô sửa tay thắng** — bài nộp chỉ ĐIỀN VÀO Ô TRỐNG. Trước đây bài nộp đè lên cả điểm
- * sửa tay: thầy cô sửa xong bấm lưu mà ô vẫn hiện điểm AI chấm, không biết vì sao. Muốn quay về điểm bài nộp
- * thì xoá điểm sửa tay (ô trống) — `applyExamOverrides` đã áp trước hàm này nên sổ đã chứa điểm sửa tay.
+ * Điểm bài đã duyệt thay Sheet/điểm cũ; sửa tay hoặc xác nhận giấy mới hơn vẫn thắng.
  */
 const examsWithPeriodicAssignmentScores = (book: ScoreBookDoc, studentId: string): StudentExamScores => {
-  const base = applyExamColumnSettings({ [studentId]: book.exams[studentId] ?? { moet: [], tds: [] } }, book.examColumnLabels, book.hiddenExamColumns)[studentId];
+  const base = applyExamOverrides(book.exams, book.examOverrides ?? {})[studentId] ?? { moet: [], tds: [] };
   const periodic = book.auto?.periodic ?? {};
-  const moet = [...base.moet];
+  let moet = [...base.moet];
+  let tds = [...base.tds];
   for (const [key, row] of Object.entries(periodic)) {
     const score = row[studentId];
-    if (typeof score !== 'number') continue;
-    // Ô đã có điểm (sửa tay / chấm tay / Sheet) → giữ nguyên, bài nộp không đè.
-    if ([...base.moet, ...base.tds].some(mark => examLabelKey(mark.label) === key)) continue;
+    const source = periodicScoreSource(book, studentId, key);
+    if (!source || source === 'manual') continue;
+    moet = moet.filter(mark => examLabelKey(mark.label) !== key);
+    tds = tds.filter(mark => examLabelKey(mark.label) !== key);
+    if (source === 'paper') {
+      const paper = book.paperExams![studentId].filter(mark => examLabelKey(mark.label) === key)
+        .reduce((latest, mark) => timeOf(mark.confirmedAt) > timeOf(latest.confirmedAt) ? mark : latest);
+      moet.push({ label: paper.label, score: paper.score, source: 'paper', updatedAt: paper.confirmedAt });
+      continue;
+    }
     // Tên cột thật của mốc: tên cột đã khai trong sổ → tên đã đổi → tên ở mốc của học sinh khác → cuối cùng mới tới mã.
     const knownLabel = [...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? [])].find(item => examLabelKey(item) === key)
       ?? Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds]).find(mark => examLabelKey(mark.label) === key)?.label;
-    moet.push({ label: knownLabel ?? book.examColumnLabels?.[key] ?? key, score });
+    moet.push({ label: knownLabel ?? book.auto?.periodicLabels?.[key] ?? key, score });
   }
-  return { moet, tds: base.tds };
+  return applyExamColumnSettings({ [studentId]: { moet, tds } }, book.examColumnLabels, book.hiddenExamColumns)[studentId];
 };
 
 /**
  * Điểm bài nộp đang bị điểm sửa tay che (nếu có) — để badge nhắc "AI chấm ra X" thay vì làm mất dấu dữ liệu gốc.
  */
 export const shadowedAssignmentScore = (book: ScoreBookDoc, studentId: string, label: string): number | undefined => {
-  const key = examLabelKey(label);
+  const key = canonicalExamKey(book, label);
   if (!key) return undefined;
-  const manual = book.examOverrides?.[studentId]?.[key];
-  if (!manual || manual.score === null) return undefined;
+  const source = examScoreSource(book, studentId, label);
+  if (source !== 'manual' && source !== 'paper') return undefined;
   const periodic = book.auto?.periodic?.[key]?.[studentId];
   return typeof periodic === 'number' ? periodic : undefined;
 };
@@ -608,6 +638,8 @@ export interface HomeworkEntry {
   submittedAt: string;
   score: number | null;
   maxScore: number;
+  approved?: boolean;
+  gradedAt?: string;
 }
 
 /** Bài giao đã chuẩn hoá để tính điểm. */
@@ -616,8 +648,9 @@ export interface HomeworkAssignment {
   title: string;
   createdAt: string;
   dueAt?: string;
-  /** Bài kiểm tra định kì: điểm chính thức nằm ở file điểm, không tính vào BTVN. */
+  /** Bài kiểm tra định kì không tính vào BTVN. */
   periodic: boolean;
+  periodicLabel?: string;
   /** Vắng = cả lớp. */
   targetStudentIds?: string[];
 }
@@ -634,7 +667,7 @@ const dayOf = (iso: string | undefined): string => (iso && /^\d{4}-\d{2}-\d{2}/.
 
 /**
  * Điểm tự tính từ bài nộp, tính lại mỗi lần đọc nên đổi điểm/nộp thêm bài là sổ đổi theo.
- * - Mỗi (bài, học sinh) lấy lượt nộp MỚI NHẤT có điểm; mọi điểm đã chấm đều tính, bất kể ai duyệt.
+ * - BTVN/HS1 giữ lượt mới nhất có điểm; cột thi chỉ nhận lượt mới nhất đã duyệt.
  * - Chuyên cần = số bài đã nộp / số bài đã đến hạn (hoặc đã nộp) × 10.
  */
 export const computeAutoScores = (
@@ -646,11 +679,13 @@ export const computeAutoScores = (
 ): AutoScores => {
   const latest = new Map<string, HomeworkEntry>();
   const latestGraded = new Map<string, HomeworkEntry>();
+  const latestApproved = new Map<string, HomeworkEntry>();
   for (const entry of entries) {
     const key = `${entry.assignmentId}\u0000${entry.studentId}`;
     const newer = (current?: HomeworkEntry) => !current || timeOf(entry.submittedAt) >= timeOf(current.submittedAt);
     if (newer(latest.get(key))) latest.set(key, entry);
     if (entry.score !== null && newer(latestGraded.get(key))) latestGraded.set(key, entry);
+    if (entry.approved === true && entry.score !== null && newer(latestApproved.get(key))) latestApproved.set(key, entry);
   }
   const tenOf = (assignmentId: string, studentId: string): number | null => {
     const entry = latestGraded.get(`${assignmentId}\u0000${studentId}`);
@@ -658,14 +693,39 @@ export const computeAutoScores = (
   };
 
   const periodic: AutoScores['periodic'] = {};
-  const linkedPeriodicIds = new Set(Object.values(book.periodicAssignmentLinks ?? {}));
-  for (const [examKey, assignmentId] of Object.entries(book.periodicAssignmentLinks ?? {})) {
+  const periodicUpdatedAt: NonNullable<AutoScores['periodicUpdatedAt']> = {};
+  const periodicLabels: NonNullable<AutoScores['periodicLabels']> = {};
+  const explicitlyLinked = new Set(Object.values(book.periodicAssignmentLinks ?? {}));
+  const candidates = new Map<string, HomeworkAssignment[]>();
+  for (const assignment of assignments) {
+    if (!assignment.periodic || !assignment.periodicLabel || explicitlyLinked.has(assignment.id)) continue;
+    const key = examLabelKey(assignment.periodicLabel);
+    if (key) candidates.set(key, [...(candidates.get(key) ?? []), assignment]);
+  }
+  const periodicLinks: Record<string, string> = {};
+  for (const [key, matches] of candidates) {
+    if (matches.length === 1) periodicLinks[key] = matches[0].id;
+  }
+  for (const [key, assignmentId] of Object.entries(book.periodicAssignmentLinks ?? {})) periodicLinks[examLabelKey(key)] = assignmentId;
+  const linkedPeriodicIds = new Set(Object.values(periodicLinks));
+  for (const [examKey, assignmentId] of Object.entries(periodicLinks)) {
     const row: Record<string, number> = {};
+    const updatedAt: Record<string, string> = {};
     for (const studentId of studentIds) {
-      const ten = tenOf(assignmentId, studentId);
-      if (ten !== null) row[studentId] = ten;
+      const entry = latestApproved.get(`${assignmentId}\u0000${studentId}`);
+      const ten = entry && entry.score !== null ? scoreToTen(entry.score, entry.maxScore) : null;
+      if (ten !== null && entry) {
+        row[studentId] = ten;
+        updatedAt[studentId] = entry.gradedAt || entry.submittedAt;
+      }
     }
     periodic[examKey] = row;
+    periodicUpdatedAt[examKey] = updatedAt;
+    const assignment = assignments.find(a => a.id === assignmentId);
+    const knownLabel = [...(book.examColumns?.moet ?? []), ...(book.examColumns?.tds ?? []), ...Object.values(book.exams).flatMap(row => [...row.moet, ...row.tds].map(mark => mark.label))]
+      .find(label => examLabelKey(label) === examKey);
+    const assignmentLabel = assignment?.periodicLabel || assignment?.title;
+    periodicLabels[examKey] = knownLabel ?? (assignmentLabel && examLabelKey(assignmentLabel) === examKey ? assignmentLabel : examKey);
   }
 
   const linked: AutoScores['linked'] = {};
@@ -705,7 +765,7 @@ export const computeAutoScores = (
   }
 
   const roster = new Set(studentIds);
-  const periodicByAssignment = Object.fromEntries(Object.entries(book.periodicAssignmentLinks ?? {}).map(([key, id]) => [id, key]));
+  const periodicByAssignment = Object.fromEntries(Object.entries(periodicLinks).map(([key, id]) => [id, key]));
   const toPickerInfo = (assignment: HomeworkAssignment): AutoAssignmentInfo => ({
     id: assignment.id,
     title: assignment.title,
@@ -721,6 +781,8 @@ export const computeAutoScores = (
     linked,
     homework,
     periodic,
+    periodicUpdatedAt,
+    periodicLabels,
     assignments: picker,
     examAssignments: examPicker,
     computedAt: new Date(nowMs).toISOString(),

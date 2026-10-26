@@ -47,10 +47,10 @@ export interface StudentExamScores {
 export const examLabelKey = (value: unknown): string => {
   const text = norm(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const compact = text.replace(/[^a-z0-9]+/g, '');
-  if (/ghkii|dgg[h]?kii/.test(compact) || /giua.*(hoc.?ki|hk).*ii/.test(text)) return 'ghkii';
-  if (/ghki|dgg[h]?ghki|dgg[h]?hki/.test(compact) || /giua.*(hoc.?ki|hk).*\bi\b/.test(text)) return 'ghki';
-  if (/chkii|dgchkii|dgchkii/.test(compact) || /cuoi.*(hoc.?ki|hk).*ii/.test(text)) return 'chkii';
-  if (/chki|dgcchki|dgchki/.test(compact) || /cuoi.*(hoc.?ki|hk).*\bi\b/.test(text)) return 'chki';
+  if (/ghkii|dgg[h]?kii/.test(compact) || /giua.*(hoc.?ki|hk)\s*ii\b/.test(text)) return 'ghkii';
+  if (/ghki|dgg[h]?ghki|dgg[h]?hki/.test(compact) || /giua.*(hoc.?ki|hk)\s*i\b/.test(text)) return 'ghki';
+  if (/chkii|dgchkii|dgchkii/.test(compact) || /cuoi.*(hoc.?ki|hk)\s*ii\b/.test(text)) return 'chkii';
+  if (/chki|dgcchki|dgchki/.test(compact) || /cuoi.*(hoc.?ki|hk)\s*i\b/.test(text)) return 'chki';
   if (/ksdn/.test(compact) || /khao sat dau nam|dau nam/.test(text)) return 'ksdn';
   return compact;
 };

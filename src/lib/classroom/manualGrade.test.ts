@@ -48,7 +48,7 @@ describe('buildManualGradeUpdate', () => {
     expect(update['grade.teacherApproved']).toBe(false);
   });
 
-  it('buộc duyệt lại khi giáo viên sửa bài đã duyệt', () => {
+  it('giữ duyệt khi giáo viên sửa bài đã duyệt để sổ cập nhật ngay', () => {
     const existingGrade = {
       score: 8,
       maxScore: 10,
@@ -65,7 +65,8 @@ describe('buildManualGradeUpdate', () => {
       weakTopics: [],
     }, '2026-08-24T12:00:00.000Z');
 
-    expect(update['grade.teacherApproved']).toBe(false);
+    expect(update['grade.teacherApproved']).toBe(true);
+    expect(update['grade.approvalSource']).toBe('teacher');
     expect(update['grade.strengths']).toEqual(['đúng phương pháp']);
     expect(update['grade.weaknesses']).toEqual(['nhầm dấu']);
   });
@@ -127,7 +128,8 @@ describe('sửa tay tắt cờ lệch sổ điểm', () => {
     }, '2026-10-24T01:00:00.000Z');
 
     expect(update['grade.examCheck']).toBeUndefined();
-    expect(update['grade.teacherApproved']).toBe(false);
+    expect(update['grade.teacherApproved']).toBe(true);
+    expect(update['grade.approvalSource']).toBe('teacher');
     expect(update['grade.editedByTeacher']).toBe(true);
     // Cờ (nếu nhìn grade mới trọn vẹn) phải tắt:
     expect(needsTeacherCheck({

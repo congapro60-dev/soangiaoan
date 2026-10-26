@@ -40,6 +40,11 @@ const fakeDb = () => {
   return {
     collection: (col: string) => ({ ...queryOf(col), doc: (id: string) => docRef(col, id) }),
     getAll: async (...refs: Array<{ get: () => Promise<unknown> }>) => Promise.all(refs.map(ref => ref.get())),
+    runTransaction: async (work: (tx: any) => Promise<void>) => {
+      const writes: Array<() => Promise<unknown>> = [];
+      await work({ get: (ref: any) => ref.get(), set: (ref: any, data: DocData) => { writes.push(() => ref.set(data)); } });
+      for (const write of writes) await write();
+    },
   };
 };
 
@@ -63,6 +68,67 @@ describe('sổ điểm', () => {
       'classes/lop-1/students': { a: { name: 'An', code: 'S1' }, b: { name: 'Bình', code: 'S2' } },
       studentLinks: { 'anon-a': { classId: 'lop-1', studentId: 'a', teacherId: 'gv-cuong' } },
     };
+  });
+
+  it('bài thi đã duyệt tự vào đúng cột, thay điểm nền, GV sửa thì GV và HS nhận điểm mới', async () => {
+    h.store.assignments = { kt: { classId: 'lop-1', title: 'Thi giữa HKI', createdAt: '2026-10-20T00:00:00Z', periodicTest: { sheetLabel: 'Thi giữa HKI' } } };
+    h.store.scoreBooks = { 'lop-1': { examColumns: { moet: ['Thi giữa HKI'], tds: [] }, exams: { a: { moet: [{ label: 'Thi giữa HKI', score: 3 }], tds: [] } }, paperExams: { b: [{ label: 'Thi giữa HKI', score: 4, assignmentId: 'kt', confirmedAt: '2026-10-21T00:00:00Z' }] } } };
+    h.store.submissions = {
+      s1: { classId: 'lop-1', assignmentId: 'kt', studentId: 'a', createdAt: '2026-10-22T00:00:00Z', grade: { score: 7, maxScore: 10, teacherApproved: true, approvalSource: 'auto_timeout', gradedAt: '2026-10-23T00:00:00Z' } },
+      s2: { classId: 'lop-1', assignmentId: 'kt', studentId: 'b', createdAt: '2026-10-22T00:00:00Z', grade: { score: 8, maxScore: 10, teacherApproved: true, approvalSource: 'teacher', gradedAt: '2026-10-23T00:00:00Z' } },
+    };
+    const first = await call({ action: 'teacherScoreBook', classId: 'lop-1' });
+    const book = first.payload?.scoreBook as ScoreBookDoc;
+    expect(studentScoreView(book, 'a').exams.moet).toEqual([{ label: 'Thi giữa HKI', score: 7 }]);
+    expect(studentScoreView(book, 'b').exams.moet).toEqual([{ label: 'Thi giữa HKI', score: 8 }]);
+    expect(book.auto?.examAssignments?.[0].periodicKey).toBe('ghki');
+    (h.store.submissions.s1.grade as DocData).score = 0;
+    (h.store.submissions.s1.grade as DocData).gradedAt = '2026-10-24T00:00:00Z';
+    h.claims = STUDENT_A;
+    const changed = await call({ action: 'studentScoreBook', studentId: 'b' });
+    expect((changed.payload?.scores as any).exams.moet).toEqual([{ label: 'Thi giữa HKI', score: 0 }]);
+    expect(h.store.scoreBooks['lop-1']).not.toHaveProperty('periodicAssignmentLinks');
+  });
+
+  it('cột thi chỉ nhận lượt đã duyệt mới nhất; bài thường cùng tên không tự ghép', async () => {
+    h.store.assignments = {
+      kt: { classId: 'lop-1', title: 'Thi giữa HKI', createdAt: '2026-10-20T00:00:00Z', periodicTest: {} },
+      bt: { classId: 'lop-1', title: 'Thi giữa HKI', createdAt: '2026-10-20T00:00:00Z' },
+    };
+    h.store.submissions = {
+      old: { classId: 'lop-1', assignmentId: 'kt', studentId: 'a', createdAt: '2026-10-21T00:00:00Z', grade: { score: 6, maxScore: 10, teacherApproved: true } },
+      latest: { classId: 'lop-1', assignmentId: 'kt', studentId: 'a', createdAt: '2026-10-22T00:00:00Z', grade: { score: 9, maxScore: 10, teacherApproved: false } },
+      other: { classId: 'lop-1', assignmentId: 'kt', studentId: 'b', createdAt: '2026-10-22T00:00:00Z', grade: { score: 10, maxScore: 10, teacherApproved: false } },
+      homework: { classId: 'lop-1', assignmentId: 'bt', studentId: 'b', createdAt: '2026-10-23T00:00:00Z', grade: { score: 8, maxScore: 10, teacherApproved: true } },
+    };
+    const result = await call({ action: 'teacherScoreBook', classId: 'lop-1' });
+    const book = result.payload?.scoreBook as ScoreBookDoc;
+    expect(book.auto?.periodic.ghki).toEqual({ a: 6 });
+    expect(studentScoreView(book, 'a').exams.moet).toEqual([{ label: 'Thi giữa HKI', score: 6 }]);
+    expect(studentScoreView(book, 'b').exams.moet).toEqual([]);
+  });
+
+  it('nhập trực tiếp nhiều ô HS1/MOET rồi lưu một lần, giữ ô không sửa', async () => {
+    h.store.scoreBooks = { 'lop-1': { hs1Columns: [{ id: 'c1', label: 'Hướng nghiệp', date: '2026-10-26', weight: 1 }], hs1: { a: { c1: 8 }, b: { c1: 7 } }, exams: { a: { moet: [{ label: 'Thi giữa HKI', score: 6 }], tds: [] } }, examColumns: { moet: ['Thi giữa HKI'], tds: [] } } };
+    const result = await call({ action: 'saveScoreCells', classId: 'lop-1', cells: [
+      { kind: 'hs1', key: 'c1', studentId: 'a', score: 0, previous: 8 },
+      { kind: 'moet', key: 'Thi giữa HKI', studentId: 'a', score: 9.5, previous: 6 },
+    ] });
+    expect(result.statusCode).toBe(200);
+    const book = result.payload?.scoreBook as ScoreBookDoc;
+    expect(book.hs1).toEqual({ a: { c1: 0 }, b: { c1: 7 } });
+    expect(studentScoreView(book, 'a').exams.moet[0].score).toBe(9.5);
+    const before = structuredClone(h.store.scoreBooks);
+    for (const invalid of [
+      { kind: 'hs1', key: 'c1', studentId: 'a', score: 11, previous: 0 },
+      { kind: 'hs1', key: 'c1', studentId: 'outsider', score: 8, previous: null },
+      { kind: 'hs1', key: 'gone', studentId: 'a', score: 8, previous: null },
+      { kind: 'hs1', key: 'c1', studentId: 'a', score: 8, previous: 7 },
+    ]) {
+      const rejected = await call({ action: 'saveScoreCells', classId: 'lop-1', cells: [{ kind: 'hs1', key: 'c1', studentId: 'b', score: 2, previous: 7 }, invalid] });
+      expect(rejected.statusCode).toBeGreaterThanOrEqual(400);
+      expect(h.store.scoreBooks).toEqual(before);
+    }
   });
 
   it('giáo viên nhập cột điểm hệ số 1; ô trống bỏ qua; học sinh ngoài lớp không được ghi', async () => {
@@ -198,23 +264,23 @@ describe('sổ điểm', () => {
     expect((restored.payload?.scoreBook as any).hiddenExamColumns).toEqual([]);
   });
 
-  it('gán bài đã nộp vào cột định kì có sẵn; bài chỉ điền ô trống, không đè điểm sửa tay', async () => {
+  it('gán bài đã duyệt vào cột định kì; thay Sheet, giữ điểm sửa tay mới hơn', async () => {
     h.store.assignments = { bt1: { classId: 'lop-1', title: 'Bài kiểm tra giữa kì', createdAt: '2026-10-01T00:00:00Z' } };
-    h.store.submissions = { sub1: { classId: 'lop-1', studentId: 'a', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 18, maxScore: 20 } } };
+    h.store.submissions = { sub1: { classId: 'lop-1', studentId: 'a', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 18, maxScore: 20, teacherApproved: true } } };
     h.store.scoreBooks = { 'lop-1': { classId: 'lop-1', hs1Columns: [], hs1: {}, examColumns: { moet: ['Giữa học kì I'], tds: [] }, exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } } } };
     const linked = await call({ action: 'linkPeriodicAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', examKey: 'ghki' }] });
     expect(linked.statusCode).toBe(200);
     expect(h.store.scoreBooks['lop-1'].periodicAssignmentLinks).toEqual({ ghki: 'bt1' });
     expect((linked.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(9);
-    // a đã có điểm trong sổ (6) → bài nộp không đè.
-    expect(studentScoreView((linked.payload?.scoreBook as any) as ScoreBookDoc, 'a').exams.moet.map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
+    // Điểm bài đã duyệt thay điểm Sheet cũ.
+    expect(studentScoreView((linked.payload?.scoreBook as any) as ScoreBookDoc, 'a').exams.moet.map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Giữa học kì I', score: 9 }]);
 
     // Thầy cô sửa tay 6.5 → vẫn giữ 6.5 sau khi đồng bộ lại.
     const manual = await call({ action: 'saveExamColumn', classId: 'lop-1', label: 'Giữa học kì I', scores: { a: 6.5 } });
     expect(studentScoreView((manual.payload?.scoreBook as any) as ScoreBookDoc, 'a').exams.moet.map(({ label, score }) => ({ label, score }))).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
 
     // Học sinh b chưa có điểm → bài nộp điền vào ô trống. Sổ chỉ lưu ô có điểm nên xem qua giao diện học sinh.
-    h.store.submissions.sub2 = { classId: 'lop-1', studentId: 'b', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 14, maxScore: 20 } };
+    h.store.submissions.sub2 = { classId: 'lop-1', studentId: 'b', assignmentId: 'bt1', createdAt: '2026-10-02T00:00:00Z', grade: { score: 14, maxScore: 20, teacherApproved: true } };
     const synced = await call({ action: 'linkPeriodicAssignments', classId: 'lop-1', items: [{ assignmentId: 'bt1', examKey: 'ghki' }] });
     const view = (studentId: string) => studentScoreView((synced.payload?.scoreBook as any) as ScoreBookDoc, studentId);
     const points = (studentId: string) => view(studentId).exams.moet.map(({ label, score }) => ({ label, score }));

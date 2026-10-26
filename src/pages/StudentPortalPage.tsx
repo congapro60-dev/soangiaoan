@@ -21,6 +21,7 @@ import { fetchRoster, fetchStudentAdaptiveAssignments, fetchStudentDiscoverCatal
 import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
 import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
+import { watchScoreBook } from '../lib/classroom/scoreBookStream';
 import type { StudentDiscoverCatalogItem } from '../lib/discover/types';
 import { layThongBaoHocSinh, submitHomework } from '../lib/classroom/submissionService';
 import { buildStudentFeed } from '../lib/classroom/studentNotifications';
@@ -166,6 +167,7 @@ export const StudentPortalPage = () => {
   const [onlineSubmissions, setOnlineSubmissions] = useState<ExamSubmission[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [scores, setScores] = useState<StudentScoreView | null>(null);
+  const scoreReadVersion = useRef(0);
   const [discoverCatalog, setDiscoverCatalog] = useState<StudentDiscoverCatalogItem[]>([]);
   const [adaptiveAssignments, setAdaptiveAssignments] = useState<StudentAdaptiveAssignment[]>([]);
   const [notifications, setNotifications] = useState<StudentNotificationDoc[]>([]);
@@ -377,6 +379,7 @@ export const StudentPortalPage = () => {
     if (!phien) return;
     const uid = auth.currentUser?.uid;
     if (!uid) return;
+    const scoreReading = ++scoreReadVersion.current;
     setDangTaiDu(true);
     try {
       const [workspace, hoSo, thongBao, soDiem, discoverCatalogResult, adaptiveAssignmentsResult] = await Promise.all([
@@ -397,7 +400,7 @@ export const StudentPortalPage = () => {
       setOnlineSubmissions(workspace.onlineSubmissions);
       setProfile(hoSo.exists() ? (hoSo.data() as StudentProfileDoc) : null);
       setNotifications(thongBao);
-      setScores(soDiem);
+      if (scoreReading === scoreReadVersion.current) setScores(soDiem);
       setDiscoverCatalog(discoverCatalogResult);
       setAdaptiveAssignments(adaptiveAssignmentsResult);
       setLoiDuLieu('');
@@ -453,13 +456,21 @@ export const StudentPortalPage = () => {
     setAssignments(workspace.assignments); setSubmissions(workspace.submissions); setOnlineSubmissions(workspace.onlineSubmissions);
   }, []);
 
-  // Bảng điểm tự cập nhật khi thầy cô chấm xong bài hoặc em nộp bài: làm mới riêng bảng điểm (nhẹ) mỗi 30 giây khi tab đang mở.
+  // Điểm nhận tín hiệu trực tiếp; danh sách bài giữ lịch làm mới riêng.
+  useEffect(() => {
+    if (stage !== 'dashboard' || !phien) return;
+    return watchScoreBook({ onInvalidate: async current => {
+      const session = sessionRef.current;
+      const reading = ++scoreReadVersion.current;
+      const scores = await fetchStudentScoreBook();
+      if (current() && session === sessionRef.current && reading === scoreReadVersion.current) setScores(scores);
+    } });
+  }, [stage, phien]);
+
   useEffect(() => {
     if (stage !== 'dashboard' || !phien) return undefined;
     const lamMoi = () => {
       if (document.visibilityState !== 'visible') return;
-      const current = sessionRef.current; const uid = auth.currentUser?.uid;
-      fetchStudentScoreBook().then(result => { if (current && current === sessionRef.current && uid === auth.currentUser?.uid) setScores(result); }).catch(() => { /* giữ bảng điểm đang hiện */ });
       void refreshWorkspace().catch(() => { /* Giữ index và bản nháp khi mất mạng. */ });
     };
     const timer = window.setInterval(lamMoi, 30_000);

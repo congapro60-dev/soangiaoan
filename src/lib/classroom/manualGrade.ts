@@ -108,8 +108,8 @@ export const buildManualGrade = (
     weakTopics: input.weakTopics.map(topic => topic.trim()).filter(Boolean),
     gradedWithoutAnswerKey: oldGrade?.gradedWithoutAnswerKey ?? false,
     ...(oldGrade?.noteForTeacher ? { noteForTeacher: oldGrade.noteForTeacher } : {}),
-    // Sửa điểm làm thay đổi kết luận; giáo viên phải xác nhận lại trước khi vào hồ sơ.
-    teacherApproved: false,
+    teacherApproved: oldGrade?.teacherApproved === true,
+    ...(oldGrade?.teacherApproved ? { approvalSource: 'teacher' as const } : {}),
     editedByTeacher: true,
     gradedAt: now,
   };
@@ -140,6 +140,7 @@ export const buildManualGradeUpdate = (
     'grade.questionResults': grade.questionResults || [],
     'grade.gradedWithoutAnswerKey': grade.gradedWithoutAnswerKey ?? false,
     'grade.teacherApproved': grade.teacherApproved,
+    ...(grade.teacherApproved ? { 'grade.approvalSource': 'teacher' } : {}),
     'grade.editedByTeacher': grade.editedByTeacher,
     'grade.noteForTeacher': grade.noteForTeacher || '',
     'grade.gradedAt': grade.gradedAt,

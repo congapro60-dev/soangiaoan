@@ -26,6 +26,10 @@ describe('parseStudentExamScores', () => {
     expect(examLabelKey('Thi GHKI')).toBe('ghki');
     expect(examLabelKey('Giữa học kì I')).toBe('ghki');
     expect(examLabelKey('Điểm T10 ĐGGHKI')).toBe('ghki');
+    expect(examLabelKey('Thi giữa HKI')).toBe('ghki');
+    expect(examLabelKey('Thi giữa HKII')).toBe('ghkii');
+    expect(examLabelKey('Thi cuối HKI')).toBe('chki');
+    expect(examLabelKey('Thi cuối HKII')).toBe('chkii');
   });
   it('rút điểm MOET (thang 10) đúng mốc, việt hoá tên, bỏ ô trống', () => {
     const { moet } = parseStudentExamScores(MOET, TDS, 'GB0117010125');

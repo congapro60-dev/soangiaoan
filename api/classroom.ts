@@ -518,9 +518,16 @@ const handleSaveSubmissionGrade = async (
     }
     throw error;
   }
-  // Grade mới chưa duyệt nhưng vẫn phải gỡ evidence của grade cũ đã duyệt (best-effort).
+  // GV sửa bài đã duyệt: cập nhật hồ sơ theo điểm mới; bài chưa duyệt vẫn gỡ minh chứng cũ.
   try {
-    await removeSubmissionGradeEvidence(db, owned.submission, now);
+    await syncApprovedGradeEvidence(db, {
+      submissionId: owned.submissionId,
+      assignmentId: owned.submission.assignmentId,
+      grade,
+      owner: { studentId: owned.submission.studentId, classId: owned.submission.classId, teacherId: owned.submission.teacherId },
+      now,
+      approved: grade.teacherApproved === true,
+    });
     // Clear any previous evidence sync error since grade changed (best-effort)
     try {
       await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: '' });

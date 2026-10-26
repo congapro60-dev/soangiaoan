@@ -1,3 +1,11 @@
+# TODO — 26/10/2026: Sổ điểm cập nhật trực tiếp
+
+Kế hoạch và bằng chứng: [approved-score-live.md](approved-score-live.md).
+- [x] Test đỏ tái hiện thiếu liên kết, mất duyệt khi GV sửa; thêm logic điểm duyệt tự lên sổ.
+- [ ] Hoàn tất stream GV/HS, nhập trực tiếp một nút Lưu, kiểm xung đột.
+- [ ] Tạo cột Điểm bài hướng nghiệp HS1 cho 11Columbus, đọc lại đủ 26 điểm.
+- [ ] Test, lint API/UI, build, review độc lập; chưa phát hành.
+
 # TODO — 25/10/2026: G1–G4 Vilao xong, đã vào `main`
 
 Nhánh `feature/vilao-all-flows`, worktree `wt-grader`. G1–G3 đã rebase qua 41 commit mới của `main` và hợp nhất: `2649eed..ca5598a`. G4 làm tiếp trên `main`.

@@ -5,6 +5,7 @@ import {
   applyExamColumnSettings,
   dedupeExamColumns,
   examScoreSource,
+  examColumnDisplayLabels,
   shadowedAssignmentScore,
   examColumnsNeedingSheetPush,
   hs1Average,
@@ -16,6 +17,68 @@ import {
   studentScoreView,
   validateHs1Column,
 } from './scoreBook';
+
+describe('điểm thi đã duyệt cập nhật trực tiếp', () => {
+  const assignment = { id: 'mid', title: 'Toán giữa HKI', periodicLabel: 'Thi giữa HKI', createdAt: '2026-10-01T00:00:00Z', periodic: true };
+  const entry = { assignmentId: 'mid', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', gradedAt: '2026-10-03T00:00:00Z', score: 8, maxScore: 10, approved: true };
+  it('tự ghép bài định kì, lấy lượt đã duyệt mới nhất kể cả 0, không đoán bài thường', () => {
+    const book = normalizeScoreBook('c', {});
+    const auto = computeAutoScores(book, [assignment, { ...assignment, id: 'ordinary', periodic: false }], [
+      entry, { ...entry, submittedAt: '2026-10-04T00:00:00Z', approved: false, score: 9 },
+      { ...entry, studentId: 'b', score: 0 }, { ...entry, assignmentId: 'ordinary', score: 10 },
+    ], ['a', 'b']);
+    expect(auto.periodic).toEqual({ ghki: { a: 8, b: 0 } });
+    expect(auto.periodicUpdatedAt).toEqual({ ghki: { a: entry.gradedAt, b: entry.gradedAt } });
+    expect(auto.periodicLabels).toEqual({ ghki: assignment.periodicLabel });
+    expect(examColumnDisplayLabels({ ...book, auto })).toEqual([assignment.periodicLabel]);
+    expect(studentScoreView({ ...book, auto }, 'b').exams.moet).toEqual([{ label: assignment.periodicLabel, score: 0 }]);
+    expect(normalizeScoreBook('c', { ...book, auto }).auto).toEqual(auto);
+  });
+  it('không chọn tuỳ tiện hai bài cùng mốc; liên kết tường minh giải quyết trùng', () => {
+    const book = normalizeScoreBook('c', {});
+    const assignments = [assignment, { ...assignment, id: 'second' }];
+    const entries = [entry, { ...entry, assignmentId: 'second', score: 9 }];
+    expect(computeAutoScores(book, assignments, entries, ['a']).periodic).toEqual({});
+    expect(computeAutoScores({ ...book, periodicAssignmentLinks: { ghki: 'second' } }, assignments, entries, ['a']).periodic).toEqual({ ghki: { a: 9 } });
+    const remapped = computeAutoScores({ ...book, periodicAssignmentLinks: { chki: 'mid' } }, [assignment], [entry], ['a']);
+    expect(remapped.periodic).toEqual({ chki: { a: 8 } });
+    expect(examColumnDisplayLabels({ ...book, auto: remapped })).toEqual(['chki']);
+  });
+  it('nguồn mới nhất thắng; sửa tay thiếu ngày giữ nguyên; nguồn/điểm bị che khớp hiển thị', () => {
+    const base = normalizeScoreBook('c', { exams: { a: { moet: [{ label: 'Thi giữa HKI', score: 6 }], tds: [] } } });
+    const auto = computeAutoScores(base, [assignment], [entry], ['a']);
+    for (const date of ['2026-10-02T00:00:00Z', entry.gradedAt, '2026-10-04T00:00:00Z', undefined]) {
+      const book = { ...base, auto, examOverrides: { a: { ghki: { label: assignment.periodicLabel, score: 7, ...(date ? { updatedAt: date } : {}) } } } };
+      const manualWins = date === undefined || date >= entry.gradedAt;
+      expect(studentScoreView(book, 'a').exams.moet[0].score).toBe(manualWins ? 7 : 8);
+      expect(examScoreSource(book, 'a', assignment.periodicLabel)).toBe(manualWins ? 'manual' : 'assignment');
+      expect(shadowedAssignmentScore(book, 'a', assignment.periodicLabel)).toBe(manualWins ? 8 : undefined);
+    }
+    for (const date of ['2026-10-02T00:00:00Z', entry.gradedAt, '2026-10-04T00:00:00Z']) {
+      const paper = normalizeScoreBook('c', { paperExams: { a: [{ label: assignment.periodicLabel, score: 7, assignmentId: 'mid', confirmedAt: date }] } });
+      const book = { ...paper, auto };
+      expect(studentScoreView(book, 'a').exams.moet[0].score).toBe(date >= entry.gradedAt ? 7 : 8);
+      expect(examScoreSource(book, 'a', assignment.periodicLabel)).toBe(date >= entry.gradedAt ? 'paper' : 'assignment');
+    }
+    const mixed = normalizeScoreBook('c', {
+      paperExams: { a: [{ label: assignment.periodicLabel, score: 7, assignmentId: 'mid', confirmedAt: '2026-10-04T00:00:00Z' }] },
+      examOverrides: { a: { ghki: { label: assignment.periodicLabel, score: 6, updatedAt: '2026-10-02T00:00:00Z' } } }, auto,
+    });
+    expect(studentScoreView(mixed, 'a').exams.moet[0].score).toBe(7);
+    expect(examScoreSource(mixed, 'a', assignment.periodicLabel)).toBe('paper');
+  });
+  it('đổi tên vẫn ghép đúng mốc chuẩn; cột ẩn không xuất hiện lại từ điểm tự tính', () => {
+    const base = normalizeScoreBook('c', { exams: { a: { moet: [{ label: 'Thi giữa HKI', score: 6 }], tds: [] } }, examColumnLabels: { ghki: 'Kiểm tra tháng 10' } });
+    const book = { ...base, auto: computeAutoScores(base, [assignment], [entry], ['a']) };
+    expect(studentScoreView(book, 'a').exams.moet).toEqual([{ label: 'Kiểm tra tháng 10', score: 8 }]);
+    expect(examScoreSource(book, 'a', 'Kiểm tra tháng 10')).toBe('assignment');
+    expect(examColumnDisplayLabels(book)).toEqual(['Kiểm tra tháng 10']);
+    const hidden = { ...book, hiddenExamColumns: ['ghki'] };
+    expect(studentScoreView(hidden, 'a').exams.moet).toEqual([]);
+    expect(examScoreSource(hidden, 'a', 'Kiểm tra tháng 10')).toBeUndefined();
+    expect(examColumnDisplayLabels(hidden)).toEqual([]);
+  });
+});
 
 describe('sổ điểm', () => {
   it('gộp mốc Sheet và mốc bài giấy, override sửa/xóa thắng nguồn nền', () => {
@@ -31,16 +94,15 @@ describe('sổ điểm', () => {
     expect(source.a.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
   });
 
-  it('điểm bài đã gán vào mốc định kì chỉ điền ô trống, không đè điểm Sheet, và không còn tính vào TB BTVN', () => {
+  it('điểm bài đã duyệt thay điểm Sheet, không còn tính vào TB BTVN', () => {
     const book = normalizeScoreBook('lop-1', {
       exams: { a: { moet: [{ label: 'Giữa học kì I', score: 6 }], tds: [] } },
       periodicAssignmentLinks: { ghki: 'bt1' },
     });
-    const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [{ assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20 }], ['a']);
+    const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [{ assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20, approved: true }], ['a']);
     expect(auto.periodic.ghki.a).toBe(9);
     expect(auto.homework.a.graded).toBe(0);
-    // Ô đã có điểm Sheet 6 → bài nộp không đè.
-    expect(studentScoreView({ ...book, auto }, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6 }]);
+    expect(studentScoreView({ ...book, auto }, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 9 }]);
   });
 
   it('điểm sửa tay thắng bài nộp; bài nộp chỉ điền ô trống', () => {
@@ -52,9 +114,9 @@ describe('sổ điểm', () => {
     });
     const auto = computeAutoScores(book, [{ id: 'bt1', title: 'Bài kiểm tra', createdAt: '2026-10-01T00:00:00Z', periodic: false }], [
       // a đã sửa tay → giữ 6.5 dù bài nộp ra 9.
-      { assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20 },
+      { assignmentId: 'bt1', studentId: 'a', submittedAt: '2026-10-02T00:00:00Z', score: 18, maxScore: 20, approved: true },
       // b chưa sửa tay → bài nộp điền vào ô trống.
-      { assignmentId: 'bt1', studentId: 'b', submittedAt: '2026-10-02T00:00:00Z', score: 16, maxScore: 20 },
+      { assignmentId: 'bt1', studentId: 'b', submittedAt: '2026-10-02T00:00:00Z', score: 16, maxScore: 20, approved: true },
     ], ['a', 'b']);
     const withAuto = { ...book, auto };
     expect(studentScoreView(withAuto, 'a').exams.moet).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);

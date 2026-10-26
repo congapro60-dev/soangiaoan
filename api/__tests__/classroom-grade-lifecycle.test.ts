@@ -164,7 +164,7 @@ const seed = (): Harness => {
 describe('POST /api/classroom · grade lifecycle', () => {
   beforeEach(() => { h.uid = 'gv-1'; });
 
-  it('sửa tay lưu snapshot, cập nhật điểm và buộc duyệt lại', async () => {
+  it('sửa tay lưu snapshot, giữ duyệt và cập nhật hồ sơ theo điểm mới', async () => {
     const harness = seed();
     const result = await call({
       action: 'saveSubmissionGrade', submissionId: 'sub-1',
@@ -176,7 +176,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
       status: 'graded',
       fileUrls: ['https://storage.test/homework/sub-1.jpg'],
       textContent: 'Bài làm nguyên bản',
-      grade: expect.objectContaining({ score: 9, feedback: 'Em đã sửa được lỗi.', teacherApproved: false, editedByTeacher: true }),
+      grade: expect.objectContaining({ score: 9, feedback: 'Em đã sửa được lỗi.', teacherApproved: true, approvalSource: 'teacher', editedByTeacher: true }),
     });
     expect(Object.values(harness.store.submissionGradeHistory || {})).toEqual([
       expect.objectContaining({ action: 'manual_edit', submissionId: 'sub-1', grade: oldGrade, actorUid: 'gv-1' }),
@@ -550,7 +550,7 @@ describe('POST /api/classroom · grade lifecycle', () => {
     // Grade should be committed
     expect(harness.store.submissions['sub-1']).toMatchObject({
       status: 'graded',
-      grade: expect.objectContaining({ score: 9, teacherApproved: false, editedByTeacher: true }),
+      grade: expect.objectContaining({ score: 9, teacherApproved: true, approvalSource: 'teacher', editedByTeacher: true }),
     });
     // evidenceSyncError should be set with the cleanup error message
     expect(typeof harness.store.submissions['sub-1'].evidenceSyncError).toBe('string');
