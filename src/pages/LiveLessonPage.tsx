@@ -16,7 +16,12 @@ export type StudentCueProjection = { id: string; studentScreenId: string; respon
 export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'sourceKey' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps' | 'intent'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
-export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' || value === 'tv-control' ? value : null;
+// `mode=teacher` là màn GV cũ (V3) không có P-timer/5 vùng. Link cũ còn trong sổ tay
+// giáo viên hoặc bookmark vẫn phải mở đúng Presenter V8.8, nên quy về `tv-control`.
+export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null =>
+  value === 'teacher' ? 'tv-control'
+    : value === 'tv' || value === 'student' || value === 'tv-control' ? value
+      : null;
 // Chế độ dựa trên phiên GV (cần đăng nhập + sở hữu): teacher và tv-control.
 export const isOwnerLiveLessonMode = (mode: LiveLessonMode): boolean => mode === 'teacher' || mode === 'tv-control';
 export const getStudentLiveContext = (search: string): { expectedClassId: string | null; expectedJoinCode: string | null } => {
@@ -77,7 +82,7 @@ export const getPublicListenerFailureMode = (hasSeenPublicState: boolean): 'init
 
 export const getLiveLessonRouteError = ({ mode, session, publicState, definition, userUid, userIsAnonymous = false }: { mode: string | null; session: LiveLessonSession | null; publicState?: LivePublicState | null; definition?: LiveLessonDefinition | null; userUid?: string | null; userIsAnonymous?: boolean }): string | null => {
   const parsedMode = parseLiveLessonMode(mode);
-  if (!parsedMode) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=teacher, mode=tv, mode=student hoặc mode=tv-control.';
+  if (!parsedMode) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=tv-control (màn giáo viên), mode=tv (màn chiếu) hoặc mode=student.';
   const ownerMode = isOwnerLiveLessonMode(parsedMode);
   if (ownerMode) {
     if (!session) return 'Không tìm thấy phiên tiết trực tiếp này. Bạn có thể quay lại và mở một phiên mới.';
