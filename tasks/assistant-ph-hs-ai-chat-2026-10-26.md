@@ -70,6 +70,7 @@
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)
 - `ad35cdd` fix: xử lý reasoning model
 - `b2cd474` chore: gỡ log chẩn đoán
+- `5fa1979` feat: việc 4 — HS nộp bài bằng ảnh qua bot, chấm AI báo điểm Zalo
 
 ## Deploy hiện tại
 
