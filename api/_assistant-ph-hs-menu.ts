@@ -56,8 +56,34 @@ const trendText = (report: ParentSafeReport): string => {
 const scoreText = (score: number | null | undefined, maxScore: number | null | undefined): string =>
   `${score ?? '-'}/${maxScore ?? '-'}`;
 
+/** Nhận xét rút gọn cho tin nhắn: bỏ ký hiệu định dạng, gọn 1 dòng, tối đa ~80 ký tự. */
+const shortFeedback = (feedback: string): string => {
+  const flat = feedback.replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
+  return flat.length > 80 ? `${flat.slice(0, 79).trimEnd()}…` : flat;
+};
+
 /** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
 const MENU_HINT = 'Nhắn 0 để xem lại menu.';
+
+/**
+ * Link web gửi qua bot phải là tin THUẦN (không markdown) để URL render thành link bấm được.
+ * PH → cổng phụ huynh /ph/<mã lớp>; HS → cổng học sinh /lop/<mã lớp>. Vào bằng mã lớp + PIN,
+ * giống hệt cách liên kết bot — không cần tài khoản.
+ */
+export const WEB_PORTAL_BASE = 'https://giaoandewey.vercel.app';
+export const webLinkText = (role: MenuRole, joinCode: string): string => (role === 'student'
+  ? [`Nộp bài / làm bài tập trên web:`,
+    `${WEB_PORTAL_BASE}/lop/${joinCode}`,
+    '',
+    'Mở link, chọn tên của em và nhập mã PIN học sinh (do thầy cô cấp).',
+    '',
+    MENU_HINT].join('\n')
+  : [`Xem báo cáo học tập của con trên web:`,
+    `${WEB_PORTAL_BASE}/ph/${joinCode}`,
+    '',
+    'Mở link, chọn tên con và nhập mã PIN phụ huynh (do thầy cô cấp).',
+    '',
+    MENU_HINT].join('\n'));
 
 /** Sinh nội dung 1 mục menu từ báo cáo PH an toàn (không cần thêm truy vấn). */
 export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set(), role: MenuRole = 'parent'): string => {
@@ -81,7 +107,13 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
       // Mục 2 = BTVN các ngày (KHÔNG gồm bài kiểm tra định kì — bài đó ở mục 7).
       const graded = report.results.filter(item => item.status === 'official' && !isPeriodic(item.assignmentId));
       if (!graded.length) return `Chưa có bài tập nào được chấm cho ${name}.`;
-      const lines = graded.slice(0, 8).map(item => `• ${item.title}: ${scoreText(item.score, item.maxScore)}`);
+      // Bản HS: kèm nhận xét GV cho từng bài đã duyệt (chỉ có trên báo cáo role=student).
+      // Giảm xuống 5 bài để tin không phình; PH giữ nguyên 8 bài, không có nhận xét.
+      const forStudent = role === 'student';
+      const lines = graded.slice(0, forStudent ? 5 : 8).map(item => {
+        const score = `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
+        return forStudent && item.feedback ? `${score}\n  ${shortFeedback(item.feedback)}` : score;
+      });
       return [`Bài tập đã chấm của ${name} (${graded.length}):`, ...lines, '', 'Bài kiểm tra định kì: nhắn 7.'].join('\n');
     }
     case '3': {
@@ -111,6 +143,7 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
     case '6':
       return [`Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
         'Mục 1–5 và 7 xem dữ liệu của chính học sinh này.',
+        'Xem báo cáo / nộp bài trên web: nhắn web.',
         'Muốn đổi em khác: nhắn `<mã lớp> <PIN> phụ huynh`.',
         'Quên PIN: nhắn `/khoiphuc <mã học sinh> <số điện thoại>`.'].join('\n');
     case '7': {
@@ -130,22 +163,24 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
   }
 };
 
-export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'invalid' };
+export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'invalid' };
 
-/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu. */
+/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal. */
 export const parseMenuChoice = (raw: string): MenuChoice => {
   const token = raw.normalize('NFC').trim();
   if (token === '0' || token === '' || /^(menu|m)$/i.test(token)) return { kind: 'menu' };
+  if (/^(web|website|link)$/i.test(token)) return { kind: 'link' };
   if (/^[1-7]$/.test(token)) return { kind: 'section', key: token as MenuKey };
   return { kind: 'invalid' };
 };
 
 /** Nạp dữ liệu cần cho báo cáo — toàn bộ theo (classId, studentId) từ link. */
-export interface ParentReportBundle { report: ParentSafeReport; periodicIds: Set<string> }
+export interface ParentReportBundle { report: ParentSafeReport; periodicIds: Set<string>; joinCode: string }
 export const loadParentReport = async (
   db: FirebaseFirestore.Firestore,
   classId: string,
   studentId: string,
+  role: MenuRole = 'parent',
 ): Promise<ParentReportBundle | null> => {
   const classSnap = await db.collection('classes').doc(classId).get();
   const cls = (classSnap.data() as any) ?? {};
@@ -168,8 +203,10 @@ export const loadParentReport = async (
     assignments,
     submissions,
     profile: (profileSnap.data() as any) ?? null,
+    // Bản HS được kèm nhận xét GV cho từng bài đã duyệt; bản PH giữ nguyên (không có feedback).
+    includeFeedback: role === 'student',
   });
-  return { report, periodicIds };
+  return { report, periodicIds, joinCode: String(cls.joinCode ?? '') };
 };
 
 /** Trả lời đầy đủ cho 1 tin nhắn của người đã liên kết (menu hoặc mục 1–7). */
@@ -181,10 +218,12 @@ export const parentMenuReply = async (
   role: MenuRole = 'parent',
 ): Promise<string> => {
   const choice = parseMenuChoice(raw);
-  const bundle = await loadParentReport(db, classId, studentId);
+  const bundle = await loadParentReport(db, classId, studentId, role);
   if (!bundle) return MENU_REPLIES.noData;
-  const { report, periodicIds } = bundle;
+  const { report, periodicIds, joinCode } = bundle;
   if (choice.kind === 'menu') return menuText(report.studentName, report.className, role);
+  // Tin link web: URL phải nằm trong text THUẦN để Zalo render thành link bấm được.
+  if (choice.kind === 'link') return joinCode ? webLinkText(role, joinCode) : MENU_REPLIES.noData;
   if (choice.kind === 'invalid') return MENU_REPLIES.invalid;
   return menuSectionText(choice.key, report, periodicIds, role);
 };

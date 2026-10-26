@@ -144,3 +144,34 @@ describe('chat AI — gọi model', () => {
     } finally { spy.mockRestore(); }
   });
 });
+
+describe('chat AI theo vai trò (C11)', () => {
+  it('C11a: prompt HS gọi "em", không xưng "anh/chị"; prompt PH giữ nguyên', () => {
+    const hs = buildSystemPrompt('DỮ LIỆU GIẢ', 'student');
+    expect(hs).toContain('trợ lý hỗ trợ học sinh');
+    expect(hs).toContain('gọi người nhắn là "em"');
+    expect(hs).not.toContain('anh/chị');
+    const ph = buildSystemPrompt('DỮ LIỆU GIẢ');
+    expect(ph).toContain('anh/chị');
+  });
+
+  it('C11b: ngữ cảnh HS có nhận xét GV đã duyệt; ngữ cảnh PH không có', () => {
+    const withFeedback = {
+      ...report,
+      results: [{ ...report.results[0], feedback: 'Cần cẩn thận phép chia có dư' }],
+    } as any;
+    const hs = buildAiContext(withFeedback, periodic, 'student');
+    expect(hs).toContain('Nhận xét của giáo viên theo bài');
+    expect(hs).toContain('Cần cẩn thận phép chia có dư');
+    const ph = buildAiContext(withFeedback, periodic);
+    expect(ph).not.toContain('Cần cẩn thận phép chia có dư');
+    expect(ph).toContain('Gợi ý cho phụ huynh');
+  });
+
+  it('C11c: answerParentQuestion role student → prompt gửi đi là bản HS', async () => {
+    const call = vi.fn().mockResolvedValue('Bài của em làm tốt.');
+    await answerParentQuestion(call, 'bài của em thế nào?', report, periodic, 'student');
+    expect(call).toHaveBeenCalledTimes(1);
+    expect(call.mock.calls[0][0]).toContain('gọi người nhắn là "em"');
+  });
+});

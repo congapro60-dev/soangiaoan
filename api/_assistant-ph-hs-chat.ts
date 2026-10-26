@@ -4,7 +4,8 @@
  * Nguyên tắc (chốt 25/10):
  * - AI chỉ được nói điều CÓ TRONG báo cáo an toàn của đúng em đã liên kết. Không có trong
  *   báo cáo → phải nói "chưa có thông tin", KHÔNG được suy đoán. PH đọc sai điểm là chuyện lớn.
- * - Không bao giờ đưa `grade.feedback`, điểm chưa duyệt, hay dữ liệu em khác vào prompt.
+ * - Feedback GV (`grade.feedback`) CHỈ vào prompt bản HS, và chỉ với bài đã duyệt. Điểm chưa
+ *   duyệt và dữ liệu em khác không bao giờ vào prompt.
  * - Câu hỏi chung (cách dạy con, quản lý thời gian) được trả lời bằng kiến thức chung, nhưng
  *   phải nói rõ đó là gợi ý chung, không phải nhận xét về con.
  * - Mọi câu trả lời đi qua `sanitizeAiReply` để chặn lộ mã nội bộ / số điện thoại.
@@ -13,17 +14,20 @@ import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js'
 
 export const AI_CHAT_REPLIES = {
   unavailable: 'Trợ lý AI đang bận. Bạn nhắn 0 để xem menu hoặc thử lại sau ít phút.',
-  empty: 'Mình chưa rõ câu hỏi. Bạn nhắn 0 để xem menu, hoặc hỏi cụ thể hơn về việc học của con.',
+  empty: 'Mình chưa rõ câu hỏi. Bạn nhắn 0 để xem menu, hoặc hỏi cụ thể hơn về việc học.',
 } as const;
 
 /** Câu chốt LUÔN nằm cuối mọi câu trả lời AI — PH không phải nhớ cú pháp. */
 export const AI_MENU_HINT = 'Nhắn 0 để xem lại menu.';
 
+export type ChatRole = 'parent' | 'student';
+
 /**
  * Dựng ngữ cảnh cho AI từ báo cáo an toàn.
- * CHỈ dùng số liệu đã lọc (official = điểm GV đã duyệt). Không kèm feedback từng bài.
+ * CHỈ dùng số liệu đã lọc (official = điểm GV đã duyệt). Bản PH không kèm feedback từng bài;
+ * bản HS được kèm nhận xét GV cho bài đã duyệt (có trong report.results khi includeFeedback).
  */
-export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySet<string>): string => {
+export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: ChatRole = 'parent'): string => {
   const isPeriodic = (id: string) => periodicIds.has(id);
   const graded = report.results.filter(item => item.status === 'official');
   const bt = graded.filter(item => !isPeriodic(item.assignmentId));
@@ -48,26 +52,44 @@ export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySe
   }
   if (report.strengths.length) lines.push(`Điểm mạnh: ${report.strengths.join('; ')}`);
   if (report.areasToPractice.length) lines.push(`Cần luyện thêm: ${report.areasToPractice.join('; ')}`);
-  if (report.parentActions.length) lines.push(`Gợi ý cho phụ huynh: ${report.parentActions.join('; ')}`);
+  if (role === 'student') {
+    // HS được hỏi về nhận xét của GV cho bài của chính mình — đưa feedback đã duyệt vào ngữ cảnh.
+    const withFeedback = report.results.filter(item => item.status === 'official' && item.feedback);
+    if (withFeedback.length) {
+      lines.push('Nhận xét của giáo viên theo bài:');
+      for (const item of withFeedback.slice(0, 8)) {
+        lines.push(`- ${item.title} (${item.score ?? '-'}/${item.maxScore ?? '-'}): ${String(item.feedback).replace(/\s+/g, ' ').slice(0, 300)}`);
+      }
+    }
+  } else if (report.parentActions.length) {
+    lines.push(`Gợi ý cho phụ huynh: ${report.parentActions.join('; ')}`);
+  }
   return lines.join('\n');
 };
 
-/** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. */
-export const buildSystemPrompt = (context: string): string => [
-  'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam.',
-  'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, gọi phụ huynh là "anh/chị".',
-  '',
-  'QUY TẮC BẮT BUỘC:',
-  '1. Chỉ nói về điểm số, bài tập, nhận xét CÓ TRONG phần DỮ LIỆU dưới đây.',
-  '2. Nếu dữ liệu không có thông tin được hỏi, trả lời đúng ý: "Dữ liệu hiện có chưa ghi nhận thông tin này, anh/chị nhắn thầy cô để rõ hơn." KHÔNG được suy đoán, KHÔNG bịa thêm bài hay điểm.',
-  '3. Không hứa hẹn về điểm số tương lai, không cam kết kết quả thi.',
-  '4. Không nhắc tên, điểm, hay thông tin của học sinh khác.',
-  '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
-  '6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với nhận xét về con.',
-  '',
-  'DỮ LIỆU:',
-  context,
-].join('\n');
+/** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. Văn phong theo vai trò. */
+export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): string => {
+  const student = role === 'student';
+  return [
+    student
+      ? 'Bạn là trợ lý hỗ trợ học sinh của một giáo viên Toán ở Việt Nam.'
+      : 'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam.',
+    student
+      ? 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, khích lệ, gọi người nhắn là "em" — em đang hỏi về bài của chính mình.'
+      : 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, gọi phụ huynh là "anh/chị".',
+    '',
+    'QUY TẮC BẮT BUỘC:',
+    '1. Chỉ nói về điểm số, bài tập, nhận xét CÓ TRONG phần DỮ LIỆU dưới đây.',
+    `2. Nếu dữ liệu không có thông tin được hỏi, trả lời đúng ý: "Dữ liệu hiện có chưa ghi nhận thông tin này, ${student ? 'em' : 'anh/chị'} nhắn thầy cô để rõ hơn." KHÔNG được suy đoán, KHÔNG bịa thêm bài hay điểm.`,
+    '3. Không hứa hẹn về điểm số tương lai, không cam kết kết quả thi.',
+    '4. Không nhắc tên, điểm, hay thông tin của học sinh khác.',
+    '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
+    `6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với ${student ? 'nhận xét về bài của em' : 'nhận xét về con'}.`,
+    '',
+    'DỮ LIỆU:',
+    context,
+  ].join('\n');
+};
 
 /**
  * Chặn rò rỉ: bỏ số điện thoại, mã HS, mã lớp, và mọi chuỗi giống token nội bộ.
@@ -134,7 +156,7 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => 
 };
 
 /**
- * Xử lý 1 câu hỏi tự do của PH.
+ * Xử lý 1 câu hỏi tự do của PH/HS.
  * Trả `null` khi input rỗng (để caller dùng câu mặc định).
  */
 export const answerParentQuestion = async (
@@ -142,11 +164,12 @@ export const answerParentQuestion = async (
   question: string,
   report: ParentSafeReport,
   periodicIds: ReadonlySet<string>,
+  role: ChatRole = 'parent',
   signal?: AbortSignal,
 ): Promise<string | null> => {
   const q = String(question ?? '').trim();
   if (!q) return null;
-  const context = buildAiContext(report, periodicIds);
-  const raw = await call(buildSystemPrompt(context), q.slice(0, 1000), signal);
+  const context = buildAiContext(report, periodicIds, role);
+  const raw = await call(buildSystemPrompt(context, role), q.slice(0, 1000), signal);
   return composeAiReply(raw);
 };

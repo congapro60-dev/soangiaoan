@@ -238,4 +238,34 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect(parentMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's', '7', role);
     expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
   });
+
+  const parentActor = { firebaseUid: 'pinlink:parent:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'plink', active: true, role: 'parent', classId: 'c', studentId: 's' } as any;
+
+  it('menu nhiều dòng gửi markdown (in đậm dòng đầu); link web gửi thuần nguyên URL', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    vi.mocked(parentMenuReply).mockResolvedValueOnce('TIÊU ĐỀ\nDòng nội dung');
+    await request(event('1', 'm-1'));
+    expect(sent()[0][0]).toContain('/sendMessage');
+    expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
+    expect(JSON.parse(sent()[0][1].body).text).toContain('**TIÊU ĐỀ**');
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    vi.mocked(parentMenuReply).mockResolvedValueOnce('Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT');
+    await request(event('web', 'm-2'));
+    // Link phải nguyên URL, KHÔNG parse_mode, KHÔNG bị output() che thành [đã ẩn liên kết]
+    expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT' });
+  });
+
+  it('markdown parse lỗi → tự gửi lại bản thuần đúng 1 lần', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    vi.mocked(parentMenuReply).mockResolvedValueOnce('TIÊU ĐỀ\nDòng nội dung');
+    fetchMock.mockImplementation(async (url: unknown) => {
+      if (String(url).endsWith('/sendMessage')) return { ok: false, json: async () => ({ ok: false }) };
+      return { ok: true, json: async () => ({ ok: true, result: { id: 'bot-1' } }) };
+    });
+    const result = await request(event('1', 'm-1'));
+    expect(result.code).toBe(200);
+    expect(sent()).toHaveLength(2);
+    expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
+    expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'TIÊU ĐỀ\nDòng nội dung' });
+  });
 });

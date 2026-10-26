@@ -18,6 +18,8 @@ export interface ParentSafeReportInput {
   assignments?: readonly ParentSafeAssignmentInput[];
   submissions: readonly SubmissionDoc[];
   profile?: StudentProfileDoc | null;
+  /** true = bản HỌC SINH đọc: kèm `grade.feedback` cho từng bài đã duyệt. Mặc định false (bản PH). */
+  includeFeedback?: boolean;
 }
 
 export interface ParentSafeAssignmentResult {
@@ -29,6 +31,8 @@ export interface ParentSafeAssignmentResult {
   dueAt?: string;
   score: number | null;
   maxScore: number | null;
+  /** Nhận xét của GV cho bài này — CHỈ có trên bản HS (includeFeedback) và chỉ với bài đã duyệt. */
+  feedback?: string;
 }
 
 export interface ParentSafeReport {
@@ -107,11 +111,16 @@ const titleFor = (assignment: ParentSafeAssignmentInput | undefined, submission:
 const resultFromSubmission = (
   assignment: ParentSafeAssignmentInput | undefined,
   submission: SubmissionDoc,
+  includeFeedback: boolean,
 ): ParentSafeAssignmentResult => {
-  // KHÔNG kèm `grade.feedback`: đó là nhận xét cho HỌC SINH đọc, thường nhắc số câu/bài cụ thể
-  // ("**Câu 3** sai vì…"), không dành cho bản phụ huynh. Bản phụ huynh chỉ có điểm + trạng thái.
+  // KHÔNG kèm `grade.feedback` trên bản PH: đó là nhận xét cho HỌC SINH đọc, thường nhắc số câu/bài
+  // cụ thể ("**Câu 3** sai vì…"), không dành cho phụ huynh. Bản phụ huynh chỉ có điểm + trạng thái.
+  // Bản HS (includeFeedback) nhận feedback, nhưng CHỈ từ bài đã duyệt — validScorePair đã kiểm
+  // `status === 'graded'` + `teacherApproved`, nên điểm/nhận xét CHƯA duyệt không bao giờ lộ.
   const pair = validScorePair(submission);
   const official = pair !== null;
+  const rawFeedback = includeFeedback && official ? submission.grade?.feedback : undefined;
+  const feedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : '';
   return {
     assignmentId: assignment?.id || submission.assignmentId || `self:${submission.id}`,
     title: titleFor(assignment, submission),
@@ -120,6 +129,7 @@ const resultFromSubmission = (
     ...(assignment?.dueAt ? { dueAt: assignment.dueAt } : {}),
     score: official ? pair.score : null,
     maxScore: official ? pair.maxScore : null,
+    ...(feedback ? { feedback } : {}),
   };
 };
 
@@ -199,6 +209,7 @@ const buildTeacherActions = (weakCount: number, pendingCount: number): string[] 
 };
 
 export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeReport => {
+  const includeFeedback = input.includeFeedback === true;
   const assignments = [...(input.assignments || [])];
   const assignmentById = new Map(assignments.map(assignment => [assignment.id, assignment]));
   const latestByAssignment = new Map<string, SubmissionDoc>();
@@ -225,7 +236,7 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   const results: ParentSafeAssignmentResult[] = assignments.map(assignment => {
     const submission = chosenByAssignment.get(assignment.id);
     return submission
-      ? resultFromSubmission(assignment, submission)
+      ? resultFromSubmission(assignment, submission, includeFeedback)
       : {
         assignmentId: assignment.id,
         title: assignment.title,
@@ -237,7 +248,7 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   });
 
   for (const [key, submission] of chosenByAssignment) {
-    if (key.startsWith('self:') || !assignmentById.has(key)) results.push(resultFromSubmission(assignmentById.get(key), submission));
+    if (key.startsWith('self:') || !assignmentById.has(key)) results.push(resultFromSubmission(assignmentById.get(key), submission, includeFeedback));
   }
   results.sort((left, right) => timestamp(right.submittedAt) - timestamp(left.submittedAt) || left.title.localeCompare(right.title, 'vi'));
 

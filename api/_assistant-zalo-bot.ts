@@ -29,6 +29,30 @@ const send = async (token: string, chatId: string, message: string) => {
     await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: output(message) }) });
   } catch { /* ambiguous send: never retry or expose credentials */ }
 };
+/** Escape ký tự markdown của Zalo để dữ liệu động (tên, tiêu đề) không vỡ định dạng. */
+const escMd = (value: string): string => value.replace(/[*_~]/g, '\\$&');
+/**
+ * Gửi tin cho PH/HS ĐÃ liên kết: nội dung do hệ tự dựng (không qua output() che link) và
+ * markdown khi nhiều dòng (in đậm dòng tiêu đề). Parse lỗi → tự gửi lại bản thuần.
+ * Tin 1 dòng gửi thuần như cũ. Lỗi mạng = ambiguous: KHÔNG retry (giống send()).
+ */
+const sendStyled = async (token: string, chatId: string, message: string, markdown = true): Promise<void> => {
+  const url = `${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`;
+  const post = (body: Record<string, unknown>) => fetch(url, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const plain = () => post({ chat_id: chatId, text: message.slice(0, 2000) });
+  if (!markdown || !message.includes('\n')) { try { await plain(); } catch { /* ambiguous */ } return; }
+  const lines = message.split('\n').map(escMd);
+  const md = `**${lines[0]}**\n${lines.slice(1).join('\n')}`.slice(0, 2000);
+  try {
+    const res = await post({ chat_id: chatId, text: md, parse_mode: 'markdown' });
+    if (res.ok) return;
+  } catch { return; /* ambiguous: không biết tin đã tới chưa, không retry */ }
+  try { await plain(); } catch { /* ambiguous */ }
+};
+/** Hiện "đang nhập..." trong lúc AI suy nghĩ — fire-and-forget, lỗi bỏ qua. */
+const sendTyping = (token: string, chatId: string): void => {
+  void fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendChatAction`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, action: 'typing' }) }).catch(() => { /* không quan trọng */ });
+};
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
 const TEACHER_COMMANDS = new Set(['/classes', '/confirm', '/cancel', '/status']);
 const STRANGER_HINT = 'Để liên kết, gửi tin theo mẫu: phụ huynh <mã lớp> <mã PIN> hoặc học sinh <mã lớp> <mã PIN> (mã PIN do thầy cô cấp).';
@@ -115,17 +139,25 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
-    // Menu (0–7) đi trước; tin không khớp menu thì chuyển cho trợ lý AI trả lời tự do.
+    // Menu (0–7) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
-    if (choice.kind !== 'invalid') return parentMenuReply(getAdminDb(), classId, studentId, message, role);
-    const bundle = await loadParentReport(getAdminDb(), classId, studentId);
+    if (choice.kind !== 'invalid') {
+      const menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
+      // Cả hai đường đều KHÔNG qua output() (che link) vì nội dung do hệ tự dựng:
+      // link web gửi THUẦN để URL render được; menu gửi markdown (lỗi parse tự fallback).
+      if (choice.kind === 'link') await sendStyled(token, chatId, menuReply, false);
+      else await sendStyled(token, chatId, menuReply);
+      return '';
+    }
+    const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return MENU_REPLIES.noData;
     // AI CHAT PH chỉ dùng key RIÊNG (PH_CHAT_VILAO_KEY) — tách khỏi key chấm bài để theo dõi
     // chi phí độc lập và không tiêu nhầm hạn mức chấm bài. Không có key thì báo "bận", không im lặng.
     const apiKey = String(process.env.PH_CHAT_VILAO_KEY || '');
     if (!apiKey) return AI_CHAT_REPLIES.unavailable;
+    sendTyping(token, chatId); // "đang nhập..." trong lúc AI suy nghĩ — lỗi thì bỏ qua
     try {
-      const aiReply = await answerParentQuestion(vilaoCaller(apiKey), message, bundle.report, bundle.periodicIds);
+      const aiReply = await answerParentQuestion(vilaoCaller(apiKey), message, bundle.report, bundle.periodicIds, role);
       return aiReply ?? MENU_REPLIES.invalid;
     } catch {
       return AI_CHAT_REPLIES.unavailable;

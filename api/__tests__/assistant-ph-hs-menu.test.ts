@@ -239,3 +239,41 @@ describe('menu theo vai trò (M13)', () => {
     expect(out).not.toContain('undefined');
   });
 });
+
+describe('link web + feedback HS (M14)', () => {
+  it('M14a: nhắn web/link → nhận đúng link portal theo vai trò, kèm nhắc menu', async () => {
+    const db = seed();
+    expect(parseMenuChoice('link')).toEqual({ kind: 'link' });
+    expect(parseMenuChoice('WEB')).toEqual({ kind: 'link' });
+    expect(parseMenuChoice('webcam')).toEqual({ kind: 'invalid' });
+    const ph = await parentMenuReply(db.db, 'c', 's1', 'web', 'parent');
+    expect(ph).toContain('https://giaoandewey.vercel.app/ph/AD4GKT');
+    expect(ph).not.toContain('/lop/');
+    expect(ph).toContain('Nhắn 0 để xem lại menu.');
+    const hs = await parentMenuReply(db.db, 'c', 's1', 'website', 'student');
+    expect(hs).toContain('https://giaoandewey.vercel.app/lop/AD4GKT');
+  });
+
+  it('M14b: mục 2 bản HS kèm nhận xét GV đã duyệt; bản PH không kèm', async () => {
+    const db = seed();
+    db.put('submissions/sub1', { classId: 'c', studentId: 's1', assignmentId: 'a1', status: 'graded', grade: { score: 8, maxScore: 10, teacherApproved: true, feedback: 'Em làm tốt dạng cơ bản, cần cẩn thận hơn với phép chia có dư.' }, createdAt: '2026-10-21T00:00:00Z' });
+    const hs = (await loadParentReport(db.db, 'c', 's1', 'student'))!;
+    expect(hs.report.results[0]?.feedback).toContain('phép chia có dư');
+    expect(menuSectionText('2', hs.report, new Set(), 'student')).toContain('Em làm tốt dạng cơ bản');
+    const ph = (await loadParentReport(db.db, 'c', 's1'))!;
+    expect(ph.report.results[0]?.feedback).toBeUndefined();
+    expect(menuSectionText('2', ph.report, new Set())).not.toContain('Em làm tốt dạng cơ bản');
+  });
+
+  it('M14c: feedback CHƯA duyệt tuyệt đối không lọt vào bản HS', async () => {
+    const db = seed();
+    db.put('submissions/sub1', { classId: 'c', studentId: 's1', assignmentId: 'a1', status: 'graded', grade: { score: 9.876, maxScore: 10, teacherApproved: false, feedback: 'NOI_DUNG_CHUA_DUYET' }, createdAt: '2026-10-21T00:00:00Z' });
+    const hs = (await loadParentReport(db.db, 'c', 's1', 'student'))!;
+    expect(JSON.stringify(hs.report.results)).not.toContain('NOI_DUNG_CHUA_DUYET');
+  });
+
+  it('M14d: mục 6 hướng dẫn cách nhận link web', async () => {
+    const db = seed();
+    expect(await parentMenuReply(db.db, 'c', 's1', '6')).toContain('nhắn web');
+  });
+});
