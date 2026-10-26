@@ -11,14 +11,22 @@ import { getAllBanToanV4Contracts, getBanToanV4Contract, getBanToanV4DisplayTitl
 import { validateV4Contract } from './validateContract';
 import type { AdaptiveLesson } from '../../adaptive/types';
 import { buildPilotAdaptiveLesson } from '../pilotAdaptiveLesson';
+import { W11BATCH2 } from './week11Batch2Catalog';
+
+// Tổng gói sau merge = pin MAIN 51 + số bài batch2 (công thức, không literal).
+const MAIN_PIN = 51;
+const TOTAL_MERGED = MAIN_PIN + W11BATCH2.length;
 
 describe('sequentialPublication', () => {
   // ── Pure: 48 lessons ready from generator ────────────────────────────
 
-  describe('51 source keys exist and all contracts validate', () => {
-    it('returns exactly 51 source keys', () => {
+  describe('all source keys exist and all contracts validate', () => {
+    it('pins MAIN at 51 keys and adds batch2 keys on top', () => {
       const keys = getAllSourceKeys();
-      expect(keys).toHaveLength(51);
+      const batch2Keys = new Set(W11BATCH2.map((entry) => entry.key));
+      const mainKeys = keys.filter((key) => !batch2Keys.has(key));
+      expect(mainKeys).toHaveLength(MAIN_PIN);
+      expect(keys).toHaveLength(TOTAL_MERGED);
     });
 
     it('every sourceKey has a valid contract', () => {
@@ -30,7 +38,7 @@ describe('sequentialPublication', () => {
       }
     });
 
-    it('all 51 contracts pass validateV4Contract', () => {
+    it('all merged contracts pass validateV4Contract', () => {
       for (const contract of getAllBanToanV4Contracts()) {
         const result = validateV4Contract(contract);
         expect(result.ok).toBe(true);
@@ -39,10 +47,10 @@ describe('sequentialPublication', () => {
     });
   });
 
-  describe('51 canonical drafts pass audit', () => {
-    it('builds and audits all 51 drafts successfully', () => {
+  describe('canonical drafts pass audit', () => {
+    it('builds and audits all merged drafts successfully', () => {
       const keys = getAllSourceKeys();
-      expect(keys).toHaveLength(51);
+      expect(keys).toHaveLength(TOTAL_MERGED);
 
       const failures: Array<{ key: string; issues: string[] }> = [];
       for (const key of keys) {
@@ -192,8 +200,8 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(51);
-      expect(publishedOrder).toHaveLength(51);
+      expect(result).toHaveLength(TOTAL_MERGED);
+      expect(publishedOrder).toHaveLength(TOTAL_MERGED);
 
       // Verify order matches getAllSourceKeys()
       const expectedOrder = getAllSourceKeys();
@@ -222,10 +230,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      // 51 results: 50 published + 1 error
-      expect(result).toHaveLength(51);
+      // Merged results: all published except the single simulated error
+      expect(result).toHaveLength(TOTAL_MERGED);
       const stats = summarizeReports(result);
-      expect(stats.published).toBe(50);
+      expect(stats.published).toBe(TOTAL_MERGED - 1);
       expect(stats.errors).toBe(1);
 
       // The 5th key should be the error
@@ -234,7 +242,7 @@ describe('sequentialPublication', () => {
       expect(errorReport?.sourceKey).toBe(getAllSourceKeys()[4]);
 
       // Remaining lessons still published
-      expect(publishedOrder).toHaveLength(50);
+      expect(publishedOrder).toHaveLength(TOTAL_MERGED - 1);
     });
 
     it('continues after audit failure on one lesson', async () => {
@@ -255,10 +263,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(51);
+      expect(result).toHaveLength(TOTAL_MERGED);
       const stats = summarizeReports(result);
       // 10-5-31 should fail audit, rest should publish
-      expect(stats.published).toBe(50);
+      expect(stats.published).toBe(TOTAL_MERGED - 1);
       expect(stats.failed).toBe(1);
       const failedReport = result.find((r) => r.sourceKey === '10-5-31');
       expect(failedReport?.status).toBe('audit_failed');
@@ -288,10 +296,10 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      expect(result).toHaveLength(51);
+      expect(result).toHaveLength(TOTAL_MERGED);
       const stats = summarizeReports(result);
       expect(stats.skipped).toBe(3);
-      expect(stats.published).toBe(48);
+      expect(stats.published).toBe(TOTAL_MERGED - 3);
 
       // Published lessons should not include the 3 skipped
       expect(publishedOrder).not.toContain('10-5-32');
@@ -318,7 +326,7 @@ describe('sequentialPublication', () => {
 
       const stats = summarizeReports(result);
       expect(stats.skipped).toBe(1);
-      expect(stats.published).toBe(50);
+      expect(stats.published).toBe(TOTAL_MERGED - 1);
       expect(publishedOrder).not.toContain('10-5-32');
     });
   });
@@ -344,7 +352,7 @@ describe('sequentialPublication', () => {
     expect(saved?.knowledgeUnits[0]?.routes).toHaveLength(3);
   });
 
-  it('publishes 51 logical lessons when the legacy demo already occupies P31', async () => {
+  it('publishes all merged lessons when the legacy demo already occupies P31', async () => {
     const existingLessons = new Map<string, AdaptiveLesson>([
       ['10-5-31', buildPilotAdaptiveLesson('teacher-1', '2026-08-20T10:00:00.000Z')],
     ]);
@@ -356,12 +364,12 @@ describe('sequentialPublication', () => {
       save: async (lesson) => { saved.push(lesson); },
     });
 
-    expect(result).toHaveLength(51);
-    expect(summarizeReports(result)).toMatchObject({ published: 51, skipped: 0, failed: 0, errors: 0 });
-    expect(saved).toHaveLength(51);
+    expect(result).toHaveLength(TOTAL_MERGED);
+    expect(summarizeReports(result)).toMatchObject({ published: TOTAL_MERGED, skipped: 0, failed: 0, errors: 0 });
+    expect(saved).toHaveLength(TOTAL_MERGED);
     expect(saved.filter(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')).toHaveLength(1);
     expect(saved.find(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')?.id).toBe('tds-g10-30-pilot');
-    expect(new Set(saved.map(lesson => lesson.id)).size).toBe(51);
+    expect(new Set(saved.map(lesson => lesson.id)).size).toBe(TOTAL_MERGED);
   });
 
   it('normalizes an existing draft to the canonical searchable title before publishing', async () => {
@@ -436,9 +444,9 @@ describe('sequentialPublication', () => {
         save,
       });
 
-      // all 51 should be published (new canonical drafts)
+      // all merged lessons should be published (new canonical drafts)
       const stats = summarizeReports(result);
-      expect(stats.published).toBe(51);
+      expect(stats.published).toBe(TOTAL_MERGED);
     });
 
     it('blocks lesson with tampered content that fails audit', async () => {

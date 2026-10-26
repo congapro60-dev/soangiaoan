@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { W11BATCH2 } from './week11Batch2Catalog';
 import { getAllBanToanV4Contracts, getBanToanV4Contract } from './lessonAdapter';
 import { buildLiveLessonDefinitionFromV4 } from './runtimeDefinition';
 import { validateLiveLessonDefinition } from '../definition';
@@ -65,7 +66,8 @@ describe('V4 contract → live lesson runtime definition', () => {
   it('builds a valid 40-minute runtime for every source package', () => {
     const contracts = getAllBanToanV4Contracts();
 
-    expect(contracts).toHaveLength(51);
+    // Pin MAIN 51 + batch2 (công thức, không literal — xem week11Batch2Catalog.ts).
+    expect(contracts).toHaveLength(51 + W11BATCH2.length);
     contracts.forEach((contract) => {
       const definition = buildLiveLessonDefinitionFromV4(contract, `lesson-${contract.sourceKey}`);
 

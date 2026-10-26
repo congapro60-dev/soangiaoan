@@ -6,6 +6,7 @@ import {
   getBanToanV4DisplayTitle,
   getBanToanV4PackageMetadata,
 } from './lessonAdapter';
+import { W11BATCH2 } from './week11Batch2Catalog';
 
 describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
   it('builds the three representative modes with source identity', () => {
@@ -43,17 +44,21 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
     }
   });
 
-  it('generates exactly 51 unique packages without relying on stale lesson-data.json', () => {
+  it('pins 51 MAIN packages and merges batch2 keys without relying on stale lesson-data.json', () => {
     const contracts = getAllBanToanV4Contracts();
     const metadata = getBanToanV4PackageMetadata();
+    const batch2Keys = new Set(W11BATCH2.map((entry) => entry.key));
+    const mainContracts = contracts.filter((contract) => !batch2Keys.has(contract.sourceKey));
 
-    expect(contracts).toHaveLength(51);
-    expect(metadata).toHaveLength(51);
-    expect(new Set(contracts.map((contract) => contract.sourceKey)).size).toBe(51);
-    expect(new Set(contracts.map((contract) => contract.id)).size).toBe(51);
-    expect(contracts.filter((contract) => contract.lessonMode === 'formation')).toHaveLength(24);
-    expect(contracts.filter((contract) => contract.lessonMode === 'practice')).toHaveLength(17);
-    expect(contracts.filter((contract) => contract.lessonMode === 'elective-practice')).toHaveLength(10);
+    // Pin bất biến file gốc Tuần 5–6, rồi tổng merged = pin + batch2 (công thức).
+    expect(mainContracts).toHaveLength(51);
+    expect(contracts).toHaveLength(51 + W11BATCH2.length);
+    expect(metadata).toHaveLength(51 + W11BATCH2.length);
+    expect(new Set(contracts.map((contract) => contract.sourceKey)).size).toBe(51 + W11BATCH2.length);
+    expect(new Set(contracts.map((contract) => contract.id)).size).toBe(51 + W11BATCH2.length);
+    expect(mainContracts.filter((contract) => contract.lessonMode === 'formation')).toHaveLength(24);
+    expect(mainContracts.filter((contract) => contract.lessonMode === 'practice')).toHaveLength(17);
+    expect(mainContracts.filter((contract) => contract.lessonMode === 'elective-practice')).toHaveLength(10);
     expect(contracts.every((contract) => validateV4Contract(contract).ok)).toBe(true);
   });
 

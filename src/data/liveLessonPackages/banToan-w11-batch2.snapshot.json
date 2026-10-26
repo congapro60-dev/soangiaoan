@@ -1,11 +1,118 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-26T00:00:00.000Z",
+  "generatedAt": "2026-10-27T00:00:00.000Z",
   "source": {
     "directoryHint": "tasks/giaoan-goc-w11-batch2",
-    "files": {},
-    "fingerprint": "w11-batch2-empty"
+    "files": {
+      "tasks/giaoan-goc-10-11-80.md": "82195f3e869d9c69cc1bd0294f49c9d86470cadfa59b72a3c10699e3296d9de9"
+    },
+    "fingerprint": "d32bae2f0f20972a5ce74676a649d97131987fcbd0c07450a3f2a32007f498c9"
   },
-  "lessonSpecs": [],
-  "aiErrors": {}
+  "lessonSpecs": [
+    {
+      "key": "10-11-80",
+      "grade": 10,
+      "week": 11,
+      "period": 80,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "title": "Các số đặc trưng đo xu thế trung tâm",
+      "focus": "Hình thành số trung bình x̄ và số trung vị Me của mẫu không ghép nhóm và của bảng tần số; nhận biết khi nào x̄ bị giá trị ngoại lai bóp méo; kiểm chứng bằng máy tính cầm tay chế độ thống kê",
+      "formulas": [
+        "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{n} x_i",
+        "\\bar{x} = \\dfrac{m_1 x_1 + m_2 x_2 + \\dots + m_k x_k}{n} \\quad (n = m_1 + m_2 + \\dots + m_k)",
+        "n = 2k + 1 \\Rightarrow Me = x_{k+1}",
+        "n = 2k \\Rightarrow Me = \\dfrac{x_k + x_{k+1}}{2}"
+      ],
+      "examples": [
+        {
+          "question": "Bảng lương tháng công ty Công nghệ Alpha: 1 Giám đốc sáng lập 130 triệu/tháng, 1 Trưởng phòng kỹ thuật 25 triệu/tháng, 8 Nhân viên lập trình 10 triệu/tháng mỗi người. Con số nào phản ánh trung thực nhất mức thu nhập tiêu biểu của người lao động trong công ty này?",
+          "solution": "Tổng quỹ lương: 130 + 25 + 8×10 = 235 triệu nên x̄ = 235/10 = 23,5 triệu/tháng. Xếp mười mức lương từ thấp đến cao: 10×8, 25, 130 — vị trí thứ 5 và thứ 6 đều là 10 nên Me = 10 triệu. x̄ = 23,5 triệu cao hơn gấp đôi mức lương của 8/10 nhân viên vì bị giá trị bất thường 130 triệu kéo lên; Me = 10 triệu phản ánh trung thực mức thu nhập tiêu biểu."
+        },
+        {
+          "question": "Cho mẫu số liệu đã được sắp xếp gồm 6 giá trị: 2; 3; 5; 8; 9; 14. Tìm số trung vị Me của mẫu.",
+          "solution": "n = 6 chẵn nên Me = (x₃ + x₄)/2 = (5 + 8)/2 = 6,5. Giá trị 14 không kéo Me lệch vì Me chỉ phụ thuộc hai giá trị chính giữa của dãy đã sắp xếp."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Điểm kiểm tra môn Toán của 8 bạn học sinh tổ 1: 6; 7; 7; 8; 8; 8; 9; 10. Tính số trung bình x̄ của mẫu số liệu.",
+          "answer": "x̄ = (6 + 7×2 + 8×3 + 9 + 10)/8 = 63/8 = 7,875."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm số trung vị Me của mẫu số liệu: 12, 7, 3, 15, 8, 9, 21.",
+          "answer": "Sắp xếp lại: 3, 7, 8, 9, 12, 15, 21; n = 7 lẻ nên Me = x₄ = 9."
+        },
+        {
+          "level": "TH",
+          "question": "Chiều cao của 10 cây giống non: 12 cm — 4 cây, 15 cm — 3 cây, 18 cm — 2 cây, 20 cm — 1 cây. Lập bảng tần số và tính chiều cao trung bình của các cây.",
+          "answer": "n = 4 + 3 + 2 + 1 = 10; x̄ = (12×4 + 15×3 + 18×2 + 20×1)/10 = 149/10 = 14,9 cm."
+        },
+        {
+          "level": "TH",
+          "question": "Điểm thi học kỳ của một bạn gồm bốn điểm 7, năm điểm 8 và một điểm 10. Tính x̄ và Me của mẫu điểm.",
+          "answer": "n = 10; x̄ = (4×7 + 5×8 + 1×10)/10 = 78/10 = 7,8. Dãy đã sắp xếp: 7×4, 8×5, 10 nên Me = (x₅ + x₆)/2 = (8 + 8)/2 = 8."
+        },
+        {
+          "level": "VD",
+          "question": "Cho mẫu số liệu gồm 5 giá trị: 4; 6; 8; x; 12. a) Biết x̄ = 8, tìm x. b) Nếu x bị ghi nhầm thành 100 thì số trung bình mới thay đổi thế nào?",
+          "answer": "a) Tổng của mẫu = 8×5 = 40 nên x = 40 − (4 + 6 + 8 + 12) = 10. b) Tổng mới = 40 − 10 + 100 = 130 nên x̄ mới = 130/5 = 26, tức tăng 18 đơn vị."
+        },
+        {
+          "level": "VD",
+          "question": "Cho mẫu gồm 6 số nguyên dương đã được sắp xếp: 2; 4; 5; a; 9; 11 (5 ≤ a ≤ 9). Biết x̄ = Me, tìm a.",
+          "answer": "Me = (5 + a)/2; x̄ = (2 + 4 + 5 + a + 9 + 11)/6 = (31 + a)/6. (31 + a)/6 = (5 + a)/2 ⇔ 31 + a = 15 + 3a ⇔ a = 8 (thỏa mãn 5 ≤ a ≤ 9)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Bài giải của bạn An: x̄ = (12×4 + 15×3 + 18×2 + 20×1)/4 = 37,25 cm. Bài giải sai ở đâu?",
+          "solution": "Chia cho số dòng của bảng tần số (k = 4) thay vì cỡ mẫu n = 10; hơn nữa 37,25 cm vượt giá trị lớn nhất 20 cm nên chắc chắn sai."
+        },
+        {
+          "question": "Bạn Nam tìm trung vị của mẫu 3, 1, 4, 2, 5 và ghi Me = 4. Bạn Nam sai ở đâu?",
+          "solution": "Lấy số chính giữa của dãy chưa sắp xếp; phải xếp lại 1, 2, 3, 4, 5 rồi mới lấy Me = x₃ = 3."
+        }
+      ],
+      "mistakes": [
+        "Chia tổng cho số dòng bảng tần số $k$ thay vì cỡ mẫu $n = m_1 + m_2 + \\dots + m_k$.",
+        "Lấy số chính giữa của dãy chưa sắp xếp rồi gọi là trung vị.",
+        "Không kiểm tra kết quả nằm trong $[\\min, \\max]$ — trung bình 37,25 cm vượt giá trị lớn nhất 20 cm là vô lý.",
+        "Kết luận bằng chỉ $\\bar{x}$ khi dữ liệu có giá trị ngoại lai mà không đối chiếu $Me$."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Số trung bình (x̄)",
+        "a. Dãy liệt kê: $\\bar{x} = \\dfrac{x_1 + x_2 + \\dots + x_n}{n} = \\dfrac{1}{n}\\sum_{i=1}^{n} x_i$",
+        "b. Bảng tần số: $\\bar{x} = \\dfrac{m_1 x_1 + \\dots + m_k x_k}{n}$ với $n = m_1 + \\dots + m_k$ (chia cho n số liệu, không chia cho k dòng bảng).",
+        "c. $\\bar{x}$ san đều mọi dữ liệu — rất nhạy với giá trị ngoại lai.",
+        "2. Số trung vị (Me)",
+        "a. Bước bắt buộc: sắp xếp mẫu theo thứ tự không giảm.",
+        "b. $n = 2k + 1$: $Me = x_{k+1}$ (vị trí $\\frac{n+1}{2}$).",
+        "c. $n = 2k$: $Me = \\dfrac{x_k + x_{k+1}}{2}$ (vị trí $\\frac{n}{2}$ và $\\frac{n}{2} + 1$).",
+        "d. Me chỉ nghe hai nửa giữa — bền vững trước giá trị bất thường.",
+        "3. Ví dụ dẫn dắt",
+        "a. Bảng lương Alpha: quỹ 235 triệu, $\\bar{x} = 23{,}5$ triệu; xếp tăng 10×8, 25, 130 nên $Me = 10$ triệu.",
+        "b. Mẫu 6 số 2; 3; 5; 8; 9; 14: $Me = \\dfrac{5 + 8}{2} = 6{,}5$.",
+        "4. Phản biện số liệu",
+        "a. Thu nhập quốc tế: Mean 65.000 USD/năm so với Median 42.000 USD/năm — ưu tiên trung vị khi có nhóm siêu giàu.",
+        "b. Trước khi tính x̄ cho dữ liệu thực tế, hỏi trước: mẫu có giá trị ngoại lai hay không."
+      ]
+    }
+  ],
+  "aiErrors": {
+    "10-11-80": {
+      "key": "10-11-80",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Bạn An tính chiều cao trung bình: x̄ = (12×4 + 15×3 + 18×2 + 20×1)/4 = 37,25 cm.",
+      "correction": "n = 4 + 3 + 2 + 1 = 10; x̄ = 149/10 = 14,9 cm — mẫu số liệu có 10 số liệu, không phải 4.",
+      "proof": "12×4 + 15×3 + 18×2 + 20×1 = 48 + 45 + 36 + 20 = 149; 149/10 = 14,9 cm; 149/4 = 37,25 cm > giá trị lớn nhất 20 cm → vô lý, xác nhận chia sai mẫu. Bảng lớn tại chặng AI-error (PA1): bảng tần số 4 dòng (12/4, 15/3, 18/2, 20/1) cạnh phép chia sai 149÷4 = 37,25, gạch chân n = m₁ + m₂ + m₃ + m₄ = 10 — không viết phép chia đúng lên bảng, số đúng chỉ đối chiếu ở S6.",
+      "teacherPrompt": "Em đồng ý hay phản đối? Vì sao?",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (chỉ ra mẫu đúng n = 10 hoặc lập luận “trung bình không vượt giá trị lớn nhất”)."
+    }
+  }
 }

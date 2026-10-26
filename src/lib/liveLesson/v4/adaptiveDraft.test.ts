@@ -38,6 +38,11 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
     expect(lesson.knowledgeUnits[0]?.routes.every((route) => route.explanation.includes('có thể đổi'))).toBe(true);
   });
 
+  it('labels the chapter by week: W5–W6 for MAIN, W11 for batch2 lessons', () => {
+    expect(buildBanToanV4AdaptiveLessonDraft('10-5-31', 'teacher-1').curriculumRef?.chapter).toBe('Ban Toán · W5–W6');
+    expect(buildBanToanV4AdaptiveLessonDraft('10-11-80', 'teacher-1').curriculumRef?.chapter).toBe('Ban Toán · W11');
+  });
+
   it('keeps all 51 generated drafts content-complete enough for the existing editor gate', () => {
     for (const contract of getAllBanToanV4Contracts()) {
       const lesson = buildBanToanV4AdaptiveLessonDraft(contract.sourceKey, 'teacher-qa');

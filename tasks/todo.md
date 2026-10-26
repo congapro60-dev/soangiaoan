@@ -1,3 +1,20 @@
+# TODO — 27/10/2026: R1 Pha B (Gate C) bài `10-11-80` — batch2 Tuần 11 ✅ (chờ B7–B9)
+
+Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) · Gate D duyệt 26/10: `gate-d-10-11-80.md`. Task 1 = `dce0512` (hạ tầng merge, cùng nhánh).
+
+- [x] B1 — spec + aiError `10-11-80` vào `banToan-w11-batch2.snapshot.json` (shape `12-11-80`: examples×2 Alpha/Hình2, exercises×6 NB-NB-TH-TH-VD-VD, quick×2, mistakes×4, boardKnowledge×16; aiError 8 trường mode micro; `boardPrompt` Gate D gộp vào `proof` — chỉ-GV). PA1 grep: `14,9` chỉ ở `exercises[2].answer`, `correction`, `proof`. **Lưu ý vòng sau: `category` là ENUM** (`Lỗi khái niệm`… — `aiErrorCategory` `lessonAdapter.ts:239`), chuỗi dài làm audit fail `AI_ERROR_NO_CATEGORY`.
+- [x] B1 — fingerprint batch2 (recipe sha256 file với `"fingerprint": ""`, files map giá trị cuối): `d32bae2f0f20972a5ce74676a649d97131987fcbd0c07450a3f2a32007f498c9`; script tái lập `tasks/tmp-hash-batch2.mjs` (idempotent, xoá sau B9).
+- [x] Việc bắt buộc #1 — `adaptiveDraft.ts`: chapter theo `source.week` (`W5–W6` MAIN / `W11` batch2) + test.
+- [x] B2 — `'10-11-80'` vào `INTERACTIVE_SOURCE_KEYS` + 2 comment "3 bài batch 1 + bổ sung dần batch 2".
+- [x] B3 — entry R1 vào `W11BATCH2` (file thường `week11Batch2Catalog.ts`, tránh đăng ký kép test) + test mảng không rỗng.
+- [x] B4 — test đếm số: pin `MAIN_PIN=51` + `TOTAL_MERGED=51+W11BATCH2.length` (7 chỗ trong `sequentialPublication.test.ts`, `lessonAdapter.test.ts`, `runtimeDefinition.test.ts`); exact-keys 4 mã alphabet (week11Catalog + interactiveUpgrade, tên 4/47).
+- [x] B5 — vitest v4: **27 file / 266 PASS** (baseline 261, +5); build 0 TS error.
+- [ ] B7 — Tạo bài V4 trên Production (GV → `/adaptive-lessons` → "Tạo và xuất bản"; check tab Bài học tương tác, title "…— Tiết 2").
+- [ ] B8 — QA A–F Production theo `qa-week11-acceptance-2026-10-26.md`; lớp g10 `class-1787208462088` / `7W288E` (PIN 2143); ghi `tasks/qa-w11-batch2-acceptance.md`.
+- [ ] B9 — DỪNG tổng kết vòng, báo thầy → R2 `11-11-76`.
+
+---
+
 # TODO — 26/10/2026: Nghiệm thu V8.8 Tuần 11 trên Production — ĐẠT ✅
 
 Báo cáo đầy đủ: [qa-week11-acceptance-2026-10-26.md](qa-week11-acceptance-2026-10-26.md).
