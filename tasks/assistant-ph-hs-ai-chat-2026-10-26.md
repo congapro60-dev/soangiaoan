@@ -33,6 +33,24 @@
 - Test M13a/b/c; gate 180/180.
 - Deploy: `https://giaoandewey-cwkeerdxy-congapro60-devs-projects.vercel.app`, webhook verify `webhook.ok`.
 
+## Gói trau chuốt 26/10 tối (commit `5b7da30`): trình bày + HS feedback + link web
+
+- **Markdown Zalo**: tin menu nhiều dòng gửi `parse_mode: markdown` (in đậm dòng tiêu đề,
+  escape `*_~` cho dữ liệu động qua `escMd`). Parse lỗi → tự gửi lại bản thuần đúng 1 lần.
+  Tin 1 dòng gửi thuần như cũ. AI trả lời vẫn gửi thuần (an toàn với ký tự AI sinh ra).
+- **Typing indicator**: `sendChatAction action: 'typing'` trước khi gọi AI (fire-and-forget).
+- **HS xem feedback** (chốt của chủ dự án): `buildParentSafeReport` thêm option `includeFeedback`
+  (mặc định false → bản PH giữ nguyên). Bản HS: mục 2 kèm nhận xét GV đã duyệt (~80 ký tự/bài,
+  tối đa 5 bài); prompt AI gọi "em" và được dùng feedback đã duyệt trong ngữ cảnh. Feedback CHƯA
+  duyệt tuyệt đối không lọt (chỉ lấy từ `validScorePair` = graded + teacherApproved).
+- **Link web portal**: nhắn `web`/`link`/`website` → bot gửi link thuần (URL render được):
+  PH `https://giaoandewey.vercel.app/ph/<joinCode>`, HS `/lop/<joinCode>`; mục 6 có dòng hướng dẫn.
+  Link phải gửi qua `sendStyled(..., false)` — không qua `output()` (hàm này che mọi URL).
+- Test mới: M14a–d, C11a–c, zalo-bot markdown + fallback + link thuần.
+- Gate: tsc exit 0, **189/189** test assistant, 52/52 test phụ thuộc parentSafeReport.
+- Deploy: `https://giaoandewey-p2j10m5kl-congapro60-devs-projects.vercel.app`, webhook `webhook.ok`.
+- Cần test Zalo thật: menu in đậm, mục 2 HS có nhận xét, nhắn `web` nhận link bấm được.
+
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)
