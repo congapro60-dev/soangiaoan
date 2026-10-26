@@ -6,8 +6,11 @@
 // (điểm/nhận xét/lịch sử khớp 100% web). Chấm chạy trong `chayNgam`; xong thì bot gửi tin
 // điểm qua Zalo. Hạn mức dùng đúng quota có sẵn: 5 bài/em/ngày, 100 bài/lớp/ngày.
 //
-// Phạm vi lần này: chỉ HỌC SINH đã liên kết; không exam/online/khóa nộp; không PH nộp thay;
+// Phạm vi lần này: chỉ HỌC SINH đã liên kết; không exam/online/khóa nộp; PH không nộp thay;
 // không bổ sung ảnh bài đã có điểm (nhờ thầy cô trên web).
+// Nộp hộ (2026-10-27): HS gửi bài hộ bạn CÙNG LỚP — gõ tên bạn (không cần PIN của bạn),
+// chọn bài đang chờ của bạn đó, gửi ảnh như thường. Mọi kiểm tra/quota/submission tính cho
+// EM ĐƯỢC NỘP HỘ; `submittedBy` ghi NGƯỜI GỬI THẬT; thêm `assistBy` để web hiển thị badge.
 import { randomUUID } from 'node:crypto';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { chayNgam, getGradingApiKey, loadQuotaDoc, remainingQuota, bumpQuota } from './_grading-core.js';
@@ -37,23 +40,36 @@ export interface PhotoSessionData {
   assignmentTitle: string;
   expiresAt: number;
   photos: Array<{ url: string; name: string; mimeType: string; size: number }>;
+  /** Nộp hộ: bài nộp tính cho bạn cùng lớp này; người gửi thật ghi ở `submittedBy` + `assistBy`. */
+  assist?: { targetStudentId: string; targetName: string };
+  /** Trạng thái luồng nộp hộ CHƯA chọn xong bạn + bài: name → (pick khi trùng tên) → list. */
+  assistState?: 'name' | 'pick' | 'list';
+  /** Trùng tên: ưng viên chờ lệnh `chọn <số>`. */
+  targetCandidates?: Array<{ id: string; name: string }>;
 }
 
 export const PHOTO_REPLIES = {
   noSession: 'Chưa có ảnh nào được nhận. Nhắn 8 để chọn bài rồi gửi ảnh nhé.\n\n' + MENU_HINT,
   max: `Đã đủ ${MAX_PHOTOS} ảnh — nhắn xong để máy chấm nhé.\n\n` + MENU_HINT,
   badImage: 'Không nhận được ảnh này (quá lớn hoặc sai định dạng). Em gửi lại ảnh khác nhé.\n\n' + MENU_HINT,
+  assistIncomplete: 'Chưa chọn xong bạn và bài để nộp hộ nên chưa nhận ảnh. Nhắn nộp hộ để làm lại, hoặc 0 để hủy.\n\n' + MENU_HINT,
 } as const;
 
-export type PhotoCommand = { kind: 'list' } | { kind: 'pick'; n: number } | { kind: 'done' };
+export type PhotoCommand =
+  | { kind: 'list' } | { kind: 'pick'; n: number } | { kind: 'done' }
+  | { kind: 'assist' } | { kind: 'assistPick'; n: number } | { kind: 'assistChoose'; n: number };
 
-/** Nhận lệnh chấm: '8' do menu trả, ở đây chỉ 'chấm', 'chấm <số>' và 'xong'. Bỏ dấu để 'cham 2' vẫn ăn. */
+/** Nhận lệnh chấm: '8' do menu trả, ở đây 'chấm', 'chấm <số>', 'xong', 'nộp hộ [số]' và 'chọn <số>'. Bỏ dấu để 'cham 2' / 'nop ho' vẫn ăn. */
 export const parsePhotoCommand = (raw: string): PhotoCommand | null => {
   const plain = raw.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
   if (/^cham$/.test(plain)) return { kind: 'list' };
   const pick = /^cham\s*(\d{1,2})$/.exec(plain);
   if (pick) return { kind: 'pick', n: Number(pick[1]) };
   if (/^(xong|gui)$/.test(plain)) return { kind: 'done' };
+  const assist = /^nop\s+ho(?:\s+(\d{1,2}))?$/.exec(plain);
+  if (assist) return assist[1] ? { kind: 'assistPick', n: Number(assist[1]) } : { kind: 'assist' };
+  const choose = /^chon\s*(\d{1,2})$/.exec(plain);
+  if (choose) return { kind: 'assistChoose', n: Number(choose[1]) };
   return null;
 };
 
@@ -95,17 +111,126 @@ export const photoListReply = (items: Array<{ id: string; title: string; dueAt?:
     const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  return ['Chọn bài để gửi ảnh chấm:', ...lines, '', 'Nhắn: chấm <số> (ví dụ: chấm 1).', '', MENU_HINT].join('\n');
+  return ['Chọn bài để gửi ảnh chấm:', ...lines, '', 'Nhắn: chấm <số> (ví dụ: chấm 1).', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n');
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
 
-/** Mở phiên nhận ảnh cho 1 bài — phiên mới đè phiên cũ (1 em chỉ có 1 phiên tại một thời điểm). */
+/** Khớp tên bạn: chuẩn hóa dấu/hoa/thường; tên gọi là đuôi của họ tên ("minh anh" khớp "Nguyễn Thị Minh Anh"). */
+const normName = (value: string): string =>
+  value.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/\s+/g, ' ').trim().toLowerCase();
+
+const nameMatches = (fullName: string, input: string): boolean => {
+  const full = normName(fullName); const want = normName(input);
+  return want.length >= 2 && (full === want || full.endsWith(` ${want}`));
+};
+
+/**
+ * Luồng nộp hộ — HS gửi bài hộ bạn cùng lớp. Không cần PIN của bạn (biết PIN là đăng nhập được
+ * cả vai bạn): định danh target qua TÊN do chính bot tra trong danh sách lớp. Chốt chặn cuối
+ * vẫn là GV duyệt điểm trên web, nơi badge `assistBy` cho biết ai đã gửi bài này.
+ */
+const assistAskName = ['Muốn nộp hộ bạn nào? Gõ tên bạn trong lớp (ví dụ: Minh Anh).', 'Đổi ý: nhắn 0 để hủy.', '', MENU_HINT].join('\n');
+
+/** Bước đầu luồng nộp hộ: ghi pre-session chờ tên bạn (phiên cũ nếu có bị đè). */
+export const assistStartReply = async (botId: string, userId: string, classId: string, studentId: string): Promise<string> => {
+  await db().collection(SESSIONS).doc(sessionId(botId, userId)).set({
+    botId, userId, studentId, classId, teacherId: '', assignmentId: '', assignmentTitle: '',
+    expiresAt: Date.now() + SESSION_MS, photos: [], assistState: 'name',
+  } satisfies PhotoSessionData);
+  return assistAskName;
+};
+
+/** Liệt kê bài chờ nộp CỦA BẠN ĐƯỢC NỘP HỘ và lưu target vào pre-session (chờ `nộp hộ <số>`). */
+const saveTargetAndList = async (
+  botId: string, userId: string, classId: string,
+  target: { id: string; name: string }, docId?: string,
+): Promise<string> => {
+  const { items } = await pendingAssignmentsForStudent(classId, target.id);
+  if (!items.length) {
+    await cancelPhotoSession(botId, userId);
+    return [`Bạn ${target.name} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
+  }
+  await db().collection(SESSIONS).doc(docId ?? sessionId(botId, userId))
+    .update({ assistState: 'list', assist: { targetStudentId: target.id, targetName: target.name }, targetCandidates: [], expiresAt: Date.now() + SESSION_MS });
+  const lines = items.map((item, index) => {
+    const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
+    return `${index + 1}. ${item.title}${due}`;
+  });
+  return [`Bài đang chờ nộp của ${target.name}:`, ...lines, '', 'Nhắn: nộp hộ <số> (ví dụ: nộp hộ 1).', '', MENU_HINT].join('\n');
+};
+
+/** Nhận tên bạn gõ vào: khớp 1 → liệt kê bài của bạn đó; trùng → liệt kê chọn số; không thấy → mời gõ lại. */
+export const assistTargetReply = async (botId: string, userId: string, classId: string, rawName: string): Promise<string> => {
+  const session = await liveSession(botId, userId);
+  if (!session || (session.data.assistState !== 'name' && session.data.assistState !== 'pick')) {
+    return ['Nhắn nộp hộ để bắt đầu nộp bài cho bạn.', '', MENU_HINT].join('\n');
+  }
+  if (!normName(rawName)) return assistAskName;
+  const roster = await db().collection('classes').doc(classId).collection('students').get();
+  const matches = roster.docs
+    .map(doc => ({ id: doc.id, name: String((doc.data() as Record<string, unknown>)?.name ?? '').trim() }))
+    .filter(stu => stu.name && nameMatches(stu.name, rawName));
+  if (matches.length > 5) return ['Tên này khớp nhiều bạn trong lớp. Gõ ĐỦ họ và tên giúp mình nhé.', '', MENU_HINT].join('\n');
+  if (!matches.length) return ['Chưa thấy bạn nào tên này trong lớp. Em gõ lại ĐỦ họ và tên giúp mình nhé.', '', MENU_HINT].join('\n');
+  if (matches.length > 1) {
+    await db().collection(SESSIONS).doc(session.id)
+      .update({ assistState: 'pick', targetCandidates: matches, expiresAt: Date.now() + SESSION_MS });
+    return [`Có ${matches.length} bạn khớp tên này:`, ...matches.map((stu, i) => `${i + 1}. ${stu.name}`), '', 'Nhắn: chọn <số> (ví dụ: chọn 2).', '', MENU_HINT].join('\n');
+  }
+  return saveTargetAndList(botId, userId, classId, matches[0], session.id);
+};
+
+/**
+ * Tin nhắn tự do khi đang GIỮA luồng nộp hộ (chưa mở phiên ảnh): tên bạn gõ vào → tra danh sách lớp.
+ * Trả null khi không trong luồng — dòng tin chảy tiếp sang AI chat như thường. Số menu (0–8) và lệnh
+ * chấm đã bị chặn ở bước trước nên không lọt vào đây.
+ */
+export const assistFreeTextReply = async (botId: string, userId: string, classId: string, message: string): Promise<string | null> => {
+  const session = await liveSession(botId, userId);
+  if (!session?.data.assistState) return null;
+  if (session.data.assistState === 'list') {
+    return [`Đang nộp hộ ${session.data.assist?.targetName ?? 'bạn'}. Nhắn: nộp hộ <số> để chọn bài, hoặc 0 để hủy.`, '', MENU_HINT].join('\n');
+  }
+  return assistTargetReply(botId, userId, classId, message);
+};
+
+/** Trùng tên — `chọn <số>` một bạn từ danh sách ưng viên. */
+export const assistChooseReply = async (botId: string, userId: string, classId: string, n: number): Promise<string> => {
+  const session = await liveSession(botId, userId);
+  const candidates = session?.data.targetCandidates ?? [];
+  if (!session || session.data.assistState !== 'pick' || !candidates.length) {
+    return ['Không có danh sách tên để chọn. Nhắn nộp hộ để bắt đầu.', '', MENU_HINT].join('\n');
+  }
+  const target = n >= 1 && n <= candidates.length ? candidates[n - 1] : null;
+  if (!target) return ['Số không khớp danh sách tên.', '', MENU_HINT].join('\n');
+  return saveTargetAndList(botId, userId, classId, target, session.id);
+};
+
+/** `nộp hộ <số>` — chọn bài trong danh sách của bạn được nộp hộ rồi mở phiên nhận ảnh như thường. */
+export const assistOpenReply = async (botId: string, userId: string, classId: string, studentId: string, n: number): Promise<string> => {
+  const session = await liveSession(botId, userId);
+  const assist = session?.data.assist;
+  if (!session || session.data.assistState !== 'list' || !assist) {
+    return ['Chưa chọn bạn để nộp hộ. Nhắn nộp hộ để bắt đầu.', '', MENU_HINT].join('\n');
+  }
+  const { teacherId, items } = await pendingAssignmentsForStudent(classId, assist.targetStudentId);
+  if (!items.length) {
+    await cancelPhotoSession(botId, userId);
+    return [`Bạn ${assist.targetName} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
+  }
+  const target = n >= 1 && n <= items.length ? items[n - 1] : null;
+  if (!target) return [`Số không khớp danh sách bài của ${assist.targetName}.`, '', MENU_HINT].join('\n');
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target, assist);
+};
+
+/** Mở phiên nhận ảnh cho 1 bài — phiên mới đè phiên cũ (1 em chỉ có 1 phiên tại một thời điểm). Nộp hộ thì kèm target. */
 export const openPhotoSession = async (
   botId: string,
   userId: string,
   ctx: { studentId: string; classId: string; teacherId: string },
   assignment: { id: string; title: string },
+  assist?: { targetStudentId: string; targetName: string },
 ): Promise<string> => {
   const session: PhotoSessionData = {
     botId, userId,
@@ -113,9 +238,10 @@ export const openPhotoSession = async (
     assignmentId: assignment.id, assignmentTitle: assignment.title,
     expiresAt: Date.now() + SESSION_MS,
     photos: [],
+    ...(assist ? { assist } : {}),
   };
   await db().collection(SESSIONS).doc(sessionId(botId, userId)).set(session);
-  return [`Bài: ${session.assignmentTitle}`,
+  return [`Bài: ${session.assignmentTitle}${assist ? ` — nộp hộ bạn ${assist.targetName}` : ''}`,
     `Em gửi ảnh bài làm nhé — tối đa ${MAX_PHOTOS} ảnh, trong 10 phút.`,
     'Gửi xong nhắn: xong để máy chấm.',
     'Muốn chọn lại bài: nhắn chấm.',
@@ -143,6 +269,8 @@ const liveSession = async (botId: string, userId: string): Promise<{ id: string;
 export const photoReceivedReply = async (botId: string, userId: string, photoUrl: string): Promise<string> => {
   const session = await liveSession(botId, userId);
   if (!session) return PHOTO_REPLIES.noSession;
+  // Luồng nộp hộ chưa chọn xong bạn + bài: chưa biết ảnh thuộc bài nào của ai — không nhận.
+  if (session.data.assistState) return PHOTO_REPLIES.assistIncomplete;
   if (session.data.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
   let buffer: Buffer;
   let mimeType = '';
@@ -156,7 +284,9 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
   } catch { return PHOTO_REPLIES.badImage; }
   if (!IMAGE_MIMES.includes(mimeType)) return PHOTO_REPLIES.badImage;
   const batchId = randomUUID();
-  const path = `accepted-homework/${session.data.classId}/${session.data.studentId}/${batchId}-${session.data.photos.length}`;
+  // Ảnh của bài nộp hộ lưu vào thư mục của EM ĐƯỢC NỘP HỘ — như ảnh nộp thường của em đó trên web.
+  const targetStudentId = session.data.assist?.targetStudentId ?? session.data.studentId;
+  const path = `accepted-homework/${session.data.classId}/${targetStudentId}/${batchId}-${session.data.photos.length}`;
   const token = randomUUID();
   const bucket = getAdminStorage();
   const file = bucket.file(path);
@@ -179,20 +309,25 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   const session = await liveSession(botId, userId);
   if (!session) return PHOTO_REPLIES.noSession;
   const s = session.data;
+  if (s.assistState) return PHOTO_REPLIES.assistIncomplete;
   if (!s.photos.length) return ['Em chưa gửi ảnh nào. Gửi ảnh bài làm rồi nhắn xong nhé.', '', MENU_HINT].join('\n');
+
+  // Nộp hộ: bài nộp/quota/kiểm tra đều tính cho EM ĐƯỢC NỘP HỘ; s.studentId là NGƯỜI GỬI THẬT.
+  const targetId = s.assist?.targetStudentId ?? s.studentId;
+  const targetName = s.assist?.targetName ?? '';
 
   const aSnap = await db().collection('assignments').doc(s.assignmentId).get();
   const a = aSnap.data() as Record<string, unknown> | undefined;
   const hong = !aSnap.exists || !a || String(a.classId ?? '') !== s.classId || String(a.teacherId ?? '') !== s.teacherId
     || a.type === 'exam' || a.deliveryMode === 'online' || a.submissionLocked === true
-    || (Array.isArray(a.targetStudentIds) && a.targetStudentIds.length && !a.targetStudentIds.includes(s.studentId));
+    || (Array.isArray(a.targetStudentIds) && a.targetStudentIds.length && !a.targetStudentIds.includes(targetId));
   if (hong) {
     await cancelPhotoSession(botId, userId);
     return ['Bài này đã đổi hoặc không còn nhận nộp. Nhắn 8 để chọn bài khác.', '', MENU_HINT].join('\n');
   }
 
   const pending = await db().collection('submissions')
-    .where('studentId', '==', s.studentId).where('assignmentId', '==', s.assignmentId).get();
+    .where('studentId', '==', targetId).where('assignmentId', '==', s.assignmentId).get();
   const choCham = pending.docs.map(doc => doc.data() as SubmissionDoc)
     .find(item => item.status === 'submitted' || item.status === 'grading');
   if (choCham) {
@@ -201,43 +336,54 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   }
 
   const [quota, quotaRef] = await loadQuotaDoc(db(), s.teacherId);
-  const verdict = remainingQuota(quota, 'self', s.studentId);
+  const verdict = remainingQuota(quota, 'self', targetId);
   if (verdict.allowed <= 0) {
     await cancelPhotoSession(botId, userId);
     return [verdict.reason, '', MENU_HINT].join('\n');
+  }
+
+  // Nộp hộ: ghi dấu ai đã gửi (tên đọc từ danh sách lớp để web hiện badge không phải tra thêm).
+  let assistBy: SubmissionDoc['assistBy'];
+  if (s.assist) {
+    const senderSnap = await db().collection('classes').doc(s.classId).collection('students').doc(s.studentId).get();
+    const senderName = String((senderSnap.data() as Record<string, unknown> | undefined)?.name ?? '').trim();
+    assistBy = { studentId: s.studentId, name: senderName || `HS …${s.studentId.slice(-4)}`, via: 'zalo_bot' };
   }
 
   const submissionId = randomUUID();
   const now = new Date().toISOString();
   const submission: Record<string, unknown> = {
     id: submissionId,
-    teacherId: s.teacherId, classId: s.classId, studentId: s.studentId,
+    teacherId: s.teacherId, classId: s.classId, studentId: targetId,
     assignmentId: s.assignmentId,
     fileUrls: s.photos.map(photo => photo.url),
     attachments: s.photos.map(photo => ({ name: photo.name, url: photo.url, mimeType: photo.mimeType, size: photo.size, kind: 'image' as const })),
     textContent: '',
     note: '',
     status: 'submitted',
+    // Nộp thường: người gửi = chính em. Nộp hộ: người gửi = bạn được nhờ (khác `studentId`).
     submittedBy: { role: 'student', studentId: s.studentId, at: now },
+    ...(assistBy ? { assistBy } : {}),
     createdAt: now, updatedAt: now,
   };
   await db().runTransaction(async tx => {
     tx.create(db().collection('submissions').doc(submissionId), submission);
     tx.delete(db().collection(SESSIONS).doc(session.id));
   });
-  await quotaRef.set(bumpQuota(quota, 'self', s.studentId, 1));
+  await quotaRef.set(bumpQuota(quota, 'self', targetId, 1));
 
   const token = String(process.env.ZALO_BOT_TOKEN || '');
   const chatId = userId;
   chayNgam(gradeAndNotify(token, chatId, submissionId, s));
-  return [`Đã nhận bài "${s.assignmentTitle}" (${s.photos.length} ảnh).`,
+  return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${s.photos.length} ảnh).`,
     'Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả.',
     '', MENU_HINT].join('\n');
 };
 
 const gradeAndNotify = async (token: string, chatId: string, submissionId: string, s: PhotoSessionData): Promise<void> => {
+  const baiCua = s.assist ? ` của ${s.assist.targetName}` : '';
   const khongChamDuoc = async (loi: string): Promise<void> => {
-    await sendStyled(token, chatId, [`Chưa chấm được bài "${s.assignmentTitle}"`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
+    await sendStyled(token, chatId, [`Chưa chấm được bài "${s.assignmentTitle}"${baiCua}`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
   };
   try {
     const apiKey = getGradingApiKey();
@@ -249,7 +395,7 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     const fresh = (await db().collection('submissions').doc(submissionId).get()).data() as (SubmissionDoc & { errorMessage?: string }) | undefined;
     if (fresh?.status === 'graded' && fresh.grade) {
       const approved = fresh.grade.teacherApproved === true;
-      await sendStyled(token, chatId, [`Chấm xong bài "${s.assignmentTitle}": ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
+      await sendStyled(token, chatId, [`Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
         approved ? 'Thầy cô đã duyệt — điểm chính thức.' : 'Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
         'Xem chi tiết từng câu: nhắn 2.',
         '', MENU_HINT].join('\n'));

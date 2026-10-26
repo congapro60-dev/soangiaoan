@@ -541,6 +541,8 @@ export interface SubmissionDoc {
   supplementOf?: string;
   /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
   submittedBy?: SubmissionActor;
+  /** Nộp hộ (bot Zalo): ai đã gửi bài hộ em này — `studentId` là NGƯỜI GỬI THẬT, khác `studentId` của bài nộp. */
+  assistBy?: { studentId: string; name: string; via: 'zalo_bot' };
   feedbackSummary?: SubmissionFeedbackSummary;
   feedbackReadAt?: string;
   handMarkedEvidence?: HandMarkedEvidence;

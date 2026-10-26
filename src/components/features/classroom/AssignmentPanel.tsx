@@ -369,6 +369,9 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
               {s.grade?.editedByTeacher && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
+              {s.assistBy && (
+                <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-[11px] font-bold text-cyan-700" title={`Bạn ${s.assistBy.name} đã gửi bài này qua bot Zalo (nộp hộ)`}>HS nộp hộ</span>
+              )}
               {s.grade?.gradingRecovery && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title={s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}>
                   {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI thử lại' : 'AI phục hồi'}

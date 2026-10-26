@@ -15,16 +15,24 @@ vi.mock('../_assistant-ph-hs-link', async () => ({
 vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
 // Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
 vi.mock('../_assistant-ph-hs-photo', () => ({
-  PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY' },
+  PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY' },
   cancelPhotoSession: vi.fn(async () => undefined),
   finishPhotoSession: vi.fn(async () => 'FINISH_OK'),
   openPhotoSession: vi.fn(async () => 'OPEN_OK'),
+  assistStartReply: vi.fn(async () => 'ASSIST_START_OK'),
+  assistOpenReply: vi.fn(async () => 'ASSIST_OPEN_OK'),
+  assistChooseReply: vi.fn(async () => 'ASSIST_CHOOSE_OK'),
+  assistFreeTextReply: vi.fn(async () => null),
   parsePhotoCommand: vi.fn((raw: string) => {
     const plain = raw.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
     if (/^cham$/.test(plain)) return { kind: 'list' };
     const pick = /^cham\s*(\d{1,2})$/.exec(plain);
     if (pick) return { kind: 'pick', n: Number(pick[1]) };
     if (/^(xong|gui)$/.test(plain)) return { kind: 'done' };
+    const assist = /^nop\s+ho(?:\s+(\d{1,2}))?$/.exec(plain);
+    if (assist) return assist[1] ? { kind: 'assistPick', n: Number(assist[1]) } : { kind: 'assist' };
+    const choose = /^chon\s*(\d{1,2})$/.exec(plain);
+    if (choose) return { kind: 'assistChoose', n: Number(choose[1]) };
     return null;
   }),
   pendingAssignmentsForStudent: vi.fn(async () => ({ teacherId: 't-1', items: [{ id: 'a-1', title: 'Bài 1' }] })),
@@ -34,6 +42,7 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
 vi.mock('../_assistant-ph-hs-menu', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
   parentMenuReply: vi.fn(async () => 'MENU_DUNG_HO_SO'),
+  loadParentReport: vi.fn(async () => ({ report: { className: 'Lớp test', results: [] }, periodicIds: new Set<string>() })),
 }));
 vi.mock('../_exam-core', () => ({ getAdminDb: () => ({}) }));
 vi.mock('../_assistant-confirmations', () => ({
@@ -52,7 +61,7 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply } from '../_assistant-ph-hs-menu';
-import { cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
 
 const event = (text = '/help', messageId = 'message-1') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: messageId, date: Date.now() } } });
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -366,6 +375,45 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(cancelPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1');
     expect(parentMenuReply).toHaveBeenCalled();
     expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
+  });
+  it('HS nhắn nộp hộ → hỏi tên bạn (assistStartReply)', async () => {
+    mockStudent();
+    const result = await request(event('nộp hộ', 'm-14'));
+    expect(result.code).toBe(200);
+    expect(assistStartReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('ASSIST_START_OK');
+  });
+  it('HS nhắn nộp hộ 1 → mở phiên nộp hộ bài số 1', async () => {
+    mockStudent();
+    await request(event('nop ho 1', 'm-15'));
+    expect(assistOpenReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's', 1);
+    expect(JSON.parse(sent()[0][1].body).text).toBe('ASSIST_OPEN_OK');
+  });
+  it('HS nhắn chọn 2 (trùng tên) → assistChooseReply', async () => {
+    mockStudent();
+    await request(event('chọn 2', 'm-16'));
+    expect(assistChooseReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 2);
+    expect(JSON.parse(sent()[0][1].body).text).toBe('ASSIST_CHOOSE_OK');
+  });
+  it('HS gõ tên bạn khi đang giữa luồng nộp hộ → bot trả lời, không rơi vào AI chat', async () => {
+    mockStudent();
+    vi.mocked(assistFreeTextReply).mockResolvedValueOnce('HỎI_TÊN_OK');
+    await request(event('Minh Anh', 'm-17'));
+    expect(assistFreeTextReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 'Minh Anh');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('HỎI_TÊN_OK');
+  });
+  it('HS nhắn tự do ngoài luồng nộp hộ → rơi tiếp luồng AI chat như thường', async () => {
+    mockStudent();
+    await request(event('xin chào', 'm-18'));
+    expect(assistFreeTextReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 'xin chào');
+    expect(sent()[0][1]).toBeTruthy(); // vẫn có câu trả lời (AI chat) — không im lặng, không crash
+  });
+  it('PH nhắn nộp hộ → KHÔNG vào luồng photo/assist', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    await request(event('nộp hộ', 'm-19'));
+    expect(assistStartReply).not.toHaveBeenCalled();
+    expect(assistFreeTextReply).not.toHaveBeenCalled();
+    expect(finishPhotoSession).not.toHaveBeenCalled();
   });
   it('PH nhắn lệnh chấm → KHÔNG vào luồng photo', async () => {
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);

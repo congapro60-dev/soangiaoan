@@ -10,7 +10,7 @@ import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJo
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendStyled, sendTyping } from './_assistant-zalo-send.js';
-import { PHOTO_REPLIES, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 const MAX_BODY = 16_384;
@@ -156,14 +156,22 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       else await sendStyled(token, chatId, menuReply);
       return '';
     }
-    // Việc 4 — lệnh chấm của HS: chấm / chấm <số> / xong. PH không có các lệnh này (đi thẳng AI chat).
+    // Việc 4 — lệnh chấm của HS: chấm / chấm <số> / xong / nộp hộ (hộ bạn cùng lớp). PH không có các lệnh này (đi thẳng AI chat).
     if (role === 'student') {
       const photoCmd = parsePhotoCommand(message);
       if (photoCmd) {
-        const photoReply = photoCmd.kind === 'done'
-          ? await finishPhotoSession(botId, userId)
+        const photoReply = photoCmd.kind === 'done' ? await finishPhotoSession(botId, userId)
+          : photoCmd.kind === 'assist' ? await assistStartReply(botId, userId, classId, studentId)
+          : photoCmd.kind === 'assistPick' ? await assistOpenReply(botId, userId, classId, studentId, photoCmd.n)
+          : photoCmd.kind === 'assistChoose' ? await assistChooseReply(botId, userId, classId, photoCmd.n)
           : await chooseAndOpen(botId, userId, classId, studentId, photoCmd);
         await sendStyled(token, chatId, photoReply);
+        return '';
+      }
+      // Luồng nộp hộ chưa xong: tên bạn gõ tự do → bot tra danh sách lớp (không rơi vào AI chat).
+      const assistReply = await assistFreeTextReply(botId, userId, classId, message);
+      if (assistReply !== null) {
+        await sendStyled(token, chatId, assistReply);
         return '';
       }
     }

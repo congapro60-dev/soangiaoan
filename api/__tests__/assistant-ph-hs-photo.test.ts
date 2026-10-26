@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import {
-  PHOTO_REPLIES, cancelPhotoSession, finishPhotoSession, openPhotoSession,
+  PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
+  assistTargetReply, cancelPhotoSession, finishPhotoSession, openPhotoSession,
   parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
 import { emptyQuota, chayNgam } from '../_grading-core';
@@ -321,5 +322,142 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(lastSentText()).toContain('Chưa chấm được bài');
     expect(lastSentText()).toContain('tạm dừng');
     expect(lastSentText()).not.toContain('undefined');
+  });
+});
+
+describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
+  const seedAssistClass = () => {
+    h.db.put('classes/c1', { name: 'Lớp 1', teacherId: 'gv1' });
+    h.db.put('classes/c1/students/s1', { name: 'An Bình' }); // người nộp hộ
+    h.db.put('classes/c1/students/s2', { name: 'An Bình' }); // trùng tên
+    h.db.put('classes/c1/students/s3', { name: 'Cường Đẹp' });
+    h.db.put('assignments/a1', { classId: 'c1', teacherId: 'gv1', title: 'BTVN tuần 5', maxScore: 10, dueAt: '2026-10-27' });
+  };
+  /** nộp hộ → gõ tên (bỏ dấu vẫn khớp) → tới bước danh sách bài của target s3. */
+  const startAssist = async () => {
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    return assistTargetReply(BOT, USER, 'c1', 'cuong dep');
+  };
+
+  it('parse: nộp hộ / nộp hộ N / chọn N, bỏ dấu; tin lạ vẫn null', () => {
+    expect(parsePhotoCommand('nộp hộ')).toEqual({ kind: 'assist' });
+    expect(parsePhotoCommand('nop ho 2')).toEqual({ kind: 'assistPick', n: 2 });
+    expect(parsePhotoCommand('chọn 3')).toEqual({ kind: 'assistChoose', n: 3 });
+    expect(parsePhotoCommand('chon 3')).toEqual({ kind: 'assistChoose', n: 3 });
+    expect(parsePhotoCommand('nộp hộ abc')).toBeNull();
+    expect(parsePhotoCommand('chọn')).toBeNull();
+  });
+
+  it('nộp hộ → hỏi tên, lưu pre-session chờ tên', async () => {
+    seedAssistClass();
+    const reply = await assistStartReply(BOT, USER, 'c1', 's1');
+    expect(reply).toContain('Muốn nộp hộ bạn nào');
+    expect(reply).toContain('Nhắn 0 để xem lại menu.');
+    const session = h.db.rows.get(SESSION_PATH);
+    expect(session.assistState).toBe('name');
+    expect(session.studentId).toBe('s1');
+  });
+
+  it('gõ tên khớp 1 bạn → liệt kê bài CỦA BẠN ĐÓ + lưu target', async () => {
+    seedAssistClass();
+    const reply = await startAssist();
+    expect(reply).toContain('Bài đang chờ nộp của Cường Đẹp');
+    expect(reply).toContain('nộp hộ <số>');
+    const session = h.db.rows.get(SESSION_PATH);
+    expect(session.assistState).toBe('list');
+    expect(session.assist).toEqual({ targetStudentId: 's3', targetName: 'Cường Đẹp' });
+  });
+
+  it('tên không có trong lớp → mời gõ lại, giữ nguyên luồng', async () => {
+    seedAssistClass();
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    const reply = await assistTargetReply(BOT, USER, 'c1', 'người lạ');
+    expect(reply).toContain('Chưa thấy bạn nào');
+    expect(h.db.rows.get(SESSION_PATH).assistState).toBe('name');
+  });
+
+  it('trùng tên → liệt kê chọn số; chọn 2 → đúng bạn số 2', async () => {
+    seedAssistClass();
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    const list = await assistTargetReply(BOT, USER, 'c1', 'an bình');
+    expect(list).toContain('Có 2 bạn khớp');
+    const session = h.db.rows.get(SESSION_PATH);
+    expect(session.assistState).toBe('pick');
+    expect(session.targetCandidates).toHaveLength(2);
+    const reply = await assistChooseReply(BOT, USER, 'c1', 2);
+    expect(reply).toContain('Bài đang chờ nộp của An Bình');
+    expect(h.db.rows.get(SESSION_PATH).assist).toEqual({ targetStudentId: 's2', targetName: 'An Bình' });
+  });
+
+  it('nộp hộ <số> → mở phiên assist cho bài của bạn đó', async () => {
+    seedAssistClass();
+    await startAssist();
+    const reply = await assistOpenReply(BOT, USER, 'c1', 's1', 1);
+    expect(reply).toContain('BTVN tuần 5');
+    expect(reply).toContain('nộp hộ bạn Cường Đẹp');
+    const session = h.db.rows.get(SESSION_PATH);
+    expect(session.assistState).toBeUndefined();
+    expect(session.assist).toEqual({ targetStudentId: 's3', targetName: 'Cường Đẹp' });
+    expect(session.assignmentId).toBe('a1');
+  });
+
+  it('assistFreeTextReply: ngoài luồng → null; giữa luồng → tra tên; state list → nhắc lệnh', async () => {
+    expect(await assistFreeTextReply(BOT, USER, 'c1', 'xin chào')).toBeNull();
+    seedAssistClass();
+    await startAssist();
+    expect(await assistFreeTextReply(BOT, USER, 'c1', 'hỏng biết làm')).toContain('Đang nộp hộ Cường Đẹp');
+  });
+
+  it('ảnh gửi khi đang giữa luồng nộp hộ → bị chặn, không lưu Storage', async () => {
+    seedAssistClass();
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    expect(await photoReceivedReply(BOT, USER, 'https://photo.zalo/abc.jpg')).toBe(PHOTO_REPLIES.assistIncomplete);
+    expect(h.files.size).toBe(0);
+    expect(await finishPhotoSession(BOT, USER)).toBe(PHOTO_REPLIES.assistIncomplete);
+  });
+
+  it('nộp hộ đầy đủ: submission tính cho bạn, submittedBy là người gửi, assistBy ghi dấu, Storage theo target, quota trừ target, tin kèm tên', async () => {
+    seedAssistClass();
+    await startAssist();
+    await assistOpenReply(BOT, USER, 'c1', 's1', 1);
+    await putPhoto();
+    vi.mocked(gradeOneSubmission).mockImplementation(async (_db: any, submissionId: string) => {
+      h.db.put(`submissions/${submissionId}`, { status: 'graded', grade: { score: 7, maxScore: 10, teacherApproved: false } });
+      return { success: true };
+    });
+    const reply = await finishPhotoSession(BOT, USER);
+    expect(reply).toContain('Đã nhận bài "BTVN tuần 5" của Cường Đẹp');
+    const subs = [...h.db.rows.entries()].filter(([k]) => k.startsWith('submissions/'));
+    expect(subs).toHaveLength(1);
+    const [, sub] = subs[0];
+    expect(sub.studentId).toBe('s3');
+    expect(sub.submittedBy).toMatchObject({ role: 'student', studentId: 's1' });
+    expect(sub.assistBy).toEqual({ studentId: 's1', name: 'An Bình', via: 'zalo_bot' });
+    const [path] = [...h.files.keys()];
+    expect(path).toMatch(/^accepted-homework\/c1\/s3\//);
+    const quota = h.db.rows.get('gradingQuota/gv1');
+    expect(quota.byStudent.s3).toBe(1);
+    expect(quota.byStudent.s1).toBeUndefined();
+    await (globalThis as any).__photoBg();
+    expect(lastSentText()).toContain('Chấm xong bài "BTVN tuần 5" của Cường Đẹp: 7/10 điểm');
+  });
+
+  it('bạn được nộp hộ đã nộp bài rồi → chặn ngay bước tra tên, hủy luồng', async () => {
+    seedAssistClass();
+    h.db.put('submissions/sub-target', { classId: 'c1', studentId: 's3', assignmentId: 'a1', status: 'submitted' });
+    const reply = await startAssist();
+    expect(reply).toContain('không có bài nào đang chờ nộp');
+    expect(h.db.rows.has(SESSION_PATH)).toBe(false);
+  });
+
+  it('nộp thường (không assist) → KHÔNG có assistBy, mọi thứ theo người gửi (regression)', async () => {
+    seedAssistClass();
+    await openSessionForA1();
+    await putPhoto();
+    await finishPhotoSession(BOT, USER);
+    const [, sub] = [...h.db.rows.entries()].find(([k]) => k.startsWith('submissions/'))!;
+    expect(sub.studentId).toBe('s1');
+    expect(sub.assistBy).toBeUndefined();
+    expect(sub.submittedBy).toMatchObject({ studentId: 's1' });
   });
 });

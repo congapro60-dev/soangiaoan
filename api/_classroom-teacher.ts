@@ -255,6 +255,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
     ...(data.feedbackSummary ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, lastReplyAt: data.feedbackSummary.lastReplyAt } } : {}),
     ...(data.submittedBy ? { submittedBy: data.submittedBy } : {}),
+    ...(data.assistBy && typeof data.assistBy === 'object' ? { assistBy: data.assistBy } : {}),
     ...handMarkedProjection(data, true),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     textContent: typeof data.textContent === 'string' ? data.textContent : undefined,

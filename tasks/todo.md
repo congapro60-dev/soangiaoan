@@ -1,38 +1,35 @@
-# Việc 4 — HS chụp bài gửi bot Zalo tự chấm (2026-10-26)
+# Nộp hộ — HS gửi bài Zalo hộ bạn cùng lớp (2026-10-27)
 
 ## Đã chốt với chủ dự án
-- Gói 1+2+3 test Zalo thật OK → làm tiếp.
-- Luồng: HS chọn BÀI GIAO trước, rồi gửi ảnh (chấm có đề + đáp án).
-- Model chấm: Gemini pool chủ dự án — tái dùng đúng `gradeOneSubmission` của luồng web (điểm/nhận xét/lịch sử khớp 100% web).
-- Hạn mức: 5 bài/em/ngày + 100 bài/lớp/ngày (quota có sẵn `_grading-core.ts`).
+- HS xác định "nộp hộ ai" bằng **gõ tên bạn** (bot tìm trong lớp; trùng tên thì liệt kê chọn số).
+- KHÔNG dùng PIN của bạn (biết PIN = đăng nhập luôn vai bạn — lỗ hổng).
+- GV thấy trên web: field `assistBy` + badge "HS nộp hộ" ở cột Lưu ý của danh sách bài nộp.
+- Chỉ HS (role student) nộp hộ; chỉ bạn CÙNG LỚP; chỉ bài được giao cho bạn đó và bạn đó CHƯA nộp.
+- Quota 5 bài/em/ngày trừ của EM ĐƯỢC NỘP HỘ; tin chấm xong gửi về máy người nộp hộ;
+  em được nộp hộ xem điểm qua bot của em (mục 2).
 
-## Kiến trúc
-- Webhook nhận thêm event `message.image.received` (Zalo URL tạm thời) → tải về → đẩy Firebase Storage
-  `accepted-homework/<classId>/<studentId>/...` + download token → URL đúng format web.
-- Phiên chọn bài: Firestore `assistantPhotoSessions` (doc id botId_userId, hết hạn 10 phút, tối đa 3 ảnh).
-- Chấm: `chayNgam` → `gradeOneSubmission(mode 'quick')` → xong gửi tin điểm qua Zalo.
-- KHÔNG tạo serverless function mới (giới hạn 12, đang 11) — mọi thứ trong webhook + file `_` + config.
+## Thiết kế luồng
+1. HS nhắn `nộp hộ` → bot hỏi tên → HS gõ tên → khớp 1 bạn: liệt kê bài chờ CỦA BẠN ĐÓ
+   → `nộp hộ <số>` mở phiên assist → gửi ảnh → `xong` như thường.
+2. Trùng tên: bot liệt kê đánh số → `chọn <số>`.
+3. Trạng thái luồng (pre-session) lưu ngay doc `assistantPhotoSessions` (botId_userId):
+   `assistState: 'name'|'pick'|'list'` + `targetCandidates` + `targetStudentId/Name`.
+   Phiên assist mở hẳn thì có `assist: { targetStudentId, targetName }`.
+4. `finishPhotoSession`: mọi kiểm tra/quota/submission dùng target; `submittedBy.studentId` =
+   NGƯỜI GỬI THẬT; thêm `assistBy: { studentId, name, via: 'zalo_bot' }`.
 
 ## Checklist
-- [x] 1. `grade-homework.ts`: export `gradeOneSubmission` + `gradeContextFor`; thêm 2 tham số optional
-      `budgetMs`/`marginMs` (web không truyền → hành vi nguyên vẹn).
-- [x] 2. Tách `sendStyled`/`sendTyping`/`escMd` sang `_assistant-zalo-send.ts` (photo module cần gửi tin,
-      tránh import cycle).
-- [x] 3. `_assistant-ph-hs-photo.ts` (MỚI): lệnh `8`/`chấm <n>`/`xong`, phiên ảnh, tải ảnh Zalo → Storage,
-      tạo submission, quota, chấm nền, báo kết quả qua Zalo.
-- [x] 4. `_assistant-zalo-bot.ts`: nhận `message.image.received` (guard như tin text) + route lệnh chấm cho HS.
-- [x] 5. `_assistant-ph-hs-menu.ts`: mục 8 (chỉ HS), parseMenuChoice nhận 8, câu từ cho PH.
-- [x] 6. `vercel.json`: `api/assistant.ts` maxDuration 90 (chấm quick chạy trong waitUntil).
-- [x] 7. Test `assistant-ph-hs-photo.test.ts` + cập nhật test menu/bot; `tsc` 0 lỗi; toàn bộ test xanh
-      (4661 test: 4657 pass, 4 fail CŨ v832 hash mismatch — không liên quan việc 4).
-- [x] 8. Cập nhật doc trạng thái + commit.
+- [ ] 1. `_assistant-ph-hs-photo.ts`: parse `nộp hộ [n]` / `chọn n`; pre-session + assist target;
+      openPhotoSession nhận assist; photoReceivedReply/finishPhotoSession dùng target + assistBy;
+      tin nhắn kèm tên bạn; photoListReply thêm dòng hướng dẫn nộp hộ.
+- [ ] 2. `_assistant-zalo-bot.ts`: route các kind mới cho HS.
+- [ ] 3. `_assistant-ph-hs-menu.ts`: mục 8 nhắc cú pháp nộp hộ.
+- [ ] 4. `types.ts`: `SubmissionDoc.assistBy`; projection teacher `_classroom-teacher.ts` đổ `assistBy`.
+- [ ] 5. `AssignmentPanel.tsx`: badge "HS nộp hộ" cột Lưu ý (title kèm tên bạn nộp hộ).
+- [ ] 6. Test: photo (assist đầy đủ + self regression) + zalo-bot dispatch + badge AssignmentPanel.
+- [ ] 7. Gate: vitest 2 file bot → full suite (chấp nhận 4 fail cũ v832) → tsc 2 config → build.
+- [ ] 8. Commit + deploy preview + trả alias `zalo-test`; cập nhật doc trạng thái.
 
-## An toàn
-- Chỉ role student đã liên kết; bài phải thuộc đúng lớp+GV của em, không exam/online/khóa nộp.
-- Ảnh ≤10MB, mime jpg/png/webp; KHÔNG log SĐT/nội dung ảnh.
-- Quota trừ ngay như web (`bumpQuota` sau khi bắt chấm), câu từ chối y hệt web.
-- Bài đang chờ chấm → từ chối nộp trùng; ảnh tải lỗi → HS gửi lại.
-- Bài GV đã chấm tay / đã khóa: qua bot KHÔNG hỗ trợ (web làm).
-
-## Ngoài phạm vi (lần sau)
-- PH nộp thay HS; bài thi online; OMR dò bóng qua bot; bổ sung ảnh bài đã có điểm.
+## Ngoài phạm vi
+- PH nộp thay; thông báo chủ động cho em được nộp hộ (Zalo OA không chủ động nhắn được);
+  giới hạn "ai được phép nộp hộ ai" thêm (chỉ cần GV duyệt là chốt chặn).

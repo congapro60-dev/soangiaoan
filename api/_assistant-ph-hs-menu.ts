@@ -168,7 +168,7 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       // Việc 4 — nộp bài bằng ảnh. HS thực tế không bao giờ tới đây (zalo-bot bắt '8' và chuyển
       // sang luồng photo); case này cho PH nhấn nhầm mục 8 và giữ switch đầy đủ.
       return role === 'student'
-        ? ['Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài.', '', MENU_HINT].join('\n')
+        ? ['Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài.', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n')
         : ['Mục này dành cho học sinh — phụ huynh theo dõi điểm qua mục 1 và 2.', '', MENU_HINT].join('\n');
   }
 };
