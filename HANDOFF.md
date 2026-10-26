@@ -2,7 +2,42 @@
 
 > Ảnh chụp trạng thái để phiên sau bắt nhịp ngay. Lịch sử đầy đủ (R1–R18, v6–v26): `tasks/archive/handoff-history-to-2026-10-23.md`.
 
-## Latest checkpoint - V30 DA PHAT HANH: mo phong tuong tac (25/10/2026)
+## Latest checkpoint - V32 DA PHAT HANH: sua tuong phan + khoa ti le (26/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Release record V32
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **32** |
+| deployment_id | `appgdep_6adef7ec3b34819184bfe2600eb8ee39` |
+| commit_sha | `b6bf1739ed9cd6ae18b05ebf2e2091fc72856ee7` (= `b6bf173`) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261026-v32.tar.gz` (49.441.982 bytes) |
+| audience | public |
+| chunk | `useLessonSession-BK-YqRd9.js` — 65.860 bytes |
+| SHA256 | `9198C14B9B420118422F6F2B6611E505998C2DA98D82CD1E1CDD72D138659A42` |
+
+**Kiem doc lap**: SHA256 cua chunk tai tu live TRUNG KHIT chunk trong archive va ban QA luu. Xac nhan v32 len dung, khong phai ban khac.
+
+### Da sua trong v32
+
+**Loi 1 — tuong phan (QA phat hien, MAJOR that)**:
+`app/lessons/lesson.css` dat `--lesson-text: #f8fafc` (gan trang) cho ca khung toi. Khoi ket qua cham co nen `#fef3c7` nhung **khong set `color`** -> chu trang tren vang nhat. Ti le tuong phan tu tinh: **1.064:1** (chuan AA can 4.5:1). Da set `color: "#14532d"` -> **8.182:1** tren nen vang, **8.296:1** tren nen xanh (ca hai vuot AAA 7:1).
+
+**Loi 2 — khoa ti le SVG**: `KhoiXoay` va `BangVe` doi sang `flex: "0 0 auto"` + `aspectRatio: width/height` thay vi chi `height:auto`. Khong lam thay doi hinh da duyet.
+
+### Bai hoc quan trong — "loi" khong ton tai
+
+QA bao "anh tu dien bi cat" va cham diem "CHUA DAT". **Sai.** Chinh file `mobile-draw-metrics.json` cua QA do duoc canvas `261.33 x 227.11` -> ti le **0.869**, khop viewBox `330/380 = 0.868`. Hinh KHONG bi bop. Anh trong bi cat vi vung cuon cat ngang — hanh vi cuon binh thuong.
+
+Trong luc xu ly, da sua CSS 5 lan lien tiep (aspect-ratio, flex, max-height, sua lesson.css) deu sai huong, roi phai hoan tac toan bo `lesson.css`. Nguyen nhan: **khong doi chieu so do ti le co san trong bao cao QA truoc khi tin ket luan chu**.
+
+**Quy tac rut ra**: khi QA bao "hinh bi cat/bop meo", phai tinh ti le tu so do DOM (`height/width` so voi viewBox) TRUOC khi sua CSS. Neu ti le dung thi do la cuon, khong phai loi.
+
+**Luu y don vi**: `t.length` trong JS dem KY TU, `File.length` dem BYTE. Tieng Viet nhieu ky tu 2-3 byte nen chenh 65.860 byte vs 62.927 ky tu la binh thuong, khong phai loi.
+
+## Checkpoint truoc - V30 DA PHAT HANH: mo phong tuong tac (25/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
