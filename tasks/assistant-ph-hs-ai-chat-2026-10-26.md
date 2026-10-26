@@ -23,6 +23,16 @@
 - Điểm KHÔNG hiện `%`; mọi tin chốt "Nhắn 0 để xem lại menu."
 - Gate: tsc exit 0, 177/177 test assistant pass (C1–C10, M1–M12...).
 
+## Bổ sung 26/10 chiều: menu mục 5 theo vai trò (commit `574486a`)
+
+- HS (role=student) mục 5 = "Gợi ý tự học ở nhà" (từ `areasToPractice`, cùng nguồn mục 4),
+  không hiện văn bản viết cho người lớn. PH giữ nguyên hành vi cũ.
+- Bot xử lý PH và HS chung một nhánh: cùng menu 0–7 + chat AI, dữ liệu theo link của chính em.
+- HS không xem được `grade.feedback` qua bot (bản an toàn PH bị lọc mất) — giữ nguyên thiết kế,
+  muốn có thì cần bản HS riêng (việc mới).
+- Test M13a/b/c; gate 180/180.
+- Deploy: `https://giaoandewey-cwkeerdxy-congapro60-devs-projects.vercel.app`, webhook verify `webhook.ok`.
+
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)
