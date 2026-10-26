@@ -113,6 +113,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
   const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [cellError, setCellError] = useState('');
   const [linkInput, setLinkInput] = useState('');
   const [draft, setDraft] = useState<ColumnDraft | null>(null);
   const [unmatched, setUnmatched] = useState<string[]>([]);
@@ -190,6 +191,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
 
   const cellId = (kind: ScoreCellEdit['kind'], key: string, studentId: string) => JSON.stringify([kind, key, studentId]);
   const editCell = (kind: ScoreCellEdit['kind'], key: string, studentId: string, previous: number | null, text: string) => {
+    if (parseHs1Score(text) !== undefined) setCellError('');
     const id = cellId(kind, key, studentId);
     setCellDrafts(old => {
       const next = { ...old };
@@ -203,7 +205,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
     const cells: ScoreCellEdit[] = [];
     for (const cell of Object.values(cellDrafts)) {
       const score = parseHs1Score(cell.text);
-      if (score === undefined) { setError('Điểm phải từ 0 đến 10, tối đa 2 chữ số lẻ. Ô trống = xóa điểm nhập tay.'); return; }
+      if (score === undefined) { setCellError('Điểm phải từ 0 đến 10, tối đa 2 chữ số lẻ. Ô trống = xóa điểm nhập tay.'); return; }
       const { text: _text, ...edit } = cell;
       cells.push({ ...edit, score });
     }
@@ -817,7 +819,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
         </div>
       )}
 
-      {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
+      {(error || cellError) && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{cellError || error}</p>}
       {loadError && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">Không tải được sổ điểm: {loadError} <button type="button" onClick={() => void reload()} className="font-black underline">Thử lại</button></p>}
 
       {!book && !loadError ? (
@@ -827,7 +829,7 @@ export const ScoreBookPanel = ({ classId, students, examSheet, onExamSheetChange
           <div className="sticky left-0 flex flex-wrap items-center gap-3 border-b border-slate-100 bg-white px-4 py-3">
             <span className="text-xs font-semibold text-slate-500">Điền trực tiếp vào ô, rồi bấm Lưu. {Object.keys(cellDrafts).length > 0 ? `${Object.keys(cellDrafts).length} ô chưa lưu.` : ''}</span>
             <button type="button" onClick={saveCells} disabled={Boolean(busy) || Object.keys(cellDrafts).length === 0} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-black text-white disabled:opacity-40">Lưu</button>
-            {Object.keys(cellDrafts).length > 0 && <button type="button" disabled={Boolean(busy)} onClick={() => setCellDrafts({})} className="text-xs font-bold text-slate-500 underline">Hủy thay đổi</button>}
+            {Object.keys(cellDrafts).length > 0 && <button type="button" disabled={Boolean(busy)} onClick={() => { setCellDrafts({}); setCellError(''); }} className="text-xs font-bold text-slate-500 underline">Hủy thay đổi</button>}
           </div>
           <table className="min-w-full text-sm">
             <thead>
