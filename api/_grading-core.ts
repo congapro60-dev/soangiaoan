@@ -821,9 +821,12 @@ export const callGradingVision = async (
     throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
   }
   let lastError: unknown;
+  const deadline = options.timeoutMs === undefined ? null : Date.now() + options.timeoutMs;
   for (const adapter of chain) {
+    const remainingMs = deadline === null ? null : deadline - Date.now();
+    if (remainingMs !== null && remainingMs <= 0) throw new Error('AI xử lý quá lâu nên máy chủ đã dừng lượt gọi. Vui lòng thử lại.');
     try {
-      return await adapter.call(prompt, images, options, segment);
+      return await adapter.call(prompt, images, remainingMs === null ? options : { ...options, timeoutMs: remainingMs }, segment);
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
       if (error instanceof AiKeyRequiredError) throw error;

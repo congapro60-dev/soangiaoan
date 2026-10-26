@@ -100,6 +100,32 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
 });
 
 describe('callGradingVision — rơi xuống lớp xKiro khi lớp trước hỏng', () => {
+  it('không cấp lại ngân sách khi chuyển nhà dự phòng', async () => {
+    stubEnv({ GRADING_VILAO_API_KEY: 'k-vilao', GRADING_XKIRO_API_KEY: 'k-xkiro', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const signal = vi.spyOn(AbortSignal, 'timeout');
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).includes('api.vilao.ai')) { vi.setSystemTime(Date.now() + 45_000); return failResponse(503); }
+      return okResponse('ok');
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      expect(await callGradingVision('prompt', [], { timeoutMs: 50_000 })).toBe('ok');
+      expect(signal.mock.calls.map(call => call[0])).toEqual([50_000, 5_000]);
+    } finally { signal.mockRestore(); vi.useRealTimers(); }
+  });
+
+  it('hết ngân sách thì không gọi nhà dự phòng tiếp theo', async () => {
+    stubEnv({ GRADING_VILAO_API_KEY: 'k-vilao', GRADING_XKIRO_API_KEY: 'k-xkiro', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const fetchMock = vi.fn(async () => { vi.setSystemTime(Date.now() + 51_000); return failResponse(503); });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      await expect(callGradingVision('prompt', [], { timeoutMs: 50_000 })).rejects.toThrow();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
+
   it('Vilao lỗi thì xKiro phục vụ, không gọi tới Gemini', async () => {
     stubEnv({
       GRADING_VILAO_API_KEY: 'k-vilao',

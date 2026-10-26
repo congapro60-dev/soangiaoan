@@ -374,6 +374,8 @@ export interface ParentReportNoteKey {
 
 export interface ParentReportNote {
   text: string;
+  /** Cảnh báo cho bản nháp AI chưa đủ nội dung; giáo viên cần đối chiếu trước khi dùng. */
+  warnings?: string[];
   /** Dòng "kết quả theo yêu cầu cần đạt" (rỗng = báo cáo dùng danh sách chủ đề cũ). */
   requirements: ParentRequirementLine[];
   /** Chỗ thầy cô chỉnh tay trên báo cáo (chữ, số…) — xem `reportOverrides`. */
