@@ -98,10 +98,12 @@
 
 ## Deploy hiện tại
 
-- Preview: `https://giaoandewey-dfup8arbi-congapro60-devs-projects.vercel.app`
-- Alias: `zalo-test.congapro60-devs-projects.vercel.app`
+- Preview: `https://giaoandewey-idcpa7mtb-congapro60-devs-projects.vercel.app`
+- Alias: `zalo-test.congapro60-devs-projects.vercel.app` (đã trỏ deploy mới 26/10 đêm)
 - Webhook Zalo: `.../api/assistant?transport=zalo_bot` — verify `webhook.ok`
-- Chỉ cho phép: `ZALO_BOT_ALLOWED_USER_IDS=6428d37c9d35746b2d24` (chủ dự án)
+- ĐÃ GỠ `ZALO_BOT_ALLOWED_USER_IDS` trên preview (26/10 đêm) — chuẩn bị cho HS cả lớp test:
+  ai cũng nhắn được bot, nhưng link vẫn cần mã lớp + PIN đúng. Lệnh `đổi vai` chỉ dành cho
+  `ZALO_BOT_DUAL_ROLE_USER_IDS=6428d37c9d35746b2d24` (chủ dự án).
 
 ## Việc còn lại (bật cho PH thật)
 
