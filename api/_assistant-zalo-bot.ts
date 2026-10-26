@@ -117,7 +117,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (!classId || !studentId) return MENU_REPLIES.noData;
     // Menu (0–7) đi trước; tin không khớp menu thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
-    if (choice.kind !== 'invalid') return parentMenuReply(getAdminDb(), classId, studentId, message);
+    if (choice.kind !== 'invalid') return parentMenuReply(getAdminDb(), classId, studentId, message, role);
     const bundle = await loadParentReport(getAdminDb(), classId, studentId);
     if (!bundle) return MENU_REPLIES.noData;
     // AI CHAT PH chỉ dùng key RIÊNG (PH_CHAT_VILAO_KEY) — tách khỏi key chấm bài để theo dõi

@@ -30,11 +30,15 @@ export const MENU_ITEMS = [
 ] as const;
 
 export type MenuKey = typeof MENU_ITEMS[number]['key'];
+export type MenuRole = 'parent' | 'student';
 
-export const menuText = (studentName: string, className: string): string =>
+/** Nhãn mục 5 theo vai trò: PH nhận việc cần làm ở nhà, HS nhận gợi ý tự học. */
+export const menuItem5Label = (role: MenuRole): string => (role === 'student' ? 'Gợi ý tự học ở nhà' : MENU_ITEMS[4].label);
+
+export const menuText = (studentName: string, className: string, role: MenuRole = 'parent'): string =>
   [`Xin chào! Đây là trợ lý lớp ${className} — hồ sơ của ${studentName}.`,
     MENU_REPLIES.header,
-    ...MENU_ITEMS.map(item => `${item.key}. ${item.label}`),
+    ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -56,12 +60,12 @@ const scoreText = (score: number | null | undefined, maxScore: number | null | u
 const MENU_HINT = 'Nhắn 0 để xem lại menu.';
 
 /** Sinh nội dung 1 mục menu từ báo cáo PH an toàn (không cần thêm truy vấn). */
-export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set()): string => {
-  const body = menuSectionBody(key, report, periodicIds);
+export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set(), role: MenuRole = 'parent'): string => {
+  const body = menuSectionBody(key, report, periodicIds, role);
   return `${body}\n\n${MENU_HINT}`;
 };
 
-const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string>): string => {
+const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: MenuRole): string => {
   const name = report.studentName;
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
   switch (key) {
@@ -95,6 +99,12 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
       return [`Điểm mạnh của ${name}:`, ...strong, '', 'Cần luyện thêm:', ...weak].join('\n');
     }
     case '5': {
+      // HS tự luyện: dùng `areasToPractice` (dữ liệu có thật, cùng nguồn mục 4) thay cho
+      // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
+      if (role === 'student') {
+        if (!report.areasToPractice.length) return 'Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần.';
+        return [`Gợi ý tự học của ${name}:`, ...report.areasToPractice.slice(0, 5).map(item => `• ${item}`)].join('\n');
+      }
       if (!report.parentActions.length) return 'Chưa có gợi ý riêng — nhắn thầy cô để được tư vấn thêm.';
       return [`Việc phụ huynh có thể làm ở nhà (${name}):`, ...report.parentActions.slice(0, 5).map(item => `• ${item}`)].join('\n');
     }
@@ -168,12 +178,13 @@ export const parentMenuReply = async (
   classId: string,
   studentId: string,
   raw: string,
+  role: MenuRole = 'parent',
 ): Promise<string> => {
   const choice = parseMenuChoice(raw);
   const bundle = await loadParentReport(db, classId, studentId);
   if (!bundle) return MENU_REPLIES.noData;
   const { report, periodicIds } = bundle;
-  if (choice.kind === 'menu') return menuText(report.studentName, report.className);
+  if (choice.kind === 'menu') return menuText(report.studentName, report.className, role);
   if (choice.kind === 'invalid') return MENU_REPLIES.invalid;
-  return menuSectionText(choice.key, report, periodicIds);
+  return menuSectionText(choice.key, report, periodicIds, role);
 };

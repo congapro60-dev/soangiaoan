@@ -205,3 +205,37 @@ describe('menu — không phụ thuộc tham số người nhắn', () => {
     expect(paths).toContain('classes');
   });
 });
+
+describe('menu theo vai trò (M13)', () => {
+  const report = {
+    studentId: 's1', studentName: 'Trần Bảo Lâm', className: '12LoTrinh1',
+    results: [{ assignmentId: 'a1', title: 'BTVN tuần 3', status: 'official', score: 8, maxScore: 10 }],
+    officialCount: 1, officialAveragePercent: 80, pendingCount: 0, missingCount: 0,
+    strengths: ['Làm tốt dạng cộng trừ'], areasToPractice: ['Luyện phép nhân chia có nhớ'],
+    progress: { trend: 'up', firstPercent: 60, latestPercent: 80 },
+    overallSummary: '', parentActions: ['Nhắc con làm bài tập về nhà mỗi tối'], teacherActions: [],
+  } as any;
+
+  it('M13a: HS nhắn mục 5 nhận gợi ý tự học (từ areasToPractice), KHÔNG nhận việc của phụ huynh', () => {
+    const out = menuSectionText('5', report, new Set(), 'student');
+    expect(out).toContain('Gợi ý tự học của Trần Bảo Lâm');
+    expect(out).toContain('Luyện phép nhân chia có nhớ');
+    expect(out).not.toContain('phụ huynh');
+    expect(out).not.toContain('Nhắc con làm bài tập về nhà');
+    expect(out).toContain('Nhắn 0 để xem lại menu.');
+  });
+
+  it('M13b: PH (mặc định) mục 5 vẫn là việc phụ huynh — không đổi hành vi cũ', () => {
+    expect(menuSectionText('5', report, new Set())).toContain('Việc phụ huynh có thể làm ở nhà');
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1')).toContain('5. Việc phụ huynh làm ở nhà');
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'parent')).toContain('5. Việc phụ huynh làm ở nhà');
+  });
+
+  it('M13c: menu của HS đổi nhãn mục 5; HS chưa có dữ liệu thì trả lời lịch sự', async () => {
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'student')).toContain('5. Gợi ý tự học ở nhà');
+    const db = seed();
+    const out = await parentMenuReply(db.db, 'c', 's1', '5', 'student');
+    expect(out).toContain('Chưa có gợi ý tự học riêng');
+    expect(out).not.toContain('undefined');
+  });
+});

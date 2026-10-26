@@ -235,7 +235,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
       return actor;
     });
     await request(event('7'));
-    expect(parentMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's', '7');
+    expect(parentMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's', '7', role);
     expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
   });
 });
