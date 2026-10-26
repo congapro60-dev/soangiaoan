@@ -118,6 +118,7 @@ describe('chat AI — gọi model', () => {
       expect(payload.messages[0].role).toBe('system');
       expect(payload.messages[0].content).toBe('SYS');
       expect(payload.messages[1]).toEqual({ role: 'user', content: 'Con em thế nào?' });
+      expect(payload.max_tokens).toBe(1200);
     } finally { spy.mockRestore(); }
   });
 
@@ -127,5 +128,19 @@ describe('chat AI — gọi model', () => {
     try { await expect(vilaoCaller('k')('s', 'u')).rejects.toThrow('AI HTTP 500'); } finally { bad.mockRestore(); }
     const empty = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '  ' } }] }) } as any);
     try { await expect(vilaoCaller('k')('s', 'u')).rejects.toThrow('AI empty'); } finally { empty.mockRestore(); }
+  });
+
+  it('C10: content rỗng nhưng có reasoning_tokens thì báo hết token (không gửi tin trống cho PH)', async () => {
+    const { vilaoCaller } = await import('../_assistant-ph-hs-chat.js');
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: '', reasoning: 'suy luận dài...' } }],
+        usage: { completion_tokens_details: { reasoning_tokens: 49 } },
+      }),
+    } as any);
+    try {
+      await expect(vilaoCaller('k')('s', '2+2 bằng mấy?')).rejects.toThrow('AI reasoning-only');
+    } finally { spy.mockRestore(); }
   });
 });

@@ -112,14 +112,24 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => 
         { role: 'user', content: userText },
       ],
       temperature: 0.3,
-      max_tokens: 800,
+      // Reasoning model tiêu token cho suy luận trước khi viết câu trả lời; 800 đo được là đủ
+      // cho câu ngắn nhưng 1.200 an toàn hơn khi ngữ cảnh dài (báo cáo nhiều bài).
+      max_tokens: 1200,
     }),
     ...(signal ? { signal } : {}),
   });
   if (!res.ok) throw new Error(`AI HTTP ${res.status}`);
   const body: any = await res.json();
-  const reply = String(body?.choices?.[0]?.message?.content ?? '');
-  if (!reply.trim()) throw new Error('AI empty');
+  const message = body?.choices?.[0]?.message ?? {};
+  // glm-5.3-flash là REASONING model: nó tiêu token cho `reasoning` TRƯỚC khi sinh `content`.
+  // Đã đo thật: max_tokens 50 → content rỗng (reasoning ăn hết); max_tokens 800 → content "4".
+  // Vì vậy không dùng trần thấp, và nếu content rỗng thì coi là lỗi để caller trả câu "bận"
+  // thay vì gửi tin nhắn trống cho phụ huynh.
+  const reply = String(message.content ?? '');
+  if (!reply.trim()) {
+    const usedReasoning = Number(body?.usage?.completion_tokens_details?.reasoning_tokens ?? 0);
+    throw new Error(usedReasoning > 0 ? 'AI reasoning-only (het token truoc khi tra loi)' : 'AI empty');
+  }
   return reply;
 };
 
