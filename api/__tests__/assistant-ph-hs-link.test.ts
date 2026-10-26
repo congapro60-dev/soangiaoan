@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { parsePinLinkMessage } from '../_assistant-ph-hs-link.js';
 import { linkByPin } from '../_assistant-ph-hs-link.js';
 import { hashPin } from '../_classroom-core.js';
 import { consumeLinkCode, hashLinkCode } from '../_assistant-auth.js';
-import { PIN_LINK_REPLIES } from '../_assistant-ph-hs-link.js';
+import { dualRoleAllowed, PIN_LINK_REPLIES, switchBotRole } from '../_assistant-ph-hs-link.js';
 import { recordBotPinFailure, checkBotPinGuard, canReplyToStranger, resetBotPinGuard } from '../_bot-pin-guard.js';
 import { FakeDb } from './_fake-db.js';
 import { isUsableChannelLink } from '../_assistant-types.js';
@@ -286,5 +286,75 @@ describe('nghiệp vụ liên kết PIN — T6', () => {
     expect(f.rows.get('channelLinks/t1')?.active).toBe(false);
     expect(f.rows.get('channelLinks/k1')?.active).toBe(true);
     expect(f.rows.get('channelLinks/k1')?.firebaseUid).toBe('gv-1');
+  });
+});
+
+describe('chặn 2 vai + lệnh đổi vai (tài khoản test)', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('tài khoản đã là PH → chặn link HS với roleConflict, KHÔNG tiêu lượt PIN', async () => {
+    const f = fixture();
+    const ph = await linkByPin(f.db, 'b', 'u', 'ACDF47 1234 phu huynh', now);
+    expect(ph.status).toBe('linked');
+    const out = await linkByPin(f.db, 'b', 'u', 'ACDF47 5678 hoc sinh', now);
+    expect(out.status).toBe('roleConflict');
+    expect(out.reply).toBe(PIN_LINK_REPLIES.roleConflict);
+    // Guard đứng trước guard PIN → không đụng counter
+    expect((f.rows.get('botPinAttempts/b_u')?.attempts as number[] | undefined) ?? []).toHaveLength(0);
+    // KHÔNG tạo link HS
+    expect([...f.rows.entries()].filter(([, v]) => (v as any).role === 'student')).toHaveLength(0);
+  });
+
+  it('link teacher active (không có role) cũng tính là vai — chặn link PH', async () => {
+    const f = fixture();
+    f.put('channelLinks/t1', { firebaseUid: 'gv-1', channel: 'zalo_bot', channelAccountId: 'b', channelUserId: 'u', channelChatId: 'u', active: true, createdAt: +now, updatedAt: +now });
+    const out = await linkByPin(f.db, 'b', 'u', 'ACDF47 1234 phu huynh', now);
+    expect(out.status).toBe('roleConflict');
+    expect([...f.rows.keys()].filter(k => k.startsWith('channelLinks/') && k !== 'channelLinks/t1')).toHaveLength(0);
+  });
+
+  it('tài khoản trong danh sách test được giữ song song 2 vai', async () => {
+    vi.stubEnv('ZALO_BOT_DUAL_ROLE_USER_IDS', 'u');
+    expect(dualRoleAllowed('u')).toBe(true);
+    const f = fixture();
+    const ph = await linkByPin(f.db, 'b', 'u', 'ACDF47 1234 phu huynh', now);
+    const hs = await linkByPin(f.db, 'b', 'u', 'ACDF47 5678 hoc sinh', now);
+    expect(ph.status).toBe('linked'); expect(hs.status).toBe('linked');
+    expect(f.rows.get(`channelLinks/${ph.linkId}`)?.active).toBe(true);
+    expect(f.rows.get(`channelLinks/${hs.linkId}`)?.active).toBe(true);
+  });
+
+  it('switchBotRole đổi PH → HS rồi HS → PH, KHÔNG đụng link teacher', async () => {
+    vi.stubEnv('ZALO_BOT_DUAL_ROLE_USER_IDS', 'u');
+    const f = fixture();
+    const ph = await linkByPin(f.db, 'b', 'u', 'ACDF47 1234 phu huynh', now);
+    const hs = await linkByPin(f.db, 'b', 'u', 'ACDF47 5678 hoc sinh', now);
+    f.put('channelLinks/t1', { firebaseUid: 'gv-1', channel: 'zalo_bot', channelAccountId: 'b', channelUserId: 'u', channelChatId: 'u', active: true, createdAt: +now, updatedAt: +now });
+    const toStudent = await switchBotRole(f.db, 'b', 'u', now);
+    expect(toStudent.status).toBe('switched');
+    expect(f.rows.get(`channelLinks/${ph.linkId}`)?.active).toBe(false);
+    expect(f.rows.get(`channelLinks/${hs.linkId}`)?.active).toBe(true);
+    expect(f.rows.get('channelLinks/t1')?.active).toBe(true); // teacher giữ nguyên
+    const back = await switchBotRole(f.db, 'b', 'u', now);
+    expect(back.status).toBe('switched');
+    expect(f.rows.get(`channelLinks/${ph.linkId}`)?.active).toBe(true);
+    expect(f.rows.get(`channelLinks/${hs.linkId}`)?.active).toBe(false);
+  });
+
+  it('chưa từng link vai target → trả câu hướng dẫn nhắn PIN, không đổi gì', async () => {
+    vi.stubEnv('ZALO_BOT_DUAL_ROLE_USER_IDS', 'u');
+    const f = fixture();
+    const ph = await linkByPin(f.db, 'b', 'u', 'ACDF47 1234 phu huynh', now);
+    const out = await switchBotRole(f.db, 'b', 'u', now);
+    expect(out.status).toBe('no_target_link');
+    expect(out.reply).toContain('học sinh');
+    expect(f.rows.get(`channelLinks/${ph.linkId}`)?.active).toBe(true);
+  });
+
+  it('chưa link gì → trả câu hướng dẫn liên kết', async () => {
+    const f = fixture();
+    const out = await switchBotRole(f.db, 'b', 'u', now);
+    expect(out.status).toBe('not_linked');
+    expect(out.reply).toContain('mẫu');
   });
 });

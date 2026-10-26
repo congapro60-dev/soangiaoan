@@ -29,10 +29,22 @@ export const PIN_LINK_REPLIES = {
   throttled: 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau ít phút.',
   /** Dùng chung cho sai PIN / mơ hồ / không tìm thấy lớp — không tiết lộ nguyên nhân cụ thể. */
   wrong: 'Mã lớp hoặc PIN không đúng. Nếu bạn đã nhập đúng, hãy liên hệ thầy cô để được hỗ trợ.',
+  /** Tài khoản đã có vai khác đang active — mỗi tài khoản Zalo chỉ dùng 1 vai (trừ danh sách test). */
+  roleConflict: 'Tài khoản của bạn đang liên kết với một vai trò khác. Mỗi tài khoản chỉ dùng một vai trên bot; nếu cần đổi vai, hãy liên hệ thầy cô để được hỗ trợ.',
 } as const;
+
+/** Danh sách Zalo user được giữ SONG SONG 2 vai (tài khoản test) — env phân tách bằng dấu phẩy. */
+export const dualRoleAllowed = (channelUserId: string): boolean =>
+  String(process.env.ZALO_BOT_DUAL_ROLE_USER_IDS || '').split(',').map(v => v.trim()).includes(channelUserId);
 
 export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, channelUserId: string, message: string, now = new Date()): Promise<{ status: string; reply: string; linkId?: string }> => {
   const parsed = parsePinLinkMessage(message); if (parsed.status === 'invalid') return { status: 'invalid', reply: 'Cú pháp chưa đúng.' };
+  // 1 tài khoản Zalo chỉ giữ 1 vai (teacher cũng tính là vai) — chặn TRƯỚC khi chạm PIN để không tiêu lượt thử.
+  // Tài khoản test trong danh sách cho phép được giữ song song 2 vai để kiểm thử.
+  const existing = await db.collection('channelLinks').where('channel', '==', 'zalo_bot').where('channelAccountId', '==', botId).where('channelUserId', '==', channelUserId).where('active', '==', true).get();
+  if (!dualRoleAllowed(channelUserId) && existing.docs.some(doc => { const value: any = doc.data(); return (value.role ?? 'teacher') !== parsed.role; })) {
+    return { status: 'roleConflict', reply: PIN_LINK_REPLIES.roleConflict };
+  }
   const entry = await checkBotPinGuard(db, botId, channelUserId, now); if (!entry.allowed) return { status: 'throttled', reply: PIN_LINK_REPLIES.throttled };
   const lookup = await lookupClassByJoinCode(db, parsed.joinCode);
   if (lookup.status !== 'ok') {
@@ -58,7 +70,6 @@ export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, 
   }
   // Idempotent theo bản thân: người gửi đã có link active cùng role+class VÀ PIN khớp đúng em của link đó
   // thì trả lại kết quả cũ, không tiêu lượt. Khác studentId (vd PH link con thứ hai cùng lớp) thì đi tiếp.
-  const existing = await db.collection('channelLinks').where('channel', '==', 'zalo_bot').where('channelAccountId', '==', botId).where('channelUserId', '==', channelUserId).where('active', '==', true).get();
   const candidates = existing.docs.filter(doc => { const value: any = doc.data(); return value.role === parsed.role && value.classId === classId; });
   for (const doc of matches.length ? [] : candidates) {
     const secretSnap = await secrets.doc(String((doc.data() as any).studentId)).get();
@@ -106,4 +117,35 @@ export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, 
   // Link thành công không phải lần sai — hoàn lại lượt đã tiêu để cửa sổ phản ánh đúng số lần sai.
   await refundBotPinAttempt(db, botId, channelUserId, classId, now);
   return { status: 'linked', reply: 'Đã liên kết thành công.', linkId };
+};
+
+/**
+ * Lệnh "đổi vai" — CHỈ cho tài khoản test trong dualRoleAllowed: giữ song song link PH + HS
+ * và bật/tắt `active` để chuyển luồng. Target = vai ĐANG active ? vai còn lại : 'parent'.
+ * Chưa từng link vai target → trả câu hướng dẫn nhắn PIN, không đổi gì. Link teacher không đụng tới.
+ */
+export const switchBotRole = async (db: FirebaseFirestore.Firestore, botId: string, channelUserId: string, now = new Date()): Promise<{ status: string; reply: string }> => {
+  const snaps = await db.collection('channelLinks').where('channel', '==', 'zalo_bot').where('channelAccountId', '==', botId).where('channelUserId', '==', channelUserId).get();
+  const links = snaps.docs.map(doc => ({ ref: doc.ref, data: doc.data() as any }));
+  if (!links.length) {
+    return { status: 'not_linked', reply: 'Bạn chưa liên kết với lớp nào trên bot. Gửi tin theo mẫu: <mã lớp> <mã PIN> phụ huynh hoặc <mã lớp> <mã PIN> học sinh (mã PIN do thầy cô cấp).' };
+  }
+  const roleOf = (link: { data: any }) => String(link.data.role ?? 'teacher');
+  const target: LinkRole = links.some(link => roleOf(link) === 'parent' && link.data.active === true) ? 'student' : 'parent';
+  if (!links.some(link => roleOf(link) === target)) {
+    return { status: 'no_target_link', reply: target === 'student'
+      ? 'Bạn chưa từng liên kết vai học sinh. Gửi tin: <mã lớp> <mã PIN> học sinh (mã PIN học sinh do thầy cô cấp) rồi nhắn "đổi vai" lần nữa.'
+      : 'Bạn chưa từng liên kết vai phụ huynh. Gửi tin: <mã lớp> <mã PIN> phụ huynh (mã PIN do thầy cô cấp) rồi nhắn "đổi vai" lần nữa.' };
+  }
+  await db.runTransaction(async tx => {
+    for (const link of links) {
+      if (roleOf(link) === 'teacher') continue; // link teacher giữ nguyên — đổi vai chỉ rẽ PH ↔ HS
+      const shouldActive = roleOf(link) === target;
+      if (link.data.active === shouldActive) continue;
+      tx.update(link.ref, { active: shouldActive, updatedAt: now.getTime() });
+    }
+  });
+  return { status: 'switched', reply: target === 'student'
+    ? 'Đã chuyển sang vai HỌC SINH — các chức năng của học sinh (vd mục 8: nộp bài bằng ảnh) đã bật.\n\nNhắn 0 để xem lại menu.'
+    : 'Đã chuyển sang vai PHỤ HUYNH.\n\nNhắn 0 để xem lại menu.' };
 };

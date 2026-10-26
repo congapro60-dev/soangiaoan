@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
-import { linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES } from './_assistant-ph-hs-link.js';
+import { dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
 import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerParentQuestion, vilaoCaller } from './_assistant-ph-hs-chat.js';
@@ -121,6 +121,10 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   }
   if (command === '/status') return output(await getAssistantJobStatus({ actor, jobId: args[0] || '' }));
   }
+  // Tài khoản test trong danh sách cho phép được giữ song song 2 vai — đổi qua lại ngay trong chat.
+  // Đặt TRƯỚC resolveAnyActor để lệnh chạy được bất kể người gửi đang ở vai nào.
+  const plain = message.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/\s+/g, ' ').trim().toLowerCase();
+  if (plain === 'doi vai' && dualRoleAllowed(userId)) return (await switchBotRole(getAdminDb(), botId, userId)).reply;
   const linked = await resolveAnyActor(botId, userId, chatId);
   if (!linked) {
     if (!(await canReplyToStranger(getAdminDb(), botId, userId))) return '';

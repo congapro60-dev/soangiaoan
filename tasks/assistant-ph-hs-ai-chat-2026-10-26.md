@@ -65,6 +65,30 @@
 - **Gate**: tsc 0 lỗi (cả 2 config); full suite **4657/4661** pass — 4 fail CŨ v832 (hash mismatch, không liên quan);
   build pass. Test mới: photo 23 test, bot +11, menu M15a–d.
 
+## Chặn 2 vai + lệnh "đổi vai" cho tài khoản test (26/10 đêm, code + test xong)
+
+- **Bài toán**: production chặn 1 Zalo chỉ giữ 1 vai; tài khoản test của chủ dự án được giữ
+  SONG SONG link PH + HS để kiểm thử cả 2 luồng, đổi qua lại ngay trong chat.
+- **Production — chặn trong `linkByPin`** (`_assistant-ph-hs-link.ts`): sau parse, TRƯỚC guard PIN
+  (không tiêu lượt thử): query link active của tài khoản, có vai KHÁC (teacher không có `role` →
+  tính qua `role ?? 'teacher'`) → trả `roleConflict` + câu hướng dẫn liên hệ thầy cô. Query `existing`
+  được chuyển lên trên và tái dùng cho phần idempotent (bỏ 1 query trùng).
+- **Test — allowlist env** `ZALO_BOT_DUAL_ROLE_USER_IDS` (phân tách dấu phẩy): `dualRoleAllowed(userId)`
+  miễn chặn 2 vai cho tài khoản trong danh sách.
+- **Lệnh `đổi vai`** (`_assistant-zalo-bot.ts` dispatch, TRƯỚC `resolveAnyActor`): normalize bỏ dấu +
+  gộp khoảng trắng (như parsePhotoCommand), chỉ nhận diện khi `dualRoleAllowed` → `switchBotRole`:
+  query TẤT CẢ link → target = parent đang active ? 'student' : 'parent'; chưa từng link vai target →
+  câu hướng dẫn nhắn PIN; transaction bật link vai target + tắt vai còn lại (chỉ flip `active`,
+  không tạo/xoá doc); KHÔNG đụng link teacher. Tài khoản ngoài danh sách nhắn "đổi vai" → rơi về
+  luồng thường như tin tự do.
+- **Test mới**: link +6 (roleConflict chặn PH→HS không tiêu lượt; teacher link cũng chặn; allowlist
+  giữ 2 vai song song; switch 2 chiều giữ teacher; chưa link vai target; chưa link gì) + bot +4
+  (3 biến thể `đổi vai`/`Đổi VAI`/`doi  vai` cho allowlisted; fall-through khi không allowlisted).
+- **Gate**: vitest 2 file **103/103**; full suite **4667/4671** (chỉ 4 fail CŨ v832); tsc 0 lỗi 2 config;
+  build pass. Deploy preview + env `ZALO_BOT_DUAL_ROLE_USER_IDS=6428d37c9d35746b2d24` (preview).
+- `scripts/doi-vai-bot.ts` (MỚI, fallback ops cần service account — chưa dùng được vì Vercel redact
+  `[SENSITIVE]`; phương án chính là lệnh `đổi vai` trong chat).
+
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)

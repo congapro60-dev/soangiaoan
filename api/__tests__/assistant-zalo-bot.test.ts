@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../_assistant-auth', async () => ({
   ...await vi.importActual<typeof import('../_assistant-auth')>('../_assistant-auth'),
@@ -10,6 +10,7 @@ vi.mock('../_assistant-tools', () => ({ runAssistantReadTool: vi.fn(async () => 
 vi.mock('../_assistant-ph-hs-link', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-link')>('../_assistant-ph-hs-link'),
   linkByPin: vi.fn(async () => ({ status: 'linked', reply: 'Đã liên kết thành công.' })),
+  switchBotRole: vi.fn(async () => ({ status: 'switched', reply: 'SWITCH_OK' })),
 }));
 vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
 // Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
@@ -47,7 +48,7 @@ vi.mock('../_assistant-jobs', () => ({ getAssistantJobStatus: vi.fn(async () => 
 import handler from '../assistant';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from '../_assistant-auth';
 import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_assistant-confirmations';
-import { linkByPin } from '../_assistant-ph-hs-link';
+import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply } from '../_assistant-ph-hs-menu';
@@ -372,5 +373,26 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(pendingAssignmentsForStudent).not.toHaveBeenCalled();
     expect(openPhotoSession).not.toHaveBeenCalled();
     expect(finishPhotoSession).not.toHaveBeenCalled();
+  });
+});
+
+describe('đổi vai — tài khoản test giữ song song 2 vai', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each(['đổi vai', 'Đổi VAI', 'doi  vai'])('nhận lệnh đổi vai (%s) cho tài khoản trong danh sách test', async text => {
+    vi.stubEnv('ZALO_BOT_DUAL_ROLE_USER_IDS', 'user-1');
+    const result = await request(event(text, 'm-20'));
+    expect(result.code).toBe(200);
+    expect(switchBotRole).toHaveBeenCalledWith({}, 'bot-1', 'user-1');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('SWITCH_OK');
+  });
+
+  it('không trong danh sách test → "đổi vai" rơi xuống luồng thường, không đổi vai', async () => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
+    const result = await request(event('đổi vai', 'm-21'));
+    expect(result.code).toBe(200);
+    expect(switchBotRole).not.toHaveBeenCalled();
+    // Rơi về luồng người lạ: đúng 1 câu hướng dẫn liên kết
+    expect(JSON.parse(sent()[0][1].body).text).toContain('liên kết');
   });
 });
