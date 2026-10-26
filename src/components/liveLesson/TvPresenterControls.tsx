@@ -55,11 +55,12 @@ export interface TvPresenterControlsProps {
   error?: string | null;
   onNavigate: (patch: { currentCueId: string; currentTvScreenId: string }) => void;
   onToggleStatus: () => void;
+  onClose: () => void;
   showStats?: boolean;
   onToggleStats?: () => void;
 }
 
-export const TvPresenterControls = ({ definition, session, busy = false, error = null, onNavigate, onToggleStatus, showStats = false, onToggleStats }: TvPresenterControlsProps) => {
+export const TvPresenterControls = ({ definition, session, busy = false, error = null, onNavigate, onToggleStatus, onClose, showStats = false, onToggleStats }: TvPresenterControlsProps) => {
   const index = Math.max(0, definition.cues.findIndex((cue) => cue.id === session.currentCueId));
   const total = definition.cues.length;
   const isClosed = session.status === 'closed';
@@ -141,6 +142,9 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
       >Sau →</button>
       <button type="button" onClick={toggleFullscreen} className="tv-presenter-btn">Toàn màn hình</button>
       {onToggleStats && <button type="button" disabled={isClosed || busy} aria-pressed={showStats} onClick={onToggleStats} className="tv-presenter-btn">{showStats ? 'Ẩn kết quả' : 'Hiện kết quả lớp'}</button>}
+      <button type="button" disabled={isClosed || busy} onClick={() => {
+        if (!isClosed && !busy && window.confirm('Đóng phiên sẽ dừng tiết học và khóa gửi bài. Thầy cô xác nhận đóng phiên?')) onClose();
+      }} className="tv-presenter-btn">Đóng phiên</button>
       <span className="tv-presenter-hint">← → chuyển slide · Space chạy/dừng · F toàn màn hình</span>
     </div>
   );

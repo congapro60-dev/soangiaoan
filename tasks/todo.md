@@ -103,8 +103,6 @@ Còn lại của đợt: commit + push feature → fast-forward `main` → push 
 ## Không làm (giải trình kỹ thuật)
 - 9Router cho webapp production: local-only (127.0.0.1), Vercel không gọi được; subscription cá nhân không đúng mục đích serving.
 - OpenRouter `:free` làm primary: trần ~50–1.000 req/ngày, chỉ vai overflow.
-
-
 ## 26/10/2026 — Sửa JSON báo cáo phụ huynh và đường phát hành
 
 - [x] Tái hiện A/B/C qua handler thật với mock, sửa parser và schema; giữ ghi chú đã soạn khi lỗi.
@@ -114,3 +112,20 @@ Còn lại của đợt: commit + push feature → fast-forward `main` → push 
 - [ ] Bàn giao commit nhánh riêng cho phiên đang triển khai (user xác nhận); phiên đó tích hợp Git main và xác minh alias/source/file. Chưa có 5 lượt live QA từ phiên này.
 
 Handoff: Goal sửa A/B/C + ngăn nhầm production. Confirmed facts: base e614b70, alias dpl_9Gwv4dRvk nguồn CLI; thư mục gốc archive có WIP, nop-bai-da-cham có WIP live UI. Failed attempts: xóa .vercel không chặn đường env/explicit project; guard hiện chỉ in hướng dẫn. Active constraints: worktree riêng, không Astra, không sửa dữ liệu HS/GV, không ghi đè WIP/đổi quyền cloud ngoài phạm vi.
+
+# TODO — 26/10/2026: sửa lỗi QA runtime Tuần 11
+
+Goal: sửa năm lỗi kỹ thuật đã được duyệt; giữ nguyên Toán, mã PPCT, 51 gói, cue ID và privacy rules.
+Base: `3616442`; nhánh `codex/week11-runtime-fixes`; worktree riêng, không thay WIP checkout cũ.
+
+- [x] Test đỏ: chuyển cue phải ẩn kết quả cũ; cùng cue giữ trạng thái công bố.
+- [x] Presenter có xác nhận đóng, gọi service hiện có; xử lý lỗi, khóa thao tác khi đang đóng.
+- [x] Chọn đáp án chỉ lưu nháp; Gửi mới ghi; luyện tập dùng chung hàng rào khóa.
+- [x] Lỗi listener dừng runtime bằng màn lỗi có nút tải lại; giữ nháp đã lưu, không giả báo đã đóng.
+- [x] Lint, API lint, bộ test liveLesson/pages/service, build; rules emulator.
+- [x] Review source độc lập lần hai: không còn blocker/major; cùng họ OpenAI, review chéo hãng chưa khả dụng. Browser chưa xác minh; không phát hành.
+
+Failed attempts: QA browser trước bị chặn xác định URL Windows; không dùng kết quả đó làm chứng cứ E2E.
+Routing: catalog 9router không truy cập được; native agent xử lý Student, không tuyên bố quota/model router đã xác minh.
+
+Review: 63 file / 619 test PASS; rules 11 file / 314 test PASS với hookTimeout 90s; lint + API lint + build exit 0; entry 709,53 kB. Bổ sung 4 integration handler tests cho đóng/lỗi/thử lại và route recovery. Lint phát hiện một lỗi kiểu trong test mới, đã sửa và chạy lại xanh. Không sửa Toán/Rules, không commit/push/deploy, không ghi production.

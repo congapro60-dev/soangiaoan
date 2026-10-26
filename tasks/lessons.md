@@ -948,3 +948,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Persistence test phải soi network tại đúng thời điểm ghi** — POST `/api/adaptive-progress` chỉ xảy ra lúc nộp exit-ticket (không phải lúc nộp diagnostic/unit); GET profile có thể 400 do shape — có POST `ok:true` + body full là bằng chứng đủ, đừng kết luận "không lưu" khi GET hỏng.
 - **Đoạn code sinh chuỗi JS lớn phải kèm test cú pháp (`node --check` trên chính chuỗi sinh ra)** — engine script là String.raw + interpolation JSON, từng vỡ vì escape; test render + `--check` phát hiện ngay, đừng chờ QA runtime mới biết. *(2026-10-24)*
 - **Đáp án trong bài học sinh chỉ được sống trong closure engine, không bao giờ qua DOM** — mọi kênh rò (attr `data-correct*`, div ẩn chứa đáp án, JSON blob) đều là leak; thêm field đáp án mới phải cập nhật `buildDeweyAnswerKey` cùng lúc với template. *(2026-10-24)*
+## 2026-10-26 — Bỏ tự gửi phải giữ đủ các đường xác nhận hỗn hợp
+
+- Khi chuyển lựa chọn sang lưu nháp rồi mới Gửi, kiểm cả bước `choice/text`, `route/text`, `boolean/text`; không chỉ bước một loại và AI-error. Câu có tự luận không đồng nghĩa được ẩn nút xác nhận lựa chọn.
+- Regression phải gọi handler thật và kiểm payload cùng số lần enqueue; `false` là đáp án boolean hợp lệ. Nhánh luyện tập phải dùng cùng khóa tại giao diện và điểm gửi chung; chỉ ghi nhận nháp đã gửi sau khi enqueue thành công.
+- Sau lỗi listener công khai, dừng runtime cũ; không suy permission-denied thành trạng thái closed, không nới Rules để che lỗi giao diện.

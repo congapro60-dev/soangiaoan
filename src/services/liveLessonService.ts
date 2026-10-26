@@ -348,8 +348,9 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
     }
     lessonElapsedSeconds = Math.min(86400, Math.max(0, lessonElapsedSeconds));
 
-    const next = { ...current, ...patch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds };
-    tx.update(sessionRef, { ...patch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds, updatedAt: serverTimestamp() });
+    const nextPatch = { ...patch, ...(changedCue ? { publicStatsEnabled: false } : {}) };
+    const next = { ...current, ...nextPatch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds };
+    tx.update(sessionRef, { ...nextPatch, cueStartedAt, cueElapsedSeconds, lessonStartedAt, lessonElapsedSeconds, updatedAt: serverTimestamp() });
     if (next.status !== 'closed' && next.publicStateEnabled) {
       tx.set(doc(sessionRef, PUBLIC_SUB, 'state'), {
         cueId: next.currentCueId, tvScreenId: next.currentTvScreenId,

@@ -277,6 +277,28 @@ describe('liveLessonService Firestore boundary', () => {
     });
   });
 
+  it('hides results atomically when moving to another cue, even if the patch requests old results', async () => {
+    liveTx.session = sessionData({ status: 'running', publicStatsEnabled: true });
+    firestoreMocks.getDocFromServer.mockResolvedValueOnce({
+      exists: () => true, id: 'session-1',
+      data: () => sessionData({ currentCueId: 'P01', publicStatsEnabled: false }),
+    });
+
+    await updateLiveLessonState('session-1', { currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: true });
+
+    expect(liveTx.calls[0].data).toMatchObject({ currentCueId: 'P01', publicStatsEnabled: false });
+    expect(liveTx.calls[1].data).toMatchObject({ cueId: 'P01', showStats: false });
+  });
+
+  it('keeps published results when pausing the same cue', async () => {
+    liveTx.session = sessionData({ status: 'running', publicStatsEnabled: true });
+    firestoreMocks.getDocFromServer.mockResolvedValueOnce({
+      exists: () => true, id: 'session-1', data: () => sessionData({ status: 'paused' }),
+    });
+    await updateLiveLessonState('session-1', { status: 'paused', currentCueId: 'P00' });
+    expect(liveTx.calls[1].data).toMatchObject({ cueId: 'P00', showStats: true });
+  });
+
   it('writes only a validated session patch and closes public flags', async () => {
     // readSnapshot uses getDocFromServer so serverTimestamp fields are resolved after write.
     firestoreMocks.getDocFromServer
@@ -298,9 +320,9 @@ describe('liveLessonService Firestore boundary', () => {
     await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' });
     expect(liveTx.calls).toEqual([
       {kind:'update', ref:expect.objectContaining({path:'/liveLessonSessions/session-1'}),
-        data:{status:'running',currentCueId:'P01',currentTvScreenId:'S1',cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+        data:{status:'running',currentCueId:'P01',currentTvScreenId:'S1',publicStatsEnabled:false,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
       {kind:'set', ref:expect.objectContaining({path:'/liveLessonSessions/session-1/public/state'}),
-        data:{status:'running',cueId:'P01',tvScreenId:'S1',showStats:true,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+        data:{status:'running',cueId:'P01',tvScreenId:'S1',showStats:false,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,lessonStartedAt:expect.any(Number),lessonElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
     ]);
 
     await closeLiveLessonSession('session-1');
