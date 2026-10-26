@@ -38,6 +38,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   const [ky, setKy] = useState<ReportPeriod>(() => defaultPeriod('month', today()));
   const [aiChoEmChuaCo, setAiChoEmChuaCo] = useState(false);
   const [tienDo, setTienDo] = useState('');
+  const [loiBaoCao, setLoiBaoCao] = useState<string[]>([]);
   const [lanCongBo, setLanCongBo] = useState(0);
   const [nhanDien, setNhanDien] = useState<ParentBranding>(effectiveBranding);
   const [chuongTrinh, setChuongTrinh] = useState<Program | null>(() => effectiveClassProgram(classId, className));
@@ -64,6 +65,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   const chay = async (cheDo: 'zip' | 'congBo') => {
     if (loi || tienDo) return;
     const key = (studentId: string) => ({ classId, studentId, kind: ky.kind, from: ky.from, to: ky.to });
+    setLoiBaoCao([]);
     setTienDo('Đang tải dữ liệu lớp…');
     try {
       const [assignments, submissions, scoreBook] = await Promise.all([
@@ -105,6 +107,9 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
           let ghi = await loadParentReportNote(key(hs.id)).catch(() => ({ text: '', requirements: [] }));
           if (!ghi.text && aiChoEmChuaCo) {
             ghi = await draftParentReportComment(key(hs.id), built.facts, chuongTrinh);
+            if ('warnings' in ghi && Array.isArray(ghi.warnings) && ghi.warnings.length > 0) {
+              throw new Error(`Bản nháp AI chưa đủ nội dung: ${ghi.warnings.join(' ')} Mở báo cáo từng học sinh để đối chiếu trước khi xuất hoặc công bố.`);
+            }
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
           const input = { ...built.printInput, weekPlan, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, stageForPeriod(ky, chuongTrinh)), branding: brandingForReport(nhanDien) };
@@ -117,6 +122,8 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
           daXuat += 1;
         } catch (error) {
           console.error('Không xuất được báo cáo của', hs.name, error);
+          const message = error instanceof Error ? error.message : 'Chưa xuất được báo cáo; hãy kiểm tra riêng từng học sinh.';
+          setLoiBaoCao(current => [...current, `${hs.name}: ${message}`]);
           loiEm += 1;
         }
       }
@@ -148,6 +155,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
     <section className="mt-5 rounded-3xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5">
       <p className="flex items-center gap-2 text-sm font-black text-slate-900"><FileArchive className="h-4 w-4 text-indigo-600" /> Xuất báo cáo phụ huynh cả lớp</p>
       <p className="mt-1 text-xs font-semibold text-slate-500">Mỗi em một file PDF, gói chung một ZIP. Muốn xem trước hoặc sửa nhận xét từng em: mở học sinh → Bản phụ huynh.</p>
+      {loiBaoCao.length > 0 && <div role="alert" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{loiBaoCao.map((message, index) => <p key={index}>{message}</p>)}</div>}
       <div className="mt-3 flex flex-wrap items-end gap-2 rounded-2xl border border-indigo-100 bg-white p-3">
         <p className="w-full text-xs font-black uppercase tracking-wide text-slate-500">Đầu báo cáo (nhập một lần, lưu trên máy này)</p>
         <input value={nhanDien.schoolName} onChange={event => doiNhanDien({ schoolName: event.target.value })} maxLength={120} placeholder="Tên trường" className="min-w-[180px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />

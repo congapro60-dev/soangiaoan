@@ -41,7 +41,9 @@ if (branch !== 'main' && branch !== 'HEAD') {
   ]);
 }
 
-tryRun(['fetch', 'origin', 'main']);
+if (tryRun(['fetch', 'origin', 'main']) === null) {
+  die(['✗ Không thể cập nhật origin/main. Kiểm mạng rồi thử lại.']);
+}
 const head = tryRun(['rev-parse', 'HEAD']);
 const main = tryRun(['rev-parse', 'origin/main']);
 if (!main) {
@@ -68,7 +70,7 @@ if (dirty) {
     '✗ Còn file chưa commit:',
     ...dirty.split('\n').map(line => `    ${line}`),
     '',
-    '  Deploy sẽ đóng gói cả những file này. Commit hoặc stash trước.',
+    '  Deploy sẽ đóng gói cả những file này. Commit trên nhánh phù hợp trước.',
   ]);
 }
 

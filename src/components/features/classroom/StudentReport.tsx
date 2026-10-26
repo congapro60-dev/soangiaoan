@@ -107,6 +107,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [dangSoan, setDangSoan] = useState(false);
   const [dangLuuNX, setDangLuuNX] = useState(false);
   const [loiNX, setLoiNX] = useState('');
+  const [canhBaoNX, setCanhBaoNX] = useState<string[]>([]);
 
   useEffect(() => {
     let huy = false;
@@ -156,6 +157,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   useEffect(() => {
     let huy = false;
     setLoiNX('');
+    setCanhBaoNX([]);
     const datLai = (text: string, lines: ParentRequirementLine[], chinh: ReportOverrides) => {
       setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines); setChinhTay(chinh); setChinhTayDaLuu(chinh);
     };
@@ -178,6 +180,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     setLoiNX('');
     try {
       const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts, effectiveClassProgram(classId, className));
+      setCanhBaoNX(nhap.warnings ?? []);
       setNhanXet(nhap.text);
       setYccd(requirementsInStage(nhap.requirements ?? [], classGrade, stageForPeriod(khoaNhanXet, effectiveClassProgram(classId, className))));
     } catch (error) {
@@ -399,6 +402,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                   </div>
                 </div>
                 <textarea value={nhanXet} onChange={event => setNhanXet(event.target.value)} rows={4} placeholder="Bấm “AI soạn nháp” để AI viết dựa trên số liệu của kì này, rồi sửa lại cho đúng ý thầy cô. Để trống thì báo cáo không có mục này." className="mt-2 w-full rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-800 outline-none focus:border-violet-300" />
+                {canhBaoNX.length > 0 && <div role="status" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{canhBaoNX.map((message, index) => <p key={index}>{message}</p>)}</div>}
                 <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : chuaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang gõ.' : nhanXetDaLuu || yccdDaLuu.length > 0 ? 'Đã lưu cho đúng học sinh và kì này.' : 'AI chỉ dùng số liệu đã duyệt trong kì, không dùng họ tên của em.'}</p>
                 {yccd.length > 0 && (
                   <div className="mt-3 rounded-xl border border-violet-100 bg-white p-3">

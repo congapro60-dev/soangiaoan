@@ -95,3 +95,14 @@ Còn lại của đợt: commit + push feature → fast-forward `main` → push 
 ## Không làm (giải trình kỹ thuật)
 - 9Router cho webapp production: local-only (127.0.0.1), Vercel không gọi được; subscription cá nhân không đúng mục đích serving.
 - OpenRouter `:free` làm primary: trần ~50–1.000 req/ngày, chỉ vai overflow.
+
+
+## 26/10/2026 — Sửa JSON báo cáo phụ huynh và đường phát hành
+
+- [x] Tái hiện A/B/C qua handler thật với mock, sửa parser và schema; giữ ghi chú đã soạn khi lỗi.
+- [x] Hiện cảnh báo thiếu ghi chú/YCCĐ ở màn giáo viên; không tự công bố bản thiếu.
+- [x] Nối build guard kiểm metadata production; test guard 8ca bằng tiến trình con, không deploy CLI. Guard không thay thế quyền kiểm soát Vercel.
+- [x] Review Sol APPROVE, không Astra; app/API typecheck đạt; API46/46, full427file/4547test, guard8ca đạt; build cuối exit0, entry709,53kB.
+- [ ] Bàn giao commit nhánh riêng cho phiên đang triển khai (user xác nhận); phiên đó tích hợp Git main và xác minh alias/source/file. Chưa có 5 lượt live QA từ phiên này.
+
+Handoff: Goal sửa A/B/C + ngăn nhầm production. Confirmed facts: base e614b70, alias dpl_9Gwv4dRvk nguồn CLI; thư mục gốc archive có WIP, nop-bai-da-cham có WIP live UI. Failed attempts: xóa .vercel không chặn đường env/explicit project; guard hiện chỉ in hướng dẫn. Active constraints: worktree riêng, không Astra, không sửa dữ liệu HS/GV, không ghi đè WIP/đổi quyền cloud ngoài phạm vi.

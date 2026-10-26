@@ -155,31 +155,64 @@ const readEvidence = (facts: unknown): EvidenceSubmission[] => {
   });
 };
 
-const parseDraftJson = (raw: string): Record<string, unknown> | null => {
-  try {
-    // Vilao không có jsonMode như Gemini cũ: hay bọc ```json … ``` hoặc thêm lời dẫn — parseLooseJson KHÔNG gỡ những thứ đó
-    // (log production 25/10: JSON đúng mà vẫn 502), nên cắt lấy khối {…} trước như các nơi đọc JSON khác; escape lệch thì parseLooseJson lo.
-    const parsed = parseLooseJson<Record<string, unknown>>(raw.match(/\{[\s\S]*\}/)?.[0] ?? raw);
-    return parsed && typeof parsed === 'object' ? parsed : null;
-  } catch {
+type DraftType = 'yccd' | 'ghiChu';
+const validDraft = (value: unknown, type: DraftType): value is Record<string, unknown> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const rows = (value as Record<string, unknown>)[type];
+  return Array.isArray(rows) && rows.every(row => row && typeof row === 'object' && !Array.isArray(row)
+    && typeof row.ma === 'string' && (type === 'yccd'
+      ? Array.isArray(row.cau) && row.cau.every((code: unknown) => typeof code === 'string')
+      : typeof row.ghiChu === 'string'));
+};
+
+const parseDraftJson = (raw: string, type: DraftType): Record<string, unknown> | null => {
+  const findCandidate = (source: string): Record<string, unknown> | null => {
+    // Lấy từng object cân bằng; bỏ qua {…} trong lời dẫn và dấu ngoặc nằm trong chuỗi JSON.
+    for (let start = source.indexOf('{'); start >= 0; start = source.indexOf('{', start + 1)) {
+      let depth = 0, quoted = false, escaped = false;
+      for (let end = start; end < source.length; end++) {
+        const char = source[end];
+        if (quoted) {
+          if (escaped) escaped = false;
+          else if (char === '\\') escaped = true;
+          else if (char === '"') quoted = false;
+        } else if (char === '"') quoted = true;
+        else if (char === '{') depth++;
+        else if (char === '}' && --depth === 0) {
+          try {
+            const parsed = parseLooseJson<unknown>(source.slice(start, end + 1));
+            if (validDraft(parsed, type)) return parsed;
+          } catch { /* thử khối kế tiếp */ }
+          start = end; // Object kín sai schema: không nhận nhầm object con.
+          break;
+        }
+      }
+      if (depth > 0 && /^\{\s*"/.test(source.slice(start))) return null; // JSON cắt cụt: không cứu object con.
+    }
     return null;
+  };
+  for (const fenced of raw.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
+    const parsed = findCandidate(fenced[1]);
+    if (parsed) return parsed;
   }
+  return findCandidate(raw);
 };
 
 type DraftParse = { kind: 'slow' } | { kind: 'bad' } | { kind: 'ok'; value: Record<string, unknown> };
 
 /**
  * Gọi AI xin khối JSON: parse lệch thì nhờ gửi lại ĐÚNG MỘT lần nữa (Vilao không khoá JSON như jsonMode cũ);
- * `null` -hết giờ- vẫn theo `callWithinTime` để phân biệt 504 với 502.
+ * `null` -hết giờ- vẫn theo `callWithinTime` để phân biệt 504 với lỗi cấu trúc 422.
  */
-const callDraftJson = async (call: () => Promise<string>, timeoutMs?: number): Promise<DraftParse> => {
+const callDraftJson = async (call: (timeoutMs: number) => Promise<string>, type: DraftType, deadline: number): Promise<DraftParse> => {
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const raw = await callWithinTime(call, timeoutMs);
-    if (raw === null) return { kind: 'slow' };
-    const parsed = parseDraftJson(raw);
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return { kind: 'slow' };
+    const raw = await callWithinTime(() => call(remainingMs), remainingMs);
+    if (raw === null || Date.now() >= deadline) return { kind: 'slow' };
+    const parsed = parseDraftJson(raw, type);
     if (parsed) return { kind: 'ok', value: parsed };
-    // Chỉ là mã câu/mã YCCĐ (không có dữ liệu cá nhân): ghi đầu + cuối câu trả lời để biết AI hỏng kiểu gì.
-    console.warn('[parent-report] AI trả JSON không đọc được', { attempt, length: raw.length, head: raw.slice(0, 300), tail: raw.slice(-200) });
+    console.warn('[parent-report] AI trả JSON sai hoặc thiếu cấu trúc', { type, attempt, length: raw.length });
   }
   return { kind: 'bad' };
 };
@@ -257,6 +290,7 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   }
   // Bước 1: nhận xét (lượt ngắn, không kèm từng câu) + ghép từng nhóm bài — tất cả chạy song song.
   const startedAt = Date.now();
+  const deadline = startedAt + AI_TIMEOUT_MS;
   const overview = { ...(body.facts as Record<string, unknown>) };
   delete overview.baiDaDuyet;
   const [commentRaw, ...mappingDrafts] = await Promise.all([
@@ -265,23 +299,27 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
       maxOutputTokens: 'model-max',
       timeoutMs: AI_TIMEOUT_MS,
     })),
-    ...chunkEvidence(evidence).map(chunk => callDraftJson(() => callGradingVision(
+    ...chunkEvidence(evidence).map(chunk => callDraftJson(timeoutMs => callGradingVision(
       buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], {
         temperature: 0.2,
         maxOutputTokens: 'model-max',
-        timeoutMs: AI_TIMEOUT_MS,
-      }))),
+        timeoutMs,
+      }), 'yccd', deadline)),
   ]);
-  if (commentRaw === null || mappingDrafts.some(draft => draft.kind === 'slow')) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
+  if (commentRaw === null || mappingDrafts.some(draft => draft.kind === 'slow') || Date.now() >= deadline) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
   const text = cleanComment(commentRaw);
   // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
-  if (!text || mappingDrafts.some(draft => draft.kind === 'bad')) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  if (!text) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  if (mappingDrafts.some(draft => draft.kind === 'bad')) return void res.status(422).json({ error: 'AI trả dữ liệu YCCĐ thiếu hoặc sai dạng. Bấm "AI soạn nháp" để thử lại.' });
   const merged = { yccd: mappingDrafts.flatMap(draft => (draft.kind === 'ok' && Array.isArray(draft.value.yccd) ? draft.value.yccd : [])) };
   const grouped = mapRequirementQuestions(grade, evidence, merged, stage);
   let requirements = aggregateRequirementLines(grade, evidence, merged, stage);
+  const warnings: string[] = [];
+  let missingNotes = false;
+  if (requirements.length === 0) warnings.push('AI chưa ghép được YCCĐ nào với câu đã duyệt; giáo viên cần kiểm tra bản nháp.');
 
   // Bước 2: ghi chú cho từng YCCĐ trong phần thời gian còn lại. Hết giờ → vẫn trả các dòng (mức đúng), ghi chú để trống.
-  const remainingMs = startedAt + AI_TIMEOUT_MS - Date.now();
+  const remainingMs = deadline - Date.now();
   if (grouped.length > 0 && remainingMs > 8000) {
     const groupsJson = JSON.stringify(grouped.map(({ item, questions }, index) => ({
       ma: item.id,
@@ -289,14 +327,23 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
       tiLeDiem: `${Math.round(requirements[index].percent)}%`,
       cau: questions,
     })));
-    const notesDraft = await callDraftJson(() => callGradingVision(buildRequirementNotesPrompt(groupsJson), [], {
+    const notesDraft = await callDraftJson(timeoutMs => callGradingVision(buildRequirementNotesPrompt(groupsJson), [], {
       temperature: 0.2,
       maxOutputTokens: 'model-max',
-      timeoutMs: remainingMs,
-    }), remainingMs);
-    if (notesDraft.kind === 'ok') requirements = applyRequirementNotes(requirements, notesDraft.value);
+      timeoutMs,
+    }), 'ghiChu', deadline);
+    if (notesDraft.kind === 'bad') return void res.status(422).json({ error: 'AI trả ghi chú YCCĐ thiếu hoặc sai dạng. Bấm "AI soạn nháp" để thử lại.' });
+    if (notesDraft.kind === 'ok') {
+      const rows = notesDraft.value.ghiChu as { ma: string; ghiChu: string }[];
+      missingNotes = requirements.some(line => !rows.some(row => row.ma.trim() === line.id && row.ghiChu.trim()));
+      requirements = applyRequirementNotes(requirements, notesDraft.value);
+    }
+    else warnings.push('AI soạn ghi chú quá lâu; giáo viên cần bổ sung các ghi chú còn trống.');
+  } else if (grouped.length > 0) {
+    warnings.push('Không đủ thời gian soạn ghi chú YCCĐ; giáo viên cần bổ sung các ghi chú còn trống.');
   }
-  res.status(200).json({ text, requirements });
+  if (missingNotes || requirements.some(line => !line.note.trim())) warnings.push('Một số YCCĐ chưa có ghi chú; giáo viên cần bổ sung trước khi lưu.');
+  res.status(200).json({ text, requirements, warnings });
 };
 
 export const handleParentReportAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
