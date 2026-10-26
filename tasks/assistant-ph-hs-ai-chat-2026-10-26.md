@@ -51,6 +51,20 @@
 - Deploy: `https://giaoandewey-p2j10m5kl-congapro60-devs-projects.vercel.app`, webhook `webhook.ok`.
 - Cần test Zalo thật: menu in đậm, mục 2 HS có nhận xét, nhắn `web` nhận link bấm được.
 
+## Việc 4 — HS nộp bài bằng ảnh qua bot (26/10 tối, code + test xong)
+
+- **Luồng**: HS nhắn 8 → chọn bài giao (tối đa 5 bài chờ nộp) → gửi ảnh (≤3 ảnh, ≤10MB, phiên 10 phút) →
+  nhắn `xong` → tạo submission khớp luồng web → `gradeOneSubmission(mode 'quick')` chạy nền (`chayNgam`) →
+  tin điểm qua Zalo. PH gửi ảnh/lệnh chấm → đúng 1 câu "chức năng của học sinh".
+- **File**: `_assistant-ph-hs-photo.ts` (MỚI), `_assistant-zalo-send.ts` (MỚI: escMd/sendStyled/sendTyping),
+  `grade-homework.ts` (export + `budgetMs`/`marginMs` — web không truyền → nguyên vẹn), `_assistant-zalo-bot.ts`
+  (event `message.image.received`), `_assistant-ph-hs-menu.ts` (mục 8 chỉ HS), `vercel.json` (maxDuration 90).
+- **An toàn**: chỉ role student; không exam/online/khóa nộp; chặn nộp trùng khi đang submitted/grading;
+  quota trừ NGAY khi bắt chấm (`bumpQuota`), câu từ chối y hệt web; Ảnh đẩy Storage
+  `accepted-homework/<classId>/<studentId>/` + download token — URL khớp `prepareActorFiles` web.
+- **Gate**: tsc 0 lỗi (cả 2 config); full suite **4657/4661** pass — 4 fail CŨ v832 (hash mismatch, không liên quan);
+  build pass. Test mới: photo 23 test, bot +11, menu M15a–d.
+
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)

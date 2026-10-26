@@ -554,7 +554,7 @@ const sheetCheckFor = async (
   }
 };
 
-const gradeOneSubmission = async (
+export const gradeOneSubmission = async (
   db: FirebaseFirestore.Firestore,
   submissionId: string,
   ctx: GradeContext,
@@ -563,6 +563,12 @@ const gradeOneSubmission = async (
   isTeacher: boolean,
   mode: HomeworkGradingMode,
   refreshSnapshot?: SubmissionDoc,
+  // Bot Zalo chấm trong waitUntil của function webhook (maxDuration ~90s) nên cần ngân sách NGẮN hơn
+  // `GRADING_BUDGET_MS` (240s) và margin nhỏ hơn 60s — nếu không thì `conLaiMs() - 60_000` luôn âm,
+  // lượt chấm chỉ còn `MIN_GEMINI_BUDGET_MS` (12s) và gần như chắc chắn timeout.
+  // Không truyền → web giữ nguyên ngân sách cũ. Đọc quyết định ở tasks/todo.md (việc 4).
+  budgetMs?: number,
+  marginMs?: number,
 ): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; retryAfterMs?: number; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
@@ -577,7 +583,7 @@ const gradeOneSubmission = async (
   const isStudentActor = !isTeacher;
   // Đồng hồ đếm ngược bắt đầu NGAY SAU khi khoá được đặt: từ giây này trở đi, mọi đường thoát
   // đều phải kịp chạy nhánh mở khoá bên dưới trước khi Vercel giết hàm.
-  const deadlineAt = Date.now() + GRADING_BUDGET_MS;
+  const deadlineAt = Date.now() + (budgetMs ?? GRADING_BUDGET_MS);
   const conLaiMs = () => deadlineAt - Date.now();
 
   try {
@@ -623,7 +629,7 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - 60_000), false, studentImageUrls);
+      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - (marginMs ?? 60_000)), false, studentImageUrls);
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
       // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
@@ -870,7 +876,9 @@ const answerKeyFixesOf = (assignment: FirebaseFirestore.DocumentData): AnswerKey
 );
 
 /** Ngữ cảnh chấm (đáp án, hướng dẫn, ảnh đề) của một bài giao. */
-const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Promise<GradeContext> => ({
+// EXPORT cho bot Zalo (việc 4): bot dựng ngữ cảnh đáp án giống hệt đường "Chấm cả lớp" qua hàm này —
+// hai đường tự dựng riêng là lệch nhau (vd quên mã đề), nên bắt buộc đi qua đây.
+export const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Promise<GradeContext> => ({
   answerKey: String(assignment.answerKey || ''),
   rubric: String(assignment.rubric || ''),
   maxScore: Number(assignment.maxScore) || 10,

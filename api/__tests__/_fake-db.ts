@@ -37,7 +37,7 @@ export class FakeDb {
   async runTransaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
     this.beforeTransaction?.(); this.beforeTransaction = undefined;
     for (let attempt = 0; attempt < 100; attempt++) {
-      const reads = new Map<string, number>(); const writes: Array<[string, Data, boolean]> = [];
+      const reads = new Map<string, number>(); const writes: Array<[string, Data, boolean]> = []; const deletes: string[] = [];
       const validate = (value: any): void => { if (value === undefined) throw new Error('undefined'); if (value && typeof value === 'object') Object.values(value).forEach(validate); };
       const result = await fn({ get: async (ref: any) => {
         if (writes.length) throw new Error('read after write');
@@ -45,12 +45,18 @@ export class FakeDb {
         reads.set(ref.path, this.versions.get(ref.path) ?? 0); return this.snap(ref.path);
       }, set: (ref: any, data: Data, options?: { merge: boolean }) => {
         validate(data); writes.push([ref.path, structuredClone(data), !!options?.merge]);
+      }, create: (ref: any, data: Data) => {
+        validate(data); if (this.rows.has(ref.path)) throw new Error(`create existing doc: ${ref.path}`);
+        writes.push([ref.path, structuredClone(data), false]);
       }, update: (ref: any, data: Data) => {
         validate(data); writes.push([ref.path, structuredClone(data), true]);
+      }, delete: (ref: any) => {
+        deletes.push(ref.path);
       } });
       const hook = this.beforeCommit; this.beforeCommit = undefined; hook?.();
       if ([...reads].some(([path, version]) => (this.versions.get(path) ?? 0) !== version)) { this.retries++; continue; }
       writes.forEach(([path, data, merge]) => this.put(path, merge ? { ...this.rows.get(path), ...data } : data));
+      deletes.forEach(path => this.rows.delete(path));
       return result;
     }
     throw new Error('retry exhausted');

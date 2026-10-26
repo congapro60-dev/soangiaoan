@@ -12,6 +12,24 @@ vi.mock('../_assistant-ph-hs-link', async () => ({
   linkByPin: vi.fn(async () => ({ status: 'linked', reply: 'Đã liên kết thành công.' })),
 }));
 vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
+// Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
+vi.mock('../_assistant-ph-hs-photo', () => ({
+  PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY' },
+  cancelPhotoSession: vi.fn(async () => undefined),
+  finishPhotoSession: vi.fn(async () => 'FINISH_OK'),
+  openPhotoSession: vi.fn(async () => 'OPEN_OK'),
+  parsePhotoCommand: vi.fn((raw: string) => {
+    const plain = raw.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
+    if (/^cham$/.test(plain)) return { kind: 'list' };
+    const pick = /^cham\s*(\d{1,2})$/.exec(plain);
+    if (pick) return { kind: 'pick', n: Number(pick[1]) };
+    if (/^(xong|gui)$/.test(plain)) return { kind: 'done' };
+    return null;
+  }),
+  pendingAssignmentsForStudent: vi.fn(async () => ({ teacherId: 't-1', items: [{ id: 'a-1', title: 'Bài 1' }] })),
+  photoListReply: vi.fn((items: unknown[]) => `LIST_${items.length}`),
+  photoReceivedReply: vi.fn(async () => 'PHOTO_OK'),
+}));
 vi.mock('../_assistant-ph-hs-menu', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
   parentMenuReply: vi.fn(async () => 'MENU_DUNG_HO_SO'),
@@ -33,6 +51,7 @@ import { linkByPin } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply } from '../_assistant-ph-hs-menu';
+import { cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
 
 const event = (text = '/help', messageId = 'message-1') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: messageId, date: Date.now() } } });
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -88,7 +107,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     if (invalid === 'future') m.date += 61_000;
     if (invalid === 'missing-id') m.message_id = '';
     if (invalid === 'oversized') m.text = 'x'.repeat(2001);
-    if (invalid === 'event') body.result.event_name = 'message.image.received';
+    if (invalid === 'event') body.result.event_name = 'message.sticker.received';
     if (invalid === 'seconds') m.date = Math.floor(m.date / 1000);
     const result = await request(body);
     if (invalid === 'sender') expect(result.code).toBe(200); else {
@@ -267,5 +286,91 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect(sent()).toHaveLength(2);
     expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
     expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'TIÊU ĐỀ\nDòng nội dung' });
+  });
+});
+
+describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
+  const parentActor = { firebaseUid: 'pinlink:parent:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'plink', active: true, role: 'parent', classId: 'c', studentId: 's' } as any;
+  const studentActor = { firebaseUid: 'pinlink:student:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'slink', active: true, role: 'student', classId: 'c', studentId: 's' } as any;
+  const mockStudent = () => vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
+    if ((args[5] as any)?.preferredRole === 'student') return studentActor;
+    throw new Error('Channel is not linked');
+  });
+  const imageEvent = (photo: unknown, messageId = 'image-1') => ({ ok: true, result: { event_name: 'message.image.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, photo, message_id: messageId, date: Date.now() } } });
+
+  it('HS gửi ảnh (m.photo chuỗi) → photoReceivedReply, gửi sendStyled', async () => {
+    mockStudent();
+    const result = await request(imageEvent('https://photo.zalo/abc.jpg'));
+    expect(result.code).toBe(200);
+    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('PHOTO_OK');
+  });
+  it('ảnh dạng object {url} và {attach_url} đều đọc được URL', async () => {
+    mockStudent();
+    await request(imageEvent({ url: 'https://photo.zalo/u1.jpg' }, 'image-2'));
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg');
+    await request(imageEvent({ attach_url: 'https://photo.zalo/u2.jpg' }, 'image-3'));
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u2.jpg');
+  });
+  it('ảnh thiếu URL hoặc sai giao thức → 400, không chạm getMe', async () => {
+    expect((await request(imageEvent(null))).code).toBe(400);
+    expect((await request(imageEvent('ftp://x'))).code).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it('người lạ gửi ảnh → ack nhưng im lặng', async () => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
+    const result = await request(imageEvent('https://photo.zalo/abc.jpg', 'image-4'));
+    expect(result.code).toBe(200);
+    expect(photoReceivedReply).not.toHaveBeenCalled();
+    expect(sent()).toHaveLength(0);
+  });
+  it('PH gửi ảnh → đúng 1 câu dành cho PH, không vào luồng HS', async () => {
+    vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
+      if ((args[5] as any)?.preferredRole === 'parent') return parentActor;
+      throw new Error('Channel is not linked');
+    });
+    await request(imageEvent('https://photo.zalo/abc.jpg', 'image-5'));
+    expect(photoReceivedReply).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toContain('chức năng của học sinh');
+  });
+  it('HS nhắn 8 → danh sách bài chờ nộp, không qua parentMenuReply', async () => {
+    mockStudent();
+    await request(event('8', 'm-8'));
+    expect(pendingAssignmentsForStudent).toHaveBeenCalledWith('c', 's');
+    expect(photoListReply).toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toBe('LIST_1');
+    expect(parentMenuReply).not.toHaveBeenCalled();
+  });
+  it('HS nhắn chấm 1 → mở phiên đúng bài số 1 với teacherId từ lớp', async () => {
+    mockStudent();
+    await request(event('chấm 1', 'm-9'));
+    expect(openPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1', { studentId: 's', classId: 'c', teacherId: 't-1' }, { id: 'a-1', title: 'Bài 1' });
+    expect(JSON.parse(sent()[0][1].body).text).toBe('OPEN_OK');
+  });
+  it('HS nhắn số vượt danh sách → trả lại danh sách, không mở phiên', async () => {
+    mockStudent();
+    await request(event('chấm 5', 'm-10'));
+    expect(openPhotoSession).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Số không khớp');
+  });
+  it('HS nhắn xong → finishPhotoSession', async () => {
+    mockStudent();
+    await request(event('xong', 'm-11'));
+    expect(finishPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('FINISH_OK');
+  });
+  it('HS nhắn 0 → hủy phiên ảnh rồi mới hiện menu', async () => {
+    mockStudent();
+    await request(event('0', 'm-12'));
+    expect(cancelPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1');
+    expect(parentMenuReply).toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
+  });
+  it('PH nhắn lệnh chấm → KHÔNG vào luồng photo', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    await request(event('chấm 1', 'm-13'));
+    expect(pendingAssignmentsForStudent).not.toHaveBeenCalled();
+    expect(openPhotoSession).not.toHaveBeenCalled();
+    expect(finishPhotoSession).not.toHaveBeenCalled();
   });
 });

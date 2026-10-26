@@ -14,7 +14,7 @@ import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js'
 
 export const MENU_REPLIES = {
   header: 'Chọn mục (nhắn số):',
-  needChoice: 'Nhắn số 1–7 để chọn mục. Nhắn 0 để xem lại menu.',
+  needChoice: 'Nhắn số mục để chọn. Nhắn 0 để xem lại menu.',
   invalid: 'Chưa có mục này. Nhắn 0 để xem lại menu.',
   noData: 'Chưa có dữ liệu cho mục này.',
 } as const;
@@ -39,6 +39,8 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
   [`Xin chào! Đây là trợ lý lớp ${className} — hồ sơ của ${studentName}.`,
     MENU_REPLIES.header,
     ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
+    // Việc 4 — mục 8 chỉ dành cho HS: PH không nộp bài thay con.
+    ...(role === 'student' ? ['8. Nộp bài bằng ảnh (tự chấm)'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -63,7 +65,7 @@ const shortFeedback = (feedback: string): string => {
 };
 
 /** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
-const MENU_HINT = 'Nhắn 0 để xem lại menu.';
+export const MENU_HINT = 'Nhắn 0 để xem lại menu.';
 
 /**
  * Link web gửi qua bot phải là tin THUẦN (không markdown) để URL render thành link bấm được.
@@ -86,12 +88,13 @@ export const webLinkText = (role: MenuRole, joinCode: string): string => (role =
     MENU_HINT].join('\n'));
 
 /** Sinh nội dung 1 mục menu từ báo cáo PH an toàn (không cần thêm truy vấn). */
-export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set(), role: MenuRole = 'parent'): string => {
+// '8' (việc 4) chỉ tới được từ parseMenuChoice của HS — menuSectionBody tự trả lời theo vai trò.
+export const menuSectionText = (key: MenuKey | '8', report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set(), role: MenuRole = 'parent'): string => {
   const body = menuSectionBody(key, report, periodicIds, role);
   return `${body}\n\n${MENU_HINT}`;
 };
 
-const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: MenuRole): string => {
+const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: MenuRole): string => {
   const name = report.studentName;
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
   switch (key) {
@@ -143,6 +146,7 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
     case '6':
       return [`Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
         'Mục 1–5 và 7 xem dữ liệu của chính học sinh này.',
+        ...(role === 'student' ? ['Gửi ảnh bài làm để tự chấm: nhắn 8.'] : []),
         'Xem báo cáo / nộp bài trên web: nhắn web.',
         'Muốn đổi em khác: nhắn `<mã lớp> <PIN> phụ huynh`.',
         'Quên PIN: nhắn `/khoiphuc <mã học sinh> <số điện thoại>`.'].join('\n');
@@ -160,17 +164,23 @@ const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: Re
       });
       return [`Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
     }
+    case '8':
+      // Việc 4 — nộp bài bằng ảnh. HS thực tế không bao giờ tới đây (zalo-bot bắt '8' và chuyển
+      // sang luồng photo); case này cho PH nhấn nhầm mục 8 và giữ switch đầy đủ.
+      return role === 'student'
+        ? ['Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài.', '', MENU_HINT].join('\n')
+        : ['Mục này dành cho học sinh — phụ huynh theo dõi điểm qua mục 1 và 2.', '', MENU_HINT].join('\n');
   }
 };
 
 export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'invalid' };
 
-/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal. */
+/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal; '8' = nộp bài bằng ảnh (HS). */
 export const parseMenuChoice = (raw: string): MenuChoice => {
   const token = raw.normalize('NFC').trim();
   if (token === '0' || token === '' || /^(menu|m)$/i.test(token)) return { kind: 'menu' };
   if (/^(web|website|link)$/i.test(token)) return { kind: 'link' };
-  if (/^[1-7]$/.test(token)) return { kind: 'section', key: token as MenuKey };
+  if (/^[1-8]$/.test(token)) return { kind: 'section', key: token as MenuKey };
   return { kind: 'invalid' };
 };
 

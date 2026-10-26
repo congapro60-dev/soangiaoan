@@ -9,16 +9,14 @@ import { AI_CHAT_REPLIES, answerParentQuestion, vilaoCaller } from './_assistant
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
+import { secretEqual, sendStyled, sendTyping } from './_assistant-zalo-send.js';
+import { PHOTO_REPLIES, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 const MAX_BODY = 16_384;
 const text = (v: unknown) => typeof v === 'string' ? v.trim() : '';
 const set = (v: string | undefined) => new Set((v || '').split(',').map(x => x.trim()).filter(Boolean));
 const h = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] || '' : v || '';
-const secretEqual = (a: string, b: string) => {
-  const aa = Buffer.from(a); const bb = Buffer.from(b);
-  return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
-};
 const output = (value: unknown): string => {
   let s = typeof value === 'string' ? value : JSON.stringify(value ?? '');
   s = s.replace(/https?:\/\/\S+/gi, '[đã ẩn liên kết]').replace(/(?:token|secret|password|api[-_ ]?key)["']?\s*[=:]\s*["']?[^\s,}"']+/gi, '[đã ẩn]').replace(/("(?:privateToken|accessToken|apiKey|secret|password)"\s*:\s*)"[^"]*"/gi, '$1"[đã ẩn]"').replace(/\b[^\s"',}]{0,64}(?:token|secret|password|api[-_ ]?key)[^\s"',}]{0,64}\b/gi, '[đã ẩn]');
@@ -28,30 +26,6 @@ const send = async (token: string, chatId: string, message: string) => {
   try {
     await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: output(message) }) });
   } catch { /* ambiguous send: never retry or expose credentials */ }
-};
-/** Escape ký tự markdown của Zalo để dữ liệu động (tên, tiêu đề) không vỡ định dạng. */
-const escMd = (value: string): string => value.replace(/[*_~]/g, '\\$&');
-/**
- * Gửi tin cho PH/HS ĐÃ liên kết: nội dung do hệ tự dựng (không qua output() che link) và
- * markdown khi nhiều dòng (in đậm dòng tiêu đề). Parse lỗi → tự gửi lại bản thuần.
- * Tin 1 dòng gửi thuần như cũ. Lỗi mạng = ambiguous: KHÔNG retry (giống send()).
- */
-const sendStyled = async (token: string, chatId: string, message: string, markdown = true): Promise<void> => {
-  const url = `${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`;
-  const post = (body: Record<string, unknown>) => fetch(url, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  const plain = () => post({ chat_id: chatId, text: message.slice(0, 2000) });
-  if (!markdown || !message.includes('\n')) { try { await plain(); } catch { /* ambiguous */ } return; }
-  const lines = message.split('\n').map(escMd);
-  const md = `**${lines[0]}**\n${lines.slice(1).join('\n')}`.slice(0, 2000);
-  try {
-    const res = await post({ chat_id: chatId, text: md, parse_mode: 'markdown' });
-    if (res.ok) return;
-  } catch { return; /* ambiguous: không biết tin đã tới chưa, không retry */ }
-  try { await plain(); } catch { /* ambiguous */ }
-};
-/** Hiện "đang nhập..." trong lúc AI suy nghĩ — fire-and-forget, lỗi bỏ qua. */
-const sendTyping = (token: string, chatId: string): void => {
-  void fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendChatAction`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, action: 'typing' }) }).catch(() => { /* không quan trọng */ });
 };
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
 const TEACHER_COMMANDS = new Set(['/classes', '/confirm', '/cancel', '/status']);
@@ -77,6 +51,27 @@ const pinLinkReply = async (botId: string, userId: string, message: string): Pro
     if (/PIN_LOCKED/i.test(reason)) return PIN_LINK_REPLIES.throttled;
     throw error;
   }
+};
+/**
+ * Việc 4 — HS chọn bài rồi mở phiên nhận ảnh. Trả nội dung tin để caller sendStyled một chỗ.
+ * 'chấm'/'cham' = xem danh sách bài chờ nộp; 'chấm <số>' = chọn bài đó.
+ */
+const chooseAndOpen = async (botId: string, userId: string, classId: string, studentId: string, cmd: { kind: 'list' } | { kind: 'pick'; n: number }): Promise<string> => {
+  const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
+  if (cmd.kind === 'list' || !items.length) return photoListReply(items);
+  const target = cmd.n >= 1 && cmd.n <= items.length ? items[cmd.n - 1] : null;
+  if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items)}`;
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
+};
+/** Ảnh HS gửi: chỉ HỌC SINH đã liên kết mới đi tiếp. Người lạ / đa hồ sơ im lặng để không spam hướng dẫn. */
+const dispatchPhotoMessage = async (botId: string, userId: string, chatId: string, photoUrl: string): Promise<string> => {
+  const linked = await resolveAnyActor(botId, userId, chatId);
+  if (!linked || linked === 'ambiguous') return '';
+  const role = (linked as any).role ?? 'teacher';
+  if (role !== 'student') return 'Gửi ảnh bài làm là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.';
+  const classId = String((linked as any).classId ?? ''); const studentId = String((linked as any).studentId ?? '');
+  if (!classId || !studentId) return MENU_REPLIES.noData;
+  return photoReceivedReply(botId, userId, photoUrl);
 };
 const readBody = async (req: VercelRequest): Promise<string> => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
@@ -139,15 +134,34 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
-    // Menu (0–7) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
+    // Việc 4 — mục 8 của HS (nộp bài bằng ảnh): bắt trước parse menu thường.
+    if (role === 'student' && message.trim() === '8') {
+      const { items } = await pendingAssignmentsForStudent(classId, studentId);
+      await sendStyled(token, chatId, photoListReply(items));
+      return '';
+    }
+    // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
     if (choice.kind !== 'invalid') {
+      // HS nhắn 0 (xem lại menu): hủy phiên ảnh đang mở nếu có — phiên treo sẽ nhầm với tin "xong" sau này.
+      if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
       const menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
       // Cả hai đường đều KHÔNG qua output() (che link) vì nội dung do hệ tự dựng:
       // link web gửi THUẦN để URL render được; menu gửi markdown (lỗi parse tự fallback).
       if (choice.kind === 'link') await sendStyled(token, chatId, menuReply, false);
       else await sendStyled(token, chatId, menuReply);
       return '';
+    }
+    // Việc 4 — lệnh chấm của HS: chấm / chấm <số> / xong. PH không có các lệnh này (đi thẳng AI chat).
+    if (role === 'student') {
+      const photoCmd = parsePhotoCommand(message);
+      if (photoCmd) {
+        const photoReply = photoCmd.kind === 'done'
+          ? await finishPhotoSession(botId, userId)
+          : await chooseAndOpen(botId, userId, classId, studentId, photoCmd);
+        await sendStyled(token, chatId, photoReply);
+        return '';
+      }
     }
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return MENU_REPLIES.noData;
@@ -192,11 +206,22 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const fromId = text(m?.from?.id); const chatId = text(m?.chat?.id ?? m?.chat_id);
   const msgDate = Number(m?.date); const msgId = text(m?.message_id);
   const msgText = text(m?.text);
-  if (eventName !== 'message.text.received' || !m || m.from?.is_bot !== false
+  // Việc 4 — Zalo gửi ảnh (message.image.received): URL TẠM THỜI nằm ở m.photo (chuỗi) hoặc
+  // m.photo.url / m.photo.attach_url (đối tượng, tùy phiên bản payload); caption bỏ qua.
+  // URL này dùng 1 lần để tải về Storage ngay, không lưu lại.
+  const rawPhoto: unknown = m?.photo;
+  const photoUrl = eventName === 'message.image.received'
+    ? (typeof rawPhoto === 'string' ? rawPhoto.trim()
+      : rawPhoto && typeof rawPhoto === 'object' ? text((rawPhoto as Record<string, unknown>).url) || text((rawPhoto as Record<string, unknown>).attach_url) : '')
+    : '';
+  const isTextEvent = eventName === 'message.text.received';
+  const isImageEvent = eventName === 'message.image.received';
+  if ((!isTextEvent && !isImageEvent) || !m || m.from?.is_bot !== false
     || text(m?.chat?.chat_type) !== 'PRIVATE' || fromId !== chatId
-    || !msgId || !msgText || msgText.length > 2000
-    || !Number.isInteger(msgDate) || msgDate < 1e12
-    || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000) {
+    || !msgId || !Number.isInteger(msgDate) || msgDate < 1e12
+    || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000
+    || (isTextEvent && (!msgText || msgText.length > 2000))
+    || (isImageEvent && (!/^https?:\/\//i.test(photoUrl) || photoUrl.length > 2048))) {
     // Không log nội dung yêu cầu bị từ chối (chứa định danh người gửi).
     res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true;
   }
@@ -216,6 +241,14 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${senderId}:${chatId}:${msgId}`).digest('hex')}`;
   try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   let reply = 'Tính năng chưa khả dụng.';
-  try { reply = await dispatch(token, botId, senderId, chatId, msgText); } catch { reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
+  try {
+    if (isImageEvent) {
+      // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).
+      reply = await dispatchPhotoMessage(botId, senderId, chatId, photoUrl);
+      if (reply) await sendStyled(token, chatId, reply);
+      res.status(200).json({ ok: true }); return true;
+    }
+    reply = await dispatch(token, botId, senderId, chatId, msgText);
+  } catch { reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
   if (reply) await send(token, chatId, reply); res.status(200).json({ ok: true }); return true;
 }

@@ -3,6 +3,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/assistant.ts": {
+      "maxDuration": 90
+    },
     "api/export-lesson.ts": {
       "maxDuration": 60,
       "memory": 1024,
