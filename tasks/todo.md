@@ -1,3 +1,15 @@
+# TODO — 26/10/2026: Nghiệm thu V8.8 Tuần 11 trên Production — ĐẠT ✅
+
+Báo cáo đầy đủ: [qa-week11-acceptance-2026-10-26.md](qa-week11-acceptance-2026-10-26.md).
+
+- [x] Tích hợp 5 bản sửa của Codex (`7f59e95`) — lint PASS, 619/619 test, 314/314 rules, build PASS, snapshot Toán + rules không đổi; đã push `main`, Production tự build.
+- [x] QA Production bài 12 (`12-11-80`) bằng Edge thật qua 4 phiên live: A1/A2/A5/A6, B1–B4, FIX-2/FIX-3, F2 — PASS.
+- [x] QA phần 2: A7 (Tạm dừng/Chạy không reset đồng hồ chờ — đo 4 mốc: 10s→6s→4s→2s), B2 (AI-error phân loại + giải thích → máy chủ xác nhận → TV "Khái niệm 1"), E1 (chặng 12/12 nút Sau disabled, 2 phiên), E2 (exit ticket chặng 11/12 gửi được, TV "Tiến độ gửi 1 HS"), E3 (KẾT THÚC đồng bộ 3 bề mặt), F3 (mode=tv read-only, `buttons: []`) — PASS.
+- [x] Ghi chú: đồng hồ nghĩ chạy tiếp khi tạm dừng là thiết kế (ThinkWindow.tsx dòng 14–15, 42–45); E4 (tone P-timer 35+ phút) chỉ xác minh bằng unit test + code.
+- [x] Dọn script QA tạm (qa1–qa8, dump-cues) — cây làm việc sạch.
+
+---
+
 # TODO — 26/10/2026: Sổ điểm cập nhật trực tiếp
 
 Kế hoạch và bằng chứng: [approved-score-live.md](approved-score-live.md).
