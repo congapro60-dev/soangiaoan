@@ -176,7 +176,20 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerLeave={onUp}
-        style={{ background: "#fff", border: "1px solid #cbd5e1", borderRadius: 10, touchAction: "none", userSelect: "none", display: "block", height: "auto" }}
+        style={{
+          background: "#fff",
+          border: "1px solid #cbd5e1",
+          borderRadius: 10,
+          touchAction: "none",
+          userSelect: "none",
+          display: "block",
+          width: "100%",
+          maxWidth: "100%",
+          // Khoa ti le theo viewBox: khong dua vao height:auto (de bi tinh tu
+          // flex item cha), va khong cho flex ep nho lai.
+          flex: "0 0 auto",
+          aspectRatio: `${width} / ${height}`,
+        }}
       >
         <rect width={width} height={height} fill="#fff" rx={10} />
 
@@ -284,6 +297,10 @@ export function BangVe({ solidKey, width = 420, height = 360, caption }: BangVeP
             fontSize: 13,
             background: result.ok ? "#dcfce7" : "#fef3c7",
             border: `1px solid ${result.ok ? "#86efac" : "#fcd34d"}`,
+            // Phai set mau chu: khung bai hoc dat --lesson-text #f8fafc (gan
+            // trang) cho ca vung toi. Khong set thi chu trang tren nen vang
+            // nhat -> tuong phan ~1.1:1, khong doc duoc.
+            color: "#14532d",
           }}
         >
           <strong>{result.ok ? "Đúng rồi!" : "Chưa đúng."}</strong> {result.summary}

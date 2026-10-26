@@ -127,7 +127,7 @@ export function KhoiXoay({
           width="100%"
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="xMidYMid meet"
-          style={{ display: "block", height: "auto" }}
+          style={{ display: "block", width: "100%", maxWidth: "100%", flex: "0 0 auto", aspectRatio: `${width} / ${height}` }}
         >
           <rect width={width} height={height} fill="#fff" rx={10} />
           {lines.map((l, i) => (
