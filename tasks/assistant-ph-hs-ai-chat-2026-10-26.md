@@ -89,18 +89,40 @@
 - `scripts/doi-vai-bot.ts` (MỚI, fallback ops cần service account — chưa dùng được vì Vercel redact
   `[SENSITIVE]`; phương án chính là lệnh `đổi vai` trong chat).
 
+## Nộp hộ — HS gửi bài hộ bạn cùng lớp (27/10, code + test + deploy xong)
+
+- **Chốt với chủ dự án**: HS xác định "nộp hộ ai" bằng GÕ TÊN bạn (bot tra danh sách lớp; trùng tên →
+  `chọn <số>`); KHÔNG dùng PIN của bạn (biết PIN = đăng nhập luôn vai bạn). GV thấy trên web qua
+  field `assistBy` + badge "HS nộp hộ" ở cột Lưu ý (title kèm tên bạn nộp hộ).
+- **Luồng**: `nộp hộ` → hỏi tên → gõ tên (bỏ dấu vẫn khớp; tên gọi = đuôi họ tên) → khớp 1: liệt kê bài
+  chờ CỦA BẠN ĐÓ → `nộp hộ <số>` mở phiên assist → gửi ảnh ≤3 → `xong` như thường. `0` hủy (menu);
+  tin tự do giữa luồng do `assistFreeTextReply` chặn, không rơi vào AI chat; ảnh gửi giữa luồng bị chặn.
+- **File**: `_assistant-ph-hs-photo.ts` (pre-session `assistState`/`targetCandidates`/`assist`, 0-match tên
+  được xử lý; `finishPhotoSession` mọi kiểm tra/quota/submission theo target; Storage theo target),
+  `_assistant-zalo-bot.ts` (dispatch kind mới + hook tên tự do), `_assistant-ph-hs-menu.ts` (mục 8 nhắc
+  `nộp hộ`), `types.ts` + `_classroom-teacher.ts` (`assistBy` projection), `AssignmentPanel.tsx` (badge).
+- **Dữ liệu**: submission `studentId` = EM ĐƯỢC NỘP HỘ; `submittedBy.studentId` = NGƯỜI GỬI THẬT;
+  `assistBy: { studentId, name, via: 'zalo_bot' }`; quota 5 bài/em/ngày trừ của em được nộp hộ.
+  Tin điểm gửi máy NGƯỜI NỘP HỘ kèm "của <Tên>"; em được nộp hộ xem điểm qua bot của em (mục 2).
+- **Gate**: vitest 2 file **106/106**; full suite **4684/4688** (chỉ 4 fail CŨ v832); tsc 0 lỗi 2 config;
+  build pass. Test mới: photo +12 (assist đầy đủ + self regression), bot +6 dispatch.
+- Test phát hiện & sửa: khi tên KHÔNG khớp bạn nào, code cũ văng TypeError (`matches[0]` undefined) —
+  đã thêm câu mời gõ lại.
+
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)
 - `ad35cdd` fix: xử lý reasoning model
 - `b2cd474` chore: gỡ log chẩn đoán
 - `5fa1979` feat: việc 4 — HS nộp bài bằng ảnh qua bot, chấm AI báo điểm Zalo
+- `d46ac63` chặn 2 vai + lệnh `đổi vai` (nhánh `preview/zalo-live-test`)
+- `b7f13fc` feat: nộp hộ bạn cùng lớp — gõ tên, badge `assistBy` (nhánh `preview/zalo-live-test`)
 
 ## Deploy hiện tại
 
-- Preview: `https://giaoandewey-idcpa7mtb-congapro60-devs-projects.vercel.app`
-- Alias: `zalo-test.congapro60-devs-projects.vercel.app` (đã trỏ deploy mới 26/10 đêm)
-- Webhook Zalo: `.../api/assistant?transport=zalo_bot` — verify `webhook.ok`
+- Preview: `https://spai-assistant-ph-99uu5906l-congapro60-devs-projects.vercel.app` (Ready, 27/10)
+- Alias: `zalo-test.congapro60-devs-projects.vercel.app` (đã trỏ deploy mới 27/10)
+- Webhook Zalo: `.../api/assistant?transport=zalo_bot` — verify `webhook.ok`; ping không secret → 401 đúng
 - ĐÃ GỠ `ZALO_BOT_ALLOWED_USER_IDS` trên preview (26/10 đêm) — chuẩn bị cho HS cả lớp test:
   ai cũng nhắn được bot, nhưng link vẫn cần mã lớp + PIN đúng. Lệnh `đổi vai` chỉ dành cho
   `ZALO_BOT_DUAL_ROLE_USER_IDS=6428d37c9d35746b2d24` (chủ dự án).

@@ -19,16 +19,16 @@
    NGƯỜI GỬI THẬT; thêm `assistBy: { studentId, name, via: 'zalo_bot' }`.
 
 ## Checklist
-- [ ] 1. `_assistant-ph-hs-photo.ts`: parse `nộp hộ [n]` / `chọn n`; pre-session + assist target;
+- [x] 1. `_assistant-ph-hs-photo.ts`: parse `nộp hộ [n]` / `chọn n`; pre-session + assist target;
       openPhotoSession nhận assist; photoReceivedReply/finishPhotoSession dùng target + assistBy;
       tin nhắn kèm tên bạn; photoListReply thêm dòng hướng dẫn nộp hộ.
-- [ ] 2. `_assistant-zalo-bot.ts`: route các kind mới cho HS.
-- [ ] 3. `_assistant-ph-hs-menu.ts`: mục 8 nhắc cú pháp nộp hộ.
-- [ ] 4. `types.ts`: `SubmissionDoc.assistBy`; projection teacher `_classroom-teacher.ts` đổ `assistBy`.
-- [ ] 5. `AssignmentPanel.tsx`: badge "HS nộp hộ" cột Lưu ý (title kèm tên bạn nộp hộ).
-- [ ] 6. Test: photo (assist đầy đủ + self regression) + zalo-bot dispatch + badge AssignmentPanel.
-- [ ] 7. Gate: vitest 2 file bot → full suite (chấp nhận 4 fail cũ v832) → tsc 2 config → build.
-- [ ] 8. Commit + deploy preview + trả alias `zalo-test`; cập nhật doc trạng thái.
+- [x] 2. `_assistant-zalo-bot.ts`: route các kind mới cho HS + hook `assistFreeTextReply` (tên tự do).
+- [x] 3. `_assistant-ph-hs-menu.ts`: mục 8 nhắc cú pháp nộp hộ.
+- [x] 4. `types.ts`: `SubmissionDoc.assistBy`; projection teacher `_classroom-teacher.ts` đổ `assistBy`.
+- [x] 5. `AssignmentPanel.tsx`: badge "HS nộp hộ" cột Lưu ý (title kèm tên bạn nộp hộ).
+- [x] 6. Test: photo (assist đầy đủ + self regression) + zalo-bot dispatch. Bắt thêm lỗi 0-match tên.
+- [x] 7. Gate: vitest 2 file 106/106 → full suite 4684/4688 (4 fail cũ v832) → tsc 2 config → build.
+- [x] 8. Commit `b7f13fc` + deploy preview (Ready) + alias `zalo-test`; cập nhật doc trạng thái.
 
 ## Ngoài phạm vi
 - PH nộp thay; thông báo chủ động cho em được nộp hộ (Zalo OA không chủ động nhắn được);
