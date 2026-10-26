@@ -48,14 +48,26 @@ const trendText = (report: ParentSafeReport): string => {
   }
 };
 
+/** Điểm dạng "9.5/10" — KHÔNG kèm % (chủ dự án chốt 25/10: % làm tin nhắn rối). */
+const scoreText = (score: number | null | undefined, maxScore: number | null | undefined): string =>
+  `${score ?? '-'}/${maxScore ?? '-'}`;
+
+/** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
+const MENU_HINT = 'Nhắn 0 để xem lại menu.';
+
 /** Sinh nội dung 1 mục menu từ báo cáo PH an toàn (không cần thêm truy vấn). */
 export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set()): string => {
+  const body = menuSectionBody(key, report, periodicIds);
+  return `${body}\n\n${MENU_HINT}`;
+};
+
+const menuSectionBody = (key: MenuKey, report: ParentSafeReport, periodicIds: ReadonlySet<string>): string => {
   const name = report.studentName;
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
   switch (key) {
     case '1':
       return [`Tổng quan của ${name} — lớp ${report.className}`,
-        `• Đã chấm: ${report.officialCount} bài, trung bình ${percent(report.officialAveragePercent)}`,
+        `• Đã chấm: ${report.officialCount} bài`,
         `• Đang chờ chấm: ${report.pendingCount} bài`,
         `• Chưa nộp: ${report.missingCount} bài`,
         `• Xu hướng: ${trendText(report)}`,
@@ -65,7 +77,7 @@ export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodic
       // Mục 2 = BTVN các ngày (KHÔNG gồm bài kiểm tra định kì — bài đó ở mục 7).
       const graded = report.results.filter(item => item.status === 'official' && !isPeriodic(item.assignmentId));
       if (!graded.length) return `Chưa có bài tập nào được chấm cho ${name}.`;
-      const lines = graded.slice(0, 8).map(item => `• ${item.title}: ${item.score ?? '-'}/${item.maxScore ?? '-'}${item.maxScore ? ` (${Math.round(((item.score ?? 0) / item.maxScore) * 100)}%)` : ''}`);
+      const lines = graded.slice(0, 8).map(item => `• ${item.title}: ${scoreText(item.score, item.maxScore)}`);
       return [`Bài tập đã chấm của ${name} (${graded.length}):`, ...lines, '', 'Bài kiểm tra định kì: nhắn 7.'].join('\n');
     }
     case '3': {
@@ -98,15 +110,12 @@ export const menuSectionText = (key: MenuKey, report: ParentSafeReport, periodic
       const graded = periodic.filter(item => item.status === 'official' && item.score !== null && item.maxScore);
       const lines = periodic.slice(0, 8).map(item => {
         if (item.status === 'official') {
-          return `• ${item.title}: ${item.score ?? '-'}/${item.maxScore ?? '-'}${item.maxScore ? ` (${Math.round(((item.score ?? 0) / item.maxScore) * 100)}%)` : ''}`;
+          return `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
         }
         const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý, cần liên hệ thầy cô' : 'chờ chấm';
         return `• ${item.title} — ${tag}${item.dueAt ? ` (hạn ${item.dueAt.slice(0, 10)})` : ''}`;
       });
-      const average = graded.length
-        ? Math.round(graded.reduce((sum, item) => sum + ((item.score ?? 0) / (item.maxScore || 1)) * 100, 0) / graded.length)
-        : null;
-      return [`Bài kiểm tra định kì của ${name}${average === null ? '' : ` — trung bình ${average}%`} (${periodic.length} bài):`, ...lines].join('\n');
+      return [`Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
     }
   }
 };

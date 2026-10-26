@@ -183,7 +183,10 @@ describe('tách BTVN và bài kiểm tra định kì', () => {
     expect(kt).toContain('6/10');
     expect(kt).toContain('chưa nộp');
     expect(kt).not.toContain('BTVN tuần 3');
-    expect(kt).toContain('trung bình 60%'); // chỉ tính bài đã chấm
+    // Không hiện % (chốt 25/10) — PH thấy điểm thô 6/10 là đủ.
+    expect(kt).not.toContain('60%');
+    // Mọi mục đều nhắc xem lại menu.
+    expect(kt).toContain('Nhắn 0 để xem lại menu.');
   });
 
   it('M12: chưa có bài kiểm tra định kì thì trả lời lịch sự', () => {

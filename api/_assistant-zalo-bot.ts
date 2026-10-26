@@ -4,7 +4,8 @@ import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
 import { linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES } from './_assistant-ph-hs-link.js';
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, MENU_REPLIES } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES } from './_assistant-ph-hs-menu.js';
+import { AI_CHAT_REPLIES, answerParentQuestion, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
@@ -114,7 +115,21 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
-    return parentMenuReply(getAdminDb(), classId, studentId, message);
+    // Menu (0–7) đi trước; tin không khớp menu thì chuyển cho trợ lý AI trả lời tự do.
+    const choice = parseMenuChoice(message);
+    if (choice.kind !== 'invalid') return parentMenuReply(getAdminDb(), classId, studentId, message);
+    const bundle = await loadParentReport(getAdminDb(), classId, studentId);
+    if (!bundle) return MENU_REPLIES.noData;
+    // AI CHAT PH chỉ dùng key RIÊNG (PH_CHAT_VILAO_KEY) — tách khỏi key chấm bài để theo dõi
+    // chi phí độc lập và không tiêu nhầm hạn mức chấm bài. Không có key thì báo "bận", không im lặng.
+    const apiKey = String(process.env.PH_CHAT_VILAO_KEY || '');
+    if (!apiKey) return AI_CHAT_REPLIES.unavailable;
+    try {
+      const aiReply = await answerParentQuestion(vilaoCaller(apiKey), message, bundle.report, bundle.periodicIds);
+      return aiReply ?? MENU_REPLIES.invalid;
+    } catch {
+      return AI_CHAT_REPLIES.unavailable;
+    }
   }
   return 'Tính năng trò chuyện tự nhiên chưa khả dụng. Dùng /help để xem lệnh.';
 }

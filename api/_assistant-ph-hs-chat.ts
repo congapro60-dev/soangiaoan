@@ -1,0 +1,142 @@
+/**
+ * PH/HS chat tự do với AI (Phase 2.5).
+ *
+ * Nguyên tắc (chốt 25/10):
+ * - AI chỉ được nói điều CÓ TRONG báo cáo an toàn của đúng em đã liên kết. Không có trong
+ *   báo cáo → phải nói "chưa có thông tin", KHÔNG được suy đoán. PH đọc sai điểm là chuyện lớn.
+ * - Không bao giờ đưa `grade.feedback`, điểm chưa duyệt, hay dữ liệu em khác vào prompt.
+ * - Câu hỏi chung (cách dạy con, quản lý thời gian) được trả lời bằng kiến thức chung, nhưng
+ *   phải nói rõ đó là gợi ý chung, không phải nhận xét về con.
+ * - Mọi câu trả lời đi qua `sanitizeAiReply` để chặn lộ mã nội bộ / số điện thoại.
+ */
+import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
+
+export const AI_CHAT_REPLIES = {
+  unavailable: 'Trợ lý AI đang bận. Bạn nhắn 0 để xem menu hoặc thử lại sau ít phút.',
+  empty: 'Mình chưa rõ câu hỏi. Bạn nhắn 0 để xem menu, hoặc hỏi cụ thể hơn về việc học của con.',
+} as const;
+
+/** Câu chốt LUÔN nằm cuối mọi câu trả lời AI — PH không phải nhớ cú pháp. */
+export const AI_MENU_HINT = 'Nhắn 0 để xem lại menu.';
+
+/**
+ * Dựng ngữ cảnh cho AI từ báo cáo an toàn.
+ * CHỈ dùng số liệu đã lọc (official = điểm GV đã duyệt). Không kèm feedback từng bài.
+ */
+export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySet<string>): string => {
+  const isPeriodic = (id: string) => periodicIds.has(id);
+  const graded = report.results.filter(item => item.status === 'official');
+  const bt = graded.filter(item => !isPeriodic(item.assignmentId));
+  const kt = report.results.filter(item => isPeriodic(item.assignmentId));
+  const lines: string[] = [
+    `Học sinh: ${report.studentName} — lớp ${report.className}`,
+    `Số bài đã chấm: ${report.officialCount}`,
+    `Đang chờ chấm: ${report.pendingCount}, chưa nộp: ${report.missingCount}`,
+    `Xu hướng: ${report.progress?.trend === 'up' ? 'đang tiến bộ' : report.progress?.trend === 'down' ? 'đang giảm' : report.progress?.trend === 'flat' ? 'ổn định' : 'chưa đủ dữ liệu'}`,
+  ];
+  if (bt.length) {
+    lines.push('Bài tập về nhà đã chấm:');
+    for (const item of bt.slice(0, 10)) lines.push(`- ${item.title}: ${item.score ?? '-'}/${item.maxScore ?? '-'}`);
+  }
+  if (kt.length) {
+    lines.push('Bài kiểm tra định kì:');
+    for (const item of kt.slice(0, 10)) {
+      lines.push(item.status === 'official'
+        ? `- ${item.title}: ${item.score ?? '-'}/${item.maxScore ?? '-'}`
+        : `- ${item.title}: ${item.status === 'not_submitted' ? 'chưa nộp' : 'chưa có điểm'}`);
+    }
+  }
+  if (report.strengths.length) lines.push(`Điểm mạnh: ${report.strengths.join('; ')}`);
+  if (report.areasToPractice.length) lines.push(`Cần luyện thêm: ${report.areasToPractice.join('; ')}`);
+  if (report.parentActions.length) lines.push(`Gợi ý cho phụ huynh: ${report.parentActions.join('; ')}`);
+  return lines.join('\n');
+};
+
+/** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. */
+export const buildSystemPrompt = (context: string): string => [
+  'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam.',
+  'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, gọi phụ huynh là "anh/chị".',
+  '',
+  'QUY TẮC BẮT BUỘC:',
+  '1. Chỉ nói về điểm số, bài tập, nhận xét CÓ TRONG phần DỮ LIỆU dưới đây.',
+  '2. Nếu dữ liệu không có thông tin được hỏi, trả lời đúng ý: "Dữ liệu hiện có chưa ghi nhận thông tin này, anh/chị nhắn thầy cô để rõ hơn." KHÔNG được suy đoán, KHÔNG bịa thêm bài hay điểm.',
+  '3. Không hứa hẹn về điểm số tương lai, không cam kết kết quả thi.',
+  '4. Không nhắc tên, điểm, hay thông tin của học sinh khác.',
+  '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
+  '6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với nhận xét về con.',
+  '',
+  'DỮ LIỆU:',
+  context,
+].join('\n');
+
+/**
+ * Chặn rò rỉ: bỏ số điện thoại, mã HS, mã lớp, và mọi chuỗi giống token nội bộ.
+ * PH không bao giờ được thấy những thứ này dù model có "lỡ" sinh ra.
+ */
+export const sanitizeAiReply = (raw: string): string => String(raw ?? '')
+  .replace(/\b0\d{9,10}\b/g, '[số điện thoại]')
+  .replace(/\b84\d{9,10}\b/g, '[số điện thoại]')
+  .replace(/\b(S|GB)\d{8,10}\b/g, '[mã học sinh]')
+  .replace(/\bpinlink:[^\s]+/g, '')
+  .replace(/\b[A-Fa-f0-9]{32,}\b/g, '')
+  .replace(/[ \t]+\n/g, '\n')
+  .replace(/\n{3,}/g, '\n\n')
+  .trim();
+
+/** Ghép câu trả lời cuối: nội dung AI + nhắc menu. Rỗng thì trả câu lịch sự. */
+export const composeAiReply = (raw: string): string => {
+  const clean = sanitizeAiReply(raw);
+  if (!clean) return AI_CHAT_REPLIES.empty;
+  return `${clean}\n\n${AI_MENU_HINT}`;
+};
+
+/** Gọi Gemini. Tách riêng để test thay được, không gọi mạng thật. */
+export type AiCaller = (systemPrompt: string, userText: string, signal?: AbortSignal) => Promise<string>;
+
+/**
+ * Gọi model qua Vilao (chuẩn OpenAI SDK).
+ * Mặc định `cnt/glm-5.3-flash`: 80đ/1M vào — 240đ/1M ra, 99% thành công (chốt 26/10).
+ * Đổi model = sửa hằng số này rồi deploy, KHÔNG đọc env (tránh đổi model ngoài git như lần chấm bài).
+ */
+export const PH_CHAT_MODEL = 'cnt/glm-5.3-flash';
+export const PH_CHAT_ENDPOINT = 'https://api.vilao.ai/v1/chat/completions';
+
+export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => async (systemPrompt, userText, signal) => {
+  const res = await fetch(PH_CHAT_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userText },
+      ],
+      temperature: 0.3,
+      max_tokens: 800,
+    }),
+    ...(signal ? { signal } : {}),
+  });
+  if (!res.ok) throw new Error(`AI HTTP ${res.status}`);
+  const body: any = await res.json();
+  const reply = String(body?.choices?.[0]?.message?.content ?? '');
+  if (!reply.trim()) throw new Error('AI empty');
+  return reply;
+};
+
+/**
+ * Xử lý 1 câu hỏi tự do của PH.
+ * Trả `null` khi input rỗng (để caller dùng câu mặc định).
+ */
+export const answerParentQuestion = async (
+  call: AiCaller,
+  question: string,
+  report: ParentSafeReport,
+  periodicIds: ReadonlySet<string>,
+  signal?: AbortSignal,
+): Promise<string | null> => {
+  const q = String(question ?? '').trim();
+  if (!q) return null;
+  const context = buildAiContext(report, periodicIds);
+  const raw = await call(buildSystemPrompt(context), q.slice(0, 1000), signal);
+  return composeAiReply(raw);
+};
