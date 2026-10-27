@@ -60,8 +60,20 @@ import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_a
 import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
-import { parentMenuReply } from '../_assistant-ph-hs-menu';
+import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
 import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+
+const { answerDetailed, sendGeometryPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn() }));
+// Chat AI + vẽ hình mock TOÀN BỘ file này: nhánh AI chat chưa từng có test — mock giữ
+// đúng bộ export mà zalo-bot dùng (AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller).
+vi.mock('../_assistant-ph-hs-chat', () => ({
+  AI_CHAT_REPLIES: { unavailable: 'AI_BAN', empty: 'AI_RONG' },
+  answerParentQuestionDetailed: (...args: unknown[]) => answerDetailed(...(args as [])),
+  vilaoCaller: vi.fn(() => async () => ''),
+}));
+vi.mock('../_assistant-geometry-render', () => ({
+  sendGeometryPhoto: (...args: unknown[]) => sendGeometryPhotoMock(...(args as [])),
+}));
 
 const event = (text = '/help', messageId = 'message-1') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: messageId, date: Date.now() } } });
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -469,5 +481,51 @@ describe('đổi vai — tài khoản test giữ song song 2 vai', () => {
     expect(switchBotRole).not.toHaveBeenCalled();
     // Rơi về luồng người lạ: đúng 1 câu hướng dẫn liên kết
     expect(JSON.parse(sent()[0][1].body).text).toContain('liên kết');
+  });
+});
+
+describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10)', () => {
+  const studentActor = { firebaseUid: 'pinlink:student:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'slink', active: true, role: 'student', classId: 'c-1', studentId: 's-1' } as any;
+
+  beforeEach(() => {
+    vi.stubEnv('PH_CHAT_VILAO_KEY', 'vilao-key');
+    vi.mocked(resolveChannelActor).mockResolvedValue(studentActor);
+    vi.mocked(loadParentReport).mockResolvedValue({ report: { className: '11A', results: [] } as any, periodicIds: new Set<string>(), joinCode: 'R6RCFC' });
+  });
+
+  it('AI trả khối geometry → sendGeometryPhoto nhận caption có link ĐÚNG lớp, KHÔNG gửi text fallback', async () => {
+    answerDetailed.mockResolvedValue({ text: 'Thể tích chóp: V = a³/3.', geometry: { shape: 'pyramid', base: 'square' } });
+    sendGeometryPhotoMock.mockResolvedValue(true);
+    const result = await request(event('The tich hinh chop?', 'm-geo-1'));
+    expect(result.code).toBe(200);
+    expect(sendGeometryPhotoMock).toHaveBeenCalledTimes(1);
+    const [token, chatId, spec, caption, classId] = sendGeometryPhotoMock.mock.calls[0] as unknown as string[];
+    expect(spec).toEqual({ shape: 'pyramid', base: 'square' });
+    expect(caption).toContain('V = a³/3');
+    expect(caption).toContain('/lop/R6RCFC');
+    expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
+    expect(classId).toBe('c-1');
+    expect(token).toBe('fake-token');
+    expect(chatId).toBe('user-1');
+    expect(sent()).toHaveLength(0);
+  });
+
+  it('sendPhoto thất bại → fallback gửi text THUẦN (vẫn có link + hint, bot không im lặng)', async () => {
+    answerDetailed.mockResolvedValue({ text: 'Lời giải hình nón.', geometry: { shape: 'cone' } });
+    sendGeometryPhotoMock.mockResolvedValue(false);
+    await request(event('Hinh non?', 'm-geo-2'));
+    expect(sendGeometryPhotoMock).toHaveBeenCalledTimes(1);
+    expect(sent()).toHaveLength(1);
+    const body = JSON.parse(sent()[0][1].body);
+    expect(body.text).toContain('Lời giải hình nón.');
+    expect(body.text).toContain('/lop/R6RCFC');
+  });
+
+  it('câu hỏi không vẽ được (geometry null) → không gọi vẽ ảnh, gửi text như luồng cũ', async () => {
+    answerDetailed.mockResolvedValue({ text: 'Điểm của em đang tiến bộ.', geometry: null });
+    await request(event('Con em hoc the nao?', 'm-geo-3'));
+    expect(sendGeometryPhotoMock).not.toHaveBeenCalled();
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Điểm của em đang tiến bộ.');
   });
 });

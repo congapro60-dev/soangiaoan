@@ -12,6 +12,7 @@
  */
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 import { MATH_FORMAT_RULE, latexToUnicodeMath } from './_assistant-math-text.js';
+import { extractGeometryReply, type GeometrySpec } from './_assistant-geometry.js';
 
 export const AI_CHAT_REPLIES = {
   unavailable: 'Trợ lý AI đang bận. Bạn nhắn 0 để xem menu hoặc thử lại sau ít phút.',
@@ -68,6 +69,23 @@ export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySe
   return lines.join('\n');
 };
 
+/**
+ * Quy tắc vẽ hình minh hoạ (chốt 28/10 — render ảnh qua sendPhoto):
+ * AI chỉ thêm khối geometry khi câu hỏi mô tả một hình học cụ thể; parser ở
+ * api/_assistant-geometry.ts sẽ tách khối — hỏng thì bot gửi text như cũ, không vỡ luồng.
+ */
+export const GEOMETRY_PROMPT_RULE = [
+  'VẼ HÌNH MINH HOẠ (chỉ khi câu hỏi mô tả một hình học cụ thể — chóp, lăng trụ, hộp, trụ, nón, cầu):',
+  '- Nếu hình giúp hiểu bài, thêm đúng MỘT khối sau vào CUỐI câu trả lời:',
+  '```geometry',
+  '{"shape":"pyramid","base":"square","note":"ABCD vuông cạnh a, SA ⊥ (ABCD), SA = a√2"}',
+  '```',
+  '- shape: pyramid | prism | box | cylinder | cone | sphere. base (chỉ cho pyramid): square | triangle.',
+  '- note: mô tả ngắn dữ kiện đề bài, viết ký hiệu Unicode (⊥, √, °, ⇒), tối đa 200 ký tự.',
+  '- Câu hỏi đại số, điểm số, phương pháp học thì KHÔNG thêm khối này.',
+  '- Không giải thích hay nhắc đến khối geometry trong phần chữ.',
+].join('\n');
+
 /** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. Văn phong theo vai trò. */
 export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): string => {
   const student = role === 'student';
@@ -88,6 +106,8 @@ export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): s
     `6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với ${student ? 'nhận xét về bài của em' : 'nhận xét về con'}.`,
     '',
     MATH_FORMAT_RULE,
+    '',
+    GEOMETRY_PROMPT_RULE,
     '',
     'DỮ LIỆU:',
     context,
@@ -161,6 +181,29 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => 
 };
 
 /**
+ * Xử lý 1 câu hỏi tự do của PH/HS — bản ĐẦY ĐỦ: text hiển thị + spec hình học (nếu AI vẽ được).
+ * Khối ```geometry``` được tách khỏi RAW TRƯỚC khi sanitize/convert để JSON không bị
+ * bộ chuyển công thức hay bộ lọc rò rỉ chạm vào.
+ */
+export type AiChatAnswer = { text: string; geometry: GeometrySpec | null };
+
+export const answerParentQuestionDetailed = async (
+  call: AiCaller,
+  question: string,
+  report: ParentSafeReport,
+  periodicIds: ReadonlySet<string>,
+  role: ChatRole = 'parent',
+  signal?: AbortSignal,
+): Promise<AiChatAnswer | null> => {
+  const q = String(question ?? '').trim();
+  if (!q) return null;
+  const context = buildAiContext(report, periodicIds, role);
+  const raw = await call(buildSystemPrompt(context, role), q.slice(0, 1000), signal);
+  const { text, spec } = extractGeometryReply(raw);
+  return { text: composeAiReply(text), geometry: spec };
+};
+
+/**
  * Xử lý 1 câu hỏi tự do của PH/HS.
  * Trả `null` khi input rỗng (để caller dùng câu mặc định).
  */
@@ -171,10 +214,4 @@ export const answerParentQuestion = async (
   periodicIds: ReadonlySet<string>,
   role: ChatRole = 'parent',
   signal?: AbortSignal,
-): Promise<string | null> => {
-  const q = String(question ?? '').trim();
-  if (!q) return null;
-  const context = buildAiContext(report, periodicIds, role);
-  const raw = await call(buildSystemPrompt(context, role), q.slice(0, 1000), signal);
-  return composeAiReply(raw);
-};
+): Promise<string | null> => (await answerParentQuestionDetailed(call, question, report, periodicIds, role, signal))?.text ?? null;

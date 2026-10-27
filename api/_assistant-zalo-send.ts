@@ -31,6 +31,23 @@ export const sendTyping = (token: string, chatId: string): void => {
   void fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendChatAction`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, action: 'typing' }) }).catch(() => { /* không quan trọng */ });
 };
 
+/**
+ * Gửi ảnh (URL công khai, ví dụ Storage token URL) kèm caption ≤2000 ký tự.
+ * KHÔNG throw — trả false khi Zalo lỗi hoặc mạng lỗi, để caller fallback về tin text
+ * (HS vẫn nhận lời giải, chỉ thiếu hình). Dùng cho hình học vẽ từ AI (chốt 28/10).
+ */
+export const sendPhoto = async (token: string, chatId: string, photoUrl: string, caption: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendPhoto`, {
+      method: 'POST',
+      redirect: 'error',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption: caption.slice(0, 2000) }),
+    });
+    return res.ok;
+  } catch { return false; }
+};
+
 export const secretEqual = (a: string, b: string) => {
   const aa = Buffer.from(a); const bb = Buffer.from(b);
   return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);

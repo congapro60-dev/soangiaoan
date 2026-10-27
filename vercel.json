@@ -4,7 +4,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/assistant.ts": {
-      "maxDuration": 90
+      "maxDuration": 90,
+      "memory": 1024
     },
     "api/export-lesson.ts": {
       "maxDuration": 60,
