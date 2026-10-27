@@ -7,7 +7,7 @@
       "tasks/giaoan-goc-10-11-80.md": "82195f3e869d9c69cc1bd0294f49c9d86470cadfa59b72a3c10699e3296d9de9",
       "tasks/giaoan-goc-11-11-76.md": "ef17b88aa9ce755bba236156fedefdbea9319085c13d9e09ac89aaa4ddd3814a"
     },
-    "fingerprint": "0d8b3e387202906193d42b7e4abcbaae9c82852008122563b84b57de538d76bf"
+    "fingerprint": "36c18d6dbe3680204d03d465311d5855c821b2e5f1117d025ce184a7e7f7e2ea"
   },
   "lessonSpecs": [
     {
@@ -112,7 +112,7 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Các số đặc trưng đo xu thế trung tâm",
-      "focus": "Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay",
+      "focus": "Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện cᵢ và tần số tích lũy; nội suy Mₑ từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay",
       "formulas": [
         "c_i = \\dfrac{a_i + a_{i+1}}{2}",
         "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} m_i c_i \\quad (n = \\sum_{i=1}^{k} m_i)",
@@ -122,11 +122,11 @@
       "examples": [
         {
           "question": "Thời gian sử dụng Internet trong ngày nghỉ cuối tuần của 40 học sinh khối 11 (giờ): nhóm [0;2) có 6 HS, [2;4) có 14 HS, [4;6) có 15 HS, [6;8) có 5 HS. Nhóm [2;4) có 14 bạn nhưng ta không biết chính xác số giờ từng bạn — giá trị nào công bằng nhất để đại diện cho cả 14 bạn này, từ đó ước tính tổng thời gian của nhóm? Xây dựng công thức tính số trung bình x̄ của mẫu ghép nhóm.",
-          "solution": "Giá trị đại diện công bằng nhất là trung điểm khoảng: c₂ = (2+4)/2 = 3; nếu cả 14 bạn đều được gán bằng 3 thì tổng nhóm ước tính 14 × 3 = 42 giờ. Làm tương tự cả 4 nhóm: c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; bảng tích m_i·c_i = 6·1 + 14·3 + 15·5 + 5·7 = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ. Công thức tổng quát: x̄ = (Σ m_i c_i)/n với n = Σ m_i — mẫu số là tổng tần số, không phải số nhóm k."
+          "solution": "Giá trị đại diện công bằng nhất là trung điểm khoảng: c₂ = (2+4)/2 = 3; nếu cả 14 bạn đều được gán bằng 3 thì tổng nhóm ước tính 14 × 3 = 42 giờ. Làm tương tự cả 4 nhóm: c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; bảng tích mᵢ·cᵢ = 6·1 + 14·3 + 15·5 + 5·7 = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ. Công thức tổng quát: x̄ = (Σ mᵢ cᵢ)/n với n = Σ mᵢ — mẫu số là tổng tần số, không phải số nhóm k."
         },
         {
-          "question": "Với cùng bảng Internet (40 HS, tần số 6/14/15/5), mẫu có n = 40 chẵn. Tần số tích lũy cho biết bạn thứ 20 và thứ 21 nằm ở nhóm nào, và số trung vị M_e của mẫu ghép nhóm là bao nhiêu?",
-          "solution": "Tần số tích lũy: hết nhóm [0;2) có 6 bạn, hết nhóm [2;4) có 6 + 14 = 20 bạn. n/2 = 20 nên nhóm đầu tiên có cf ≥ 20 là [2;4) — bạn thứ 20 và thứ 21 đều nằm ở đây. Nội suy trên đoạn [2;4) dài h = 2, giả định 14 bạn phân bố đều: M_e = a_p + ((n/2 − C)/m_p)·h = 2 + ((20 − 6)/14)·2 = 2 + 2 = 4,0 giờ."
+          "question": "Với cùng bảng Internet (40 HS, tần số 6/14/15/5), mẫu có n = 40 chẵn. Tần số tích lũy cho biết bạn thứ 20 và thứ 21 nằm ở nhóm nào, và số trung vị Mₑ của mẫu ghép nhóm là bao nhiêu?",
+          "solution": "Tần số tích lũy: hết nhóm [0;2) có 6 bạn, hết nhóm [2;4) có 6 + 14 = 20 bạn. n/2 = 20 nên nhóm đầu tiên có cf ≥ 20 là [2;4) — bạn thứ 20 và thứ 21 đều nằm ở đây. Nội suy trên đoạn [2;4) dài h = 2, giả định 14 bạn phân bố đều: Mₑ = aₚ + ((n/2 − C)/mₚ)·h = 2 + ((20 − 6)/14)·2 = 2 + 2 = 4,0 giờ."
         }
       ],
       "exercises": [
@@ -137,8 +137,8 @@
         },
         {
           "level": "TH",
-          "question": "Với bảng tự học ở trên, lập bảng tích m_i·c_i và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được.",
-          "answer": "Σ m_i c_i = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
+          "question": "Với bảng tự học ở trên, lập bảng tích mᵢ·cᵢ và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được.",
+          "answer": "Σ mᵢ cᵢ = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
         },
         {
           "level": "VD",
@@ -147,13 +147,13 @@
         },
         {
           "level": "TH",
-          "question": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính M_e của mẫu.",
-          "answer": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). a_p = 2; m_p = 15; C = 17; h = 1; M_e = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: M_e = 2,2 không có trong giáo án.)"
+          "question": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính Mₑ của mẫu.",
+          "answer": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). aₚ = 2; mₚ = 15; C = 17; h = 1; Mₑ = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: Mₑ = 2,2 không có trong giáo án.)"
         },
         {
           "level": "TH",
-          "question": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện c_i và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và M_e của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo.",
-          "answer": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; M_e = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+          "question": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện cᵢ và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và Mₑ của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo.",
+          "answer": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; Mₑ = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
         },
         {
           "level": "VD",
@@ -164,11 +164,11 @@
       "quick": [
         {
           "question": "Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2.",
-          "solution": "c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+          "solution": "c = 5; 15; 25; Σ mᵢ cᵢ = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
         },
         {
-          "question": "Vinh danh lỗi sai giấu tên: bạn ghi M_e = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào?",
-          "solution": "Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+          "question": "Vinh danh lỗi sai giấu tên: bạn ghi Mₑ = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào?",
+          "solution": "Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (aₚ = 4, mₚ = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): Mₑ = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
         }
       ],
       "mistakes": [
@@ -181,17 +181,17 @@
         "II. NỘI DUNG",
         "1. Giá trị đại diện của nhóm",
         "a. $c_i = \\dfrac{a_i + a_{i+1}}{2}$ — trung điểm của khoảng $[a_i; a_{i+1})$.",
-        "b. (Hình 1 gốc — mô hình c_i, mô tả bằng lời/ASCII): trục số 0–8 giờ; nhóm [2;4) tô xanh; 14 HS \"gọn\" thành một điểm c₂ = (2+4)/2 = 3; tổng nhóm ước tính 14 × 3 = 42 giờ.",
+        "b. (Hình 1 gốc — mô hình cᵢ, mô tả bằng lời/ASCII): trục số 0–8 giờ; nhóm [2;4) tô xanh; 14 HS \"gọn\" thành một điểm c₂ = (2+4)/2 = 3; tổng nhóm ước tính 14 × 3 = 42 giờ.",
         "2. Số trung bình mẫu ghép nhóm",
         "a. $\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} m_i c_i$ với $n = \\sum m_i$ — mẫu số là tổng tần số, KHÔNG phải số nhóm $k$.",
         "b. Bảng tích Internet: 6·1 + 14·3 + 15·5 + 5·7 = 158; $\\bar{x} = 158/40 = 3{,}95$ giờ.",
         "3. Số trung vị mẫu ghép nhóm — nội suy",
-        "a. Quy trình 3 bước: ① tính n và n/2 → ② lập tần số tích lũy, nhóm chứa M_e là nhóm đầu tiên có cf ≥ n/2 → ③ áp dụng công thức.",
-        "b. (Hình 2 gốc — nội suy M_e, mô tả bằng lời/ASCII): trên đoạn $[a_p; a_{p+1})$ dài $h$ giả định phân bố đều; tỉ lệ $(M_e - a_p)/h = (n/2 - C)/m_p$ ⇒ $M_e = a_p + \\dfrac{n/2 - C}{m_p} \\cdot h$ (C = tần số tích lũy các nhóm trước; C = 0 nếu p = 1).",
-        "c. M_e Internet: cf = 6; 20 → nhóm [2;4); $M_e = 2 + \\dfrac{20-6}{14} \\cdot 2 = 4{,}0$ giờ.",
-        "4. Sánh x̄ và M_e",
+        "a. Quy trình 3 bước: ① tính n và n/2 → ② lập tần số tích lũy, nhóm chứa Mₑ là nhóm đầu tiên có cf ≥ n/2 → ③ áp dụng công thức.",
+        "b. (Hình 2 gốc — nội suy Mₑ, mô tả bằng lời/ASCII): trên đoạn $[a_p; a_{p+1})$ dài $h$ giả định phân bố đều; tỉ lệ $(M_e - a_p)/h = (n/2 - C)/m_p$ ⇒ $M_e = a_p + \\dfrac{n/2 - C}{m_p} \\cdot h$ (C = tần số tích lũy các nhóm trước; C = 0 nếu p = 1).",
+        "c. Mₑ Internet: cf = 6; 20 → nhóm [2;4); $M_e = 2 + \\dfrac{20-6}{14} \\cdot 2 = 4{,}0$ giờ.",
+        "4. Sánh x̄ và Mₑ",
         "a. Dữ liệu cân xứng hình chuông thì $\\bar{x} \\approx M_e$; có giá trị ngoại lai kéo lệch thì khác xa.",
-        "b. Phản biện (lương công ty A): 9/10 người nhận 10 triệu, riêng Giám đốc thuộc nhóm [140;160) — x̄ = 24 triệu bị kéo lệch; M_e = 10 triệu phản ánh trung thực hơn.",
+        "b. Phản biện (lương công ty A): 9/10 người nhận 10 triệu, riêng Giám đốc thuộc nhóm [140;160) — x̄ = 24 triệu bị kéo lệch; Mₑ = 10 triệu phản ánh trung thực hơn.",
         "c. Đọc thông số kinh tế – xã hội (thu nhập, giá nhà): xem song hành cả $\\bar{x}$ và $M_e$."
       ]
     }
@@ -212,10 +212,10 @@
       "mode": "micro",
       "category": "Lỗi khái niệm",
       "wrongSolution": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40, được 0,125 giờ.",
-      "correction": "Tử phải là Σ m_i·c_i với c_i là trung điểm: (6·1 + 14·3 + 15·5 + 5·7)/40 = 158/40 = 3,95 giờ; mẫu số là n = 40 — không \"chia 4 rồi lại chia 40\". Lỗi Bước 4 giáo án nhấn mạnh: \"Mẫu số luôn là tổng tần số n, không phải số nhóm k\" (chiều ngược lại: tử cũng phải nhân tần số).",
-      "proof": "c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; Σ m_i c_i = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ — nằm giữa [2;4), hợp lý theo phân bố 6/14/15/5. Cách Nam: (2+4+6+8)/4 = 5 là trung bình các MÚT khoảng (không có ý nghĩa giá trị đại diện), lấy 5/40 = 0,125 giờ ≈ 7,5 phút — lệch hoàn toàn với dữ liệu. [Gộp whyAiError: cộng các đầu mút, chia số nhóm rồi lại chia n — bỏ hoàn toàn tần số, đúng lỗi giáo án nhấn mạnh ở Bước 4.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: bảng 4 nhóm Internet (m_i = 6/14/15/5) cạnh trung điểm c_i = 1/3/5/7 và phép tính sai (2+4+6+8)/4 = 5 rồi ÷40, gạch chân Σ m_i c_i = 158 — KHÔNG viết thêm phép chia đúng mới lên bảng; số 3,95 đã công khai ở S3, không hé số PHT số 2.]",
+      "correction": "Tử phải là Σ mᵢ·cᵢ với cᵢ là trung điểm: (6·1 + 14·3 + 15·5 + 5·7)/40 = 158/40 = 3,95 giờ; mẫu số là n = 40 — không \"chia 4 rồi lại chia 40\". Lỗi Bước 4 giáo án nhấn mạnh: \"Mẫu số luôn là tổng tần số n, không phải số nhóm k\" (chiều ngược lại: tử cũng phải nhân tần số).",
+      "proof": "c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; Σ mᵢ cᵢ = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ — nằm giữa [2;4), hợp lý theo phân bố 6/14/15/5. Cách Nam: (2+4+6+8)/4 = 5 là trung bình các MÚT khoảng (không có ý nghĩa giá trị đại diện), lấy 5/40 = 0,125 giờ ≈ 7,5 phút — lệch hoàn toàn với dữ liệu. [Gộp whyAiError: cộng các đầu mút, chia số nhóm rồi lại chia n — bỏ hoàn toàn tần số, đúng lỗi giáo án nhấn mạnh ở Bước 4.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: bảng 4 nhóm Internet (mᵢ = 6/14/15/5) cạnh trung điểm cᵢ = 1/3/5/7 và phép tính sai (2+4+6+8)/4 = 5 rồi ÷40, gạch chân Σ mᵢ cᵢ = 158 — KHÔNG viết thêm phép chia đúng mới lên bảng; số 3,95 đã công khai ở S3, không hé số PHT số 2.]",
       "teacherPrompt": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40. Bạn sai ở đâu?",
-      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra \"không nhân tần số m_i\" hoặc \"chỉ cộng mút khoảng\")."
+      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra \"không nhân tần số mᵢ\" hoặc \"chỉ cộng mút khoảng\")."
     }
   }
 }
