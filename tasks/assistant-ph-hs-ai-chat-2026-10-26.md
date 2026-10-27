@@ -223,6 +223,14 @@
   qua guard 1 tin/5 phút (trước đây im lặng 200); (2) người lạ gửi ảnh → nhận STRANGER_HINT (trước đây
   im lặng); (3) nới parser PIN: không prefix + PIN 4 số → mặc định HS, HS nhắn gọn `R6RCFC <PIN>`
   link được luôn (trước đây bắt buộc prefix "học sinh" — nguyên nhân chính HS không link được))
+- **Rotate key AI 28/10**: key cũ `sk-3d64…` (smartplan-bot-chat-20261027) đã **thu hồi vĩnh viễn**
+  (gọi thử → 401). Key mới `smartplan-bot-chat-20261028` (`sk-36d6…3e7c`) đã đăng ký `cnt/glm-5.3-flash`
+  (80₫/240₫, tick đồng ý billing "output rỗng vẫn tính phí") → env Production + Preview → deploy
+  `h8xsqgsvs`. Xác minh: gọi thẳng Vilao với key mới trả lời đúng (129 in / 102 out).
+  Toàn bộ file secret trên máy đã xoá (`zalo_bot_token.txt`, `zalo_webhook_secret.txt`,
+  `zalo_preview_secret.txt`, `VILAO-KEYS.md`, `spai-env-backup.md`, script test tạm).
+  Webhook không secret → 401 đúng. Lưu ý: env `PH_CHAT_VILAO_KEY` giờ là type **Sensitive**
+  (thêm mới qua CLI), `vercel env pull` trả `[SANITIZED]` — bình thường, không dùng để khôi phục.
 - Alias: `zalo-test.congapro60-devs-projects.vercel.app` → deployment `7nexdrwdz` /
   `dpl_2j2R8YvEph14Cy799ZHYrk5MNeFC`. ⚠️ Lần trỏ đầu (27/10 tối) CLI tạo nhầm alias
   `zalo-test.vercel.app` (domain khác) trong khi domain team VẪN trỏ `kqixbxy52` — chỉ phát hiện
