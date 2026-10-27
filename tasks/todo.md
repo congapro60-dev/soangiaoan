@@ -17,6 +17,6 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [x] B4 - mảng exact-keys 6→7 mã alphabet (`week11Catalog.test.ts` + `interactiveUpgrade.test.ts`, tên test 6→7); pin `MAIN_PIN=51 + W11BATCH2.length` giữ nguyên (tự theo mảng). Thêm 2 test R4: timeline `gateD79` (11 dải giây) + binding theo PHASE cho 79 (aiError=P10, route choice=P13, group product=P14, postCheck=P21, exit=P37, languageDemands [P01,P10,P21], evidenceRules [P05,P10,P14,P21], fading [P14,P21]).
 - [x] B1b - `TIMELINE_BY_KEY` thêm `gateD79` (`lessonAdapter.ts`) — vấp 2 test fail ban đầu (timeline fallback template + id P10 mồ côi), thêm key là qua.
 - [x] B5 - vitest v4: **27 file / 284 PASS** (baseline fix2 279, +5); `npm run build` 0 TS error (~1m11s).
-- [ ] B6 - HANDOFF + todo cập nhật → commit chọn lọc (KHÔNG `tasks/tmp-*`) → push `feat/nop-bai-da-cham` + `main` → kiểm deploy → republish 54 bài (bài 79 mới tạo).
-- [ ] B8 - QA A–F trên Production (khuôn `tmp-r3-fix2-rea.cjs` + probe6/probe7; phiên live mới; lớp R6RCFC, HS Tuệ Minh PIN 2750).
-- [ ] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R4 + báo thầy.
+- [x] B6 - commit `b14d0db` (11 files) → push feat+main (`addbbbf..b14d0db`, exit 0) → deploy success 2 Vercel → **republish "Tạo và xuất bản 55 bài"**: hàng "Lớp 11 · Tuần 11 · Tiết 79" xuất hiện, bài 78 giữ nguyên (`tmp-r4-publish.json`).
+- [x] B8 - QA A–F ĐẠT trên Production, phiên `T5lfCYGxrpRSg1aikwhj`: bands 12/12 khớp Gate D 79; AI-error chặng 5 đúng riêng bài ("AI" + "MN ∥ AB" + "MNPQ", không lộ proof); route choice thẻ S + taskAppeared (probe7, chờ thinkGone); nháp giữ reload + tự rejoin không PIN; exit trống chặn + gửi trọn + "Tiến độ gửi · 1 HS" GV+TV; think 63 reads, 11 windows decreasing+locked; Sau disabled stage 12; tvButtons=[]; no-spoiler 0/6.
+- [x] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R4 (untracked, không commit) + báo thầy.
