@@ -1,3 +1,19 @@
+# TODO — 27/10/2026: R2 Pha B (Gate C) bài `11-11-76` — batch2 Tuần 11 ✅ (chờ B7–B8)
+
+Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) · Gate D duyệt 26/10: `gate-d-11-11-76.md` (PA-β + PA-d chốt sẵn trong file).
+
+- [x] B1 — spec + aiError `11-11-76` vào `banToan-w11-batch2.snapshot.json` (snapshot giờ 2 entry): formulas×4, examples×2 (S3: x̄ = 158/40 = 3,95; M_e = 4,0), exercises×6 (3 câu PHT1 NB/TH/VD + PHT2 TH + P3 ý1-2 TH + ý3 VD PA-d), quick×2 (x̄ = 14 S4; bẫy M_e ≈ 5,87 S6), mistakes×4, boardKnowledge×16 (2 hình TikZ mô tả lời). PA-β: PHT 1/2 ghi "tự tính", Internet không dán nhãn PHT1. PA-d: đích mới x̄′ ≥ 152 tìm k nhỏ nhất, hết "73k = 365". aiError "bạn Nam" (0,125 giờ), enum 'Lỗi khái niệm', boardPrompt gộp `proof`.
+- [x] B1 — fingerprint đa file: `0d8b3e387202906193d42b7e4abcbaae9c82852008122563b84b57de538d76bf` (script `tasks/tmp-hash-batch2.mjs` nâng cấp đa file, idempotent — chạy 2 lần cùng giá trị); đối chiếu 24/24 số mục 3 Gate D. Ngoại lệ no-spoiler hợp lệ: "150" = mút khoảng đề gốc `[150;200)`.
+- [x] B2 — `'11-11-76'` vào `INTERACTIVE_SOURCE_KEYS` (5 mã).
+- [x] B3 — entry R2 vào `W11BATCH2` (g11, period 76).
+- [x] B4 — mảng exact-keys 4→5 mã alphabet + tên test 4→5 (week11Catalog + interactiveUpgrade); không còn literal 52/53 (công thức `MAIN_PIN=51 + W11BATCH2.length` từ R1 giữ nguyên).
+- [x] B5 — vitest v4: **27 file / 269 PASS** (baseline 266, +3 it.each); build 0 TS error (✓ 5m23s). Full suite 4600/4604: 4 fail CÓ SẴN tại HEAD R1 (`lessonCompiler/v832` contractData + goldenCandidates — lệch hash fixture, xác minh bằng stash) — không do R2, xử lý phiên riêng.
+- [ ] B7 — Tạo bài V4 trên Production (check 2 bài mới: g10 + g11 cùng tên "— Tiết 2").
+- [ ] B8 — QA A–F Production; lớp g11 `class-1787188523562` / `R6RCFC` (PIN 2750); ghi `tasks/qa-w11-batch2-acceptance.md`.
+- [ ] B9 — DỪNG tổng kết vòng, báo thầy → R3 `11-11-78`.
+
+---
+
 # TODO — 27/10/2026: R1 Pha B (Gate C) bài `10-11-80` — batch2 Tuần 11 ✅ (chờ B7–B9)
 
 Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) · Gate D duyệt 26/10: `gate-d-10-11-80.md`. Task 1 = `dce0512` (hạ tầng merge, cùng nhánh).

@@ -82,7 +82,7 @@ describe('xuất bản 3 bài Tuần 11 là interactive', () => {
     expect(savedLessons).toHaveLength(0);
   });
 
-  it('chỉ đúng 4 mã Tuần 11 mang cờ interactive', () => {
-    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '11-11-75', '12-11-80']);
+  it('chỉ đúng 5 mã Tuần 11 mang cờ interactive', () => {
+    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '11-11-75', '11-11-76', '12-11-80']);
   });
 });
