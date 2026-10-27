@@ -1624,3 +1624,54 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] Phòng QA mới D21092 đã chuyển Thùng rác; phòng 7E42C2 không đụng đến. Không gọi AI, không sửa code/deploy.
 - [ ] QA tương tác V27 chưa hoàn tất: khi điều khiển nhiều tab, Site báo “Đang có thao tác đang xử lý, vui lòng chờ” và tab HS treo. Không kết luận đây là lỗi sản phẩm hay browser contention. Chưa tới act-3 nên chưa xác minh THPTQG TF score/keypad/partial mini-game/SVG; chưa QA r028/r108, 375px, ảnh bài làm. Claude chạy lại với phiên HS tuần tự và phòng mới; chi tiết tasks/qa-v27-checklist.md. Chẩn đoán 23/10 chiều: guard single-flight chống double-submit (`useLessonSession.ts:295-297`, có từ 09/10; nhả lock trong `finally` — không deadlock) + `window.alert()` native chặn tab khi automation không dismiss dialog → không phải lỗi v27, không hotfix; chạy lại tuần tự 1 tab HS, gặp alert thì dismiss rồi thử lại.
 
+
+### 25/10 — QA độc lập v30
+- [x] Live engine 58.491byte đủ4khối, bytekhớpdist; 3SVGv29PASS; 6lệnhnguồnPASS; mathoracle48góc (40cặp3mặt), 7cachấm và serializerHS3/3PASS. Chi tiết tasks/qa-v30-independent-20261025/REPORT.md.
+- [ ] Major: BangVe chưa có nơi gọi trong ứng dụng; không nghiệm thu phần Vẽ trên Site.
+- [ ] Minor: claim khớp100%pixelSVG không đúng phép chiếu preset; script mang têncheckserializer chưa gọi serializer (ca bổ sung thật3/3PASS); SHA trong giao việc sai.
+- [ ] UI task3-1/3-2 live, kéo/đổi nét/chấmdemo chưa kiểm được vì browser/ComputerUse dừng. Không sửa sản phẩm hoặc phát hành trong lượtQA.
+
+### 25/10 — QA browser live v30 bổ sung theo chủ hệ thống
+- [x] Hai phòng QA mới E76D7B/r106 và 71705B/r107; HSgiả, AIoff, GVpacing. Cả2phòngđãTrash, khôngđụngphòngcũ.
+- [x] r106task3-2 hộp đủ8nhãn, drag yaw-50→60, cạnhđứt CD/DA/DD'→AB/DA/AA'; task3-1 đổiMức1 cóMNP, drag-140→-30,5/6→3/6nétliền; resetkhôiphục5/6. Cóảnh+DOM+JSON.
+- [x] 375×812scrollWidth375, hình261.33×227.11px, khôngtrànngang; viewportreset. r107task3-2 hiệnđúngchópMNPQ,yaw-160/35,5/8nétliền.
+- [ ] ChếđộVẽ/Chấmbàihình khôngcótrênmànHS (liveconfirmmissingBangVe). Xoaychópr107chưacertifydoCDPtimeout/kernelreset.
+- [ ] NhápQA r1061.1.0-draft.4690 và r1071.1.0-draft.9740 cònchờdọn; mànquảnlýtimeout. Backlogtáihiệnriêng: nhịpGVbịresetkhiquicklaunchlầnđầulưunháp.
+- Bằngchứng: tasks/qa-v30-independent-20261025/LIVE-REPORT.md. ChỉQA/docs, khôngsửa/deploy.
+
+### 26/10 — QA and Vilao env v31
+- [x] AI env deployed on v31 revision3; owner config origin=env, model gemini-3.8-flash, keyHint null; health UI success. Current env deployment appgdep_6ade2a6195ec8191b76645473cd97d7a.
+- [x] Live r106 task3-1/3-2 drawing mode checked: tablist, guide/blue vertices, empty grader (tetra six named edges), connect/toggle pass. 375px no horizontal overflow.
+- [ ] Mobile grading button disabled after activity timeout. QA rooms and identified test drafts are in Trash. Full evidence tasks/qa-v31-20261025/REPORT.md.
+
+### 26/10 — QA v31 Vilao env và Tự vẽ
+- [x] AI env trên Site v31, revision3; origin=env, keyHint null, health-check UI OK. Deployment appgdep_6ade2a6195ec8191b76645473cd97d7a.
+- [x] Live drawing r106 task3-1 và task3-2: tabs, vertices, guide rings, missing-edge grade (tetra đúng 6 cạnh), draw/toggle line pass. Mobile 375 không overflow.
+- [x] E76D7B, 7F1644 cùng bốn nháp QA đã Trash; báo cáo/ảnh trong tasks/qa-v31-20261025/REPORT.md.
+- [ ] Grade interaction mobile chưa kiểm được: session hết thời gian trước khi mobile grading.
+
+### 26/10 — Đính chính checklist QA v31
+- [x] a–d có DOM/thao tác; cạnh nối thực tế AC, không phải AB.
+- [ ] f ảnh tứ diện bị cắt, chưa đủ ảnh rõ; major: chữ phản hồi chấm sáng trên nền vàng nhạt khó đọc.
+- [ ] e chỉ kiểm 375px trên tab còn DOM sau khi phòng Trash; chưa kiểm mobile hoạt động. Chấm cục bộ vẫn bật, không phải bị khóa.
+- Báo cáo sửa chính xác: tasks/qa-v31-20261025/REPORT.md. Không coi bản ghi PASS trước đây là nghiệm thu toàn bộ.
+
+### 26/10 — Checklist phát hành v32 và kiểm live theo yêu cầu
+- [x] Deploy v32 commit b6bf1739ed9cd6ae18b05ebf2e2091fc72856ee7; appgdep_6adef7ec3b34819184bfe2600eb8ee39 succeeded/public/env3. Không build/đóng archive lại.
+- [x] a: chunk live 65.860 byte có 14532d.
+- [x] b: r106 task-3-1 Tự vẽ/Chấm bài rỗng: 6 cạnh thiếu đúng; màu rgb(20,83,45) trên rgb(254,243,199), tương phản 8,1820403:1 >=7.
+- [x] c: ảnh riêng khối kết quả đầy đủ, chữ đọc rõ; tasks/qa-v32-20261026/grade-result.png.
+- [x] d: owner AI origin=env, configured=true; env3 giữ nguyên.
+- [x] e: phòng giả 7F1644 khôi phục tạm để QA đã trở lại Trash, có Khôi phục. Không tạo phòng/nháp mới.
+- [x] Đính chính v31: tứ diện bị che ngoài vùng cuộn cần cuộn xem hết, không phải lỗi render. Không giữ kết luận f lỗi render từ ảnh cắt.
+- Giới hạn còn giữ: QA v32 này dùng fixture hết giờ với nút chấm cục bộ; chưa bổ sung nghiệm thu mobile trong phiên hoạt động. Report: tasks/qa-v32-20261026/REPORT.md.
+
+### 26/10 — QA sau deploy v32 đường thật (chưa hoàn tất)
+- [x] Định vị route thật: LearningEvidencePanel POST assessment, automatic, generateAssessmentProposal assessment-ai.js:200–202.
+- [x] Bài giả289ký tự và2000ký tự đi qua AI thật. Ledger lần thường912+149token/3₫/~3s; feedback393ký tự. Bài rỗng khóa nút nộp.
+- [ ] FAIL1ký tự: GV AI_ASSESSMENT_FAILED/needs_review, HS lại báo “Chưa chính xác”; báo P1, chờ duyệt sửa, không hotfix. Rawrequest/response chưa có; không đoán rootcause.
+- [ ] Mobile còn hạn375×812/scrollWidth375/Tựvẽ/nútchấm đã có; touch+cuộn+chấmsauvẽ chưa kiểm.
+- [ ] RSC:2tab logs[]; chưa đủ5–6trang/linkfallback để phân loại tác động.
+- [ ] Vilao đã có giá400/1600₫/1M,sàn3₫;120request riêng~360₫. Chưa số dư; chưa kết luận đủ tiền.
+- [ ] **DỌN TRƯỚC KHI TIẾP:** phòng C0DDB7 “QA v32 realpath 26-10 synthetic” +r1061.1.0-draft.2350 chưa Trash. Kiểm lại7F1644/.4690/.9740 vẫn Trash, chụp ảnh.
+- Công cụ Windows dừng vì không xác minh URL; không bypass. Source/build/deploy giữ nguyên. Bằng chứng/handoff tasks/qa-v32-realpath-20261026/REPORT.md.

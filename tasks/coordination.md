@@ -211,3 +211,56 @@ Chưa làm (đợt sau): AI chấm tất cả phiếu ra cửa + thống kê % �
 - In multi-tab interactions Site showed “Đang có thao tác đang xử lý, vui lòng chờ” and pupil tab stopped responding. Cause inconclusive; stopped without further submissions. Did not reach act-3; THPTQG UI/scoring/keypad/mini-game/SVG, r028/r108 and 375px remain unverified. Claude to recheck with fresh room and serialized pupil tabs. No source changes or deploy.
 - 23/10 chiều — Claude diagnosis of the busy alert: the message is the single-flight anti-double-submit guard at `components/lesson/useLessonSession.ts:295-297` (in place since 09/10, commit 6d1b24e; lock released unconditionally in `finally` at :409-411 — no deadlock path). The "frozen tab" was the pre-existing `window.alert()` on submit failure (`app/play/page.tsx:1286`; today's 413 commit only added the SUBMIT_ERRORS text map) blocking the tab's main thread while browser automation had no dialog handler to dismiss the dialog. Verdict: not a v27 defect, not a product deadlock; no hotfix. Re-run QA one pupil tab at a time, dismiss dialogs, retry after ~1-2 s. UX backlog: return a BUSY code + show a toast instead of a native alert; SAVE_DRAFT currently swallows BUSY silently.
 
+
+### 25/10 — QA độc lập v30: mô phỏng hình không gian
+- Goal: kiểm 5 phần theo bản giao QA; report only, không sửa sản phẩm/deploy.
+- Confirmed facts: live useLessonSession-CWZUovRi.js HTTP200, 58.491byte, SHA256 b4c995b6b44ea69cca091f47f343b5c35354f553b5889aa38fe9870bbb0073c4; byte khớp dist. 3SVGv29 PASS. 26/26geometry + 1/1catalogue + tsc + script solidKey PASS. Tia cắt tam giác độc lập quét48góc,40góc thấy3mặt đều9nétliền; 7cachấm PASS; serializerHS thật3/3giữsolidKey.
+- Findings: major BangVe chỉ có định nghĩa, TaskImage render KhoiXoay, chưa có đường vào Vẽ trong app; minor claim khớp100%SVG không đúng phép chiếu preset, script check-solidkey-serialize không gọi serializer dù comment nói có, SHA trong giao việc bị chép sai. Chưa sửa.
+- Failed attempts: Edge unavailable; Chrome timeout; Windows Computer Use dừng do không xác minhURL. Không thao tácUI sau stop. Ảnh/play có, chưa kéo/chấmUI hay vào task live.
+- Active constraints: không sourcefix/hotfix/deploy; không dữ liệuHSthật/phòngcũ/audience. Báo cáo + script + rawbytes + output: tasks/qa-v30-independent-20261025/REPORT.md.
+
+### 25/10 — Live v30 QA follow-up
+Goal: QA on Site per owner. Confirmed: r106 box/tetra render and pointer-drag change yaw/hidden edges; lane switch opens MNP; reset and 375px no horizontal overflow pass. r107 pyramid with MNPQ renders. Screenshots/DOM/JSON at tasks/qa-v30-independent-20261025/LIVE-REPORT.md. Rooms E76D7B and 71705B moved Trash. Failed attempts: pyramid post-drag CDP timeout/kernel reset; draft cleanup focus timeout. Active constraints: QA only, no sourcefix/deploy/realpupils/AIcalls. Still open: no MứcB drawing control on live; r107drag unverified; QA drafts r1061.1.0-draft.4690 and r1071.1.0-draft.9740 pendingTrash. First quicklaunch reset teacher pacing observed, separate repro needed.
+
+### 26/10 — Deploy Vilao env + QA Tự vẽ v31
+- [x] Site env revision 3: LESSON_AI_ENABLED=true; Vilao endpoint; model gemini-3.8-flash; API key secret env-only. Owner GET /api/ai-settings returned origin=env, configured=true, keyHint=null; health UI returned “Kết nối được, AI đã sẵn sàng.” Version31, commit8bbb5c00c06273c2caa7ad6a8395d0ac4a34e07e, env deployment appgdep_6ade2a6195ec8191b76645473cd97d7a succeeded.
+- [x] Live Tự vẽ r106 task3-1/3-2: tabs, blue vertices/dashed hints, blank grade, connect edges/toggle dash PASS. r106-3-1 empty report missing exactly AB/BC/CA/AS/BS/CS; box empty reports 12 edges.
+- [x] 375px page width equals375; canvas/button in viewport; grading control disabled because session timed out during mobile check.
+- [x] Rooms 7F1644/E76D7B and QA drafts 0013/6011/4690/9740 moved to Trash, restorable.
+- [ ] Mobile grading interaction not verified (expired session). Health-check raw HTTP JSON not separately captured; owner UI success message mapped from test.status=OK.
+- Details and screenshots: tasks/qa-v31-20261025/REPORT.md. No code change or source commit; only test fixtures trashed.
+
+### 26/10 — Vilao env + QA live Tự vẽ v31
+- [x] Env revision3 deploy lên version31: enabled=true, endpoint Vilao, model gemini-3.8-flash, key marked secret. GET owner api-settings origin=env/configured/keyHint null; health UI success “Kết nối được, AI đã sẵn sàng.” Deployment env appgdep_6ade2a6195ec8191b76645473cd97d7a.
+- [x] Live r106 task3-1/t3-2: tablist Chế độ xem hình + Xem/Tự vẽ; dots xanh/rings; empty grade tetra đúng 6 cạnh; box empty 12; AB connect/toggle solid->dashed->solid.
+- [x] 375px: scrollWidth=375, drawing canvas và Chấm bài nằm trong viewport. Chấm trên mobile chưa hoạt động do phòng hết giờ.
+- [x] 4 screenshots Xem/Tự vẽ × box/tetra. Fixtures 7F1644/E76D7B và nháp QA r106 .0013/.6011/.4690, r107 .9740 đều đã Trash.
+- [ ] Mobile grade interactive chưa thử vì hết giờ. Raw POST JSON không lưu; UI success message maps test.status=OK.
+- Evidence full: tasks/qa-v31-20261025/REPORT.md.
+
+### 26/10 — Đính chính nghiệm thu v31 sau đối chiếu ảnh
+- Cạnh thực tế đã nối là AC (tọa độ JSON chứng minh), không phải AB. Thao tác đổi nét hai chiều vẫn được xác minh.
+- Không đánh dấu toàn bộ QA PASS: ảnh tứ diện bị cắt, mục f chưa đạt; chữ kết quả chấm sáng trên nền vàng nhạt khó đọc (major, box-after-AB.png).
+- Mobile metrics 375px đo trên tab còn giữ DOM sau khi phòng đã Trash; không tràn ngang nhưng chưa kiểm phiên mobile hoạt động. Nút Chấm bài cục bộ vẫn bật; các ghi chú trước nói nút bị khóa là sai.
+- DOM chấm rỗng thực tế lưu tại tasks/qa-v31-20261025/tetra-empty-grade-dom.txt. Báo cáo REPORT.md đã đính chính; env/health và cleanup giữ kết quả đã xác minh.
+
+### 26/10 — v32 phát hành và nghiệm thu live a–e
+- [x] Version32, commit b6bf1739ed9cd6ae18b05ebf2e2091fc72856ee7; deployment appgdep_6adef7ec3b34819184bfe2600eb8ee39 succeeded, public, env3. Dùng nguyên archive release-20261026-v32.tar.gz; không build/đóng gói/sửa nguồn.
+- [x] a: chunk live useLessonSession-BK-YqRd9.js 65.860 byte, có 14532d; SHA256 9198C14B9B420118422F6F2B6611E505998C2DA98D82CD1E1CDD72D138659A42.
+- [x] b/c: r106 act3 task-3-1, Tự vẽ → Chấm bài rỗng; báo đúng thiếu AB/BC/CA/AS/BS/CS. Computed color rgb(20,83,45), background rgb(254,243,199), WCAG 8,1820403:1. Ảnh riêng toàn khối kết quả grade-result.png đọc rõ.
+- [x] d: owner api/ai-settings origin=env, configured=true, model=gemini-3.8-flash, keyHint=null.
+- [x] e: chỉ khôi phục phòng giả 7F1644 để QA rồi đưa lại Trash, xác minh có Khôi phục; không tạo phòng/nháp mới. Bốn nháp QA cũ vẫn trong Trash.
+- Đính chính: ảnh tứ diện cắt bởi vùng cuộn là hành vi cuộn bình thường, không chứng minh lỗi render/tỉ lệ. Bản ghi v31 gọi mục f lỗi render được thay bằng kết luận này.
+- Giới hạn: fixture đã hết giờ, nút chấm hình cục bộ vẫn hoạt động; không suy rộng thành nghiệm thu phiên học/mobile. Handoff Goal/Confirmed facts/Failed attempts/Active constraints và bằng chứng: tasks/qa-v32-20261026/REPORT.md.
+
+### 26/10 — v32 real-path QA: chưa nghiệm thu; KHÔNG sửa nguồn/build/deploy
+- Goal: 5 việc QA đường chấm AI, touch375, RSC, ví Vilao, cleanup. Báo cáo tasks/qa-v32-realpath-20261026/REPORT.md.
+- Confirmed: một phòng mới C0DDB7 “QA v32 realpath 26-10 synthetic”, nháp r106 .2350 (row95a171aa-ba31-4f12-9ce0-0f2fdb0554c3), HSgiả QA AI32. Bài289ký tự AI thật chấm chưa đạt, feedback393ký tự; Vilao912in+149out,3₫,~3s. Bài2000ký tự chấm được; worker assessment HTTP200/wall4977ms cùng thời điểm. Không có raw responseJSON.
+- FAIL: bài1ký tự chuyển needs_review/AI_ASSESSMENT_FAILED trong GV, ledger797in+162out/3₫/OK; HS hiển thị “Chưa chính xác” và lời nhắn kiểm phép tính. P1: TaskInput.tsx:657–705 thiếu needs_review branch. Chưa biết nguyên nhân lỗi AI; KHÔNG hotfix.
+- Mobile chỉ đạt active375×812/scrollWidth375/Tựvẽ/Chấmbài enabled tại act3 còn05:31; CHƯA touch, chưa chấm hình sau touch. RSC logs đọc2tab trả[] nhưng chưa đủ navigation sweep/fallback. Ví chưa đọc balance; mẫu120request riêng dự kiến360₫ theo sàn3₫; không kết luận đủ tiền.
+- Failed attempts: catalogmodel sai schema do tiến trình khác ghi lại; user duyệt sửa config riêng, có backup, dùng qa-v32-validated-models.json. Browser phục hồi, userlogin; native Windows helper sau đó dừng do không xác minh URL được phép. Không bypass.
+- Active constraints: v32 giữ nguyên; không a–e cũ; fake-only; **C0DDB7/.2350 CHƯA Trash**, chưa xác minh lại Trash7F1644/.4690/.9740. Cleanup là bước đầu lần tiếp tục; không coi đã xong.
+
+### 26/10 — nghiên cứu gameplay dạy học, chưa triển khai
+- Đọc trực tiếp Gameplay Atlas và Vizu; đề xuất bỏ xúc xắc khỏi tiến trình mặc định tiết học, giữ cho xác suất/thi đấu/sự kiện phụ. Thiết kế nguyên mẫu bài Hai mặt phẳng song song, luật theo loại tiết, tiêu chí mobile/tablet và giới hạn tích hợp Vizu tại `tasks/gameplay-learning-research-20261026.md`.
+- Chưa duyệt code/triển khai, chưa xác minh API hoặc quyền nhúng Vizu. QA v32 vẫn dở; phòng C0DDB7 và nháp .2350 cần Trash trước khi khép đợt.

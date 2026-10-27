@@ -47,6 +47,7 @@ export interface TaskInputProps {
     ratio?: number;
     perItem?: boolean[];
     aiComment?: { feedback?: string; model?: string; at?: number } | null;
+    aiAssessment?: { model?: string; reason?: string; feedback?: string; confidence?: number } | null;
   } | null;
   onSaveDraft?: (answer: unknown) => unknown;
   onSubmit?: (answer: unknown) => Promise<void> | void;
@@ -676,11 +677,24 @@ export function TaskInput({
       );
     }
 
+    if (submission.assessmentStatus === "needs_review") {
+      // AI chưa đủ tin cậy hoặc đề xuất không hợp lệ — bài nộp chờ GV xem lại, không kết luận đúng/sai cho HS.
+      return (
+        <div className="task-status-banner task-status-pending">
+          <span className="task-badge task-badge-pending">⏳ Đã gửi thầy/cô xem lại</span>
+          <p>Bài làm của em đã được ghi nhận. Thầy/cô sẽ xem lại và đánh giá giúp em.</p>
+        </div>
+      );
+    }
+
     if (submission.ok) {
       return (
         <div className="task-status-banner task-status-success">
           <span className="task-badge task-badge-success">✓ Chính xác!</span>
           <p>Em đã hoàn thành tốt nhiệm vụ này.</p>
+          {submission.aiAssessment?.feedback && (
+            <p><strong>Nhận xét gợi ý: </strong><MathText text={submission.aiAssessment.feedback} /></p>
+          )}
         </div>
       );
     }
@@ -700,6 +714,9 @@ export function TaskInput({
           </p>
         ) : (
           <p>Em hãy kiểm tra lại các bước tính hoặc mở gợi ý giàn giáo bên dưới để được hướng dẫn.</p>
+        )}
+        {submission.aiAssessment?.feedback && (
+          <p><strong>Nhận xét gợi ý: </strong><MathText text={submission.aiAssessment.feedback} /></p>
         )}
       </div>
     );
