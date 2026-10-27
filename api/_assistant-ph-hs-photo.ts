@@ -13,7 +13,8 @@
 // EM ĐƯỢC NỘP HỘ; `submittedBy` ghi NGƯỜI GỬI THẬT; thêm `assistBy` để web hiển thị badge.
 import { randomUUID } from 'node:crypto';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
-import { chayNgam, getGradingApiKey, loadQuotaDoc, remainingQuota, bumpQuota } from './_grading-core.js';
+import { chayNgam, getGradingApiKey, remainingQuota, bumpQuota, rollQuota, today } from './_grading-core.js';
+import type { QuotaDoc } from './_grading-core.js';
 import { AiKeyRequiredError, ensureGeminiKey } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { sendStyled } from './_assistant-zalo-send.js';
@@ -132,8 +133,13 @@ const nameMatches = (fullName: string, input: string): boolean => {
  */
 const assistAskName = ['Muốn nộp hộ bạn nào? Gõ tên bạn trong lớp (ví dụ: Minh Anh).', 'Đổi ý: nhắn 0 để hủy.', '', MENU_HINT].join('\n');
 
-/** Bước đầu luồng nộp hộ: ghi pre-session chờ tên bạn (phiên cũ nếu có bị đè). */
+/** Bước đầu luồng nộp hộ: ghi pre-session chờ tên bạn. Phiên nộp thường đang CÓ ảnh thì chặn — đè phiên là mất ảnh im lặng; phiên assist dở hoặc chưa có ảnh thì đè vô hại (đường "nhắn nộp hộ để làm lại"). */
 export const assistStartReply = async (botId: string, userId: string, classId: string, studentId: string): Promise<string> => {
+  const current = await liveSession(botId, userId);
+  if (current && !current.data.assistState && current.data.photos.length > 0) {
+    return [`Em đang nộp bài "${current.data.assignmentTitle}" với ${current.data.photos.length} ảnh chưa gửi xong.`,
+      'Nhắn: xong để máy chấm, hoặc 0 để hủy rồi mới nộp hộ được nhé.', '', MENU_HINT].join('\n');
+  }
   await db().collection(SESSIONS).doc(sessionId(botId, userId)).set({
     botId, userId, studentId, classId, teacherId: '', assignmentId: '', assignmentTitle: '',
     expiresAt: Date.now() + SESSION_MS, photos: [], assistState: 'name',
@@ -326,22 +332,6 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     return ['Bài này đã đổi hoặc không còn nhận nộp. Nhắn 8 để chọn bài khác.', '', MENU_HINT].join('\n');
   }
 
-  const pending = await db().collection('submissions')
-    .where('studentId', '==', targetId).where('assignmentId', '==', s.assignmentId).get();
-  const choCham = pending.docs.map(doc => doc.data() as SubmissionDoc)
-    .find(item => item.status === 'submitted' || item.status === 'grading');
-  if (choCham) {
-    await cancelPhotoSession(botId, userId);
-    return ['Bài này đang chờ chấm rồi, không nộp trùng. Nhắn 2 để xem tiến độ.', '', MENU_HINT].join('\n');
-  }
-
-  const [quota, quotaRef] = await loadQuotaDoc(db(), s.teacherId);
-  const verdict = remainingQuota(quota, 'self', targetId);
-  if (verdict.allowed <= 0) {
-    await cancelPhotoSession(botId, userId);
-    return [verdict.reason, '', MENU_HINT].join('\n');
-  }
-
   // Nộp hộ: ghi dấu ai đã gửi (tên đọc từ danh sách lớp để web hiện badge không phải tra thêm).
   let assistBy: SubmissionDoc['assistBy'];
   if (s.assist) {
@@ -366,17 +356,47 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     ...(assistBy ? { assistBy } : {}),
     createdAt: now, updatedAt: now,
   };
-  await db().runTransaction(async tx => {
+  // A1 (2026-10-27): chặn nộp trùng + đọc/trừ hạn mức ĐỀU TRONG transaction — 2 HS nộp hộ cùng
+  // một bạn cùng lúc thì tx sau bị Firestore đẩy retry (cả hai cùng đọc doc quota, dù doc chưa
+  // tồn tại), đọc lại thấy bài đã nộp → chặn. Không bao giờ tạo trùng submission hay trừ lệch
+  // hạn mức — cùng ngữ án `reserveQuota` của luồng web.
+  const quotaRef = db().collection('gradingQuota').doc(s.teacherId);
+  const outcome = await db().runTransaction(async tx => {
+    const pending = await tx.get(db().collection('submissions')
+      .where('studentId', '==', targetId).where('assignmentId', '==', s.assignmentId));
+    const choCham = pending.docs.map(doc => doc.data() as SubmissionDoc)
+      .find(item => item.status === 'submitted' || item.status === 'grading');
+    if (choCham) return { kind: 'duplicate' as const };
+    const quotaSnap = await tx.get(quotaRef);
+    const quota = rollQuota(quotaSnap.exists ? (quotaSnap.data() as Partial<QuotaDoc>) : null, today());
+    const verdict = remainingQuota(quota, 'self', targetId);
+    if (verdict.allowed <= 0) return { kind: 'quota' as const, reason: verdict.reason };
     tx.create(db().collection('submissions').doc(submissionId), submission);
     tx.delete(db().collection(SESSIONS).doc(session.id));
+    tx.set(quotaRef, bumpQuota(quota, 'self', targetId, 1));
+    return { kind: 'ok' as const };
   });
-  await quotaRef.set(bumpQuota(quota, 'self', targetId, 1));
+  if (outcome.kind === 'duplicate') {
+    await cancelPhotoSession(botId, userId);
+    // A3: người nộp hộ không xem tiến độ của bạn qua mục 2 — dẫn đúng nơi xem.
+    return [targetName
+      ? `Bài của ${targetName} đang chờ chấm rồi, không nộp trùng. Kết quả sẽ hiện trên tài khoản của bạn ấy.`
+      : 'Bài này đang chờ chấm rồi, không nộp trùng. Nhắn 2 để xem tiến độ.', '', MENU_HINT].join('\n');
+  }
+  if (outcome.kind === 'quota') {
+    await cancelPhotoSession(botId, userId);
+    return [outcome.reason, '', MENU_HINT].join('\n');
+  }
 
   const token = String(process.env.ZALO_BOT_TOKEN || '');
   const chatId = userId;
   chayNgam(gradeAndNotify(token, chatId, submissionId, s));
+  // A3 (2026-10-27): người nộp hộ nhắn 2 chỉ xem được bài của CHÍNH EM — kết quả của bạn nằm
+  // trên tài khoản của bạn ấy, đừng dẫn nhầm.
   return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${s.photos.length} ảnh).`,
-    'Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả.',
+    targetName
+      ? `Máy đang chấm; điểm sẽ hiện trên tài khoản của ${targetName} (mục 2 chỉ hiện bài của chính em).`
+      : 'Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả.',
     '', MENU_HINT].join('\n');
 };
 
@@ -397,7 +417,8 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
       const approved = fresh.grade.teacherApproved === true;
       await sendStyled(token, chatId, [`Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
         approved ? 'Thầy cô đã duyệt — điểm chính thức.' : 'Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
-        'Xem chi tiết từng câu: nhắn 2.',
+        // A3: người nộp hộ không xem được bài của bạn qua mục 2 — dẫn đúng nơi xem.
+        s.assist ? `Điểm và nhận xét hiện trên tài khoản của ${s.assist.targetName}.` : 'Xem chi tiết từng câu: nhắn 2.',
         '', MENU_HINT].join('\n'));
       return;
     }

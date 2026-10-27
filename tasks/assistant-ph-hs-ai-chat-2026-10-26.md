@@ -108,6 +108,20 @@
   build pass. Test mới: photo +12 (assist đầy đủ + self regression), bot +6 dispatch.
 - Test phát hiện & sửa: khi tên KHÔNG khớp bạn nào, code cũ văng TypeError (`matches[0]` undefined) —
   đã thêm câu mời gõ lại.
+- **QA fix A1–A3 (27/10, trước giờ HS test)**: Codex rà Phase 1–2 trên lineage khác
+  (`feat/assistant-ph-hs-zalo` = `5f12682`, merge-base `8ae51ef`) nên không chạm được tính năng nộp hộ;
+  tự fix trên `preview/zalo-live-test`:
+  - **A1 — race nộp trùng + quota ngoài transaction**: dời check "đang chờ chấm" + đọc/trừ quota VÀO
+    `runTransaction` (cùng pattern `reserveQuota`); 2 HS nộp hộ cùng bạn cùng lúc → tx sau bị retry,
+    đọc lại thấy bài đã nộp → chặn. Không bao giờ tạo trùng submission hay trừ lệch hạn mức.
+  - **A2 — `nộp hộ` đè mất phiên nộp thường đang dở**: `assistStartReply` chặn khi phiên thường đang
+    CÓ ảnh (báo "xong để máy chấm, hoặc 0 để hủy"); phiên assist dở / chưa có ảnh thì đè vô hại (giữ
+    đường hồi phục "nhắn nộp hộ để làm lại").
+  - **A3 — wording dẫn nhầm người nộp hộ**: tin hoàn tất + tin điểm + câu chặn nộp trùng khi có assist
+    không còn bảo "nhắn 2" (kết quả thuộc tài khoản bạn được nộp hộ) — dẫn "tài khoản của <Tên>".
+  - **Gate**: photo tests 39/39 (34 cũ + 5 mới: race 2 HS, A2 ×3, A3), bot 72/72, tsc 0 lỗi 2 config,
+    build pass. Báo cáo Codex về `periodicIds` không cần áp: nhánh này `menuSectionText` có đúng 1
+    caller production, luôn truyền `periodicIds` thật từ `loadParentReportBundle`.
 
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 

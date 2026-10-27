@@ -29,6 +29,10 @@
 - [x] 6. Test: photo (assist đầy đủ + self regression) + zalo-bot dispatch. Bắt thêm lỗi 0-match tên.
 - [x] 7. Gate: vitest 2 file 106/106 → full suite 4684/4688 (4 fail cũ v832) → tsc 2 config → build.
 - [x] 8. Commit `b7f13fc` + deploy preview (Ready) + alias `zalo-test`; cập nhật doc trạng thái.
+- [x] 9. QA fix A1–A3 (27/10): A1 dời check nộp trùng + quota vào transaction; A2 chặn `nộp hộ` đè
+      phiên thường đang có ảnh; A3 wording "nhắn 2" dẫn nhầm người nộp hộ. Photo tests 39/39
+      (34 cũ + 5 mới), bot 72/72, tsc 0 lỗi 2 config, build pass.
+- [ ] 10. Commit + deploy lại preview + alias `zalo-test` trước giờ HS test.
 
 ## Ngoài phạm vi
 - PH nộp thay; thông báo chủ động cho em được nộp hộ (Zalo OA không chủ động nhắn được);
