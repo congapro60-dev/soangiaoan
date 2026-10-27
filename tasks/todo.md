@@ -17,6 +17,6 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [x] B4 - mảng exact-keys 8→9 mã + tên test 8→9; +2 test R6 (timeline `gateD1278` + binding phase 78 g12).
 - [x] B1b - `TIMELINE_BY_KEY` thêm `gateD1278` (lessonAdapter.ts).
 - [x] B5 - vitest v4: **27 file / 294 PASS** (baseline R5 289, +5); `npm run build` 0 TS error (~1m41s).
-- [ ] B6 - HANDOFF + todo → commit chọn lọc (KHÔNG `tasks/tmp-*`) → push feat+main → kiểm deploy → republish (bài 78 g12 mới tạo).
-- [ ] B8 - QA A–F trên Production (khuôn r5 — đổi session + ROW_RX "Lớp 12 · Tiết 78" + marker S4 "R = 35 − 10" + token no-spoiler `41,25`/`30,34`).
-- [ ] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R6 + báo thầy.
+- [x] B6 - commit `83ac5f3` (11 files) → push feat+main (`5eb3b3b..83ac5f3`, exit 0) → deploy success 2 Vercel → **republish "Tạo và xuất bản 57 bài"**: hàng "Lớp 12 · Tuần 11 · Tiết 78" xuất hiện (`tmp-r6-publish.json`).
+- [x] B8 - QA A–F ĐẠT trên Production, phiên `1slj6yFtDrmpkWUxkpNR`: bands 12/12 khớp Gate D; AI-error chặng 5 ("AI"+"35 − 10 = 25", không lộ proof); route choice thẻ S → PHT NHÁNH 1 (taskAppeared); nháp giữ reload + tự rejoin không PIN; exit trống chặn + gửi trọn + "Tiến độ gửi · 1 HS" (chạy SAU route choice — thẻ exit khóa theo tuyến); think 61 reads, 16 windows decreasing+locked; Sau disabled stage 12; tvButtons=[]; no-spoiler 0/6.
+- [x] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R6 (untracked) + báo thầy.
