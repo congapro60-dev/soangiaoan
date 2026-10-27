@@ -4,11 +4,40 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V35 DANG DEPLOY: fix 3 FAIL QA live v34 (27/10/2026)
+## Latest checkpoint - V36 DANG DEPLOY: va not F3 sot sau v35 (27/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `f73d029` (= v35 da phat hanh: version 35, deployment `appgdep_6ae0bbc0175c8191862d2eea418c8864`).
+
+### Trang thai: DANG DEPLOY — code + test xong, cho native deploy.
+
+### Noi dung thay doi v36
+
+Sau khi soi toan bo 16 cho "xuc xac" tren live v35: F3 da sua 4 cho nhung con 3 cho lot duoc vao che do chien dich.
+
+- F3b-1 tooltip o ban do (`terrainInfo`): nhanh cuoi `'Lan xuc xac khi den luot...'` -> them `m.campaign ? 'Chon buoc di chuyen khi den luot...'`. Reachable qua action `map-spot` (click pin ban do chay moi mode).
+- F3b-2 nut lan fallback (`bonusPanel`): `'Lan xuc xac'` -> `${r.campaign ? 'Chon buoc di chuyen' : 'Lan xuc xac'}`. Reachable khi `individual` + giao keo bo luot chua thanh toan (khong vao `stepBuyPanel`).
+- F3b-3 nhan dong ho luot (`updateRaceClock`, 2 cho): them nhanh campaign "Chon buoc di chuyen · ..." cho ca `individual` va `team`.
+- `tests/race-choose.test.mjs`: +1 test hoi quy F3b (4 needle theo region). Tong 19 test.
+
+### Verify truoc deploy (27/10)
+
+- `node --check public/app.js` sach; race-choose **19/19**; full suite **1436/1436 PASS, 0 fail**; `npm run build` pass. `lib/exam/**` va phong demo `7E42C2` khong bi dong den.
+
+### Release record V36
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **36** |
+| deployment_id | `appgdep_6ae0bbc0175c8191862d2eea418c8864` (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v36.tar.gz` (placeholder) |
+| archive size | (placeholder) |
+
+## Latest checkpoint - V35 DA PHAT HANH: fix 3 FAIL QA live v34 (27/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `9aea0a1` (= v34 da phat hanh: version 34, deployment `appgdep_6ae096897df88191b16636da5b042ec2`).
 
-### Trang thai: DANG DEPLOY — cho Codex chay workflow sites (saveSource + package + native deploy).
+### Trang thai: DA PHAT HANH — native deployment succeeded; get_site latest_version_number = 35 (27/10/2026).
 
 ### Noi dung thay doi v35 (fix 3 FAIL QA live v34; bao cao: `tasks/qa-v34-live-20261027/REPORT.md`)
 
@@ -22,15 +51,15 @@
 
 - `node --check public/app.js` sach; race-choose **18/18**; full suite **1435/1435 PASS, 0 fail**; `npm run build` pass, 0 loi. `lib/exam/**` va phong demo `7E42C2` khong bi dong den.
 
-### Release record V35 (cho deploy dien)
+### Release record V35
 
 | Truong | Gia tri |
 |---|---|
-| version_number | (cho deploy - phai la 35) |
-| deployment_id | (cho deploy) |
-| commit_sha | (cho deploy) |
+| version_number | **35** |
+| deployment_id | `appgdep_6ae0bbc0175c8191862d2eea418c8864` |
+| commit_sha | `f73d029a36714bbf71e789d9b49f7424cde31f3e` |
 | archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v35.tar.gz` |
-| archive size | (cho deploy) |
+| archive size | 49443174 bytes |
 
 - Kiem doc lap do phien OpenCode thuc hien sau deploy: SHA256 app.js/style.css/chunk tai tu live khop archive, root HTTP 200, marker "Het ma luc" + "Chon buoc di chuyen" + "Cho luot di chuyen hoac xu ly su kien" hien dien tren live.
 

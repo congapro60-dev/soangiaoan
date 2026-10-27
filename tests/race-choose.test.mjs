@@ -333,3 +333,22 @@ test('QA v34 F3: campaign mode has no leftover dice wording in gate button, bonu
   assert(src.includes(`\${c ? 'nhận 100 điểm mã lực' : 'thêm 1 viên xúc xắc vào lượt di chuyển kế tiếp'}. Chỉ nhận một lợi ích;`), 'rules reward list follows the mode');
   assert(src.includes('giao kèo (+40 điểm, tối đa 2/ván)'), 'out-of-mana helper mentions the pact recovery (+40, max 2 per race)');
 });
+
+test('QA v36 F3b: map cell tooltip and roll-button fallback stay mode-aware in campaign', async () => {
+  const src = await readFile(resolve('public/app.js'), 'utf8');
+  const t = src.indexOf('function terrainInfo(');
+  const tEnd = src.indexOf('function raceMap(', t);
+  assert(t > 0 && tEnd > t, 'terrainInfo region found');
+  const terrain = src.slice(t, tEnd);
+  assert(terrain.includes(`m.campaign ? 'Chọn bước di chuyển khi đến lượt để tiến về cổng tiếp theo.' : 'Lăn xúc xắc khi đến lượt để tiến về cổng tiếp theo.'`), 'map cell tooltip follows the mode');
+  const b = src.indexOf('function bonusPanel()');
+  const bEnd = src.indexOf('function pactsPanel(', b);
+  assert(b > 0 && bEnd > b, 'bonusPanel region found');
+  assert(src.slice(b, bEnd).includes(`\${r.campaign ? 'Chọn bước di chuyển' : 'Lăn xúc xắc'}`), 'roll button fallback follows the mode');
+  const c = src.indexOf('function updateRaceClock()');
+  const cEnd = src.indexOf('function updateClockRaceAbandon(', c);
+  assert(c > 0 && cEnd > c, 'updateRaceClock region found');
+  const clock = src.slice(c, cEnd);
+  assert(clock.includes(`state.race.campaign ? 'Chọn bước di chuyển · Lượt của bạn' : 'Lăn xúc xắc · Lượt của bạn'`), 'individual clock label follows the mode');
+  assert(clock.includes(`own ? (state.race.campaign ? 'Chọn bước di chuyển · ' : 'Lăn xúc xắc · ') + left + ' giây'`), 'team clock label follows the mode');
+});

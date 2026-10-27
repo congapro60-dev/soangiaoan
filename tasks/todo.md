@@ -66,10 +66,21 @@
 - [x] C4a. Reward 'dice' ở campaign — user quyết **ĐỔI** (27/10): chọn dice ở chiến dịch được cộng **100 điểm mã lực** (tương đương ~3.3 bước mua, sát giá trị viên xúc xắc thêm ~3.5 bước); duel giữ nguyên extraDice. Sửa 3 chỗ: `route.js` (nhánh campaign + event ghi `points: 100`), `bonusPanel` (campaign: "Nhận 100 điểm mã lực"), `raceHistory` (label theo chế độ). +2 test hồi quy → race-choose **15/15**; full suite **1432/1432 PASS, 0 fail**; `node --check` sạch; build pass. Đối chiếu thêm: skill `double` đã bị shop ẩn sẵn ở campaign — không còn lựa chọn vô hiệu nào.
 - [x] C4. HANDOFF.md record v34 + prompt Codex deploy + deploy + kiểm độc lập (27/10). → Commit `9aea0a1` đã push; archive `release-20261027-v34.tar.gz` (49.442.961 B). Deploy thành công qua vòng retry 429 (Codex, lần thử 2): version **34**, deployment_id `appgdep_6ae096897df88191b16636da5b042ec2`, status succeeded, live https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site . Kiểm độc lập OpenCode sau deploy: SHA256 live khớp archive cả 3 file (app.js 198.962 B `E0765F11…`, style.css 62.854 B `1FB3A67F…`, chunk 66.522 B `46DC675C…`), root HTTP 200, marker "Nhận 100 điểm mã lực" + CSS v34 hiện diện — bằng chứng `C:\Users\ADMIN\.codex\sites-release\v34-live-verification.json`. HANDOFF record V34 có ghi chú kiểm độc lập (chưa commit — đúng quy trình v33).
 
-## v35 — sửa 3 FAIL QA live v34 (27/10/2026, CHƯA deploy)
+## v35 — sửa 3 FAIL QA live v34 (27/10/2026, ĐÃ deploy)
 
 - [x] F1 điểm HS stale sau mua kỹ năng: `buySkill` (app.js) thêm `render()` sau `apply(d)`. Gốc rễ: handler chỉ apply + `updateClock()` (khóa nút theo score mới) → text cũ; `raceAction` đã làm đúng chuẩn này.
 - [x] F2 GV thiếu trạng thái hết mã lực: `teamDetail` thêm `noMana = !finished && r.race?.campaign && (r.score || 0) < 30` → nhãn " · Hết mã lực" ở cả summary + body; kèm travel notice mode-aware ("Chờ lượt di chuyển hoặc xử lý sự kiện" ở campaign).
 - [x] F3 chữ "xúc xắc" sót ở campaign (4 chỗ): nút cổng thoát → "Trở lại bản đồ · Chọn bước di chuyển"; reward giữ bước → "lượt di chuyển tiếp theo"; rules "Chọn thưởng" → campaign là "nhận 100 điểm mã lực" thay viên xúc xắc; helper hết mã lực thêm "giao kèo (+40 điểm, tối đa 2/ván)" (pact `delay` = +40, route.js:943, tối đa 2/ván).
 - [x] Test hồi quy F1–F3 trong `race-choose.test.mjs` (pattern region như C4, escape `\${` cho needle chứa template literal): race-choose 18/18; full suite **1435/1435 PASS, 0 fail**; `node --check` sạch; `npm run build` pass.
-- [ ] Deploy v35 qua Codex (MCP Sites, prompt ASCII thuần, vòng retry 429 nền như v34) + kiểm độc lập SHA256 live↔archive sau deploy. Chưa commit tay — working tree bẩn cố ý theo quy trình.
+- [x] Deploy v35 qua Codex (MCP Sites): chặn PTY (`WindowsApps\pwsh.exe` alias — ConPTY Access denied) → fix shim `pwsh.exe` (copy powershell.exe) prepend PATH. Commit `f73d029` (7 file) + push + archive `release-20261027-v35.tar.gz` (49.443.174 B) bởi Codex; native deploy thành công: **version 35**, deployment `appgdep_6ae0bbc0175c8191862d2eea418c8864`, HANDOFF → "DA PHAT HANH".
+- [x] Kiểm độc lập sau deploy: root HTTP 200; **18/18 asset SHA256 live↔archive MATCH** (app.js 199.513 B, style.css, 15 chunk/css); marker F1–F3 trên live app.js: "Hết mã lực" ×4, "Chọn bước di chuyển" ×1, "lượt di chuyển" ×15, "điểm mã lực" ×6, "giao kèo"/"+40" ×9, `apply(d); render()` ×2.
+- [ ] WIP chờ v36: `tasks/lessons.md` (bài học PTY + bài học không đụng file khi Codex chạy), `HANDOFF.md` (record V35 đã điền), `tasks/codex-prompt-v35-resume.md` — commit cùng đợt sau.
+
+## v36 — vá nốt F3 sót sau v35 (27/10/2026)
+
+- [x] Phát hiện sau khi soi 16 chỗ "xúc xắc" trên live v35: F3 sửa 4 chỗ nhưng còn **3 chỗ lọt được vào campaign**.
+- [x] F3b-1 tooltip ô bản đồ (`terrainInfo`): nhánh cuối `'Lăn xúc xắc khi đến lượt...'` → thêm `m.campaign ? 'Chọn bước di chuyển khi đến lượt...'`. Reachable: action `map-spot` (click pin) chạy mọi mode; ô thường không khớp nhánh `cells`/mốc sự kiện trước đó.
+- [x] F3b-2 nút lăn fallback (`bonusPanel`): `'Lăn xúc xắc'` → `${r.campaign ? 'Chọn bước di chuyển' : 'Lăn xúc xắc'}`. Reachable: `individual + promisedPasses > paidPasses` không vào `stepBuyPanel`.
+- [x] F3b-3 nhãn đồng hồ lượt (`updateRaceClock`, 2 chỗ): thêm nhánh campaign "Chọn bước di chuyển · …" cho cả `individual` và `team`. Reachable khi campaign không có `.step-option`.
+- [x] Test hồi quy F3b trong `race-choose.test.mjs` (kiểm 4 needle theo region terrainInfo/bonusPanel/updateRaceClock): **19/19**; full suite **1436/1436 PASS, 0 fail**; `node --check` sạch; `npm run build` pass.
+- [ ] Deploy v36 qua Codex + kiểm độc lập SHA256 live↔archive.
