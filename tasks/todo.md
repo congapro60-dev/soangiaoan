@@ -1,22 +1,22 @@
-# TODO - 28/10/2026: R4 Pha B (Gate C) bài `11-11-79` - batch2 Tuần 11
+# TODO - 28/10/2026: R5 Pha B (Gate C) bài `12-11-77` - batch2 Tuần 11
 
-Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) — Gate D duyệt 27/10: `gate-d-11-11-79.md` (thầy chốt 4 đề xuất: S0–S10 = 1-4-2-5-3-1-8-5-6-3-2 phút; [HỆ QUẢ] bỏ chuỗi cơ học; đáp án tự lập luận PHT Khá c) SAI vì AB ∥ CD không cắt nhau; kind `practice` + timeline key `gateD79`).
+Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) — Gate D duyệt 28/10: `gate-d-12-11-77.md` (thầy chốt 4 đề xuất: S0–S10 = 1-5-3-4-3-1-5-4-7-5-2 phút; [HỆ QUẢ] bỏ cụ thể hóa sập gãy; `category` AI-error "Thiếu điều kiện"; kind `practice` + timeline key `gateD77`).
 
-## Pha A (xong 27/10)
+## Pha A (xong 28/10)
 
-- [x] A1 - xác minh PPCT `tds-g11-79` (week 11, periodNo 79, "Tiết 3: Luyện tập chứng minh hai mặt phẳng song song", lessonPeriods [77,78,79]).
-- [x] A2 - tải giáo án gốc → `tasks/giaoan-goc-11-11-79.md` (Firestore lessonPlans/c8453c88-fbb8-4e6d-b84c-5a323abcc394, 28 115 ký tự). Vướng đã xử lý: V8.8 mở thư viện qua nút sidebar "Thư viện" trên tab dashboard (không còn /adaptive-lessons); script fetch phải viết bằng write tool (Set-Content double-encode hỏng tiếng Việt).
-- [x] A3 - soạn `tasks/gate-d-11-11-79.md` (12 chặng, AI-error bỏ điều kiện cắt nhau a ∩ b = {I}, no-spoiler tokens `d_S` + `HÌNH THANG`).
-- [x] A4 - thầy duyệt Gate D 79 (27/10).
+- [x] A1 - xác minh PPCT `tds-g12-77` (week 11, periodNo 77, "Tiết 2: Nguyên hàm của một hàm số", lessonPeriods [76,77]).
+- [x] A2 - tải giáo án gốc → `tasks/giaoan-goc-12-11-77.md` (Firestore lessonPlans/1761870e-01b4-47d3-9565-68f6500c805c, 28 031 ký tự). Vướng đã xử lý: replace đường dẫn dump phải khớp "tmp-…" (khuôn dùng path.join, không có prefix tasks/) — lần đầu ghi đè dump 79, đã fetch lại (không ảnh hưởng dữ liệu 79 đã commit).
+- [x] A3 - soạn `tasks/gate-d-12-11-77.md` (12 chặng; AI-error "bạn Nam" ln x thiếu trị tuyệt đối; no-spoiler tokens `20,41` + `2\ln`).
+- [x] A4 - thầy duyệt Gate D 77 (28/10).
 
 ## Pha B
 
-- [x] B1 - spec `11-11-79` (kind/lessonType `practice`, examples×2, exercises×6 = PHT số 1 NB/THa/THb/THc + VD GK ∥ (ABCD) tự lập luận đã duyệt + VD thiết diện PHT số 2, quick×3 C/B/hình bình hành, mistakes×4, boardKnowledge, timelineKey `gateD79`) + aiError `ai-error-11-11-79` (category "Thiếu điều kiện", wrongSolution TRẦN chỉ bài làm sai, proof gộp whyAiError+boardPrompt, 5 trường plain Unicode không `$`) + `source.files` thêm `tasks/giaoan-goc-11-11-79.md` → fingerprint mới `b6dfa109aaf14022404bbe5f533b9eeba0ea6293c4e375717a466ea67a77be24` (recipe `tasks/tmp-hash-batch2.mjs`; file hash 79 = `dc74b984…`).
-- [x] B2 - `'11-11-79'` vào `INTERACTIVE_SOURCE_KEYS` (`sequentialPublication.ts`, 7 mã).
-- [x] B3 - entry thứ 4 vào `W11BATCH2` (`week11Batch2Catalog.ts`: g11, period 79, title "Hai mặt phẳng song song").
-- [x] B4 - mảng exact-keys 6→7 mã alphabet (`week11Catalog.test.ts` + `interactiveUpgrade.test.ts`, tên test 6→7); pin `MAIN_PIN=51 + W11BATCH2.length` giữ nguyên (tự theo mảng). Thêm 2 test R4: timeline `gateD79` (11 dải giây) + binding theo PHASE cho 79 (aiError=P10, route choice=P13, group product=P14, postCheck=P21, exit=P37, languageDemands [P01,P10,P21], evidenceRules [P05,P10,P14,P21], fading [P14,P21]).
-- [x] B1b - `TIMELINE_BY_KEY` thêm `gateD79` (`lessonAdapter.ts`) — vấp 2 test fail ban đầu (timeline fallback template + id P10 mồ côi), thêm key là qua.
-- [x] B5 - vitest v4: **27 file / 284 PASS** (baseline fix2 279, +5); `npm run build` 0 TS error (~1m11s).
-- [x] B6 - commit `b14d0db` (11 files) → push feat+main (`addbbbf..b14d0db`, exit 0) → deploy success 2 Vercel → **republish "Tạo và xuất bản 55 bài"**: hàng "Lớp 11 · Tuần 11 · Tiết 79" xuất hiện, bài 78 giữ nguyên (`tmp-r4-publish.json`).
-- [x] B8 - QA A–F ĐẠT trên Production, phiên `T5lfCYGxrpRSg1aikwhj`: bands 12/12 khớp Gate D 79; AI-error chặng 5 đúng riêng bài ("AI" + "MN ∥ AB" + "MNPQ", không lộ proof); route choice thẻ S + taskAppeared (probe7, chờ thinkGone); nháp giữ reload + tự rejoin không PIN; exit trống chặn + gửi trọn + "Tiến độ gửi · 1 HS" GV+TV; think 63 reads, 11 windows decreasing+locked; Sau disabled stage 12; tvButtons=[]; no-spoiler 0/6.
-- [x] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R4 (untracked, không commit) + báo thầy.
+- [x] B1 - spec `12-11-77` (kind/lessonType `practice`, examples×2 = đoàn tàu + đường cong M(1;2), exercises×6 = PHT1 A/B/C.a/C.b + PHT2 TB/Khá, **quick×3 gộp từ 5 câu ĐGTX gốc** (mini-check gộp + quiz 1 + quiz 2+3 — parser chỉ nhận 2–3 entries, mọi câu giữ nguyên văn), mistakes×4, boardKnowledge, timelineKey `gateD77`) + aiError `ai-error-12-11-77` (category "Thiếu điều kiện", wrongSolution TRẦN, proof đạo hàm 2 nhánh + gộp whyAiError/boardPrompt, plain Unicode) + `source.files` thêm `tasks/giaoan-goc-12-11-77.md` → fingerprint `7bfadbefd8f7541dd814500ae9c85d1f74921a5eddbb5800ef4ba75a64c6c702` (file hash 77 = `c45daa12…`).
+- [x] B2 - `'12-11-77'` vào `INTERACTIVE_SOURCE_KEYS` (8 mã).
+- [x] B3 - entry thứ 5 vào `W11BATCH2` (g12, period 77, title "Nguyên hàm").
+- [x] B4 - mảng exact-keys 7→8 mã + tên test 7→8 (week11Catalog + interactiveUpgrade); +2 test R5 (timeline `gateD77` + binding phase 77).
+- [x] B1b - `TIMELINE_BY_KEY` thêm `gateD77` (lessonAdapter.ts).
+- [x] B5 - vitest v4: **27 file / 289 PASS** (baseline R4 284, +5); `npm run build` 0 TS error (~1m31s).
+- [ ] B6 - HANDOFF + todo → commit chọn lọc (KHÔNG `tasks/tmp-*`) → push feat+main → kiểm deploy → republish (bài 77 mới tạo).
+- [ ] B8 - QA A–F trên Production (khuôn `tmp-r4-qa.cjs`/`tmp-r4-probe7.cjs`/`tmp-r4-reload.cjs` — đổi session + marker S4 "ln x" + token no-spoiler).
+- [ ] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R5 + báo thầy.
