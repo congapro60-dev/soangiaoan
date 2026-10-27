@@ -1,6 +1,16 @@
-# Plan: Vẽ hình không gian cho chat Zalo (render ảnh + sendPhoto)
+# Plan: Vẽ hình không gian cho chat Zalo (render ảnh + sendPhoto) — HOÀN THÀNH ✅
 
-> Chốt bởi chủ dự án 2026-10-28: phương án render ảnh + sendPhoto (không dùng link GeoGebra).
+> Chốt bởi chủ dự án 28/10: phương án render ảnh + sendPhoto (không dùng link GeoGebra).
+> Đã triển khai, test, deploy, xác minh thật. Commit `3b74f10`, deploy `euxzkqes0`.
+
+## Review — kết quả thực tế (28/10)
+- **Full gate**: API suite 1124/1124 pass (+28 ca mới), tsc 0 lỗi (2 config), build OK.
+- **Deploy**: `euxzkqes0` READY, alias `zalo-test` trỏ đúng.
+- **Xác minh thật qua webhook**: câu hỏi chóp → AI sinh khối geometry → Storage có đúng
+  1 object `geometry/<classId>/*.png` ~20KB (đọc qua firebase-admin read-only);
+  câu hỏi thường → KHÔNG có object nào. 2 request AI `status.success` (Vilao usage).
+- **Còn lại**: cần chủ dự án mở Zalo xác nhận ảnh hiển thị đẹp phía HS (máy tôi không
+  đọc được Zalo). Câu hỏi độ khó của model khi chọn shape — theo dõi thêm trong tuần.
 
 ## Nền đã có (đã khảo sát, không phải suy đoán)
 - `api/export-lesson.ts:306` — puppeteer-core + @sparticuz/chromium đã chạy được trong serverless Vercel.
