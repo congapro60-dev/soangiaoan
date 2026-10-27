@@ -1,7 +1,7 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
 ## Goal hiện tại
-Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn kèm fix1+fix2** (`11-11-78`: timeline Gate D per-lesson + binding theo phase, re-QA Production A–F ĐẠT — xem `tasks/qa-w11-batch2-acceptance.md`), **R4 Pha B** (`11-11-79`, practice — code + test ĐẠT, chờ QA A–F). Còn R5–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
+Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn kèm fix1+fix2** (`11-11-78`: timeline Gate D per-lesson + binding theo phase, re-QA Production A–F ĐẠT — xem `tasks/qa-w11-batch2-acceptance.md`), **R4 hoàn tất kèm QA A–F ĐẠT** (`11-11-79`), **R5 hoàn tất kèm QA A–F ĐẠT** (`12-11-77`, practice — commit `7781984` + docs `3d52fe9`, republish 56 bài, phiên `sWYnJAWlwke3c76fafp3`). Còn R6–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
 - Gate D ĐÃ DUYỆT (thầy, 26/10): `tasks/gate-d-11-11-76.md` — nguồn nội dung duy nhất, KHÔNG sửa.
@@ -22,7 +22,7 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - Hình không gian (Hình 3 cát tuyến chéo nhau, tứ giác hình bình hành) mô tả bằng lời trong `examples`/`boardKnowledge`. LessonId dự kiến `adaptive-v4-11-11-78-24YyULmWgBOM6HZCfJ56RN5tiet2` (deterministic).
 
 ## Recipe fingerprint batch2 (quyết thầy 26/10)
-1. Điền `source.files` giá trị cuối (sha256 từng file giáo án; hiện: `tasks/giaoan-goc-10-11-80.md` = `82195f3e…d9de9`, `tasks/giaoan-goc-11-11-76.md` = `ef17b88a…`, `tasks/giaoan-goc-11-11-78.md` = `175b65bf…`, `tasks/giaoan-goc-11-11-79.md` = `dc74b984…6726`).
+1. Điền `source.files` giá trị cuối (sha256 từng file giáo án; hiện: `tasks/giaoan-goc-10-11-80.md` = `82195f3e…d9de9`, `tasks/giaoan-goc-11-11-76.md` = `ef17b88a…`, `tasks/giaoan-goc-11-11-78.md` = `175b65bf…`, `tasks/giaoan-goc-11-11-79.md` = `dc74b984…6726`, `tasks/giaoan-goc-12-11-77.md` = `c45daa12…db10`).
 2. Đặt `"fingerprint": ""`, băm sha256 hex TOÀN BỘ bytes file snapshot ở trạng thái đó.
 3. Điền kết quả. Giá trị sau R5 (28/10, thêm spec 77 + file giáo án 77): `7bfadbefd8f7541dd814500ae9c85d1f74921a5eddbb5800ef4ba75a64c6c702` (hex-64; trước đó R4: `b6dfa109…7be24`, R3·fix1: `54d92529…83c6f`).
 4. Script tái lập: `tasks/tmp-hash-batch2.mjs` — **đa file, idempotent** (normalize JSON.stringify; chạy lại ra đúng fingerprint cũ). Vòng sau chỉ thêm file giáo án vào files map rồi chạy script.
@@ -66,9 +66,10 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 
 ## Việc kế tiếp
 1. **R4 `11-11-79` HOÀN TẤT** (28/10): Pha B commit `b14d0db` (push feat+main, deploy success 2 Vercel) + republish 55 bài (hàng "Lớp 11 · Tuần 11 · Tiết 79" xuất hiện) + **QA A–F ĐẠT** trên Production — phiên `T5lfCYGxrpRSg1aikwhj`; bands HS 12/12 khớp Gate D (0–1/1–5/5–7/7–12/12–15/15–16/16–24/24–29/29–35/35–38/38–40 + Sau disabled); AI-error "MN ∥ AB" chặng 5; route choice thẻ S (probe7); nháp giữ reload + tự rejoin không PIN; exit trống chặn → gửi trọn → "Tiến độ gửi · 1 HS"; think 63 reads, 11 windows decreasing+locked; tvButtons=[]; no-spoiler `d_S`/`HÌNH THANG` 0/6. Chi tiết `tasks/qa-w11-batch2-acceptance.md` mục R4 (untracked).
-2. R6 `12-11-78` (formation — Khoảng biến thiên, tứ phân vị, độ lệch chuẩn) Pha A Gate P+D trước; sau đó R7 `12-11-79` (practice). Lưu ý: CasioKeyGuide CHỈ bài `12-11-80` cũ (R5 `12-11-77` KHÔNG bật Casio; R6 không trùng nội dung bài 12; R7 tham khảo nháp `Downloads\smart-lesson-plan-ai\giao an manus tao\_qa\ban_toan_rebuild\sbR12B02RemainingSpecsW11W12.ts` nhưng KHÔNG copy mù).
-3. Sau R7: test catalog về exact-keys 10 bài + Task 9 QA 2 bài batch1 + Task 10 hồi quy bài 12.
-4. Hạ tầng QA: lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`); tạo phiên mới bằng `node tasks/tmp-r3-qa-5-session2.cjs <out.json>`; selector route dùng `.includes('Chọn nhiệm vụ này')`.
+2. **R5 `12-11-77` HOÀN TẤT** (28/10): Pha B commit `7781984` (push feat+main `0490ac5..7781984`, deploy success) + republish "Tạo và xuất bản 56 bài" (hàng "Lớp 12 · Tuần 11 · Tiết 77") + **QA A–F ĐẠT** — phiên `sWYnJAWlwke3c76fafp3`; bands HS 12/12 khớp Gate D (0–1/1–6/6–9/9–13/13–16/16–17/17–22/22–26/26–33/33–38/38–40 + Sau disabled); AI-error "ln x" chặng 5; route choice thẻ S → PHT số 1 Nhiệm vụ A; nháp giữ reload + tự rejoin không PIN; exit trống chặn → gửi trọn → "Tiến độ gửi · 1 HS"; think 62 reads, 10 windows decreasing+locked; tvButtons=[]; no-spoiler `20,41`/`2\ln` 0/6. Spec quick gộp 5 câu ĐGTX gốc thành 3 entry (parser 2–3). Chi tiết `tasks/qa-w11-batch2-acceptance.md` mục R5 (untracked).
+3. R6 `12-11-78` (formation — Khoảng biến thiên, tứ phân vị, độ lệch chuẩn) Pha A Gate P+D trước; sau đó R7 `12-11-79` (practice). Lưu ý: CasioKeyGuide CHỈ bài `12-11-80` cũ (R5 `12-11-77` KHÔNG bật Casio; R6 không trùng nội dung bài 12; R7 tham khảo nháp `Downloads\smart-lesson-plan-ai\giao an manus tao\_qa\ban_toan_rebuild\sbR12B02RemainingSpecsW11W12.ts` nhưng KHÔNG copy mù).
+4. Sau R7: test catalog về exact-keys 10 bài + Task 9 QA 2 bài batch1 + Task 10 hồi quy bài 12.
+5. Hạ tầng QA: lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`); tạo phiên mới bằng `node tasks/tmp-r3-qa-5-session2.cjs <out.json>`; selector route dùng `.includes('Chọn nhiệm vụ này')`.
 
 ## Ràng buộc
 - KHÔNG sửa: file Gate D, giáo án gốc, MAIN snapshot (`banToan-w5-w6.snapshot.json`), `gate-d-3-bai-tuan11.md`, 3 file khuôn.
