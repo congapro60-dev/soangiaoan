@@ -1,7 +1,7 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
 ## Goal hiện tại
-Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn** (`11-11-78`, QA A–F ĐẠT + fix1 timeline Gate D). Còn R4–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
+Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn kèm fix1+fix2** (`11-11-78`: timeline Gate D per-lesson + binding theo phase, re-QA Production A–F ĐẠT — xem `tasks/qa-w11-batch2-acceptance.md`). Còn R4–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
 - Gate D ĐÃ DUYỆT (thầy, 26/10): `tasks/gate-d-11-11-76.md` — nguồn nội dung duy nhất, KHÔNG sửa.
@@ -48,9 +48,10 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - **Test**: v4 27 file / **279 PASS** (baseline fix1: 274; +2 test binding fix2 + 3 test validateContract). `npm run build` 0 TS error.
 
 ## Việc kế tiếp
-1. fix2 — commit + push + republish bài `11-11-78` lần nữa (Xóa → publish lại; dialog accept trước khi bấm Xóa; tái dùng `tmp-r3-fix1-delete.cjs` / `tmp-r3-fix1-publish.cjs`).
-2. fix2 — re-QA đầy đủ trên phiên mới: bands 12/12 + HS chặng 5 interactive (PHẢN HỒI NHANH + 4 nhãn + "AI kết luận") + route choice chặng 6 + think + exit gửi trọn + "Hiện kết quả lớp" + Sau disabled; append acceptance R3·fix1+fix2.
-3. R4 — `11-11-79` (g11, "Hai mặt phẳng song song — Tiết 3", kind khả năng `practice`): Pha A Gate P+D theo plan → thầy duyệt → Pha B. Lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`).
+1. R4 — `11-11-79` (g11, "Hai mặt phẳng song song — Tiết 3", kind khả năng `practice`): Pha A Gate P+D theo plan → thầy duyệt → Pha B. Sau fix2 chỉ cần thêm key vào `TIMELINE_BY_KEY` + khai báo `timelineKey` trong spec — binding tự theo phase; validateContract sẽ bắt stepId mồ côi ngay khi build.
+2. R5–R7 theo plan. Lưu ý: CasioKeyGuide CHỈ bài `12-11-80` cũ (R5 `12-11-77` KHÔNG bật Casio; R6 không trùng nội dung bài 12; R7 tham khảo nháp `Downloads\smart-lesson-plan-ai\giao an manus tao\_qa\ban_toan_rebuild\sbR12B02RemainingSpecsW11W12.ts` nhưng KHÔNG copy mù).
+3. Sau R7: test catalog về exact-keys 10 bài + Task 9 QA 2 bài batch1 + Task 10 hồi quy bài 12.
+4. Hạ tầng QA: lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`); tạo phiên mới bằng `node tasks/tmp-r3-qa-5-session2.cjs <out.json>`; selector route dùng `.includes('Chọn nhiệm vụ này')`.
 
 ## Ràng buộc
 - KHÔNG sửa: file Gate D, giáo án gốc, MAIN snapshot (`banToan-w5-w6.snapshot.json`), `gate-d-3-bai-tuan11.md`, 3 file khuôn.
