@@ -74,6 +74,19 @@ describe('chat AI — lọc câu trả lời', () => {
     expect(composeAiReply('Con có tiến bộ.').endsWith(AI_MENU_HINT)).toBe(true);
     expect(composeAiReply('   ')).not.toContain(AI_MENU_HINT); // rỗng: trả câu mặc định, không nhắc menu
   });
+
+  it('C5b: công thức LaTeX trong câu trả lời được chuyển sang Unicode trước khi gửi Zalo', () => {
+    // Đúng sự cố 27/10: Zalo in nguyên "\(a^3\)" cho HS đọc.
+    const out = composeAiReply('Thể tích lập phương cạnh \\(a\\) là \\(a^3\\).');
+    expect(out).not.toContain('\\(');
+    expect(out).not.toContain('^');
+    expect(out).toContain('a³');
+  });
+
+  it('C5c: prompt hệ thống có quy tắc cấm LaTeX (HS đọc trên Zalo không có bộ render)', () => {
+    expect(buildSystemPrompt('DỮ LIỆU GIẢ', 'student')).toContain('KHÔNG dùng LaTeX');
+    expect(buildSystemPrompt('DỮ LIỆU GIẢ')).toContain('KHÔNG dùng LaTeX');
+  });
 });
 
 describe('chat AI — gọi model', () => {

@@ -11,6 +11,7 @@
  * - Mọi câu trả lời đi qua `sanitizeAiReply` để chặn lộ mã nội bộ / số điện thoại.
  */
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
+import { MATH_FORMAT_RULE, latexToUnicodeMath } from './_assistant-math-text.js';
 
 export const AI_CHAT_REPLIES = {
   unavailable: 'Trợ lý AI đang bận. Bạn nhắn 0 để xem menu hoặc thử lại sau ít phút.',
@@ -86,6 +87,8 @@ export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): s
     '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
     `6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với ${student ? 'nhận xét về bài của em' : 'nhận xét về con'}.`,
     '',
+    MATH_FORMAT_RULE,
+    '',
     'DỮ LIỆU:',
     context,
   ].join('\n');
@@ -107,7 +110,9 @@ export const sanitizeAiReply = (raw: string): string => String(raw ?? '')
 
 /** Ghép câu trả lời cuối: nội dung AI + nhắc menu. Rỗng thì trả câu lịch sự. */
 export const composeAiReply = (raw: string): string => {
-  const clean = sanitizeAiReply(raw);
+  // Lọc rò rỉ TRƯỚC, rồi mới chuyển công thức — để bộ chuyển không vô tình ghép
+  // các mảnh thành chuỗi trông như số điện thoại/hash.
+  const clean = latexToUnicodeMath(sanitizeAiReply(raw));
   if (!clean) return AI_CHAT_REPLIES.empty;
   return `${clean}\n\n${AI_MENU_HINT}`;
 };

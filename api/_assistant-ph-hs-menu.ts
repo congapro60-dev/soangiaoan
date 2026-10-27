@@ -11,6 +11,7 @@
  */
 import { buildParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
+import { latexToUnicodeMath } from './_assistant-math-text.js';
 
 export const MENU_REPLIES = {
   header: 'Chọn mục (nhắn số):',
@@ -60,7 +61,8 @@ const scoreText = (score: number | null | undefined, maxScore: number | null | u
 
 /** Nhận xét rút gọn cho tin nhắn: bỏ ký hiệu định dạng, gọn 1 dòng, tối đa ~80 ký tự. */
 const shortFeedback = (feedback: string): string => {
-  const flat = feedback.replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
+  // GV có thể gõ công thức LaTeX trong nhận xét; Zalo không render nên phải đổi sang Unicode.
+  const flat = latexToUnicodeMath(feedback).replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
   return flat.length > 80 ? `${flat.slice(0, 79).trimEnd()}…` : flat;
 };
 
@@ -86,6 +88,39 @@ export const webLinkText = (role: MenuRole, joinCode: string): string => (role =
     'Mở link, chọn tên con và nhập mã PIN phụ huynh (do thầy cô cấp).',
     '',
     MENU_HINT].join('\n'));
+
+/**
+ * URL cổng web theo vai. Trả '' khi không có mã lớp — thà không có link còn hơn
+ * gửi link sai lớp. `joinCode` LUÔN lấy từ `classes/{classId}` của chính link
+ * người nhắn (xem loadParentReport), không bao giờ nhận từ nội dung tin nhắn.
+ */
+export const webPortalUrl = (role: MenuRole, joinCode: string): string => {
+  const code = String(joinCode ?? '').trim();
+  if (!code) return '';
+  return `${WEB_PORTAL_BASE}/${role === 'student' ? 'lop' : 'ph'}/${encodeURIComponent(code)}`;
+};
+
+/**
+ * Chèn link lớp vào NGAY TRƯỚC câu "Nhắn 0 để xem lại menu" của câu trả lời AI,
+ * để HS luôn bấm được vào web. Không có mã lớp thì trả nguyên văn (không link sai).
+ *
+ * `sendStyled` cắt tin ở 2000 ký tự, mà link nằm gần cuối → phải chừa chỗ cho link,
+ * nếu không câu trả lời dài sẽ bị cắt mất đúng phần HS cần bấm.
+ */
+export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string): string => {
+  const url = webPortalUrl(role, joinCode);
+  if (!url) return text;
+  const block = role === 'student'
+    ? `Xem bài và nộp bài trên web:\n${url}`
+    : `Xem báo cáo học tập trên web:\n${url}`;
+  const tail = `\n\n${block}\n\n${MENU_HINT}`;
+  // 2000 là trần cứng của Zalo sendMessage; chừa thêm biên an toàn cho dấu xuống dòng.
+  const room = 2000 - tail.length;
+  const body = text.length > room ? `${text.slice(0, Math.max(0, room - 1)).trimEnd()}…` : text;
+  const idx = body.lastIndexOf(MENU_HINT);
+  if (idx === -1) return `${body}${tail}`;
+  return `${body.slice(0, idx).trimEnd()}${tail}`;
+};
 
 /** Sinh nội dung 1 mục menu từ báo cáo PH an toàn (không cần thêm truy vấn). */
 // '8' (việc 4) chỉ tới được từ parseMenuChoice của HS — menuSectionBody tự trả lời theo vai trò.

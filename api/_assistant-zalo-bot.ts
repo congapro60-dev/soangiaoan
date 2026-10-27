@@ -4,7 +4,7 @@ import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
 import { dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerParentQuestion, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
@@ -195,7 +195,13 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     sendTyping(token, chatId); // "đang nhập..." trong lúc AI suy nghĩ — lỗi thì bỏ qua
     try {
       const aiReply = await answerParentQuestion(vilaoCaller(apiKey), message, bundle.report, bundle.periodicIds, role);
-      return aiReply ?? MENU_REPLIES.invalid;
+      if (!aiReply) return MENU_REPLIES.invalid;
+      // Link cổng web lấy từ `joinCode` của CHÍNH lớp HS này (bundle vừa nạp theo link),
+      // chèn ngay trước "Nhắn 0 để xem lại menu" để em luôn bấm được vào web.
+      // Gửi THUẦN (không qua output() che link) như nhánh menu-link, nếu không URL
+      // bị đổi thành "[đã ẩn liên kết]" và HS không bấm được.
+      await sendStyled(token, chatId, withWebPortalLink(aiReply, role, bundle.joinCode), false);
+      return '';
     } catch {
       return AI_CHAT_REPLIES.unavailable;
     }
