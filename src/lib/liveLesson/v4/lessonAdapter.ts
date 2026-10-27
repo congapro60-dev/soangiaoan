@@ -165,6 +165,19 @@ const V72_TIMELINE: ReadonlyArray<readonly [string, number, number, string, stri
 // controls the generic adapter used by the other source packages.
 const isV72 = (spec: SourceLessonSpec): boolean => spec.week === 5 || spec.week === 6;
 
+// Fix2: mọi liên kết nhiệm vụ (checkpoint, aiError, evidence, fading, language,
+// grouping) suy theo PHASE của timeline đang chạy thay vì id chặng cứng của
+// template. Bài Gate D có dải phút riêng (timelineKey) đổi id chặng (vd 78:
+// aiError là P10 chứ không phải P16) nên id cứng làm nhiệm vụ biến mất khỏi
+// màn hình HS. Fallback luôn là id template ⇒ template giữ hành vi 100% cũ.
+const timelineBeatsFor = (spec: SourceLessonSpec): ReadonlyArray<readonly [string, number, number, string, string]> => {
+  if (isV72(spec)) return V72_TIMELINE;
+  return (spec.timelineKey ? TIMELINE_BY_KEY[spec.timelineKey] : undefined) ?? TIMELINE;
+};
+
+const beatIdForPhase = (spec: SourceLessonSpec, phase: string, templateFallback: string): string =>
+  timelineBeatsFor(spec).find((beat) => beat[4] === phase)?.[0] ?? templateFallback;
+
 const TERM_LIBRARY: ReadonlyArray<{
   id: string;
   vietnamese: string;
@@ -342,8 +355,7 @@ function buildGlossary(spec: SourceLessonSpec): GlossaryItem[] {
 }
 
 function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId: string): TimelineBlock[] {
-  const override = spec.timelineKey ? TIMELINE_BY_KEY[spec.timelineKey] : undefined;
-  const beats = isV72(spec) ? V72_TIMELINE : override ?? TIMELINE;
+  const beats = timelineBeatsFor(spec);
   return beats.map(([id, startSeconds, endSeconds, tvScreenId, phase]) => {
     const sourcePhase: Record<string, string> = {
       opening: 'Khởi động', prediction: 'Khởi động', goals: 'Xác định mục tiêu',
@@ -379,15 +391,19 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       if (id === 'P36') checkpointId = 'cp-exit-ticket';
       if (id === 'P39') checkpointId = 'cp-self-assessment';
     } else {
-      if (id === 'P03') checkpointId = 'cp-guiding-question';
-      if (id === 'P05') checkpointId = 'cp-student-goal';
-      if (id === 'P08') checkpointId = 'cp-diagnostic';
-      if (id === 'P16') checkpointId = 'cp-ai-error';
-      if (id === 'P19') checkpointId = 'cp-route-choice';
-      if (id === 'P20') checkpointId = 'cp-group-product';
-      if (id === 'P27') checkpointId = postCheckId;
-      if (id === 'P30') checkpointId = 'cp-quick-check';
-      if (id === 'P38') checkpointId = 'cp-exit-ticket';
+      // Gate D từng bài: id chặng suy theo phase của timeline đang chạy
+      // (template ⇒ trả đúng id cũ P03/P05/…; gateD78 ⇒ P01/P03/P05/P10/P13/P14/P21/P24/P37).
+      const phaseBeat = (phaseName: string, templateFallback: string): string =>
+        beats.find((beat) => beat[4] === phaseName)?.[0] ?? templateFallback;
+      if (id === phaseBeat('guidingQuestion', 'P03')) checkpointId = 'cp-guiding-question';
+      if (id === phaseBeat('goals', 'P05')) checkpointId = 'cp-student-goal';
+      if (id === phaseBeat('knowledgeCycle', 'P08')) checkpointId = 'cp-diagnostic';
+      if (id === phaseBeat('aiError', 'P16')) checkpointId = 'cp-ai-error';
+      if (id === phaseBeat('grouping', 'P19')) checkpointId = 'cp-route-choice';
+      if (id === phaseBeat('differentiatedPractice', 'P20')) checkpointId = 'cp-group-product';
+      if (id === phaseBeat('postCheck', 'P27')) checkpointId = postCheckId;
+      if (id === phaseBeat('quickCheck', 'P30')) checkpointId = 'cp-quick-check';
+      if (id === phaseBeat('exitTicket', 'P38')) checkpointId = 'cp-exit-ticket';
     }
     return {
       id,
@@ -396,6 +412,7 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       endSeconds,
       teacherScript,
       tvScreenId,
+      phase,
       studentAction,
       boardLarge,
       boardSide,
@@ -507,7 +524,7 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
   }));
   const aiError: AiErrorOfTheWeek = {
     id: `ai-error-${spec.key}`,
-    stepId: isV72(spec) ? 'P15' : 'P16',
+    stepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'),
     category: aiErrorCategory(error.category),
     faultyStatement: error.wrongSolution,
     correction: error.correction,
@@ -523,9 +540,9 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     { id: 'math-3', kind: 'math', text: 'Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.' },
   ];
   const languageDemands: LanguageDemand[] = [
-    { stepId: isV72(spec) ? 'P02' : 'P03', terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
-    { stepId: isV72(spec) ? 'P15' : 'P16', terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
-    { stepId: isV72(spec) ? 'P22' : 'P27', terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
+    { stepId: isV72(spec) ? 'P02' : beatIdForPhase(spec, 'guidingQuestion', 'P03'), terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
+    { stepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'), terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
+    { stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'postCheck', 'P27'), terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
   ];
   const v72Practice = [
     ['cp-practice-a', 'A · CỐT LÕI', spec.exercises[0]?.question ?? spec.focus],
@@ -546,15 +563,15 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     { id: 'cp-exit-ticket', stepId: 'P36', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
     { id: 'cp-self-assessment', stepId: 'P39', kind: 'post_check', prompt: 'Đọc lại MUST · SHOULD · COULD và chọn mức phù hợp với bằng chứng của em.', responseType: 'exit_ticket', evidenceSignal: 'Tự đánh giá được đối chiếu với bài A–D và exit ticket.', teacherNextActions: ['Gắn cờ trường hợp tự đánh giá lệch với bằng chứng.'] },
   ] : [
-    { id: 'cp-guiding-question', stepId: 'P03', kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu một câu hỏi hoặc điều muốn biết gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
-    { id: 'cp-student-goal', stepId: 'P05', kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'choice', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng, không bắt buộc giống nhau.', teacherNextActions: ['Tổng hợp mục tiêu chung trên bảng phụ.'] },
-    { id: 'cp-diagnostic', stepId: 'P08', kind: 'in_class', prompt: `Chọn công cụ/bước đầu tiên để xử lý ${spec.focus}.`, responseType: 'choice', evidenceSignal: 'Tín hiệu điểm xuất phát về khái niệm hoặc quy trình.', teacherNextActions: ['Đọc thống kê ẩn danh và chọn scaffold.'] },
-    { id: 'cp-ai-error', stepId: 'P16', kind: 'in_class', prompt: error.teacherPrompt, responseType: 'text', evidenceSignal: 'HS phân loại lỗi, sửa lời giải và nêu phép chứng minh.', teacherNextActions: ['Ghi thẻ lỗi vào thư viện AI Error; hỏi vì sao AI có thể mắc lỗi.'] },
-    { id: 'cp-route-choice', stepId: 'P19', kind: 'in_class', prompt: 'Chọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.', responseType: 'route', evidenceSignal: 'HS tự chọn tuyến theo nhu cầu hiện tại, không bị gắn nhãn năng lực.', teacherNextActions: ['Đọc thống kê ẩn danh và duyệt đề xuất nhóm trước khi giao nhiệm vụ.'] },
-    { id: 'cp-group-product', stepId: 'P20', kind: 'in_class', prompt: `Cùng giải thích và kiểm chứng ${spec.focus} bằng sản phẩm nhóm.`, responseType: 'text', evidenceSignal: 'Sản phẩm nhóm có bước làm, lý do và phép kiểm; không thay post-check cá nhân.', teacherNextActions: ['Duyệt/đổi đề xuất nhóm theo evidence; mời một nhóm giải thích.'] },
-    { id: postCheckId, stepId: 'P27', kind: 'post_check', prompt: `Với dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về ${spec.focus} và nêu căn cứ.`, responseType: 'text', evidenceSignal: 'Sản phẩm cá nhân sau can thiệp để đánh giá lại skill gap.', teacherNextActions: ['Đối chiếu tiêu chí chung và ghi bước hỗ trợ tiết sau.'] },
-    { id: 'cp-quick-check', stepId: 'P30', kind: 'in_class', prompt: 'Trả lời nhanh rồi sửa một lỗi nếu phát hiện.', responseType: 'choice', evidenceSignal: 'Tỷ lệ đúng và loại lỗi sau luyện tập.', teacherNextActions: ['Chọn một lỗi chung để chốt, không công khai cá nhân.'] },
-    { id: 'cp-exit-ticket', stepId: 'P38', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
+    { id: 'cp-guiding-question', stepId: beatIdForPhase(spec, 'guidingQuestion', 'P03'), kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu một câu hỏi hoặc điều muốn biết gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
+    { id: 'cp-student-goal', stepId: beatIdForPhase(spec, 'goals', 'P05'), kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'choice', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng, không bắt buộc giống nhau.', teacherNextActions: ['Tổng hợp mục tiêu chung trên bảng phụ.'] },
+    { id: 'cp-diagnostic', stepId: beatIdForPhase(spec, 'knowledgeCycle', 'P08'), kind: 'in_class', prompt: `Chọn công cụ/bước đầu tiên để xử lý ${spec.focus}.`, responseType: 'choice', evidenceSignal: 'Tín hiệu điểm xuất phát về khái niệm hoặc quy trình.', teacherNextActions: ['Đọc thống kê ẩn danh và chọn scaffold.'] },
+    { id: 'cp-ai-error', stepId: beatIdForPhase(spec, 'aiError', 'P16'), kind: 'in_class', prompt: error.teacherPrompt, responseType: 'text', evidenceSignal: 'HS phân loại lỗi, sửa lời giải và nêu phép chứng minh.', teacherNextActions: ['Ghi thẻ lỗi vào thư viện AI Error; hỏi vì sao AI có thể mắc lỗi.'] },
+    { id: 'cp-route-choice', stepId: beatIdForPhase(spec, 'grouping', 'P19'), kind: 'in_class', prompt: 'Chọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.', responseType: 'route', evidenceSignal: 'HS tự chọn tuyến theo nhu cầu hiện tại, không bị gắn nhãn năng lực.', teacherNextActions: ['Đọc thống kê ẩn danh và duyệt đề xuất nhóm trước khi giao nhiệm vụ.'] },
+    { id: 'cp-group-product', stepId: beatIdForPhase(spec, 'differentiatedPractice', 'P20'), kind: 'in_class', prompt: `Cùng giải thích và kiểm chứng ${spec.focus} bằng sản phẩm nhóm.`, responseType: 'text', evidenceSignal: 'Sản phẩm nhóm có bước làm, lý do và phép kiểm; không thay post-check cá nhân.', teacherNextActions: ['Duyệt/đổi đề xuất nhóm theo evidence; mời một nhóm giải thích.'] },
+    { id: postCheckId, stepId: beatIdForPhase(spec, 'postCheck', 'P27'), kind: 'post_check', prompt: `Với dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về ${spec.focus} và nêu căn cứ.`, responseType: 'text', evidenceSignal: 'Sản phẩm cá nhân sau can thiệp để đánh giá lại skill gap.', teacherNextActions: ['Đối chiếu tiêu chí chung và ghi bước hỗ trợ tiết sau.'] },
+    { id: 'cp-quick-check', stepId: beatIdForPhase(spec, 'quickCheck', 'P30'), kind: 'in_class', prompt: 'Trả lời nhanh rồi sửa một lỗi nếu phát hiện.', responseType: 'choice', evidenceSignal: 'Tỷ lệ đúng và loại lỗi sau luyện tập.', teacherNextActions: ['Chọn một lỗi chung để chốt, không công khai cá nhân.'] },
+    { id: 'cp-exit-ticket', stepId: beatIdForPhase(spec, 'exitTicket', 'P38'), kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
   ];
   const routePolicy = {
     enabled: isV72(spec) || spec.selfChoice,
@@ -605,20 +622,20 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     } satisfies CurriculumBridge],
     scaffoldSets,
     fading: [
-      { stepId: isV72(spec) ? 'P22' : 'P20', maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
-      { stepId: isV72(spec) ? 'P36' : 'P27', maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
+      { stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'), maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
+      { stepId: isV72(spec) ? 'P36' : beatIdForPhase(spec, 'postCheck', 'P27'), maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
     ],
     evidenceRules: [
-      { id: 'evidence-diagnostic', sourceStepId: isV72(spec) ? 'P09' : 'P08', dimension: 'concept', minConfidence: 0.6 },
-      { id: 'evidence-ai-error', sourceStepId: isV72(spec) ? 'P15' : 'P16', dimension: 'reasoning', minConfidence: 0.6 },
-      { id: 'evidence-group', sourceStepId: isV72(spec) ? 'P22' : 'P20', dimension: 'autonomyCollaboration', minConfidence: 0.6 },
-      { id: 'evidence-post-check', sourceStepId: isV72(spec) ? 'P36' : 'P27', dimension: 'procedure', minConfidence: 0.6 },
+      { id: 'evidence-diagnostic', sourceStepId: isV72(spec) ? 'P09' : beatIdForPhase(spec, 'knowledgeCycle', 'P08'), dimension: 'concept', minConfidence: 0.6 },
+      { id: 'evidence-ai-error', sourceStepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'), dimension: 'reasoning', minConfidence: 0.6 },
+      { id: 'evidence-group', sourceStepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'), dimension: 'autonomyCollaboration', minConfidence: 0.6 },
+      { id: 'evidence-post-check', sourceStepId: isV72(spec) ? 'P36' : beatIdForPhase(spec, 'postCheck', 'P27'), dimension: 'procedure', minConfidence: 0.6 },
     ],
     checkpoints,
     taskVariants,
     groupingCheckpoints: [{
       id: 'group-checkpoint',
-      stepId: isV72(spec) ? 'P22' : 'P20',
+      stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'),
       purpose: 'same_need_workshop',
       minGroupSize: 3,
       maxGroupSize: 4,

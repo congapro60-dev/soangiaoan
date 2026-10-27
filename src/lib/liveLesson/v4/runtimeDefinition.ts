@@ -243,8 +243,11 @@ function buildIntent(contract: LiveLessonV4Contract): LiveLessonIntent {
 }
 
 function notebookText(block: TimelineBlock): string {
-  if (block.id === 'P00' || block.id === 'P19') return 'Chưa cần chép; chuẩn bị trao đổi.';
-  if (block.id === 'P38') return 'Viết một kết luận có căn cứ và điều cần kiểm chứng tiếp.';
+  // Liên kết theo phase của block (Gate D từng bài đổi id chặng, vd 78: grouping
+  // là P13 thay vì P19); giữ điều kiện id cũ làm fallback để hợp đồng soạn tay
+  // (P31) và V7.2 giữ nguyên hành vi.
+  if (block.phase === 'opening' || block.phase === 'grouping' || block.id === 'P00' || block.id === 'P19') return 'Chưa cần chép; chuẩn bị trao đổi.';
+  if (block.phase === 'exitTicket' || block.id === 'P38') return 'Viết một kết luận có căn cứ và điều cần kiểm chứng tiếp.';
   return 'Ghi từ khóa, bước làm hoặc bằng chứng ngắn vào vở.';
 }
 
@@ -312,7 +315,9 @@ export function buildLiveLessonDefinitionFromV4(
       return { ...screen, ...(block ? { action: block.studentAction } : {}) };
     }),
     allowedStepIds: responseSteps.map((step) => step.id),
-    aiErrorStepId: contract.aiError.stepId === 'P15' || contract.aiError.stepId === 'P16'
+    // Bước AI-error của runtime trỏ tới RESPONSE step (checkpoint id), không phải
+    // id chặng template — Gate D từng bài đổi id chặng nên suy từ checkpoint.
+    aiErrorStepId: contract.checkpoints.some((checkpoint) => checkpoint.id === 'cp-ai-error')
       ? 'cp-ai-error'
       : contract.aiError.stepId,
     aiErrorOfTheWeek: {

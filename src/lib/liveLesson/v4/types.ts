@@ -41,6 +41,8 @@ export interface TimelineBlock {
   checkpointId?: string;   // liên kết tới checkpoint thu bằng chứng ở block này
   /** Nhiều câu hỏi cùng thuộc một activity (V7.2 practice A–D/challenge). */
   checkpointIds?: string[];
+  /** Phase nghề nghiệp (opening/guidingQuestion/…/exitTicket) — liên kết nhiệm vụ theo phase, không phụ thuộc id chặng (Gate D từng bài đổi id). */
+  phase?: string;
 }
 
 // --- Ngôn ngữ ---

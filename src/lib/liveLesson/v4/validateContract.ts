@@ -116,6 +116,35 @@ function validateStepIds(contract: LiveLessonV4Contract, errors: V4ValidationErr
     }
     seenCheckpoint.add(checkpoint.id);
   }
+
+  // Tham chiếu stepId phải trỏ tới block có thật trong timeline (Gate D từng bài
+  // đổi id chặng — liên kết cứng theo id template làm nhiệm vụ biến mất khỏi HS).
+  for (const checkpoint of contract.checkpoints) {
+    if (!seen.has(checkpoint.stepId)) {
+      errors.push({
+        code: 'STEP_REFERENCE_INVALID',
+        message: `Checkpoint ${checkpoint.id} trỏ tới stepId "${checkpoint.stepId}" không có trong timeline.`,
+        path: `checkpoints.${checkpoint.id}.stepId`,
+      });
+    }
+  }
+  if (!seen.has(contract.aiError.stepId)) {
+    errors.push({
+      code: 'STEP_REFERENCE_INVALID',
+      message: `aiError trỏ tới stepId "${contract.aiError.stepId}" không có trong timeline.`,
+      path: 'aiError.stepId',
+    });
+  }
+  const referenceable = new Set<string>([...seen, ...seenCheckpoint]);
+  for (const rule of contract.evidenceRules) {
+    if (!referenceable.has(rule.sourceStepId)) {
+      errors.push({
+        code: 'STEP_REFERENCE_INVALID',
+        message: `evidenceRules.${rule.id} trỏ tới sourceStepId "${rule.sourceStepId}" không có trong timeline hoặc checkpoints.`,
+        path: `evidenceRules.${rule.id}.sourceStepId`,
+      });
+    }
+  }
 }
 
 function validateCheckpoints(contract: LiveLessonV4Contract, errors: V4ValidationError[]): void {

@@ -36,12 +36,20 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 
 ## R3·fix1 — Timeline Gate D per-lesson (thầy chốt phương án b, 27/10)
 - **Vấn đề**: Gate D 78 chốt dải S0–S10 = 0–60–180–300–600–780–840–1260–1440–1740–2220–2400 (1-2-3-5-3-1-7-3-5-8-2 phút) nhưng runtime dùng `TIMELINE` cứng chung (chặng 5 = 16–19 phút). Gate D 76/80 viết đúng template nên chỉ bài 78 vấp.
-- **Fix**: `SourceLessonSpec.timelineKey?: string` (`lessonAdapter.ts`) + `TIMELINE_BY_KEY` (`gateD78` — nhãn P = phút bắt đầu: P00/P01/P03/P05/P10/P13/P14/P21/P24/P29/P37); `buildTimeline` ưu tiên override → V72 → TIMELINE chung. Spec 78 thêm `"timelineKey": "gateD78"`. Fingerprint mới `54d92529…83c6f` (recipe chạy lại).
+- **Fix**: `SourceLessonSpec.timelineKey?: string` (`lessonAdapter.ts`) + `TIMELINE_BY_KEY` (`gateD78` — nhãn P = phút bắt đầu: P00/P01/P03/P05/P10/P13/P14/P21/P24/P29/P37); `buildTimeline` ưu tiên override → V72 → TIMELINE chung. Spec 78 thêm `"timelineKey": "gateD78"`. Fingerprint `54d92529…83c6f` (recipe băm 3 giáo án gốc — fix2 không đổi giá trị này).
 - **Precedent R4–R7**: bài nào Gate D chốt dải phút khác template → thêm key mới vào `TIMELINE_BY_KEY` + khai báo `timelineKey` trong spec; không đụng TIMELINE chung.
 
+## R3·fix2 — Binding theo PHASE thay vì id chặng cứng (27/10)
+- **Vấn đề regression sau fix1**: QA bắt được HS mất thẻ "AI kết luận" + 4 nhãn + "PHẢN HỒI NHANH" ở chặng 5, mất "Chọn nhiệm vụ này" ở chặng 6 — dù timeline bands đúng 12/12. Nguyên nhân: adapter gắn nhiệm vụ theo **id chặng cứng của template** (`aiError.stepId='P16'`, `cp-route-choice.stepId='P19'`, `cp-diagnostic='P08'`, fading/evidence/grouping P20/P27, languageDemands P03/P16/P27, notebookText P19/P38) — gateD78 đổi id (aiError=P10, grouping=P13,…) nên các checkpoint "mồ côi", cue không có responseStepId → HS trắng nhiệm vụ. Template/V72/P31 không vấp vì id trùng khớp.
+- **Fix (theo phase, fallback id template ⇒ template giữ 100% hành vi cũ)**:
+  - `lessonAdapter.ts`: helper `timelineBeatsFor(spec)` (isV72→V72_TIMELINE; else `TIMELINE_BY_KEY[timelineKey] ?? TIMELINE`) + `beatIdForPhase(spec, phase, fallback)`; mapping checkpoint của `buildTimeline` theo phase (guidingQuestion/goals/knowledgeCycle/aiError/grouping/differentiatedPractice/postCheck/quickCheck/exitTicket); thay literal ở `aiError.stepId`, `languageDemands`, `checkpoints` non-V72, `fading`, `evidenceRules`, `groupingCheckpoints`. V72 giữ literal riêng (aiError P15, evidence P09/P15/P22/P36). Block timeline trả thêm `phase` (types.ts: `TimelineBlock.phase?`).
+  - `runtimeDefinition.ts`: `notebookText` theo phase (opening/grouping → "Chưa cần chép", exitTicket → kết luận) giữ điều kiện id P00/P19/P38 làm fallback cho P31; `aiErrorStepId` suy từ checkpoint `cp-ai-error` (bỏ whitelist 'P15'||'P16').
+  - `validateContract.ts`: rule `STEP_REFERENCE_INVALID` — checkpoint.stepId + aiError.stepId phải ∈ timeline ids; evidenceRules.sourceStepId ∈ timeline ∪ checkpoint ids (P31 dùng checkpoint id). Chống tái phạm R4–R7.
+- **Test**: v4 27 file / **279 PASS** (baseline fix1: 274; +2 test binding fix2 + 3 test validateContract). `npm run build` 0 TS error.
+
 ## Việc kế tiếp
-1. fix1 — commit + push + republish bài `11-11-78` (Xóa → publish lại, lessonId giữ nguyên; dialog accept trước khi bấm Xóa).
-2. fix1 — re-QA timeline trên Production: chặng 5 phải "Chặng 10–13 phút"; smoke S4 AI-error + Sau disabled; append acceptance R3·fix1.
+1. fix2 — commit + push + republish bài `11-11-78` lần nữa (Xóa → publish lại; dialog accept trước khi bấm Xóa; tái dùng `tmp-r3-fix1-delete.cjs` / `tmp-r3-fix1-publish.cjs`).
+2. fix2 — re-QA đầy đủ trên phiên mới: bands 12/12 + HS chặng 5 interactive (PHẢN HỒI NHANH + 4 nhãn + "AI kết luận") + route choice chặng 6 + think + exit gửi trọn + "Hiện kết quả lớp" + Sau disabled; append acceptance R3·fix1+fix2.
 3. R4 — `11-11-79` (g11, "Hai mặt phẳng song song — Tiết 3", kind khả năng `practice`): Pha A Gate P+D theo plan → thầy duyệt → Pha B. Lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`).
 
 ## Ràng buộc
