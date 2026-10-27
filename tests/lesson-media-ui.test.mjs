@@ -496,6 +496,7 @@ test("PlayPage keeps audio opt-in and separate wallet in utilities menu without 
       if (name.endsWith("/MathText")) return { default: ({ text }) => text, MathText: ({ text }) => text, __esModule: true };
       if (name.endsWith("/QuestionPager")) return { QuestionPager: ({items}) => React.createElement("section",null,items[0]?.content) };
       if (name.endsWith("/TaskInput")) return { default: () => null, __esModule: true };
+      if (name.endsWith("/TaskImage")) return { default: () => null, taskImageOf: () => undefined, taskSolidOf: () => undefined, __esModule: true };
       if (name.endsWith("/LessonThemedRoute")) return { default: () => null, LessonThemedRoute: () => null, getSafeWorldMetadata: () => ({ spriteImage: '/assets/mascots.png', mascots: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] }), __esModule: true };
       if (name.endsWith("/LessonMascotPicker")) return { LessonMascotPicker: () => null, LessonMascotChip: () => null, __esModule: true };
       if (name.endsWith("/LessonEncounterSheet")) return { LessonEncounterSheet: ({ children }) => React.createElement('div', { className: 'mock-sheet' }, children), __esModule: true };
@@ -660,6 +661,7 @@ test("PresenterPage UI renders visible Bật phản hồi button and TV layout",
       if (name.endsWith(".css")) return {};
       if (name.endsWith("/LessonModePanel")) return { LessonModePanel: () => null };
       if (name.endsWith("/ClassEventPanel")) return { ClassEventPanel: () => null };
+      if (name.endsWith("/TaskImage")) return { default: () => null, taskImageOf: () => undefined, taskSolidOf: () => undefined, __esModule: true };
       throw new Error(`Unexpected import in PresenterPage: ${name}`);
     },
   });

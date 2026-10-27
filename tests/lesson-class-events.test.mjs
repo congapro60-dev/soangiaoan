@@ -122,7 +122,7 @@ check('student panel uses the sanitized task editor; presenter shows no answer i
   const source = await readFile(new URL('../components/lesson/ClassEventPanel.tsx', import.meta.url), 'utf8');
   const component = { exports: {} };
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  vm.runInNewContext(code, { module: component, exports: component.exports, require: name => name === 'react' ? React : name.endsWith('/MathText') ? {__esModule:true,default:({text})=>React.createElement('span',null,text)} : name.endsWith('/ClassEventScene') ? {__esModule:true,default:()=>null} : { default: props => React.createElement('form', { 'aria-label': 'Nhiệm vụ sự kiện' }, props.task.prompt), __esModule: true } });
+  vm.runInNewContext(code, { module: component, exports: component.exports, require: name => name === 'react' ? React : name.endsWith('/MathText') ? {__esModule:true,default:({text})=>React.createElement('span',null,text)} : name.endsWith('/ClassEventScene') ? {__esModule:true,default:()=>null} : name.endsWith('/TaskImage') ? {__esModule:true,default:()=>null,taskImageOf:()=>undefined,taskSolidOf:()=>undefined} : { default: props => React.createElement('form', { 'aria-label': 'Nhiệm vụ sự kiện' }, props.task.prompt), __esModule: true } });
   const view = events.classEventView(start(), 'a', 1000);
   const html = renderToStaticMarkup(React.createElement(component.exports.ClassEventPanel, { view, onAnswer() {} }));
   assert.match(html, /Kéo co|Nhiệm vụ sự kiện/); assert.doesNotMatch(html, /answerKey|secret/);

@@ -34,6 +34,10 @@ test('classification requires exact item domain and known categories, repeated c
 
 const source = await readFile(new URL('../components/lesson/TaskInput.tsx', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
+// Transpile the real math-symbols module so TaskInput sees genuine QUICK_CHIPS/expandChipInsert
+const mathSymbolsJs = ts.transpileModule(await readFile(new URL('../lib/lesson/math-symbols.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
+const mathSymbols = {};
+vm.runInNewContext(mathSymbolsJs, { exports: mathSymbols, require: name => { throw new Error('Unexpected import in math-symbols: ' + name); } });
 function editor(task, extras = {}) {
   const hooks = [], timers = new Map(), saved = [], submitted = [];
   let cursor = 0, serial = 0;
@@ -46,7 +50,7 @@ function editor(task, extras = {}) {
   const schedule = callback => { const id = ++serial; timers.set(id, callback); return id; };
   const component = { exports: {} };
   vm.runInNewContext(code, { module: component, exports: component.exports,
-    require: name => name === 'react' ? mockReact : { default: props => React.createElement('span', null, props.text), __esModule: true },
+    require: name => name === 'react' ? mockReact : name.includes('math-symbols') ? { ...mathSymbols, __esModule: true } : { default: props => React.createElement('span', null, props.text), __esModule: true },
     setTimeout: schedule, clearTimeout: id => timers.delete(id), window: { setTimeout: schedule, clearTimeout: id => timers.delete(id) } });
   const publicTask = structuredClone(task); delete publicTask.evaluation.answerKey;
   const props = { task: publicTask, onSaveDraft: value => saved.push(value), onSubmit: value => submitted.push(value), ...extras };

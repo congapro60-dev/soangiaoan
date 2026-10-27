@@ -145,9 +145,9 @@ for(const count of [1,2]){
   const stored=JSON.parse(database.prepare('SELECT data FROM teams WHERE id=?').get(pupils[0].id).data);
   stored.race.position=17;stored.race.phase='travel';stored.race.outcomes=[{station:0},{station:1},{station:2}];stored.race.bag=[1];stored.race.bonus=null;stored.race.reward=null;
   database.prepare('UPDATE teams SET data=?,revision=revision+1 WHERE id=?').run(JSON.stringify(stored),pupils[0].id);
-  const rolled=await post('roll',{id:pupils[0].id,sequence:0,round:1},pupils[0].token);assert.equal(rolled.status,200,JSON.stringify(rolled.data));
+  const rolled=await post('choose',{id:pupils[0].id,steps:3,sequence:0,round:1},pupils[0].token);assert.equal(rolled.status,200,JSON.stringify(rolled.data));
   const race=JSON.parse(database.prepare('SELECT race FROM rooms WHERE id=?').get(id).race);
   assert.equal(Boolean(race.classActivity),count===2,'Cell 18 opens actual activity only with eligible roster; solo movement remains available');
-  if(count===2)assert.equal((await post('roll',{id:pupils[0].id,sequence:1,round:1},pupils[0].token)).status,409,'Main movement pauses while class activity runs');
+  if(count===2)assert.equal((await post('choose',{id:pupils[0].id,steps:1,sequence:1,round:1},pupils[0].token)).status,409,'Main movement pauses while class activity runs');
 }
 console.log('R18: twelve shared mechanics, two-pupil native HTTP authorization/CAS/replay/privacy, timer pause/resume and one-time rewards passed.');

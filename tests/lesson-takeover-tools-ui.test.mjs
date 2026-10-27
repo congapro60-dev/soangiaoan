@@ -23,6 +23,7 @@ function ui(file, extra = {}) {
       if (name.includes('QuestionPager')) return { QuestionPager: 'QuestionPager' };
       if (name.includes('ClassEventPanel')) return { ClassEventPanel: 'ClassEventPanel' };
       if (name.includes('SharedDevicePanel')) return { BoardResponsePanel: 'BoardResponsePanel' };
+      if (name.includes('TaskImage')) return { __esModule: true, default: 'TaskImage', taskImageOf: () => undefined, taskSolidOf: () => undefined };
       return { __esModule: true, default: 'Component' }; }, ...extra });
   return { render(name, props) { cursor = 0; effects.length = 0; return output[name](props); }, effects, state };
 }

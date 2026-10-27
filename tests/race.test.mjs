@@ -93,6 +93,8 @@ const T=(await post('join',{code:themed.code,name:'Phi đội QA',mascot:6})).da
 let publicT=await state(T);assert.equal(publicT.state.race.campaign.theme,'future');assert(!('seed'in publicT.state.race.campaign));
 await teacher('begin',{id:themedId});
 assert.equal((await post('choose-level',{id:T.id,level:4,round:1},T.token)).status,400,'Teacher maximum cannot be bypassed');
+assert.equal((await post('roll',{id:T.id,round:1},T.token)).status,400,'Campaign rooms cannot roll dice');
+edit(T,s=>{s.score=10000;});
 const {stationLogic}=await import('../lib/station-logic.js');
 let maths=0;
 for(let guard=0;guard<55&&raw(T).race.phase!=='gate';guard++){
@@ -100,13 +102,13 @@ for(let guard=0;guard<55&&raw(T).race.phase!=='gate';guard++){
  if(s.race.reward){let awarded=await post('reward',{id:T.id,choice:'points',round:1},T.token);assert.equal(awarded.status,200);continue;}
  if(s.race.bonus&&!s.race.bonus.done){let q=s.race.bonus;let reply=await post('bonus',{id:T.id,answer:String(q.answer),round:1},T.token);assert.equal(reply.status,200);assert(reply.data.result.ok);assert(!('answer'in (reply.data.state.race.bonus||{})));maths++;continue;}
  if(s.race.phase==='challenge'){let i=s.race.outcomes.length;await post('choose-level',{id:T.id,level:0,round:1},T.token);let p=stationLogic(i,0,s.seed),input={...p.expected};if(i===2)input.circuit='1,0,0,0,0,0,0,0,1';let reply=await post('submit',{id:T.id,input,round:1},T.token);assert.equal(reply.status,200,JSON.stringify(reply.data));assert(reply.data.result.ok);continue;}
- clock+=16000;let dState=await state(T);let reply=await post('roll',{id:T.id,sequence:dState.map.turn.sequence,round:1},T.token);assert.equal(reply.status,200,JSON.stringify(reply.data));
+ clock+=16000;let dState=await state(T);let reply=await post('choose',{id:T.id,steps:6,sequence:dState.map.turn.sequence,round:1},T.token);assert.equal(reply.status,200,JSON.stringify(reply.data));assert.equal(reply.data.result.ok,true);
 }
 assert.equal(maths,5);assert.equal(raw(T).race.outcomes.length,5);
 let tc=raw(T).race.outcomes.map(o=>o.digit).join('');assert((await post('unlock',{id:T.id,code:tc,round:1},T.token)).data.result.ok);
 let themedBoard=(await teacherGet('board',themedId)).data;assert.equal(themedBoard.room.campaign.grade,12);assert.equal(themedBoard.teams[0].mathHistory.length,5);assert(themedBoard.teams[0].mathHistory.every(q=>q.steps.length&&Number.isFinite(q.answer)));
 await teacher('reset-room',{id:themedId,revision:themedBoard.room.revision,confirmCode:themed.code});
-let resetThemed=await state(T);assert.equal(resetThemed.state.race.campaign.theme,'future');assert.equal(resetThemed.state.race.position,0);assert.equal(resetThemed.state.score,0);assert(!('mathHistory'in resetThemed.state.race));
+let resetThemed=await state(T);assert.equal(resetThemed.state.race.campaign.theme,'future');assert.equal(resetThemed.state.race.position,0);assert.equal(resetThemed.state.score,240,'A fresh campaign round re-grants the 240 starting points');assert(!('mathHistory'in resetThemed.state.race));
 console.log('Thematic campaign API passed: teacher matrix, maximum level, private solutions, 5 queued questions, all gates, final unlock, reset configuration.');
 // Single-attempt choices, concurrent reward redemption, limited self-trades and movement skills.
 const U=(await post('join',{code:themed.code,name:'QA Trade',mascot:2})).data.session;
@@ -121,8 +123,9 @@ let correctTF=await post('bonus',{id:U.id,answer:raw(U).race.bonus.answer,round:
 let rewardReplies=await Promise.all([post('reward',{id:U.id,choice:'points',round:2},U.token),post('reward',{id:U.id,choice:'points',round:2},U.token)]);assert.equal(rewardReplies.filter(r=>r.status===200).length,1);assert.equal(raw(U).score,560);
 assert.equal((await post('pact',{id:U.id,choice:'pass',round:2},U.token)).status,200);let um=await state(U);clock+=11000;um=await state(U);assert.equal(um.map.turn.skipLedger[U.id],1,'Exactly one eligible slot pays the pact');let repeated=await state(U);assert.equal(repeated.map.turn.skipLedger[U.id],1);
 assert.equal((await post('pact',{id:U.id,choice:'delay',round:2},U.token)).status,200);assert.equal(raw(U).penalty,45000);assert.equal((await post('pact',{id:U.id,choice:'delay',round:2},U.token)).status,400);
-for(const skill of ['time','boost','double'])assert.equal((await post('skill',{id:U.id,skill,round:2},U.token)).status,200);
+for(const skill of ['time','boost'])assert.equal((await post('skill',{id:U.id,skill,round:2},U.token)).status,200);
 assert.equal((await post('skill',{id:U.id,skill:'double',free:true,round:2},U.token)).status,400,'Free card cannot buy premium movement');
-let skillState=await state(U);assert.equal(skillState.state.race.timeBonus,30000);let ur=await post('roll',{id:U.id,sequence:skillState.map.turn.sequence,round:2},U.token);assert.equal(ur.status,200);assert(ur.data.result.extra>=1&&ur.data.result.extra<=6);assert.equal(raw(U).race.usedBoosts,1);assert.equal(raw(U).race.usedDoubles,1);
-assert.equal((await post('skill',{id:U.id,skill:'double',round:2},U.token)).status,200);assert.equal((await post('skill',{id:U.id,skill:'double',round:2},U.token)).status,400,'Two-purchase cap');
+assert.equal((await post('skill',{id:U.id,skill:'double',round:2},U.token)).status,400,'Double dice is locked in campaign (v34)');
+let skillState=await state(U);assert.equal(skillState.state.race.timeBonus,30000);let ur=await post('choose',{id:U.id,steps:1,sequence:skillState.map.turn.sequence,round:2},U.token);assert.equal(ur.status,200,JSON.stringify(ur.data));assert.equal(ur.data.result.ok,true);assert.equal(ur.data.result.cost,30,'Purchased steps cost 30đ each');assert.equal(ur.data.result.to-ur.data.result.from,3,'1 bought step plus 2 boost-carry');assert.equal(raw(U).race.usedBoosts,1);
+assert.equal((await post('skill',{id:U.id,skill:'boost',round:2},U.token)).status,200);assert.equal((await post('skill',{id:U.id,skill:'boost',round:2},U.token)).status,400,'Two-purchase cap');
 console.log('Extended mechanics passed: one-shot choices, one reward under concurrency, exact pact pass, trade caps, time credit, extra dice/steps, premium card exclusion.');

@@ -84,6 +84,25 @@ test('buzzer transport binds the pupil, rebases stale classroom revisions and pr
  await assert.rejects(()=>service.event({sessionId:room.session.id,learnerToken:'C'.repeat(43),event}),/FORBIDDEN/);database.close();
 });
 
+test('buzzer event stays open while buzz claims are in flight and closes only after every pupil completes a turn',async()=>{
+ const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner-1@example.invalid','Owner',1);
+ let time=1000;const service=createLessonService({db,now:()=>time});const pkg=structuredClone(lessonFixture);pkg.budget.reserveMinutes=3;pkg.budget.slotMinutes+=1;pkg.activities.find(a=>a.budgetRole==='reserve').minutes=3;pkg.contentHash=hashPackage(pkg);
+ const saved=await service.savePackage({ownerAccountId:'owner-1',package:pkg}),room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Buzz Fair QA',requestId:'buzz-fair'});
+ await service.joinSession({code:room.session.code,name:'A',token:'A'.repeat(43)});await service.joinSession({code:room.session.code,name:'B',token:'B'.repeat(43)});
+ const host=async(type,payload={})=>{const own=await service.getSession({id:room.session.id,accountId:'owner-1'});return service.event({sessionId:room.session.id,accountId:'owner-1',event:{type,payload,eventId:'host-'+type,activityId:own.view.timeline.currentActivityId,round:own.view.round,revision:own.view.revision}});};
+ await host('START');await host('CLASS_EVENT_OPEN',{type:'buzzer',durationMs:180000,seed:1});
+ const view=(await service.getSession({id:room.session.id,learnerToken:'A'.repeat(43)})).view;
+ const envelope=(type,payload,eventId)=>({type,payload,eventId,round:view.round,revision:view.revision,activityId:view.timeline.currentActivityId});
+ const press=async(token,requestId)=>service.event({sessionId:room.session.id,learnerToken:token,event:envelope('CLASS_EVENT_BUZZ',{eventId:view.classEvent.id,step:0,requestId},'env-'+requestId)});
+ const answer=async(token,requestId)=>service.event({sessionId:room.session.id,learnerToken:token,event:envelope('CLASS_EVENT_ANSWER',{eventId:view.classEvent.id,step:0,answer:'phản hồi QA',requestId},'env-'+requestId)});
+ const buzzB=await press('B'.repeat(43),'buzz-b');assert.equal(buzzB.result.ok,true);
+ const buzzA=await press('A'.repeat(43),'buzz-a');assert.equal(buzzA.result.ok,true);assert.ok(buzzA.view.classEvent.own.task);
+ const ansA=await answer('A'.repeat(43),'ans-a');assert.equal(ansA.result.ok,true);
+ const ansB=await answer('B'.repeat(43),'ans-b');assert.equal(ansB.result.ok,true);
+ const stored=unpackLessonState(JSON.parse(database.prepare('SELECT state FROM lesson_sessions WHERE id=?').get(room.session.id).state));
+ assert.equal(stored.classEvent.status,'closed');database.close();
+});
+
 test('durable state deduplicates assessed review records but keeps pending work readable by the legacy Worker',async()=>{
  const {db,database}=realDb();database.prepare('INSERT INTO accounts VALUES(?,?,?,?)').run('owner-1','owner-1@example.invalid','Owner',1);
  const service=createLessonService({db,now:()=>1000}),saved=await service.savePackage({ownerAccountId:'owner-1',package:structuredClone(lessonFixture)}),room=await service.createSession({ownerAccountId:'owner-1',packageRowId:saved.row.rowId,mode:'preview',title:'Review QA',requestId:'review-qa'});

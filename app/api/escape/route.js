@@ -7,7 +7,7 @@ import {createGame, reduce as reduceMode, RULES as modeRules} from '../../../lib
 import {projectMode} from '../../../lib/mode-runtime.js';
 import {serializePublic as modePublic} from '../../../lib/mode-engine/serialize.js';
 import { stationLogic } from '../../../lib/station-logic.js';
-import { initRace, taskIndex, selectTurn, ready, roll, finishStation, doorCode, racePublic, compareTeams, advanceMath } from '../../../lib/race.js';
+import { initRace, taskIndex, selectTurn, ready, roll, choose, finishStation, doorCode, racePublic, compareTeams, advanceMath } from '../../../lib/race.js';
 import { SKILLS, effects } from '../../../lib/skills.js';
 import { challenge, safePuzzle, checkPuzzle } from '../../../lib/challenges.js';
 import G from '../../../lib/game-engine.js';
@@ -868,7 +868,7 @@ export async function POST(req) {
                 return fail('Câu này vừa được gửi. Đang cập nhật câu tiếp theo.', 409);
             return reply({ result, state: await publicState(t.s, t.room, t.row.revision), map: await raceRoom(t.room) });
         }
-        if (['roll', 'abandon', 'bonus', 'bonus-draft', 'mascot', 'reward', 'pact'].includes(b.action)) {
+        if (['roll', 'choose', 'abandon', 'bonus', 'bonus-draft', 'mascot', 'reward', 'pact'].includes(b.action)) {
             if (typeof b.requestId !== 'string' || b.requestId.length > 70)
                 return fail('Thiếu mã thao tác.');
             for (let attempt = 0; attempt < 5; attempt++) {
@@ -885,7 +885,7 @@ export async function POST(req) {
                 if (guard.replay) return reply({ state: await publicState(s, room, row.revision), result: guard.replay, map: await raceRoom(room) });
                 if (communityActive(room))
                     return fail(pausedMessage(room), 409, 'EVENT_ACTIVE');
-                let now = gameNow(room), result = { ok: true }, trigger = null, triggerSlot = null, triggerRows = [];
+                let now = gameNow(room), result = { ok: true }, trigger = null, triggerSlot = null, triggerRows = [], chooseInsert = null;
                 if (b.action === 'mascot') {
                     if (s.status !== 'waiting' || !Number.isInteger(b.mascot) || b.mascot < 0 || b.mascot > 7)
                         return fail('Chỉ đổi linh vật khi đang chờ.');
@@ -912,9 +912,13 @@ export async function POST(req) {
                             s.race.cards++;
                         if (choice === 'steps')
                             s.race.carry += 2;
-                        if (choice === 'dice')
-                            s.race.extraDice = (s.race.extraDice || 0) + 1;
-                        s.events.push({ type: 'reward', choice, points: r.points, serial: r.serial, at: now });
+                        if (choice === 'dice') {
+                            if (s.campaign)
+                                s.score += 100; // campaign locks rolls: settle the extra die as mana points
+                            else
+                                s.race.extraDice = (s.race.extraDice || 0) + 1;
+                        }
+                        s.events.push({ type: 'reward', choice, points: choice === 'dice' && s.campaign ? 100 : r.points, serial: r.serial, at: now });
                         s.race.reward = null;
                         advanceMath(s);
                     }
@@ -940,10 +944,20 @@ export async function POST(req) {
                         }
                         s.events.push({ type: 'pact', choice: b.choice, at: now });
                     }
-                    if (b.action === 'roll') {
+                    if (b.action === 'roll' || b.action === 'choose') {
+                        if (b.action === 'roll' && s.campaign && !(individual(s) && (s.race.paidPasses || 0) < (s.race.promisedPasses || 0)))
+                            return fail('Ở chế độ chiến dịch, dùng Mua bước tự chọn thay vì xúc xắc.', 400, 'CAMPAIGN_ROLL_LOCKED');
+                        if (b.action === 'choose') {
+                            if (!s.campaign)
+                                return fail('Mua bước tự chọn chỉ dùng ở chế độ chiến dịch.', 400, 'CAMPAIGN_ONLY');
+                            if (!Number.isInteger(b.steps) || b.steps < 1 || b.steps > 6)
+                                return fail('Số bước mua phải từ 1 đến 6.', 400, 'CHOOSE_STEPS');
+                            if (individual(s) && (s.race.promisedPasses || 0) > (s.race.paidPasses || 0))
+                                return fail('Còn giao kèo bỏ lượt chưa thanh toán. Nhấn Lăn để thanh toán giao kèo trước khi mua bước.', 409, 'PACT_DEBT');
+                        }
                         if (individual(s)) {
-                            if (!ready(s, now) || b.sequence !== s.race.rolls || now - (s.race.lastRollAt || 0) < 6000)
-                                return fail('Chờ đủ 6 giây và hoàn tất nhiệm vụ đang mở trước khi lăn.', 409);
+                            if (!ready(s, now) || b.sequence !== s.race.rolls || (b.action === 'roll' && now - (s.race.lastRollAt || 0) < 6000))
+                                return fail('Hoàn tất nhiệm vụ đang mở trước khi di chuyển.', 409);
                         }
                         else {
                             await raceRoom(room);
@@ -953,13 +967,20 @@ export async function POST(req) {
                             if (communityActive(room) || !ready(s, now) || turn?.cursor !== s.id || turn.sequence !== b.sequence || now >= turn.deadline)
                                 return fail('Chưa đến lượt hoặc lượt đã hết. Bản đồ đang cập nhật.', 409);
                         }
-                        result = roll(s, now);
+                        result = b.action === 'choose' ? choose(s, b.steps, now, b.requestId) : roll(s, now);
+                        if (!result.ok)
+                            return fail(result.reason === 'NOT_ENOUGH_POINTS' ? 'Không đủ mã lực để mua số bước này.' : 'Số bước mua phải từ 1 đến 6.', 400, result.reason);
+                        if (b.action === 'choose') {
+                            s.effects.history.push({ id: b.requestId, room_id: room.id, actor_id: s.id, target_id: s.id, kind: 'choose', cost: result.cost, created: now });
+                            // Guarded by the post-update revision, the authoritative score, and the committed move event (rid), so the purchase commits only with the move.
+                            chooseInsert = stmt(`INSERT INTO skill_actions(id,room_id,actor_id,target_id,kind,cost,created) SELECT ?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM teams WHERE id=? AND revision=? AND removed_at IS NULL) AND EXISTS(SELECT 1 FROM json_each(COALESCE((SELECT json_extract(data,'$.events') FROM teams WHERE id=?),'[]')) WHERE json_extract(value,'$.rid')=?) AND (SELECT COALESCE(json_extract(data,'$.score'),0) FROM teams WHERE id=?) - COALESCE((SELECT SUM(cost) FROM skill_actions WHERE actor_id=?),0) >= ?`, b.requestId, room.id, s.id, s.id, 'choose', result.cost, now, s.id, row.revision + 1, s.id, b.requestId, s.id, s.id, result.cost);
+                        }
                         let turn = JSON.parse(room.race || 'null') || { cursor: null, deadline: 0, sequence: 0, log: [] };
                         if (!individual(s)) {
                             turn.last = s.id;
                             turn.cursor = null;
                             turn.deadline = 0;
-                            turn.log.push({ type: 'roll', team: s.id, die: result.die, from: result.from, to: result.to, at: now });
+                            turn.log.push({ type: b.action, team: s.id, die: result.die, from: result.from, to: result.to, ...(b.action === 'choose' ? { steps: result.steps, cost: result.cost } : {}), at: now });
                         }
                         const kind = s.campaign?.community, cell = kind === 'arena' ? ARENA_CELL : COMMUNITY_CELL;
                         const activity = GAME_ACTIVITY_TYPES.includes(kind);
@@ -1047,13 +1068,20 @@ export async function POST(req) {
                 rememberRequest(s, b, guard, result);
                 let commit = b.requestId, results;
                 if (individual(s) && !trigger) {
-                    let saved = await stmt('UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL)', JSON.stringify(s), s.id, row.revision, room.id, room.revision, room.round).run();
-                    results = [saved, saved];
+                    if (chooseInsert)
+                        results = await db().batch([stmt('UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL)', JSON.stringify(s), s.id, row.revision, room.id, room.revision, room.round), chooseInsert]);
+                    else {
+                        let saved = await stmt('UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL)', JSON.stringify(s), s.id, row.revision, room.id, room.revision, room.round).run();
+                        results = [saved, saved];
+                    }
                 }
                 else {
                     let turn = JSON.parse(room.race || 'null') || {};
                     turn.commit = commit;
                     let statements = [stmt('UPDATE rooms SET race=?,revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM teams WHERE id=? AND revision=? AND removed_at IS NULL)', JSON.stringify(turn), room.id, room.revision, room.round, s.id, row.revision), stmt("UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND revision=? AND removed_at IS NULL AND EXISTS(SELECT 1 FROM rooms WHERE id=? AND round=? AND deleted_at IS NULL AND json_extract(race,'$.commit')=?)", JSON.stringify(s), s.id, row.revision, room.id, room.round, commit)];
+                    if (chooseInsert)
+                        // Last: the purchase guards on the post-update revision, so it commits only when the move did.
+                        statements.push(chooseInsert);
                     if (trigger)
                         // One row per roster member, atomic with the room mutation that opened the event.
                         triggerRows.forEach(entry => statements.push(stmt(`INSERT INTO community_players(id,room_id,event_id,team_id,data,revision) SELECT ?,?,?,?,?,0 WHERE EXISTS(SELECT 1 FROM rooms WHERE id=? AND round=? AND deleted_at IS NULL AND json_extract(race,'$.commit')=? AND json_extract(race,'$.${triggerSlot}.id')=?)`, trigger.id + '.' + entry.id, room.id, trigger.id, entry.id, JSON.stringify(entry), room.id, room.round, commit, trigger.id)));
@@ -1081,6 +1109,8 @@ export async function POST(req) {
             let prior = await stmt('SELECT id FROM skill_actions WHERE id = ?', b.requestId).first();
             if (prior)
                 return reply({ state: await publicState(t.s, t.room, t.row.revision) });
+            if (b.skill === 'double' && t.s.campaign)
+                return fail('Xúc xắc kép không dùng ở chế độ chiến dịch. Hãy dùng Mua bước tự chọn.', 400, 'CAMPAIGN_DOUBLE_LOCKED');
             if (['time', 'boost', 'double'].includes(b.skill) && (!t.s.campaign || t.s.effects.history.filter(a => a.actor_id === t.s.id && a.kind === b.skill).length >= 2))
                 return fail('Kỹ năng này tối đa 2 lần mỗi ván mới.');
             let target = ['thaw', 'shield', 'time', 'boost', 'double'].includes(b.skill) ? t.s.id : b.target;

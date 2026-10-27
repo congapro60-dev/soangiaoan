@@ -94,7 +94,7 @@ test('Jeopardy panel renders selectable stakes, requires two steps and hides cho
   const source = readFileSync(new URL('../components/lesson/ClassEventPanel.tsx', import.meta.url), 'utf8');
   const component = { exports: {} };
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  vm.runInNewContext(code, { module: component, exports: component.exports, require: name => name === 'react' ? React : name.endsWith('/ClassEventScene') ? {__esModule:true,default:()=>null} : name.endsWith('/MathText') ? {__esModule:true,default:({text})=>React.createElement('span',null,text)} : {default:props=>React.createElement('form', {'aria-label':'Nhiệm vụ sự kiện'},props.task.prompt), __esModule:true} });
+  vm.runInNewContext(code, { module: component, exports: component.exports, require: name => name === 'react' ? React : name.endsWith('/ClassEventScene') ? {__esModule:true,default:()=>null} : name.endsWith('/MathText') ? {__esModule:true,default:({text})=>React.createElement('span',null,text)} : name.endsWith('/TaskImage') ? {__esModule:true,default:()=>null,taskImageOf:()=>undefined,taskSolidOf:()=>undefined} : {default:props=>React.createElement('form', {'aria-label':'Nhiệm vụ sự kiện'},props.task.prompt), __esModule:true} });
   const render = (event, disabled = false, presenter = false) => renderToStaticMarkup(React.createElement(component.exports.ClassEventPanel, { view: events.classEventView(event, presenter ? null : 'a', 3000, { presenter }), onPick() {}, onAnswer() {}, disabled }));
   const event = start(), html = render(event);
   assert.match(html, /Bảng Jeopardy|Chọn ô/);

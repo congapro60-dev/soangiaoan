@@ -6,6 +6,7 @@ import ts from 'typescript';
 import React from 'react';
 
 const source = await readFile(new URL('../components/lesson/TaskInput.tsx', import.meta.url), 'utf8');
+const mathSymbols = {}; vm.runInNewContext(ts.transpileModule(await readFile(new URL('../lib/lesson/math-symbols.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText, { exports: mathSymbols, require: () => { throw new Error('Unexpected import in math-symbols'); } });
 
 test('Vietnamese composition keeps local text during pending hydration and saves the finished word', () => {
   const hooks = [], effects = [], timers = new Map(), saved = [];
@@ -19,7 +20,7 @@ test('Vietnamese composition keeps local text during pending hydration and saves
   const setTimeout = (fn, ms) => { const id = ++timerId; timers.set(id, { fn, ms }); return id; };
   const componentModule = { exports: {} };
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  vm.runInNewContext(code, { exports: componentModule.exports, module: componentModule, require: name => name === 'react' ? mockReact : { default: () => null, __esModule: true }, window: { setTimeout, clearTimeout: id => timers.delete(id) }, setTimeout, clearTimeout: id => timers.delete(id) });
+  vm.runInNewContext(code, { exports: componentModule.exports, module: componentModule, require: name => name === 'react' ? mockReact : name.includes('math-symbols') ? { ...mathSymbols, __esModule: true } : { default: () => null, __esModule: true }, window: { setTimeout, clearTimeout: id => timers.delete(id) }, setTimeout, clearTimeout: id => timers.delete(id) });
   const props = { task: { id: 'q', type: 'open' }, initialDraft: 'nháp máy chủ', onSaveDraft: value => saved.push(value) };
   const render = () => { cursor = 0; effects.length = 0; return componentModule.exports.TaskInput(props); };
   const find = node => { if (!node || typeof node !== 'object') return null; if (node.type === 'textarea') return node; for (const child of React.Children.toArray(node.props?.children)) { const found = find(child); if (found) return found; } return null; };

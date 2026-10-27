@@ -6,7 +6,8 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const exports={},source=readFileSync(new URL('../components/lesson/TaskInput.tsx',import.meta.url),'utf8');
-vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React,esModuleInterop:true}}).outputText,{exports,require:name=>name==='react'?React:{__esModule:true,default:({text})=>React.createElement('span',null,text)}});
+const mathSymbols={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../lib/lesson/math-symbols.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports:mathSymbols,require:()=>{throw new Error('Unexpected import in math-symbols');}});
+vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React,esModuleInterop:true}}).outputText,{exports,require:name=>name==='react'?React:name.includes('math-symbols')?{...mathSymbols,__esModule:true}:{__esModule:true,default:({text})=>React.createElement('span',null,text)}});
 test('two pupils answering the same task get distinct accessible input IDs and radio groups',()=>{
  for(const checkerId of ['numeric_exact','single_choice_exact','rubric_manual']){
   const task={id:'shared-task',type:checkerId==='rubric_manual'?'open':'closed',evaluation:{checkerId},inputSchema:checkerId==='single_choice_exact'?{type:'single_choice',options:[{id:'a',label:'A'},{id:'b',label:'B'}]}:{}};

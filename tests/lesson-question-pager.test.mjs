@@ -9,7 +9,7 @@ function harness(){
  const instances=new Map(),effects=[],commands=[];let current,cursor,focusCount=0;
  const hooks={...React,useState(initial){const slot=cursor++,owner=current;if(!Object.hasOwn(owner.slots,slot))owner.slots[slot]=typeof initial==='function'?initial():initial;return[owner.slots[slot],value=>{owner.slots[slot]=typeof value==='function'?value(owner.slots[slot]):value;}];},useRef(initial){const slot=cursor++;return current.slots[slot]||=( {current:initial});},useId(){return this.useRef(current.path).current;},useEffect(fn,deps){const slot=cursor++,owner=current,prior=owner.slots[slot];if(!prior||!deps||deps.some((v,i)=>!Object.is(v,prior.deps[i]))){if(prior?.cleanup)prior.cleanup();owner.slots[slot]={deps};effects.push(()=>{owner.slots[slot].cleanup=fn();});}}};
  const load=(file,other={})=>{const exports={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../components/lesson/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:name=>name==='react'?hooks:other[name],setTimeout:()=>1,clearTimeout:()=>{},window:{setTimeout:()=>1,clearTimeout:()=>{}},console});return exports;};
- const TaskInput=load('TaskInput.tsx',{'./MathText':({text})=>React.createElement('span',null,text)}).TaskInput;
+ const TaskInput=load('TaskInput.tsx',{'./MathText':({text})=>React.createElement('span',null,text),'../../lib/lesson/math-symbols':mathSymbols}).TaskInput;
  const Pager=load('QuestionPager.tsx').QuestionPager;
  const renderNode=(node,path)=>{if(!node||typeof node!=='object')return node;if(Array.isArray(node))return node.map((n,i)=>renderNode(n,path+'/'+(n?.key??i)));
   if(typeof node.type==='function'){const key=path+'/'+node.type.name+'/'+(node.key??'');current=instances.get(key)||{slots:[],path:key};instances.set(key,current);cursor=0;const out=node.type(node.props);return renderNode(out,key);}
@@ -19,6 +19,7 @@ function harness(){
  return{render,commands,get focusCount(){return focusCount;}};
 }
 const nodes=(node,predicate,result=[])=>{if(Array.isArray(node))node.forEach(n=>nodes(n,predicate,result));else if(node&&typeof node==='object'){if(predicate(node))result.push(node);nodes(node.props?.children,predicate,result);}return result;};
+const mathSymbols={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../lib/lesson/math-symbols.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports:mathSymbols,require:()=>{throw new Error('Unexpected import in math-symbols');}});
 const text=node=>Array.isArray(node)?node.map(text).join(''):node&&typeof node==='object'?text(node.props?.children):String(node??'');
 const button=(tree,label)=>nodes(tree,n=>n.type==='button'&&text(n)===label)[0];
 const panels=tree=>nodes(tree,n=>n.props?.['data-question-id']);

@@ -264,3 +264,17 @@ Goal: QA on Site per owner. Confirmed: r106 box/tetra render and pointer-drag ch
 ### 26/10 — nghiên cứu gameplay dạy học, chưa triển khai
 - Đọc trực tiếp Gameplay Atlas và Vizu; đề xuất bỏ xúc xắc khỏi tiến trình mặc định tiết học, giữ cho xác suất/thi đấu/sự kiện phụ. Thiết kế nguyên mẫu bài Hai mặt phẳng song song, luật theo loại tiết, tiêu chí mobile/tablet và giới hạn tích hợp Vizu tại `tasks/gameplay-learning-research-20261026.md`.
 - Chưa duyệt code/triển khai, chưa xác minh API hoặc quyền nhúng Vizu. QA v32 vẫn dở; phòng C0DDB7 và nháp .2350 cần Trash trước khi khép đợt.
+# 27/10 — Release v33 completed
+
+- [x] Commit/push 12 file: `1e93e9264634837844e54969185697e68fe80964`; workflow chi dung remote Sites credential. QA artifacts/research giu local, khong commit.
+- [x] Archive moi `C:\Users\ADMIN\.codex\sites-release\release-20261027-v33.tar.gz`, 49.441.919 bytes; build pass.
+- [x] v33 deploy `appgdep_6adff81976e88191b1a0fc91de31646a` succeeded; public/env3; HTTP200.
+- [x] Live chunk useLessonSession-CqzbOIMh.js va style.css khop archive tung byte/SHA256. Record HANDOFF.md; evidence `C:\Users\ADMIN\.codex\sites-release\v33-live-verification.json`.
+- Full-suite ban giao 1393/1416 PASS, 23 FAIL; khong chay lai, khong goi full QA PASS. Touch that/vi Vilao van la no QA. Record sau deploy giu local.
+
+# 27/10 — Đính chính 23 FAIL sau phân tích độc lập
+
+- Báo cáo `tasks/qa-v33-failures-20261027/REPORT.md`: 8 mock TaskImage, 9 mock thanh ký hiệu Toán, 5 lệch luồng luyện lại tự luận, 1 buzzer.
+- Chạy local 50 test API/revisit: 44 PASS, 6 FAIL. P1 buzzer: khi HS cuối bấm chuông, questJoinedAll đóng sự kiện ngay, server nhận OK nhưng trả closed/pressed=false/task=null trước trả lời. Chưa kiểm live; chưa sửa.
+- Không mặc nhiên coi 5 lỗi luyện lại là test lỗi: cần đối chiếu quyền GV chấm lại với submitted/comment_pending hiện tại. Không khẳng định baseline v32 đã chạy độc lập; nhãn nợ v32 trước đó dựa bàn giao.
+

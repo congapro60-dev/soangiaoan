@@ -96,28 +96,31 @@ function concludedPractice(source) {
  return {send,state:()=>state};
 }
 
-test('authored open practice remains pending, freezes the exact task, teacher assesses after conclusion without rewards', () => {
+test('authored open practice completes on submit, freezes the exact task, feeds AI comments without teacher grading or rewards', () => {
  const {source,base}=authoredOpenSource(), run=concludedPractice(source);
  assert.equal(practiceVariants(source,base.activityId).length,1);
  assert.equal(run.send('REVISIT',{activityId:base.activityId}).result.ok,true);
  const practice=run.state().practice[pupil.id], wallets=structuredClone(run.state().gameWallets), timeline=structuredClone(run.state().timeline);
  const submitted=run.send('REVISIT_SUBMIT',{confirmed:true,usedAI:false,answer:'5,7,9; b_n = 2n + 3; lời giải đủ bốn cách',attemptId:practice.attemptId});
- assert.equal(submitted.result.pending,true); assert.equal(submitted.result.correct,undefined);
+ // V28 nền B: nộp luyện tập là hoàn thành — không chờ GV chấm tay, chỉ tạo hàng AI nhận xét.
+ assert.equal(submitted.result.ok,true); assert.equal(submitted.result.pending,undefined);
+ assert.equal(submitted.result.submitted,true); assert.equal(submitted.result.assessmentStatus,'submitted');
+ assert.equal(submitted.result.correct,null);
  const submissionId=submitted.result.submissionId, before=run.state();
  assert.equal(before.submissions[submissionId].ok,null);
+ assert.equal(before.openAssessments[submissionId].status,'comment_pending');
  assert.equal(before.openAssessments[submissionId].practiceTask.prompt,practice.task.prompt);
  assert.equal(before.openAssessments[submissionId].practiceTask.type,'open');
- assert.equal(run.send('REVISIT_SUBMIT',{answer:'thay bài',attemptId:practice.attemptId}).result.code,'PRACTICE_ASSESSMENT_PENDING');
- assert.equal(run.send('REVISIT',{activityId:base.activityId},pupil,before.clock.lastNow+20000).result.code,'PRACTICE_ASSESSMENT_PENDING');
+ assert.equal(before.passports[pupil.id].submissions.at(-1).taskId,'variant:'+practice.variantId);
+ // Bài chưa được chấm (chỉ nhận xét) không tự cấp bằng chứng năng lực.
+ assert.equal(computeObjectiveMastery(before.passports[pupil.id],'obj-t11-19',source).independentCount,0);
+ assert.equal(run.send('REVISIT_SUBMIT',{answer:'thay bài',attemptId:practice.attemptId}).result.code,'PRACTICE_ALREADY_ASSESSED');
+ assert.equal(run.send('REVISIT',{activityId:base.activityId},pupil,before.clock.lastNow+20000).result.ok,true);
  assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true},pupil).result.code,'UNAUTHORIZED');
  assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true}, {role:'teacher',id:'outsider'}).result.code,'UNAUTHORIZED');
- const assessed=run.send('ASSESS',{submissionId,criteriaMet:true,feedback:'Bốn cách nhất quán.'},teacher);
- assert.equal(assessed.result.ok,true); assert.equal(assessed.state.practice[pupil.id].assessed,true);
- assert.equal(assessed.state.passports[pupil.id].submissions.at(-1).taskId,'variant:'+practice.variantId);
- assert.equal(computeObjectiveMastery(assessed.state.passports[pupil.id],'obj-t11-19',source).independentCount,1);
- assert.deepEqual(assessed.state.gameWallets,wallets); assert.deepEqual(assessed.state.timeline,timeline);
- assert.equal(serializeForStudent(assessed.state,'other').practice,null);
- assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true,feedback:'Bốn cách nhất quán.'},teacher).result.preserved,true);
+ assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true,feedback:'Bốn cách nhất quán.'},teacher).result.code,'INVALID_ASSESSMENT');
+ assert.deepEqual(run.state().gameWallets,wallets); assert.deepEqual(run.state().timeline,timeline);
+ assert.equal(serializeForStudent(run.state(),'other').practice,null);
 });
 
 test('unreviewed open variant never contributes evidence; cache callers cannot mutate the frozen authored pool', () => {
@@ -126,21 +129,21 @@ test('unreviewed open variant never contributes evidence; cache callers cannot m
  assert.notEqual(practiceVariants(source,base.activityId)[0].task.prompt,'tampered');
  const run=concludedPractice(source);run.send('REVISIT',{activityId:base.activityId});
  const submitted=run.send('REVISIT_SUBMIT',{answer:'bài làm',attemptId:run.state().practice[pupil.id].attemptId});
- assert.equal(run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher).result.ok,true);
+ assert.equal(submitted.result.ok,true);
+ assert.equal(run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher).result.code,'INVALID_ASSESSMENT');
  assert.equal(run.state().passports[pupil.id].submissions.at(-1).evidenceIds.length,0);
  assert.equal(computeObjectiveMastery(run.state().passports[pupil.id],'obj-t11-19',source).independentCount,0);
 });
 
-test('altered open practice snapshot fails assessment; explicit non-mastery remains supported', () => {
+test('altered open practice snapshot fails assessment; teacher hand-grading of submitted practice stays disabled', () => {
  const {source,base}=authoredOpenSource(), run=concludedPractice(source);run.send('REVISIT',{activityId:base.activityId});
  const submitted=run.send('REVISIT_SUBMIT',{answer:'bài làm',attemptId:run.state().practice[pupil.id].attemptId}), submissionId=submitted.result.submissionId;
  const state=structuredClone(run.state());state.openAssessments[submissionId].practiceTask.prompt='đề bị thay';
  const attempted=reduceLessonSession(state,{type:'ASSESS',payload:{submissionId,criteriaMet:true},round:state.round,revision:state.revision,eventId:'tampered-assessment'},{actor:teacher,now:state.clock.lastNow+1});
  assert.equal(attempted.result.code,'STALE_PRACTICE');
- assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true,nonMastery:true},teacher).result.ok,true);
+ assert.equal(run.send('ASSESS',{submissionId,criteriaMet:true,nonMastery:true},teacher).result.code,'INVALID_ASSESSMENT');
  const mastery=computeObjectiveMastery(run.state().passports[pupil.id],'obj-t11-19',source);
- assert.equal(mastery.independentCount,0);assert.equal(mastery.supportedCount,1);
- assert.equal(run.send('ASSESS',{submissionId,criteriaMet:false,nonMastery:true},teacher).result.code,'PRACTICE_ALREADY_ASSESSED');
+ assert.equal(mastery.independentCount,0);assert.equal(mastery.supportedCount,0);assert.equal(mastery.status,'no_evidence');
 });
 
 test('an assessed original open task powers the own game once; changed rubric verdict never replays engine state', () => {
@@ -173,14 +176,14 @@ test('extension revisit accepts only pupils with the original independent must r
  assert.equal(run.send('REVISIT_SUBMIT',{answer:50,attemptId}).result.correct,true);
 });
 
-test('missing independence disclosure never promotes closed or teacher-assessed open practice', () => {
+test('missing independence disclosure never promotes closed or open practice', () => {
  for(const open of [false,true]){
   const {source,base}=authoredOpenSource(true);
   if(!open){const task=source.tasks.find(task=>task.id===base.id);task.type='closed';task.evaluation={checkerId:'numeric_exact',answerKey:5};task.metadata.practiceVariants[0].evaluation={checkerId:'numeric_exact',answerKey:5};source.contentHash=hashPackage(source);}
   const run=concludedPractice(source);assert.equal(run.send('REVISIT',{activityId:base.activityId}).result.ok,true);
   const submitted=run.send('REVISIT_SUBMIT',{answer:open?'bài làm':5,attemptId:run.state().practice[pupil.id].attemptId});
   assert.equal(submitted.result.ok,true);
-  if(open)assert.equal(run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher).result.ok,true);
+  if(open)assert.equal(run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher).result.code,'INVALID_ASSESSMENT');
   assert.equal(run.state().passports[pupil.id].submissions.at(-1).assisted,true);
   assert.equal(computeObjectiveMastery(run.state().passports[pupil.id],'obj-t11-19',source).independentCount,0);
  }
@@ -196,11 +199,18 @@ test('class event and expired live gate lock practice without advancing history 
 });
 
 test('latest assessed variant replaces its same-family older success, best map stars remain',()=>{
- const {source,base}=authoredOpenSource();const run=concludedPractice(source);run.send('REVISIT',{activityId:base.activityId});
- let submitted=run.send('REVISIT_SUBMIT',{confirmed:true,usedAI:false,answer:'bài đúng',attemptId:run.state().practice.pupil.attemptId});run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher);
+ const {source,base}=authoredOpenSource();const run=concludedPractice(source);
+ // Công tắc A (V28): bật AI/GV chấm bài luyện tập → bài tự luận quay về luồng pending → assess có bằng chứng.
+ assert.equal(run.send('SET_PRACTICE_GRADING',{enabled:true},teacher).result.ok,true);
+ run.send('REVISIT',{activityId:base.activityId});
+ let submitted=run.send('REVISIT_SUBMIT',{confirmed:true,usedAI:false,answer:'bài đúng',attemptId:run.state().practice.pupil.attemptId});
+ assert.equal(submitted.result.pending,true);
+ run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:true},teacher);
  assert.equal(computeObjectiveMastery(run.state().passports.pupil,'obj-t11-19',source).independentCount,1);
  run.send('REVISIT',{activityId:base.activityId},pupil,run.state().clock.lastNow+20000);
- submitted=run.send('REVISIT_SUBMIT',{confirmed:true,usedAI:false,answer:'bài sai',attemptId:run.state().practice.pupil.attemptId});run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:false},teacher);
+ submitted=run.send('REVISIT_SUBMIT',{confirmed:true,usedAI:false,answer:'bài sai',attemptId:run.state().practice.pupil.attemptId});
+ assert.equal(submitted.result.pending,true);
+ run.send('ASSESS',{submissionId:submitted.result.submissionId,criteriaMet:false},teacher);
  assert.equal(computeObjectiveMastery(run.state().passports.pupil,'obj-t11-19',source).independentCount,0);
  assert.equal(serializeForStudent(run.state(),pupil.id).gateStars.find(gate=>gate.activityId===base.activityId).stars,3);
 });

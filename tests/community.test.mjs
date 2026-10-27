@@ -42,14 +42,14 @@ let levels=await Promise.all(players.map(p=>post('choose-level',{id:p.id,round:1
 assert(levels.every(x=>x.status===200));
 let solved=await Promise.all(players.map(p=>post('submit',{id:p.id,round:1,input:stationLogic(0,0,raw(p).seed).expected},p.token)));
 assert(solved.every(x=>x.status===200&&x.data.result.ok),JSON.stringify(solved.filter(x=>x.status!==200)));
-let moves=await Promise.all(players.map(p=>post('roll',{id:p.id,sequence:0,round:1},p.token)));
+let moves=await Promise.all(players.map(p=>post('choose',{id:p.id,steps:3,sequence:0,round:1},p.token)));
 assert(moves.every(x=>x.status===200),'26 players move without global turn contention');
 let first=players[0],oldRolls=raw(first).race.rolls;
-assert.equal((await post('roll',{id:first.id,sequence:oldRolls,round:1},first.token)).status,409,'Six-second cadence blocks fast clicks');
+assert.equal((await post('roll',{id:first.id,sequence:oldRolls,round:1},first.token)).status,400,'Campaign rooms cannot roll dice');
 clock+=100000;
 for(let p of players)edit(p,s=>{s.race.position=17;s.race.outcomes=[];s.solved=[];for(let i=0;i<3;i++)finishStation(s,1,clock);s.race.phase='travel';s.race.bag=[1,2,3,4,5,6];s.race.bonus=null;s.race.bonusQueue=[];s.race.reward=null;s.race.lastRollAt=0;});
 edit(players[25],s=>s.events.push({type:'ice',at:clock,until:clock+20000,source:'QA freeze'}));
-let trigger=await Promise.all(players.map(p=>post('roll',{id:p.id,sequence:raw(p).race.rolls,round:1},p.token)));
+let trigger=await Promise.all(players.map(p=>post('choose',{id:p.id,steps:2,sequence:raw(p).race.rolls,round:1},p.token)));
 assert.equal(trigger.filter(x=>x.status===200).length,1,'Exactly one movement triggers a community event');
 let c=JSON.parse(currentRoom().race).community;assert(c&&c.roster.length===26);
 assert.equal(database.prepare('SELECT COUNT(*) AS n FROM community_players WHERE event_id=?').get(c.id).n,26);
@@ -99,12 +99,11 @@ let board=(await teacherGet('board',id)).data;assert.equal(board.teams.length,27
 edit(first,s=>{s.race.phase='travel';s.race.bonus=null;s.race.reward=null;s.race.lastRollAt=0;s.race.promisedPasses=1;s.race.paidPasses=0;});
 let rcount=raw(first).race.rolls,position=raw(first).race.position;
 let pass=await post('roll',{id:first.id,sequence:rcount,round:1},first.token);assert.equal(pass.status,200);assert(pass.data.result.skipped);assert.equal(raw(first).race.rolls,rcount);assert.equal(raw(first).race.position,position);
-assert.equal((await post('roll',{id:first.id,sequence:rcount,round:1},first.token)).status,409);clock+=6000;
-let next=await post('roll',{id:first.id,sequence:rcount,round:1},first.token);assert.equal(next.status,200);assert(!next.data.result.skipped);
+assert.equal((await post('roll',{id:first.id,sequence:rcount,round:1},first.token)).status,400,'Pact pass is spent; dice stay locked in campaign');let next=await post('choose',{id:first.id,steps:1,sequence:rcount,round:1},first.token);assert.equal(next.status,200);assert(!next.data.result.skipped);
 // Reset interrupts a community event and invalidates its old requests.
 let revision=currentRoom().revision;
 let reset=await teacher('reset-room',{id,revision,confirmCode:room.code});assert.equal(reset.status,200);
 assert.equal(JSON.parse(currentRoom().race),null);
 assert.equal((await post('community-answer',{id:first.id,step:6,answer:1,round:1},first.token)).data.code,'SESSION_RESET');
-let clean=(await get('state',first.id,first.token)).data;assert.equal(clean.state.community,null);assert.equal(clean.state.status,'waiting');assert.equal(clean.state.score,0);
+let clean=(await get('state',first.id,first.token)).data;assert.equal(clean.state.community,null);assert.equal(clean.state.status,'waiting');assert.equal(clean.state.score,240,'Fresh campaign round re-grants the 240 starting points');
 console.log('26-player integration passed: independent movement, one shared trigger, paused main timers, parallel answers, one-shot/cooldown/retry guards, spectator handling, private solutions, teacher explanations, one reward, resumed time, pass pact and reset.');

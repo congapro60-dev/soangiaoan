@@ -1675,3 +1675,10 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [ ] Vilao đã có giá400/1600₫/1M,sàn3₫;120request riêng~360₫. Chưa số dư; chưa kết luận đủ tiền.
 - [ ] **DỌN TRƯỚC KHI TIẾP:** phòng C0DDB7 “QA v32 realpath 26-10 synthetic” +r1061.1.0-draft.2350 chưa Trash. Kiểm lại7F1644/.4690/.9740 vẫn Trash, chụp ảnh.
 - Công cụ Windows dừng vì không xác minh URL; không bypass. Source/build/deploy giữ nguyên. Bằng chứng/handoff tasks/qa-v32-realpath-20261026/REPORT.md.
+# Release checkpoint 27/10/2026 — v33
+
+- [x] Build, commit/push dung 12 file, archive moi 49.441.919 bytes.
+- [x] Site v33/public/env3 succeeded: `appgdep_6adff81976e88191b1a0fc91de31646a`; source `1e93e9264634837844e54969185697e68fe80964`.
+- [x] Chunk AI + CSS live khop SHA256 archive; HTTP200. Record HANDOFF.md va `C:\Users\ADMIN\.codex\sites-release\v33-live-verification.json`.
+- [ ] No QA chua xoa: 23 FAIL trong log suite ban giao, touch thiet bi that, so du vi Vilao. Xac minh assets khong thay the E2E.
+
