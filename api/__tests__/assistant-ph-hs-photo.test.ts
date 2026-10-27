@@ -531,4 +531,235 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     expect(quota.byStudent.s3).toBe(1);
     expect(quota.byStudent.s1).toBeUndefined();
   });
+
+  it('A1 — finish giữ ảnh nhận thêm sau lần đọc phiên đầu tiên', async () => {
+    seedClass();
+    await openSessionForA1();
+    await putPhoto();
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    const snap = h.db.snap.bind(h.db);
+    let paused = false;
+    vi.spyOn(h.db, 'snap').mockImplementation((path: string) => {
+      const value = snap(path);
+      if (path === 'assignments/a1' && !paused) {
+        paused = true;
+        started();
+        return resume.then(() => value);
+      }
+      return value;
+    });
+    const finishing = finishPhotoSession(BOT, USER);
+    await ready;
+    expect(await putPhoto()).toContain('Đã nhận ảnh 2/3');
+    const photos = h.db.rows.get(SESSION_PATH).photos;
+    release();
+    const reply = await finishing;
+    await (globalThis as any).__photoBg();
+    const subs = [...h.db.rows.entries()].filter(([path]) => path.startsWith('submissions/'));
+    expect(subs).toHaveLength(1);
+    expect(subs[0][1].fileUrls).toEqual(photos.map((photo: any) => photo.url));
+    expect(subs[0][1].attachments).toHaveLength(2);
+    expect(reply).toContain('(2 ảnh)');
+    expect(h.db.rows.has(SESSION_PATH)).toBe(false);
+    expect(h.db.rows.get('gradingQuota/gv1').selfCount).toBe(1);
+  });
+
+  it('A1 — finish phiên cũ không nộp bài hoặc xóa ảnh của phiên mở lại', async () => {
+    seedClass();
+    await openSessionForA1();
+    await putPhoto();
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    const snap = h.db.snap.bind(h.db);
+    let paused = false;
+    vi.spyOn(h.db, 'snap').mockImplementation((path: string) => {
+      const value = snap(path);
+      if (path === 'assignments/a1' && !paused) {
+        paused = true;
+        started();
+        return resume.then(() => value);
+      }
+      return value;
+    });
+    const finishing = finishPhotoSession(BOT, USER);
+    await ready;
+    await cancelPhotoSession(BOT, USER);
+    await openSessionForA1();
+    expect(await putPhoto()).toContain('Đã nhận ảnh 1/3');
+    const reopened = structuredClone(h.db.rows.get(SESSION_PATH));
+    release();
+    const reply = await finishing;
+    await (globalThis as any).__photoBg();
+    expect(reply).not.toContain('Đã nhận bài');
+    expect([...h.db.rows.keys()].filter(path => path.startsWith('submissions/'))).toHaveLength(0);
+    expect(h.db.rows.get(SESSION_PATH)).toEqual(reopened);
+    expect(h.db.rows.has('gradingQuota/gv1')).toBe(false);
+    expect(gradeOneSubmission).not.toHaveBeenCalled();
+  });
+
+  it.each(['graded', 'error'])('A1 — phiên cũ không nộp trùng sau khi bài đầu chuyển %s', async status => {
+    seedAssistClass();
+    await startAssist();
+    await assistOpenReply(BOT, USER, 'c1', 's1', 1);
+    await putPhoto();
+    const other = 'user-2';
+    await assistStartReply(BOT, other, 'c1', 's4');
+    await assistTargetReply(BOT, other, 'c1', 'cuong dep');
+    await assistOpenReply(BOT, other, 'c1', 's4', 1);
+    await photoReceivedReply(BOT, other, 'https://photo.zalo/abc.jpg');
+    await finishPhotoSession(BOT, USER);
+    await (globalThis as any).__photoBg();
+    const path = [...h.db.rows.keys()].find(k => k.startsWith('submissions/'))!;
+    h.db.put(path, { ...h.db.rows.get(path), status });
+    const reply = await finishPhotoSession(BOT, other);
+    expect(reply).toContain('không nộp trùng');
+    expect(reply).toContain('tài khoản của Cường Đẹp');
+    expect(reply).not.toContain('nhắn 2');
+    expect([...h.db.rows.keys()].filter(k => k.startsWith('submissions/'))).toHaveLength(1);
+    expect(h.db.rows.get('gradingQuota/gv1').selfCount).toBe(1);
+  });
+
+  it('A2 — ảnh được nhận giữa lúc đọc và thay phiên nộp hộ vẫn được giữ', async () => {
+    seedAssistClass();
+    await openSessionForA1();
+    const snap = h.db.snap.bind(h.db);
+    let injected = false;
+    vi.spyOn(h.db, 'snap').mockImplementation((path: string) => {
+      const value = snap(path);
+      if (path === SESSION_PATH && !injected) {
+        injected = true;
+        h.db.put(path, { ...value.data(), photos: [{ url: 'received-photo', name: 'photo.jpg', mimeType: 'image/jpeg', size: 10 }] });
+      }
+      return value;
+    });
+    const reply = await assistStartReply(BOT, USER, 'c1', 's1');
+    expect(reply).toContain('1 ảnh chưa gửi xong');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    expect(h.db.rows.get(SESSION_PATH).assistState).toBeUndefined();
+  });
+
+  it('A2 — ảnh tải chậm không được ghép vào phiên nộp hộ vừa thay', async () => {
+    seedAssistClass();
+    await openSessionForA1();
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    fetchMock.mockImplementationOnce(async () => {
+      started();
+      await resume;
+      return { ok: true, headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => photoBytes };
+    });
+    const receiving = putPhoto();
+    await ready;
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    release();
+    expect(await receiving).not.toContain('Đã nhận ảnh');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(0);
+    expect(h.db.rows.get(SESSION_PATH).assistState).toBe('name');
+  });
+
+  it('A2 — đổi từ phiên nộp hộ có ảnh sang chấm thường không xóa ảnh', async () => {
+    seedAssistClass();
+    await startAssist();
+    await assistOpenReply(BOT, USER, 'c1', 's1', 1);
+    await putPhoto();
+    const reply = await openPhotoSession(BOT, USER, { studentId: 's1', classId: 'c1', teacherId: 'gv1' }, { id: 'a1', title: 'BTVN tuần 5' });
+    expect(reply).toContain('1 ảnh chưa gửi xong');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    expect(h.db.rows.get(SESSION_PATH).assist.targetStudentId).toBe('s3');
+  });
+
+  it('A2 — ảnh tải chậm từ phiên đã hủy không ghép vào phiên mở lại cùng bài', async () => {
+    seedAssistClass();
+    await openSessionForA1();
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    fetchMock.mockImplementationOnce(async () => {
+      started();
+      await resume;
+      return { ok: true, headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => photoBytes };
+    });
+    const receiving = putPhoto();
+    await ready;
+    await cancelPhotoSession(BOT, USER);
+    await openSessionForA1();
+    release();
+    expect(await receiving).not.toContain('Đã nhận ảnh');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(0);
+  });
+
+  it('A2 — callback tên cũ không làm kẹt phiên mới có ảnh', async () => {
+    seedAssistClass();
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    const collection = h.db.collection.bind(h.db);
+    let paused = false;
+    vi.spyOn(h.db, 'collection').mockImplementation((path: string) => {
+      const query = collection(path);
+      if (path === 'classes/c1/students' && !paused) {
+        paused = true;
+        const get = query.get;
+        query.get = async () => { started(); await resume; return get(); };
+      }
+      return query;
+    });
+    const naming = assistTargetReply(BOT, USER, 'c1', 'cuong dep');
+    await ready;
+    await cancelPhotoSession(BOT, USER);
+    await openSessionForA1();
+    expect(await putPhoto()).toContain('Đã nhận ảnh 1/3');
+    const reopened = structuredClone(h.db.rows.get(SESSION_PATH));
+    release();
+    await naming;
+    expect(h.db.rows.get(SESSION_PATH)).toEqual(reopened);
+    expect(await finishPhotoSession(BOT, USER)).toContain('Đã nhận bài');
+    await (globalThis as any).__photoBg();
+    const submission = [...h.db.rows.entries()].find(([path]) => path.startsWith('submissions/'))![1];
+    expect(submission.studentId).toBe('s1');
+    expect(submission.fileUrls).toEqual(reopened.photos.map((photo: any) => photo.url));
+  });
+
+  it('A2 — callback mở bài cũ không đè phiên nộp hộ bạn khác chưa có ảnh', async () => {
+    seedAssistClass();
+    h.db.put('classes/c1/students/s4', { name: 'Bảo Châu' });
+    await startAssist();
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const resume = new Promise<void>(resolve => { release = resolve; });
+    const collection = h.db.collection.bind(h.db);
+    let paused = false;
+    vi.spyOn(h.db, 'collection').mockImplementation((path: string) => {
+      const query = collection(path);
+      if (path === 'assignments' && !paused) {
+        paused = true;
+        const get = query.get;
+        query.get = async () => { started(); await resume; return get(); };
+      }
+      return query;
+    });
+    const opening = assistOpenReply(BOT, USER, 'c1', 's1', 1);
+    await ready;
+    await cancelPhotoSession(BOT, USER);
+    await assistStartReply(BOT, USER, 'c1', 's1');
+    await assistTargetReply(BOT, USER, 'c1', 'bao chau');
+    const reopened = structuredClone(h.db.rows.get(SESSION_PATH));
+    expect(reopened.assist.targetStudentId).toBe('s4');
+    expect(reopened.photos).toHaveLength(0);
+    release();
+    expect(await opening).toBe(PHOTO_REPLIES.sessionChanged);
+    expect(h.db.rows.get(SESSION_PATH)).toEqual(reopened);
+    expect([...h.db.rows.keys()].filter(path => path.startsWith('submissions/'))).toHaveLength(0);
+  });
 });

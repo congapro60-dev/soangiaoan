@@ -125,6 +125,20 @@
 
 ## Commits (nhánh feat/assistant-ph-hs-zalo)
 
+### Review A1–A3 đúng nhánh preview/zalo-live-test (27/10)
+
+- Bản staged đã commit `2989e1b`; gate gốc: photo 39 + bot 72 = 111/111, tsc 2 config exit 0.
+- A1: doc quota chung (kể cả chưa tồn tại) tạo xung đột transaction để retry; query rỗng riêng lẻ
+  không phải bằng chứng. Sửa chặn cả bài đã graded/error, khớp danh sách bài chờ nộp.
+- A2: đọc/giữ ảnh khi thay phiên và khi `xong` trong transaction; mã phiên riêng chặn ảnh tải chậm,
+  callback tên/chọn và cleanup phiên cũ can thiệp phiên mới. Luồng chưa có ảnh vẫn làm lại được.
+- A3: câu chặn trùng nêu rõ `tài khoản của <Tên>`; tin hoàn tất/tin điểm vẫn dẫn đúng tài khoản.
+- Thêm 10 regression tests: photo 49 + bot 72 = 121/121 PASS. Mở phiên nộp hộ cũng kiểm mã phiên
+  kỳ vọng để callback mở bài cũ không hồi sinh người nhận cũ sau khi hủy/chọn bạn khác.
+- API TypeScript exit 0; đang hoàn tất app TypeScript/build và gate sau commit sửa.
+- Kiểm bằng FakeDb và mock Storage/AI/Zalo; chưa chạy Firestore emulator hoặc Zalo thật.
+  Không push/deploy; trạng thái deploy ghi bên dưới là lịch sử, chưa xác minh trong phiên QA này.
+
 - `121eb17` feat: chat AI PH (glm-5.3-flash qua Vilao)
 - `ad35cdd` fix: xử lý reasoning model
 - `b2cd474` chore: gỡ log chẩn đoán

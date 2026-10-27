@@ -32,7 +32,14 @@
 - [x] 9. QA fix A1–A3 (27/10): A1 dời check nộp trùng + quota vào transaction; A2 chặn `nộp hộ` đè
       phiên thường đang có ảnh; A3 wording "nhắn 2" dẫn nhầm người nộp hộ. Photo tests 39/39
       (34 cũ + 5 mới), bot 72/72, tsc 0 lỗi 2 config, build pass.
-- [ ] 10. Commit + deploy lại preview + alias `zalo-test` trước giờ HS test.
+- [x] 10. Commit bản staged A1–A3: `2989e1b`; gate gốc 111/111, tsc 2 config exit 0.
+- [x] 11. Review độc lập đúng `preview/zalo-live-test`: phát hiện phiên cũ nộp trùng sau graded/error,
+      race thay phiên/nhận ảnh/xong và callback tên cũ làm kẹt phiên mới. Sửa transaction + mã phiên;
+      câu chặn trùng dẫn rõ `tài khoản của <Tên>`; thêm 10 regression tests.
+- [x] 12. Gate test cuối: 121/121 (photo 49 + bot 72).
+- [x] 13. Chốt sửa A1–A3 trong một commit bổ sung, chỉ 4 file thuộc scope.
+- Gate sau commit: chạy lại 2 file Vitest + tsc 2 config; kết quả báo cuối phiên. Build kiểm bổ sung.
+- [ ] Deploy preview + alias `zalo-test`: do máy chủ dự án xử lý riêng; phiên QA này KHÔNG push/deploy.
 
 ## Ngoài phạm vi
 - PH nộp thay; thông báo chủ động cho em được nộp hộ (Zalo OA không chủ động nhắn được);

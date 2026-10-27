@@ -32,6 +32,8 @@ const GRADE_MARGIN_MS = 10_000;
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 export interface PhotoSessionData {
+  /** Phiên lưu trước bản sửa chưa có mã; mọi phiên mới đều có mã riêng. */
+  sessionKey?: string;
   botId: string;
   userId: string;
   studentId: string;
@@ -54,6 +56,7 @@ export const PHOTO_REPLIES = {
   max: `Đã đủ ${MAX_PHOTOS} ảnh — nhắn xong để máy chấm nhé.\n\n` + MENU_HINT,
   badImage: 'Không nhận được ảnh này (quá lớn hoặc sai định dạng). Em gửi lại ảnh khác nhé.\n\n' + MENU_HINT,
   assistIncomplete: 'Chưa chọn xong bạn và bài để nộp hộ nên chưa nhận ảnh. Nhắn nộp hộ để làm lại, hoặc 0 để hủy.\n\n' + MENU_HINT,
+  sessionChanged: 'Phiên nộp bài đã thay đổi. Em tiếp tục phiên hiện tại rồi gửi lại lệnh nhé.\n\n' + MENU_HINT,
 } as const;
 
 export type PhotoCommand =
@@ -133,32 +136,55 @@ const nameMatches = (fullName: string, input: string): boolean => {
  */
 const assistAskName = ['Muốn nộp hộ bạn nào? Gõ tên bạn trong lớp (ví dụ: Minh Anh).', 'Đổi ý: nhắn 0 để hủy.', '', MENU_HINT].join('\n');
 
-/** Bước đầu luồng nộp hộ: ghi pre-session chờ tên bạn. Phiên nộp thường đang CÓ ảnh thì chặn — đè phiên là mất ảnh im lặng; phiên assist dở hoặc chưa có ảnh thì đè vô hại (đường "nhắn nộp hộ để làm lại"). */
+/** Giữ ảnh đã nhận; chỉ thay phiên chưa có ảnh để vẫn hồi phục được luồng nộp hộ. */
+const unfinishedPhotos = (session: PhotoSessionData): string | null =>
+  session.expiresAt > Date.now() && session.photos.length > 0
+    ? [`Em đang nộp bài "${session.assignmentTitle}" với ${session.photos.length} ảnh chưa gửi xong.`,
+      'Nhắn: xong để máy chấm, hoặc 0 để hủy rồi chọn bài khác nhé.', '', MENU_HINT].join('\n')
+    : null;
+
+/** Bước đầu luồng nộp hộ: ghi pre-session chờ tên bạn, không đè ảnh đã nhận. */
 export const assistStartReply = async (botId: string, userId: string, classId: string, studentId: string): Promise<string> => {
-  const current = await liveSession(botId, userId);
-  if (current && !current.data.assistState && current.data.photos.length > 0) {
-    return [`Em đang nộp bài "${current.data.assignmentTitle}" với ${current.data.photos.length} ảnh chưa gửi xong.`,
-      'Nhắn: xong để máy chấm, hoặc 0 để hủy rồi mới nộp hộ được nhé.', '', MENU_HINT].join('\n');
-  }
-  await db().collection(SESSIONS).doc(sessionId(botId, userId)).set({
-    botId, userId, studentId, classId, teacherId: '', assignmentId: '', assignmentTitle: '',
-    expiresAt: Date.now() + SESSION_MS, photos: [], assistState: 'name',
-  } satisfies PhotoSessionData);
-  return assistAskName;
+  const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
+  return db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    const blocked = current && unfinishedPhotos(current);
+    if (blocked) return blocked;
+    tx.set(ref, {
+      sessionKey: randomUUID(),
+      botId, userId, studentId, classId, teacherId: '', assignmentId: '', assignmentTitle: '',
+      expiresAt: Date.now() + SESSION_MS, photos: [], assistState: 'name',
+    } satisfies PhotoSessionData);
+    return assistAskName;
+  });
+};
+
+/** Callback tên/chọn cũ không được đổi hoặc xóa phiên đã thay thế. */
+const changePreSession = async (
+  session: { id: string; data: PhotoSessionData }, patch: Partial<PhotoSessionData> | null,
+): Promise<boolean> => {
+  const ref = db().collection(SESSIONS).doc(session.id);
+  return db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    if (!current || current.expiresAt <= Date.now() || current.sessionKey !== session.data.sessionKey
+      || !current.assistState || current.assistState !== session.data.assistState || current.photos.length) return false;
+    if (patch) tx.update(ref, patch);
+    else tx.delete(ref);
+    return true;
+  });
 };
 
 /** Liệt kê bài chờ nộp CỦA BẠN ĐƯỢC NỘP HỘ và lưu target vào pre-session (chờ `nộp hộ <số>`). */
 const saveTargetAndList = async (
-  botId: string, userId: string, classId: string,
-  target: { id: string; name: string }, docId?: string,
+  classId: string, target: { id: string; name: string }, session: { id: string; data: PhotoSessionData },
 ): Promise<string> => {
   const { items } = await pendingAssignmentsForStudent(classId, target.id);
   if (!items.length) {
-    await cancelPhotoSession(botId, userId);
+    if (!await changePreSession(session, null)) return PHOTO_REPLIES.sessionChanged;
     return [`Bạn ${target.name} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
   }
-  await db().collection(SESSIONS).doc(docId ?? sessionId(botId, userId))
-    .update({ assistState: 'list', assist: { targetStudentId: target.id, targetName: target.name }, targetCandidates: [], expiresAt: Date.now() + SESSION_MS });
+  if (!await changePreSession(session, { assistState: 'list', assist: { targetStudentId: target.id, targetName: target.name },
+    targetCandidates: [], expiresAt: Date.now() + SESSION_MS })) return PHOTO_REPLIES.sessionChanged;
   const lines = items.map((item, index) => {
     const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
     return `${index + 1}. ${item.title}${due}`;
@@ -180,11 +206,11 @@ export const assistTargetReply = async (botId: string, userId: string, classId: 
   if (matches.length > 5) return ['Tên này khớp nhiều bạn trong lớp. Gõ ĐỦ họ và tên giúp mình nhé.', '', MENU_HINT].join('\n');
   if (!matches.length) return ['Chưa thấy bạn nào tên này trong lớp. Em gõ lại ĐỦ họ và tên giúp mình nhé.', '', MENU_HINT].join('\n');
   if (matches.length > 1) {
-    await db().collection(SESSIONS).doc(session.id)
-      .update({ assistState: 'pick', targetCandidates: matches, expiresAt: Date.now() + SESSION_MS });
+    if (!await changePreSession(session, { assistState: 'pick', targetCandidates: matches,
+      expiresAt: Date.now() + SESSION_MS })) return PHOTO_REPLIES.sessionChanged;
     return [`Có ${matches.length} bạn khớp tên này:`, ...matches.map((stu, i) => `${i + 1}. ${stu.name}`), '', 'Nhắn: chọn <số> (ví dụ: chọn 2).', '', MENU_HINT].join('\n');
   }
-  return saveTargetAndList(botId, userId, classId, matches[0], session.id);
+  return saveTargetAndList(classId, matches[0], session);
 };
 
 /**
@@ -210,7 +236,7 @@ export const assistChooseReply = async (botId: string, userId: string, classId: 
   }
   const target = n >= 1 && n <= candidates.length ? candidates[n - 1] : null;
   if (!target) return ['Số không khớp danh sách tên.', '', MENU_HINT].join('\n');
-  return saveTargetAndList(botId, userId, classId, target, session.id);
+  return saveTargetAndList(classId, target, session);
 };
 
 /** `nộp hộ <số>` — chọn bài trong danh sách của bạn được nộp hộ rồi mở phiên nhận ảnh như thường. */
@@ -222,23 +248,25 @@ export const assistOpenReply = async (botId: string, userId: string, classId: st
   }
   const { teacherId, items } = await pendingAssignmentsForStudent(classId, assist.targetStudentId);
   if (!items.length) {
-    await cancelPhotoSession(botId, userId);
+    if (!await changePreSession(session, null)) return PHOTO_REPLIES.sessionChanged;
     return [`Bạn ${assist.targetName} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
   }
   const target = n >= 1 && n <= items.length ? items[n - 1] : null;
   if (!target) return [`Số không khớp danh sách bài của ${assist.targetName}.`, '', MENU_HINT].join('\n');
-  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target, assist);
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target, assist, session.data);
 };
 
-/** Mở phiên nhận ảnh cho 1 bài — phiên mới đè phiên cũ (1 em chỉ có 1 phiên tại một thời điểm). Nộp hộ thì kèm target. */
+/** Mở phiên nhận ảnh cho 1 bài, chỉ thay phiên chưa có ảnh. Nộp hộ thì kèm target. */
 export const openPhotoSession = async (
   botId: string,
   userId: string,
   ctx: { studentId: string; classId: string; teacherId: string },
   assignment: { id: string; title: string },
   assist?: { targetStudentId: string; targetName: string },
+  expected?: PhotoSessionData,
 ): Promise<string> => {
   const session: PhotoSessionData = {
+    sessionKey: randomUUID(),
     botId, userId,
     studentId: ctx.studentId, classId: ctx.classId, teacherId: ctx.teacherId,
     assignmentId: assignment.id, assignmentTitle: assignment.title,
@@ -246,7 +274,19 @@ export const openPhotoSession = async (
     photos: [],
     ...(assist ? { assist } : {}),
   };
-  await db().collection(SESSIONS).doc(sessionId(botId, userId)).set(session);
+  const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
+  const blocked = await db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    if (expected && (!current || current.expiresAt <= Date.now() || current.sessionKey !== expected.sessionKey
+      || current.assistState !== expected.assistState || current.assist?.targetStudentId !== expected.assist?.targetStudentId)) {
+      return PHOTO_REPLIES.sessionChanged;
+    }
+    const warning = current && unfinishedPhotos(current);
+    if (warning) return warning;
+    tx.set(ref, session);
+    return null;
+  });
+  if (blocked) return blocked;
   return [`Bài: ${session.assignmentTitle}${assist ? ` — nộp hộ bạn ${assist.targetName}` : ''}`,
     `Em gửi ảnh bài làm nhé — tối đa ${MAX_PHOTOS} ảnh, trong 10 phút.`,
     'Gửi xong nhắn: xong để máy chấm.',
@@ -255,8 +295,13 @@ export const openPhotoSession = async (
 };
 
 /** Nhắn 0 (xem lại menu) → hủy phiên ảnh đang mở nếu có. Không có phiên thì vô hại. */
-export const cancelPhotoSession = async (botId: string, userId: string): Promise<void> => {
-  await db().collection(SESSIONS).doc(sessionId(botId, userId)).delete().catch(() => undefined);
+export const cancelPhotoSession = async (botId: string, userId: string, expected?: PhotoSessionData): Promise<void> => {
+  const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
+  if (!expected) { await ref.delete().catch(() => undefined); return; }
+  await db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    if (current && current.sessionKey === expected.sessionKey && current.assignmentId === expected.assignmentId) tx.delete(ref);
+  });
 };
 
 const liveSession = async (botId: string, userId: string): Promise<{ id: string; data: PhotoSessionData } | null> => {
@@ -299,11 +344,22 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
   await file.save(buffer, { contentType: mimeType, resumable: false });
   await file.setMetadata({ contentType: mimeType, metadata: { firebaseStorageDownloadTokens: token } });
   const url = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
-  const photos = [...session.data.photos, { url, name: `zalo-${String(session.data.photos.length + 1).padStart(2, '0')}.${mimeType.split('/')[1] || 'jpg'}`, mimeType, size: buffer.byteLength }];
-  await db().collection(SESSIONS).doc(session.id).update({ photos, expiresAt: Date.now() + SESSION_MS });
-  return [`Đã nhận ảnh ${photos.length}/${MAX_PHOTOS}.`,
-    photos.length >= MAX_PHOTOS ? 'Nhắn: xong để máy chấm.' : 'Gửi tiếp hoặc nhắn: xong để máy chấm.',
-    '', MENU_HINT].join('\n');
+  const ref = db().collection(SESSIONS).doc(session.id);
+  return db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    if (!current || current.expiresAt <= Date.now()) return PHOTO_REPLIES.noSession;
+    if (current.sessionKey !== session.data.sessionKey || current.assistState || current.assignmentId !== session.data.assignmentId
+      || current.classId !== session.data.classId || current.studentId !== session.data.studentId
+      || current.assist?.targetStudentId !== session.data.assist?.targetStudentId) {
+      return ['Phiên nộp bài đã thay đổi trong lúc tải ảnh. Em chọn đúng bài rồi gửi lại ảnh nhé.', '', MENU_HINT].join('\n');
+    }
+    if (current.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
+    const photos = [...current.photos, { url, name: `zalo-${String(current.photos.length + 1).padStart(2, '0')}.${mimeType.split('/')[1] || 'jpg'}`, mimeType, size: buffer.byteLength }];
+    tx.update(ref, { photos, expiresAt: Date.now() + SESSION_MS });
+    return [`Đã nhận ảnh ${photos.length}/${MAX_PHOTOS}.`,
+      photos.length >= MAX_PHOTOS ? 'Nhắn: xong để máy chấm.' : 'Gửi tiếp hoặc nhắn: xong để máy chấm.',
+      '', MENU_HINT].join('\n');
+  });
 };
 
 /**
@@ -328,7 +384,7 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     || a.type === 'exam' || a.deliveryMode === 'online' || a.submissionLocked === true
     || (Array.isArray(a.targetStudentIds) && a.targetStudentIds.length && !a.targetStudentIds.includes(targetId));
   if (hong) {
-    await cancelPhotoSession(botId, userId);
+    await cancelPhotoSession(botId, userId, s);
     return ['Bài này đã đổi hoặc không còn nhận nộp. Nhắn 8 để chọn bài khác.', '', MENU_HINT].join('\n');
   }
 
@@ -346,8 +402,6 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     id: submissionId,
     teacherId: s.teacherId, classId: s.classId, studentId: targetId,
     assignmentId: s.assignmentId,
-    fileUrls: s.photos.map(photo => photo.url),
-    attachments: s.photos.map(photo => ({ name: photo.name, url: photo.url, mimeType: photo.mimeType, size: photo.size, kind: 'image' as const })),
     textContent: '',
     note: '',
     status: 'submitted',
@@ -358,42 +412,57 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   };
   // A1 (2026-10-27): chặn nộp trùng + đọc/trừ hạn mức ĐỀU TRONG transaction — 2 HS nộp hộ cùng
   // một bạn cùng lúc thì tx sau bị Firestore đẩy retry (cả hai cùng đọc doc quota, dù doc chưa
-  // tồn tại), đọc lại thấy bài đã nộp → chặn. Không bao giờ tạo trùng submission hay trừ lệch
-  // hạn mức — cùng ngữ án `reserveQuota` của luồng web.
+  // tồn tại), đọc lại thấy bài đã nộp → chặn cả khi bài đã chấm/lỗi. Đọc phiên trong cùng tx
+  // để giữ mọi ảnh đã nhận và không xóa phiên mở lại — cùng ngữ án `reserveQuota` của luồng web.
   const quotaRef = db().collection('gradingQuota').doc(s.teacherId);
+  const sessionRef = db().collection(SESSIONS).doc(session.id);
   const outcome = await db().runTransaction(async tx => {
+    const current = (await tx.get(sessionRef)).data() as PhotoSessionData | undefined;
+    if (!current || current.expiresAt <= Date.now() || current.sessionKey !== s.sessionKey
+      || current.assistState || current.assignmentId !== s.assignmentId
+      || current.studentId !== s.studentId || current.classId !== s.classId
+      || current.assist?.targetStudentId !== s.assist?.targetStudentId) return { kind: 'changed' as const };
     const pending = await tx.get(db().collection('submissions')
       .where('studentId', '==', targetId).where('assignmentId', '==', s.assignmentId));
-    const choCham = pending.docs.map(doc => doc.data() as SubmissionDoc)
-      .find(item => item.status === 'submitted' || item.status === 'grading');
-    if (choCham) return { kind: 'duplicate' as const };
+    if (!pending.empty) {
+      tx.delete(sessionRef);
+      return { kind: 'duplicate' as const,
+        pending: pending.docs.some(doc => ['submitted', 'grading'].includes((doc.data() as SubmissionDoc).status)) };
+    }
     const quotaSnap = await tx.get(quotaRef);
     const quota = rollQuota(quotaSnap.exists ? (quotaSnap.data() as Partial<QuotaDoc>) : null, today());
     const verdict = remainingQuota(quota, 'self', targetId);
-    if (verdict.allowed <= 0) return { kind: 'quota' as const, reason: verdict.reason };
-    tx.create(db().collection('submissions').doc(submissionId), submission);
-    tx.delete(db().collection(SESSIONS).doc(session.id));
+    if (verdict.allowed <= 0) {
+      tx.delete(sessionRef);
+      return { kind: 'quota' as const, reason: verdict.reason };
+    }
+    tx.create(db().collection('submissions').doc(submissionId), {
+      ...submission,
+      fileUrls: current.photos.map(photo => photo.url),
+      attachments: current.photos.map(photo => ({ ...photo, kind: 'image' as const })),
+    });
+    tx.delete(sessionRef);
     tx.set(quotaRef, bumpQuota(quota, 'self', targetId, 1));
-    return { kind: 'ok' as const };
+    return { kind: 'ok' as const, session: current };
   });
+  if (outcome.kind === 'changed') return PHOTO_REPLIES.sessionChanged;
   if (outcome.kind === 'duplicate') {
-    await cancelPhotoSession(botId, userId);
     // A3: người nộp hộ không xem tiến độ của bạn qua mục 2 — dẫn đúng nơi xem.
+    const state = outcome.pending ? 'đang chờ chấm rồi' : 'đã được nộp rồi';
     return [targetName
-      ? `Bài của ${targetName} đang chờ chấm rồi, không nộp trùng. Kết quả sẽ hiện trên tài khoản của bạn ấy.`
-      : 'Bài này đang chờ chấm rồi, không nộp trùng. Nhắn 2 để xem tiến độ.', '', MENU_HINT].join('\n');
+      ? `Bài của ${targetName} ${state}, không nộp trùng. Kết quả sẽ hiện trên tài khoản của ${targetName}.`
+      : `Bài này ${state}, không nộp trùng. Nhắn 2 để xem tiến độ.`, '', MENU_HINT].join('\n');
   }
   if (outcome.kind === 'quota') {
-    await cancelPhotoSession(botId, userId);
     return [outcome.reason, '', MENU_HINT].join('\n');
   }
 
   const token = String(process.env.ZALO_BOT_TOKEN || '');
   const chatId = userId;
-  chayNgam(gradeAndNotify(token, chatId, submissionId, s));
+  chayNgam(gradeAndNotify(token, chatId, submissionId, outcome.session));
   // A3 (2026-10-27): người nộp hộ nhắn 2 chỉ xem được bài của CHÍNH EM — kết quả của bạn nằm
   // trên tài khoản của bạn ấy, đừng dẫn nhầm.
-  return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${s.photos.length} ảnh).`,
+  return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,
     targetName
       ? `Máy đang chấm; điểm sẽ hiện trên tài khoản của ${targetName} (mục 2 chỉ hiện bài của chính em).`
       : 'Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả.',
