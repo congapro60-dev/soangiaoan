@@ -31,4 +31,18 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
     expect(metadata?.title).toBe(title);
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe(key);
   });
+
+  it('11-11-78 chạy timeline Gate D riêng (thầy duyệt 1-2-3-5-3-1-7-3-5-8-2 phút)', () => {
+    const spans = getBanToanV4Contract('11-11-78').timeline.map((b) => [b.startSeconds, b.endSeconds]);
+    expect(spans).toEqual([
+      [0, 60], [60, 180], [180, 300], [300, 600], [600, 780], [780, 840],
+      [840, 1260], [1260, 1440], [1440, 1740], [1740, 2220], [2220, 2400],
+    ]);
+  });
+
+  it('bài không khai báo timelineKey giữ TIMELINE chung (10-11-80 chặng 5 = 960–1140)', () => {
+    const t = getBanToanV4Contract('10-11-80').timeline;
+    expect(t[4].startSeconds).toBe(960);
+    expect(t[4].endSeconds).toBe(1140);
+  });
 });

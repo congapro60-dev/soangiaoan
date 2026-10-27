@@ -8,7 +8,7 @@
       "tasks/giaoan-goc-11-11-76.md": "ef17b88aa9ce755bba236156fedefdbea9319085c13d9e09ac89aaa4ddd3814a",
       "tasks/giaoan-goc-11-11-78.md": "175b65bfe400207ea19f4def9a69adb3e5e15c3577d99d21ce2cdff86089cd21"
     },
-    "fingerprint": "f10723f40e93a1d6f82fbcb04fe1144eb6a3c0cdf21e48a09b8894e90eb774fa"
+    "fingerprint": "54d92529bc0c133464fdc5b2c6a60fc74880d85ec7b481a437e5d920b8983c6f"
   },
   "lessonSpecs": [
     {
@@ -274,6 +274,7 @@
         "Áp thẳng Thales phẳng cho hai cát tuyến chéo nhau trong không gian — phải dựng cát tuyến phụ song song để đưa về một tam giác phẳng (S6).",
         "Lập tỉ số Thales không gian khi chưa kiểm tra giả thiết các mặt phẳng song song — thiếu $(\\alpha) \\parallel (\\beta)$ thì mọi tỉ số vô nghĩa."
       ],
+      "timelineKey": "gateD78",
       "boardKnowledge": [
         "II. NỘI DUNG",
         "1. Ôn nền — Thales phẳng (2 họ tỉ số, ghi tách dòng)",

@@ -1,7 +1,7 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
 ## Goal hiện tại
-Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 Pha B** (`11-11-78`, phiên này). Còn R4–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA) và QA Production B7–B8 của R3.
+Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn** (`11-11-78`, QA A–F ĐẠT + fix1 timeline Gate D). Còn R4–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
 - Gate D ĐÃ DUYỆT (thầy, 26/10): `tasks/gate-d-11-11-76.md` — nguồn nội dung duy nhất, KHÔNG sửa.
@@ -24,20 +24,25 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 ## Recipe fingerprint batch2 (quyết thầy 26/10)
 1. Điền `source.files` giá trị cuối (sha256 từng file giáo án; hiện: `tasks/giaoan-goc-10-11-80.md` = `82195f3e…d9de9`, `tasks/giaoan-goc-11-11-76.md` = `ef17b88a…`, `tasks/giaoan-goc-11-11-78.md` = `175b65bf…`).
 2. Đặt `"fingerprint": ""`, băm sha256 hex TOÀN BỘ bytes file snapshot ở trạng thái đó.
-3. Điền kết quả. Giá trị sau R3 (27/10): `f10723f40e93a1d6f82fbcb04fe1144eb6a3c0cdf21e48a09b8894e90eb774fa` (hex-64, thoả `validateContract.ts:230`; trước đó R2+fix ký hiệu: `36c18d6d…`).
+3. Điền kết quả. Giá trị sau R3·fix1 (27/10, thêm `timelineKey` vào spec 78): `54d92529bc0c133464fdc5b2c6a60fc74880d85ec7b481a437e5d920b8983c6f` (hex-64; trước đó R3: `f10723f4…`, R2+fix ký hiệu: `36c18d6d…`).
 4. Script tái lập: `tasks/tmp-hash-batch2.mjs` — **đa file, idempotent** (normalize JSON.stringify; chạy lại ra đúng fingerprint cũ). Vòng sau chỉ thêm file giáo án vào files map rồi chạy script.
 
 ## Test (vitest)
-- v4 (`src/lib/liveLesson/v4`): 27 file / **272 tests PASS** (baseline R2: 269; +3 it.each R3). `npm run build` 0 TS error (✓ built 1m6s).
+- v4 (`src/lib/liveLesson/v4`): 27 file / **274 tests PASS** (baseline R2: 269; +3 it.each R3; +2 test timeline fix1). `npm run build` 0 TS error.
 - Full `npm run test`: 4 fail CÓ SẴN pre-existing tại HEAD R1 (`src/lib/lessonCompiler/v832/contractData.test.ts` + `goldenCandidates.test.ts` — lệch hash byte fixture v8.3.2; đã xác minh từ R2). KHÔNG do batch2 — chuẩn mỗi vòng là vitest `src/lib/liveLesson/v4`.
 - Pin đếm số: `MAIN_PIN = 51` + `TOTAL_MERGED = 51 + W11BATCH2.length` (giữ nguyên từ R1, tự nảy theo mảng). Vòng sau (R4 `11-11-79` practice): thêm 1 entry `W11BATCH2` + 1 key `INTERACTIVE_SOURCE_KEYS` + mảng exact-keys 6→7 mã (alphabet) + đổi tên test số 6→7 (`week11Catalog.test.ts` / `interactiveUpgrade.test.ts`).
 - Quick pin mới: 2 hoặc 3 câu (R3) — bài practice có thể khác, đọc Gate D trước khi thêm entry.
 - Chapter: `adaptiveDraft.ts` dùng `source.week === 11 ? 'Ban Toán · W11' : 'Ban Toán · W5–W6'`.
 
+## R3·fix1 — Timeline Gate D per-lesson (thầy chốt phương án b, 27/10)
+- **Vấn đề**: Gate D 78 chốt dải S0–S10 = 0–60–180–300–600–780–840–1260–1440–1740–2220–2400 (1-2-3-5-3-1-7-3-5-8-2 phút) nhưng runtime dùng `TIMELINE` cứng chung (chặng 5 = 16–19 phút). Gate D 76/80 viết đúng template nên chỉ bài 78 vấp.
+- **Fix**: `SourceLessonSpec.timelineKey?: string` (`lessonAdapter.ts`) + `TIMELINE_BY_KEY` (`gateD78` — nhãn P = phút bắt đầu: P00/P01/P03/P05/P10/P13/P14/P21/P24/P29/P37); `buildTimeline` ưu tiên override → V72 → TIMELINE chung. Spec 78 thêm `"timelineKey": "gateD78"`. Fingerprint mới `54d92529…83c6f` (recipe chạy lại).
+- **Precedent R4–R7**: bài nào Gate D chốt dải phút khác template → thêm key mới vào `TIMELINE_BY_KEY` + khai báo `timelineKey` trong spec; không đụng TIMELINE chung.
+
 ## Việc kế tiếp
-1. B7 — publish bài `11-11-78` trên Production: tab `/adaptive-lessons` nút "Tạo và xuất bản" (GV Edge 9222 điều khiển CDP thô — Puppeteer page-level fail trên Edge 156, xem lessons.md). Nếu cần republish: tái dùng `tasks/tmp-r2-fix1-delete.cjs` / `tmp-r2-fix1-publish.cjs`; bấm "Xóa" cần `page.on('dialog', d => d.accept())` TRƯỚC click.
-2. B8 — QA A–F Production: append vào `tasks/qa-w11-batch2-acceptance.md` (GIỮ UNTRACKED). Lớp g11 `class-1787188523562` / joinCode `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`); check HS join = field value không phải innerText.
-3. B9 — DỪNG, tổng kết vòng R3, báo thầy trước khi sang R4 (`11-11-79` — Tiết 3, kind practice).
+1. fix1 — commit + push + republish bài `11-11-78` (Xóa → publish lại, lessonId giữ nguyên; dialog accept trước khi bấm Xóa).
+2. fix1 — re-QA timeline trên Production: chặng 5 phải "Chặng 10–13 phút"; smoke S4 AI-error + Sau disabled; append acceptance R3·fix1.
+3. R4 — `11-11-79` (g11, "Hai mặt phẳng song song — Tiết 3", kind khả năng `practice`): Pha A Gate P+D theo plan → thầy duyệt → Pha B. Lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`).
 
 ## Ràng buộc
 - KHÔNG sửa: file Gate D, giáo án gốc, MAIN snapshot (`banToan-w5-w6.snapshot.json`), `gate-d-3-bai-tuan11.md`, 3 file khuôn.

@@ -49,6 +49,8 @@ interface SourceLessonSpec {
   exercises: SourceExercise[];
   quick: SourceExample[];
   mistakes: string[];
+  /** Override timeline theo Gate D từng bài (thầy duyệt dải phút riêng). Không có → TIMELINE chung. */
+  timelineKey?: string;
   guidingQuestion?: string;
   languageObjective?: string;
   globalCompetency?: string;
@@ -118,6 +120,26 @@ const TIMELINE: ReadonlyArray<readonly [string, number, number, string, string]>
   ['P35', 2100, 2280, 'S9', 'summary'],
   ['P38', 2280, 2400, 'S10', 'exitTicket'],
 ];
+
+// Timeline theo Gate D từng bài — thầy duyệt dải phút riêng (bản ghi nằm trong
+// mục "Kiểm nhanh trước khi nộp" của Gate D). Bài không khai báo timelineKey
+// thì chạy TIMELINE chung phía trên.
+const TIMELINE_BY_KEY: Readonly<Record<string, ReadonlyArray<readonly [string, number, number, string, string]>>> = {
+  // gateD78 — "Hai mặt phẳng song song" (11-11-78): phân bổ 1-2-3-5-3-1-7-3-5-8-2 phút.
+  gateD78: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 180, 'S1', 'guidingQuestion'],
+    ['P03', 180, 300, 'S2', 'goals'],
+    ['P05', 300, 600, 'S3', 'knowledgeCycle'],
+    ['P10', 600, 780, 'S4', 'aiError'],
+    ['P13', 780, 840, 'S5', 'grouping'],
+    ['P14', 840, 1260, 'S6', 'differentiatedPractice'],
+    ['P21', 1260, 1440, 'S7', 'postCheck'],
+    ['P24', 1440, 1740, 'S8', 'quickCheck'],
+    ['P29', 1740, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+};
 
 // V7.2 keeps the lesson at 40 minutes but gives practice its own questions
 // and enough time to move from core work to extension.
@@ -320,7 +342,8 @@ function buildGlossary(spec: SourceLessonSpec): GlossaryItem[] {
 }
 
 function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId: string): TimelineBlock[] {
-  const beats = isV72(spec) ? V72_TIMELINE : TIMELINE;
+  const override = spec.timelineKey ? TIMELINE_BY_KEY[spec.timelineKey] : undefined;
+  const beats = isV72(spec) ? V72_TIMELINE : override ?? TIMELINE;
   return beats.map(([id, startSeconds, endSeconds, tvScreenId, phase]) => {
     const sourcePhase: Record<string, string> = {
       opening: 'Khởi động', prediction: 'Khởi động', goals: 'Xác định mục tiêu',
