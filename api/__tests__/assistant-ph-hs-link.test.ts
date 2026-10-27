@@ -70,8 +70,11 @@ describe('sliding-window guard', () => {
 });
 
 describe('PIN parser', () => {
-  it.each(['ACDF47 1234', 'Nguyen 1234 phu huynh', 'ABC147 1234 phu huynh', 'ACDF47 1234 phu huynh hoc sinh', 'ACDF47 ACDG47 1234 phu huynh', 'ACDF47 1234 5678 hoc sinh'])('rejects ambiguous or invalid %s', message => {
+  it.each(['Nguyen 1234 phu huynh', 'ABC147 1234 phu huynh', 'ACDF47 1234 phu huynh hoc sinh', 'ACDF47 ACDG47 1234 phu huynh', 'ACDF47 1234 5678 hoc sinh'])('rejects ambiguous or invalid %s', message => {
     expect(parsePinLinkMessage(message)).toEqual({ status: 'invalid' });
+  });
+  it('không prefix: PIN 4 số mặc định là học sinh — HS nhắn gọn "<mã lớp> <PIN>"', () => {
+    expect(parsePinLinkMessage('ACDF47 1234')).toEqual({ status: 'ok', joinCode: 'ACDF47', pin: '1234', role: 'student' });
   });
   it.each(['ab9!', 'Áb😀!', 'aB#9'])('preserves parent PIN %s', pin => {
     expect(parsePinLinkMessage(`acdf47 ${pin.normalize('NFD')} phu huynh`)).toEqual({ status: 'ok', joinCode: 'ACDF47', pin, role: 'parent' });
@@ -97,6 +100,13 @@ describe('nghiệp vụ liên kết PIN — T6', () => {
       channelChatId: 'u', role: 'parent', classId: 'c', studentId: 's', active: true,
     });
     expect((f.rows.get('botPinAttempts/b_u')?.attempts as number[]) ?? []).toHaveLength(0);
+  });
+
+  it('HS nhắn gọn "<mã lớp> <PIN>" không prefix → link đúng vai học sinh', async () => {
+    const f = fixture();
+    const out = await linkByPin(f.db, 'b', 'u-hs-gon', 'ACDF47 5678', now);
+    expect(out.status).toBe('linked');
+    expect(f.rows.get(`channelLinks/${out.linkId}`)).toMatchObject({ role: 'student', classId: 'c', studentId: 's', active: true });
   });
 
   it('CA2: link HS thành công cùng lớp → PH và HS giữ 2 link riêng, không đè nhau', async () => {

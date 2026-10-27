@@ -11,6 +11,7 @@ import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
+import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 const MAX_BODY = 16_384;
@@ -35,10 +36,12 @@ type ZaloActor = Awaited<ReturnType<typeof resolveChannelActor>>;
  * Gửi đúng 1 câu hướng dẫn mỗi 5 phút với người chưa liên kết; còn lại im lặng.
  * Lỗi "Ambiguous channel links" nghĩa là người đó ĐÃ liên kết (vd PH có 2 con)
  * — không được coi như người lạ.
+ * GV-1: thử PH/HS TRƯỚC teacher — tài khoản giữ song song vai GV + PH/HS (test) vẫn
+ * thấy menu PH/HS với tin thường; lệnh GV có resolve teacher riêng ở teacherBotReply.
  */
 const resolveAnyActor = async (botId: string, userId: string, chatId: string): Promise<ZaloActor | 'ambiguous' | null> => {
   let ambiguous = false;
-  for (const preferredRole of ['teacher', 'parent', 'student'] as const) {
+  for (const preferredRole of ['parent', 'student', 'teacher'] as const) {
     try { return await resolveChannelActor('zalo_bot' as any, botId, userId, chatId, undefined, { preferredRole }); }
     catch (error) { if (/Ambiguous channel links/i.test((error as Error).message ?? '')) ambiguous = true; /* thử vai kế tiếp */ }
   }
@@ -63,12 +66,16 @@ const chooseAndOpen = async (botId: string, userId: string, classId: string, stu
   if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items)}`;
   return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
 };
-/** Ảnh HS gửi: chỉ HỌC SINH đã liên kết mới đi tiếp. Người lạ / đa hồ sơ im lặng để không spam hướng dẫn. */
+/** Ảnh HS gửi: chỉ HỌC SINH đã liên kết mới đi tiếp. Người lạ vẫn nhận hướng dẫn (guard 1 tin/5 phút chống spam). */
 const dispatchPhotoMessage = async (botId: string, userId: string, chatId: string, photoUrl: string): Promise<string> => {
   const linked = await resolveAnyActor(botId, userId, chatId);
-  if (!linked || linked === 'ambiguous') return '';
+  // HS hay gửi ảnh bài làm trước cả khi liên kết — im lặng khiến bot có vẻ "chết".
+  if (!linked) return (await canReplyToStranger(getAdminDb(), botId, userId)) ? STRANGER_HINT : '';
+  if (linked === 'ambiguous') return '';
   const role = (linked as any).role ?? 'teacher';
-  if (role !== 'student') return 'Gửi ảnh bài làm là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.';
+  if (role !== 'student') return role === 'teacher'
+    ? 'Gửi ảnh bài làm là chức năng của học sinh. Nhắn: gv để xem menu thầy cô.'
+    : 'Gửi ảnh bài làm là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.';
   const classId = String((linked as any).classId ?? ''); const studentId = String((linked as any).studentId ?? '');
   if (!classId || !studentId) return MENU_REPLIES.noData;
   return photoReceivedReply(botId, userId, photoUrl);
@@ -90,7 +97,7 @@ const readBody = async (req: VercelRequest): Promise<string> => {
 async function dispatch(token: string, botId: string, userId: string, chatId: string, message: string): Promise<string> {
   const id = identity(botId, userId);
   const [command, ...args] = message.trim().split(/\s+/);
-  if (command === '/help') return 'Lệnh: /link CODE, /classes, /confirm ID HASH, /cancel ID HASH, /status ID\nPH quên mã PIN: /khoiphuc <mã học sinh> <số điện thoại>';
+  if (command === '/help') return 'Lệnh: /link CODE, /classes, /confirm ID HASH, /cancel ID HASH, /status ID\nPH quên mã PIN: /khoiphuc <mã học sinh> <số điện thoại>\nLệnh thầy cô: gv (menu), lop, chua nop, web';
   if (command === '/link') {
     if (!args[0]) return 'Cần mã liên kết.';
     await consumeLinkCode(args[0], id as any);
@@ -125,6 +132,10 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   // Đặt TRƯỚC resolveAnyActor để lệnh chạy được bất kể người gửi đang ở vai nào.
   const plain = message.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/\s+/g, ' ').trim().toLowerCase();
   if (plain === 'doi vai' && dualRoleAllowed(userId)) return (await switchBotRole(getAdminDb(), botId, userId)).reply;
+  // GV-1 — lệnh thầy cô (gv/lop/chua nop/web): resolve link teacher riêng nên tài khoản test
+  // giữ song song vai GV + PH/HS vẫn dùng được; ai không có link teacher nhận câu chặn.
+  const teacherReply = await teacherBotReply(getAdminDb(), botId, userId, chatId, token, message);
+  if (teacherReply !== null) return teacherReply;
   const linked = await resolveAnyActor(botId, userId, chatId);
   if (!linked) {
     if (!(await canReplyToStranger(getAdminDb(), botId, userId))) return '';
@@ -196,7 +207,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const token = text(process.env.ZALO_BOT_TOKEN); const botId = text(process.env.ZALO_BOT_ID);
   const allowedBots = set(process.env.ZALO_BOT_ALLOWED_IDS); const allowedUsers = set(process.env.ZALO_BOT_ALLOWED_USER_IDS);
   const configuredSecret = text(process.env.ZALO_BOT_WEBHOOK_SECRET);
-  if (!token || !botId || !allowedBots.has(botId) || !configuredSecret) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  if (!token || !botId || !allowedBots.has(botId) || !configuredSecret) { console.error(`[zalo-bot] env check failed: missing=${!token ? 'token ' : ''}${!botId ? 'botId ' : ''}${!allowedBots.has(botId) ? 'allowedBots ' : ''}${!configuredSecret ? 'secret' : ''}`.trimEnd()); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   const providedSecret = h(req.headers['x-bot-api-secret-token']);
   if (!secretEqual(providedSecret, configuredSecret)) { res.status(401).json({ kind: 'error', code: 'UNAUTHORIZED' }); return true; }
   let raw = '';
@@ -228,7 +239,11 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
     : '';
   const isTextEvent = eventName === 'message.text.received';
   const isImageEvent = eventName === 'message.image.received';
-  if ((!isTextEvent && !isImageEvent) || !m || m.from?.is_bot !== false
+  // Sticker/voice/unsupported: event hợp lệ theo docs Zalo Bot nhưng không có nội dung lệnh —
+  // chấp nhận để không 400 (bot bị coi "im lặng" trước đây), chỉ trả lời hướng dẫn.
+  const isOtherEvent = eventName === 'message.sticker.received'
+    || eventName === 'message.voice.received' || eventName === 'message.unsupported.received';
+  if ((!isTextEvent && !isImageEvent && !isOtherEvent) || !m || m.from?.is_bot !== false
     || text(m?.chat?.chat_type) !== 'PRIVATE' || fromId !== chatId
     || !msgId || !Number.isInteger(msgDate) || msgDate < 1e12
     || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000
@@ -239,7 +254,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   }
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
   const meBody = me && await me.json().catch(() => null);
-  if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { console.error(`[zalo-bot] getMe failed: http=${me ? me.status : 'fetch-error'} apiOk=${meBody?.ok === true} idMatch=${text(meBody?.result?.id) === botId} body=${JSON.stringify(meBody ?? null).slice(0, 300)}`); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   const senderId = fromId;
   const command = msgText.split(/\s+/, 1)[0];
   if (allowedUsers.size && !allowedUsers.has(senderId)) { res.status(200).json({ ok: true }); return true; }
@@ -247,17 +262,33 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
     try { await resolveChannelActor('zalo_bot' as any, botId, senderId, chatId); }
     catch (error) {
       // Ambiguous = người gửi ĐÃ liên kết (vd PH 2 con) — cho vào dispatch xử lý bình thường.
-      if (!/Ambiguous channel links/i.test((error as Error).message ?? '')) { res.status(200).json({ ok: true }); return true; }
+      if (!/Ambiguous channel links/i.test((error as Error).message ?? '')) {
+        // Người lạ nhắn /start hay lệnh gì cũng phải nhận hướng dẫn liên kết (guard 1 tin/5 phút
+        // chống spam), không được im lặng — HS mới bấm vào bot thường gửi /start trước tiên.
+        if (await canReplyToStranger(getAdminDb(), botId, senderId)) await send(token, chatId, STRANGER_HINT);
+        res.status(200).json({ ok: true }); return true;
+      }
     }
   }
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${senderId}:${chatId}:${msgId}`).digest('hex')}`;
-  try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } console.error(`[zalo-bot] nonce claim failed: ${(error instanceof Error ? error.message : 'unknown').slice(0, 200)}`); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
   let reply = 'Tính năng chưa khả dụng.';
   try {
     if (isImageEvent) {
       // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).
       reply = await dispatchPhotoMessage(botId, senderId, chatId, photoUrl);
       if (reply) await sendStyled(token, chatId, reply);
+      res.status(200).json({ ok: true }); return true;
+    }
+    if (isOtherEvent) {
+      // HS bấm vào bot thường gửi sticker/voice trước. Người lạ nhận gợi ý liên kết
+      // (giữ guard 1 tin/5 phút); đã liên kết → hướng dẫn dùng văn bản/ảnh; không chạy dispatch lệnh.
+      const linked = await resolveAnyActor(botId, senderId, chatId);
+      reply = '';
+      if (linked === 'ambiguous') reply = 'Tài khoản đã liên kết nhiều hồ sơ học sinh. Vui lòng liên hệ thầy cô để chọn đúng hồ sơ cần xem.';
+      else if (linked) reply = 'Bot chỉ xử lý tin nhắn văn bản và hình ảnh. Nhắn 0 để xem menu.';
+      else if (await canReplyToStranger(getAdminDb(), botId, senderId)) reply = STRANGER_HINT;
+      if (reply) await send(token, chatId, reply);
       res.status(200).json({ ok: true }); return true;
     }
     reply = await dispatch(token, botId, senderId, chatId, msgText);

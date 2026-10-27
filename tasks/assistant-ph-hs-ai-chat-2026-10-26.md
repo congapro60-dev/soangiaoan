@@ -2,6 +2,24 @@
 
 ## Trạng thái: HOÀN THÀNH, đã test thật 10/10 OK — CHƯA bật cho PH ngoài chủ dự án
 
+## Đã chốt nguyên nhân 503 (27/10 ~16h00) — env trên Vercel bị placeholder `[SANITIZED]`
+
+- Diagnostic getMe trên production log: `http=200 apiOk=false idMatch=false body={"ok":false,"description":"Not Found","error_code":404}`
+  → egress Vercel→Zalo tốt, Zalo trả 404 vì URL `/bot[SANITIZED]/getMe` (token 11 ký tự placeholder).
+- Gốc rễ: **CLI 59.5.0 sanitize MỌI `vercel env pull`** → mọi bản copy env từ `giaoandewey` sang spai
+  (và file `.env.production.local` local) đều là chuỗi `[SANITIZED]` 11 ký tự. Secret-check vẫn pass vì
+  curl test cũng gửi chính giá trị sanitized đó. Biến `sensitive` trên Vercel KHÔNG đọc lại được qua API
+  (GET `?decrypt=true` không trả `value`) — giaoandewey là sensitive → giá trị gốc mất hoàn toàn.
+- Hồi phục spai bằng nguồn local (script `restore-spai-env.mjs`, xoá 22 entry rác + tạo 6 biến thật,
+  target production+preview): `FIREBASE_SERVICE_ACCOUNT_KEY` (từ `.agents/firebase-service-account.json`,
+  project `smartplan-ai-14200`), `ZALO_BOT_TOKEN` (file `zalo_bot_token.txt`, 84 ký tự — getMe 200),
+  `ZALO_BOT_ID` + `ZALO_BOT_ALLOWED_IDS` = bot id, `ZALO_BOT_DUAL_ROLE_USER_IDS` = tài khoản chủ,
+  `ZALO_BOT_WEBHOOK_SECRET` = rotate mới → **phải gọi setWebhook lại** (secret cũ Zalo đang giữ không còn khớp).
+- Mất: các key AI/grading khác (`GEMINI_API_KEY`, `GRADING_*`, `PH_CHAT_VILAO_KEY`…) — không còn nguồn;
+  bot vẫn chạy (menu/link/nộp ảnh OK), nhánh chat tự nhiên rơi vào câu "bận" graceful. Cần user cung cấp lại key nếu muốn bật.
+- Bài học: **không bao giờ push env lấy từ `vercel env pull` về lại Vercel** — kiểm tra độ dài giá trị
+  trước khi upsert; CLI mới làm hỏng env bằng sanitize im lặng.
+
 ## Đã làm
 
 - **Model**: `cnt/glm-5.3-flash` qua Vilao (`https://api.vilao.ai/v1/chat/completions`), chuẩn OpenAI SDK.
@@ -146,14 +164,76 @@
 - `d46ac63` chặn 2 vai + lệnh `đổi vai` (nhánh `preview/zalo-live-test`)
 - `b7f13fc` feat: nộp hộ bạn cùng lớp — gõ tên, badge `assistBy` (nhánh `preview/zalo-live-test`)
 
+## GV-1 — vai thầy cô trên bot, phạm vi CHỈ ĐỌC (27/10, nhánh preview)
+
+- Module mới `api/_assistant-ph-hs-teacher.ts` (KHÔNG thêm serverless function — chỉ module import sẵn):
+  - Menu `gv`: `lop` (lớp + sĩ số), `chua nop` (bài đang mở + đếm đã nộp/chưa nộp), `web` (URL portal thuần).
+  - `notifyTeacherNewSubmission`: push "HS vừa nộp bài" tới mọi bot-link teacher của GV; bỏ qua tài khoản
+    vừa nộp (test dual-role) và link khác zalo_bot; lỗi bỏ qua, không chặn trả lời HS, không log PII.
+- `_assistant-zalo-bot.ts`: chèn khối lệnh GV TRƯỚC `resolveAnyActor` (resolve link teacher riêng nên
+  dual-role dùng được); đổi thứ tự resolve thành PH → HS → teacher để tài khoản test giữ song song
+  vai vẫn thấy menu PH/HS cho tin thường; `/help` thêm dòng lệnh thầy cô; câu trả lời ảnh cho GV.
+- `_assistant-ph-hs-photo.ts`: hook push sau khi nộp thành công (chayNgam, phụ luồng).
+- Luồng liên kết GV KHÔNG cần code: web Cài đặt đã có "Tạo mã liên kết" (mã 1 lần 10 phút) → GV
+  nhắn bot `/link CODE` (nhánh `/link` có sẵn) → link teacher + firebaseUid thật.
+- Test mới `assistant-ph-hs-teacher.test.ts` 11 test (parse lệnh có/không dấu, quyền: không link /
+  chỉ-PH → chặn; lop/chua nop/web; push đúng đích, loại trừ fromUser, fallback tên).
+- Chưa deploy (đợi sau buổi test HS 13h). Chưa có: lệnh ghi nhóm B (duyệt điểm kèm phân tích lỗi),
+  nhóm C chặn qua bot.
+
+## Hạ tầng + vá sticker/voice (27/10 chiều — buổi test HS 11Columbus)
+
+- **Nguyên nhân bot im lặng**: webhook trỏ preview bị Vercel Authentication chặn 401 + project
+  `spai-assistant-ph-hs` rỗng env. Fix: `vercel project protection disable --sso`; copy 8 env từ
+  `giaoandewey` (4 `ZALO_BOT_*` + `FIREBASE_SERVICE_ACCOUNT_KEY` + 2 `GRADING_*` + `GEMINI_API_KEY`)
+  sang cả production + preview (không in secret ra log, file pull đã xoá).
+- **Deploy mới** `spai-assistant-ph-bi6dsxw9t` (build từ working tree, chứa GV-1); alias
+  `zalo-test` đã trỏ sang. E2E `webhook.test` → 401 đúng (thiếu secret); event `gv` kèm secret →
+  200 `{"ok":true}`, logs sạch.
+- **Docs Zalo Bot xác nhận chỉ có 5 event**: `message.text|image|sticker|voice|unsupported.received`
+  — KHÔNG có event "mở chat/follow" nên không thể tự chào khi HS bấm vào bot. HS phải nhắn 1 tin
+  bất kỳ; người lạ nhận STRANGER_HINT (guard 1 tin/5 phút).
+- **Vá lỗ hổng im lặng**: trước đây sticker/voice/unsupported bị 400 (bot im hoàn toàn — HS mở bot
+  gửi sticker là hết phản hồi). Nay chấp nhận đủ 5 event: người lạ → STRANGER_HINT (giữ guard 5 phút),
+  đã liên kết → "Bot chỉ xử lý tin nhắn văn bản và hình ảnh. Nhắn 0 để xem menu.", ambiguous → câu
+  đa hồ sơ. Event lạ (`message.unknown.received`) vẫn 400. Fix bug reply mặc định bị gửi nhầm khi
+  guard chặn (khởi tạo `reply = ''` đầu nhánh).
+- **Gate**: bot 76/76 (72 cũ + 4 mới), api/ 86 file 1038/1038, tsc 0 lỗi 2 config. 2 test fail ở
+  `src/lib/lessonCompiler/v832/` là lỗi có sẵn của main app, không thuộc vùng bot.
+
+## Phục hồi sau sự cố 503 + key AI chat mới (27/10 chiều)
+
+- Env spai đã hồi phục từ nguồn local qua REST API (6 biến thật, xoá 22 entry rác/junk);
+  kiểm chứng bằng list API: FIREBASE 2405 ký tự, TOKEN 84, ID/ALLOWED 19, DUAL_ROLE 20, SECRET 48 hex.
+- Key AI chat mới `smartplan-bot-chat-20261027` tạo trên Vilao UI, model `cnt/glm-5.3-flash`
+  (đăng ký qua modal + tick đồng ý cảnh báo billing "trừ tiền cả khi output rỗng"; hành vi khi giá
+  tăng = "Tiếp tục dùng (tính giá mới)"). Key nạp env `PH_CHAT_VILAO_KEY` (production+preview).
+- Test API trực tiếp: 200 + content bình thường (model thinking ~360 token → max_tokens 1200 của
+  caller đã đủ).
+- **E2E thật qua deployment**: event chat tự do từ chủ dự án → HTTP 200, elapsed 13,2s (chỉ đường
+  AI mới mất lâu vậy); Vilao console xác nhận 5 request/25₫ trên key (2 request cuối từ deployment)
+  → bot trả lời AI THẬT, không còn tin "bận". Chủ dự án nhận 2 tin AI trong Zalo.
+- ⚠️ Key mới `sk-3d64...` đã rơi vào log phiên AI khi tạo trên UI (a11y snapshot) → ROTATE sau buổi test.
+
 ## Deploy hiện tại
 
-- Preview: `https://spai-assistant-ph-99uu5906l-congapro60-devs-projects.vercel.app` (Ready, 27/10)
-- Alias: `zalo-test.congapro60-devs-projects.vercel.app` (đã trỏ deploy mới 27/10)
-- Webhook Zalo: `.../api/assistant?transport=zalo_bot` — verify `webhook.ok`; ping không secret → 401 đúng
-- ĐÃ GỠ `ZALO_BOT_ALLOWED_USER_IDS` trên preview (26/10 đêm) — chuẩn bị cho HS cả lớp test:
-  ai cũng nhắn được bot, nhưng link vẫn cần mã lớp + PIN đúng. Lệnh `đổi vai` chỉ dành cho
-  `ZALO_BOT_DUAL_ROLE_USER_IDS=6428d37c9d35746b2d24` (chủ dự án).
+- Preview: `https://spai-assistant-ph-7nexdrwdz-congapro60-devs-projects.vercel.app` (READY, 27/10 tối —
+  chứa A1–A3 fix QA + GV-1 + vá sticker/voice + diagnostic + env đủ 7 biến gồm `PH_CHAT_VILAO_KEY`
+  **+ fix first-contact 27/10 tối**: (1) người lạ nhắn `/start` hay lệnh `/` bất kỳ → nhận STRANGER_HINT
+  qua guard 1 tin/5 phút (trước đây im lặng 200); (2) người lạ gửi ảnh → nhận STRANGER_HINT (trước đây
+  im lặng); (3) nới parser PIN: không prefix + PIN 4 số → mặc định HS, HS nhắn gọn `R6RCFC <PIN>`
+  link được luôn (trước đây bắt buộc prefix "học sinh" — nguyên nhân chính HS không link được))
+- Alias: `zalo-test.congapro60-devs-projects.vercel.app` → deployment `7nexdrwdz` /
+  `dpl_2j2R8YvEph14Cy799ZHYrk5MNeFC`. ⚠️ Lần trỏ đầu (27/10 tối) CLI tạo nhầm alias
+  `zalo-test.vercel.app` (domain khác) trong khi domain team VẪN trỏ `kqixbxy52` — chỉ phát hiện
+  nhờ test hành vi (guard doc không ghi). Đã trỏ lại bằng full domain + xoá alias lạc. Bài học:
+  sau `alias set` PHẢI xác minh bằng test hành vi trên đúng URL webhook, ping 200 không đủ.
+  Đã xác minh: người lạ giả `/start` → bot ghi `lastStrangerReplyAt` mới nhất → code mới live.
+- Webhook Zalo: URL không đổi nên KHÔNG cần setWebhook lại; `getWebhookInfo` xác nhận đúng URL.
+- ĐÃ GỠ `ZALO_BOT_ALLOWED_USER_IDS` — ai cũng nhắn được bot, link vẫn cần mã lớp + PIN đúng.
+  Lệnh `đổi vai` chỉ dành cho `ZALO_BOT_DUAL_ROLE_USER_IDS=6428d37c9d35746b2d24` (chủ dự án).
+- Vault key: `C:\Users\ADMIN\AppData\Local\Temp\opencode\VILAO-KEYS.md` (đã append key mới);
+  backup env: `...\spai-env-backup.md`. Giữ `zalo_webhook_secret.txt` tới khi buổi test xong.
 
 ## Việc còn lại (bật cho PH thật)
 

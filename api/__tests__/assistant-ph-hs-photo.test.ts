@@ -77,10 +77,11 @@ beforeEach(() => {
   vi.mocked(gradeOneSubmission).mockImplementation(async () => ({ success: true }));
   vi.mocked(ensureGeminiKey).mockReset();
   vi.mocked(ensureGeminiKey).mockResolvedValue({ key: 'test-grading-key', source: 'shared' } as any);
-  // Bắt promise nền (chấm + báo tin) để test await được.
-  let bg: Promise<unknown> | undefined;
-  vi.mocked(chayNgam).mockImplementation((work: Promise<unknown>) => { bg = work; return false; });
-  (globalThis as any).__photoBg = () => bg;
+  // Bắt TẤT CẢ promise nền (chấm + báo tin, push GV...) để test await được —
+  // push HS vừa nộp (GV-1) là chayNgam thứ 2, phải await cả hai chứ không ghi đè nhau.
+  const bgAll: Promise<unknown>[] = [];
+  vi.mocked(chayNgam).mockImplementation((work: Promise<unknown>) => { bgAll.push(work); return false; });
+  (globalThis as any).__photoBg = () => Promise.all(bgAll);
 });
 
 describe('parsePhotoCommand', () => {

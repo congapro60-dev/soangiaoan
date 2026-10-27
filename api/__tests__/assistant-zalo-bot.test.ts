@@ -98,10 +98,12 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect((await request(event('/link one_use-code'))).code).toBe(200);
     expect(consumeLinkCode).toHaveBeenCalled(); expect(sent()).toHaveLength(1);
   });
-  it('acks an unlinked sender without replying when no user allowlist is configured', async () => {
+  it('người lạ nhắn lệnh / (vd /start): vẫn nhận hướng dẫn liên kết, không im lặng', async () => {
     vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', '');
     vi.mocked(resolveChannelActor).mockRejectedValueOnce(new Error('Channel is not linked'));
-    expect((await request(event('/classes'))).code).toBe(200); expect(sent()).toHaveLength(0);
+    expect((await request(event('/start'))).code).toBe(200);
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('liên kết');
   });
   it('acks senders outside an optional static allowlist without replying', async () => {
     vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', 'other-user');
@@ -117,7 +119,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     if (invalid === 'future') m.date += 61_000;
     if (invalid === 'missing-id') m.message_id = '';
     if (invalid === 'oversized') m.text = 'x'.repeat(2001);
-    if (invalid === 'event') body.result.event_name = 'message.sticker.received';
+    if (invalid === 'event') body.result.event_name = 'message.unknown.received';
     if (invalid === 'seconds') m.date = Math.floor(m.date / 1000);
     const result = await request(body);
     if (invalid === 'sender') expect(result.code).toBe(200); else {
@@ -223,6 +225,26 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect(canReplyToStranger).toHaveBeenCalledTimes(2);
   });
 
+  it.each(['message.sticker.received', 'message.voice.received', 'message.unsupported.received'])('người lạ gửi %s: nhận gợi ý liên kết đúng 1 lần/5 phút', async eventName => {
+    vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
+    vi.mocked(canReplyToStranger).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    const first = event('', 'm-1'); first.result.event_name = eventName;
+    const second = event('', 'm-2'); second.result.event_name = eventName;
+    expect((await request(first)).code).toBe(200);
+    expect((await request(second)).code).toBe(200);
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('phụ huynh');
+    expect(canReplyToStranger).toHaveBeenCalledTimes(2);
+  });
+
+  it('HS đã liên kết gửi sticker: nhận hướng dẫn dùng văn bản/ảnh, không coi là người lạ', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValue({ firebaseUid: 'pinlink:student:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'slink', active: true, role: 'student', classId: 'c', studentId: 's' } as any);
+    const body = event('', 'm-1'); body.result.event_name = 'message.sticker.received';
+    expect((await request(body)).code).toBe(200);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn 0');
+    expect(canReplyToStranger).not.toHaveBeenCalled();
+  });
+
   it('tin mã PIN đi hết đường linkByPin và map đúng lỗi chạm trần', async () => {
     const message = 'phụ huynh ACDF47 1234';
     await request(event(message, 'm-1'));
@@ -277,6 +299,9 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect(sent()[0][0]).toContain('/sendMessage');
     expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
     expect(JSON.parse(sent()[0][1].body).text).toContain('**TIÊU ĐỀ**');
+    // GV-1: dispatch thử resolve teacher (lệnh GV) TRƯỚC luồng PH/HS — lượt đầu phải từ chối
+    // để tin 'web' của phụ huynh rơi đúng về luồng menu PH/HS.
+    vi.mocked(resolveChannelActor).mockRejectedValueOnce(new Error('Channel is not linked'));
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
     vi.mocked(parentMenuReply).mockResolvedValueOnce('Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT');
     await request(event('web', 'm-2'));
@@ -327,12 +352,14 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect((await request(imageEvent('ftp://x'))).code).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });
-  it('người lạ gửi ảnh → ack nhưng im lặng', async () => {
+  it('người lạ gửi ảnh → nhận hướng dẫn liên kết (guard chống spam), không vào luồng HS', async () => {
     vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));
     const result = await request(imageEvent('https://photo.zalo/abc.jpg', 'image-4'));
     expect(result.code).toBe(200);
     expect(photoReceivedReply).not.toHaveBeenCalled();
-    expect(sent()).toHaveLength(0);
+    expect(canReplyToStranger).toHaveBeenCalledWith(expect.anything(), 'bot-1', 'user-1');
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('liên kết');
   });
   it('PH gửi ảnh → đúng 1 câu dành cho PH, không vào luồng HS', async () => {
     vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {

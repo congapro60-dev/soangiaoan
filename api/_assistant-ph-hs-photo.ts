@@ -19,6 +19,7 @@ import { AiKeyRequiredError, ensureGeminiKey } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT } from './_assistant-ph-hs-menu.js';
+import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 
 const db = () => getAdminDb();
@@ -460,6 +461,12 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   const token = String(process.env.ZALO_BOT_TOKEN || '');
   const chatId = userId;
   chayNgam(gradeAndNotify(token, chatId, submissionId, outcome.session));
+  // GV-1 (2026-10-27): push "HS vừa nộp bài" tới mọi bot-link teacher của GV (bỏ qua tài khoản
+  // vừa nộp — tài khoản test giữ song song vai). Phụ: lỗi bỏ qua, không chặn trả lời HS.
+  chayNgam(notifyTeacherNewSubmission(getAdminDb(), token, {
+    teacherId: s.teacherId, classId: s.classId, studentId: targetId,
+    assignmentTitle: s.assignmentTitle, photoCount: outcome.session.photos.length, fromUserId: userId,
+  }));
   // A3 (2026-10-27): người nộp hộ nhắn 2 chỉ xem được bài của CHÍNH EM — kết quả của bạn nằm
   // trên tài khoản của bạn ấy, đừng dẫn nhầm.
   return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,

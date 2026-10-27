@@ -39,7 +39,7 @@
 - [x] 12. Gate test cuối: 121/121 (photo 49 + bot 72).
 - [x] 13. Chốt sửa A1–A3 trong một commit bổ sung, chỉ 4 file thuộc scope.
 - Gate sau commit: chạy lại 2 file Vitest + tsc 2 config; kết quả báo cuối phiên. Build kiểm bổ sung.
-- [ ] Deploy preview + alias `zalo-test`: do máy chủ dự án xử lý riêng; phiên QA này KHÔNG push/deploy.
+- [x] 14. Deploy preview lại (URL `spai-assistant-ph-ih1b1dsvc-...`) + alias `zalo-test` — bản chứa fix Codex `4c568b7`; webhook 401 không secret (chuẩn). Phiên QA không push/deploy.
 
 ## Ngoài phạm vi
 - PH nộp thay; thông báo chủ động cho em được nộp hộ (Zalo OA không chủ động nhắn được);

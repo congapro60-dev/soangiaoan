@@ -19,7 +19,9 @@ export const parsePinLinkMessage = (message: string): ParsedPinLink => {
   const pins = tokens.filter(isValidParentPin);
   if (codes.length !== 1 || pins.length !== 1) return { status: 'invalid' };
   const pin = pins[0];
-  const role = roles[0] ?? (!/^\d{4}$/.test(pin) ? 'parent' : undefined);
+  // Không prefix: PIN 4 số mặc định là HỌC SINH (HS được hướng dẫn nhắn gọn "<mã lớp> <PIN>");
+  // PIN khác 4 số là PH. Muốn chắc vai thì ghi "phụ huynh"/"học sinh" ở đầu tin.
+  const role = roles[0] ?? (!/^\d{4}$/.test(pin) ? 'parent' : 'student');
   if (!role || (role === 'student' && !/^\d{4}$/.test(pin))) return { status: 'invalid' };
   return { status: 'ok', joinCode: normalizeJoinCode(codes[0]), pin, role };
 };
