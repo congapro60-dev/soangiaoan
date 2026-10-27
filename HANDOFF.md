@@ -1,7 +1,7 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
 ## Goal hiện tại
-Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn kèm fix1+fix2** (`11-11-78`: timeline Gate D per-lesson + binding theo phase, re-QA Production A–F ĐẠT — xem `tasks/qa-w11-batch2-acceptance.md`). Còn R4–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
+Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`). Đã xong Task 1 (hạ tầng merge, commit `dce0512`), **R1 Pha B** (`10-11-80`, commit `5d044cb`), **R2 Pha B** (`11-11-76`) và **R3 trọn vẹn kèm fix1+fix2** (`11-11-78`: timeline Gate D per-lesson + binding theo phase, re-QA Production A–F ĐẠT — xem `tasks/qa-w11-batch2-acceptance.md`), **R4 Pha B** (`11-11-79`, practice — code + test ĐẠT, chờ QA A–F). Còn R5–R7 (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
 - Gate D ĐÃ DUYỆT (thầy, 26/10): `tasks/gate-d-11-11-76.md` — nguồn nội dung duy nhất, KHÔNG sửa.
@@ -22,13 +22,13 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - Hình không gian (Hình 3 cát tuyến chéo nhau, tứ giác hình bình hành) mô tả bằng lời trong `examples`/`boardKnowledge`. LessonId dự kiến `adaptive-v4-11-11-78-24YyULmWgBOM6HZCfJ56RN5tiet2` (deterministic).
 
 ## Recipe fingerprint batch2 (quyết thầy 26/10)
-1. Điền `source.files` giá trị cuối (sha256 từng file giáo án; hiện: `tasks/giaoan-goc-10-11-80.md` = `82195f3e…d9de9`, `tasks/giaoan-goc-11-11-76.md` = `ef17b88a…`, `tasks/giaoan-goc-11-11-78.md` = `175b65bf…`).
+1. Điền `source.files` giá trị cuối (sha256 từng file giáo án; hiện: `tasks/giaoan-goc-10-11-80.md` = `82195f3e…d9de9`, `tasks/giaoan-goc-11-11-76.md` = `ef17b88a…`, `tasks/giaoan-goc-11-11-78.md` = `175b65bf…`, `tasks/giaoan-goc-11-11-79.md` = `dc74b984…6726`).
 2. Đặt `"fingerprint": ""`, băm sha256 hex TOÀN BỘ bytes file snapshot ở trạng thái đó.
-3. Điền kết quả. Giá trị sau R3·fix1 (27/10, thêm `timelineKey` vào spec 78): `54d92529bc0c133464fdc5b2c6a60fc74880d85ec7b481a437e5d920b8983c6f` (hex-64; trước đó R3: `f10723f4…`, R2+fix ký hiệu: `36c18d6d…`).
+3. Điền kết quả. Giá trị sau R4 (28/10, thêm spec 79 + file giáo án 79): `b6dfa109aaf14022404bbe5f533b9eeba0ea6293c4e375717a466ea67a77be24` (hex-64; trước đó R3·fix1: `54d92529…83c6f`, R3: `f10723f4…`, R2+fix ký hiệu: `36c18d6d…`).
 4. Script tái lập: `tasks/tmp-hash-batch2.mjs` — **đa file, idempotent** (normalize JSON.stringify; chạy lại ra đúng fingerprint cũ). Vòng sau chỉ thêm file giáo án vào files map rồi chạy script.
 
 ## Test (vitest)
-- v4 (`src/lib/liveLesson/v4`): 27 file / **274 tests PASS** (baseline R2: 269; +3 it.each R3; +2 test timeline fix1). `npm run build` 0 TS error.
+- v4 (`src/lib/liveLesson/v4`): 27 file / **284 tests PASS** (baseline fix2: 279; +5 R4: it.each 79 ×3 + timeline gateD79 + binding phase 79). `npm run build` 0 TS error.
 - Full `npm run test`: 4 fail CÓ SẴN pre-existing tại HEAD R1 (`src/lib/lessonCompiler/v832/contractData.test.ts` + `goldenCandidates.test.ts` — lệch hash byte fixture v8.3.2; đã xác minh từ R2). KHÔNG do batch2 — chuẩn mỗi vòng là vitest `src/lib/liveLesson/v4`.
 - Pin đếm số: `MAIN_PIN = 51` + `TOTAL_MERGED = 51 + W11BATCH2.length` (giữ nguyên từ R1, tự nảy theo mảng). Vòng sau (R4 `11-11-79` practice): thêm 1 entry `W11BATCH2` + 1 key `INTERACTIVE_SOURCE_KEYS` + mảng exact-keys 6→7 mã (alphabet) + đổi tên test số 6→7 (`week11Catalog.test.ts` / `interactiveUpgrade.test.ts`).
 - Quick pin mới: 2 hoặc 3 câu (R3) — bài practice có thể khác, đọc Gate D trước khi thêm entry.
@@ -47,9 +47,17 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
   - `validateContract.ts`: rule `STEP_REFERENCE_INVALID` — checkpoint.stepId + aiError.stepId phải ∈ timeline ids; evidenceRules.sourceStepId ∈ timeline ∪ checkpoint ids (P31 dùng checkpoint id). Chống tái phạm R4–R7.
 - **Test**: v4 27 file / **279 PASS** (baseline fix1: 274; +2 test binding fix2 + 3 test validateContract). `npm run build` 0 TS error.
 
+## R4 `11-11-79` — "Hai mặt phẳng song song — Tiết 3" (g11, practice)
+- Gate D ĐÃ DUYỆT (thầy, 27/10): `tasks/gate-d-11-11-79.md` — nguồn nội dung duy nhất, KHÔNG sửa. Thầy duyệt 4 mục: phân bổ S0–S10 = 1-4-2-5-3-1-8-5-6-3-2 phút; [HỆ QUẢ] giàn giáo bỏ chuỗi cơ học (giữ mảng hình học — tiền lệ Burj 78); đáp án tự lập luận PHT Khá c) SAI vì AB ∥ CD không cắt nhau; kind `practice` + timeline key `gateD79`.
+- Giáo án gốc: `tasks/giaoan-goc-11-11-79.md` (Firestore lessonPlans/c8453c88-…, 28 115 ký tự, tải 27/10). Fetch qua `tasks/tmp-giaoan-fetch-11-11-79.cjs` — trang V8.8 mở thư viện bằng nút sidebar "Thư viện" trên tab dashboard (KHÔNG còn ở /adaptive-lessons; nút "Tạo từ giáo án nguồn" dẫn sang /adaptive-builder/new — KHÔNG bấm). Cấm viết script tiếng Việt qua PowerShell Set-Content (double-encode hỏng chuỗi — viết bằng write tool).
+- Spec: kind/lessonType `practice`; examples×2 = Polya chữa chung + dựng thiết diện (solution nguyên bản mục III.1/III.2); exercises×6 = PHT số 1 (NB điền khuyết / TH a / TH b / TH c) + VD "GK ∥ (ABCD)" (tự lập luận đã duyệt: I trung điểm AB, trung tuyến SI, Thales đảo trong △SIC) + VD thiết diện PHT số 2; quick×3 (đáp án C/B/hình bình hành mục IV); mistakes×4; boardKnowledge công khai không đáp án PHT; timelineKey `gateD79` (dải 0-60-300-420-720-900-960-1440-1740-2100-2280-2400).
+- aiError `ai-error-11-11-79`: category "Thiếu điều kiện"; bẫy bỏ điều kiện cắt nhau a ∩ b = {I} (bài làm sai "MN ∥ AB, PQ ∥ CD ⇒ (MNPQ) ∥ (ABCD)" — đúng lỗi 38% HS quên điều kiện cắt nhau theo căn cứ điều chỉnh gốc); wrongSolution TRẦN chỉ bài làm sai; proof gộp [Gộp whyAiError/boardPrompt] như R2/R3; 5 trường plain Unicode không $.
+- Code: `TIMELINE_BY_KEY` thêm `gateD79` (`lessonAdapter.ts`); snapshot thêm spec + aiError + file 79 (fingerprint `b6dfa109…`); `INTERACTIVE_SOURCE_KEYS` thêm `'11-11-79'`; `W11BATCH2` entry thứ 4; exact-keys 7 mã (alphabet `['10-11-79','10-11-80','11-11-75','11-11-76','11-11-78','11-11-79','12-11-80']`, tên test 6→7).
+- No-spoiler tokens QA: `d_S`, `HÌNH THANG` (viết hoa — chỉ trong đáp án mục III.2; đề phân hóa chữ thường giữ nguyên theo gốc).
+
 ## Việc kế tiếp
-1. R4 — `11-11-79` (g11, "Hai mặt phẳng song song — Tiết 3", kind khả năng `practice`): Pha A Gate P+D theo plan → thầy duyệt → Pha B. Sau fix2 chỉ cần thêm key vào `TIMELINE_BY_KEY` + khai báo `timelineKey` trong spec — binding tự theo phase; validateContract sẽ bắt stepId mồ côi ngay khi build.
-2. R5–R7 theo plan. Lưu ý: CasioKeyGuide CHỈ bài `12-11-80` cũ (R5 `12-11-77` KHÔNG bật Casio; R6 không trùng nội dung bài 12; R7 tham khảo nháp `Downloads\smart-lesson-plan-ai\giao an manus tao\_qa\ban_toan_rebuild\sbR12B02RemainingSpecsW11W12.ts` nhưng KHÔNG copy mù).
+1. R4 `11-11-79`: Pha B xong (build + vitest 284/284) — **còn QA A–F trên Production (B8) rồi báo thầy (B9)**. LessonId dự kiến `adaptive-v4-11-11-79-24YyULmWgBOM6HZCfJ56RN5tiet2`.
+2. R5–R7 theo plan (R5 `12-11-77` Pha A Gate P+D trước). Lưu ý: CasioKeyGuide CHỈ bài `12-11-80` cũ (R5 `12-11-77` KHÔNG bật Casio; R6 không trùng nội dung bài 12; R7 tham khảo nháp `Downloads\smart-lesson-plan-ai\giao an manus tao\_qa\ban_toan_rebuild\sbR12B02RemainingSpecsW11W12.ts` nhưng KHÔNG copy mù).
 3. Sau R7: test catalog về exact-keys 10 bài + Task 9 QA 2 bài batch1 + Task 10 hồi quy bài 12.
 4. Hạ tầng QA: lớp g11 `class-1787188523562` / `R6RCFC`; HS Đặng Tuệ Minh PIN 2750 (Edge riêng port 9223, profile `Temp\opencode\edge-hs-profile`); tạo phiên mới bằng `node tasks/tmp-r3-qa-5-session2.cjs <out.json>`; selector route dùng `.includes('Chọn nhiệm vụ này')`.
 

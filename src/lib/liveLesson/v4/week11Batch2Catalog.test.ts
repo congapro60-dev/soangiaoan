@@ -40,6 +40,32 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
     ]);
   });
 
+  it('11-11-79 chạy timeline Gate D riêng (thầy duyệt 1-4-2-5-3-1-8-5-6-3-2 phút)', () => {
+    const spans = getBanToanV4Contract('11-11-79').timeline.map((b) => [b.startSeconds, b.endSeconds]);
+    expect(spans).toEqual([
+      [0, 60], [60, 300], [300, 420], [420, 720], [720, 900], [900, 960],
+      [960, 1440], [1440, 1740], [1740, 2100], [2100, 2280], [2280, 2400],
+    ]);
+  });
+
+  it('fix2 — 11-11-79 liên kết nhiệm vụ theo PHASE (aiError=P10, route choice=P13), không theo id template', () => {
+    const contract = getBanToanV4Contract('11-11-79');
+    const byId = new Map(contract.timeline.map((b) => [b.id, b]));
+    // Checkpoint gắn đúng block phase tương ứng của timeline Gate D 79
+    expect(byId.get('P10')?.checkpointId).toBe('cp-ai-error');
+    expect(byId.get('P13')?.checkpointId).toBe('cp-route-choice');
+    expect(byId.get('P14')?.checkpointId).toBe('cp-group-product');
+    expect(byId.get('P37')?.checkpointId).toBe('cp-exit-ticket');
+    const postCheckCp = contract.checkpoints.find((cp) => cp.kind === 'post_check' && cp.id !== 'cp-exit-ticket');
+    expect(byId.get('P21')?.checkpointId).toBe(postCheckCp?.id);
+    // Binding ngoài timeline cũng suy theo phase
+    expect(contract.aiError.stepId).toBe('P10');
+    expect(contract.languageDemands.map((d) => d.stepId)).toEqual(['P01', 'P10', 'P21']);
+    expect(contract.evidenceRules.map((r) => r.sourceStepId)).toEqual(['P05', 'P10', 'P14', 'P21']);
+    expect(contract.fading.map((f) => f.stepId)).toEqual(['P14', 'P21']);
+    expect(contract.groupingCheckpoints[0]?.stepId).toBe('P14');
+  });
+
   it('bài không khai báo timelineKey giữ TIMELINE chung (10-11-80 chặng 5 = 960–1140)', () => {
     const t = getBanToanV4Contract('10-11-80').timeline;
     expect(t[4].startSeconds).toBe(960);

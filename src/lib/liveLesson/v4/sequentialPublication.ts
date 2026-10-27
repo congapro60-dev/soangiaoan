@@ -449,6 +449,7 @@ export const INTERACTIVE_SOURCE_KEYS: ReadonlySet<string> = new Set([
   '11-11-75',
   '11-11-76',
   '11-11-78',
+  '11-11-79',
   '12-11-80',
 ]);
 
