@@ -5,9 +5,10 @@
     "directoryHint": "tasks/giaoan-goc-w11-batch2",
     "files": {
       "tasks/giaoan-goc-10-11-80.md": "82195f3e869d9c69cc1bd0294f49c9d86470cadfa59b72a3c10699e3296d9de9",
-      "tasks/giaoan-goc-11-11-76.md": "ef17b88aa9ce755bba236156fedefdbea9319085c13d9e09ac89aaa4ddd3814a"
+      "tasks/giaoan-goc-11-11-76.md": "ef17b88aa9ce755bba236156fedefdbea9319085c13d9e09ac89aaa4ddd3814a",
+      "tasks/giaoan-goc-11-11-78.md": "175b65bfe400207ea19f4def9a69adb3e5e15c3577d99d21ce2cdff86089cd21"
     },
-    "fingerprint": "36c18d6dbe3680204d03d465311d5855c821b2e5f1117d025ce184a7e7f7e2ea"
+    "fingerprint": "f10723f40e93a1d6f82fbcb04fe1144eb6a3c0cdf21e48a09b8894e90eb774fa"
   },
   "lessonSpecs": [
     {
@@ -194,6 +195,104 @@
         "b. Phản biện (lương công ty A): 9/10 người nhận 10 triệu, riêng Giám đốc thuộc nhóm [140;160) — x̄ = 24 triệu bị kéo lệch; Mₑ = 10 triệu phản ánh trung thực hơn.",
         "c. Đọc thông số kinh tế – xã hội (thu nhập, giá nhà): xem song hành cả $\\bar{x}$ và $M_e$."
       ]
+    },
+    {
+      "key": "11-11-78",
+      "grade": 11,
+      "week": 11,
+      "period": 78,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "title": "Hai mặt phẳng song song",
+      "focus": "Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng",
+      "formulas": [
+        "(\\alpha) \\parallel (\\beta);\\quad (\\gamma) \\cap (\\alpha) = a;\\quad (\\gamma) \\cap (\\beta) = b \\implies a \\parallel b",
+        "Hai mặt phẳng song song chắn trên hai đường thẳng song song khác những đoạn thẳng song song và bằng nhau",
+        "\\dfrac{AB}{A'B'} = \\dfrac{BC}{B'C'} = \\dfrac{AC}{A'C'}",
+        "\\dfrac{AD}{AB} = \\dfrac{AE}{AC} = \\dfrac{DE}{BC}; \\quad \\dfrac{AD}{DB} = \\dfrac{AE}{EC}"
+      ],
+      "examples": [
+        {
+          "question": "Ba mặt phẳng $(\\alpha), (\\beta), (\\gamma)$ song song chắn cát tuyến $d$ tại $A, B, C$ và cát tuyến $d'$ tại $A', B', C'$; $d$ và $d'$ chéo nhau (Hình 3 gốc — mô tả bằng lời: ba mặt phẳng sàn song song, cát tuyến xanh $d$ đi qua $A, B, C$, cát tuyến đỏ $d'$ đi qua $A', B', C'$, đường phụ nét đứt $d''$ qua $A$ song song $d'$ cắt $(\\beta), (\\gamma)$ tại $B'', C''$). Làm thế nào áp dụng định lý Thales phẳng để chứng minh $\\dfrac{AB}{A'B'} = \\dfrac{BC}{B'C'} = \\dfrac{AC}{A'C'}$?",
+          "solution": "Bước 1 — dựng đường phụ: $d''$ qua $A$ và song song với $d'$, cắt $(\\beta)$, $(\\gamma)$ tại $B''$, $C''$. Bước 2 — mặt phẳng $(d, d'')$ cắt $(\\beta)$, $(\\gamma)$ theo $BB''$ và $CC''$; hai giao tuyến này cùng thuộc $(d, d'')$ nên theo định lý giao tuyến $BB'' \\parallel CC''$. Bước 3 — Thales phẳng trong tam giác $ACC''$ (có $BB'' \\parallel CC''$): $\\frac{AB}{BC} = \\frac{AB''}{B''C''}$. Bước 4 — mặt phẳng $(d', d'')$ cắt $(\\alpha), (\\beta), (\\gamma)$ nên tứ giác $AA'B'B''$ và $B''B'C'C''$ là các hình bình hành (các cặp cạnh đối song song), suy ra $AB'' = A'B'$ và $B''C'' = B'C'$. Bước 5 — thay vào: $\\frac{AB}{BC} = \\frac{A'B'}{B'C'}$; lập luận tương tự cho các cặp đoạn còn lại, suy ra đpcm. Kỹ thuật: cát tuyến chéo nhau thì dựng cát phụ song song để đưa Thales về một tam giác phẳng."
+        },
+        {
+          "question": "[🟢 Công dân toàn cầu — Burj Khalifa] Trong xây dựng nhà cao tầng, nếu mặt phẳng sàn tầng 10 và tầng 11 không song song (bị nghiêng góc lệch $0{,}5^\\circ$), hệ thống thanh giằng xiên và cột chống sẽ chịu ảnh hưởng gì theo định lý Thales?",
+          "solution": "Các sàn tầng đóng vai trò các mặt phẳng chắn thanh giằng và cột chống. Khi các mặt phẳng sàn song song, định lý Thales không gian bảo đảm tỉ số các đoạn trên các cát tuyến đúng bằng tỉ số thiết kế — các tầng đồng dạng, đồng mức. Sàn tầng 10–11 nghiêng $0{,}5^\\circ$ làm mất giả thiết \"các mặt phẳng song song\": các đoạn trên cát tuyến không còn bảo toàn tỉ lệ thiết kế, nên đo tỉ số chiều dài thanh giằng giữa các tầng là một cách hình học để phát hiện lệch đồng mức sàn. Kết luận dừng ở mảng hình học (kiểm chuẩn độ đồng mức); đánh giá chịu lực kết cấu thuộc cơ học kết cấu, cần dữ kiện kỹ thuật đầy đủ hơn."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình bình hành, mặt phẳng $(\\alpha) \\parallel (ABCD)$ cắt các cạnh $SA, SB, SC, SD$ lần lượt tại $A', B', C', D'$. a) Chứng minh $A'B' \\parallel AB$ và $C'D' \\parallel CD$. b) Tứ giác $A'B'C'D'$ là hình gì?",
+          "answer": "a) Mặt phẳng $(SAB)$ cắt $(\\alpha)$ và $(ABCD)$ theo hai giao tuyến $A'B'$ và $AB$, hai mặt phẳng song song nên $A'B' \\parallel AB$; tương tự $C'D' \\parallel CD$. b) Vì $AB \\parallel CD$ nên $A'B' \\parallel C'D'$; tương tự $B'C' \\parallel A'D'$. Vậy $A'B'C'D'$ là hình bình hành. (Đáp án PHT số 1 mức NB — nguyên bản mục III.1 giáo án.)"
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ diện $ABCD$, mặt phẳng $(\\alpha) \\parallel (ABC)$ cắt các cạnh $DA, DB, DC$ tại $A', B', C'$. Chứng minh $\\triangle A'B'C' \\backsim \\triangle ABC$ và tính tỉ số $\\dfrac{S_{A'B'C'}}{S_{ABC}}$ khi $\\dfrac{DA'}{DA} = \\dfrac{2}{3}$.",
+          "answer": "Các cạnh tương ứng của hai tam giác song song ($(\\alpha) \\parallel (ABC)$) nên $\\triangle A'B'C' \\backsim \\triangle ABC$ theo tỉ số $k = \\dfrac{DA'}{DA} = \\dfrac{2}{3}$. Tỉ số diện tích là $k^2 = \\dfrac{4}{9}$. (Đáp án PHT số 1 mức TH — nguyên bản mục III.1 giáo án.)"
+        },
+        {
+          "level": "VD",
+          "question": "Cho lăng trụ $ABC.A'B'C'$, điểm $M \\in AB$ với $AM = 2MB$. Mặt phẳng $(\\alpha)$ đi qua $M$ và song song với mặt phẳng $(ACC'A')$. Hãy xác định thiết diện và chứng minh thiết diện là hình bình hành. (Hình mô tả bằng lời: $(\\alpha)$ cắt $BC$ tại $N$ với $MN \\parallel AC$, cắt các cạnh bên theo hướng song song $AA'$ tại $Q \\in A'B'$ và $P \\in B'C'$ — thiết diện là tứ giác $MNPQ$.)",
+          "answer": "Thiết diện là hình bình hành $MNPQ$: trong mặt $(ABC)$ có $MN \\parallel AC$ (vì $(\\alpha) \\parallel AC$); trong các mặt bên có $QM \\parallel AA'$ và $PN \\parallel AA'$ (vì $(\\alpha) \\parallel AA'$). Vậy $MN \\parallel QP$ (cùng song song $AC$) và $QM \\parallel PN$ (cùng song song $AA'$) — hai cặp cạnh đối song song với $AA'$ và $AC$. (Đáp án PHT số 1 mức VD — nguyên bản mục III.1 giáo án.)"
+        },
+        {
+          "level": "NB",
+          "question": "Ba mặt phẳng song song chắn trên cát tuyến $d$ các đoạn $AB = 3$ cm, $BC = 5$ cm; trên cát tuyến $d'$ đoạn $A'B' = 4{,}5$ cm. Tính $B'C'$ và $A'C'$.",
+          "answer": "Theo định lý Thales không gian: $\\dfrac{AB}{A'B'} = \\dfrac{BC}{B'C'} \\Rightarrow \\dfrac{3}{4{,}5} = \\dfrac{5}{B'C'} \\Rightarrow B'C' = 7{,}5$ cm; $A'C' = A'B' + B'C' = 12$ cm. (Đáp án PHT số 1 mức NB — nguyên bản mục III.2 giáo án.)"
+        },
+        {
+          "level": "TH",
+          "question": "Ba mặt phẳng song song cắt cát tuyến $d_1$ tại $A, B, C$ và $d_2$ tại $A', B', C'$. Biết $AB = 2$, $AC = 6$, $A'C' = 9$. Tính $A'B'$ và $B'C'$.",
+          "answer": "$BC = AC - AB = 6 - 2 = 4$. Theo Thales không gian: $\\dfrac{AB}{AC} = \\dfrac{A'B'}{A'C'} \\Rightarrow \\dfrac{2}{6} = \\dfrac{A'B'}{9} \\Rightarrow A'B' = 3$; từ đó $B'C' = A'C' - A'B' = 6$. (Đáp án PHT số 1 mức TH — nguyên bản mục III.2 giáo án.)"
+        },
+        {
+          "level": "VD",
+          "question": "Cho tứ diện $ABCD$, điểm $M \\in AB$ với $AM = 2MB$. Mặt phẳng $(\\alpha)$ qua $M$ song song $(BCD)$ cắt $AC, AD$ tại $N, P$; mặt phẳng $(\\beta)$ qua $N$ song song $(ABD)$ cắt $BC, CD$ tại $Q, R$. Tính $\\dfrac{QR}{BD}$. (Hình mô tả bằng lời: thiết diện lớp 1 là $MNP$ — $N \\in AC$, $P \\in AD$, $NP \\parallel BD$; thiết diện lớp 2 là $NQR$ — $Q \\in BC$, $R \\in CD$, $QR$ nằm trong mặt $(BCD)$ và song song $BD$.)",
+          "answer": "Trong tam giác $ABC$, $(\\alpha) \\parallel BC$ nên $MN \\parallel BC$ và $\\dfrac{AN}{AC} = \\dfrac{AM}{AB} = \\dfrac{2}{3} \\Rightarrow \\dfrac{CN}{CA} = \\dfrac{1}{3}$. Mặt phẳng $(\\beta) \\parallel (ABD)$, hai mặt này cắt mặt $(BCD)$ theo $QR$ và $BD$ nên $QR \\parallel BD$; trong tam giác $CBD$ (hoặc từ các tam giác đồng dạng): $\\dfrac{QR}{BD} = \\dfrac{CN}{CA} = \\dfrac{1}{3}$. (Đáp án PHT số 1 mức VD — nguyên bản mục III.2 giáo án.)"
+        }
+      ],
+      "quick": [
+        {
+          "question": "Kiểm nhanh câu 1 [NB]: ba mặt phẳng song song chắn trên $d_1$ các đoạn $AB = 4$, $BC = 6$; trên $d_2$: $A'B' = 6$, $B'C' = x$. Giá trị $x$: A. 4 · B. 9 · C. 8 · D. 10.",
+          "solution": "$\\dfrac{4}{6} = \\dfrac{6}{x} \\Rightarrow x = \\dfrac{36}{4} = 9$ — đáp án B. (Nguồn: bảng đáp án kiểm tra nhanh mục III.3 giáo án.)"
+        },
+        {
+          "question": "Kiểm nhanh câu 2 [TH]: chóp $S.ABCD$ đáy hình bình hành, $(\\alpha) \\parallel (SAB)$ cắt $SC, SD$ tại $M, N$. Khẳng định đúng: A. $MN \\parallel SA$ · B. $MN \\parallel CD$ · C. $MN \\parallel BC$ · D. $MN$ chéo $AB$.",
+          "solution": "Hệ 3 dòng: $(\\alpha) \\parallel (SAB)$; $(SCD) \\cap (\\alpha) = MN$; $(SCD) \\cap (SAB) \\parallel AB \\parallel CD$ — suy ra $MN \\parallel CD$, đáp án B. (Nguồn: bảng đáp án mục III.3 giáo án.)"
+        },
+        {
+          "question": "Kiểm nhanh câu 3 [VD]: chóp $S.ABCD$ đáy hình thang ($AB \\parallel CD$, $AB = 2CD$), $(\\alpha)$ song song đáy cắt $SA, SB, SC, SD$ tại $M, N, P, Q$, $SM = 2MA$. Tỉ số $\\dfrac{S_{MNPQ}}{S_{ABCD}}$: A. $\\dfrac{2}{3}$ · B. $\\dfrac{4}{9}$ · C. $\\dfrac{1}{2}$ · D. $\\dfrac{1}{4}$.",
+          "solution": "Thiết diện đồng dạng đáy với $k = \\dfrac{SM}{SA} = \\dfrac{2}{3}$; tỉ số diện tích $k^2 = \\dfrac{4}{9}$ — đáp án B. (Nguồn: bảng đáp án mục III.3 giáo án.)"
+        }
+      ],
+      "mistakes": [
+        "Kết luận hai đường thẳng song song khi chỉ có \"không cắt nhau\" — quên chứng minh chúng cùng thuộc một mặt phẳng thứ ba $(\\gamma)$ (bẫy AI-error S4; hai đường đó có thể chéo nhau).",
+        "Đảo chéo mút khi lập tỉ số: $\\dfrac{AB}{B'C'} = \\dfrac{BC}{A'B'}$ — các đoạn nằm giữa cùng hai mặt phẳng song song phải đặt tương ứng cùng vị trí trong phân số (bẫy \"vinh danh lỗi sai\" S9).",
+        "Áp thẳng Thales phẳng cho hai cát tuyến chéo nhau trong không gian — phải dựng cát tuyến phụ song song để đưa về một tam giác phẳng (S6).",
+        "Lập tỉ số Thales không gian khi chưa kiểm tra giả thiết các mặt phẳng song song — thiếu $(\\alpha) \\parallel (\\beta)$ thì mọi tỉ số vô nghĩa."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ôn nền — Thales phẳng (2 họ tỉ số, ghi tách dòng)",
+        "a. $\\dfrac{AD}{AB} = \\dfrac{AE}{AC} = \\dfrac{DE}{BC}$ và $\\dfrac{AD}{DB} = \\dfrac{AE}{EC}$ (Hình 1 gốc — giàn giáo đa tầng, mô tả bằng lời: ba mặt phẳng sàn tầng song song $(\\alpha), (\\beta), (\\gamma)$ chắn hai thanh giằng xiên màu đỏ và xanh lục tại $A, B, C$ và $A', B', C'$).",
+        "2. Định lý 1 — giao tuyến của mặt phẳng thứ ba",
+        "a. Hệ giả thiết + kết luận: $(\\alpha) \\parallel (\\beta)$; $(\\gamma) \\cap (\\alpha) = a$; $(\\gamma) \\cap (\\beta) = b$ $\\implies a \\parallel b$ (Hình 2 gốc — mô tả bằng lời: mặt phẳng $(\\gamma)$ nghiêng cắt hai mặt phẳng $(\\alpha), (\\beta)$ song song theo hai giao tuyến đỏ $a$ và $b$).",
+        "b. Hệ quả: hai mặt phẳng song song chắn trên hai đường thẳng song song khác những đoạn thẳng song song và bằng nhau.",
+        "c. Lưu ý: muốn kết luận $a \\parallel b$, bắt buộc phải chứng minh $a$ và $b$ cùng thuộc một mặt phẳng thứ ba $(\\gamma)$ — không cắt nhau chưa chắc song song (có thể chéo nhau).",
+        "3. Định lý Thales không gian",
+        "a. $\\dfrac{AB}{A'B'} = \\dfrac{BC}{B'C'} = \\dfrac{AC}{A'C'}$ — ba mặt phẳng $(\\alpha), (\\beta), (\\gamma)$ song song chắn hai cát tuyến $d$ (xanh) và $d'$ (đỏ) tại $A, B, C$ và $A', B', C'$.",
+        "b. Kỹ thuật: $d$ và $d'$ chéo nhau thì dựng cát tuyến phụ $d''$ qua $A$ song song $d'$ cắt $(\\beta), (\\gamma)$ tại $B'', C''$; mặt phẳng $(d', d'')$ cho các hình bình hành $AA'B'B''$ và $B''B'C'C''$ nên $AB'' = A'B'$, $B''C'' = B'C'$ — đưa Thales phẳng về tam giác $ACC''$.",
+        "c. Dạng tách: $\\dfrac{AB}{BC} = \\dfrac{A'B'}{B'C'}$ và $\\dfrac{AB}{AC} = \\dfrac{A'B'}{A'C'}$.",
+        "4. Kỹ thuật lập tỉ số",
+        "a. Luôn lập tỉ số theo các mút tương ứng cùng nằm giữa hai mặt phẳng song song.",
+        "b. Cảnh báo (vinh danh lỗi sai): $\\dfrac{AB}{B'C'} = \\dfrac{BC}{A'B'}$ là đảo chéo mút — sai.",
+        "5. Ứng dụng — Burj Khalifa (Dubai), giàn giáo ISO/OSHA",
+        "a. Sàn tầng nghiêng $0{,}5^\\circ$ = mất giả thiết các mặt phẳng song song → tỉ số thiết kế trên cát tuyến không còn đúng.",
+        "b. Thales không gian là công cụ hình học để kiểm chuẩn độ đồng mức mặt sàn trong xây dựng."
+      ]
     }
   ],
   "aiErrors": {
@@ -216,6 +315,16 @@
       "proof": "c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; Σ mᵢ cᵢ = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ — nằm giữa [2;4), hợp lý theo phân bố 6/14/15/5. Cách Nam: (2+4+6+8)/4 = 5 là trung bình các MÚT khoảng (không có ý nghĩa giá trị đại diện), lấy 5/40 = 0,125 giờ ≈ 7,5 phút — lệch hoàn toàn với dữ liệu. [Gộp whyAiError: cộng các đầu mút, chia số nhóm rồi lại chia n — bỏ hoàn toàn tần số, đúng lỗi giáo án nhấn mạnh ở Bước 4.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: bảng 4 nhóm Internet (mᵢ = 6/14/15/5) cạnh trung điểm cᵢ = 1/3/5/7 và phép tính sai (2+4+6+8)/4 = 5 rồi ÷40, gạch chân Σ mᵢ cᵢ = 158 — KHÔNG viết thêm phép chia đúng mới lên bảng; số 3,95 đã công khai ở S3, không hé số PHT số 2.]",
       "teacherPrompt": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40. Bạn sai ở đâu?",
       "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra \"không nhân tần số mᵢ\" hoặc \"chỉ cộng mút khoảng\")."
+    },
+    "11-11-78": {
+      "key": "11-11-78",
+      "mode": "micro",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI kết luận: nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a ∥ b.",
+      "correction": "Hai đường thẳng lần lượt nằm trong hai mặt phẳng song song có thể chéo nhau; muốn kết luận a ∥ b phải chứng minh a và b cùng thuộc một mặt phẳng thứ ba (γ) với (γ) ∩ (α) = a, (γ) ∩ (β) = b — khi đó a, b đồng phẳng và không có điểm chung nên a ∥ b.",
+      "proof": "Phản ví dụ gốc: hai đường thẳng chéo nhau nằm trên trần và sàn nhà (trần ∥ sàn nhưng hai đường không song song). Định lý 1 phải đủ 3 giả thiết: (α) ∥ (β); (γ) ∩ (α) = a; (γ) ∩ (β) = b ⇒ a ∥ b — thiếu dòng giữa là mất định lý. [Gộp whyAiError: AI bỏ điều kiện đồng phẳng — đúng lỗi giáo án nhấn mạnh ở \"Lưu ý quan trọng\" (mặt (γ) bắt buộc) và ở \"căn cứ điều chỉnh từ tiết trước\": 35% HS nhầm \"hai đường thẳng không cắt nhau\" thành \"hai đường thẳng song song\" mà quên chứng minh chúng đồng phẳng.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: định lý 1 đủ 3 dòng giả thiết (α) ∥ (β); (γ) ∩ (α) = a; (γ) ∩ (β) = b ⇒ a ∥ b đặt cạnh mệnh đề thiếu (γ); phác phản ví dụ trần–sàn — KHÔNG viết lời giải PHT số 1.]",
+      "teacherPrompt": "Nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a có luôn song song với b không?",
+      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra thiếu \"cùng thuộc mặt phẳng thứ ba (γ)\" hoặc nêu phản ví dụ hai đường chéo nhau)."
     }
   }
 }

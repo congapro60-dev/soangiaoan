@@ -178,7 +178,7 @@ function parseSnapshot(raw: string, label: string, expectedCount: number | null)
   for (const spec of snapshot.lessonSpecs) {
     if (!spec.key || seen.has(spec.key)) throw new Error(`Snapshot ${label} có key trùng hoặc rỗng: ${spec.key}.`);
     seen.add(spec.key);
-    if (spec.examples?.length !== 2 || spec.exercises?.length !== 6 || spec.quick?.length !== 2) {
+    if (spec.examples?.length !== 2 || spec.exercises?.length !== 6 || !(spec.quick?.length === 2 || spec.quick?.length === 3)) {
       throw new Error(`Snapshot ${label} sai số lượng nội dung ở ${spec.key}.`);
     }
     if (!snapshot.aiErrors[spec.key]) throw new Error(`Snapshot ${label} thiếu AI error ở ${spec.key}.`);

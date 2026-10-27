@@ -17,4 +17,5 @@ export interface W11Batch2Entry {
 export const W11BATCH2: ReadonlyArray<W11Batch2Entry> = [
   { key: '10-11-80', grade: 10, period: 80, title: 'Các số đặc trưng đo xu thế trung tâm' },
   { key: '11-11-76', grade: 11, period: 76, title: 'Các số đặc trưng đo xu thế trung tâm' },
+  { key: '11-11-78', grade: 11, period: 78, title: 'Hai mặt phẳng song song' },
 ];

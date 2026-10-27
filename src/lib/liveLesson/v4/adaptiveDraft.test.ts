@@ -49,7 +49,7 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
       const codes = new Set(validateAdaptiveLessonPublishReadiness(lesson).map((issue) => issue.code));
 
       expect(lesson.diagnosticTest.questions).toHaveLength(5);
-      expect(lesson.knowledgeUnits[0]?.quickCheck.questions).toHaveLength(2);
+      expect(lesson.knowledgeUnits[0]?.quickCheck.questions).toHaveLength(contract.sourceContent?.quickChecks.length ?? 2);
       expect(lesson.exitTicket.questions).toHaveLength(3);
       expect(codes.has('insufficient_diagnostic')).toBe(false);
       expect(codes.has('insufficient_quick_check')).toBe(false);

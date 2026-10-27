@@ -1,3 +1,20 @@
+# TODO — 27/10/2026: R3 Pha B (Gate C) bài `11-11-78` — batch2 Tuần 11 (đang B6)
+
+Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) · Gate D duyệt 27/10: `gate-d-11-11-78.md` (thầy chốt đủ 4 đề xuất: Hệ quả "hai đường thẳng song song khác"; S0–S10 = 1,2,3,5,3,1,7,3,5,8,2 phút; Thales phẳng 2 họ tách dòng; Burj chỉ hình học).
+
+- [x] B1 — spec + aiError `11-11-78` vào `banToan-w11-batch2.snapshot.json` (snapshot giờ 3 entry): formulas×4 (ĐL1 hệ 3 dòng, Hệ quả plain, Thales không gian, Thales phẳng 2 họ — `slice(0,3)` hiện S3), examples×2 (chứng minh Thales không gian, tứ giác đúng `AA'B'B''`/`B''B'C'C''`; Burj geometry-only), exercises×6 (PHT N1/N2 NB/TH/VD — đáp án nguyên bản mục III, ghi "(Đáp án PHT số 1 mức … — nguyên bản mục III giáo án.)"), quick×**3** (nguồn III.3, B/B/B), mistakes×4, boardKnowledge công khai KHÔNG đáp án PHT. aiError `category "Thiếu điều kiện"`, wrongSolution TRẦN chỉ mệnh đề sai (cụm đồng phẳng về chỉ-GV), boardPrompt gộp `proof`; **5 trường aiError plain Unicode không `$`** — kiểm `tasks/tmp-check-aierror-dollar.mjs`: 54/54 sạch (TV render body nguyên dạng).
+- [x] B1 — fingerprint đa file: `f10723f40e93a1d6f82fbcb04fe1144eb6a3c0cdf21e48a09b8894e90eb774fa` (hash giáo án 78 = `175b65bf…`).
+- [x] B2 — `'11-11-78'` vào `INTERACTIVE_SOURCE_KEYS` (6 mã).
+- [x] B3 — entry R3 vào `W11BATCH2` (g11, period 78, title "Hai mặt phẳng song song").
+- [x] B4 — mảng exact-keys 5→6 mã alphabet + tên test 5→6 (week11Catalog + interactiveUpgrade); pin `MAIN_PIN=51 + W11BATCH2.length` giữ nguyên.
+- [x] B5 — vitest v4: **27 file / 272 PASS** (baseline R2 269, +3 it.each); build 0 TS error (✓ 1m6s). **Nới pin quick 2→"2 hoặc 3"**: `lessonAdapter.ts:181`, `validateContract.ts:269`, audit `sequentialPublication.ts` (`SOURCE_QUICK_NOT_2`→`SOURCE_QUICK_COUNT`), `adaptiveDraft.test.ts:52` assert theo nguồn; readiness `< 2` giữ nguyên, `lessonAdapter.test.ts:24` (MAIN) không đụng.
+- [ ] B6 — HANDOFF.md + todo.md; commit + push feat+main; chờ Vercel ~3'.
+- [ ] B7 — publish qua `/adaptive-lessons` nút "Tạo và xuất bản" (Edge 9222 CDP thô; republish tái dùng `tmp-r2-fix1-delete/publish.cjs`).
+- [ ] B8 — QA A–F Production → append `tasks/qa-w11-batch2-acceptance.md` (giữ untracked); lớp g11 `class-1787188523562` / `R6RCFC`, HS Đặng Tuệ Minh PIN 2750 (Edge 9223).
+- [ ] B9 — DỪNG tổng kết vòng, báo thầy → R4 `11-11-79` (Tiết 3, kind practice).
+
+---
+
 # TODO — 27/10/2026: R2 Pha B (Gate C) bài `11-11-76` — batch2 Tuần 11 ✅ (chờ B7–B8)
 
 Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) · Gate D duyệt 26/10: `gate-d-11-11-76.md` (PA-β + PA-d chốt sẵn trong file).

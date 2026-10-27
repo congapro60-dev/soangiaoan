@@ -266,7 +266,7 @@ function validateSourceContent(contract: LiveLessonV4Contract, errors: V4Validat
   const exercises = Array.isArray(content.exercises) ? content.exercises : [];
   const quickChecks = Array.isArray(content.quickChecks) ? content.quickChecks : [];
   const mistakes = Array.isArray(content.mistakes) ? content.mistakes : [];
-  const invalidCount = formulas.length === 0 || examples.length !== 2 || exercises.length !== 6 || quickChecks.length !== 2 || mistakes.length === 0;
+  const invalidCount = formulas.length === 0 || examples.length !== 2 || exercises.length !== 6 || !(quickChecks.length === 2 || quickChecks.length === 3) || mistakes.length === 0;
   const invalidFormula = formulas.some((item) => isBlank(item));
   const invalidExample = examples.some((item) => isBlank(item?.question) || isBlank(item?.solution) || isBlank(item?.sourceRef));
   const invalidExercise = exercises.some((item) => (

@@ -141,11 +141,11 @@ function auditContract(contract: LiveLessonV4Contract): AuditIssue[] {
     });
   }
 
-  // 7. Quick-check: 2 questions
-  if (!contract.sourceContent || contract.sourceContent.quickChecks.length !== 2) {
+  // 7. Quick-check: 2–3 câu (Gate D từng bài: bài 78 có 3 câu kiểm nhanh gốc)
+  if (!contract.sourceContent || !(contract.sourceContent.quickChecks.length === 2 || contract.sourceContent.quickChecks.length === 3)) {
     issues.push({
-      code: 'SOURCE_QUICK_NOT_2',
-      message: `sourceContent.quickChecks cần 2 câu, nhận ${contract.sourceContent?.quickChecks.length ?? 0}.`,
+      code: 'SOURCE_QUICK_COUNT',
+      message: `sourceContent.quickChecks cần 2 hoặc 3 câu, nhận ${contract.sourceContent?.quickChecks.length ?? 0}.`,
     });
   }
 
@@ -448,6 +448,7 @@ export const INTERACTIVE_SOURCE_KEYS: ReadonlySet<string> = new Set([
   '10-11-80',
   '11-11-75',
   '11-11-76',
+  '11-11-78',
   '12-11-80',
 ]);
 
