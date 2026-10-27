@@ -4,11 +4,11 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V36 DANG DEPLOY: va not F3 sot sau v35 (27/10/2026)
+## Latest checkpoint - V36 DA PHAT HANH: va not F3 sot sau v35 (27/10/2026)
 
-**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `f73d029` (= v35 da phat hanh: version 35, deployment `appgdep_6ae0bbc0175c8191862d2eea418c8864`).
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `1cf10c7f64d76e1dbf3d29cb4c121fff101b12a0` (= v36 da phat hanh: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`).
 
-### Trang thai: DANG DEPLOY — code + test xong, cho native deploy.
+### Trang thai: DA PHAT HANH — native deployment succeeded; get_site latest_version_number = 36 (28/10/2026).
 
 ### Noi dung thay doi v36
 
@@ -28,10 +28,10 @@ Sau khi soi toan bo 16 cho "xuc xac" tren live v35: F3 da sua 4 cho nhung con 3 
 | Truong | Gia tri |
 |---|---|
 | version_number | **36** |
-| deployment_id | `appgdep_6ae0bbc0175c8191862d2eea418c8864` (placeholder — Codex dien sau deploy) |
-| commit_sha | (placeholder — Codex dien sau commit) |
-| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v36.tar.gz` (placeholder) |
-| archive size | (placeholder) |
+| deployment_id | `appgdep_6ae12290bea08191bd18e355da0b19d7` |
+| commit_sha | `1cf10c7f64d76e1dbf3d29cb4c121fff101b12a0` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v36.tar.gz` |
+| archive size | 49442863 bytes |
 
 ## Latest checkpoint - V35 DA PHAT HANH: fix 3 FAIL QA live v34 (27/10/2026)
 

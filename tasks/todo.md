@@ -74,13 +74,13 @@
 - [x] Test hồi quy F1–F3 trong `race-choose.test.mjs` (pattern region như C4, escape `\${` cho needle chứa template literal): race-choose 18/18; full suite **1435/1435 PASS, 0 fail**; `node --check` sạch; `npm run build` pass.
 - [x] Deploy v35 qua Codex (MCP Sites): chặn PTY (`WindowsApps\pwsh.exe` alias — ConPTY Access denied) → fix shim `pwsh.exe` (copy powershell.exe) prepend PATH. Commit `f73d029` (7 file) + push + archive `release-20261027-v35.tar.gz` (49.443.174 B) bởi Codex; native deploy thành công: **version 35**, deployment `appgdep_6ae0bbc0175c8191862d2eea418c8864`, HANDOFF → "DA PHAT HANH".
 - [x] Kiểm độc lập sau deploy: root HTTP 200; **18/18 asset SHA256 live↔archive MATCH** (app.js 199.513 B, style.css, 15 chunk/css); marker F1–F3 trên live app.js: "Hết mã lực" ×4, "Chọn bước di chuyển" ×1, "lượt di chuyển" ×15, "điểm mã lực" ×6, "giao kèo"/"+40" ×9, `apply(d); render()` ×2.
-- [ ] WIP chờ v36: `tasks/lessons.md` (bài học PTY + bài học không đụng file khi Codex chạy), `HANDOFF.md` (record V35 đã điền), `tasks/codex-prompt-v35-resume.md` — commit cùng đợt sau.
+- [x] WIP chờ v36: `tasks/lessons.md` (bài học PTY + bài học không đụng file khi Codex chạy), `HANDOFF.md` (record V35 đã điền), `tasks/codex-prompt-v35-resume.md` — commit cùng đợt sau.
 
-## v36 — vá nốt F3 sót sau v35 (27/10/2026)
+## v36 — vá nốt F3 sót sau v35 (27/10/2026) ✅ DA PHAT HANH
 
 - [x] Phát hiện sau khi soi 16 chỗ "xúc xắc" trên live v35: F3 sửa 4 chỗ nhưng còn **3 chỗ lọt được vào campaign**.
 - [x] F3b-1 tooltip ô bản đồ (`terrainInfo`): nhánh cuối `'Lăn xúc xắc khi đến lượt...'` → thêm `m.campaign ? 'Chọn bước di chuyển khi đến lượt...'`. Reachable: action `map-spot` (click pin) chạy mọi mode; ô thường không khớp nhánh `cells`/mốc sự kiện trước đó.
 - [x] F3b-2 nút lăn fallback (`bonusPanel`): `'Lăn xúc xắc'` → `${r.campaign ? 'Chọn bước di chuyển' : 'Lăn xúc xắc'}`. Reachable: `individual + promisedPasses > paidPasses` không vào `stepBuyPanel`.
 - [x] F3b-3 nhãn đồng hồ lượt (`updateRaceClock`, 2 chỗ): thêm nhánh campaign "Chọn bước di chuyển · …" cho cả `individual` và `team`. Reachable khi campaign không có `.step-option`.
 - [x] Test hồi quy F3b trong `race-choose.test.mjs` (kiểm 4 needle theo region terrainInfo/bonusPanel/updateRaceClock): **19/19**; full suite **1436/1436 PASS, 0 fail**; `node --check` sạch; `npm run build` pass.
-- [ ] Deploy v36 qua Codex + kiểm độc lập SHA256 live↔archive.
+- [x] Deploy v36 qua Codex + kiểm độc lập SHA256 live↔archive: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`, commit `1cf10c7f64d76e1dbf3d29cb4c121fff101b12a0`, archive 49.442.863 B, 5 marker "Chọn bước di chuyển" trên live.
