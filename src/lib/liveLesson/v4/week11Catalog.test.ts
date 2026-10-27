@@ -48,8 +48,8 @@ describe('Ba bài Tuần 11 nạp được vào registry', () => {
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe('11-11-75');
   });
 
-  it('chỉ 9 bài Tuần 11 được đánh dấu interactive, các bài còn lại giữ self_study', () => {
-    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '11-11-75', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-80']);
+  it('chỉ 10 bài Tuần 11 được đánh dấu interactive, các bài còn lại giữ self_study', () => {
+    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '11-11-75', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '12-11-80']);
     for (const key of INTERACTIVE_SOURCE_KEYS) {
       expect(getBanToanV4Contract(key).sourceKey).toBe(key);
     }
