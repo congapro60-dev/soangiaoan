@@ -304,3 +304,32 @@ test('C4 reward dice UI: campaign panel swaps the extra die for mana points; due
   assert(h > 0 && hEnd > h, 'raceHistory region found');
   assert(src.slice(h, hEnd).includes(`dice: r.race.campaign ? 'điểm mã lực' : 'xúc xắc thêm'`), 'history label follows the mode');
 });
+
+test('QA v34 F1: buySkill re-renders right after apply so the mana balance is never stale', async () => {
+  const src = await readFile(resolve('public/app.js'), 'utf8');
+  const i = src.indexOf('async function buySkill');
+  const end = src.indexOf('function personalSkills()', i);
+  assert(i > 0 && end > i, 'buySkill region found');
+  const region = src.slice(i, end);
+  assert(/apply\(d\);\s*render\(\);/.test(region), 'render() follows apply(d) inside buySkill');
+});
+
+test('QA v34 F2: teacher board flags out-of-mana teams and uses a mode-aware travel notice', async () => {
+  const src = await readFile(resolve('public/app.js'), 'utf8');
+  const i = src.indexOf('function teamDetail');
+  const end = src.indexOf('function teacherMathHistory', i);
+  assert(i > 0 && end > i, 'teamDetail region found');
+  const region = src.slice(i, end);
+  assert(region.includes(`let noMana = !finished && r.race?.campaign && (r.score || 0) < 30;`), 'noMana condition matches the 30-point buy floor');
+  assert(region.includes(`\${noMana ? ' · Hết mã lực' : ''}\${finished`), 'summary carries the out-of-mana label');
+  assert(region.includes(`: 'Đang chơi'}\${noMana ? ' · Hết mã lực' : ''} · \${r.completed}/5 khóa`), 'body carries the out-of-mana label');
+  assert(region.includes(`r.race?.campaign ? 'Chờ lượt di chuyển hoặc xử lý sự kiện.' : 'Chờ lượt xúc xắc hoặc xử lý sự kiện.'`), 'travel notice follows the mode');
+});
+
+test('QA v34 F3: campaign mode has no leftover dice wording in gate button, bonus keep text, rules reward or mana helper', async () => {
+  const src = await readFile(resolve('public/app.js'), 'utf8');
+  assert(src.includes(`state.race.campaign ? 'Trở lại bản đồ · Chọn bước di chuyển' : 'Trở lại bản đồ · Lăn xúc xắc'`), 'gate button label follows the mode');
+  assert(src.includes(`r.campaign ? 'Giữ 2 bước để cộng vào lượt di chuyển tiếp theo. Vẫn dừng ở cổng được chỉ định.' : 'Giữ 2 bước để cộng vào lượt xúc xắc tiếp theo. Vẫn dừng ở cổng được chỉ định.'`), 'bonus keep-steps text follows the mode');
+  assert(src.includes(`\${c ? 'nhận 100 điểm mã lực' : 'thêm 1 viên xúc xắc vào lượt di chuyển kế tiếp'}. Chỉ nhận một lợi ích;`), 'rules reward list follows the mode');
+  assert(src.includes('giao kèo (+40 điểm, tối đa 2/ván)'), 'out-of-mana helper mentions the pact recovery (+40, max 2 per race)');
+});

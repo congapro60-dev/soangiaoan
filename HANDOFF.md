@@ -4,13 +4,67 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V34 CHUAN BI PHAT HANH: ma luc mua quyen chon (27/10/2026) — CHUA DEPLOY
+## Latest checkpoint - V35 DANG DEPLOY: fix 3 FAIL QA live v34 (27/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `9aea0a1` (= v34 da phat hanh: version 34, deployment `appgdep_6ae096897df88191b16636da5b042ec2`).
+
+### Trang thai: DANG DEPLOY — cho Codex chay workflow sites (saveSource + package + native deploy).
+
+### Noi dung thay doi v35 (fix 3 FAIL QA live v34; bao cao: `tasks/qa-v34-live-20261027/REPORT.md`)
+
+- F1 diem HS stale sau mua ky nang: `public/app.js` `buySkill()` them `render()` ngay sau `apply(d)`. Goc re: handler chi apply + `updateClock()` (khoa nut theo score moi) nen text diem cu; `raceAction` mua buoc da lam dung chuan nay tu truoc.
+- F2 GV thieu trang thai het ma luc: `teamDetail()` them co `noMana = !finished && r.race?.campaign && (r.score || 0) < 30` -> nhan " · Het ma luc" o ca summary + body cua tung doi; travel notice doi theo che do ("Cho luot di chuyen hoac xu ly su kien" o campaign, duel giu nguyen).
+- F3 chu "xuc xac" sot o campaign (4 cho): nut cong thoat -> "Tro lai ban do · Chon buoc di chuyen"; thuong giu buoc -> "luot di chuyen tiep theo"; rules "Chon thuong" -> campaign la "nhan 100 diem ma luc" thay vien xuc xac; helper het ma luc them "giao keo (+40 diem, toi da 2/van)" (pact delay = +40 diem, `route.js:943`, toi da 2/van).
+- `tests/race-choose.test.mjs`: +3 test hoi quy F1-F3 (pattern region nhu C4; needle chua template literal phai escape `\${`). Tong 18 test.
+- File commit v35 (5 modified + 2 moi): `public/app.js`, `tests/race-choose.test.mjs`, `HANDOFF.md`, `tasks/todo.md`, `tasks/lessons.md`, `tasks/codex-qa-v34-live.md`, `tasks/codex-prompt-v35.md`.
+
+### Verify truoc deploy (27/10)
+
+- `node --check public/app.js` sach; race-choose **18/18**; full suite **1435/1435 PASS, 0 fail**; `npm run build` pass, 0 loi. `lib/exam/**` va phong demo `7E42C2` khong bi dong den.
+
+### Release record V35 (cho deploy dien)
+
+| Truong | Gia tri |
+|---|---|
+| version_number | (cho deploy - phai la 35) |
+| deployment_id | (cho deploy) |
+| commit_sha | (cho deploy) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v35.tar.gz` |
+| archive size | (cho deploy) |
+
+- Kiem doc lap do phien OpenCode thuc hien sau deploy: SHA256 app.js/style.css/chunk tai tu live khop archive, root HTTP 200, marker "Het ma luc" + "Chon buoc di chuyen" + "Cho luot di chuyen hoac xu ly su kien" hien dien tren live.
+
+## Latest checkpoint - V34 DA PHAT HANH: ma luc mua quyen chon (27/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `1e93e92` (= v33 da phat hanh).
 
-### Trang thai: QA XANH 3 vong + reward dice da doi theo quyet cua user (27/10) — DANG DEPLOY.
+### Trang thai: DA PHAT HANH — native deployment succeeded (27/10/2026).
 
-### Noi dung thay doi v34 (uncommitted: 24 file M + tests/race-choose.test.mjs + tasks/codex-prompt-v34.md moi)
+### Release record V34
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **34** |
+| deployment_id | `appgdep_6ae096897df88191b16636da5b042ec2` |
+| version_id | `appgprj_6ac8d74b14f8819193caded9533bb337~appgver_59b8809d790481918d1105511b44dc23` |
+| commit_sha | `9aea0a1acf70a7f817feba31f65deb55be480d9b` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261027-v34.tar.gz` |
+| archive size | **49.442.961 bytes** (gzip local, theo checkpoint da xac minh; server reports unpacked tar 67.399.680 bytes) |
+| audience / env | public / revision 3 |
+| deployment status | succeeded |
+| deployment updated_at | `2026-10-27T12:19:11.971249+00:00` |
+| live URL | https://mat-ma-da-gioi.cuong-vuviet.chatgpt.site |
+| app.js | 198.962 bytes — SHA256 `E0765F11731B415D631799E13448583C4F1636F4CC835CE3C91CC01E5E1C08FB` |
+| style.css | 62.854 bytes — SHA256 `1FB3A67F8EBE719DFA854E64357478CD52C2B191A9D234CA95B57CE1789ED940` |
+| chunk | `useLessonSession-CqzbOIMh.js` — 66.522 bytes, SHA256 `46DC675CF1BD988AF5DB8DD9B6AAB981DC7CC6C0FC38AAE40A4C8EDBD42DDF96` (giu nguyen tu v33) |
+
+- [x] get_site truoc deploy: latest_version_number=33, audience public.
+- [x] Native save dung archive da dong goi: version_number=34, source.commit_sha khop checkpoint.
+- [x] Native deploy: succeeded, URL nhu tren; khong chay lai workflow, khong tao archive moi.
+- Kiem doc lap boi phien OpenCode (27/10): tu trich app.js + style.css + chunk tu archive v34, tai lai tu live trong Chrome — SHA256 trung khit ca ba, root HTTP 200; marker "Nhan 100 diem ma luc" + "Mot xuc xac them" + `.step-buy`/`.dice-wallet`/`.skill-note` hien dien tren live. Evidence: `C:\Users\ADMIN\.codex\sites-release\v34-live-verification.json`.
+- HANDOFF sau deploy la ghi chep local, khong nam trong commit/archive da phat hanh; khong commit thu cong. Phien nay khong chay lai test/build hoac browser E2E.
+
+### Noi dung thay doi v34 (da commit trong 9aea0a1)
 
 - `lib/race.js`: skill `choose` (mua 1–6 buoc x 30d), grant khoi hanh 240d + event `start-grant` dung 1 lan, `choose()` nham `rid` (requestId) vao event di chuyen lam commit guard.
 - `app/api/escape/route.js`: guard choose/roll o campaign (CAMPAIGN_ROLL_LOCKED, CAMPAIGN_ONLY, CHOOSE_STEPS, PACT_DEBT 409 khi individual con no giao keo), chooseInsert them `EXISTS(json_each…'$.rid')` — INSERT chi commit khi chinh luot di chuyen da ghi (chong race trich diem khi skill mua dong thoi chiem revision); GET tra `score: effects.wallet`.
@@ -158,4 +212,3 @@ Trong luc xu ly, da sua CSS 5 lan lien tiep (aspect-ratio, flex, max-height, sua
 **Quy tac rut ra**: khi QA bao "hinh bi cat/bop meo", phai tinh ti le tu so do DOM (`height/width` so voi viewBox) TRUOC khi sua CSS. Neu ti le dung thi do la cuon, khong phai loi.
 
 **Luu y don vi**: `t.length` trong JS dem KY TU, `File.length` dem BYTE. Tieng Viet nhieu ky tu 2-3 byte nen chenh 65.860 byte vs 62.927 ky tu la binh thuong, khong phai loi.
-
