@@ -8,7 +8,7 @@
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `182bfe5` (= v37 chua deploy, gop đot voi v38 theo quyet dinh user "phuong an 2").
 
-### Trang thai: DANG DEPLOY — v37 + v38 code + test xong, cho deploy gop.
+### Trang thai: DA PHAT HANH — code v37+v38 da len live day du (marker xac minh 28/10). So version site: 37 (commit 5f76087 giu so 37 tu attempt dau); commit ho so nay se tang len 38.
 
 ### Noi dung thay doi v38 (y tuong #8: pipeline sinh/duyet cau hoi)
 
@@ -29,11 +29,19 @@
 
 | Truong | Gia tri |
 |---|---|
-| version_number | **38** (deploy gop v37+v38) |
-| deployment_id | (placeholder — Codex dien sau deploy) |
-| commit_sha | (placeholder — Codex dien sau commit) |
-| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v38.tar.gz` (placeholder) |
-| archive size | (placeholder) |
+| version_number | **37** (= code v37+v38 day du; commit ho so sau do tang len 38) |
+| deployment_id | `appgdep_6ae1c323ca20819196865ece9e0deba5` |
+| commit_sha | `5f76087d590769d18a0c354a136e6c5ff9e256f1` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v38.tar.gz` |
+| archive size | 49447181 bytes |
+
+### Ghi chu trien khai (28/10)
+
+- Attempt 1 de workflow Sites tu commit file prompt roi vai (`5f76087`) va push len remote source; local hoi phuc va reset ve `3b22f70` (cha cua 5f76087, chua du code v37+v38). Workflow tu ff-merge len remote (co che merge --ff-only), khong can force.
+- Archive sai dot dau da cach ly: `release-20261028-v38.invalid-5f76087.tar.gz` (khong deploy).
+- Kiem doc lap tren live 28/10: app.js 205085 B co du marker `data-console`, `shop-locked`, `aiBankPanel`, `ai-generate`; style.css 63761 B co `.map-notice`, `.console-panel`, `.ai-bank-panel`.
+- Commit tiep theo (ho so nay) se tao source commit moi -> Sites tang len version 38; deployment id moi se duoc Codex dien vao dong duoi.
+| version 38 | deployment_id: (cho Codex dien) |
 
 ## Latest checkpoint - V37 DANG DEPLOY: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
 

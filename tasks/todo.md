@@ -100,4 +100,4 @@
 - [x] `queueMath` ưu tiên câu AI, fallback bộ câu sẵn có; `campaignPublic` strip `aiBank`; team refresh campaign từ room (3 chỗ).
 - [x] UI GV: `aiBankPanel()` trước begin — sinh, duyệt từng câu, sửa đáp án, lưu; hiển thị trạng thái kết nối AI.
 - [x] Test: `tests/ai-question-bank.test.mjs` **8/8**; full suite **1449/1449 PASS, 0 fail**; build pass.
-- [ ] Deploy gộp v37+v38 qua Codex + kiểm độc lập (aiBankPanel trên live, marker console + shop-locked).
+- [x] Deploy gộp v37+v38: **live đã có đủ code** (deployment `appgdep_6ae1c323ca20819196865ece9e0deba5`, source commit `5f76087`, archive 49.447.181 B; marker live: `data-console`, `shop-locked`, `aiBankPanel`, `ai-generate` + 3 block CSS). Số version site giữ 37 do commit 5f76087 đã được saveSource từ attempt đầu; commit hồ sơ này sẽ đưa lên **38**.
