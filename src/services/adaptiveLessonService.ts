@@ -98,9 +98,9 @@ export async function listPublishedSelfStudyLessons(): Promise<SelfStudyLibraryI
       week: /^\d+$/.test((lesson.curriculumRef?.week || '').trim())
         ? lesson.curriculumRef!.week!.trim()
         : (override ? override.week : ''),
-      period: typeof lesson.curriculumRef?.period === 'number'
-        ? lesson.curriculumRef.period
-        : (override ? override.period : null),
+      period: override
+        ? override.period
+        : (typeof lesson.curriculumRef?.period === 'number' ? lesson.curriculumRef.period : null),
       updatedAt: lesson.updatedAt || '',
     });
   });
