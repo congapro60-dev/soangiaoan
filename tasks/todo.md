@@ -1,4 +1,4 @@
-# TODO - 28/10/2026: R7 Pha B (Gate C) bài `12-11-79` - batch2 Tuần 11 (BÀI CUỐI)
+# TODO - 28/10/2026: Batch2 HOÀN THÀNH — 10/10 bài Tuần 11 V8.8 (R1–R7 + Task 9–11 chốt đợt)
 
 Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) — Gate D duyệt 28/10: `gate-d-12-11-79.md` (thầy chốt 4 đề xuất: S0–S10 = 1-4-2-5-2-1-8-2-7-4-4 phút; 3 BLOCKER sửa số; `category` AI-error "Lỗi đại số"; kind `practice` + timeline key `gateD1279`).
 
@@ -20,3 +20,12 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [x] B6 - commit `a5b090d` (11 files) → push feat+main (`c94c12b..a5b090d`, exit 0) → deploy success 2 Vercel → **republish "Tạo và xuất bản 58 bài"**: hàng "Lớp 12 · Tuần 11 · Tiết 79" xuất hiện (`tmp-r7-publish.json`).
 - [x] B8 - QA A–F ĐẠT trên Production, phiên `3jpow388uY6B6aCx0EH7`: bands 12/12 khớp Gate D; AI-error chặng 5 ("AI"+"176,7", không lộ proof); route choice thẻ S → PHT Mức TB (taskAppeared); nháp giữ reload + tự rejoin không PIN; exit trống chặn + gửi trọn + "Tiến độ gửi · 1 HS"; think 63 reads, 11 windows decreasing+locked; Sau disabled stage 12; tvButtons=[]; no-spoiler 0/6.
 - [x] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R7 + TỔNG KẾT LOẠT 7/7 (untracked) + báo thầy.
+
+## Task 9–11 (chốt đợt — 28/10)
+
+- [x] Task 9 - QA 2 bài batch1: `10-11-79` (g10, 7W288E, phiên `8DIcKxBIDeFTlyVivIMV`) + `11-11-75` (g11, R6RCFC, phiên `3f6l2fI1RriYA1ZWfnJe`) — A–F ĐẠT + CasioKeyGuide ẨN (bằng chứng dump 0 lần).
+- [x] Task 10 - hồi quy bài 12 `12-11-80` (g12, AD4GKT, phiên `2vuuqC9VtmVhVGihSyD6`) — ĐẠT + CasioKeyGuide HIỆN đủ 4 bước (σx = 0,89443 nguyên trạng); g12VarianceNumbers + casioGuide test 17/17.
+- [x] Task 11 Step 1/1b - báo cáo 10 mục QA + cổng chốt `expect(W11BATCH2).toHaveLength(7)` — vitest v4 **300/300 PASS**.
+- [x] Task 11 Step 2 - chốt: mọi mục ĐẠT, đợt batch2 hoàn thành (0 sự cố).
+- [x] Task 11 Step 3 - HANDOFF cuối đợt (10/10 bài V8.8; registry 10 key).
+- [x] Task 11 Step 4 - commit + push tài liệu.
