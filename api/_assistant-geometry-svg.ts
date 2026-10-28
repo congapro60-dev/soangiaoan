@@ -85,23 +85,48 @@ const drawSolid = (solid: Solid, note?: string): string => {
     const a = P(e.a), b = P(e.b);
     parts.push(line(a[0], a[1], b[0], b[1], e.dashed));
   }
-  // Nhãn: đẩy ra xa tâm hình để không chồng lên cạnh.
-  const cx = proj.center[0] * sc + ox;
-  const cy = proj.center[1] * sc + oy;
+  // Nhãn: chọn hướng xa MỌI cạnh nhất (không chỉ xa tâm) để không đè lên đường.
+  const edgeSegs: Array<[Pt, Pt]> = proj.edges.map(e => [P(e.a), P(e.b)]);
   for (const n of Object.keys(proj.points)) {
-    const p = P(n);
-    const dx = p[0] - cx, dy = p[1] - cy;
-    const len = Math.hypot(dx, dy) || 1;
-    parts.push(label(p[0] + (dx / len) * 34, p[1] + (dy / len) * 34 + 10, n));
+    parts.push(labelAvoidingEdges(P(n), edgeSegs, n));
   }
   if (note) parts.push(noteText(note));
   return parts.join('\n');
 };
 
-/** Chóp: đáy vuông (S trên tâm O) hoặc đáy tam giác — dùng phép chiếu chuẩn SGK. */
-const pyramid = (base: 'square' | 'triangle', note?: string): string => {
+/**
+ * Đặt nhãn sao cho KHÔNG đè lên bất kỳ cạnh nào: thử 8 hướng quanh đỉnh, chọn hướng
+ * xa cạnh nhất. Bản cũ chỉ đẩy ra xa TÂM nên nhãn B rơi đúng lên cạnh SC (lỗi 28/10).
+ */
+const labelAvoidingEdges = (p: Pt, edges: Array<[Pt, Pt]>, text: string, size = 34): string => {
+  const distToSeg = (q: Pt, a: Pt, b: Pt): number => {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const len2 = dx * dx + dy * dy;
+    if (!len2) return Math.hypot(q[0] - a[0], q[1] - a[1]);
+    let t = ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(q[0] - (a[0] + t * dx), q[1] - (a[1] + t * dy));
+  };
+  let best: Pt = [p[0], p[1] - 40];
+  let bestScore = -Infinity;
+  for (let i = 0; i < 8; i += 1) {
+    const ang = (Math.PI * 2 * i) / 8;
+    const cand: Pt = [p[0] + Math.cos(ang) * 42, p[1] + Math.sin(ang) * 42];
+    // Điểm thấp nhất trong các khoảng cách tới mọi cạnh = mức an toàn của hướng này.
+    let minD = Infinity;
+    for (const [a, b] of edges) minD = Math.min(minD, distToSeg(cand, a, b));
+    if (minD > bestScore) { bestScore = minD; best = cand; }
+  }
+  return label(best[0], best[1] + 10, text, size);
+};
+
+/** Chóp: đáy vuông/tam giác. apexAt='A' → S đứng trên A (đề "SA ⊥ đáy");
+ *  apexAt='center' (mặc định) → S trên tâm O (chóp đều). Chọn SAI là vẽ sai đề. */
+const pyramid = (base: 'square' | 'triangle', apexAt: 'center' | 'A', note?: string): string => {
   const parts: string[] = [];
-  const solid = base === 'triangle' ? SOLIDS.pyramidTriangle() : SOLIDS.pyramidSquare();
+  const solid = base === 'triangle'
+    ? SOLIDS.pyramidTriangle()
+    : apexAt === 'A' ? SOLIDS.pyramidApexAtA() : SOLIDS.pyramidSquare();
   const proj = projectSolid(solid);
   const { minX, minY, maxX, maxY } = proj.bbox;
   const padX = 100, padTop = 70, padBottom = note ? 110 : 70;
@@ -113,20 +138,20 @@ const pyramid = (base: 'square' | 'triangle', note?: string): string => {
     const a = P(e.a), b = P(e.b);
     parts.push(line(a[0], a[1], b[0], b[1], e.dashed));
   }
-  // Đường cao S→O nét đứt (nằm trong khối) — đúng SGK.
-  const S = P('S'), O = P('O');
-  parts.push(line(S[0], S[1], O[0], O[1], true));
-  // Dấu góc vuông tại chân đường cao (giữa SO và OA).
-  const A = P('A');
-  parts.push(rightAngleMark(O, S, A));
-  const cx = proj.center[0] * sc + ox;
-  const cy = proj.center[1] * sc + oy;
+  // Chỉ vẽ đường cao S→O + dấu góc vuông khi S nằm trên tâm (chóp đều).
+  // Với apexAt='A', SA CHÍNH LÀ đường cao nên không có O riêng.
+  const hasO = 'O' in proj.points;
+  if (hasO) {
+    const S = P('S'), O = P('O'), A = P('A');
+    parts.push(line(S[0], S[1], O[0], O[1], true));
+    parts.push(rightAngleMark(O, S, A));
+  } else {
+    // apexAt='A': đánh dấu góc vuông tại A giữa SA và AB (thể hiện SA ⊥ đáy).
+    parts.push(rightAngleMark(P('A'), P('S'), P('B')));
+  }
+  const edgeSegs: Array<[Pt, Pt]> = proj.edges.map(e => [P(e.a), P(e.b)]);
   for (const n of Object.keys(proj.points)) {
-    const p = P(n);
-    const dx = p[0] - cx, dy = p[1] - cy;
-    const len = Math.hypot(dx, dy) || 1;
-    const off = n === 'O' ? 26 : 34;
-    parts.push(label(p[0] + (dx / len) * off, p[1] + (dy / len) * off + 10, n, n === 'O' ? 30 : 34));
+    parts.push(labelAvoidingEdges(P(n), edgeSegs, n, n === 'O' ? 30 : 34));
   }
   if (note) parts.push(noteText(note));
   return parts.join('\n');
@@ -338,7 +363,7 @@ export const geometrySvg = (spec: GeometrySpec | null | undefined): string | nul
   const body = (() => {
     try {
       switch (spec.shape) {
-        case 'pyramid': return pyramid(spec.base === 'triangle' ? 'triangle' : 'square', spec.note);
+        case 'pyramid': return pyramid(spec.base === 'triangle' ? 'triangle' : 'square', spec.apexAt === 'A' ? 'A' : 'center', spec.note);
         case 'prism': return prism(spec.note);
         case 'box': return box(spec.note);
         case 'cylinder': return cylinder(spec.note);

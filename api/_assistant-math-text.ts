@@ -260,22 +260,26 @@ const convertLatexBody = (input: string): string => {
   // Dùng ký tự đánh dấu tạm cho dấu ^ vừa sinh ra, nếu không vòng lặp sau sẽ ăn lại
   // chính nó (^(1/3) → ⁽1/3) và làm hỏng công thức).
   const CARET = '\u0001';
-  for (let guard = 0; guard < 50; guard += 1) {
-    const m = /([\^_])\s*/.exec(src);
-    if (!m) break;
-    const caret = m[1];
-    const argStart = m.index + m[0].length;
-    const arg = readScriptArg(src, argStart);
-    if (!arg) break;
-    const inner = convertLatexBody(arg.body);
-    const sup = caret === '^' ? toScript(inner, SUP_MAP) : toScript(inner, SUB_MAP);
-    let built: string;
-    if (sup) built = sup;
-    // Chỉ số dưới toàn chữ/số (S_đáy, u_n) không cần ngoặc — thêm ngoặc chỉ rối mắt.
-    else if (caret === '_' && /^[\p{L}\p{N}]+$/u.test(inner)) built = `_${inner}`;
-    else if (caret === '^') built = inner.length === 1 ? `${CARET}${inner}` : `${CARET}(${inner})`;
-    else built = inner.length === 1 ? `_${inner}` : `_(${inner})`;
-    src = src.slice(0, m.index) + built + src.slice(arg.end);
+  // XỬ LÝ MŨ TRƯỚC, CHỈ SỐ DƯỚI SAU. Nếu quét lẫn "^|_" theo thứ tự xuất hiện thì với
+  // "S_day=a^2" nó gặp "_" trước, đọc đối số thành "day=a" (readScriptArg chỉ lấy 1 ký tự
+  // khi không có ngoặc) → ăn mất "a" và để lại "S_day=a^2" hỏng (lỗi thật 28/10).
+  for (const caret of ['^', '_'] as const) {
+    for (let guard = 0; guard < 50; guard += 1) {
+      const m = new RegExp(`\\${caret}\\s*`).exec(src);
+      if (!m) break;
+      const argStart = m.index + m[0].length;
+      const arg = readScriptArg(src, argStart);
+      if (!arg) break;
+      const inner = convertLatexBody(arg.body);
+      const sup = caret === '^' ? toScript(inner, SUP_MAP) : toScript(inner, SUB_MAP);
+      let built: string;
+      if (sup) built = sup;
+      // Chỉ số dưới toàn chữ/số (S_đáy, u_n) không cần ngoặc — thêm ngoặc chỉ rối mắt.
+      else if (caret === '_' && /^[\p{L}\p{N}]+$/u.test(inner)) built = `_${inner}`;
+      else if (caret === '^') built = inner.length === 1 ? `${CARET}${inner}` : `${CARET}(${inner})`;
+      else built = inner.length === 1 ? `_${inner}` : `_(${inner})`;
+      src = src.slice(0, m.index) + built + src.slice(arg.end);
+    }
   }
   src = src.split(CARET).join('^');
 
@@ -347,10 +351,18 @@ const VULGAR: Record<string, string> = {
  * hoặc biến như n/2 trong công thức đã có chữ).
  */
 export const beautifyFractions = (text: string): string =>
-  String(text ?? '').replace(/(?<![\p{L}\p{N}/.])(\d{1,2})\/(\d{1,2})(?![\p{L}\p{N}/])/gu, (m, a: string, b: string) => {
-    if (b === '0') return m;
-    return VULGAR[`${Number(a)}/${Number(b)}`] ?? m;
-  });
+  String(text ?? '')
+    // "1/3a²" (phân số nhân biến, model viết liền) → "⅓a²". Chỉ khi tử/mẫu là số 1 chữ số
+    // và ngay sau mẫu là BIẾN (không phải chữ số) — tránh ăn vào "15/100" hay "8/10 điểm".
+    .replace(/(?<![\p{L}\p{N}/.])(\d)\/(\d)(?=[a-zA-Z\p{L}])/gu, (m, a: string, b: string) => {
+      if (b === '0') return m;
+      return VULGAR[`${a}/${b}`] ?? m;
+    })
+    // "a/b" thuần số → ký tự vulgar nếu có (⅓, ⅔, ¾…).
+    .replace(/(?<![\p{L}\p{N}/.])(\d{1,2})\/(\d{1,2})(?![\p{L}\p{N}/])/gu, (m, a: string, b: string) => {
+      if (b === '0') return m;
+      return VULGAR[`${Number(a)}/${Number(b)}`] ?? m;
+    });
 
 /**
  * Chuyển MỌI công thức LaTeX trong một đoạn văn sang Unicode, giữ nguyên phần chữ.
@@ -370,8 +382,10 @@ export const latexToUnicodeMath = (text: string): string => {
   out = out.replace(/(?<!\\)\$([^$\n]+?)(?<!\\)\$/g, (_m, body: string) => convertLatexBody(String(body)));
   out = out.replace(/\\\(([\s\S]*?)\\\)/g, (_m, body: string) => convertLatexBody(String(body)));
 
-  // Lệnh LaTeX "trần" không có dấu bao — model hay quên. Chỉ chạy khi thật sự có lệnh.
-  if (/\\[A-Za-z]{2,}/.test(out)) out = convertLatexBody(out);
+  // Lệnh LaTeX "trần" không có dấu bao — model hay quên. Chạy khi có \command HOẶC
+  // có ^ / _ trần (model viết "a^2", "1/3a^2" không bọc $). Thiếu nhánh ^ _ này thì
+  // HS nhận nguyên "a^2" trong câu trả lời (lỗi thật 28/10).
+  if (/\\[A-Za-z]{2,}/.test(out) || /[\^_]\s*[{(\w]/.test(out)) out = convertLatexBody(out);
 
   return beautifyFractions(out
     .split('\u0002').join('{')

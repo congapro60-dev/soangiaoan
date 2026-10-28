@@ -13,7 +13,7 @@ export type GeometryShape =
 type ShapeBase = { note?: string };
 
 export type GeometrySpec = ShapeBase & (
-  | { shape: 'pyramid' | 'prism' | 'box' | 'cylinder' | 'cone' | 'sphere'; base?: 'square' | 'triangle' }
+  | { shape: 'pyramid' | 'prism' | 'box' | 'cylinder' | 'cone' | 'sphere'; base?: 'square' | 'triangle'; apexAt?: 'center' | 'A' }
   | { shape: 'graph'; points: [number, number][]; xrange?: [number, number]; yrange?: [number, number]; xlabel?: string; ylabel?: string }
   | { shape: 'table'; head: string[]; rows: string[][] }
   | { shape: 'bar'; labels: string[]; values: number[]; ylabel?: string }
@@ -56,6 +56,12 @@ export const parseGeometrySpec = (value: unknown): GeometrySpec | null => {
     if (raw.base !== undefined) {
       if (typeof raw.base !== 'string' || !BASES.has(raw.base)) return null;
       (spec as { base?: string }).base = raw.base;
+    }
+    if (raw.apexAt !== undefined) {
+      // Chỉ pyramid mới có lựa chọn chân đường cao; giá trị khác → từ chối cả khối.
+      if (raw.shape !== 'pyramid') return null;
+      if (raw.apexAt !== 'center' && raw.apexAt !== 'A') return null;
+      (spec as { apexAt?: 'center' | 'A' }).apexAt = raw.apexAt;
     }
     return spec;
   }
