@@ -24,6 +24,7 @@ const reply = data => Response.json({ ...data, serverNow: Date.now() }, { header
 const hash = async (text) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))).map(x => x.toString(16).padStart(2, '0')).join('');
 function puzzle(s, i, l) { const seed=s.questionSeeds?.[i]??s.seed; return s.campaign ? stationLogic(i, l, seed) : challenge(i, l, seed); }
 function roomCampaign(room) { return room.config ? JSON.parse(room.config) : null; }
+function classNoticeOf(room) { try { const n = JSON.parse(room.race || 'null')?.classNotice; return n && typeof n.text === 'string' ? n : null; } catch { return null; } }
 function modeView(room,s,host=false) {
     const mode=projectMode(room,Date.now());
     return mode?{...modePublic(mode,s?.modeUnit,host),unitId:s?.modeUnit??null,revision:room.revision,round:room.round}:null;
@@ -235,8 +236,9 @@ async function raceRoom(room) {
         delete publicTurn.arena;
         delete publicTurn.classActivity;
         delete publicTurn.classActivityHistory;
+delete publicTurn.consoleLog;
         delete publicTurn.commit;
-        return { campaign: campaignPublic(roomCampaign(current)), turn: publicTurn, classActivity:publicGameActivity(gameActivityOf(current),Date.now()), community: publicCommunity(data.c, roomCampaign(current), data.entries, Date.now()), arena: publicArena(arena.a, roomCampaign(current), arena.entries, Date.now()), roomRevision: current.revision, peers: teams.map(s => ({ id: s.id, name: s.name, status: s.status, position: s.race.position, mascot: s.race.mascot, phase: s.race.reward ? 'reward' : s.race.bonus && !s.race.bonus.done ? 'bonus' : s.race.phase, completed: s.race.outcomes.filter(o => !o.skipped).length, freezeUntil: s.effects.freezeUntil, score: s.effects.wallet })), log: turn.log || [] };
+        return { campaign: campaignPublic(roomCampaign(current)), turn: publicTurn, classNotice: classNoticeOf(current), classActivity:publicGameActivity(gameActivityOf(current),Date.now()), community: publicCommunity(data.c, roomCampaign(current), data.entries, Date.now()), arena: publicArena(arena.a, roomCampaign(current), arena.entries, Date.now()), roomRevision: current.revision, peers: teams.map(s => ({ id: s.id, name: s.name, status: s.status, position: s.race.position, mascot: s.race.mascot, phase: s.race.reward ? 'reward' : s.race.bonus && !s.race.bonus.done ? 'bonus' : s.race.phase, completed: s.race.outcomes.filter(o => !o.skipped).length, freezeUntil: s.effects.freezeUntil, score: s.effects.wallet })), log: turn.log || [] };
     }
     throw Error('Board busy');
 }
@@ -1144,7 +1146,74 @@ export async function POST(req) {
             let current = await loadTeam(req, b.id);
             return reply({ state: await publicState(current.s, current.room, current.row.revision), skill: { name: spec.name, cost } });
         }
-        if(['acknowledge-help','resolve-question'].includes(b.action)) {
+        if (b.action === 'teacher-console') {
+    const room = await adminAuth(req, b.id, 'game-action');
+    if (!room)
+        return fail('Chỉ giáo viên quản lý phòng mới được điều khiển lớp.', 403);
+    if (typeof b.consoleAction !== 'string' || !['freeze-all', 'broadcast', 'grant'].includes(b.consoleAction))
+        return fail('Thao tác điều khiển lớp không hợp lệ.');
+    if ((b.round ?? 1) !== room.round)
+        return fail('Phòng đã reset.', 409, 'SESSION_RESET');
+    const now = gameNow(room);
+    if (b.consoleAction === 'freeze-all') {
+        const seconds = 20;
+        const rows = (await stmt('SELECT id,data,revision FROM teams WHERE room_id=? AND removed_at IS NULL', room.id).all()).results;
+        const updates = rows.map(row => {
+            const s = JSON.parse(row.data);
+            if (s.status !== 'active' && !(s.status === 'waiting' && room.started))
+                return null;
+            s.events ??= [];
+            s.events.push({ type: 'ice', at: now, until: now + seconds * 1000, source: 'Giáo viên đóng băng cả lớp' });
+            return stmt('UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL', JSON.stringify(s), row.id, room.id, row.revision);
+        }).filter(Boolean);
+        if (updates.length) {
+            const results = await db().batch(updates);
+            if (results.some(r => r.meta.changes !== 1))
+                return fail('Danh sách đội vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
+        }
+        return reply({ ok: true, frozen: updates.length, seconds });
+    }
+    if (typeof b.requestId !== 'string' || !b.requestId.trim() || b.requestId.length > 70)
+        return fail('Thiếu mã lượt gửi.');
+    const race = JSON.parse(room.race || 'null') || {};
+    race.consoleLog ??= [];
+    if (race.consoleLog.some(e => e.requestId === b.requestId))
+        return reply({ ok: true, replay: true });
+    if (b.consoleAction === 'broadcast') {
+        if (typeof b.text !== 'string' || !b.text.trim() || b.text.length > 200)
+            return fail('Thông báo dài 1–200 ký tự.');
+        race.classNotice = { text: b.text.trim(), at: now };
+        race.consoleLog.push({ requestId: b.requestId, kind: 'broadcast', at: now });
+    } else {
+        if (typeof b.teamId !== 'string' || b.teamId.length > 60)
+            return fail('Thiếu đội cần cộng mã lực.');
+        if (!Number.isInteger(b.amount) || b.amount < 10 || b.amount > 200)
+            return fail('Mã lực cộng thêm từ 10 đến 200 điểm.');
+        const row = await stmt('SELECT id,data,revision FROM teams WHERE id=? AND room_id=? AND removed_at IS NULL', b.teamId, room.id).first();
+        if (!row)
+            return fail('Không tìm thấy đội trong phòng.', 404, 'TEAM_NOT_FOUND');
+        const s = JSON.parse(row.data);
+        if (s.status !== 'active' && !(s.status === 'waiting' && room.started))
+            return fail('Đội này chưa vào cuộc chơi.', 409, 'INACTIVE_TEAM');
+        s.score = (s.score || 0) + b.amount;
+        s.events ??= [];
+        s.events.push({ type: 'teacher-grant', amount: b.amount, at: now });
+        race.consoleLog.push({ requestId: b.requestId, kind: 'grant', teamId: b.teamId, amount: b.amount, at: now });
+        const results = await db().batch([
+            stmt('UPDATE rooms SET race=?,revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL', JSON.stringify(race), room.id, room.revision, room.round),
+            stmt('UPDATE teams SET data=?,revision=revision+1 WHERE id=? AND room_id=? AND revision=? AND removed_at IS NULL', JSON.stringify(s), row.id, room.id, row.revision)
+        ]);
+        if (results[0].meta.changes !== 1 || results[1].meta.changes !== 1)
+            return fail('Phòng vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
+        return reply({ ok: true, granted: b.amount });
+    }
+    race.consoleLog = race.consoleLog.slice(-20);
+    const saved = await stmt('UPDATE rooms SET race=?,revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL', JSON.stringify(race), room.id, room.revision, room.round).run();
+    if (saved.meta.changes !== 1)
+        return fail('Phòng vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
+    return reply({ ok: true, notice: race.classNotice });
+}
+if(['acknowledge-help','resolve-question'].includes(b.action)) {
             const room=await adminAuth(req,b.id,'game-action');if(!room)return fail('Chỉ giáo viên quản lý phòng mới được xử lý hỗ trợ.',403);
             const row=await stmt('SELECT * FROM teams WHERE id=? AND room_id=? AND removed_at IS NULL',b.teamId,room.id).first();
             if(!row)return fail('Không tìm thấy đội trong phòng.',404);

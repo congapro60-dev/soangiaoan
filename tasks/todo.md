@@ -84,3 +84,11 @@
 - [x] F3b-3 nhãn đồng hồ lượt (`updateRaceClock`, 2 chỗ): thêm nhánh campaign "Chọn bước di chuyển · …" cho cả `individual` và `team`. Reachable khi campaign không có `.step-option`.
 - [x] Test hồi quy F3b trong `race-choose.test.mjs` (kiểm 4 needle theo region terrainInfo/bonusPanel/updateRaceClock): **19/19**; full suite **1436/1436 PASS, 0 fail**; `node --check` sạch; `npm run build` pass.
 - [x] Deploy v36 qua Codex + kiểm độc lập SHA256 live↔archive: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`, commit `1cf10c7f64d76e1dbf3d29cb4c121fff101b12a0`, archive 49.442.863 B, 5 marker "Chọn bước di chuyển" trên live.
+
+## v37 — mở luật theo lớp + điều khiển lớp thời gian thực (28/10/2026)
+
+- [x] Tư vấn 10 ý tưởng (kỹ thuật + UI/UX/luật chơi/học tập); user chọn "đi thẳng #1 + #5".
+- [x] #1 Progressive disclosure: shop kỹ năng + giao kèo chỉ hiện sau khi giải xong cổng xuất phát (server đã khóa sẵn, chỉ thêm lớp trình bày).
+- [x] #5 Teacher console: action `teacher-console` (freeze-all 20s qua events `ice`, broadcast qua `race.classNotice`, grant 10–200đ có event `teacher-grant`); phân quyền `game-action`; UI `classConsole()` trên board GV; banner `map-notice` trên bản đồ cả HS lẫn GV.
+- [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); full suite **1441/1441 PASS**; build pass.
+- [ ] Deploy v37 qua Codex + kiểm độc lập (console hiện trên live, marker shop-locked, banner thông báo).

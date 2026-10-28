@@ -4,6 +4,36 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
+## Latest checkpoint - V37 DANG DEPLOY: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `4430b50` (= v36 da phat hanh: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`).
+
+### Trang thai: DANG DEPLOY — code + test xong, cho deploy.
+
+### Noi dung thay doi v37 (tu van 10 y tuong → user chon #1 + #5)
+
+- **#1 Mo luat theo lop (progressive disclosure)**: shop "Kho tiep te" chi hien grid ky nang + panel giao keo SAU khi doi giai xong cong xuat phat (`state.solved.length >= 1`); truoc do thay bang chu thich "Giai xong cong xuat phat de mo kho ky nang...". Server da khoa san (`s.solved.length < 1` → fail) nen chi la lop trinh bay, khong doi luat.
+- **#5 Bang dieu khien lop thoi gian thuc (teacher console)**: moi action `teacher-console` (quyen `game-action`) voi 3 thao tac:
+  - `freeze-all`: dong bang ca lop 20 giay — ghi `s.events` type `ice` (nguon "Giao vien dong bang ca lop"); effects() tu tinh lai freezeUntil, khong dung skill_actions (neu tranh tac dung phu shield/attackCount).
+  - `broadcast`: luu `race.classNotice` vao rooms.race JSON; HS thay banner `map-notice` trong 90 giay tren ban do; `consoleLog` (20 entry cuoi) giu replay-safe theo requestId, bi `delete publicTurn.consoleLog` khoi board HS.
+  - `grant`: cong 10–200 diem ma luc cho 1 doi, ghi event `teacher-grant` de kiem soat.
+- UI: `classConsole()` tren board GV (sau `gameActivityHostControls`), handler `[data-console]` goi `api('teacher-console')` voi token GV; banner trong `raceMap` doc `m.classNotice` (HS nhan qua GET crew → raceRoom, GV qua board.map).
+- CSS: +`.console-panel`, `.map-notice`, `.shop-locked`.
+
+### Verify truoc deploy (28/10)
+
+- `node --check public/app.js` sach; **tests/teacher-console.test.mjs 5/5** (route tich hop qua VM harness + needle client); full suite **1441/1441 PASS, 0 fail**; `npm run build` pass. `lib/exam/**` va phong demo `7E42C2` khong bi dong den.
+
+### Release record V37
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **37** |
+| deployment_id | (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v37.tar.gz` (placeholder) |
+| archive size | (placeholder) |
+
 ## Latest checkpoint - V36 DA PHAT HANH: va not F3 sot sau v35 (27/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `1cf10c7f64d76e1dbf3d29cb4c121fff101b12a0` (= v36 da phat hanh: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`).
