@@ -61,6 +61,24 @@ export interface SelfStudyLibraryItem {
 }
 
 /**
+ * 10 tiết Tuần 11 — map adaptive id (bài tự học tạo từ giáo án nguồn) sang tuần/tiết
+ * chuẩn của app. Các bài nguồn có curriculumRef.week = "Dạy thử" (dữ liệu giáo án)
+ * → override để HS nhận ra bài tuần mình trên Thư viện học lại (thầy 28/10).
+ */
+const SELF_STUDY_WEEK11_OVERRIDE: Readonly<Record<string, { week: string; period: number }>> = {
+  'adaptive-1792827090625': { week: '11', period: 79 }, // 10-11-79 — Số gần đúng và sai số
+  'adaptive-1792826324771': { week: '11', period: 80 }, // 10-11-80 — Các số đặc trưng đo xu thế trung tâm
+  'adaptive-1792831747929': { week: '11', period: 75 }, // 11-11-75 — Mẫu số liệu ghép nhóm
+  'adaptive-1792831154099': { week: '11', period: 76 }, // 11-11-76 — Các số đặc trưng đo xu thế trung tâm
+  'adaptive-1792827844375': { week: '11', period: 78 }, // 11-11-78 — Hai mặt phẳng song song Tiết 2
+  'adaptive-1792828475281': { week: '11', period: 79 }, // 11-11-79 — Hai mặt phẳng song song Tiết 3
+  'adaptive-1792832396461': { week: '11', period: 77 }, // 12-11-77 — Nguyên hàm Tiết 2
+  'adaptive-1792834706906': { week: '11', period: 80 }, // 12-11-80 — Phương sai và độ lệch chuẩn
+  'adaptive-1792833009074': { week: '11', period: 78 }, // 12-11-78 — Khoảng biến thiên Tiết 1
+  'adaptive-1792833650874': { week: '11', period: 79 }, // 12-11-79 — Mức độ phân tán Tiết 2
+};
+
+/**
  * Thư viện học lại — mọi HS xem được: các bài TỰ HỌC PHÂN HOÁ đã xuất bản
  * (portalEnabled == true khớp firestore.rules). Không lọc theo lớp: bất kỳ HS nào
  * cũng vào list để xem và chọn bài học lại (yêu cầu thầy 28/10).
@@ -72,12 +90,17 @@ export async function listPublishedSelfStudyLessons(): Promise<SelfStudyLibraryI
   snap.forEach((docSnap) => {
     const lesson = normalizeAdaptiveLessonDocument(docSnap.data(), docSnap.id);
     if (!lesson || lesson.lessonKind !== 'self_study' || lesson.status !== 'published') return;
+    const override = SELF_STUDY_WEEK11_OVERRIDE[lesson.id];
     items.push({
       id: lesson.id,
       title: lesson.title || 'Bài tự học phân hoá',
       grade: String(lesson.grade || ''),
-      week: lesson.curriculumRef?.week || '',
-      period: typeof lesson.curriculumRef?.period === 'number' ? lesson.curriculumRef.period : null,
+      week: /^\d+$/.test((lesson.curriculumRef?.week || '').trim())
+        ? lesson.curriculumRef!.week!.trim()
+        : (override ? override.week : ''),
+      period: typeof lesson.curriculumRef?.period === 'number'
+        ? lesson.curriculumRef.period
+        : (override ? override.period : null),
       updatedAt: lesson.updatedAt || '',
     });
   });
