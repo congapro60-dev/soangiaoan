@@ -17,8 +17,11 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { geometrySvg, GEOMETRY_SVG_SIZE } from './_assistant-geometry-svg.js';
 import type { GeometrySpec } from './_assistant-geometry.js';
-import { renderMathAnswerJpeg } from './_assistant-math-image.js';
+import { renderMathAnswerPng } from './_assistant-math-image.js';
 import { getAdminStorage } from './_exam-core.js';
+
+/** Gốc URL công khai — dùng cho link ảnh gửi Zalo (phải là domain Zalo gọi được). */
+const WEB_BASE = 'https://giaoandewey.vercel.app';
 
 /** Đọc font KaTeX_Main 1 lần; trả chuỗi @font-face nhúng base64 (rỗng nếu thiếu file). */
 let fontFaceCss: string | null = null;
@@ -33,7 +36,7 @@ const fontFace = (): string => {
   return fontFaceCss;
 };
 
-export const renderGeometryJpeg = async (svg: string): Promise<Buffer | null> => {
+export const renderGeometryPng = async (svg: string): Promise<Buffer | null> => {
   try {
     const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
       import('@sparticuz/chromium'),
@@ -55,7 +58,7 @@ export const renderGeometryJpeg = async (svg: string): Promise<Buffer | null> =>
         { waitUntil: 'load', timeout: 20_000 },
       );
       await page.evaluate(async () => { if ((document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts) await (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready; });
-      const shot = await page.screenshot({ type: 'jpeg', quality: 92 });
+      const shot = await page.screenshot({ type: 'png' });
       return Buffer.from(shot as Buffer);
     } finally {
       await browser.close().catch(() => { /* bỏ qua */ });
@@ -66,16 +69,27 @@ export const renderGeometryJpeg = async (svg: string): Promise<Buffer | null> =>
   }
 };
 
-/** Upload ảnh lên Storage — token URL công khai (cùng dạng luồng ảnh nộp bài). */
-export const uploadGeometryImage = async (jpeg: Buffer, classId: string): Promise<string | null> => {
+/** Upload ảnh lên Storage — trả URL SẠCH của chính mình (xem api/geometry-image.ts).
+ *  Không trả URL Firebase Storage nữa: Zalo trên điện thoại hiện nút tải xuống với URL đó
+ *  (lỗi 28/10), dù header đúng. URL sạch chỉ có 1 tham số id, không token. */
+export const uploadGeometryImage = async (png: Buffer, classId: string): Promise<string | null> => {
   try {
-    const path = `geometry/${encodeURIComponent(classId || 'khong-lop')}/${randomUUID()}.jpg`;
+    const id = randomUUID();
+    const path = `geometry/${id}.png`;
     const bucket = getAdminStorage();
     const file = bucket.file(path);
-    const token = randomUUID();
-    await file.save(jpeg, { contentType: 'image/jpeg', resumable: false });
-    await file.setMetadata({ contentType: 'image/jpeg', metadata: { firebaseStorageDownloadTokens: token } });
-    return `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+    await file.save(png, {
+      contentType: 'image/png',
+      resumable: false,
+      metadata: {
+        contentType: 'image/png',
+        cacheControl: 'public, max-age=31536000, immutable',
+        contentDisposition: 'inline',
+      },
+    });
+    // classId chỉ dùng để ghi log/đối chiếu, KHÔNG đưa vào URL (URL phải ngắn, sạch).
+    void classId;
+    return `${WEB_BASE}/api/health/firebase-admin?image=${id}`;
   } catch (err) {
     console.error('[geometry] upload Storage thất bại:', err instanceof Error ? err.message : err);
     return null;
@@ -99,9 +113,9 @@ export const sendGeometryPhoto = async (
 ): Promise<boolean> => {
   const svg = geometrySvg(spec);
   if (!svg) return false;
-  const jpeg = await renderGeometryJpeg(svg);
-  if (!jpeg) return false;
-  const url = await uploadGeometryImage(jpeg, classId);
+  const png = await renderGeometryPng(svg);
+  if (!png) return false;
+  const url = await uploadGeometryImage(png, classId);
   if (!url) return false;
   return send(token, chatId, url, caption);
 };
@@ -119,9 +133,9 @@ export const sendMathFormulaPhoto = async (
   classId: string,
   send: PhotoSender,
 ): Promise<boolean> => {
-  const jpeg = await renderMathAnswerJpeg(replyWithLatex);
-  if (!jpeg) return false;
-  const url = await uploadGeometryImage(jpeg, classId);
+  const png = await renderMathAnswerPng(replyWithLatex);
+  if (!png) return false;
+  const url = await uploadGeometryImage(png, classId);
   if (!url) return false;
   return send(token, chatId, url, caption);
 };
