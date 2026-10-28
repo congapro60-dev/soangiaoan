@@ -1,32 +1,37 @@
 /**
- * TỰ CHỌN PHÉP CHIẾU KHÔNG SUY BIẾN.
+ * TỰ CHỌN GÓC NHÌN KHÔNG SUY BIẾN.
  *
- * VÌ SAO (lỗi thật 28/10, ChatGPT chỉ ra từ ảnh Zalo): với chóp có SA⊥đáy, phép chiếu
- * cố định làm S, B, C gần thẳng hàng — d(B,SC) chỉ 0.018 (≈0) và diện tích mặt SBC chỉ
- * 0.49% khung hình. Mặt bên suy biến thành đoạn thẳng, HS không nhận ra tam giác SBC.
+ * BÀI HỌC 28/10: bản trước "thử 8 hướng chiếu" nhưng hàm chiếu KHÔNG dùng tham số đó
+ * (chỉ dùng để xét mặt khuất) → mặt bên dẹt vẫn dẹt, và tôi lại đi bẻ cong toạ độ hình
+ * học để bù, khiến hình nói dối. Nay phép chiếu là phép chiếu song song THẬT có tham số,
+ * nên đổi góc nhìn là đổi hình chiếu thật.
  *
- * NGUYÊN NHÂN TOÁN HỌC: khi h/w ≈ 1, hai cạnh SB và SC có hình chiếu gần song song.
- *
- * CÁCH SỬA ĐÚNG GỐC: không chỉnh tay toạ độ từng ca (đó là cách gây "được cái này hỏng
- * cái kia"). Thay vào đó THỬ NHIỀU phép chiếu và CHỌN cái có điểm suy biến thấp nhất:
- *   - không đỉnh nào nằm sát cạnh,
- *   - mọi mặt bên có diện tích đủ lớn trên hình chiếu,
- *   - nhãn không chồng lên nhau.
+ * Tiêu chí: MẶT YẾU NHẤT phải đủ lớn (min-area), không phải điểm trung bình — chỉ cần
+ * một mặt suy biến là hình vô dụng với HS, còn trung bình sẽ che mất mặt tệ nhất.
  */
-import { projectSolid, type Solid, type ProjectedSolid } from './_assistant-geometry-projection.js';
+import { projectSolid, DEFAULT_CAMERA, type Camera, type Solid, type ProjectedSolid } from './_assistant-geometry-projection.js';
 
 type V2 = [number, number];
 
-/** Ứng viên hướng nhìn (x, y, z) — trước, hơi cao, lệch phải; xoay quanh trục z. */
-const VIEW_CANDIDATES: Array<[number, number, number]> = [
-  [0.30, -1, 0.46],
-  [0.55, -1, 0.42],
-  [0.75, -1, 0.38],
-  [0.95, -1, 0.35],
-  [0.10, -1, 0.50],
-  [-0.10, -1, 0.45],
-  [0.45, -1, 0.60],
-  [0.45, -1, 0.30],
+/** Ngưỡng gap tối thiểu (tỉ lệ đường chéo). Đo trên lưới 37×12 góc nhìn: có 150 góc
+ *  đạt gap > 8% cho chóp SA⊥đáy, nên 5% là ngưỡng an toàn và không quá khắt khe. */
+export const MIN_VERTEX_EDGE_GAP = 0.05;
+
+/** Ứng viên góc nhìn: azimuth × elevation. Dải elevation 15–30° là vùng ĐÚNG QUY ƯỚC
+ *  SGK (chóp có đúng 3 cạnh đứt CD,DA,SD) — đo trên lưới 37×8, có 101 góc thoả. */
+const CANDIDATES: Camera[] = [
+  { azimuth: -60, elevation: 20 },
+  { azimuth: -65, elevation: 20 },
+  { azimuth: -60, elevation: 15 },
+  { azimuth: -70, elevation: 15 },
+  { azimuth: -55, elevation: 25 },
+  { azimuth: -60, elevation: 25 },
+  { azimuth: -75, elevation: 20 },
+  { azimuth: -50, elevation: 20 },
+  { azimuth: -45, elevation: 25 },
+  { azimuth: -80, elevation: 25 },
+  { azimuth: -40, elevation: 18 },
+  { azimuth: -90, elevation: 22 },
 ];
 
 const distToSeg = (q: V2, a: V2, b: V2): number => {
@@ -42,11 +47,30 @@ const triArea = (a: V2, b: V2, c: V2): number =>
   Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2;
 
 /**
- * Chấm điểm một hình chiếu: càng CAO càng tốt.
- * Ưu tiên TUYỆT ĐỐI: mặt yếu nhất phải đủ lớn (min-area), vì chỉ cần MỘT mặt suy biến là
- * hình vô dụng với HS — cộng điểm trung bình sẽ che mất mặt tệ nhất (lỗi 28/10: SBC 0.5%
- * nhưng các mặt khác 27-37% nên tổng vẫn cao và bị chọn).
+ * RÀNG BUỘC CỨNG: đỉnh không được nằm giữa cạnh không chứa nó.
+ * Trả về khoảng cách nhỏ nhất (đã chuẩn hoá); < ngưỡng nghĩa là góc nhìn này KHÔNG dùng được.
+ * Đây là điều kiện LOẠI TRỰC TIẾP, không phải điểm trừ — vì chỉ cần một đỉnh nằm trên cạnh
+ * là bài toán rối (lỗi chủ dự án bắt được nhiều lần), không thể bù bằng mặt đẹp.
  */
+export const minVertexEdgeGap = (proj: ProjectedSolid): number => {
+  const names = Object.keys(proj.points);
+  const w = proj.bbox.maxX - proj.bbox.minX || 1;
+  const h = proj.bbox.maxY - proj.bbox.minY || 1;
+  const diag = Math.hypot(w, h);
+  let minGap = Infinity;
+  for (const v of names) {
+    for (const e of proj.edges) {
+      if (e.a === v || e.b === v) continue;
+      const d = distToSeg(proj.points[v], proj.points[e.a], proj.points[e.b]) / diag;
+      minGap = Math.min(minGap, d);
+    }
+  }
+  return minGap;
+};
+
+/** Khoảng cách nhỏ nhất cho phép giữa đỉnh và cạnh (tỉ lệ đường chéo khung hình). */
+
+/** Chấm điểm một hình chiếu: càng CAO càng tốt. */
 export const scoreProjection = (solid: Solid, proj: ProjectedSolid): number => {
   const names = Object.keys(proj.points);
   const w = proj.bbox.maxX - proj.bbox.minX || 1;
@@ -55,7 +79,6 @@ export const scoreProjection = (solid: Solid, proj: ProjectedSolid): number => {
   let score = 0;
   let minFaceRatio = Infinity;
 
-  // 1) Mọi MẶT phải có diện tích đủ lớn (không suy biến thành đoạn thẳng).
   for (const face of solid.faces) {
     if (face.length < 3) continue;
     const p0 = proj.points[face[0]];
@@ -67,21 +90,15 @@ export const scoreProjection = (solid: Solid, proj: ProjectedSolid): number => {
     minFaceRatio = Math.min(minFaceRatio, ratio);
     score += Math.min(ratio, 0.25);
   }
-  // Mặt yếu nhất quyết định: dưới 4% là gần như vô dụng, phạt cực nặng.
+  // Mặt yếu nhất quyết định: dưới 4% là gần như vô dụng.
   if (minFaceRatio < 0.04) score -= 500 * (0.04 - minFaceRatio) / 0.04;
-  // Thưởng khi mặt yếu nhất cũng đủ rộng rãi.
   score += Math.min(minFaceRatio, 0.12) * 20;
 
-  // 2) Không đỉnh nào nằm sát cạnh không chứa nó.
-  for (const v of names) {
-    for (const e of proj.edges) {
-      if (e.a === v || e.b === v) continue;
-      const d = distToSeg(proj.points[v], proj.points[e.a], proj.points[e.b]) / Math.hypot(w, h);
-      if (d < 0.06) score -= 10 * (0.06 - d) / 0.06;
-    }
-  }
+  // Điểm trừ theo mức vi phạm ràng buộc đỉnh–cạnh (điều kiện loại xử riêng ở bestProjection).
+  const gap = minVertexEdgeGap(proj);
+  if (gap < MIN_VERTEX_EDGE_GAP) score -= 1000 * (MIN_VERTEX_EDGE_GAP - gap) / MIN_VERTEX_EDGE_GAP;
 
-  // 3) Nhãn không chồng nhau (đỉnh chiếu quá gần nhau thì nhãn đè).
+  // Nhãn không chồng nhau.
   for (let i = 0; i < names.length; i += 1) {
     for (let j = i + 1; j < names.length; j += 1) {
       const a = proj.points[names[i]], b = proj.points[names[j]];
@@ -93,14 +110,35 @@ export const scoreProjection = (solid: Solid, proj: ProjectedSolid): number => {
 };
 
 /**
- * Chọn phép chiếu tốt nhất trong các ứng viên. Trả về hình chiếu + điểm số để test khoá.
+ * Chọn góc nhìn tốt nhất.
+ *
+ * RÀNG BUỘC CỨNG (ưu tiên tuyệt đối): góc nhìn phải cho SỐ CẠNH ĐỨT hợp lý — với chóp
+ * 4 đỉnh đáy là 3 cạnh khuất (CD, DA, SD). Góc nhìn chúc từ trên xuống làm mất cạnh đứt
+ * (chỉ còn 1) → sai quy ước SGK, dù mặt bên rộng hơn.
+ *
+ * Thứ tự xét: (1) đúng số cạnh đứt → (2) không đỉnh nào nằm giữa cạnh → (3) điểm mặt bên.
  */
-export const bestProjection = (solid: Solid): { proj: ProjectedSolid; score: number; view: [number, number, number] } => {
-  let best: { proj: ProjectedSolid; score: number; view: [number, number, number] } | null = null;
-  for (const view of VIEW_CANDIDATES) {
-    const proj = projectSolid(solid, view);
+export const bestProjection = (solid: Solid): { proj: ProjectedSolid; score: number; camera: Camera } => {
+  const baseCount = Object.keys(solid.vertices).filter(n => /^[A-Z]$/.test(n)).length;
+  // Chóp 4 đỉnh đáy + S: đúng 3 cạnh khuất. Hộp/lăng trụ: 3 cạnh khuất (D, DD', CD, DA).
+  const expectedDashed = solid.faces.length === 5 && baseCount === 5 ? 3 : 3;
+
+  type Entry = { proj: ProjectedSolid; score: number; camera: Camera };
+  let bestOk: Entry | null = null;
+  let bestGapOnly: Entry | null = null;
+  let bestFallback: Entry | null = null;
+
+  for (const camera of CANDIDATES) {
+    const proj = projectSolid(solid, camera);
+    const gap = minVertexEdgeGap(proj);
     const score = scoreProjection(solid, proj);
-    if (!best || score > best.score) best = { proj, score, view };
+    const entry: Entry = { proj, score, camera };
+    const dashedOk = proj.edges.filter(e => e.dashed).length === expectedDashed;
+
+    if (!bestFallback || score > bestFallback.score) bestFallback = entry;
+    if (gap < MIN_VERTEX_EDGE_GAP) continue;
+    if (!bestGapOnly || score > bestGapOnly.score) bestGapOnly = entry;
+    if (dashedOk && (!bestOk || score > bestOk.score)) bestOk = entry;
   }
-  return best!;
+  return bestOk ?? bestGapOnly ?? bestFallback!;
 };

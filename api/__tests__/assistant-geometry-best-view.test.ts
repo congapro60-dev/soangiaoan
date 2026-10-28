@@ -54,11 +54,14 @@ describe('tự chọn phép chiếu — chống mặt suy biến', () => {
   it('B3: phép chiếu được chọn phải tốt hơn hoặc bằng mọi ứng viên khác', () => {
     const solid = SOLIDS.pyramidApexAtA();
     const best = bestProjection(solid);
-    const candidates = [
-      [0.30, -1, 0.46], [0.55, -1, 0.42], [0.75, -1, 0.38],
-    ] as Array<[number, number, number]>;
-    for (const v of candidates) {
-      const score = scoreProjection(solid, projectSolid(solid, v));
+    // So với chính các góc nhìn mà bộ chọn dùng (Camera, không phải vector).
+    const candidates: Array<{ azimuth: number; elevation: number }> = [
+      { azimuth: -70, elevation: 38 },
+      { azimuth: -90, elevation: 45 },
+      { azimuth: -55, elevation: 40 },
+    ];
+    for (const camera of candidates) {
+      const score = scoreProjection(solid, projectSolid(solid, camera));
       expect(best.score).toBeGreaterThanOrEqual(score);
     }
   });

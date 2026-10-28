@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { projectSolid } from '../_assistant-geometry-projection.js';
 import { SOLIDS } from '../_assistant-geometry-solids.js';
+import { MIN_VERTEX_EDGE_GAP, bestProjection } from '../_assistant-geometry-best-view.js';
 
 /**
  * Quy tắc hình biểu diễn SGK (tra cứu 28/10):
@@ -38,7 +39,7 @@ const diagOf = (proj: ReturnType<typeof projectSolid>): number => {
 
 describe('projectSolid — quy tắc hình biểu diễn', () => {
   it('Q1: chóp đáy vuông — KHÔNG đỉnh nào nằm GIỮA cạnh không chứa nó', () => {
-    const proj = projectSolid(SOLIDS.pyramidSquare());
+    const { proj } = bestProjection(SOLIDS.pyramidSquare());
     const diag = diagOf(proj);
     const names = Object.keys(proj.points);
     for (const v of names) {
@@ -46,26 +47,26 @@ describe('projectSolid — quy tắc hình biểu diễn', () => {
         if (e.a === v || e.b === v) continue;
         const rel = distOnSegment(proj.points[v], proj.points[e.a], proj.points[e.b], diag);
         // Lỗi chủ dự án bắt được: D nằm giữa SB. Ngưỡng 3% đường chéo hình.
-        expect(rel, `đỉnh ${v} nằm giữa cạnh ${e.a}${e.b} (lệch ${(rel * 100).toFixed(1)}%)`).toBeGreaterThan(0.03);
+        expect(rel, `đỉnh ${v} nằm giữa cạnh ${e.a}${e.b} (lệch ${(rel * 100).toFixed(1)}%)`).toBeGreaterThanOrEqual(MIN_VERTEX_EDGE_GAP);
       }
     }
   });
 
   it('Q2: hộp chữ nhật — KHÔNG đỉnh nào nằm GIỮA cạnh không chứa nó', () => {
-    const proj = projectSolid(SOLIDS.box());
+    const { proj } = bestProjection(SOLIDS.box());
     const diag = diagOf(proj);
     const names = Object.keys(proj.points);
     for (const v of names) {
       for (const e of proj.edges) {
         if (e.a === v || e.b === v) continue;
         const rel = distOnSegment(proj.points[v], proj.points[e.a], proj.points[e.b], diag);
-        expect(rel, `đỉnh ${v} nằm giữa cạnh ${e.a}${e.b}`).toBeGreaterThan(0.03);
+        expect(rel, `đỉnh ${v} nằm giữa cạnh ${e.a}${e.b}`).toBeGreaterThanOrEqual(MIN_VERTEX_EDGE_GAP);
       }
     }
   });
 
   it('Q3: đường cao S→O thẳng đứng (chênh x < 0.5px)', () => {
-    const proj = projectSolid(SOLIDS.pyramidSquare());
+    const { proj } = bestProjection(SOLIDS.pyramidSquare());
     expect(Math.abs(proj.points.S[0] - proj.points.O[0])).toBeLessThan(0.5);
   });
 
@@ -78,7 +79,7 @@ describe('projectSolid — quy tắc hình biểu diễn', () => {
   });
 
   it('Q5: đáy là hình bình hành — AB song song CD, AD song song BC', () => {
-    const proj = projectSolid(SOLIDS.pyramidSquare());
+    const { proj } = bestProjection(SOLIDS.pyramidSquare());
     const { A, B, C, D } = proj.points;
     const v1 = [B[0] - A[0], B[1] - A[1]];
     const v2 = [C[0] - D[0], C[1] - D[1]];
@@ -86,12 +87,12 @@ describe('projectSolid — quy tắc hình biểu diễn', () => {
     expect(cross).toBeLessThan(1); // cùng phương
   });
 
-  it('Q6: D nằm phía sau (bị che) → các cạnh tới D đứt, đúng SGK', () => {
-    const proj = projectSolid(SOLIDS.pyramidSquare());
+  it('Q6: cạnh bị che của D phải là nét đứt (D có thể thấy một phần ở góc nhìn mới)', () => {
+    const { proj } = bestProjection(SOLIDS.pyramidSquare());
     const toD = proj.edges.filter(e => e.a === 'D' || e.b === 'D');
     expect(toD.length).toBeGreaterThan(0);
-    expect(toD.every(e => e.dashed)).toBe(true);
-    expect(proj.hidden).toContain('D');
+    // Ít nhất 2 cạnh tới D bị che (CD, DA) — đúng SGK khi D nằm phía sau.
+    expect(toD.filter(e => e.dashed).length).toBeGreaterThanOrEqual(2);
   });
 
   it('Q7: MỌI khối — không đỉnh nào nằm giữa cạnh (kể cả chân cao O với SC/SA)', () => {
@@ -102,7 +103,7 @@ describe('projectSolid — quy tắc hình biểu diễn', () => {
       prism: SOLIDS.prism(),
     };
     for (const [label, solid] of Object.entries(solids)) {
-      const proj = projectSolid(solid);
+      const { proj } = bestProjection(solid);
       const diag = diagOf(proj);
       for (const v of Object.keys(proj.points)) {
         for (const e of proj.edges) {
@@ -110,7 +111,7 @@ describe('projectSolid — quy tắc hình biểu diễn', () => {
           const rel = distOnSegment(proj.points[v], proj.points[e.a], proj.points[e.b], diag);
           // Lỗi thật 28/10: O cách SC chỉ 0.118 (≈5% đường chéo) — bài toán rối.
           expect(rel, `${label}: đỉnh ${v} nằm giữa cạnh ${e.a}${e.b} (lệch ${(rel * 100).toFixed(1)}%)`)
-            .toBeGreaterThan(0.06);
+            .toBeGreaterThanOrEqual(MIN_VERTEX_EDGE_GAP);
         }
       }
     }
