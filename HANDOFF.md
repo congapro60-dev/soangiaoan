@@ -13,6 +13,7 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - **Đã làm**: route công khai **`/adaptive-library`** (`AdaptiveLibraryPage.tsx` — filter khối + tìm kiếm theo tên, nhóm theo Lớp) + `listPublishedSelfStudyLessons()` trong `adaptiveLessonService.ts` (query `portalEnabled == true`, lọc self_study + published, không lọc lớp) + link trên header cổng HS và StudentPortalDashboard.
 - **QA Production ĐẠT**: 112 bài tự học hiển thị; search "Khoảng biến thiên" → 1 kết quả → mở portal `/adaptive-portal/adaptive-1792833009074` ✓ (CỔNG HỌC SINH + 5 bước + link quay lại thư viện). Nhãn tuần gốc "Dạy thử" đã ẩn (chỉ hiện khi là số).
 - **Lưu ý**: bài mở từ thư viện là nguyên bản bài tự học (khác luồng GV giao đã strip đáp án) — nếu cần bản học lại strip đáp án thì báo thêm, làm qua máy chủ.
+- **Việc 2 xong** (commit `db016a1` + `938d97a`): 10 bài nguồn Tuần 11 hiện đúng nhãn **Tuần 11 · Tiết 75–80** trên thư viện (override client `SELF_STUDY_WEEK11_OVERRIDE` trong `adaptiveLessonService.ts` — không đụng data Firestore; QA Production 10/10 ✓).
 - 10 cặp bài Tuần 11 (tương tác + tự học) đã đủ để HS học lại ở nhà ngay hôm nay. (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
