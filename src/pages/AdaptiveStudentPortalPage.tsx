@@ -386,6 +386,13 @@ export const AdaptiveStudentPortalPage = () => {
         setStage('identify');
       } catch (err) {
         console.error('Không tải được cổng học sinh', err);
+        const message = err instanceof Error ? err.message : '';
+        // Thư viện học lại: HS chưa đăng nhập lớp → dẫn sang trang đăng nhập (/lop).
+        if (libraryLessonId && /Phiên học sinh chưa được xác nhận|đăng nhập học sinh/.test(message)) {
+          setPortalError('Em cần đăng nhập lớp trước khi học lại bài này. Bấm nút bên dưới, nhập mã lớp và mã học sinh của em.');
+          setStage('not_found');
+          return;
+        }
         setPortalError('Không tải được bài học phân hoá từ hệ thống.');
         setStage('not_found');
       }
@@ -927,7 +934,14 @@ export const AdaptiveStudentPortalPage = () => {
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
   if (stage === 'personalizing') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-purple-600" />} title="Đang chuẩn bị bài học cho em..." message="AI đang cá nhân hoá nội dung theo tuyến và điểm yếu của em." />;
-  if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
+  if (stage === 'not_found' || !lesson) return (
+    <FullPageState
+      icon={<AlertTriangle className="h-8 w-8 text-amber-500" />}
+      title="Chưa tìm thấy bài học"
+      message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'}
+      action={portalError?.includes('đăng nhập lớp') ? <Link to="/lop" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-5 text-sm font-black text-blue-800 transition hover:bg-blue-100">Đăng nhập lớp của em</Link> : undefined}
+    />
+  );
 
   const stepNames = lesson.fiveStepFlow.steps.map(step => step.name);
   const activeStepIndex = stage === 'identify'
@@ -1556,12 +1570,13 @@ const ResultTile = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const FullPageState = ({ icon, title, message }: { icon: ReactNode; title: string; message: string }) => (
+const FullPageState = ({ icon, title, message, action }: { icon: ReactNode; title: string; message: string; action?: ReactNode }) => (
   <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
     <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50">{icon}</div>
       <h1 className="text-xl font-black text-slate-800">{title}</h1>
       <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">{message}</p>
+      {action && <div className="mt-4">{action}</div>}
     </div>
   </div>
 );
