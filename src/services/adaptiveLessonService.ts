@@ -51,6 +51,42 @@ export async function getLessonFromFirestore(lessonId: string): Promise<Adaptive
   return snap.exists() ? normalizeAdaptiveLessonDocument(snap.data(), snap.id) : null;
 }
 
+export interface SelfStudyLibraryItem {
+  id: string;
+  title: string;
+  grade: string;
+  week: string;
+  period: number | null;
+  updatedAt: string;
+}
+
+/**
+ * Thư viện học lại — mọi HS xem được: các bài TỰ HỌC PHÂN HOÁ đã xuất bản
+ * (portalEnabled == true khớp firestore.rules). Không lọc theo lớp: bất kỳ HS nào
+ * cũng vào list để xem và chọn bài học lại (yêu cầu thầy 28/10).
+ */
+export async function listPublishedSelfStudyLessons(): Promise<SelfStudyLibraryItem[]> {
+  const q = query(collection(db, COL), where('portalEnabled', '==', true));
+  const snap = await getDocs(q);
+  const items: SelfStudyLibraryItem[] = [];
+  snap.forEach((docSnap) => {
+    const lesson = normalizeAdaptiveLessonDocument(docSnap.data(), docSnap.id);
+    if (!lesson || lesson.lessonKind !== 'self_study' || lesson.status !== 'published') return;
+    items.push({
+      id: lesson.id,
+      title: lesson.title || 'Bài tự học phân hoá',
+      grade: String(lesson.grade || ''),
+      week: lesson.curriculumRef?.week || '',
+      period: typeof lesson.curriculumRef?.period === 'number' ? lesson.curriculumRef.period : null,
+      updatedAt: lesson.updatedAt || '',
+    });
+  });
+  items.sort((a, b) => a.grade.localeCompare(b.grade, 'vi')
+    || String(a.period ?? '').localeCompare(String(b.period ?? ''), 'vi', { numeric: true })
+    || a.title.localeCompare(b.title, 'vi'));
+  return items;
+}
+
 export async function listLessonsForTeacher(teacherId: string): Promise<AdaptiveLesson[]> {
   const q = query(collection(db, COL), where('teacherId', '==', teacherId));
   const snap = await getDocs(q);

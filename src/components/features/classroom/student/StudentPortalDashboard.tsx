@@ -396,6 +396,7 @@ export const StudentPortalDashboard = (props: Props) => {
               </li>)}
             </ul>
           )}
+          <a href="/adaptive-library" className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-black text-indigo-800 transition hover:bg-indigo-100">📚 Thư viện học lại — xem tất cả bài tự học để chọn bài ôn</a>
         </section>
         <div className="mt-3 grid gap-2 sm:grid-cols-2"><label className="relative"><span className="sr-only">Tìm bài tập</span><Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm tên bài…" className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-base" /></label>
           <label><span className="sr-only">Trạng thái bài tập</span><select value={filter} onChange={event => { setFilter(event.target.value as FilterKey); setPage(1); }} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base"><option value="all">Tất cả trạng thái</option><option value="action">Cần xử lý</option><option value="waiting">Chờ chấm / Chờ GV</option><option value="graded">Đã có điểm</option></select></label>

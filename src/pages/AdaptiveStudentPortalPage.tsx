@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from 'react';
 import { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { motion } from 'motion/react';
@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Clock3,
   Key,
+  LibraryBig,
   Lightbulb,
   Loader2,
   Route,
@@ -929,8 +930,13 @@ export const AdaptiveStudentPortalPage = () => {
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none ring-1 ring-white/20">
-                <BookOpenCheck className="h-4 w-4" /> Cổng học sinh · học từng bước
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none ring-1 ring-white/20">
+                  <BookOpenCheck className="h-4 w-4" /> Cổng học sinh · học từng bước
+                </span>
+                <Link to="/adaptive-library" className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-blue-800 ring-1 ring-white/40 transition hover:bg-white">
+                  <LibraryBig className="h-3.5 w-3.5" /> Thư viện học lại — chọn bài tự học
+                </Link>
               </div>
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{lesson.title}</h1>
               <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-blue-50">
