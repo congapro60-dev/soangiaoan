@@ -83,9 +83,12 @@ describe('chat AI — lọc câu trả lời', () => {
     expect(out).toContain('a³');
   });
 
-  it('C5c: prompt hệ thống có quy tắc cấm LaTeX (HS đọc trên Zalo không có bộ render)', () => {
-    expect(buildSystemPrompt('DỮ LIỆU GIẢ', 'student')).toContain('KHÔNG dùng LaTeX');
-    expect(buildSystemPrompt('DỮ LIỆU GIẢ')).toContain('KHÔNG dùng LaTeX');
+  it('C5c: prompt hệ thống dặn HAI đường — Unicode cho công thức đơn giản, $$…$$ cho công thức xếp tầng', () => {
+    for (const prompt of [buildSystemPrompt('DỮ LIỆU GIẢ', 'student'), buildSystemPrompt('DỮ LIỆU GIẢ')]) {
+      expect(prompt).toContain('TUYỆT ĐỐI KHÔNG viết LaTeX ra ngoài $$...$$');
+      expect(prompt).toContain('⅓');
+      expect(prompt).toContain('$$\\dfrac{x+1}{x-2}$$');
+    }
   });
 });
 

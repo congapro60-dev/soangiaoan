@@ -21,13 +21,13 @@ const expectNoLatex = (out: string) => {
 describe('Toán 6 — phân số, số thập phân, phần trăm', () => {
   it('6A: cộng trừ phân số', () => {
     const out = clean('$\\frac{1}{2} + \\frac{2}{3} = \\frac{7}{6}$');
-    expect(out).toBe('1/2 + 2/3 = 7/6');
+    expect(out).toBe('½ + ⅔ = 7/6');
     expectNoLatex(out);
   });
 
   it('6B: hỗn số và phép chia phân số', () => {
     const out = clean('$\\frac{3}{4} : \\frac{2}{5} = \\frac{15}{8}$');
-    expect(out).toBe('3/4 : 2/5 = 15/8');
+    expect(out).toBe('¾ : ⅖ = 15/8');
     expectNoLatex(out);
   });
 
@@ -46,7 +46,7 @@ describe('Toán 6 — phân số, số thập phân, phần trăm', () => {
 describe('Toán 7 — số hữu tỉ, tỉ lệ, tam giác', () => {
   it('7A: lũy thừa số hữu tỉ âm', () => {
     const out = clean('$\\left(\\frac{-1}{2}\\right)^3 = \\frac{-1}{8}$');
-    expect(out).toBe('(-1/2)³ = -1/8');
+    expect(out).toBe('(-½)³ = -⅛');
     expectNoLatex(out);
   });
 
@@ -83,7 +83,7 @@ describe('Toán 8 — hằng đẳng thức, tứ giác, hình chóp', () => {
   });
 
   it('8C: thể tích hình chóp, lăng trụ', () => {
-    expect(clean('$V = \\frac{1}{3} S h$')).toBe('V = 1/3 S h');
+    expect(clean('$V = \\frac{1}{3} S h$')).toBe('V = ⅓ S h');
     expect(clean('$V = S_{\\text{đáy}} \\cdot h$')).toBe('V = S_đáy · h');
   });
 });
@@ -143,7 +143,7 @@ describe('Toán 10 — vectơ, tích vô hướng, lượng giác', () => {
 describe('Toán 11 — lượng giác, dãy số, xác suất, không gian', () => {
   it('11A: phương trình lượng giác', () => {
     const out = clean('$\\sin x = \\frac{1}{2} \\Leftrightarrow x = \\frac{\\pi}{6} + k2\\pi$');
-    expect(out).toContain('sin x = 1/2 ⇔ x = π/6 + k2π');
+    expect(out).toContain('sin x = ½ ⇔ x = π/6 + k2π');
     expectNoLatex(out);
   });
 
@@ -224,7 +224,7 @@ describe('Câu văn trộn công thức — không được phá chữ Việt', 
     const out = clean(
       'Em áp dụng công thức $S = \\frac{1}{2} a h$ với $a$ là đáy, $h$ là chiều cao nhé.',
     );
-    expect(out).toBe('Em áp dụng công thức S = 1/2 a h với a là đáy, h là chiều cao nhé.');
+    expect(out).toBe('Em áp dụng công thức S = ½ a h với a là đáy, h là chiều cao nhé.');
     expectNoLatex(out);
   });
 

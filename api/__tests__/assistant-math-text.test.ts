@@ -14,15 +14,15 @@ describe('công thức — LaTeX sang Unicode cho chat Zalo', () => {
   });
 
   it('M3: phân số và căn thức đọc được bằng ngoặc thường', () => {
-    expect(latexToUnicodeMath('$\\frac{1}{2}$')).toBe('1/2');
+    expect(latexToUnicodeMath('$\\frac{1}{2}$')).toBe('½');
     expect(latexToUnicodeMath('$\\frac{x+1}{2}$')).toBe('(x+1)/2');
     expect(latexToUnicodeMath('$\\sqrt{x+1}$')).toBe('√(x+1)');
     expect(latexToUnicodeMath('$\\sqrt{2}$')).toBe('√2');
   });
 
   it('M4: căn bậc n lồng nhau vẫn đúng', () => {
-    expect(latexToUnicodeMath('$\\sqrt[3]{8}$')).toBe('8^(1/3)');
-    expect(latexToUnicodeMath('$\\frac{\\frac{1}{2}}{3}$')).toBe('(1/2)/3');
+    expect(latexToUnicodeMath('$\\sqrt[3]{8}$')).toBe('8^(⅓)');
+    expect(latexToUnicodeMath('$\\frac{\\frac{1}{2}}{3}$')).toBe('(½)/3');
   });
 
   it('M5: chỉ số dưới, hằng số và ký hiệu so sánh', () => {
@@ -58,10 +58,11 @@ describe('công thức — LaTeX sang Unicode cho chat Zalo', () => {
     );
   });
 
-  it('M11: quy tắc prompt nhắc đúng điều cấm (LaTeX) và điều phải dùng (Unicode)', () => {
-    expect(MATH_FORMAT_RULE).toContain('KHÔNG dùng LaTeX');
+  it('M11: quy tắc prompt nói rõ 2 làn đường — Unicode cho đơn giản, $$…$$ cho xếp tầng', () => {
+    expect(MATH_FORMAT_RULE).toContain('TUYỆT ĐỐI KHÔNG viết LaTeX ra ngoài $$...$$');
     expect(MATH_FORMAT_RULE).toContain('a³');
-    expect(MATH_FORMAT_RULE).toContain('\\frac');
+    expect(MATH_FORMAT_RULE).toContain('⅓');
+    expect(MATH_FORMAT_RULE).toContain('\\dfrac');
   });
 
   it('M12: không còn dấu bao hay lệnh LaTeX nào sót lại trong đầu ra', () => {

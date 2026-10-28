@@ -55,4 +55,24 @@ describe('luồng chat có hình học (answerParentQuestionDetailed)', () => {
     expect(prompt).toContain(GEOMETRY_PROMPT_RULE);
     expect(prompt).toContain('"shape":"pyramid"');
   });
+
+  it('C6: mathSource GIỮ LaTeX để render ảnh, text là bản Unicode sạch (bug 28/10)', async () => {
+    const raw = 'Ta có $$\\dfrac{x+1}{x-2}$$ nên em rút gọn được.';
+    const out = await answerParentQuestionDetailed(fakeCall(raw).call, 'Rut gon?', report, new Set(), 'student');
+    expect(out).not.toBeNull();
+    // Bản render còn nguyên LaTeX
+    expect(out?.mathSource).toContain('$$\\dfrac{x+1}{x-2}$$');
+    expect(out?.hasMath).toBe(true);
+    // Bản hiển thị đã là Unicode, không còn lệnh LaTeX
+    expect(out?.text).not.toContain('\\dfrac');
+    expect(out?.text).not.toContain('$$');
+    expect(out?.text).toContain('(x+1)/(x-2)');
+  });
+
+  it('C7: mathSource KHÔNG chứa dữ liệu rò rỉ (sanitize vẫn chạy trên bản render)', async () => {
+    const raw = 'Gọi 0912345678 nhé. Công thức $$\\dfrac{1}{2}$$';
+    const out = await answerParentQuestionDetailed(fakeCall(raw).call, 'Hoi?', report, new Set(), 'student');
+    expect(out?.mathSource).not.toContain('0912345678');
+    expect(out?.mathSource).toContain('[số điện thoại]');
+  });
 });

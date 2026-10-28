@@ -13,6 +13,7 @@
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 import { MATH_FORMAT_RULE, latexToUnicodeMath } from './_assistant-math-text.js';
 import { extractGeometryReply, type GeometrySpec } from './_assistant-geometry.js';
+import { hasLatexFormula } from './_assistant-math-image.js';
 
 export const AI_CHAT_REPLIES = {
   unavailable: 'Trợ lý AI đang bận. Bạn nhắn 0 để xem menu hoặc thử lại sau ít phút.',
@@ -71,18 +72,24 @@ export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySe
 
 /**
  * Quy tắc vẽ hình minh hoạ (chốt 28/10 — render ảnh qua sendPhoto):
- * AI chỉ thêm khối geometry khi câu hỏi mô tả một hình học cụ thể; parser ở
+ * AI chỉ thêm khối geometry khi câu hỏi mô tả dữ liệu ĐÁNG vẽ; parser ở
  * api/_assistant-geometry.ts sẽ tách khối — hỏng thì bot gửi text như cũ, không vỡ luồng.
+ * Hình học: nét liền = nhìn thấy, nét đứt = bị che (đã chuẩn SGK phía renderer).
+ * Thống kê: bảng/biểu đồ cột/đồ thị điểm — dùng khi đề có mẫu số liệu, tần suất.
  */
 export const GEOMETRY_PROMPT_RULE = [
-  'VẼ HÌNH MINH HOẠ (chỉ khi câu hỏi mô tả một hình học cụ thể — chóp, lăng trụ, hộp, trụ, nón, cầu):',
+  'VẼ HÌNH MINH HOẠ (chỉ khi câu hỏi mô tả dữ liệu cụ thể ĐÁNG vẽ):',
   '- Nếu hình giúp hiểu bài, thêm đúng MỘT khối sau vào CUỐI câu trả lời:',
   '```geometry',
   '{"shape":"pyramid","base":"square","note":"ABCD vuông cạnh a, SA ⊥ (ABCD), SA = a√2"}',
   '```',
-  '- shape: pyramid | prism | box | cylinder | cone | sphere. base (chỉ cho pyramid): square | triangle.',
-  '- note: mô tả ngắn dữ kiện đề bài, viết ký hiệu Unicode (⊥, √, °, ⇒), tối đa 200 ký tự.',
-  '- Câu hỏi đại số, điểm số, phương pháp học thì KHÔNG thêm khối này.',
+  '- Hình học — shape: pyramid (base: square|triangle) | prism | box | cylinder | cone | sphere.',
+  '  note: mô tả ngắn dữ kiện đề bài, ký hiệu Unicode (⊥, √, °, ⇒), tối đa 200 ký tự.',
+  '- Đồ thị hàm số (lớp 9-12): {"shape":"graph","points":[[-2,4],[-1,1],[0,0],[1,1],[2,4]],"xrange":[-3,3],"yrange":[-1,5],"xlabel":"x","ylabel":"y"}',
+  '  points là các điểm/VỊ TRÍ đáng kể của đồ thị (8-15 điểm để đường cong mượt).',
+  '- Bảng số liệu/tần suất: {"shape":"table","head":["x","1","2","3"],"rows":[["tần suất","3","5","2"]]}',
+  '- Biểu đồ cột: {"shape":"bar","labels":["A","B","C"],"values":[3,5,2],"ylabel":"tần suất"}',
+  '- Câu hỏi đại số thuần, điểm số, phương pháp học thì KHÔNG thêm khối này.',
   '- Không giải thích hay nhắc đến khối geometry trong phần chữ.',
 ].join('\n');
 
@@ -184,8 +191,13 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => 
  * Xử lý 1 câu hỏi tự do của PH/HS — bản ĐẦY ĐỦ: text hiển thị + spec hình học (nếu AI vẽ được).
  * Khối ```geometry``` được tách khỏi RAW TRƯỚC khi sanitize/convert để JSON không bị
  * bộ chuyển công thức hay bộ lọc rò rỉ chạm vào.
+ *
+ * `text`   : bản Unicode đã convert — dùng làm CAPTION (HS đọc được ngay trong chat).
+ * `mathSource`: bản RAW còn LaTeX — dùng để RENDER ẢNH KaTeX. PHẢI là bản raw, vì
+ *            latexToUnicodeMath đã xoá $$…$$ nên nếu đưa `text` vào renderer thì
+ *            hasLatexFormula() luôn false và ảnh công thức không bao giờ ra (bug 28/10).
  */
-export type AiChatAnswer = { text: string; geometry: GeometrySpec | null };
+export type AiChatAnswer = { text: string; mathSource: string; geometry: GeometrySpec | null; hasMath: boolean };
 
 export const answerParentQuestionDetailed = async (
   call: AiCaller,
@@ -200,7 +212,14 @@ export const answerParentQuestionDetailed = async (
   const context = buildAiContext(report, periodicIds, role);
   const raw = await call(buildSystemPrompt(context, role), q.slice(0, 1000), signal);
   const { text, spec } = extractGeometryReply(raw);
-  return { text: composeAiReply(text), geometry: spec };
+  // Lọc rò rỉ trên bản raw TRƯỚC, nhưng KHÔNG convert công thức — giữ LaTeX cho renderer.
+  const mathSource = sanitizeAiReply(text);
+  return {
+    text: composeAiReply(text),
+    mathSource,
+    geometry: spec,
+    hasMath: hasLatexFormula(mathSource),
+  };
 };
 
 /**

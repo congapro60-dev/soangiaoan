@@ -325,6 +325,34 @@ const convertEnvironments = (src: string): string => {
 };
 
 /**
+ * Phân số vulgar chuẩn Toán học: ⅓, ⅔, ¾… — font điện thoại nào cũng có.
+ * Chỉ đổi những phân số CÓ ký tự riêng (bảng Unicode vulgar fractions);
+ * 7/6, 15/8, 8/10 (điểm số!) giữ nguyên tử/mẫu — không dùng mũ/chỉ số để
+ * tránh biến "8/10 điểm" thành ⁸⁄₁₀ khó đọc.
+ */
+const VULGAR: Record<string, string> = {
+  '1/2': '½', '1/3': '⅓', '2/3': '⅔',
+  '1/4': '¼', '3/4': '¾',
+  '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘',
+  '1/6': '⅙', '5/6': '⅚',
+  '1/7': '⅐',
+  '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞',
+  '1/9': '⅑',
+};
+
+/**
+ * Đổi phân số số đơn giản sang ký hiệu vulgar (½, ⅓, ⅔…). Chạy SAU CÙNG,
+ * trên văn bản đã chuyển xong LaTeX — chỉ đụng "a/b" với a,b là SỐ NGUYÊN
+ * ngắn (≤2 chữ số), không dính chữ/số xung quanh (tránh ăn vào 15/100, ngày,
+ * hoặc biến như n/2 trong công thức đã có chữ).
+ */
+export const beautifyFractions = (text: string): string =>
+  String(text ?? '').replace(/(?<![\p{L}\p{N}/.])(\d{1,2})\/(\d{1,2})(?![\p{L}\p{N}/])/gu, (m, a: string, b: string) => {
+    if (b === '0') return m;
+    return VULGAR[`${Number(a)}/${Number(b)}`] ?? m;
+  });
+
+/**
  * Chuyển MỌI công thức LaTeX trong một đoạn văn sang Unicode, giữ nguyên phần chữ.
  * Xử lý được cả `$...$`, `$$...$$`, `\(...\)`, `\[...\]` — vì model không nhất quán.
  * Nếu văn bản không có dấu hiệu LaTeX nào thì trả lại nguyên bản (không phá câu chữ).
@@ -345,24 +373,34 @@ export const latexToUnicodeMath = (text: string): string => {
   // Lệnh LaTeX "trần" không có dấu bao — model hay quên. Chỉ chạy khi thật sự có lệnh.
   if (/\\[A-Za-z]{2,}/.test(out)) out = convertLatexBody(out);
 
-  return out
+  return beautifyFractions(out
     .split('\u0002').join('{')
     .replace(/[ \t]{2,}/g, ' ')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .trim());
 };
 
 /**
  * Prompt dặn model viết công thức bằng Unicode — dùng chung cho mọi prompt gửi
  * tới chat Zalo, để chuẩn hoá ở nguồn thay vì chỉ sửa hậu kỳ.
  */
+/**
+ * Quy tắc viết công thức — HAI LÀN ĐƯỜNG (chốt 28/10, sau khi phát hiện lỗi thiết kế):
+ * - Công thức ĐƠN GIẢN (a³, √(x+1), x₁, ⅓, ∠, ⊥) → viết thẳng Unicode, đọc được ngay trong text.
+ * - Công thức CẦN XẾP TẦNG (phân thức, phân thức lồng, ∫ có cận, lim dưới, Σ có cận, ma trận,
+ *   hệ phương trình, căn lồng) → Unicode KHÔNG có dạng đó, viết LaTeX trong $$...$$ để bot
+ *   render thành ẢNH KaTeX chuẩn SGK. Caption vẫn là bản Unicode đầy đủ nên ảnh lỗi HS vẫn hiểu.
+ * Cấm: LaTeX trần ngoài $$…$$ (sẽ in ra rác) và markdown cho công thức.
+ */
 export const MATH_FORMAT_RULE = [
-  'CÁCH VIẾT CÔNG THỨC (bắt buộc — học sinh đọc trên Zalo, KHÔNG có bộ render LaTeX):',
-  '- Viết công thức bằng ký hiệu Unicode, KHÔNG dùng LaTeX: viết a³ chứ không viết \\(a^3\\) hay $a^3$;',
-  '  viết √(x+1), x₁, x₂, ≤, ≥, ≠, ±, π, ∈, ⊂, ∪, ∩, ∞, ∠, ⊥, ∥, △, °, ⇒, ⇔.',
-  '- Phân số viết dạng (tử)/(mẫu) hoặc tử/mẫu nếu đơn giản: (x+1)/2, 1/2.',
-  '- KHÔNG dùng \\frac, \\sqrt, \\left, \\right, ^, _ hay bất kỳ lệnh LaTeX nào.',
-  '- KHÔNG dùng markdown cho công thức, không dùng $$ hay \\[ \\].',
+  'CÁCH VIẾT CÔNG THỨC (bắt buộc — HS đọc trên Zalo):',
+  '- Công thức ĐƠN GIẢN: viết thẳng Unicode, KHÔNG bọc $: a³, √(x+1), x₁, x₂, ½, ⅓, ⅔, ≤, ≥, ≠, ±, π, ∈, ∠, ⊥, ∥, △, °, ⇒, ⇔.',
+  '- Phân số đơn giản: dùng ký tự có sẵn — ⅓, ⅔, ¾, ½ thay vì 1/3, 2/3, 3/4, 1/2.',
+  '- Công thức CẦN XẾP TẦNG (phân thức, phân thức lồng, tích phân có cận, lim dưới, tổng Σ có cận,',
+  '  ma trận, hệ phương trình, căn lồng, đạo hàm d/dx): viết LaTeX trong $$...$$ — hệ thống sẽ render',
+  '  thành ảnh chuẩn Toán học. Ví dụ: $$\\dfrac{x+1}{x-2}$$ , $$\\int_{0}^{1}(2x+1)\\,dx$$ , $$\\lim_{x \\to 0}\\dfrac{\\sin x}{x}$$',
+  '- TUYỆT ĐỐI KHÔNG viết LaTeX ra ngoài $$...$$ (không dùng \\( \\), không dùng $ đơn, không dùng \\frac trần).',
+  '- KHÔNG dùng markdown cho công thức (không in đậm, không gạch đầu dòng cho công thức).',
 ].join('\n');
 

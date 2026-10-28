@@ -63,8 +63,8 @@ import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
 import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
 
-const { answerDetailed, sendGeometryPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn() }));
-// Chat AI + vẽ hình mock TOÀN BỘ file này: nhánh AI chat chưa từng có test — mock giữ
+const { answerDetailed, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn(), sendMathFormulaPhotoMock: vi.fn() }));
+// Chat AI + vẽ hình/ảnh công thức mock TOÀN BỘ file này: nhánh AI chat chưa từng có test — mock giữ
 // đúng bộ export mà zalo-bot dùng (AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller).
 vi.mock('../_assistant-ph-hs-chat', () => ({
   AI_CHAT_REPLIES: { unavailable: 'AI_BAN', empty: 'AI_RONG' },
@@ -73,6 +73,7 @@ vi.mock('../_assistant-ph-hs-chat', () => ({
 }));
 vi.mock('../_assistant-geometry-render', () => ({
   sendGeometryPhoto: (...args: unknown[]) => sendGeometryPhotoMock(...(args as [])),
+  sendMathFormulaPhoto: (...args: unknown[]) => sendMathFormulaPhotoMock(...(args as [])),
 }));
 
 const event = (text = '/help', messageId = 'message-1') => ({ ok: true, result: { event_name: 'message.text.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, text, message_id: messageId, date: Date.now() } } });
@@ -494,14 +495,14 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
   });
 
   it('AI trả khối geometry → sendGeometryPhoto nhận caption có link ĐÚNG lớp, KHÔNG gửi text fallback', async () => {
-    answerDetailed.mockResolvedValue({ text: 'Thể tích chóp: V = a³/3.', geometry: { shape: 'pyramid', base: 'square' } });
+    answerDetailed.mockResolvedValue({ text: 'Thể tích chóp: V = ⅓·a²·h.', geometry: { shape: 'pyramid', base: 'square' }, hasMath: false });
     sendGeometryPhotoMock.mockResolvedValue(true);
     const result = await request(event('The tich hinh chop?', 'm-geo-1'));
     expect(result.code).toBe(200);
     expect(sendGeometryPhotoMock).toHaveBeenCalledTimes(1);
     const [token, chatId, spec, caption, classId] = sendGeometryPhotoMock.mock.calls[0] as unknown as string[];
     expect(spec).toEqual({ shape: 'pyramid', base: 'square' });
-    expect(caption).toContain('V = a³/3');
+    expect(caption).toContain('V = ⅓·a²·h');
     expect(caption).toContain('/lop/R6RCFC');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
     expect(classId).toBe('c-1');
@@ -511,7 +512,7 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
   });
 
   it('sendPhoto thất bại → fallback gửi text THUẦN (vẫn có link + hint, bot không im lặng)', async () => {
-    answerDetailed.mockResolvedValue({ text: 'Lời giải hình nón.', geometry: { shape: 'cone' } });
+    answerDetailed.mockResolvedValue({ text: 'Lời giải hình nón.', geometry: { shape: 'cone' }, hasMath: false });
     sendGeometryPhotoMock.mockResolvedValue(false);
     await request(event('Hinh non?', 'm-geo-2'));
     expect(sendGeometryPhotoMock).toHaveBeenCalledTimes(1);
@@ -522,10 +523,44 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
   });
 
   it('câu hỏi không vẽ được (geometry null) → không gọi vẽ ảnh, gửi text như luồng cũ', async () => {
-    answerDetailed.mockResolvedValue({ text: 'Điểm của em đang tiến bộ.', geometry: null });
+    answerDetailed.mockResolvedValue({ text: 'Điểm của em đang tiến bộ.', geometry: null, hasMath: false });
     await request(event('Con em hoc the nao?', 'm-geo-3'));
     expect(sendGeometryPhotoMock).not.toHaveBeenCalled();
+    expect(sendMathFormulaPhotoMock).not.toHaveBeenCalled();
     expect(sent()).toHaveLength(1);
     expect(JSON.parse(sent()[0][1].body).text).toContain('Điểm của em đang tiến bộ.');
+  });
+
+  it('câu trả lời có công thức LaTeX → gửi ẢNH công thức KaTeX, không gửi text riêng', async () => {
+    answerDetailed.mockResolvedValue({
+      text: 'Áp dụng công thức, em có ⅓·a²·h.\n\nNhắn 0 để xem lại menu.',
+      mathSource: 'Áp dụng công thức, em có $$\\dfrac{1}{3}a^2 h$$.\n\nNhắn 0 để xem lại menu.',
+      geometry: null,
+      hasMath: true,
+    });
+    sendMathFormulaPhotoMock.mockResolvedValue(true);
+    const result = await request(event('Tinh the tich chop?', 'm-math-1'));
+    expect(result.code).toBe(200);
+    expect(sendGeometryPhotoMock).not.toHaveBeenCalled();
+    expect(sendMathFormulaPhotoMock).toHaveBeenCalledTimes(1);
+    const [, , mathSource, caption, classId] = sendMathFormulaPhotoMock.mock.calls[0] as unknown as string[];
+    // BẢN RENDER phải còn LaTeX (bug 28/10: truyền bản đã convert → không bao giờ render)
+    expect(mathSource).toContain('$$\\dfrac{1}{3}a^2 h$$');
+    // CAPTION là bản Unicode đầy đủ + link đúng lớp
+    expect(caption).toContain('⅓·a²·h');
+    expect(caption).not.toContain('$$');
+    expect(caption).toContain('/lop/R6RCFC');
+    expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
+    expect(classId).toBe('c-1');
+    expect(sent()).toHaveLength(0);
+  });
+
+  it('ảnh công thức lỗi → fallback text THUẦN (HS vẫn có lời giải đầy đủ)', async () => {
+    answerDetailed.mockResolvedValue({ text: 'Lời giải có phân thức.\n\nNhắn 0 để xem lại menu.', geometry: null, hasMath: true });
+    sendMathFormulaPhotoMock.mockResolvedValue(false);
+    await request(event('Phan thuc?', 'm-math-2'));
+    expect(sendMathFormulaPhotoMock).toHaveBeenCalledTimes(1);
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Lời giải có phân thức.');
   });
 });

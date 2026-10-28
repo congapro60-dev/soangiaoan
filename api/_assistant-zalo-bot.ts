@@ -10,7 +10,7 @@ import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJo
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
-import { sendGeometryPhoto } from './_assistant-geometry-render.js';
+import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
 import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
@@ -202,11 +202,19 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       // Gửi THUẦN (không qua output() che link) như nhánh menu-link, nếu không URL
       // bị đổi thành "[đã ẩn liên kết]" và HS không bấm được.
       const caption = withWebPortalLink(detail.text, role, bundle.joinCode);
-      // AI vẽ được hình (khối geometry) → gửi ẢNH kèm caption (chốt 28/10).
-      // Bất kỳ bước render/upload/sendPhoto nào hỏng → fallback tin text như cũ.
-      const photoSent = detail.geometry
-        ? await sendGeometryPhoto(token, chatId, detail.geometry, caption, classId, sendPhoto)
-        : false;
+      // Thứ tự ưu tiên (chốt 28/10):
+      // 1. AI vẽ được hình (khối geometry) → gửi ẢNH HÌNH kèm caption.
+      // 2. Câu trả lời có công thức LaTeX → gửi ẢNH CÔNG THỨC KaTeX (bản đẹp chuẩn SGK)
+      //    kèm caption Unicode đầy đủ — ảnh lỗi thì caption vẫn đủ ý.
+      // 3. Không có gì → tin text như cũ.
+      // Mọi bước render/upload/sendPhoto hỏng → fallback tin text.
+      let photoSent = false;
+      if (detail.geometry) {
+        photoSent = await sendGeometryPhoto(token, chatId, detail.geometry, caption, classId, sendPhoto);
+      } else if (detail.hasMath) {
+        // PHẢI truyền mathSource (còn LaTeX) — không phải text đã convert Unicode.
+        photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, caption, classId, sendPhoto);
+      }
       if (!photoSent) await sendStyled(token, chatId, caption, false);
       return '';
     } catch {

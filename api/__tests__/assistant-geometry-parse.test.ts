@@ -74,10 +74,31 @@ describe('extractGeometryReply — tách khối geometry khỏi câu trả lời
     expect(out.spec).toBeNull();
   });
 
-  it('G8: spec hợp lệ cho đủ 6 shape — pyramid/prism/box/cylinder/cone/sphere', () => {
+  it('G8: spec hợp lệ cho đủ 9 shape — 6 hình khối + graph/table/bar', () => {
     for (const shape of ['pyramid', 'prism', 'box', 'cylinder', 'cone', 'sphere']) {
       const raw = ['Hình.', '', '```geometry', `{"shape":"${shape}"}`, '```'].join('\n');
       expect(extractGeometryReply(raw).spec?.shape).toBe(shape);
+    }
+    expect(extractGeometryReply(['G.', '', '```geometry', '{"shape":"graph","points":[[0,0],[1,2]]}', '```'].join('\n')).spec?.shape).toBe('graph');
+    expect(extractGeometryReply(['B.', '', '```geometry', '{"shape":"table","head":["x"],"rows":[["1"]]}', '```'].join('\n')).spec?.shape).toBe('table');
+    expect(extractGeometryReply(['C.', '', '```geometry', '{"shape":"bar","labels":["A","B"],"values":[1,2]}', '```'].join('\n')).spec?.shape).toBe('bar');
+  });
+
+  it('G9: graph sai dữ liệu → spec null (points < 2, toạ độ không phải số)', () => {
+    const bad1 = ['G.', '', '```geometry', '{"shape":"graph","points":[[0,0]]}', '```'].join('\n');
+    const bad2 = ['G.', '', '```geometry', '{"shape":"graph","points":[[0,0],["a",2]]}', '```'].join('\n');
+    const bad3 = ['G.', '', '```geometry', '{"shape":"graph","points":[[0,0],[1,2]],"xrange":[5,-5]}', '```'].join('\n');
+    for (const raw of [bad1, bad2, bad3]) {
+      expect(extractGeometryReply(raw).spec).toBeNull();
+    }
+  });
+
+  it('G10: table/bar sai dữ liệu → spec null (sai số cột, giá trị âm, quá dài)', () => {
+    const bad1 = ['B.', '', '```geometry', '{"shape":"table","head":["x","y"],"rows":[["1"]]}', '```'].join('\n');
+    const bad2 = ['C.', '', '```geometry', '{"shape":"bar","labels":["A","B"],"values":[-1,2]}', '```'].join('\n');
+    const bad3 = ['C.', '', '```geometry', '{"shape":"bar","labels":["A","B"],"values":[1]}', '```'].join('\n');
+    for (const raw of [bad1, bad2, bad3]) {
+      expect(extractGeometryReply(raw).spec).toBeNull();
     }
   });
 });
