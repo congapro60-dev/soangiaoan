@@ -395,3 +395,15 @@ Phiên live `2vuuqC9VtmVhVGihSyD6` · lớp `AD4GKT` (g12) · HS Lò Mai Phươn
 | Nhãn tuần | Bài nguồn Tuần 11 hiển thị nhãn gốc "Dạy thử" (dữ liệu giáo án nguồn) → đã ẩn nhãn tuần không phải số; HS tìm theo tên bài qua ô search | ✓ (giải pháp hiển thị) |
 
 **Lưu ý cho thầy**: mở bài từ thư viện dùng đường portal công khai `/adaptive-portal/:id` — nội dung hiển thị nguyên bản bài tự học (khác luồng GV giao — bản đã bỏ đáp án qua máy chủ). Bài tự học vốn là tài liệu HS tự học (có ví dụ giải mẫu), nếu thầy muốn bản học lại cũng bỏ đáp án thì cần làm thêm qua máy chủ (báo riêng).
+
+### Việc 3 · Giao 10 bài tự học Tuần 11 hàng loạt cho 3 lớp · 28/10/2026
+
+Giao qua action `teacherAssignAdaptiveLesson` (idToken GV từ phiên Edge 9222) — **10/10 → 200**, assignmentId `{classId}_{lessonId}`, `isOpen: true`:
+
+| Lớp | Bài tự học đã giao |
+|---|---|
+| g10 · 7W288E | Số gần đúng và sai số T1 (`adaptive-1792827090625`) · Các số đặc trưng T1 (`adaptive-1792826324771`) |
+| g11 · R6RCFC | Mẫu số liệu ghép nhóm T1 · Các số đặc trưng T1 · Hai mặt phẳng T2 · Hai mặt phẳng T3 |
+| g12 · AD4GKT | Nguyên hàm T2 · Khoảng biến thiên T1 · Mức độ phân tán T2 · Phương sai T1 |
+
+QA portal HS (lớp g12 đang phiên, Edge 9223): `studentAdaptiveList` trả đúng 4 bài g12 mới + 1 bài cũ, `closed: false` — HS bấm "Vào bài" chạy luồng chấm có điểm chuẩn. Lưu ý UI "Giao bài" trên GV chỉ list bài tương tác V8.8 — bài tự học nguồn phải giao qua action (đã thực hiện).

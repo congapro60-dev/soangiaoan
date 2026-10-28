@@ -14,6 +14,8 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - **QA Production ĐẠT**: 112 bài tự học hiển thị; search "Khoảng biến thiên" → 1 kết quả → mở portal `/adaptive-portal/adaptive-1792833009074` ✓ (CỔNG HỌC SINH + 5 bước + link quay lại thư viện). Nhãn tuần gốc "Dạy thử" đã ẩn (chỉ hiện khi là số).
 - **Lưu ý**: bài mở từ thư viện là nguyên bản bài tự học (khác luồng GV giao đã strip đáp án) — nếu cần bản học lại strip đáp án thì báo thêm, làm qua máy chủ.
 - **Việc 2 xong** (commit `db016a1` + `938d97a`): 10 bài nguồn Tuần 11 hiện đúng nhãn **Tuần 11 · Tiết 75–80** trên thư viện (override client `SELF_STUDY_WEEK11_OVERRIDE` trong `adaptiveLessonService.ts` — không đụng data Firestore; QA Production 10/10 ✓).
+- **Việc 1 (phương án B) xong** (commits `668d4a6`–`2a7848e`): chế độ học lại không tính điểm — route `/adaptive-library/:libraryLessonId`, server `studentAdaptiveLibraryOpen` (bản strip) + `studentAdaptiveLibrarySubmit` (`gradeLibraryAssessment` chấm thuần, scored: false, không ghi Firestore); HS tự đăng nhập ẩn danh; QA Production ĐẠT (mở bài + notice + nộp diagnostic scored:false).
+- **Việc 3 xong**: giao 10 bài tự học Tuần 11 cho 3 lớp qua `teacherAssignAdaptiveLesson` (10/10 → 200; g10 2 bài, g11 4 bài, g12 4 bài; QA portal g12 hiện đúng 4 bài). Lưu ý: UI "Giao bài" chỉ list bài tương tác — bài tự học nguồn giao qua action.
 - 10 cặp bài Tuần 11 (tương tác + tự học) đã đủ để HS học lại ở nhà ngay hôm nay. (mỗi vòng: Pha A Gate P+D → thầy duyệt → Pha B Gate C + QA). Thầy đã duyệt phương án (b) timeline per-lesson (27/10) và cho phép tiếp R4.
 
 ## R2 `11-11-76` — "Các số đặc trưng đo xu thế trung tâm" (g11, formation)
