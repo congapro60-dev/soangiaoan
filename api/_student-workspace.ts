@@ -70,6 +70,8 @@ const normalizeAdaptiveLesson = (raw: unknown, fallbackId: string): AdaptiveLess
   if (!lesson.id) lesson.id = typeof data.lessonId === 'string' ? data.lessonId : typeof data.id === 'string' ? data.id : fallbackId;
   if (!lesson.teacherId && typeof data.teacherId === 'string') lesson.teacherId = data.teacherId;
   if (!lesson.title && typeof data.title === 'string') lesson.title = data.title;
+  // Bài tạo trước khi tách "tự học / tương tác" không có lessonKind → mặc định tự học (khớp client).
+  if (!lesson.lessonKind) lesson.lessonKind = 'self_study';
   return lesson.id ? lesson as unknown as AdaptiveLesson : null;
 };
 
