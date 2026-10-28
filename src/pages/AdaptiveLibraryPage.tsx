@@ -11,6 +11,7 @@ export const AdaptiveLibraryPage = () => {
   const [items, setItems] = useState<SelfStudyLibraryItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gradeFilter, setGradeFilter] = useState<'all' | '10' | '11' | '12'>('all');
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let alive = true;
@@ -20,7 +21,10 @@ export const AdaptiveLibraryPage = () => {
     return () => { alive = false; };
   }, []);
 
-  const visible = (items || []).filter((item) => gradeFilter === 'all' || item.grade === gradeFilter);
+  const weekLabel = (week: string) => (/^\d+$/.test(week.trim()) ? `Tuần ${week.trim()}` : '');
+  const visible = (items || [])
+    .filter((item) => gradeFilter === 'all' || item.grade === gradeFilter)
+    .filter((item) => !query.trim() || item.title.toLowerCase().includes(query.trim().toLowerCase()));
   const groups = ['10', '11', '12'].filter((g) => visible.some((item) => item.grade === g));
 
   return (
@@ -34,17 +38,28 @@ export const AdaptiveLibraryPage = () => {
           <Link to="/adaptive-portal" className="inline-flex min-h-10 items-center rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 transition hover:bg-blue-100">← Cổng học sinh</Link>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(['all', '10', '11', '12'] as const).map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => setGradeFilter(g)}
-              className={`inline-flex min-h-10 items-center rounded-xl border px-4 text-sm font-black transition ${gradeFilter === g ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'}`}
-            >
-              {g === 'all' ? 'Tất cả khối' : `Lớp ${g}`}
-            </button>
-          ))}
+        <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
+          <label className="relative">
+            <span className="sr-only">Tìm bài học lại</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Tìm tên bài… (ví dụ: Khoảng biến thiên)"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-base"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {(['all', '10', '11', '12'] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGradeFilter(g)}
+                className={`inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-black transition ${gradeFilter === g ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'}`}
+              >
+                {g === 'all' ? 'Tất cả khối' : `Lớp ${g}`}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && <p className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p>}
@@ -60,7 +75,7 @@ export const AdaptiveLibraryPage = () => {
                   <div className="min-w-0">
                     <h3 className="break-words text-sm font-black text-slate-900">{item.title}</h3>
                     <p className="mt-1 text-xs font-semibold text-slate-500">
-                      Lớp {item.grade}{item.week ? ` · Tuần ${item.week}` : ''}{item.period ? ` · Tiết ${item.period}` : ''}
+                      Lớp {item.grade}{weekLabel(item.week) ? ` · ${weekLabel(item.week)}` : ''}{item.period ? ` · Tiết ${item.period}` : ''}
                     </p>
                   </div>
                   <Link
