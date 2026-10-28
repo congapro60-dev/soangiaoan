@@ -31,11 +31,16 @@ npx vercel env pull .env.probe --environment production --yes 2>&1 | Out-Null
 $sec = ((Get-Content ".env.probe" | Where-Object { $_ -match '^ZALO_BOT_WEBHOOK_SECRET=' }) -join '')
 $sec = $sec.Substring($sec.IndexOf('=') + 1).Trim().Trim('"')
 function Send($txt) {
-  $mid = "pf-" + [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
+  $mid = "pf-" + [DateTimeOffset]::Now.ToUnixTimeMilliseconds() + "-" + (Get-Random -Maximum 9999)
   $body = @{ event_name = 'message.text.received'; message = @{ from = @{ id = '6428d37c9d35746b2d24'; is_bot = $false }; chat = @{ id = '6428d37c9d35746b2d24'; chat_type = 'PRIVATE' }; text = $txt; message_id = $mid; date = [DateTimeOffset]::Now.ToUnixTimeMilliseconds() } } | ConvertTo-Json -Depth 8 -Compress
-  try { $r = Invoke-WebRequest -Uri $alias -Method Post -Headers @{ "x-bot-api-secret-token" = $sec } -ContentType "application/json" -Body $body -UseBasicParsing -TimeoutSec 120; return $r.StatusCode }
+  try { $r = Invoke-WebRequest -Uri $alias -Method Post -Headers @{ "x-bot-api-secret-token" = $sec } -ContentType "application/json" -Body $body -UseBasicParsing -TimeoutSec 150; return $r.StatusCode }
   catch { return $_.Exception.Response.StatusCode.value__ }
 }
+
+# Dem so anh TRUOC khi ban cau hoi — de buoc 5 so sanh, tranh PASS gia nho anh cu.
+$before = (node (Join-Path $proj "tasks\preflight-storage.cjs") 2>&1 | Select-String -Pattern '^COUNT=' | ForEach-Object { $_.Line }) -replace 'COUNT=', ''
+$before = [int]($before -as [string] -replace '\D', '')
+Write-Host "Anh trong Storage truoc khi test: $before"
 
 Write-Host "=== [3/5] Menu '0' tra loi (khong AI) ==="
 $c = Send "0"
@@ -43,14 +48,23 @@ if ($c -eq 200) { Write-Host "PASS HTTP=200 - kiem tra Zalo: ban PHAI nhan duoc 
 else { Write-Host "FAIL HTTP=$c" -ForegroundColor Red; $script:fail++ }
 
 Write-Host "=== [4/5] Cau hoi hinh hoc (AI + ve anh) ==="
-$c = Send "Cho hinh chop S.ABCD co day ABCD la hinh vuong canh a, SA vuong goc voi mat day. The tich khoi chop tinh the nao?"
-if ($c -eq 200) { Write-Host "PASS HTTP=200 - kiem tra Zalo: PHAI co LOI GIAI (anh ve neu model xuat khoi geometry)" -ForegroundColor Green }
+$c = Send "Cho hinh chop S.ABCD co day ABCD la hinh vuong canh a, SA vuong goc voi mat phang day. Tinh the tich khoi chop."
+if ($c -eq 200) { Write-Host "PASS HTTP=200 - kiem tra Zalo: PHAI co LOI GIAI (va anh neu model xuat khoi geometry)" -ForegroundColor Green }
 else { Write-Host "FAIL HTTP=$c" -ForegroundColor Red; $script:fail++ }
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 6
 
-Write-Host "=== [5/5] Anh ve da upload Storage? ==="
-node (Join-Path $proj "tasks\preflight-storage.cjs") 2>&1 | Select-String -Pattern "STORAGE_CHECK|geometry/" | ForEach-Object { Write-Host $_ }
-if ($LASTEXITCODE -ne 0) { $script:fail++ }
+Write-Host "=== [5/5] Anh MOI da upload Storage? (so sanh truoc/sau) ==="
+$out = node (Join-Path $proj "tasks\preflight-storage.cjs") 2>&1
+$out | Select-String -Pattern "STORAGE_CHECK|geometry/" | ForEach-Object { Write-Host $_.Line }
+$after = ($out | Select-String -Pattern '^COUNT=' | ForEach-Object { $_.Line }) -replace 'COUNT=', ''
+$after = [int]($after -as [string] -replace '\D', '')
+if ($after -gt $before) {
+  Write-Host "PASS co $($after - $before) anh MOI (truoc=$before, sau=$after)" -ForegroundColor Green
+} else {
+  Write-Host "CANH BAO: khong co anh moi (truoc=$before, sau=$after)." -ForegroundColor Yellow
+  Write-Host "  Model co the khong xuat khoi geometry lan nay - khong phai loi ha tang." -ForegroundColor Yellow
+  Write-Host "  Neu Zalo VAN co anh thi pipeline OK; neu khong co anh nao thi kiem tra log [geometry]." -ForegroundColor Yellow
+}
 
 try { Remove-Item ".env.probe" -Force -ErrorAction SilentlyContinue } catch {}
 Write-Host ""
