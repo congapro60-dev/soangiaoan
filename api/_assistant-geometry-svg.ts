@@ -17,6 +17,8 @@
  */
 import { beautifyFractions } from './_assistant-math-text.js';
 import type { GeometrySpec } from './_assistant-geometry.js';
+import { projectSolid, type Solid } from './_assistant-geometry-projection.js';
+import { SOLIDS } from './_assistant-geometry-solids.js';
 
 export const GEOMETRY_SVG_SIZE = { width: 800, height: 640 } as const;
 
@@ -63,109 +65,78 @@ const rightAngleMark = (v: [number, number], a: [number, number], b: [number, nu
 
 type Pt = [number, number];
 
-/** Chóp S.ABCD (đáy vuông) hoặc S.ABC (đáy tam giác) — nét liền/đứt đúng SGK. */
-const pyramid = (base: 'square' | 'triangle', note?: string): string => {
+/**
+ * Vẽ khối 3D bằng PHÉP CHIẾU (thay vẽ tay): nét liền/đứt do projectSolid tự tính
+ * theo pháp tuyến mặt, nhãn đẩy ra ngoài tâm nên không đè cạnh.
+ * Đây là đường chuẩn SGK — sửa lỗi D nằm trên SB (28/10).
+ */
+const drawSolid = (solid: Solid, note?: string): string => {
+  const proj = projectSolid(solid);
+  const { minX, minY, maxX, maxY } = proj.bbox;
+  const padX = 100, padTop = 70, padBottom = note ? 110 : 70;
+  const availW = W - padX * 2;
+  const availH = H - padTop - padBottom;
+  const sc = Math.min(availW / (maxX - minX || 1), availH / (maxY - minY || 1));
+  const ox = (W - (maxX - minX) * sc) / 2 - minX * sc;
+  const oy = padTop + (availH - (maxY - minY) * sc) / 2 - minY * sc;
+  const P = (n: string): Pt => [proj.points[n][0] * sc + ox, proj.points[n][1] * sc + oy];
   const parts: string[] = [];
-  if (base === 'triangle') {
-    // Đáy ABC: A–B nhìn thấy, C khuất sau. A(120,500) B(680,500) C(400,380) S(400,110)
-    const A: Pt = [120, 500], B: Pt = [680, 500], C: Pt = [400, 380], S: Pt = [400, 110];
-    parts.push(
-      line(A[0], A[1], B[0], B[1]),
-      line(B[0], B[1], C[0], C[1], true),
-      line(C[0], C[1], A[0], A[1], true),
-      line(S[0], S[1], A[0], A[1]),
-      line(S[0], S[1], B[0], B[1]),
-      line(S[0], S[1], C[0], C[1], true),
-      label(S[0], S[1] - 24, 'S'),
-      label(A[0] - 30, A[1] + 30, 'A'),
-      label(B[0] + 30, B[1] + 30, 'B'),
-      label(C[0], C[1] - 20, 'C'),
-    );
-  } else {
-    // Đáy ABCD hình bình hành: A trước-trái, B trước, C sau-phải, D sau.
-    const A: Pt = [110, 470], B: Pt = [400, 545], C: Pt = [690, 470], D: Pt = [400, 400], S: Pt = [400, 120];
-    const O: Pt = [400, 472];
-    parts.push(
-      line(A[0], A[1], B[0], B[1]),
-      line(B[0], B[1], C[0], C[1]),
-      line(C[0], C[1], D[0], D[1], true),
-      line(D[0], D[1], A[0], A[1], true),
-      line(S[0], S[1], A[0], A[1]),
-      line(S[0], S[1], B[0], B[1]),
-      line(S[0], S[1], D[0], D[1]),
-      line(S[0], S[1], C[0], C[1], true),
-      // Chân đường cao O + đường cao S→O nét đứt + dấu góc vuông tại A (SA⊥AB)
-      line(S[0], S[1], O[0], O[1], true),
-      rightAngleMark(A, S, B),
-      label(S[0], S[1] - 24, 'S'),
-      label(A[0] - 30, A[1] + 28, 'A'),
-      label(B[0], B[1] + 42, 'B'),
-      label(C[0] + 30, C[1] + 28, 'C'),
-      label(D[0] - 38, D[1] - 2, 'D'),
-      label(O[0] + 22, O[1] + 24, 'O', 30),
-    );
+  for (const e of proj.edges) {
+    const a = P(e.a), b = P(e.b);
+    parts.push(line(a[0], a[1], b[0], b[1], e.dashed));
+  }
+  // Nhãn: đẩy ra xa tâm hình để không chồng lên cạnh.
+  const cx = proj.center[0] * sc + ox;
+  const cy = proj.center[1] * sc + oy;
+  for (const n of Object.keys(proj.points)) {
+    const p = P(n);
+    const dx = p[0] - cx, dy = p[1] - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    parts.push(label(p[0] + (dx / len) * 34, p[1] + (dy / len) * 34 + 10, n));
   }
   if (note) parts.push(noteText(note));
   return parts.join('\n');
 };
 
-/** Lăng trụ đứng đáy tam giác ABC.A'B'C'. */
-const prism = (note?: string): string => {
-  const dy = 210;
-  const A: Pt = [120, 500], B: Pt = [680, 500], C: Pt = [400, 380];
-  const A2: Pt = [A[0], A[1] - dy], B2: Pt = [B[0], B[1] - dy], C2: Pt = [C[0], C[1] - dy];
-  const parts = [
-    line(A[0], A[1], B[0], B[1]),
-    line(B[0], B[1], C[0], C[1], true),
-    line(C[0], C[1], A[0], A[1], true),
-    line(A[0], A[1], A2[0], A2[1]),
-    line(B[0], B[1], B2[0], B2[1]),
-    line(C[0], C[1], C2[0], C2[1], true),
-    line(A2[0], A2[1], B2[0], B2[1]),
-    line(B2[0], B2[1], C2[0], C2[1]),
-    line(C2[0], C2[1], A2[0], A2[1]),
-    label(A[0] - 30, A[1] + 30, 'A'),
-    label(B[0] + 30, B[1] + 30, 'B'),
-    label(C[0], C[1] - 20, 'C'),
-    label(A2[0] - 30, A2[1] + 8, "A'"),
-    label(B2[0] + 32, B2[1] + 8, "B'"),
-    label(C2[0], C2[1] - 20, "C'"),
-  ];
+/** Chóp: đáy vuông (S trên tâm O) hoặc đáy tam giác — dùng phép chiếu chuẩn SGK. */
+const pyramid = (base: 'square' | 'triangle', note?: string): string => {
+  const parts: string[] = [];
+  const solid = base === 'triangle' ? SOLIDS.pyramidTriangle() : SOLIDS.pyramidSquare();
+  const proj = projectSolid(solid);
+  const { minX, minY, maxX, maxY } = proj.bbox;
+  const padX = 100, padTop = 70, padBottom = note ? 110 : 70;
+  const sc = Math.min((W - padX * 2) / (maxX - minX || 1), (H - padTop - padBottom) / (maxY - minY || 1));
+  const ox = (W - (maxX - minX) * sc) / 2 - minX * sc;
+  const oy = padTop + ((H - padTop - padBottom) - (maxY - minY) * sc) / 2 - minY * sc;
+  const P = (n: string): Pt => [proj.points[n][0] * sc + ox, proj.points[n][1] * sc + oy];
+  for (const e of proj.edges) {
+    const a = P(e.a), b = P(e.b);
+    parts.push(line(a[0], a[1], b[0], b[1], e.dashed));
+  }
+  // Đường cao S→O nét đứt (nằm trong khối) — đúng SGK.
+  const S = P('S'), O = P('O');
+  parts.push(line(S[0], S[1], O[0], O[1], true));
+  // Dấu góc vuông tại chân đường cao (giữa SO và OA).
+  const A = P('A');
+  parts.push(rightAngleMark(O, S, A));
+  const cx = proj.center[0] * sc + ox;
+  const cy = proj.center[1] * sc + oy;
+  for (const n of Object.keys(proj.points)) {
+    const p = P(n);
+    const dx = p[0] - cx, dy = p[1] - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const off = n === 'O' ? 26 : 34;
+    parts.push(label(p[0] + (dx / len) * off, p[1] + (dy / len) * off + 10, n, n === 'O' ? 30 : 34));
+  }
   if (note) parts.push(noteText(note));
   return parts.join('\n');
 };
 
-/** Hộp chữ nhật / lập phương ABCD.A'B'C'D'. */
-const box = (note?: string): string => {
-  const dy = 215;
-  const A: Pt = [140, 480], B: Pt = [470, 550], C: Pt = [720, 460], D: Pt = [390, 405];
-  const up = (p: Pt): Pt => [p[0], p[1] - dy];
-  const A2 = up(A), B2 = up(B), C2 = up(C), D2 = up(D);
-  const parts = [
-    line(A[0], A[1], B[0], B[1]),
-    line(B[0], B[1], C[0], C[1]),
-    line(C[0], C[1], D[0], D[1], true),
-    line(D[0], D[1], A[0], A[1], true),
-    line(A[0], A[1], A2[0], A2[1]),
-    line(B[0], B[1], B2[0], B2[1]),
-    line(C[0], C[1], C2[0], C2[1], true),
-    line(D[0], D[1], D2[0], D2[1], true),
-    line(A2[0], A2[1], B2[0], B2[1]),
-    line(B2[0], B2[1], C2[0], C2[1]),
-    line(C2[0], C2[1], D2[0], D2[1]),
-    line(D2[0], D2[1], A2[0], A2[1]),
-    label(A[0] - 30, A[1] + 30, 'A'),
-    label(B[0], B[1] + 40, 'B'),
-    label(C[0] + 32, C[1] + 28, 'C'),
-    label(D[0] - 36, D[1] + 8, 'D'),
-    label(A2[0] - 30, A2[1] + 8, "A'"),
-    label(B2[0], B2[1] + 40, "B'"),
-    label(C2[0] + 32, C2[1] + 2, "C'"),
-    label(D2[0] - 36, D2[1] - 14, "D'"),
-  ];
-  if (note) parts.push(noteText(note));
-  return parts.join('\n');
-};
+/** Lăng trụ đứng / hộp chữ nhật — dùng phép chiếu chuẩn SGK. */
+const prism = (note?: string): string => drawSolid(SOLIDS.prism(), note);
+
+/** Hộp chữ nhật / lập phương ABCD.A'B'C'D' — dùng phép chiếu chuẩn SGK. */
+const box = (note?: string): string => drawSolid(SOLIDS.box(), note);
 
 const cylinder = (note?: string): string => {
   const cx = 400, rx = 200, ry = 52, top = 150, bottom = 490;

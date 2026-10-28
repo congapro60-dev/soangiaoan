@@ -78,19 +78,18 @@ export const buildAiContext = (report: ParentSafeReport, periodicIds: ReadonlySe
  * Thống kê: bảng/biểu đồ cột/đồ thị điểm — dùng khi đề có mẫu số liệu, tần suất.
  */
 export const GEOMETRY_PROMPT_RULE = [
-  'VẼ HÌNH MINH HOẠ (chỉ khi câu hỏi mô tả dữ liệu cụ thể ĐÁNG vẽ):',
-  '- Nếu hình giúp hiểu bài, thêm đúng MỘT khối sau vào CUỐI câu trả lời:',
+  'VẼ HÌNH (bắt buộc khi đề có hình không gian hoặc số liệu thống kê — HS cần HÌNH, không chỉ chữ):',
+  'Khi đề nhắc tới chóp/lăng trụ/hộp/trụ/nón/cầu hoặc có bảng số liệu/tần suất, em LUÔN thêm đúng MỘT khối này ở CUỐI câu trả lời:',
   '```geometry',
   '{"shape":"pyramid","base":"square","note":"ABCD vuông cạnh a, SA ⊥ (ABCD), SA = a√2"}',
   '```',
-  '- Hình học — shape: pyramid (base: square|triangle) | prism | box | cylinder | cone | sphere.',
-  '  note: mô tả ngắn dữ kiện đề bài, ký hiệu Unicode (⊥, √, °, ⇒), tối đa 200 ký tự.',
-  '- Đồ thị hàm số (lớp 9-12): {"shape":"graph","points":[[-2,4],[-1,1],[0,0],[1,1],[2,4]],"xrange":[-3,3],"yrange":[-1,5],"xlabel":"x","ylabel":"y"}',
-  '  points là các điểm/VỊ TRÍ đáng kể của đồ thị (8-15 điểm để đường cong mượt).',
-  '- Bảng số liệu/tần suất: {"shape":"table","head":["x","1","2","3"],"rows":[["tần suất","3","5","2"]]}',
-  '- Biểu đồ cột: {"shape":"bar","labels":["A","B","C"],"values":[3,5,2],"ylabel":"tần suất"}',
-  '- Câu hỏi đại số thuần, điểm số, phương pháp học thì KHÔNG thêm khối này.',
-  '- Không giải thích hay nhắc đến khối geometry trong phần chữ.',
+  'Các shape hợp lệ:',
+  '- pyramid (base: square nếu đáy vuông/chữ nhật, triangle nếu đáy tam giác) | prism | box | cylinder | cone | sphere',
+  '- graph — đồ thị hàm số: {"shape":"graph","points":[[-2,4],[-1,1],[0,0],[1,1],[2,4]],"xrange":[-3,3],"yrange":[-1,5]}',
+  '- table — bảng số liệu: {"shape":"table","head":["x","1","2","3"],"rows":[["tần suất","3","5","2"]]}',
+  '- bar — biểu đồ cột: {"shape":"bar","labels":["A","B","C"],"values":[3,5,2]}',
+  'note: mô tả ngắn dữ kiện (⊥, √, °, ⇒), tối đa 200 ký tự. KHÔNG giải thích khối này trong phần chữ.',
+  'Câu hỏi điểm số, phương pháp học, đại số thuần (không có hình/số liệu) thì KHÔNG thêm khối.',
 ].join('\n');
 
 /** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. Văn phong theo vai trò. */
@@ -112,9 +111,9 @@ export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): s
     '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
     `6. Câu hỏi chung (cách học, quản lý thời gian, tâm lý) thì trả lời như gợi ý chung, mở đầu bằng "Gợi ý chung:" để phân biệt với ${student ? 'nhận xét về bài của em' : 'nhận xét về con'}.`,
     '',
-    MATH_FORMAT_RULE,
-    '',
     GEOMETRY_PROMPT_RULE,
+    '',
+    MATH_FORMAT_RULE,
     '',
     'DỮ LIỆU:',
     context,

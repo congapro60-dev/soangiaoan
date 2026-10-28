@@ -129,12 +129,20 @@ export const extractGeometryReply = (raw: string): { text: string; spec: Geometr
   const source = String(raw ?? '');
   const re = /```geometry\s*\n?([\s\S]*?)```/g;
   let spec: GeometrySpec | null = null;
+  let sawBlock = false;
   const text = source.replace(re, (_match, body: string) => {
+    sawBlock = true;
     try {
       const parsed = parseGeometrySpec(JSON.parse(String(body).trim()));
       if (parsed) spec = parsed;
-    } catch { /* JSON hỏng — bỏ qua, vẫn gỡ khối */ }
+      else console.error('[geometry] khối hợp lệ JSON nhưng sai DSL:', String(body).trim().slice(0, 200));
+    } catch (err) {
+      // Log để phân biệt "model không vẽ" với "ta từ chối khối của model" — nếu không
+      // sẽ không biết vì sao HS không nhận được hình (bài học 28/10).
+      console.error('[geometry] JSON hỏng:', String(body).trim().slice(0, 200), err instanceof Error ? err.message : '');
+    }
     return '';
   });
+  if (sawBlock && !spec) console.error('[geometry] có khối nhưng bị từ chối → gửi text');
   return { text: text.replace(/\n{3,}/g, '\n\n').trim(), spec };
 };
