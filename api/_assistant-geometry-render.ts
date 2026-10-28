@@ -20,8 +20,13 @@ import type { GeometrySpec } from './_assistant-geometry.js';
 import { renderMathAnswerPng } from './_assistant-math-image.js';
 import { getAdminStorage } from './_exam-core.js';
 
-/** Gốc URL công khai — dùng cho link ảnh gửi Zalo (phải là domain Zalo gọi được). */
-const WEB_BASE = 'https://giaoandewey.vercel.app';
+/**
+ * Gốc URL công khai — PHẢI là domain của CHÍNH project này (zalo-test...), vì route
+ * phục vụ ảnh nằm ở đây. Đặt nhầm sang giaoandewey.vercel.app (project khác) thì Zalo
+ * tải 404 và không hiện ảnh (lỗi thật 28/10). Cho phép override bằng env để sau này
+ * gắn domain riêng mà không phải sửa code.
+ */
+const WEB_BASE = String(process.env.PUBLIC_BASE_URL || 'https://zalo-test.congapro60-devs-projects.vercel.app').replace(/\/+$/, '');
 
 /** Đọc font KaTeX_Main 1 lần; trả chuỗi @font-face nhúng base64 (rỗng nếu thiếu file). */
 let fontFaceCss: string | null = null;
