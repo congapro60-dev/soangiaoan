@@ -116,7 +116,7 @@ createRoot(document.getElementById('root')!).render(
           {/* Thư viện học lại — list công khai bài tự học phân hoá, mọi HS xem + chọn (thầy 28/10). */}
           <Route path="/adaptive-library" element={<Suspense fallback={<RouteLoading />}><AdaptiveLibraryPage /></Suspense>} />
           {/* Học lại qua máy chủ: bản đã bỏ đáp án, chấm không ghi điểm. */}
-          <Route path="/adaptive-library/:lessonId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          <Route path="/adaptive-library/:libraryLessonId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           {/* Bài học phân hoá THẦY CÔ GIAO cho lớp: mở qua máy chủ (bản đã bỏ đáp án). */}
           <Route path="/adaptive-portal/assignment/:assignmentId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           <Route path="/adaptive-portal" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
