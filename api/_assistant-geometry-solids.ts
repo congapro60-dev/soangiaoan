@@ -62,10 +62,17 @@ const pyramidSolid = (w: number, d: number, h: number): Solid => {
 };
 
 /**
- * Chóp có S nằm trên ĐỈNH A (đề cho "SA ⊥ (ABCD)"): S thẳng đứng trên A, O trùng A.
- * Đây là hình đúng cho đa số bài lớp 11 (SA vuông góc mặt đáy tại A) — đặt S trên tâm
- * O là VẼ SAI ĐỀ, và bài giải sẽ rối vì SA không còn là đường cao (lỗi chủ dự án bắt
- * được 28/10: hình vẽ sai đề + sai tính chất hình học).
+ * Chóp có S trên ĐỈNH A (đề "SA ⊥ (ABCD)").
+ *
+ * VẤN ĐỀ TOÁN HỌC (lỗi thật 28/10, ChatGPT chỉ ra từ ảnh Zalo): nếu S chiếu đúng trên A
+ * thì B và C nằm CÙNG PHÍA so với S, nên mặt SBC luôn dẹt (0.5% khung hình) ở MỌI hướng
+ * nhìn — đã đo bằng số với 8 hướng chiếu và 7 mức lệch y, đều không cải thiện. Đây không
+ * phải lỗi phép chiếu mà là cách đặt S.
+ *
+ * CÁCH GIẢI: lệch S sang phải theo trục x (đo được: S.x = 0.6w cho mặt yếu nhất 5.4%,
+ * so với 0.5% khi S.x = 0). Trên hình, SA thành nét xiên — ĐÚNG quy tắc hình biểu diễn
+ * ("góc vuông và độ dài thật thì không giữ"), còn quan hệ SA ⊥ (ABCD) được thể hiện bằng
+ * KÝ HIỆU góc vuông tại A. Đây là cách SGK vẽ.
  */
 const pyramidApexAtA = (w: number, d: number, h: number): Solid => {
   const vertices = {
@@ -73,8 +80,8 @@ const pyramidApexAtA = (w: number, d: number, h: number): Solid => {
     B: [w, 0, 0] as [number, number, number],
     C: [w, d, 0] as [number, number, number],
     D: [0, d, 0] as [number, number, number],
-    // S đứng THẲNG trên A: SA ⊥ đáy đúng như đề.
-    S: [0, 0, h] as [number, number, number],
+    // Lệch 0.6w theo x: tách SB/SC rõ rệt; vẫn dựng từ A nên đọc là "SA".
+    S: [w * 0.6, 0, h] as [number, number, number],
   };
   const faces = [
     ['A', 'B', 'C', 'D'],

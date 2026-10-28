@@ -17,7 +17,8 @@
  */
 import { beautifyFractions } from './_assistant-math-text.js';
 import type { GeometrySpec } from './_assistant-geometry.js';
-import { projectSolid, type Solid } from './_assistant-geometry-projection.js';
+import { type Solid, type ProjectedSolid } from './_assistant-geometry-projection.js';
+import { bestProjection } from './_assistant-geometry-best-view.js';
 import { SOLIDS } from './_assistant-geometry-solids.js';
 
 export const GEOMETRY_SVG_SIZE = { width: 800, height: 640 } as const;
@@ -44,7 +45,22 @@ const ellipse = (cx: number, cy: number, rx: number, ry: number, dashed = false)
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${INK}" stroke-width="3.5"${dashed ? ` ${DASH}` : ''}/>`;
 
 const label = (x: number, y: number, text: string, size = 34): string =>
-  `<text x="${x}" y="${y}" ${FONT} font-size="${size}" font-weight="700" fill="${INK}" text-anchor="middle">${text}</text>`;
+  `<text x="${x}" y="${y}" ${FONT} font-size="${size}" font-weight="700" fill="${INK}" text-anchor="middle" stroke="#ffffff" stroke-width="6" paint-order="stroke fill" stroke-linejoin="round">${text}</text>`;
+
+/**
+ * Tô nhạt các MẶT NHÌN THẤY để khối có cảm giác 3D (SGK hay tô mặt bên).
+ * Chỉ tô mặt quay về phía người nhìn — mặt khuất để trắng, đúng quy ước.
+ */
+const fillVisibleFaces = (proj: ProjectedSolid, P: (n: string) => Pt): string[] => {
+  const out: string[] = [];
+  for (const face of proj.faces) {
+    if (!face.visible || face.vertices.length < 3) continue;
+    const pts = face.vertices.map(n => P(n));
+    const d = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    out.push(`<polygon points="${d}" fill="#eaf1fa" stroke="none"/>`);
+  }
+  return out;
+};
 
 /** Ghi chú dưới hình — đã escape, phân số đã vulgar hoá (⅓ ⅔…). */
 const noteText = (text: string): string =>
@@ -71,7 +87,7 @@ type Pt = [number, number];
  * Đây là đường chuẩn SGK — sửa lỗi D nằm trên SB (28/10).
  */
 const drawSolid = (solid: Solid, note?: string): string => {
-  const proj = projectSolid(solid);
+  const { proj } = bestProjection(solid);
   const { minX, minY, maxX, maxY } = proj.bbox;
   const padX = 100, padTop = 70, padBottom = note ? 110 : 70;
   const availW = W - padX * 2;
@@ -80,7 +96,8 @@ const drawSolid = (solid: Solid, note?: string): string => {
   const ox = (W - (maxX - minX) * sc) / 2 - minX * sc;
   const oy = padTop + (availH - (maxY - minY) * sc) / 2 - minY * sc;
   const P = (n: string): Pt => [proj.points[n][0] * sc + ox, proj.points[n][1] * sc + oy];
-  const parts: string[] = [];
+  // Tô mặt nhìn thấy TRƯỚC, rồi mới vẽ cạnh lên trên.
+  const parts: string[] = fillVisibleFaces(proj, P);
   for (const e of proj.edges) {
     const a = P(e.a), b = P(e.b);
     parts.push(line(a[0], a[1], b[0], b[1], e.dashed));
@@ -127,13 +144,15 @@ const pyramid = (base: 'square' | 'triangle', apexAt: 'center' | 'A', note?: str
   const solid = base === 'triangle'
     ? SOLIDS.pyramidTriangle()
     : apexAt === 'A' ? SOLIDS.pyramidApexAtA() : SOLIDS.pyramidSquare();
-  const proj = projectSolid(solid);
+  const { proj } = bestProjection(solid);
   const { minX, minY, maxX, maxY } = proj.bbox;
   const padX = 100, padTop = 70, padBottom = note ? 110 : 70;
   const sc = Math.min((W - padX * 2) / (maxX - minX || 1), (H - padTop - padBottom) / (maxY - minY || 1));
   const ox = (W - (maxX - minX) * sc) / 2 - minX * sc;
   const oy = padTop + ((H - padTop - padBottom) - (maxY - minY) * sc) / 2 - minY * sc;
   const P = (n: string): Pt => [proj.points[n][0] * sc + ox, proj.points[n][1] * sc + oy];
+  // Tô mặt nhìn thấy TRƯỚC, rồi mới vẽ cạnh lên trên.
+  parts.push(...fillVisibleFaces(proj, P));
   for (const e of proj.edges) {
     const a = P(e.a), b = P(e.b);
     parts.push(line(a[0], a[1], b[0], b[1], e.dashed));

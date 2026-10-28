@@ -48,6 +48,8 @@ export type Solid = {
 export type ProjectedSolid = {
   points: Record<string, V2>;
   edges: { a: string; b: string; dashed: boolean }[];
+  /** Các MẶT theo thứ tự đỉnh đã chiếu; visible=false là mặt khuất (không tô). */
+  faces: { vertices: string[]; visible: boolean }[];
   /** Đỉnh khuất (nằm trong đường bao) — dùng để đặt nhãn. */
   hidden: string[];
   center: V2;
@@ -65,7 +67,8 @@ const project = (p: V3): V2 => [
  * Một mặt là "thấy" khi pháp tuyến của nó quay về phía người nhìn (dot(n, VIEW) > 0);
  * cạnh chỉ bị vẽ nét đứt khi TẤT CẢ mặt chứa nó đều khuất.
  */
-export const projectSolid = (solid: Solid): ProjectedSolid => {
+export const projectSolid = (solid: Solid, view: [number, number, number] = VIEW): ProjectedSolid => {
+  const VIEW_DIR = unit(view);
   const points: Record<string, V2> = {};
   for (const [name, p] of Object.entries(solid.vertices)) points[name] = project(p);
 
@@ -91,7 +94,7 @@ export const projectSolid = (solid: Solid): ProjectedSolid => {
       mid[2] += solid.vertices[v][2] / face.length;
     }
     if (dot(n, sub(mid, centroid)) < 0) n = [-n[0], -n[1], -n[2]];
-    return dot(unit(n), VIEW) > 0;
+    return dot(unit(n), VIEW_DIR) > 0;
   });
 
   const edges = solid.edges.map(([a, b]) => {
@@ -112,5 +115,12 @@ export const projectSolid = (solid: Solid): ProjectedSolid => {
     return touching.length > 0 && touching.every(e => e.dashed);
   });
 
-  return { points, edges, hidden, center, bbox };
+  return {
+    points,
+    edges,
+    faces: solid.faces.map((face, i) => ({ vertices: face, visible: faceVisible[i] })),
+    hidden,
+    center,
+    bbox,
+  };
 };
