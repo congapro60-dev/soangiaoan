@@ -93,6 +93,14 @@
 - [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); build pass.
 - [x] Gộp đợt với v38 theo quyết định user "phương án 2" — cùng archive deploy.
 
+## v39 — telemetry lỗi + đồng hồ tiết + chế độ TV (28/10/2026)
+
+- [x] Telemetry lỗi production: client bắt `error`/`unhandledrejection` → `client-error` (không auth, dedupe, ≤10/phiên); server log + ring 30 trong `system_settings`, fail-soft.
+- [x] Đồng hồ tiết học trên board GV: phút còn lại, vị trí trung bình, dự đoán "chốt bài ở trạm nào".
+- [x] Chế độ TV: nút trên board GV, chữ to, ẩn hồ sơ dày, lưu localStorage; helper an toàn cho DOM mock.
+- [x] Test: `tests/v39-teacher-tools.test.mjs` **2/2**; full suite **1451/1451 PASS, 0 fail**; build pass; smoke local **7/7**; browser 0 console error.
+- [ ] Deploy v39 qua Codex + kiểm độc lập.
+
 ## v38 — ngân hàng câu hỏi AI theo ma trận (28/10/2026)
 
 - [x] `lib/ai-question-bank.js`: validate candidate theo ma trận (topic/level/độ dài/đáp án số), merge + cap 60, pick theo slot (ưu tiên đúng mức, né đã dùng, bỏ slot mcq/tf).

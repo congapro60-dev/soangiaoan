@@ -368,7 +368,27 @@ export async function POST(req) {
             return fail('Yêu cầu quá dài.');
         let b;
         try { b = JSON.parse(rawBody); } catch { return fail('Yêu cầu không hợp lệ.'); }
-        if (b.action === 'create-room') {
+        if (b.action === 'client-error') {
+    const message = typeof b.message === 'string' ? b.message.trim().slice(0, 300) : '';
+    if (!message)
+        return reply({ ok: false });
+    const source = typeof b.source === 'string' ? b.source.slice(0, 120) : '';
+    const stack = typeof b.stack === 'string' ? b.stack.slice(0, 800) : '';
+    const roomCode = typeof b.room === 'string' ? b.room.slice(0, 10) : '';
+    const screen = typeof b.screen === 'string' ? b.screen.slice(0, 20) : '';
+    console.error('[client-error]', JSON.stringify({ message, source, roomCode, screen, at: new Date().toISOString() }));
+    try {
+        const row = await stmt('SELECT value FROM system_settings WHERE key=?', 'site_client_errors').first();
+        let list = [];
+        try { list = JSON.parse(row?.value || '[]'); } catch { list = []; }
+        if (!Array.isArray(list)) list = [];
+        list.push({ message, source, stack, roomCode, screen, at: Date.now() });
+        while (list.length > 30) list.shift();
+        await stmt("INSERT INTO system_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at", 'site_client_errors', JSON.stringify(list), Date.now()).run();
+    } catch { /* telemetry never fails the client */ }
+    return reply({ ok: true });
+}
+if (b.action === 'create-room') {
             // Identity required — no anonymous room creation, no first-visitor bootstrap.
             const env = getEnv();
             const {user, isRootUser} = resolveIdentity(req, env);

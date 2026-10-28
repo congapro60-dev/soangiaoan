@@ -89,3 +89,12 @@ body[data-world=dewey]{--gold:#ffd879;--mint:#8ee2bf}
 .ai-bank-panel .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
 .ai-candidate{margin:10px 0;padding:12px;border:1px solid rgba(148,163,184,.3);border-radius:10px}
 .ai-candidate input[type=text],.ai-candidate input:not([type=checkbox]){margin:6px 0 0;width:100%}
+
+/* v39: dong ho tiet + che do TV */
+.lesson-clock{margin:16px 0;padding:14px 16px;border:1px solid rgba(148,163,184,.35);border-radius:12px}
+.lesson-clock p{margin:6px 0}
+body.tv-mode .tablewrap table{font-size:20px}
+body.tv-mode .map-turn{font-size:22px}
+body.tv-mode .crew-legend{font-size:20px}
+body.tv-mode .lesson-clock{font-size:20px}
+body.tv-mode .team-dossiers{display:none}

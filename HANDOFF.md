@@ -4,7 +4,33 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V38 DANG DEPLOY: ngan hang cau hoi AI theo ma tran (28/10/2026)
+## Latest checkpoint - V39 DANG DEPLOY: telemetry loi + dong ho tiet + che do TV (28/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `49b2888` (= version 38 da phat hanh, deployment `appgdep_6ae1c4a8d9088191b0b5cfabc215cd77`).
+
+### Trang thai: DANG DEPLOY — code + test + smoke local xong, cho deploy.
+
+### Noi dung thay doi v39 (3 y tuong con lai: #2 + #4 + #6)
+
+- **Telemetry loi production**: client bat `error` + `unhandledrejection` → POST `client-error` (khong can auth, dedupe theo message, toi da 10/phan). Server: console.error + luu ring 30 vao `system_settings` key `site_client_errors` (message ≤300, stack ≤800, fail-soft — telemetry khong bao gio lam roi client).
+- **Dong ho tiet hoc tren board GV**: con lai bao nhieu phut cua 30 phut, vi tri trung binh cua lop, du doan "neu giu toc do lop toi khoang ô X, nen chot bai o tram gan nhat". Cap nhat theo poll 3 giay.
+- **Che do TV**: nut "Che do TV" tren board GV (luu localStorage) — chu to bang CSS `body.tv-mode`, an ho so chi tiet; helper an toan (tvModeOn/tvModeSet) chay duoc ca tren DOM mock cua test.
+
+### Verify truoc deploy (28/10)
+
+- `tests/v39-teacher-tools.test.mjs` **2/2** (needle + route tich hop: ring 30, cat 300/800, fail-soft); full suite **1451/1451 PASS, 0 fail**; `npm run build` pass; smoke local **7/7 PASS**; browser boot **0 console error**. `lib/exam/**` va phong demo `7E42C2` khong dong den.
+
+### Release record V39
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **39** |
+| deployment_id | (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v39.tar.gz` (placeholder) |
+| archive size | (placeholder) |
+
+## Latest checkpoint - V38 DA PHAT HANH: ngan hang cau hoi AI theo ma tran (28/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `182bfe5` (= v37 chua deploy, gop đot voi v38 theo quyet dinh user "phuong an 2").
 
@@ -43,11 +69,11 @@
 - Commit tiep theo (ho so nay) se tao source commit moi -> Sites tang len version 38; deployment id moi se duoc Codex dien vao dong duoi.
 | version 38 | deployment_id: `appgdep_6ae1c4a8d9088191b0b5cfabc215cd77`; commit_sha: `bae0ced309217b73245c15bbe5cda8a6dfb712b7` |
 
-## Latest checkpoint - V37 DANG DEPLOY: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
+## Latest checkpoint - V37 DA PHAT HANH: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `4430b50` (= v36 da phat hanh: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`).
 
-### Trang thai: DANG DEPLOY — code + test xong, cho deploy.
+### Trang thai: DA PHAT HANH — version 38, deployment appgdep_6ae1c4a8d9088191b0b5cfabc215cd77 (28/10/2026).
 
 ### Noi dung thay doi v37 (tu van 10 y tuong → user chon #1 + #5)
 
