@@ -83,3 +83,9 @@ body[data-world=dewey]{--gold:#ffd879;--mint:#8ee2bf}
 .console-panel input{margin:6px 0 0;width:100%}
 .map-notice{margin:8px 0 0;padding:10px 14px;border-radius:10px;background:rgba(255,196,0,.14);border:1px solid rgba(255,196,0,.55);font-weight:600}
 .shop-locked{margin:0}
+
+/* v38: ngan hang cau hoi AI */
+.ai-bank-panel{margin:16px 0;padding:16px;border:1px solid rgba(148,163,184,.35);border-radius:12px}
+.ai-bank-panel .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.ai-candidate{margin:10px 0;padding:12px;border:1px solid rgba(148,163,184,.3);border-radius:10px}
+.ai-candidate input[type=text],.ai-candidate input:not([type=checkbox]){margin:6px 0 0;width:100%}

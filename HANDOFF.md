@@ -4,6 +4,37 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
+## Latest checkpoint - V38 DANG DEPLOY: ngan hang cau hoi AI theo ma tran (28/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `182bfe5` (= v37 chua deploy, gop đot voi v38 theo quyet dinh user "phuong an 2").
+
+### Trang thai: DANG DEPLOY — v37 + v38 code + test xong, cho deploy gop.
+
+### Noi dung thay doi v38 (y tuong #8: pipeline sinh/duyet cau hoi)
+
+- `lib/ai-question-bank.js` (moi): `normalizeAICandidate` (chan topic ngoai ma tran, level ngoai khoang, cau qua dai, dap an khong hop le; chi dinh so), `mergeAIBank` (gop, tru trung, cap 60), `pickAIQuestion` (uu tien topic+muc dung, ne cau da dung, bo qua slot mcq/tf).
+- Sinh cau hoi: action `ai-question-generate` (GV, quyen `game-action`, CHI truoc begin) → goi AI qua `aiConfigFor` (doc cau hinh `lesson_ai` cua chu may hoac `LESSON_AI_*`, dynamic import fail-soft) → prompt yeu cau mang JSON theo ma tran → validate → tra ve candidates de GV duyet.
+- Duyet + luu: `ai-question-save` — GV tick chon/sua dap an tren board, server validate lai, luu vao `rooms.config` duong `$.aiBank` (json_set, guard revision).
+- Dung trong van: `queueMath` (lib/race.js) uu tien `pickAIQuestion(s.campaign.aiBank, plan, r.mathHistory)` truoc khi roi ve `contextQuestion` san co; cau AI gan serial nhu cau thuong binh thuong.
+- An toan: `campaignPublic` strip `aiBank` (dap an khong lo cho HS); `loadTeam`/`raceRoom`/board refresh `s.campaign` tu room de team vao truoc khi luu bank van nhan duoc bank; sinh/luu bi chan sau `begin` (409 ROOM_STARTED).
+- UI GV: `aiBankPanel()` tren board truoc khi begin — nut "Sinh 6 cau de xuat", the cau hoi voi checkbox duyet + sua dap an + xem loi giai, nut "Luu cac cau da duyet"; hien `aiConfigured` de huong dan khi chua co khoa AI.
+- CSS: +`.ai-bank-panel`, `.ai-candidate`.
+
+### Verify truoc deploy (28/10)
+
+- `tests/ai-question-bank.test.mjs` **8/8** (unit + route tich hop qua VM harness: HS khong thay aiBank, team nhan duoc bank sau refresh, chan sau begin); full suite **1449/1449 PASS, 0 fail**; `npm run build` pass. `lib/exam/**` va phong demo `7E42C2` khong dong den.
+- Yeu cau moi truong: AI chua cau hinh → bao loi sach `AI_PROVIDER_NOT_CONFIGURED`, khong crash.
+
+### Release record V37+V38 (deploy gop)
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **38** (deploy gop v37+v38) |
+| deployment_id | (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v38.tar.gz` (placeholder) |
+| archive size | (placeholder) |
+
 ## Latest checkpoint - V37 DANG DEPLOY: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `4430b50` (= v36 da phat hanh: version 36, deployment `appgdep_6ae12290bea08191bd18e355da0b19d7`).

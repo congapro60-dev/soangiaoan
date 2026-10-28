@@ -90,5 +90,14 @@
 - [x] Tư vấn 10 ý tưởng (kỹ thuật + UI/UX/luật chơi/học tập); user chọn "đi thẳng #1 + #5".
 - [x] #1 Progressive disclosure: shop kỹ năng + giao kèo chỉ hiện sau khi giải xong cổng xuất phát (server đã khóa sẵn, chỉ thêm lớp trình bày).
 - [x] #5 Teacher console: action `teacher-console` (freeze-all 20s qua events `ice`, broadcast qua `race.classNotice`, grant 10–200đ có event `teacher-grant`); phân quyền `game-action`; UI `classConsole()` trên board GV; banner `map-notice` trên bản đồ cả HS lẫn GV.
-- [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); full suite **1441/1441 PASS**; build pass.
-- [ ] Deploy v37 qua Codex + kiểm độc lập (console hiện trên live, marker shop-locked, banner thông báo).
+- [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); build pass.
+- [x] Gộp đợt với v38 theo quyết định user "phương án 2" — cùng archive deploy.
+
+## v38 — ngân hàng câu hỏi AI theo ma trận (28/10/2026)
+
+- [x] `lib/ai-question-bank.js`: validate candidate theo ma trận (topic/level/độ dài/đáp án số), merge + cap 60, pick theo slot (ưu tiên đúng mức, né đã dùng, bỏ slot mcq/tf).
+- [x] Route: `ai-question-generate` (gọi AI qua `aiConfigFor` fail-soft, prompt JSON theo ma trận) + `ai-question-save` (GV duyệt → json_set `$.aiBank`, guard revision); chặn sau begin (409).
+- [x] `queueMath` ưu tiên câu AI, fallback bộ câu sẵn có; `campaignPublic` strip `aiBank`; team refresh campaign từ room (3 chỗ).
+- [x] UI GV: `aiBankPanel()` trước begin — sinh, duyệt từng câu, sửa đáp án, lưu; hiển thị trạng thái kết nối AI.
+- [x] Test: `tests/ai-question-bank.test.mjs` **8/8**; full suite **1449/1449 PASS, 0 fail**; build pass.
+- [ ] Deploy gộp v37+v38 qua Codex + kiểm độc lập (aiBankPanel trên live, marker console + shop-locked).

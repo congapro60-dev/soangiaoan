@@ -2,7 +2,7 @@ import { COMMUNITY_CELL, individual, communityOf, gameNow, communityActive, crea
 import { GAME_ACTIVITY_TYPES, gameActivityOf, createGameActivity, applyGameActivity, finishGameActivity, publicGameActivity, settleGameActivities, withdrawGameActivity } from '../../../lib/game-community-activities.js';
 import { ARENA_CELL, COMBAT_ACTIONS, createArenaEvent, arenaEntries, arenaAnswer, arenaCombat, publicArena, settleArena, arenaPhase } from '../../../lib/arena-community.js';
 import { checkContext } from '../../../lib/context-questions.js';
-import { createCampaign, campaignPublic, numericAnswer, modeConfig } from '../../../lib/campaign.js';
+import { createCampaign, campaignPublic, numericAnswer, modeConfig, TOPICS } from '../../../lib/campaign.js';
 import {createGame, reduce as reduceMode, RULES as modeRules} from '../../../lib/mode-engine/index.js';
 import {projectMode} from '../../../lib/mode-runtime.js';
 import {serializePublic as modePublic} from '../../../lib/mode-engine/serialize.js';
@@ -17,6 +17,7 @@ import { stmt, db, getEnv } from '../../../lib/storage.js';
 import { resolveIdentity, fetchAuthority, authorizeAction, canCreateRoom, requiredPermission, createRoomOwnershipStatements } from '../../../lib/account-room-access.js';
 import { managementStatements } from '../../../lib/room-management.js';
 import { fingerprint } from '../../../lib/room-events.js';
+import { normalizeAICandidate, mergeAIBank, AI_BANK_LIMIT, AI_SAVE_LIMIT } from '../../../lib/ai-question-bank.js';
 import { createRecovery, setDraft, downgradeQuestion, requestTeacherHelp, reportBrokenQuestion, abandon as abandonRecovery } from '../../../lib/recovery.js';
 export const dynamic = 'force-dynamic';
 const fail = (message, status = 400, code) => Response.json({ error: message, ...(code ? { code } : {}) }, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -25,6 +26,16 @@ const hash = async (text) => Array.from(new Uint8Array(await crypto.subtle.diges
 function puzzle(s, i, l) { const seed=s.questionSeeds?.[i]??s.seed; return s.campaign ? stationLogic(i, l, seed) : challenge(i, l, seed); }
 function roomCampaign(room) { return room.config ? JSON.parse(room.config) : null; }
 function classNoticeOf(room) { try { const n = JSON.parse(room.race || 'null')?.classNotice; return n && typeof n.text === 'string' ? n : null; } catch { return null; } }
+function aiBankOf(room) { try { const b = roomCampaign(room)?.aiBank; return Array.isArray(b) ? b : []; } catch { return []; } }
+// Lesson AI config lives behind a heavy import chain (lesson catalogue JSON); load lazily so
+// lightweight harnesses and cold requests never pay for it. Fails soft: no AI configured.
+async function aiConfigFor(env) {
+    try {
+        const mod = await import('../../../lib/ai-settings.js');
+        await mod.loadStoredAI(db);
+        return mod.lessonAIConfig(env);
+    } catch { return null; }
+}
 function modeView(room,s,host=false) {
     const mode=projectMode(room,Date.now());
     return mode?{...modePublic(mode,s?.modeUnit,host),unitId:s?.modeUnit??null,revision:room.revision,round:room.round}:null;
@@ -151,7 +162,7 @@ async function loadTeam(req, id) { let row = await stmt('SELECT * FROM teams WHE
         unavailable('TEAM_REMOVED', 'Giáo viên đã xóa đội này khỏi phòng.');
     s = JSON.parse(row.data);
 } if (room.mode === 'race') {
-    s.campaign ??= roomCampaign(room);
+    s.campaign = roomCampaign(room) || s.campaign;
     initRace(s);
 } if (s.status === 'waiting' && room.started) {
     s.status = 'active';
@@ -281,7 +292,7 @@ export async function GET(req) { try {
         room = await stmt('SELECT * FROM rooms WHERE id=?', room.id).first();
         let communityInfo = await communityData(room), arenaInfo = await arenaData(room);
         let list = await Promise.all(rows.map(async (row) => { let s = JSON.parse(row.data); if (room.mode === 'race') {
-            s.campaign ??= roomCampaign(room);
+            s.campaign = roomCampaign(room) || s.campaign;
             initRace(s);
         }
         s.drafts ??= {};
@@ -300,7 +311,7 @@ export async function GET(req) { try {
             const mode=projectMode(room,Date.now());
             team.mode=mode?{...modeView(room,saved,true),objective:mode.ruleState.players[saved.modeUnit]||null,history:JSON.parse(room.race).modeRequests?.eventHistory?.filter(e=>e.unitId===saved.modeUnit)||[],answers:Object.values(mode.challenges).filter(q=>q.unitId===saved.modeUnit)}:null;
         }
-        return reply({ classActivity:publicGameActivity(gameActivityOf(room),Date.now(),null,true), community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, durationMs:roomDuration(room), mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
+        return reply({ classActivity:publicGameActivity(gameActivityOf(room),Date.now(),null,true), aiBank: aiBankOf(room), aiConfigured: !!(await aiConfigFor(getEnv())), community: await communityView(room, null, true), arena: await arenaView(room, null, true), eventQueue: eventQueueState(JSON.parse(room.race || 'null'), Date.now()).queue, room: { id: room.id, title: room.title, code: room.code, started: room.started, round: room.round, revision: room.revision, created: room.created, durationMs:roomDuration(room), mode: room.mode, campaign: campaignPublic(roomCampaign(room)) }, map: sharedMap, teams: list.sort(compareTeams), skills: roomActions.map(a => ({ ...a, actor: list.find(t => t.id === a.actor_id)?.team || 'Đội đã xóa', target: list.find(t => t.id === a.target_id)?.team || 'Đội đã xóa' })) });
     }
     return fail('Yêu cầu không hợp lệ.');
 }
@@ -455,7 +466,7 @@ export async function POST(req) {
             s.score = 0;
             s.mascot = Number.isInteger(b.mascot) && b.mascot >= 0 && b.mascot < 8 ? b.mascot : seed % 8;
             if (room.mode === 'race') {
-                s.campaign ??= roomCampaign(room);
+                s.campaign = roomCampaign(room) || s.campaign;
                 initRace(s);
             }
             s.status = room.started ? 'active' : 'waiting';
@@ -1146,7 +1157,87 @@ export async function POST(req) {
             let current = await loadTeam(req, b.id);
             return reply({ state: await publicState(current.s, current.room, current.row.revision), skill: { name: spec.name, cost } });
         }
-        if (b.action === 'teacher-console') {
+        if (b.action === 'ai-question-generate' || b.action === 'ai-question-save') {
+    const room = await adminAuth(req, b.id, 'game-action');
+    if (!room)
+        return fail('Chỉ giáo viên quản lý phòng mới được làm việc với ngân hàng câu hỏi AI.', 403);
+    const config = roomCampaign(room);
+    if (!config || (config.rule && config.rule !== 'campaign'))
+        return fail('Ngân hàng AI chỉ dùng cho phòng chế độ chiến dịch.', 400);
+    if (room.started)
+        return fail('Chỉ sinh hoặc lưu câu hỏi AI trước khi bắt đầu đồng hồ.', 409, 'ROOM_STARTED');
+    if ((b.round ?? 1) !== room.round)
+        return fail('Phòng đã reset.', 409, 'SESSION_RESET');
+    if (b.action === 'ai-question-generate') {
+        const count = b.count === undefined ? 6 : b.count;
+        if (!Number.isInteger(count) || count < 2 || count > 12)
+            return fail('Số câu sinh mỗi lần từ 2 đến 12.');
+        const configAI = await aiConfigFor(getEnv());
+        if (!configAI)
+            return fail('Chưa kết nối AI. Chủ máy cài khóa AI trong Cài đặt (lesson_ai) hoặc biến môi trường LESSON_AI_*.', 400, 'AI_PROVIDER_NOT_CONFIGURED');
+        const topicNames = (config.topics || []).map(id => TOPICS.find(t => t.id === id)?.name || id);
+        const prompt = [
+            `Sinh ${count} câu hỏi Toán lớp ${config.grade} cho trò chơi đua toán trong lớp.`,
+            `Mỗi câu là bài toán điền số (đáp án là một số, ưu tiên số nguyên), độ khó từ mức ${config.minLevel + 1} đến mức ${config.maxLevel + 1} trên thang 5.`,
+            `Chỉ dùng các chủ đề sau: ${topicNames.join('; ')}.`,
+            'Tiếng Việt, ngắn gọn; dữ kiện đủ để giải; bám sát chương trình; không đố ác; mỗi câu kèm 2-4 bước lời giải.',
+            'Trả về DUY NHẤT một mảng JSON, mỗi phần tử có dạng {"topic":"<tên chủ đề đúng như danh sách>","level":<số 0-4>,"question":"<đề>","answer":<số>,"steps":["<bước>"]}. Không viết bất kỳ chữ nào khác.'
+        ].join('\n');
+        let response;
+        try {
+            response = await fetch(configAI.endpoint, {
+                method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(60000),
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + configAI.key },
+                body: JSON.stringify({ model: configAI.model, stream: false, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+            });
+        } catch {
+            return fail('Không gọi được máy AI. Kiểm tra kết nối rồi thử lại.', 502, 'AI_GENERATION_FAILED');
+        }
+        if (!response.ok)
+            return fail(response.status === 429 ? 'AI đã hết hạn mức. Thử lại sau.' : 'Máy AI trả lỗi. Thử lại sau.', 502, response.status === 429 ? 'AI_QUOTA_EXCEEDED' : 'AI_GENERATION_FAILED');
+        let raw = await response.text();
+        let content = raw;
+        try {
+            const parsed = JSON.parse(raw);
+            content = parsed.choices?.[0]?.message?.content ?? (typeof parsed === 'string' ? parsed : raw);
+        } catch { /* SSE or plain text */ }
+        if (typeof content !== 'string')
+            return fail('Máy AI trả kết quả không đọc được. Thử lại.', 502, 'AI_GENERATION_FAILED');
+        const jsonText = content.slice(content.indexOf('['), content.lastIndexOf(']') + 1);
+        let list;
+        try {
+            list = JSON.parse(jsonText);
+        } catch {
+            return fail('Máy AI trả JSON không hợp lệ. Thử sinh lại.', 502, 'AI_PARSE_FAILED');
+        }
+        if (!Array.isArray(list))
+            return fail('Máy AI trả JSON không hợp lệ. Thử sinh lại.', 502, 'AI_PARSE_FAILED');
+        const candidates = [], errors = [];
+        for (const raw of list) {
+            if (candidates.length >= count)
+                break;
+            const res = normalizeAICandidate(raw, config);
+            if (res.error)
+                errors.push(res.error);
+            else
+                candidates.push(res.question);
+        }
+        if (!candidates.length)
+            return fail('Máy AI chưa sinh được câu hợp lệ theo ma trận. ' + errors.slice(0, 3).join(' '), 502, 'AI_PARSE_FAILED');
+        return reply({ candidates, errors: errors.slice(0, 8) });
+    }
+    const approved = b.questions;
+    if (!Array.isArray(approved) || !approved.length || approved.length > AI_SAVE_LIMIT)
+        return fail(`Mỗi lần lưu từ 1 đến ${AI_SAVE_LIMIT} câu.`);
+    const merged = mergeAIBank(aiBankOf(room), approved, config);
+    if (!merged.saved)
+        return fail('Không có câu hợp lệ nào được lưu. ' + merged.errors.slice(0, 3).join(' '), 400);
+    const saved = await stmt('UPDATE rooms SET config=json_set(config,\'$.aiBank\',json(?)),revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL', JSON.stringify(merged.bank), room.id, room.revision, room.round).run();
+    if (saved.meta.changes !== 1)
+        return fail('Phòng vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
+    return reply({ ok: true, saved: merged.saved, bank: merged.bank, errors: merged.errors.slice(0, 8) });
+}
+if (b.action === 'teacher-console') {
     const room = await adminAuth(req, b.id, 'game-action');
     if (!room)
         return fail('Chỉ giáo viên quản lý phòng mới được điều khiển lớp.', 403);
