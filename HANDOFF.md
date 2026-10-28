@@ -41,7 +41,7 @@
 - Archive sai dot dau da cach ly: `release-20261028-v38.invalid-5f76087.tar.gz` (khong deploy).
 - Kiem doc lap tren live 28/10: app.js 205085 B co du marker `data-console`, `shop-locked`, `aiBankPanel`, `ai-generate`; style.css 63761 B co `.map-notice`, `.console-panel`, `.ai-bank-panel`.
 - Commit tiep theo (ho so nay) se tao source commit moi -> Sites tang len version 38; deployment id moi se duoc Codex dien vao dong duoi.
-| version 38 | deployment_id: (cho Codex dien) |
+| version 38 | deployment_id: `appgdep_6ae1c4a8d9088191b0b5cfabc215cd77`; commit_sha: `bae0ced309217b73245c15bbe5cda8a6dfb712b7` |
 
 ## Latest checkpoint - V37 DANG DEPLOY: mo luat theo lop + dieu khien lop thoi gian thuc (28/10/2026)
 
