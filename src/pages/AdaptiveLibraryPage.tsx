@@ -79,7 +79,7 @@ export const AdaptiveLibraryPage = () => {
                     </p>
                   </div>
                   <Link
-                    to={`/adaptive-portal/library/${encodeURIComponent(item.id)}`}
+                    to={`/adaptive-library/${encodeURIComponent(item.id)}`}
                     className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-black text-blue-800 transition hover:bg-blue-100"
                   >
                     Học lại bài này
