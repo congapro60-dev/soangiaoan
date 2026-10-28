@@ -16,6 +16,7 @@ import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import discoverManifest from '../src/data/discoverNewKnowledgeLessons.js';
 import type { DiscoverNewKnowledgeSeed, StudentDiscoverCatalogItem } from '../src/lib/discover/types.js';
 import { stripAnswers } from '../src/lib/adaptive/stripAnswers.js';
+import { gradeLibraryAssessment } from './_adaptive-submit.js';
 import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
 import { submitAdaptiveAssessment } from './_adaptive-submit.js';
 import { resolveHomework, type CloseArtifacts } from '../src/lib/adaptive/closeAssignment.js';
@@ -192,7 +193,7 @@ const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
     }));
 
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit', 'studentAdaptiveClosed'].includes(body.action)) return false;
+  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit', 'studentAdaptiveClosed', 'studentAdaptiveLibraryOpen', 'studentAdaptiveLibrarySubmit'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
     if (body.action === 'studentDiscoverCatalog') {
@@ -235,6 +236,46 @@ export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: Verc
       res.status(200).json({ assignments });
       return true;
     }
+
+    // Thư viện học lại — list công khai bài TỰ HỌC đã xuất bản (mọi HS, không lọc lớp; thầy 28/10).
+    if (body.action === 'studentAdaptiveLibrary') {
+      const snapshot = await db.collection('adaptiveLessons').where('lessonKind', '==', 'self_study').where('status', '==', 'published').get();
+      const lessons = snapshot.docs
+        .filter(doc => doc.data().portalEnabled === true)
+        .map(doc => ({
+          lessonId: doc.id, title: text(doc.data().title),
+          grade: text((doc.data().lesson as Data)?.grade) || text(doc.data().grade),
+          week: text((doc.data().lesson as Data)?.curriculumRef?.week) || text((doc.data().curriculumRef as Data)?.week),
+          period: typeof (doc.data().lesson as Data)?.curriculumRef?.period === 'number' ? (doc.data().lesson as Data).curriculumRef.period : (typeof (doc.data().curriculumRef as Data)?.period === 'number' ? (doc.data().curriculumRef as Data).period : null),
+          updatedAt: text(doc.data().updatedAt),
+        }))
+        .sort((a, b) => a.grade.localeCompare(b.grade, 'vi') || String(a.period).localeCompare(String(b.period), 'vi', { numeric: true }) || a.title.localeCompare(b.title, 'vi'));
+      res.status(200).json({ lessons });
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveLibraryOpen') {
+      if (!isSafeDocId(body.lessonId)) throw new WorkspaceError(400, 'Invalid lesson code.');
+      const lessonSnap = await db.collection('adaptiveLessons').doc(body.lessonId).get();
+      const data = lessonSnap.data() || {};
+      const lesson = normalizeAdaptiveLesson(data, body.lessonId);
+      // Chỉ bài TỰ HỌC đã xuất bản + mở cổng công khai mới học lại được.
+      if (!lesson || lesson.lessonKind !== 'self_study' || lesson.status !== 'published' || data.portalEnabled !== true) throw new WorkspaceError(404, 'Bài học không có trong thư viện.');
+      res.status(200).json({ lesson: stripAnswers(lesson) });
+      return true;
+    }
+
+    if (body.action === 'studentAdaptiveLibrarySubmit') {
+      if (!isSafeDocId(body.lessonId)) throw new WorkspaceError(400, 'Invalid lesson code.');
+      const lessonSnap = await db.collection('adaptiveLessons').doc(body.lessonId).get();
+      const data = lessonSnap.data() || {};
+      const lesson = normalizeAdaptiveLesson(data, body.lessonId);
+      if (!lesson || lesson.lessonKind !== 'self_study' || lesson.status !== 'published' || data.portalEnabled !== true) throw new WorkspaceError(404, 'Bài học không có trong thư viện.');
+      // Chấm thuần — không ghi tiến độ/điểm/hồ sơ (mô hình học lại không tính điểm).
+      res.status(200).json(gradeLibraryAssessment(lesson, body));
+      return true;
+    }
+
 
     if (body.action === 'studentAdaptiveOpen') {
       if (!isSafeDocId(body.assignmentId)) throw new WorkspaceError(400, 'Invalid lesson code.');

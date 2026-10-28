@@ -202,6 +202,26 @@ export const openStudentAdaptiveAssignment = async (assignmentId: string): Promi
   return call<{ assignmentId: string; lesson: AdaptiveLesson }>({ action: 'studentAdaptiveOpen', idToken, assignmentId });
 };
 
+/**
+ * Thư viện học lại — mở bài TỰ HỌC công khai (không cần GV giao). Máy chủ trả bản
+ * ĐÃ BỎ ĐÁP ÁN; chế độ "học lại không tính điểm" — máy chấm qua server nhưng không
+ * ghi tiến độ/điểm/bảng lớp.
+ */
+export const openStudentAdaptiveLibraryLesson = async (lessonId: string): Promise<{ lesson: AdaptiveLesson }> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call<{ lesson: AdaptiveLesson }>({ action: 'studentAdaptiveLibraryOpen', idToken, lessonId });
+};
+
+/** Nộp bài học lại qua máy chủ chấm — KHÔNG ghi điểm/tiến độ (thầy 28/10, phương án B). */
+export const submitStudentAdaptiveLibraryAssessment = async (lessonId: string, payload: { kind: string; answers: Record<string, string>; unitId?: string; durationSeconds: number }): Promise<{ kind: string; unitId?: string; scored: boolean; attempt: AssessmentAttempt; nextRoute?: string }> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call({ action: 'studentAdaptiveLibrarySubmit', idToken, lessonId, ...payload });
+};
+
 export interface StudentAdaptiveClosedResult {
   assignmentId: string;
   feedback: string[];

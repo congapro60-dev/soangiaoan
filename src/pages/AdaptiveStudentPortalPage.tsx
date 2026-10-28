@@ -40,6 +40,8 @@ import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import {
   openStudentAdaptiveAssignment,
+  openStudentAdaptiveLibraryLesson,
+  submitStudentAdaptiveLibraryAssessment,
   submitStudentAdaptiveAssessment,
 } from '../services/studentPortalApi';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
@@ -297,7 +299,9 @@ const buildProfile = ({
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || 'unknown');
 
 export const AdaptiveStudentPortalPage = () => {
-  const { id, teacherId, assignmentId } = useParams<{ id?: string; teacherId?: string; assignmentId?: string }>();
+  const { id, teacherId, assignmentId, libraryLessonId } = useParams<{ id?: string; teacherId?: string; assignmentId?: string; libraryLessonId?: string }>();
+  // Chế độ học lại từ Thư viện: máy chấm qua server (bản đã bỏ đáp án) nhưng KHÔNG ghi điểm.
+  const libraryMode = Boolean(libraryLessonId);
   const [stage, setStage] = useState<PortalStage>('loading');
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
   const [portalError, setPortalError] = useState<string | null>(null);
@@ -335,6 +339,15 @@ export const AdaptiveStudentPortalPage = () => {
       setLesson(null);
 
       try {
+        // Thư viện học lại: mở bài TỰ HỌC công khai qua máy chủ (bản đã bỏ đáp án, không ghi điểm).
+        if (libraryLessonId) {
+          const opened = await openStudentAdaptiveLibraryLesson(libraryLessonId);
+          setLesson(opened.lesson);
+          setStage('identify');
+          setNotice({ tone: 'info', message: 'Chế độ học lại — máy vẫn chấm giúp em nhưng không ghi điểm hay lên bảng lớp.' });
+          return;
+        }
+
         // Bài THẦY CÔ GIAO cho lớp: mở qua máy chủ để em không đọc được đáp án trong mạng.
         if (assignmentId) {
           const opened = await openStudentAdaptiveAssignment(assignmentId);
@@ -379,7 +392,7 @@ export const AdaptiveStudentPortalPage = () => {
     };
 
     void loadLesson();
-  }, [id, teacherId, assignmentId]);
+  }, [id, teacherId, assignmentId, libraryLessonId]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 1000);
@@ -601,6 +614,12 @@ export const AdaptiveStudentPortalPage = () => {
         answers: diagnosticAnswers,
         durationSeconds: measuredDurationFor('diagnostic', plannedSeconds),
       })).attempt
+      : libraryMode
+      ? (await submitStudentAdaptiveLibraryAssessment(libraryLessonId!, {
+        kind: 'diagnostic',
+        answers: diagnosticAnswers,
+        durationSeconds: measuredDurationFor('diagnostic', plannedSeconds),
+      })).attempt
       : gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
     setDiagnosticAttempt(attempt);
     setQuickCheckAttempts([]);
@@ -662,6 +681,12 @@ export const AdaptiveStudentPortalPage = () => {
     const plannedSeconds = lesson.exitTicket.durationMinutes * 60;
     const finalExitTicketAttempt = assignmentId
       ? (await submitStudentAdaptiveAssessment(assignmentId, {
+        kind: 'exitTicket',
+        answers: exitTicketAnswers,
+        durationSeconds: measuredDurationFor('exit-ticket', plannedSeconds),
+      })).attempt
+      : libraryMode
+      ? (await submitStudentAdaptiveLibraryAssessment(libraryLessonId!, {
         kind: 'exitTicket',
         answers: exitTicketAnswers,
         durationSeconds: measuredDurationFor('exit-ticket', plannedSeconds),

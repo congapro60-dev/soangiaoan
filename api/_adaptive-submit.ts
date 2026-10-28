@@ -18,6 +18,29 @@ const assessmentFor = (lesson: AdaptiveLesson, kind: string, unitId: unknown): {
   }
   throw new Error('INVALID_ASSESSMENT');
 };
+/**
+ * Chấm THUẦN cho "Thư viện học lại" — trả attempt kèm feedback nhưng KHÔNG ghi
+ * tiến độ/điểm/hồ sơ vào Firestore (mô hình "học lại không tính điểm", thầy 28/10).
+ * Điều kiện vào: bài TỰ HỌC đã xuất bản + mở cổng công khai (portalEnabled).
+ */
+export const gradeLibraryAssessment = (lesson: AdaptiveLesson, body: Data) => {
+  const kind = text(body.kind);
+  if (!['diagnostic', 'quickCheck', 'exitTicket'].includes(kind)) throw new Error('INVALID_KIND');
+  if (!isRecord(body.answers)) throw new Error('INVALID_ANSWERS');
+  const entries = Object.entries(body.answers);
+  if (entries.length > 100) throw new Error('TOO_MANY_ANSWERS');
+  if (entries.some(([, answer]) => typeof answer !== 'string')) throw new Error('INVALID_ANSWERS');
+  if (entries.some(([, answer]) => (answer as string).length > 2000)) throw new Error('ANSWER_TOO_LONG');
+  let selected: ReturnType<typeof assessmentFor>;
+  try { selected = assessmentFor(lesson, kind, body.unitId); } catch { throw new Error(kind === 'quickCheck' ? 'INVALID_UNIT' : 'INVALID_ASSESSMENT'); }
+  const answers: Record<string, string> = Object.assign(Object.create(null), Object.fromEntries(entries.filter(([id]) => selected.assessment.questions.some(question => question.id === id)).map(([id, answer]) => [id, answer as string])));
+  if (!Object.values(answers).some(answer => answer.trim())) throw new Error('NO_ANSWERS');
+  const durationSeconds = Math.max(0, Math.min(86400, Number.isFinite(Number(body.durationSeconds)) ? Number(body.durationSeconds) : 0));
+  const graded = gradeAssessment(selected.assessment, answers, durationSeconds);
+  const attempt: AssessmentAttempt = { ...graded, answers: graded.answers.map(({ feedback, ...answer }) => answers[answer.questionId]?.trim() ? { ...answer, feedback } : answer) };
+  return { kind, ...(selected.unitId ? { unitId: selected.unitId } : {}), scored: false, attempt, ...(kind === 'diagnostic' && attempt.recommendedRoute ? { nextRoute: attempt.recommendedRoute } : {}) };
+};
+
 export const submitAdaptiveAssessment = async (db: Db, context: Context, assignmentId: string, assignment: Data, lesson: AdaptiveLesson, body: Data) => {
   const kind = text(body.kind);
   if (!['diagnostic', 'quickCheck', 'exitTicket'].includes(kind)) throw new Error('INVALID_KIND');
