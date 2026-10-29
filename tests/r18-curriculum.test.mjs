@@ -8,8 +8,8 @@ import {curriculumPlan,issueChallenge,verifyChallenge,publicChallenge} from '../
 const close=(actual,expected,tolerance=1e-7)=>assert(Math.abs(actual-expected)<tolerance*Math.max(1,Math.abs(expected)),`${actual} != ${expected}`);
 const render=text=>{assert(!text.includes('undefined'));for(const match of text.matchAll(/\\\(([\s\S]*?)\\\)/g))katex.renderToString(match[1],{throwOnError:true,strict:'ignore'});};
 test('R18 curriculum exposes actual supported forms and provenance, separate from game rewards',()=>{
- assert.equal(TOPICS.length,44);assert.equal(EXTRA_TOPICS.length,23);assert.equal(new Set(TOPICS.map(t=>t.id)).size,44);
- assert.deepEqual([10,11,12].map(grade=>TOPICS.filter(t=>t.grade===grade).length),[15,15,14]);
+ assert.equal(TOPICS.length,88);assert.equal(EXTRA_TOPICS.length,23);assert.equal(new Set(TOPICS.map(t=>t.id)).size,88);
+ assert.deepEqual([10,11,12].map(grade=>TOPICS.filter(t=>t.grade===grade).length),[32,29,27]);
  for(const topic of TOPICS){assert(topic.chapter&&topic.lesson&&topic.objective&&topic.scope);assert(topic.forms.length);assert.deepEqual(topic.formats,['short','mcq','tf']);assert.equal(topic.source.sheet,`G${topic.grade}`);assert.equal(topic.source.kind,'adapted');assert(topic.source.note.includes('chưa phủ toàn bộ'));assert.equal('loId' in topic,false);}
  for(const topic of TOPICS)for(let level=0;level<5;level++)for(let seed=0;seed<20;seed++){
   const q=mathQuestion(topic.id,level,seed*997);assert(Number.isFinite(q.answer),topic.id);assert(numericAnswer(String(q.answer),q.answer));assert(!numericAnswer(String(q.answer+1),q.answer));

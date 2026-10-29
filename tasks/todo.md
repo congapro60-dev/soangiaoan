@@ -93,6 +93,14 @@
 - [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); build pass.
 - [x] Gộp đợt với v38 theo quyết định user "phương án 2" — cùng archive deploy.
 
+## v41 — ma trận SGK đầy đủ + thời lượng tùy chọn + AI focus (29/10/2026)
+
+- [x] +44 bài mới theo SGK KNTT (10: 17, 11: 14, 12: 13) — tổng 88 topics; fallback generator cho bài mới; sửa lỗi undefined prose ở mọi context.
+- [x] durationMinutes (10–60 phút) trong campaign config; roomDuration + G.expire theo phòng; UI select; 13 chỗ 30 phút động.
+- [x] AI focus: ô Trọng tâm bài học → prompt AI chỉ sinh đúng bài.
+- [x] Test: v41 7/7; full suite 1461/1461 PASS, 0 fail; build pass; QA scripts (check-matrix-coverage, find-undefined).
+- [ ] Deploy v41 qua Codex + kiểm độc lập.
+
 ## v40 — nén ảnh + tổng kết tiết (29/10/2026)
 
 - [x] Nén 3 PNG nặng → WebP bằng ffmpeg (giảm 78–92%, giữ nguyên pixel); cập nhật style.css/campaign-data/product-content/campaign THEMES/LessonThemedRoute; xóa PNG cũ.

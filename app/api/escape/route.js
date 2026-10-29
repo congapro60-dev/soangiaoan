@@ -129,7 +129,7 @@ async function eventRoster(room, now) {
     return (await stmt('SELECT data FROM teams WHERE room_id=? AND removed_at IS NULL ORDER BY rowid', room.id).all()).results.map(r => { let x = JSON.parse(r.data); if (x.status === 'waiting') {
         x.status = 'active';
         x.start = room.started;
-    } G.expire(x, now); initRace(x); return x; });
+    } G.expire(x, now, roomDuration(room)); initRace(x); return x; });
 }
 // Each player returns to the exact stage/revision/round they paused on.
 function returnMarkers(roster) {
@@ -138,7 +138,7 @@ function returnMarkers(roster) {
 async function settle(s, room, data, arena) { let { c, entries } = data || await communityData(room); if (c)
     settleCommunity(s, room, entries); let { a, entries: arenaRows } = arena || await arenaData(room); if (a)
     settleArena(s, room, a, arenaRows); settleGameActivities(s, room, Date.now(), gameNow(room)); }
-function roomDuration(room){const rule=roomCampaign(room)?.rule,limits=Object.hasOwn(modeRules,rule)?modeRules[rule].constants:null;if(limits?.duration)return limits.duration;return limits?.rounds&&limits?.roundMs?limits.rounds*limits.roundMs:G.DURATION;}
+function roomDuration(room){const rule=roomCampaign(room)?.rule,limits=Object.hasOwn(modeRules,rule)?modeRules[rule].constants:null;if(limits?.duration)return limits.duration;const cd=roomCampaign(room)?.durationMinutes;if(!limits&&Number.isInteger(cd)&&cd>=10&&cd<=60)return cd*60000;return limits?.rounds&&limits?.roundMs?limits.rounds*limits.roundMs:G.DURATION;}
 async function publicState(s, room, revision = 0) {
     const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room),classActivity:publicGameActivity(gameActivityOf(room),Date.now(),s.id)};
     if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {...roomInfo,id:s.id,name:s.name,status:room.started?'active':'waiting',round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
@@ -169,7 +169,7 @@ async function loadTeam(req, id) { let row = await stmt('SELECT * FROM teams WHE
     s.start = room.started;
 } if (s.recovery && (s.recovery.round!==(s.round||1) || s.recovery.participant!==`${s.id}:${s.recovery.stage}`)) {s.recovery=null;s.recoveryHistory=[];s.eventHistory=[];s.drafts={};}
 if (s.race && s.race.phase === 'challenge' && !s.race.entered && room.started)
-    s.race.entered = room.started; await settle(s, room); G.expire(s, gameNow(room)); let actions = (await stmt('SELECT * FROM skill_actions WHERE room_id = ? AND (actor_id = ? OR target_id = ?)', room.id, s.id, s.id).all()).results; s.effects = effects(s, actions, gameNow(room)); if(s.recovery?.supportUntil&&s.recovery.state!=='complete')s.effects.freezeUntil=Math.max(s.recovery.supportUntil,Math.min(s.effects.freezeUntil,s.recovery.supportUntil)); return { row, room, s }; }
+    s.race.entered = room.started; await settle(s, room); G.expire(s, gameNow(room), roomDuration(room)); let actions = (await stmt('SELECT * FROM skill_actions WHERE room_id = ? AND (actor_id = ? OR target_id = ?)', room.id, s.id, s.id).all()).results; s.effects = effects(s, actions, gameNow(room)); if(s.recovery?.supportUntil&&s.recovery.state!=='complete')s.effects.freezeUntil=Math.max(s.recovery.supportUntil,Math.min(s.effects.freezeUntil,s.recovery.supportUntil)); return { row, room, s }; }
 async function admin(req, id) { let room = await stmt('SELECT * FROM rooms WHERE id = ?', id).first(); if (!room || await hash(bearer(req)) !== room.admin_hash)
     return null; assertRoom(room); return room; }
 /**
@@ -229,7 +229,7 @@ async function raceRoom(room) {
                 s.start = current.started;
             }
             await settle(s, current, data, arena);
-            G.expire(s, now);
+            G.expire(s, now, roomDuration(current));
             s.effects = effects(s, actions, now);
             teams.push(s);
         }
@@ -267,7 +267,7 @@ export async function GET(req) { try {
             return fail('Không có quyền truy cập.', 403);
         let rows = (await stmt('SELECT id,data FROM teams WHERE room_id = ? AND removed_at IS NULL', t.room.id).all()).results;
         return reply({ map: await raceRoom(t.room), peers: rows.map(row => { let x = JSON.parse(row.data); if (x.status === 'waiting' && t.room.started)
-                x.status = 'active'; G.expire(x, gameNow(t.room)); return { id: x.id, name: x.name, status: x.status, completed: x.race ? x.race.outcomes.filter(o => !o.skipped).length : x.solved.length }; }) });
+                x.status = 'active'; G.expire(x, gameNow(t.room), roomDuration(t.room)); return { id: x.id, name: x.name, status: x.status, completed: x.race ? x.race.outcomes.filter(o => !o.skipped).length : x.solved.length }; }) });
     }
     if (kind === 'state') {
         let t = await loadTeam(req, id);
@@ -300,7 +300,7 @@ export async function GET(req) { try {
             s.status = 'active';
             s.start = room.started;
         } if (s.race && s.race.phase === 'challenge' && !s.race.entered && room.started)
-            s.race.entered = room.started; await settle(s, room, communityInfo, arenaInfo); G.expire(s, gameNow(room)); s.effects = effects(s, roomActions, gameNow(room)); let extra = { mathHistory: s.race?.mathHistory || [], bonusGuide: s.race?.bonus ? { question: s.race.bonus.question, answer: s.race.bonus.answer, steps: s.race.bonus.steps || [], points: s.race.bonus.points || 40, done: s.race.bonus.done } : null, race: racePublic(s), effects: s.effects, variant: G.variant(s.seed), guide: s.levels ? s.levels.map((l, i) => l === null ? { title: 'Chưa chọn mức độ', question: ['Nhóm chưa chọn mức độ cho khóa này.'], steps: [], answer: 'Chưa có đề.', digit: '·' } : puzzle(s, i, l)) : guide(G.variant(s.seed)), drafts: s.drafts || {}, submissions: s.submissions || [], events: s.events, solved: s.solved, levels: s.levels || null, score: s.effects.wallet }; return s.status === 'waiting' ? { id: s.id, team: s.name, status: 'waiting', completed: 0, elapsedMs: 0, penaltyMs: 0, adjustedMs: 0, hints: [0, 0, 0, 0, 0], wrong: 0, ...extra } : { ...raceReport(s, gameNow(room)), ...extra }; }));
+            s.race.entered = room.started; await settle(s, room, communityInfo, arenaInfo); G.expire(s, gameNow(room), roomDuration(room)); s.effects = effects(s, roomActions, gameNow(room)); let extra = { mathHistory: s.race?.mathHistory || [], bonusGuide: s.race?.bonus ? { question: s.race.bonus.question, answer: s.race.bonus.answer, steps: s.race.bonus.steps || [], points: s.race.bonus.points || 40, done: s.race.bonus.done } : null, race: racePublic(s), effects: s.effects, variant: G.variant(s.seed), guide: s.levels ? s.levels.map((l, i) => l === null ? { title: 'Chưa chọn mức độ', question: ['Nhóm chưa chọn mức độ cho khóa này.'], steps: [], answer: 'Chưa có đề.', digit: '·' } : puzzle(s, i, l)) : guide(G.variant(s.seed)), drafts: s.drafts || {}, submissions: s.submissions || [], events: s.events, solved: s.solved, levels: s.levels || null, score: s.effects.wallet }; return s.status === 'waiting' ? { id: s.id, team: s.name, status: 'waiting', completed: 0, elapsedMs: 0, penaltyMs: 0, adjustedMs: 0, hints: [0, 0, 0, 0, 0], wrong: 0, ...extra } : { ...raceReport(s, gameNow(room)), ...extra }; }));
         for (const team of list) {
             const saved = JSON.parse(rows.find(row => row.id === team.id).data);
             team.recovery = saved.recovery || null;
@@ -321,10 +321,10 @@ catch (e) {
     console.error('escape GET', e.message);
     return fail('Chưa kết nối được máy chủ. Giữ trang mở và thử lại.', 503);
 } }
-function submitLevel(s, input, now) { if (now < (s.effects?.freezeUntil || 0))
+function submitLevel(s, input, now, ms) { if (now < (s.effects?.freezeUntil || 0))
     return { ok: false, reason: 'frozen' }; if (!s.levels)
     return G.submit(s, s.solved.length, input, now); let i = taskIndex(s); if (now < (s.effects?.freezeUntil || 0))
-    return { ok: false, reason: 'frozen' }; if (G.expire(s, now) || s.status !== 'active' || (s.race && s.race.phase !== 'challenge') || i >= 5 || s.levels[i] === null)
+    return { ok: false, reason: 'frozen' }; if (G.expire(s, now, ms) || s.status !== 'active' || (s.race && s.race.phase !== 'challenge') || i >= 5 || s.levels[i] === null)
     return { ok: false, reason: 'inactive' }; if (now < s.cooldown)
     return { ok: false, reason: 'cooldown' }; if (s.race?.bonus && !s.race.bonus.done)
     return { ok: false, reason: 'bonus' }; let p = puzzle(s, i, s.levels[i]); if (!checkPuzzle(p, input)) {
@@ -346,7 +346,7 @@ if (s.race) {
 }
 else
     s.solved.push(p.digit); s.score = (s.score || 0) + points; s.events.push({ type: 'solved', lock: i + 1, points, assisted:!!recovery.assisted, at: now }); return { ok: true, digit: p.digit, points }; }
-function unlockRace(s, code, now) { if (G.expire(s, now) || s.status !== 'active' || s.race.phase !== 'gate' || s.race.bonus && !s.race.bonus.done)
+function unlockRace(s, code, now, ms) { if (G.expire(s, now, ms) || s.status !== 'active' || s.race.phase !== 'gate' || s.race.bonus && !s.race.bonus.done)
     return { ok: false, reason: 'inactive' }; if (now < s.cooldown)
     return { ok: false, reason: 'cooldown' }; if (String(code).trim() !== doorCode(s)) {
     s.wrong++;
@@ -492,7 +492,7 @@ if (b.action === 'create-room') {
             s.status = room.started ? 'active' : 'waiting';
             s.start = room.started;
             s.requestCache = {};
-            G.expire(s, gameNow(room));
+            G.expire(s, gameNow(room), roomDuration(room));
             let token = crypto.randomUUID() + crypto.randomUUID();
             let nextRace = null;
             const parsedRace = JSON.parse(room.race || 'null');
@@ -1155,7 +1155,7 @@ if (b.action === 'create-room') {
                 other.status = 'active';
                 other.start = t.room.started;
             }
-            G.expire(other, gameNow(t.room));
+            G.expire(other, gameNow(t.room), roomDuration(t.room));
             if (other.status !== 'active' || (['help', 'freeze'].includes(b.skill) && target === t.s.id))
                 return fail('Chọn một nhóm khác đang chơi.');
             let now = gameNow(t.room), all = (await stmt('SELECT * FROM skill_actions WHERE room_id = ?', t.room.id).all()).results, fx = effects(other, all, now);
@@ -1196,10 +1196,12 @@ if (b.action === 'create-room') {
         if (!configAI)
             return fail('Chưa kết nối AI. Chủ máy cài khóa AI trong Cài đặt (lesson_ai) hoặc biến môi trường LESSON_AI_*.', 400, 'AI_PROVIDER_NOT_CONFIGURED');
         const topicNames = (config.topics || []).map(id => TOPICS.find(t => t.id === id)?.name || id);
+        const focus = typeof b.focus === 'string' && b.focus.trim() ? b.focus.trim().slice(0, 200) : '';
         const prompt = [
             `Sinh ${count} câu hỏi Toán lớp ${config.grade} cho trò chơi đua toán trong lớp.`,
             `Mỗi câu là bài toán điền số (đáp án là một số, ưu tiên số nguyên), độ khó từ mức ${config.minLevel + 1} đến mức ${config.maxLevel + 1} trên thang 5.`,
             `Chỉ dùng các chủ đề sau: ${topicNames.join('; ')}.`,
+            ...(focus ? ['Trọng tâm kiến thức BẮT BUỘC: ' + focus + '. Chỉ sinh câu hỏi thuộc trọng tâm này, bám sát SGK, không sinh câu ngoài trọng tâm.'] : []),
             'Tiếng Việt, ngắn gọn; dữ kiện đủ để giải; bám sát chương trình; không đố ác; mỗi câu kèm 2-4 bước lời giải.',
             'Trả về DUY NHẤT một mảng JSON, mỗi phần tử có dạng {"topic":"<tên chủ đề đúng như danh sách>","level":<số 0-4>,"question":"<đề>","answer":<số>,"steps":["<bước>"]}. Không viết bất kỳ chữ nào khác.'
         ].join('\n');
@@ -1456,7 +1458,7 @@ if(['acknowledge-help','resolve-question'].includes(b.action)) {
                     s.drafts[taskIndex(s)] = clean;
                     s.recovery = setDraft(recovery, clean);
                 }
-                let result = ['draft', 'choose-level'].includes(b.action) ? { ok: true } : b.action === 'hint' ? (b.level <= s.hints[taskIndex(s)]?.length ? { ok: true, level: b.level, cost: 0 } : b.level === s.hints[taskIndex(s)]?.length + 1 ? (s.levels && s.levels[taskIndex(s)] === null ? { ok: false, reason: 'inactive' } : G.hint(s, taskIndex(s), now)) : { ok: false, reason: 'stale' }) : b.action === 'unlock' ? (now < (s.effects?.freezeUntil || 0) ? { ok: false, reason: 'frozen' } : (s.race ? unlockRace(s, b.code, now) : G.unlock(s, b.code, now))) : submitLevel(s, b.input || {}, now);
+                let result = ['draft', 'choose-level'].includes(b.action) ? { ok: true } : b.action === 'hint' ? (b.level <= s.hints[taskIndex(s)]?.length ? { ok: true, level: b.level, cost: 0 } : b.level === s.hints[taskIndex(s)]?.length + 1 ? (s.levels && s.levels[taskIndex(s)] === null ? { ok: false, reason: 'inactive' } : G.hint(s, taskIndex(s), now)) : { ok: false, reason: 'stale' }) : b.action === 'unlock' ? (now < (s.effects?.freezeUntil || 0) ? { ok: false, reason: 'frozen' } : (s.race ? unlockRace(s, b.code, now, roomDuration(room)) : G.unlock(s, b.code, now))) : submitLevel(s, b.input || {}, now, roomDuration(room));
                 if (['submit', 'unlock'].includes(b.action) && ['wrong', undefined].includes(result.reason) && s.status !== 'waiting') {
                     s.submissions ??= [];
                     s.submissions.push({ lock: b.action === 'unlock' ? 6 : (result.ok ? s.solved.length : s.solved.length + 1), at: now, ok: result.ok, input: b.action === 'unlock' ? { code: String(b.code || '').slice(0, 5) } : Object.fromEntries(Object.entries(b.input || {}).slice(0, 8).map(([k, v]) => [String(k).slice(0, 30), String(v).slice(0, 40)])) });

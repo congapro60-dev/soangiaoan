@@ -4,11 +4,11 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V40 DANG DEPLOY: nen anh + tong ket tiet (29/10/2026)
+## Latest checkpoint - V40 DA PHAT HANH: nen anh + tong ket tiet (29/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `f38b691` (= version 39 da phat hanh, deployment `appgdep_6ae29a706fa08191b9adc4b0948c7037`).
 
-### Trang thai: DANG DEPLOY — code + test + smoke local xong, cho deploy.
+### Trang thai: DA PHAT HANH — deployment `appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de`, Site version 40.
 
 ### Noi dung thay doi v40 (2 y tuong con lai: #3 nén anh + #9 tong ket tiet)
 
@@ -24,9 +24,37 @@
 | Truong | Gia tri |
 |---|---|
 | version_number | **40** |
+| deployment_id | `appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de` |
+| commit_sha | `d054b49f930ca2593df796ebe1f2eb71a2cd462d` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` |
+| archive size | 44143412 bytes |
+
+## Latest checkpoint - V41 DANG DEPLOY: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
+
+**Branch**: 'codex/universal-content-release' · Worktree: 'C:\Users\ADMIN\.codex\worktrees\universal-content-release' · Base: 'f38b691' (+ v40 da live truoc do: deployment 'appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de', version 40).
+
+### Trang thai: DANG DEPLOY — code + test + build xong, cho deploy.
+
+### Noi dung thay doi v41
+
+- **Ma tran SGK Toan THPT day du**: +44 bai moi theo SGK KNTT (lop 10: 17, lop 11: 14, lop 12: 13) — tong 88 topics (32/29/27). Moi bai co scope kien thuc ky nang. Bai moi khong co generator rieng deu co fallback generator lien quan (GENERATOR_FALLBACK chuyen vao lib/context-questions.js, dung chung cho mathQuestion + application overlay — sua loi undefined prose cho moi context/category/format).
+- **Thoi luong phong tuy chon**: durationMinutes (10-60 phut) trong campaign config; roomDuration uu tien cho campaign; G.expire nhan ms theo phong (het gio dung 20/60 phut); UI select tren form tao phong; 13 cho text "30 phut" -> dong roomMinutes().
+- **AI focus**: o "Trong tam bai hoc" tren ngan hang AI — prompt AI chi sinh cau dung bai (vi du: Tich cua mot vecto voi mot so).
+- **Regen campaign-data.js + feedback.js** tu lib (scripts/generate-world-assets.mjs).
+- scripts/qa/check-matrix-coverage.mjs + find-undefined.mjs: cong cu QA ma tran (88/88 co generator hoac fallback; sinh cau OK; 0 "undefined" prose).
+
+### Verify truoc deploy (29/10)
+
+- tests/v41-matrix-duration.test.mjs **7/7** (ma tran 88, fallback sinh cau, durationMinutes 20 phut timeout that, Loi Dai trong phong boat, needles); full suite **1461/1461 PASS, 0 fail**; build pass. lib/exam/** va phong demo 7E42C2 khong dong den.
+
+### Release record V41
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **41** |
 | deployment_id | (placeholder — Codex dien sau deploy) |
 | commit_sha | (placeholder — Codex dien sau commit) |
-| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` (placeholder) |
+| archive | C:\Users\ADMIN\.codex\sites-release\release-20261029-v41.tar.gz (placeholder) |
 | archive size | (placeholder) |
 
 ## Latest checkpoint - V39 DA PHAT HANH: telemetry loi + dong ho tiet + che do TV (28/10/2026)
