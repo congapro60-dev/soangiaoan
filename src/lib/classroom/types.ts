@@ -368,6 +368,17 @@ export interface PhotoStep {
 }
 
 /** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
+/** Phiếu tô mẫu Bộ 2025 đã dò: Phần I (A–D), II (Đúng/Sai 4 ý), III (tô số). confidence ≥ 0,9 = chắc. */
+export interface OmrSheetResult {
+  form: 'k1011' | 'k12';
+  alignment: number;
+  examCode: string | null;
+  studentCode: string | null;
+  mcq: { q: number; answer: string | null; confidence: number }[];
+  trueFalse: { q: number; items: Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S' | null>; confidence: number }[];
+  shortAnswer: { q: number; answer: string | null; confidence: number }[];
+}
+
 export interface QuestionResult {
   /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
   questionNumber: string;
@@ -568,7 +579,9 @@ export interface SubmissionDoc {
   evidenceSyncError?: string;
   /** Bài nhiều mã đề: mã của bài này — AI đọc trên ảnh, hoặc giáo viên chọn khi AI không đọc được. Chỉ máy chủ ghi. */
   examCode?: string;
-  examCodeSource?: 'ai' | 'teacher' | 'student' | 'parent';
+  examCodeSource?: 'ai' | 'omr' | 'teacher' | 'student' | 'parent';
+  /** Kết quả máy dò phiếu tô mẫu Bộ 2025 trên máy em lúc nộp (không qua AI). Chỉ máy chủ ghi, sau khi kiểm khuôn. */
+  omrSheet?: OmrSheetResult;
   /** Máy chưa đọc được mã đề ở lượt đọc đầu: các mã của bài để em chọn mã ghi trên tờ đề. Rỗng = không hỏi. */
   examCodeAsk?: string[];
   /**

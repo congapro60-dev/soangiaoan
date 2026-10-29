@@ -10,7 +10,7 @@ import { verifyPin } from './_classroom-core.js';
 import { isSafeDocId, isValidParentPin, normalizeParentPin } from '../src/lib/classroom/parentAccess.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
-import type { SubmissionActor, SubmissionDoc, StudentAssignmentView } from '../src/lib/classroom/types.js';
+import type { OmrSheetResult, SubmissionActor, SubmissionDoc, StudentAssignmentView } from '../src/lib/classroom/types.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Data = FirebaseFirestore.DocumentData;
@@ -45,6 +45,31 @@ const validateDetectedAnswers = (input: unknown): DetectedAnswer[] | undefined =
     if (typeof conf !== 'number' || !Number.isFinite(conf) || conf < 0 || conf > 1) error(400, 'confidence phải là số từ 0 đến 1.');
   }
   return input as DetectedAnswer[];
+};
+
+/** Kiểm khuôn kết quả dò phiếu tô từ máy em (ranh giới tin cậy). Sai khuôn → bỏ, chấm như cũ (không chặn nộp bài). */
+export const sanitizeOmrSheet = (input: unknown): OmrSheetResult | undefined => {
+  if (!input || typeof input !== 'object') return undefined;
+  const o = input as Record<string, unknown>;
+  const conf = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
+  const list = (v: unknown, max: number) => Array.isArray(v) && v.length <= max ? v as Record<string, unknown>[] : null;
+  const q = (v: unknown, max: number) => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= max;
+  const mcq = list(o.mcq, 40), trueFalse = list(o.trueFalse, 8), shortAnswer = list(o.shortAnswer, 6);
+  if ((o.form !== 'k1011' && o.form !== 'k12') || !conf(o.alignment) || !mcq || !trueFalse || !shortAnswer) return undefined;
+  const code = (v: unknown, shape: RegExp) => v === null || (typeof v === 'string' && shape.test(v));
+  if (!code(o.examCode, /^\d{3}$/) || !code(o.studentCode, /^\d{6}$/)) return undefined;
+  const okMcq = mcq.every(m => q(m.q, 40) && conf(m.confidence) && (m.answer === null || (typeof m.answer === 'string' && /^[ABCD]$/.test(m.answer))));
+  const okTf = trueFalse.every(t => q(t.q, 8) && conf(t.confidence) && !!t.items && typeof t.items === 'object'
+    && (['a', 'b', 'c', 'd'] as const).every(k => { const v = (t.items as Record<string, unknown>)[k]; return v === null || v === 'Đ' || v === 'S'; }));
+  const okShort = shortAnswer.every(x => q(x.q, 6) && conf(x.confidence) && (x.answer === null || (typeof x.answer === 'string' && /^-?[\d,]{1,4}$/.test(x.answer))));
+  if (!okMcq || !okTf || !okShort) return undefined;
+  const pickTf = (t: Record<string, unknown>) => { const items = t.items as Record<string, 'Đ' | 'S' | null>; return { q: t.q as number, confidence: t.confidence as number, items: { a: items.a, b: items.b, c: items.c, d: items.d } }; };
+  return {
+    form: o.form, alignment: o.alignment as number, examCode: o.examCode as string | null, studentCode: o.studentCode as string | null,
+    mcq: mcq.map(m => ({ q: m.q as number, answer: m.answer as string | null, confidence: m.confidence as number })),
+    trueFalse: trueFalse.map(pickTf),
+    shortAnswer: shortAnswer.map(x => ({ q: x.q as number, answer: x.answer as string | null, confidence: x.confidence as number })),
+  };
 };
 
 export class SubmissionAccessError extends Error { constructor(readonly statusCode: number, message: string) { super(message); } }
@@ -295,7 +320,8 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       // không để học sinh tự viết điểm rồi tự chấm.
       const handMarked = body.handMarked === true;
       const detectedAnswers = validateDetectedAnswers(body.detectedAnswers);
-      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), ...(detectedAnswers !== undefined ? { detectedAnswers } : {}), createdAt: now, updatedAt: now };
+      const omrSheet = sanitizeOmrSheet(body.omrSheet);
+      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), ...(detectedAnswers !== undefined ? { detectedAnswers } : {}), ...(omrSheet ? { omrSheet } : {}), createdAt: now, updatedAt: now };
       tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }

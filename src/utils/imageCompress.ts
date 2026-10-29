@@ -7,6 +7,8 @@
 // 1536 = 2 × 768: Gemini chia ảnh thành ô vuông 768px, nên ảnh dài cạnh ≤ 1536px chỉ tốn
 // 4 ô (≈1.032 token) thay vì 6 ô (≈1.548) của mốc 1600 cũ — tiết kiệm ~33% token ảnh mà
 // vẫn giữ gần như trọn độ sắc nét (nét bút đỏ của giáo viên vẫn đọc được).
+import type { OmrSheet } from '../lib/omr/omrSheet';
+
 export const MAX_CANH = 1536;
 export const JPEG_QUALITY = 0.82;
 /** Phải khớp mốc 6MB trong storage.rules (`homework/{uid}` và `student-uploads`). */
@@ -253,6 +255,56 @@ export const detectAnswersFromFiles = async (files: readonly File[]): Promise<De
     finally { if (source && 'close' in source) source.close(); }
   }
   return found;
+};
+
+export interface KetQuaQuetPhieu {
+  /** Ảnh để tải lên: phiếu tô đã nắn phẳng + san sáng; ảnh tối/không đều đã san sáng; còn lại giữ nguyên. */
+  files: File[];
+  /** Kết quả máy dò phiếu tô mẫu Bộ 2025 (đúng một phiếu), hoặc null. */
+  omrSheet: OmrSheet | null;
+  /** Bộ dò cũ (phiếu 4 khối × 10 câu không ô định vị) — chỉ dùng khi không nhận ra phiếu mẫu. */
+  detectedAnswers: DetectedAnswer[];
+}
+
+/**
+ * "Scan" ảnh bài làm và dò phiếu tô ngay trên máy em, trước khi tải lên — không gọi AI.
+ * Ảnh hỏng/không giải mã được thì giữ nguyên tệp gốc: không bao giờ làm mất bài.
+ */
+export const quetAnhVaPhieu = async (files: readonly File[]): Promise<KetQuaQuetPhieu> => {
+  const { prepareImage, locateSheet, readSheet, scanImage, needsLightFix } = await import('../lib/omr/omrSheet');
+  const out: File[] = [];
+  const sheets: OmrSheet[] = [];
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) { out.push(file); continue; }
+    let source: NguonVe | undefined;
+    try {
+      source = await giaiMaAnh(file);
+      const size = tinhKichThuocMoi(kichThuocCua(source).w, kichThuocCua(source).h);
+      const canvas = document.createElement('canvas');
+      canvas.width = size.w; canvas.height = size.h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { out.push(file); continue; }
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size.w, size.h);
+      ctx.drawImage(source, 0, 0, size.w, size.h);
+      const p = prepareImage(ctx.getImageData(0, 0, size.w, size.h));
+      const loc = locateSheet(p);
+      if (loc) sheets.push(readSheet(p, loc));
+      if (!loc && !needsLightFix(p)) { out.push(file); continue; }
+      const scanned = scanImage(p, loc);
+      canvas.width = scanned.width; canvas.height = scanned.height;
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(scanned.data), scanned.width, scanned.height), 0, 0);
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+      const ten = file.name.replace(/\.[^.]+$/, '') || 'anh';
+      out.push(blob && blob.size >= 1024 ? new File([blob], `${ten}-scan.jpg`, { type: 'image/jpeg' }) : file);
+    } catch {
+      out.push(file);
+    } finally {
+      if (source && 'close' in source) source.close();
+    }
+  }
+  // Hai phiếu trong một bài: không tự ghép thứ tự câu.
+  const omrSheet = sheets.length === 1 ? sheets[0] : null;
+  return { files: out, omrSheet, detectedAnswers: omrSheet ? [] : await detectAnswersFromFiles(out) };
 };
 
 /** Data URL (pdf.js, canvas cũ) → File. Chỉ dùng khi không còn cách nào khác. */

@@ -118,6 +118,7 @@ import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, derive
 import { questionKey, reconcileAiGrade, parseExpectedAnswer } from '../src/lib/classroom/questionRescore.js';
 import { bindQuestionPhotoMarks, projectPhotoMarks, validPhotoSteps } from '../src/lib/classroom/photoMarks.js';
 import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError, type DetectedAnswer } from './_submission-actors.js';
+import { applyOmrSheet } from '../src/lib/classroom/omrApply.js';
 import { applyClarification, handleClarifyAction } from './_clarify.js';
 import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
@@ -513,6 +514,9 @@ const resolveExamCode = async (
   const codes = variants.map(variant => variant.code);
   if (codes.length === 1) return codes[0];
   if (submission.examCode && codes.includes(submission.examCode)) return submission.examCode;
+  // Ô "Mã đề" tô trên phiếu, máy dò đọc lúc nộp — chỉ nhận khi trùng một mã có thật của bài.
+  const omrCode = submission.omrSheet?.examCode;
+  if (omrCode && codes.includes(omrCode)) return omrCode;
   if (images.length === 0 || timeoutMs < MIN_GEMINI_BUDGET_MS) return null;
   // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — trang đầu là đủ, gửi thêm trang nữa chỉ tốn token.
   // Việc đọc mã đề không cần suy luận sâu nên đi lớp rẻ trước (Vilao → xKiro → Gemini rẻ).
@@ -603,7 +607,7 @@ const gradeOneSubmission = async (
     if (gradeCtx.examVariants.length > 0) {
       const code = await resolveExamCode(previous, gradeCtx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
       if (!code) throw new Error(UNREADABLE_EXAM_CODE_MESSAGE);
-      if (code !== previous.examCode) await claim.ref.update({ examCode: code, examCodeSource: 'ai' });
+      if (code !== previous.examCode) await claim.ref.update({ examCode: code, examCodeSource: code === previous.omrSheet?.examCode ? 'omr' : 'ai' });
       gradeCtx = contextForVariant(gradeCtx, code);
     }
 
@@ -637,8 +641,10 @@ const gradeOneSubmission = async (
     }
     // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
     // giữ nguyên câu thầy cô đã soát tay ở lần trước.
-    const omrDetected = (previous as SubmissionDoc & { detectedAnswers?: DetectedAnswer[] }).detectedAnswers;
-    const omrGrade = { ...attempt.grade, questionResults: attempt.grade.questionResults?.map(q => {
+    // Phiếu tô mẫu Bộ: câu tô lấy theo máy dò (tất định), AI chỉ còn chấm tự luận. Không có phiếu → bộ dò cũ.
+    const omrSheetApplied = previous.omrSheet ? applyOmrSheet(attempt.grade, previous.omrSheet) : null;
+    const omrDetected = omrSheetApplied ? undefined : (previous as SubmissionDoc & { detectedAnswers?: DetectedAnswer[] }).detectedAnswers;
+    const omrGrade = omrSheetApplied ? omrSheetApplied.grade : { ...attempt.grade, questionResults: attempt.grade.questionResults?.map(q => {
       const expected = parseExpectedAnswer(q.expectedAnswer);
       const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
       if (expected?.kind !== 'mcq' || !match || q.teacherEdited) return q;
@@ -661,6 +667,8 @@ const gradeOneSubmission = async (
       if (uncertain || !omrDetected.length) reconciled.noteForTeacher = [reconciled.noteForTeacher,
         'Máy dò bóng không chắc — GV kiểm tra lại phần trắc nghiệm.'].filter(Boolean).join('\n');
     }
+    if (omrSheetApplied?.uncertain) reconciled.noteForTeacher = [reconciled.noteForTeacher,
+      `Máy dò phiếu tô chưa chắc ${omrSheetApplied.uncertain} câu (tô mờ, tô hai ô hoặc nét chấm phủ ô) — thầy cô soát các câu gắn cờ.`].filter(Boolean).join('\n');
     const clearedMarks = new Set((previous.grade?.questionResults || []).filter(q => q.photoMarksCleared).map(q => questionKey(q.questionNumber)));
     reconciled.questionResults = (reconciled.questionResults || []).map(q => {
       const { photoMarks: _old, photoSteps: _steps, ...rest } = q;

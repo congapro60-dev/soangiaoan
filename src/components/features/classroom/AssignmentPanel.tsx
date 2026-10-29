@@ -429,6 +429,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                     {maDe.map(code => <option key={code} value={code}>{code}</option>)}
                   </select>
                   {s.examCodeSource === 'ai' && <span className="font-semibold text-sky-600">AI đọc</span>}
+                  {s.examCodeSource === 'omr' && <span className="font-semibold text-emerald-600">Máy dò phiếu</span>}
                   {s.examCodeSource === 'student' && <span className="font-semibold text-amber-700">HS chọn</span>}
                 </label>
               )}

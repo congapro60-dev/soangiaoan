@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SubmissionActorCredentials } from '../../../services/submissionActorsApi';
 import { uploadActorEvidence, submitActorSubmission, actorGradeOne } from '../../../services/submissionActorsApi';
-import { dataUrlToFile, nenAnhBaiLamToFile, detectAnswersFromFiles } from '../../../utils/imageCompress';
+import { dataUrlToFile, nenAnhBaiLamToFile, quetAnhVaPhieu } from '../../../utils/imageCompress';
 import { pdfToImages } from '../../../utils/pdfToImages';
 interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; handMarked?: boolean; onSubmitted: () => void; onClose?: () => void; /** Báo ra ngoài lúc đang nộp (để khoá chuyển sang em khác) và khi đã xong. */ onBusyChange?: (busy: boolean) => void }
 /** Nhường khung hình cho trình duyệt vẽ giữa các tệp (điện thoại không bị "treo"). */
@@ -60,13 +60,13 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
     onBusyChange?.(true);
     try {
       const prepared = await prepareActorFiles(files, message => { if (alive.current) setProgress(message); });
-      setProgress('Đang dò bóng tô…');
+      setProgress('Đang làm phẳng ảnh và dò phiếu tô…');
       await choKhungHinh();
-      const detectedAnswers = await detectAnswersFromFiles(prepared);
-      setProgress(`Đang tải ${prepared.length} tệp lên máy chủ…`);
-      const grant = await uploadActorEvidence(credentials, assignmentId, prepared);
+      const { files: scanned, omrSheet, detectedAnswers } = await quetAnhVaPhieu(prepared);
+      setProgress(`Đang tải ${scanned.length} tệp lên máy chủ…`);
+      const grant = await uploadActorEvidence(credentials, assignmentId, scanned);
       setProgress('Đã tải xong — đang lưu bài nộp…');
-      const payload = { assignmentId, uploadGrantId: grant, supplementOf, note, handMarked, detectedAnswers };
+      const payload = { assignmentId, uploadGrantId: grant, supplementOf, note, handMarked, detectedAnswers, ...(omrSheet ? { omrSheet } : {}) };
       const { submission } = await submitActorSubmission(credentials, payload);
       if (alive.current) { setAccepted(true); setFiles([]); setNote(''); }
       // Chấm NỀN: máy chấm sau, thầy không phải đứng chờ (điện thoại hay lag vì chờ AI).
