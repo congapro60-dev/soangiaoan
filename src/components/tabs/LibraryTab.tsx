@@ -14,6 +14,7 @@ import { SavedExam } from '../../hooks/useSavedExams';
 import { ViewPlanModal } from '../modals/ViewPlanModal';
 import * as worksheetUtils from '../../utils/worksheetUtils';
 import * as scormUtils from '../../utils/scormUtils';
+import { PHIEU_TO_MAU } from '../../utils/answerSheetTemplate';
 import { Package } from 'lucide-react';
 
 interface LibraryTabProps {
@@ -259,6 +260,24 @@ export const LibraryTab = ({
                   <X className="h-4 w-4" /> Xóa bộ lọc
                 </button>
               )}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+              <Download className="h-3.5 w-3.5" /> Tài liệu tải về
+            </div>
+            <div className="space-y-2">
+              {PHIEU_TO_MAU.map(m => (
+                <a key={m.href} href={m.href} download
+                  className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition hover:bg-blue-50">
+                  <FileText className="h-4 w-4 shrink-0 text-blue-600" />
+                  <span>
+                    <span className="block text-sm font-black text-slate-800">{m.label}</span>
+                    <span className="block text-xs font-medium text-slate-500">{m.note} · PDF A4</span>
+                  </span>
+                </a>
+              ))}
             </div>
           </div>
 

@@ -4,7 +4,7 @@ import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
   ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked, Image
 } from 'lucide-react';
-import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
+import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML, PHIEU_TO_MAU } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 import { ExamContentBoard } from '../features/testing/ExamContentBoard';
 import { MathOcrUploader } from '../features/testing/MathOcrUploader';
@@ -924,6 +924,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                   >
                     <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm
                   </button>
+                  {PHIEU_TO_MAU.map(m => (
+                    <a key={m.href} href={m.href} download
+                      className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+                    >
+                      <Download className="w-3.5 h-3.5" /> {m.label} (PDF)
+                    </a>
+                  ))}
                 </div>
               </>
             )}
