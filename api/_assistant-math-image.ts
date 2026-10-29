@@ -92,12 +92,12 @@ export const mathAnswerHtml = (reply: string): string => {
   return parts.join('');
 };
 
-/** HTML đầy đủ cho trang render (khổ rộng 900, chữ 30px — đọc tốt trên điện thoại). */
+/** HTML đầy đủ cho trang render (khổ rộng 960, chữ 26px — đọc tốt trên điện thoại, không gãy công thức dài). */
 export const mathAnswerDocument = (reply: string): string => `<!doctype html><html><head><meta charset="utf-8">
 <style>${KATEX_CSS}</style>
 <style>
   html,body{margin:0;padding:0;background:#fff;}
-  body{width:900px;padding:36px 40px;box-sizing:border-box;font-family:'Times New Roman',Georgia,serif;font-size:30px;line-height:1.5;color:#111;}
+  body{width:960px;padding:28px 36px;box-sizing:border-box;font-family:'Times New Roman',Georgia,serif;font-size:26px;line-height:1.6;color:#111;}
   .txt{white-space:pre-wrap;}
   .disp{margin:14px 0;text-align:center;}
   .katex{font-size:1.15em;}
@@ -118,7 +118,7 @@ export const renderMathAnswerPng = async (reply: string): Promise<Buffer | null>
     ]);
     const browser = await puppeteer.launch({
       args: chromium.args,
-      defaultViewport: { width: 900, height: 1200 },
+      defaultViewport: { width: 960, height: 1200 },
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
       headless: true,
     });
@@ -131,26 +131,25 @@ export const renderMathAnswerPng = async (reply: string): Promise<Buffer | null>
         const f = (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts;
         if (f) await f.ready;
       });
-      // KHỔ ẢNH AN TOÀN CHO ĐIỆN THOẠI (lỗi 28/10): rộng tối đa 800px, tỷ lệ cao/rộng ≤ 1.15;
-      // lời giải dài thì THU NHỎ CHỮ để vừa khổ, không cắt nội dung.
-      const WIDTH = 800;
-      const MAX_RATIO = 1.15;
-      let shot = await page.screenshot({ type: 'png', fullPage: true });
+      // CẮT SÁT NỘI DUNG BODY: chụp element body thay vì fullPage (lỗi 29/10: fullPage thừa 80% khoảng trắng dọc bên dưới).
+      const bodyEl = await page.$('body');
+      const takeShot = async () => (bodyEl ? bodyEl.screenshot({ type: 'png' }) : page.screenshot({ type: 'png' }));
       const sizeOf = (buf: Buffer): { w: number; h: number } => {
         // PNG: width/height nằm ở IHDR, offset 16 và 20.
         if (buf[0] === 0x89 && buf[1] === 0x50) {
           return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
         }
-        return { w: WIDTH, h: WIDTH };
+        return { w: 960, h: 600 };
       };
+      let shot = await takeShot();
       let dim = sizeOf(Buffer.from(shot as Buffer));
+      const MAX_RATIO = 1.6;
       for (let attempt = 0; attempt < 3 && dim.h > dim.w * MAX_RATIO; attempt += 1) {
-        const scale = Math.max(0.55, (dim.w * MAX_RATIO) / dim.h);
+        const scale = Math.max(0.65, (dim.w * MAX_RATIO) / dim.h);
         await page.evaluate((s: number) => {
           document.body.style.fontSize = `${Math.round(parseFloat(getComputedStyle(document.body).fontSize) * s)}px`;
-          document.body.style.width = '800px';
         }, scale);
-        shot = await page.screenshot({ type: 'png', fullPage: true });
+        shot = await takeShot();
         dim = sizeOf(Buffer.from(shot as Buffer));
       }
       return Buffer.from(shot as Buffer);

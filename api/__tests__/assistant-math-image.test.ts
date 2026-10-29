@@ -47,6 +47,6 @@ describe('mathAnswerHtml — dựng HTML render công thức', () => {
     expect(doc).toContain('<!doctype html>');
     expect(doc).toContain('katex');
     expect(doc).toContain('background:#fff');
-    expect(doc).toContain('width:900px');
+    expect(doc).toContain('width:960px');
   });
 });
