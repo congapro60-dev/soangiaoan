@@ -848,6 +848,7 @@ service cloud.firestore {
                      && llv3ActiveSession();
           allow list, create, update, delete: if false;
         }
+
       }
 
         match /public/state {
@@ -872,6 +873,74 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['groupNumber', 'updatedAt'])
           && request.resource.data.get('groupNumber', '') in ['1','2','3','4','5','6','7','8','9','10','11','12']
           && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+
+      // COMM-AQ-01 — Giơ tay: hành động CÓ tên để giáo viên gọi. Doc theo participantUid
+      // nên bấm nhiều lần không tạo bản ghi trùng; lower/rase ghi đè cùng doc.
+      match /handRaises/{participantUid} {
+        function llv3ValidHandRaise(data) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.get('participantUid', '') == participantUid
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('studentName', '') is string
+            && data.get('studentName', '').size() > 0
+            && data.get('studentName', '').size() <= 128
+            && data.get('action', '') in ['raise', 'lower']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && request.auth.uid == participantUid && llv3StudentLinkedToSession() && llv3ActiveSession());
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == participantUid
+          && llv3ValidHandRaise(request.resource.data)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
+        allow delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ẩn danh: review queue CHỈ giáo viên đọc. Client không được
+      // write trực tiếp — câu hỏi vào qua server (Admin SDK ghi, không có field định danh).
+      match /questions/{questionId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ĐÃ CÔNG BỘ: cả lớp đọc khi phiên active; nội dung chỉ có
+      // body + mã ẩn danh, không tên. Write chỉ qua Admin SDK. (Subcollection ngang cấp public)
+      match /publishedQuestions/{questionId} {
+        allow get, list: if llv3ActiveSession() && llv3PublicAudience();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Understanding Pulse: dữ liệu cá nhân theo lesson contract, có tên
+      // cho GV xem tổng hợp. Riêng biệt tuyệt đối với câu hỏi ẩn danh (không tham chiếu chéo).
+      match /pulses/{pulseId} {
+        function llv3ValidPulse(data, pulseId) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && pulseId.matches('.{1,128}__[^/]{1,128}')
+            && data.get('participantUid', '') + '__' + data.get('cueId', '') == pulseId
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('cueId', '') is string
+            && data.get('cueId', '').size() > 0
+            && data.get('cueId', '').size() <= 128
+            && data.get('selfReport', '') in ['understood', 'need_example', 'unclear']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && llv3StudentLinkedToSession() && llv3ActiveSession()
+          && resource.data.get('participantUid', '') == request.auth.uid);
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == request.resource.data.get('participantUid', '')
+          && request.resource.data.get('participantUid', '') + '__' + request.resource.data.get('cueId', '') == pulseId
+          && llv3ValidPulse(request.resource.data, pulseId)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
         allow delete: if false;
       }
 

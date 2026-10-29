@@ -2,6 +2,10 @@ import './liveClassroom.css';
 import { StudentActivityGuide } from './StudentActivityGuide';
 import { StudentGroupPicker } from './StudentGroupPicker';
 import { subscribeToLiveGroupProgress, subscribeToMyLiveGroup, type LiveGroupProgress } from '../../services/liveActivityService';
+import { StudentAskBar } from './StudentAskBar';
+import { UnderstandingPulse } from './UnderstandingPulse';
+import { pulseCuesFor } from '../../services/liveQuestionService';
+import { StudentPublishedQuestion } from './StudentPublishedQuestion';
 import { isGroupDone } from '../../lib/liveLesson/v4/grouping';
 import { StudentWritingSupport } from './StudentWritingSupport';
 import { StudentGoalReflection } from './StudentGoalReflection';
@@ -348,6 +352,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const isPracticeSet = activitySteps.length > 1;
   const isGroupActivity = publicState.cueId === 'P20' || publicState.cueId === 'P22' || step?.id === 'cp-group-product';
+  const pulseActive = pulseCuesFor(definitionKey).includes(publicState.cueId);
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
   const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
@@ -679,6 +684,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       <div className="student-slot" data-slot="language">
         {languageChoiceOpen && <LanguageChoicePanel view={languageView} availableLanguages={availableLanguages} description={languageCoverage.description} onPick={pickLanguage} />}
         {!languageChoiceOpen && languageView.language !== 'vi' && <p className="student-language-coverage">{languageCoverage.description}</p>}
+      </div>
+      <div className="student-slot" data-slot="ask-bar">
+        {participantUid && student && <StudentAskBar sessionId={sessionId} participantUid={participantUid} classId={student.classId} studentName={student.studentName} activityId={definitionKey} />}
+        {participantUid && student && pulseActive && <UnderstandingPulse sessionId={sessionId} participantUid={participantUid} classId={student.classId} cueId={publicState.cueId} />}
+      </div>
+      <div className="student-slot" data-slot="published-question">
+        <StudentPublishedQuestion sessionId={sessionId} />
       </div>
       <div className="student-slot" data-slot="notices">
         {languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}

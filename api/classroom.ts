@@ -67,6 +67,7 @@ import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
 import { awaitsClarification, hideWhileAwaitingClarification, sanitizeClarify } from '../src/lib/classroom/clarification.js';
 import { handleStudentAiCostAction } from './_student-ai-cost.js';
 import { handleStudentWorkspaceAction } from './_student-workspace.js';
+import { handleLiveAnonymousQuestion, handleLiveQuestionModeration } from './_live-questions.js';
 import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError, handleSubmissionActorAction } from './_submission-actors.js';
 import { handleSubmissionFeedbackAction } from './_submission-feedback.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
@@ -1578,6 +1579,8 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (await handleStudentWorkspaceAction(db, body, res, { projectStudentAssignment, projectStudentSubmission })) return;
+    if (await handleLiveAnonymousQuestion(db, body, res)) return;
+    if (await handleLiveQuestionModeration(db, body, res)) return;
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
     if (action === 'studentSubmissions') return await handleStudentSubmissions(db, body, res);
     if (action === 'studentNotifications') return await handleStudentNotifications(db, body, res);
