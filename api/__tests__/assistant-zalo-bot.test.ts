@@ -10,6 +10,7 @@ vi.mock('../_assistant-tools', () => ({ runAssistantReadTool: vi.fn(async () => 
 vi.mock('../_assistant-ph-hs-link', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-link')>('../_assistant-ph-hs-link'),
   linkByPin: vi.fn(async () => ({ status: 'linked', reply: 'Đã liên kết thành công.' })),
+  deactivateStudentParentLinks: vi.fn(async () => false),
   switchBotRole: vi.fn(async () => ({ status: 'switched', reply: 'SWITCH_OK' })),
 }));
 vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
@@ -261,7 +262,8 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
   it('tin mã PIN đi hết đường linkByPin và map đúng lỗi chạm trần', async () => {
     const message = 'phụ huynh ACDF47 1234';
     await request(event(message, 'm-1'));
-    expect(linkByPin).toHaveBeenCalledWith(expect.anything(), 'bot-1', 'user-1', message);
+    // Không có tiền tố "đổi vai" → allowSwitch false (mục 9 chỉ bật khi người dùng gõ rõ ý định).
+    expect(linkByPin).toHaveBeenCalledWith(expect.anything(), 'bot-1', 'user-1', message, expect.anything(), { allowSwitch: false });
     expect(JSON.parse(sent()[0][1].body).text).toBe('Đã liên kết thành công.');
     vi.mocked(linkByPin).mockRejectedValueOnce(new Error('PIN_LOCKED'));
     await request(event(message, 'm-2'));

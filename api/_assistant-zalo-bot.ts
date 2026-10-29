@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
-import { dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
+import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
+
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
 import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
@@ -49,8 +50,14 @@ const resolveAnyActor = async (botId: string, userId: string, chatId: string): P
   return ambiguous ? 'ambiguous' : null;
 };
 const pinLinkReply = async (botId: string, userId: string, message: string): Promise<string> => {
-  try { return (await linkByPin(getAdminDb(), botId, userId, message)).reply; }
-  catch (error) {
+  try {
+    // Mục 9 "Đổi vai trò" (chốt 29/10): tin có tiền tố "đổi vai" được chuyển vai —
+    // linkByPin vẫn bắt xác thực PIN vai ĐÍCH, sai thì không đổi gì.
+    const parsed = parsePinLinkMessage(message);
+    const allowSwitch = parsed.status === 'ok' && parsed.switch === true;
+    const result = await linkByPin(getAdminDb(), botId, userId, message, new Date(), { allowSwitch });
+    return result.reply;
+  } catch (error) {
     const reason = error instanceof Error ? error.message : '';
     if (/PIN_LOCKED/i.test(reason)) return PIN_LINK_REPLIES.throttled;
     throw error;
@@ -102,7 +109,11 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (command === '/link') {
     if (!args[0]) return 'Cần mã liên kết.';
     await consumeLinkCode(args[0], id as any);
-    return 'Đã liên kết tài khoản giáo viên.';
+    // Mục 9 — chuyển sang GIÁO VIÊN: gỡ link PH/HS đang active (chuyển vai = 1 vai active duy nhất).
+    const hadOtherRole = await deactivateStudentParentLinks(getAdminDb(), botId, userId);
+    return hadOtherRole
+      ? 'Đã chuyển sang vai GIÁO VIÊN. Nhắn: gv để xem menu thầy cô.'
+      : 'Đã liên kết tài khoản giáo viên.';
   }
   if (!command.startsWith('/') && parsePinLinkMessage(message).status === 'ok') return pinLinkReply(botId, userId, message);
   if (command === '/khoiphuc') {

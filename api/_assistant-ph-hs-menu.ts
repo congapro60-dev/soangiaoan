@@ -12,6 +12,7 @@
 import { buildParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 import { latexToUnicodeMath } from './_assistant-math-text.js';
+import { switchRoleGuideReply } from './_assistant-ph-hs-link.js';
 
 export const MENU_REPLIES = {
   header: 'Chọn mục (nhắn số):',
@@ -42,6 +43,8 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
     // Việc 4 — mục 8 chỉ dành cho HS: PH không nộp bài thay con.
     ...(role === 'student' ? ['8. Nộp bài bằng ảnh (tự chấm)'] : []),
+    // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
+    '9. Đổi vai trò (HS/PH/GV)',
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -208,13 +211,15 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
   }
 };
 
-export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'invalid' };
+export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'switchRole' } | { kind: 'invalid' };
 
 /** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal; '8' = nộp bài bằng ảnh (HS). */
 export const parseMenuChoice = (raw: string): MenuChoice => {
   const token = raw.normalize('NFC').trim();
   if (token === '0' || token === '' || /^(menu|m)$/i.test(token)) return { kind: 'menu' };
   if (/^(web|website|link)$/i.test(token)) return { kind: 'link' };
+  // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10) — nhận cả số 9 lệnh gõ "đổi vai"/"doi vai".
+  if (token === '9' || /^(đổi vai|doi vai)$/i.test(token)) return { kind: 'switchRole' };
   if (/^[1-8]$/.test(token)) return { kind: 'section', key: token as MenuKey };
   return { kind: 'invalid' };
 };
@@ -269,6 +274,8 @@ export const parentMenuReply = async (
   if (choice.kind === 'menu') return menuText(report.studentName, report.className, role);
   // Tin link web: URL phải nằm trong text THUẦN để Zalo render thành link bấm được.
   if (choice.kind === 'link') return joinCode ? webLinkText(role, joinCode) : MENU_REPLIES.noData;
+  // Mục 9 "Đổi vai trò": hướng dẫn mẫu xác nhận — KHÔNG cần dữ liệu báo cáo, trả trước cho gọn.
+  if (choice.kind === 'switchRole') return switchRoleGuideReply(role);
   if (choice.kind === 'invalid') return MENU_REPLIES.invalid;
   return menuSectionText(choice.key, report, periodicIds, role);
 };

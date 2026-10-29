@@ -5,11 +5,15 @@ import { isValidParentPin } from '../src/lib/classroom/parentAccess.js';
 import { isValidJoinCode } from '../src/lib/classroom/joinCode.js';
 
 export type LinkRole = 'parent' | 'student';
-export type ParsedPinLink = { status: 'ok'; joinCode: string; pin: string; role: LinkRole } | { status: 'invalid' };
+export type ParsedPinLink = { status: 'ok'; joinCode: string; pin: string; role: LinkRole; switch?: boolean } | { status: 'invalid' };
 export const parsePinLinkMessage = (message: string): ParsedPinLink => {
   const normalized = message.normalize('NFC').trim();
+  // "đổi vai" ở ĐẦU tin = ý định chuyển vai (mục 9): bắt buộc nhập secret vai ĐÍCH,
+  // hệ thống sẽ gỡ vai cũ sau khi xác thực. Không có từ này thì giữ luật 1 tài khoản 1 vai.
+  const wantSwitch = /^(?:đổi|doi)\s+vai\s+/i.test(normalized);
+  const stripped = normalized.replace(/^(?:đổi|doi)\s+vai\s+/i, ' ');
   const roles: LinkRole[] = [];
-  const rest = normalized.replace(/(?<!\S)(phụ\s+huynh|phu\s+huynh|học\s+sinh|hoc\s+sinh)(?!\S)/giu, match => {
+  const rest = stripped.replace(/(?<!\S)(phụ\s+huynh|phu\s+huynh|học\s+sinh|hoc\s+sinh)(?!\S)/giu, match => {
     roles.push(/^ph/iu.test(match) ? 'parent' : 'student');
     return ' ';
   });
@@ -23,7 +27,8 @@ export const parsePinLinkMessage = (message: string): ParsedPinLink => {
   // PIN khác 4 số là PH. Muốn chắc vai thì ghi "phụ huynh"/"học sinh" ở đầu tin.
   const role = roles[0] ?? (!/^\d{4}$/.test(pin) ? 'parent' : 'student');
   if (!role || (role === 'student' && !/^\d{4}$/.test(pin))) return { status: 'invalid' };
-  return { status: 'ok', joinCode: normalizeJoinCode(codes[0]), pin, role };
+  // `switch` để undefined khi false — test toEqual cũ không bị phá.
+  return { status: 'ok', joinCode: normalizeJoinCode(codes[0]), pin, role, ...(wantSwitch ? { switch: true } : {}) };
 };
 
 export const PIN_LINK_REPLIES = {
@@ -39,12 +44,16 @@ export const PIN_LINK_REPLIES = {
 export const dualRoleAllowed = (channelUserId: string): boolean =>
   String(process.env.ZALO_BOT_DUAL_ROLE_USER_IDS || '').split(',').map(v => v.trim()).includes(channelUserId);
 
-export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, channelUserId: string, message: string, now = new Date()): Promise<{ status: string; reply: string; linkId?: string }> => {
+export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, channelUserId: string, message: string, now = new Date(), opts?: { allowSwitch?: boolean }): Promise<{ status: string; reply: string; linkId?: string; switched?: boolean }> => {
   const parsed = parsePinLinkMessage(message); if (parsed.status === 'invalid') return { status: 'invalid', reply: 'Cú pháp chưa đúng.' };
   // 1 tài khoản Zalo chỉ giữ 1 vai (teacher cũng tính là vai) — chặn TRƯỚC khi chạm PIN để không tiêu lượt thử.
   // Tài khoản test trong danh sách cho phép được giữ song song 2 vai để kiểm thử.
+  // NGOẠI LỆ (mục 9 "Đổi vai trò", chốt chủ dự án 29/10): tin có tiền tố "đổi vai" (opts.allowSwitch)
+  // được chuyển vai — nhưng vẫn phải xác thực PIN vai ĐÍCH bên dưới, và vai cũ bị gỡ sau khi xác thực thành công.
   const existing = await db.collection('channelLinks').where('channel', '==', 'zalo_bot').where('channelAccountId', '==', botId).where('channelUserId', '==', channelUserId).where('active', '==', true).get();
-  if (!dualRoleAllowed(channelUserId) && existing.docs.some(doc => { const value: any = doc.data(); return (value.role ?? 'teacher') !== parsed.role; })) {
+  const hasOtherRole = existing.docs.some(doc => { const value: any = doc.data(); return (value.role ?? 'teacher') !== parsed.role; });
+  const switching = hasOtherRole && !dualRoleAllowed(channelUserId) && opts?.allowSwitch === true;
+  if (hasOtherRole && !dualRoleAllowed(channelUserId) && !switching) {
     return { status: 'roleConflict', reply: PIN_LINK_REPLIES.roleConflict };
   }
   const entry = await checkBotPinGuard(db, botId, channelUserId, now); if (!entry.allowed) return { status: 'throttled', reply: PIN_LINK_REPLIES.throttled };
@@ -72,7 +81,8 @@ export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, 
   }
   // Idempotent theo bản thân: người gửi đã có link active cùng role+class VÀ PIN khớp đúng em của link đó
   // thì trả lại kết quả cũ, không tiêu lượt. Khác studentId (vd PH link con thứ hai cùng lớp) thì đi tiếp.
-  const candidates = existing.docs.filter(doc => { const value: any = doc.data(); return value.role === parsed.role && value.classId === classId; });
+  // Link ACTIVE MỚI được tính — link đã bị gỡ (đổi vai sang chỗ khác) phải đi tiếp để kích hoạt lại.
+  const candidates = existing.docs.filter(doc => { const value: any = doc.data(); return value.role === parsed.role && value.classId === classId && value.active === true; });
   for (const doc of matches.length ? [] : candidates) {
     const secretSnap = await secrets.doc(String((doc.data() as any).studentId)).get();
     const pinHash = String((secretSnap.data() as any)?.pinHash ?? '');
@@ -113,12 +123,49 @@ export const linkByPin = async (db: FirebaseFirestore.Firestore, botId: string, 
     }
     const link = { firebaseUid: `pinlink:${parsed.role}:${classId}:${studentId}`, channel: 'zalo_bot', channelAccountId: botId, channelUserId, channelChatId: channelUserId, role: parsed.role, classId, studentId, active: true, createdAt: (linkSnap.data() as any)?.createdAt ?? now.getTime(), updatedAt: now.getTime() };
     tx.set(linkRef, link);
+    // Chuyển vai (mục 9): gỡ mọi link active vai KHÁC trong cùng transaction — không để lại
+    // hai vai cùng active (resolveAnyActor ưu tiên parent sẽ che mất vai mới).
+    if (switching) {
+      for (const doc of existing.docs) {
+        const value: any = doc.data();
+        if ((value.role ?? 'teacher') === parsed.role) continue;
+        tx.update(doc.ref, { active: false, updatedAt: now.getTime() });
+      }
+    }
     return 'linked' as const;
   });
   if (outcome === 'wrong') return { status: 'wrong', reply: PIN_LINK_REPLIES.wrong };
   // Link thành công không phải lần sai — hoàn lại lượt đã tiêu để cửa sổ phản ánh đúng số lần sai.
   await refundBotPinAttempt(db, botId, channelUserId, classId, now);
+  if (switching) return { status: 'switched', reply: `Đã chuyển sang vai ${parsed.role === 'student' ? 'HỌC SINH' : 'PHỤ HUYNH'}.\n\nNhắn 0 để xem lại menu.`, linkId, switched: true };
   return { status: 'linked', reply: 'Đã liên kết thành công.', linkId };
+};
+
+/** Hướng dẫn mục 9 "Đổi vai trò" — theo vai hiện tại, mẫu xác nhận là secret của vai ĐÍCH. */
+export const switchRoleGuideReply = (currentRole: 'parent' | 'student' | 'teacher'): string => {
+  const current = currentRole === 'student' ? 'HỌC SINH' : currentRole === 'parent' ? 'PHỤ HUYNH' : 'GIÁO VIÊN';
+  return [
+    `Vai hiện tại của bạn: ${current}.`,
+    'Để đổi vai, gửi đúng MỘT trong các mẫu sau (mỗi lần đổi đều phải nhập mã để bảo mật):',
+    '• Sang HỌC SINH: đổi vai <mã lớp> <mã PIN 4 số>',
+    '• Sang PHỤ HUYNH: đổi vai <mã lớp> <mã PIN> phụ huynh',
+    '• Sang GIÁO VIÊN: /link <mã liên kết> (mã tạo trong web, mục quản lý bot)',
+    'Mã PIN do thầy cô cấp. Nhập sai quá 20 lần/giờ sẽ bị tạm chặn.',
+    '',
+    'Nhắn 0 để xem lại menu.',
+  ].join('\n');
+};
+
+/**
+ * Gỡ link PH/HS khi chuyển sang GIÁO VIÊN (/link <mã>): consumeLinkCode chỉ tự gỡ link
+ * teacher cũ, nên helper này hoàn tất nửa còn lại của ngữ nghĩa "đổi vai".
+ * Trả true nếu đã gỡ ít nhất 1 link PH/HS (để tin nhắn nói đúng "đã CHUYỂN" hay chỉ "liên kết").
+ */
+export const deactivateStudentParentLinks = async (db: FirebaseFirestore.Firestore, botId: string, channelUserId: string, now = new Date()): Promise<boolean> => {
+  const snaps = await db.collection('channelLinks').where('channel', '==', 'zalo_bot').where('channelAccountId', '==', botId).where('channelUserId', '==', channelUserId).where('active', '==', true).get();
+  const targets = snaps.docs.filter(doc => { const role = String((doc.data() as any).role ?? 'teacher'); return role === 'parent' || role === 'student'; });
+  for (const doc of targets) await doc.ref.update({ active: false, updatedAt: now.getTime() });
+  return targets.length > 0;
 };
 
 /**

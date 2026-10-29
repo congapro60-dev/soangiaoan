@@ -115,12 +115,15 @@ describe('menu PH/HS — Phase 2', () => {
     expect(todo).not.toContain('BTVN tuần 3');
   });
 
-  it('M6: parseMenuChoice: 1–8 là section, 0/menu là menu, còn lại invalid', () => {
+  it('M6: parseMenuChoice: 1–8 là section, 0/menu là menu, 9 là đổi vai, còn lại invalid', () => {
     for (const key of ['1', '2', '3', '4', '5', '6', '7', '8']) expect(parseMenuChoice(key)).toEqual({ kind: 'section', key });
     expect(parseMenuChoice('0')).toEqual({ kind: 'menu' });
     expect(parseMenuChoice('menu')).toEqual({ kind: 'menu' });
     expect(parseMenuChoice('')).toEqual({ kind: 'menu' });
-    for (const bad of ['9', '12', '1 2', 'abc', '/link']) expect(parseMenuChoice(bad)).toEqual({ kind: 'invalid' });
+    // Mục 9 "Đổi vai trò" (chốt 29/10) — không còn là invalid.
+    expect(parseMenuChoice('9')).toEqual({ kind: 'switchRole' });
+    expect(parseMenuChoice('doi vai')).toEqual({ kind: 'switchRole' });
+    for (const bad of ['12', '1 2', 'abc', '/link']) expect(parseMenuChoice(bad)).toEqual({ kind: 'invalid' });
   });
 
   it('M7: mục 6 nói rõ đang liên kết em nào và đường đổi em / quên PIN', async () => {
