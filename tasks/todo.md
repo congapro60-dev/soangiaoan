@@ -93,6 +93,14 @@
 - [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); build pass.
 - [x] Gộp đợt với v38 theo quyết định user "phương án 2" — cùng archive deploy.
 
+## v42 — chặn vào muộn + luồng khán giả (29/10/2026)
+
+- [x] Công tắc trên board GV: Mo / Chan vào muộn, lưu config.lateJoin.
+- [x] HS vào muộn khi CHẶN → khán giả (spectator=true, status=spectator); không chơi được (403 SPECTATOR); client banner + bản đồ xem.
+- [x] HS vào muộn khi MỞ → chơi bình thường (giữ nguyên hành vi cũ).
+- [x] Test: v42 **4/4**; full suite **1465/1465 PASS, 0 fail**; build pass.
+- [ ] Deploy v42 qua Codex + kiểm độc lập.
+
 ## v41 — ma trận SGK đầy đủ + thời lượng tùy chọn + AI focus (29/10/2026)
 
 - [x] +44 bài mới theo SGK KNTT (10: 17, 11: 14, 12: 13) — tổng 88 topics; fallback generator cho bài mới; sửa lỗi undefined prose ở mọi context.

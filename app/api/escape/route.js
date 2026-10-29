@@ -140,8 +140,8 @@ async function settle(s, room, data, arena) { let { c, entries } = data || await
     settleArena(s, room, a, arenaRows); settleGameActivities(s, room, Date.now(), gameNow(room)); }
 function roomDuration(room){const rule=roomCampaign(room)?.rule,limits=Object.hasOwn(modeRules,rule)?modeRules[rule].constants:null;if(limits?.duration)return limits.duration;const cd=roomCampaign(room)?.durationMinutes;if(!limits&&Number.isInteger(cd)&&cd>=10&&cd<=60)return cd*60000;return limits?.rounds&&limits?.roundMs?limits.rounds*limits.roundMs:G.DURATION;}
 async function publicState(s, room, revision = 0) {
-    const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room),classActivity:publicGameActivity(gameActivityOf(room),Date.now(),s.id)};
-    if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {...roomInfo,id:s.id,name:s.name,status:room.started?'active':'waiting',round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
+    const roomInfo={campaign:campaignPublic(roomCampaign(room)),durationMs:roomDuration(room),classActivity:publicGameActivity(gameActivityOf(room),Date.now(),s.id),spectator:!!s.spectator,status:s.spectator?'spectator':(room.started?'active':s.status),lateJoin:roomCampaign(room)?.lateJoin==='watch'?'watch':'open'};
+    if(roomCampaign(room)?.rule&&roomCampaign(room).rule!=='campaign')return {...roomInfo,id:s.id,name:s.name,spectator:!!s.spectator,status:s.spectator?'spectator':(room.started?'active':'waiting'),round:room.round,revision,mode:modeView(room,s),arena:await arenaView(room,s.id),community:await communityView(room,s.id),start:s.start,race:null,solved:[],hints:[],events:[],drafts:{},room:room.code};
     const i=taskIndex(s);if(i<5&&s.status==='active')recoveryFor(s,i);
     let v=G.variant(s.seed),recovery=supportView(s,i);
     return {...roomInfo,recovery,supportPolicy:s.campaign?.supportPolicy||'competitive',drafts:s.drafts||{},community:await communityView(room,s.id),arena:await arenaView(room,s.id),race:racePublic(s),round:s.round||1,levels:s.levels||null,score:s.effects?.wallet??s.score??0,effects:s.effects||null,puzzles:s.levels?s.levels.map((l,j)=>{if(l===null)return null;const p=safePuzzle(puzzle(s,j,l));if(j===i&&recovery?.assisted)p.points=recovery.points;return p;}):null,revision,version:s.version,id:s.id,name:s.name,status:s.status,start:s.start,end:s.end,solved:s.solved,hints:s.hints,wrong:s.wrong,penalty:s.penalty,cooldown:s.cooldown,events:s.events,variant:v,room:room.code,hintTexts:s.hints.map((levels,j)=>(s.levels&&s.levels[j]!==null?levelHints(puzzle(s,j,s.levels[j])):hints(j,v)).slice(0,levels.length))};
@@ -468,6 +468,7 @@ if (b.action === 'create-room') {
             if (dup)
                 return fail('Tên nhóm này đã vào phòng. Dùng lại thiết bị đã vào, hoặc chọn tên nhóm khác.', 409);
             let seed = crypto.getRandomValues(new Uint32Array(1))[0], s = G.make(name, seed, room.started || 0);
+            if (room.started && roomCampaign(room)?.lateJoin === 'watch') { s.spectator = true; s.status = 'spectator'; }
             const modeConfigValue = roomCampaign(room)?.rule && roomCampaign(room).rule !== 'campaign' ? roomCampaign(room) : null;
             if (modeConfigValue) {
                 const participation = modeConfigValue.participation || 'individual';
@@ -489,7 +490,7 @@ if (b.action === 'create-room') {
                 s.campaign = roomCampaign(room) || s.campaign;
                 initRace(s);
             }
-            s.status = room.started ? 'active' : 'waiting';
+            s.status = s.spectator ? 'spectator' : (room.started ? 'active' : 'waiting');
             s.start = room.started;
             s.requestCache = {};
             G.expire(s, gameNow(room), roomDuration(room));
@@ -916,6 +917,7 @@ if (b.action === 'create-room') {
                 let guard = guardRequest(s, b, room, row.revision);
                 if (guard.error) return fail(guard.error, guard.status, guard.code);
                 if (guard.replay) return reply({ state: await publicState(s, room, row.revision), result: guard.replay, map: await raceRoom(room) });
+                if (s.spectator) return fail('Bạn đang ở chế độ xem. Chủ phòng không cho tham gia muộn.', 403, 'SPECTATOR');
                 if (communityActive(room))
                     return fail(pausedMessage(room), 409, 'EVENT_ACTIVE');
                 let now = gameNow(room), result = { ok: true }, trigger = null, triggerSlot = null, triggerRows = [], chooseInsert = null;
@@ -1130,6 +1132,7 @@ if (b.action === 'create-room') {
         }
         if (b.action === 'skill') {
             let t = await loadTeam(req, b.id);
+            if (!t || t.s.spectator) return fail('Bạn đang ở chế độ xem. Chủ phòng không cho tham gia muộn.', 403, 'SPECTATOR');
             if (!t || t.s.status !== 'active' || !t.s.levels || t.s.solved.length < 1)
                 return fail('Mở ít nhất một khóa để dùng kỹ năng.');
             if ((b.round ?? 1) !== t.room.round)
@@ -1258,6 +1261,18 @@ if (b.action === 'create-room') {
     if (saved.meta.changes !== 1)
         return fail('Phòng vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
     return reply({ ok: true, saved: merged.saved, bank: merged.bank, errors: merged.errors.slice(0, 8) });
+}
+if (b.action === 'set-late-join') {
+    const room = await adminAuth(req, b.id, 'game-action');
+    if (!room) return fail('Chỉ giáo viên quản lý phòng mới được đổi chế độ vào muộn.', 403);
+    if (typeof b.lateJoin !== 'string' || !['open', 'watch'].includes(b.lateJoin)) return fail('Chế độ vào muộn không hợp lệ.');
+    if ((b.round ?? 1) !== room.round) return fail('Phòng đã reset.', 409, 'SESSION_RESET');
+    if (typeof b.requestId !== 'string' || !b.requestId.trim() || b.requestId.length > 70) return fail('Thiếu mã lượt gửi.');
+    const config = roomCampaign(room) || {};
+    config.lateJoin = b.lateJoin;
+    const saved = await stmt('UPDATE rooms SET config=?,revision=revision+1 WHERE id=? AND revision=? AND round=? AND deleted_at IS NULL', JSON.stringify(config), room.id, room.revision, room.round).run();
+    if (saved.meta.changes !== 1) return fail('Phòng vừa thay đổi. Thử lại.', 409, 'REVISION_MISMATCH');
+    return reply({ ok: true, lateJoin: b.lateJoin });
 }
 if (b.action === 'teacher-console') {
     const room = await adminAuth(req, b.id, 'game-action');
