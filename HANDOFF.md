@@ -4,6 +4,31 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
+## Latest checkpoint - V40 DANG DEPLOY: nen anh + tong ket tiet (29/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `f38b691` (= version 39 da phat hanh, deployment `appgdep_6ae29a706fa08191b9adc4b0948c7037`).
+
+### Trang thai: DANG DEPLOY — code + test + smoke local xong, cho deploy.
+
+### Noi dung thay doi v40 (2 y tuong con lai: #3 nén anh + #9 tong ket tiet)
+
+- **Nen anh nang** (ffmpeg libwebp q82, giu nguyen pixel): station.png 2.251.908 B → station.webp 183.330 B (-92%); station-interior.png 2.737.722 B → station-interior.webp 307.894 B (-89%); mascots.png 1.078.821 B → mascots.webp 232.548 B (-78%). Tong tiet kiem ~6,3 MB moi lan tai trang co ban do. Cap nhat tham chieu: style.css (6), campaign-data.js (9), lib/product-content.js (1), lib/campaign.js THEMES (2), LessonThemedRoute.tsx fallback (1); da xoa 3 PNG cu.
+- **Tong ket tiet**: `reviewTopics(r)` phan loai theo outcomes — skipped = "Can ôn (tu bo)", bypassed = "Khong gap", chua co outcome = "Chua toi" (theo chu de tram tu campaign.plan); `lessonSummary()` hien details tren board GV; CSV them 2 cot "Chu de can ôn (tu bo)" + "Chua toi".
+
+### Verify truoc deploy (29/10)
+
+- `tests/v40-summary-assets.test.mjs` **3/3** (webp magic + tham chieu + wiring reviewTopics qua sandbox); full suite **1454/1454 PASS, 0 fail**; `npm run build` pass; smoke local + browser xem webp render. `lib/exam/**` va phong demo `7E42C2` khong dong den.
+
+### Release record V40
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **40** |
+| deployment_id | (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` (placeholder) |
+| archive size | (placeholder) |
+
 ## Latest checkpoint - V39 DA PHAT HANH: telemetry loi + dong ho tiet + che do TV (28/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `49b2888` (= version 38 da phat hanh, deployment `appgdep_6ae1c4a8d9088191b0b5cfabc215cd77`).

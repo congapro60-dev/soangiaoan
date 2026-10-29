@@ -153,7 +153,7 @@ export function getSafeWorldMetadata(themeKey?: string): SafeWorldMetadata {
     coverImage = `/assets/${coverImage}`;
   }
 
-  let spriteImage = rawTheme.sprites || "mascots.png";
+  let spriteImage = rawTheme.sprites || "mascots.webp";
   if (!spriteImage.startsWith("/")) {
     spriteImage = `/assets/${spriteImage}`;
   }

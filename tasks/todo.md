@@ -93,6 +93,13 @@
 - [x] Test: `tests/teacher-console.test.mjs` 5/5 (VM harness route thật + needle client); build pass.
 - [x] Gộp đợt với v38 theo quyết định user "phương án 2" — cùng archive deploy.
 
+## v40 — nén ảnh + tổng kết tiết (29/10/2026)
+
+- [x] Nén 3 PNG nặng → WebP bằng ffmpeg (giảm 78–92%, giữ nguyên pixel); cập nhật style.css/campaign-data/product-content/campaign THEMES/LessonThemedRoute; xóa PNG cũ.
+- [x] Tổng kết tiết: eviewTopics phân loại outcomes (từ bỏ / không gặp / chưa tới) theo chủ đề trạm; lessonSummary trên board GV; CSV thêm 2 cột.
+- [x] Test: 	ests/v40-summary-assets.test.mjs **3/3**; full suite **1454/1454 PASS, 0 fail**; build pass.
+- [ ] Deploy v40 qua Codex + kiểm độc lập (webp render + marker tổng kết).
+
 ## v39 — telemetry lỗi + đồng hồ tiết + chế độ TV (28/10/2026)
 
 - [x] Telemetry lỗi production: client bắt `error`/`unhandledrejection` → `client-error` (không auth, dedupe, ≤10/phiên); server log + ring 30 trong `system_settings`, fail-soft.
