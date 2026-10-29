@@ -179,3 +179,26 @@ export function proposeGroups(input: GroupingInput): GroupProposal[] {
 
   return ensureNoRoleRepeat(groups, existingRoles);
 }
+
+
+// --- Nhóm xoay tua tự động (Gate D mini, thầy duyệt 29/10) ---
+
+export interface LiveGroupCounters {
+  members: Record<string, number>;
+  submitted: Record<string, number>;
+}
+
+/** R1 — nhóm xong sớm: mọi thành viên đã gửi phần nhóm (members > 0 và submitted ≥ members). */
+export const isGroupDone = (counters: LiveGroupCounters, groupNumber: string): boolean => {
+  const members = counters.members[groupNumber] ?? 0;
+  const submitted = counters.submitted[groupNumber] ?? 0;
+  return members > 0 && submitted >= members;
+};
+
+/** R2 — nhóm chậm: quá 80% thời lượng chặng nhóm mà tỷ lệ gửi < 50%. Chỉ dùng cho panel GV. */
+export const isGroupSlow = (counters: LiveGroupCounters, groupNumber: string, elapsedRatio: number): boolean => {
+  if (elapsedRatio < 0.8) return false;
+  const members = counters.members[groupNumber] ?? 0;
+  const submitted = counters.submitted[groupNumber] ?? 0;
+  return members > 0 && submitted / members < 0.5;
+};
