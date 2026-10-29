@@ -91,7 +91,11 @@ export const requestRegrade = async (
   if (!claimed) return { kind: 'rejected', reply: REGRADE_REPLIES.alreadyUsed };
 
   const title = String((target.data as any).assignmentTitle ?? 'bài đã nộp');
-  chayNgam(regradeAndNotify(botId, userId, chatId, target.id, title, classId));
+  // `chayNgam` trả FALSE khi môi trường không có `waitUntil` (local/test) — khi đó PHẢI chờ
+  // chấm xong mới trả lời, nếu bỏ qua giá trị trả về thì việc chấm KHÔNG BAO GIỜ CHẠY
+  // (lỗi thật 29/10: bấm chấm lại thấy "đang chấm" nhưng gradedAt không đổi).
+  const background = regradeAndNotify(botId, userId, chatId, target.id, title, classId);
+  if (!chayNgam(background)) await background;
   return { kind: 'started', submissionId: target.id, title };
 };
 
