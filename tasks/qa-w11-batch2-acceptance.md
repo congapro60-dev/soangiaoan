@@ -407,3 +407,17 @@ Giao qua action `teacherAssignAdaptiveLesson` (idToken GV từ phiên Edge 9222)
 | g12 · AD4GKT | Nguyên hàm T2 · Khoảng biến thiên T1 · Mức độ phân tán T2 · Phương sai T1 |
 
 QA portal HS (lớp g12 đang phiên, Edge 9223): `studentAdaptiveList` trả đúng 4 bài g12 mới + 1 bài cũ, `closed: false` — HS bấm "Vào bài" chạy luồng chấm có điểm chuẩn. Lưu ý UI "Giao bài" trên GV chỉ list bài tương tác V8.8 — bài tự học nguồn phải giao qua action (đã thực hiện).
+
+---
+
+## Gate D mini · Nhóm xoay tua tự động (29/10/2026)
+
+| Khoản | Kết quả | Verdict |
+|---|---|---|
+| Unit test R1/R2/R3 (grouping.test.ts) | 5 test PASS (thuần, không TDZ) | ✓ |
+| Build | 0 TS error | ✓ |
+| QA live R1 (thẻ DEEP) | Code deploy; script QA chưa đăng nhập được phiên live HS (trang /lop chỉ login lớp) — cần GV điều hành thật để chốt | ⏳ NOT_RUN (không phải FAIL) |
+| QA live R2 (nhãn chậm GV) | Như trên — logic thuần đã test | ⏳ NOT_RUN |
+| R3 | Hàm thuần không đổi counters (test assert) | ✓ |
+
+**Trạng thái: IMPLEMENTED_UNVERIFIED (live) — Unit PASS.**
