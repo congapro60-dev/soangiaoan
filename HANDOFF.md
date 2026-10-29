@@ -29,11 +29,11 @@
 | archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` |
 | archive size | 44143412 bytes |
 
-## Latest checkpoint - V41 DANG DEPLOY: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
+## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
 
 **Branch**: 'codex/universal-content-release' · Worktree: 'C:\Users\ADMIN\.codex\worktrees\universal-content-release' · Base: 'f38b691' (+ v40 da live truoc do: deployment 'appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de', version 40).
 
-### Trang thai: DANG DEPLOY — code + test + build xong, cho deploy.
+### Trang thai: DA PHAT HANH — deployment `appgdep_6ae306f1084c8191ad7f1d52ce1178d2`, Site version 41.
 
 ### Noi dung thay doi v41
 
@@ -52,10 +52,10 @@
 | Truong | Gia tri |
 |---|---|
 | version_number | **41** |
-| deployment_id | (placeholder — Codex dien sau deploy) |
-| commit_sha | (placeholder — Codex dien sau commit) |
-| archive | C:\Users\ADMIN\.codex\sites-release\release-20261029-v41.tar.gz (placeholder) |
-| archive size | (placeholder) |
+| deployment_id | `appgdep_6ae306f1084c8191ad7f1d52ce1178d2` |
+| commit_sha | `e04e22a72ec3c4cdef5e38267c60d07cec80d069` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v41.tar.gz` |
+| archive size | 44148729 bytes |
 
 ## Latest checkpoint - V39 DA PHAT HANH: telemetry loi + dong ho tiet + che do TV (28/10/2026)
 
