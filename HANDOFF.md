@@ -143,6 +143,11 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
   2. `npm run build` (0 TS)
   3. Với thay đổi chạm live/portal: mở thử 1 trang thật qua Edge debug trước khi push.
 - Khi thêm `useEffect` trong function component: **deps array không được tham chiếu biến khai báo phía sau** (TDZ); đặt effect sau mọi `const` nó dùng.
+## Gate D mini — nhóm xoay tua: ĐÃ CHỐT QA (29/10)
+- R1 thẻ DEEP: **VERIFIED trên live** — session `Dypueu4PNboPdTOqQGon` (11-11-76): HS nhóm 3 gửi bài + GV bật "Hiện kết quả lớp" → thẻ "NHÓM EM XONG SỚM — NHẬN NHIỆM VỤ MỞ RỘNG" hiện với câu VD đề trần, không nộp máy. Chi tiết: `tasks/qa-w11-batch2-acceptance.md`.
+- R2 nhãn nhóm chậm: đã chuyển sang `TvSlowGroups` trên màn tv-control (TeacherLiveView không bao giờ render vì mode=teacher bị remap); unit test 6/6; live cần 2 HS — NOT_RUN.
+- Hai fix đi kèm (commit `00cc56b`, `b9e5c03`): listener groupProgress 403 khi stats tắt; R2 sai màn hình.
+- Quy tắc vận hành: HS gửi bài lúc stats TẮT → GV bật "Hiện kết quả lớp" sau. Bật stats trước sẽ khoá ô trả lời của HS.
 ## VIỆC MỚI 29/10 — 2 chức năng V8.8 (addendum thầy giao)
 - Chức năng 1 (COMM-AQ-01): Always-on Hand Raise (có tên) + Câu hỏi ẩn danh tuyệt đối (P0 — không định danh trong data model) + Understanding Pulse sau hoạt động chính. Spec: 	asks/spec-hand-raise.md.
 - Chức năng 2 (ASS-MDP-01): Student Surface Mobile/Desktop Parity — M1/M2/M3, math on mobile, attention handoff, sync/device, P0 trước pilot, 30 test MDP. Spec: 	asks/spec-parity.md.

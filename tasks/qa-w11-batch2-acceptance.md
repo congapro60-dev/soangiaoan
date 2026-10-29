@@ -410,14 +410,21 @@ QA portal HS (lớp g12 đang phiên, Edge 9223): `studentAdaptiveList` trả đ
 
 ---
 
-## Gate D mini · Nhóm xoay tua tự động (29/10/2026)
+## Gate D mini · Nhóm xoay tua tự động (29/10/2026 — QA live chốt ngày 29/10)
 
 | Khoản | Kết quả | Verdict |
 |---|---|---|
-| Unit test R1/R2/R3 (grouping.test.ts) | 5 test PASS (thuần, không TDZ) | ✓ |
+| Unit test R1/R2/R3 (grouping.test.ts) | PASS (thuần, không TDZ) | ✓ |
 | Build | 0 TS error | ✓ |
-| QA live R1 (thẻ DEEP) | Code deploy; script QA chưa đăng nhập được phiên live HS (trang /lop chỉ login lớp) — cần GV điều hành thật để chốt | ⏳ NOT_RUN (không phải FAIL) |
-| QA live R2 (nhãn chậm GV) | Như trên — logic thuần đã test | ⏳ NOT_RUN |
+| vitest `src/lib/liveLesson/v4 src/components src/pages` | 84 file / 732 test PASS (gồm test render) | ✓ |
+| QA live R1 (thẻ DEEP) | Session `Dypueu4PNboPdTOqQGon` (bài 11-11-76, lớp 11Columbus, HS Đặng Tuệ Minh): HS chọn nhóm 3 + gửi bài → GV bật "Hiện kết quả lớp" → máy HS hiện **"NHÓM EM XONG SỚM — NHẬN NHIỆM VỤ MỞ RỘNG"** với câu VD đề trần (Phiếu số 3, ý 3) và dòng "không nộp máy" — đúng đặc tả | ✓ PASS |
+| QA live R2 (nhãn chậm GV) | Unit test `TvSlowGroups.test.ts` 6/6 PASS; nhãn đã chuyển sang màn GV thật (tv-control). Live cần 2 HS (1 nhóm gửi, 1 nhóm không) — chỉ có 1 PIN HS | ⏳ NOT_RUN (unit PASS) |
 | R3 | Hàm thuần không đổi counters (test assert) | ✓ |
 
-**Trạng thái: IMPLEMENTED_UNVERIFIED (live) — Unit PASS.**
+### Hai lỗi đã sửa khi QA live (commit `00cc56b`, `b9e5c03`)
+1. **Listener `groupProgress` chết vì 403**: doc chỉ đọc được khi GV bật "Hiện kết quả lớp". HS/GV subscribe lúc stats tắt → 403 vĩnh viễn, bật stats lại cũng không nhận. Sửa: chỉ subscribe khi `publicStatsEnabled`/`showStats` bật, đổi cờ thì gắn lại listener (`StudentLiveView`, `TeacherLiveView`, `TvSlowGroups`).
+2. **R2 gắn sai màn hình**: `mode=teacher` bị remap thành `tv-control` nên `TeacherLiveView` không bao giờ render — nhãn "Nhóm chậm" không bao giờ tới tay GV. Sửa: tách thành `TvSlowGroups` gắn vào presenterControls của `TvLiveView` (màn điều khiển thật của GV); HS/TV không thấy. Logic thuần tách ra `selectSlowGroups` (6 test).
+
+**Lưu ý vận hành cho thầy**: thứ tự dùng đúng là (1) HS chọn nhóm và **gửi bài lúc "Hiện kết quả lớp" còn TẮT** (bật stats sẽ khoá ô trả lời của HS), (2) sau khi nhóm gửi đủ, thầy bật "Hiện kết quả lớp" → thẻ nhiệm vụ mở rộng hiện cho nhóm xong sớm, nhãn nhóm chậm hiện cho thầy nếu nhóm nào quá 80% thời lượng mà gửi dưới 50%.
+
+**Trạng thái: R1 VERIFIED (live); R2 IMPLEMENTED — unit PASS, live cần 2 HS để chạy.**
