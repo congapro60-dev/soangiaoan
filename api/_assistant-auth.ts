@@ -122,7 +122,14 @@ export const claimAssistantRequestNonce = async (nonce: string, now = Date.now()
   const ttl = Number.isFinite(ttlMs) && (ttlMs as number) > 0 ? (ttlMs as number) : ASSISTANT_SIGNATURE_WINDOW_SECONDS * 1000;
   await firestore.runTransaction(async tx => {
     const existing = await tx.get(ref);
-    if (existing.exists) throw new Error('Replay detected');
+    // PHẢI xét HẾT HẠN (lỗi thật 29/10): trước đây chỉ `exists` là throw, nên khoá nội dung
+    // 10 giây biến thành khoá VĨNH VIỄN — HS gửi lại đúng ảnh/câu đó thì bot im lặng mãi mãi.
+    if (existing.exists) {
+      const value = existing.data() as { expiresAt?: number } | undefined;
+      const expiresAt = Number(value?.expiresAt ?? 0);
+      if (!expiresAt || expiresAt > now) throw new Error('Replay detected');
+      // Bản ghi cũ đã hết hạn → ghi đè bằng lượt mới (không throw).
+    }
     tx.set(ref, { createdAt: now, expiresAt: now + ttl } satisfies AssistantRequestNonceDoc);
   });
 };
