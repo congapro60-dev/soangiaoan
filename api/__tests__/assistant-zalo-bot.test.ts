@@ -546,8 +546,9 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     const [, , mathSource, caption, classId] = sendMathFormulaPhotoMock.mock.calls[0] as unknown as string[];
     // BẢN RENDER phải còn LaTeX (bug 28/10: truyền bản đã convert → không bao giờ render)
     expect(mathSource).toContain('$$\\dfrac{1}{3}a^2 h$$');
-    // CAPTION là bản Unicode đầy đủ + link đúng lớp
-    expect(caption).toContain('⅓·a²·h');
+    // ẢNH đã chứa toàn bộ lời giải → caption NGẮN, KHÔNG lặp lời giải (chủ dự án 29/10)
+    expect(caption).not.toContain('⅓·a²·h');
+    expect(caption).toContain('lời giải');
     expect(caption).not.toContain('$$');
     expect(caption).toContain('/lop/R6RCFC');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);

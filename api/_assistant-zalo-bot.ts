@@ -201,21 +201,24 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       // chèn ngay trước "Nhắn 0 để xem lại menu" để em luôn bấm được vào web.
       // Gửi THUẦN (không qua output() che link) như nhánh menu-link, nếu không URL
       // bị đổi thành "[đã ẩn liên kết]" và HS không bấm được.
-      const caption = withWebPortalLink(detail.text, role, bundle.joinCode);
-      // Thứ tự ưu tiên (chốt 28/10):
-      // 1. AI vẽ được hình (khối geometry) → gửi ẢNH HÌNH kèm caption.
-      // 2. Câu trả lời có công thức LaTeX → gửi ẢNH CÔNG THỨC KaTeX (bản đẹp chuẩn SGK)
-      //    kèm caption Unicode đầy đủ — ảnh lỗi thì caption vẫn đủ ý.
+      const fullCaption = withWebPortalLink(detail.text, role, bundle.joinCode);
+      // Thứ tự ưu tiên (chốt 28/10, bổ sung 29/10):
+      // 1. AI vẽ được hình (khối geometry) → gửi ẢNH HÌNH kèm caption LỜI GIẢI ĐẦY ĐỦ
+      //    (ảnh chỉ chứa hình vẽ, lời giải nằm ở caption — không phải lặp).
+      // 2. Câu trả lời có công thức LaTeX → gửi ẢNH CÔNG THỨC KaTeX. Ảnh đã chứa TOÀN BỘ
+      //    lời giải render đẹp nên caption CHỈ là lời nhắn ngắn + link lớp — KHÔNG lặp
+      //    lại lời giải (chủ dự án 29/10: "đã đưa ảnh rồi thì không cần đưa text nữa").
       // 3. Không có gì → tin text như cũ.
-      // Mọi bước render/upload/sendPhoto hỏng → fallback tin text.
+      // Mọi bước render/upload/sendPhoto hỏng → fallback tin text đầy đủ (bot không im lặng).
       let photoSent = false;
       if (detail.geometry) {
-        photoSent = await sendGeometryPhoto(token, chatId, detail.geometry, caption, classId, sendPhoto);
+        photoSent = await sendGeometryPhoto(token, chatId, detail.geometry, fullCaption, classId, sendPhoto);
       } else if (detail.hasMath) {
         // PHẢI truyền mathSource (còn LaTeX) — không phải text đã convert Unicode.
-        photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, caption, classId, sendPhoto);
+        const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode);
+        photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, photoCaption, classId, sendPhoto);
       }
-      if (!photoSent) await sendStyled(token, chatId, caption, false);
+      if (!photoSent) await sendStyled(token, chatId, fullCaption, false);
       return '';
     } catch {
       return AI_CHAT_REPLIES.unavailable;
