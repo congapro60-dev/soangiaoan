@@ -19,6 +19,15 @@ const DEFAULT_ASSIGNMENTS = [
 const DEFAULT_MODELS = ['vilao/gemini-3.8-flash@none', 'vilao/gemini-3.8-flash@low', 'xkiro/qwen/qwen3.8-max:free'].join('\n');
 const USD_VND = 26_190;
 
+/** Kết quả lưu ở trình duyệt này: mất mạng/đóng tab thì bấm chạy lại sẽ chạy tiếp, không làm lại lượt đã xong. */
+const SAVE_KEY = 'modelBenchmarkRuns';
+const loadSaved = (): { submissionId: string; run: BenchmarkRun }[] => {
+  try { const value = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; }
+};
+const save = (runs: { submissionId: string; run: BenchmarkRun }[]) => {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(runs)); } catch { /* đầy bộ nhớ: vẫn hiện trên màn hình */ }
+};
+
 const lines = (text: string) => text.split(/\s+/).map(s => s.trim()).filter(Boolean);
 const vnd = (usd: number | null) => (usd === null ? '—' : `${Math.round(usd * USD_VND).toLocaleString('vi-VN')}₫`);
 const pct = (x: number | null) => (x === null ? '—' : `${Math.round(x * 100)}%`);
@@ -33,8 +42,9 @@ export const ModelBenchmarkPanel = () => {
   const [models, setModels] = useState(DEFAULT_MODELS);
   const [mode, setMode] = useState<'quick' | 'thorough'>('quick');
   const [onlyApproved, setOnlyApproved] = useState(true);
+  const [parallel, setParallel] = useState(4);
   const [truth, setTruth] = useState<BenchmarkTruth[]>([]);
-  const [runs, setRuns] = useState<{ submissionId: string; run: BenchmarkRun }[]>([]);
+  const [runs, setRuns] = useState<{ submissionId: string; run: BenchmarkRun }[]>(loadSaved);
   const [catalog, setCatalog] = useState('');
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -54,25 +64,29 @@ export const ModelBenchmarkPanel = () => {
       const items = (await listBenchmarkSubmissions(lines(assignments))).items.filter(item => !onlyApproved || item.approved);
       setTruth(items);
       const picked = limit === null ? items : items.slice(0, limit);
-      const queue = picked.flatMap(item => lines(models).map(model => ({ item, model })));
-      const done: { submissionId: string; run: BenchmarkRun }[] = [];
-      setRuns([]);
-      // Hai lượt song song: đủ nhanh mà không dồn tải lên chợ API.
+      const allJobs = picked.flatMap(item => lines(models).map(model => ({ item, model })));
+      // Chạy tiếp: lượt đã chấm được (ok) giữ lại, không tốn tiền chạy lần hai; lượt lỗi chạy lại.
+      const done = loadSaved().filter(r => r.run.ok);
+      const finished = new Set(done.map(r => `${r.submissionId}|${r.run.model}`));
+      const queue = allJobs.filter(job => !finished.has(`${job.item.id}|${job.model}`));
+      setRuns([...done]);
+      // Chạy song song vài lượt: mỗi lượt là một hàm máy chủ riêng, chợ API chịu được.
       let next = 0;
       const worker = async () => {
         while (next < queue.length) {
           const job = queue[next++];
-          setBusy(`Đang chấm thử ${done.length + 1}/${queue.length}…`);
+          setBusy(`Đang chấm thử… còn ${queue.length - next} lượt chờ`);
           let result: BenchmarkRun;
           try { result = await runBenchmarkGrade(job.item.id, job.model, mode); } catch (error) {
             result = { ok: false, model: job.model, ms: 0, error: error instanceof Error ? error.message : 'lỗi' };
           }
           done.push({ submissionId: job.item.id, run: result });
           setRuns([...done]);
+          save(done);
         }
       };
-      await Promise.all([worker(), worker()]);
-      setMessage(`Xong ${done.length} lượt chấm thử trên ${picked.length} bài.`);
+      await Promise.all(Array.from({ length: parallel }, () => worker()));
+      setMessage(`Xong. Có ${done.length} lượt chấm thử trên ${picked.length} bài.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Lỗi không rõ.');
     } finally { setBusy(''); }
@@ -99,10 +113,12 @@ export const ModelBenchmarkPanel = () => {
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
         <label className="inline-flex items-center gap-1"><input type="checkbox" checked={onlyApproved} onChange={e => setOnlyApproved(e.target.checked)} /> Chỉ bài GV đã duyệt</label>
         <label className="inline-flex items-center gap-1"><input type="checkbox" checked={mode === 'thorough'} onChange={e => setMode(e.target.checked ? 'thorough' : 'quick')} /> Chấm kĩ (chép bài trước)</label>
+        <label className="inline-flex items-center gap-1">Song song <input type="number" min={1} max={8} className="w-12 rounded-lg border border-slate-200 px-1" value={parallel} onChange={e => setParallel(Math.min(8, Math.max(1, Number(e.target.value) || 1)))} /></label>
         <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => void loadCatalog()}>Xem model có sẵn</button>
         <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => void run(3)}>Chạy thử 3 bài</button>
         <button type="button" className={btn} disabled={Boolean(busy)} onClick={() => void run(null)}>Chạy tất cả</button>
         {runs.length > 0 && <button type="button" className={btnGhost} onClick={copy}>Chép kết quả (JSON)</button>}
+        {runs.length > 0 && <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => { save([]); setRuns([]); }}>Xoá kết quả cũ</button>}
         {busy && <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />{busy}</span>}
       </div>
       {catalog && <p className="mt-2 max-h-28 overflow-auto break-all rounded-xl bg-slate-50 p-2 font-mono text-[11px] text-slate-600">{catalog}</p>}
