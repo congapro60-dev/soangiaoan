@@ -1,7 +1,7 @@
 import './liveClassroom.css';
 import { StudentActivityGuide } from './StudentActivityGuide';
 import { StudentGroupPicker } from './StudentGroupPicker';
-import { subscribeToLiveGroupProgress, type LiveGroupProgress } from '../../services/liveActivityService';
+import { subscribeToLiveGroupProgress, subscribeToMyLiveGroup, type LiveGroupProgress } from '../../services/liveActivityService';
 import { isGroupDone } from '../../lib/liveLesson/v4/grouping';
 import { StudentWritingSupport } from './StudentWritingSupport';
 import { StudentGoalReflection } from './StudentGoalReflection';
@@ -287,6 +287,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const [glossaryPopup, setGlossaryPopup] = useState<StudentGlossaryPopupPayload | null>(null);
   const [assignedGroup, setAssignedGroup] = useState<{ groupId: string; scaffold: string; startedAt: number } | null>(null);
   const [groupCounters, setGroupCounters] = useState<LiveGroupProgress | null>(null);
+  const [myGroupNumber, setMyGroupNumber] = useState('');
 
   // Nhóm xoay tua tự động (R1) — theo dõi tiến độ nhóm công khai của phiên.
   useEffect(() => {
@@ -294,6 +295,11 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     const unsubscribe = subscribeToLiveGroupProgress(sessionId, (value) => setGroupCounters(value), () => setGroupCounters(null));
     return () => unsubscribe();
   }, [sessionId]);
+  // Nhóm của chính em (từ StudentGroupPicker — chọn nhóm công khai theo phiên).
+  useEffect(() => {
+    if (!sessionId || !participantUid) return;
+    return subscribeToMyLiveGroup(sessionId, participantUid, (group) => setMyGroupNumber(group ?? ''), () => setMyGroupNumber(''));
+  }, [sessionId, participantUid]);
   const [currentRoute, setCurrentRoute] = useState<V4Route | null>(null);
   const [hintState, setHintState] = useState<HintRevealState>({ revealedCount: 0, totalHints: 0 });
 
@@ -364,7 +370,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   // Chỉ dịch phần chữ HS; công thức/ký hiệu Toán giữ nguyên trong nội dung gốc.
   // Màn hình chung (TV) luôn tiếng Việt — không đổi theo lựa chọn của HS.
   // R1 — nhóm xong sớm (mọi thành viên đã gửi) → hiện nhiệm vụ mở rộng (câu VD đề trần, không nộp).
-  const myGroupNumber = assignedGroup?.groupId.replace(/[^0-9]/g, '') ?? '';
+  // myGroupNumber đến từ nhóm HS đã chọn qua StudentGroupPicker (subscribeToMyLiveGroup).
   const groupDone = isGroupActivity && Boolean(myGroupNumber) && groupCounters !== null
     && groupCounters.cueId === publicState.cueId
     && isGroupDone({ members: groupCounters.members, submitted: groupCounters.submitted }, myGroupNumber);
