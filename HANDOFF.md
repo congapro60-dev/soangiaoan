@@ -110,3 +110,9 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - KHÔNG sửa: file Gate D, giáo án gốc, MAIN snapshot (`banToan-w5-w6.snapshot.json`), `gate-d-3-bai-tuan11.md`, 3 file khuôn.
 - KHÔNG commit `tasks/tmp-*`. npm: `npm --prefix "<worktree>" run build`. Git: `git -c core.hooksPath=.githooks commit|push` (push có thể exit 1 dù thành công — đọc dòng `xxx..yyy HEAD -> main`).
 - Pre-push hook đã BỎ yêu cầu HANDOFF (quyết 24/10) — việc trực tiếp ghi vào `tasks/todo.md`.
+
+## VIỆC MỚI 29/10 — 2 chức năng V8.8 (addendum thầy giao)
+- Chức năng 1 (COMM-AQ-01): Always-on Hand Raise (có tên) + Câu hỏi ẩn danh tuyệt đối (P0 — không định danh trong data model) + Understanding Pulse sau hoạt động chính. Spec: 	asks/spec-hand-raise.md.
+- Chức năng 2 (ASS-MDP-01): Student Surface Mobile/Desktop Parity — M1/M2/M3, math on mobile, attention handoff, sync/device, P0 trước pilot, 30 test MDP. Spec: 	asks/spec-parity.md.
+- Kèm theo: **Math Diagram Standard v1.0** (THCS–THPT) — bộ quy tắc vẽ hình chuẩn áp cho pipeline sinh hình (	asks/spec-math-diagram.md).
+- Sổ chờ: PENDING.md — thứ tự: hoàn tất QA nhóm xoay tua (đang dở) → chức năng 1 → chức năng 2 (áp chuẩn hình song song).

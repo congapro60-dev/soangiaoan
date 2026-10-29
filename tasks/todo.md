@@ -34,3 +34,7 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [x] Việc 1 (phương án B, thầy chọn) - server strip + chấm không ghi điểm: `studentAdaptiveLibraryOpen`/`studentAdaptiveLibrarySubmit` (`gradeLibraryAssessment`); route `/adaptive-library/:libraryLessonId`; auto đăng nhập ẩn danh; QA ĐẠT (mở bài strip + nộp diagnostic scored:false). Lưu ý: quickCheck nhúng Dewey giữ hành vi luồng công khai nguyên trạng.
 - [x] Việc 3 - giao 10 bài tự học Tuần 11 cho 3 lớp (g10 2, g11 4, g12 4 — 10/10 → 200; QA portal g12 hiện đúng 4 bài).
 - [x] Thầy xác nhận đồng ý kết hợp 2 loại bài (28/10) — đợt đóng.
+## 29/10 — 2 chức năng mới (addendum)
+- [ ] Hoàn tất QA nhóm xoay tua (đang dở — Edge WS fetch failed, retry).
+- [ ] Chức năng 1: Hand Raise + Câu hỏi ẩn danh + Pulse (spec-hand-raise.md) — audit → P0 → test.
+- [ ] Chức năng 2: Mobile/Desktop Parity theo 4 bước (spec-parity.md) — áp Math Diagram Standard cho hình.
