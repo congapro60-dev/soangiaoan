@@ -61,7 +61,12 @@ export const requestRegrade = async (
   const graded = snaps.docs
     .map(doc => ({ id: doc.id, data: doc.data() as SubmissionDoc & { regradeRequestedAt?: number } }))
     .filter(item => item.data.grade && item.data.status !== 'grading')
-    .sort((a, b) => Number(b.data.grade?.gradedAt ?? 0) - Number(a.data.grade?.gradedAt ?? 0));
+    // `gradedAt` là CHUỖI ISO (không phải number) — Number() trên nó ra NaN, làm sắp xếp
+    // chọn sai bài. Dùng Date.parse; thiếu thì coi như cũ nhất.
+    .sort((a, b) => {
+      const at = (x: typeof a) => { const t = Date.parse(String(x.data.grade?.gradedAt ?? '')); return Number.isFinite(t) ? t : 0; };
+      return at(b) - at(a);
+    });
   const target = graded[0];
   if (!target) return { kind: 'rejected', reply: REGRADE_REPLIES.notFound };
   if (target.data.grade?.teacherApproved === true) return { kind: 'rejected', reply: REGRADE_REPLIES.alreadyApproved };
@@ -89,11 +94,15 @@ const regradeAndNotify = async (
 ): Promise<void> => {
   try {
     const db = getAdminDb();
-    const apiKey = getGradingApiKey();
-    await ensureGeminiKey(apiKey);
     const subSnap = await db.collection(SUBMISSIONS).doc(submissionId).get();
     if (!subSnap.exists) { await sendStyled(botId, chatId, `Không tìm thấy bài "${title}".`); return; }
     const sub = subSnap.data() as SubmissionDoc;
+    // KEY CHẤM BÀI: production KHÔNG có env GRADING_GEMINI_API_KEY — chấm bài dùng key riêng
+    // của GV lưu ở `teacherAiKeys` (ai chấm người đó trả tiền). `getGradingApiKey()` chỉ là
+    // giá trị dự phòng; gọi nó trước sẽ throw và làm chấm lại luôn thất bại (lỗi thật 29/10).
+    const fallbackKey = (() => { try { return getGradingApiKey(); } catch { return ''; } })();
+    const apiKey = await ensureGeminiKey(fallbackKey).then(c => c.key).catch(() => '');
+    if (!apiKey) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
     const aSnap = await db.collection('assignments').doc(String(sub.assignmentId)).get();
     if (!aSnap.exists) { await sendStyled(botId, chatId, `Bài "${title}" không còn tồn tại.`); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
