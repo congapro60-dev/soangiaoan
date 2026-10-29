@@ -41,6 +41,26 @@ export type RegradeOutcome =
   | { kind: 'rejected'; reply: string };
 
 /**
+ * Lấy key chấm bài của GV chủ lớp — đọc THẲNG `teacherAiKeys`.
+ *
+ * VÌ SAO KHÔNG dùng `ensureGeminiKey`: hàm đó đọc REQUEST CONTEXT của GV đang đăng nhập (để biết
+ * ai trả tiền). Webhook Zalo không có context đó nên trả key rỗng, khiến mọi lượt chấm lại thất
+ * bại im lặng (log 29/10: "lay key: KHONG CO KEY"). Ở đây ta biết chắc GV nào (teacherId của bài).
+ */
+export const resolveTeacherGradingKey = async (
+  db: FirebaseFirestore.Firestore,
+  teacherId: string,
+): Promise<string> => {
+  try {
+    const snap = await db.collection('teacherAiKeys').doc(teacherId).get();
+    const data = snap.data() as { geminiKey?: string; enabled?: boolean } | undefined;
+    if (data?.geminiKey && data.enabled !== false) return String(data.geminiKey);
+  } catch { /* thử tiếp env */ }
+  // Dự phòng: env (nếu sau này có cấu hình).
+  try { return getGradingApiKey(); } catch { return ''; }
+};
+
+/**
  * Bắt đầu chấm lại bài GẦN NHẤT đã chấm của em.
  * Trả `started` (đã đặt cờ + giao việc chấm nền) hoặc `rejected` kèm câu trả lời cho HS.
  */
@@ -110,12 +130,11 @@ const regradeAndNotify = async (
     if (!subSnap.exists) { await sendStyled(botId, chatId, `Không tìm thấy bài "${title}".`); return; }
     const sub = subSnap.data() as SubmissionDoc;
     console.log(`[regrade-bg] da doc bai | teacherId=${sub.teacherId} | assignmentId=${String(sub.assignmentId).slice(0, 12)}`);
-    // KEY CHẤM BÀI: production KHÔNG có env GRADING_GEMINI_API_KEY — chấm bài dùng key riêng
-    // của GV lưu ở `teacherAiKeys` (ai chấm người đó trả tiền). `getGradingApiKey()` chỉ là
-    // giá trị dự phòng; gọi nó trước sẽ throw và làm chấm lại luôn thất bại (lỗi thật 29/10).
-    const fallbackKey = (() => { try { return getGradingApiKey(); } catch { return ''; } })();
-    const apiKey = await ensureGeminiKey(fallbackKey).then(c => c.key).catch(() => '');
-    console.log(`[regrade-bg] lay key: ${apiKey ? 'OK (dai ' + apiKey.length + ')' : 'KHONG CO KEY'}`);
+    // KEY CHẤM BÀI: `ensureGeminiKey()` cần REQUEST CONTEXT của GV đang đăng nhập — webhook Zalo
+    // không có, nên nó trả key rỗng ("KHONG CO KEY", log 29/10). Đọc THẲNG key của GV chủ lớp
+    // trong `teacherAiKeys` (đúng nguồn chấm bài: ai chấm người đó trả tiền).
+    const apiKey = await resolveTeacherGradingKey(db, String(sub.teacherId));
+    console.log(`[regrade-bg] key GV: ${apiKey ? 'OK (dai ' + apiKey.length + ')' : 'KHONG CO'}`);
     if (!apiKey) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
     const aSnap = await db.collection('assignments').doc(String(sub.assignmentId)).get();
     if (!aSnap.exists) { await sendStyled(botId, chatId, `Bài "${title}" không còn tồn tại.`); return; }

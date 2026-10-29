@@ -27,6 +27,10 @@ vi.mock('../_assistant-zalo-send', () => ({
 }));
 
 const BOT = 'bot-1', USER = 'user-1';
+
+// Import module (firebase-admin + grading-core) mất 3–5s trong môi trường test, sát ngưỡng 5s
+// mặc định → tăng để không fail chập chờn (không phải lỗi logic).
+vi.setConfig({ testTimeout: 30_000 });
 const seed = () => {
   const db = new FakeDb();
   db.put('classes/c', { name: '11A1', teacherId: 't1' });

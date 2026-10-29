@@ -17,6 +17,7 @@ import { chayNgam, getGradingApiKey, remainingQuota, bumpQuota, rollQuota, today
 import type { QuotaDoc } from './_grading-core.js';
 import { AiKeyRequiredError, ensureGeminiKey } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
+import { resolveTeacherGradingKey } from './_assistant-ph-hs-regrade.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
@@ -542,12 +543,10 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     await sendStyled(token, chatId, [`Chưa chấm được bài "${s.assignmentTitle}"${baiCua}`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
   };
   try {
-    // KEY CHẤM BÀI (sửa 29/10): production KHÔNG có env GRADING_GEMINI_API_KEY — chấm bài dùng
-    // key riêng của GV ở `teacherAiKeys`. Gọi `getGradingApiKey()` trước sẽ THROW và mọi lượt
-    // chấm qua bot đều thất bại ("Máy chủ chưa cấu hình khoá chấm bài") dù key GV vẫn còn.
-    // Lấy env làm dự phòng, `ensureGeminiKey` quyết định key thật theo hồ sơ GV.
-    const fallbackKey = (() => { try { return getGradingApiKey(); } catch { return ''; } })();
-    const apiKey = await ensureGeminiKey(fallbackKey).then(c => c.key).catch(() => '');
+    // KEY CHẤM BÀI (sửa 30/10): `ensureGeminiKey()` cần REQUEST CONTEXT của GV đang đăng nhập —
+    // webhook Zalo không có nên trả key rỗng, làm MỌI lượt chấm qua bot thất bại im lặng.
+    // Đọc thẳng key của GV chủ lớp trong `teacherAiKeys` (đúng nguồn: ai chấm người đó trả tiền).
+    const apiKey = await resolveTeacherGradingKey(db(), s.teacherId);
     if (!apiKey) { await khongChamDuoc('AI chấm của lớp đang tạm dừng, thầy cô sẽ chấm sớm.'); return; }
     const aSnap = await db().collection('assignments').doc(s.assignmentId).get();
     if (!aSnap.exists) { await khongChamDuoc('Bài không còn tồn tại.'); return; }
