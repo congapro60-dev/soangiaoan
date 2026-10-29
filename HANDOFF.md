@@ -4,11 +4,11 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V39 DANG DEPLOY: telemetry loi + dong ho tiet + che do TV (28/10/2026)
+## Latest checkpoint - V39 DA PHAT HANH: telemetry loi + dong ho tiet + che do TV (28/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `49b2888` (= version 38 da phat hanh, deployment `appgdep_6ae1c4a8d9088191b0b5cfabc215cd77`).
 
-### Trang thai: DANG DEPLOY — code + test + smoke local xong, cho deploy.
+### Trang thai: DA PHAT HANH — deployment `appgdep_6ae29a706fa08191b9adc4b0948c7037`, Site version 39.
 
 ### Noi dung thay doi v39 (3 y tuong con lai: #2 + #4 + #6)
 
@@ -25,10 +25,10 @@
 | Truong | Gia tri |
 |---|---|
 | version_number | **39** |
-| deployment_id | (placeholder — Codex dien sau deploy) |
-| commit_sha | (placeholder — Codex dien sau commit) |
-| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v39.tar.gz` (placeholder) |
-| archive size | (placeholder) |
+| deployment_id | `appgdep_6ae29a706fa08191b9adc4b0948c7037` |
+| commit_sha | `c2c0be72e13018c106739ab5503de1482882223b` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261028-v39.tar.gz` |
+| archive size | 49447177 bytes |
 
 ## Latest checkpoint - V38 DA PHAT HANH: ngan hang cau hoi AI theo ma tran (28/10/2026)
 
