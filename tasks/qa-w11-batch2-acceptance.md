@@ -428,3 +428,28 @@ QA portal HS (lớp g12 đang phiên, Edge 9223): `studentAdaptiveList` trả đ
 **Lưu ý vận hành cho thầy**: thứ tự dùng đúng là (1) HS chọn nhóm và **gửi bài lúc "Hiện kết quả lớp" còn TẮT** (bật stats sẽ khoá ô trả lời của HS), (2) sau khi nhóm gửi đủ, thầy bật "Hiện kết quả lớp" → thẻ nhiệm vụ mở rộng hiện cho nhóm xong sớm, nhãn nhóm chậm hiện cho thầy nếu nhóm nào quá 80% thời lượng mà gửi dưới 50%.
 
 **Trạng thái: R1 VERIFIED (live); R2 IMPLEMENTED — unit PASS, live cần 2 HS để chạy.**
+
+---
+
+## COMM-AQ-01 · Hand Raise + Câu hỏi ẩn danh + Understanding Pulse (30/10/2026 — QA live)
+
+| Khoản | Kết quả | Verdict |
+|---|---|---|
+| Unit (service thuần + server audit) | `liveQuestionService.test.ts` + `api/__tests__/live-questions.test.ts` — 14 test PASS | ✓ |
+| Build / lint | `npm run build` 0 TS · `npm run lint` 0 · `npm run lint:api` 0 | ✓ |
+| Hồi quy | vitest v4+components+pages: **86 file / 746 test PASS** | ✓ |
+| QA live — Giơ tay | Session `3BtScbb5aVCM2tCOFf4H` (11-11-76, Đặng Tuệ Minh): bấm ✋ → nút chuyển "Đang giơ tay · Hạ tay"; GV thấy **"✋ 1 bạn đang giơ tay — Đặng Tuệ Minh"**; bấm Hạ tay → GV hết thấy; bấm lại không tạo trùng (doc theo uid) | ✓ PASS |
+| QA live — Câu hỏi ẩn danh | HS gửi → xác nhận **"Đã nhận câu hỏi ẩn danh"**; GV panel realtime "❓ Câu hỏi ẩn danh (1) — chỉ giáo viên"; actions Công bố/Đã trả lời/Để sau/Ẩn/Gỡ đều bấm được | ✓ PASS |
+| QA live — Privacy (quan trọng nhất) | Doc `publishedQuestions` đọc qua REST: **fields chỉ [questionId, activityId, body, publishedAt] — KHÔNG có participantUid/studentName/device**; review queue `questions/` client write = false (chỉ Admin SDK); không mapping question→student; log server không kèm uid | ✓ PASS |
+| QA live — Công bố | GV bấm Công bố → panel chuyển "ĐÃ CÔNG BỐ"; HS (reload cùng phiên) thấy banner **"❓ CÂU HỎI ĐÃ CÔNG BỐ #01 — nội dung, KHÔNG có tên"**; GV Gỡ khỏi TV → HS hết thấy | ✓ PASS |
+| QA live — Understanding Pulse | Chặng P20: HS thấy mini-check 3 lựa chọn, chọn "Em hiểu một phần" thành công; nút Hỏi ẩn danh vẫn hoạt động ngay trên pulse | ✓ PASS |
+| Cập nhật realtime banner HS (không reload) | Listener nhận qua onSnapshot nhưng chưa xác nhận được bằng script (phiên hết hạn trước khi chụp đủ) — persistence đã PASS; cần xác nhận thêm khi dạy thật | ⏳ NOT_RUN |
+| TV overlay câu công bố ở màn `mode=tv` (màn chiếu thuần) | Chưa làm — câu công bố hiện ở màn GV (tv-control) và máy HS; cần thêm nếu dạy qua 2 màn | ⏳ NOT_RUN |
+| Coach backlog câu hỏi | Tối thiểu chưa làm (spec cho phép xếp sau P0) | ⏳ NOT_RUN |
+| Mobile UX 320–430 | Chưa chạy viewport test riêng — nút min-height 44px, modal responsive | ⏳ NOT_RUN |
+
+**Lỗi gặp và đã sửa trong Pha B:**
+1. Query idempotency (clientNonce + serverReceivedAt) thiếu composite index → 500. Đã thêm `firestore.indexes.json` + deploy indexes.
+2. `owned.sessionRef()` gọi nhầm (TS) — sửa thành property.
+
+**Trạng thái: P0 PASS (giơ tay, hỏi ẩn danh, privacy, công bố, pulse). 4 mục phụ NOT_RUN — không chặn pilot.**

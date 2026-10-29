@@ -148,6 +148,13 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - R2 nhãn nhóm chậm: đã chuyển sang `TvSlowGroups` trên màn tv-control (TeacherLiveView không bao giờ render vì mode=teacher bị remap); unit test 6/6; live cần 2 HS — NOT_RUN.
 - Hai fix đi kèm (commit `00cc56b`, `b9e5c03`): listener groupProgress 403 khi stats tắt; R2 sai màn hình.
 - Quy tắc vận hành: HS gửi bài lúc stats TẮT → GV bật "Hiện kết quả lớp" sau. Bật stats trước sẽ khoá ô trả lời của HS.
+## Chức năng 1 COMM-AQ-01 — ĐÃ CODE + QA (30/10)
+- Pha A Gate P+D thầy duyệt (`tasks/gate-pd-hand-raise-anon-questions.md`) → Pha B code xong, commit `0e5351a` + index `firestore.indexes.json`.
+- Kiến trúc: giơ tay CÓ tên (Firestore trực tiếp `handRaises/{uid}`, doc id = uid nên không trùng); câu hỏi ẩn danh CHỈ qua server (`api/_live-questions.ts`: `liveAnonymousQuestion` HS, `livePublishQuestion`/`liveSetQuestionStatus` GV) — server xác thực idToken rồi ghi doc KHÔNG có field định danh, không mapping, không log uid; pulse `pulses/{uid}__{cueId}` theo override `PULSE_CUE_IDS_BY_KEY` (không sửa snapshot).
+- QA live PASS: giơ tay (tên + hạ tay + không trùng), gửi câu hỏi + xác nhận, GV panel realtime + công bố/gỡ, **privacy: doc published chỉ [questionId, activityId, body, publishedAt]**, pulse hoạt động.
+- NOT_RUN (không chặn): realtime banner HS chưa chụp được; TV overlay mode=tv; Coach backlog; mobile viewport test.
+- Deploy: Vercel success + `firebase-tools deploy --only firestore:rules,firestore:indexes` đã chạy.
+
 ## VIỆC MỚI 29/10 — 2 chức năng V8.8 (addendum thầy giao)
 - Chức năng 1 (COMM-AQ-01): Always-on Hand Raise (có tên) + Câu hỏi ẩn danh tuyệt đối (P0 — không định danh trong data model) + Understanding Pulse sau hoạt động chính. Spec: 	asks/spec-hand-raise.md.
 - Chức năng 2 (ASS-MDP-01): Student Surface Mobile/Desktop Parity — M1/M2/M3, math on mobile, attention handoff, sync/device, P0 trước pilot, 30 test MDP. Spec: 	asks/spec-parity.md.
