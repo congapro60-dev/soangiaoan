@@ -158,13 +158,6 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
   const cue = findCue(definition, session.currentCueId);
   const timer = getTimerSnapshot(definition, session.currentCueId, session.status);
-  const slowGroups = (() => {
-    const beat = v4Contract.timeline.find((item) => item.id === session.currentCueId);
-    if (!beat || !groupCounters || groupCounters.cueId !== session.currentCueId) return [];
-    const ratio = beat.durationSeconds > 0 ? timer.elapsedSeconds / beat.durationSeconds : 0;
-    const numbers = new Set([...groupMemberships.map((m) => m.groupNumber), ...Object.keys(groupCounters.members)]);
-    return [...numbers].filter((g) => isGroupSlow({ members: groupCounters.members, submitted: groupCounters.submitted }, g, ratio)).sort((a, b) => Number(a) - Number(b));
-  })();
   const responseStepId = cue.responseStepId;
   // Nhóm xoay tua tự động (R2) — theo dõi tiến độ nhóm, chỉ hiển thị cảnh báo chậm cho GV.
   const [groupMemberships, setGroupMemberships] = useState<Array<{ participantUid: string; groupNumber: string }>>([]);
@@ -188,6 +181,14 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
   const [approvedGroupId, setApprovedGroupId] = useState<string | null>(null);
   const [showOfflineChecklist, setShowOfflineChecklist] = useState(false);
   const v4Contract = useMemo(() => getBanToanV4ContractForLiveDefinitionId(definition.id) ?? getG10P31V4Contract(), [definition.id]);
+  const slowGroups = (() => {
+    const beat = v4Contract.timeline.find((item) => item.id === session.currentCueId);
+    if (!beat || !groupCounters || groupCounters.cueId !== session.currentCueId) return [];
+    const beatSeconds = beat.endSeconds - beat.startSeconds;
+    const ratio = beatSeconds > 0 ? timer.elapsedSeconds / beatSeconds : 0;
+    const numbers = new Set([...groupMemberships.map((m) => m.groupNumber), ...Object.keys(groupCounters.members)]);
+    return [...numbers].filter((g) => isGroupSlow({ members: groupCounters.members, submitted: groupCounters.submitted }, g, ratio)).sort((a, b) => Number(a) - Number(b));
+  })();
   const offlineChecklist = useMemo(() => buildOfflineChecklist(v4Contract), [v4Contract]);
   const supportsAdaptiveProgressBridge = definition.id === 'g10_w5_p31_bpt_tiet1';
 

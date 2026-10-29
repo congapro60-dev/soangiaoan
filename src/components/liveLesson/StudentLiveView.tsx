@@ -295,11 +295,6 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     const unsubscribe = subscribeToLiveGroupProgress(sessionId, (value) => setGroupCounters(value), () => setGroupCounters(null));
     return () => unsubscribe();
   }, [sessionId]);
-  // Nhóm của chính em (từ StudentGroupPicker — chọn nhóm công khai theo phiên).
-  useEffect(() => {
-    if (!sessionId || !participantUid) return;
-    return subscribeToMyLiveGroup(sessionId, participantUid, (group) => setMyGroupNumber(group ?? ''), () => setMyGroupNumber(''));
-  }, [sessionId, participantUid]);
   const [currentRoute, setCurrentRoute] = useState<V4Route | null>(null);
   const [hintState, setHintState] = useState<HintRevealState>({ revealedCount: 0, totalHints: 0 });
 
@@ -354,6 +349,11 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const activeSafetyMessage = activeUserSafetyMessage(user);
   const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
   const participantUid = identity?.participantUid ?? null;
+  // Nhóm của chính em (từ StudentGroupPicker — chọn nhóm công khai theo phiên).
+  useEffect(() => {
+    if (!sessionId || !participantUid) return;
+    return subscribeToMyLiveGroup(sessionId, participantUid, (group) => setMyGroupNumber(group ?? ''), () => setMyGroupNumber(''));
+  }, [sessionId, participantUid]);
   // A mutable lock avoids making the retry effect depend on its own busy state.
   // A second edit while a request is in flight requests one more drain.
   const queueDrain = useMemo(() => ({ running: false, requested: false }), [sessionId, participantUid]);

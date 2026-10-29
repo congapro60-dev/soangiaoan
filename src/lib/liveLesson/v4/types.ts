@@ -397,7 +397,8 @@ export type V4ValidationCode =
   | 'LESSON_MODE_INVALID'
   | 'SOURCE_IDENTITY_INVALID'
   | 'CHOICE_POLICY_INVALID'
-  | 'SOURCE_CONTENT_INVALID';
+  | 'SOURCE_CONTENT_INVALID'
+  | 'STEP_REFERENCE_INVALID';
 
 export interface V4ValidationError {
   code: V4ValidationCode;
