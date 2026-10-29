@@ -52,25 +52,28 @@ export const fetchPhotoBuffer = async (photoUrl: string): Promise<{ buffer: Buff
 /**
  * Danh sách (key, model) để thử ĐỌC ẢNH — theo thứ tự ưu tiên.
  *
- * VÌ SAO CẦN CHUỖI (lỗi thật 29/10): key chat `PH_CHAT_VILAO_KEY` KHÔNG đăng ký model
- * vision `gemini-3.8-flash` → API trả 403 "Please subscribe to model in the API Key".
- * Trong khi key chấm bài `GRADING_VILAO_API_KEY` ĐÃ đăng ký (đường chấm ảnh chạy hằng ngày).
- * Ghim cứng một cặp là hỏng ngay khi key đổi quyền, nên thử lần lượt và ghi log cặp nào hỏng.
+ * BÀI HỌC 29/10 (xem trang vilao.ai/console/keys): model trên Vilao có TIỀN TỐ nhà cung cấp —
+ * `chib/gemini-3.8-flash`, `cnt/glm-5.3-flash`. Code cũ gọi trần `gemini-3.8-flash` nên API trả
+ * 403 "Please subscribe to model in the API Key" dù key có quyền dùng model cùng tên qua vendor.
+ * Vì vậy thử LẦN LƯỢT nhiều biến thể tên; cặp nào chạy được thì dùng (ghi log để biết).
  */
 const visionCandidates = (): Array<{ key: string; model: string; baseUrl: string }> => {
   const baseUrl = process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1';
   const out: Array<{ key: string; model: string; baseUrl: string }> = [];
-  // 1. Key chấm bài + model đã kiểm chứng đọc ảnh (nếu có key này thì chắc chắn hoạt động).
+  const push = (key: string | undefined, models: string[]) => {
+    if (!key) return;
+    for (const model of models) if (!out.some(o => o.key === key && o.model === model)) out.push({ key, model, baseUrl });
+  };
+  const gemini = process.env.PH_CHAT_VISION_MODEL?.trim();
+  const geminiModels = gemini ? [gemini] : ['chib/gemini-3.8-flash', 'gemini-3.8-flash'];
+  // 1. Key chấm bài (nếu có) — model đã kiểm chứng đọc ảnh.
   const gradingKey = process.env.GRADING_VILAO_API_KEY?.trim();
-  if (gradingKey) out.push({ key: gradingKey, model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash', baseUrl });
+  if (gradingKey) push(gradingKey, [process.env.GRADING_VILAO_MODEL?.trim() || 'chib/gemini-3.8-flash', 'gemini-3.8-flash']);
+  // 2. Key chat + Gemini vision (tên có prefix vendor trước, rồi tên trần).
   const chatKey = process.env.PH_CHAT_VILAO_KEY?.trim();
-  if (chatKey) {
-    // 2. Key chat + model vision (sau khi chủ dự án bật quyền model này cho key — 29/10).
-    out.push({ key: chatKey, model: process.env.PH_CHAT_VISION_MODEL?.trim() || 'gemini-3.8-flash', baseUrl });
-    // 3. Key chat + CHÍNH model chat đang chạy được (cnt/glm-5.3-flash): nhiều model GLM đọc
-    //    được ảnh. Thử sau cùng để không tốn lượt khi model vision chính đã chạy.
-    out.push({ key: chatKey, model: process.env.PH_CHAT_MODEL?.trim() || 'cnt/glm-5.3-flash', baseUrl });
-  }
+  push(chatKey, geminiModels);
+  // 3. Key chat + model chat đang chạy được — đã XÁC MINH đọc ảnh tốt (log 29/10: chars=306).
+  push(chatKey, [process.env.PH_CHAT_MODEL?.trim() || 'cnt/glm-5.3-flash']);
   return out;
 };
 
