@@ -50,10 +50,17 @@ export interface PhotoSessionData {
   assistState?: 'name' | 'pick' | 'list';
   /** Trùng tên: ưng viên chờ lệnh `chọn <số>`. */
   targetCandidates?: Array<{ id: string; name: string }>;
+  /**
+   * Vừa hiện DANH SÁCH BÀI chờ chọn (nhắn 8). Giữ cờ này để nhắn số thuần ("1", "2"…)
+   * được hiểu là CHỌN BÀI, không rơi vào menu mục 1–7 (lỗi thật 29/10: HS chọn bài 1
+   * lại nhận "Tổng quan học tập" của một bài khác).
+   */
+  awaitingPick?: true;
 }
 
 export const PHOTO_REPLIES = {
   noSession: 'Chưa có ảnh nào được nhận. Nhắn 8 để chọn bài rồi gửi ảnh nhé.\n\n' + MENU_HINT,
+  pickFirst: 'Em chọn bài trước đã: nhắn số thứ tự bài trong danh sách vừa hiện (ví dụ: 1), rồi gửi ảnh.\n\nNhắn 8 để xem lại danh sách.',
   max: `Đã đủ ${MAX_PHOTOS} ảnh — nhắn xong để máy chấm nhé.\n\n` + MENU_HINT,
   badImage: 'Không nhận được ảnh này (quá lớn hoặc sai định dạng). Em gửi lại ảnh khác nhé.\n\n' + MENU_HINT,
   assistIncomplete: 'Chưa chọn xong bạn và bài để nộp hộ nên chưa nhận ảnh. Nhắn nộp hộ để làm lại, hoặc 0 để hủy.\n\n' + MENU_HINT,
@@ -116,7 +123,7 @@ export const photoListReply = (items: Array<{ id: string; title: string; dueAt?:
     const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  return ['Chọn bài để gửi ảnh chấm:', ...lines, '', 'Nhắn: chấm <số> (ví dụ: chấm 1).', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n');
+  return ['Chọn bài để gửi ảnh chấm:', ...lines, '', 'Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n');
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
@@ -257,6 +264,48 @@ export const assistOpenReply = async (botId: string, userId: string, classId: st
   return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target, assist, session.data);
 };
 
+/**
+ * Nhắn 8 / "chấm": hiện danh sách bài và GHI CỜ `awaitingPick` để nhắn số thuần sau đó
+ * được hiểu là chọn bài (không rơi vào menu mục 1–7).
+ */
+export const listPendingReply = async (botId: string, userId: string, classId: string, studentId: string): Promise<string> => {
+  const { items } = await pendingAssignmentsForStudent(classId, studentId);
+  if (!items.length) return photoListReply(items);
+  const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
+  await db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    // Không đè phiên đang có ảnh chưa gửi xong — người dùng cần "xong" hoặc 0 trước.
+    if (current && unfinishedPhotos(current)) return;
+    tx.set(ref, {
+      botId, userId, studentId, classId, teacherId: '',
+      assignmentId: '', assignmentTitle: '',
+      expiresAt: Date.now() + SESSION_MS, photos: [], awaitingPick: true,
+      sessionKey: current?.sessionKey ?? randomUUID(),
+    } satisfies PhotoSessionData);
+  });
+  return photoListReply(items);
+};
+
+/**
+ * Nhắn số thuần ("1", "2"…) khi ĐANG chờ chọn bài → mở phiên nhận ảnh cho bài đó.
+ * Trả null nếu không ở trạng thái chờ chọn (caller để tin đi tiếp luồng menu/AI bình thường).
+ */
+export const pickAssignmentByNumber = async (
+  botId: string, userId: string, classId: string, studentId: string, n: number,
+): Promise<string | null> => {
+  const session = await liveSession(botId, userId);
+  if (!session || session.data.awaitingPick !== true) return null;
+  const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
+  const target = n >= 1 && n <= items.length ? items[n - 1] : null;
+  if (!target) {
+    // Số không khớp: giữ trạng thái chờ chọn để em nhắn lại đúng số.
+    return [`Số không khớp danh sách (có ${items.length} bài).`, '', photoListReply(items)].join('\n');
+  }
+  // Xoá cờ chờ chọn rồi mới mở phiên (openPhotoSession ghi đè doc).
+  await db().collection(SESSIONS).doc(session.id).delete().catch(() => undefined);
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
+};
+
 /** Mở phiên nhận ảnh cho 1 bài, chỉ thay phiên chưa có ảnh. Nộp hộ thì kèm target. */
 export const openPhotoSession = async (
   botId: string,
@@ -321,6 +370,8 @@ const liveSession = async (botId: string, userId: string): Promise<{ id: string;
 export const photoReceivedReply = async (botId: string, userId: string, photoUrl: string): Promise<string> => {
   const session = await liveSession(botId, userId);
   if (!session) return PHOTO_REPLIES.noSession;
+  // Đang chờ CHỌN BÀI: chưa có assignment nên ảnh không thuộc bài nào — phải chọn bài trước.
+  if (session.data.awaitingPick === true) return PHOTO_REPLIES.pickFirst;
   // Luồng nộp hộ chưa chọn xong bạn + bài: chưa biết ảnh thuộc bài nào của ai — không nhận.
   if (session.data.assistState) return PHOTO_REPLIES.assistIncomplete;
   if (session.data.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;

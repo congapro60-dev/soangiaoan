@@ -42,7 +42,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     MENU_REPLIES.header,
     ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
     // Việc 4 — mục 8 chỉ dành cho HS: PH không nộp bài thay con.
-    ...(role === 'student' ? ['8. Nộp bài bằng ảnh (tự chấm)'] : []),
+    ...(role === 'student' ? ['8. Nộp bài bằng ảnh (chọn bài → gửi ảnh → nhắn xong)'] : []),
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
     '0. Xem lại menu'].join('\n');

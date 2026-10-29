@@ -5,14 +5,14 @@ import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssis
 import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, parseMenuChoice, loadParentReport, MENU_REPLIES, withWebPortalLink } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, MENU_REPLIES, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
@@ -56,11 +56,35 @@ const pinLinkReply = async (botId: string, userId: string, message: string): Pro
     const parsed = parsePinLinkMessage(message);
     const allowSwitch = parsed.status === 'ok' && parsed.switch === true;
     const result = await linkByPin(getAdminDb(), botId, userId, message, new Date(), { allowSwitch });
-    return result.reply;
+    // LIÊN KẾT XONG PHẢI HIỆN MENU NGAY (lỗi thật 29/10: HS liên kết xong chỉ thấy "thành công",
+    // phải tự nhắn 0 mới có menu). Chỉ ghép khi link thực sự thành công.
+    if (result.status !== 'linked' && result.status !== 'switched') return result.reply;
+    const menu = await menuForLinkedUser(botId, userId);
+    return menu ? `${result.reply}\n\n${menu}` : result.reply;
   } catch (error) {
     const reason = error instanceof Error ? error.message : '';
     if (/PIN_LOCKED/i.test(reason)) return PIN_LINK_REPLIES.throttled;
     throw error;
+  }
+};
+
+/**
+ * Menu của người VỪA liên kết — đọc lại link vừa ghi để lấy đúng (classId, studentId).
+ * Lỗi bất kỳ → null: caller vẫn gửi tin "liên kết thành công", không làm hỏng luồng liên kết.
+ */
+const menuForLinkedUser = async (botId: string, userId: string): Promise<string | null> => {
+  try {
+    const actor = await resolveChannelActor('zalo_bot' as any, botId, userId, userId);
+    const role = (actor as any).role ?? 'teacher';
+    if (role !== 'parent' && role !== 'student') return null;
+    const classId = String((actor as any).classId ?? '');
+    const studentId = String((actor as any).studentId ?? '');
+    if (!classId || !studentId) return null;
+    const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
+    if (!bundle) return null;
+    return menuText(bundle.report.studentName, bundle.report.className, role);
+  } catch {
+    return null;
   }
 };
 /**
@@ -163,9 +187,15 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (!classId || !studentId) return MENU_REPLIES.noData;
     // Việc 4 — mục 8 của HS (nộp bài bằng ảnh): bắt trước parse menu thường.
     if (role === 'student' && message.trim() === '8') {
-      const { items } = await pendingAssignmentsForStudent(classId, studentId);
-      await sendStyled(token, chatId, photoListReply(items));
+      const listReply = await listPendingReply(botId, userId, classId, studentId);
+      await sendStyled(token, chatId, listReply);
       return '';
+    }
+    // Đang CHỜ CHỌN BÀI (vừa nhắn 8): số thuần "1".."9" = chọn bài đó, KHÔNG rơi vào menu
+    // mục 1–7 (lỗi thật 29/10: HS chọn bài 1 lại nhận "Tổng quan học tập").
+    if (role === 'student' && /^[1-9]$/.test(message.trim())) {
+      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()));
+      if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
     }
     // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
@@ -174,9 +204,11 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
       const menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
       // Cả hai đường đều KHÔNG qua output() (che link) vì nội dung do hệ tự dựng:
-      // link web gửi THUẦN để URL render được; menu gửi markdown (lỗi parse tự fallback).
+      // link web gửi THUẦN để URL render được.
+      // MENU gửi THUẦN, KHÔNG markdown: Zalo markdown tự đánh số lại danh sách 1..10 nên
+      // "0. Xem lại menu" hiện thành "10. Xem lại menu" (lỗi thật 29/10, chủ dự án báo).
       if (choice.kind === 'link') await sendStyled(token, chatId, menuReply, false);
-      else await sendStyled(token, chatId, menuReply);
+      else await sendStyled(token, chatId, menuReply, false);
       return '';
     }
     // Việc 4 — lệnh chấm của HS: chấm / chấm <số> / xong / nộp hộ (hộ bạn cùng lớp). PH không có các lệnh này (đi thẳng AI chat).
@@ -305,9 +337,22 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
       }
     }
   }
+  // CHỐNG GỬI TRÙNG 2 LỚP (lỗi thật 29/10: nhắn "0" nhận menu 2 lần, log cho thấy 2 request
+  // cách nhau 1,2 giây nhưng message_id khác nhau → khoá theo msgId không bắt được):
+  // 1. Theo message_id — đúng khi Zalo gửi lại NGUYÊN payload (retry).
+  // 2. Theo (bot, người gửi, nội dung) trong 10 GIÂY — bắt trường hợp Zalo gửi 2 event cho cùng
+  //    một tin. Chọn 10s (không phải 90s): đủ gộp bản trùng cách nhau ~1s, vẫn cho HS cố ý
+  //    nhắn lại "0" hay hỏi lại cùng câu ngay sau đó.
+  const contentKey = `zalo_bot_c_${crypto.createHash('sha256').update(`${botId}:${senderId}:${chatId}:${isTextEvent ? msgText : photoUrl}`).digest('hex')}`;
   const nonce = `zalo_bot_${crypto.createHash('sha256').update(`${botId}:${senderId}:${chatId}:${msgId}`).digest('hex')}`;
-  try { await claimAssistantRequestNonce(nonce); } catch (error) { if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; } console.error(`[zalo-bot] nonce claim failed: ${(error instanceof Error ? error.message : 'unknown').slice(0, 200)}`); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
-  let reply = 'Tính năng chưa khả dụng.';
+  try {
+    await claimAssistantRequestNonce(nonce);
+    await claimAssistantRequestNonce(contentKey, Date.now(), undefined, 10_000);
+  } catch (error) {
+    if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; }
+    console.error(`[zalo-bot] nonce claim failed: ${(error instanceof Error ? error.message : 'unknown').slice(0, 200)}`);
+    res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true;
+  }  let reply = 'Tính năng chưa khả dụng.';
   try {
     if (isImageEvent) {
       // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).

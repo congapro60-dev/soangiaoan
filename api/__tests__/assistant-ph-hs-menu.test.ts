@@ -283,7 +283,7 @@ describe('link web + feedback HS (M14)', () => {
 
 describe('mục 8 — nộp bài bằng ảnh (việc 4)', () => {
   it('M15a: menu của HS có mục 8; menu của PH không', () => {
-    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'student')).toContain('8. Nộp bài bằng ảnh (tự chấm)');
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'student')).toContain('8. Nộp bài bằng ảnh');
     expect(menuText('Trần Bảo Lâm', '12LoTrinh1')).not.toContain('Nộp bài bằng ảnh');
     expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'parent')).not.toContain('Nộp bài bằng ảnh');
   });

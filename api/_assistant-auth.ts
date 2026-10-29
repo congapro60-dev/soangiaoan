@@ -110,14 +110,20 @@ export const resolveChannelActor = async (channel: Channel, accountId: string, u
   };
 };
 
-export const claimAssistantRequestNonce = async (nonce: string, now = Date.now(), db?: Firestore): Promise<void> => {
+/**
+ * Giữ chỗ 1 yêu cầu theo `nonce` — trùng thì throw 'Replay detected'.
+ * `ttlMs` cho phép dùng nonce NGẮN HẠN (khoá chống gửi trùng theo nội dung tin): mặc định
+ * bằng cửa sổ chữ ký 300s; truyền 90s để vẫn cho phép người dùng cố ý gửi lại cùng nội dung.
+ */
+export const claimAssistantRequestNonce = async (nonce: string, now = Date.now(), db?: Firestore, ttlMs?: number): Promise<void> => {
   if (!/^[A-Za-z0-9._~-]{1,256}$/.test(nonce)) throw new Error('Invalid request');
   const firestore = adminDb(db);
   const ref = firestore.collection('assistantRequestNonces').doc(nonce);
+  const ttl = Number.isFinite(ttlMs) && (ttlMs as number) > 0 ? (ttlMs as number) : ASSISTANT_SIGNATURE_WINDOW_SECONDS * 1000;
   await firestore.runTransaction(async tx => {
     const existing = await tx.get(ref);
     if (existing.exists) throw new Error('Replay detected');
-    tx.set(ref, { createdAt: now, expiresAt: now + ASSISTANT_SIGNATURE_WINDOW_SECONDS * 1000 } satisfies AssistantRequestNonceDoc);
+    tx.set(ref, { createdAt: now, expiresAt: now + ttl } satisfies AssistantRequestNonceDoc);
   });
 };
 

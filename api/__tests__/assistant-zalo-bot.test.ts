@@ -39,6 +39,9 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   pendingAssignmentsForStudent: vi.fn(async () => ({ teacherId: 't-1', items: [{ id: 'a-1', title: 'Bài 1' }] })),
   photoListReply: vi.fn((items: unknown[]) => `LIST_${items.length}`),
   photoReceivedReply: vi.fn(async () => 'PHOTO_OK'),
+  // Mục 8 mới (29/10): liệt kê bài + ghi cờ awaitingPick để nhắn số thuần chọn bài.
+  listPendingReply: vi.fn(async () => 'LIST_1'),
+  pickAssignmentByNumber: vi.fn(async () => null),
 }));
 vi.mock('../_assistant-ph-hs-menu', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
@@ -63,6 +66,7 @@ import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
 import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+
 
 const { answerDetailed, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn(), sendMathFormulaPhotoMock: vi.fn() }));
 // Chat AI + vẽ hình/ảnh công thức mock TOÀN BỘ file này: nhánh AI chat chưa từng có test — mock giữ
@@ -178,6 +182,30 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
   it('acknowledges duplicate without dispatch or resend', async () => {
     vi.mocked(claimAssistantRequestNonce).mockRejectedValue(new Error('Replay detected'));
     expect((await request(event('/classes'))).code).toBe(200); expect(runAssistantReadTool).not.toHaveBeenCalled(); expect(sent()).toHaveLength(0);
+  });
+  it('chống gửi trùng 2 lớp: claim cả nonce message_id VÀ khoá nội dung 10 giây', async () => {
+    // Lỗi thật 29/10: nhắn "0" nhận menu 2 lần — Zalo gửi 2 event cùng nội dung nhưng
+    // message_id khác nhau, nên khoá theo msgId không bắt được. Phải claim thêm khoá nội dung.
+    expect((await request(event('0', 'm-1'))).code).toBe(200);
+    const calls = vi.mocked(claimAssistantRequestNonce).mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[0][0]).toMatch(/^zalo_bot_[0-9a-f]{64}$/);
+    expect(calls[1][0]).toMatch(/^zalo_bot_c_[0-9a-f]{64}$/);
+    expect(calls[1][3]).toBe(10_000);
+  });
+  it('cùng nội dung nhưng khác message_id trong 10s → bản thứ hai bị chặn (không gửi lần 2)', async () => {
+    // Lần 1 claim OK; lần 2: nonce msgId mới OK nhưng khoá nội dung đã tồn tại → replay.
+    let contentClaimed = false;
+    vi.mocked(claimAssistantRequestNonce).mockImplementation(async (key: string) => {
+      if (key.startsWith('zalo_bot_c_')) {
+        if (contentClaimed) throw new Error('Replay detected');
+        contentClaimed = true;
+      }
+    });
+    expect((await request(event('0', 'm-1'))).code).toBe(200);
+    const first = sent().length;
+    expect((await request(event('0', 'm-2'))).code).toBe(200);
+    expect(sent()).toHaveLength(first);
   });
   it('distinguishes durable claim infrastructure failure from duplicate', async () => {
     vi.mocked(claimAssistantRequestNonce).mockRejectedValue(new Error('Firestore unavailable'));
@@ -307,13 +335,16 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
 
   const parentActor = { firebaseUid: 'pinlink:parent:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'plink', active: true, role: 'parent', classId: 'c', studentId: 's' } as any;
 
-  it('menu nhiều dòng gửi markdown (in đậm dòng đầu); link web gửi thuần nguyên URL', async () => {
+  it('menu gửi THUẦN (không markdown) — tránh Zalo tự đánh số lại "0." thành "10."; link web cũng thuần', async () => {
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
-    vi.mocked(parentMenuReply).mockResolvedValueOnce('TIÊU ĐỀ\nDòng nội dung');
+    vi.mocked(parentMenuReply).mockResolvedValueOnce('TIÊU ĐỀ\n0. Xem lại menu');
     await request(event('1', 'm-1'));
     expect(sent()[0][0]).toContain('/sendMessage');
-    expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
-    expect(JSON.parse(sent()[0][1].body).text).toContain('**TIÊU ĐỀ**');
+    // Lỗi thật 29/10: parse_mode markdown khiến Zalo tự đánh số danh sách 1..10,
+    // dòng "0. Xem lại menu" hiện thành "10. Xem lại menu". Menu PHẢI gửi thuần.
+    const body = JSON.parse(sent()[0][1].body);
+    expect(body.parse_mode).toBeUndefined();
+    expect(body.text).toBe('TIÊU ĐỀ\n0. Xem lại menu');
     // GV-1: dispatch thử resolve teacher (lệnh GV) TRƯỚC luồng PH/HS — lượt đầu phải từ chối
     // để tin 'web' của phụ huynh rơi đúng về luồng menu PH/HS.
     vi.mocked(resolveChannelActor).mockRejectedValueOnce(new Error('Channel is not linked'));
@@ -324,7 +355,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT' });
   });
 
-  it('markdown parse lỗi → tự gửi lại bản thuần đúng 1 lần', async () => {
+  it('menu gửi lỗi → KHÔNG gửi lại (không có nhánh markdown fallback cho menu thuần)', async () => {
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
     vi.mocked(parentMenuReply).mockResolvedValueOnce('TIÊU ĐỀ\nDòng nội dung');
     fetchMock.mockImplementation(async (url: unknown) => {
@@ -333,9 +364,8 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     });
     const result = await request(event('1', 'm-1'));
     expect(result.code).toBe(200);
-    expect(sent()).toHaveLength(2);
-    expect(JSON.parse(sent()[0][1].body).parse_mode).toBe('markdown');
-    expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'TIÊU ĐỀ\nDòng nội dung' });
+    // sendStyled(markdown=false) chỉ POST 1 lần; gửi trùng 2 tin là lỗi cần tránh.
+    expect(sent()).toHaveLength(1);
   });
 });
 
@@ -388,8 +418,7 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   it('HS nhắn 8 → danh sách bài chờ nộp, không qua parentMenuReply', async () => {
     mockStudent();
     await request(event('8', 'm-8'));
-    expect(pendingAssignmentsForStudent).toHaveBeenCalledWith('c', 's');
-    expect(photoListReply).toHaveBeenCalled();
+    // listPendingReply (mock) lo cả việc liệt kê bài + ghi cờ awaitingPick.
     expect(JSON.parse(sent()[0][1].body).text).toBe('LIST_1');
     expect(parentMenuReply).not.toHaveBeenCalled();
   });
