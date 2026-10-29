@@ -10,6 +10,7 @@ import { TvLiveView, type TvCueTiming } from '../components/liveLesson/TvLiveVie
 import { TvPresenterControls } from '../components/liveLesson/TvPresenterControls';
 import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
 import { LiveActivityPublisher } from '../components/liveLesson/LiveActivityPublisher';
+import { TvSlowGroups } from '../components/liveLesson/TvSlowGroups';
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
 export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string; responseStepIds?: string[] };
@@ -272,6 +273,7 @@ export const LiveLessonPage = () => {
     };
     return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={controlTvDefinition.tvCues} durationSeconds={controlTvDefinition.durationSeconds} intent={controlTvDefinition.intent} presenterControls={<>
       {responseStepId && <LiveActivityPublisher key={`${session.id}:${session.currentCueId}`} sessionId={session.id} cueId={session.currentCueId} stepId={responseStepId} enabled={session.publicStatsEnabled && session.status !== 'closed'} />}
+      <TvSlowGroups sessionId={session.id} definition={definition} session={session} />
       <TvPresenterControls
         definition={definition}
         session={session}
