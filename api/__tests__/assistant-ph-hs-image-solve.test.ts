@@ -27,6 +27,10 @@ vi.mock('../_ai-keys', async () => ({
 const BOT = 'bot-1', USER = 'user-1';
 const SESSION_PATH = `assistantPhotoSessions/${BOT}_${USER}`;
 
+// Import module (kèm firebase-admin + grading-core) mất 3–4s trong môi trường test,
+// sát ngưỡng 5s mặc định → tăng để test không chập chờn (không phải lỗi logic).
+vi.setConfig({ testTimeout: 30_000 });
+
 beforeEach(() => {
   const db = new FakeDb();
   db.put('classes/c', { joinCode: 'ACDF47', name: '11A1', teacherId: 't1' });
@@ -75,7 +79,19 @@ describe('ảnh đề nhờ giải — KHÔNG bị coi là ảnh nộp bài', ()
     const answer = await mod.solveProblemFromImage({ buffer: Buffer.from([1, 2, 3]), mimeType: 'image/jpeg' }, report, new Set());
     expect(answer?.text).toContain('thể tích');
     expect(answer?.text).not.toContain('chưa có');
+    // Cặp đầu tiên chạy được là dừng — không thử hết chuỗi.
     expect(h.vision).toHaveBeenCalledTimes(1);
+  });
+
+  it('403 ở cặp đầu (key chưa đăng ký model) → TỰ THỬ cặp sau, vẫn ra lời giải', async () => {
+    const mod = await import('../_assistant-ph-hs-image-solve.js');
+    // Lỗi thật 29/10: PH_CHAT_VILAO_KEY chưa đăng ký gemini-3.8-flash → 403 FORBIDDEN.
+    h.vision.mockRejectedValueOnce(new Error('kênh rẻ trả lỗi 403: Please subscribe to model in the API Key: gemini-3.8-flash'));
+    h.vision.mockResolvedValueOnce('Giải: V = a³/3.');
+    const report: any = { studentName: 'B', className: 'C', results: [], officialCount: 0, pendingCount: 0, missingCount: 0, progress: { trend: 'flat' }, strengths: [], areasToPractice: [], parentActions: [] };
+    const answer = await mod.solveProblemFromImage({ buffer: Buffer.from([1]), mimeType: 'image/jpeg' }, report, new Set());
+    expect(answer?.text).toContain('Giải');
+    expect(h.vision).toHaveBeenCalledTimes(2);
   });
 
   it('solveProblemFromImage trả null khi vision lỗi → caller gửi câu "bận"', async () => {

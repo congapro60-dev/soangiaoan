@@ -50,7 +50,32 @@ export const fetchPhotoBuffer = async (photoUrl: string): Promise<{ buffer: Buff
 };
 
 /**
- * Giải đề trong ảnh. Trả null khi: ảnh hỏng, thiếu key AI, model lỗi.
+ * Danh sách (key, model) để thử ĐỌC ẢNH — theo thứ tự ưu tiên.
+ *
+ * VÌ SAO CẦN CHUỖI (lỗi thật 29/10): key chat `PH_CHAT_VILAO_KEY` KHÔNG đăng ký model
+ * vision `gemini-3.8-flash` → API trả 403 "Please subscribe to model in the API Key".
+ * Trong khi key chấm bài `GRADING_VILAO_API_KEY` ĐÃ đăng ký (đường chấm ảnh chạy hằng ngày).
+ * Ghim cứng một cặp là hỏng ngay khi key đổi quyền, nên thử lần lượt và ghi log cặp nào hỏng.
+ */
+const visionCandidates = (): Array<{ key: string; model: string; baseUrl: string }> => {
+  const baseUrl = process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1';
+  const out: Array<{ key: string; model: string; baseUrl: string }> = [];
+  // 1. Key chấm bài + model đã kiểm chứng đọc ảnh (nếu có key này thì chắc chắn hoạt động).
+  const gradingKey = process.env.GRADING_VILAO_API_KEY?.trim();
+  if (gradingKey) out.push({ key: gradingKey, model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash', baseUrl });
+  const chatKey = process.env.PH_CHAT_VILAO_KEY?.trim();
+  if (chatKey) {
+    // 2. Key chat + model vision (sau khi chủ dự án bật quyền model này cho key — 29/10).
+    out.push({ key: chatKey, model: process.env.PH_CHAT_VISION_MODEL?.trim() || 'gemini-3.8-flash', baseUrl });
+    // 3. Key chat + CHÍNH model chat đang chạy được (cnt/glm-5.3-flash): nhiều model GLM đọc
+    //    được ảnh. Thử sau cùng để không tốn lượt khi model vision chính đã chạy.
+    out.push({ key: chatKey, model: process.env.PH_CHAT_MODEL?.trim() || 'cnt/glm-5.3-flash', baseUrl });
+  }
+  return out;
+};
+
+/**
+ * Giải đề trong ảnh. Trả null khi: ảnh hỏng, không có key nào, mọi cặp key+model đều lỗi.
  * Caller PHẢI có nhánh fallback (câu hướng dẫn) — không được im lặng.
  */
 export const solveProblemFromImage = async (
@@ -60,44 +85,50 @@ export const solveProblemFromImage = async (
   role: ChatRole = 'student',
   caption?: string,
 ): Promise<ImageSolveAnswer | null> => {
-  const apiKey = String(process.env.PH_CHAT_VILAO_KEY || '');
-  if (!apiKey) return null;
-  try {
-    const context = buildAiContext(report, periodicIds, role);
-    const prompt = [
-      buildSystemPrompt(context, role),
-      '',
-      IMAGE_SOLVE_RULE,
-      '',
-      caption?.trim() ? `Học sinh gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}` : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
-    ].join('\n');
-    const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
-    const raw = await callOpenAiCompatibleVision(
-      prompt,
-      images,
-      apiKey,
-      {
-        baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1',
-        model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
-        reasoningEffort: 'none',
-        maxOutputTokens: 1600,
-        temperature: 0.2,
-        timeoutMs: 55_000,
-      },
-    );
-    if (!raw?.trim()) return null;
-    const { text, spec } = extractGeometryReply(raw);
-    const mathSource = sanitizeAiReply(text);
-    return {
-      text: composeAiReply(latexToUnicodeMath(text)),
-      mathSource,
-      geometry: spec,
-      hasMath: hasLatexFormula(mathSource),
-    };
-  } catch (error) {
-    console.error('[assistant-image-solve] lỗi:', error instanceof Error ? error.message.slice(0, 200) : error);
-    return null;
+  const candidates = visionCandidates();
+  if (!candidates.length) return null;
+  const context = buildAiContext(report, periodicIds, role);
+  const prompt = [
+    buildSystemPrompt(context, role),
+    '',
+    IMAGE_SOLVE_RULE,
+    '',
+    caption?.trim() ? `Học sinh gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}` : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
+  ].join('\n');
+  const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
+  for (const candidate of candidates) {
+    try {
+      const raw = await callOpenAiCompatibleVision(
+        prompt,
+        images,
+        candidate.key,
+        {
+          baseUrl: candidate.baseUrl,
+          model: candidate.model,
+          reasoningEffort: 'none',
+          maxOutputTokens: 1600,
+          temperature: 0.2,
+          timeoutMs: 55_000,
+        },
+      );
+      if (!raw?.trim()) { console.error(`[assistant-image-solve] ${candidate.model}: trả rỗng`); continue; }
+      // Log ĐỘ DÀI thôi (không log nội dung — tránh lộ đề/câu trả lời của HS vào log).
+      // Có dòng này nghĩa là vision ĐÃ trả lời thành công bằng model ghi kèm.
+      console.log(`[assistant-image-solve] OK model=${candidate.model} chars=${raw.length}`);
+      const { text, spec } = extractGeometryReply(raw);
+      const mathSource = sanitizeAiReply(text);
+      return {
+        text: composeAiReply(latexToUnicodeMath(text)),
+        mathSource,
+        geometry: spec,
+        hasMath: hasLatexFormula(mathSource),
+      };
+    } catch (error) {
+      // 403 = key chưa đăng ký model → thử cặp kế tiếp; các lỗi khác cũng thử tiếp.
+      console.error(`[assistant-image-solve] ${candidate.model} lỗi:`, error instanceof Error ? error.message.slice(0, 160) : error);
+    }
   }
+  return null;
 };
 
 export const IMAGE_SOLVE_REPLIES = {
