@@ -14,6 +14,7 @@ import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zal
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
 import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
+import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
@@ -220,6 +221,15 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (role === 'student' && message.trim() === '8') {
       const listReply = await listPendingReply(botId, userId, classId, studentId);
       await sendStyled(token, chatId, listReply);
+      return '';
+    }
+    // CHẤM LẠI (29/10): HS thấy điểm lượt đầu sai thì xin chấm lại — chạy chế độ `thorough`
+    // (đọc kỹ toàn bài trước khi chấm). Giới hạn 1 lần/bài, khoá nếu GV đã duyệt.
+    if (role === 'student' && /^(cham lai|chấm lại)$/i.test(message.trim().normalize('NFC'))) {
+      const outcome = await requestRegrade(botId, userId, chatId, classId, studentId);
+      await sendStyled(token, chatId, outcome.kind === 'started'
+        ? `Đang chấm lại bài "${outcome.title}" ở chế độ đọc kỹ, em chờ khoảng 1–2 phút nhé.`
+        : outcome.reply);
       return '';
     }
     // Đang CHỜ CHỌN BÀI (vừa nhắn 8): số thuần "1".."9" = chọn bài đó, KHÔNG rơi vào menu

@@ -555,6 +555,8 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
         approved ? 'Thầy cô đã duyệt — điểm chính thức.' : 'Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
         // A3: người nộp hộ không xem được bài của bạn qua mục 2 — dẫn đúng nơi xem.
         s.assist ? `Điểm và nhận xét hiện trên tài khoản của ${s.assist.targetName}.` : 'Xem chi tiết từng câu: nhắn 2.',
+        // Chấm lại (29/10): HS tự xin được 1 lần/bài nếu thấy máy đọc sai.
+        ...(approved || s.assist ? [] : ['Thấy điểm chưa đúng? Nhắn: chấm lại']),
         '', MENU_HINT].join('\n'));
       return;
     }

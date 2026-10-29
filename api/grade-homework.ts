@@ -734,6 +734,21 @@ export const gradeOneSubmission = async (
     );
     if (!committed.committed) return { success: false };
 
+    // CHỈ SỐ ĐO LƯỜNG (29/10): lưu số câu máy phải hỏi lại + chế độ chấm của lượt này.
+    // Cần cho việc so sánh model sau này (cùng độ lệch điểm GV, số câu hỏi lại, tiền/bài).
+    // Chi phí/model đã có sẵn trong `aiUsage` (recordAiUsage ghi mỗi lượt gọi AI) — ở đây chỉ
+    // ghi phần mà aiUsage KHÔNG có: số câu hỏi lại và chế độ chấm.
+    // Ghi SAU commit điểm, lỗi ghi log không được làm hỏng lượt chấm đã xong.
+    await claim.ref.update({
+      gradingMetrics: {
+        mode,
+        transcriptionUsed: Boolean(transcription),
+        questionsAsked: clarified.asked,
+        questionsTotal: Array.isArray(grade.questionResults) ? grade.questionResults.length : 0,
+        gradedAt: now,
+      },
+    }).catch(error => console.warn('[grade-homework] không ghi được gradingMetrics:', error));
+
     if (isTeacherHandMarked) {
       await claim.ref.update({ handMarkedPublished: true, handMarkedPublishedAt: now, handMarkedPublishedBy: actorUid }).catch(() => undefined);
       try {
