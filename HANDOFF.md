@@ -29,6 +29,32 @@
 | archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` |
 | archive size | 44143412 bytes |
 
+## Latest checkpoint - V42 DANG DEPLOY: chan vao muon + luong khan gia (29/10/2026)
+
+**Branch**: 'codex/universal-content-release' · Base: '0698daf' (= version 41 da phat hanh).
+
+### Trang thai: DANG DEPLOY — code + test + build xong, cho deploy.
+
+### Noi dung thay doi v42
+
+- **Cho vao muon**: cong tac tren board GV — Mo (HS vao sau choi binh thuong) / Chan (HS vao sau chi xem). Luu vao config.lateJoin.
+- **Luong khan gia**: HS vao muon khi CHAN → team co spectator=true, status=spectator; khong cho roll/choose/submit/hint/skill (403 SPECTATOR); client hien banner + ban do chi xem (spectatorView).
+- publicState tra ve spectator + status=spectator cho khan gia; cac doi binh thuong khong anh huong.
+
+### Verify truoc deploy (29/10)
+
+- tests/v42-spectator.test.mjs **4/4**; full suite **1465/1465 PASS, 0 fail**; build pass.
+
+### Release record V42
+
+| Truong | Gia tri |
+|---|---|
+| version_number | **42** |
+| deployment_id | (placeholder — Codex dien sau deploy) |
+| commit_sha | (placeholder — Codex dien sau commit) |
+| archive | release-20261029-v42.tar.gz (placeholder) |
+| archive size | (placeholder) |
+
 ## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
 
 **Branch**: 'codex/universal-content-release' · Worktree: 'C:\Users\ADMIN\.codex\worktrees\universal-content-release' · Base: 'f38b691' (+ v40 da live truoc do: deployment 'appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de', version 40).
