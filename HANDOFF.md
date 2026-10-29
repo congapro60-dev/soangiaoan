@@ -55,6 +55,17 @@
 | archive | release-20261029-v42.tar.gz (placeholder) |
 | archive size | (placeholder) |
 
+
+### Ghi chú Tuần 12 (29/10)
+
+4 phòng Tuần 12 đã tạo trên live version 41 (trước khi deploy v42):
+- 10Olinda: 5JGHEK (40 phút, Jeopardy, Thống kê + Vecto)
+- 11Columbus (song song): CU4HBF (40 phút, Boss, Quan hệ song song)
+- 11Columbus (giới hạn): ZXF62D (40 phút, Surf, Giới hạn dãy số)
+- Lớp 12: PR3ERY (40 phút, Boss, Nguyên hàm + Phương sai)
+
+Mã phòng cũ (PXSZN6, BB3BAS, HD5XNY, Y98C6V) đã bỏ do sai thời lượng.
+
 ## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
 
 **Branch**: 'codex/universal-content-release' · Worktree: 'C:\Users\ADMIN\.codex\worktrees\universal-content-release' · Base: 'f38b691' (+ v40 da live truoc do: deployment 'appgdep_6ae2bd4e9fa48191b12f6e5e0d3226de', version 40).
