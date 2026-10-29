@@ -225,8 +225,14 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     }
     // CHẤM LẠI (29/10): HS thấy điểm lượt đầu sai thì xin chấm lại — chạy chế độ `thorough`
     // (đọc kỹ toàn bài trước khi chấm). Giới hạn 1 lần/bài, khoá nếu GV đã duyệt.
-    if (role === 'student' && /^(cham lai|chấm lại)$/i.test(message.trim().normalize('NFC'))) {
+    if (/^(cham lai|chấm lại)$/i.test(message.trim().normalize('NFC'))) {
+      console.log(`[regrade] nhan lenh cham lai | role=${role} | classId=${classId} | studentId=${studentId}`);
+      if (role !== 'student') {
+        await sendStyled(token, chatId, 'Chấm lại là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.');
+        return '';
+      }
       const outcome = await requestRegrade(botId, userId, chatId, classId, studentId);
+      console.log(`[regrade] ket qua: ${outcome.kind}`);
       await sendStyled(token, chatId, outcome.kind === 'started'
         ? `Đang chấm lại bài "${outcome.title}" ở chế độ đọc kỹ, em chờ khoảng 1–2 phút nhé.`
         : outcome.reply);
