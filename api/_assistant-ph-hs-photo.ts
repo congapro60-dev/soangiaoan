@@ -364,6 +364,15 @@ const liveSession = async (botId: string, userId: string): Promise<{ id: string;
 };
 
 /**
+ * Có phiên nộp bài đang mở (đã chọn bài) hay không — để phân biệt ẢNH NỘP BÀI
+ * với ẢNH ĐỀ BÀI nhờ giải (lỗi 29/10: gửi đề nhờ giải lại bị coi là nộp bài).
+ */
+export const hasLiveAssignmentSession = async (botId: string, userId: string): Promise<boolean> => {
+  const session = await liveSession(botId, userId);
+  return Boolean(session && session.data.assignmentId && session.data.awaitingPick !== true && !session.data.assistState);
+};
+
+/**
  * Nhận 1 ảnh từ Zalo: tải về (URL tạm thời), đẩy Storage `accepted-homework/` + download token —
  * URL đúng format web nên `gradeOneSubmission` và GV xem trên web dùng như ảnh nộp thường.
  */

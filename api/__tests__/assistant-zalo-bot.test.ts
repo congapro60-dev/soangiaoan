@@ -42,6 +42,14 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   // Mục 8 mới (29/10): liệt kê bài + ghi cờ awaitingPick để nhắn số thuần chọn bài.
   listPendingReply: vi.fn(async () => 'LIST_1'),
   pickAssignmentByNumber: vi.fn(async () => null),
+  // Phân biệt ẢNH NỘP BÀI với ẢNH ĐỀ BÀI nhờ giải (29/10). Mặc định KHÔNG có phiên nộp.
+  hasLiveAssignmentSession: vi.fn(async () => false),
+}));
+// Giải đề từ ảnh: mock để không gọi vision thật. fetchPhotoBuffer trả null (ảnh test không tải được).
+vi.mock('../_assistant-ph-hs-image-solve', () => ({
+  IMAGE_SOLVE_REPLIES: { unreadable: 'Ảnh chưa đọc được, em chụp lại nhé.', busy: 'AI bận.' },
+  fetchPhotoBuffer: vi.fn(async () => null),
+  solveProblemFromImage: vi.fn(async () => null),
 }));
 vi.mock('../_assistant-ph-hs-menu', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
@@ -65,7 +73,8 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
-import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+
 
 
 const { answerDetailed, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn(), sendMathFormulaPhotoMock: vi.fn() }));
@@ -73,8 +82,14 @@ const { answerDetailed, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.h
 // đúng bộ export mà zalo-bot dùng (AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller).
 vi.mock('../_assistant-ph-hs-chat', () => ({
   AI_CHAT_REPLIES: { unavailable: 'AI_BAN', empty: 'AI_RONG' },
+  AI_MENU_HINT: 'Nhắn 0 để xem lại menu.',
   answerParentQuestionDetailed: (...args: unknown[]) => answerDetailed(...(args as [])),
   vilaoCaller: vi.fn(() => async () => ''),
+  // Module giải đề từ ảnh (29/10) import các hàm này — mock phải đủ để file test load được.
+  buildSystemPrompt: vi.fn(() => 'SYS'),
+  composeAiReply: vi.fn((raw: string) => raw),
+  sanitizeAiReply: vi.fn((raw: string) => raw),
+  buildAiContext: vi.fn(() => 'CTX'),
 }));
 vi.mock('../_assistant-geometry-render', () => ({
   sendGeometryPhoto: (...args: unknown[]) => sendGeometryPhotoMock(...(args as [])),
@@ -378,8 +393,9 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   });
   const imageEvent = (photo: unknown, messageId = 'image-1') => ({ ok: true, result: { event_name: 'message.image.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, photo, message_id: messageId, date: Date.now() } } });
 
-  it('HS gửi ảnh (m.photo chuỗi) → photoReceivedReply, gửi sendStyled', async () => {
+  it('HS gửi ảnh KHI ĐANG NỘP BÀI → photoReceivedReply (ảnh là bài làm)', async () => {
     mockStudent();
+    vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true);
     const result = await request(imageEvent('https://photo.zalo/abc.jpg'));
     expect(result.code).toBe(200);
     expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg');
@@ -387,6 +403,7 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   });
   it('ảnh dạng object {url} và {attach_url} đều đọc được URL', async () => {
     mockStudent();
+    vi.mocked(hasLiveAssignmentSession).mockResolvedValue(true);
     await request(imageEvent({ url: 'https://photo.zalo/u1.jpg' }, 'image-2'));
     expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg');
     await request(imageEvent({ attach_url: 'https://photo.zalo/u2.jpg' }, 'image-3'));
@@ -406,14 +423,16 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(sent()).toHaveLength(1);
     expect(JSON.parse(sent()[0][1].body).text).toContain('liên kết');
   });
-  it('PH gửi ảnh → đúng 1 câu dành cho PH, không vào luồng HS', async () => {
+  it('PH gửi ảnh → cũng được giải đề (PH chụp đề hộ con), không vào luồng nộp bài', async () => {
     vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
       if ((args[5] as any)?.preferredRole === 'parent') return parentActor;
       throw new Error('Channel is not linked');
     });
     await request(imageEvent('https://photo.zalo/abc.jpg', 'image-5'));
+    // KHÔNG vào luồng nộp bài của HS…
     expect(photoReceivedReply).not.toHaveBeenCalled();
-    expect(JSON.parse(sent()[0][1].body).text).toContain('chức năng của học sinh');
+    // …mà đi đường giải đề từ ảnh: ảnh không tải được trong test → câu nhắc chụp lại.
+    expect(JSON.parse(sent()[0][1].body).text).toContain('chụp lại');
   });
   it('HS nhắn 8 → danh sách bài chờ nộp, không qua parentMenuReply', async () => {
     mockStudent();

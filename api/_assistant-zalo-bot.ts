@@ -12,7 +12,8 @@ import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
@@ -98,19 +99,49 @@ const chooseAndOpen = async (botId: string, userId: string, classId: string, stu
   if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items)}`;
   return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
 };
-/** Ảnh HS gửi: chỉ HỌC SINH đã liên kết mới đi tiếp. Người lạ vẫn nhận hướng dẫn (guard 1 tin/5 phút chống spam). */
-const dispatchPhotoMessage = async (botId: string, userId: string, chatId: string, photoUrl: string): Promise<string> => {
+/**
+ * Ảnh HS gửi — HAI Ý ĐỊNH KHÁC NHAU, phải phân biệt (lỗi thật 29/10):
+ *   (a) ĐANG trong phiên nộp bài (đã chọn bài) → ảnh là BÀI LÀM, đếm ảnh chờ "xong".
+ *   (b) KHÔNG có phiên → ảnh là ĐỀ BÀI nhờ giải → đưa qua vision đọc đề và giải.
+ * Trước đây mọi ảnh đều đi đường (a) nên HS gửi đề nhờ giải lại nhận câu về dữ liệu báo cáo.
+ * Trả '' khi hàm ĐÃ tự gửi tin (nhánh giải đề), ngược lại trả nội dung để caller gửi.
+ */
+const dispatchPhotoMessage = async (token: string, botId: string, userId: string, chatId: string, photoUrl: string): Promise<string> => {
   const linked = await resolveAnyActor(botId, userId, chatId);
   // HS hay gửi ảnh bài làm trước cả khi liên kết — im lặng khiến bot có vẻ "chết".
   if (!linked) return (await canReplyToStranger(getAdminDb(), botId, userId)) ? STRANGER_HINT : '';
   if (linked === 'ambiguous') return '';
   const role = (linked as any).role ?? 'teacher';
-  if (role !== 'student') return role === 'teacher'
-    ? 'Gửi ảnh bài làm là chức năng của học sinh. Nhắn: gv để xem menu thầy cô.'
-    : 'Gửi ảnh bài làm là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.';
+  if (role !== 'student' && role !== 'parent') return 'Gửi ảnh bài làm là chức năng của học sinh. Nhắn: gv để xem menu thầy cô.';
   const classId = String((linked as any).classId ?? ''); const studentId = String((linked as any).studentId ?? '');
   if (!classId || !studentId) return MENU_REPLIES.noData;
-  return photoReceivedReply(botId, userId, photoUrl);
+  // (a) Đang nộp bài → giữ nguyên luồng nhận ảnh bài làm.
+  if (await hasLiveAssignmentSession(botId, userId)) return photoReceivedReply(botId, userId, photoUrl);
+  // (b) Không có phiên nộp → GIẢI ĐỀ TỪ ẢNH (HS nhờ giải bài).
+  await solvePhotoAsQuestion(token, botId, chatId, classId, studentId, role, photoUrl);
+  return '';
+};
+
+/**
+ * Giải đề trong ảnh rồi gửi: hình vẽ > ảnh công thức > text (giống nhánh chat text).
+ * Mọi bước lỗi → vẫn gửi text đầy đủ, không bao giờ im lặng.
+ */
+const solvePhotoAsQuestion = async (
+  token: string, botId: string, chatId: string, classId: string, studentId: string,
+  role: 'student' | 'parent', photoUrl: string,
+): Promise<void> => {
+  const image = await fetchPhotoBuffer(photoUrl);
+  if (!image) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.unreadable); return; }
+  const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
+  if (!bundle) { await sendStyled(token, chatId, MENU_REPLIES.noData); return; }
+  sendTyping(token, chatId);
+  const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role);
+  if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
+  const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode);
+  let photoSent = false;
+  if (answer.geometry) photoSent = await sendGeometryPhoto(token, chatId, answer.geometry, fullCaption, classId, sendPhoto);
+  else if (answer.hasMath) photoSent = await sendMathFormulaPhoto(token, chatId, answer.mathSource, fullCaption, classId, sendPhoto);
+  if (!photoSent) await sendStyled(token, chatId, fullCaption, false);
 };
 const readBody = async (req: VercelRequest): Promise<string> => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
@@ -356,7 +387,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   try {
     if (isImageEvent) {
       // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).
-      reply = await dispatchPhotoMessage(botId, senderId, chatId, photoUrl);
+      reply = await dispatchPhotoMessage(token, botId, senderId, chatId, photoUrl);
       if (reply) await sendStyled(token, chatId, reply);
       res.status(200).json({ ok: true }); return true;
     }
