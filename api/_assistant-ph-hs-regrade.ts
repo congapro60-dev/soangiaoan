@@ -67,11 +67,18 @@ export const requestRegrade = async (
       const at = (x: typeof a) => { const t = Date.parse(String(x.data.grade?.gradedAt ?? '')); return Number.isFinite(t) ? t : 0; };
       return at(b) - at(a);
     });
-  const target = graded[0];
-  if (!target) return { kind: 'rejected', reply: REGRADE_REPLIES.notFound };
-  if (target.data.grade?.teacherApproved === true) return { kind: 'rejected', reply: REGRADE_REPLIES.alreadyApproved };
-  if (target.data.status === 'grading') return { kind: 'rejected', reply: REGRADE_REPLIES.busy };
-  if (target.data.regradeRequestedAt) return { kind: 'rejected', reply: REGRADE_REPLIES.alreadyUsed };
+  if (!graded.length) return { kind: 'rejected', reply: REGRADE_REPLIES.notFound };
+  // Chọn bài GẦN NHẤT mà CÒN chấm lại được — không phải bài mới nhất tuyệt đối.
+  // Lỗi thật 29/10: bài mới nhất thường đã được GV duyệt (hoặc đã dùng lượt), nên HS xin
+  // chấm lại bài khác thì bị từ chối oan dù vẫn còn bài chưa duyệt.
+  const target = graded.find(item => item.data.grade?.teacherApproved !== true && !item.data.regradeRequestedAt);
+  if (!target) {
+    // Không còn bài nào chấm lại được → nói đúng lý do của bài gần nhất.
+    const newest = graded[0];
+    return { kind: 'rejected', reply: newest.data.grade?.teacherApproved === true
+      ? REGRADE_REPLIES.alreadyApproved
+      : REGRADE_REPLIES.alreadyUsed };
+  }
 
   // Đặt cờ TRƯỚC khi chấm: 2 tin "chấm lại" song song chỉ 1 lượt thắng (transaction).
   const claimed = await db.runTransaction(async tx => {

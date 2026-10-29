@@ -84,14 +84,31 @@ describe('requestRegrade — chặn đúng trường hợp, không đốt tiền
     expect(h.db.rows.get('submissions/sub1')?.regradeRequestedAt).toBeGreaterThan(0);
   });
 
+  it('bài mới nhất đã duyệt nhưng còn bài cũ CHƯA duyệt → chọn bài còn chấm lại được', async () => {
+    // Lỗi thật 29/10: code cũ chọn bài MỚI NHẤT tuyệt đối; bài đó thường đã GV duyệt nên
+    // HS bị từ chối oan dù vẫn còn bài khác chưa duyệt.
+    h.db.put('submissions/old', {
+      classId: 'c', studentId: 's', assignmentId: 'a1', assignmentTitle: 'Bài cũ chưa duyệt',
+      status: 'graded', grade: { score: 5, maxScore: 10, gradedAt: '2026-10-20T10:00:00.000Z', teacherApproved: false },
+    });
+    h.db.put('submissions/new', {
+      classId: 'c', studentId: 's', assignmentId: 'a1', assignmentTitle: 'Bài mới đã duyệt',
+      status: 'graded', grade: { score: 9, maxScore: 10, gradedAt: '2026-10-26T10:00:00.000Z', teacherApproved: true },
+    });
+    const mod = await import('../_assistant-ph-hs-regrade.js');
+    const out = await mod.requestRegrade(BOT, USER, USER, 'c', 's');
+    expect(out.kind).toBe('started');
+    expect(out.kind === 'started' && out.submissionId).toBe('old');
+  });
+
   it('chọn bài GẦN NHẤT khi có nhiều bài đã chấm', async () => {
     h.db.put('submissions/old', {
       classId: 'c', studentId: 's', assignmentId: 'a1', assignmentTitle: 'Bài cũ',
-      status: 'graded', grade: { score: 5, maxScore: 10, gradedAt: 1000, teacherApproved: false },
+      status: 'graded', grade: { score: 5, maxScore: 10, gradedAt: '2026-10-20T10:00:00.000Z', teacherApproved: false },
     });
     h.db.put('submissions/new', {
       classId: 'c', studentId: 's', assignmentId: 'a1', assignmentTitle: 'Bài mới',
-      status: 'graded', grade: { score: 9, maxScore: 10, gradedAt: 9000, teacherApproved: false },
+      status: 'graded', grade: { score: 9, maxScore: 10, gradedAt: '2026-10-26T10:00:00.000Z', teacherApproved: false },
     });
     const mod = await import('../_assistant-ph-hs-regrade.js');
     const out = await mod.requestRegrade(BOT, USER, USER, 'c', 's');
