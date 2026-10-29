@@ -344,16 +344,6 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const isPracticeSet = activitySteps.length > 1;
   const isGroupActivity = publicState.cueId === 'P20' || publicState.cueId === 'P22' || step?.id === 'cp-group-product';
-  // R1 — nhóm xong sớm (mọi thành viên đã gửi) → hiện nhiệm vụ mở rộng (câu VD đề trần, không nộp).
-  const myGroupNumber = assignedGroup?.groupId.replace(/[^0-9]/g, '') ?? '';
-  const groupDone = isGroupActivity && Boolean(myGroupNumber) && groupCounters !== null
-    && groupCounters.cueId === publicState.cueId
-    && isGroupDone({ members: groupCounters.members, submitted: groupCounters.submitted }, myGroupNumber);
-  const deepExercise = useMemo(() => {
-    const vd = [...(v4Contract.sourceContent?.exercises ?? [])].filter((item) => item.level === 'VD');
-    return vd.length > 0 ? vd[vd.length - 1] : null;
-  }, [v4Contract.sourceContent?.exercises]);
-  const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
   const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
@@ -373,6 +363,17 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const v4Contract = useMemo(() => getBanToanV4ContractForLiveDefinitionId(definition.id) ?? getG10P31V4Contract(), [definition.id]);
   // Chỉ dịch phần chữ HS; công thức/ký hiệu Toán giữ nguyên trong nội dung gốc.
   // Màn hình chung (TV) luôn tiếng Việt — không đổi theo lựa chọn của HS.
+  // R1 — nhóm xong sớm (mọi thành viên đã gửi) → hiện nhiệm vụ mở rộng (câu VD đề trần, không nộp).
+  const myGroupNumber = assignedGroup?.groupId.replace(/[^0-9]/g, '') ?? '';
+  const groupDone = isGroupActivity && Boolean(myGroupNumber) && groupCounters !== null
+    && groupCounters.cueId === publicState.cueId
+    && isGroupDone({ members: groupCounters.members, submitted: groupCounters.submitted }, myGroupNumber);
+  const deepExercise = useMemo(() => {
+    const vd = [...(v4Contract.sourceContent?.exercises ?? [])].filter((item) => item.level === 'VD');
+    return vd.length > 0 ? vd[vd.length - 1] : null;
+  }, [v4Contract.sourceContent?.exercises]);
+  const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
+
   const localizedScreen = getLocalizedStudentCopy(definitionKey, languageView.language, studentScreen?.id ?? '');
   const localizedStep = step ? getLocalizedStudentCopy(definitionKey, languageView.language, step.id) : null;
   const studentScreenLabel = !step ? (tvScreen?.title ?? 'Cùng theo dõi') : localizedScreen?.label ?? studentScreen?.label ?? 'Theo dõi hướng dẫn';
