@@ -3,6 +3,7 @@ import { AlertTriangle, Camera, CheckCircle2, Loader2, MessageCircleQuestion } f
 import { MAX_PHOTO_TRIES, canonicalAnswer } from '../../../../lib/classroom/clarification';
 import type { QuestionResult, SubmissionDoc } from '../../../../lib/classroom/types';
 import { SubmissionPhotoReview } from '../SubmissionPhotoReview';
+import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import { actorClarifyAnswers, actorClarifyPhoto, uploadActorEvidence, type SubmissionActorCredentials } from '../../../../services/submissionActorsApi';
 import type { ClarifyAnswersResult, ClarifyPhotoResult } from '../../../../services/gradingApi';
 
@@ -84,8 +85,10 @@ const ClarifyQuestion = ({ submissionId, submission, credentials, question, valu
       {images.length > 0 && <SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt={`Đối chiếu ${question.questionNumber}`} questionResults={[question]} pending selectedQuestion={question.questionNumber} detailHidden />}
       <div className="min-w-0">
       <p className="text-sm font-black text-slate-900">{question.questionNumber}</p>
+      {/* Dòng máy đọc có thể là công thức ($…$, $$…$$): vẽ bằng KaTeX như các chỗ khác, không in thô. */}
+      <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{clarify.reading ? 'Máy đọc được (chưa chắc):' : 'Máy chưa đọc được câu này.'}</p>
+      {clarify.reading && <div className="mt-1 rounded-xl bg-slate-50 px-3 py-2"><NhanXetMarkdown>{clarify.reading}</NhanXetMarkdown></div>}
       <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-        {clarify.reading ? <>Máy đọc được: <span className="font-black text-slate-700">“{clarify.reading}”</span> — chưa chắc. </> : 'Máy chưa đọc được câu này. '}
         {isPhoto ? 'Em chụp lại đúng phần bài làm của câu này cho rõ nhé.' : 'Em chọn / gõ lại đáp án cho đúng ý em nhé.'}
       </p>
       {isPhoto && clarify.message && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-900">{clarify.message}</p>}

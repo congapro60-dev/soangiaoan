@@ -404,16 +404,13 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
       const expectedAnswer = String(q.expectedAnswer ?? '').trim();
       const status = normalizeQuestionStatus(q.status);
       const ignoredByTeacherInstruction = q.ignoredByTeacherInstruction === true;
+      // Cờ "máy đọc chưa chắc" (hiện nhãn "Đọc chưa rõ"): model tự báo, không đọc được, hoặc thiếu hẳn bài làm /
+      // đáp án để đối chiếu. KHÔNG bật chỉ vì câu bỏ trống, hay vì model để trống lời giải thích / cách sửa /
+      // luyện tiếp (câu đúng vốn không có) — trước đây hai trường hợp đó gắn nhãn cho cả bài dù không có gì đọc sai,
+      // và bài không có câu nào để hỏi lại em vẫn dính nhãn.
       const needsTeacherReview = q.needsTeacherReview === true
         || status === 'unreadable'
-        || (!ignoredByTeacherInstruction && (
-          status === 'not_attempted'
-          || !studentAnswer
-          || !expectedAnswer
-          || !String(q.explanation ?? '').trim()
-          || !String(q.correction ?? '').trim()
-          || !String(q.nextPractice ?? '').trim()
-        ));
+        || (!ignoredByTeacherInstruction && status !== 'not_attempted' && (!studentAnswer || !expectedAnswer));
       const confidenceValue = Number(q.confidence);
 
       const photoMarks = sanitizePhotoMarks(q.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });

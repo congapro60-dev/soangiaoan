@@ -305,7 +305,7 @@ describe('parseHomeworkGrade', () => {
     expect(g.score).toBe(5);
   });
 
-  it('kẹp điểm từng câu và đánh dấu dữ liệu thiếu là cần giáo viên soát', () => {
+  it('kẹp điểm từng câu; thiếu lời giải thích/cách sửa KHÔNG thành "đọc chưa rõ", chỉ thiếu bài làm/đáp án hoặc không đọc được mới bị cờ', () => {
     const g = parseHomeworkGrade(JSON.stringify({
       ...mau,
       questionResults: [{
@@ -324,7 +324,7 @@ describe('parseHomeworkGrade', () => {
 
     expect(g.questionResults[0].score).toBe(4);
     expect(g.questionResults[0].status).toBe('partially_correct');
-    expect(g.questionResults[0].needsTeacherReview).toBe(true);
+    expect(g.questionResults[0].needsTeacherReview).toBe(false);
     expect(g.questionResults[1].status).toBe('unreadable');
     expect(g.questionResults[1].needsTeacherReview).toBe(true);
   });
@@ -337,6 +337,16 @@ describe('parseHomeworkGrade', () => {
   it('ghi nhận cờ chấm khi không có đáp án chuẩn', () => {
     const g = parseHomeworkGrade(JSON.stringify(mau), 10, true);
     expect(g.gradedWithoutAnswerKey).toBe(true);
+  });
+
+  it('cờ cần soát: câu bỏ trống và câu đúng thiếu cách sửa không bật; thiếu bài làm/đáp án, không đọc được, model tự báo thì bật', () => {
+    const flag = (q: Record<string, unknown>) => parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: [{ questionNumber: 'Câu 1', score: 0, maxScore: 1, ...q }] }), 10, false).questionResults[0].needsTeacherReview;
+    expect(flag({ status: 'not_attempted', studentAnswer: '', expectedAnswer: 'B' })).toBe(false);
+    expect(flag({ status: 'correct', studentAnswer: 'B', expectedAnswer: 'B' })).toBe(false);
+    expect(flag({ status: 'correct', studentAnswer: '', expectedAnswer: 'B' })).toBe(true);
+    expect(flag({ status: 'incorrect', studentAnswer: 'A', expectedAnswer: '' })).toBe(true);
+    expect(flag({ status: 'unreadable', studentAnswer: '', expectedAnswer: 'B' })).toBe(true);
+    expect(flag({ status: 'correct', studentAnswer: 'B', expectedAnswer: 'B', needsTeacherReview: true })).toBe(true);
   });
 
   it('không biến phần được bỏ qua theo lệnh giáo viên thành cảnh báo giả', () => {
@@ -515,7 +525,7 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
       }],
     });
     expect(result.grade.questionResults).toHaveLength(1);
-    expect(result.grade.questionResults[0].needsTeacherReview).toBe(true);
+    expect(result.grade.questionResults[0].needsTeacherReview).toBe(false);
   });
 
   it('REGRESSION: cộng điểm từng câu khi thiếu điểm tổng', () => {

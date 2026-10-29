@@ -79,3 +79,20 @@ it('đối chiếu PH có ảnh cạnh câu hỏi / vùng nét đứt, không đ
   const locked = renderToStaticMarkup(<ClarifyPanel {...props} locked />);
   expect(locked).toContain('GV đã khóa chốt'); expect(locked).not.toContain('Lưu tất cả');
 });
+
+describe('ClarifyPanel — dòng "Máy đọc được"', () => {
+  const render = (reading: string) => renderToStaticMarkup(<ClarifyPanel onChanged={() => undefined} items={[{ title: 'KT', submission: submission([q({ questionNumber: 'Bài 4.11', clarify: { kind: 'photo', state: 'open', reading } })]) }]} />);
+
+  it('công thức máy đọc được vẽ bằng KaTeX, không in thô $$ và \vec', () => {
+    const html = render('$$\vec{AM} = \vec{AB} + \vec{BM} = \vec{AB} + \frac{1}{2}\vec{AD}$$');
+    expect(html).toContain('Máy đọc được (chưa chắc):');
+    expect(html).toContain('class="katex');
+    expect(html).not.toContain('$$');
+    expect(html).not.toContain('\frac{1}{2}\vec{AD}$$');
+  });
+
+  it('đáp án chữ thường vẫn hiện, không đọc được thì báo thẳng', () => {
+    expect(render('B hoặc D')).toContain('B hoặc D');
+    expect(render('')).toContain('Máy chưa đọc được câu này.');
+  });
+});
