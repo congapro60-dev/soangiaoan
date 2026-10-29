@@ -39,3 +39,5 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [ ] Chức năng 1: Hand Raise + Câu hỏi ẩn danh + Pulse (spec-hand-raise.md) — audit → P0 → test.
 - [ ] Chức năng 2: Mobile/Desktop Parity theo 4 bước (spec-parity.md) — áp Math Diagram Standard cho hình.
 - [x] Quy tắc kiểm thử mở rộng (test component + TDZ check) đã ghi HANDOFF sau lỗi TDZ participantUid.
+- [x] QA live nhóm xoaytua chốt: R1 VERIFIED live (session Dypueu4PNboPdTOqQGon); R2 unit 6/6 PASS (live cần 2 HS — NOT_RUN).
+- [x] Fix 2 lỗi tìm thấy khi QA: listener groupProgress 403 chết vĩnh viễn; R2 gắn sai màn hình (TeacherLiveView không render) → tách TvSlowGroups.
