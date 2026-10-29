@@ -290,11 +290,14 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const [myGroupNumber, setMyGroupNumber] = useState('');
 
   // Nhóm xoay tua tự động (R1) — theo dõi tiến độ nhóm công khai của phiên.
+  // `public/groupProgress` chỉ đọc được khi GV bật "Hiện kết quả lớp" (rule yêu cầu
+  // publicStatsEnabled). Nếu subscribe lúc stats còn tắt, Firestore trả 403 và listener
+  // chết vĩnh viễn — nên chỉ subscribe khi stats bật và subscribe lại khi cờ đổi.
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !publicState.showStats) { setGroupCounters(null); return; }
     const unsubscribe = subscribeToLiveGroupProgress(sessionId, (value) => setGroupCounters(value), () => setGroupCounters(null));
     return () => unsubscribe();
-  }, [sessionId]);
+  }, [sessionId, publicState.showStats]);
   const [currentRoute, setCurrentRoute] = useState<V4Route | null>(null);
   const [hintState, setHintState] = useState<HintRevealState>({ revealedCount: 0, totalHints: 0 });
 

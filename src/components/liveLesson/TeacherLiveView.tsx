@@ -165,9 +165,14 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
   useEffect(() => {
     if (!session.id) return;
     const unsub1 = subscribeToLiveGroupMemberships(session.id, (rows) => setGroupMemberships(rows), () => setGroupMemberships([]));
-    const unsub2 = subscribeToLiveGroupProgress(session.id, (value) => setGroupCounters(value), () => setGroupCounters(null));
-    return () => { unsub1(); unsub2(); };
+    return () => { unsub1(); };
   }, [session.id]);
+  // `public/groupProgress` chỉ đọc được khi bật "Hiện kết quả lớp"; subscribe lúc tắt sẽ bị 403
+  // và listener chết vĩnh viễn — nên gắn lại theo cờ publicStatsEnabled.
+  useEffect(() => {
+    if (!session.id || !session.publicStatsEnabled) { setGroupCounters(null); return; }
+    return subscribeToLiveGroupProgress(session.id, (value) => setGroupCounters(value), () => setGroupCounters(null));
+  }, [session.id, session.publicStatsEnabled]);
   const stats = useMemo<LivePublicStats | null>(() => responseStepId ? aggregateLiveResponses(responses, responseStepId) : null, [responses, responseStepId]);
   const teacherRows = useMemo(() => responseStepId ? buildTeacherActivityRows(responses, responseStepId) : [], [responses, responseStepId]);
   const responseOptions = definition.responseSteps.find(step => step.id === responseStepId)?.options ?? [];
