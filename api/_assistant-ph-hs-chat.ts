@@ -90,9 +90,17 @@ export const GEOMETRY_PROMPT_RULE = [
   '    • Đề cho "hình chóp đều" / "S cách đều A,B,C,D" / "chân đường cao là tâm O" → apexAt: "center"',
   '    • Không nói gì về chân đường cao → apexAt: "A" (đa số bài lớp 11 cho SA ⊥ đáy)',
   '- graph — đồ thị hàm số: {"shape":"graph","points":[[-2,4],[-1,1],[0,0],[1,1],[2,4]],"xrange":[-3,3],"yrange":[-1,5]}',
+  '  ⚠️ QUY CHUẨN ĐỒ THỊ: điểm phải đúng toán học; TUYỆT ĐỐI KHÔNG đưa điểm nằm ở nơi hàm KHÔNG xác định,',
+  '  KHÔNG nối qua tiệm cận đứng hay điểm gián đoạn (ví dụ y=1/(x−2): 2 nhánh tách rời, không có điểm tại x=2;',
+  '  y=(x²−1)/(x−1): đường thẳng y=x+1 nhưng THIẾU điểm tại x=1). Chọn xrange/yrange theo đặc trưng hàm.',
   '- table — bảng số liệu: {"shape":"table","head":["x","1","2","3"],"rows":[["tần suất","3","5","2"]]}',
+  '  ⚠️ Phân biệt tần số (đếm) và tần suất %; tổng tần suất phải đúng 100% (làm tròn thì ghi chú).',
   '- bar — biểu đồ cột: {"shape":"bar","labels":["A","B","C"],"values":[3,5,2]}',
+  '  ⚠️ Trục giá trị bắt đầu từ 0; chiều cao cột tỉ lệ THUẬN giá trị; không chế số liệu.',
   'note: mô tả ngắn dữ kiện (⊥, √, °, ⇒), tối đa 200 ký tự. KHÔNG giải thích khối này trong phần chữ.',
+  'QUY CHUẨN KÝ HIỆU: chóp viết S.ABC / S.ABCD; hộp viết ABCD.A\'B\'C\'D\' (A\' tương ứng A); đường tròn (O;R).',
+  'TUYỆT ĐỐI KHÔNG "vẽ thêm" quan hệ không có trong đề: không tự coi tam giác là cân/vuông, không tự thêm',
+  'điểm bằng nhau/vuông góc/song song khi đề không cho — hình chỉ minh họa giả thiết đã cho.',
   'Câu hỏi điểm số, phương pháp học, đại số thuần (không có hình/số liệu) thì KHÔNG thêm khối.',
 ].join('\n');
 

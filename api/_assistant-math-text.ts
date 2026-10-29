@@ -416,5 +416,7 @@ export const MATH_FORMAT_RULE = [
   '  thành ảnh chuẩn Toán học. Ví dụ: $$\\dfrac{x+1}{x-2}$$ , $$\\int_{0}^{1}(2x+1)\\,dx$$ , $$\\lim_{x \\to 0}\\dfrac{\\sin x}{x}$$',
   '- TUYỆT ĐỐI KHÔNG viết LaTeX ra ngoài $$...$$ (không dùng \\( \\), không dùng $ đơn, không dùng \\frac trần).',
   '- KHÔNG dùng markdown cho công thức (không in đậm, không gạch đầu dòng cho công thức).',
+  '- Số GẦN ĐÚNG dùng ≈ (x ≈ 1,41), dấu = chỉ khi thực sự bằng. Đơn vị ghi nhất quán: cm, m, cm², m³, °.',
+  '  Vectơ dùng mũi tên (→AB hoặc \\overrightarrow), độ dài vectơ không dùng mũi tên.',
 ].join('\n');
 

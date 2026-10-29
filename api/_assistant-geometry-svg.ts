@@ -25,7 +25,12 @@ export const GEOMETRY_SVG_SIZE = { width: 800, height: 640 } as const;
 
 const W = GEOMETRY_SVG_SIZE.width;
 const H = GEOMETRY_SVG_SIZE.height;
-const INK = '#1a1a1a';
+// Bảng màu theo MATH DIAGRAM STANDARD v1.0 §17.1 (nền sáng):
+// nét chính #1F2937, nét khuất #6B7280 (luôn kèm nét đứt — không mã hoá bằng màu riêng),
+// lưới #E5E7EB. px ở đây lớn hơn tham chiếu §17.3 vì ảnh 800×640 cho điện thoại.
+const INK = '#1F2937';
+const HIDDEN_INK = '#6B7280';
+const GRID_INK = '#E5E7EB';
 const FONT = `font-family="'KaTeX_Main','DejaVu Sans',sans-serif"`;
 const DASH = 'stroke-dasharray="10 7"';
 
@@ -33,16 +38,16 @@ const esc = (s: string): string =>
   s.replace(/&/g, '&' + 'amp;').replace(/</g, '&' + 'lt;').replace(/>/g, '&' + 'gt;').replace(/"/g, '&' + 'quot;');
 
 const line = (x1: number, y1: number, x2: number, y2: number, dashed = false): string =>
-  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"${dashed ? ` ${DASH}` : ''}/>`;
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${dashed ? HIDDEN_INK : INK}" stroke-width="3.5" stroke-linecap="round"${dashed ? ` ${DASH}` : ''}/>`;
 
 /** Nửa ellipse: half='top'|'bottom' theo toạ độ màn hình (y hướng xuống). */
 const halfEllipse = (cx: number, cy: number, rx: number, ry: number, half: 'top' | 'bottom', dashed = false): string => {
   const sweep = half === 'top' ? 0 : 1;
-  return `<path d="M ${cx - rx} ${cy} A ${rx} ${ry} 0 0 ${sweep} ${cx + rx} ${cy}" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"${dashed ? ` ${DASH}` : ''}/>`;
+  return `<path d="M ${cx - rx} ${cy} A ${rx} ${ry} 0 0 ${sweep} ${cx + rx} ${cy}" fill="none" stroke="${dashed ? HIDDEN_INK : INK}" stroke-width="3.5" stroke-linecap="round"${dashed ? ` ${DASH}` : ''}/>`;
 };
 
 const ellipse = (cx: number, cy: number, rx: number, ry: number, dashed = false): string =>
-  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${INK}" stroke-width="3.5"${dashed ? ` ${DASH}` : ''}/>`;
+  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${dashed ? HIDDEN_INK : INK}" stroke-width="3.5"${dashed ? ` ${DASH}` : ''}/>`;
 
 const label = (x: number, y: number, text: string, size = 34): string =>
   `<text x="${x}" y="${y}" ${FONT} font-size="${size}" font-weight="700" fill="${INK}" text-anchor="middle" stroke="#ffffff" stroke-width="6" paint-order="stroke fill" stroke-linejoin="round">${text}</text>`;
@@ -249,13 +254,13 @@ const graph = (spec: Extract<GeometrySpec, { shape: 'graph' }>, note?: string): 
   const sx = (x: number): number => px0 + ((x - x0) / (x1 - x0)) * (px1 - px0);
   const sy = (y: number): number => py1 - ((y - y0) / (y1 - y0)) * (py1 - py0);
   const parts: string[] = [];
-  // Lưới nhạt
+  // Lưới nhạt (chuẩn §17.1: #E5E7EB, nhạt hơn trục và đồ thị)
   for (let i = 1; i < 6; i += 1) {
     const gx = px0 + (i * (px1 - px0)) / 6;
     const gy = py0 + (i * (py1 - py0)) / 6;
     parts.push(
-      `<line x1="${gx}" y1="${py0}" x2="${gx}" y2="${py1}" stroke="#d8d8d8" stroke-width="1.5"/>`,
-      `<line x1="${px0}" y1="${gy}" x2="${px1}" y2="${gy}" stroke="#d8d8d8" stroke-width="1.5"/>`,
+      `<line x1="${gx}" y1="${py0}" x2="${gx}" y2="${py1}" stroke="${GRID_INK}" stroke-width="1.5"/>`,
+      `<line x1="${px0}" y1="${gy}" x2="${px1}" y2="${gy}" stroke="${GRID_INK}" stroke-width="1.5"/>`,
     );
   }
   // Trục Oxy: qua điểm 0 nếu có trong khung, không thì bám mép.
