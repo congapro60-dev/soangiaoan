@@ -38,3 +38,4 @@ Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-wee
 - [ ] Hoàn tất QA nhóm xoay tua (đang dở — Edge WS fetch failed, retry).
 - [ ] Chức năng 1: Hand Raise + Câu hỏi ẩn danh + Pulse (spec-hand-raise.md) — audit → P0 → test.
 - [ ] Chức năng 2: Mobile/Desktop Parity theo 4 bước (spec-parity.md) — áp Math Diagram Standard cho hình.
+- [x] Quy tắc kiểm thử mở rộng (test component + TDZ check) đã ghi HANDOFF sau lỗi TDZ participantUid.

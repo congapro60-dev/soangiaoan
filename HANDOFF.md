@@ -124,6 +124,13 @@ Batch 2 Tuần 11 — 7 bài V8.8 còn lại (`banToan-w11-batch2.snapshot.json`
 - KHÔNG commit `tasks/tmp-*`. npm: `npm --prefix "<worktree>" run build`. Git: `git -c core.hooksPath=.githooks commit|push` (push có thể exit 1 dù thành công — đọc dòng `xxx..yyy HEAD -> main`).
 - Pre-push hook đã BỎ yêu cầu HANDOFF (quyết 24/10) — việc trực tiếp ghi vào `tasks/todo.md`.
 
+## QUY TẮC KIỂM THỬ BẮT BUỘC trước push (sau lỗi TDZ 29/10 — thầy xác nhận)
+- **Bài học từ lỗi TDZ `participantUid` (commit `bbc901c`)**: chạy `vitest run src/lib/liveLesson/v4` (305 test thuần) + `npm run build` vẫn lọt lỗi runtime TDZ trên màn HS vì **không chạy test component render** (`LiveLessonPage.test.ts` có bắt lỗi này). Codex phiên song song đã sửa trong `f220cff`.
+- **Quy tắc mới**: trước mọi push, chạy đủ:
+  1. `npx vitest run src/lib/liveLesson/v4 src/components src/pages` (gồm test render component)
+  2. `npm run build` (0 TS)
+  3. Với thay đổi chạm live/portal: mở thử 1 trang thật qua Edge debug trước khi push.
+- Khi thêm `useEffect` trong function component: **deps array không được tham chiếu biến khai báo phía sau** (TDZ); đặt effect sau mọi `const` nó dùng.
 ## VIỆC MỚI 29/10 — 2 chức năng V8.8 (addendum thầy giao)
 - Chức năng 1 (COMM-AQ-01): Always-on Hand Raise (có tên) + Câu hỏi ẩn danh tuyệt đối (P0 — không định danh trong data model) + Understanding Pulse sau hoạt động chính. Spec: 	asks/spec-hand-raise.md.
 - Chức năng 2 (ASS-MDP-01): Student Surface Mobile/Desktop Parity — M1/M2/M3, math on mobile, attention handoff, sync/device, P0 trước pilot, 30 test MDP. Spec: 	asks/spec-parity.md.
