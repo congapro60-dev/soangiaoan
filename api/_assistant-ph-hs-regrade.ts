@@ -103,24 +103,29 @@ export const requestRegrade = async (
 const regradeAndNotify = async (
   botId: string, userId: string, chatId: string, submissionId: string, title: string, classId: string,
 ): Promise<void> => {
+  console.log(`[regrade-bg] BAT DAU | submission=${submissionId.slice(0, 12)}`);
   try {
     const db = getAdminDb();
     const subSnap = await db.collection(SUBMISSIONS).doc(submissionId).get();
     if (!subSnap.exists) { await sendStyled(botId, chatId, `Không tìm thấy bài "${title}".`); return; }
     const sub = subSnap.data() as SubmissionDoc;
+    console.log(`[regrade-bg] da doc bai | teacherId=${sub.teacherId} | assignmentId=${String(sub.assignmentId).slice(0, 12)}`);
     // KEY CHẤM BÀI: production KHÔNG có env GRADING_GEMINI_API_KEY — chấm bài dùng key riêng
     // của GV lưu ở `teacherAiKeys` (ai chấm người đó trả tiền). `getGradingApiKey()` chỉ là
     // giá trị dự phòng; gọi nó trước sẽ throw và làm chấm lại luôn thất bại (lỗi thật 29/10).
     const fallbackKey = (() => { try { return getGradingApiKey(); } catch { return ''; } })();
     const apiKey = await ensureGeminiKey(fallbackKey).then(c => c.key).catch(() => '');
+    console.log(`[regrade-bg] lay key: ${apiKey ? 'OK (dai ' + apiKey.length + ')' : 'KHONG CO KEY'}`);
     if (!apiKey) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
     const aSnap = await db.collection('assignments').doc(String(sub.assignmentId)).get();
     if (!aSnap.exists) { await sendStyled(botId, chatId, `Bài "${title}" không còn tồn tại.`); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
+    console.log('[regrade-bg] goi gradeOneSubmission (thorough)...');
     const result = await gradeOneSubmission(
       db, submissionId, ctx, apiKey, String(sub.teacherId), false,
       'thorough', undefined, REGRADE_BUDGET_MS, REGRADE_MARGIN_MS,
     );
+    console.log(`[regrade-bg] gradeOneSubmission xong | success=${result.success} | failureCode=${result.failureCode ?? '-'}`);
     const fresh = (await db.collection(SUBMISSIONS).doc(submissionId).get()).data() as SubmissionDoc | undefined;
     if (result.success && fresh?.grade) {
       await sendStyled(botId, chatId, [
@@ -133,6 +138,7 @@ const regradeAndNotify = async (
     }
     await sendStyled(botId, chatId, [`Chưa chấm lại được bài "${title}".`, 'Thầy cô sẽ kiểm tra giúp em.', '', MENU_HINT].join('\n'));
   } catch (error) {
+    console.error('[regrade-bg] THAT BAI:', error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : error);
     const msg = error instanceof AiKeyRequiredError
       ? REGRADE_REPLIES.noKey
       : `Chưa chấm lại được bài "${title}". Em thử lại sau hoặc nhờ thầy cô nhé.\n\n${MENU_HINT}`;
