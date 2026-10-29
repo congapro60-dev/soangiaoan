@@ -1,5 +1,8 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
+## Đo so sánh model chấm (Quản trị) — 29/10 (Claude)
+Bảng "Đo model chấm (không ghi vào bài)" ở tab Quản trị (`ModelBenchmarkPanel`, `src/lib/admin/modelBenchmark.ts`). Máy chủ: action `adminBenchmarkModels` / `adminBenchmarkList` / `adminBenchmarkGrade` trong `grade-homework.ts` (chỉ email quản trị). Chấm lại bài đã có điểm GV bằng đúng một model (`benchmarkAdapter` + `runWithGradingChain` ép chuỗi qua AsyncLocalStorage), chạy cùng hậu kiểm thật (OMR nếu có, `reconcileAiGrade`), TRẢ kết quả, KHÔNG ghi bài nộp. Token từng lượt lấy qua `withUsageTap` (`_ai-usage.ts`), tiền = `costUsdOfCall` (model chưa có giá → ghi * và chỉ tính phần biết; bảng giá gom mọi `vilao/*` về giá flash — model Vilao khác cần thêm giá). Model dạng `vilao/<id>[@none|low|medium|high]`, `xkiro/<id>`, `gemini/<id>`.
+
 ## Máy dò phiếu tô mẫu Bộ 2025 + "scan" ảnh — 29/10 (Claude)
 Chủ dự án gửi 2 mẫu phiếu (`public/mau/phieu-to-khoi-10-11.pdf`, `phieu-to-khoi-12.pdf` — cũng là tài liệu tải về ở Thư viện + Bảng kiểm tra). Khối 12: đủ 3 phần tô; khối 10–11: Phần I, II tô, Phần III là 3–6 câu TỰ LUẬN (ô tô số trên phiếu 10–11 bị bỏ qua).
 - `src/lib/omr/omrTemplates.ts`: toạ độ 572 ô + 31 ô vuông đen mỗi mẫu, SINH từ PDF (render 200dpi, dò ô tròn/ô vuông, chuẩn hoá theo tâm 2 ô vuông góc TL/BR). Đổi mẫu phiếu = sinh lại file này.

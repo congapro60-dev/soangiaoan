@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { AsyncLocalStorage } from 'node:async_hooks';
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
 import { acquireCallHoldWaiting, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
@@ -761,7 +762,56 @@ export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRAD
  * cho việc phụ như đọc mã đề) thay vì model chấm chính: hai đường dùng cùng thứ tự
  * nhà cung cấp nhưng khác mức giá, đúng đặc tính "việc phụ thì model rẻ trước".
  */
+/** Ép chuỗi chấm = đúng một model trong một khối việc (đo so sánh model). Ngoài khối này không ảnh hưởng gì. */
+const forcedChain = new AsyncLocalStorage<GradingAdapter[]>();
+export const runWithGradingChain = <T>(chain: GradingAdapter[], fn: () => Promise<T>): Promise<T> => forcedChain.run(chain, fn);
+
+/**
+ * Dựng một lớp chấm từ chuỗi "nhà/model[@mức-suy-nghĩ]" — chỉ ba nhà đã có khoá máy chủ:
+ * `vilao/gemini-3.8-flash@none`, `xkiro/qwen/qwen3.8-max:free`, `gemini/gemini-3.8-flash`.
+ */
+export const benchmarkAdapter = (spec: string): GradingAdapter | null => {
+  const m = /^(vilao|xkiro|gemini)\/([\w.:/-]{1,80})(?:@(none|low|medium|high))?$/.exec(spec.trim());
+  if (!m) return null;
+  const [, provider, model, effort] = m;
+  if (provider === 'gemini') {
+    const key = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+    if (!key) return null;
+    return { name: spec, tier: 'phi', call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, model, options, segment) };
+  }
+  const key = (provider === 'vilao' ? process.env.GRADING_VILAO_API_KEY : process.env.GRADING_XKIRO_API_KEY)?.trim();
+  if (!key) return null;
+  const baseUrl = provider === 'vilao'
+    ? process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1'
+    : process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1';
+  const options: OpenAiVisionOptions = { baseUrl, model, ...(effort ? { reasoningEffort: effort } : {}) };
+  return {
+    name: spec,
+    tier: 're',
+    call: (prompt, images, callOptions, segment) => callOpenAiCompatibleVision(prompt, images, key, { ...options, ...callOptions }, segment, { provider: provider as 'vilao' | 'xkiro', model: `${provider}/${model}` }),
+  };
+};
+
+/** Danh sách model hai chợ API trả về (để chọn model đo). Lỗi một chợ → mảng rỗng của chợ đó. */
+export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro', unknown[]>> => {
+  const fetchList = async (baseUrl: string, key: string | undefined): Promise<unknown[]> => {
+    if (!key) return [];
+    try {
+      const response = await fetch(`${baseUrl.replace(/\/$/, '')}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15_000) });
+      const data = await response.json() as { data?: unknown[] };
+      return Array.isArray(data.data) ? data.data.slice(0, 300) : [];
+    } catch { return []; }
+  };
+  const [vilao, xkiro] = await Promise.all([
+    fetchList(process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1', process.env.GRADING_VILAO_API_KEY?.trim()),
+    fetchList(process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1', process.env.GRADING_XKIRO_API_KEY?.trim()),
+  ]);
+  return { vilao, xkiro };
+};
+
 export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
+  const forced = forcedChain.getStore();
+  if (forced) return forced;
   const chain: GradingAdapter[] = [];
   const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
   if (vilaoKey) {

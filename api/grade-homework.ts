@@ -25,6 +25,9 @@ import {
   parseDataUrl,
   type InlineImage,
   type QuotaDoc,
+  benchmarkAdapter,
+  listBenchmarkModels,
+  runWithGradingChain,
 } from './_grading-core.js';
 import {
   buildHomeworkGradingSegments,
@@ -107,7 +110,9 @@ import {
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { handleGenerateImage } from './_ai-image-handler.js';
 import { getBearerToken } from './_ai-gateway-core.js';
-import { createAiUsageContext, runWithAiUsage, setAiKeyOwner, tagAiUsageRefs } from './_ai-usage.js';
+import { createAiUsageContext, runWithAiUsage, setAiKeyOwner, tagAiUsageRefs, withUsageTap } from './_ai-usage.js';
+import { isAdminEmail } from '../src/lib/admin/adminConfig.js';
+import { costUsdOfCall } from '../src/lib/admin/aiPricing.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
 
 /** Học sinh không tự xử lý được chuyện khoá của thầy cô — nói nhẹ, không lộ chuyện tiền. */
@@ -2142,6 +2147,103 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
 
 // ── Tự chấm + tự duyệt sau 60 phút (bộ hẹn giờ GitHub Actions gọi 30 phút/lần) ──────────────
 
+// ── Đo so sánh model chấm (chỉ quản trị) ────────────────────────────────────────────────────────
+// Chấm lại bài ĐÃ có điểm GV bằng một model chỉ định rồi TRẢ kết quả — KHÔNG ghi gì vào bài nộp.
+// Tiền token vẫn vào sổ dùng AI của tài khoản quản trị như mọi lượt gọi khác.
+
+const isAdminToken = async (idToken: unknown): Promise<boolean> => {
+  try {
+    const decoded = await getAuth().verifyIdToken(String(idToken || ''));
+    return decoded.email_verified === true && decoded.firebase?.sign_in_provider !== 'anonymous' && isAdminEmail(String(decoded.email || ''));
+  } catch { return false; }
+};
+
+const handleBenchmarkModels = async (body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  return res.status(200).json(await listBenchmarkModels());
+};
+
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+
+const handleBenchmarkList = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const ids = (Array.isArray(body.assignmentIds) ? body.assignmentIds : []).map(String).filter(id => SAFE_ID.test(id)).slice(0, 20);
+  const items: Record<string, unknown>[] = [];
+  for (const assignmentId of ids) {
+    const snap = await db.collection('submissions').where('assignmentId', '==', assignmentId).get();
+    for (const doc of snap.docs) {
+      const data = doc.data() as SubmissionDoc;
+      if (!data.grade) continue;
+      items.push({
+        id: doc.id, assignmentId, studentId: data.studentId, examCode: data.examCode || null,
+        score: data.grade.score, maxScore: data.grade.maxScore, approved: data.grade.teacherApproved === true,
+        editedByTeacher: data.grade.editedByTeacher === true, files: Array.isArray(data.fileUrls) ? data.fileUrls.length : 0,
+        rows: (data.grade.questionResults || []).map(q => ({ q: q.questionNumber, score: q.score, maxScore: q.maxScore, teacherEdited: q.teacherEdited === true })),
+      });
+    }
+  }
+  return res.status(200).json({ items });
+};
+
+const handleBenchmarkGrade = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const submissionId = String(body.submissionId || '');
+  const spec = String(body.model || '');
+  const mode = parseHomeworkGradingMode(body.mode);
+  const adapter = benchmarkAdapter(spec);
+  if (!SAFE_ID.test(submissionId) || !adapter) return res.status(400).json({ error: 'Thiếu bài hoặc model không hợp lệ (dạng vilao/…, xkiro/…, gemini/…).' });
+  const submission = (await db.collection('submissions').doc(submissionId).get()).data() as SubmissionDoc | undefined;
+  if (!submission?.assignmentId) return res.status(404).json({ error: 'Không tìm thấy bài.' });
+  const assignment = (await db.collection('assignments').doc(submission.assignmentId).get()).data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  let ctx = await gradeContextFor(assignment);
+  if (submission.handMarkedPaper) {
+    const official = submission.handMarkedDeclaredBy === undefined || submission.handMarkedDeclaredBy === 'teacher';
+    ctx = { ...ctx, teacherMarkedPaper: true, handMarkedPaper: true, handMarkedOfficial: official };
+  }
+  if (ctx.examVariants.length > 0) {
+    const code = submission.examCode || (ctx.examVariants.length === 1 ? ctx.examVariants[0].code : '');
+    if (!code) return res.status(422).json({ error: 'Bài chưa có mã đề.' });
+    ctx = contextForVariant(ctx, code);
+  }
+  const urls = (Array.isArray(submission.fileUrls) ? submission.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
+  const images = (await Promise.all(urls.map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+  const studentText = String(submission.textContent || '').trim();
+  if (!images.length && !studentText) return res.status(422).json({ error: UNREADABLE_HOMEWORK_MESSAGE });
+  const apiKey = getGradingApiKey();
+  const started = Date.now();
+  const deadlineAt = started + GRADING_BUDGET_MS;
+  try {
+    const { value: grade, calls } = await withUsageTap(() => runWithGradingChain([adapter], async () => {
+      let transcription = '';
+      if (mode === 'thorough' && images.length) {
+        try { transcription = await transcribeStudentWork(images, apiKey, 20_000); } catch { /* như chấm thật: chép lỗi thì chấm thẳng */ }
+      }
+      let attempt: GradeAttemptResult;
+      try {
+        attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, deadlineAt - Date.now() - 60_000));
+      } catch (error) {
+        if (!isRetryableGradeAttemptError(error) || deadlineAt - Date.now() < MIN_GEMINI_BUDGET_MS) throw error;
+        attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, transcription, deadlineAt - Date.now());
+      }
+      const withOmr = submission.omrSheet ? applyOmrSheet(attempt.grade, submission.omrSheet).grade : attempt.grade;
+      return reconcileAiGrade(withOmr, ctx.answerKeyFixes, undefined);
+    }));
+    const day = new Date().toISOString().slice(0, 10);
+    const usage = calls.map(call => ({
+      model: call.model, inputTokens: call.counts.inputTokens, outputTokens: call.counts.outputTokens,
+      thoughtsTokens: call.counts.thoughtsTokens, costUsd: costUsdOfCall(call.model, day, call.counts),
+    }));
+    return res.status(200).json({
+      ok: true, model: spec, ms: Date.now() - started, score: grade.score, maxScore: grade.maxScore,
+      rows: (grade.questionResults || []).map(q => ({ q: q.questionNumber, score: q.score, maxScore: q.maxScore, status: q.status, review: q.needsTeacherReview === true || q.status === 'unreadable' })),
+      usage,
+    });
+  } catch (error) {
+    return res.status(200).json({ ok: false, model: spec, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 300) : 'lỗi không rõ' });
+  }
+};
+
 const AUTO_ACTOR = 'system:auto-60';
 /** Hàm sống tối đa `maxDuration`; một lượt chấm được tiêu tới GRADING_BUDGET_MS → chỉ bắt đầu chấm khi còn đủ giờ. */
 const AUTO_SWEEP_START_GRADING_BEFORE_MS = FUNCTION_MAX_MS - GRADING_BUDGET_MS - FINISH_MARGIN_MS;
@@ -2327,6 +2429,9 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: locateAnnotation(db, false) });
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
+    if (action === 'adminBenchmarkModels') return await handleBenchmarkModels(body, res);
+    if (action === 'adminBenchmarkList') return await handleBenchmarkList(db, body, res);
+    if (action === 'adminBenchmarkGrade') return await handleBenchmarkGrade(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);
     if (await handleClarifyAction(db, body, res, {
       regradeQuestion: (submission, question) => regradeClarifiedQuestion(db, submission, question),

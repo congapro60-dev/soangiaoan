@@ -81,6 +81,14 @@ export const runWithAiUsage = <T>(context: AiUsageContext, fn: () => Promise<T>)
 
 export const currentAiUsageContext = (): AiUsageContext | null => storage.getStore() ?? null;
 
+/** Nghe lén số token từng lượt gọi trong một khối việc (đo so sánh model ở trang Quản trị). Không đổi việc ghi sổ. */
+const tapStorage = new AsyncLocalStorage<{ model: string; counts: AiTokenCounts }[]>();
+export const withUsageTap = async <T>(fn: () => Promise<T>): Promise<{ value: T; calls: { model: string; counts: AiTokenCounts }[] }> => {
+  const calls: { model: string; counts: AiTokenCounts }[] = [];
+  const value = await tapStorage.run(calls, fn);
+  return { value, calls };
+};
+
 /** Handler gắn giáo viên chịu khoá/tiền cho lượt này (vd chủ lớp khi học sinh tự nộp). */
 export const setAiKeyOwner = (uid: string | null): void => {
   const context = currentAiUsageContext();
@@ -342,6 +350,7 @@ export const recordAiUsage = async (
     await releaseCurrentHold(extra.holdVnd);
     return;
   }
+  tapStorage.getStore()?.push({ model, counts });
   try {
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;

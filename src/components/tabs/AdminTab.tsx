@@ -11,6 +11,7 @@ import { AiBillingAdminPanel } from '../features/admin/AiBillingAdminPanel';
 import { GeminiKeyPoolPanel } from '../features/admin/GeminiKeyPoolPanel';
 import { RefreshRestorePanel } from '../features/admin/RefreshRestorePanel';
 import { GhkiRestorePanel } from '../features/admin/GhkiRestorePanel';
+import { ModelBenchmarkPanel } from '../features/admin/ModelBenchmarkPanel';
 
 const vnd = (n: number) => `${Math.round(n).toLocaleString('vi-VN')} đ`;
 const num = (n: number) => Math.round(n).toLocaleString('vi-VN');
@@ -282,6 +283,7 @@ export const AdminTab = () => {
           <ClassSetupPanel overview={overview} onChanged={async () => { setOverview(await loadAdminOverview()); }} />
 
           {/* 6–10. Ví AI: khoá chung, tài khoản nhận tiền, mã giảm giá, số dư, sao kê */}
+          <ModelBenchmarkPanel />
           <GhkiRestorePanel />
           <RefreshRestorePanel />
           <GeminiKeyPoolPanel />
