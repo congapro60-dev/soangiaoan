@@ -28,11 +28,11 @@ const REGRADE_BUDGET_MS = 70_000;
 const REGRADE_MARGIN_MS = 8_000;
 
 export const REGRADE_REPLIES = {
-  notFound: `Em chưa có bài nào đã chấm để chấm lại. Nộp bài bằng ảnh (nhắn 8) rồi chấm lại nhé.\n\n${MENU_HINT}`,
-  alreadyApproved: `Bài này thầy cô đã duyệt điểm chính thức nên không chấm lại được nữa. Em có thắc mắc thì nhắn thầy cô nhé.\n\n${MENU_HINT}`,
-  alreadyUsed: `Em đã dùng lượt chấm lại cho bài này rồi. Nếu vẫn thấy chưa đúng, em nhắn thầy cô kiểm tra giúp nhé.\n\n${MENU_HINT}`,
-  busy: `Bài này đang được chấm, em chờ một chút rồi thử lại nhé.\n\n${MENU_HINT}`,
-  noKey: `Máy chấm của lớp đang tạm dừng, thầy cô sẽ chấm sớm.\n\n${MENU_HINT}`,
+  notFound: `ℹ️ Em chưa có bài nào đã chấm để chấm lại.\n\nNhắn 8 để nộp bài bằng ảnh rồi chấm lại nhé.\n\n${MENU_HINT}`,
+  alreadyApproved: `✅ Bài này thầy cô đã duyệt điểm chính thức nên không chấm lại được nữa.\n\nEm có thắc mắc thì nhắn thầy cô nhé.\n\n${MENU_HINT}`,
+  alreadyUsed: `ℹ️ Em đã dùng lượt chấm lại cho bài này rồi.\n\nNếu vẫn thấy chưa đúng, em nhắn thầy cô kiểm tra giúp nhé.\n\n${MENU_HINT}`,
+  busy: `⏳ Bài này đang được chấm, em chờ một chút rồi thử lại nhé.\n\n${MENU_HINT}`,
+  noKey: `⚠️ Máy chấm của lớp đang tạm dừng, thầy cô sẽ chấm sớm.\n\n${MENU_HINT}`,
 } as const;
 
 export type RegradeOutcome =
@@ -121,19 +121,19 @@ const regradeAndNotify = async (
     const fresh = (await db.collection(SUBMISSIONS).doc(submissionId).get()).data() as SubmissionDoc | undefined;
     if (result.success && fresh?.grade) {
       await sendStyled(botId, chatId, [
-        `Đã chấm lại bài "${title}" (chế độ đọc kỹ): ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
+        `📝 Đã chấm lại bài "${title}" (chế độ đọc kỹ): ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
         'Lượt này máy đọc lại toàn bộ bài trước khi chấm nên chính xác hơn lượt đầu.',
         'Điểm vẫn chờ thầy cô duyệt mới chính thức.',
         '', MENU_HINT,
       ].join('\n'));
       return;
     }
-    await sendStyled(botId, chatId, [`Chưa chấm lại được bài "${title}".`, 'Thầy cô sẽ kiểm tra giúp em.', '', MENU_HINT].join('\n'));
+    await sendStyled(botId, chatId, [`⚠️ Chưa chấm lại được bài "${title}".`, 'Thầy cô sẽ kiểm tra giúp em nhé.', '', MENU_HINT].join('\n'));
   } catch (error) {
     console.error('[regrade] THAT BAI:', error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : error);
     const msg = error instanceof AiKeyRequiredError
       ? REGRADE_REPLIES.noKey
-      : `Chưa chấm lại được bài "${title}". Em thử lại sau hoặc nhờ thầy cô nhé.\n\n${MENU_HINT}`;
+      : `⚠️ Chưa chấm lại được bài "${title}".\n\nEm thử lại sau hoặc nhờ thầy cô nhé.\n\n${MENU_HINT}`;
     await sendStyled(botId, chatId, msg).catch(() => undefined);
   }
 };

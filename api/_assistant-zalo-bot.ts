@@ -5,7 +5,7 @@ import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssis
 import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, MENU_REPLIES, withWebPortalLink } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, MENU_REPLIES, MENU_HINT, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
@@ -228,13 +228,13 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (/^(cham lai|chấm lại)$/i.test(message.trim().normalize('NFC'))) {
       console.log(`[regrade] nhan lenh cham lai | role=${role} | classId=${classId} | studentId=${studentId}`);
       if (role !== 'student') {
-        await sendStyled(token, chatId, 'Chấm lại là chức năng của học sinh. Phụ huynh nhắn 0 để xem menu.');
+        await sendStyled(token, chatId, 'ℹ️ Chấm lại là chức năng dành cho học sinh.\n\nPhụ huynh nhắn 0 để xem lại menu.');
         return '';
       }
       const outcome = await requestRegrade(botId, userId, chatId, classId, studentId);
       console.log(`[regrade] ket qua: ${outcome.kind}`);
       await sendStyled(token, chatId, outcome.kind === 'started'
-        ? `Đang chấm lại bài "${outcome.title}" ở chế độ đọc kỹ, em chờ khoảng 1–2 phút nhé.`
+        ? `⏳ Đang chấm lại bài "${outcome.title}" ở chế độ đọc kỹ, em chờ khoảng 1–2 phút nhé.\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.`
         : outcome.reply);
       return '';
     }
@@ -247,8 +247,36 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
     if (choice.kind !== 'invalid') {
-      // HS nhắn 0 (xem lại menu): hủy phiên ảnh đang mở nếu có — phiên treo sẽ nhầm với tin "xong" sau này.
+      // HS nhắn 0 (xem lại menu) hoặc hủy: xóa phiên ảnh đang mở nếu có.
       if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
+      if (choice.kind === 'help') {
+        const helpText = [
+          '💡 HƯỚNG DẪN XỬ LÝ NHANH:',
+          '• Khởi động lại / xem menu: nhắn 0 hoặc menu.',
+          '• Xem báo cáo trên web: nhắn web.',
+          ...(role === 'student'
+            ? ['• Nộp bài bằng ảnh: nhắn 8 (hoặc chấm).', '• Xin chấm lại: nhắn: chấm lại.', '• Hủy phiên nộp bài dở: nhắn: đổi bài.']
+            : ['• Chuyển sang con khác: nhắn 9 hoặc đổi con.']),
+          '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.',
+          '',
+          MENU_HINT,
+        ].join('\n');
+        await sendStyled(token, chatId, helpText, false);
+        return '';
+      }
+      if (choice.kind === 'status') {
+        const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
+        const statusText = [
+          '✅ Trợ lý SmartPlan đang hoạt động bình thường.',
+          `• Tài khoản liên kết: ${bundle?.report.studentName ?? 'Học sinh'} (Lớp: ${bundle?.report.className ?? '---'}).`,
+          `• Vai trò: ${role === 'student' ? 'Học sinh' : 'Phụ huynh'}.`,
+          '• Máy chấm AI: Sẵn sàng.',
+          '',
+          MENU_HINT,
+        ].join('\n');
+        await sendStyled(token, chatId, statusText, false);
+        return '';
+      }
       const menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
       // Cả hai đường đều KHÔNG qua output() (che link) vì nội dung do hệ tự dựng:
       // link web gửi THUẦN để URL render được.
@@ -262,6 +290,11 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (role === 'student') {
       const photoCmd = parsePhotoCommand(message);
       if (photoCmd) {
+        if (photoCmd.kind === 'cancel') {
+          await cancelPhotoSession(botId, userId);
+          await sendStyled(token, chatId, PHOTO_REPLIES.cancelSuccess);
+          return '';
+        }
         const photoReply = photoCmd.kind === 'done' ? await finishPhotoSession(botId, userId)
           : photoCmd.kind === 'assist' ? await assistStartReply(botId, userId, classId, studentId)
           : photoCmd.kind === 'assistPick' ? await assistOpenReply(botId, userId, classId, studentId, photoCmd.n)

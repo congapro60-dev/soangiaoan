@@ -59,25 +59,27 @@ export interface PhotoSessionData {
 }
 
 export const PHOTO_REPLIES = {
-  noSession: 'Chưa có ảnh nào được nhận. Nhắn 8 để chọn bài rồi gửi ảnh nhé.\n\n' + MENU_HINT,
-  pickFirst: 'Em chọn bài trước đã: nhắn số thứ tự bài trong danh sách vừa hiện (ví dụ: 1), rồi gửi ảnh.\n\nNhắn 8 để xem lại danh sách.',
-  max: `Đã đủ ${MAX_PHOTOS} ảnh — nhắn xong để máy chấm nhé.\n\n` + MENU_HINT,
-  badImage: 'Không nhận được ảnh này (quá lớn hoặc sai định dạng). Em gửi lại ảnh khác nhé.\n\n' + MENU_HINT,
-  assistIncomplete: 'Chưa chọn xong bạn và bài để nộp hộ nên chưa nhận ảnh. Nhắn nộp hộ để làm lại, hoặc 0 để hủy.\n\n' + MENU_HINT,
-  sessionChanged: 'Phiên nộp bài đã thay đổi. Em tiếp tục phiên hiện tại rồi gửi lại lệnh nhé.\n\n' + MENU_HINT,
+  noSession: '📸 Chưa có ảnh nào được nhận.\n\nNhắn 8 để chọn bài rồi gửi ảnh nhé.\n\n' + MENU_HINT,
+  pickFirst: '👉 Em chọn bài trước đã:\nNhắn số thứ tự bài trong danh sách vừa hiện (ví dụ: 1), rồi gửi ảnh nhé.\n\nNhắn 8 để xem lại danh sách.',
+  max: `📸 Đã nhận đủ ${MAX_PHOTOS} ảnh — nhắn: xong để máy bắt đầu chấm nhé.\n\n` + MENU_HINT,
+  badImage: '⚠️ Không nhận được ảnh này (ảnh quá lớn hoặc sai định dạng).\n\nEm gửi lại ảnh rõ nét khác nhé.\n\n' + MENU_HINT,
+  assistIncomplete: '⚠️ Chưa chọn xong bạn và bài để nộp hộ nên chưa thể nhận ảnh.\n\nNhắn "nộp hộ" để làm lại, hoặc nhắn 0 để hủy.\n\n' + MENU_HINT,
+  sessionChanged: 'ℹ️ Phiên nộp bài đã thay đổi.\n\nEm tiếp tục phiên hiện tại rồi gửi lại lệnh nhé.\n\n' + MENU_HINT,
+  cancelSuccess: '🔄 Đã hủy phiên chọn bài.\n\nEm nhắn 8 để chọn lại bài khác, hoặc nhắn 0 để xem menu.\n\n' + MENU_HINT,
 } as const;
 
 export type PhotoCommand =
-  | { kind: 'list' } | { kind: 'pick'; n: number } | { kind: 'done' }
+  | { kind: 'list' } | { kind: 'pick'; n: number } | { kind: 'done' } | { kind: 'cancel' }
   | { kind: 'assist' } | { kind: 'assistPick'; n: number } | { kind: 'assistChoose'; n: number };
 
-/** Nhận lệnh chấm: '8' do menu trả, ở đây 'chấm', 'chấm <số>', 'xong', 'nộp hộ [số]' và 'chọn <số>'. Bỏ dấu để 'cham 2' / 'nop ho' vẫn ăn. */
+/** Nhận lệnh chấm: '8' do menu trả, ở đây 'chấm', 'chấm <số>', 'xong', 'nộp hộ [số]', 'chọn <số>' và 'đổi bài'/'hủy'. Bỏ dấu để 'cham 2' / 'nop ho' / 'doi bai' vẫn ăn. */
 export const parsePhotoCommand = (raw: string): PhotoCommand | null => {
   const plain = raw.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
   if (/^cham$/.test(plain)) return { kind: 'list' };
   const pick = /^cham\s*(\d{1,2})$/.exec(plain);
   if (pick) return { kind: 'pick', n: Number(pick[1]) };
   if (/^(xong|gui)$/.test(plain)) return { kind: 'done' };
+  if (/^(doi bai|chua xong|huy|bo qua)$/.test(plain)) return { kind: 'cancel' };
   const assist = /^nop\s+ho(?:\s+(\d{1,2}))?$/.exec(plain);
   if (assist) return assist[1] ? { kind: 'assistPick', n: Number(assist[1]) } : { kind: 'assist' };
   const choose = /^chon\s*(\d{1,2})$/.exec(plain);
@@ -117,13 +119,13 @@ export const pendingAssignmentsForStudent = async (
 
 export const photoListReply = (items: Array<{ id: string; title: string; dueAt?: string }>): string => {
   if (!items.length) {
-    return ['Hiện không có bài nào đang chờ em nộp.', 'Bài đã nộp / đang chờ chấm: nhắn 2 để xem.', '', MENU_HINT].join('\n');
+    return ['🎉 Hiện không có bài nào đang chờ em nộp.', '👉 Bài đã nộp hoặc đang chờ chấm: nhắn 2 để xem.', '', MENU_HINT].join('\n');
   }
   const lines = items.map((item, index) => {
-    const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
+    const due = item.dueAt ? ` — [hạn: ${item.dueAt.slice(0, 10)}]` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  return ['Chọn bài để gửi ảnh chấm:', ...lines, '', 'Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n');
+  return ['📸 Chọn bài để gửi ảnh chấm:', ...lines, '', '👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n');
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
@@ -529,17 +531,17 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   }));
   // A3 (2026-10-27): người nộp hộ nhắn 2 chỉ xem được bài của CHÍNH EM — kết quả của bạn nằm
   // trên tài khoản của bạn ấy, đừng dẫn nhầm.
-  return [`Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,
+  return [`📤 Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,
     targetName
-      ? `Máy đang chấm; điểm sẽ hiện trên tài khoản của ${targetName} (mục 2 chỉ hiện bài của chính em).`
-      : 'Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả.',
+      ? `⏳ Máy đang chấm; điểm sẽ hiện trên tài khoản của ${targetName} (mục 2 chỉ hiện bài của chính em).\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.`
+      : '⏳ Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả nhé.\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.',
     '', MENU_HINT].join('\n');
 };
 
 const gradeAndNotify = async (token: string, chatId: string, submissionId: string, s: PhotoSessionData): Promise<void> => {
   const baiCua = s.assist ? ` của ${s.assist.targetName}` : '';
   const khongChamDuoc = async (loi: string): Promise<void> => {
-    await sendStyled(token, chatId, [`Chưa chấm được bài "${s.assignmentTitle}"${baiCua}`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
+    await sendStyled(token, chatId, [`⚠️ Chưa chấm được bài "${s.assignmentTitle}"${baiCua}`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
   };
   try {
     // KEY CHẤM BÀI (sửa 30/10): KHÔNG đọc key riêng của GV nữa. Webhook Zalo không có request
@@ -554,12 +556,12 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     const fresh = (await db().collection('submissions').doc(submissionId).get()).data() as (SubmissionDoc & { errorMessage?: string }) | undefined;
     if (fresh?.status === 'graded' && fresh.grade) {
       const approved = fresh.grade.teacherApproved === true;
-      await sendStyled(token, chatId, [`Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
-        approved ? 'Thầy cô đã duyệt — điểm chính thức.' : 'Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
+      await sendStyled(token, chatId, [`📝 Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
+        approved ? '✅ Thầy cô đã duyệt — điểm chính thức.' : '⏳ Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
         // A3: người nộp hộ không xem được bài của bạn qua mục 2 — dẫn đúng nơi xem.
-        s.assist ? `Điểm và nhận xét hiện trên tài khoản của ${s.assist.targetName}.` : 'Xem chi tiết từng câu: nhắn 2.',
+        s.assist ? `Điểm và nhận xét hiện trên tài khoản của ${s.assist.targetName}.` : '👉 Xem chi tiết từng câu: nhắn 2.',
         // Chấm lại (29/10): HS tự xin được 1 lần/bài nếu thấy máy đọc sai.
-        ...(approved || s.assist ? [] : ['Thấy điểm chưa đúng? Nhắn: chấm lại']),
+        ...(approved || s.assist ? [] : ['💡 Thấy điểm chưa đúng? Nhắn: chấm lại']),
         '', MENU_HINT].join('\n'));
       return;
     }

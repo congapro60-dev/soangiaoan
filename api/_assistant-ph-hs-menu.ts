@@ -15,10 +15,10 @@ import { latexToUnicodeMath } from './_assistant-math-text.js';
 import { switchRoleGuideReply } from './_assistant-ph-hs-link.js';
 
 export const MENU_REPLIES = {
-  header: 'Chọn mục (nhắn số):',
-  needChoice: 'Nhắn số mục để chọn. Nhắn 0 để xem lại menu.',
-  invalid: 'Chưa có mục này. Nhắn 0 để xem lại menu.',
-  noData: 'Chưa có dữ liệu cho mục này.',
+  header: '📋 Chọn mục cần xem (nhắn số):',
+  needChoice: '👉 Nhắn số mục để chọn.\n\nNhắn 0 để xem lại menu.',
+  invalid: '⚠️ Chưa có mục này trong danh sách.\n\nNhắn 0 để xem lại menu.',
+  noData: 'ℹ️ Chưa có dữ liệu cho mục này.',
 } as const;
 
 export const MENU_ITEMS = [
@@ -137,7 +137,7 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
   switch (key) {
     case '1':
-      return [`Tổng quan của ${name} — lớp ${report.className}`,
+      return [`📊 Tổng quan của ${name} — lớp ${report.className}`,
         `• Đã chấm: ${report.officialCount} bài`,
         `• Đang chờ chấm: ${report.pendingCount} bài`,
         `• Chưa nộp: ${report.missingCount} bài`,
@@ -147,79 +147,81 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
     case '2': {
       // Mục 2 = BTVN các ngày (KHÔNG gồm bài kiểm tra định kì — bài đó ở mục 7).
       const graded = report.results.filter(item => item.status === 'official' && !isPeriodic(item.assignmentId));
-      if (!graded.length) return `Chưa có bài tập nào được chấm cho ${name}.`;
+      if (!graded.length) return `ℹ️ Chưa có bài tập nào được chấm cho ${name}.`;
       // Bản HS: kèm nhận xét GV cho từng bài đã duyệt (chỉ có trên báo cáo role=student).
       // Giảm xuống 5 bài để tin không phình; PH giữ nguyên 8 bài, không có nhận xét.
       const forStudent = role === 'student';
       const lines = graded.slice(0, forStudent ? 5 : 8).map(item => {
         const score = `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
-        return forStudent && item.feedback ? `${score}\n  ${shortFeedback(item.feedback)}` : score;
+        return forStudent && item.feedback ? `${score}\n  💬 ${shortFeedback(item.feedback)}` : score;
       });
-      return [`Bài tập đã chấm của ${name} (${graded.length}):`, ...lines, '', 'Bài kiểm tra định kì: nhắn 7.'].join('\n');
+      return [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`, ...lines, '', '👉 Xem bài kiểm tra định kỳ: nhắn 7.'].join('\n');
     }
     case '3': {
       const todo = report.results.filter(item => item.status === 'not_submitted' || item.status === 'pending' || item.status === 'grading' || item.status === 'error');
-      if (!todo.length) return `${name} không còn bài nào đang chờ nộp hay chờ chấm.`;
+      if (!todo.length) return `🎉 ${name} không còn bài nào đang chờ nộp hay chờ chấm.`;
       const lines = todo.slice(0, 8).map(item => {
-        const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý, cần liên hệ thầy cô' : 'chờ chấm';
-        return `• ${item.title} — ${tag}${item.dueAt ? ` (hạn ${item.dueAt.slice(0, 10)})` : ''}`;
+        const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
+        return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
       });
-      return [`Bài đang chờ của ${name} (${todo.length}):`, ...lines].join('\n');
+      return [`⏳ Bài đang chờ của ${name} (${todo.length} bài):`, ...lines].join('\n');
     }
     case '4': {
       const strong = report.strengths.length ? report.strengths.slice(0, 4).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
       const weak = report.areasToPractice.length ? report.areasToPractice.slice(0, 4).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
-      return [`Điểm mạnh của ${name}:`, ...strong, '', 'Cần luyện thêm:', ...weak].join('\n');
+      return [`🌟 Điểm mạnh của ${name}:`, ...strong, '', '🎯 Cần luyện thêm:', ...weak].join('\n');
     }
     case '5': {
       // HS tự luyện: dùng `areasToPractice` (dữ liệu có thật, cùng nguồn mục 4) thay cho
       // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
       if (role === 'student') {
-        if (!report.areasToPractice.length) return 'Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần.';
-        return [`Gợi ý tự học của ${name}:`, ...report.areasToPractice.slice(0, 5).map(item => `• ${item}`)].join('\n');
+        if (!report.areasToPractice.length) return 'ℹ️ Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần nhé.';
+        return [`💡 Gợi ý tự học của ${name}:`, ...report.areasToPractice.slice(0, 5).map(item => `• ${item}`)].join('\n');
       }
-      if (!report.parentActions.length) return 'Chưa có gợi ý riêng — nhắn thầy cô để được tư vấn thêm.';
-      return [`Việc phụ huynh có thể làm ở nhà (${name}):`, ...report.parentActions.slice(0, 5).map(item => `• ${item}`)].join('\n');
+      if (!report.parentActions.length) return 'ℹ️ Chưa có gợi ý riêng — phụ huynh nhắn thầy cô để được tư vấn thêm.';
+      return [`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`, ...report.parentActions.slice(0, 5).map(item => `• ${item}`)].join('\n');
     }
     case '6':
-      return [`Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
-        'Mục 1–5 và 7 xem dữ liệu của chính học sinh này.',
-        ...(role === 'student' ? ['Gửi ảnh bài làm để tự chấm: nhắn 8.'] : []),
-        'Xem báo cáo / nộp bài trên web: nhắn web.',
-        'Muốn đổi em khác: nhắn `<mã lớp> <PIN> phụ huynh`.',
-        'Quên PIN: nhắn `/khoiphuc <mã học sinh> <số điện thoại>`.'].join('\n');
+      return [`🔗 Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
+        '• Mục 1–5 và 7: xem dữ liệu học tập của học sinh này.',
+        ...(role === 'student' ? ['• Gửi ảnh bài làm để tự chấm: nhắn 8.'] : []),
+        '• Xem báo cáo hoặc nộp bài trên web: nhắn web.',
+        '• Muốn đổi em khác: nhắn <mã lớp> <PIN> phụ huynh.',
+        '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.'].join('\n');
     case '7': {
       // Bài kiểm tra định kì — nhận diện bằng `assignment.periodicTest`, cùng cờ app và portal HS đang dùng.
       const periodic = report.results.filter(item => isPeriodic(item.assignmentId));
-      if (!periodic.length) return `Chưa có bài kiểm tra định kì nào cho ${name}.`;
+      if (!periodic.length) return `ℹ️ Chưa có bài kiểm tra định kì nào cho ${name}.`;
       const graded = periodic.filter(item => item.status === 'official' && item.score !== null && item.maxScore);
       const lines = periodic.slice(0, 8).map(item => {
         if (item.status === 'official') {
           return `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
         }
-        const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý, cần liên hệ thầy cô' : 'chờ chấm';
-        return `• ${item.title} — ${tag}${item.dueAt ? ` (hạn ${item.dueAt.slice(0, 10)})` : ''}`;
+        const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
+        return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
       });
-      return [`Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
+      return [`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
     }
     case '8':
       // Việc 4 — nộp bài bằng ảnh. HS thực tế không bao giờ tới đây (zalo-bot bắt '8' và chuyển
       // sang luồng photo); case này cho PH nhấn nhầm mục 8 và giữ switch đầy đủ.
       return role === 'student'
-        ? ['Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài.', 'Nộp hộ bạn cùng lớp: nhắn nộp hộ.', '', MENU_HINT].join('\n')
-        : ['Mục này dành cho học sinh — phụ huynh theo dõi điểm qua mục 1 và 2.', '', MENU_HINT].join('\n');
+        ? ['📸 Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài cần nộp.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n')
+        : ['ℹ️ Mục này dành cho học sinh — phụ huynh theo dõi điểm qua mục 1 và 2.', '', MENU_HINT].join('\n');
   }
 };
 
-export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'switchRole' } | { kind: 'invalid' };
+export type MenuChoice = { kind: 'menu' } | { kind: 'section'; key: MenuKey } | { kind: 'link' } | { kind: 'switchRole' } | { kind: 'help' } | { kind: 'status' } | { kind: 'invalid' };
 
-/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal; '8' = nộp bài bằng ảnh (HS). */
+/** Chỉ nhận đúng 1 ký tự số; '0' = xem lại menu; 'web'/'link' = nhận link web portal; '8' = nộp bài bằng ảnh (HS); hỗ trợ các từ khóa cứu cánh: help, huy, status. */
 export const parseMenuChoice = (raw: string): MenuChoice => {
   const token = raw.normalize('NFC').trim();
-  if (token === '0' || token === '' || /^(menu|m)$/i.test(token)) return { kind: 'menu' };
+  if (token === '0' || token === '' || /^(menu|m|hủy|huy)$/i.test(token)) return { kind: 'menu' };
   if (/^(web|website|link)$/i.test(token)) return { kind: 'link' };
-  // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10) — nhận cả số 9 lệnh gõ "đổi vai"/"doi vai".
-  if (token === '9' || /^(đổi vai|doi vai)$/i.test(token)) return { kind: 'switchRole' };
+  // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10) — nhận cả số 9 lệnh gõ "đổi vai"/"doi vai"/"đổi con"/"doi con".
+  if (token === '9' || /^(đổi vai|doi vai|đổi con|doi con)$/i.test(token)) return { kind: 'switchRole' };
+  if (/^(trợ giúp|tro giup|help|\/help|hướng dẫn|huong dan)$/i.test(token)) return { kind: 'help' };
+  if (/^(kiểm tra|kiem tra|status|\/status)$/i.test(token)) return { kind: 'status' };
   if (/^[1-8]$/.test(token)) return { kind: 'section', key: token as MenuKey };
   return { kind: 'invalid' };
 };
@@ -276,6 +278,6 @@ export const parentMenuReply = async (
   if (choice.kind === 'link') return joinCode ? webLinkText(role, joinCode) : MENU_REPLIES.noData;
   // Mục 9 "Đổi vai trò": hướng dẫn mẫu xác nhận — KHÔNG cần dữ liệu báo cáo, trả trước cho gọn.
   if (choice.kind === 'switchRole') return switchRoleGuideReply(role);
-  if (choice.kind === 'invalid') return MENU_REPLIES.invalid;
+  if (choice.kind === 'invalid' || choice.kind === 'help' || choice.kind === 'status') return MENU_REPLIES.invalid;
   return menuSectionText(choice.key, report, periodicIds, role);
 };
