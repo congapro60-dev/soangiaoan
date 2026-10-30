@@ -56,15 +56,17 @@
 | archive size | 44149944 bytes |
 
 
-### Ghi chú Tuần 12 (29/10)
+### Tình trạng Tuần 12 & Kế hoạch tuần tiếp theo (30/10/2026)
 
-4 phòng Tuần 12 đã tạo trên live version 41 (trước khi deploy v42):
-- 10Olinda: 5JGHEK (40 phút, Jeopardy, Thống kê + Vecto)
-- 11Columbus (song song): CU4HBF (40 phút, Boss, Quan hệ song song)
-- 11Columbus (giới hạn): ZXF62D (40 phút, Surf, Giới hạn dãy số)
-- Lớp 12: PR3ERY (40 phút, Boss, Nguyên hàm + Phương sai)
-
-Mã phòng cũ (PXSZN6, BB3BAS, HD5XNY, Y98C6V) đã bỏ do sai thời lượng.
+- **Tuần 12 HOÀN TẤT 100%**:
+  - Đủ 24/24 tiết theo PPCT (8 tiết/khối cho K10, K11, K12) đã đóng gói trong catalogue HKI với nhiệm vụ, gợi ý và rubric.
+  - 4 phòng game Tuần 12 chuẩn 40 phút đang hoạt động: `5JGHEK` (K10), `CU4HBF` (K11 Hình), `ZXF62D` (K11 Đại), `PR3ERY` (K12).
+  - Các phòng cũ sai thời lượng (PXSZN6, BB3BAS, HD5XNY, Y98C6V) đã được duyệt dọn dẹp.
+- **Kế hoạch tiếp theo (Tuần 13 theo PPCT)**:
+  - Khối 10: Tiết 96 – 103 (Báo cáo dự án, Véctơ trong mp tọa độ, Game tích lũy).
+  - Khối 11: Tiết 90 – 97 (Giới hạn dãy số vô cực, Giới hạn hàm số, Phép chiếu song song, Game tích lũy).
+  - Khối 12: Tiết 90 – 97 (Luyện tập nguyên hàm, Tổng hình chữ nhật & Tích phân xác định, Game tích lũy).
+  - Nguyên tắc vận hành: Xong tuần nào thì tiến hành kiểm tra nội dung và chuẩn bị phòng game cho tuần kế tiếp theo đúng PPCT.
 
 ## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
 
