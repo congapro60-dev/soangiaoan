@@ -1,0 +1,18 @@
+{
+ "gvOpen": {
+  "stage": "12",
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "expired": false
+ },
+ "join": "view-stable",
+ "route": {
+  "info": {
+   "stage": "6",
+   "plan": "Kế hoạch 19–20′ · tiết 40′",
+   "expired": false
+  },
+  "clicked": "Bắt đầu với hỗ trợCho mẫu ghép nhóm có n=10n = 10n=10, ∑nici2=250\\sum n_i c_i^2 = 250∑ni​ci2​=250 và xˉ=4\\bar x = 4xˉ=4. Tính s2s^2s2 và sss.Chọn nhiệm vụ này",
+  "taskAppeared": true,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ vào cột x, tần số nᵢ vào cột Freq (ví dụ xạ thủ An)\n7 →\n= →\n2 →\n= →\n9 →\n= →\n16 →\n= →\n11 →\n= →\n2 →\n=\nCác phím: 7 → = → 2 → = → 9 → = → 16 → = → 11 → = → 2 → =\n4\nĐọc độ lệch chuẩn quần thể\nOPTN →\n3\nMàn hình phải hiện: σx = 0,89443…\nCác phím: OPTN → 3\nMáy tính là công cụ kiểm tra, tư duy lập bảng của con người mới là gốc rễ.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với"
+ }
+}

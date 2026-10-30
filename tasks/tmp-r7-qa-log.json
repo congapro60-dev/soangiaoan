@@ -1,0 +1,471 @@
+{
+ "sessionFile": "tasks/tmp-r7-qa-session.json",
+ "session": "3jpow388uY6B6aCx0EH7",
+ "gvOpen": {
+  "stage": "1",
+  "band": null,
+  "plan": "Kế hoạch 0–1′ · tiết 40′",
+  "status": "waiting",
+  "expired": false
+ },
+ "join": "view-stable",
+ "bands": [
+  {
+   "stage": "1",
+   "gvBand": null,
+   "hsBand": "Chặng 0–1 phút",
+   "plan": "Kế hoạch 0–1′ · tiết 40′"
+  },
+  {
+   "stage": "2",
+   "gvBand": null,
+   "hsBand": "Chặng 1–5 phút",
+   "plan": "Kế hoạch 1–5′ · tiết 40′"
+  },
+  {
+   "stage": "3",
+   "gvBand": null,
+   "hsBand": "Chặng 5–7 phút",
+   "plan": "Kế hoạch 5–7′ · tiết 40′"
+  },
+  {
+   "stage": "4",
+   "gvBand": null,
+   "hsBand": "Chặng 7–12 phút",
+   "plan": "Kế hoạch 7–12′ · tiết 40′"
+  },
+  {
+   "stage": "5",
+   "gvBand": null,
+   "hsBand": "Chặng 12–14 phút",
+   "plan": "Kế hoạch 12–14′ · tiết 40′"
+  },
+  {
+   "stage": "6",
+   "gvBand": null,
+   "hsBand": "Chặng 14–15 phút",
+   "plan": "Kế hoạch 14–15′ · tiết 40′"
+  },
+  {
+   "stage": "7",
+   "gvBand": null,
+   "hsBand": "Chặng 15–23 phút",
+   "plan": "Kế hoạch 15–23′ · tiết 40′"
+  },
+  {
+   "stage": "8",
+   "gvBand": null,
+   "hsBand": "Chặng 23–25 phút",
+   "plan": "Kế hoạch 23–25′ · tiết 40′"
+  },
+  {
+   "stage": "9",
+   "gvBand": null,
+   "hsBand": "Chặng 25–32 phút",
+   "plan": "Kế hoạch 25–32′ · tiết 40′"
+  },
+  {
+   "stage": "10",
+   "gvBand": null,
+   "hsBand": "Chặng 32–36 phút",
+   "plan": "Kế hoạch 32–36′ · tiết 40′"
+  },
+  {
+   "stage": "11",
+   "gvBand": null,
+   "hsBand": "Chặng 36–40 phút",
+   "plan": "Kế hoạch 36–40′ · tiết 40′"
+  }
+ ],
+ "s4": {
+  "gvBand": null,
+  "hsBand": "Chặng 12–14 phút",
+  "tvBand": null,
+  "hsHasAiKetLuan": true,
+  "tvHasAiKetLuan": true,
+  "hsHasPhanHoiNhanh": true,
+  "hsHas4Nhan": true,
+  "hsNoProof": true,
+  "tvNoProof": true,
+  "hsButtons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "lập luận",
+   "phép kiểm",
+   "Hiểu sai khái niệm",
+   "Sai biến đổi hoặc tính toán",
+   "Sai lập luận",
+   "Thiếu điều kiện",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "hsExcerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 12–14 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nAI trình bày: lấy x̄ ≈ 176,7 (làm tròn 1 chữ số) rồi s² ≈ 1235,4.\nTìm lỗi · phân loại · sửa · chứng minh.\nPHẢN HỒI NHANH\nQuan sát bài làm trên màn hình: bạn lấy x̄ ≈ 176,7 rồi tính s² ≈"
+ },
+ "route": {
+  "gvBand": null,
+  "hsBand": "Chặng 14–15 phút",
+  "hasDenLuotSau": false,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 14–15 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nPHT "
+ },
+ "s6": null,
+ "s7": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 15–23 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Luyện tập tính R, ΔQ, s², s của mẫu số liệu ghép nhóm qua 4 bước Polya; công thức rút gọn s² = x̄²(trung bình bình phương) − (x̄)² và quy tắc vàng kiểm soát sai số làm tròn (giữ phân số tối giản, Casio STO A); so sánh độ phân tán hai mẫu thực tiễn PM2.5; phân biệt σx và sx trên Casio; tính chất biến đổi tuyến tính y = ax + b bằng sản phẩm nhóm.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 7/12\nKế hoạch 15–23′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 7/12\nKế hoạch 15–23′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ },
+ "s8": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 23–25 phút · theo nhịp thầy cô\nPost-check cá nhân\nHS thực hiện postCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập tính R, ΔQ, s², s của mẫu số liệu ghép nhóm qua 4 bước Polya; công thức rút gọn s² = x̄²(trung bình bình phương) − (x̄)² và quy tắc vàng kiểm soát sai số làm tròn (giữ phân số tối giản, Casio STO A); so sánh độ phân tán hai mẫu thực tiễn PM2.5; phân biệt σx và sx trên Casio; tính chất biến đổi tuyến tính y = ax + b và nêu căn cứ.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 8/12\nKế hoạch 23–25′ · tiết 40′\n1:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập tính R, ΔQ, s², s của mẫu số liệu ghép nhóm qua 4 bước Polya; công thức rút gọn s² = x̄²(trung bình bình phương) − (x̄)² và quy tắc vàng kiểm soát sai số làm tròn (giữ phân số tối giản, Casio STO A); so sánh độ phân tán hai mẫu thực tiễn PM2.5; phân biệt σx và sx trên Casio; tính chất biến đổi tuyến tính y = ax + b và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 8/12\nKế hoạch 23–25′ · tiết 40′\n1:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập tính R, ΔQ, s², s của mẫu số liệu ghép nhóm qua 4 bước Polya; công thức rút gọn s² = x̄²(trung bình bình phương) − (x̄)² và quy tắc vàng kiểm soát sai số làm tròn (giữ phân số tối giản, Casio STO A); so sánh độ phân tán hai mẫu thực tiễn PM2.5; phân biệt σx và sx trên Casio; tính chất biến đổi tuyến tính y = ax + b và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n8/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ },
+ "exit": {
+  "hsBand": "Chặng 36–40 phút",
+  "emptyBtn": {
+   "exists": false,
+   "disabled": null
+  },
+  "emptyStatus": [],
+  "emptyBlocked": true,
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": true,
+   "tag": "TEXTAREA"
+  },
+  "clickedSend": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "hienKetQua": true,
+  "gvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "tvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "gvHas1HS": true,
+  "tvHas1HS": true
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "band": null,
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "gvBand": null,
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "hsBand": null
+ },
+ "think": {
+  "reads": 63,
+  "validReads": 63,
+  "samples": [
+   {
+    "at": "23:54:36",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:37",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:38",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:38",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:39",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:40",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:41",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:43",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:44",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:45",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:45",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:46",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:47",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:48",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:50",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:51",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:52",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:53",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:53",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:54",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:55",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:58",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:58",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:54:59",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:00",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:00",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:01",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:02",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:09",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:55:10",
+    "text": "Chờ 10s",
+    "disabled": true
+   }
+  ],
+  "saw10": true,
+  "minSeen": 3,
+  "lockedAll": true,
+  "windows": [
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 8,
+    "minSeen": 3,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   }
+  ]
+ },
+ "tvButtons": [],
+ "s9": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 25–32 phút · theo nhịp thầy cô\nQuick check\nHS thực hiện quickCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nTrả lời nhanh rồi sửa một lỗi nếu phát hiện.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 9/12\nKế hoạch 25–32′ · tiết 40′\n6:53\nĐANG HỌC\nP1 · 1:13\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh Câu 1 [NB] (Pha 4): Cho mẫu số liệu ghép nhóm có các nhóm [0;4), [4;8), [8;12), [12;16). Khoảng biến thiên R bằng: A. 12 · B. 16 · C. 8 · D. 4.\nKiểm nhanh Câu 2 [TH] (Pha 4): Nếu nhân tất cả các giá trị trong mẫu số liệu với số dương k = 2 thì phương sai mới s′² thay đổi như thế nào so với s²? A. Tăng 2 lần · B. Tăng 4 lần · C. Không đổi · D. Tăng √2 lần.\nKiểm nhanh Câu 3 [VD] (Pha 4): Một mẫu số liệu có độ lệch chuẩn s = 5. Nếu cộng thêm 10 đơn vị vào tất cả các giá trị của mẫu thì khoảng tứ phân vị mới Δ′Q và độ lệch chuẩn mới s′ bằng bao nhiêu? A. Δ′Q = ΔQ + 10; s′ = 15 · B. Δ′Q = ΔQ; s′ = 15 · C. Δ′Q = ΔQ; s′ = 5 · D. Δ′Q = ΔQ + 10; s′ = 5.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo mức độ phân tán\nChặng 9/12\nKế hoạch 25–32′ · tiết 40′\n6:53\nĐANG HỌC\nP1 · 1:13\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh Câu 1 [NB] (Pha 4): Cho mẫu số liệu ghép nhóm có các nhóm [0;4), [4;8), [8;12), [12;16). Khoảng biến thiên R bằng: A. 12 · B. 16 · C. 8 · D. 4.\nKiểm nhanh Câu 2 [TH] (Pha 4): Nếu nhân tất cả các giá trị trong mẫu số liệu với số dương k = 2 thì phương sai mới s′² thay đổi như thế nào so với s²? A. Tăng 2 lần · B. Tăng 4 lần · C. Không đổi · D. Tăng √2 lần.\nKiểm nhanh Câu 3 [VD] (Pha 4): Một mẫu số liệu có độ lệch chuẩn s = 5. Nếu cộng thêm 10 đơn vị vào tất cả các giá trị của mẫu thì khoảng tứ phân vị mới Δ′Q và độ lệch chuẩn mới s′ bằng bao nhiêu? A. Δ′Q = ΔQ + 10; s′ = 15 · B. Δ′Q = ΔQ; s′ = 15 · C. Δ′Q = ΔQ; s′ = 5 · D. Δ′Q = ΔQ + 10; s′ = 5.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n9/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ }
+}

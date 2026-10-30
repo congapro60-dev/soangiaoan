@@ -1,0 +1,12 @@
+import puppeteer from 'puppeteer';
+import { setTimeout as sleep } from 'node:timers/promises';
+const gb = await puppeteer.connect({ browserWSEndpoint: (await (await fetch('http://127.0.0.1:9222/json/version')).json()).webSocketDebuggerUrl, defaultViewport: null, protocolTimeout: 180000 });
+const gv2 = await gb.newPage();
+await gv2.setViewport({ width: 1440, height: 900 });
+await gv2.goto('https://giaoandewey.vercel.app/adaptive-live/k02h199J7BmwCbHUujTW?mode=tv-control&definitionKey=11-11-76&lessonId=adaptive-v4-11-11-76-24YyULmWgBOM6HZCfJ56RN5tiet2&classId=class-1787188523562&joinCode=R6RCFC', { waitUntil: 'domcontentloaded', timeout: 90000 });
+await sleep(10000);
+const t = await gv2.evaluate(() => (document.body.innerText || '').replace(/\n{2,}/g, '\n'));
+console.log('GV TEXT (400):', t.slice(0, 400).replace(/\n/g, ' | '));
+await gv2.close();
+await gb.disconnect();
+process.exit(0);

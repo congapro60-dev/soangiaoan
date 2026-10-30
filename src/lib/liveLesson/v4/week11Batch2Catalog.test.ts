@@ -10,8 +10,8 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
   });
 
   it('Cổng chốt catalog batch2 — đủ đúng 7 key mới nghiệm thu đợt (Task 11 Step 1b)', () => {
-    expect(W11BATCH2).toHaveLength(7);
-    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79']);
+    expect(W11BATCH2).toHaveLength(8);
+    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88']);
   });
 
   it('merge batch2 không làm mất gói gốc', () => {

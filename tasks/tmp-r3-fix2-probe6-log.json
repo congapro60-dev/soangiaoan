@@ -1,0 +1,60 @@
+{
+ "gvOpen": {
+  "stage": "12",
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "status": "running",
+  "expired": false
+ },
+ "join": "view-stable",
+ "route": {
+  "info": {
+   "stage": "6",
+   "plan": "Kế hoạch 13–14′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "hsBand": "Chặng 13–14 phút",
+  "hasTuyen": true,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Gửi câu trả lời",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "excerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 13–14 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD có đáy \n𝐴\n𝐵\n𝐶\n𝐷\nABCD là hình bình hành, mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(α)∥(ABCD) cắt các cạnh \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\n,\n𝑆\n𝐷\nSA,SB,SC,SD lần lượt tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\n,\n𝐷\n′\nA\n′\n,B\n′\n,C\n′\n,D\n′\n. a) Chứng minh \n𝐴\n′\n𝐵\n′\n∥\n𝐴\n𝐵\nA\n′\nB\n′\n∥AB và \n𝐶\n′\n𝐷\n′\n∥\n𝐶\n𝐷\nC\n′\nD\n′\n∥CD. b) Tứ giác \n𝐴\n′\n𝐵\n′\n𝐶\n′\n𝐷\n′\nA\n′\nB\n′\nC\n′\nD\n′\n là hình gì?\nChọn nhiệm vụ này\nKết nối kiến thức\nCho tứ diện \n𝐴\n𝐵\n𝐶\n𝐷\nABCD, mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n)\n(α)∥(ABC) cắt các cạnh \n𝐷\n𝐴\n,\n𝐷\n𝐵\n,\n𝐷\n𝐶\nDA,DB,DC tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\nA\n′\n,B\n′\n,C\n′\n. Chứng minh \n△\n𝐴\n′\n𝐵\n′\n𝐶\n′\n∽\n△\n𝐴\n𝐵\n𝐶\n△A\n′\nB\n′\nC\n′\n∽△ABC và tính tỉ số \n𝑆\n𝐴\n′\n𝐵\n′\n𝐶\n′\n𝑆\n𝐴\n𝐵\n𝐶\nS\nABC\n\t​\nS\nA\n′\nB\n′\nC\n′\n\t​\n\t",
+  "clicked": false,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 13–14 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD có đáy \n𝐴\n𝐵\n𝐶\n𝐷\nABCD là hình bình hành, mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(α)∥(ABCD) cắt các cạnh \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\n,\n𝑆\n𝐷\nSA,SB,SC,SD lần lượt tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\n,\n𝐷\n′\nA\n′\n,B\n′\n,C\n′\n,D\n′\n. a) Chứng minh \n𝐴\n′\n𝐵\n′\n∥\n𝐴\n𝐵\nA\n′\nB\n′\n∥AB và \n𝐶\n′\n𝐷\n′\n∥\n𝐶\n𝐷\nC\n"
+ },
+ "progress": {
+  "info": {
+   "stage": "11",
+   "plan": "Kế hoạch 37–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "hsStatus": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "clickedHKL": "Hiện kết quả lớp",
+  "gvTienDo": "Tiến độ gửi | 1 | học sinh đã gửi | Thầy cô đọc bài và chọn điểm cần trao đổi. Số lượt gửi không phải số câu đúng. | ← Trước | 11/",
+  "tvTienDo": "Tiến độ gửi | 1 | học sinh đã gửi | Thầy cô đọc bài và chọn điểm cần trao đổi. Số lượt gửi không phải số câu đúng.",
+  "gvHas1HS": true,
+  "tvHas1HS": true,
+  "tvHasStudentName": false
+ }
+}

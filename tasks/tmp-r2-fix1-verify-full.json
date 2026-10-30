@@ -1,0 +1,1181 @@
+{
+ "savedAt": "2026-10-27T06:32:55.929Z",
+ "checks": {
+  "tuTinh": true,
+  "has215": true,
+  "has224": true,
+  "has587": true,
+  "internet395": true,
+  "internet158": true,
+  "con_73k365": false,
+  "dich_moi_152": false,
+  "dich_moi_nhoNhatK": false,
+  "k_15227": false,
+  "k5": false,
+  "casio": false,
+  "dem_cSub": 81,
+  "dem_meSub": 89,
+  "con_cUnderscore": false,
+  "con_MeUnderscore": false,
+  "fieldCount": 190
+ },
+ "ctx": [],
+ "ctxCasio": [],
+ "fieldsAll": [
+  {
+   "step": "Mục tiêu & Chẩn đoán",
+   "fields": [
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện cᵢ và tần số tích lũy; nội suy Mₑ từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay."
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "70"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện cᵢ và tần số tích lũy; nội suy Mₑ từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay."
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "70"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "Kiểm chứng kết quả và giải thích kết luận bằng căn cứ."
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "70"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "Dùng từ khóa Toán học và nêu kết luận có căn cứ."
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "70"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Bảng thời gian tự học (giờ/ngày) của 40 học sinh (SGK tr. 52): [0;1) có 5 · [1;2) có 12 · [2;3) có 15 · [3;4) có 8. Xác định cỡ mẫu n và tính giá trị đại diện c₁, c₂, c₃, c₄ của bốn nhóm."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "n = 5 + 12 + 15 + 8 = 40; c₁ = 0,5; c₂ = 1,5; c₃ = 2,5; c₄ = 3,5. (Đáp án PHT số 1 mức NB — tự tính, không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: n = 5 + 12 + 15 + 8 = 40; c₁ = 0,5; c₂ = 1,5; c₃ = 2,5; c₄ = 3,5. (Đáp án PHT số 1 mức NB — tự tính, không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Với bảng tự học ở trên, lập bảng tích mᵢ·cᵢ và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Σ mᵢ cᵢ = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: Σ mᵢ cᵢ = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Nếu thêm 1 bạn học 6 giờ/ngày vào mẫu tự học 40 bạn ở trên thì x̄ thay đổi thế nào?"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "n′ = 41; tổng mới = 86 + 6 = 92; x̄′ = 92/41 ≈ 2,24 giờ — tăng khoảng 0,09 giờ so với 2,15. (Đáp án PHT số 1 mức VD — tự tính: x̄′ = 92/41 ≈ 2,24 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: n′ = 41; tổng mới = 86 + 6 = 92; x̄′ = 92/41 ≈ 2,24 giờ — tăng khoảng 0,09 giờ so với 2,15. (Đáp án PHT số 1 mức VD — tự tính: x̄′ = 92/41 ≈ 2,24 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính Mₑ của mẫu."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). aₚ = 2; mₚ = 15; C = 17; h = 1; Mₑ = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: Mₑ = 2,2 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). aₚ = 2; mₚ = 15; C = 17; h = 1; Mₑ = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: Mₑ = 2,2 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện cᵢ và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và Mₑ của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; Mₑ = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; Mₑ = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "step": "Các mảnh kiến thức",
+   "fields": [
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "Tên mảnh",
+     "value": "Các số đặc trưng đo xu thế trung tâm"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "Thời gian ước tính",
+     "value": "30"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "Giải thích StandardTuyến Chuẩn là cửa vào tạm thời theo bằng",
+     "value": "Tuyến Chuẩn là cửa vào tạm thời theo bằng chứng hiện tại; học sinh có thể đổi tuyến sau khi trao đổi hoặc kiểm tra lại."
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "Dùng nội dung Standard cho Foundation/Challenge",
+     "value": "on"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "Worked Example — Đề bàiThời gian sử dụng Internet trong ngày",
+     "value": "Thời gian sử dụng Internet trong ngày nghỉ cuối tuần của 40 học sinh khối 11 (giờ): nhóm [0;2) có 6 HS, [2;4) có 14 HS, [4;6) có 15 HS, [6;8) có 5 HS. Nhóm [2;4) có 14 bạn nhưng ta không biết chính xác số giờ từng bạn — giá trị nào công bằng nhất để đại diện cho cả 14 bạn này, từ đó ước tính tổng thời gian của nhóm? Xây dựng công thức tính số trung bình x̄ của mẫu ghép nhóm."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "Worked Example — Lời giảiGiá trị đại diện công bằng nhất là ",
+     "value": "Giá trị đại diện công bằng nhất là trung điểm khoảng: c₂ = (2+4)/2 = 3; nếu cả 14 bạn đều được gán bằng 3 thì tổng nhóm ước tính 14 × 3 = 42 giờ. Làm tương tự cả 4 nhóm: c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; bảng tích mᵢ·cᵢ = 6·1 + 14·3 + 15·5 + 5·7 = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ. Công thức tổng quát: x̄ = (Σ mᵢ cᵢ)/n với n = Σ mᵢ — mẫu số là tổng tần số, không phải số nhóm k."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "Worked Example — Giải thíchKhông đổi chuẩn đích giữa các tuy",
+     "value": "Không đổi chuẩn đích giữa các tuyến. Tuyến Chuẩn chỉ thay đổi mức scaffold và độ mở rộng."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "c = 5; 15; 25; Σ mᵢ cᵢ = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ mᵢ cᵢ = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Vinh danh lỗi sai giấu tên: bạn ghi Mₑ = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào?"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (aₚ = 4, mₚ = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): Mₑ = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đối chiếu lời giải nguồn: Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (aₚ = 4, mₚ = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): Mₑ = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "step": "Hoàn tất & Xuất bản",
+   "fields": [
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính Mₑ của mẫu."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). aₚ = 2; mₚ = 15; C = 17; h = 1; Mₑ = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: Mₑ = 2,2 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). aₚ = 2; mₚ = 15; C = 17; h = 1; Mₑ = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: Mₑ = 2,2 không có trong giáo án.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "c = 5; 15; 25; Σ mᵢ cᵢ = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ mᵢ cᵢ = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện cᵢ và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và Mₑ của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; Mₑ = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": "Đáp án nguồn để GV đối chiếu: a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; Mₑ = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "A"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "B"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "C"
+    },
+    {
+     "tag": "INPUT",
+     "visible": true,
+     "label": "",
+     "value": "D"
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "",
+     "value": ""
+    },
+    {
+     "tag": "TEXTAREA",
+     "visible": true,
+     "label": "Completion Reward messageEm đã học xong! Thử thách bạn cùng ",
+     "value": "Em đã học xong! Thử thách bạn cùng lớp trong Đấu Trường Tri Thức?"
+    }
+   ]
+  }
+ ]
+}

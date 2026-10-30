@@ -1,0 +1,191 @@
+{
+ "tvButtons": [],
+ "tvHasStudentName": false,
+ "s0": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 1/12\nKế hoạch 0–3′ · tiết 40′\n2:56\nĐANG HỌC\nP0 · 0:04\nMỞ ĐẦU\nBẮT ĐẦU KHI SẴN SÀNG\nCÙNG THỰC HIỆN\nQuan sát và nghĩ 30 giây, rồi nói dự đoán với bạn bên cạnh. Chưa cần mở máy.\nHôm nay: Các số đặc trưng đo xu thế trung tâm\nQuan sát, đặt câu hỏi và chưa cần biết đáp án.\n← Trước\n1/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 0–3 phút · theo nhịp thầy cô\nBẮT ĐẦU KHI SẴN SÀNG\nHS thực hiện opening, nói căn cứ và ghi bằng chứng ngắn.\nĐề bài và nội dung chung\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 1/12\nKế hoạch 0–3′ · tiết 40′\n2:56\nĐANG HỌC\nP0 · 0:04\nMỞ ĐẦU\nBẮT ĐẦU KHI SẴN SÀNG\nCÙNG THỰC HIỆN\nQuan sát và nghĩ 30 giây, rồi nói dự đoán với bạn bên cạnh. Chưa cần mở máy.\nHôm nay: Các số đặc trưng đo xu thế trung tâm\nQuan sát, đặt câu hỏi và chưa cần biết đáp án.",
+  "info": {
+   "stage": "1",
+   "plan": "Kế hoạch 0–3′ · tiết 40′",
+   "timer": "2:56",
+   "status": "running"
+  }
+ },
+ "stageNotes": {
+  "s0": {
+   "stage": "1",
+   "plan": "Kế hoạch 0–3′ · tiết 40′",
+   "timer": "2:56",
+   "status": "running"
+  },
+  "s1": {
+   "stage": "2",
+   "plan": "Kế hoạch 3–5′ · tiết 40′",
+   "timer": "1:55",
+   "status": "running",
+   "gv_onnEN_24711": false,
+   "gv_hasCongThucCab2": false,
+   "spoiler_onnEN": {
+    "hs": false,
+    "tv": false
+   }
+  },
+  "s2": {
+   "stage": "3",
+   "plan": "Kế hoạch 5–8′ · tiết 40′",
+   "timer": "2:55",
+   "status": "running"
+  },
+  "s3": {
+   "stage": "4",
+   "plan": "Kế hoạch 8–16′ · tiết 40′",
+   "timer": "7:56",
+   "status": "running",
+   "hs_hasDePHT1": false,
+   "gv_pht1_215": false,
+   "gv_pht1_224": false,
+   "gv_tuTinh": false,
+   "gv_nhanPHT1": false,
+   "gv_internet395": false,
+   "gv_pht1_contexts": [],
+   "spoiler215_224": {
+    "hs": false,
+    "tv": false
+   },
+   "spoiler_internet395_hs_tv": {
+    "hs": false,
+    "tv": false
+   }
+  },
+  "s4": {
+   "stage": "5",
+   "plan": "Kế hoạch 16–19′ · tiết 40′",
+   "timer": "2:55",
+   "status": "running",
+   "hs_hasNam": true,
+   "hs_hasWrong": true,
+   "spoiler_correction": {
+    "hs": false,
+    "tv": false
+   },
+   "gv_hasCorrection": false
+  },
+  "s5": {
+   "stage": "6",
+   "plan": "Kế hoạch 19–20′ · tiết 40′",
+   "timer": "0:55",
+   "status": "running"
+  },
+  "s6": {
+   "stage": "7",
+   "plan": "Kế hoạch 20–27′ · tiết 40′",
+   "timer": "6:54",
+   "status": "running",
+   "spoilerMe22_text": {
+    "hs": false,
+    "tv": false
+   },
+   "spoilerMe22_dom": {
+    "hs": false,
+    "tv": false
+   },
+   "gv_vinhDanh587_text": false,
+   "gv_vinhDanh587_dom": false,
+   "gv_pht2_22_tuTinh_dom": {
+    "has22": false,
+    "tuTinh": false,
+    "nhanPHT2": false
+   },
+   "casio": {
+    "gv": false,
+    "hs": false,
+    "tv": false
+   }
+  }
+ },
+ "s1": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 2/12\nKế hoạch 3–5′ · tiết 40′\n1:55\nĐANG HỌC\nP0 · 0:13\nCÂU HỎI\nCÂU HỎI ĐỊNH HƯỚNG\nCÙNG THỰC HIỆN\nTrên máy của em: chọn hoặc viết điều em muốn biết từ tình huống này.\nCâu hỏi chung: làm thế nào giải thích và kiểm chứng Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n2/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 3–5 phút · theo nhịp thầy cô\nCâu hỏi định hướng\nHS thực hiện guidingQuestion, nói căn cứ và ghi bằng chứng ngắn.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCâu hỏi nào giúp giải thích Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay?\nSuy nghĩ 6s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 6s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 2/12\nKế hoạch 3–5′ · tiết 40′\n1:55\nĐANG HỌC\nP0 · 0:13\nCÂU HỎI\nCÂU HỎI ĐỊNH HƯỚNG\nCÙNG THỰC HIỆN\nTrên máy của em: chọn hoặc viết điều em muốn biết từ tình huống này.\nCâu hỏi chung: làm thế nào giải thích và kiểm chứng Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "info": {
+   "stage": "2",
+   "plan": "Kế hoạch 3–5′ · tiết 40′",
+   "timer": "1:55",
+   "status": "running"
+  }
+ },
+ "s2": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 3/12\nKế hoạch 5–8′ · tiết 40′\n2:55\nĐANG HỌC\nP0 · 0:22\nMỤC TIÊU\nMỤC TIÊU DO LỚP TỔNG HỢP\nCÙNG THỰC HIỆN\nTrên máy của em: chọn 1–2 mục tiêu em muốn đạt được cuối tiết.\nMục tiêu chung\n• Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n• Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n• Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\nĐÍCH ĐẾN CỦA LỚP\nCác số đặc trưng đo xu thế trung tâm\nBA NĂNG LỰC CẦN TẠO BẰNG CHỨNG\n1. Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n2. Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n3. Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.\n← Trước\n3/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 5–8 phút · theo nhịp thầy cô\nMục tiêu cá nhân\nHS thực hiện goals, nói căn cứ và ghi bằng chứng ngắn.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nEm muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?\nSuy nghĩ 6s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nKiểm tra một cặp số có là nghiệm\nLập mô hình từ điều kiện thực tế\nGiải thích nghiệm bằng phép kiểm và ý nghĩa của biến\nChờ 6s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 3/12\nKế hoạch 5–8′ · tiết 40′\n2:55\nĐANG HỌC\nP0 · 0:22\nMỤC TIÊU\nMỤC TIÊU DO LỚP TỔNG HỢP\nCÙNG THỰC HIỆN\nTrên máy của em: chọn 1–2 mục tiêu em muốn đạt được cuối tiết.\nMục tiêu chung\n• Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n• Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n• Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\nĐÍCH ĐẾN CỦA LỚP\nCác số đặc trưng đo xu thế trung tâm\nBA NĂNG LỰC CẦN TẠO BẰNG CHỨNG\n1. Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n2. Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\n3. Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.",
+  "info": {
+   "stage": "3",
+   "plan": "Kế hoạch 5–8′ · tiết 40′",
+   "timer": "2:55",
+   "status": "running"
+  }
+ },
+ "s3": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 4/12\nKế hoạch 8–16′ · tiết 40′\n7:56\nĐANG HỌC\nP0 · 0:31\nHÌNH THÀNH\nCÔNG CỤ TOÁN HỌC\nCÙNG THỰC HIỆN\nGhi mô hình và từ khoá vào vở. Bấm vào thuật ngữ trên máy nếu chưa rõ nghĩa.\nCông cụ Toán học\n𝑐\n𝑖\n=\n𝑎\n𝑖\n+\n𝑎\n𝑖\n+\n1\n2\nc\ni\n\t​\n=\n2\na\ni\n\t​\n+a\ni+1\n\t​\n\t​\n𝑥\nˉ\n=\n1\n𝑛\n∑\n𝑖\n=\n1\n𝑘\n𝑚\n𝑖\n𝑐\n𝑖\n(\n𝑛\n=\n∑\n𝑖\n=\n1\n𝑘\n𝑚\n𝑖\n)\nx\nˉ\n=\nn\n1\n\t​\n∑\ni=1\nk\n\t​\nm\ni\n\t​\nc\ni\n\t​\n(n=∑\ni=1\nk\n\t​\nm\ni\n\t​\n)\n𝑀\n𝑒\n=\n𝑎\n𝑝\n+\n𝑛\n/\n2\n−\n𝐶\n𝑚\n𝑝\n⋅\nℎ\n(\n𝐶\n=\n∑\n𝑖\n<\n𝑝\n𝑚\n𝑖\n)\nM\ne\n\t​\n=a\np\n\t​\n+\nm\np\n\t​\nn/2−C\n\t​\n⋅h(C=∑\ni<p\n\t​\nm\ni\n\t​\n)\n𝑐\n𝑓\n𝑝\n≥\n𝑛\n2\n⇒\n𝑀\n𝑒\n∈\n[\n𝑎\n𝑝\n;\n𝑎\n𝑝\n+\n1\n)\ncf\np\n\t​\n≥\n2\nn\n\t​\n⇒M\ne\n\t​\n∈[a\np\n\t​\n;a\np+1\n\t​\n)\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n4/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 8–16 phút · theo nhịp thầy cô\nKiểm tra điểm xuất phát\nHS thực hiện knowledgeCycle, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn công cụ/bước đầu tiên để xử lý Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nSuy nghĩ 7s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 7s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 4/12\nKế hoạch 8–16′ · tiết 40′\n7:56\nĐANG HỌC\nP0 · 0:31\nHÌNH THÀNH\nCÔNG CỤ TOÁN HỌC\nCÙNG THỰC HIỆN\nGhi mô hình và từ khoá vào vở. Bấm vào thuật ngữ trên máy nếu chưa rõ nghĩa.\nCông cụ Toán học\n𝑐\n𝑖\n=\n𝑎\n𝑖\n+\n𝑎\n𝑖\n+\n1\n2\nc\ni\n\t​\n=\n2\na\ni\n\t​\n+a\ni+1\n\t​\n\t​\n𝑥\nˉ\n=\n1\n𝑛\n∑\n𝑖\n=\n1\n𝑘\n𝑚\n𝑖\n𝑐\n𝑖\n(\n𝑛\n=\n∑\n𝑖\n=\n1\n𝑘\n𝑚\n𝑖\n)\nx\nˉ\n=\nn\n1\n\t​\n∑\ni=1\nk\n\t​\nm\ni\n\t​\nc\ni\n\t​\n(n=∑\ni=1\nk\n\t​\nm\ni\n\t​\n)\n𝑀\n𝑒\n=\n𝑎\n𝑝\n+\n𝑛\n/\n2\n−\n𝐶\n𝑚\n𝑝\n⋅\nℎ\n(\n𝐶\n=\n∑\n𝑖\n<\n𝑝\n𝑚\n𝑖\n)\nM\ne\n\t​\n=a\np\n\t​\n+\nm\np\n\t​\nn/2−C\n\t​\n⋅h(C=∑\ni<p\n\t​\nm\ni\n\t​\n)\n𝑐\n𝑓\n𝑝\n≥\n𝑛\n2\n⇒\n𝑀\n𝑒\n∈\n[\n𝑎\n𝑝\n;\n𝑎\n𝑝\n+\n1\n)\ncf\np\n\t​\n≥\n2\nn\n\t​\n⇒M\ne\n\t​\n∈[a\np\n\t​\n;a\np+1\n\t​\n)\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "info": {
+   "stage": "4",
+   "plan": "Kế hoạch 8–16′ · tiết 40′",
+   "timer": "7:56",
+   "status": "running"
+  }
+ },
+ "s4": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 5/12\nKế hoạch 16–19′ · tiết 40′\n2:55\nĐANG HỌC\nP0 · 0:40\nTƯ DUY PHẢN BIỆN\nTHINK → AI → VERIFY\nCÙNG THỰC HIỆN\nTrên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.\nLời giải cần kiểm:\nBạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40, được 0,125 giờ.\nTìm lỗi · phân loại · sửa · chứng minh.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n5/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–19 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nBạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40, được 0,125 giờ.\nTìm lỗi · phân loại · sửa · chứng minh.\nPHẢN HỒI NHANH\nBạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40. Bạn sai ở đâu?\nSuy nghĩ 6s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nHiểu sai khái niệm\nSai biến đổi hoặc tính toán\nSai lập luận\nThiếu điều kiện\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 6s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 5/12\nKế hoạch 16–19′ · tiết 40′\n2:56\nĐANG HỌC\nP0 · 0:39\nTƯ DUY PHẢN BIỆN\nTHINK → AI → VERIFY\nCÙNG THỰC HIỆN\nTrên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.\nLời giải cần kiểm:\nBạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40, được 0,125 giờ.\nTìm lỗi · phân loại · sửa · chứng minh.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "info": {
+   "stage": "5",
+   "plan": "Kế hoạch 16–19′ · tiết 40′",
+   "timer": "2:55",
+   "status": "running"
+  }
+ },
+ "s5": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 6/12\nKế hoạch 19–20′ · tiết 40′\n0:55\nĐANG HỌC\nP0 · 0:49\nHỢP TÁC\nCÂU HỎI NHÓM\nCÙNG THỰC HIỆN\nĐặt thiết bị xuống khi cả nhóm cùng giải thích. Mỗi bạn nói được một căn cứ.\nCâu hỏi nhóm\nCùng kiểm chứng Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay; nhóm khác nhau ở scaffold, không ở chuẩn đích.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n6/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nSuy nghĩ 5s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nBảng thời gian tự học (giờ/ngày) của 40 học sinh (SGK tr. 52): [0;1) có 5 · [1;2) có 12 · [2;3) có 15 · [3;4) có 8. Xác định cỡ mẫu n và tính giá trị đại diện c₁, c₂, c₃, c₄ của bốn nhóm.\nChọn nhiệm vụ này\nKết nối kiến thức\nVới bảng tự học ở trên, lập bảng tích m_i·c_i và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được.\nChọn nhiệm vụ này\nMở rộng lập luận\nNếu thêm 1 bạn học 6 giờ/ngày vào mẫu tự học 40 bạn ở trên thì x̄ thay đổi thế nào?\nChọn nhiệm vụ này\nChờ 5s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 6/12\nKế hoạch 19–20′ · tiết 40′\n0:55\nĐANG HỌC\nP0 · 0:49\nHỢP TÁC\nCÂU HỎI NHÓM\nCÙNG THỰC HIỆN\nĐặt thiết bị xuống khi cả nhóm cùng giải thích. Mỗi bạn nói được một căn cứ.\nCâu hỏi nhóm\nCùng kiểm chứng Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay; nhóm khác nhau ở scaffold, không ở chuẩn đích.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "info": {
+   "stage": "6",
+   "plan": "Kế hoạch 19–20′ · tiết 40′",
+   "timer": "0:55",
+   "status": "running"
+  }
+ },
+ "draftTest": null,
+ "routeChoice": {
+  "buttons": [
+   "Mở rộng lập luậnNếu thêm 1 bạn học 6 giờ/ngày vào mẫu tự học 40 bạn ở trên thì x̄ thay đổi thế nào?Chọn nhiệm vụ này"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nSuy nghĩ 5s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa ch"
+ },
+ "s6": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:54\nĐANG HỌC\nP4 · 4:56\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 20–27 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay bằng sản phẩm nhóm.\nSuy nghĩ 4s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 4s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:54\nĐANG HỌC\nP4 · 4:56\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "info": {
+   "stage": "7",
+   "plan": "Kế hoạch 20–27′ · tiết 40′",
+   "timer": "6:54",
+   "status": "running"
+  }
+ },
+ "s6Send": {
+  "typed": true,
+  "clicked": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "gvProgress": null,
+  "gvProgressNow": null
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "sessionId": "sWYnJAWlwke3c76fafp3",
+ "marker": "Nháp R5 77 — kiểm tra lưu 28/10",
+ "hsJoin": "view",
+ "gvStarted": {
+  "started": false,
+  "stage": "6",
+  "status": "running"
+ },
+ "gvAtS4": {
+  "stage": "5",
+  "status": "running"
+ },
+ "hsReadyBefore": true,
+ "typed": true,
+ "bandBefore": "Chặng 13–16 phút",
+ "relogged": "view",
+ "hsReadyAfter": true,
+ "bandAfter": "Chặng 13–16 phút",
+ "aiErrorStill": true,
+ "kept": false,
+ "keptInField": true,
+ "nhapPanel": true
+}

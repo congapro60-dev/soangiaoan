@@ -22,4 +22,5 @@ export const W11BATCH2: ReadonlyArray<W11Batch2Entry> = [
   { key: '12-11-77', grade: 12, period: 77, title: 'Nguyên hàm' },
   { key: '12-11-78', grade: 12, period: 78, title: 'Khoảng biến thiên và khoảng tứ phân vị' },
   { key: '12-11-79', grade: 12, period: 79, title: 'Các số đặc trưng đo mức độ phân tán' },
+  { key: '10-12-88', grade: 10, period: 88, title: 'Các số đặc trưng đo xu thế trung tâm' },
 ];

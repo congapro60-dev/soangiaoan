@@ -191,6 +191,7 @@ export const PULSE_CUE_IDS_BY_KEY: Readonly<Record<string, readonly string[]>> =
   // Tuần 11: bật ở chặng luyện tập phân hoá + kiểm tra cuối của 10 bài tương tác.
   '11-11-76': ['P20', 'P27'],
   '10-11-80': ['P20', 'P27'],
+  '10-12-88': ['P20', 'P27'],
   '11-11-78': ['P13', 'P20'],
   '11-11-79': ['P13', 'P20'],
   '12-11-77': ['P20', 'P27'],

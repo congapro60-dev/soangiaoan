@@ -1,0 +1,23 @@
+{
+ "session": "psyxRH2KUywoI3auf7dt",
+ "join": "lost",
+ "s5": {
+  "gv": "⚠️\nKhông thể mở tiết trực tiếp\nPhiên tiết trực tiếp đã hết hạn. Hãy yêu cầu giáo viên mở phiên mới.\nQuay lại\nThử lại",
+  "hs": "⚠️\nKhông thể mở tiết trực tiếp\nKhông thể đọc trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn. (Missing or insufficient permissions.)\nQuay lại\nThử lại",
+  "tv": "⚠️\nKhông thể mở tiết trực tiếp\nKhông thể đọc trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn. (Missing or insufficient permissions.)\nQuay lại\nThử lại",
+  "info": {
+   "stage": null,
+   "plan": null,
+   "timer": null,
+   "status": null
+  },
+  "hasDenLuotSau": false,
+  "routeButtons": []
+ },
+ "routeChoice": null,
+ "s6": null,
+ "s7": null,
+ "s8": null,
+ "think": null,
+ "tvButtons": null
+}

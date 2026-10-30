@@ -1,0 +1,24 @@
+{
+ "sessionId": "3f6l2fI1RriYA1ZWfnJe",
+ "marker": "Nháp T9B — kiểm tra lưu 28/10",
+ "hsJoin": "view",
+ "gvStarted": {
+  "started": false,
+  "stage": "6",
+  "status": "running"
+ },
+ "gvAtS4": {
+  "stage": "5",
+  "status": "running"
+ },
+ "hsReadyBefore": true,
+ "typed": true,
+ "bandBefore": "Chặng 16–19 phút",
+ "relogged": "view",
+ "hsReadyAfter": true,
+ "bandAfter": "Chặng 16–19 phút",
+ "aiErrorStill": true,
+ "kept": false,
+ "keptInField": true,
+ "nhapPanel": true
+}

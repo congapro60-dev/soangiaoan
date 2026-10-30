@@ -1,0 +1,22 @@
+// QA Production — cache tắt qua CDP, kiểm thẻ DEEP + notice học lại
+import { createRequire } from 'node:module';
+import { setTimeout as sleep } from 'node:timers/promises';
+const require = createRequire(import.meta.url);
+const puppeteer = require('puppeteer');
+const gb = await puppeteer.connect({ browserWSEndpoint: (await (await fetch('http://127.0.0.1:9223/json/version')).json()).webSocketDebuggerUrl, defaultViewport: null, protocolTimeout: 180000 });
+const page = await gb.newPage();
+await page.setViewport({ width: 1000, height: 900 });
+const cdp = await page.target().createCDPSession();
+await cdp.send('Network.enable');
+await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+const errors = [];
+page.on('pageerror', (err) => errors.push('PAGEERROR: ' + String(err).slice(0, 300)));
+page.on('console', (msg) => { const s = msg.text(); if (/Cannot access|ReferenceError/i.test(s)) errors.push(s.slice(0, 300)); });
+await page.goto('https://giaoandewey.vercel.app/adaptive-library/adaptive-1792833009074', { waitUntil: 'networkidle2', timeout: 120000 });
+await sleep(15000);
+const t = await page.evaluate(() => (document.body.innerText || '').replace(/\n{2,}/g, '\n'));
+console.log('PORTAL:', /Cổng học sinh/i.test(t) ? '✓' : '✗', '| notice học lại:', t.includes('Chế độ học lại') ? '✓' : '✗', '| bài:', (t.split('\n').find((l) => /Khoảng biến thiên/.test(l)) || '').slice(0, 60));
+console.log('ERRORS:', errors.length ? errors.join(' || ').slice(0, 300) : '(không)');
+await page.close();
+await gb.disconnect();
+process.exit(0);

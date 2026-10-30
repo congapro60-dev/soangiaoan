@@ -1,0 +1,88 @@
+{
+ "pages": [
+  "https://ntp.msn.com/edge/ntp?locale=vi&title=Tab%20m%C6%A1%CC%81i&dsp=1&sp=Bing&feed_dis=always&en_widget_reg=false&star"
+ ],
+ "steps": [
+  {
+   "step": "mở trang",
+   "head": "SMARTPLAN · HỌC SINH |  | Vào tiết học trực tiếp |  | Chọn tên của em trong lớp rồi nhập PIN. PIN chỉ được gửi để xác thực, không lưu trên thiết bị. |  | Lớp 11Columbus | Chọn tên của em | Dương Phạm Tường Vi | Đặng La"
+  },
+  {
+   "step": "selects",
+   "selInfo": [
+    {
+     "n": 27,
+     "first": "Chọn tên của em",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "step": "chọn tên",
+   "picked": {
+    "ok": true,
+    "value": "student-1787188523562-0"
+   }
+  },
+  {
+   "step": "PIN",
+   "pinSet": {
+    "ok": true,
+    "value": "2750"
+   }
+  },
+  {
+   "step": "buttons trước bấm",
+   "btnInfo": [
+    {
+     "t": "Vào lớp",
+     "disabled": false
+    }
+   ]
+  },
+  {
+   "step": "click Vào lớp",
+   "clicked": true
+  },
+  {
+   "step": "poll+1s",
+   "head": "SMARTPLAN · HỌC SINH | Vào tiết học trực tiếp | Chọn tên của em trong lớp rồi nhập PIN. PIN chỉ được gửi để xác thực, không lưu trên thiết bị. | Lớp 11Columbus | Chọn tên của em | Dương Phạm Tường Vi | Đặng Lam Anh | Đặng Tuệ Minh | Đinh Bình Minh | Đinh Nhật Minh | Đoàn Thanh Vâ"
+  },
+  {
+   "step": "poll+2s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+3s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+4s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+5s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+6s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+7s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+8s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+9s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  },
+  {
+   "step": "poll+10s",
+   "head": "HỌC SINH · TIẾT TRỰC TIẾP | Hai mặt phẳng song song | Đặng Tuệ Minh · 11Columbus | ĐANG HỌC | Tiếng Việt · Đổi ngôn ngữ | Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào? | Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có. | Tiếng Việt | Ngôn n"
+  }
+ ]
+}

@@ -1,0 +1,483 @@
+{
+ "sessionFile": "tasks/tmp-t9a-session.json",
+ "session": "8DIcKxBIDeFTlyVivIMV",
+ "gvOpen": {
+  "stage": "1",
+  "band": null,
+  "plan": "Kế hoạch 0–3′ · tiết 40′",
+  "status": "waiting",
+  "expired": false
+ },
+ "join": "view-stable",
+ "bands": [
+  {
+   "stage": "1",
+   "gvBand": null,
+   "hsBand": "Chặng 0–3 phút",
+   "plan": "Kế hoạch 0–3′ · tiết 40′"
+  },
+  {
+   "stage": "2",
+   "gvBand": null,
+   "hsBand": "Chặng 3–5 phút",
+   "plan": "Kế hoạch 3–5′ · tiết 40′"
+  },
+  {
+   "stage": "3",
+   "gvBand": null,
+   "hsBand": "Chặng 5–8 phút",
+   "plan": "Kế hoạch 5–8′ · tiết 40′"
+  },
+  {
+   "stage": "4",
+   "gvBand": null,
+   "hsBand": "Chặng 8–16 phút",
+   "plan": "Kế hoạch 8–16′ · tiết 40′"
+  },
+  {
+   "stage": "5",
+   "gvBand": null,
+   "hsBand": "Chặng 16–19 phút",
+   "plan": "Kế hoạch 16–19′ · tiết 40′"
+  },
+  {
+   "stage": "6",
+   "gvBand": null,
+   "hsBand": "Chặng 19–20 phút",
+   "plan": "Kế hoạch 19–20′ · tiết 40′"
+  },
+  {
+   "stage": "7",
+   "gvBand": null,
+   "hsBand": "Chặng 20–27 phút",
+   "plan": "Kế hoạch 20–27′ · tiết 40′"
+  },
+  {
+   "stage": "8",
+   "gvBand": null,
+   "hsBand": "Chặng 27–30 phút",
+   "plan": "Kế hoạch 27–30′ · tiết 40′"
+  },
+  {
+   "stage": "9",
+   "gvBand": null,
+   "hsBand": "Chặng 30–35 phút",
+   "plan": "Kế hoạch 30–35′ · tiết 40′"
+  },
+  {
+   "stage": "10",
+   "gvBand": null,
+   "hsBand": "Chặng 35–38 phút",
+   "plan": "Kế hoạch 35–38′ · tiết 40′"
+  },
+  {
+   "stage": "11",
+   "gvBand": null,
+   "hsBand": "Chặng 38–40 phút",
+   "plan": "Kế hoạch 38–40′ · tiết 40′"
+  }
+ ],
+ "s4": {
+  "gvBand": null,
+  "hsBand": "Chặng 16–19 phút",
+  "tvBand": null,
+  "hsHasAiKetLuan": true,
+  "tvHasAiKetLuan": true,
+  "hsHasPhanHoiNhanh": true,
+  "hsHas4Nhan": true,
+  "hsNoProof": true,
+  "tvNoProof": true,
+  "hsButtons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "lập luận",
+   "phép kiểm",
+   "Hiểu sai khái niệm",
+   "Sai biến đổi hoặc tính toán",
+   "Sai lập luận",
+   "Thiếu điều kiện",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "hsExcerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nSố gần đúng và sai số\nTrần Thùy Anh · 10Olinda\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–19 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nAI viết: Chiều cao Fansipan là 3 147,3 m với độ chính xác d = 0,2 m. Vì d có chữ số khác 0 ở hàng phần mười nên quy tròn số đó đến hàng phần mười, được 3 147,3 m.\nTìm lỗi · phân loại · sửa · chứng minh"
+ },
+ "route": {
+  "gvBand": null,
+  "hsBand": "Chặng 19–20 phút",
+  "hasDenLuotSau": false,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Chờ 3s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nSố gần đúng và sai số\nTrần Thùy Anh · 10Olinda\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho \n𝑎\nˉ\n=\n10\na\nˉ\n="
+ },
+ "s6": null,
+ "s7": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nSố gần đúng và sai số\nTrần Thùy Anh · 10Olinda\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 20–27 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Phân biệt số đúng và số gần đúng; tính sai số tuyệt đối, sai số tương đối và quy tròn số gần đúng đúng hàng theo độ chính xác d bằng sản phẩm nhóm.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ },
+ "s8": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nSố gần đúng và sai số\nTrần Thùy Anh · 10Olinda\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 27–30 phút · theo nhịp thầy cô\nPost-check cá nhân\nHS thực hiện postCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Phân biệt số đúng và số gần đúng; tính sai số tuyệt đối, sai số tương đối và quy tròn số gần đúng đúng hàng theo độ chính xác d và nêu căn cứ.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 8/12\nKế hoạch 27–30′ · tiết 40′\n2:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Phân biệt số đúng và số gần đúng; tính sai số tuyệt đối, sai số tương đối và quy tròn số gần đúng đúng hàng theo độ chính xác d và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 8/12\nKế hoạch 27–30′ · tiết 40′\n2:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Phân biệt số đúng và số gần đúng; tính sai số tuyệt đối, sai số tương đối và quy tròn số gần đúng đúng hàng theo độ chính xác d và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n8/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ },
+ "exit": {
+  "hsBand": "Chặng 38–40 phút",
+  "emptyBtn": {
+   "exists": false,
+   "disabled": null
+  },
+  "emptyStatus": [],
+  "emptyBlocked": true,
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": true,
+   "tag": "TEXTAREA"
+  },
+  "clickedSend": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "hienKetQua": true,
+  "gvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "tvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "gvHas1HS": true,
+  "tvHas1HS": true
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "band": null,
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "gvBand": null,
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "hsBand": null
+ },
+ "think": {
+  "reads": 63,
+  "validReads": 63,
+  "samples": [
+   {
+    "at": "00:13:07",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:08",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:09",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:10",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:10",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:11",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:12",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:15",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:15",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:16",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:17",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:17",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:18",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:19",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:22",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:22",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:23",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:24",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:25",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:25",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:26",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:29",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:30",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:30",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:31",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:32",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:32",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:33",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:40",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:13:41",
+    "text": "Chờ 10s",
+    "disabled": true
+   }
+  ],
+  "saw10": true,
+  "minSeen": 6,
+  "lockedAll": true,
+  "windows": [
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   }
+  ]
+ },
+ "tvButtons": [],
+ "s9": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nSố gần đúng và sai số\nTrần Thùy Anh · 10Olinda\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 30–35 phút · theo nhịp thầy cô\nQuick check\nHS thực hiện quickCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nTrả lời nhanh rồi sửa một lỗi nếu phát hiện.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 9/12\nKế hoạch 30–35′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:14\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nTrong các số sau, số nào là số đúng: 42 học sinh của lớp 10A1, khoảng cách Hà Nội – Hải Phòng 102 km, nhiệt độ 28°C, chiều cao ngọn núi 2 000 m?\nCho \n𝑥\n=\n12\n,\n5\nx=12,5 cm \n±\n0\n,\n05\n±0,05 cm. Hàng quy tròn thích hợp của \n𝑥\nx là hàng nào?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nSố gần đúng và sai số\nChặng 9/12\nKế hoạch 30–35′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:14\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nTrong các số sau, số nào là số đúng: 42 học sinh của lớp 10A1, khoảng cách Hà Nội – Hải Phòng 102 km, nhiệt độ 28°C, chiều cao ngọn núi 2 000 m?\nCho \n𝑥\n=\n12\n,\n5\nx=12,5 cm \n±\n0\n,\n05\n±0,05 cm. Hàng quy tròn thích hợp của \n𝑥\nx là hàng nào?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n9/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dchung": false,
+    "tong": false
+   },
+   "tv": {
+    "dchung": false,
+    "tong": false
+   },
+   "gv": {
+    "dchung": false,
+    "tong": false
+   }
+  }
+ }
+}

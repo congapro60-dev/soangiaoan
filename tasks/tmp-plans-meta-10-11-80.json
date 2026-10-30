@@ -1,0 +1,206 @@
+{
+  "status": "OK",
+  "total": 20,
+  "items": [
+    {
+      "id": "d3a85b76-318a-4879-bd78-41b10f9e620f",
+      "title": "Phương sai dộ lệch chuẩn — Tiết 1",
+      "grade": "12",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T03:25:07.586Z",
+      "contentLength": 23542,
+      "preview": "# KẾ HOẠCH DẠY HỌC — Phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm (Tiết 1: Hình thành công thức và quy trình tính) | Lớp | 12 | Tên bài học | Phương sai và độ lệch chuẩn — Tiết 1: Công thức và quy trình tính | M"
+    },
+    {
+      "id": "315100a6-dfab-40ef-9d03-aa13df0d5f78",
+      "title": "Tiết 2: Luyện tập",
+      "grade": "12",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T03:19:58.307Z",
+      "contentLength": 31187,
+      "preview": "# KẾ HOẠCH DẠY HỌC — CÁC SỐ ĐẶC TRƯNG ĐO MỨC ĐỘ PHÂN TÁN CỦA MẪU SỐ LIỆU GHÉP NHÓM (Tiết 2: Luyện tập) | Lớp | 12A1 | Tên bài học | Các số đặc trưng đo mức độ phân tán của mẫu số liệu ghép nhóm — Tiết 2: Luyện tập | Môn "
+    },
+    {
+      "id": "80820147-a5df-42a1-8653-df385c3108f0",
+      "title": "Khoảng biến thiên và khoảng tứ phân vị — Tiết 1",
+      "grade": "12",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T03:15:24.886Z",
+      "contentLength": 26211,
+      "preview": "# KẾ HOẠCH DẠY HỌC — KHOẢNG BIẾN THIÊN VÀ KHOẢNG TỨ PHÂN VỊ (Tiết 1: Mẫu số liệu ghép nhóm) | Lớp | 12 | Tên bài học | Khoảng biến thiên và khoảng tứ phân vị — Tiết 1: Mẫu số liệu ghép nhóm | Môn học | Toán | |---|---|--"
+    },
+    {
+      "id": "1761870e-01b4-47d3-9565-68f6500c805c",
+      "title": "Nguyên hàm — Tiết 2",
+      "grade": "12",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T03:09:54.197Z",
+      "contentLength": 28031,
+      "preview": "# KẾ HOẠCH DẠY HỌC — NGUYÊN HÀM (Tiết 2: Bảng nguyên hàm của một số hàm số sơ cấp) | Lớp | 12 | Tên bài học | Nguyên hàm — Tiết 2: Bảng nguyên hàm của một số hàm số sơ cấp | Môn học | Toán | |---|---|---|---|---|---| | G"
+    },
+    {
+      "id": "7b67948c-69a8-479c-813f-e64739fd7cf2",
+      "title": "Nguyên hàm — Tiết 1",
+      "grade": "12",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T03:04:52.941Z",
+      "contentLength": 29163,
+      "preview": "# KẾ HOẠCH DẠY HỌC — NGUYÊN HÀM (Tiết 1: Định nghĩa và họ nguyên hàm) | Lớp | 12 | Tên bài học | Nguyên hàm — Tiết 1: Định nghĩa và tính chất cơ bản | Môn học | Toán | |---|---|---|---|---|---| | Giáo viên | Nguyễn Văn A"
+    },
+    {
+      "id": "c8453c88-fbb8-4e6d-b84c-5a323abcc394",
+      "title": "Hai mặt phẳng song song — Tiết 3",
+      "grade": "11",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:52:41.960Z",
+      "contentLength": 28115,
+      "preview": "# KẾ HOẠCH DẠY HỌC — HAI MẶT PHẲNG SONG SONG (Tiết 3: Luyện tập và ứng dụng thiết diện) | Lớp | 11A | Tên bài học | Hai mặt phẳng song song — Tiết 3: Luyện tập và ứng dụng thiết diện | Môn học | Toán | |---|---|---|---|-"
+    },
+    {
+      "id": "114cd695-70d2-4a12-8e4b-d47983a425fa",
+      "title": "Hai mặt phẳng song song — Tiết 2",
+      "grade": "11",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:48:08.409Z",
+      "contentLength": 27680,
+      "preview": "# KẾ HOẠCH DẠY HỌC — HAI MẶT PHẲNG SONG SONG (Tiết 2: Tính chất giao tuyến và Định lý Thales) | Lớp | 11 | Tên bài học | Hai mặt phẳng song song — Tiết 2: Tính chất giao tuyến và Định lý Thales | Môn học | Toán | |---|--"
+    },
+    {
+      "id": "6da0f876-4fd0-4b7d-82b6-b5e9ef36a281",
+      "title": "Hai mặt phẳng song song — Tiết 1",
+      "grade": "11",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:43:35.619Z",
+      "contentLength": 22445,
+      "preview": "# KẾ HOẠCH DẠY HỌC — HAI MẶT PHẲNG SONG SONG (Tiết 1: Định nghĩa và điều kiện hai mặt phẳng song song) | Lớp | 11 | Tên bài học | Hai mặt phẳng song song — Tiết 1: Định nghĩa và điều kiện hai mặt phẳng song song | Môn họ"
+    },
+    {
+      "id": "f2ab004b-553f-4867-a403-2e390ee7bbf6",
+      "title": "Các số đặc trưng đo xu thế trung tâm — Tiết 1",
+      "grade": "11",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:39:40.451Z",
+      "contentLength": 28052,
+      "preview": "# KẾ HOẠCH DẠY HỌC — CÁC SỐ ĐẶC TRƯNG ĐO XU THẾ TRUNG TÂM (Tiết 1: Số trung bình và Trung vị của mẫu số liệu ghép nhóm) | Lớp | 11 | Tên bài học | Các số đặc trưng đo xu thế trung tâm — Tiết 1: Số trung bình và Trung vị "
+    },
+    {
+      "id": "16266b7f-10af-4da1-aa3f-5885a5339d19",
+      "title": "Mẫu số liệu ghép nhóm — Tiết 1",
+      "grade": "11",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:35:29.244Z",
+      "contentLength": 26628,
+      "preview": "# KẾ HOẠCH DẠY HỌC — MẪU SỐ LIỆU GHÉP NHÓM (Tiết 1: Khái niệm và quy trình ghép nhóm) | Lớp | 11 | Tên bài học | Mẫu số liệu ghép nhóm — Tiết 1: Khái niệm và quy trình ghép nhóm | Môn học | Toán | |---|---|---|---|---|--"
+    },
+    {
+      "id": "c7f2b4f9-e112-4738-8242-5cfd2981c5b7",
+      "title": "Tổng và hiệu của hai vectơ — Tiết 3",
+      "grade": "10",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:24:19.922Z",
+      "contentLength": 24734,
+      "preview": "# KẾ HOẠCH DẠY HỌC — Tổng và hiệu của hai vectơ (Tiết 3: Hiệu của hai vectơ và quy tắc trừ) | Lớp | 10A1 | Tên bài học | Tổng và hiệu của hai vectơ — Tiết 3: Hiệu của hai vectơ | Môn học | Toán | |---|---|---|---|---|---"
+    },
+    {
+      "id": "aebd992b-34eb-40dd-ae07-0fa69e008282",
+      "title": "Tổng và hiệu của hai vectơ — Tiết 2",
+      "grade": "10",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:20:33.984Z",
+      "contentLength": 28367,
+      "preview": "# KẾ HOẠCH DẠY HỌC — Tổng và hiệu của hai vectơ (Tiết 2: Tổng hai vectơ & độ dài) | Lớp | 10A1 | Tên bài học | Tổng và hiệu của hai vectơ — Tiết 2: Tổng hai vectơ & độ dài | Môn học | Toán | |---|---|---|---|---|---| | G"
+    },
+    {
+      "id": "e81d2333-261d-4ef8-b0ed-63235c49bfbf",
+      "title": "Tổng và hiệu của hai vectơ — Tiết 1",
+      "grade": "10",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:16:28.769Z",
+      "contentLength": 37684,
+      "preview": "# KẾ HOẠCH DẠY HỌC — TỔNG VÀ HIỆU CỦA HAI VECTƠ (Tiết 1: Phép cộng vectơ) | Lớp | 10 | Tên bài học | Tổng và hiệu của hai vectơ — Tiết 1: Phép cộng vectơ | Môn học | Toán | |---|---|---|---|---|---| | Giáo viên | Nguyễn "
+    },
+    {
+      "id": "53f75b72-c6f7-443d-8985-46d5d8a6ec0a",
+      "title": "Các số đặc trưng đo xu thế trung tâm — Tiết 1",
+      "grade": "10",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:11:46.606Z",
+      "contentLength": 26681,
+      "preview": "# KẾ HOẠCH DẠY HỌC — CÁC SỐ ĐẶC TRƯNG ĐO XU THẾ TRUNG TÂM (Tiết 1: Số trung bình và Trung vị) | Lớp | 10 | Tên bài học | Các số đặc trưng đo xu thế trung tâm — Tiết 1: Số trung bình và Trung vị | Môn học | Toán | |---|--"
+    },
+    {
+      "id": "85bbd8fb-76ee-476b-b17b-556cb689bd66",
+      "title": "Số gần đúng và sai số — Tiết 1",
+      "grade": "10",
+      "week": "11",
+      "isPublic": false,
+      "updatedAt": "2026-10-24T02:07:21.475Z",
+      "contentLength": 30726,
+      "preview": "# KẾ HOẠCH DẠY HỌC — BÀI 1: SỐ GẦN ĐÚNG VÀ SAI SỐ (Tiết 1: Số gần đúng, sai số tuyệt đối và quy tròn) | Lớp | 10 | Tên bài học | Số gần đúng và sai số — Tiết 1: Số gần đúng, sai số tuyệt đối và quy tròn | Môn học | Toán "
+    },
+    {
+      "id": "ed299ff4-0032-4723-81f6-8f4983a653d1",
+      "title": "QA_MANUS_Hàm số bậc hai_Tiết 1",
+      "grade": "10",
+      "week": "1",
+      "isPublic": false,
+      "updatedAt": "2026-08-13T02:38:22.295Z",
+      "contentLength": 23365,
+      "preview": "# KẾ HOẠCH DẠY HỌC — HÀM SỐ BẬC HAI (Tiết 1: Định nghĩa, Trục đối xứng, Tọa độ đỉnh và Bảng biến thiên) | Lớp | 10A1 | Tên bài học | Hàm số bậc hai — Tiết 1: Định nghĩa, Trục đối xứng, Tọa độ đỉnh và Bảng biến thiên | Mô"
+    },
+    {
+      "id": "5e5bbd9d-2d67-4df9-a21e-d7a5e4c2ce72",
+      "title": "Mệnh đề",
+      "grade": "10",
+      "week": "2",
+      "isPublic": false,
+      "updatedAt": "2026-08-11T08:54:36.586Z",
+      "contentLength": 23413,
+      "preview": "# KẾ HOẠCH DẠY HỌC — MỆNH ĐỀ (Tiết 3: Mệnh đề tương đương, mệnh đề có chứa kí hiệu mọi, tồn tại) | Lớp | 10 | Tên bài học | Mệnh đề — Tiết 3: Mệnh đề tương đương, mệnh đề có chứa kí hiệu mọi, tồn tại | Môn học | Toán | |"
+    },
+    {
+      "id": "123b8715-acbf-4b63-8c4d-98cf8d529a40",
+      "title": "Nhị thức Newton",
+      "grade": "10",
+      "week": "1",
+      "isPublic": false,
+      "updatedAt": "2026-08-03T07:56:06.756Z",
+      "contentLength": 20017,
+      "preview": "# KẾ HOẠCH DẠY HỌC — Nhị thức Newton (Tiết 1: Khai triển nhị thức Newton bậc 4 và bậc 5) | Lớp | 10 | Tên bài học | Nhị thức Newton (Tiết 1) | Môn học | Toán | |---|---|---|---|---|---| | Giáo viên | .......... | Tuần họ"
+    },
+    {
+      "id": "84d67c7e-b855-4b97-a05c-de7d8c592ed0",
+      "title": "Dãy số",
+      "grade": "11",
+      "week": "1",
+      "isPublic": false,
+      "updatedAt": "2026-07-15T04:26:38.950Z",
+      "contentLength": 18254,
+      "preview": " # KẾ HOẠCH DẠY HỌC — Dãy số (Tiết 1: Khái niệm và các cách cho dãy số) | Lớp | 11 | Tên bài học | Dãy số — Tiết 1: Khái niệm và các cách cho dãy số | Môn học | Toán | |---|---|---|---|---|---| | Giáo viên | .......... |"
+    },
+    {
+      "id": "f4cc1a46-6f9a-4bab-8f97-9804eb5d0b7d",
+      "title": "Đạo hàm cấp 2",
+      "grade": "12",
+      "week": "1",
+      "isPublic": false,
+      "updatedAt": "2026-07-15T03:58:07.896Z",
+      "contentLength": 17662,
+      "preview": " # KẾ HOẠCH DẠY HỌC — Đạo hàm cấp hai (Tiết 1: Định nghĩa, ý nghĩa vật lý và quy tắc tính) | Lớp | 12A1 | Tên bài học | Đạo hàm cấp hai — Tiết 1: Định nghĩa, ý nghĩa vật lý và quy tắc tính | Môn học | Toán | |---|---|---"
+    }
+  ]
+}

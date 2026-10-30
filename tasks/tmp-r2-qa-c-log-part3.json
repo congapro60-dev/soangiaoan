@@ -1,0 +1,49 @@
+{
+ "session": "vEziJKduxUC8S9VC9wmZ",
+ "join": {
+  "hsJoined": true,
+  "hsBand": {
+   "sauLogin": "Chặng 38–40 phút",
+   "sauNav10": "Chặng 35–38 phút",
+   "sauNav11": "Chặng 38–40 phút"
+  }
+ },
+ "exitSend": {
+  "gvAt11": {
+   "stage": "11",
+   "plan": "Kế hoạch 38–40′ · tiết 40′",
+   "status": "running"
+  },
+  "hsBand": "Chặng 38–40 phút",
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": true,
+   "tag": "TEXTAREA",
+   "after": "Em tính được x̄ = (Σ mᵢ·cᵢ)/n = 2,15 giờ và M_e = 2,2 giờ từ nhóm chứa n/2 = 20 là nhóm [2;3); căn cứ: cf = 5; 17; 32; 4"
+  },
+  "clickedSend": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "gvProgress": null,
+  "tvProgress": null,
+  "textareaFound": true,
+  "hsAfter": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nĐã gửi.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 38–40 phút · theo nhịp thầy cô\nExit ticket\nHS thực hiện exitTicket, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nNHÌN LẠI HÀNH TRÌNH CỦA EM\nMục tiêu em đặt đầu tiết\nEm chưa có mục tiêu được lưu ở bước đầu. Hãy dùng mục tiêu trong vở để đối chiếu.\nĐích đến chung của lớp\nĐọc lại đúng câu đầu tiết rồi chọn mức phù hợp với bằng chứng em đã tạo.\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số ",
+  "tvHas1HS": false
+ },
+ "rejoin": {
+  "relogged": true,
+  "band": "Chặng 38–40 phút",
+  "hasSentStatus": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "nhapPanel": [
+   "Nháp đã lưu trên máy"
+  ],
+  "excerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nĐã gửi.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 38–40 phút · theo nhịp thầy cô\nExit ticket\nHS thực hiện exitTicket, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nNHÌN LẠI HÀNH TRÌNH CỦA EM\nMục tiêu em đặt đầu tiết\nEm chưa có mục tiêu được lưu ở bước đầu. Hãy dùng mục tiêu trong vở để đối chiếu.\nĐích đến chung của lớp\nĐọc lại đúng câu đầu tiết rồi chọn mức phù hợp với bằng chứng em đã tạo.\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nChưa chắc\nĐang tiến bộ\nĐã làm được\nVận "
+ }
+}

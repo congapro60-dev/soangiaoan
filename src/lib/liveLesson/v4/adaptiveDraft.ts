@@ -199,9 +199,8 @@ export function buildBanToanV4AdaptiveLessonDraft(
   const unitId = `${contract.id}-core`;
   const lessonId = `adaptive-v4-${safeIdPart(sourceKey)}-${safeIdPart(teacherId)}`;
   const quickCheck = buildAssessment(contract, 'quick_check', `${contract.id}-quick-check`);
-  // Chương hiển thị: lô Tuần 5–6 (MAIN) giữ nhãn gộp; bài batch 2 Tuần 11 phải mang
-  // nhãn tuần riêng để GV nhận ra bài thuộc Tuần 11, không bị gắn nhãn W5–W6.
-  const chapter = contract.source?.week === 11 ? 'Ban Toán · W11' : 'Ban Toán · W5–W6';
+  // Chương hiển thị: lô Tuần 5–6 (MAIN) giữ nhãn gộp; các tuần tiếp theo mang nhãn tuần tương ứng.
+  const chapter = contract.source?.week ? `Ban Toán · W${contract.source.week}` : 'Ban Toán · W5–W6';
 
   return {
     id: lessonId,

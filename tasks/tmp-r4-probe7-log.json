@@ -1,0 +1,18 @@
+{
+ "gvOpen": {
+  "stage": "12",
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "expired": false
+ },
+ "join": "view-stable",
+ "route": {
+  "info": {
+   "stage": "6",
+   "plan": "Kế hoạch 15–16′ · tiết 40′",
+   "expired": false
+  },
+  "clicked": "Bắt đầu với hỗ trợCho hình chóp S.ABCDS.ABCDS.ABCD, đáy ABCDABCDABCD là hình bình hành. Gọi M,N,PM, N, PM,N,P lần lượt là trung điểm của SA,SB,SCSA, SB, SCSA,SB",
+  "taskAppeared": true,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 15–16 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD, đáy \n𝐴\n𝐵\n𝐶\n𝐷\nABCD là hình bình hành. Gọi \n𝑀\n,\n𝑁\n,\n𝑃\nM,N,P lần lượt là trung điểm của \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\nSA,SB,SC. Chứng minh \n(\n𝑀\n𝑁\n𝑃\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(MNP)∥(ABCD). Điền vào chỗ trống: 1. \n𝑀\n𝑁\nMN là đường trung bình \n△\n𝑆\n𝐴\n𝐵\n⇒\n𝑀\n𝑁\n∥\n⋯\n⊂\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n△SAB⇒MN∥⋯⊂(ABCD). 2. \n𝑁\n𝑃\nNP là đường trung bình \n△\n𝑆\n𝐵\n𝐶\n⇒\n𝑁\n𝑃\n∥\n⋯\n⊂\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n△SBC⇒NP∥⋯⊂(ABCD). 3. Vì \n𝑀\n𝑁\n∩\n𝑁\n𝑃\n=\n{\n…\n \n}\nMN∩NP={…} nên \n(\n𝑀\n𝑁\n𝑃\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(MNP)∥(ABCD"
+ }
+}

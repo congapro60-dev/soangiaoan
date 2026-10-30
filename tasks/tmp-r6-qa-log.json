@@ -1,0 +1,497 @@
+{
+ "sessionFile": "tasks/tmp-r6-qa-session.json",
+ "session": "1slj6yFtDrmpkWUxkpNR",
+ "gvOpen": {
+  "stage": "1",
+  "band": null,
+  "plan": "Kế hoạch 0–1′ · tiết 40′",
+  "status": "waiting",
+  "expired": false
+ },
+ "join": "view-stable",
+ "bands": [
+  {
+   "stage": "1",
+   "gvBand": null,
+   "hsBand": "Chặng 0–1 phút",
+   "plan": "Kế hoạch 0–1′ · tiết 40′"
+  },
+  {
+   "stage": "2",
+   "gvBand": null,
+   "hsBand": "Chặng 1–5 phút",
+   "plan": "Kế hoạch 1–5′ · tiết 40′"
+  },
+  {
+   "stage": "3",
+   "gvBand": null,
+   "hsBand": "Chặng 5–8 phút",
+   "plan": "Kế hoạch 5–8′ · tiết 40′"
+  },
+  {
+   "stage": "4",
+   "gvBand": null,
+   "hsBand": "Chặng 8–12 phút",
+   "plan": "Kế hoạch 8–12′ · tiết 40′"
+  },
+  {
+   "stage": "5",
+   "gvBand": null,
+   "hsBand": "Chặng 12–15 phút",
+   "plan": "Kế hoạch 12–15′ · tiết 40′"
+  },
+  {
+   "stage": "6",
+   "gvBand": null,
+   "hsBand": "Chặng 15–16 phút",
+   "plan": "Kế hoạch 15–16′ · tiết 40′"
+  },
+  {
+   "stage": "7",
+   "gvBand": null,
+   "hsBand": "Chặng 16–24 phút",
+   "plan": "Kế hoạch 16–24′ · tiết 40′"
+  },
+  {
+   "stage": "8",
+   "gvBand": null,
+   "hsBand": "Chặng 24–29 phút",
+   "plan": "Kế hoạch 24–29′ · tiết 40′"
+  },
+  {
+   "stage": "9",
+   "gvBand": null,
+   "hsBand": "Chặng 29–35 phút",
+   "plan": "Kế hoạch 29–35′ · tiết 40′"
+  },
+  {
+   "stage": "10",
+   "gvBand": null,
+   "hsBand": "Chặng 35–39 phút",
+   "plan": "Kế hoạch 35–39′ · tiết 40′"
+  },
+  {
+   "stage": "11",
+   "gvBand": null,
+   "hsBand": "Chặng 39–40 phút",
+   "plan": "Kế hoạch 39–40′ · tiết 40′"
+  }
+ ],
+ "s4": {
+  "gvBand": null,
+  "hsBand": "Chặng 12–15 phút",
+  "tvBand": null,
+  "hsHasAiKetLuan": true,
+  "tvHasAiKetLuan": true,
+  "hsHasPhanHoiNhanh": true,
+  "hsHas4Nhan": true,
+  "hsNoProof": true,
+  "tvNoProof": true,
+  "hsButtons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "lập luận",
+   "phép kiểm",
+   "Hiểu sai khái niệm",
+   "Sai biến đổi hoặc tính toán",
+   "Sai lập luận",
+   "Thiếu điều kiện",
+   "Chờ 5s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "hsExcerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 12–15 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nAI kết luận: khoảng biến thiên của mẫu này là R = 35 − 10 = 25 triệu vì lấy mút trái trừ mút phải.\nTìm lỗi · phân loại · sửa · chứng minh.\nPHẢN HỒI NHANH\nMột học sinh phát biểu: \"Kho"
+ },
+ "route": {
+  "gvBand": null,
+  "hsBand": "Chặng 15–16 phút",
+  "hasDenLuotSau": false,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Chờ 3s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 15–16 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nP"
+ },
+ "s6": null,
+ "s7": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–24 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Khoảng biến thiên R = a(m+1) − a1 của mẫu số liệu ghép nhóm qua xấp xỉ hai đầu mút; mốc n/4 và 3n/4 để tìm nhóm chứa tứ phân vị; công thức nội suy Q1, Q3 và khoảng tứ phân vị ΔQ = Q3 − Q1; so sánh độ phân tán và tính bền vững của ΔQ so với R khi có giá trị ngoại lai; phản biện kết luận đảo chiều phép trừ (bẫy \"R = 35 − 10 = 25\") bằng sản phẩm nhóm.\nSuy nghĩ 4s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 4s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 7/12\nKế hoạch 16–24′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:58\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 7/12\nKế hoạch 16–24′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:58\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dNB": false,
+    "dTH": false
+   },
+   "tv": {
+    "dNB": false,
+    "dTH": false
+   },
+   "gv": {
+    "dNB": false,
+    "dTH": false
+   }
+  }
+ },
+ "s8": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 24–29 phút · theo nhịp thầy cô\nPost-check cá nhân\nHS thực hiện postCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Khoảng biến thiên R = a(m+1) − a1 của mẫu số liệu ghép nhóm qua xấp xỉ hai đầu mút; mốc n/4 và 3n/4 để tìm nhóm chứa tứ phân vị; công thức nội suy Q1, Q3 và khoảng tứ phân vị ΔQ = Q3 − Q1; so sánh độ phân tán và tính bền vững của ΔQ so với R khi có giá trị ngoại lai; phản biện kết luận đảo chiều phép trừ (bẫy \"R = 35 − 10 = 25\") và nêu căn cứ.\nSuy nghĩ 1s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 1s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 8/12\nKế hoạch 24–29′ · tiết 40′\n4:40\nĐANG HỌC\nP1 · 1:27\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Khoảng biến thiên R = a(m+1) − a1 của mẫu số liệu ghép nhóm qua xấp xỉ hai đầu mút; mốc n/4 và 3n/4 để tìm nhóm chứa tứ phân vị; công thức nội suy Q1, Q3 và khoảng tứ phân vị ΔQ = Q3 − Q1; so sánh độ phân tán và tính bền vững của ΔQ so với R khi có giá trị ngoại lai; phản biện kết luận đảo chiều phép trừ (bẫy \"R = 35 − 10 = 25\") và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 8/12\nKế hoạch 24–29′ · tiết 40′\n4:40\nĐANG HỌC\nP1 · 1:27\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Khoảng biến thiên R = a(m+1) − a1 của mẫu số liệu ghép nhóm qua xấp xỉ hai đầu mút; mốc n/4 và 3n/4 để tìm nhóm chứa tứ phân vị; công thức nội suy Q1, Q3 và khoảng tứ phân vị ΔQ = Q3 − Q1; so sánh độ phân tán và tính bền vững của ΔQ so với R khi có giá trị ngoại lai; phản biện kết luận đảo chiều phép trừ (bẫy \"R = 35 − 10 = 25\") và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n8/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dNB": false,
+    "dTH": false
+   },
+   "tv": {
+    "dNB": false,
+    "dTH": false
+   },
+   "gv": {
+    "dNB": false,
+    "dTH": false
+   }
+  }
+ },
+ "exit": {
+  "hsBand": "Chặng 39–40 phút",
+  "emptyBtn": {
+   "exists": false,
+   "disabled": null
+  },
+  "emptyStatus": [],
+  "emptyBlocked": true,
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": false
+  },
+  "clickedSend": true,
+  "status": [],
+  "hienKetQua": true,
+  "gvProgress": "Tiến độ gửi\n0\nhọc sinh đã gửi",
+  "tvProgress": "Tiến độ gửi\n0\nhọc sinh đã gửi",
+  "gvHas1HS": false,
+  "tvHas1HS": false
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "band": null,
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "gvBand": null,
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "hsBand": null
+ },
+ "think": {
+  "reads": 61,
+  "validReads": 61,
+  "samples": [
+   {
+    "at": "23:05:40",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:41",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:41",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:42",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:43",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:44",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:46",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:47",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:48",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:49",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:49",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:50",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:51",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:54",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:54",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:55",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:56",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:57",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:57",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:05:58",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:01",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:02",
+    "text": "Chờ 3s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:03",
+    "text": "Chờ 2s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:03",
+    "text": "Chờ 1s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:04",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:05",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:06",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:13",
+    "text": "Chờ 1s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:15",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "23:06:16",
+    "text": "Chờ 9s",
+    "disabled": true
+   }
+  ],
+  "saw10": true,
+  "minSeen": 0,
+  "lockedAll": true,
+  "windows": [
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 4,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 4,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 9,
+    "minSeen": 1,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 4,
+    "minSeen": 1,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 5,
+    "minSeen": 7,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 5,
+    "minSeen": 7,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 5,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 2,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 0,
+    "decreasing": true,
+    "lockedAll": true
+   }
+  ]
+ },
+ "tvButtons": [],
+ "s9": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 29–35 phút · theo nhịp thầy cô\nQuick check\nHS thực hiện quickCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nTrả lời nhanh rồi sửa một lỗi nếu phát hiện.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 9/12\nKế hoạch 29–35′ · tiết 40′\n5:47\nĐANG HỌC\nP2 · 2:29\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh [NB] (HĐ5): Cho mẫu ghép nhóm điểm đánh giá năng lực của 60 thí sinh (SGK tr. 85): [0;20): 4; [20;40): 10; [40;60): 22; [60;80): 16; [80;100): 8. Xác định khoảng biến thiên R và nhóm chứa Q1.\nKiểm nhanh [TH] (HĐ5): Tính khoảng tứ phân vị ΔQ của mẫu số liệu ở câu trên.\nKiểm nhanh [VDC] (HĐ5): Nếu bổ sung thêm 2 thí sinh có điểm cực thấp trong khoảng [0;20), giá trị nào trong hai đại lượng R và ΔQ sẽ ít bị biến động hơn? Vì sao?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nKhoảng biến thiên và khoảng tứ phân vị\nChặng 9/12\nKế hoạch 29–35′ · tiết 40′\n5:47\nĐANG HỌC\nP2 · 2:29\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh [NB] (HĐ5): Cho mẫu ghép nhóm điểm đánh giá năng lực của 60 thí sinh (SGK tr. 85): [0;20): 4; [20;40): 10; [40;60): 22; [60;80): 16; [80;100): 8. Xác định khoảng biến thiên R và nhóm chứa Q1.\nKiểm nhanh [TH] (HĐ5): Tính khoảng tứ phân vị ΔQ của mẫu số liệu ở câu trên.\nKiểm nhanh [VDC] (HĐ5): Nếu bổ sung thêm 2 thí sinh có điểm cực thấp trong khoảng [0;20), giá trị nào trong hai đại lượng R và ΔQ sẽ ít bị biến động hơn? Vì sao?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n9/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dNB": false,
+    "dTH": false
+   },
+   "tv": {
+    "dNB": false,
+    "dTH": false
+   },
+   "gv": {
+    "dNB": false,
+    "dTH": false
+   }
+  }
+ }
+}

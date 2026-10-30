@@ -1,0 +1,21 @@
+{
+ "savedAt": "2026-10-27T02:25:37.853Z",
+ "checks": {
+  "dialogLen": 215,
+  "casioGuide": false,
+  "k5_15227": false,
+  "dich_khongNhoHon": false,
+  "dich_152": false,
+  "dich_nhoNhatK": false,
+  "con_73k365": false,
+  "pht215": false,
+  "pht22": false,
+  "internet395": false,
+  "nhanDapAnPHT": false,
+  "s1_onnEN": false,
+  "s4_nam": false,
+  "s6_vinhDanh": false,
+  "s9_luong": false
+ },
+ "previewText": "Xem trước bài học — đúng những gì học sinh sẽ thấy\nLưu ý: mô phỏng 3D xoay hiển thị ở panel \"Hình ảnh & mô phỏng\" phía trên; bản xem trước này hiện gallery, mô phỏng HTML, hình TikZ và công thức như trong bài thật."
+}

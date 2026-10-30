@@ -1,0 +1,62 @@
+{
+ "session": "psyxRH2KUywoI3auf7dt",
+ "join": {
+  "hs": "view"
+ },
+ "s5": {
+  "hsReady": false,
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 5/12\nKế hoạch 16–19′ · tiết 40′\n2:39\nĐANG HỌC\nP0 · 0:32\nTƯ DUY PHẢN BIỆN\nTHINK → AI → VERIFY\nCÙNG THỰC HIỆN\nTrên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.\nLời giải cần kiểm:\nAI kết luận: nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a ∥ b.\nTìm lỗi · phân loại · sửa · chứng minh.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n5/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 5/12\nKế hoạch 16–19′ · tiết 40′\n2:24\nĐANG HỌC\nP0 · 0:46\nTƯ DUY PHẢN BIỆN\nTHINK → AI → VERIFY\nCÙNG THỰC HIỆN\nTrên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.\nLời giải cần kiểm:\nAI kết luận: nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a ∥ b.\nTìm lỗi · phân loại · sửa · chứng minh.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–19 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nAI kết luận: nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a ∥ b.\nTìm lỗi · phân loại · sửa · chứng minh.\nPHẢN HỒI NHANH\nNếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a có luôn song song với b không?\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nHiểu sai khái niệm\nSai biến đổi hoặc tính toán\nSai lập luận\nThiếu điều kiện\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nGửi câu trả lời\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "check": {
+   "hsHasAI": true,
+   "hsHasEq": true,
+   "hsNoTran": true,
+   "hsNoPhanViDu": true,
+   "tvHasAI": true,
+   "tvNoTran": true,
+   "tvNoPhanViDu": true,
+   "gvHasTran": false,
+   "gvHasGamma": false,
+   "casio": {
+    "gv": false,
+    "tv": false,
+    "hs": false
+   }
+  }
+ },
+ "think": {
+  "reads": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "decreasing": false,
+  "lockedWhileWaiting": true
+ },
+ "draft": {
+  "typed": true,
+  "bandBefore": "Chặng 16–19 phút",
+  "relogged": "view",
+  "hsReadyAfter": false,
+  "bandAfter": "Chặng 16–19 phút",
+  "aiErrorStill": true,
+  "keptInField": true,
+  "nhapPanel": true
+ },
+ "gvOpen": {
+  "stage": "1",
+  "status": "waiting"
+ },
+ "tvLobby": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 1/12\nKế hoạch 0–3′ · tiết 40′\n3:00\nCHỜ VÀO TIẾT\nMỞ ĐẦU\nBẮT ĐẦU KHI SẴN SÀNG\nCÙNG THỰC HIỆN\nQuan sát và nghĩ 30 giây, rồi nói dự đoán với bạn bên cạnh. Chưa cần mở máy.\nHôm nay: Hai mặt phẳng song song\nQuan sát, đặt câu hỏi và chưa cần biết ",
+ "gvStarted": {
+  "started": true,
+  "stage": "1",
+  "status": "running"
+ },
+ "gvAt5": {
+  "stage": "5",
+  "status": "running"
+ }
+}
