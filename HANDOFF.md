@@ -1,7 +1,17 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
+## Chức năng 2: Mobile/Desktop Parity + Math Diagram Standard (ASS-MDP-01) — 30/10 (Codex)
+- **Pha A**: Lập inventory 19 hành vi desktop, capability matrix và kế hoạch 30 test MDP (`tasks/gate-d2-parity-pha-a.md`, commit `9b0ccbe`). Thầy đã duyệt.
+- **Pha B**:
+  - `MathFigureZoom.tsx`: Component zoom/pan/reset cho hình học & đề bài Toán theo Math Diagram Standard v1.0. Tỉ lệ scale giới hạn 1x–4x (`clampScale`). Có unit test `MathFigureZoom.test.ts` (PASS 1/1).
+  - `StudentPaperPhotoUploader.tsx`: Chụp ảnh/chọn tệp bài làm giấy cho mobile, nén client-side (tối đa 1600px, JPEG quality 0.82), upload Firebase Storage đường dẫn `homework/{uid}/*`, chèn Markdown link `![bài làm](url)` vào ô trả lời.
+  - `liveClassroom.css`: Responsive mobile: touch targets tối thiểu 44px, `font-size: 16px` cho input/textarea (ngăn iOS auto-zoom), hỗ trợ safe-area-inset cho thanh cố định, thanh công cụ zoom nổi (floating toolbar).
+  - `StudentLiveView.tsx`: Tích hợp `MathFigureZoom` bọc ảnh và khối đề bài; gắn `StudentPaperPhotoUploader` vào khu vực nhập câu trả lời.
+- **Trạng thái**: Đã staged 5 file, esbuild buildSync cú pháp PASS, hoàn tất commit và push đồng bộ sang cả 2 nhánh (`feat/nop-bai-da-cham` và `main`).
+
 ## Chuỗi chấm = nhóm Gemini + cầu dao — 30/10 (Claude)
 Đo 54 bài GHKI (`tasks/do-model-cham-20261030.md`): Vilao gemini-3.8-flash tốt nhất (lệch 0,40/10, 18₫/bài); xKiro qwen3.8-max (dự phòng cũ) quá giờ 5/6 → bỏ. Chuỗi mới (`getGradingChain`): `vilao/gemini-3.8-flash` (nhà bán chibu) → `vilao/gemini-3.8-flash-high` (nhà bán Codely, đã đăng ký vào khoá chấm `SmartPlan-lane2` 30/10, tối thiểu 20₫/lượt) → `xkiro/google/gemini-3.8-flash` (trừ gói xKiro, env `GRADING_XKIRO_MODEL` vẫn ghi đè được) → Google. Cầu dao (`orderByHealth`): nguồn hỏng gác 5 phút (bộ nhớ từng phiên máy chủ), hết gác tự thử lại đúng vị trí cũ; lớp chưa phải cuối có `maxMs` 120s. Kết quả đo model lưu Firestore `adminBenchmarkRuns` (chạy tiếp qua máy khác). Khoá `SmartPlan-lane2` dùng chung cho agent (deepseek 500k token/lượt) — chủ dự án nói nạp tiền liên tục, không tách.
+
 
 ## Đo so sánh model chấm (Quản trị) — 29/10 (Claude)
 Bảng "Đo model chấm (không ghi vào bài)" ở tab Quản trị (`ModelBenchmarkPanel`, `src/lib/admin/modelBenchmark.ts`). Máy chủ: action `adminBenchmarkModels` / `adminBenchmarkList` / `adminBenchmarkGrade` trong `grade-homework.ts` (chỉ email quản trị). Chấm lại bài đã có điểm GV bằng đúng một model (`benchmarkAdapter` + `runWithGradingChain` ép chuỗi qua AsyncLocalStorage), chạy cùng hậu kiểm thật (OMR nếu có, `reconcileAiGrade`), TRẢ kết quả, KHÔNG ghi bài nộp. Token từng lượt lấy qua `withUsageTap` (`_ai-usage.ts`), tiền = `costUsdOfCall` (model chưa có giá → ghi * và chỉ tính phần biết; bảng giá gom mọi `vilao/*` về giá flash — model Vilao khác cần thêm giá). Model dạng `vilao/<id>[@none|low|medium|high]`, `xkiro/<id>`, `gemini/<id>`.
