@@ -6964,11 +6964,11 @@
         "stage": "formation",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -6986,8 +6986,8 @@
         "stage": "guided",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -7008,11 +7008,11 @@
         "stage": "recheck",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -7030,11 +7030,11 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "support",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -7052,8 +7052,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "core",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -7082,8 +7082,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7092,7 +7092,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
             ]
           }
         }
@@ -10419,11 +10419,11 @@
         "stage": "precheck",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -10441,17 +10441,39 @@
         "stage": "guided",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
         "stage": "recheck",
         "skill": "angleCoord",
         "branch": "shared",
+        "prompt": "Cho $\\vec u=(6;0;6)$, $\\vec v=(-6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 0
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "angleCoord",
+        "branch": "support",
+        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 0.5
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "angleCoord",
+        "branch": "core",
         "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
         "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
         "evaluation": {
@@ -10462,31 +10484,9 @@
       {
         "stage": "practice",
         "skill": "angleCoord",
-        "branch": "support",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 0.5
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "angleCoord",
-        "branch": "core",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 0.5
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -10495,7 +10495,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
             ]
           }
         }
@@ -10504,8 +10504,8 @@
         "stage": "extension",
         "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -10514,7 +10514,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
             ]
           }
         }
@@ -10523,8 +10523,8 @@
         "stage": "exit",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(6;6;0)$, $\\vec v=(6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -10534,11 +10534,11 @@
         "stage": "reserve",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       }
     ]
@@ -12148,11 +12148,11 @@
         "stage": "formation",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -12170,8 +12170,8 @@
         "stage": "guided",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -12192,11 +12192,11 @@
         "stage": "recheck",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -12214,11 +12214,11 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "support",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -12236,8 +12236,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "core",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -12266,8 +12266,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -12276,7 +12276,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
             ]
           }
         }
@@ -13420,11 +13420,11 @@
         "stage": "precheck",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -13464,11 +13464,11 @@
         "stage": "guided",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -13508,8 +13508,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "support",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -13530,11 +13530,11 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "core",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -13560,8 +13560,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -13570,7 +13570,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$."
             ]
           }
         }
@@ -13609,11 +13609,11 @@
         "stage": "exit",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -14325,8 +14325,8 @@
         "stage": "precheck",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=22x$?",
+        "solution": "Đạo hàm của $11x^2+1$ bằng $22x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -14336,8 +14336,8 @@
         "stage": "formation",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
-        "solution": "Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
+        "solution": "Đạo hàm của $5x^2+2$ bằng $10x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -14347,11 +14347,11 @@
         "stage": "guided",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=24x$?",
+        "solution": "Đạo hàm của $12x^2+2$ bằng $24x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "B"
         }
       },
       {
@@ -14369,19 +14369,8 @@
         "stage": "practice",
         "skill": "primitiveDef",
         "branch": "support",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
-        "solution": "Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "primitiveDef",
-        "branch": "core",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
-        "solution": "Đạo hàm của $1x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=12x$?",
+        "solution": "Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -14390,9 +14379,20 @@
       {
         "stage": "practice",
         "skill": "primitiveDef",
+        "branch": "core",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=16x$?",
+        "solution": "Đạo hàm của $8x^2+3$ bằng $16x$; đạo hàm của hằng số bằng $0$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "C"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "primitiveDef",
         "branch": "extension",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6$\nB. $F(x)=3x^2+3$\nC. $F(x)=6x^2+3$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm của $3x^2+3$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?\nA. $F(x)=4x^2+4$\nB. $F(x)=4$\nC. $F(x)=2x^2+4$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14401,7 +14401,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm của $3x^2+3$ bằng $6x$; đạo hàm của hằng số bằng $0$."
+              "Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$."
             ]
           }
         }
@@ -14410,8 +14410,8 @@
         "stage": "extension",
         "skill": "primitiveDef",
         "branch": "extension",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6x^2+1$\nB. $F(x)=6$\nC. $F(x)=3x^2+1$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=1x^2+5$\nB. $F(x)=2x^2+5$\nC. $F(x)=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm của $1x^2+5$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14420,7 +14420,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$."
+              "Đạo hàm của $1x^2+5$ bằng $2x$; đạo hàm của hằng số bằng $0$."
             ]
           }
         }
@@ -14429,8 +14429,8 @@
         "stage": "exit",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
-        "solution": "Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=20x$?",
+        "solution": "Đạo hàm của $10x^2+5$ bằng $20x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -14441,7 +14441,7 @@
         "skill": "primitiveDef",
         "branch": "shared",
         "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "solution": "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -22593,8 +22593,8 @@
         "stage": "formation",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+4$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=14x$?",
+        "solution": "Đạo hàm của $7x^2+3$ bằng $14x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -22615,11 +22615,11 @@
         "stage": "guided",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
-        "solution": "Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
+        "solution": "Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -22637,8 +22637,8 @@
         "stage": "recheck",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
-        "solution": "Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=12x$?",
+        "solution": "Đạo hàm của $6x^2+5$ bằng $12x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -22659,11 +22659,11 @@
         "stage": "practice",
         "skill": "primitiveDef",
         "branch": "support",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=16x$?",
+        "solution": "Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -22681,11 +22681,11 @@
         "stage": "practice",
         "skill": "primitiveDef",
         "branch": "core",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
-        "solution": "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=20x$?",
+        "solution": "Đạo hàm của $10x^2+4$ bằng $20x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -22703,8 +22703,8 @@
         "stage": "practice",
         "skill": "primitiveDef",
         "branch": "extension",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=2x^2+1$\nB. $F(x)=2$\nC. $F(x)=1x^2+1$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=8x$?\nA. $F(x)=4x^2+5$\nB. $F(x)=8x^2+5$\nC. $F(x)=8$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm của $4x^2+5$ bằng $8x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -22713,7 +22713,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$."
+              "Đạo hàm của $4x^2+5$ bằng $8x$; đạo hàm của hằng số bằng $0$."
             ]
           }
         }
@@ -22741,8 +22741,8 @@
         "stage": "extension",
         "skill": "primitiveDef",
         "branch": "extension",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=1x^2+4$\nB. $F(x)=2x^2+4$\nC. $F(x)=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm của $1x^2+4$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6$\nB. $F(x)=3x^2+0$\nC. $F(x)=6x^2+0$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -22751,7 +22751,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm của $1x^2+4$ bằng $2x$; đạo hàm của hằng số bằng $0$."
+              "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$."
             ]
           }
         }
@@ -22760,8 +22760,8 @@
         "stage": "exit",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=8x$?",
-        "solution": "Đạo hàm của $4x^2+0$ bằng $8x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=24x$?",
+        "solution": "Đạo hàm của $12x^2+0$ bằng $24x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -22782,8 +22782,8 @@
         "stage": "reserve",
         "skill": "primitiveDef",
         "branch": "shared",
-        "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
-        "solution": "Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+        "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
+        "solution": "Đạo hàm của $5x^2+1$ bằng $10x$; đạo hàm của hằng số bằng $0$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -24569,11 +24569,11 @@
         "stage": "formation",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -24591,8 +24591,8 @@
         "stage": "guided",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 0.5
@@ -24613,11 +24613,11 @@
         "stage": "recheck",
         "skill": "angleCoord",
         "branch": "shared",
-        "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -24635,11 +24635,11 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "support",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -24657,11 +24657,11 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "core",
-        "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
-        "solution": "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(6;0;6)$, $\\vec v=(-6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+        "solution": "Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.5
+          "answerKey": 0
         }
       },
       {
@@ -24687,8 +24687,8 @@
         "stage": "practice",
         "skill": "angleCoord",
         "branch": "extension",
-        "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$.",
+        "prompt": "Cho $\\vec u=(6;6;0)$, $\\vec v=(6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -24697,7 +24697,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+              "Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$."
             ]
           }
         }

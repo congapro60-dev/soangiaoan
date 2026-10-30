@@ -10436,7 +10436,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10493,7 +10494,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10550,7 +10552,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10607,7 +10610,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10667,7 +10671,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10724,7 +10729,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-3",
@@ -10768,7 +10774,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-6-1",
@@ -10812,7 +10819,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10869,7 +10877,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -10926,7 +10935,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           }
         ],
         "hints": [
@@ -11276,7 +11286,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a6eba4c90507c1b4cd23abe377c093886027b44dcee0ba0d80e5ece14bbcea9c"
+        "contentHash": "38117a70ace053e3f1cb9c43561f13b66f359e06c983527f350ff177e2913845"
       },
       "citations": [
         {
@@ -11844,7 +11854,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-2-1",
@@ -11880,7 +11891,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-3-1",
@@ -11916,7 +11928,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-4-1",
@@ -11952,7 +11965,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-1",
@@ -11991,7 +12005,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-2",
@@ -12027,7 +12042,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-3",
@@ -12071,7 +12087,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-6-1",
@@ -12115,7 +12132,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-7-1",
@@ -12151,7 +12169,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-8-1",
@@ -12187,7 +12206,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           }
         ],
         "hints": [
@@ -12537,7 +12557,7 @@
             "group_score"
           ]
         },
-        "contentHash": "1ccd15195254b62682ac1af5d815e62599702ad0576707eeaa22aebc54d48ad2"
+        "contentHash": "a37813f56708394a438840a0eb36148f80f61ce0b5005439ce69b7fbdae5d931"
       },
       "citations": [
         {
@@ -13126,7 +13146,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13183,7 +13204,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13240,7 +13262,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13297,7 +13320,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13357,7 +13381,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13414,7 +13439,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-3",
@@ -13458,7 +13484,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-6-1",
@@ -13502,7 +13529,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13559,7 +13587,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -13616,7 +13645,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           }
         ],
         "hints": [
@@ -13966,7 +13996,7 @@
             "group_score"
           ]
         },
-        "contentHash": "bfbab31685ca3c8797d06fc4e0ae10d0f87241f3f21526bbcbb51071a9777aa9"
+        "contentHash": "cbddaa88bdf819bd9683f7d299aed71d6e2d6ca3e5299ad556d3bca1404b418d"
       },
       "citations": [
         {
@@ -26449,7 +26479,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-1-2",
@@ -26521,7 +26552,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-2-2",
@@ -26593,7 +26625,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-3-2",
@@ -26665,7 +26698,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-4-2",
@@ -26740,7 +26774,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-2",
@@ -26815,7 +26850,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-4",
@@ -26895,7 +26931,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-6",
@@ -26983,7 +27020,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-7-1",
@@ -27019,7 +27057,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-7-2",
@@ -27091,7 +27130,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           }
         ],
         "hints": [
@@ -27710,7 +27750,7 @@
             "group_score"
           ]
         },
-        "contentHash": "578145cfcc23a04cb47453a28bc7b62cd183f413573bb78cd3f97400613e9e77"
+        "contentHash": "3eab072a57c5926a276dc173126a642af7caf4c52f825e47f643fc707a41022d"
       },
       "citations": [
         {
@@ -28586,7 +28626,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -28700,7 +28741,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -28814,7 +28856,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -28928,7 +28971,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -29048,7 +29092,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -29162,7 +29207,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-5",
@@ -29250,7 +29296,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-6-1",
@@ -29408,7 +29455,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -30084,7 +30132,7 @@
             "group_score"
           ]
         },
-        "contentHash": "4fe1d14a199444dbbb083abae67861ac203cdf3580cf72d6d7030cdf2a16eb3f"
+        "contentHash": "30c1cf3bbf909a7de6f7621edd4c14f32c4466cbaea70734b301619b5459ae3d"
       },
       "citations": [
         {
@@ -56130,7 +56178,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -56223,7 +56272,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -56316,7 +56366,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -56409,7 +56460,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -56508,7 +56560,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -56601,7 +56654,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-5",
@@ -56689,7 +56743,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-6-1",
@@ -56826,7 +56881,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -57502,7 +57558,7 @@
             "group_score"
           ]
         },
-        "contentHash": "d4c196016d3fdc26bef9dbd4440a1681904379febb20886cdfa67894f64d5bc2"
+        "contentHash": "883996ff7ef753b3b541fe0170741f2ace7f5f0939db1691713c76b578c3e106"
       },
       "citations": [
         {
@@ -66024,7 +66080,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(1;-2;3)$, $\\vec v=(2;2;-1)$. Tính $\\vec u\\cdot\\vec v$. $1\\cdot2+(-2)\\cdot2+3\\cdot(-1)=-5$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(1;-2;3)$, $\\vec v=(2;2;-1)$. Tính $\\vec u\\cdot\\vec v$. $1\\cdot2+(-2)\\cdot2+3\\cdot(-1)=-5$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -66317,7 +66373,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66331,10 +66387,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -66389,7 +66445,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66403,7 +66459,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -66461,7 +66517,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66475,10 +66531,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -66536,7 +66592,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66553,10 +66609,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -66611,7 +66667,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66625,7 +66681,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -66691,7 +66747,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -66705,7 +66761,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -66714,7 +66770,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
                 ]
               }
             },
@@ -66947,7 +67003,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-3-1-1",
@@ -66981,7 +67037,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-4-1-1",
@@ -67015,7 +67071,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-1",
@@ -67100,7 +67156,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-2",
@@ -67117,7 +67173,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-3",
@@ -67134,7 +67190,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-4",
@@ -67151,7 +67207,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-3-1",
@@ -67185,7 +67241,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-5-1",
@@ -67219,7 +67275,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-6-1-1",
@@ -67496,7 +67552,7 @@
             "group_score"
           ]
         },
-        "contentHash": "08cea4e07ad776c605a89229c3acb6b31a4a861d953c43fc6ac09d9da00e4f06"
+        "contentHash": "469fccfff864178e1837b5faa2d5cab119ad606c85c28afad4877e15c9d4d014"
       },
       "citations": [
         {
@@ -79867,7 +79923,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-1-2",
@@ -79903,7 +79960,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -79960,7 +80018,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-2-2",
@@ -79996,7 +80055,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80053,7 +80113,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-3-2",
@@ -80089,7 +80150,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80146,7 +80208,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-4-2",
@@ -80182,7 +80245,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80242,7 +80306,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-2",
@@ -80281,7 +80346,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80338,7 +80404,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-4",
@@ -80374,7 +80441,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-5",
@@ -80418,7 +80486,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-6",
@@ -80462,7 +80531,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-6-1",
@@ -80506,7 +80576,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80563,7 +80634,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-7-2",
@@ -80599,7 +80671,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -80656,7 +80729,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           }
         ],
         "hints": [
@@ -81275,7 +81349,7 @@
             "group_score"
           ]
         },
-        "contentHash": "58b96201ef7d1cf341cb33209f383e363f4545dad6ded88ffde11b95173dfed8"
+        "contentHash": "912678eafee2cebf2f8a8c0cdffaa5a4b1f53e55c43c29b8fbfe5a4d84d1ce73"
       },
       "citations": [
         {
@@ -82086,7 +82160,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-1-2",
@@ -82179,7 +82254,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-2-2",
@@ -82272,7 +82348,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-3-2",
@@ -82365,7 +82442,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-4-2",
@@ -82461,7 +82539,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-2",
@@ -82557,7 +82636,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-4",
@@ -82637,7 +82717,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-6",
@@ -82725,7 +82806,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -82782,7 +82864,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-7-2",
@@ -82875,7 +82958,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           }
         ],
         "hints": [
@@ -83494,7 +83578,7 @@
             "group_score"
           ]
         },
-        "contentHash": "6222202800cc8ef1dad8bc3d4e886c8fb947012068d0bd1f5989fe4cff7e5c95"
+        "contentHash": "b376f49e97671b98fa28e863b16db241bff4a1d6c102c71b33c9137e340ac19d"
       },
       "citations": [
         {
@@ -99404,7 +99488,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99418,10 +99502,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -99476,7 +99560,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99490,10 +99574,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -99512,7 +99596,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(6;0;6)$, $\\vec v=(-6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99526,10 +99610,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -99548,7 +99632,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99565,7 +99649,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -99587,7 +99671,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99601,7 +99685,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -99623,7 +99707,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99637,7 +99721,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -99646,7 +99730,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
                 ]
               }
             },
@@ -99667,7 +99751,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99681,7 +99765,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -99690,7 +99774,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
                 ]
               }
             },
@@ -99711,7 +99795,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(6;6;0)$, $\\vec v=(6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99725,7 +99809,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -99747,7 +99831,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -99761,10 +99845,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -99792,7 +99876,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-2-1-1",
@@ -99826,7 +99910,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-4-1-1",
@@ -99843,7 +99927,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-1",
@@ -99860,7 +99944,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-2",
@@ -99877,7 +99961,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-3",
@@ -99894,7 +99978,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-4",
@@ -99911,7 +99995,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-1",
@@ -99928,7 +100012,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-3-1",
@@ -99945,7 +100029,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-6-1-1",
@@ -99962,7 +100046,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-7-1-1",
@@ -99979,7 +100063,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-8-1-1",
@@ -99996,7 +100080,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           }
         ],
         "evidenceRules": [
@@ -100123,7 +100207,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e8d66fc0d385280f5f059336d66e14e9cba46f3662812abf8f23caf1ed7320ef"
+        "contentHash": "fe9bc3e89728ea89a5a6457a2d0cbea4c69735d6eb641b5d3a7e3e0990495299"
       },
       "citations": [
         {
@@ -111275,7 +111359,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111332,7 +111417,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-2-1",
@@ -111368,7 +111454,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111425,7 +111512,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-3-1",
@@ -111461,7 +111549,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111518,7 +111607,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-4-1",
@@ -111554,7 +111644,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111611,7 +111702,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-1",
@@ -111650,7 +111742,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111710,7 +111803,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-3",
@@ -111746,7 +111840,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -111803,7 +111898,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-5",
@@ -111847,7 +111943,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-5-6",
@@ -111891,7 +111988,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-6-1",
@@ -111935,7 +112033,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "id": "task-7-1",
@@ -111971,7 +112070,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           },
           {
             "inputSchema": {
@@ -112028,7 +112128,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-8-1",
@@ -112064,7 +112165,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "hop-chu-nhat"
           }
         ],
         "hints": [
@@ -112683,7 +112785,7 @@
             "group_score"
           ]
         },
-        "contentHash": "9e4c288be32f28e29ebd522746fa5b57feb6a10fedb829e530203b46ed950e4a"
+        "contentHash": "07b407c71d58e2b0050f418e5e8393db932d65ce82c435df1b288db63b5ee714"
       },
       "citations": [
         {
@@ -115644,7 +115746,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(1;-2;3)$, $\\vec v=(2;2;-1)$. Tính $\\vec u\\cdot\\vec v$. $1\\cdot2+(-2)\\cdot2+3\\cdot(-1)=-5$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(1;-2;3)$, $\\vec v=(2;2;-1)$. Tính $\\vec u\\cdot\\vec v$. $1\\cdot2+(-2)\\cdot2+3\\cdot(-1)=-5$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -115937,7 +116039,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -115951,10 +116053,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -116009,7 +116111,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -116023,7 +116125,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -116081,7 +116183,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -116095,10 +116197,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -116156,7 +116258,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -116173,10 +116275,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -116231,7 +116333,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -116245,7 +116347,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -116311,7 +116413,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -116325,7 +116427,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -116334,7 +116436,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
                 ]
               }
             },
@@ -116567,7 +116669,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-3-1-1",
@@ -116601,7 +116703,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-4-1-1",
@@ -116635,7 +116737,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-1",
@@ -116720,7 +116822,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-2",
@@ -116737,7 +116839,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-3",
@@ -116754,7 +116856,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-4",
@@ -116771,7 +116873,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-3-1",
@@ -116805,7 +116907,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-5-1",
@@ -116839,7 +116941,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-6-1-1",
@@ -117116,7 +117218,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e32487aab37bd8b0345a3a4a33ad8c28704fe2c151f7a7cc26c7506b5272ed32"
+        "contentHash": "9b2d849cdf81de418070c2221b85b318d0ee45fc84b76169f2f64c8902b05140"
       },
       "citations": [
         {
@@ -127432,7 +127534,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -127446,10 +127548,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -127618,7 +127720,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;0;5)$, $\\vec v=(-5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -127632,10 +127734,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -127807,7 +127909,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(5;5;0)$, $\\vec v=(5;0;5)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -127824,7 +127926,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -127903,7 +128005,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(1;0;1)$, $\\vec v=(-1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -127917,10 +128019,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -127983,7 +128085,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(2;2;0)$, $\\vec v=(2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -127997,7 +128099,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -128006,7 +128108,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$."
                 ]
               }
             },
@@ -128128,7 +128230,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -128142,10 +128244,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -128247,7 +128349,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-2-1-1",
@@ -128315,7 +128417,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-25+25=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-4-1-1",
@@ -128434,7 +128536,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-2",
@@ -128451,7 +128553,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-3",
@@ -128468,7 +128570,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-4",
@@ -128485,7 +128587,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $25$, mỗi độ dài bằng $5\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-3-1",
@@ -128519,7 +128621,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-1+1=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-5-1",
@@ -128553,7 +128655,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $4$, mỗi độ dài bằng $2\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-6-1-1",
@@ -128604,7 +128706,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-8-1-1",
@@ -128830,7 +128932,7 @@
             "group_score"
           ]
         },
-        "contentHash": "b14af3933599f130d534dcf2f250141deb2988b4f3ba8b5dd0ed0994ca46612b"
+        "contentHash": "4e4b65752e0c2a2e2b445285836a0201df8e7071de5c62aa5a078c62f1b7ef90"
       },
       "citations": [
         {
@@ -129649,7 +129751,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-1-2",
@@ -129742,7 +129845,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-2-2",
@@ -129835,7 +129939,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-3-2",
@@ -129928,7 +130033,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-4-2",
@@ -130024,7 +130130,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-2",
@@ -130120,7 +130227,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-4",
@@ -130200,7 +130308,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-5-6",
@@ -130288,7 +130397,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "inputSchema": {
@@ -130345,7 +130455,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           },
           {
             "id": "task-7-2",
@@ -130438,7 +130549,8 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true
-            }
+            },
+            "solidKey": "tu-dien-sabc"
           }
         ],
         "hints": [
@@ -131057,7 +131169,7 @@
             "group_score"
           ]
         },
-        "contentHash": "fcb937cfcdade872cb7a5ef56fbf595d8e83a123961cc2ac4cb05d311c8bb3e8"
+        "contentHash": "b84053c5bbde8f6a1f66d38fb82824ac408c01bbbfa149bc3bbb3aa76c804259"
       },
       "citations": [
         {
@@ -136102,7 +136214,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=2x$? Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=10x$? Đạo hàm của $5x^2+2$ bằng $10x$; đạo hàm của hằng số bằng $0$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -136259,15 +136371,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=6x^2+0$"
+                  "label": "$F(x)=22x^2+1$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=6$"
+                  "label": "$F(x)=22$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=3x^2+0$"
+                  "label": "$F(x)=11x^2+1$"
                 }
               ]
             },
@@ -136278,7 +136390,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=22x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136292,7 +136404,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $11x^2+1$ bằng $22x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "C",
@@ -136316,15 +136428,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=2x^2+1$"
+                  "label": "$F(x)=10x^2+2$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=2$"
+                  "label": "$F(x)=10$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=1x^2+1$"
+                  "label": "$F(x)=5x^2+2$"
                 }
               ]
             },
@@ -136335,7 +136447,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136349,7 +136461,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $5x^2+2$ bằng $10x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "C",
@@ -136373,15 +136485,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=6x^2+2$"
+                  "label": "$F(x)=24$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=6$"
+                  "label": "$F(x)=12x^2+2$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=3x^2+2$"
+                  "label": "$F(x)=24x^2+2$"
                 }
               ]
             },
@@ -136392,7 +136504,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=24x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136406,10 +136518,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $12x^2+2$ bằng $24x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "C",
+              "answerKey": "B",
               "options": [
                 "A",
                 "B",
@@ -136487,15 +136599,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=2x^2+3$"
+                  "label": "$F(x)=12$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=2$"
+                  "label": "$F(x)=6x^2+3$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=1x^2+3$"
+                  "label": "$F(x)=12x^2+3$"
                 }
               ]
             },
@@ -136506,7 +136618,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=12x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136523,10 +136635,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "C",
+              "answerKey": "B",
               "options": [
                 "A",
                 "B",
@@ -136547,15 +136659,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=2$"
+                  "label": "$F(x)=16x^2+3$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=1x^2+2$"
+                  "label": "$F(x)=16$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=2x^2+2$"
+                  "label": "$F(x)=8x^2+3$"
                 }
               ]
             },
@@ -136566,7 +136678,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=16x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136580,10 +136692,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+3$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "B",
+              "answerKey": "C",
               "options": [
                 "A",
                 "B",
@@ -136607,7 +136719,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6$\nB. $F(x)=3x^2+3$\nC. $F(x)=6x^2+3$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?\nA. $F(x)=4x^2+4$\nB. $F(x)=4$\nC. $F(x)=2x^2+4$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136621,7 +136733,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+3$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -136630,7 +136742,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Đạo hàm của $3x^2+3$ bằng $6x$; đạo hàm của hằng số bằng $0$."
+                  "Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$."
                 ]
               }
             },
@@ -136651,7 +136763,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6x^2+1$\nB. $F(x)=6$\nC. $F(x)=3x^2+1$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=1x^2+5$\nB. $F(x)=2x^2+5$\nC. $F(x)=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136665,7 +136777,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+5$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -136674,7 +136786,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$."
+                  "Đạo hàm của $1x^2+5$ bằng $2x$; đạo hàm của hằng số bằng $0$."
                 ]
               }
             },
@@ -136692,15 +136804,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=2x^2+2$"
+                  "label": "$F(x)=10x^2+5$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=4x^2+2$"
+                  "label": "$F(x)=20x^2+5$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=4$"
+                  "label": "$F(x)=20$"
                 }
               ]
             },
@@ -136711,7 +136823,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=20x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -136725,7 +136837,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $10x^2+5$ bằng $20x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "A",
@@ -136753,11 +136865,11 @@
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=3x^2+2$"
+                  "label": "$F(x)=3x^2+0$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=6x^2+2$"
+                  "label": "$F(x)=6x^2+0$"
                 }
               ]
             },
@@ -136782,7 +136894,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "B",
@@ -136818,7 +136930,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $11x^2+1$ bằng $22x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-2-1-1",
@@ -136835,7 +136947,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $5x^2+2$ bằng $10x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-3-1-1",
@@ -136852,7 +136964,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $12x^2+2$ bằng $24x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-4-1-1",
@@ -136886,7 +136998,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-2",
@@ -136903,7 +137015,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-3",
@@ -136920,7 +137032,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-4",
@@ -136937,7 +137049,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+3$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-2-1",
@@ -136954,7 +137066,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+2$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+3$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-3-1",
@@ -136971,7 +137083,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+3$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-6-1-1",
@@ -136988,7 +137100,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+5$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-7-1-1",
@@ -137005,7 +137117,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $10x^2+5$ bằng $20x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-8-1-1",
@@ -137022,7 +137134,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+2$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           }
         ],
         "evidenceRules": [
@@ -137149,7 +137261,7 @@
             "group_score"
           ]
         },
-        "contentHash": "cfca3345fd7dcd1c5b3f24e18acb4a108bfb898bcf9900b784b8f3b169fd07d1"
+        "contentHash": "314ddd33d13b8ca3241953ad1d999f5b58a9fb31c9e72522b04f7f8a97c7ce3c"
       },
       "citations": [
         {
@@ -215281,7 +215393,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=6x$? Đạo hàm của $3x^2+4$ bằng $6x$; đạo hàm của hằng số bằng $0$.\nNguyên hàm với điều kiện: Tìm họ nguyên hàm trước, thay điều kiện $F(x_0)=y_0$ để xác định $C$, rồi mới tính giá trị được hỏi. Ví dụ trên bảng: Biết $F'(x)=6x$ và $F(0)=1$. Tính $F(1)$. $F(x)=3x^2+C$. Điều kiện cho $C=1$; $F(1)=4$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Định nghĩa nguyên hàm: $F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó. Ví dụ trên bảng: Hàm nào là một nguyên hàm của $f(x)=14x$? Đạo hàm của $7x^2+3$ bằng $14x$; đạo hàm của hằng số bằng $0$.\nNguyên hàm với điều kiện: Tìm họ nguyên hàm trước, thay điều kiện $F(x_0)=y_0$ để xác định $C$, rồi mới tính giá trị được hỏi. Ví dụ trên bảng: Biết $F'(x)=6x$ và $F(0)=1$. Tính $F(1)$. $F(x)=3x^2+C$. Điều kiện cho $C=1$; $F(1)=4$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -215556,15 +215668,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=3x^2+4$"
+                  "label": "$F(x)=7x^2+3$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=6x^2+4$"
+                  "label": "$F(x)=14x^2+3$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=6$"
+                  "label": "$F(x)=14$"
                 }
               ]
             },
@@ -215575,7 +215687,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=14x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -215589,7 +215701,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+4$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $7x^2+3$ bằng $14x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "A",
@@ -215649,15 +215761,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=1x^2+0$"
+                  "label": "$F(x)=4x^2+4$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=2x^2+0$"
+                  "label": "$F(x)=4$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=2$"
+                  "label": "$F(x)=2x^2+4$"
                 }
               ]
             },
@@ -215668,7 +215780,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -215682,10 +215794,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "A",
+              "answerKey": "C",
               "options": [
                 "A",
                 "B",
@@ -215742,15 +215854,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=4$"
+                  "label": "$F(x)=12$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=2x^2+2$"
+                  "label": "$F(x)=6x^2+5$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=4x^2+2$"
+                  "label": "$F(x)=12x^2+5$"
                 }
               ]
             },
@@ -215761,7 +215873,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=4x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=12x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -215775,7 +215887,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+5$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "B",
@@ -215835,15 +215947,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=3x^2+1$"
+                  "label": "$F(x)=16x^2+4$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=6x^2+1$"
+                  "label": "$F(x)=16$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=6$"
+                  "label": "$F(x)=8x^2+4$"
                 }
               ]
             },
@@ -215854,7 +215966,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=16x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -215871,10 +215983,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "A",
+              "answerKey": "C",
               "options": [
                 "A",
                 "B",
@@ -215934,15 +216046,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=6x^2+0$"
+                  "label": "$F(x)=10x^2+4$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=6$"
+                  "label": "$F(x)=20x^2+4$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=3x^2+0$"
+                  "label": "$F(x)=20$"
                 }
               ]
             },
@@ -215953,7 +216065,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=20x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -215967,10 +216079,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $10x^2+4$ bằng $20x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
-              "answerKey": "C",
+              "answerKey": "A",
               "options": [
                 "A",
                 "B",
@@ -216030,7 +216142,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=2x^2+1$\nB. $F(x)=2$\nC. $F(x)=1x^2+1$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=8x$?\nA. $F(x)=4x^2+5$\nB. $F(x)=8x^2+5$\nC. $F(x)=8$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -216044,7 +216156,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $4x^2+5$ bằng $8x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -216053,7 +216165,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$."
+                  "Đạo hàm của $4x^2+5$ bằng $8x$; đạo hàm của hằng số bằng $0$."
                 ]
               }
             },
@@ -216118,7 +216230,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?\nA. $F(x)=1x^2+4$\nB. $F(x)=2x^2+4$\nC. $F(x)=2$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=6x$?\nA. $F(x)=6$\nB. $F(x)=3x^2+0$\nC. $F(x)=6x^2+0$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -216132,7 +216244,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+4$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -216141,7 +216253,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Đạo hàm của $1x^2+4$ bằng $2x$; đạo hàm của hằng số bằng $0$."
+                  "Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$."
                 ]
               }
             },
@@ -216159,15 +216271,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=8$"
+                  "label": "$F(x)=24$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=4x^2+0$"
+                  "label": "$F(x)=12x^2+0$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=8x^2+0$"
+                  "label": "$F(x)=24x^2+0$"
                 }
               ]
             },
@@ -216178,7 +216290,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=8x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=24x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -216192,7 +216304,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $4x^2+0$ bằng $8x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $12x^2+0$ bằng $24x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "B",
@@ -216252,15 +216364,15 @@
               "options": [
                 {
                   "id": "A",
-                  "label": "$F(x)=2x^2+0$"
+                  "label": "$F(x)=10x^2+1$"
                 },
                 {
                   "id": "B",
-                  "label": "$F(x)=2$"
+                  "label": "$F(x)=10$"
                 },
                 {
                   "id": "C",
-                  "label": "$F(x)=1x^2+0$"
+                  "label": "$F(x)=5x^2+1$"
                 }
               ]
             },
@@ -216271,7 +216383,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+            "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
             "sourceRefs": [
               "r22-g12-u2-lo15"
             ],
@@ -216285,7 +216397,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $5x^2+1$ bằng $10x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.",
             "evaluation": {
               "checkerId": "choice_exact",
               "answerKey": "C",
@@ -216355,7 +216467,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+4$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $7x^2+3$ bằng $14x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-2-2-1",
@@ -216389,7 +216501,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+4$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-3-2-1",
@@ -216423,7 +216535,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $2x^2+2$ bằng $4x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $6x^2+5$ bằng $12x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-4-2-1",
@@ -216457,7 +216569,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-2",
@@ -216474,7 +216586,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-3",
@@ -216491,7 +216603,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-1-4",
@@ -216508,7 +216620,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+1$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $8x^2+4$ bằng $16x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-2-1",
@@ -216593,7 +216705,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $10x^2+4$ bằng $20x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-4-1",
@@ -216627,7 +216739,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+1$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $4x^2+5$ bằng $8x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-5-6-1",
@@ -216661,7 +216773,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+4$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $3x^2+0$ bằng $6x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-7-1-1",
@@ -216678,7 +216790,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $4x^2+0$ bằng $8x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $12x^2+0$ bằng $24x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           },
           {
             "id": "hint-7-2-1",
@@ -216712,7 +216824,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $1x^2+0$ bằng $2x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
+            "supportRationale": "Lời giải dành cho GV: Đạo hàm của $5x^2+1$ bằng $10x$; đạo hàm của hằng số bằng $0$. Lỗi cần quan sát: Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f."
           }
         ],
         "evidenceRules": [
@@ -216921,7 +217033,7 @@
             "group_score"
           ]
         },
-        "contentHash": "418e2af5b2479246783c66fcc0e381b09515332480f77817038b22af6b4ab9f9"
+        "contentHash": "0878e0dc0f27229d4131c46a09640529f068b3e76de0d4bdccf4af2e0db3b411"
       },
       "citations": [
         {
@@ -233996,7 +234108,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(4;-2;3)$, $\\vec v=(2;1;-1)$. Tính $\\vec u\\cdot\\vec v$. $4\\cdot2+(-2)\\cdot1+3\\cdot(-1)=3$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Tích vô hướng theo tọa độ: $\\vec u\\cdot\\vec v=u_1v_1+u_2v_2+u_3v_3$. Hai vectơ khác không vuông góc khi tích vô hướng bằng không. Ví dụ trên bảng: Cho $\\vec u=(4;-2;3)$, $\\vec v=(2;1;-1)$. Tính $\\vec u\\cdot\\vec v$. $4\\cdot2+(-2)\\cdot1+3\\cdot(-1)=3$.\nGóc và độ dài trong tọa độ: Với hai vectơ khác không: $\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$. Kiểm tra kết quả trong $[-1;1]$. Ví dụ trên bảng: Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân). Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -234289,7 +234401,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(3;0;3)$, $\\vec v=(-3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234303,10 +234415,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -234361,7 +234473,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234375,7 +234487,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 0.5
@@ -234433,7 +234545,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234447,10 +234559,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -234508,7 +234620,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(4;0;4)$, $\\vec v=(-4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234525,10 +234637,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -234583,7 +234695,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(1;1;0)$, $\\vec v=(1;0;1)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+            "prompt": "Cho $\\vec u=(6;0;6)$, $\\vec v=(-6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234597,10 +234709,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.5
+              "answerKey": 0
             },
             "metadata": {
               "sourceCitation": {
@@ -234663,7 +234775,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Cho $\\vec u=(3;3;0)$, $\\vec v=(3;0;3)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Cho $\\vec u=(6;6;0)$, $\\vec v=(6;0;6)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "r22-g12-u1-lo09"
             ],
@@ -234677,7 +234789,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -234686,7 +234798,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$."
+                  "Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$."
                 ]
               }
             },
@@ -234919,7 +235031,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-9+9=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-3-1-1",
@@ -234953,7 +235065,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-4-1-1",
@@ -234987,7 +235099,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-1-1",
@@ -235072,7 +235184,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-2",
@@ -235089,7 +235201,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-3",
@@ -235106,7 +235218,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-2-4",
@@ -235123,7 +235235,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-16+16=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-3-1",
@@ -235157,7 +235269,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $1$, mỗi độ dài bằng $1\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $-36+36=0$, nên hai vectơ vuông góc; cosin góc bằng $0$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-5-5-1",
@@ -235191,7 +235303,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $9$, mỗi độ dài bằng $3\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
+            "supportRationale": "Lời giải dành cho GV: Tích vô hướng bằng $36$, mỗi độ dài bằng $6\\sqrt2$; thương là $1/2$. Lỗi cần quan sát: Không dùng bình phương độ dài thay độ dài trong mẫu."
           },
           {
             "id": "hint-6-1-1",
@@ -235468,7 +235580,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a68c3bf8f49c79bdbbddeec3ca644baf96c4d33aea6ec77ee775dd6977fd8097"
+        "contentHash": "25fe4fe625ebc0f8e6a5276b3518c66aac6892e3e36cf93ccb6978c33922bf13"
       },
       "citations": [
         {

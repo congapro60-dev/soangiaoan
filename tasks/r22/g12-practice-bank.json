@@ -483,12 +483,12 @@
     "introducedWeek": 6,
     "sample": {
       "type": "closed",
-      "prompt": "Cho $\\vec u=(4;4;0)$, $\\vec v=(4;0;4)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+      "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 0.5
+        "answerKey": 0
       },
-      "solution": "Tích vô hướng bằng $16$, mỗi độ dài bằng $4\\sqrt2$; thương là $1/2$."
+      "solution": "Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
     }
   },
   {
@@ -690,20 +690,20 @@
     "introducedWeek": 11,
     "sample": {
       "type": "closed",
-      "prompt": "Hàm nào là một nguyên hàm của $f(x)=2x$?",
+      "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$F(x)=2x^2+3$"
+            "label": "$F(x)=10x^2+0$"
           },
           {
             "id": "B",
-            "label": "$F(x)=2$"
+            "label": "$F(x)=10$"
           },
           {
             "id": "C",
-            "label": "$F(x)=1x^2+3$"
+            "label": "$F(x)=5x^2+0$"
           }
         ]
       },
@@ -711,7 +711,7 @@
         "checkerId": "choice_exact",
         "answerKey": "C"
       },
-      "solution": "Đạo hàm của $1x^2+3$ bằng $2x$; đạo hàm của hằng số bằng $0$."
+      "solution": "Đạo hàm của $5x^2+0$ bằng $10x$; đạo hàm của hằng số bằng $0$."
     }
   },
   {

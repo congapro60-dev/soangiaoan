@@ -198,9 +198,17 @@ const skills = {
   angleCoord: skill('Góc và độ dài trong tọa độ', 'Kết hợp tích vô hướng và độ dài để tính cosin góc giữa hai vectơ.',
     T`Với hai vectơ khác không: $\cos\theta=\dfrac{\vec u\cdot\vec v}{|\vec u||\vec v|}$. Kiểm tra kết quả trong $[-1;1]$.`,
     'Không dùng bình phương độ dài thay độ dài trong mẫu.', '1-09', s=>{
-      const a=s%4+1,u=[a,a,0],v=[a,0,a];
-      return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,.5,
-        T`Tích vô hướng bằng $${a*a}$, mỗi độ dài bằng $${a}\sqrt2$; thương là $1/2$.`,dot(u,v)/(norm(u)*norm(v)));
+      const a = (s % 6) + 1;
+      const k = (Math.floor(s / 6) % 2);
+      if (k === 0) {
+        const u = [a, a, 0], v = [a, 0, a];
+        return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,.5,
+          T`Tích vô hướng bằng $${a*a}$, mỗi độ dài bằng $${a}\sqrt2$; thương là $1/2$.`,dot(u,v)/(norm(u)*norm(v)));
+      } else {
+        const u = [a, 0, a], v = [-a, 0, a];
+        return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,0,
+          T`Tích vô hướng bằng $-${a*a}+${a*a}=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.`,dot(u,v)/(norm(u)*norm(v)));
+      }
     }, ['Tính tích vô hướng.', 'Tính riêng hai độ dài.', 'Mẫu là tích hai căn bậc hai.', T`Ví dụ khác: hai vectơ cùng hướng, khác không có cosin góc bằng $1$.`]),
 };
 
@@ -288,8 +296,8 @@ Object.assign(skills, {
   primitiveDef: skill('Định nghĩa nguyên hàm', 'Kiểm tra một hàm là nguyên hàm bằng phép lấy đạo hàm; nhận biết hằng số tùy ý.',
     T`$F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó.`,
     'Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.', '2-15',s=>{
-      const a=s%4+1,b=s%5;
-      const coeff=[b,0,a];near(derivative(coeff,2),4*a);
+      const a = (s % 12) + 1, b = (Math.floor(s / 12) % 6);
+      const coeff = [b, 0, a]; near(derivative(coeff, 2), 4 * a);
       return qChoice(T`Hàm nào là một nguyên hàm của $f(x)=${2*a}x$?`,T`$F(x)=${a}x^2+${b}$`,
         [T`$F(x)=${2*a}x^2+${b}$`,T`$F(x)=${2*a}$`],T`Đạo hàm của $${a}x^2+${b}$ bằng $${2*a}x$; đạo hàm của hằng số bằng $0$.`,s);
     }, ['Đạo hàm của đáp án phải khớp hàm đã cho.', 'Đạo hàm hằng số bằng không.', 'Kiểm tra hệ số sau khi đạo hàm lũy thừa.', T`Ví dụ khác: $F(x)=x^3+7$ có đạo hàm $3x^2$.`]),
@@ -595,6 +603,19 @@ for(const period of grade.lessons){
   assert.ok(focus?.length&&focus.length<=2,`Missing explicit focus for ${period.id}`);
   let result;
   try{result=makeEntry(period,focus,eligible);}catch(error){throw new Error(`${period.id} (period ${period.period}): ${error.message}`,{cause:error});}
+  for(const task of result.entry.pkg.tasks){
+    if(!task.solidKey){
+      const p=task.prompt;
+      if(p.includes('tứ diện')){
+        task.solidKey='tu-dien-sabc';
+      }else if(p.includes('hình chóp')){
+        task.solidKey='chop-sabcd';
+      }else if(p.includes('hình hộp')||p.includes('lăng trụ')){
+        task.solidKey='hop-chu-nhat';
+      }
+    }
+  }
+  result.entry.pkg.contentHash = hashPackage(result.entry.pkg);
   lessonEntries.push(result.entry);teacherSolutions.push({sourcePeriodId:period.id,period:period.period,title:result.entry.title,solutions:result.solutions});
 }
 
