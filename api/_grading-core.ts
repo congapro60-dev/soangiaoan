@@ -966,6 +966,8 @@ const runChain = async (
       const raw = await adapter.call(prompt, images, timeoutMs === null ? options : { ...options, timeoutMs }, segment);
       markHealthy(adapter.name);
       servedStorage.getStore()?.push({ name: adapter.name, lowerQuality: adapter.lowerQuality === true });
+      // Một dòng log mỗi lượt: biết nguồn nào thật sự phục vụ (miễn phí hay trả phí) mà không cần đoán.
+      console.info(`[ai-chain] ${adapter.name} phục vụ (lớp ${index + 1}/${ordered.length})`);
       return raw;
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
