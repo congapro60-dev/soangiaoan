@@ -56,23 +56,34 @@
 | archive size | 44149944 bytes |
 
 
-### Tình trạng Tuần 12 & Kế hoạch tuần tiếp theo (30/10/2026)
+### Tình trạng phát hành các tuần theo PPCT (Cập nhật 30/10/2026)
 
-- **Tuần 12 HOÀN TẤT 100%**:
+- **Tuần 12 — HOÀN TẤT 100%**:
   - Đủ 24/24 tiết theo PPCT (8 tiết/khối cho K10, K11, K12) đã đóng gói trong catalogue HKI với nhiệm vụ, gợi ý và rubric.
   - 4 phòng game Tuần 12 chuẩn 40 phút đang hoạt động: `5JGHEK` (K10), `CU4HBF` (K11 Hình), `ZXF62D` (K11 Đại), `PR3ERY` (K12).
   - Các phòng cũ sai thời lượng (PXSZN6, BB3BAS, HD5XNY, Y98C6V) đã được duyệt dọn dẹp.
-- **Kế hoạch tiếp theo (Tuần 13 theo PPCT)**:
-  - Khối 10: Tiết 96 – 103 (Báo cáo dự án dữ liệu & phản biện, Véctơ trong mp tọa độ, Game tích lũy).
-  - Khối 11: Tiết 90 – 97 (Giới hạn dãy số vô cực, Giới hạn hàm số một bên, Phép chiếu song song, Game tích lũy).
-  - Khối 12: Tiết 90 – 97 (Luyện tập nguyên hàm, Tổng hình chữ nhật & Tích phân xác định, Game tích lũy).
-  - Trạng thái nội dung Tuần 13: Đã rà soát chuyên sâu 24/24 tiết, đạt chuẩn 40/40 phút, 100% nhiệm vụ có gợi ý và barem chấm điểm, sẵn sàng phục vụ giảng dạy.
-  - Cấu hình phòng game 40 phút Tuần 13 (chuẩn bị khi giáo viên mở lớp trên web):
+- **Tuần 13 — HOÀN TẤT & ĐÃ TEST E2E THỰC TẾ 100%**:
+  - 24/24 tiết (K10: 96–103, K11: 90–97, K12: 90–97) có cấu trúc 7 pha (40 phút).
+  - 267 nhiệm vụ (32 support, 32 core, 40 extension, 163 shared), 543 gợi ý đa tầng.
+  - Đã nghiệm thu E2E gameplay test thực tế (`tests/week13-e2e-gameplay.test.mjs`): 860 sự kiện, 342 hints, 342 submits, độ trễ ~4,24 ms/sự kiện, PASS 100%.
+  - Cấu hình phòng game 40 phút Tuần 13:
     1. **10Olinda** (Véctơ tọa độ + Báo cáo dự án, Jeopardy/Campaign, 40 phút).
     2. **11Columbus Hình** (Phép chiếu song song, Boss/Campaign, 40 phút).
     3. **11Columbus Đại** (Giới hạn hàm số & cấp số nhân lùi vô hạn, Surf/Campaign, 40 phút).
     4. **Lớp 12** (Tích phân xác định & Tổng hình chữ nhật, Boss/Campaign, 40 phút).
-  - Nguyên tắc vận hành: Xong tuần nào thì tiến hành kiểm tra nội dung và chuẩn bị phòng game cho tuần kế tiếp theo đúng PPCT.
+- **Tuần 14 — HOÀN TẤT & ĐÃ TEST E2E THỰC TẾ 100%**:
+  - Khối 10: Tiết 104 – 111 (Tích vô hướng hai vectơ, Độ dài tổng, Vuông góc tọa độ, Game tích lũy).
+  - Khối 11: Tiết 98 – 105 (Giới hạn hàm số tại vô cực, Hàm số liên tục, Ôn tập chương IV song song & lăng trụ, Game tích lũy).
+  - Khối 12: Tiết 98 – 105 (Diện tích hình phẳng dưới đồ thị không âm & đổi dấu, Diện tích giữa hai đồ thị, Cực trị đoạn, Game tích lũy).
+  - Đầy đủ 287 nhiệm vụ (35 support, 35 core, 43 extension, 174 shared), 608 gợi ý đa tầng.
+  - Đã nghiệm thu E2E gameplay test thực tế (`tests/week14-e2e-gameplay.test.mjs`): PASS 100%.
+  - Cấu hình phòng game 40 phút Tuần 14:
+    1. **10Olinda** (Tích vô hướng của hai vectơ, Jeopardy/Campaign, 40 phút).
+    2. **11Columbus Hình** (Ôn tập quan hệ song song & lăng trụ, Boss/Campaign, 40 phút).
+    3. **11Columbus Đại** (Hàm số liên tục & giới hạn tại vô cực, Surf/Campaign, 40 phút).
+    4. **Lớp 12** (Ứng dụng tích phân tính diện tích hình phẳng, Boss/Campaign, 40 phút).
+- **Kế hoạch tiếp theo (Tuần 15 theo PPCT)**:
+  - Tiếp tục rà soát và kiểm định E2E cho 24 tiết Tuần 15 theo đúng nguyên tắc vận hành: xong tuần nào tiến hành tuần sau.
 
 ## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
 
