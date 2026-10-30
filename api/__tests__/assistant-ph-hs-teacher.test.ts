@@ -111,6 +111,7 @@ describe('notifyTeacherNewSubmission — push HS vừa nộp bài', () => {
     expect(sendStyled.mock.calls[0]?.[1]).toBe(GV);
     const text = String(sendStyled.mock.calls[0]?.[2]);
     expect(text).toContain('HS s1'); // fallback tên theo studentId khi không seed tên riêng
+    expect(text).toContain('11Columbus'); // tên lớp
     expect(text).toContain('BTVN tuần 5');
     expect(text).toContain('2 ảnh');
   });

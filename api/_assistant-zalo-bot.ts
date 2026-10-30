@@ -93,12 +93,15 @@ const menuForLinkedUser = async (botId: string, userId: string): Promise<string 
  * Việc 4 — HS chọn bài rồi mở phiên nhận ảnh. Trả nội dung tin để caller sendStyled một chỗ.
  * 'chấm'/'cham' = xem danh sách bài chờ nộp; 'chấm <số>' = chọn bài đó.
  */
-const chooseAndOpen = async (botId: string, userId: string, classId: string, studentId: string, cmd: { kind: 'list' } | { kind: 'pick'; n: number }): Promise<string> => {
+const chooseAndOpen = async (
+  botId: string, userId: string, classId: string, studentId: string,
+  cmd: { kind: 'list' } | { kind: 'pick'; n: number }, role?: 'student' | 'parent',
+): Promise<string> => {
   const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
   if (cmd.kind === 'list' || !items.length) return photoListReply(items);
   const target = cmd.n >= 1 && cmd.n <= items.length ? items[cmd.n - 1] : null;
   if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items)}`;
-  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId, ...(role && role !== 'student' ? { role } : {}) }, target);
 };
 /**
  * Ảnh HS gửi — HAI Ý ĐỊNH KHÁC NHAU, phải phân biệt (lỗi thật 29/10):
@@ -217,9 +220,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
-    // Việc 4 — mục 8 của HS (nộp bài bằng ảnh): bắt trước parse menu thường.
-    if (role === 'student' && message.trim() === '8') {
-      const listReply = await listPendingReply(botId, userId, classId, studentId);
+    // Việc 4 — mục 8 của HS & PH (nộp bài bằng ảnh): bắt trước parse menu thường.
+    if ((role === 'student' || role === 'parent') && message.trim() === '8') {
+      const listReply = await listPendingReply(botId, userId, classId, studentId, role);
       await sendStyled(token, chatId, listReply);
       return '';
     }
@@ -240,22 +243,24 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     }
     // Đang CHỜ CHỌN BÀI (vừa nhắn 8): số thuần "1".."9" = chọn bài đó, KHÔNG rơi vào menu
     // mục 1–7 (lỗi thật 29/10: HS chọn bài 1 lại nhận "Tổng quan học tập").
-    if (role === 'student' && /^[1-9]$/.test(message.trim())) {
-      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()));
+    if ((role === 'student' || role === 'parent') && /^[1-9]$/.test(message.trim())) {
+      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()), role);
       if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
     }
     // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
     if (choice.kind !== 'invalid') {
-      // HS nhắn 0 (xem lại menu) hoặc hủy: xóa phiên ảnh đang mở nếu có.
+      // HS/PH nhắn 0 (xem lại menu) hoặc hủy: xóa phiên ảnh đang mở nếu có.
       if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
       if (choice.kind === 'help') {
         const helpText = [
           '💡 HƯỚNG DẪN XỬ LÝ NHANH:',
           '• Khởi động lại / xem menu: nhắn 0 hoặc menu.',
           '• Xem báo cáo trên web: nhắn web.',
+          '• Nộp bài bằng ảnh: nhắn 8 (hoặc chấm).',
+          '• Hủy phiên nộp bài dở: nhắn: đổi bài.',
           ...(role === 'student'
-            ? ['• Nộp bài bằng ảnh: nhắn 8 (hoặc chấm).', '• Xin chấm lại: nhắn: chấm lại.', '• Hủy phiên nộp bài dở: nhắn: đổi bài.']
+            ? ['• Xin chấm lại: nhắn: chấm lại.']
             : ['• Chuyển sang con khác: nhắn 9 hoặc đổi con.']),
           '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.',
           '',
@@ -286,8 +291,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       else await sendStyled(token, chatId, menuReply, false);
       return '';
     }
-    // Việc 4 — lệnh chấm của HS: chấm / chấm <số> / xong / nộp hộ (hộ bạn cùng lớp). PH không có các lệnh này (đi thẳng AI chat).
-    if (role === 'student') {
+    // Lệnh chấm bài qua ảnh (HS & PH nộp hộ): chấm / chấm <số> / xong / đổi bài / hủy.
+    // Với HS có thêm: nộp hộ (hộ bạn cùng lớp). PH nộp bài cho chính con của mình (studentId).
+    if (role === 'student' || role === 'parent') {
       const photoCmd = parsePhotoCommand(message);
       if (photoCmd) {
         if (photoCmd.kind === 'cancel') {
@@ -296,18 +302,22 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           return '';
         }
         const photoReply = photoCmd.kind === 'done' ? await finishPhotoSession(botId, userId)
-          : photoCmd.kind === 'assist' ? await assistStartReply(botId, userId, classId, studentId)
-          : photoCmd.kind === 'assistPick' ? await assistOpenReply(botId, userId, classId, studentId, photoCmd.n)
-          : photoCmd.kind === 'assistChoose' ? await assistChooseReply(botId, userId, classId, photoCmd.n)
-          : await chooseAndOpen(botId, userId, classId, studentId, photoCmd);
-        await sendStyled(token, chatId, photoReply);
-        return '';
+          : photoCmd.kind === 'assist' ? (role === 'student' ? await assistStartReply(botId, userId, classId, studentId) : null)
+          : photoCmd.kind === 'assistPick' ? (role === 'student' ? await assistOpenReply(botId, userId, classId, studentId, photoCmd.n) : null)
+          : photoCmd.kind === 'assistChoose' ? (role === 'student' ? await assistChooseReply(botId, userId, classId, photoCmd.n) : null)
+          : await chooseAndOpen(botId, userId, classId, studentId, photoCmd, role);
+        if (photoReply !== null) {
+          await sendStyled(token, chatId, photoReply);
+          return '';
+        }
       }
-      // Luồng nộp hộ chưa xong: tên bạn gõ tự do → bot tra danh sách lớp (không rơi vào AI chat).
-      const assistReply = await assistFreeTextReply(botId, userId, classId, message);
-      if (assistReply !== null) {
-        await sendStyled(token, chatId, assistReply);
-        return '';
+      if (role === 'student') {
+        // Luồng nộp hộ chưa xong: tên bạn gõ tự do → bot tra danh sách lớp (không rơi vào AI chat).
+        const assistReply = await assistFreeTextReply(botId, userId, classId, message);
+        if (assistReply !== null) {
+          await sendStyled(token, chatId, assistReply);
+          return '';
+        }
       }
     }
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);

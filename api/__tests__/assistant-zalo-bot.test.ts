@@ -441,6 +441,12 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(JSON.parse(sent()[0][1].body).text).toBe('LIST_1');
     expect(parentMenuReply).not.toHaveBeenCalled();
   });
+  it('PH nhắn 8 → cũng xem danh sách bài chờ nộp để nộp bài hộ con', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    await request(event('8', 'm-ph-8'));
+    expect(JSON.parse(sent()[0][1].body).text).toBe('LIST_1');
+    expect(parentMenuReply).not.toHaveBeenCalled();
+  });
   it('HS nhắn chấm 1 → mở phiên đúng bài số 1 với teacherId từ lớp', async () => {
     mockStudent();
     await request(event('chấm 1', 'm-9'));
@@ -505,12 +511,11 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(assistFreeTextReply).not.toHaveBeenCalled();
     expect(finishPhotoSession).not.toHaveBeenCalled();
   });
-  it('PH nhắn lệnh chấm → KHÔNG vào luồng photo', async () => {
+  it('PH nhắn lệnh chấm 1 → mở phiên photo nộp hộ con', async () => {
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
     await request(event('chấm 1', 'm-13'));
-    expect(pendingAssignmentsForStudent).not.toHaveBeenCalled();
-    expect(openPhotoSession).not.toHaveBeenCalled();
-    expect(finishPhotoSession).not.toHaveBeenCalled();
+    expect(pendingAssignmentsForStudent).toHaveBeenCalledWith('c', 's');
+    expect(openPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1', { studentId: 's', classId: 'c', teacherId: 't-1', role: 'parent' }, { id: 'a-1', title: 'Bài 1' });
   });
 });
 

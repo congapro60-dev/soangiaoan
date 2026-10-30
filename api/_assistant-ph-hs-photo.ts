@@ -44,6 +44,8 @@ export interface PhotoSessionData {
   assignmentTitle: string;
   expiresAt: number;
   photos: Array<{ url: string; name: string; mimeType: string; size: number }>;
+  /** Vai trò người gửi ảnh: 'student' (chính học sinh) hoặc 'parent' (phụ huynh nộp hộ con). */
+  role?: 'student' | 'parent';
   /** Nộp hộ: bài nộp tính cho bạn cùng lớp này; người gửi thật ghi ở `submittedBy` + `assistBy`. */
   assist?: { targetStudentId: string; targetName: string };
   /** Trạng thái luồng nộp hộ CHƯA chọn xong bạn + bài: name → (pick khi trùng tên) → list. */
@@ -270,7 +272,7 @@ export const assistOpenReply = async (botId: string, userId: string, classId: st
  * Nhắn 8 / "chấm": hiện danh sách bài và GHI CỜ `awaitingPick` để nhắn số thuần sau đó
  * được hiểu là chọn bài (không rơi vào menu mục 1–7).
  */
-export const listPendingReply = async (botId: string, userId: string, classId: string, studentId: string): Promise<string> => {
+export const listPendingReply = async (botId: string, userId: string, classId: string, studentId: string, role?: 'student' | 'parent'): Promise<string> => {
   const { items } = await pendingAssignmentsForStudent(classId, studentId);
   if (!items.length) return photoListReply(items);
   const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
@@ -283,6 +285,7 @@ export const listPendingReply = async (botId: string, userId: string, classId: s
       assignmentId: '', assignmentTitle: '',
       expiresAt: Date.now() + SESSION_MS, photos: [], awaitingPick: true,
       sessionKey: current?.sessionKey ?? randomUUID(),
+      ...(role ? { role } : {}),
     } satisfies PhotoSessionData);
   });
   return photoListReply(items);
@@ -293,10 +296,11 @@ export const listPendingReply = async (botId: string, userId: string, classId: s
  * Trả null nếu không ở trạng thái chờ chọn (caller để tin đi tiếp luồng menu/AI bình thường).
  */
 export const pickAssignmentByNumber = async (
-  botId: string, userId: string, classId: string, studentId: string, n: number,
+  botId: string, userId: string, classId: string, studentId: string, n: number, role?: 'student' | 'parent',
 ): Promise<string | null> => {
   const session = await liveSession(botId, userId);
   if (!session || session.data.awaitingPick !== true) return null;
+  const userRole = role ?? session.data.role;
   const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
   const target = n >= 1 && n <= items.length ? items[n - 1] : null;
   if (!target) {
@@ -305,14 +309,14 @@ export const pickAssignmentByNumber = async (
   }
   // Xoá cờ chờ chọn rồi mới mở phiên (openPhotoSession ghi đè doc).
   await db().collection(SESSIONS).doc(session.id).delete().catch(() => undefined);
-  return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target);
+  return openPhotoSession(botId, userId, { studentId, classId, teacherId, role: userRole }, target);
 };
 
 /** Mở phiên nhận ảnh cho 1 bài, chỉ thay phiên chưa có ảnh. Nộp hộ thì kèm target. */
 export const openPhotoSession = async (
   botId: string,
   userId: string,
-  ctx: { studentId: string; classId: string; teacherId: string },
+  ctx: { studentId: string; classId: string; teacherId: string; role?: 'student' | 'parent' },
   assignment: { id: string; title: string },
   assist?: { targetStudentId: string; targetName: string },
   expected?: PhotoSessionData,
@@ -324,6 +328,7 @@ export const openPhotoSession = async (
     assignmentId: assignment.id, assignmentTitle: assignment.title,
     expiresAt: Date.now() + SESSION_MS,
     photos: [],
+    ...(ctx.role ? { role: ctx.role } : {}),
     ...(assist ? { assist } : {}),
   };
   const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
@@ -468,8 +473,8 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     textContent: '',
     note: '',
     status: 'submitted',
-    // Nộp thường: người gửi = chính em. Nộp hộ: người gửi = bạn được nhờ (khác `studentId`).
-    submittedBy: { role: 'student', studentId: s.studentId, at: now },
+    // Nộp thường: người gửi = chính em / phụ huynh nộp hộ. Nộp hộ: người gửi = bạn được nhờ (khác `studentId`).
+    submittedBy: { role: s.role ?? 'student', studentId: s.studentId, at: now },
     ...(assistBy ? { assistBy } : {}),
     createdAt: now, updatedAt: now,
   };
@@ -534,7 +539,7 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
   return [`📤 Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,
     targetName
       ? `⏳ Máy đang chấm; điểm sẽ hiện trên tài khoản của ${targetName} (mục 2 chỉ hiện bài của chính em).\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.`
-      : '⏳ Máy đang chấm, em đợi chút rồi nhắn 2 để xem kết quả nhé.\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.',
+      : `⏳ Máy đang chấm, ${s.role === 'parent' ? 'phụ huynh' : 'em'} đợi chút rồi nhắn 2 để xem kết quả nhé.\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.`,
     '', MENU_HINT].join('\n');
 };
 

@@ -86,9 +86,20 @@ export const notifyTeacherNewSubmission = async (
       return (value.role ?? 'teacher') === 'teacher' && value.channel === 'zalo_bot' && value.channelUserId !== info.fromUserId;
     });
     if (!targets.length) return;
-    const student = await db.collection('classes').doc(info.classId).collection('students').doc(info.studentId).get();
+    const [student, classDoc] = await Promise.all([
+      db.collection('classes').doc(info.classId).collection('students').doc(info.studentId).get(),
+      db.collection('classes').doc(info.classId).get(),
+    ]);
     const name = String((student.data() as any)?.name ?? 'Học sinh');
-    const text = ['📥 HS vừa nộp bài qua bot', `👤 ${name}`, `📝 ${info.assignmentTitle}`, `📷 ${info.photoCount} ảnh`, 'Máy đang chấm — điểm sẽ hiện ở mục Điểm của HS.'].join('\n');
+    const className = String((classDoc.data() as any)?.name ?? '');
+    const text = [
+      '📥 HS vừa nộp bài qua bot',
+      `👤 ${name}`,
+      ...(className ? [`🏫 Lớp: ${className}`] : []),
+      `📝 ${info.assignmentTitle}`,
+      `📷 ${info.photoCount} ảnh`,
+      'Máy đang chấm — điểm sẽ hiện ở mục Điểm của HS.',
+    ].join('\n');
     for (const target of targets) await sendStyled(token, String(target.data().channelUserId), text);
   } catch { /* phụ: bỏ qua */ }
 };

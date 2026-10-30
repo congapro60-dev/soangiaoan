@@ -41,8 +41,10 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
   [`Xin chào! Đây là trợ lý lớp ${className} — hồ sơ của ${studentName}.`,
     MENU_REPLIES.header,
     ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
-    // Việc 4 — mục 8 chỉ dành cho HS: PH không nộp bài thay con.
-    ...(role === 'student' ? ['8. Nộp bài bằng ảnh (chọn bài → gửi ảnh → nhắn xong)'] : []),
+    // Việc 4 — mục 8: HS nộp bài, PH nộp bài hộ con.
+    role === 'student'
+      ? '8. Nộp bài bằng ảnh (chọn bài → gửi ảnh → nhắn xong)'
+      : '8. Nộp bài bằng ảnh (chụp bài làm nộp hộ con)',
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
     '0. Xem lại menu'].join('\n');
@@ -184,7 +186,9 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
     case '6':
       return [`🔗 Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
         '• Mục 1–5 và 7: xem dữ liệu học tập của học sinh này.',
-        ...(role === 'student' ? ['• Gửi ảnh bài làm để tự chấm: nhắn 8.'] : []),
+        role === 'student'
+          ? '• Gửi ảnh bài làm để tự chấm: nhắn 8.'
+          : '• Gửi ảnh bài làm nộp hộ con: nhắn 8.',
         '• Xem báo cáo hoặc nộp bài trên web: nhắn web.',
         '• Muốn đổi em khác: nhắn <mã lớp> <PIN> phụ huynh.',
         '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.'].join('\n');
@@ -203,11 +207,10 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       return [`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
     }
     case '8':
-      // Việc 4 — nộp bài bằng ảnh. HS thực tế không bao giờ tới đây (zalo-bot bắt '8' và chuyển
-      // sang luồng photo); case này cho PH nhấn nhầm mục 8 và giữ switch đầy đủ.
+      // Việc 4 — nộp bài bằng ảnh. Cả HS và PH nộp bài hộ con.
       return role === 'student'
         ? ['📸 Nộp bài bằng ảnh: nhắn chấm để xem danh sách bài cần nộp.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n')
-        : ['ℹ️ Mục này dành cho học sinh — phụ huynh theo dõi điểm qua mục 1 và 2.', '', MENU_HINT].join('\n');
+        : ['📸 Nộp bài bằng ảnh cho con: nhắn chấm để xem danh sách bài cần nộp.', '', MENU_HINT].join('\n');
   }
 };
 

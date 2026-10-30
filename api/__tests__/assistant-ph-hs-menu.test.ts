@@ -282,10 +282,10 @@ describe('link web + feedback HS (M14)', () => {
 });
 
 describe('mục 8 — nộp bài bằng ảnh (việc 4)', () => {
-  it('M15a: menu của HS có mục 8; menu của PH không', () => {
+  it('M15a: menu của HS và PH đều có mục 8', () => {
     expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'student')).toContain('8. Nộp bài bằng ảnh');
-    expect(menuText('Trần Bảo Lâm', '12LoTrinh1')).not.toContain('Nộp bài bằng ảnh');
-    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'parent')).not.toContain('Nộp bài bằng ảnh');
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1')).toContain('8. Nộp bài bằng ảnh');
+    expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'parent')).toContain('8. Nộp bài bằng ảnh');
   });
   it('M15b: HS chọn mục 8 → hướng dẫn nhắn chấm', async () => {
     const db = seed();
@@ -293,18 +293,17 @@ describe('mục 8 — nộp bài bằng ảnh (việc 4)', () => {
     expect(out).toContain('nhắn chấm');
     expect(out).toContain('Nhắn 0 để xem lại menu.');
   });
-  it('M15c: PH chọn mục 8 → từ chối đúng 1 câu, không hứa nộp thay', async () => {
+  it('M15c: PH chọn mục 8 → hướng dẫn nộp bài cho con: nhắn chấm', async () => {
     const db = seed();
-    const out = await parentMenuReply(db.db, 'c', 's1', '8');
-    expect(out).toContain('dành cho học sinh');
-    expect(out).not.toContain('nhắn chấm');
+    const out = await parentMenuReply(db.db, 'c', 's1', '8', 'parent');
+    expect(out).toContain('nhắn chấm');
     expect(out).toContain('Nhắn 0 để xem lại menu.');
   });
-  it('M15d: mục 6 bản HS nhắc thêm chức năng nộp ảnh; bản PH không', async () => {
+  it('M15d: mục 6 cả bản HS và PH đều nhắc chức năng nộp ảnh nhắn 8', async () => {
     const db = seed();
     const hs = await parentMenuReply(db.db, 'c', 's1', '6', 'student');
     expect(hs).toContain('nhắn 8');
-    const ph = await parentMenuReply(db.db, 'c', 's1', '6');
-    expect(ph).not.toContain('nhắn 8');
+    const ph = await parentMenuReply(db.db, 'c', 's1', '6', 'parent');
+    expect(ph).toContain('nhắn 8');
   });
 });
