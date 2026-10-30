@@ -34,7 +34,23 @@ const send = async (token: string, chatId: string, message: string) => {
 };
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
 const TEACHER_COMMANDS = new Set(['/classes', '/confirm', '/cancel', '/status']);
-const STRANGER_HINT = 'Để liên kết, gửi tin theo mẫu: phụ huynh <mã lớp> <mã PIN> hoặc học sinh <mã lớp> <mã PIN> (mã PIN do thầy cô cấp).';
+export const STRANGER_HINT = [
+  '👋 Chào bạn! Đây là Trợ lý học tập SmartPlan AI.',
+  '',
+  '🌟 CÁC TÍNH NĂNG CỦA BOT:',
+  '• 📊 Tra cứu điểm số & tiến độ học tập (bài tập, điểm định kì, nhận xét của GV).',
+  '• 📸 Nộp bài bằng ảnh: Chụp bài làm gửi trực tiếp qua Zalo (Học sinh hoặc Phụ huynh nộp hộ).',
+  '• 🤖 Trợ lý AI học tập: Hỏi đáp giải đề, hướng dẫn bài tập và gợi ý tự học ở nhà.',
+  '• 🔔 Thông báo tự động: Nhận tin nhắn ngay khi giáo viên chấm xong hoặc giao bài mới.',
+  '',
+  '👉 CÁCH LIÊN KẾT ĐỂ BẮT ĐẦU SỬ DỤNG:',
+  '• Phụ huynh: Nhắn tin theo mẫu "phụ huynh <mã lớp> <mã PIN>"',
+  '• Học sinh: Nhắn tin theo mẫu "học sinh <mã lớp> <mã PIN>"',
+  '• Thầy cô giáo: Nhắn "/link <mã liên kết>" (lấy trong Cài đặt trên web)',
+  '',
+  'ℹ️ Mã lớp và mã PIN do thầy cô giáo bộ môn hoặc nhà trường cung cấp.',
+  'Sau khi liên kết, bạn chỉ cần nhắn 0 để mở menu, hoặc nhắn 10 để xem hướng dẫn sử dụng.',
+].join('\n');
 type ZaloActor = Awaited<ReturnType<typeof resolveChannelActor>>;
 /**
  * Gửi đúng 1 câu hướng dẫn mỗi 5 phút với người chưa liên kết; còn lại im lặng.
@@ -254,15 +270,28 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
       if (choice.kind === 'help') {
         const helpText = [
-          '💡 HƯỚNG DẪN XỬ LÝ NHANH:',
-          '• Khởi động lại / xem menu: nhắn 0 hoặc menu.',
-          '• Xem báo cáo trên web: nhắn web.',
-          '• Nộp bài bằng ảnh: nhắn 8 (hoặc chấm).',
-          '• Hủy phiên nộp bài dở: nhắn: đổi bài.',
+          '💡 HƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG SMARTPLAN AI:',
+          '',
+          '1️⃣ Tra cứu học tập (Menu chính):',
+          '• Nhắn 0 hoặc menu: Mở lại danh mục tra cứu.',
+          '• Nhắn số 1–7: Xem bảng điểm, bài chưa nộp, nhận xét của GV.',
+          '• Nhắn web: Nhận link mở cổng thông tin chi tiết trên web.',
+          '',
+          '2️⃣ Nộp bài bằng ảnh (Học sinh & Phụ huynh nộp hộ):',
+          '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',
+          '• Nhắn số thứ tự bài (ví dụ: 1): Bắt đầu gửi ảnh bài làm.',
+          '• Nhắn xong: Hoàn tất nộp bài và chờ máy chấm.',
+          '• Nhắn đổi bài: Hủy phiên nộp bài dở dang để chọn lại.',
           ...(role === 'student'
-            ? ['• Xin chấm lại: nhắn: chấm lại.']
-            : ['• Chuyển sang con khác: nhắn 9 hoặc đổi con.']),
-          '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.',
+            ? ['', '3️⃣ Chấm lại bài (Dành cho Học sinh):', '• Nhắn: chấm lại (khi thấy kết quả chưa chính xác để máy đọc kỹ lại).']
+            : ['', '3️⃣ Chuyển đổi con (Phụ huynh có nhiều con):', '• Nhắn 9 hoặc đổi con: Chuyển đổi sang hồ sơ con khác.']),
+          '',
+          '4️⃣ Hỏi bài tập & Trợ lý AI:',
+          '• Gửi ảnh đề bài hoặc gõ câu hỏi trực tiếp: Trợ lý AI sẽ hướng dẫn giải chi tiết.',
+          '',
+          '5️⃣ Khôi phục mã PIN & Kiểm tra:',
+          '• Quên mã PIN: Nhắn /khoiphuc <mã học sinh> <số điện thoại>.',
+          '• Nhắn kiểm tra hoặc status: Xem trạng thái kết nối tài khoản.',
           '',
           MENU_HINT,
         ].join('\n');

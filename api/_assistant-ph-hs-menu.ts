@@ -47,6 +47,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
       : '8. Nộp bài bằng ảnh (chụp bài làm nộp hộ con)',
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
+    '10. Hướng dẫn sử dụng các tính năng',
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -223,7 +224,8 @@ export const parseMenuChoice = (raw: string): MenuChoice => {
   if (/^(web|website|link)$/i.test(token)) return { kind: 'link' };
   // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10) — nhận cả số 9 lệnh gõ "đổi vai"/"doi vai"/"đổi con"/"doi con".
   if (token === '9' || /^(đổi vai|doi vai|đổi con|doi con)$/i.test(token)) return { kind: 'switchRole' };
-  if (/^(trợ giúp|tro giup|help|\/help|hướng dẫn|huong dan)$/i.test(token)) return { kind: 'help' };
+  // Mục 10 "Hướng dẫn sử dụng" — nhận cả số 10 hoặc từ khóa hd/help/hướng dẫn/trợ giúp.
+  if (token === '10' || /^(trợ giúp|tro giup|help|\/help|hướng dẫn|huong dan|hd)$/i.test(token)) return { kind: 'help' };
   if (/^(kiểm tra|kiem tra|status|\/status)$/i.test(token)) return { kind: 'status' };
   if (/^[1-8]$/.test(token)) return { kind: 'section', key: token as MenuKey };
   return { kind: 'invalid' };

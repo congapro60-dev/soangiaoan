@@ -123,6 +123,9 @@ describe('menu PH/HS — Phase 2', () => {
     // Mục 9 "Đổi vai trò" (chốt 29/10) — không còn là invalid.
     expect(parseMenuChoice('9')).toEqual({ kind: 'switchRole' });
     expect(parseMenuChoice('doi vai')).toEqual({ kind: 'switchRole' });
+    // Mục 10 "Hướng dẫn sử dụng".
+    expect(parseMenuChoice('10')).toEqual({ kind: 'help' });
+    expect(parseMenuChoice('hd')).toEqual({ kind: 'help' });
     for (const bad of ['12', '1 2', 'abc', '/link']) expect(parseMenuChoice(bad)).toEqual({ kind: 'invalid' });
   });
 
