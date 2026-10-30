@@ -10,7 +10,8 @@ const h = vi.hoisted(() => ({ db: null as any, grade: vi.fn(), send: vi.fn() }))
 vi.mock('../_exam-core', () => ({ getAdminDb: () => h.db, getAdminStorage: () => ({}) }));
 vi.mock('../_grading-core', async () => ({
   ...await vi.importActual<typeof import('../_grading-core')>('../_grading-core'),
-  getGradingApiKey: vi.fn(() => 'k'),
+  // Khoá chấm bài do máy chủ giữ (chuỗi lớp dự phòng) — test chỉ cần "có lớp" để đi tiếp.
+  getGradingChain: vi.fn(() => [{ name: 'fake', tier: 're', call: async () => '{}' }]),
   chayNgam: vi.fn((p: Promise<unknown>) => { void p; return false; }),
 }));
 vi.mock('../_ai-keys', async () => ({

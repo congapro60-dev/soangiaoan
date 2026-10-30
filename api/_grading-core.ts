@@ -763,14 +763,23 @@ export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRAD
  */
 export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
   const chain: GradingAdapter[] = [];
-  const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
+  // KHOÁ CHẤM BÀI (sửa 30/10): trước đây CHỈ đọc GRADING_VILAO_API_KEY. Production không có
+  // biến đó, nên chuỗi rỗng → MỌI lượt chấm qua bot hỏng ("Máy chủ chưa cấu hình khoá chấm
+  // bài") dù khoá chat PH_CHAT_VILAO_KEY nằm ngay đó và chạy tốt. Nay: khoá chấm riêng vẫn là
+  // đường chuẩn, chưa cấu hình thì dùng TẠM khoá chat của chính dự án (cùng tài khoản Vilao).
+  const dedicatedVilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
+  const vilaoKey = dedicatedVilaoKey || process.env.PH_CHAT_VILAO_KEY?.trim();
   if (vilaoKey) {
     // Model + thinking 0 là cấu hình ĐÃ KIỂM CHỨNG chấm ảnh (A/B 10/2026: 5 bài × 2 lượt qua
     // lane chib 10/10 đạt, ~5₫/bài, trung bình 30s/lượt). Ghim trong code như GRADING_MODEL:
     // đổi model = sửa dòng này rồi deploy, đừng lật qua env để kẻo trạng thái thật lệch với git.
     const vilaoOptions: OpenAiVisionOptions = {
       baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1',
-      model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
+      // Dùng khoá chat thì PHẢI hạ model xuống đúng model khoá đó đã đăng ký (cnt/glm-5.3-flash):
+      // Vilao trả 403 "Please subscribe to model in the API Key" nếu gọi model chưa gắn vào khoá
+      // (bài học 29/10). Khi có khoá chấm riêng, code tự quay lại model chấm chuẩn gemini-3.8-flash.
+      model: process.env.GRADING_VILAO_MODEL?.trim()
+        || (dedicatedVilaoKey ? 'gemini-3.8-flash' : (process.env.PH_CHAT_MODEL?.trim() || 'cnt/glm-5.3-flash')),
       reasoningEffort: 'none',
     };
     chain.push({

@@ -16,9 +16,8 @@
  */
 import { getAdminDb } from './_exam-core.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
-import { AiKeyRequiredError, ensureGeminiKey } from './_ai-keys.js';
-import { getGradingApiKey } from './_grading-core.js';
-import { chayNgam } from './_grading-core.js';
+import { AiKeyRequiredError } from './_ai-keys.js';
+import { chayNgam, getGradingChain } from './_grading-core.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT } from './_assistant-ph-hs-menu.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
@@ -39,26 +38,6 @@ export const REGRADE_REPLIES = {
 export type RegradeOutcome =
   | { kind: 'started'; submissionId: string; title: string }
   | { kind: 'rejected'; reply: string };
-
-/**
- * Lấy key chấm bài của GV chủ lớp — đọc THẲNG `teacherAiKeys`.
- *
- * VÌ SAO KHÔNG dùng `ensureGeminiKey`: hàm đó đọc REQUEST CONTEXT của GV đang đăng nhập (để biết
- * ai trả tiền). Webhook Zalo không có context đó nên trả key rỗng, khiến mọi lượt chấm lại thất
- * bại im lặng (log 29/10: "lay key: KHONG CO KEY"). Ở đây ta biết chắc GV nào (teacherId của bài).
- */
-export const resolveTeacherGradingKey = async (
-  db: FirebaseFirestore.Firestore,
-  teacherId: string,
-): Promise<string> => {
-  try {
-    const snap = await db.collection('teacherAiKeys').doc(teacherId).get();
-    const data = snap.data() as { geminiKey?: string; enabled?: boolean } | undefined;
-    if (data?.geminiKey && data.enabled !== false) return String(data.geminiKey);
-  } catch { /* thử tiếp env */ }
-  // Dự phòng: env (nếu sau này có cấu hình).
-  try { return getGradingApiKey(); } catch { return ''; }
-};
 
 /**
  * Bắt đầu chấm lại bài GẦN NHẤT đã chấm của em.
@@ -123,28 +102,22 @@ export const requestRegrade = async (
 const regradeAndNotify = async (
   botId: string, userId: string, chatId: string, submissionId: string, title: string, classId: string,
 ): Promise<void> => {
-  console.log(`[regrade-bg] BAT DAU | submission=${submissionId.slice(0, 12)}`);
   try {
     const db = getAdminDb();
+    // Khoá chấm bài nay do MÁY CHỦ giữ (chuỗi `getGradingChain`). Không có lớp nào thì báo
+    // ngay, đừng để HS chờ tới lúc chấm xong mới biết.
+    if (getGradingChain().length === 0) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
     const subSnap = await db.collection(SUBMISSIONS).doc(submissionId).get();
     if (!subSnap.exists) { await sendStyled(botId, chatId, `Không tìm thấy bài "${title}".`); return; }
     const sub = subSnap.data() as SubmissionDoc;
-    console.log(`[regrade-bg] da doc bai | teacherId=${sub.teacherId} | assignmentId=${String(sub.assignmentId).slice(0, 12)}`);
-    // KEY CHẤM BÀI: `ensureGeminiKey()` cần REQUEST CONTEXT của GV đang đăng nhập — webhook Zalo
-    // không có, nên nó trả key rỗng ("KHONG CO KEY", log 29/10). Đọc THẲNG key của GV chủ lớp
-    // trong `teacherAiKeys` (đúng nguồn chấm bài: ai chấm người đó trả tiền).
-    const apiKey = await resolveTeacherGradingKey(db, String(sub.teacherId));
-    console.log(`[regrade-bg] key GV: ${apiKey ? 'OK (dai ' + apiKey.length + ')' : 'KHONG CO'}`);
-    if (!apiKey) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
     const aSnap = await db.collection('assignments').doc(String(sub.assignmentId)).get();
     if (!aSnap.exists) { await sendStyled(botId, chatId, `Bài "${title}" không còn tồn tại.`); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
-    console.log('[regrade-bg] goi gradeOneSubmission (thorough)...');
     const result = await gradeOneSubmission(
-      db, submissionId, ctx, apiKey, String(sub.teacherId), false,
+      db, submissionId, ctx, '', String(sub.teacherId), false,
       'thorough', undefined, REGRADE_BUDGET_MS, REGRADE_MARGIN_MS,
     );
-    console.log(`[regrade-bg] gradeOneSubmission xong | success=${result.success} | failureCode=${result.failureCode ?? '-'}`);
+    console.log(`[regrade] cham lai xong | success=${result.success} | failureCode=${result.failureCode ?? '-'}`);
     const fresh = (await db.collection(SUBMISSIONS).doc(submissionId).get()).data() as SubmissionDoc | undefined;
     if (result.success && fresh?.grade) {
       await sendStyled(botId, chatId, [
@@ -157,11 +130,10 @@ const regradeAndNotify = async (
     }
     await sendStyled(botId, chatId, [`Chưa chấm lại được bài "${title}".`, 'Thầy cô sẽ kiểm tra giúp em.', '', MENU_HINT].join('\n'));
   } catch (error) {
-    console.error('[regrade-bg] THAT BAI:', error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : error);
+    console.error('[regrade] THAT BAI:', error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : error);
     const msg = error instanceof AiKeyRequiredError
       ? REGRADE_REPLIES.noKey
       : `Chưa chấm lại được bài "${title}". Em thử lại sau hoặc nhờ thầy cô nhé.\n\n${MENU_HINT}`;
     await sendStyled(botId, chatId, msg).catch(() => undefined);
-    console.error('[regrade] lỗi:', error instanceof Error ? error.message.slice(0, 200) : error);
   }
 };

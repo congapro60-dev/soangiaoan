@@ -5,7 +5,7 @@ import {
   assistTargetReply, cancelPhotoSession, finishPhotoSession, openPhotoSession,
   parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
-import { emptyQuota, chayNgam } from '../_grading-core';
+import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
 import { gradeContextFor, gradeOneSubmission } from '../grade-homework';
 import { AiKeyRequiredError, ensureGeminiKey } from '../_ai-keys';
 
@@ -29,7 +29,8 @@ vi.mock('../_exam-core', () => ({
 vi.mock('../_grading-core', async () => ({
   ...await vi.importActual<typeof import('../_grading-core')>('../_grading-core'),
   chayNgam: vi.fn((work: Promise<unknown>) => false),
-  getGradingApiKey: vi.fn(() => 'test-grading-key'),
+  // 30/10: khoá chấm bài do MÁY CHỦ giữ (chuỗi lớp dự phòng), không lấy khoá riêng của GV nữa.
+  getGradingChain: vi.fn(() => [{ name: 'fake', tier: 're', call: async () => '{}' }]),
 }));
 vi.mock('../_ai-keys', async () => ({
   ...await vi.importActual<typeof import('../_ai-keys')>('../_ai-keys'),
@@ -77,6 +78,9 @@ beforeEach(() => {
   vi.mocked(gradeOneSubmission).mockImplementation(async () => ({ success: true }));
   vi.mocked(ensureGeminiKey).mockReset();
   vi.mocked(ensureGeminiKey).mockResolvedValue({ key: 'test-grading-key', source: 'shared' } as any);
+  // Khoá chấm do máy chủ giữ: mặc định "có lớp" để luồng đi tiếp, ca thiếu khoá tự set [].
+  vi.mocked(getGradingChain).mockReset();
+  vi.mocked(getGradingChain).mockReturnValue([{ name: 'fake', tier: 're', call: async () => '{}' } as any]);
   // Bắt TẤT CẢ promise nền (chấm + báo tin, push GV...) để test await được —
   // push HS vừa nộp (GV-1) là chayNgam thứ 2, phải await cả hai chứ không ghi đè nhau.
   const bgAll: Promise<unknown>[] = [];
@@ -268,10 +272,11 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(quota.byStudent.s1).toBe(1);
     // Chấm chạy nền qua chayNgam: đợi xong rồi mới kiểm được tham số gọi.
     await (globalThis as any).__photoBg();
-    // Chấm đi đúng lõi web: key pool, actorUid = teacherId, mode quick, ngân sách bot.
+    // Chấm đi đúng lõi web: actorUid = teacherId, mode quick, ngân sách bot. KHÔNG truyền khoá
+    // riêng của GV (khoá chấm do máy chủ giữ; khoá Gemini của GV có thể đã cạn hạn mức).
     const call = vi.mocked(gradeOneSubmission).mock.calls[0];
     expect(call[2]).toEqual({ contextTitle: 'CTX' });
-    expect(call[3]).toBe('test-grading-key');
+    expect(call[3]).toBe('');
     expect(call[4]).toBe('gv1');
     expect(call[5]).toBe(false);
     expect(call[6]).toBe('quick');
@@ -280,11 +285,11 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(lastSentText()).toContain('Chấm xong bài "BTVN tuần 5": 8/10 điểm');
     expect(lastSentText()).toContain('Nhắn 0 để xem lại menu.');
   });
-  it('AI khoá tạm dừng (AiKeyRequiredError) → bài vẫn lưu, tin báo tử tế', async () => {
+  it('chưa cấu hình khoá chấm (chuỗi rỗng) → bài vẫn lưu, tin báo tử tế', async () => {
     seedClass();
     await openSessionForA1();
     await putPhoto();
-    vi.mocked(ensureGeminiKey).mockRejectedValue(new AiKeyRequiredError('no_key', 'gv1'));
+    vi.mocked(getGradingChain).mockReturnValue([]);
     await finishPhotoSession(BOT, USER);
     await (globalThis as any).__photoBg();
     expect([...h.db.rows.keys()].some(k => k.startsWith('submissions/'))).toBe(true);

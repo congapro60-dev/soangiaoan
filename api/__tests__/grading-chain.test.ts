@@ -15,7 +15,9 @@ const failResponse = (status = 500) => ({
 });
 
 const stubEnv = (env: Record<string, string | undefined>) => {
-  for (const [k, v] of Object.entries(env)) {
+  // `PH_CHAT_VILAO_KEY` là khoá dự phòng dùng chung (chấm bài dùng tạm khoá chat khi chưa có
+  // khoá chấm riêng). Mặc định xoá để các ca cũ giữ nguyên ý nghĩa "chỉ có key nêu trong ca".
+  for (const [k, v] of Object.entries({ PH_CHAT_VILAO_KEY: '', ...env })) {
     if (v === undefined) vi.stubEnv(k, '');
     else vi.stubEnv(k, v);
   }
@@ -96,6 +98,28 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
 
     const [url] = fetchMock.mock.calls[0] as unknown as [string];
     expect(url).toBe('https://api.xkiro.com/v1/chat/completions');
+  });
+
+  // 30/10: production KHÔNG có GRADING_VILAO_API_KEY nên chuỗi rỗng → mọi lượt chấm qua bot hỏng
+  // ("Máy chủ chưa cấu hình khoá chấm bài") dù khoá chat PH_CHAT_VILAO_KEY có sẵn và chạy tốt.
+  it('chưa có khoá chấm riêng thì dùng TẠM khoá chat, hạ model về model khoá chat đã đăng ký', () => {
+    stubEnv({ GRADING_VILAO_API_KEY: '', PH_CHAT_VILAO_KEY: 'k-chat', GRADING_XKIRO_API_KEY: '', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+
+    const names = getGradingChain().map(a => a.name);
+
+    expect(names).toEqual(['vilao/cnt/glm-5.3-flash']);
+  });
+
+  it('có khoá chấm riêng thì quay lại model chấm chuẩn (không dùng model chat)', () => {
+    stubEnv({ GRADING_VILAO_API_KEY: 'k-cham', PH_CHAT_VILAO_KEY: 'k-chat', GRADING_XKIRO_API_KEY: '', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+
+    expect(getGradingChain().map(a => a.name)).toEqual(['vilao/gemini-3.8-flash']);
+  });
+
+  it('GRADING_VILAO_MODEL ghi đè được cả hai trường hợp', () => {
+    stubEnv({ GRADING_VILAO_API_KEY: '', PH_CHAT_VILAO_KEY: 'k-chat', GRADING_VILAO_MODEL: 'cong-tu/glm-5', GRADING_XKIRO_API_KEY: '', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+
+    expect(getGradingChain().map(a => a.name)).toEqual(['vilao/cong-tu/glm-5']);
   });
 });
 

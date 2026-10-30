@@ -13,11 +13,10 @@
 // EM ĐƯỢC NỘP HỘ; `submittedBy` ghi NGƯỜI GỬI THẬT; thêm `assistBy` để web hiển thị badge.
 import { randomUUID } from 'node:crypto';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
-import { chayNgam, getGradingApiKey, remainingQuota, bumpQuota, rollQuota, today } from './_grading-core.js';
+import { chayNgam, getGradingChain, remainingQuota, bumpQuota, rollQuota, today } from './_grading-core.js';
 import type { QuotaDoc } from './_grading-core.js';
-import { AiKeyRequiredError, ensureGeminiKey } from './_ai-keys.js';
+import { AiKeyRequiredError } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
-import { resolveTeacherGradingKey } from './_assistant-ph-hs-regrade.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
@@ -543,15 +542,15 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     await sendStyled(token, chatId, [`Chưa chấm được bài "${s.assignmentTitle}"${baiCua}`, loi, 'Bài vẫn được lưu để thầy cô chấm trên web.', '', MENU_HINT].join('\n'));
   };
   try {
-    // KEY CHẤM BÀI (sửa 30/10): `ensureGeminiKey()` cần REQUEST CONTEXT của GV đang đăng nhập —
-    // webhook Zalo không có nên trả key rỗng, làm MỌI lượt chấm qua bot thất bại im lặng.
-    // Đọc thẳng key của GV chủ lớp trong `teacherAiKeys` (đúng nguồn: ai chấm người đó trả tiền).
-    const apiKey = await resolveTeacherGradingKey(db(), s.teacherId);
-    if (!apiKey) { await khongChamDuoc('AI chấm của lớp đang tạm dừng, thầy cô sẽ chấm sớm.'); return; }
+    // KEY CHẤM BÀI (sửa 30/10): KHÔNG đọc key riêng của GV nữa. Webhook Zalo không có request
+    // context của GV (`ensureGeminiKey` trả rỗng), mà khoá Gemini của GV có thể đã cạn hạn mức
+    // (thực tế 30/10: keyStatus=exhausted). Chấm bài nay dùng khoá của máy chủ theo chuỗi
+    // `getGradingChain()` (GRADING_VILAO_API_KEY, hoặc PH_CHAT_VILAO_KEY dùng chung).
+    if (getGradingChain().length === 0) { await khongChamDuoc('AI chấm của lớp đang tạm dừng, thầy cô sẽ chấm sớm.'); return; }
     const aSnap = await db().collection('assignments').doc(s.assignmentId).get();
     if (!aSnap.exists) { await khongChamDuoc('Bài không còn tồn tại.'); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
-    await gradeOneSubmission(db(), submissionId, ctx, apiKey, s.teacherId, false, 'quick', undefined, GRADE_BUDGET_MS, GRADE_MARGIN_MS);
+    await gradeOneSubmission(db(), submissionId, ctx, '', s.teacherId, false, 'quick', undefined, GRADE_BUDGET_MS, GRADE_MARGIN_MS);
     const fresh = (await db().collection('submissions').doc(submissionId).get()).data() as (SubmissionDoc & { errorMessage?: string }) | undefined;
     if (fresh?.status === 'graded' && fresh.grade) {
       const approved = fresh.grade.teacherApproved === true;

@@ -26,7 +26,13 @@ describe('studentAdaptiveSubmit', () => {
     const store = baseStore(); const result = await invoke(store, submit('diagnostic', { [diagnostic.id]: diagnostic.correctAnswer }, { isCorrect: false, score: 0 }));
     expect(result.statusCode).toBe(200); expect(result.payload.scored).toBe(true); expect(result.payload.attempt.answers[0].isCorrect).toBe(true);
     expect(store['adaptiveAssignmentProgress/assignment-1_roster-a'].attempts.diagnostic.answers[0].score).toBeGreaterThan(0);
-    expect(JSON.stringify(result.payload)).not.toContain(quick.correctAnswer); expect(JSON.stringify(result.payload)).not.toContain(exit.correctAnswer);
+    // KHÔNG so khớp chuỗi thô với `correctAnswer`: đáp án có thể là chuỗi ngắn như '-3' và
+    // `submittedAt` dạng '2026-10-30T…' cũng chứa '-3' → test đỏ tuỳ ngày, không phải rò đáp án.
+    // So theo dấu hiệu chắc chắn của câu KHÔNG thuộc bài đang nộp: id, đề bài, lời giải.
+    const payloadText = JSON.stringify(result.payload);
+    for (const q of [quick, exit]) {
+      expect(payloadText).not.toContain(q.id); expect(payloadText).not.toContain(q.prompt); expect(payloadText).not.toContain(q.explanation);
+    }
   });
   it('does not rescore retries, logs exactly one retry event, and never stores raw event answers', async () => {
     const store = baseStore(); const first = await invoke(store, submit('diagnostic', { [diagnostic.id]: 'wrong answer' })); const second = await invoke(store, submit('diagnostic', { [diagnostic.id]: diagnostic.correctAnswer }));
