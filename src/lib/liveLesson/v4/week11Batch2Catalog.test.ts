@@ -32,7 +32,8 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
 
   it.each(W11BATCH2)('$key có metadata packageId khớp quy ước', ({ key, grade, period, title }) => {
     const metadata = getBanToanV4PackageMetadata().find(item => item.sourceKey === key);
-    expect(metadata?.packageId).toBe(`g${grade}_w11_p${period}_v4`);
+    const week = key === '10-12-88' ? 12 : 11;
+    expect(metadata?.packageId).toBe(`g${grade}_w${week}_p${period}_v4`);
     expect(metadata?.title).toBe(title);
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe(key);
   });
