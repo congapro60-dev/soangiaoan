@@ -574,3 +574,112 @@
   .student-ask-primary, .student-ask-secondary { min-height: 44px; }
   .student-support-modes button, .student-support-terms button, .student-slot button { min-height: 40px; }
 }
+
+/* ASS-MDP-01 — MathFigureZoom & StudentPaperPhotoUploader */
+.math-diagram-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  user-select: none;
+  touch-action: pan-y;
+}
+.math-diagram-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+.math-diagram-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.math-diagram-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.math-diagram-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.math-diagram-scale {
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  padding: 0 4px;
+  min-width: 38px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.math-diagram-viewport {
+  width: 100%;
+  transform-origin: 0 0;
+  transition: transform 0.08s ease-out;
+  padding: 8px;
+}
+.student-paper-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.student-paper-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.student-paper-photo-btn:hover:not(:disabled) {
+  background: #e0f2fe;
+}
+.student-paper-photo-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.student-paper-photo-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+}
+@media (pointer: coarse) {
+  .math-diagram-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .student-paper-photo-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
