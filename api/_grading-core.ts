@@ -823,7 +823,7 @@ export const benchmarkAdapter = (spec: string): GradingAdapter | null => {
 };
 
 /** Danh sách model hai chợ API trả về (để chọn model đo). Lỗi một chợ → mảng rỗng của chợ đó. */
-export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro', unknown[]>> => {
+export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro' | 'pshare' | 'opencode', unknown[]>> => {
   const fetchList = async (baseUrl: string, key: string | undefined): Promise<unknown[]> => {
     if (!key) return [];
     try {
@@ -832,11 +832,13 @@ export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro', u
       return Array.isArray(data.data) ? data.data.slice(0, 300) : [];
     } catch { return []; }
   };
-  const [vilao, xkiro] = await Promise.all([
+  const [vilao, xkiro, pshare, opencode] = await Promise.all([
     fetchList(process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1', process.env.GRADING_VILAO_API_KEY?.trim()),
     fetchList(process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1', process.env.GRADING_XKIRO_API_KEY?.trim()),
+    fetchList(process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', process.env.TEXT_PSHARE_API_KEY?.trim()),
+    fetchList(process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1', process.env.TEXT_OPENCODE_API_KEY?.trim()),
   ]);
-  return { vilao, xkiro };
+  return { vilao, xkiro, pshare, opencode };
 };
 
 export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
@@ -938,6 +940,22 @@ export const getTextChain = (): GradingAdapter[] => {
     });
   }
   return [...chain, ...getGradingChain()];
+};
+
+/** Gọi thử một model chữ trên OpenCode / PShareHub bằng khoá máy chủ (trang Quản trị dò model dùng được). */
+export const pingTextModel = async (provider: 'opencode' | 'pshare', model: string): Promise<{ ok: boolean; ms: number; text?: string; error?: string }> => {
+  const key = process.env[provider === 'opencode' ? 'TEXT_OPENCODE_API_KEY' : 'TEXT_PSHARE_API_KEY']?.trim();
+  if (!key) return { ok: false, ms: 0, error: 'Chưa có khoá.' };
+  const baseUrl = provider === 'opencode'
+    ? process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1'
+    : process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1';
+  const started = Date.now();
+  try {
+    const text = await callOpenAiCompatibleVision('Trả lời đúng một số: 17 nhân 19 bằng bao nhiêu?', [], key, { baseUrl, model, maxOutputTokens: 256, timeoutMs: 30_000 });
+    return { ok: true, ms: Date.now() - started, text: text.slice(0, 80) };
+  } catch (error) {
+    return { ok: false, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 200) : 'lỗi' };
+  }
 };
 
 export const callTextModel = (prompt: string, options: GeminiOptions = {}): Promise<string> =>

@@ -27,6 +27,7 @@ import {
   type QuotaDoc,
   benchmarkAdapter,
   listBenchmarkModels,
+  pingTextModel,
   runWithGradingChain,
   withServedTap,
   callTextModel,
@@ -2174,6 +2175,14 @@ const handleBenchmarkModels = async (body: Record<string, unknown>, res: VercelR
   return res.status(200).json(await listBenchmarkModels());
 };
 
+const handleTextPing = async (body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const provider = body.provider === 'opencode' ? 'opencode' : 'pshare';
+  const models = (Array.isArray(body.models) ? body.models : []).map(String).filter(m => /^[\w.:/-]{1,120}$/.test(m)).slice(0, 12);
+  const results = await Promise.all(models.map(async model => ({ model, ...await pingTextModel(provider, model) })));
+  return res.status(200).json({ provider, results });
+};
+
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 
 const handleBenchmarkList = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -2457,6 +2466,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'adminBenchmarkModels') return await handleBenchmarkModels(body, res);
+    if (action === 'adminTextPing') return await handleTextPing(body, res);
     if (action === 'adminBenchmarkList') return await handleBenchmarkList(db, body, res);
     if (action === 'adminBenchmarkGrade') return await handleBenchmarkGrade(db, body, res);
     if (action === 'adminBenchmarkRuns') return await handleBenchmarkRuns(db, body, res);
