@@ -195,6 +195,21 @@ const TIMELINE_BY_KEY: Readonly<Record<string, ReadonlyArray<readonly [string, n
     ['P29', 1920, 2160, 'S9', 'summary'],
     ['P37', 2160, 2400, 'S10', 'exitTicket'],
   ],
+  // gateD101288 — "Các số đặc trưng đo xu thế trung tâm — Tiết 2: Tứ phân vị và Mốt" (10-12-88):
+  // Phân bổ 3-2-3-8-3-1-7-3-5-3-2 phút (P0–P40).
+  gateD101288: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 300, 'S1', 'guidingQuestion'],
+    ['P05', 300, 480, 'S2', 'goals'],
+    ['P08', 480, 960, 'S3', 'knowledgeCycle'],
+    ['P16', 960, 1140, 'S4', 'aiError'],
+    ['P19', 1140, 1200, 'S5', 'grouping'],
+    ['P20', 1200, 1620, 'S6', 'differentiatedPractice'],
+    ['P27', 1620, 1800, 'S7', 'postCheck'],
+    ['P30', 1800, 2100, 'S8', 'quickCheck'],
+    ['P35', 2100, 2280, 'S9', 'summary'],
+    ['P38', 2280, 2400, 'S10', 'exitTicket'],
+  ],
 };
 
 // V7.2 keeps the lesson at 40 minutes but gives practice its own questions
