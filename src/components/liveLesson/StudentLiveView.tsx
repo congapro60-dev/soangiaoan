@@ -6,6 +6,8 @@ import { StudentAskBar } from './StudentAskBar';
 import { UnderstandingPulse } from './UnderstandingPulse';
 import { pulseCuesFor } from '../../services/liveQuestionService';
 import { StudentPublishedQuestion } from './StudentPublishedQuestion';
+import { MathFigureZoom } from './MathFigureZoom';
+import { StudentPaperPhotoUploader } from './StudentPaperPhotoUploader';
 import { isGroupDone } from '../../lib/liveLesson/v4/grouping';
 import { StudentWritingSupport } from './StudentWritingSupport';
 import { StudentGoalReflection } from './StudentGoalReflection';
@@ -732,9 +734,11 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
       <details key={publicState.cueId} className="student-tv-reference" open={step?.id === 'cp-ai-error' || step?.id === 'ai-error-w01'}>
         <summary>Đề bài và nội dung chung</summary>
-        <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p>
-        <h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2>
-        <LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" />
+        <MathFigureZoom title={tvScreen?.title ?? 'Nội dung chung'}>
+          <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p>
+          <h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2>
+          <LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" />
+        </MathFigureZoom>
       </details>
 
       <div className="student-slot" data-slot="response">
@@ -760,6 +764,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
           </div>}
           {textControl && <div className="space-y-2">
             <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" readOnly={!thinkWindow.canAnswer} aria-disabled={!thinkWindow.canAnswer} />
+            {participantUid && (
+              <StudentPaperPhotoUploader
+                participantUid={participantUid}
+                disabled={!thinkWindow.canAnswer}
+                onPhotoInserted={(imgRef) => setTextValue(textValue ? textValue + imgRef : imgRef.trim())}
+              />
+            )}
             <div className="student-draft-meta"><span role="status">{responseDraft.storageFailed ? 'Chưa lưu được nháp trên máy; hãy giữ tab mở và chép phần cần giữ vào vở.' : responseDraft.hasDraft ? responseDraft.hasUnsentChanges ? 'Nháp đã lưu trên máy · chưa gửi' : 'Nháp đã lưu trên máy' : 'Bài em viết được giữ khi thầy cô chuyển hoạt động.'}</span><span>{textValue.length}/{step.maxTextLength ?? 2000}</span></div>
             {insertionNotice && <p role="alert" className="student-insert-notice">{insertionNotice}</p>}
             <button type="button" disabled={!thinkWindow.canAnswer} onClick={() => { if (!thinkWindow.canAnswer) return; void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue); }} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50">{thinkWindow.canAnswer ? choiceControl ? 'Gửi nội dung viết' : 'Gửi câu trả lời' : `Chờ ${thinkWindow.remainingSeconds}s`}</button>
