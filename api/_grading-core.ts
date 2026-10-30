@@ -926,6 +926,9 @@ export const getTextChain = (): GradingAdapter[] => {
   const sources: { env: string; name: string; baseUrl: string; model: string }[] = [
     { env: 'TEXT_OPENCODE_API_KEY', name: 'opencode', baseUrl: process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1', model: process.env.TEXT_OPENCODE_MODEL?.trim() || 'deepseek-v4.1-flash-free' },
     { env: 'TEXT_PSHARE_API_KEY', name: 'pshare', baseUrl: process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', model: process.env.TEXT_PSHARE_MODEL?.trim() || 'deepseek-ai/DeepSeek-V4.1-Flash' },
+    // Dò 30/10/2026 bằng khoá máy chủ: PShareHub chạy DeepSeek-V4.1-Flash và glm-5.3-flash; OpenCode từ chối
+    // mọi model miễn phí khi gọi bằng khoá API (FreeUsageLimitError — cần gói OpenCode Go), lỗi trả ngay nên giữ lại.
+    { env: 'TEXT_PSHARE_API_KEY', name: 'pshare', baseUrl: process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', model: 'glm-5.3-flash' },
   ];
   for (const source of sources) {
     const key = process.env[source.env]?.trim();
