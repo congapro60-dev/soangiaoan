@@ -1,5 +1,8 @@
 # SmartPlan AI — Handoff worktree `nop-bai-da-cham` (27/10/2026)
 
+## Chuỗi chấm = nhóm Gemini + cầu dao — 30/10 (Claude)
+Đo 54 bài GHKI (`tasks/do-model-cham-20261030.md`): Vilao gemini-3.8-flash tốt nhất (lệch 0,40/10, 18₫/bài); xKiro qwen3.8-max (dự phòng cũ) quá giờ 5/6 → bỏ. Chuỗi mới (`getGradingChain`): `vilao/gemini-3.8-flash` (nhà bán chibu) → `vilao/gemini-3.8-flash-high` (nhà bán Codely, đã đăng ký vào khoá chấm `SmartPlan-lane2` 30/10, tối thiểu 20₫/lượt) → `xkiro/google/gemini-3.8-flash` (trừ gói xKiro, env `GRADING_XKIRO_MODEL` vẫn ghi đè được) → Google. Cầu dao (`orderByHealth`): nguồn hỏng gác 5 phút (bộ nhớ từng phiên máy chủ), hết gác tự thử lại đúng vị trí cũ; lớp chưa phải cuối có `maxMs` 120s. Kết quả đo model lưu Firestore `adminBenchmarkRuns` (chạy tiếp qua máy khác). Khoá `SmartPlan-lane2` dùng chung cho agent (deepseek 500k token/lượt) — chủ dự án nói nạp tiền liên tục, không tách.
+
 ## Đo so sánh model chấm (Quản trị) — 29/10 (Claude)
 Bảng "Đo model chấm (không ghi vào bài)" ở tab Quản trị (`ModelBenchmarkPanel`, `src/lib/admin/modelBenchmark.ts`). Máy chủ: action `adminBenchmarkModels` / `adminBenchmarkList` / `adminBenchmarkGrade` trong `grade-homework.ts` (chỉ email quản trị). Chấm lại bài đã có điểm GV bằng đúng một model (`benchmarkAdapter` + `runWithGradingChain` ép chuỗi qua AsyncLocalStorage), chạy cùng hậu kiểm thật (OMR nếu có, `reconcileAiGrade`), TRẢ kết quả, KHÔNG ghi bài nộp. Token từng lượt lấy qua `withUsageTap` (`_ai-usage.ts`), tiền = `costUsdOfCall` (model chưa có giá → ghi * và chỉ tính phần biết; bảng giá gom mọi `vilao/*` về giá flash — model Vilao khác cần thêm giá). Model dạng `vilao/<id>[@none|low|medium|high]`, `xkiro/<id>`, `gemini/<id>`.
 

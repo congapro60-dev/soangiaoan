@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FlaskConical, Loader2 } from 'lucide-react';
 import {
-  listBenchmarkModels, listBenchmarkSubmissions, runBenchmarkGrade, summarizeBenchmark,
+  listBenchmarkModels, listBenchmarkSubmissions, loadBenchmarkRuns, runBenchmarkGrade, summarizeBenchmark,
   type BenchmarkRun, type BenchmarkTruth,
 } from '../../../lib/admin/modelBenchmark';
 
@@ -16,17 +16,8 @@ const DEFAULT_ASSIGNMENTS = [
   'asg_70eb10a9-912c-4551-b389-d5e43107d6c0',
   'asg_ec30fd04-4486-47d0-aad8-a634c90cd0b5',
 ].join('\n');
-const DEFAULT_MODELS = ['vilao/gemini-3.8-flash@none', 'vilao/gemini-3.8-flash@low', 'xkiro/qwen/qwen3.8-max:free'].join('\n');
+const DEFAULT_MODELS = ['vilao/gemini-3.8-flash@none', 'vilao/gemini-3.8-flash-high', 'vilao/gemini-4-argon', 'xkiro/google/gemini-3.8-flash'].join('\n');
 const USD_VND = 26_190;
-
-/** Kết quả lưu ở trình duyệt này: mất mạng/đóng tab thì bấm chạy lại sẽ chạy tiếp, không làm lại lượt đã xong. */
-const SAVE_KEY = 'modelBenchmarkRuns';
-const loadSaved = (): { submissionId: string; run: BenchmarkRun }[] => {
-  try { const value = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; }
-};
-const save = (runs: { submissionId: string; run: BenchmarkRun }[]) => {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(runs)); } catch { /* đầy bộ nhớ: vẫn hiện trên màn hình */ }
-};
 
 const lines = (text: string) => text.split(/\s+/).map(s => s.trim()).filter(Boolean);
 const vnd = (usd: number | null) => (usd === null ? '—' : `${Math.round(usd * USD_VND).toLocaleString('vi-VN')}₫`);
@@ -44,7 +35,7 @@ export const ModelBenchmarkPanel = () => {
   const [onlyApproved, setOnlyApproved] = useState(true);
   const [parallel, setParallel] = useState(4);
   const [truth, setTruth] = useState<BenchmarkTruth[]>([]);
-  const [runs, setRuns] = useState<{ submissionId: string; run: BenchmarkRun }[]>(loadSaved);
+  const [runs, setRuns] = useState<{ submissionId: string; run: BenchmarkRun }[]>([]);
   const [catalog, setCatalog] = useState('');
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -66,7 +57,8 @@ export const ModelBenchmarkPanel = () => {
       const picked = limit === null ? items : items.slice(0, limit);
       const allJobs = picked.flatMap(item => lines(models).map(model => ({ item, model })));
       // Chạy tiếp: lượt đã chấm được (ok) giữ lại, không tốn tiền chạy lần hai; lượt lỗi chạy lại.
-      const done = loadSaved().filter(r => r.run.ok);
+      // Kết quả lưu trên máy chủ: đóng tab / đổi máy vẫn chạy tiếp, không chấm lại lượt đã xong.
+      const done = (await loadBenchmarkRuns()).runs.filter(r => r.run?.ok);
       const finished = new Set(done.map(r => `${r.submissionId}|${r.run.model}`));
       const queue = allJobs.filter(job => !finished.has(`${job.item.id}|${job.model}`));
       setRuns([...done]);
@@ -82,7 +74,6 @@ export const ModelBenchmarkPanel = () => {
           }
           done.push({ submissionId: job.item.id, run: result });
           setRuns([...done]);
-          save(done);
         }
       };
       await Promise.all(Array.from({ length: parallel }, () => worker()));
@@ -118,7 +109,7 @@ export const ModelBenchmarkPanel = () => {
         <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => void run(3)}>Chạy thử 3 bài</button>
         <button type="button" className={btn} disabled={Boolean(busy)} onClick={() => void run(null)}>Chạy tất cả</button>
         {runs.length > 0 && <button type="button" className={btnGhost} onClick={copy}>Chép kết quả (JSON)</button>}
-        {runs.length > 0 && <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => { save([]); setRuns([]); }}>Xoá kết quả cũ</button>}
+        {runs.length > 0 && <button type="button" className={btnGhost} disabled={Boolean(busy)} onClick={() => void loadBenchmarkRuns(true).then(() => setRuns([]))}>Xoá kết quả cũ</button>}
         {busy && <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />{busy}</span>}
       </div>
       {catalog && <p className="mt-2 max-h-28 overflow-auto break-all rounded-xl bg-slate-50 p-2 font-mono text-[11px] text-slate-600">{catalog}</p>}

@@ -38,7 +38,7 @@ const fakeDb = () => {
 
 vi.mock('../_exam-core.js', () => ({ getAdminDb: () => fakeDb() }));
 
-import { callGradingVision, callUtilityVision } from '../_grading-core.js';
+import { callGradingVision, callUtilityVision, resetGradingHealth } from '../_grading-core.js';
 import { createAiUsageContext, runWithAiUsage } from '../_ai-usage.js';
 import { AiKeyRequiredError } from '../_ai-keys.js';
 
@@ -57,6 +57,7 @@ const vilaoOk = (text = '{"score":8}', usage: unknown = { prompt_tokens: 1_000_0
 const usageRows = () => Object.entries(h.store).filter(([p]) => p.startsWith('aiUsage/')).map(([, d]) => d);
 
 beforeEach(() => {
+  resetGradingHealth();
   h.store = {};
   vi.stubEnv('GRADING_VILAO_API_KEY', 'k-vilao');
   vi.stubEnv('GRADING_XKIRO_API_KEY', '');
@@ -106,7 +107,10 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
     vi.stubEnv('GRADING_GEMINI_API_KEY', '');
     vi.stubEnv('GRADING_XKIRO_API_KEY', 'k-xkiro');
+    vi.stubEnv('GRADING_XKIRO_MODEL', 'qwen/qwen3.8-max:free');
+    // Cả hai lớp Vilao (nhà bán chính + nhà bán khác) hỏng → xKiro phục vụ.
     const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
       .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
       .mockImplementationOnce(vilaoOk('ok-xkiro', { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }));
     vi.stubGlobal('fetch', fetchMock);
@@ -128,7 +132,8 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     })));
 
     await expect(asBilledTeacher(() => callGradingVision('chấm', [], {}))).rejects.toMatchObject({ kind: 'max_tokens' });
-    expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 9_600, heldVnd: 0 });
+    // Hai lớp Vilao cùng bị cắt → mỗi lượt đều ghi và trừ tiền (400₫ × 2).
+    expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 9_200, heldVnd: 0 });
     expect(usageRows()[0]).toMatchObject({ finishReason: 'length' });
   });
 

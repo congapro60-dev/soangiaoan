@@ -2234,14 +2234,30 @@ const handleBenchmarkGrade = async (db: FirebaseFirestore.Firestore, body: Recor
       model: call.model, inputTokens: call.counts.inputTokens, outputTokens: call.counts.outputTokens,
       thoughtsTokens: call.counts.thoughtsTokens, costUsd: costUsdOfCall(call.model, day, call.counts),
     }));
-    return res.status(200).json({
+    const run = {
       ok: true, model: spec, ms: Date.now() - started, score: grade.score, maxScore: grade.maxScore,
       rows: (grade.questionResults || []).map(q => ({ q: q.questionNumber, score: q.score, maxScore: q.maxScore, status: q.status, review: q.needsTeacherReview === true || q.status === 'unreadable' })),
       usage,
-    });
+    };
+    // Lưu lại để đóng tab / đổi máy vẫn chạy tiếp được, không tốn tiền chấm lại lượt đã xong.
+    await db.collection('adminBenchmarkRuns').doc(benchmarkRunId(submissionId, spec)).set({ submissionId, run, at: new Date().toISOString() });
+    return res.status(200).json(run);
   } catch (error) {
     return res.status(200).json({ ok: false, model: spec, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 300) : 'lỗi không rõ' });
   }
+};
+
+const benchmarkRunId = (submissionId: string, spec: string) => `${submissionId}__${spec.replace(/[^\w.@:-]/g, '_')}`.slice(0, 600);
+
+const handleBenchmarkRuns = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  if (body.clear === true) {
+    const all = await db.collection('adminBenchmarkRuns').listDocuments();
+    for (let i = 0; i < all.length; i += 400) { const batch = db.batch(); all.slice(i, i + 400).forEach(ref => batch.delete(ref)); await batch.commit(); }
+    return res.status(200).json({ runs: [] });
+  }
+  const snap = await db.collection('adminBenchmarkRuns').limit(3000).get();
+  return res.status(200).json({ runs: snap.docs.map(doc => ({ submissionId: doc.get('submissionId'), run: doc.get('run') })) });
 };
 
 const AUTO_ACTOR = 'system:auto-60';
@@ -2432,6 +2448,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'adminBenchmarkModels') return await handleBenchmarkModels(body, res);
     if (action === 'adminBenchmarkList') return await handleBenchmarkList(db, body, res);
     if (action === 'adminBenchmarkGrade') return await handleBenchmarkGrade(db, body, res);
+    if (action === 'adminBenchmarkRuns') return await handleBenchmarkRuns(db, body, res);
     if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);
     if (await handleClarifyAction(db, body, res, {
       regradeQuestion: (submission, question) => regradeClarifiedQuestion(db, submission, question),

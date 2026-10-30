@@ -734,6 +734,8 @@ export interface GradingAdapter {
   name: string;
   /** Vai trong chuỗi chi phí: 're' (rẻ) | 'phi' (trả phí cao hơn). */
   tier: 're' | 'phi';
+  /** Trần thời gian một lượt khi lớp này CHƯA phải lớp cuối (để còn giờ cho lớp sau). */
+  maxMs?: number;
   call: (prompt: string, images: InlineImage[], options: GeminiOptions, segment?: GeminiPromptSegment) => Promise<string>;
 }
 
@@ -752,8 +754,9 @@ export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRAD
 
 /**
  * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
- * Thứ tự: Vilao (env GRADING_VILAO_API_KEY) → xKiro (env GRADING_XKIRO_API_KEY,
- * model :free nên không tốn tiền) → Gemini (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY).
+ * Thứ tự: Vilao Gemini Flash (nhà bán chính) → Vilao Gemini Flash nhà bán khác → xKiro Gemini Flash
+ * (gói xKiro) → Gemini Google (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY). Cùng một dòng model đọc ảnh;
+ * nguồn hỏng bị cầu dao gác 5 phút rồi tự thử lại (xem `orderByHealth`).
  * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
  * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
  * dưới đây — không có cờ/env thừa.
@@ -762,6 +765,23 @@ export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRAD
  * cho việc phụ như đọc mã đề) thay vì model chấm chính: hai đường dùng cùng thứ tự
  * nhà cung cấp nhưng khác mức giá, đúng đặc tính "việc phụ thì model rẻ trước".
  */
+/**
+ * Sức khoẻ từng nguồn (cầu dao): nguồn vừa hỏng bị GÁC `COOLDOWN_MS`, các lượt sau dùng nguồn kế
+ * ngay mà không phí giờ chờ nó; hết thời gian gác thì nguồn đó (thường là nguồn miễn phí) được thử lại
+ * ở đúng vị trí ưu tiên cũ — chạy được là tự quay về dùng miễn phí. Lưu trong bộ nhớ của từng phiên
+ * máy chủ (khởi động lại thì quên — an toàn: chỉ thử lại sớm hơn).
+ */
+const COOLDOWN_MS = 5 * 60_000;
+const downUntil = new Map<string, number>();
+const markDown = (name: string) => downUntil.set(name, Date.now() + COOLDOWN_MS);
+const markHealthy = (name: string) => downUntil.delete(name);
+/** Nguồn khoẻ giữ thứ tự ưu tiên; nguồn đang bị gác dồn xuống cuối (vẫn thử khi mọi nguồn khác hỏng). */
+export const orderByHealth = (chain: GradingAdapter[], now = Date.now()): GradingAdapter[] => {
+  const healthy = chain.filter(a => (downUntil.get(a.name) ?? 0) <= now);
+  return [...healthy, ...chain.filter(a => !healthy.includes(a))];
+};
+export const resetGradingHealth = () => downUntil.clear();
+
 /** Ép chuỗi chấm = đúng một model trong một khối việc (đo so sánh model). Ngoài khối này không ảnh hưởng gì. */
 const forcedChain = new AsyncLocalStorage<GradingAdapter[]>();
 export const runWithGradingChain = <T>(chain: GradingAdapter[], fn: () => Promise<T>): Promise<T> => forcedChain.run(chain, fn);
@@ -826,14 +846,25 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
     chain.push({
       name: `vilao/${vilaoOptions.model}`,
       tier: 're',
+      maxMs: 120_000,
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment, { provider: 'vilao', model: `vilao/${vilaoOptions.model}` }),
+    });
+    // Cùng Gemini Flash nhưng NHÀ BÁN KHÁC trên chợ Vilao (Codely) — cứu khi nhà bán chính nghẽn.
+    // Đã đăng ký vào khoá chấm 30/10/2026; tối thiểu 20₫/lượt.
+    const backup: OpenAiVisionOptions = { baseUrl: vilaoOptions.baseUrl, model: 'gemini-3.8-flash-high' };
+    chain.push({
+      name: `vilao/${backup.model}`,
+      tier: 're',
+      maxMs: 120_000,
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...backup, ...options }, segment, { provider: 'vilao', model: `vilao/${backup.model}` }),
     });
   }
   const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
   if (xkiroKey) {
     const xkiroOptions: OpenAiVisionOptions = {
       baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1',
-      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'qwen/qwen3.8-max:free',
+      // 30/10/2026: bỏ qwen3.8-max:free — đo trên 54 bài GHKI quá giờ 5/6 lượt. Dùng Gemini Flash (trừ gói xKiro).
+      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'google/gemini-3.8-flash',
     };
     chain.push({
       name: `xkiro/${xkiroOptions.model}`,
@@ -872,16 +903,23 @@ export const callGradingVision = async (
   }
   let lastError: unknown;
   const deadline = options.timeoutMs === undefined ? null : Date.now() + options.timeoutMs;
-  for (const adapter of chain) {
+  const ordered = orderByHealth(chain);
+  for (const [index, adapter] of ordered.entries()) {
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw new Error('AI xử lý quá lâu nên máy chủ đã dừng lượt gọi. Vui lòng thử lại.');
+    // Lớp chưa phải cuối chỉ được tiêu tối đa `maxMs`: nguồn miễn phí treo không được ăn hết giờ của lớp trả phí phía sau.
+    const cap = index < ordered.length - 1 && adapter.maxMs ? adapter.maxMs : null;
+    const timeoutMs = cap === null ? remainingMs : remainingMs === null ? cap : Math.min(cap, remainingMs);
     try {
-      return await adapter.call(prompt, images, remainingMs === null ? options : { ...options, timeoutMs: remainingMs }, segment);
+      const raw = await adapter.call(prompt, images, timeoutMs === null ? options : { ...options, timeoutMs }, segment);
+      markHealthy(adapter.name);
+      return raw;
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
       if (error instanceof AiKeyRequiredError) throw error;
       lastError = error;
-      console.warn(`[grading-chain] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+      markDown(adapter.name);
+      console.warn(`[grading-chain] ${adapter.name} hỏng, gác ${COOLDOWN_MS / 60_000} phút, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
     }
   }
   throw lastError;

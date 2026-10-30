@@ -43,6 +43,7 @@ const call = async <T>(payload: Record<string, unknown>): Promise<T> => {
 
 export const listBenchmarkModels = () => call<{ vilao: { id?: string }[]; xkiro: { id?: string }[] }>({ action: 'adminBenchmarkModels' });
 export const listBenchmarkSubmissions = (assignmentIds: string[]) => call<{ items: BenchmarkTruth[] }>({ action: 'adminBenchmarkList', assignmentIds });
+export const loadBenchmarkRuns = (clear = false) => call<{ runs: { submissionId: string; run: BenchmarkRun }[] }>({ action: 'adminBenchmarkRuns', clear });
 export const runBenchmarkGrade = (submissionId: string, model: string, mode: 'quick' | 'thorough') =>
   call<BenchmarkRun>({ action: 'adminBenchmarkGrade', submissionId, model, mode });
 
