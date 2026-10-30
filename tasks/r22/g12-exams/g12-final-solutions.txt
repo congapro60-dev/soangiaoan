@@ -8,9 +8,9 @@ Câu 2 (0.5 điểm): Hiệu $f(x)-(x+4)=1/(x-4)\to0$ khi $x\to\pm\infty$.
 
 Câu 3 (0.5 điểm): Nhân từng tọa độ của $\vec u$ với $2$ rồi trừ tọa độ tương ứng của $\vec v$: $(4;-5;7)$.
 
-Câu 4 (0.5 điểm): Điểm giữa là $12,16,20$, $\bar x=16$. Tổng bình phương lệch có trọng số bằng $128$; chia $16$ được $s^2=8$; lấy căn được $s=2\sqrt2$.
+Câu 4 (0.5 điểm): Điểm giữa là $13,19,25$, $\bar x=19$. Tổng bình phương lệch có trọng số bằng $288$; chia $16$ được $s^2=18$; lấy căn được $s=3\sqrt2$.
 
-Câu 5 (0.5 điểm): Tăng số mũ lên $5$ rồi chia hệ số $15$ cho $5$ được $3$.
+Câu 5 (0.5 điểm): Tăng số mũ lên $3$ rồi chia hệ số $6$ cho $3$ được $2$.
 
 Câu 6 (0.5 điểm): Đạo hàm của $4\sin x$ là $4\cos x$; đạo hàm của $-2\cos x$ là $2\sin x$.
 
@@ -18,12 +18,12 @@ Câu 7 (0.75 điểm): $n=20$; vị trí $5,15$. $Q_1=98+\frac{5-4}{8}\cdot8=99$
 
 Câu 8 (0.75 điểm): Nguyên hàm là $2x^2+1x$; thay cận được $2\cdot3^2+1\cdot3=21$.
 
-Câu 9 (0.75 điểm): Đổi dấu tại $x=1$. $S=\int_0^{1}(1-x)\,dx+\int_{1}^{2}(x-1)\,dx=\frac{1+1}2=1$.
+Câu 9 (0.75 điểm): Đổi dấu tại $x=4$. $S=\int_0^{4}(4-x)\,dx+\int_{4}^{6}(x-4)\,dx=\frac{16+4}2=10$.
 
 Câu 10 (0.75 điểm): $V=\pi\int_0^{2}(2x)^2\,dx=\pi\,\frac{32}3$. Vì vậy $V/\pi=\frac{32}3$.
 
 Câu 11 (2 điểm): Miền loại $3$; tiệm cận $x=3$ và $y=x+3$. Nghiệm đạo hàm $2,4$; dấu $+,-\mid-,+$. Cực đại nhánh trái $(2;4)$, cực tiểu nhánh phải $(4;8)$. Hai nhánh tiến sát đường xiên ở vô cực.
 Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.
 
-Câu 12 (2 điểm): Giao điểm có hoành độ $0,2$. Trên đoạn đó, $2x\ge x^2$. $S=\int_0^{2}(2x-x^2)\,dx=\frac{8}6$.
+Câu 12 (2 điểm): Giao điểm có hoành độ $0$ và $5/2$. Hoặc $2x^2=5x\Rightarrow x=0,x=5/2$. Tích phân cho $S=\frac{125}{24}$.
 Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.

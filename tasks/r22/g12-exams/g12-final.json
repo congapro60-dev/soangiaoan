@@ -82,20 +82,20 @@
       "label": "Câu 4",
       "type": "mc",
       "points": 0.5,
-      "text": "Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
+      "text": "Các nhóm $[10;16),[16;22),[22;28)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$s^2=16,\\ s=4$",
-        "B": "$s^2=2\\sqrt2,\\ s=8$",
-        "C": "$s^2=8,\\ s=2\\sqrt2$"
+        "A": "$s^2=36,\\ s=6$",
+        "B": "$s^2=3\\sqrt2,\\ s=18$",
+        "C": "$s^2=18,\\ s=3\\sqrt2$"
       },
       "noShuffle": false,
       "key": "C",
-      "solution": "Điểm giữa là $12,16,20$, $\\bar x=16$. Tổng bình phương lệch có trọng số bằng $128$; chia $16$ được $s^2=8$; lấy căn được $s=2\\sqrt2$."
+      "solution": "Điểm giữa là $13,19,25$, $\\bar x=19$. Tổng bình phương lệch có trọng số bằng $288$; chia $16$ được $s^2=18$; lấy căn được $s=3\\sqrt2$."
     },
     {
       "id": "q5",
@@ -103,20 +103,20 @@
       "label": "Câu 5",
       "type": "mc",
       "points": 0.5,
-      "text": "Tìm $\\int 15x^{4}\\,dx$.",
+      "text": "Tìm $\\int 6x^{2}\\,dx$.",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$60x^{3}+C$",
-        "B": "$3x^{5}+C$",
-        "C": "$15x^{5}+C$"
+        "A": "$12x^{1}+C$",
+        "B": "$2x^{3}+C$",
+        "C": "$6x^{3}+C$"
       },
       "noShuffle": false,
       "key": "B",
-      "solution": "Tăng số mũ lên $5$ rồi chia hệ số $15$ cho $5$ được $3$."
+      "solution": "Tăng số mũ lên $3$ rồi chia hệ số $6$ cho $3$ được $2$."
     },
     {
       "id": "q6",
@@ -177,15 +177,15 @@
       "label": "Câu 9",
       "type": "short",
       "points": 0.75,
-      "text": "Tính diện tích giữa đồ thị $y=x-1$ và trục hoành trên $[0;2]$.",
+      "text": "Tính diện tích giữa đồ thị $y=x-4$ và trục hoành trên $[0;6]$.",
       "noShuffle": false,
       "key": {
         "accept": [
-          "1",
-          "1"
+          "10",
+          "10"
         ]
       },
-      "solution": "Đổi dấu tại $x=1$. $S=\\int_0^{1}(1-x)\\,dx+\\int_{1}^{2}(x-1)\\,dx=\\frac{1+1}2=1$."
+      "solution": "Đổi dấu tại $x=4$. $S=\\int_0^{4}(4-x)\\,dx+\\int_{4}^{6}(x-4)\\,dx=\\frac{16+4}2=10$."
     },
     {
       "id": "q10",
@@ -221,10 +221,10 @@
       "label": "Câu 12",
       "type": "essay",
       "points": 2,
-      "text": "Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=2x$. Nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "text": "Tính diện tích hình phẳng giới hạn bởi hai parabol $y=x^2$ và $y=5x-x^2$. Nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
       "noShuffle": false,
       "key": null,
-      "solution": "Giao điểm có hoành độ $0,2$. Trên đoạn đó, $2x\\ge x^2$. $S=\\int_0^{2}(2x-x^2)\\,dx=\\frac{8}6$.",
+      "solution": "Giao điểm có hoành độ $0$ và $5/2$. Hoặc $2x^2=5x\\Rightarrow x=0,x=5/2$. Tích phân cho $S=\\frac{125}{24}$.",
       "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
     }
   ]

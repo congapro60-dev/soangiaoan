@@ -4,7 +4,19 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - V40 DA PHAT HANH: nen anh + tong ket tiet (29/10/2026)
+## Latest checkpoint - Rà soát & Khắc phục triệt để Tuần 12, 13, 14 (30/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Trạng thái: HOÀN TẤT & ĐÃ KIỂM CHỨNG TOÀN DIỆN
+- **Khối 11**: Tự động gán và định danh đầy đủ `solidKey` (`tu-dien-sabc`, `chop-sabcd`, `hop-chu-nhat`) cho 100% bài học hình học không gian (1.659 tasks audit đạt 0 missing solidKeys trên toàn học kỳ, đặc biệt sạch 100% Tuần 12, 13, 14).
+- **Khối 12**: Mở rộng không gian tham số và cấu trúc bài toán cho toàn bộ generator giải tích & xác suất thống kê (`variance`, `risk`, `primitivePower`, `primitiveReciprocal`, `primitiveExp`, `integralPoly`, `areaPositive`, `areaSign`, `areaTwo`). Triệt tiêu hoàn toàn câu hỏi trùng lặp:
+  - Tuần 12: 324 tasks, 0 duplicate, 0 missing solidKeys.
+  - Tuần 13: 267 tasks, 0 duplicate, 0 missing solidKeys.
+  - Tuần 14: 287 tasks, 0 duplicate, 0 missing solidKeys.
+- **E2E Tests**: `tests/week13-e2e-gameplay.test.mjs` & `tests/week14-e2e-gameplay.test.mjs` vượt qua 100% (all 24 lessons each week pass).
+
+## Checkpoint trước - V40 DA PHAT HANH: nen anh + tong ket tiet (29/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release` · Base: `f38b691` (= version 39 da phat hanh, deployment `appgdep_6ae29a706fa08191b9adc4b0948c7037`).
 

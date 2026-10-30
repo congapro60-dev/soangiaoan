@@ -357,7 +357,19 @@ function buildLesson(period,ids,eligible=[]){
  ];
  const title=cumulative?`Game ôn tập tích lũy tuần ${period.week} - tiết ${period.period}`:`${period.topic} - ${ids.map(id=>bank[id].title).join('; ')} (tiết ${period.period})`;
  const result=assembleHkiPackage({period,title,outline:{format:'lesson-outline-v1',essentialQuestion:ids.map(id=>`Làm thế nào ${bank[id].statement.charAt(0).toLowerCase()+bank[id].statement.slice(1).replace(/\.$/,'')}?`).join(' '),objectives,activities,uncertainties:ids.some(id=>!bank[id].lo.length)?['LOGARITHM_OBJECTIVE_AUTHORED_FROM_PPCT_AND_UNIT_HEADING_NO_EXACT_UNIT_OVERVIEW_LO']:[]},unitReferences,prerequisites:['Các nội dung đã học theo PPCT trước tiết này; GV dùng kiểm tra đầu giờ để xác nhận.'],rubric:{criteria:ids.map(id=>bank[id].statement),lookFor:ids.map(id=>bank[id].error)}});
- for(const task of result.pkg.tasks)task.metadata={...task.metadata,...(solutions.has(task.prompt)?{workedSolution:solutions.get(task.prompt)}:{})};
+ for(const task of result.pkg.tasks){
+  task.metadata={...task.metadata,...(solutions.has(task.prompt)?{workedSolution:solutions.get(task.prompt)}:{})};
+  if(!task.solidKey){
+   const p=task.prompt;
+   if(p.includes('tứ diện')||p.includes('SABC')){
+    task.solidKey='tu-dien-sabc';
+   }else if(p.includes('hình chóp $S.ABCD$')||p.includes('S.ABCD')||p.includes('hình chóp')){
+    task.solidKey='chop-sabcd';
+   }else if(p.includes('hình hộp')||p.includes('lăng trụ')||p.includes("ABC.A'B'C'")){
+    task.solidKey='hop-chu-nhat';
+   }
+  }
+ }
  result.pkg.contentHash=hashPackage(result.pkg);
  assert.equal(validateLessonPackage(result.pkg).ok,true);
  return {...result,mode:cumulative?'game':'lesson',purpose:cumulative||period.kind==='review'||feedback?'review':'formation',conceptIds:ids,sourceDetail:period.detail,sourceTopic:period.topic,...(cumulative?{cumulativeScope:{rule:'previous_weeks_only',eligibleConceptIds:eligible,selectedConceptIds:ids,latestSourceWeek:Math.max(...ids.map(id=>intro.get(id).week)),eligibleSourcePeriodIds:eligible.map(id=>intro.get(id).id),selectionNote:'Ngân hàng tích lũy gồm nội dung đã học ở các tuần trước; tiết này chọn hai nội dung vừa thời lượng, không tuyên bố kiểm tra toàn bộ học kỳ.'}}:{})};

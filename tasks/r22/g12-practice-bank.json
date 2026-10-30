@@ -628,20 +628,20 @@
     "introducedWeek": 11,
     "sample": {
       "type": "closed",
-      "prompt": "Các nhóm $[20;26),[26;32),[32;38)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
+      "prompt": "Các nhóm $[20;22),[22;24),[24;26)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$s^2=3\\sqrt2,\\ s=18$"
+            "label": "$s^2=1\\sqrt2,\\ s=2$"
           },
           {
             "id": "B",
-            "label": "$s^2=18,\\ s=3\\sqrt2$"
+            "label": "$s^2=2,\\ s=1\\sqrt2$"
           },
           {
             "id": "C",
-            "label": "$s^2=36,\\ s=6$"
+            "label": "$s^2=4,\\ s=2$"
           }
         ]
       },
@@ -649,7 +649,7 @@
         "checkerId": "choice_exact",
         "answerKey": "B"
       },
-      "solution": "Điểm giữa là $23,29,35$, $\\bar x=29$. Tổng bình phương lệch có trọng số bằng $288$; chia $16$ được $s^2=18$; lấy căn được $s=3\\sqrt2$."
+      "solution": "Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$."
     }
   },
   {
@@ -659,20 +659,20 @@
     "introducedWeek": 12,
     "sample": {
       "type": "closed",
-      "prompt": "Hai thiết bị có cùng thời gian xử lý trung bình, cùng đơn vị phút. Độ lệch chuẩn của A là $4$, của B là $6$. Kết luận được dữ liệu hỗ trợ là",
+      "prompt": "Hai đối tượng Thuật toán Alpha và Thuật toán Beta có cùng độ trễ phản hồi trung bình, cùng đơn vị mili-giây. Độ lệch chuẩn của Thuật toán Alpha là $1$, của Thuật toán Beta là $2$. Kết luận được dữ liệu hỗ trợ là",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "A có thời gian xử lý ít phân tán hơn trong mẫu đã quan sát."
+            "label": "Thuật toán Alpha có độ trễ phản hồi ít phân tán hơn trong mẫu đã quan sát."
           },
           {
             "id": "B",
-            "label": "A luôn xử lý nhanh hơn B trong mọi lần."
+            "label": "Thuật toán Alpha luôn tốt hơn Thuật toán Beta trong mọi lần."
           },
           {
             "id": "C",
-            "label": "B chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn."
+            "label": "Thuật toán Beta chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn."
           }
         ]
       },
@@ -680,7 +680,7 @@
         "checkerId": "choice_exact",
         "answerKey": "A"
       },
-      "solution": "$4<6$ cho thấy A ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy."
+      "solution": "$1<2$ cho thấy Thuật toán Alpha ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy."
     }
   },
   {
@@ -767,20 +767,20 @@
     "introducedWeek": 12,
     "sample": {
       "type": "closed",
-      "prompt": "Tìm $\\int 8x^{3}\\,dx$.",
+      "prompt": "Tìm $\\int 18x^{5}\\,dx$.",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$8x^{4}+C$"
+            "label": "$18x^{6}+C$"
           },
           {
             "id": "B",
-            "label": "$24x^{2}+C$"
+            "label": "$90x^{4}+C$"
           },
           {
             "id": "C",
-            "label": "$2x^{4}+C$"
+            "label": "$3x^{6}+C$"
           }
         ]
       },
@@ -788,7 +788,7 @@
         "checkerId": "choice_exact",
         "answerKey": "C"
       },
-      "solution": "Tăng số mũ lên $4$ rồi chia hệ số $8$ cho $4$ được $2$."
+      "solution": "Tăng số mũ lên $6$ rồi chia hệ số $18$ cho $6$ được $3$."
     }
   },
   {
@@ -798,20 +798,20 @@
     "introducedWeek": 12,
     "sample": {
       "type": "closed",
-      "prompt": "Trên một khoảng không chứa $0$, $\\int\\dfrac{2}x\\,dx$ bằng",
+      "prompt": "Trên một khoảng không chứa $0$, $\\int\\dfrac{4}x\\,dx$ bằng",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$2x+C$"
+            "label": "$4x+C$"
           },
           {
             "id": "B",
-            "label": "$2\\ln|x|+C$"
+            "label": "$4\\ln|x|+C$"
           },
           {
             "id": "C",
-            "label": "$\\dfrac{2}{x^2}+C$"
+            "label": "$\\dfrac{4}{x^2}+C$"
           }
         ]
       },
@@ -819,7 +819,7 @@
         "checkerId": "choice_exact",
         "answerKey": "B"
       },
-      "solution": "Đạo hàm của $\\ln|x|$ bằng $1/x$ khi $x\\ne0$; nhân hệ số $2$."
+      "solution": "Đạo hàm của $\\ln|x|$ bằng $1/x$ khi $x\\ne0$; nhân hệ số $4$."
     }
   },
   {
@@ -829,20 +829,20 @@
     "introducedWeek": 12,
     "sample": {
       "type": "closed",
-      "prompt": "Tìm $\\int 2^x\\,dx$.",
+      "prompt": "Tìm $\\int 2\\cdot 6^x\\,dx$.",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$\\dfrac{2^x}{\\ln 2}+C$"
+            "label": "$\\dfrac{2\\cdot 6^x}{\\ln 6}+C$"
           },
           {
             "id": "B",
-            "label": "$2^x\\ln 2+C$"
+            "label": "$2\\cdot 6^x\\ln 6+C$"
           },
           {
             "id": "C",
-            "label": "$\\dfrac{x^{3}}{3}+C$"
+            "label": "$\\dfrac{6^x}{\\ln 6}+C$"
           }
         ]
       },
@@ -850,7 +850,7 @@
         "checkerId": "choice_exact",
         "answerKey": "A"
       },
-      "solution": "Đạo hàm của $2^x$ là $2^x\\ln 2$; chia cho $\\ln 2$ để triệt hệ số."
+      "solution": "Đạo hàm của $2\\cdot 6^x$ là $2\\cdot 6^x\\ln 6$; chia cho $\\ln 6$ để triệt hệ số."
     }
   },
   {
@@ -951,12 +951,12 @@
     "introducedWeek": 13,
     "sample": {
       "type": "closed",
-      "prompt": "Tính $\\int_0^{1}(3x^2+2)\\,dx$.",
+      "prompt": "Tính $\\int_0^{4}(15x^2+0)\\,dx$.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 3
+        "answerKey": 320
       },
-      "solution": "Nguyên hàm là $1x^3+2x$; hiệu hai cận là $1\\cdot1^3+2\\cdot1=3$."
+      "solution": "Nguyên hàm là $5x^3+0x$; hiệu hai cận là $5\\cdot4^3+0\\cdot4=320$."
     }
   },
   {
@@ -966,12 +966,12 @@
     "introducedWeek": 14,
     "sample": {
       "type": "closed",
-      "prompt": "Tính diện tích giới hạn bởi $y=6x^2$, trục hoành, $x=0$, $x=2$.",
+      "prompt": "Tính diện tích giới hạn bởi $y=3x^2$, trục hoành, $x=0$, $x=1$.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 16
+        "answerKey": 1
       },
-      "solution": "Hàm không âm nên $S=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$."
+      "solution": "Hàm không âm nên $S=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$."
     }
   },
   {
@@ -981,12 +981,12 @@
     "introducedWeek": 14,
     "sample": {
       "type": "closed",
-      "prompt": "Tính diện tích giữa đồ thị $y=x-3$ và trục hoành trên $[0;5]$.",
+      "prompt": "Tính diện tích giữa đồ thị $y=x-2$ và trục hoành trên $[0;3]$.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 6.5
+        "answerKey": 2.5
       },
-      "solution": "Đổi dấu tại $x=3$. $S=\\int_0^{3}(3-x)\\,dx+\\int_{3}^{5}(x-3)\\,dx=\\frac{9+4}2=6.5$."
+      "solution": "Đổi dấu tại $x=2$. $S=\\int_0^{2}(2-x)\\,dx+\\int_{2}^{3}(x-2)\\,dx=\\frac{4+1}2=2.5$."
     }
   },
   {
@@ -996,12 +996,12 @@
     "introducedWeek": 14,
     "sample": {
       "type": "closed",
-      "prompt": "Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=3x$. Nhập phân số nếu cần.",
+      "prompt": "Tính diện tích hình phẳng giới hạn bởi hai parabol $y=x^2$ và $y=5x-x^2$. Nhập phân số nếu cần.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 4.5
+        "answerKey": 20.833333333333332
       },
-      "solution": "Giao điểm có hoành độ $0,3$. Trên đoạn đó, $3x\\ge x^2$. $S=\\int_0^{3}(3x-x^2)\\,dx=\\frac{27}6$."
+      "solution": "Giao điểm có hoành độ $0$ và $5/2$. Hoặc $2x^2=5x\\Rightarrow x=0,x=5/2$. Tích phân cho $S=\\frac{125}{24}$."
     }
   },
   {

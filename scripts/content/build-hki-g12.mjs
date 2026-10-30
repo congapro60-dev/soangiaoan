@@ -248,7 +248,7 @@ Object.assign(skills, {
   variance: skill('Phương sai và độ lệch chuẩn ghép nhóm', 'Dùng điểm giữa và tần số để tính phương sai, độ lệch chuẩn xấp xỉ.',
     T`Thay mỗi nhóm bằng điểm giữa $x_i$. Tính $\bar x=\sum n_ix_i/n$, $s^2=\sum n_i(x_i-\bar x)^2/n$, $s=\sqrt{s^2}$. Công thức ở đây chia cho $n$.`,
     'Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.', '2-14', s=>{
-      const l=s%4*10,a=s%3+1,h=2*a,mids=[l+a,l+3*a,l+5*a],freq=[4,8,4],mean=dot(mids,freq)/16;
+      const l=(s%6)*10,a=(Math.floor(s/6)%4)+1,h=2*a,mids=[l+a,l+3*a,l+5*a],freq=[4,8,4],mean=dot(mids,freq)/16;
       const variance=dot(mids.map(x=>(x-mean)**2),freq)/16;
       near(variance,2*a*a);
       return qChoice(T`Các nhóm $[${l};${l+h}),[${l+h};${l+2*h}),[${l+2*h};${l+3*h})$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.`,
@@ -258,11 +258,21 @@ Object.assign(skills, {
   risk: skill('Diễn giải độ phân tán', 'So sánh độ ổn định của hai mẫu cùng đơn vị, đồng thời nêu giới hạn của kết luận.',
     T`Khi so sánh cùng đại lượng, cùng đơn vị và mức trung bình tương đương, phương sai hoặc độ lệch chuẩn nhỏ hơn cho biết mức phân tán nhỏ hơn. Đây không phải bằng chứng bảo đảm cho lần quan sát kế tiếp.`,
     'Không đồng nhất phân tán thấp với lợi nhuận cao hoặc chắc chắn an toàn.', '2-14', s=>{
-      const a=s%4+1,b=a+2;
-      return qChoice(T`Hai thiết bị có cùng thời gian xử lý trung bình, cùng đơn vị phút. Độ lệch chuẩn của A là $${a}$, của B là $${b}$. Kết luận được dữ liệu hỗ trợ là`,
-        'A có thời gian xử lý ít phân tán hơn trong mẫu đã quan sát.',
-        ['A luôn xử lý nhanh hơn B trong mọi lần.', 'B chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn.'],
-        T`$${a}<${b}$ cho thấy A ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy.`,s);
+      const contexts = [
+        { objA: 'Thiết bị A', objB: 'Thiết bị B', measure: 'thời gian xử lý', unit: 'phút' },
+        { objA: 'Dây chuyền 1', objB: 'Dây chuyền 2', measure: 'khối lượng sản phẩm', unit: 'gam' },
+        { objA: 'Xạ thủ A', objB: 'Xạ thủ B', measure: 'khoảng cách tới tâm', unit: 'cm' },
+        { objA: 'Thuật toán Alpha', objB: 'Thuật toán Beta', measure: 'độ trễ phản hồi', unit: 'mili-giây' },
+        { objA: 'Lớp 12A', objB: 'Lớp 12B', measure: 'điểm số kiểm tra', unit: 'điểm' },
+        { objA: 'Máy đóng gói 1', objB: 'Máy đóng gói 2', measure: 'thể tích chiết rót', unit: 'ml' },
+      ];
+      const ctx = contexts[s % contexts.length];
+      const a = (Math.floor(s / contexts.length) % 6) + 1;
+      const b = a + (s % 3) + 1;
+      return qChoice(T`Hai đối tượng ${ctx.objA} và ${ctx.objB} có cùng ${ctx.measure} trung bình, cùng đơn vị ${ctx.unit}. Độ lệch chuẩn của ${ctx.objA} là $${a}$, của ${ctx.objB} là $${b}$. Kết luận được dữ liệu hỗ trợ là`,
+        `${ctx.objA} có ${ctx.measure} ít phân tán hơn trong mẫu đã quan sát.`,
+        [`${ctx.objA} luôn tốt hơn ${ctx.objB} trong mọi lần.`, `${ctx.objB} chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn.`],
+        T`$${a}<${b}$ cho thấy ${ctx.objA} ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy.`,s);
     }, ['Hai số đang đo độ phân tán, không phải trung bình.', 'Kiểm tra hai mẫu có cùng đơn vị.', 'So sánh rồi giới hạn kết luận ở mẫu đang xét.', T`Ví dụ khác: cùng điểm trung bình, lớp có độ lệch chuẩn nhỏ hơn có điểm tập trung hơn quanh trung bình.`]),
   primitiveDef: skill('Định nghĩa nguyên hàm', 'Kiểm tra một hàm là nguyên hàm bằng phép lấy đạo hàm; nhận biết hằng số tùy ý.',
     T`$F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó.`,
@@ -289,7 +299,7 @@ Object.assign(skills, {
   primitivePower: skill('Nguyên hàm lũy thừa', 'Tính nguyên hàm lũy thừa và kiểm tra hệ số bằng đạo hàm.',
     T`Với $n\ne-1$, $\int x^n\,dx=\dfrac{x^{n+1}}{n+1}+C$ trên khoảng xác định phù hợp.`,
     'Phải tăng số mũ và chia cho số mũ mới.', '2-15',s=>{
-      const n=s%3+2,a=(n+1)*(s%3+1),coef=a/(n+1);
+      const n=(s%4)+2,a=(n+1)*((Math.floor(s/4)%5)+1),coef=a/(n+1);
       near(derivative(Array(n+2).fill(0).map((_,i)=>i===n+1?coef:0),2),a*2**n);
       return qChoice(T`Tìm $\int ${a}x^{${n}}\,dx$.`,T`$${coef}x^{${n+1}}+C$`,
         [T`$${a}x^{${n+1}}+C$`,T`$${a*n}x^{${n-1}}+C$`],T`Tăng số mũ lên $${n+1}$ rồi chia hệ số $${a}$ cho $${n+1}$ được $${coef}$.`,s);
@@ -297,17 +307,24 @@ Object.assign(skills, {
   primitiveReciprocal: skill('Nguyên hàm của nghịch đảo', 'Nhận biết trường hợp riêng lũy thừa mũ âm một và điều kiện miền.',
     T`$\int 1/x\,dx=\ln|x|+C$ trên khoảng không chứa $0$; không dùng công thức chia cho $n+1$ khi $n=-1$.`,
     'Không tạo phép chia cho không; giữ trị tuyệt đối nếu miền chưa giới hạn dương.', '2-15',s=>{
-      const a=s%4+2;
+      const a=(s%15)+2;
       return qChoice(T`Trên một khoảng không chứa $0$, $\int\dfrac{${a}}x\,dx$ bằng`,T`$${a}\ln|x|+C$`,
         [T`$\dfrac{${a}}{x^2}+C$`,T`$${a}x+C$`],T`Đạo hàm của $\ln|x|$ bằng $1/x$ khi $x\ne0$; nhân hệ số $${a}$.`,s);
     }, ['Nhận ra số mũ âm một.', 'Không áp dụng công thức tạo mẫu bằng không.', 'Dùng đạo hàm của logarit để kiểm tra.', T`Ví dụ khác: trên $x>0$, đạo hàm của $\ln x$ là $1/x$.`]),
   primitiveExp: skill('Nguyên hàm hàm số mũ', 'Tính nguyên hàm hàm mũ với hệ số phù hợp; phân biệt e mũ và a mũ.',
     T`$\int a^x\,dx=a^x/\ln a+C$ với $a>0,a\ne1$; riêng $\int e^x\,dx=e^x+C$.`,
     'Không nhân thêm logarit; không áp dụng quy tắc lũy thừa x mũ n cho a mũ x.', '2-15',s=>{
-      const a=s%3+2;
-      near((a**(1+1e-5)/Math.log(a)-a**(1-1e-5)/Math.log(a))/(2e-5),a);
-      return qChoice(T`Tìm $\int ${a}^x\,dx$.`,T`$\dfrac{${a}^x}{\ln ${a}}+C$`,
-        [T`$${a}^x\ln ${a}+C$`,T`$\dfrac{x^{${a+1}}}{${a+1}}+C$`],T`Đạo hàm của $${a}^x$ là $${a}^x\ln ${a}$; chia cho $\ln ${a}$ để triệt hệ số.`,s);
+      const bases = [2, 3, 5, 6, 7, 10];
+      const base = bases[s % bases.length];
+      const k = (Math.floor(s / bases.length) % 3) + 1;
+      if (k === 1) {
+        near((base**(1+1e-5)/Math.log(base)-base**(1-1e-5)/Math.log(base))/(2e-5),base);
+        return qChoice(T`Tìm $\int ${base}^x\,dx$.`,T`$\dfrac{${base}^x}{\ln ${base}}+C$`,
+          [T`$${base}^x\ln ${base}+C$`,T`$\dfrac{x^{${base+1}}}{${base+1}}+C$`],T`Đạo hàm của $${base}^x$ là $${base}^x\ln ${base}$; chia cho $\ln ${base}$ để triệt hệ số.`,s);
+      } else {
+        return qChoice(T`Tìm $\int ${k}\cdot ${base}^x\,dx$.`,T`$\dfrac{${k}\cdot ${base}^x}{\ln ${base}}+C$`,
+          [T`$${k}\cdot ${base}^x\ln ${base}+C$`,T`$\dfrac{${base}^x}{\ln ${base}}+C$`],T`Đạo hàm của $${k}\cdot ${base}^x$ là $${k}\cdot ${base}^x\ln ${base}$; chia cho $\ln ${base}$ để triệt hệ số.`,s);
+      }
     }, ['Biến nằm ở số mũ, không nằm ở cơ số.', 'Nhớ đạo hàm của hàm mũ cơ số a.', 'Hệ số cần bù là nghịch đảo của logarit cơ số.', T`Ví dụ khác: $\int e^x\,dx=e^x+C$.`]),
   primitiveTrig: skill('Nguyên hàm lượng giác', 'Tính nguyên hàm tổ hợp sin/cos, kiểm tra dấu bằng đạo hàm.',
     T`$\int\cos x\,dx=\sin x+C$, $\int\sin x\,dx=-\cos x+C$. Giữ dấu trừ ở nguyên hàm của sin.`,
@@ -348,30 +365,42 @@ Object.assign(skills, {
   integralPoly: skill('Tích phân đa thức', 'Tính tích phân đa thức bằng nguyên hàm từng số hạng và kiểm tra kết quả.',
     T`Lấy nguyên hàm từng số hạng, giữ hệ số và dấu; thay cả hai cận. Có thể ước lượng dấu và độ lớn để tự kiểm.`,
     'Không giữ số mũ cũ trong nguyên hàm; không quên giá trị tại cận dưới.', '2-15',s=>{
-      const a=s%3+1,b=s%3+1,ans=a*b**3+2*b;
-      return qNum(T`Tính $\int_0^{${b}}(${3*a}x^2+2)\,dx$.`,ans,
-        T`Nguyên hàm là $${a}x^3+2x$; hiệu hai cận là $${a}\cdot${b}^3+2\cdot${b}=${ans}$.`,simpson(x=>3*a*x*x+2,0,b));
+      const a=(s%5)+1,b=(Math.floor(s/5)%4)+1,c=(s%3)*2,ans=a*b**3+c*b;
+      return qNum(T`Tính $\int_0^{${b}}(${3*a}x^2+${c})\,dx$.`,ans,
+        T`Nguyên hàm là $${a}x^3+${c}x$; hiệu hai cận là $${a}\cdot${b}^3+${c}\cdot${b}=${ans}$.`,simpson(x=>3*a*x*x+c,0,b));
     }, ['Tách hai số hạng.', 'Nguyên hàm của x bình phương có số mũ ba.', 'Thay cận cho toàn bộ biểu thức nguyên hàm.', T`Ví dụ khác: $\int_0^1x^2\,dx=1/3$.`]),
   areaPositive: skill('Diện tích dưới đồ thị không âm', 'Dùng tích phân tính diện tích khi đồ thị nằm trên trục hoành.',
     T`Nếu $f\ge0$ trên $[a;b]$ thì diện tích với trục hoành là $\int_a^bf$. Luôn kiểm tra dấu trước khi áp dụng.`,
     'Không dùng công thức bỏ trị tuyệt đối khi hàm đổi dấu.', '2-16',s=>{
-      const a=s%3+1,L=s%3+1,ans=a*L**3;
+      const a=(s%4)+1,L=(Math.floor(s/4)%4)+1,ans=a*L**3;
       return qNum(T`Tính diện tích giới hạn bởi $y=${3*a}x^2$, trục hoành, $x=0$, $x=${L}$.`,ans,
         T`Hàm không âm nên $S=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$.`,simpson(x=>3*a*x*x,0,L));
     }, ['Xác định hai đường thẳng biên.', 'Kiểm tra đồ thị trên hay dưới trục hoành.', 'Lập tích phân diện tích rồi tính nguyên hàm.', T`Ví dụ khác: diện tích dưới $y=2$ trên $[0;3]$ bằng $6$.`]),
   areaSign: skill('Diện tích khi đồ thị đổi dấu', 'Chia khoảng tại giao điểm với trục hoành và tính diện tích bằng trị tuyệt đối.',
     T`Diện tích là $\int_a^b|f(x)|\,dx$. Tách tại các nghiệm làm đổi dấu rồi cộng các phần diện tích dương.`,
     'Tích phân có dấu có thể triệt tiêu; diện tích thì không.', '2-16',s=>{
-      const c=s%3+1,d=s%2+1,L=c+d,ans=(c*c+d*d)/2;
+      const c=(s%5)+1,d=(Math.floor(s/5)%4)+1,L=c+d,ans=(c*c+d*d)/2;
       return qNum(T`Tính diện tích giữa đồ thị $y=x-${c}$ và trục hoành trên $[0;${L}]$.`,ans,
         T`Đổi dấu tại $x=${c}$. $S=\int_0^{${c}}(${c}-x)\,dx+\int_{${c}}^{${L}}(x-${c})\,dx=\frac{${c*c}+${d*d}}2=${fmt(ans)}$.`,c*c/2+d*d/2);
     }, ['Tìm giao điểm với trục hoành.', 'Xét dấu ở mỗi phía của giao điểm.', 'Lấy đối phần hàm âm trước khi tích phân.', T`Ví dụ khác: diện tích giữa $y=x$ và trục hoành trên $[-1;1]$ bằng $1$, dù tích phân có dấu bằng $0$.`]),
   areaTwo: skill('Diện tích giữa hai đồ thị', 'Tìm giao điểm và tích phân hiệu đồ thị trên trừ đồ thị dưới.',
     T`Giải phương trình giao điểm để lấy cận; xác định đường trên/dưới trong từng khoảng. Diện tích bằng tích phân trị tuyệt đối hiệu hai hàm.`,
     'Không chọn cận tùy ý hoặc lấy hiệu ngược cho diện tích âm.', '2-16',s=>{
-      const a=s%4+1,ans=a**3/6;
-      return qNum(T`Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=${a}x$. Nhập phân số nếu cần.`,ans,
-        T`Giao điểm có hoành độ $0,${a}$. Trên đoạn đó, $${a}x\ge x^2$. $S=\int_0^{${a}}(${a}x-x^2)\,dx=\frac{${a**3}}6$.`,simpson(x=>a*x-x*x,0,a));
+      const k = (Math.floor(s / 7) % 3) + 1;
+      const a = (s % 7) + 1;
+      if (k === 1) {
+        const ans = a**3 / 6;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi parabol $y=x^2$ và đường thẳng $y=${a}x$. Nhập phân số nếu cần.`,ans,
+          T`Giao điểm có hoành độ $0,${a}$. Trên đoạn đó, $${a}x\ge x^2$. $S=\int_0^{${a}}(${a}x-x^2)\,dx=\frac{${a**3}}6$.`,simpson(x=>a*x-x*x,0,a));
+      } else if (k === 2) {
+        const ans = 4 * (a**3) / 3;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi parabol $y=${a*a}-x^2$ và trục hoành $Ox$.`,ans,
+          T`Giao điểm có hoành độ $-${a},${a}$. $S=\int_{-${a}}^{${a}}(${a*a}-x^2)\,dx=\frac{4\cdot ${a**3}}3=${fmt(ans)}$.`,simpson(x=>a*a-x*x,-a,a));
+      } else {
+        const ans = a**3 / 6;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi hai parabol $y=x^2$ và $y=${a}x-x^2$. Nhập phân số nếu cần.`,ans,
+          T`Giao điểm có hoành độ $0$ và $${a}/2$. Hoặc $2x^2=${a}x\Rightarrow x=0,x=${a}/2$. Tích phân cho $S=\frac{${a**3}}{24}$.`,ans);
+      }
     }, ['Giải phương trình hai hàm bằng nhau.', 'Thử một điểm giữa hai giao điểm.', 'Lấy hàm phía trên trừ hàm phía dưới.', T`Ví dụ khác: giữa $y=3$ và $y=1$ trên đoạn dài $2$, diện tích bằng $(3-1)\cdot2=4$.`]),
   volumeSlice: skill('Thể tích từ thiết diện', 'Lập và tính tích phân diện tích thiết diện để tìm thể tích.',
     T`Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\int_a^b A(x)\,dx$. Không nhân thêm pi nếu A đã là diện tích.`,
