@@ -911,8 +911,45 @@ export const callGradingVision = async (
   images: InlineImage[],
   options: GeminiOptions = {},
   segment?: GeminiPromptSegment,
+): Promise<string> => runChain(getGradingChain(), prompt, images, options, segment);
+
+/**
+ * Nhóm CHỮ (không ảnh, không thông tin định danh học sinh — chỉ đề/đáp án/thang điểm): cùng model
+ * deepseek-v4.1-flash, thử nguồn miễn phí / gói đã mua trước (OpenCode → PShareHub), hỏng hết mới
+ * rơi về chuỗi chấm thường (Vilao…). Cầu dao chung với chuỗi chấm: nguồn hỏng gác 5 phút rồi tự thử lại.
+ * Thiếu khoá nào thì bỏ lớp đó — không có khoá nào thì y như cũ.
+ */
+export const getTextChain = (): GradingAdapter[] => {
+  const chain: GradingAdapter[] = [];
+  const sources: { env: string; name: string; baseUrl: string; model: string }[] = [
+    { env: 'TEXT_OPENCODE_API_KEY', name: 'opencode', baseUrl: process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1', model: process.env.TEXT_OPENCODE_MODEL?.trim() || 'deepseek-v4.1-flash-free' },
+    { env: 'TEXT_PSHARE_API_KEY', name: 'pshare', baseUrl: process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', model: process.env.TEXT_PSHARE_MODEL?.trim() || 'deepseek-ai/DeepSeek-V4.1-Flash' },
+  ];
+  for (const source of sources) {
+    const key = process.env[source.env]?.trim();
+    if (!key) continue;
+    const options: OpenAiVisionOptions = { baseUrl: source.baseUrl, model: source.model };
+    chain.push({
+      name: `${source.name}/${source.model}`,
+      tier: 're',
+      maxMs: 60_000,
+      // Không ghi sổ tiền (meter): nguồn miễn phí / gói trả trước, không trừ ví giáo viên.
+      call: (prompt, images, callOptions, segment) => callOpenAiCompatibleVision(prompt, images, key, { ...options, ...callOptions }, segment),
+    });
+  }
+  return [...chain, ...getGradingChain()];
+};
+
+export const callTextModel = (prompt: string, options: GeminiOptions = {}): Promise<string> =>
+  runChain(getTextChain(), prompt, [], options);
+
+const runChain = async (
+  chain: GradingAdapter[],
+  prompt: string,
+  images: InlineImage[],
+  options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
 ): Promise<string> => {
-  const chain = getGradingChain();
   if (chain.length === 0) {
     throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
   }

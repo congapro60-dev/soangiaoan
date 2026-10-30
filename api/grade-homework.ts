@@ -29,6 +29,8 @@ import {
   listBenchmarkModels,
   runWithGradingChain,
   withServedTap,
+  callTextModel,
+  type GeminiOptions,
 } from './_grading-core.js';
 import {
   buildHomeworkGradingSegments,
@@ -1015,7 +1017,7 @@ const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, bod
   if (quotaVerdict.allowed <= 0) return res.status(429).json({ error: quotaVerdict.reason });
   const images = (await Promise.all((input.sourceUrls || []).map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
   if (FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Đọc đề mất nhiều thời gian. Thử lại để tạo lời giải.' });
-  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => callGradingVision(prompt, images, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
+  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => (images.length ? (p: string, o: GeminiOptions) => callGradingVision(p, images, o) : callTextModel)(prompt, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
   const saved = await db.runTransaction(async tx => {
     const fresh = (await tx.get(ref)).data();
@@ -1872,7 +1874,8 @@ const handleExtractExamVariantKeys = async (db: FirebaseFirestore.Firestore, bod
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGradingVision(buildExtractVariantKeysPrompt(codes, answerMaterial, hints), [], {
+  // Chỉ chữ đề/đáp án → nhóm chữ (nguồn miễn phí trước).
+  const raw = await callTextModel(buildExtractVariantKeysPrompt(codes, answerMaterial, hints), {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -2107,9 +2110,8 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGradingVision(
+  const raw = await callTextModel(
     buildRubricPrompt(answerKey, Number(body.maxScore) || 10, String(body.gradingInstructions || '')),
-    [],
     { maxOutputTokens: 8192, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
