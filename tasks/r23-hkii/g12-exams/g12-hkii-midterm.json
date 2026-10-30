@@ -1,0 +1,231 @@
+{
+  "title": "Toán 12 Discover - Kiểm tra giữa học kỳ II",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": false,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Một nhóm có $9$ em vừa biết bơi vừa đeo kính, $5$ em biết bơi không đeo kính, $2$ em không biết bơi có đeo kính và $9$ em không biết bơi không đeo kính. Chọn ngẫu nhiên một em, biết em đó biết bơi. Xác suất em đó đeo kính bằng bao nhiêu?",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$\\frac{9}{14}$",
+        "B": "$\\frac{23}{14}$",
+        "C": "$\\frac{-5}{14}$"
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Chỉ giữ nhóm biết bơi: $14$ em. Trong đó có $9$ em đeo kính, nên xác suất là $9/14$."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Chọn ngẫu nhiên một trong 30 sản phẩm. Kho A có 8 sản phẩm lỗi và 6 sản phẩm tốt; kho B có 3 sản phẩm lỗi và 13 sản phẩm tốt. Dùng công thức toàn phần tính xác suất chọn trúng sản phẩm lỗi.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$\\frac{41}{30}$",
+        "B": "$\\frac{-19}{30}$",
+        "C": "$\\frac{11}{30}$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "$P(\\text{lỗi})=\\frac{14}{30}\\frac{8}{14}+\\frac{16}{30}\\frac{3}{16}=\\frac{11}{30}$."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Xét $(P):x+2y-z+4=0$ và $(Q):4x+8y-4z+9=0$. Vị trí tương đối là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "Hai mặt phẳng song song phân biệt.",
+        "B": "Hai mặt phẳng trùng nhau.",
+        "C": "Hai mặt phẳng vuông góc."
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Chia phương trình Q cho $4$. Ba hệ số đầu trùng với P; hằng số khác nên song song phân biệt."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Mặt phẳng chứa hai vectơ $\\vec u=(1;2;0)$, $\\vec v=(0;1;3)$. Vectơ nào là một pháp tuyến?",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$(2;3;1)$",
+        "B": "$(1;2;3)$",
+        "C": "$(6;-3;1)$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "$\\vec u\\times\\vec v=(6;-3;1)$. Kiểm tra $\\vec n\\cdot\\vec u=0$ và $\\vec n\\cdot\\vec v=0$."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Hai đường $d_1:(x;y;z)=(t;0;0)$ và $d_2:(x;y;z)=(9;6+s;5)$. Vị trí tương đối là",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "Hai đường song song.",
+        "B": "Hai đường chéo nhau.",
+        "C": "Hai đường cắt nhau."
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Chỉ phương $(1;0;0)$ và $(0;1;0)$ không cùng phương. Hai tọa độ đầu cho $t=9,s=-6$; tọa độ thứ ba mâu thuẫn nên không có giao điểm."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "mc",
+      "points": 0.5,
+      "text": "Mặt cầu $x^2+y^2+z^2-8x-4y-6z+4=0$. Tính bình phương bán kính.",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "choiceText": {
+        "A": "$24$",
+        "B": "$25$",
+        "C": "$26$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Hoàn thành bình phương được tâm $(4;2;3)$, $R^2=16+4+9-4=25$."
+    },
+    {
+      "id": "q7",
+      "section": "II",
+      "label": "Câu 7",
+      "type": "short",
+      "points": 0.75,
+      "text": "Hộp có 6 viên đỏ và 8 viên xanh. Rút liên tiếp hai viên không hoàn lại. Xác suất cả hai viên đỏ là bao nhiêu?",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "0.16483516483516483",
+          "0,16483516483516483"
+        ]
+      },
+      "solution": "$P=\\frac{6}{14}\\cdot\\frac{5}{13}=\\frac{30}{182}$."
+    },
+    {
+      "id": "q8",
+      "section": "II",
+      "label": "Câu 8",
+      "type": "short",
+      "points": 0.75,
+      "text": "Nhà máy có 17 sản phẩm từ máy A, trong đó 5 lỗi; có 13 sản phẩm từ máy B, trong đó 4 lỗi. Chọn ngẫu nhiên một sản phẩm và biết nó lỗi. Xác suất nó từ máy A bằng bao nhiêu?",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "0.5555555555555556",
+          "0,5555555555555556"
+        ]
+      },
+      "solution": "Theo Bayes, $P(A\\mid L)=\\frac{(17/30)(5/17)}{(17/30)(5/17)+(13/30)(4/13)}=\\frac{5}{9}$."
+    },
+    {
+      "id": "q9",
+      "section": "II",
+      "label": "Câu 9",
+      "type": "short",
+      "points": 0.75,
+      "text": "Tính khoảng cách từ $M(3;2;6)$ đến $(P):3x+4y-4=0$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "2.6",
+          "2,6"
+        ]
+      },
+      "solution": "$d=\\frac{|3\\cdot3+4\\cdot2-4|}{\\sqrt{3^2+4^2}}=\\frac{13}5$."
+    },
+    {
+      "id": "q10",
+      "section": "II",
+      "label": "Câu 10",
+      "type": "short",
+      "points": 0.75,
+      "text": "Đường có chỉ phương $(6;3;3)$; mặt phẳng là $(Oxy)$. Tính $\\sin^2\\alpha$ với $\\alpha$ là góc đường thẳng và mặt phẳng.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "0.16666666666666666",
+          "0,16666666666666666"
+        ]
+      },
+      "solution": "Pháp tuyến $(Oxy)$ là $(0;0;1)$. $\\sin^2\\alpha=3^2/(6^2+3^2+3^2)=9/54$."
+    },
+    {
+      "id": "q11",
+      "section": "III",
+      "label": "Câu 11",
+      "type": "essay",
+      "points": 2,
+      "text": "Mặt phẳng qua $A(4;0;0), B(0;4;0), C(0;0;10)$ có phương trình $40x+40y+16z+D=0$. Tìm $D$ và kiểm bằng một điểm.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "$\\overrightarrow{AB}=(-4;4;0)$, $\\overrightarrow{AC}=(-4;0;10)$, tích có hướng $(40;40;16)$. Thay A được $D=-160$.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    },
+    {
+      "id": "q12",
+      "section": "III",
+      "label": "Câu 12",
+      "type": "essay",
+      "points": 2,
+      "text": "Lập phương trình mặt cầu có đường kính $AB$ với $A(4;1;0), B(8;7;6)$. Kiểm một đầu đường kính thuộc mặt cầu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Trung điểm $I(6;4;3)$. $R^2=AB^2/4=22$. Phương trình $(x-6)^2+(y-4)^2+(z-3)^2=22$. Thay A: $2^2+3^2+3^2=22$, đúng.",
+      "rubric": "Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số."
+    }
+  ]
+}

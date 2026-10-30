@@ -2318,7 +2318,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-1-2",
@@ -2399,7 +2400,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-2-2",
@@ -2483,7 +2485,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-3-2",
@@ -2527,7 +2530,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-3-3",
@@ -2648,7 +2652,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-4-2",
@@ -2732,7 +2737,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-5-2",
@@ -2776,7 +2782,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-5-3",
@@ -2819,7 +2826,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Nếu hai mặt phẳng song song, thiết diện trên các tia từ $S$ phải có cùng tỉ lệ; ở đây tỉ lệ của $P$ khác. Có một hướng song song nhưng thiếu hướng thứ hai."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-6-1",
@@ -2863,7 +2871,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Từ tỉ lệ trong các tam giác $SAB,SAC$ suy ra $MN\\parallel AB$, $MP\\parallel AC$. Hai đường $MN,MP$ cắt nhau tại $M$; hai đường $AB,AC$ cắt nhau tại $A$. Do vậy $(MNP)\\parallel(ABC)$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-6-2",
@@ -3561,7 +3570,7 @@
       "group_score"
      ]
     },
-    "contentHash": "f03bfa5c4f36e98a11d6325beb0a9334d75f33a85f56a256d46a835bc55090c8"
+    "contentHash": "0473fdace3192190ccd2be1348f2b42150805ecef72259b1b26b2988f731a03f"
    },
    "citations": [
     {
@@ -9922,7 +9931,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/5\\ne AN/AC=1/6$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-2-1",
@@ -10003,7 +10013,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/9\\ne AN/AC=1/10$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-3-1",
@@ -10127,7 +10138,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/13\\ne AN/AC=1/14$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-3-4",
@@ -10171,7 +10183,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/4\\ne AN/AC=1/5$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-4-1",
@@ -10252,7 +10265,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/8\\ne AN/AC=1/9$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-5-1",
@@ -10453,7 +10467,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$MN$ và $BC$ cùng thuộc $(ABC)$. Do $AM/AB=1/11\\ne AN/AC=1/12$, hai đường không song song, nên có $I$. Vì $I\\in BC\\subset(SBC)$, giao điểm cần tìm là $I$."
-      }
+      },
+      "solidKey": "tu-dien-sabc"
      },
      {
       "id": "task-7-1",
@@ -11114,7 +11129,7 @@
       "group_score"
      ]
     },
-    "contentHash": "bcb269480c8ebc046286ae1e22a1c35f8e0325f8604bf4283b871b395ad13fba"
+    "contentHash": "28d83ba4b435e96c83c33ff92781a5cf3a78289c37b722e3728b7f2f9eaa8856"
    },
    "citations": [
     {
@@ -12042,7 +12057,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=9$, $BB'=11$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -12122,7 +12138,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=13$, $BB'=15$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -12245,7 +12262,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=4$, $BB'=6$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -12288,7 +12306,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=8$, $BB'=10$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -12368,7 +12387,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=12$, $BB'=14$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -12568,7 +12588,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$(ABC)\\parallel(A'B'C')$; $AA'\\parallel BB'\\parallel CC'$ và $AB\\parallel A'B'$. $A'B'=2$, $BB'=4$. Không suy ra vuông góc nếu chưa có giả thiết lăng trụ đứng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -13229,7 +13250,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1247496a4a5b34ef6d32d2ee49f9145f2751cbabf92fe0a9969ec2ba704a5194"
+    "contentHash": "bf71352a8a7afbe750f441133bab708e6e10cd0ea307523cc328d54c9ef54fcc"
    },
    "citations": [
     {
@@ -49797,7 +49818,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $13$ cm. $SB=\\sqrt{178}>13$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-2-1",
@@ -49841,7 +49863,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $4$ cm. $SB=\\sqrt{41}>4$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-1",
@@ -49888,7 +49911,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $8$ cm. $SB=\\sqrt{68}>8$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-2",
@@ -49932,7 +49956,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $12$ cm. $SB=\\sqrt{160}>12$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-4-1",
@@ -49976,7 +50001,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $3$ cm. $SB=\\sqrt{45}>3$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-1",
@@ -50023,7 +50049,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $7$ cm. $SB=\\sqrt{58}>7$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-2",
@@ -50067,7 +50094,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $11$ cm. $SB=\\sqrt{146}>11$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-3",
@@ -50111,7 +50139,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $2$ cm. $SB=\\sqrt{8}>2$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-1",
@@ -50155,7 +50184,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $6$ cm. $SB=\\sqrt{52}>6$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-7-1",
@@ -50598,7 +50628,7 @@
       "group_score"
      ]
     },
-    "contentHash": "8c1bb10fade835bcac22e8ba320d1d5fb6206d0e7e6eba8a53cfb0e34ee9357c"
+    "contentHash": "494fdd5f68892e2fb26eb3680f9af0473c43fd6184195d0ce5c29b9c939cb11a"
    },
    "citations": [
     {
@@ -57867,7 +57897,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $4$ cm. $SB=\\sqrt{32}>4$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-1-2",
@@ -57955,7 +57986,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $8$ cm. $SB=\\sqrt{100}>8$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-2-2",
@@ -58046,7 +58078,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $12$ cm. $SB=\\sqrt{153}>12$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-2",
@@ -58090,7 +58123,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $3$ cm. $SB=\\sqrt{34}>3$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-3",
@@ -58225,7 +58259,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $7$ cm. $SB=\\sqrt{53}>7$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-4-2",
@@ -58316,7 +58351,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $11$ cm. $SB=\\sqrt{137}>11$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-2",
@@ -58360,7 +58396,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $2$ cm. $SB=\\sqrt{40}>2$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-3",
@@ -58404,7 +58441,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $6$ cm. $SB=\\sqrt{45}>6$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-1",
@@ -58448,7 +58486,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $10$ cm. $SB=\\sqrt{125}>10$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-2",
@@ -59153,7 +59192,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1dba1cbd6b16805ecf65c4cb100e80d7dbfb51253193c49c44ff7683c2bbf9e4"
+    "contentHash": "ec2285719d66136540a173fe7d3a6aa37f8b0c83532ad36bd4502a244998cfd8"
    },
    "citations": [
     {
@@ -87690,7 +87729,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -87734,7 +87774,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -87781,7 +87822,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -87825,7 +87867,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $2$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -87869,7 +87912,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $4$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -87916,7 +87960,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -87960,7 +88005,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -88004,7 +88050,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -88048,7 +88095,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $2$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -88491,7 +88539,7 @@
       "group_score"
      ]
     },
-    "contentHash": "5e337edfbc4d99febae99c9c937fcef48837b6ad7ff8d348d57c5ca640c867fc"
+    "contentHash": "c4d5651477de3418fabd2c7c17f5350b87bb29428f0a20fa49f2536008be0dd7"
    },
    "citations": [
     {
@@ -108346,7 +108394,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $6$ cm. $SB=\\sqrt{52}>6$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-2-1",
@@ -108427,7 +108476,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $10$ cm. $SB=\\sqrt{136}>10$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-1",
@@ -108551,7 +108601,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $14$ cm. $SB=\\sqrt{205}>14$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-4",
@@ -108595,7 +108646,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $5$ cm. $SB=\\sqrt{50}>5$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-4-1",
@@ -108676,7 +108728,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $9$ cm. $SB=\\sqrt{85}>9$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-1",
@@ -108877,7 +108930,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $12$ cm. $SB=\\sqrt{169}>12$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-7-1",
@@ -109538,7 +109592,7 @@
       "group_score"
      ]
     },
-    "contentHash": "9c5c1aadcb549e3806ca1a39081884caf78b3f5c4b9a67ce6950e2c848517b0b"
+    "contentHash": "ed1dcac704f8c3e70e1599e4edeb5a8a35a11f2fa97084092da0bf7192d68778"
    },
    "citations": [
     {
@@ -110467,7 +110521,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $14$ cm. $SB=\\sqrt{200}>14$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-1-2",
@@ -110555,7 +110610,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $5$ cm. $SB=\\sqrt{41}>5$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-2-2",
@@ -110646,7 +110702,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $9$ cm. $SB=\\sqrt{117}>9$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-2",
@@ -110690,7 +110747,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $13$ cm. $SB=\\sqrt{178}>13$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-3",
@@ -110825,7 +110883,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $4$ cm. $SB=\\sqrt{41}>4$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-4-2",
@@ -110916,7 +110975,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $8$ cm. $SB=\\sqrt{68}>8$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-2",
@@ -110960,7 +111020,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $12$ cm. $SB=\\sqrt{160}>12$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-3",
@@ -111004,7 +111065,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $3$ cm. $SB=\\sqrt{45}>3$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-1",
@@ -111048,7 +111110,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $7$ cm. $SB=\\sqrt{58}>7$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-2",
@@ -111753,7 +111816,7 @@
       "group_score"
      ]
     },
-    "contentHash": "e91b873078996a5ab2357fade6d47302f4f10671708cd3b821a4cf29111e462f"
+    "contentHash": "6eb63dd8577fdbaedcacae9da9fe64c5a719d45bc1d5a1363558f78c894975ed"
    },
    "citations": [
     {
@@ -114536,7 +114599,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $2$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -114624,7 +114688,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $4$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -114762,7 +114827,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -114806,7 +114872,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -114894,7 +114961,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -115117,7 +115185,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -115778,7 +115847,7 @@
       "group_score"
      ]
     },
-    "contentHash": "631e29788d24e931d3c05abc0c88c0d1075f1f5928207f2ee3e80607b7190580"
+    "contentHash": "fe34458fb5d0c21d8ef370dff3d0bf1f3ec1fa6807eca0fbbc7d9e12ae0a7763"
    },
    "citations": [
     {
@@ -143088,7 +143157,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $4$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -143176,7 +143246,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -143314,7 +143385,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -143358,7 +143430,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -143446,7 +143519,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $2$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -143669,7 +143743,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -144330,7 +144405,7 @@
       "group_score"
      ]
     },
-    "contentHash": "a1fce74fea9c002516f1d0b7e7c331a58cec745ae80ac9168b7bd998a13be3ed"
+    "contentHash": "ea0b45f8b355f9c2763ace1d9c72fed8db9000f680ef7c72b6648bc426ec07f4"
    },
    "citations": [
     {
@@ -146707,7 +146782,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AD'$ là đường xiên, không vuông góc mặt bên đích. Đoạn $AD$ vuông góc cả hai mặt bên song song, nên khoảng cách $8$ cm; $AD'=\\sqrt{80}>8$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -147194,7 +147270,7 @@
       "group_score"
      ]
     },
-    "contentHash": "fde12d28e84c514448733638a95cf9e612ca88e5e4a05f9ec3de2785f586c177"
+    "contentHash": "5b994338504c29348f2703070522f5d9d1a198f5fbed68679c5ef5d4cf572a15"
    },
    "citations": [
     {
@@ -156144,7 +156220,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=5$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{106}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -156188,7 +156265,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=8$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{128}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -156235,7 +156313,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=4$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{65}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -156279,7 +156358,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=7$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{85}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -156323,7 +156403,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=3$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{34}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -156370,7 +156451,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=6$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{52}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -156414,7 +156496,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=9$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{162}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -156457,7 +156540,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Cặp $AB,CC'$ chéo nhau, đoạn vuông góc chung $BC$ cho khoảng cách $5$ cm. Cặp $AB,C'D'$ song song; $AD'$ vuông góc cả hai, cho khoảng cách $\\sqrt{50}$ cm. Vị trí tương đối và đoạn vuông góc hợp lệ khác nhau."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -156501,7 +156585,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=8$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{113}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -156944,7 +157029,7 @@
       "group_score"
      ]
     },
-    "contentHash": "49b0f8a9824f1df30a2f858b66d2c1337716667a9ab371b4beb09181a8a75657"
+    "contentHash": "72e036f6e7b8873e209e3310e1212eeb26439a7896ef316633a347c46884b4ac"
    },
    "citations": [
     {
@@ -159601,7 +159686,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=4$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{41}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-1-2",
@@ -159689,7 +159775,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=7$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{65}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-2",
@@ -159780,7 +159867,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=3$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{90}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -159824,7 +159912,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=6$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{100}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-3",
@@ -159959,7 +160048,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=9$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{130}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-2",
@@ -160050,7 +160140,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=5$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{61}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -160094,7 +160185,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=8$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{89}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -160137,7 +160229,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Cặp $AB,CC'$ chéo nhau, đoạn vuông góc chung $BC$ cho khoảng cách $4$ cm. Cặp $AB,C'D'$ song song; $AD'$ vuông góc cả hai, cho khoảng cách $\\sqrt{65}$ cm. Vị trí tương đối và đoạn vuông góc hợp lệ khác nhau."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -160181,7 +160274,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=7$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{130}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-2",
@@ -160886,7 +160980,7 @@
       "group_score"
      ]
     },
-    "contentHash": "82eaa9dfe809d5c2906051f37e463e25e0aca772d0d429d090df7f55eb911276"
+    "contentHash": "6e0aba809fe42850abcfb111ea37eb1faa6ece341873ca6c6e6ce24ca6c77209"
    },
    "citations": [
     {
@@ -172885,7 +172979,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao là khoảng cách hai đáy $6$ cm, nên $V=168$ cm$^3$. Cạnh bên xiên $8$ cm không thay chiều cao và không cần dùng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -173365,7 +173460,7 @@
       "group_score"
      ]
     },
-    "contentHash": "165f1385ba5a62eeea4f3a9b1c08602a7f8ea76898079d844d705194f0a2c947"
+    "contentHash": "44006492fde019368437575d18f4bb6d348eb6a255136f3fc33790002d4791ca"
    },
    "citations": [
     {
@@ -175515,7 +175610,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao là khoảng cách hai đáy $4$ cm, nên $V=176$ cm$^3$. Cạnh bên xiên $6$ cm không thay chiều cao và không cần dùng."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -175995,7 +176091,7 @@
       "group_score"
      ]
     },
-    "contentHash": "c96327fe5a3ce3dcbb3dd311a26547f95a3c91d3584f9ddd732f4196d5fbcc43"
+    "contentHash": "d5ce86d116f475662baf33388d9294dc7487b9db7de4e300d6ca8b811fcdd90a"
    },
    "citations": [
     {
@@ -199316,7 +199412,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $4$ cm. $SB=\\sqrt{20}>4$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-1-2",
@@ -199404,7 +199501,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $8$ cm. $SB=\\sqrt{80}>8$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-2-2",
@@ -199495,7 +199593,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $12$ cm. $SB=\\sqrt{180}>12$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-2",
@@ -199539,7 +199638,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $3$ cm. $SB=\\sqrt{18}>3$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-3-3",
@@ -199674,7 +199774,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $7$ cm. $SB=\\sqrt{74}>7$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-4-2",
@@ -199765,7 +199866,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $11$ cm. $SB=\\sqrt{125}>11$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-2",
@@ -199809,7 +199911,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $2$ cm. $SB=\\sqrt{20}>2$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-5-3",
@@ -199853,7 +199956,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $6$ cm. $SB=\\sqrt{72}>6$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-1",
@@ -199897,7 +200001,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $10$ cm. $SB=\\sqrt{109}>10$ cm do tam giác $SAB$ vuông tại $A$."
-      }
+      },
+      "solidKey": "chop-sabcd"
      },
      {
       "id": "task-6-2",
@@ -200602,7 +200707,7 @@
       "group_score"
      ]
     },
-    "contentHash": "08358f3442e9853890aa67081de940e7dbdf215dc9c509ddc6a39a3bcaade506"
+    "contentHash": "0fa258fb0645b170e20664d4941a4e4a368a116cba5259d05385534190d7306a"
    },
    "citations": [
     {
@@ -203406,7 +203511,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $4$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-1-2",
@@ -203494,7 +203600,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-2",
@@ -203585,7 +203692,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -203629,7 +203737,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-3",
@@ -203764,7 +203873,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $2$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-2",
@@ -203855,7 +203965,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $4$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -203899,7 +204010,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $6$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -203943,7 +204055,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $3$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -203987,7 +204100,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Chiều cao bằng cạnh bên, $5$ cm. Đây là hình hộp chữ nhật. Đáy có hai cạnh kề khác nhau nên không phải hình vuông, tức không phải đa giác đều; vì vậy không phải lăng trụ đều. Để có lăng trụ đều tứ giác, đáy phải là hình vuông."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-2",
@@ -204692,7 +204806,7 @@
       "group_score"
      ]
     },
-    "contentHash": "275fd0eb12ef0f70f70864014939c1f2df989b18dff7ce28e172dfa5fb7cd649"
+    "contentHash": "1b840da7a51b922845ba2f6a43be4c89e61cc739ecf2ec3e40bf8c244957d6a0"
    },
    "citations": [
     {
@@ -207495,7 +207609,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=9$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{117}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-1-2",
@@ -207576,7 +207691,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=5$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{50}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-2",
@@ -207660,7 +207776,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=8$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{80}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -207704,7 +207821,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=4$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{97}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-3",
@@ -207825,7 +207943,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=7$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{113}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-2",
@@ -207909,7 +208028,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=3$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{58}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -207953,7 +208073,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=6$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{72}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -207996,7 +208117,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Cặp $AB,CC'$ chéo nhau, đoạn vuông góc chung $BC$ cho khoảng cách $9$ cm. Cặp $AB,C'D'$ song song; $AD'$ vuông góc cả hai, cho khoảng cách $\\sqrt{130}$ cm. Vị trí tương đối và đoạn vuông góc hợp lệ khác nhau."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -208040,7 +208162,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B\\in AB$, $C\\in CC'$. $BC\\perp AB$ trong đáy và $BC\\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=5$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\\sqrt{41}$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-2",
@@ -208738,7 +208861,7 @@
       "group_score"
      ]
     },
-    "contentHash": "10024f37e509b1c0d47b92cc219263b28e31ef641b3edc15cc47a8e91e845fdf"
+    "contentHash": "2d28961460b055c5774d957662ffdc5ef9eae7caeb29eb7694ec2af64e3c97a9"
    },
    "citations": [
     {
@@ -234025,7 +234148,7 @@
  },
  "sources": {
   "ppctFile": "tasks/r23-hkii/ppct-hkii.json",
-  "ppctSha256": "066d96a3671dc1a32f7d14346777cfdc496ba7c99a4603961e94e59f30b20718",
+  "ppctSha256": "a4e03b10b36cc12e2177d7aa883bc033ccc221ff0e99ad2909f99708058ae35f",
   "hkiBankFile": "tasks/r22/g11-practice-bank.json",
   "hkiBankSha256": "069405600a1117e5ca5bff7cb29c50144aef67033a7f525b82c34d517eb9cf55",
   "frozenHkiGeneratorSha256": "d1951060182d4b4ba6754bf6b25e8837a14d6171bc3296544cef3ea6af16eeab"

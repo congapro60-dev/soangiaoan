@@ -1,0 +1,65 @@
+HƯỚNG DẪN CHẤM - CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 11 Discover - Kiểm tra cuối học kỳ II
+
+Đề mới theo PPCT, chưa phải đề chính thức hay ma trận được trường duyệt. Đối soát cách giải, thời lượng và độ phủ trước khi dùng.
+
+Câu 1
+a) Cơ số $3>1$, nên $3x+2=41$, suy ra $x=13$. Thế lại cho hai số mũ bằng nhau.
+b) Điều kiện $x>4$. Vì cơ số $1/4<1$, cần $x-4>1/4$. Tập nghiệm $(4+1/4;+\infty)$. Điểm $x=5$ thuộc tập nghiệm vì lôgarit bằng $0<1$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Điều kiện xác định đúng. Chiều bất đẳng thức và giao miền đúng. Điểm kiểm thuộc miền và thỏa bất phương trình.
+
+Câu 2
+a) $P(A\cup B)=P(A)+P(B)-P(A\cap B)=(14+14-6)/27=\frac{22}{27}$.
+b) Hai trường hợp xung khắc có xác suất $\frac{3}{11}(1-\frac{6}{11})$ và $(1-\frac{3}{11})\frac{6}{11}$. Tổng bằng $\frac{63}{121}$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 3
+a) $[f(2+h)-f(2)]/h=20+4h$ với $h\ne0$. Cho $h\to0$ được $f'(2)=20$.
+b) $f'(x)=2x+6$ trên $\mathbb R$. Điểm tiếp xúc $(4;42)$, hệ số góc $14$. Tiếp tuyến $y-42=14(x-4)$. Vận tốc $s'(4)=14$ m/s.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Đạo hàm trên khoảng đúng. Tiếp tuyến đúng cả điểm và hệ số góc. Vận tốc đúng kèm đơn vị.
+
+Câu 4
+a) $f'(x)=(x^2+1)+(x+6)2x=3x^2+12x+1$. Với $x\ne-2$, $g'(x)=[6(x+2)-(6x+1)]/(x+2)^2=11/(x+2)^2$. Suy ra $g'(1)=\frac{11}{9}$.
+b) $f'(x)=8(4x+4)^{1}$. Với $x>-4/4$, $g'(x)=4/(2\sqrt{4x+4})$. Hàm $g$ xác định tại biên nhưng công thức đạo hàm hữu hạn này không áp dụng ở đó.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Đạo hàm đa thức đúng. Quy tắc thương, miền và giá trị tại điểm đúng.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai đạo hàm đúng thừa số hàm trong. Miền đạo hàm căn dùng bất đẳng thức nghiêm.
+
+Câu 5
+a) $f'(x)=4\cos(4x)-4\sin(4x)$; $p'(x)=4/\cos^2(4x)-4/\sin^2(4x)$ khi $\sin(4x)\cos(4x)\ne0$. $g'(x)=4\ln 3\cdot3^{4x}$; $h'(x)=4/[(4x+2)\ln 3]$ với $x>-2/4$.
+b) $f'(x)=e^{3x}[2x+3(x^2+2)]$ từ quy tắc tích và hàm hợp. $g'(x)=2x/(x^2+5)$. Vì $5>0$, hai hàm đều xác định và có đạo hàm trên $\mathbb R$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Đạo hàm sin, cos, tan, cot đúng dấu và điều kiện. Đạo hàm mũ và lôgarit đúng thừa số cơ số/hàm trong. Điều kiện lôgarit đúng.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Đạo hàm tích đủ hai số hạng. Đạo hàm lôgarit hàm hợp và miền đúng.
+
+Câu 6
+a) $AB,AD$ thuộc $(ABCD)$ và cắt nhau tại $A$. $SA$ vuông góc cả hai nên $SA\perp(ABCD)$. Vì $BD$ nằm trong mặt phẳng đó, $SA\perp BD$. Vuông góc một đường chưa xác định được hướng pháp tuyến của cả mặt phẳng.
+b) $SA\subset(SAB)$ và $SA\perp(ABCD)$ nên $(SAB)\perp(ABCD)$. Với kết luận thêm: $AD\perp AB$, $AD\perp SA$, do đó $AD\perp(SAB)$; $AD\subset(SAD)$ suy ra $(SAD)\perp(SAB)$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai đường kiểm tra thuộc mặt phẳng và cắt nhau. Dẫn định lý đúng rồi suy ra quan hệ với đường còn lại.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chỉ đúng quan hệ chứa. Chứng minh đường vuông góc mặt phẳng với đủ giả thiết; kết luận đúng.
+
+Câu 7
+a) Góc nhị diện có số đo $119^\circ$ theo đúng hai tia đã chọn. Góc giữa hai mặt phẳng là góc không tù $180^\circ-119^\circ=61^\circ$. Hai khái niệm không được thay thế tùy ý.
+b) $AB\parallel CD$ và $AD\perp AB,CD$, nên khoảng cách thứ nhất $AD=3$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $4$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $3$ cm.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai số đo đúng với đúng tên gọi. Giải thích vì sao có thể khác nhau.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba khoảng cách đúng. Mỗi kết quả có đoạn vuông góc và quan hệ thuộc tương ứng.
+
+Câu 8
+a) Vì $SA\perp(ABCD)$ và $A\in AB$, hai khoảng cách đầu đều bằng $SA=10$ cm. Trong tam giác vuông $SAB$, $SB=\sqrt{164}$; so hai cách tính diện tích: $AH=SA\cdot AB/SB=80/\sqrt{164}$ cm.
+b) $BC\perp AB$ và $BC\perp SA$ nên $BC\perp(SAB)$, suy ra $BC\perp AH$. Kết hợp $AH\perp SB$ và $BC,SB$ cắt nhau trong $(SBC)$, được $AH\perp(SBC)$. Khoảng cách $AH=SA\cdot AB/SB=70/\sqrt{149}$ cm.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai khoảng cách đầu và lý do đúng. Lập được công thức đường cao, kết quả và đơn vị đúng.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chứng minh vuông góc mặt phẳng trước khi gọi khoảng cách. Tính độ dài bằng diện tích, giữ đơn vị đúng.
+
+Câu 9
+a) $B\in AB$, $C\in CC'$. $BC\perp AB$ trong đáy và $BC\perp CC'$ vì cạnh đứng vuông góc đáy. Hai đường $AB,CC'$ chéo nhau; khoảng cách là $BC=9$ cm. Với $AB,C'D'$: chúng song song; đoạn $AD'$ vuông góc cả hai nên khoảng cách $\sqrt{130}$ cm.
+b) Diện tích đáy $S_{ABCD}=40$ cm$^2$, chiều cao $SA=12$ cm. $V=\frac13 S_{ABCD}\cdot SA=160$ cm$^3$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chứng minh đủ ba điều của đoạn vuông góc chung. Phân biệt cặp chéo nhau với cặp song song; tính và đơn vị đúng.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 10
+a) Diện tích đáy $\frac12\cdot6\cdot4=12$ cm$^2$. Chiều cao $3$ cm, nên $V=S_{\text{đáy}}h=36$ cm$^3$.
+b) Biến cố đối là cả hai thất bại. Kết quả $1-(1-\frac{2}{10})(1-\frac{3}{10})=\frac{44}{100}$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.

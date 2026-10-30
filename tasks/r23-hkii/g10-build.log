@@ -1,0 +1,17 @@
+file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/hkii-package.mjs:15
+const fail = message => { throw new Error(`INVALID_HKII_PACKAGE: ${message}`); };
+                                ^
+
+Error: INVALID_HKII_PACKAGE: objective codes must be internal r23 identifiers
+    at fail (file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/hkii-package.mjs:15:33)
+    at file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/hkii-package.mjs:52:51
+    at Array.forEach (<anonymous>)
+    at assembleHkiiPackage (file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/hkii-package.mjs:50:23)
+    at buildPeriod (file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/build-hkii-g10.mjs:438:17)
+    at Array.map (<anonymous>)
+    at file:///C:/Users/ADMIN/.codex/worktrees/6dec/signal-station-site/scripts/content/build-hkii-g10.mjs:566:61
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.2

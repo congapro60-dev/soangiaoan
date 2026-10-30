@@ -1,0 +1,1652 @@
+{
+  "summary": {
+    "periodRows": 130,
+    "lessonPackages": 126,
+    "electiveGames": 28,
+    "examPeriods": 4,
+    "examFiles": 2,
+    "concepts": 59,
+    "hkiConcepts": 28,
+    "selectedHkiConcepts": 28,
+    "tasks": 1656,
+    "mathematicalChecks": 2075,
+    "automaticMathematicalChecks": 1622,
+    "autoCheckedGameTasks": 287,
+    "workedSolutions": 1449
+  },
+  "coverage": [
+    {
+      "sourcePeriodId": "g10-discover-r171",
+      "week": 19,
+      "period": 144,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E171",
+      "outputId": "r23-g10-discover-r171",
+      "mode": "classroom",
+      "conceptIds": [
+        "sets",
+        "dot"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r172",
+      "week": 19,
+      "period": 145,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E172",
+      "outputId": "r23-g10-discover-r172",
+      "mode": "classroom",
+      "conceptIds": [
+        "mean",
+        "sets"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r173",
+      "week": 19,
+      "period": 146,
+      "sourceKind": "core",
+      "contentCell": "G10!E173",
+      "outputId": "r23-g10-discover-r173",
+      "mode": "classroom",
+      "conceptIds": [
+        "function"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r174",
+      "week": 19,
+      "period": 147,
+      "sourceKind": "core",
+      "contentCell": "G10!E174",
+      "outputId": "r23-g10-discover-r174",
+      "mode": "classroom",
+      "conceptIds": [
+        "monotonic"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r175",
+      "week": 19,
+      "period": 148,
+      "sourceKind": "core",
+      "contentCell": "G10!E175",
+      "outputId": "r23-g10-discover-r175",
+      "mode": "classroom",
+      "conceptIds": [
+        "linegeneral"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r176",
+      "week": 19,
+      "period": 149,
+      "sourceKind": "core",
+      "contentCell": "G10!E176",
+      "outputId": "r23-g10-discover-r176",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineparam"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r177",
+      "week": 19,
+      "period": 150,
+      "sourceKind": "elective",
+      "contentCell": "G10!E177",
+      "outputId": "r23-g10-discover-r177",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "sets",
+        "mean"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r178",
+      "week": 19,
+      "period": 151,
+      "sourceKind": "elective",
+      "contentCell": "G10!E178:E179",
+      "outputId": "r23-g10-discover-r178",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "mean",
+        "dot"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r180",
+      "week": 20,
+      "period": 152,
+      "sourceKind": "core",
+      "contentCell": "G10!E180",
+      "outputId": "r23-g10-discover-r180",
+      "mode": "classroom",
+      "conceptIds": [
+        "function"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r181",
+      "week": 20,
+      "period": 153,
+      "sourceKind": "core",
+      "contentCell": "G10!E181:E182",
+      "outputId": "r23-g10-discover-r181",
+      "mode": "classroom",
+      "conceptIds": [
+        "monotonic"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r184",
+      "week": 20,
+      "period": 154,
+      "sourceKind": "core",
+      "contentCell": "G10!E184",
+      "outputId": "r23-g10-discover-r184",
+      "mode": "classroom",
+      "conceptIds": [
+        "linegeneral",
+        "lineparam"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r197",
+      "week": 22,
+      "period": 155,
+      "sourceKind": "core",
+      "contentCell": "G10!E197",
+      "outputId": "r23-g10-discover-r197",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadconcept"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r198",
+      "week": 22,
+      "period": 156,
+      "sourceKind": "core",
+      "contentCell": "G10!E198",
+      "outputId": "r23-g10-discover-r198",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r199",
+      "week": 22,
+      "period": 157,
+      "sourceKind": "core",
+      "contentCell": "G10!E199",
+      "outputId": "r23-g10-discover-r199",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadconcept",
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r200",
+      "week": 22,
+      "period": 158,
+      "sourceKind": "core",
+      "contentCell": "G10!E200",
+      "outputId": "r23-g10-discover-r200",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineconvert"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r201",
+      "week": 22,
+      "period": 159,
+      "sourceKind": "core",
+      "contentCell": "G10!E201",
+      "outputId": "r23-g10-discover-r201",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineconvert"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r202",
+      "week": 22,
+      "period": 160,
+      "sourceKind": "core",
+      "contentCell": "G10!E202",
+      "outputId": "r23-g10-discover-r202",
+      "mode": "classroom",
+      "conceptIds": [
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r203",
+      "week": 22,
+      "period": 161,
+      "sourceKind": "elective",
+      "contentCell": "G10!E203:E204",
+      "outputId": "r23-g10-discover-r203",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "dot",
+        "linegeneral"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r205",
+      "week": 22,
+      "period": 162,
+      "sourceKind": "elective",
+      "contentCell": "G10!E205",
+      "outputId": "r23-g10-discover-r205",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "proposition",
+        "monotonic"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r206",
+      "week": 23,
+      "period": 163,
+      "sourceKind": "core",
+      "contentCell": "G10!E206",
+      "outputId": "r23-g10-discover-r206",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r207",
+      "week": 23,
+      "period": 164,
+      "sourceKind": "core",
+      "contentCell": "G10!E207",
+      "outputId": "r23-g10-discover-r207",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r208",
+      "week": 23,
+      "period": 165,
+      "sourceKind": "core",
+      "contentCell": "G10!E208:E209",
+      "outputId": "r23-g10-discover-r208",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadapplication"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r210",
+      "week": 23,
+      "period": 166,
+      "sourceKind": "core",
+      "contentCell": "G10!E210",
+      "outputId": "r23-g10-discover-r210",
+      "mode": "classroom",
+      "conceptIds": [
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r211",
+      "week": 23,
+      "period": 167,
+      "sourceKind": "core",
+      "contentCell": "G10!E211",
+      "outputId": "r23-g10-discover-r211",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineangle"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r212",
+      "week": 23,
+      "period": 168,
+      "sourceKind": "core",
+      "contentCell": "G10!E212",
+      "outputId": "r23-g10-discover-r212",
+      "mode": "classroom",
+      "conceptIds": [
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r213",
+      "week": 23,
+      "period": 169,
+      "sourceKind": "elective",
+      "contentCell": "G10!E213",
+      "outputId": "r23-g10-discover-r213",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "implication",
+        "quadconcept"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r214",
+      "week": 23,
+      "period": 170,
+      "sourceKind": "elective",
+      "contentCell": "G10!E214",
+      "outputId": "r23-g10-discover-r214",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "quantifier",
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r215",
+      "week": 24,
+      "period": 171,
+      "sourceKind": "core",
+      "contentCell": "G10!E215",
+      "outputId": "r23-g10-discover-r215",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadsign"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r216",
+      "week": 24,
+      "period": 172,
+      "sourceKind": "core",
+      "contentCell": "G10!E216",
+      "outputId": "r23-g10-discover-r216",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadsign"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r217",
+      "week": 24,
+      "period": 173,
+      "sourceKind": "core",
+      "contentCell": "G10!E217",
+      "outputId": "r23-g10-discover-r217",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r218",
+      "week": 24,
+      "period": 174,
+      "sourceKind": "core",
+      "contentCell": "G10!E218",
+      "outputId": "r23-g10-discover-r218",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r219",
+      "week": 24,
+      "period": 175,
+      "sourceKind": "core",
+      "contentCell": "G10!E219",
+      "outputId": "r23-g10-discover-r219",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineangle",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r220",
+      "week": 24,
+      "period": 176,
+      "sourceKind": "core",
+      "contentCell": "G10!E220:E221",
+      "outputId": "r23-g10-discover-r220",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineangle",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r224",
+      "week": 25,
+      "period": 177,
+      "sourceKind": "core",
+      "contentCell": "G10!E224",
+      "outputId": "r23-g10-discover-r224",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadsign",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r225",
+      "week": 25,
+      "period": 178,
+      "sourceKind": "core",
+      "contentCell": "G10!E225",
+      "outputId": "r23-g10-discover-r225",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r226",
+      "week": 25,
+      "period": 179,
+      "sourceKind": "core",
+      "contentCell": "G10!E226:E227",
+      "outputId": "r23-g10-discover-r226",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r228",
+      "week": 25,
+      "period": 180,
+      "sourceKind": "core",
+      "contentCell": "G10!E228",
+      "outputId": "r23-g10-discover-r228",
+      "mode": "classroom",
+      "conceptIds": [
+        "circle"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r229",
+      "week": 25,
+      "period": 181,
+      "sourceKind": "core",
+      "contentCell": "G10!E229",
+      "outputId": "r23-g10-discover-r229",
+      "mode": "classroom",
+      "conceptIds": [
+        "circle"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r230",
+      "week": 25,
+      "period": 182,
+      "sourceKind": "core",
+      "contentCell": "G10!E230",
+      "outputId": "r23-g10-discover-r230",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r231",
+      "week": 25,
+      "period": 183,
+      "sourceKind": "elective",
+      "contentCell": "G10!E231",
+      "outputId": "r23-g10-discover-r231",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "numberSets",
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r232",
+      "week": 25,
+      "period": 184,
+      "sourceKind": "elective",
+      "contentCell": "G10!E232",
+      "outputId": "r23-g10-discover-r232",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "inequality",
+        "quadapplication"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r233",
+      "week": 26,
+      "period": 185,
+      "sourceKind": "core",
+      "contentCell": "G10!E233",
+      "outputId": "r23-g10-discover-r233",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r234",
+      "week": 26,
+      "period": 186,
+      "sourceKind": "core",
+      "contentCell": "G10!E234:E235",
+      "outputId": "r23-g10-discover-r234",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r236",
+      "week": 26,
+      "period": 187,
+      "sourceKind": "core",
+      "contentCell": "G10!E236",
+      "outputId": "r23-g10-discover-r236",
+      "mode": "classroom",
+      "conceptIds": [
+        "circlepoints"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r237",
+      "week": 26,
+      "period": 188,
+      "sourceKind": "core",
+      "contentCell": "G10!E237",
+      "outputId": "r23-g10-discover-r237",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r238",
+      "week": 26,
+      "period": 189,
+      "sourceKind": "core",
+      "contentCell": "G10!E238",
+      "outputId": "r23-g10-discover-r238",
+      "mode": "classroom",
+      "conceptIds": [
+        "circle",
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r239",
+      "week": 26,
+      "period": 190,
+      "sourceKind": "core",
+      "contentCell": "G10!E239",
+      "outputId": "r23-g10-discover-r239",
+      "mode": "classroom",
+      "conceptIds": [
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r240",
+      "week": 26,
+      "period": 191,
+      "sourceKind": "elective",
+      "contentCell": "G10!E240",
+      "outputId": "r23-g10-discover-r240",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "halfplane",
+        "quadapplication"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r241",
+      "week": 26,
+      "period": 192,
+      "sourceKind": "elective",
+      "contentCell": "G10!E241",
+      "outputId": "r23-g10-discover-r241",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "system",
+        "quadsign"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r242",
+      "week": 27,
+      "period": 193,
+      "sourceKind": "review",
+      "contentCell": "G10!E242",
+      "outputId": "r23-g10-discover-r242",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r243",
+      "week": 27,
+      "period": 194,
+      "sourceKind": "review",
+      "contentCell": "G10!E243",
+      "outputId": "r23-g10-discover-r243",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r244",
+      "week": 27,
+      "period": 195,
+      "sourceKind": "review",
+      "contentCell": "G10!E244:E245",
+      "outputId": "r23-g10-discover-r244",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadapplication",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r246",
+      "week": 27,
+      "period": 196,
+      "sourceKind": "core",
+      "contentCell": "G10!E246",
+      "outputId": "r23-g10-discover-r246",
+      "mode": "classroom",
+      "conceptIds": [
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r247",
+      "week": 27,
+      "period": 197,
+      "sourceKind": "review",
+      "contentCell": "G10!E247",
+      "outputId": "r23-g10-discover-r247",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineconvert",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r248",
+      "week": 27,
+      "period": 198,
+      "sourceKind": "review",
+      "contentCell": "G10!E248",
+      "outputId": "r23-g10-discover-r248",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r249",
+      "week": 27,
+      "period": 199,
+      "sourceKind": "elective",
+      "contentCell": "G10!E249",
+      "outputId": "r23-g10-discover-r249",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "optimize",
+        "quadsign"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r250",
+      "week": 27,
+      "period": 200,
+      "sourceKind": "elective",
+      "contentCell": "G10!E250",
+      "outputId": "r23-g10-discover-r250",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "trigValue",
+        "circle"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r257",
+      "week": 29,
+      "period": 201,
+      "sourceKind": "review",
+      "contentCell": "G10!E257",
+      "outputId": "r23-g10-discover-r257",
+      "mode": "classroom",
+      "conceptIds": [
+        "function",
+        "quadgraph"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r258",
+      "week": 29,
+      "period": 202,
+      "sourceKind": "review",
+      "contentCell": "G10!E258",
+      "outputId": "r23-g10-discover-r258",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadsign",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r259",
+      "week": 29,
+      "period": 203,
+      "sourceKind": "review",
+      "contentCell": "G10!E259:E260",
+      "outputId": "r23-g10-discover-r259",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r261",
+      "week": 29,
+      "period": 204,
+      "sourceKind": "review",
+      "contentCell": "G10!E261",
+      "outputId": "r23-g10-discover-r261",
+      "mode": "classroom",
+      "conceptIds": [
+        "linerelative",
+        "lineangle"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r262",
+      "week": 29,
+      "period": 205,
+      "sourceKind": "review",
+      "contentCell": "G10!E262",
+      "outputId": "r23-g10-discover-r262",
+      "mode": "classroom",
+      "conceptIds": [
+        "distance",
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r263",
+      "week": 29,
+      "period": 206,
+      "sourceKind": "review",
+      "contentCell": "G10!E263",
+      "outputId": "r23-g10-discover-r263",
+      "mode": "classroom",
+      "conceptIds": [
+        "circlepoints",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r264",
+      "week": 29,
+      "period": 207,
+      "sourceKind": "elective",
+      "contentCell": "G10!E264",
+      "outputId": "r23-g10-discover-r264",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "supplement",
+        "circlepoints"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r265",
+      "week": 29,
+      "period": 208,
+      "sourceKind": "elective",
+      "contentCell": "G10!E265",
+      "outputId": "r23-g10-discover-r265",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "cosine",
+        "monotonic"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r266",
+      "week": 30,
+      "period": 209,
+      "sourceKind": "review",
+      "contentCell": "G10!E266",
+      "outputId": "r23-g10-discover-r266",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph",
+        "quadapplication"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r267",
+      "week": 30,
+      "period": 210,
+      "sourceKind": "review",
+      "contentCell": "G10!E267",
+      "outputId": "r23-g10-discover-r267",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadsign",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r268",
+      "week": 30,
+      "period": 211,
+      "sourceKind": "review",
+      "contentCell": "G10!E268:E269",
+      "outputId": "r23-g10-discover-r268",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r270",
+      "week": 30,
+      "period": 212,
+      "sourceKind": "review",
+      "contentCell": "G10!E270",
+      "outputId": "r23-g10-discover-r270",
+      "mode": "classroom",
+      "conceptIds": [
+        "linegeneral",
+        "lineparam"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r271",
+      "week": 30,
+      "period": 213,
+      "sourceKind": "review",
+      "contentCell": "G10!E271",
+      "outputId": "r23-g10-discover-r271",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineangle",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r272",
+      "week": 30,
+      "period": 214,
+      "sourceKind": "review",
+      "contentCell": "G10!E272",
+      "outputId": "r23-g10-discover-r272",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r273",
+      "week": 30,
+      "period": 215,
+      "sourceKind": "elective",
+      "contentCell": "G10!E273",
+      "outputId": "r23-g10-discover-r273",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "sine",
+        "quadconcept"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r274",
+      "week": 30,
+      "period": 216,
+      "sourceKind": "elective",
+      "contentCell": "G10!E274",
+      "outputId": "r23-g10-discover-r274",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "areaSin",
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r275",
+      "week": 31,
+      "period": 217,
+      "sourceKind": "review",
+      "contentCell": "G10!E275",
+      "outputId": "r23-g10-discover-r275",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadineq",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r276",
+      "week": 31,
+      "period": 218,
+      "sourceKind": "assessment",
+      "contentCell": "G10!E276",
+      "outputId": "r23-g10-hkii-midterm",
+      "mode": "exam",
+      "conceptIds": []
+    },
+    {
+      "sourcePeriodId": "g10-discover-r277",
+      "week": 31,
+      "period": 219,
+      "sourceKind": "assessment",
+      "contentCell": "G10!E277:E278",
+      "outputId": "r23-g10-hkii-midterm",
+      "mode": "exam",
+      "conceptIds": []
+    },
+    {
+      "sourcePeriodId": "g10-discover-r279",
+      "week": 31,
+      "period": 220,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E279",
+      "outputId": "r23-g10-discover-r279",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadineq",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r280",
+      "week": 31,
+      "period": 221,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E280",
+      "outputId": "r23-g10-discover-r280",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r281",
+      "week": 31,
+      "period": 222,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E281",
+      "outputId": "r23-g10-discover-r281",
+      "mode": "classroom",
+      "conceptIds": [
+        "ellipse",
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r282",
+      "week": 31,
+      "period": 223,
+      "sourceKind": "elective",
+      "contentCell": "G10!E282",
+      "outputId": "r23-g10-discover-r282",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "heron",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r283",
+      "week": 31,
+      "period": 224,
+      "sourceKind": "elective",
+      "contentCell": "G10!E283",
+      "outputId": "r23-g10-discover-r283",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "vectorIntro",
+        "radicalequal"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r284",
+      "week": 32,
+      "period": 225,
+      "sourceKind": "core",
+      "contentCell": "G10!E284",
+      "outputId": "r23-g10-discover-r284",
+      "mode": "classroom",
+      "conceptIds": [
+        "addition"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r285",
+      "week": 32,
+      "period": 226,
+      "sourceKind": "core",
+      "contentCell": "G10!E285",
+      "outputId": "r23-g10-discover-r285",
+      "mode": "classroom",
+      "conceptIds": [
+        "multiplication"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r286",
+      "week": 32,
+      "period": 227,
+      "sourceKind": "core",
+      "contentCell": "G10!E286",
+      "outputId": "r23-g10-discover-r286",
+      "mode": "classroom",
+      "conceptIds": [
+        "mixedcount"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r287",
+      "week": 32,
+      "period": 228,
+      "sourceKind": "core",
+      "contentCell": "G10!E287",
+      "outputId": "r23-g10-discover-r287",
+      "mode": "classroom",
+      "conceptIds": [
+        "permutation"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r288",
+      "week": 32,
+      "period": 229,
+      "sourceKind": "core",
+      "contentCell": "G10!E288",
+      "outputId": "r23-g10-discover-r288",
+      "mode": "classroom",
+      "conceptIds": [
+        "arrangement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r289",
+      "week": 32,
+      "period": 230,
+      "sourceKind": "core",
+      "contentCell": "G10!E289:E290",
+      "outputId": "r23-g10-discover-r289",
+      "mode": "classroom",
+      "conceptIds": [
+        "permutation",
+        "arrangement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r291",
+      "week": 32,
+      "period": 231,
+      "sourceKind": "elective",
+      "contentCell": "G10!E291",
+      "outputId": "r23-g10-discover-r291",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "vectorSum",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r292",
+      "week": 32,
+      "period": 232,
+      "sourceKind": "elective",
+      "contentCell": "G10!E292",
+      "outputId": "r23-g10-discover-r292",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "vectorDifference",
+        "function"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r293",
+      "week": 33,
+      "period": 233,
+      "sourceKind": "core",
+      "contentCell": "G10!E293",
+      "outputId": "r23-g10-discover-r293",
+      "mode": "classroom",
+      "conceptIds": [
+        "combination"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r294",
+      "week": 33,
+      "period": 234,
+      "sourceKind": "core",
+      "contentCell": "G10!E294",
+      "outputId": "r23-g10-discover-r294",
+      "mode": "classroom",
+      "conceptIds": [
+        "arrangement",
+        "combination"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r295",
+      "week": 33,
+      "period": 235,
+      "sourceKind": "core",
+      "contentCell": "G10!E295",
+      "outputId": "r23-g10-discover-r295",
+      "mode": "classroom",
+      "conceptIds": [
+        "newton4"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r296",
+      "week": 33,
+      "period": 236,
+      "sourceKind": "core",
+      "contentCell": "G10!E296",
+      "outputId": "r23-g10-discover-r296",
+      "mode": "classroom",
+      "conceptIds": [
+        "newton5"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r297",
+      "week": 33,
+      "period": 237,
+      "sourceKind": "core",
+      "contentCell": "G10!E297",
+      "outputId": "r23-g10-discover-r297",
+      "mode": "classroom",
+      "conceptIds": [
+        "newton4",
+        "newton5"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r298",
+      "week": 33,
+      "period": 238,
+      "sourceKind": "review",
+      "contentCell": "G10!E298:E299",
+      "outputId": "r23-g10-discover-r298",
+      "mode": "classroom",
+      "conceptIds": [
+        "combination",
+        "newton5"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r300",
+      "week": 33,
+      "period": 239,
+      "sourceKind": "elective",
+      "contentCell": "G10!E300",
+      "outputId": "r23-g10-discover-r300",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "vectorScale",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r301",
+      "week": 33,
+      "period": 240,
+      "sourceKind": "elective",
+      "contentCell": "G10!E301",
+      "outputId": "r23-g10-discover-r301",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "coordinates",
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r302",
+      "week": 34,
+      "period": 241,
+      "sourceKind": "core",
+      "contentCell": "G10!E302",
+      "outputId": "r23-g10-discover-r302",
+      "mode": "classroom",
+      "conceptIds": [
+        "samplespace"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r303",
+      "week": 34,
+      "period": 242,
+      "sourceKind": "core",
+      "contentCell": "G10!E303",
+      "outputId": "r23-g10-discover-r303",
+      "mode": "classroom",
+      "conceptIds": [
+        "probability"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r304",
+      "week": 34,
+      "period": 243,
+      "sourceKind": "core",
+      "contentCell": "G10!E304",
+      "outputId": "r23-g10-discover-r304",
+      "mode": "classroom",
+      "conceptIds": [
+        "probability"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r305",
+      "week": 34,
+      "period": 244,
+      "sourceKind": "core",
+      "contentCell": "G10!E305",
+      "outputId": "r23-g10-discover-r305",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r306",
+      "week": 34,
+      "period": 245,
+      "sourceKind": "core",
+      "contentCell": "G10!E306",
+      "outputId": "r23-g10-discover-r306",
+      "mode": "classroom",
+      "conceptIds": [
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r307",
+      "week": 34,
+      "period": 246,
+      "sourceKind": "core",
+      "contentCell": "G10!E307:E308",
+      "outputId": "r23-g10-discover-r307",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob",
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r309",
+      "week": 34,
+      "period": 247,
+      "sourceKind": "elective",
+      "contentCell": "G10!E309",
+      "outputId": "r23-g10-discover-r309",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "coordinateMidpoint",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r310",
+      "week": 34,
+      "period": 248,
+      "sourceKind": "elective",
+      "contentCell": "G10!E310",
+      "outputId": "r23-g10-discover-r310",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "approximation",
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r311",
+      "week": 35,
+      "period": 249,
+      "sourceKind": "review",
+      "contentCell": "G10!E311",
+      "outputId": "r23-g10-discover-r311",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob",
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r312",
+      "week": 35,
+      "period": 250,
+      "sourceKind": "review",
+      "contentCell": "G10!E312",
+      "outputId": "r23-g10-discover-r312",
+      "mode": "classroom",
+      "conceptIds": [
+        "mixedcount",
+        "combination"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r313",
+      "week": 35,
+      "period": 251,
+      "sourceKind": "review",
+      "contentCell": "G10!E313",
+      "outputId": "r23-g10-discover-r313",
+      "mode": "classroom",
+      "conceptIds": [
+        "newton4",
+        "probability"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r314",
+      "week": 35,
+      "period": 252,
+      "sourceKind": "review",
+      "contentCell": "G10!E314",
+      "outputId": "r23-g10-discover-r314",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineconvert",
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r315",
+      "week": 35,
+      "period": 253,
+      "sourceKind": "review",
+      "contentCell": "G10!E315",
+      "outputId": "r23-g10-discover-r315",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineangle",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r316",
+      "week": 35,
+      "period": 254,
+      "sourceKind": "review",
+      "contentCell": "G10!E316:E317",
+      "outputId": "r23-g10-discover-r316",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r320",
+      "week": 36,
+      "period": 255,
+      "sourceKind": "review",
+      "contentCell": "G10!E320",
+      "outputId": "r23-g10-discover-r320",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph",
+        "quadineq"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r321",
+      "week": 36,
+      "period": 259,
+      "sourceKind": "review",
+      "contentCell": "G10!E321",
+      "outputId": "r23-g10-discover-r321",
+      "mode": "classroom",
+      "conceptIds": [
+        "radicalequal",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r322",
+      "week": 36,
+      "period": 260,
+      "sourceKind": "review",
+      "contentCell": "G10!E322",
+      "outputId": "r23-g10-discover-r322",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob",
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r323",
+      "week": 36,
+      "period": 261,
+      "sourceKind": "review",
+      "contentCell": "G10!E323",
+      "outputId": "r23-g10-discover-r323",
+      "mode": "classroom",
+      "conceptIds": [
+        "lineparam",
+        "linerelative"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r324",
+      "week": 36,
+      "period": 262,
+      "sourceKind": "review",
+      "contentCell": "G10!E324",
+      "outputId": "r23-g10-discover-r324",
+      "mode": "classroom",
+      "conceptIds": [
+        "distance",
+        "circlepoints"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r325",
+      "week": 36,
+      "period": 263,
+      "sourceKind": "review",
+      "contentCell": "G10!E325:E326",
+      "outputId": "r23-g10-discover-r325",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r327",
+      "week": 36,
+      "period": 264,
+      "sourceKind": "elective",
+      "contentCell": "G10!E327",
+      "outputId": "r23-g10-discover-r327",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "quartileMode",
+        "distance"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r328",
+      "week": 36,
+      "period": 265,
+      "sourceKind": "elective",
+      "contentCell": "G10!E328",
+      "outputId": "r23-g10-discover-r328",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "mode",
+        "radicalequal"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r329",
+      "week": 37,
+      "period": 266,
+      "sourceKind": "review",
+      "contentCell": "G10!E329",
+      "outputId": "r23-g10-discover-r329",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadapplication",
+        "combination"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r330",
+      "week": 37,
+      "period": 267,
+      "sourceKind": "review",
+      "contentCell": "G10!E330",
+      "outputId": "r23-g10-discover-r330",
+      "mode": "classroom",
+      "conceptIds": [
+        "newton5",
+        "probability"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r331",
+      "week": 37,
+      "period": 268,
+      "sourceKind": "review",
+      "contentCell": "G10!E331",
+      "outputId": "r23-g10-discover-r331",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob",
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r332",
+      "week": 37,
+      "period": 269,
+      "sourceKind": "review",
+      "contentCell": "G10!E332:E333",
+      "outputId": "r23-g10-discover-r332",
+      "mode": "classroom",
+      "conceptIds": [
+        "tangent",
+        "ellipse"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r334",
+      "week": 37,
+      "period": 270,
+      "sourceKind": "assessment",
+      "contentCell": "G10!E334",
+      "outputId": "r23-g10-hkii-final",
+      "mode": "exam",
+      "conceptIds": []
+    },
+    {
+      "sourcePeriodId": "g10-discover-r335",
+      "week": 37,
+      "period": 271,
+      "sourceKind": "assessment",
+      "contentCell": "G10!E335",
+      "outputId": "r23-g10-hkii-final",
+      "mode": "exam",
+      "conceptIds": []
+    },
+    {
+      "sourcePeriodId": "g10-discover-r336",
+      "week": 37,
+      "period": 272,
+      "sourceKind": "elective",
+      "contentCell": "G10!E336",
+      "outputId": "r23-g10-discover-r336",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "spread",
+        "radicallinear"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r337",
+      "week": 37,
+      "period": 273,
+      "sourceKind": "elective",
+      "contentCell": "G10!E337",
+      "outputId": "r23-g10-discover-r337",
+      "mode": "cumulative_game",
+      "conceptIds": [
+        "variance",
+        "addition"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r338",
+      "week": 38,
+      "period": 274,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E338",
+      "outputId": "r23-g10-discover-r338",
+      "mode": "classroom",
+      "conceptIds": [
+        "combprob",
+        "complement"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r339",
+      "week": 38,
+      "period": 275,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E339:E340",
+      "outputId": "r23-g10-discover-r339",
+      "mode": "classroom",
+      "conceptIds": [
+        "quadgraph",
+        "tangent"
+      ]
+    },
+    {
+      "sourcePeriodId": "g10-discover-r341",
+      "week": 38,
+      "period": 276,
+      "sourceKind": "assessment_feedback",
+      "contentCell": "G10!E341",
+      "outputId": "r23-g10-discover-r341",
+      "mode": "classroom",
+      "conceptIds": [
+        "combination",
+        "newton5"
+      ]
+    }
+  ]
+}

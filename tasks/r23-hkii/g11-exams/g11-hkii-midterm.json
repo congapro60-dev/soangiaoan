@@ -1,0 +1,137 @@
+{
+  "title": "Toán 11 Discover - Kiểm tra giữa học kỳ II",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": true,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Cho $f(x)=(\\frac{1}{3})^{x-13}$. Chọn tập xác định và chiều biến thiên đúng.\nb) Hàm $y=\\log_{\\frac{1}{5}}(x-4)$ có tập xác định và chiều biến thiên nào?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Số mũ $x-13$ nhận mọi số thực, nên $D=\\mathbb R$. Cơ số nằm giữa $0$ và $1$, nên hàm nghịch biến.\nb) Cần $x-4>0$, tức $x>4$. Hàm nghịch biến trên miền này vì cơ số nằm giữa $0$ và $1$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Phác đồ thị $y=2^{x-4}+3$ trong vở. Tính giá trị tại $x=3,4,5$; nêu chiều biến thiên và đường thẳng mà đồ thị tiến gần khi $x\\to-\\infty$.\nb) Với $y=\\log_3(x-8)+1$, xác định miền, ba điểm ứng với $x-8=1/3,1,3$, rồi phác đồ thị. Nêu đường thẳng đồ thị tiến gần khi $x\\to8^+$.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Ba tung độ lần lượt $\\frac{1}{2}+3$, $4$, $5$. Hàm đồng biến trên $\\mathbb R$; khi $x\\to-\\infty$, $y\\to3$ và luôn $y>3$. Đường thẳng cần nêu là $y=3$.\nb) Miền $x>8$. Ba điểm $(8+1/3;0)$, $(9;1)$, $(11;2)$. Hàm đồng biến; $y\\to-\\infty$ khi $x\\to8^+$, nên đường giới hạn là $x=8$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba điểm đúng; hình vẽ tăng và nằm trên đường giới hạn. Giải thích bằng cơ số và giá trị của lũy thừa.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Miền và ba điểm đúng. Đồ thị tăng, không chạm đường biên; mô tả giới hạn một phía đúng."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Giải $5^{2x+4}=5^{20}$. Nhập nghiệm $x$; trong vở giải thích phép so số mũ.\nb) Giải $\\log_2(2x-16)=3$. Nhập nghiệm $x$, ghi điều kiện trong vở.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Cơ số $5>1$, nên $2x+4=20$, suy ra $x=8$. Thế lại cho hai số mũ bằng nhau.\nb) Điều kiện $2x-16>0$. Theo định nghĩa, đối số bằng $2^{3}=8$, nên $x=12$; đối số tại nghiệm dương.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Giải $(\\frac{1}{2})^{2x+1}<(\\frac{1}{2})^{25}$.\nb) Giải $\\log_{\\frac{1}{5}}(x-3)<1$. Viết tập nghiệm, kiểm một điểm thuộc tập nghiệm.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Hàm mũ nghịch biến, nên $2x+1>25$. Tập nghiệm: $x>12$.\nb) Điều kiện $x>3$. Vì cơ số $1/5<1$, cần $x-3>1/5$. Tập nghiệm $(3+1/5;+\\infty)$. Điểm $x=4$ thuộc tập nghiệm vì lôgarit bằng $0<1$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Điều kiện xác định đúng. Chiều bất đẳng thức và giao miền đúng. Điểm kiểm thuộc miền và thỏa bất phương trình."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Chọn đều một thẻ trong $1,2,\\ldots,16$. $A$: số chẵn; $B$: số không vượt quá $6$. Tìm số phần tử của $A\\cup B$; liệt kê tập trong vở.\nb) Gieo một đồng xu cân đối và chọn độc lập một thẻ trong $1,\\ldots,15$. $A$: xu ngửa; $B$: số trên thẻ không quá $2$. Tính $P(A),P(B),P(A\\cap B)$, kiểm tra độc lập. Có thể gọi $A,B$ là xung khắc không?",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Tập cần tìm là $\\{2;4;6;8;10;12;14;16;1;3;5\\}$, có $11$ phần tử. Hợp chứa phần tử thuộc ít nhất một tập, không đếm trùng.\nb) $P(A)=1/2$, $P(B)=\\frac{2}{15}$. Có $2$ kết quả thuận lợi cho giao trong $30$ cặp, nên $P(A\\cap B)=\\frac{2}{30}=P(A)P(B)$. Chúng độc lập, không xung khắc vì giao có xác suất dương.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba xác suất đúng. Kiểm đẳng thức độc lập; phân biệt xung khắc bằng giao."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Hộp có $6$ bóng đỏ, $5$ bóng xanh, $5$ bóng vàng như nhau về kích thước. Rút ngẫu nhiên một bóng. Tính xác suất bóng đỏ hoặc xanh.\nb) Một nhóm giả định có $27$ học sinh: $8$ em chỉ thích cờ vua, $8$ em chỉ thích bóng bàn, $5$ em thích cả hai, còn lại không thích môn nào. Chọn đều một em. Tính xác suất em đó thích ít nhất một trong hai môn.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Hai màu xung khắc trong một lần rút. Xác suất $\\frac{6}{16}+\\frac{5}{16}=\\frac{11}{16}$.\nb) $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)=(13+13-5)/27=\\frac{21}{27}$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm."
+    },
+    {
+      "id": "q7",
+      "section": "I",
+      "label": "Câu 7",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Hai hộp độc lập: hộp I có $5$ thẻ đỏ trong $11$ thẻ, hộp II có $3$ thẻ đỏ trong $11$ thẻ. Rút ngẫu nhiên một thẻ từ mỗi hộp. Tính xác suất cả hai đều đỏ.\nb) Hai học sinh làm độc lập một nhiệm vụ; mô hình cho xác suất hoàn thành lần lượt $\\frac{3}{10}$ và $\\frac{6}{10}$. Tính xác suất đúng một em hoàn thành.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Hai phép rút độc lập nên xác suất $\\frac{5}{11}\\cdot\\frac{3}{11}=\\frac{15}{121}$.\nb) Hai trường hợp xung khắc có xác suất $\\frac{3}{10}(1-\\frac{6}{10})$ và $(1-\\frac{3}{10})\\frac{6}{10}$. Tổng bằng $\\frac{54}{100}$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm."
+    },
+    {
+      "id": "q8",
+      "section": "I",
+      "label": "Câu 8",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Qua $O$ dựng $a'\\parallel a$, $b'\\parallel b$. Một góc tạo bởi $a',b'$ bằng $153^\\circ$. Tìm góc giữa $a,b$ theo độ; nêu vì sao vị trí chéo nhau của $a,b$ không cản trở cách làm.\nb) Hình hộp chữ nhật $ABCD.A'B'C'D'$ có $AB=6$ cm, $AD=6$ cm. Chứng minh $AB\\perp B'C'$ và nêu chúng cắt nhau hay chéo nhau. ",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) Hai góc kề bù là $153^\\circ$ và $27^\\circ$. Góc giữa hai đường lấy giá trị không lớn hơn $90^\\circ$, bằng $27^\\circ$.\nb) $B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chỉ đúng cặp song song và góc vuông ở đáy. Phân biệt cắt nhau và chéo nhau; không dựa vào hình vẽ phối cảnh."
+    },
+    {
+      "id": "q9",
+      "section": "I",
+      "label": "Câu 9",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Cho $SA\\perp AB$, $SA\\perp AD$, với $ABCD$ là hình chữ nhật, $AB=6$ cm, $AD=2$ cm, $S$ ngoài $(ABCD)$. Chứng minh $SA\\perp(ABCD)$ rồi suy ra $SA\\perp BD$. \nb) Cho hình chóp $S.ABC$ với $SA\\perp(ABC)$, $AB=10$ cm và $SA=4$ cm. Xác định hình chiếu của $S$, $B$ và $SB$ lên $(ABC)$. Tính độ dài hình chiếu của $SB$. ",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) $AB,AD$ thuộc $(ABCD)$ và cắt nhau tại $A$. $SA$ vuông góc cả hai nên $SA\\perp(ABCD)$. Vì $BD$ nằm trong mặt phẳng đó, $SA\\perp BD$. Vuông góc một đường chưa xác định được hướng pháp tuyến của cả mặt phẳng.\nb) Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $10$ cm. $SB=\\sqrt{116}>10$ cm do tam giác $SAB$ vuông tại $A$.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai đường kiểm tra thuộc mặt phẳng và cắt nhau. Dẫn định lý đúng rồi suy ra quan hệ với đường còn lại.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba hình chiếu chính xác. Độ dài và đơn vị đúng; giải thích so sánh nếu được yêu cầu."
+    },
+    {
+      "id": "q10",
+      "section": "I",
+      "label": "Câu 10",
+      "type": "essay",
+      "points": 1,
+      "text": "a) Cho $SA\\perp(ABCD)$, đáy $ABCD$ là hình chữ nhật với $AB=10$ cm, $AD=5$ cm. Chứng minh $(SAB)\\perp(ABCD)$. Chứng minh thêm $(SAD)\\perp(SAB)$.\nb) Hai nửa mặt phẳng tạo góc nhị diện cạnh $d$. Mặt phẳng vuông góc $d$ cắt chúng theo hai tia $Ox,Oy$ với $\\widehat{xOy}=145^\\circ$. Tìm số đo góc nhị diện và góc giữa hai mặt phẳng chứa hai mặt của nó.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "a) $SA\\subset(SAB)$ và $SA\\perp(ABCD)$ nên $(SAB)\\perp(ABCD)$. Với kết luận thêm: $AD\\perp AB$, $AD\\perp SA$, do đó $AD\\perp(SAB)$; $AD\\subset(SAD)$ suy ra $(SAD)\\perp(SAB)$.\nb) Góc nhị diện có số đo $145^\\circ$ theo đúng hai tia đã chọn. Góc giữa hai mặt phẳng là góc không tù $180^\\circ-145^\\circ=35^\\circ$. Hai khái niệm không được thay thế tùy ý.",
+      "rubric": "a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chỉ đúng quan hệ chứa. Chứng minh đường vuông góc mặt phẳng với đủ giả thiết; kết luận đúng.\nb) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai số đo đúng với đúng tên gọi. Giải thích vì sao có thể khác nhau."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 12 Discover - Kiểm tra cuối học kỳ II
+
+Câu 1 (0.5 điểm): Trong $13$ em thích sách có $9$ em học ngoại ngữ; $P=9/13$.
+
+Câu 2 (0.5 điểm): $P(I\mid\text{Đ})=\dfrac{\frac12\frac{3}{11}}{\frac12\frac{3}{11}+\frac12\frac{6}{11}}=\frac{33}{99}$.
+
+Câu 3 (0.5 điểm): Cho tham số $t=2$ được $x=1+4$, $y=7-2$, $z=9+6$, tức $(5;5;15)$. Hai điểm còn lại không có cùng tham số ở ba tọa độ.
+
+Câu 4 (0.5 điểm): Chia phương trình Q cho $3$. Ba hệ số đầu trùng với P; hằng số cũng trùng nên trùng nhau.
+
+Câu 5 (0.5 điểm): Hoàn thành bình phương được tâm $(3;6;7)$, $R^2=9+36+49-58=36$.
+
+Câu 6 (0.5 điểm): Tích vô hướng bằng $1$, bình phương mỗi độ dài bằng $2$. Vì vậy $\cos^2\theta=1/4$.
+
+Câu 7 (0.75 điểm): $P(\text{Đ})=\frac12\frac{3}{10}+\frac12\frac{7}{11}$. Không được gộp toàn bộ viên của hai hộp vì cơ chế chọn bắt đầu bằng chọn hộp.
+
+Câu 8 (0.75 điểm): Thế vào P: $2(6+t)-(8+2t)+(1+3t)-11=0$. Suy ra $3t=6$, $t=2$.
+
+Câu 9 (0.75 điểm): $d=\frac{|3\cdot3+4\cdot2-4|}{\sqrt{3^2+4^2}}=\frac{13}5$.
+
+Câu 10 (0.75 điểm): $R=d(I,P)=\frac{|3\cdot7+4\cdot4-1|}5=\frac{36}5>0$.
+
+Câu 11 (2 điểm): Chỉ phương $(1;0;0)$ và $(0;1;0)$ không cùng phương. Hai tọa độ đầu cho $t=6,s=-3$; tọa độ thứ ba mâu thuẫn nên không có giao điểm.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.
+
+Câu 12 (2 điểm): Trung điểm $I(6;4;3)$. $R^2=AB^2/4=22$. Phương trình $(x-6)^2+(y-4)^2+(z-3)^2=22$. Thay A: $2^2+3^2+3^2=22$, đúng.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.

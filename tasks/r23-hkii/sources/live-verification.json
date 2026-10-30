@@ -1,0 +1,29 @@
+[
+  {
+    "grade": 10,
+    "title": "DIs_Toán 10 Kế-hoạch-học-phần-II năm 24-25-final.docx",
+    "url": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+    "liveFile": "tasks/r23-hkii/sources/g10-unit2-live.txt",
+    "existingCitationFile": "tasks/r22/sources/g10-unit2.txt",
+    "sha256": "3c025bf880b0be990a1f1a464d914701d2fd6d0c1b145a11788155cd3e89442f",
+    "matchesExistingExtraction": true
+  },
+  {
+    "grade": 11,
+    "title": "Dis_Toán 11 Kế-hoạch-học-phần-II năm 25-26.docx",
+    "url": "https://drive.google.com/file/d/1PpR5FxuAkWjW-583Z21FMoxnn6YFFAXS/view",
+    "liveFile": "tasks/r23-hkii/sources/g11-unit2-live.txt",
+    "existingCitationFile": "tasks/r22/sources/g11-unit2.txt",
+    "sha256": "26a74710ce029d672b2c7c24db5891fefee1b4d71c5a7a7a8999d8a3e3c2a96d",
+    "matchesExistingExtraction": true
+  },
+  {
+    "grade": 12,
+    "title": "Dis_Toán 12 Kế-hoạch-học-phần-II năm 24-25.docx",
+    "url": "https://drive.google.com/file/d/1FK2yr85WuqKOlfvd-BvWXkyN_b8aw8rA/view",
+    "liveFile": "tasks/r23-hkii/sources/g12-unit2-live.txt",
+    "existingCitationFile": "tasks/r22/sources/g12-unit2.txt",
+    "sha256": "7048aa270bab75aefb402182d5cffe4cc8aa3b564fe366913ee76a312e73feb2",
+    "matchesExistingExtraction": true
+  }
+]

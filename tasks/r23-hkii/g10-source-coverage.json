@@ -1,0 +1,3190 @@
+{
+  "grade": 10,
+  "sourcePolicy": "Older unit objectives support applicable concepts only; current PPCT controls periods, details and scope. Remaining objectives are author-derived, not official YCCD.",
+  "concepts": [
+    {
+      "conceptId": "sets",
+      "title": "Giao, hợp và hiệu hai tập hữu hạn",
+      "automaticTarget": "Đếm số phần tử giao của hai tập hữu hạn cho bằng danh sách.",
+      "introducedBy": "g10-discover-r028",
+      "week": 3,
+      "contentCell": "G10!E28:E29",
+      "sourceDetail": "Tiết 4: Các phép toán trên tập hợp\nSets and operations on sets\nP4: Operations on sets",
+      "sourceLOId": "r22-g10-u1-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm vững khái niệm các loại mệnh đề, tập hợp; hiểu quy tắc các phép toán trên tập hợp. "
+      }
+    },
+    {
+      "conceptId": "mean",
+      "title": "Trung bình và trung vị",
+      "automaticTarget": "Tính trung bình cộng của một mẫu hữu hạn, giữ mọi lần lặp.",
+      "introducedBy": "g10-discover-r101",
+      "week": 11,
+      "contentCell": "G10!E101:E102",
+      "sourceDetail": "Tiết 1: Số trung bình và trung vị\nMeasures of central tendency\nP1: Averages and medians",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "dot",
+      "title": "Tích vô hướng theo tọa độ",
+      "automaticTarget": "Tính tích vô hướng theo tọa độ của hai vectơ.",
+      "introducedBy": "g10-discover-r130",
+      "week": 14,
+      "contentCell": "G10!E130",
+      "sourceDetail": "Tiết 3: Biểu thức tọa độ và tính chất của tích vô hướng\nPractice: Scalar product of two vectors",
+      "sourceLOId": "r22-g10-u2-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 15,
+          "lineEnd": 15,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nhận biết được tích của một vectơ với một số, tích vô hướng của hai vectơ."
+      }
+    },
+    {
+      "conceptId": "proposition",
+      "title": "Mệnh đề",
+      "automaticTarget": "Nhận biết câu có giá trị đúng hoặc sai xác định.",
+      "introducedBy": "g10-discover-r008",
+      "week": 1,
+      "contentCell": "G10!E8",
+      "sourceDetail": "Tiết 1: Mệnh đề, mệnh đề chứa biến, mệnh đề phủ định\nPropositions\nP1: Propositions, propositional variables, negation",
+      "sourceLOId": "r22-g10-u1-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm vững khái niệm các loại mệnh đề, tập hợp; hiểu quy tắc các phép toán trên tập hợp. "
+      }
+    },
+    {
+      "conceptId": "implication",
+      "title": "Kéo theo và phản ví dụ",
+      "automaticTarget": "Tìm phản ví dụ nguyên dương cho một mệnh đề kéo theo sai.",
+      "introducedBy": "g10-discover-r009",
+      "week": 1,
+      "contentCell": "G10!E9",
+      "sourceDetail": "Tiết 2: Mệnh đề kéo theo, mệnh đề đảo\nPropositions (cont.)\nP2. Implication/If-then, converse, (if and only if)",
+      "sourceLOId": "r22-g10-u1-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm vững khái niệm các loại mệnh đề, tập hợp; hiểu quy tắc các phép toán trên tập hợp. "
+      }
+    },
+    {
+      "conceptId": "quantifier",
+      "title": "Phủ định lượng từ",
+      "automaticTarget": "Chọn đúng phủ định của mệnh đề có lượng từ với mọi.",
+      "introducedBy": "g10-discover-r017",
+      "week": 2,
+      "contentCell": "G10!E17",
+      "sourceDetail": "Tiết 3: Mệnh đề tương đương, mệnh đề có chứa kí hiệu mọi, tồn tại\nPropositions (cont.)\nP3. Equivalent clauses, Propositions with symbol ∀ (means “for all” or “for any”) and ∃ (means “there exists”)",
+      "sourceLOId": "r22-g10-u1-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm vững khái niệm các loại mệnh đề, tập hợp; hiểu quy tắc các phép toán trên tập hợp. "
+      }
+    },
+    {
+      "conceptId": "numberSets",
+      "title": "Tập số và khoảng",
+      "automaticTarget": "Đếm số nguyên thuộc một khoảng hoặc đoạn có đầu mút xác định.",
+      "introducedBy": "g10-discover-r026",
+      "week": 3,
+      "contentCell": "G10!E26",
+      "sourceDetail": "Tiết 2: Các tập hợp số\nSets and operations on sets\nP2: Sets of numbers",
+      "sourceLOId": "r22-g10-u1-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm vững khái niệm các loại mệnh đề, tập hợp; hiểu quy tắc các phép toán trên tập hợp. "
+      }
+    },
+    {
+      "conceptId": "inequality",
+      "title": "Bất phương trình hai ẩn",
+      "automaticTarget": "Kiểm tra cặp tọa độ thỏa bất phương trình bậc nhất hai ẩn.",
+      "introducedBy": "g10-discover-r045",
+      "week": 5,
+      "contentCell": "G10!E45",
+      "sourceDetail": "Tiết 1: BPT bậc nhất hai ẩn\nFirst degree inequations in two variables\nP1: First degree inequations in two variables",
+      "sourceLOId": "r22-g10-u1-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 18,
+          "lineEnd": 18,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được khái niệm và biết cách biểu diễn tập nghiệm của bất phương trình và hệ bất phương trình hai ẩn trên mặt phẳng tọa độ."
+      }
+    },
+    {
+      "conceptId": "halfplane",
+      "title": "Nửa mặt phẳng nghiệm",
+      "automaticTarget": "Xác định phía của đường biên bằng điểm thử.",
+      "introducedBy": "g10-discover-r046",
+      "week": 5,
+      "contentCell": "G10!E46",
+      "sourceDetail": "Tiết 2: Biểu diễn miền nghiệm của BPT bậc nhất 2 ẩn\nFirst degree inequations in two variables (cont)\nP2:Practice: First degree inequations in two variables",
+      "sourceLOId": "r22-g10-u1-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 18,
+          "lineEnd": 18,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được khái niệm và biết cách biểu diễn tập nghiệm của bất phương trình và hệ bất phương trình hai ẩn trên mặt phẳng tọa độ."
+      }
+    },
+    {
+      "conceptId": "system",
+      "title": "Hệ bất phương trình hai ẩn",
+      "automaticTarget": "Đếm các cặp số nguyên không âm thỏa hệ bất phương trình hữu hạn.",
+      "introducedBy": "g10-discover-r047",
+      "week": 5,
+      "contentCell": "G10!E47:E48",
+      "sourceDetail": "Tiết 1: Hệ BPT bậc nhất hai ẩn\nSystems of first degree inequations in two variables",
+      "sourceLOId": "r22-g10-u1-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 18,
+          "lineEnd": 18,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được khái niệm và biết cách biểu diễn tập nghiệm của bất phương trình và hệ bất phương trình hai ẩn trên mặt phẳng tọa độ."
+      }
+    },
+    {
+      "conceptId": "optimize",
+      "title": "Tối ưu tuyến tính",
+      "automaticTarget": "Tìm giá trị lớn nhất của mục tiêu tuyến tính trên một miền tam giác.",
+      "introducedBy": "g10-discover-r055",
+      "week": 6,
+      "contentCell": "G10!E55",
+      "sourceDetail": "Tiết 3: Ứng dụng hệ bất phương trình bậc nhất hai ẩn\nSystems of first degree inequations in two variables\nP3: Applying systems of first degree inequations in two variables",
+      "sourceLOId": "r22-g10-u1-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 18,
+          "lineEnd": 18,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được khái niệm và biết cách biểu diễn tập nghiệm của bất phương trình và hệ bất phương trình hai ẩn trên mặt phẳng tọa độ."
+      }
+    },
+    {
+      "conceptId": "trigValue",
+      "title": "Giá trị lượng giác",
+      "automaticTarget": "Đọc giá trị sin từ điểm trên nửa đường tròn đơn vị.",
+      "introducedBy": "g10-discover-r011",
+      "week": 1,
+      "contentCell": "G10!E11:E13",
+      "sourceDetail": "Tiết 1: Giá trị lượng giác của một góc từ 0 đền 180 độ\nThe trigonometric value of an angle from 0 to 180\nP1: The trigonometric value of angle",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "supplement",
+      "title": "Góc bù",
+      "automaticTarget": "Tính cos của góc bù khi biết cos của góc ban đầu.",
+      "introducedBy": "g10-discover-r021",
+      "week": 2,
+      "contentCell": "G10!E21",
+      "sourceDetail": "Tiết 2: Mối quan hệ giữa các giá trị lượng giác của hai góc bù nhau.\nThe trigonometric value of an angle from 0 to 180o (cont.)\nP2. The relationship between the trigonometric values of supplementary angles & complementary angles",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "cosine",
+      "title": "Định lí cosin",
+      "automaticTarget": "Tính bình phương một cạnh từ hai cạnh và góc xen giữa.",
+      "introducedBy": "g10-discover-r030",
+      "week": 3,
+      "contentCell": "G10!E30",
+      "sourceDetail": "Tiết 1: Định lý cosin\nThe trigonometric value of an angle from 0 to 180o (cont.)\nP5 .Practice: The trigonometric value of an angle from 0 to 180o",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "sine",
+      "title": "Định lí sin",
+      "automaticTarget": "Tính bán kính ngoại tiếp từ cạnh và góc đối diện.",
+      "introducedBy": "g10-discover-r040",
+      "week": 4,
+      "contentCell": "G10!E40",
+      "sourceDetail": "Tiết 3: Định lý sin",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "areaSin",
+      "title": "Diện tích qua góc xen giữa",
+      "automaticTarget": "Tính diện tích tam giác từ hai cạnh và góc xen giữa.",
+      "introducedBy": "g10-discover-r042",
+      "week": 4,
+      "contentCell": "G10!E42",
+      "sourceDetail": "Tiết 5: Công thức tính diện tích tam giác",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "heron",
+      "title": "Diện tích Heron",
+      "automaticTarget": "Tính diện tích tam giác từ ba cạnh bằng Heron.",
+      "introducedBy": "g10-discover-r049",
+      "week": 5,
+      "contentCell": "G10!E49",
+      "sourceDetail": "Tiết 6: Công thức tính diện tích tam giác",
+      "sourceLOId": "r22-g10-u1-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nắm được giá trị lượng giác của một góc từ 00 đến 1800, nắm được công thức và sử dụng hệ thức lượng trong tam giác vào giải quyết một số bài toán trong đo đạc. "
+      }
+    },
+    {
+      "conceptId": "vectorIntro",
+      "title": "Nhận biết vectơ",
+      "automaticTarget": "Nhận biết hai vectơ bằng nhau trong hình chữ nhật.",
+      "introducedBy": "g10-discover-r067",
+      "week": 7,
+      "contentCell": "G10!E67",
+      "sourceDetail": "Tiết 1: Khái niệm vectơ. Hai vectơ cùng phương, cùng hướng, bằng nhau\nIntro to vectors",
+      "sourceLOId": "r22-g10-u1-lo04",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu được về vector và biết cách tính tổng và hiệu của hai vector."
+      }
+    },
+    {
+      "conceptId": "vectorSum",
+      "title": "Tổng vectơ",
+      "automaticTarget": "Dùng quy tắc ba điểm để rút gọn tổng hai vectơ.",
+      "introducedBy": "g10-discover-r103",
+      "week": 11,
+      "contentCell": "G10!E103",
+      "sourceDetail": "Tiết 1: Tổng của hai vectơ\nSum and difference of two vectors\nP1: Sum of two vectors",
+      "sourceLOId": "r22-g10-u1-lo04",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu được về vector và biết cách tính tổng và hiệu của hai vector."
+      }
+    },
+    {
+      "conceptId": "vectorDifference",
+      "title": "Hiệu vectơ",
+      "automaticTarget": "Rút gọn hiệu hai vectơ có chung điểm đầu.",
+      "introducedBy": "g10-discover-r105",
+      "week": 11,
+      "contentCell": "G10!E105",
+      "sourceDetail": "Tiết 3: Hiệu của hai vectơ\nSum and difference of two vectors (cont.)\nP3: Difference of two vectors",
+      "sourceLOId": "r22-g10-u1-lo04",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit1.txt",
+        "sourceURL": "https://drive.google.com/file/d/1M4GNPsTYjV00XaNOMS07PnaNR0CiXiXt/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu được về vector và biết cách tính tổng và hiệu của hai vector."
+      }
+    },
+    {
+      "conceptId": "vectorScale",
+      "title": "Nhân vectơ với một số",
+      "automaticTarget": "Tính độ dài vectơ sau khi nhân với một số thực.",
+      "introducedBy": "g10-discover-r113",
+      "week": 12,
+      "contentCell": "G10!E113:E114",
+      "sourceDetail": "Tiết 1: Tích của một vectơ với một số, tính chất\nMultiplication of a vector with a number\nP1: Multiplication of a vector with a number",
+      "sourceLOId": "r22-g10-u2-lo01",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 15,
+          "lineEnd": 15,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nhận biết được tích của một vectơ với một số, tích vô hướng của hai vectơ."
+      }
+    },
+    {
+      "conceptId": "coordinates",
+      "title": "Tọa độ vectơ",
+      "automaticTarget": "Tính một tọa độ của biểu thức vectơ theo các thành phần.",
+      "introducedBy": "g10-discover-r121",
+      "week": 13,
+      "contentCell": "G10!E121",
+      "sourceDetail": "Tiết 1: Tọa độ của vectơ, các phép toán vectơ\nVectors on the coordinate plane\nP1: Coordinates of vectors",
+      "sourceLOId": "r22-g10-u2-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 16,
+          "lineEnd": 16,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nhận biết được tọa độ của vectơ và thể hiện các phép toán vectơ theo tọa độ."
+      }
+    },
+    {
+      "conceptId": "coordinateMidpoint",
+      "title": "Trung điểm",
+      "automaticTarget": "Tính hoành độ trung điểm của một đoạn thẳng từ tọa độ hai đầu mút.",
+      "introducedBy": "g10-discover-r123",
+      "week": 13,
+      "contentCell": "G10!E123",
+      "sourceDetail": "Tiết 3: Luyện tập\nVectors on the coordinate plane\nP2: Coordinate expressions of vector operations",
+      "sourceLOId": "r22-g10-u2-lo02",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 16,
+          "lineEnd": 16,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh nhận biết được tọa độ của vectơ và thể hiện các phép toán vectơ theo tọa độ."
+      }
+    },
+    {
+      "conceptId": "approximation",
+      "title": "Sai số tuyệt đối",
+      "automaticTarget": "Tính sai số tuyệt đối khi biết giá trị đúng và số gần đúng.",
+      "introducedBy": "g10-discover-r100",
+      "week": 11,
+      "contentCell": "G10!E100",
+      "sourceDetail": "Tiết 1: Số gần đúng và sai số tuyệt đối, sai số tương đối, Quy tròn số gần đúng\nApproximate numbers and errors\nP1: Approximate numbers; absolute errors & relative errors",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "quartileMode",
+      "title": "Tứ phân vị",
+      "automaticTarget": "Tính Q1 bằng trung vị nửa dưới của mẫu có tám giá trị.",
+      "introducedBy": "g10-discover-r108",
+      "week": 12,
+      "contentCell": "G10!E108",
+      "sourceDetail": "Tiết 2: Tứ phân vị, mốt\nMeasures of central tendency\nP1: Averages and medians",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "mode",
+      "title": "Mốt",
+      "automaticTarget": "Tìm giá trị xuất hiện nhiều nhất trong một mẫu có mốt duy nhất.",
+      "introducedBy": "g10-discover-r108",
+      "week": 12,
+      "contentCell": "G10!E108",
+      "sourceDetail": "Tiết 2: Tứ phân vị, mốt\nMeasures of central tendency\nP1: Averages and medians",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "spread",
+      "title": "Khoảng tứ phân vị",
+      "automaticTarget": "Tính khoảng tứ phân vị khi đã biết Q1 và Q3.",
+      "introducedBy": "g10-discover-r110",
+      "week": 12,
+      "contentCell": "G10!E110",
+      "sourceDetail": "Tiết 1: Khoảng biến thiên và khoảng tứ phân vị, phương sai, độ lệch chuẩn, giá trị bất thường",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "variance",
+      "title": "Phương sai",
+      "automaticTarget": "Tính phương sai mẫu hữu hạn theo quy ước chia cho n.",
+      "introducedBy": "g10-discover-r110",
+      "week": 12,
+      "contentCell": "G10!E110",
+      "sourceDetail": "Tiết 1: Khoảng biến thiên và khoảng tứ phân vị, phương sai, độ lệch chuẩn, giá trị bất thường",
+      "sourceLOId": "r22-g10-u2-lo03",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 17,
+          "lineEnd": 17,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm, biết cách xác định sai số và số gần đúng. Nắm được cách lựa chọn, cách tính và ý nghĩa các số đặc trưng đo xu thế trung tâm, đo độ phân tán của một mẫu. "
+      }
+    },
+    {
+      "conceptId": "function",
+      "title": "Khái niệm hàm số và điểm trên đồ thị",
+      "automaticTarget": "Tính giá trị của hàm số tại một đầu vào thuộc miền đã cho.",
+      "introducedBy": "g10-discover-r173",
+      "week": 19,
+      "contentCell": "G10!E173",
+      "sourceDetail": "Tiết 1. Khái niệm hàm số và đồ thị của hàm số",
+      "sourceLOId": "r22-g10-u2-lo04",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 18,
+          "lineEnd": 18,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu khái niệm hàm số và đồ thị của hàm số."
+      }
+    },
+    {
+      "conceptId": "monotonic",
+      "title": "Đồng biến và nghịch biến",
+      "automaticTarget": "Chọn chiều biến thiên của hàm bậc nhất trên số thực.",
+      "introducedBy": "g10-discover-r174",
+      "week": 19,
+      "contentCell": "G10!E174",
+      "sourceDetail": "Tiết 2. Sự đồng biến, nghịch biến của hàm số",
+      "sourceLOId": "r22-g10-u2-lo05",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh xác định được tính đồng biến, nghịch biến của một số hàm số đơn giản."
+      }
+    },
+    {
+      "conceptId": "linegeneral",
+      "title": "Phương trình tổng quát của đường thẳng",
+      "automaticTarget": "Tìm hằng số của phương trình tổng quát từ điểm thuộc đường.",
+      "introducedBy": "g10-discover-r175",
+      "week": 19,
+      "contentCell": "G10!E175",
+      "sourceDetail": "Tiết 1: Phương trình tổng quát của đường thẳng",
+      "sourceLOId": "r22-g10-u2-lo06",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu và xác định được phương trình tổng quát và phương trình tham số của đường thẳng."
+      }
+    },
+    {
+      "conceptId": "lineparam",
+      "title": "Phương trình tham số",
+      "automaticTarget": "Tính một tọa độ điểm trên đường thẳng từ tham số.",
+      "introducedBy": "g10-discover-r176",
+      "week": 19,
+      "contentCell": "G10!E176",
+      "sourceDetail": "Tiết 2: Phương trình tham số của đường thẳng",
+      "sourceLOId": "r22-g10-u2-lo06",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu và xác định được phương trình tổng quát và phương trình tham số của đường thẳng."
+      }
+    },
+    {
+      "conceptId": "quadconcept",
+      "title": "Nhận dạng hàm số bậc hai",
+      "automaticTarget": "Đọc hệ số bậc nhất sau khi khai triển một hàm bậc hai.",
+      "introducedBy": "g10-discover-r197",
+      "week": 22,
+      "contentCell": "G10!E197",
+      "sourceDetail": "Tiết 1: Khái niệm hàm số bậc hai",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "quadgraph",
+      "title": "Đồ thị và biến thiên hàm bậc hai",
+      "automaticTarget": "Xác định hoành độ đỉnh từ dạng bình phương của hàm bậc hai.",
+      "introducedBy": "g10-discover-r198",
+      "week": 22,
+      "contentCell": "G10!E198",
+      "sourceDetail": "Tiết 2: Đồ thị của hàm số bậc hai",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "lineconvert",
+      "title": "Liên hệ chỉ phương, pháp tuyến và hai dạng phương trình",
+      "automaticTarget": "Chọn vectơ chỉ phương vuông góc với pháp tuyến đã biết.",
+      "introducedBy": "g10-discover-r200",
+      "week": 22,
+      "contentCell": "G10!E200",
+      "sourceDetail": "Tiết 4: Mối quan hệ giữa VTCP và VTPT, giữa PTTQ và PTTS của đường thẳng",
+      "sourceLOId": "r22-g10-u2-lo06",
+      "unitReference": {
+        "sourceFile": "tasks/r22/sources/g10-unit2.txt",
+        "sourceURL": "https://drive.google.com/file/d/16NYKIzYDN6KH4OEX5QoiW3-TQLPrDdP5/view",
+        "location": {
+          "kind": "extracted_text_line",
+          "lineStart": 20,
+          "lineEnd": 20,
+          "section": "Phần 1: Tổng quan học phần"
+        },
+        "excerpt": "Học sinh hiểu và xác định được phương trình tổng quát và phương trình tham số của đường thẳng."
+      }
+    },
+    {
+      "conceptId": "linerelative",
+      "title": "Vị trí tương đối của hai đường thẳng",
+      "automaticTarget": "Tìm hoành độ giao điểm hai đường thẳng không song song.",
+      "introducedBy": "g10-discover-r202",
+      "week": 22,
+      "contentCell": "G10!E202",
+      "sourceDetail": "Tiết 1: Vị trí tương đối giữa hai đường thẳng",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "quadapplication",
+      "title": "Vận dụng đồ thị bậc hai trên miền xác định",
+      "automaticTarget": "Tìm giá trị lớn nhất của mô hình độ cao bậc hai trên đoạn đã cho.",
+      "introducedBy": "g10-discover-r208",
+      "week": 23,
+      "contentCell": "G10!E208:E209",
+      "sourceDetail": "Tiết 6: Luyện tập",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "lineangle",
+      "title": "Góc giữa hai đường thẳng",
+      "automaticTarget": "Tính cos góc không tù giữa hai đường từ chỉ phương.",
+      "introducedBy": "g10-discover-r211",
+      "week": 23,
+      "contentCell": "G10!E211",
+      "sourceDetail": "Tiết 3: Góc giữa hai đường thẳng",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "distance",
+      "title": "Khoảng cách từ điểm đến đường thẳng",
+      "automaticTarget": "Tính khoảng cách từ một điểm đến đường thẳng.",
+      "introducedBy": "g10-discover-r212",
+      "week": 23,
+      "contentCell": "G10!E212",
+      "sourceDetail": "Tiết 4: Khoảng cách từ một điểm đến một đường thẳng",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "quadsign",
+      "title": "Dấu của tam thức bậc hai",
+      "automaticTarget": "Đếm số nguyên làm tam thức có hai nghiệm phân biệt mang dấu âm.",
+      "introducedBy": "g10-discover-r215",
+      "week": 24,
+      "contentCell": "G10!E215",
+      "sourceDetail": "Tiết 1: Dấu của tam thức bậc hai",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "quadineq",
+      "title": "Bất phương trình bậc hai",
+      "automaticTarget": "Đếm nghiệm nguyên của bất phương trình bậc hai có hai nghiệm thực phân biệt.",
+      "introducedBy": "g10-discover-r217",
+      "week": 24,
+      "contentCell": "G10!E217",
+      "sourceDetail": "Tiết 3: Bất phương trình bậc hai",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "radicalequal",
+      "title": "Phương trình hai căn bậc hai",
+      "automaticTarget": "Chọn tập nghiệm phương trình hai căn bậc hai, có kiểm điều kiện.",
+      "introducedBy": "g10-discover-r225",
+      "week": 25,
+      "contentCell": "G10!E225",
+      "sourceDetail": "Tiết 1: Phương trình dạng căn f(x)=căn g(x)",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "circle",
+      "title": "Phương trình đường tròn",
+      "automaticTarget": "Tính bán kính đường tròn từ phương trình chính tắc.",
+      "introducedBy": "g10-discover-r228",
+      "week": 25,
+      "contentCell": "G10!E228",
+      "sourceDetail": "Tiết 1: Phương trình đường tròn",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "tangent",
+      "title": "Tiếp tuyến của đường tròn",
+      "automaticTarget": "Xác định hằng số phương trình tiếp tuyến tại một điểm trên đường tròn.",
+      "introducedBy": "g10-discover-r230",
+      "week": 25,
+      "contentCell": "G10!E230",
+      "sourceDetail": "Tiết 3: Phương trình tiếp tuyến của đường tròn",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "radicallinear",
+      "title": "Phương trình căn bằng biểu thức bậc nhất",
+      "automaticTarget": "Tìm nghiệm hợp lệ của phương trình căn sau khi loại nghiệm ngoại lai.",
+      "introducedBy": "g10-discover-r233",
+      "week": 26,
+      "contentCell": "G10!E233",
+      "sourceDetail": "Tiết 3: Phương trình dạng căn f(x) = g(x)",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "circlepoints",
+      "title": "Lập đường tròn biết đường kính",
+      "automaticTarget": "Tính bình phương bán kính từ hai đầu mút đường kính.",
+      "introducedBy": "g10-discover-r236",
+      "week": 26,
+      "contentCell": "G10!E236",
+      "sourceDetail": "Tiết 4: Luyện tập",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "ellipse",
+      "title": "Elip và phương trình chính tắc",
+      "automaticTarget": "Tính khoảng cách từ tâm đến tiêu điểm của elip chính tắc.",
+      "introducedBy": "g10-discover-r239",
+      "week": 26,
+      "contentCell": "G10!E239",
+      "sourceDetail": "Tiết 1: Elip",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "addition",
+      "title": "Quy tắc cộng và sơ đồ nhánh",
+      "automaticTarget": "Đếm lựa chọn thuộc hai trường hợp rời nhau.",
+      "introducedBy": "g10-discover-r284",
+      "week": 32,
+      "contentCell": "G10!E284",
+      "sourceDetail": "Tiết 1: Quy tắc cộng và sơ đồ hình cây",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "multiplication",
+      "title": "Quy tắc nhân",
+      "automaticTarget": "Đếm lựa chọn gồm hai bước với mọi cặp đều hợp lệ.",
+      "introducedBy": "g10-discover-r285",
+      "week": 32,
+      "contentCell": "G10!E285",
+      "sourceDetail": "Tiết 2: Quy tắc nhân",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "mixedcount",
+      "title": "Kết hợp quy tắc cộng và nhân",
+      "automaticTarget": "Đếm hành trình bằng cách cộng giữa trường hợp và nhân trong từng trường hợp.",
+      "introducedBy": "g10-discover-r286",
+      "week": 32,
+      "contentCell": "G10!E286",
+      "sourceDetail": "Tiết 3: Kết hợp quy tắc cộng và quy tắc nhân",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "permutation",
+      "title": "Hoán vị",
+      "automaticTarget": "Đếm cách xếp mọi đối tượng phân biệt thành một hàng.",
+      "introducedBy": "g10-discover-r287",
+      "week": 32,
+      "contentCell": "G10!E287",
+      "sourceDetail": "Tiết 1: Hoán vị",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "arrangement",
+      "title": "Chỉnh hợp",
+      "automaticTarget": "Đếm cách chọn người cho hai vai trò khác nhau, không lặp người.",
+      "introducedBy": "g10-discover-r288",
+      "week": 32,
+      "contentCell": "G10!E288",
+      "sourceDetail": "Tiết 2: Chỉnh hợp",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "combination",
+      "title": "Tổ hợp",
+      "automaticTarget": "Đếm nhóm ba người không thứ tự từ tập người phân biệt.",
+      "introducedBy": "g10-discover-r293",
+      "week": 33,
+      "contentCell": "G10!E293",
+      "sourceDetail": "Tiết 4: Tổ hợp",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "newton4",
+      "title": "Nhị thức Newton bậc 4",
+      "automaticTarget": "Tính hệ số của x bình phương trong nhị thức bậc4.",
+      "introducedBy": "g10-discover-r295",
+      "week": 33,
+      "contentCell": "G10!E295",
+      "sourceDetail": "Tiết 1: Khai triển nhị thức Newton với n=4",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "newton5",
+      "title": "Nhị thức Newton bậc 5",
+      "automaticTarget": "Tính hệ số của x bình phương trong nhị thức bậc5.",
+      "introducedBy": "g10-discover-r296",
+      "week": 33,
+      "contentCell": "G10!E296",
+      "sourceDetail": "Tiết 2: Khai triển nhị thức Newton với n=5",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "samplespace",
+      "title": "Không gian mẫu và biến cố",
+      "automaticTarget": "Đếm số kết quả của một biến cố trong không gian cặp có thứ tự.",
+      "introducedBy": "g10-discover-r302",
+      "week": 34,
+      "contentCell": "G10!E302",
+      "sourceDetail": "Tiết 1: Mô tả và xác định số phần tử của không gian mẫu và biến cố",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "probability",
+      "title": "Định nghĩa cổ điển của xác suất",
+      "automaticTarget": "Chọn xác suất lấy một vật thuộc loại đã cho trong phép thử đồng khả năng.",
+      "introducedBy": "g10-discover-r303",
+      "week": 34,
+      "contentCell": "G10!E303",
+      "sourceDetail": "Tiết 2: Tính xác suất theo định nghĩa cổ điển",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "combprob",
+      "title": "Xác suất dùng tổ hợp",
+      "automaticTarget": "Chọn xác suất lấy đúng một viên đỏ trong cặp không hoàn lại.",
+      "introducedBy": "g10-discover-r305",
+      "week": 34,
+      "contentCell": "G10!E305",
+      "sourceDetail": "Tiết 1: Sử dụng phương pháp tổ hợp hoặc sơ đồ hình cây",
+      "sourceLOId": null
+    },
+    {
+      "conceptId": "complement",
+      "title": "Xác suất của biến cố đối",
+      "automaticTarget": "Chọn xác suất có ít nhất một viên đỏ bằng biến cố đối.",
+      "introducedBy": "g10-discover-r306",
+      "week": 34,
+      "contentCell": "G10!E306",
+      "sourceDetail": "Tiết 2: Tính xác suất của biến cố đối",
+      "sourceLOId": null
+    }
+  ],
+  "entries": [
+    {
+      "id": "r23-g10-discover-r171",
+      "objectives": [
+        {
+          "conceptId": "sets",
+          "introducedBy": "g10-discover-r028",
+          "contentCell": "G10!E28:E29",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "dot",
+          "introducedBy": "g10-discover-r130",
+          "contentCell": "G10!E130",
+          "sourceLOId": "r22-g10-u2-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r172",
+      "objectives": [
+        {
+          "conceptId": "mean",
+          "introducedBy": "g10-discover-r101",
+          "contentCell": "G10!E101:E102",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "sets",
+          "introducedBy": "g10-discover-r028",
+          "contentCell": "G10!E28:E29",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r173",
+      "objectives": [
+        {
+          "conceptId": "function",
+          "introducedBy": "g10-discover-r173",
+          "contentCell": "G10!E173",
+          "sourceLOId": "r22-g10-u2-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r174",
+      "objectives": [
+        {
+          "conceptId": "monotonic",
+          "introducedBy": "g10-discover-r174",
+          "contentCell": "G10!E174",
+          "sourceLOId": "r22-g10-u2-lo05",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r175",
+      "objectives": [
+        {
+          "conceptId": "linegeneral",
+          "introducedBy": "g10-discover-r175",
+          "contentCell": "G10!E175",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r176",
+      "objectives": [
+        {
+          "conceptId": "lineparam",
+          "introducedBy": "g10-discover-r176",
+          "contentCell": "G10!E176",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r177",
+      "objectives": [
+        {
+          "conceptId": "sets",
+          "introducedBy": "g10-discover-r028",
+          "contentCell": "G10!E28:E29",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "mean",
+          "introducedBy": "g10-discover-r101",
+          "contentCell": "G10!E101:E102",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r178",
+      "objectives": [
+        {
+          "conceptId": "mean",
+          "introducedBy": "g10-discover-r101",
+          "contentCell": "G10!E101:E102",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "dot",
+          "introducedBy": "g10-discover-r130",
+          "contentCell": "G10!E130",
+          "sourceLOId": "r22-g10-u2-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r180",
+      "objectives": [
+        {
+          "conceptId": "function",
+          "introducedBy": "g10-discover-r173",
+          "contentCell": "G10!E173",
+          "sourceLOId": "r22-g10-u2-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r181",
+      "objectives": [
+        {
+          "conceptId": "monotonic",
+          "introducedBy": "g10-discover-r174",
+          "contentCell": "G10!E174",
+          "sourceLOId": "r22-g10-u2-lo05",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r184",
+      "objectives": [
+        {
+          "conceptId": "linegeneral",
+          "introducedBy": "g10-discover-r175",
+          "contentCell": "G10!E175",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "lineparam",
+          "introducedBy": "g10-discover-r176",
+          "contentCell": "G10!E176",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r197",
+      "objectives": [
+        {
+          "conceptId": "quadconcept",
+          "introducedBy": "g10-discover-r197",
+          "contentCell": "G10!E197",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r198",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r199",
+      "objectives": [
+        {
+          "conceptId": "quadconcept",
+          "introducedBy": "g10-discover-r197",
+          "contentCell": "G10!E197",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r200",
+      "objectives": [
+        {
+          "conceptId": "lineconvert",
+          "introducedBy": "g10-discover-r200",
+          "contentCell": "G10!E200",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r201",
+      "objectives": [
+        {
+          "conceptId": "lineconvert",
+          "introducedBy": "g10-discover-r200",
+          "contentCell": "G10!E200",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r202",
+      "objectives": [
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r203",
+      "objectives": [
+        {
+          "conceptId": "dot",
+          "introducedBy": "g10-discover-r130",
+          "contentCell": "G10!E130",
+          "sourceLOId": "r22-g10-u2-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "linegeneral",
+          "introducedBy": "g10-discover-r175",
+          "contentCell": "G10!E175",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r205",
+      "objectives": [
+        {
+          "conceptId": "proposition",
+          "introducedBy": "g10-discover-r008",
+          "contentCell": "G10!E8",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r008",
+            "contentHash": "6e678ec3d44e3866da4a4d2a6a1f605e6808b6c60cc45dd80404948c3ab63930",
+            "sourceConcept": "proposition"
+          }
+        },
+        {
+          "conceptId": "monotonic",
+          "introducedBy": "g10-discover-r174",
+          "contentCell": "G10!E174",
+          "sourceLOId": "r22-g10-u2-lo05",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r206",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r207",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r208",
+      "objectives": [
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r210",
+      "objectives": [
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r211",
+      "objectives": [
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r212",
+      "objectives": [
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r213",
+      "objectives": [
+        {
+          "conceptId": "implication",
+          "introducedBy": "g10-discover-r009",
+          "contentCell": "G10!E9",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r009",
+            "contentHash": "6981d625a9c947dbd667efc15d7488a18a45f18207dab17c63f79203cce96549",
+            "sourceConcept": "implication"
+          }
+        },
+        {
+          "conceptId": "quadconcept",
+          "introducedBy": "g10-discover-r197",
+          "contentCell": "G10!E197",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r214",
+      "objectives": [
+        {
+          "conceptId": "quantifier",
+          "introducedBy": "g10-discover-r017",
+          "contentCell": "G10!E17",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r017",
+            "contentHash": "0878371d97a5e99a8431a626947e1c8d5d216a9910d11657470f9b92dab3b44d",
+            "sourceConcept": "quantifier"
+          }
+        },
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r215",
+      "objectives": [
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r216",
+      "objectives": [
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r217",
+      "objectives": [
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r218",
+      "objectives": [
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r219",
+      "objectives": [
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r220",
+      "objectives": [
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r224",
+      "objectives": [
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r225",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r226",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r228",
+      "objectives": [
+        {
+          "conceptId": "circle",
+          "introducedBy": "g10-discover-r228",
+          "contentCell": "G10!E228",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r229",
+      "objectives": [
+        {
+          "conceptId": "circle",
+          "introducedBy": "g10-discover-r228",
+          "contentCell": "G10!E228",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r230",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r231",
+      "objectives": [
+        {
+          "conceptId": "numberSets",
+          "introducedBy": "g10-discover-r026",
+          "contentCell": "G10!E26",
+          "sourceLOId": "r22-g10-u1-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r026",
+            "contentHash": "87f523cb75301703540c7fa76aa8e58e143a1ec937659e2e6f09bdcf58fb8d5e",
+            "sourceConcept": "numberSets"
+          }
+        },
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r232",
+      "objectives": [
+        {
+          "conceptId": "inequality",
+          "introducedBy": "g10-discover-r045",
+          "contentCell": "G10!E45",
+          "sourceLOId": "r22-g10-u1-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r045",
+            "contentHash": "da75c3ddb4cc9bfebf23d574ddce0bf62f56397086e103ddc6bfff7ea2c8e25a",
+            "sourceConcept": "inequality"
+          }
+        },
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r233",
+      "objectives": [
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r234",
+      "objectives": [
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r236",
+      "objectives": [
+        {
+          "conceptId": "circlepoints",
+          "introducedBy": "g10-discover-r236",
+          "contentCell": "G10!E236",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r237",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r238",
+      "objectives": [
+        {
+          "conceptId": "circle",
+          "introducedBy": "g10-discover-r228",
+          "contentCell": "G10!E228",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r239",
+      "objectives": [
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r240",
+      "objectives": [
+        {
+          "conceptId": "halfplane",
+          "introducedBy": "g10-discover-r046",
+          "contentCell": "G10!E46",
+          "sourceLOId": "r22-g10-u1-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r046",
+            "contentHash": "a11658cc09c2393e568de1f8a17fccbbb739a55aaa6f62850481c1218571feae",
+            "sourceConcept": "halfplane"
+          }
+        },
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r241",
+      "objectives": [
+        {
+          "conceptId": "system",
+          "introducedBy": "g10-discover-r047",
+          "contentCell": "G10!E47:E48",
+          "sourceLOId": "r22-g10-u1-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r047",
+            "contentHash": "ea7dfbc267ed101b1f14e514eb71ca10d88e8dcd6f89459d5f64c2109470c488",
+            "sourceConcept": "system"
+          }
+        },
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r242",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r243",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r244",
+      "objectives": [
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r246",
+      "objectives": [
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r247",
+      "objectives": [
+        {
+          "conceptId": "lineconvert",
+          "introducedBy": "g10-discover-r200",
+          "contentCell": "G10!E200",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r248",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r249",
+      "objectives": [
+        {
+          "conceptId": "optimize",
+          "introducedBy": "g10-discover-r055",
+          "contentCell": "G10!E55",
+          "sourceLOId": "r22-g10-u1-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r055",
+            "contentHash": "c664bf8a96e9a5f14a3071795b95fa8315e825a98f1824bdc6c087e61024d181",
+            "sourceConcept": "optimize"
+          }
+        },
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r250",
+      "objectives": [
+        {
+          "conceptId": "trigValue",
+          "introducedBy": "g10-discover-r011",
+          "contentCell": "G10!E11:E13",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r011",
+            "contentHash": "3cbc5cd1ad7bf06a36ee352a58cb43a3d1d69bf9a807459ec6897d7e8712ee56",
+            "sourceConcept": "trigValue"
+          }
+        },
+        {
+          "conceptId": "circle",
+          "introducedBy": "g10-discover-r228",
+          "contentCell": "G10!E228",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r257",
+      "objectives": [
+        {
+          "conceptId": "function",
+          "introducedBy": "g10-discover-r173",
+          "contentCell": "G10!E173",
+          "sourceLOId": "r22-g10-u2-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r258",
+      "objectives": [
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r259",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r261",
+      "objectives": [
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r262",
+      "objectives": [
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r263",
+      "objectives": [
+        {
+          "conceptId": "circlepoints",
+          "introducedBy": "g10-discover-r236",
+          "contentCell": "G10!E236",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r264",
+      "objectives": [
+        {
+          "conceptId": "supplement",
+          "introducedBy": "g10-discover-r021",
+          "contentCell": "G10!E21",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r021",
+            "contentHash": "56104f85806dacc34a23bcfa42465a5b9a3c5f179fb244143ebeb752ed65b6ed",
+            "sourceConcept": "supplement"
+          }
+        },
+        {
+          "conceptId": "circlepoints",
+          "introducedBy": "g10-discover-r236",
+          "contentCell": "G10!E236",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r265",
+      "objectives": [
+        {
+          "conceptId": "cosine",
+          "introducedBy": "g10-discover-r030",
+          "contentCell": "G10!E30",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r030",
+            "contentHash": "729b26c8af74ceb5c30e303c5e6915529dbc61e96b93c350ee088c9ceb0abd5d",
+            "sourceConcept": "cosine"
+          }
+        },
+        {
+          "conceptId": "monotonic",
+          "introducedBy": "g10-discover-r174",
+          "contentCell": "G10!E174",
+          "sourceLOId": "r22-g10-u2-lo05",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r266",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r267",
+      "objectives": [
+        {
+          "conceptId": "quadsign",
+          "introducedBy": "g10-discover-r215",
+          "contentCell": "G10!E215",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r268",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r270",
+      "objectives": [
+        {
+          "conceptId": "linegeneral",
+          "introducedBy": "g10-discover-r175",
+          "contentCell": "G10!E175",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "lineparam",
+          "introducedBy": "g10-discover-r176",
+          "contentCell": "G10!E176",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r271",
+      "objectives": [
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r272",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r273",
+      "objectives": [
+        {
+          "conceptId": "sine",
+          "introducedBy": "g10-discover-r040",
+          "contentCell": "G10!E40",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r040",
+            "contentHash": "7b314c509280db26d4f891296d24cee6ef5692d93b372c6fdff15dd797a57d6e",
+            "sourceConcept": "sine"
+          }
+        },
+        {
+          "conceptId": "quadconcept",
+          "introducedBy": "g10-discover-r197",
+          "contentCell": "G10!E197",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r274",
+      "objectives": [
+        {
+          "conceptId": "areaSin",
+          "introducedBy": "g10-discover-r042",
+          "contentCell": "G10!E42",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r042",
+            "contentHash": "054c231d5ed8d53e89f26f8dc6fd7a2e11cef1d9cc31ae3a5953b29ea176cf5d",
+            "sourceConcept": "areaSin"
+          }
+        },
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r275",
+      "objectives": [
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r279",
+      "objectives": [
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r280",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r281",
+      "objectives": [
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r282",
+      "objectives": [
+        {
+          "conceptId": "heron",
+          "introducedBy": "g10-discover-r049",
+          "contentCell": "G10!E49",
+          "sourceLOId": "r22-g10-u1-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r049",
+            "contentHash": "55ac253225749eb4a38c353a677a3d0fc2a134aee21735968e36a2ca1100d54a",
+            "sourceConcept": "heron"
+          }
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r283",
+      "objectives": [
+        {
+          "conceptId": "vectorIntro",
+          "introducedBy": "g10-discover-r067",
+          "contentCell": "G10!E67",
+          "sourceLOId": "r22-g10-u1-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r067",
+            "contentHash": "64ee83e2f9b7b0ee7cfa4b9725720d944b97f620d9c323649881025f3056412b",
+            "sourceConcept": "vectorIntro"
+          }
+        },
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r284",
+      "objectives": [
+        {
+          "conceptId": "addition",
+          "introducedBy": "g10-discover-r284",
+          "contentCell": "G10!E284",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r285",
+      "objectives": [
+        {
+          "conceptId": "multiplication",
+          "introducedBy": "g10-discover-r285",
+          "contentCell": "G10!E285",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r286",
+      "objectives": [
+        {
+          "conceptId": "mixedcount",
+          "introducedBy": "g10-discover-r286",
+          "contentCell": "G10!E286",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r287",
+      "objectives": [
+        {
+          "conceptId": "permutation",
+          "introducedBy": "g10-discover-r287",
+          "contentCell": "G10!E287",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r288",
+      "objectives": [
+        {
+          "conceptId": "arrangement",
+          "introducedBy": "g10-discover-r288",
+          "contentCell": "G10!E288",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r289",
+      "objectives": [
+        {
+          "conceptId": "permutation",
+          "introducedBy": "g10-discover-r287",
+          "contentCell": "G10!E287",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "arrangement",
+          "introducedBy": "g10-discover-r288",
+          "contentCell": "G10!E288",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r291",
+      "objectives": [
+        {
+          "conceptId": "vectorSum",
+          "introducedBy": "g10-discover-r103",
+          "contentCell": "G10!E103",
+          "sourceLOId": "r22-g10-u1-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r103",
+            "contentHash": "276c64c6eea7bab8ed8d670f6dcfb0f2bbf312ae53d2fa41fbc658a5c0cda748",
+            "sourceConcept": "vectorSum"
+          }
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r292",
+      "objectives": [
+        {
+          "conceptId": "vectorDifference",
+          "introducedBy": "g10-discover-r105",
+          "contentCell": "G10!E105",
+          "sourceLOId": "r22-g10-u1-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r105",
+            "contentHash": "4f13147c1fcfca0f982e7b773c66271fecebfeb32a34ed88286d9017dd39e94a",
+            "sourceConcept": "vectorDifference"
+          }
+        },
+        {
+          "conceptId": "function",
+          "introducedBy": "g10-discover-r173",
+          "contentCell": "G10!E173",
+          "sourceLOId": "r22-g10-u2-lo04",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r293",
+      "objectives": [
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r294",
+      "objectives": [
+        {
+          "conceptId": "arrangement",
+          "introducedBy": "g10-discover-r288",
+          "contentCell": "G10!E288",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r295",
+      "objectives": [
+        {
+          "conceptId": "newton4",
+          "introducedBy": "g10-discover-r295",
+          "contentCell": "G10!E295",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r296",
+      "objectives": [
+        {
+          "conceptId": "newton5",
+          "introducedBy": "g10-discover-r296",
+          "contentCell": "G10!E296",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r297",
+      "objectives": [
+        {
+          "conceptId": "newton4",
+          "introducedBy": "g10-discover-r295",
+          "contentCell": "G10!E295",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "newton5",
+          "introducedBy": "g10-discover-r296",
+          "contentCell": "G10!E296",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r298",
+      "objectives": [
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "newton5",
+          "introducedBy": "g10-discover-r296",
+          "contentCell": "G10!E296",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r300",
+      "objectives": [
+        {
+          "conceptId": "vectorScale",
+          "introducedBy": "g10-discover-r113",
+          "contentCell": "G10!E113:E114",
+          "sourceLOId": "r22-g10-u2-lo01",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r113",
+            "contentHash": "461cd81d96d75abae9dc7afd43dc1571b04fd296c7e0a89b693ffff8619fe5a4",
+            "sourceConcept": "vectorScale"
+          }
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r301",
+      "objectives": [
+        {
+          "conceptId": "coordinates",
+          "introducedBy": "g10-discover-r121",
+          "contentCell": "G10!E121",
+          "sourceLOId": "r22-g10-u2-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r121",
+            "contentHash": "481a0f13d3ea2659d87cd819394d6e1c9efb173679e3e3ae783afe042b03eea7",
+            "sourceConcept": "coordinates"
+          }
+        },
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r302",
+      "objectives": [
+        {
+          "conceptId": "samplespace",
+          "introducedBy": "g10-discover-r302",
+          "contentCell": "G10!E302",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r303",
+      "objectives": [
+        {
+          "conceptId": "probability",
+          "introducedBy": "g10-discover-r303",
+          "contentCell": "G10!E303",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r304",
+      "objectives": [
+        {
+          "conceptId": "probability",
+          "introducedBy": "g10-discover-r303",
+          "contentCell": "G10!E303",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r305",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r306",
+      "objectives": [
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r307",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r309",
+      "objectives": [
+        {
+          "conceptId": "coordinateMidpoint",
+          "introducedBy": "g10-discover-r123",
+          "contentCell": "G10!E123",
+          "sourceLOId": "r22-g10-u2-lo02",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r123",
+            "contentHash": "3ff6e8bee44c64868192d90f93d4a50f379b7106d1e91b83c929366c89746336",
+            "sourceConcept": "coordinateMidpoint"
+          }
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r310",
+      "objectives": [
+        {
+          "conceptId": "approximation",
+          "introducedBy": "g10-discover-r100",
+          "contentCell": "G10!E100",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r100",
+            "contentHash": "1990286e5897afb86b62462848abd50c2c2e177bc22c7442aa91d23750bcafdc",
+            "sourceConcept": "approximation"
+          }
+        },
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r311",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r312",
+      "objectives": [
+        {
+          "conceptId": "mixedcount",
+          "introducedBy": "g10-discover-r286",
+          "contentCell": "G10!E286",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r313",
+      "objectives": [
+        {
+          "conceptId": "newton4",
+          "introducedBy": "g10-discover-r295",
+          "contentCell": "G10!E295",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "probability",
+          "introducedBy": "g10-discover-r303",
+          "contentCell": "G10!E303",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r314",
+      "objectives": [
+        {
+          "conceptId": "lineconvert",
+          "introducedBy": "g10-discover-r200",
+          "contentCell": "G10!E200",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r315",
+      "objectives": [
+        {
+          "conceptId": "lineangle",
+          "introducedBy": "g10-discover-r211",
+          "contentCell": "G10!E211",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r316",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r320",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "quadineq",
+          "introducedBy": "g10-discover-r217",
+          "contentCell": "G10!E217",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r321",
+      "objectives": [
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r322",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r323",
+      "objectives": [
+        {
+          "conceptId": "lineparam",
+          "introducedBy": "g10-discover-r176",
+          "contentCell": "G10!E176",
+          "sourceLOId": "r22-g10-u2-lo06",
+          "basis": "source_unit_overview_aligned_with_current_ppct"
+        },
+        {
+          "conceptId": "linerelative",
+          "introducedBy": "g10-discover-r202",
+          "contentCell": "G10!E202",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r324",
+      "objectives": [
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "circlepoints",
+          "introducedBy": "g10-discover-r236",
+          "contentCell": "G10!E236",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r325",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r327",
+      "objectives": [
+        {
+          "conceptId": "quartileMode",
+          "introducedBy": "g10-discover-r108",
+          "contentCell": "G10!E108",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r108",
+            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "sourceConcept": "quartileMode"
+          }
+        },
+        {
+          "conceptId": "distance",
+          "introducedBy": "g10-discover-r212",
+          "contentCell": "G10!E212",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r328",
+      "objectives": [
+        {
+          "conceptId": "mode",
+          "introducedBy": "g10-discover-r108",
+          "contentCell": "G10!E108",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r108",
+            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "sourceConcept": "quartileMode"
+          }
+        },
+        {
+          "conceptId": "radicalequal",
+          "introducedBy": "g10-discover-r225",
+          "contentCell": "G10!E225",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r329",
+      "objectives": [
+        {
+          "conceptId": "quadapplication",
+          "introducedBy": "g10-discover-r208",
+          "contentCell": "G10!E208:E209",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r330",
+      "objectives": [
+        {
+          "conceptId": "newton5",
+          "introducedBy": "g10-discover-r296",
+          "contentCell": "G10!E296",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "probability",
+          "introducedBy": "g10-discover-r303",
+          "contentCell": "G10!E303",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r331",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r332",
+      "objectives": [
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "ellipse",
+          "introducedBy": "g10-discover-r239",
+          "contentCell": "G10!E239",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r336",
+      "objectives": [
+        {
+          "conceptId": "spread",
+          "introducedBy": "g10-discover-r110",
+          "contentCell": "G10!E110",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r110",
+            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "sourceConcept": "spread"
+          }
+        },
+        {
+          "conceptId": "radicallinear",
+          "introducedBy": "g10-discover-r233",
+          "contentCell": "G10!E233",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r337",
+      "objectives": [
+        {
+          "conceptId": "variance",
+          "introducedBy": "g10-discover-r110",
+          "contentCell": "G10!E110",
+          "sourceLOId": "r22-g10-u2-lo03",
+          "basis": "source_unit_overview_aligned_with_current_ppct",
+          "readOnlyReuse": {
+            "file": "content/lessons/hki-2026-g10.json",
+            "packageId": "r22-g10-discover-r110",
+            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "sourceConcept": "variance"
+          }
+        },
+        {
+          "conceptId": "addition",
+          "introducedBy": "g10-discover-r284",
+          "contentCell": "G10!E284",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r338",
+      "objectives": [
+        {
+          "conceptId": "combprob",
+          "introducedBy": "g10-discover-r305",
+          "contentCell": "G10!E305",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "complement",
+          "introducedBy": "g10-discover-r306",
+          "contentCell": "G10!E306",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r339",
+      "objectives": [
+        {
+          "conceptId": "quadgraph",
+          "introducedBy": "g10-discover-r198",
+          "contentCell": "G10!E198",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "tangent",
+          "introducedBy": "g10-discover-r230",
+          "contentCell": "G10!E230",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    },
+    {
+      "id": "r23-g10-discover-r341",
+      "objectives": [
+        {
+          "conceptId": "combination",
+          "introducedBy": "g10-discover-r293",
+          "contentCell": "G10!E293",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        },
+        {
+          "conceptId": "newton5",
+          "introducedBy": "g10-discover-r296",
+          "contentCell": "G10!E296",
+          "sourceLOId": null,
+          "basis": "author_derived_from_ppct_detail"
+        }
+      ]
+    }
+  ]
+}

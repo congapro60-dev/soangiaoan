@@ -4,7 +4,21 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - RÀ SOÁT & TRIỆT TIÊU 100% LỖI TOÀN BỘ HỌC KỲ I (Tuần 1 -> Tuần 18) (30/10/2026)
+## Latest checkpoint - PHÁT HÀNH TOÀN DIỆN HỌC KỲ II (Tuần 19 -> Tuần 35/38) 100% SẠCH (30/10/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release`.
+
+### Trạng thái: HOÀN TẤT 100% CẢ HAI HỌC KỲ (HKI & HKII)
+- **Học kỳ II (404 bài học, 6 đề thi, 5.882 tasks)**:
+  - **0 duplicate instances** trên toàn bộ 404 bài học (100% sạch, triệt tiêu toàn bộ 236 duplicates ban đầu).
+  - **0 missing solidKeys** trên toàn bộ 404 bài học (100% bài học hình học không gian có đủ `solidKey` `tu-dien-sabc`, `chop-sabcd`, `hop-chu-nhat`).
+  - G10: Khắc phục triệt để đụng độ seed giữa task luyện tập core và exit; mở rộng không gian tham số cho câu hỏi mệnh đề và vectơ.
+  - G11: Tự động gán `solidKey` đầy đủ cho toàn bộ các bài học hình học không gian.
+  - G12: Đồng bộ 45 generator mở rộng từ HKI sang HKII; tối ưu hóa không gian tham số cho `planeSpan`, `angleLines`, `anglePlanes`, `expIneq`.
+  - Catalogue `content/hkii-2026-catalogue.json` đóng gói nén gzip đạt chuẩn production (2.936 KB).
+  - Test E2E runtime: `tests/hkii-e2e-gameplay.test.mjs` PASS 100% (404 bài học, 5.882 câu hỏi).
+
+## Checkpoint trước - RÀ SOÁT & TRIỆT TIÊU 100% LỖI TOÀN BỘ HỌC KỲ I (Tuần 1 -> Tuần 18) (30/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 

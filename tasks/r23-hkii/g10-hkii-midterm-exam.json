@@ -1,0 +1,341 @@
+{
+  "title": "Toán 10 Discover - Kiểm tra giữa học kỳ II",
+  "durationMin": 80,
+  "settings": {
+    "showResult": "none",
+    "review": "after_close",
+    "allowLateJoin": false,
+    "shuffleQuestions": false,
+    "shuffleOptions": false,
+    "assignment": "alternate",
+    "showCode": false,
+    "integrityPolicyVersion": 1,
+    "graceSeconds": 30
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "I",
+      "label": "Câu 1",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Giá trị $f(3)$ với $f(x)=2x+1$ là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$5$",
+        "B": "$7$",
+        "C": "$6$",
+        "D": "$8$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Lời giải: 2×3+1=7."
+    },
+    {
+      "id": "q2",
+      "section": "I",
+      "label": "Câu 2",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Hàm $y=-3x+2$ trên $\\mathbb R$:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "Đồng biến.",
+        "B": "Nghịch biến.",
+        "C": "Không đổi.",
+        "D": "Chỉ xác định khi x>0."
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Lời giải: Với x2>x1, hiệu giá trị là -3(x2-x1)<0."
+    },
+    {
+      "id": "q3",
+      "section": "I",
+      "label": "Câu 3",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Đỉnh của $y=(x-3)^2-2$ là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$(3;-2)$",
+        "B": "$(-3;-2)$",
+        "C": "$(3;2)$",
+        "D": "$(-2;3)$"
+      },
+      "noShuffle": false,
+      "key": "A",
+      "solution": "Lời giải: Dạng bình phương cho đỉnh (3;-2)."
+    },
+    {
+      "id": "q4",
+      "section": "I",
+      "label": "Câu 4",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Một pháp tuyến của $2x-3y+1=0$ là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$(3;2)$",
+        "B": "$(2;-3)$",
+        "C": "$(2;3)$",
+        "D": "$(1;1)$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Lời giải: Pháp tuyến đọc từ hai hệ số x,y."
+    },
+    {
+      "id": "q5",
+      "section": "I",
+      "label": "Câu 5",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Với $x=1+2t,y=3-t$, khi $t=2$ điểm nhận được là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$(3;2)$",
+        "B": "$(5;5)$",
+        "C": "$(5;1)$",
+        "D": "$(2;1)$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Lời giải: Cùng t=2 cho x=5, y=1."
+    },
+    {
+      "id": "q6",
+      "section": "I",
+      "label": "Câu 6",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Nghiệm của $(x-1)(x-4)<0$ là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$[1;4]$",
+        "B": "$(1;4)$",
+        "C": "$(-infty;1)$",
+        "D": "$(4;+infty)$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Lời giải: Tích âm giữa hai nghiệm, không lấy hai đầu mút."
+    },
+    {
+      "id": "q7",
+      "section": "I",
+      "label": "Câu 7",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Tâm đường tròn $(x-2)^2+(y+1)^2=9$ là:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$(-2;1)$",
+        "B": "$(2;1)$",
+        "C": "$(2;-1)$",
+        "D": "$(-1;2)$"
+      },
+      "noShuffle": false,
+      "key": "C",
+      "solution": "Lời giải: Tâm (2;-1), bán kính3."
+    },
+    {
+      "id": "q8",
+      "section": "I",
+      "label": "Câu 8",
+      "type": "mc",
+      "points": 0.25,
+      "text": "Elip $x^2/25+y^2/16=1$ có c bằng:",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "choiceText": {
+        "A": "$9$",
+        "B": "$3$",
+        "C": "$41$",
+        "D": "$5$"
+      },
+      "noShuffle": false,
+      "key": "B",
+      "solution": "Lời giải: c²=25-16=9, c=3."
+    },
+    {
+      "id": "q9",
+      "section": "II",
+      "label": "Câu 1",
+      "type": "tf",
+      "points": 1,
+      "text": "Cho $f(x)=(x-1)(x-5)$.",
+      "statements": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "statementText": {
+        "a": "f(1)=0.",
+        "b": "f(x)<0 khi1<x<5.",
+        "c": "Nghiệm f(x)≤0 là(1;5).",
+        "d": "f(6)>0."
+      },
+      "noShuffle": false,
+      "key": [
+        true,
+        true,
+        false,
+        true
+      ],
+      "solution": "Hai nghiệm1,5; a>0 nên âm trong, dương ngoài; dấu≤ nhận cả hai nghiệm, tập[1;5]. f(6)=5."
+    },
+    {
+      "id": "q10",
+      "section": "II",
+      "label": "Câu 2",
+      "type": "tf",
+      "points": 1,
+      "text": "Cho $d_1:x+y=4$, $d_2:x-y=2$ và đường tròn $(x-3)^2+(y-1)^2=4$.",
+      "statements": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "statementText": {
+        "a": "Hai đường cắt nhau tại(3;1).",
+        "b": "Hai đường song song.",
+        "c": "Đường tròn có bán kính2.",
+        "d": "Điểm(5;1) thuộc đường tròn."
+      },
+      "noShuffle": false,
+      "key": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "solution": "Cộng/trừ hệ cho(3;1); hai pháp tuyến không cùng phương. Tâm(3;1), R=2; điểm(5;1) cách tâm2."
+    },
+    {
+      "id": "q11",
+      "section": "III",
+      "label": "Câu 1",
+      "type": "short",
+      "points": 0.5,
+      "text": "Tính giá trị nhỏ nhất của $y=(x-2)^2+5$ trên $\\mathbb R$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "5"
+        ]
+      },
+      "solution": "Lời giải: Bình phương không âm; dấu bằng tại x=2, giá trị nhỏ nhất5."
+    },
+    {
+      "id": "q12",
+      "section": "III",
+      "label": "Câu 2",
+      "type": "short",
+      "points": 0.5,
+      "text": "Tính khoảng cách từ $O(0;0)$ đến $3x+4y-15=0$.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "3"
+        ]
+      },
+      "solution": "Lời giải: Khoảng cách15/sqrt(9+16)=3."
+    },
+    {
+      "id": "q13",
+      "section": "III",
+      "label": "Câu 3",
+      "type": "short",
+      "points": 0.5,
+      "text": "Elip $x^2/25+y^2/16=1$ có trục lớn dài bao nhiêu?",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "10"
+        ]
+      },
+      "solution": "Lời giải: a=5 nên trục lớn2a=10."
+    },
+    {
+      "id": "q14",
+      "section": "III",
+      "label": "Câu 4",
+      "type": "short",
+      "points": 0.5,
+      "text": "Giải $\\sqrt{x+5}=\\sqrt{2x+3}$; ghi nghiệm duy nhất.",
+      "noShuffle": false,
+      "key": {
+        "accept": [
+          "2"
+        ]
+      },
+      "solution": "Lời giải: Bình phương x+5=2x+3 cho x=2; hai biểu thức dưới căn cùng7≥0."
+    },
+    {
+      "id": "q15",
+      "section": "IV",
+      "label": "Câu 1",
+      "type": "essay",
+      "points": 2,
+      "text": "Giải $\\sqrt{x+6}=x$ trên $\\mathbb R$. Trình bày điều kiện, mọi ứng viên sau bình phương, loại nghiệm ngoại lai và kiểm nghiệm còn lại.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "Cần x≥0. Bình phương x+6=x², tức(x-3)(x+2)=0; ứng viên3,-2. Loại-2 vì vế phải âm. x=3 cho sqrt9=3 nên nghiệm duy nhất3.",
+      "rubric": "Điều kiện:0,4; phương trình sau bình phương:0,4; tìm hai ứng viên:0,4; loại-2 có lý do:0,4; kiểm3 và kết luận:0,4."
+    },
+    {
+      "id": "q16",
+      "section": "IV",
+      "label": "Câu 2",
+      "type": "essay",
+      "points": 2,
+      "text": "Cho đường tròn $(x-2)^2+(y-1)^2=25$ và $M(5;5)$. Xác định tâm,bán kính; kiểm M thuộc đường tròn; lập tiếp tuyến tại M; kiểm khoảng cách từ tâm tới tiếp tuyến.",
+      "noShuffle": false,
+      "key": null,
+      "solution": "I=(2;1),R=5; IM=(3;4), 3²+4²=25 nên M thuộc đường tròn. Tiếp tuyến3(x-5)+4(y-5)=0, hay3x+4y-35=0. Khoảng cách I bằng|6+4-35|/5=5.",
+      "rubric": "Tâm/bán kính:0,4; kiểm M:0,4; lập phương trình:0,8; kiểm khoảng cách:0,4."
+    }
+  ]
+}

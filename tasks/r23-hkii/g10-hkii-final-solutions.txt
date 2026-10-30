@@ -1,0 +1,51 @@
+CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 10 Discover - Kiểm tra cuối học kỳ II
+
+I Câu 1: Lời giải: Hai nhóm vật rời nhau, chọn đúng một: 4+3=7.
+
+
+I Câu 2: Lời giải: 4!=24 cách xếp có thứ tự.
+
+
+I Câu 3: Lời giải: Hai vai trò khác nhau: 5×4=20.
+
+
+I Câu 4: Lời giải: C6^2=6×5/2=15.
+
+
+I Câu 5: Lời giải: Chọn x từ hai trong bốn thừa số: C4^2=6.
+
+
+I Câu 6: Lời giải: Bình phương nhỏ nhất bằng0 tại x=2, y=3.
+
+
+I Câu 7: Lời giải: R>0 và R²=25 nên R=5.
+
+
+I Câu 8: Lời giải: Không có viên đỏ nào chính là phủ định của có ít nhất một đỏ.
+
+
+II Câu 1: Tổng C5²=10; một mỗi màu3×2=6; cả hai xanh chỉ C2²=1 cặp nên xác suất1/10; đối là9/10.
+
+
+II Câu 2: 3²+4²=25; pháp tuyến(3;4); khoảng cách25/5=5=R. M thuộc d nên d là tiếp tuyến tại M.
+
+
+III Câu 1: Lời giải: Quy tắc nhân3×4=12.
+
+
+III Câu 2: Lời giải: C5^3=10.
+
+
+III Câu 3: Lời giải: Các cặp(1;4),(2;3),(3;2),(4;1), có4.
+
+
+III Câu 4: Lời giải: Khoảng cách|−10|/sqrt(9+16)=2.
+
+
+IV Câu 1: Có $C_7^2=21$ cặp. Đúng một đỏ có4×3=12 cặp nên xác suất12/21=4/7. Ít nhất một đỏ là đối của cả hai xanh, nên $1-C_3^2/C_7^2=1-3/21=6/7$. Biến cố đúng một đỏ là tập con; trường hợp hai đỏ thuộc biến cố sau nhưng không thuộc biến cố trước.
+Không gian mẫu21 cặp:0,4; đúng một đỏ12cặp và4/7:0,6; biến cố đối và6/7:0,6; giải thích quan hệ:0,4.
+
+IV Câu 2: I=(1;-2),R=5. IM=(3;4), bình phương độ dài25. Tiếp tuyến $3(x-4)+4(y-2)=0$, tức $3x+4y-20=0$. Khoảng cách I tới đường: $|3-8-20|/5=5=R$.
+Tâm/bán kính:0,4; kiểm tiếp điểm:0,4; pháp tuyến và phương trình tiếp tuyến:0,8; kiểm khoảng cách:0,4.

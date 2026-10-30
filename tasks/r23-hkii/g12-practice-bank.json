@@ -1,0 +1,1727 @@
+[
+  {
+    "id": "monoDef",
+    "title": "Đọc tính đơn điệu",
+    "introducedByPeriodId": "g12-discover-r019",
+    "introducedWeek": 1,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=1x+4$. Với $x_1<x_2$, $f(x_2)-f(x_1)=1(x_2-x_1)$. Kết luận nào đúng trên $\\mathbb R$?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "Hàm số đồng biến."
+          },
+          {
+            "id": "B",
+            "label": "Hàm số nghịch biến."
+          },
+          {
+            "id": "C",
+            "label": "Hàm số không đổi."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Vì $1(x_2-x_1)>0$, $f(x_2)>f(x_1)$ với mọi cặp đã cho."
+    }
+  },
+  {
+    "id": "monoRule",
+    "title": "Dấu đạo hàm và khoảng đơn điệu",
+    "introducedByPeriodId": "g12-discover-r020",
+    "introducedWeek": 1,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(-\\infty;-6)$"
+          },
+          {
+            "id": "B",
+            "label": "$(6;+\\infty)$"
+          },
+          {
+            "id": "C",
+            "label": "$(-6;6)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$."
+    }
+  },
+  {
+    "id": "monoCritical",
+    "title": "Đạo hàm bằng không chưa đủ",
+    "introducedByPeriodId": "g12-discover-r021",
+    "introducedWeek": 1,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=-(x-6)^3$ và $f'(x)=-3(x-6)^2$. Khẳng định nào đúng?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$x=6$ là điểm cực tiểu."
+          },
+          {
+            "id": "B",
+            "label": "Hàm số nghịch biến trên $\\mathbb R$; $x=6$ không là điểm cực trị."
+          },
+          {
+            "id": "C",
+            "label": "$x=6$ là điểm cực đại."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Đạo hàm âm ở hai phía của $6$, không đổi dấu qua điểm này."
+    }
+  },
+  {
+    "id": "extremaSign",
+    "title": "Nhận biết cực trị từ dấu",
+    "introducedByPeriodId": "g12-discover-r030",
+    "introducedWeek": 2,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực đại có hoành độ nào?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$3$"
+          },
+          {
+            "id": "B",
+            "label": "$1$"
+          },
+          {
+            "id": "C",
+            "label": "Không có cực đại."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Qua $x=3$, dấu đạo hàm đổi từ dương sang âm."
+    }
+  },
+  {
+    "id": "extremaCalc",
+    "title": "Tính giá trị cực trị",
+    "introducedByPeriodId": "g12-discover-r031",
+    "introducedWeek": 2,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=x^3-3x+4$. Tính giá trị cực tiểu của hàm số.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 2
+      },
+      "solution": "$f'=3(x-1)(x+1)$. Dấu đổi từ $-$ sang $+$ tại $x=1$; $f(1)=2$."
+    }
+  },
+  {
+    "id": "vectorIdentify",
+    "title": "Vectơ trong không gian",
+    "introducedByPeriodId": "g12-discover-r033",
+    "introducedWeek": 2,
+    "sample": {
+      "type": "closed",
+      "prompt": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{SV}$?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$\\overrightarrow{UT}$"
+          },
+          {
+            "id": "B",
+            "label": "$\\overrightarrow{TU}$"
+          },
+          {
+            "id": "C",
+            "label": "$\\overrightarrow{VS}$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Hai cạnh đối $SV$ và $TU$ song song, bằng nhau và cùng hướng."
+    }
+  },
+  {
+    "id": "vectorSum",
+    "title": "Quy tắc cộng vectơ",
+    "introducedByPeriodId": "g12-discover-r034",
+    "introducedWeek": 2,
+    "sample": {
+      "type": "closed",
+      "prompt": "Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, $AB=4$, $AD=3$. Tính $\\left|\\overrightarrow{AB}+\\overrightarrow{AD}\\right|^2$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 25
+      },
+      "solution": "Tổng là $\\overrightarrow{AC}$. Tam giác $ABC$ vuông nên $AC^2=4^2+3^2=25$."
+    }
+  },
+  {
+    "id": "vectorDiff",
+    "title": "Hiệu vectơ",
+    "introducedByPeriodId": "g12-discover-r035",
+    "introducedWeek": 2,
+    "sample": {
+      "type": "closed",
+      "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$\\overrightarrow{JL}$"
+          },
+          {
+            "id": "B",
+            "label": "$\\overrightarrow{IL}$"
+          },
+          {
+            "id": "C",
+            "label": "$\\overrightarrow{LJ}$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm."
+    }
+  },
+  {
+    "id": "maxTable",
+    "title": "Đọc GTLN và GTNN",
+    "introducedByPeriodId": "g12-discover-r039",
+    "introducedWeek": 3,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=6$ xuống $f(2)=-3$ rồi tăng đến $f(4)=4$. Tìm giá trị nhỏ nhất.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": -3
+      },
+      "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn."
+    }
+  },
+  {
+    "id": "maxClosed",
+    "title": "Cực trị tuyệt đối trên đoạn",
+    "introducedByPeriodId": "g12-discover-r040",
+    "introducedWeek": 3,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tìm GTLN của $f(x)=x^2-4x+6$ trên $[-1;4]$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 11
+      },
+      "solution": "$f'=2x-4$, điểm dừng $x=2$. So sánh $f(-1)=11$, $f(2)=2$, $f(4)=6$; GTLN là $11$."
+    }
+  },
+  {
+    "id": "maxOpen",
+    "title": "GTLN, GTNN trên khoảng",
+    "introducedByPeriodId": "g12-discover-r048",
+    "introducedWeek": 4,
+    "sample": {
+      "type": "closed",
+      "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "GTNN là $0$, GTLN là $1$."
+          },
+          {
+            "id": "B",
+            "label": "Không có GTNN và không có GTLN."
+          },
+          {
+            "id": "C",
+            "label": "GTNN là $0$, không có GTLN."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt."
+    }
+  },
+  {
+    "id": "vectorScale",
+    "title": "Nhân vectơ với một số",
+    "introducedByPeriodId": "g12-discover-r042",
+    "introducedWeek": 3,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $|\\vec u|=5$, $\\vec v=-4\\vec u$. Tính $|\\vec v|$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 20
+      },
+      "solution": "$|\\vec v|=|-4|\\,5=20$; hai vectơ ngược hướng."
+    }
+  },
+  {
+    "id": "dotGeo",
+    "title": "Tích vô hướng hình học",
+    "introducedByPeriodId": "g12-discover-r043",
+    "introducedWeek": 3,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $|\\vec u|=2$, $|\\vec v|=2$, góc giữa chúng $120^{\\circ}$. Tính $\\vec u\\cdot\\vec v$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": -2
+      },
+      "solution": "$\\vec u\\cdot\\vec v=2\\cdot2\\cdot\\cos 120^{\\circ}=-2$."
+    }
+  },
+  {
+    "id": "asymVH",
+    "title": "Tiệm cận đứng và ngang",
+    "introducedByPeriodId": "g12-discover-r050",
+    "introducedWeek": 4,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=2+\\dfrac{4}{x-4}$. Cặp tiệm cận đứng và ngang là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$x=2$ và $y=4$"
+          },
+          {
+            "id": "B",
+            "label": "$x=-4$ và $y=2$"
+          },
+          {
+            "id": "C",
+            "label": "$x=4$ và $y=2$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Khi $x\\to4^{\\pm}$, phần phân thức vô hạn; khi $x\\to\\pm\\infty$, phần phân thức tiến về $0$."
+    }
+  },
+  {
+    "id": "asymOblique",
+    "title": "Tiệm cận xiên",
+    "introducedByPeriodId": "g12-discover-r057",
+    "introducedWeek": 5,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $f(x)=\\dfrac{x^2-1x-11}{x-4}=x+3+\\dfrac1{x-4}$. Tiệm cận xiên là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$y=3$"
+          },
+          {
+            "id": "B",
+            "label": "$y=x+3$"
+          },
+          {
+            "id": "C",
+            "label": "$y=x-4$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Hiệu $f(x)-(x+3)=1/(x-4)\\to0$ khi $x\\to\\pm\\infty$."
+    }
+  },
+  {
+    "id": "coordPoint",
+    "title": "Tọa độ điểm và hình chiếu",
+    "introducedByPeriodId": "g12-discover-r052",
+    "introducedWeek": 4,
+    "sample": {
+      "type": "closed",
+      "prompt": "Trong $Oxyz$, $M(1;-4;2)$. Hình chiếu vuông góc của $M$ lên $(Oxy)$ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(1;-4;0)$"
+          },
+          {
+            "id": "B",
+            "label": "$(0;-4;2)$"
+          },
+          {
+            "id": "C",
+            "label": "$(1;0;2)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Hình chiếu lên $(Oxy)$ có tung độ và hoành độ giữ nguyên, cao độ bằng $0$."
+    }
+  },
+  {
+    "id": "coordVector",
+    "title": "Tọa độ vectơ và vectơ đơn vị",
+    "introducedByPeriodId": "g12-discover-r053",
+    "introducedWeek": 4,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $A(2;2;-1)$, $B(5;-2;2)$. Tọa độ $\\overrightarrow{AB}$ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(-3;4;-3)$"
+          },
+          {
+            "id": "B",
+            "label": "$(7;0;1)$"
+          },
+          {
+            "id": "C",
+            "label": "$(3;-4;3)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Lấy tọa độ $B$ trừ $A$: $\\overrightarrow{AB}=(3;-4;3)$."
+    }
+  },
+  {
+    "id": "coordOps",
+    "title": "Phép toán vectơ theo tọa độ",
+    "introducedByPeriodId": "g12-discover-r062",
+    "introducedWeek": 5,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $\\vec u=(2;-2;3)$, $\\vec v=(2;3;-1)$. Tọa độ $4\\vec u-\\vec v$ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(-6;-14;7)$"
+          },
+          {
+            "id": "B",
+            "label": "$(6;-11;13)$"
+          },
+          {
+            "id": "C",
+            "label": "$(10;-5;11)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Nhân từng tọa độ của $\\vec u$ với $4$ rồi trừ tọa độ tương ứng của $\\vec v$: $(6;-11;13)$."
+    }
+  },
+  {
+    "id": "dotCoord",
+    "title": "Tích vô hướng theo tọa độ",
+    "introducedByPeriodId": "g12-discover-r071",
+    "introducedWeek": 6,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $\\vec u=(3;-2;3)$, $\\vec v=(2;1;-1)$. Tính $\\vec u\\cdot\\vec v$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 1
+      },
+      "solution": "$3\\cdot2+(-2)\\cdot1+3\\cdot(-1)=1$."
+    }
+  },
+  {
+    "id": "angleCoord",
+    "title": "Góc và độ dài trong tọa độ",
+    "introducedByPeriodId": "g12-discover-r072",
+    "introducedWeek": 6,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $\\vec u=(2;0;2)$, $\\vec v=(-2;0;2)$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0
+      },
+      "solution": "Tích vô hướng bằng $-4+4=0$, nên hai vectơ vuông góc; cosin góc bằng $0$."
+    }
+  },
+  {
+    "id": "coordBasis",
+    "title": "Biểu diễn theo vectơ đơn vị",
+    "introducedByPeriodId": "g12-discover-r053",
+    "introducedWeek": 4,
+    "sample": {
+      "type": "closed",
+      "prompt": "Biết $\\overrightarrow{OM}=1\\vec k+1\\vec i-4\\vec j$. Tọa độ của $M$ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(1;4;1)$"
+          },
+          {
+            "id": "B",
+            "label": "$(1;-4;1)$"
+          },
+          {
+            "id": "C",
+            "label": "$(1;1;-4)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Sắp hệ số theo $\\vec i,\\vec j,\\vec k$ được $(1;-4;1)$."
+    }
+  },
+  {
+    "id": "cubic",
+    "title": "Khảo sát hàm bậc ba",
+    "introducedByPeriodId": "g12-discover-r059",
+    "introducedWeek": 5,
+    "sample": {
+      "type": "open",
+      "prompt": "Cho $f(x)=x^3-12x-1$, $f'(x)=3(x-2)(x+2)$. Trên vở, hoàn thiện bảng biến thiên, ghi hai điểm cực trị và phác đồ thị qua $(0;-1)$. Mô tả ngắn chiều của ba nhánh.",
+      "solution": "Miền $\\mathbb R$; dấu $f'$ là $+,-,+$ qua $-2,2$. Cực đại $(-2;15)$, cực tiểu $(2;-17)$, qua $(0;-1)$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Bảng dấu và chiều biến thiên đúng.",
+            "Hai tọa độ cực trị đúng.",
+            "Phác thảo liên tục, đi qua điểm đã cho, đúng chiều hai đầu."
+          ],
+          "lookFor": [
+            "Miền $\\mathbb R$; dấu $f'$ là $+,-,+$ qua $-2,2$. Cực đại $(-2;15)$, cực tiểu $(2;-17)$, qua $(0;-1)$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "rational11",
+    "title": "Khảo sát phân thức bậc nhất/bậc nhất",
+    "introducedByPeriodId": "g12-discover-r066",
+    "introducedWeek": 6,
+    "sample": {
+      "type": "open",
+      "prompt": "Khảo sát và phác nhanh $f(x)=2+\\dfrac{3}{x-3}$. Ghi miền xác định, dấu đạo hàm, hai tiệm cận và hai điểm ứng với $x=2$, $x=4$.",
+      "solution": "Miền $\\mathbb R\\setminus\\{3\\}$; $f'=-3/(x-3)^2<0$. Nghịch biến trên từng khoảng $(-\\infty;3)$, $(3;+\\infty)$. Tiệm cận $x=3,y=2$. Hai điểm $(2;-1)$, $(4;5)$; hai nhánh hướng xuống riêng rẽ.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Miền và tiệm cận đúng.",
+            "Dấu đạo hàm, từng khoảng đơn điệu đúng.",
+            "Hai điểm và hai nhánh phù hợp tiệm cận."
+          ],
+          "lookFor": [
+            "Miền $\\mathbb R\\setminus\\{3\\}$; $f'=-3/(x-3)^2<0$. Nghịch biến trên từng khoảng $(-\\infty;3)$, $(3;+\\infty)$. Tiệm cận $x=3,y=2$. Hai điểm $(2;-1)$, $(4;5)$; hai nhánh hướng xuống riêng rẽ."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "rational21",
+    "title": "Khảo sát phân thức bậc hai/bậc nhất",
+    "introducedByPeriodId": "g12-discover-r068",
+    "introducedWeek": 6,
+    "sample": {
+      "type": "open",
+      "prompt": "Cho $f(x)=x+3+\\dfrac{4}{x-4}$, $f'(x)=1-\\dfrac{4}{(x-4)^2}$. Ghi hai tiệm cận, lập bảng biến thiên và phác hai nhánh với điểm cực trị.",
+      "solution": "Miền loại $4$; tiệm cận $x=4$ và $y=x+3$. Nghiệm đạo hàm $2,6$; dấu $+,-\\mid-,+$. Cực đại nhánh trái $(2;3)$, cực tiểu nhánh phải $(6;11)$. Hai nhánh tiến sát đường xiên ở vô cực.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Miền và hai tiệm cận đúng.",
+            "Bảng dấu tách đúng điểm không xác định.",
+            "Hai cực trị và hình dạng hai nhánh đúng."
+          ],
+          "lookFor": [
+            "Miền loại $4$; tiệm cận $x=4$ và $y=x+3$. Nghiệm đạo hàm $2,6$; dấu $+,-\\mid-,+$. Cực đại nhánh trái $(2;3)$, cực tiểu nhánh phải $(6;11)$. Hai nhánh tiến sát đường xiên ở vô cực."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "groupRange",
+    "title": "Khoảng biến thiên mẫu ghép nhóm",
+    "introducedByPeriodId": "g12-discover-r115",
+    "introducedWeek": 11,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mẫu ghép nhóm có các lớp $[40;42),[42;44),[44;46)$, tần số lần lượt $4,8,8$. Tính khoảng biến thiên xấp xỉ.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 6
+      },
+      "solution": "Hai mút ngoài là $40$ và $46$; $R=46-40=6$."
+    }
+  },
+  {
+    "id": "quartile",
+    "title": "Khoảng tứ phân vị ghép nhóm",
+    "introducedByPeriodId": "g12-discover-r115",
+    "introducedWeek": 11,
+    "sample": {
+      "type": "closed",
+      "prompt": "Các nhóm $[90;94),[94;98),[98;102)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 5
+      },
+      "solution": "$n=20$; vị trí $5,15$. $Q_1=94+\\frac{5-4}{8}\\cdot4=94.5$; $Q_3=98+\\frac{15-12}{8}\\cdot4=99.5$; hiệu bằng $5$."
+    }
+  },
+  {
+    "id": "variance",
+    "title": "Phương sai và độ lệch chuẩn ghép nhóm",
+    "introducedByPeriodId": "g12-discover-r117",
+    "introducedWeek": 11,
+    "sample": {
+      "type": "closed",
+      "prompt": "Các nhóm $[20;22),[22;24),[24;26)$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$s^2=1\\sqrt2,\\ s=2$"
+          },
+          {
+            "id": "B",
+            "label": "$s^2=2,\\ s=1\\sqrt2$"
+          },
+          {
+            "id": "C",
+            "label": "$s^2=4,\\ s=2$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Điểm giữa là $21,23,25$, $\\bar x=23$. Tổng bình phương lệch có trọng số bằng $32$; chia $16$ được $s^2=2$; lấy căn được $s=1\\sqrt2$."
+    }
+  },
+  {
+    "id": "risk",
+    "title": "Diễn giải độ phân tán",
+    "introducedByPeriodId": "g12-discover-r124",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hai đối tượng Thuật toán Alpha và Thuật toán Beta có cùng độ trễ phản hồi trung bình, cùng đơn vị mili-giây. Độ lệch chuẩn của Thuật toán Alpha là $1$, của Thuật toán Beta là $2$. Kết luận được dữ liệu hỗ trợ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "Thuật toán Alpha có độ trễ phản hồi ít phân tán hơn trong mẫu đã quan sát."
+          },
+          {
+            "id": "B",
+            "label": "Thuật toán Alpha luôn tốt hơn Thuật toán Beta trong mọi lần."
+          },
+          {
+            "id": "C",
+            "label": "Thuật toán Beta chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "$1<2$ cho thấy Thuật toán Alpha ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy."
+    }
+  },
+  {
+    "id": "primitiveDef",
+    "title": "Định nghĩa nguyên hàm",
+    "introducedByPeriodId": "g12-discover-r113",
+    "introducedWeek": 11,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hàm nào là một nguyên hàm của $f(x)=10x$?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$F(x)=10x^2+0$"
+          },
+          {
+            "id": "B",
+            "label": "$F(x)=10$"
+          },
+          {
+            "id": "C",
+            "label": "$F(x)=5x^2+0$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Đạo hàm của $5x^2+0$ bằng $10x$; đạo hàm của hằng số bằng $0$."
+    }
+  },
+  {
+    "id": "primitiveCondition",
+    "title": "Nguyên hàm với điều kiện",
+    "introducedByPeriodId": "g12-discover-r114",
+    "introducedWeek": 11,
+    "sample": {
+      "type": "closed",
+      "prompt": "Biết $F'(x)=4x$ và $F(0)=5$. Tính $F(1)$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 7
+      },
+      "solution": "$F(x)=2x^2+C$. Điều kiện cho $C=5$; $F(1)=7$."
+    }
+  },
+  {
+    "id": "primitiveLinear",
+    "title": "Tính tuyến tính của nguyên hàm",
+    "introducedByPeriodId": "g12-discover-r120",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $F'=f,G'=g$. Một họ nguyên hàm của $3f-2g$ là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$3F-2G+C$"
+          },
+          {
+            "id": "B",
+            "label": "$FG+C$"
+          },
+          {
+            "id": "C",
+            "label": "$3F+2G+C$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Lấy đạo hàm theo tính tuyến tính được đúng $3f-2g$."
+    }
+  },
+  {
+    "id": "primitivePower",
+    "title": "Nguyên hàm lũy thừa",
+    "introducedByPeriodId": "g12-discover-r121",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tìm $\\int 18x^{5}\\,dx$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$18x^{6}+C$"
+          },
+          {
+            "id": "B",
+            "label": "$90x^{4}+C$"
+          },
+          {
+            "id": "C",
+            "label": "$3x^{6}+C$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Tăng số mũ lên $6$ rồi chia hệ số $18$ cho $6$ được $3$."
+    }
+  },
+  {
+    "id": "primitiveReciprocal",
+    "title": "Nguyên hàm của nghịch đảo",
+    "introducedByPeriodId": "g12-discover-r121",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Trên một khoảng không chứa $0$, $\\int\\dfrac{4}x\\,dx$ bằng",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$4x+C$"
+          },
+          {
+            "id": "B",
+            "label": "$4\\ln|x|+C$"
+          },
+          {
+            "id": "C",
+            "label": "$\\dfrac{4}{x^2}+C$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "B"
+      },
+      "solution": "Đạo hàm của $\\ln|x|$ bằng $1/x$ khi $x\\ne0$; nhân hệ số $4$."
+    }
+  },
+  {
+    "id": "primitiveExp",
+    "title": "Nguyên hàm hàm số mũ",
+    "introducedByPeriodId": "g12-discover-r122",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tìm $\\int 2\\cdot 6^x\\,dx$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$\\dfrac{2\\cdot 6^x}{\\ln 6}+C$"
+          },
+          {
+            "id": "B",
+            "label": "$2\\cdot 6^x\\ln 6+C$"
+          },
+          {
+            "id": "C",
+            "label": "$\\dfrac{6^x}{\\ln 6}+C$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Đạo hàm của $2\\cdot 6^x$ là $2\\cdot 6^x\\ln 6$; chia cho $\\ln 6$ để triệt hệ số."
+    }
+  },
+  {
+    "id": "primitiveTrig",
+    "title": "Nguyên hàm lượng giác",
+    "introducedByPeriodId": "g12-discover-r123",
+    "introducedWeek": 12,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tìm $\\int(3\\cos x+3\\sin x)\\,dx$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$3\\sin x+3\\cos x+C$"
+          },
+          {
+            "id": "B",
+            "label": "$-3\\sin x-3\\cos x+C$"
+          },
+          {
+            "id": "C",
+            "label": "$3\\sin x-3\\cos x+C$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Đạo hàm của $3\\sin x$ là $3\\cos x$; đạo hàm của $-3\\cos x$ là $3\\sin x$."
+    }
+  },
+  {
+    "id": "curvedArea",
+    "title": "Tổng hình chữ nhật và diện tích",
+    "introducedByPeriodId": "g12-discover-r131",
+    "introducedWeek": 13,
+    "sample": {
+      "type": "closed",
+      "prompt": "Dưới đồ thị $y=4x$ trên $[0;3]$, tổng hình chữ nhật lấy đầu phải là $S_n=\\dfrac{36}{n^2}\\sum_{k=1}^n k$. Dùng $\\sum k=n(n+1)/2$, tính $\\lim S_n$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 18
+      },
+      "solution": "$S_n=36\\,\\dfrac{n+1}{2n}$ nên giới hạn là $18$. Cũng bằng diện tích tam giác đáy $3$, cao $12$."
+    }
+  },
+  {
+    "id": "definite",
+    "title": "Tích phân xác định",
+    "introducedByPeriodId": "g12-discover-r132",
+    "introducedWeek": 13,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính $\\int_0^{1}(2x+0)\\,dx$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 1
+      },
+      "solution": "Nguyên hàm là $1x^2+0x$; thay cận được $1\\cdot1^2+0\\cdot1=1$."
+    }
+  },
+  {
+    "id": "integralLinearity",
+    "title": "Tính tuyến tính của tích phân",
+    "introducedByPeriodId": "g12-discover-r133",
+    "introducedWeek": 13,
+    "sample": {
+      "type": "closed",
+      "prompt": "Biết $\\int_0^2 f(x)\\,dx=4$, $\\int_0^2g(x)\\,dx=2$. Tính $\\int_0^2[3f(x)-2g(x)]\\,dx$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 8
+      },
+      "solution": "Theo tính tuyến tính, kết quả là $3\\cdot4-2\\cdot2=8$."
+    }
+  },
+  {
+    "id": "integralIntervals",
+    "title": "Cộng đoạn và đổi cận",
+    "introducedByPeriodId": "g12-discover-r134",
+    "introducedWeek": 13,
+    "sample": {
+      "type": "closed",
+      "prompt": "Biết $\\int_0^1 f(x)\\,dx=5$, $\\int_1^3f(x)\\,dx=3$. Tính $\\int_3^0f(x)\\,dx$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": -8
+      },
+      "solution": "Cộng đoạn cho $\\int_0^3 f=8$; đảo cận đổi dấu, được $-8$."
+    }
+  },
+  {
+    "id": "integralPoly",
+    "title": "Tích phân đa thức",
+    "introducedByPeriodId": "g12-discover-r135",
+    "introducedWeek": 13,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính $\\int_0^{4}(15x^2+0)\\,dx$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 320
+      },
+      "solution": "Nguyên hàm là $5x^3+0x$; hiệu hai cận là $5\\cdot4^3+0\\cdot4=320$."
+    }
+  },
+  {
+    "id": "areaPositive",
+    "title": "Diện tích dưới đồ thị không âm",
+    "introducedByPeriodId": "g12-discover-r139",
+    "introducedWeek": 14,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính diện tích giới hạn bởi $y=3x^2$, trục hoành, $x=0$, $x=1$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 1
+      },
+      "solution": "Hàm không âm nên $S=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$."
+    }
+  },
+  {
+    "id": "areaSign",
+    "title": "Diện tích khi đồ thị đổi dấu",
+    "introducedByPeriodId": "g12-discover-r140",
+    "introducedWeek": 14,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính diện tích giữa đồ thị $y=x-2$ và trục hoành trên $[0;3]$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 2.5
+      },
+      "solution": "Đổi dấu tại $x=2$. $S=\\int_0^{2}(2-x)\\,dx+\\int_{2}^{3}(x-2)\\,dx=\\frac{4+1}2=2.5$."
+    }
+  },
+  {
+    "id": "areaTwo",
+    "title": "Diện tích giữa hai đồ thị",
+    "introducedByPeriodId": "g12-discover-r143",
+    "introducedWeek": 14,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính diện tích hình phẳng giới hạn bởi hai parabol $y=x^2$ và $y=5x-x^2$. Nhập phân số nếu cần.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 20.833333333333332
+      },
+      "solution": "Giao điểm có hoành độ $0$ và $5/2$. Hoặc $2x^2=5x\\Rightarrow x=0,x=5/2$. Tích phân cho $S=\\frac{125}{24}$."
+    }
+  },
+  {
+    "id": "volumeSlice",
+    "title": "Thể tích từ thiết diện",
+    "introducedByPeriodId": "g12-discover-r149",
+    "introducedWeek": 15,
+    "sample": {
+      "type": "closed",
+      "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 6
+      },
+      "solution": "$V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích)."
+    }
+  },
+  {
+    "id": "volumeRotate",
+    "title": "Thể tích khối tròn xoay",
+    "introducedByPeriodId": "g12-discover-r150",
+    "introducedWeek": 15,
+    "sample": {
+      "type": "closed",
+      "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 8.333333333333334
+      },
+      "solution": "$V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$."
+    }
+  },
+  {
+    "id": "condSpace",
+    "title": "Không gian sau điều kiện",
+    "introducedByPeriodId": "g12-discover-r185",
+    "introducedWeek": 19,
+    "sample": {
+      "type": "closed",
+      "prompt": "Một nhóm có $3$ em vừa biết bơi vừa đeo kính, $7$ em biết bơi không đeo kính, $2$ em không biết bơi có đeo kính và $8$ em không biết bơi không đeo kính. Chọn ngẫu nhiên một em, biết em đó biết bơi. Xác suất em đó đeo kính bằng bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.3
+      },
+      "solution": "Chỉ giữ nhóm biết bơi: $10$ em. Trong đó có $3$ em đeo kính, nên xác suất là $3/10$."
+    }
+  },
+  {
+    "id": "condTable",
+    "title": "Xác suất có điều kiện từ bảng",
+    "introducedByPeriodId": "g12-discover-r186",
+    "introducedWeek": 19,
+    "sample": {
+      "type": "closed",
+      "prompt": "Bảng khảo sát: nhóm học ngoại ngữ có $12$ em thích sách và $4$ em không thích sách; nhóm không học ngoại ngữ có $10$ em thích sách và $7$ em không thích sách. Chọn ngẫu nhiên một em thích sách. Xác suất em đó học ngoại ngữ là bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.5454545454545454
+      },
+      "solution": "Trong $22$ em thích sách có $12$ em học ngoại ngữ; $P=12/22$."
+    }
+  },
+  {
+    "id": "condReverse",
+    "title": "Không đảo điều kiện",
+    "introducedByPeriodId": "g12-discover-r187",
+    "introducedWeek": 19,
+    "sample": {
+      "type": "open",
+      "prompt": "Có $11$ người thuộc cả A và B, $5$ người chỉ thuộc A, $10$ người chỉ thuộc B, $5$ người không thuộc A cũng không thuộc B. Tính $P(A\\mid B)$, $P(B\\mid A)$; giải thích vì sao không được đổi chỗ điều kiện.",
+      "solution": "$P(A\\mid B)=11/21$, $P(B\\mid A)=11/16$. Hai mẫu số khác nhau vì tập được giữ lại khác nhau: nhóm B có 21 người, nhóm A có 16 người.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Hai phân số có tử là số người thuộc cả A và B.",
+            "Mẫu số lần lượt là số người thuộc B và thuộc A.",
+            "Giải thích được điều kiện làm thay đổi không gian xét."
+          ],
+          "lookFor": [
+            "$P(A\\mid B)=11/21$, $P(B\\mid A)=11/16$. Hai mẫu số khác nhau vì tập được giữ lại khác nhau: nhóm B có 21 người, nhóm A có 16 người."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "condComplement",
+    "title": "Biến cố đối trong điều kiện",
+    "introducedByPeriodId": "g12-discover-r205",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Trong 16 sản phẩm do máy M làm ra có 3 sản phẩm lỗi. Biết sản phẩm được chọn ngẫu nhiên do M làm ra, xác suất sản phẩm không lỗi bằng bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.8125
+      },
+      "solution": "Trong cùng nhóm M, $P(\\text{không lỗi}\\mid M)=1-3/16=13/16$."
+    }
+  },
+  {
+    "id": "multiply",
+    "title": "Nhân xác suất qua hai lượt",
+    "introducedByPeriodId": "g12-discover-r206",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hộp có 7 viên đỏ và 5 viên xanh. Rút liên tiếp hai viên không hoàn lại. Xác suất cả hai viên đỏ là bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.3181818181818182
+      },
+      "solution": "$P=\\frac{7}{12}\\cdot\\frac{6}{11}=\\frac{42}{132}$."
+    }
+  },
+  {
+    "id": "multiplyMixed",
+    "title": "Hai thứ tự cùng đạt yêu cầu",
+    "introducedByPeriodId": "g12-discover-r207",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hộp có 5 thẻ đỏ và 7 thẻ xanh. Rút hai thẻ không hoàn lại. Tính xác suất hai thẻ khác màu.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.5303030303030303
+      },
+      "solution": "Hai nhánh rời nhau cho $P=\\frac{5}{12}\\frac{7}{11}+\\frac{7}{12}\\frac{5}{11}=\\frac{70}{132}$."
+    }
+  },
+  {
+    "id": "totalRule",
+    "title": "Xác suất toàn phần",
+    "introducedByPeriodId": "g12-discover-r218",
+    "introducedWeek": 21,
+    "sample": {
+      "type": "closed",
+      "prompt": "Chọn ngẫu nhiên một trong 28 sản phẩm. Kho A có 6 sản phẩm lỗi và 10 sản phẩm tốt; kho B có 3 sản phẩm lỗi và 9 sản phẩm tốt. Dùng công thức toàn phần tính xác suất chọn trúng sản phẩm lỗi.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.32142857142857145
+      },
+      "solution": "$P(\\text{lỗi})=\\frac{16}{28}\\frac{6}{16}+\\frac{12}{28}\\frac{3}{12}=\\frac{9}{28}$."
+    }
+  },
+  {
+    "id": "totalTree",
+    "title": "Toàn phần từ cây xác suất",
+    "introducedByPeriodId": "g12-discover-r219",
+    "introducedWeek": 21,
+    "sample": {
+      "type": "closed",
+      "prompt": "Chọn một trong hai hộp với xác suất bằng nhau, rồi chọn ngẫu nhiên một viên từ hộp ấy. Hộp I có 4 đỏ, 7 xanh; hộp II có 4 đỏ, 2 xanh. Tính xác suất lấy viên đỏ.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.5151515151515151
+      },
+      "solution": "$P(\\text{Đ})=\\frac12\\frac{4}{11}+\\frac12\\frac{4}{6}$. Không được gộp toàn bộ viên của hai hộp vì cơ chế chọn bắt đầu bằng chọn hộp."
+    }
+  },
+  {
+    "id": "bayes",
+    "title": "Đảo điều kiện bằng Bayes",
+    "introducedByPeriodId": "g12-discover-r229",
+    "introducedWeek": 22,
+    "sample": {
+      "type": "closed",
+      "prompt": "Nhà máy có 16 sản phẩm từ máy A, trong đó 9 lỗi; có 14 sản phẩm từ máy B, trong đó 5 lỗi. Chọn ngẫu nhiên một sản phẩm và biết nó lỗi. Xác suất nó từ máy A bằng bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.6428571428571429
+      },
+      "solution": "Theo Bayes, $P(A\\mid L)=\\frac{(16/30)(9/16)}{(16/30)(9/16)+(14/30)(5/14)}=\\frac{9}{14}$."
+    }
+  },
+  {
+    "id": "bayesBox",
+    "title": "Bayes khi chọn hộp trước",
+    "introducedByPeriodId": "g12-discover-r230",
+    "introducedWeek": 22,
+    "sample": {
+      "type": "closed",
+      "prompt": "Chọn một trong hai hộp với xác suất bằng nhau. Hộp I có 6 đỏ, 3 xanh; hộp II có 6 đỏ, 4 xanh. Rút một viên từ hộp đã chọn, thấy viên đỏ. Xác suất đã chọn hộp I bằng bao nhiêu?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.5263157894736842
+      },
+      "solution": "$P(I\\mid\\text{Đ})=\\dfrac{\\frac12\\frac{6}{9}}{\\frac12\\frac{6}{9}+\\frac12\\frac{6}{10}}=\\frac{60}{114}$."
+    }
+  },
+  {
+    "id": "normalCross",
+    "title": "Pháp tuyến bằng tích có hướng",
+    "introducedByPeriodId": "g12-discover-r188",
+    "introducedWeek": 19,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt phẳng chứa hai vectơ $\\vec u=(1;2;0)$, $\\vec v=(0;1;5)$. Vectơ nào là một pháp tuyến?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(2;5;1)$"
+          },
+          {
+            "id": "B",
+            "label": "$(1;2;5)$"
+          },
+          {
+            "id": "C",
+            "label": "$(10;-5;1)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "$\\vec u\\times\\vec v=(10;-5;1)$. Kiểm tra $\\vec n\\cdot\\vec u=0$ và $\\vec n\\cdot\\vec v=0$."
+    }
+  },
+  {
+    "id": "planeSpan",
+    "title": "Cặp vectơ chỉ phương của mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r189",
+    "introducedWeek": 19,
+    "sample": {
+      "type": "open",
+      "prompt": "Mặt phẳng có pháp tuyến $\\vec n=(0;3;-1)$. Chứng minh $\\vec u=(1;0;0)$ và $\\vec v=(0;1;3)$ là một cặp vectơ chỉ phương. Vì sao thay $\\vec v$ bằng $2\\vec u$ thì không được?",
+      "solution": "$\\vec n\\cdot\\vec u=0$, $\\vec n\\cdot\\vec v=3-3=0$. $\\vec u,\\vec v$ không cùng phương vì tọa độ thứ nhất của $\\vec u$ khác 0 còn của $\\vec v$ bằng 0. $2\\vec u$ cùng phương với $\\vec u$ nên không tạo đủ hai phương độc lập.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Kiểm cả hai tích vô hướng bằng không.",
+            "Chứng minh hai vectơ không cùng phương.",
+            "Giải thích được vì sao cặp cùng phương không đủ."
+          ],
+          "lookFor": [
+            "$\\vec n\\cdot\\vec u=0$, $\\vec n\\cdot\\vec v=3-3=0$. $\\vec u,\\vec v$ không cùng phương vì tọa độ thứ nhất của $\\vec u$ khác 0 còn của $\\vec v$ bằng 0. $2\\vec u$ cùng phương với $\\vec u$ nên không tạo đủ hai phương độc lập."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "planePoint",
+    "title": "Mặt phẳng qua điểm, biết pháp tuyến",
+    "introducedByPeriodId": "g12-discover-r208",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt phẳng qua $M(3;5;8)$, pháp tuyến $(2;-1;3)$ có dạng $2x-y+3z+D=0$. Tìm $D$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": -25
+      },
+      "solution": "Thay M: $2\\cdot3-5+3\\cdot8+D=0$, nên $D=-25$."
+    }
+  },
+  {
+    "id": "planeThree",
+    "title": "Mặt phẳng qua ba điểm",
+    "introducedByPeriodId": "g12-discover-r209",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt phẳng qua $A(6;0;0), B(0;9;0), C(0;0;6)$ có phương trình $54x+36y+54z+D=0$. Tìm $D$ và kiểm bằng một điểm.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": -324
+      },
+      "solution": "$\\overrightarrow{AB}=(-6;9;0)$, $\\overrightarrow{AC}=(-6;0;6)$, tích có hướng $(54;36;54)$. Thay A được $D=-324$."
+    }
+  },
+  {
+    "id": "planeFromSpan",
+    "title": "Mặt phẳng qua điểm, biết hai phương",
+    "introducedByPeriodId": "g12-discover-r209",
+    "introducedWeek": 20,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt phẳng qua $M(1;7;2)$, có hai vectơ chỉ phương $(1;1;0)$ và $(0;1;2)$, có phương trình $2x-2y+z+D=0$. Tính D.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 10
+      },
+      "solution": "Tích có hướng cho pháp tuyến $(2;-2;1)$. Thay M: $2\\cdot1-2\\cdot7+2+D=0$, nên $D=10$."
+    }
+  },
+  {
+    "id": "planePerp",
+    "title": "Hai mặt phẳng vuông góc",
+    "introducedByPeriodId": "g12-discover-r222",
+    "introducedWeek": 21,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hai mặt phẳng $x+2y-3z+4=0$ và $mx+3y+3z-2=0$ vuông góc. Tìm $m$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 3
+      },
+      "solution": "Hai pháp tuyến có tích vô hướng $m+6-9=0$, nên $m=3$."
+    }
+  },
+  {
+    "id": "planeParallel",
+    "title": "Song song hay trùng nhau",
+    "introducedByPeriodId": "g12-discover-r224",
+    "introducedWeek": 21,
+    "sample": {
+      "type": "closed",
+      "prompt": "Xét $(P):x+2y-z+6=0$ và $(Q):3x+6y-3z+18=0$. Vị trí tương đối là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "Hai mặt phẳng song song phân biệt."
+          },
+          {
+            "id": "B",
+            "label": "Hai mặt phẳng vuông góc."
+          },
+          {
+            "id": "C",
+            "label": "Hai mặt phẳng trùng nhau."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Chia phương trình Q cho $3$. Ba hệ số đầu trùng với P; hằng số cũng trùng nên trùng nhau."
+    }
+  },
+  {
+    "id": "planeDistance",
+    "title": "Khoảng cách điểm đến mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r225",
+    "introducedWeek": 21,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính khoảng cách từ $M(4;8;5)$ đến $(P):3x+4y-3=0$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 8.2
+      },
+      "solution": "$d=\\frac{|3\\cdot4+4\\cdot8-3|}{\\sqrt{3^2+4^2}}=\\frac{41}5$."
+    }
+  },
+  {
+    "id": "lineSymmetric",
+    "title": "Đọc phương trình chính tắc",
+    "introducedByPeriodId": "g12-discover-r233",
+    "introducedWeek": 22,
+    "sample": {
+      "type": "closed",
+      "prompt": "Đường thẳng $\\frac{x-4}2=\\frac{y-6}{-1}=\\frac{z-10}3$ đi qua điểm nào?",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$(8;4;16)$"
+          },
+          {
+            "id": "B",
+            "label": "$(6;7;13)$"
+          },
+          {
+            "id": "C",
+            "label": "$(4;6;11)$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Cho tham số $t=2$ được $x=4+4$, $y=6-2$, $z=10+6$, tức $(8;4;16)$. Hai điểm còn lại không có cùng tham số ở ba tọa độ."
+    }
+  },
+  {
+    "id": "lineTwoPoints",
+    "title": "Đường thẳng qua hai điểm",
+    "introducedByPeriodId": "g12-discover-r234",
+    "introducedWeek": 22,
+    "sample": {
+      "type": "closed",
+      "prompt": "Đường thẳng qua $A(5;7;3)$ và $B(7;4;7)$ có biểu diễn $M=A+t\\overrightarrow{AB}$. Với $t=2$, tính tổng ba tọa độ M.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 21
+      },
+      "solution": "$\\overrightarrow{AB}=(2;-3;4)$, $M(9;1;11)$, tổng bằng $21$."
+    }
+  },
+  {
+    "id": "linePerp",
+    "title": "Hai đường thẳng vuông góc",
+    "introducedByPeriodId": "g12-discover-r235",
+    "introducedWeek": 22,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hai đường có vectơ chỉ phương $\\vec u=(1;3;-2)$ và $\\vec v=(m;3;9)$. Tìm m để góc giữa hai đường bằng $90^\\circ$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 9
+      },
+      "solution": "$\\vec u\\cdot\\vec v=m+9-18=0$, nên $m=9$."
+    }
+  },
+  {
+    "id": "linePosition",
+    "title": "Vị trí tương đối hai đường",
+    "introducedByPeriodId": "g12-discover-r243",
+    "introducedWeek": 23,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hai đường $d_1:(x;y;z)=(t;0;0)$ và $d_2:(x;y;z)=(7;2+s;2)$. Vị trí tương đối là",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "Hai đường chéo nhau."
+          },
+          {
+            "id": "B",
+            "label": "Hai đường cắt nhau."
+          },
+          {
+            "id": "C",
+            "label": "Hai đường song song."
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Chỉ phương $(1;0;0)$ và $(0;1;0)$ không cùng phương. Hai tọa độ đầu cho $t=7,s=-2$; tọa độ thứ ba mâu thuẫn nên không có giao điểm."
+    }
+  },
+  {
+    "id": "linePlane",
+    "title": "Giao đường thẳng và mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r245",
+    "introducedWeek": 23,
+    "sample": {
+      "type": "closed",
+      "prompt": "Đường $d:(x;y;z)=(2+t;3+2t;1+3t)$ cắt $(P):2x-y+z-14=0$. Tìm tham số t tại giao điểm.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 4
+      },
+      "solution": "Thế vào P: $2(2+t)-(3+2t)+(1+3t)-14=0$. Suy ra $3t=12$, $t=4$."
+    }
+  },
+  {
+    "id": "lineReal",
+    "title": "Mô hình chuyển động trong không gian",
+    "introducedByPeriodId": "g12-discover-r246",
+    "introducedWeek": 23,
+    "sample": {
+      "type": "closed",
+      "prompt": "Một thiết bị bay chuyển động đều từ $M_0(4;7;4)$ m, vận tốc $(2;-1;3)$ m/s. Sau bao nhiêu giây thiết bị đạt độ cao $z=16$ m?",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 4
+      },
+      "solution": "$z(t)=4+3t$. Giải $4+3t=16$ được $t=4$ s, thỏa $t\\ge0$."
+    }
+  },
+  {
+    "id": "angleLines",
+    "title": "Góc giữa hai đường thẳng",
+    "introducedByPeriodId": "g12-discover-r253",
+    "introducedWeek": 24,
+    "sample": {
+      "type": "closed",
+      "prompt": "Hai đường có chỉ phương $(1;10;0)$ và $(1;0;10)$. Tính $\\cos^2\\theta$, với $\\theta$ là góc giữa hai đường.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.00009802960494069208
+      },
+      "solution": "Tích vô hướng bằng $1$, bình phương mỗi độ dài bằng $101$. Vì vậy $\\cos^2\\theta=1/10201$."
+    }
+  },
+  {
+    "id": "angleLinePlane",
+    "title": "Góc đường thẳng và mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r254",
+    "introducedWeek": 24,
+    "sample": {
+      "type": "closed",
+      "prompt": "Đường có chỉ phương $(5;6;3)$; mặt phẳng là $(Oxy)$. Tính $\\sin^2\\alpha$ với $\\alpha$ là góc đường thẳng và mặt phẳng.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.12857142857142856
+      },
+      "solution": "Pháp tuyến $(Oxy)$ là $(0;0;1)$. $\\sin^2\\alpha=3^2/(5^2+6^2+3^2)=9/70$."
+    }
+  },
+  {
+    "id": "anglePlanes",
+    "title": "Góc giữa hai mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r256",
+    "introducedWeek": 24,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cho $(P):x+12y+z-1=0$, $(Q):x-13z+3=0$. Tính $\\cos^2\\phi$ của góc giữa hai mặt phẳng.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 0.0058017727639000805
+      },
+      "solution": "Hai pháp tuyến $(1;12;1)$, $(1;0;-13)$ có tích vô hướng $-12$. $\\cos^2\\phi=\\frac{144}{146\\cdot170}$."
+    }
+  },
+  {
+    "id": "sphereRead",
+    "title": "Tâm và bán kính mặt cầu",
+    "introducedByPeriodId": "g12-discover-r258",
+    "introducedWeek": 24,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt cầu $x^2+y^2+z^2-2x-8y-18z+94=0$. Tính bình phương bán kính.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 4
+      },
+      "solution": "Hoàn thành bình phương được tâm $(1;4;9)$, $R^2=1+16+81-94=4$."
+    }
+  },
+  {
+    "id": "spherePoint",
+    "title": "Mặt cầu biết tâm và điểm",
+    "introducedByPeriodId": "g12-discover-r259",
+    "introducedWeek": 24,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt cầu tâm $I(2;2;6)$ đi qua $A(7;-1;8)$. Tính $R^2$ để lập phương trình mặt cầu.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 38
+      },
+      "solution": "$\\overrightarrow{IA}=(5;-3;2)$, nên $R^2=5^2+(-3)^2+2^2=38$. Phương trình $(x-2)^2+(y-2)^2+(z-6)^2=38$."
+    }
+  },
+  {
+    "id": "sphereDiameter",
+    "title": "Mặt cầu có đường kính cho trước",
+    "introducedByPeriodId": "g12-discover-r265",
+    "introducedWeek": 25,
+    "sample": {
+      "type": "open",
+      "prompt": "Lập phương trình mặt cầu có đường kính $AB$ với $A(0;-3;0), B(6;9;6)$. Kiểm một đầu đường kính thuộc mặt cầu.",
+      "solution": "Trung điểm $I(3;3;3)$. $R^2=AB^2/4=54$. Phương trình $(x-3)^2+(y-3)^2+(z-3)^2=54$. Thay A: $3^2+6^2+3^2=54$, đúng.",
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Tâm đúng là trung điểm hai đầu.",
+            "Bán kính hoặc bình phương bán kính đúng bằng nửa hoặc một phần tư tương ứng.",
+            "Phương trình đúng và kiểm được một đầu đường kính."
+          ],
+          "lookFor": [
+            "Trung điểm $I(3;3;3)$. $R^2=AB^2/4=54$. Phương trình $(x-3)^2+(y-3)^2+(z-3)^2=54$. Thay A: $3^2+6^2+3^2=54$, đúng."
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "sphereTangent",
+    "title": "Mặt cầu tiếp xúc mặt phẳng",
+    "introducedByPeriodId": "g12-discover-r266",
+    "introducedWeek": 25,
+    "sample": {
+      "type": "closed",
+      "prompt": "Mặt cầu tâm $I(4;6;1)$ tiếp xúc $(P):3x+4y-1=0$. Tính bán kính R.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 7
+      },
+      "solution": "$R=d(I,P)=\\frac{|3\\cdot4+4\\cdot6-1|}5=\\frac{35}5>0$."
+    }
+  },
+  {
+    "id": "sequenceTerm",
+    "title": "Dãy số và số hạng",
+    "introducedByPeriodId": "g12-discover-r335",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Dãy $u_n=5n+2$, $n\\ge1$. Tính $u_{7}$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 37
+      },
+      "solution": "Thay $n=7$: $u_{7}=5\\cdot7+2=37$."
+    }
+  },
+  {
+    "id": "arithmetic",
+    "title": "Cấp số cộng",
+    "introducedByPeriodId": "g12-discover-r335",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cấp số cộng có $u_1=6,d=3$. Tính tổng 9 số hạng đầu.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 162
+      },
+      "solution": "$S_{9}=\\frac{9(2\\cdot6+8\\cdot3)}2=162$."
+    }
+  },
+  {
+    "id": "geometric",
+    "title": "Cấp số nhân",
+    "introducedByPeriodId": "g12-discover-r336",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Cấp số nhân $u_1=6$, công bội $q=2$. Tính $u_{6}$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 192
+      },
+      "solution": "$u_{6}=6\\cdot2^{5}=192$."
+    }
+  },
+  {
+    "id": "sequenceLimit",
+    "title": "Giới hạn dãy hữu tỉ",
+    "introducedByPeriodId": "g12-discover-r336",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính $\\lim_{n\\to\\infty}\\frac{8n+2}{7n+1}$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 1.1428571428571428
+      },
+      "solution": "Chia n: $\\frac{8+2/n}{7+1/n}\\to8/7$."
+    }
+  },
+  {
+    "id": "expLog",
+    "title": "Hàm mũ và lôgarit",
+    "introducedByPeriodId": "g12-discover-r337",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Tính $\\log_{4}16$.",
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 2
+      },
+      "solution": "Vì $4^{2}=16$ và cơ số hợp lệ, lôgarit bằng $2$."
+    }
+  },
+  {
+    "id": "expIneq",
+    "title": "Bất phương trình mũ",
+    "introducedByPeriodId": "g12-discover-r338",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Giải $\\left(\\frac13\\right)^x<\\left(\\frac13\\right)^{6}$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$x>6$"
+          },
+          {
+            "id": "B",
+            "label": "$x<6$"
+          },
+          {
+            "id": "C",
+            "label": "$x\\ge6$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "A"
+      },
+      "solution": "Cơ số thuộc $(0;1)$ nên hàm nghịch biến; bất đẳng thức tương đương $x>6$."
+    }
+  },
+  {
+    "id": "logIneq",
+    "title": "Bất phương trình lôgarit",
+    "introducedByPeriodId": "g12-discover-r338",
+    "introducedWeek": 30,
+    "sample": {
+      "type": "closed",
+      "prompt": "Giải $\\log_2(x-3)<4$.",
+      "inputSchema": {
+        "options": [
+          {
+            "id": "A",
+            "label": "$x<19$"
+          },
+          {
+            "id": "B",
+            "label": "$x>19$"
+          },
+          {
+            "id": "C",
+            "label": "$3<x<19$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "answerKey": "C"
+      },
+      "solution": "Điều kiện $x>3$. Vì cơ số $2>1$, $x-3<2^{4}=16$. Giao điều kiện: $3<x<19$."
+    }
+  }
+]

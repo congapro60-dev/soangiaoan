@@ -1,0 +1,74 @@
+[
+  {
+    "path": "content/lessons/g11-ch2-review.json",
+    "sha256": "90508be4666ecccd05ca4f56b8371aa102152f3208101bc700b4071b914b4629"
+  },
+  {
+    "path": "content/lessons/g11-sequences-p1.json",
+    "sha256": "9736dce36b579f2ef9916d4d8565ecc1f54fd30bdf6110602d945faa931866c2"
+  },
+  {
+    "path": "content/lessons/g11-sequences-p2.json",
+    "sha256": "9a7b9a0b518f8a6a28cea1345d59e8151332080cfc6481aa1025e1621ecca486"
+  },
+  {
+    "path": "content/lessons/g11-w6-p34-must-only.json",
+    "sha256": "a32816d47cf0c019b44567664ea4d0401ac59e67b3ecbd47bb32009bbed327a1"
+  },
+  {
+    "path": "content/lessons/g11-w6-p34.json",
+    "sha256": "5e1a6df620898e2fb0f737f16be759f185da66194bc5ac2e73da7736210906a7"
+  },
+  {
+    "path": "content/lessons/g11-w6-p35-must-only.json",
+    "sha256": "fc54124cbea6c2493ce524276f4a6b01dc7f60a5aa04542e77c8257f48cbacc4"
+  },
+  {
+    "path": "content/lessons/g11-w6-p35.json",
+    "sha256": "e159c6ccecce7224ef4ae203be4156f8c1371d1ed2248db4f44b6c3254a27f82"
+  },
+  {
+    "path": "content/lessons/g11-w6-p36-must-only.json",
+    "sha256": "59fd341348a4ae340e48c9e11686b7d547aab481edf4793543d7d6cbaa1f4765"
+  },
+  {
+    "path": "content/lessons/g11-w6-p36.json",
+    "sha256": "1485da1de9572a1dd9eff6b5b76d20e58e414962b7eb1e0375fc3ecaaef5745b"
+  },
+  {
+    "path": "content/lessons/g11-w6-p37-must-only.json",
+    "sha256": "20325ed250053f03deabff1ba2d3f659ebd0e470f51341f373b2e61041afb4de"
+  },
+  {
+    "path": "content/lessons/g11-w6-p37.json",
+    "sha256": "7815648277e4fe94783808448d1f4c7f14d8886c05b3c562cdf355061274e6e3"
+  },
+  {
+    "path": "content/lessons/g11-w6-p38-must-only.json",
+    "sha256": "dece43ea419d526aa1d74578154305087d1f4cda8acf7365916ce865426faf9f"
+  },
+  {
+    "path": "content/lessons/g11-w6-p38.json",
+    "sha256": "9a54e3061496798bb90ef94a8f8e00c85276b3936560518aeffe5bb66dba3667"
+  },
+  {
+    "path": "content/lessons/g11-w6-p39-must-only.json",
+    "sha256": "75cf7e56e71a34a4a704f868989f05145d6695fa4686f208a44a4239429f6d52"
+  },
+  {
+    "path": "content/lessons/g11-w6-p40-must-only.json",
+    "sha256": "9596275d2a9e203354c7371ccc9a56381801ea1d9930a8d31fcc8bb2d78b9460"
+  },
+  {
+    "path": "content/lessons/g11-w6-p40.json",
+    "sha256": "05bd49c86ea1b885c41e02210aab10d6b499718333486ae2f304a929b7771f1b"
+  },
+  {
+    "path": "content/lessons/g11-w6-p41-must-only.json",
+    "sha256": "e114b7de06628d12fd1a5e773b126bc6c3f4e54185aabc1ad86c58cc198eaa90"
+  },
+  {
+    "path": "content/lessons/g11-w6-p41.json",
+    "sha256": "bcf18f90dfa93521e45e19de19beedbcd99be249b4b97f9caeb48ed78e7da6a1"
+  }
+]

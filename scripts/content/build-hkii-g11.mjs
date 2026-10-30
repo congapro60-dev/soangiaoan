@@ -589,9 +589,21 @@ function buildLesson(period, ids, eligible = []) {
  const unitReferences=[...new Map(ids.flatMap(refsFor).map(ref=>[ref.id,ref])).values()];
  const title=game?`Game ôn tập tích lũy tuần ${period.week} - tiết ${period.period}`:`${period.topic} - ${ids.map(id=>bank[id].title).join('; ')} (tiết ${period.period})`;
  const result=assembleHkiiPackage({period,title,slotMinutes:40,sourcePeriods,unitReferences,prerequisites:['Kiến thức được dẫn ở các tiết PPCT nguồn; GV dùng dự đoán đầu giờ để xác nhận trước khi tăng mức.'],outline:{format:'lesson-outline-v1',essentialQuestion:ids.map(id=>bank[id].statement).join(' '),objectives:ids.map(id=>({statement:bank[id].statement,level:'must',source:citationFor(id)})),activities,uncertainties:[...(ids.some(id=>Object.hasOwn(hk,id))?['OBJECTIVES_AUTHORED_FROM_CURRENT_PPCT_NOT_EXACT_UNIT_OVERVIEW_LO']:[]),...(feedback?['FEEDBACK_EXAMPLES_ARE_SYNTHETIC_NO_ACTUAL_CLASS_RESULTS']:[])]},rubric:{criteria:ids.map(id=>bank[id].statement),lookFor:ids.map(id=>`Kiểm cách làm và điều kiện; lỗi cần quan sát: ${bank[id].error}`)}});
- for(const task of result.pkg.tasks) if(solved.has(task.prompt)) {
-  task.metadata={...task.metadata,workedSolution:solved.get(task.prompt)};
-  solutions.push({packageId:result.pkg.id,taskId:task.id,conceptId:ids[task.objectiveIds.map(id=>result.pkg.objectives.findIndex(o=>o.id===id))[0]],prompt:task.prompt,solution:solved.get(task.prompt),evaluation:task.evaluation});
+ for(const task of result.pkg.tasks) {
+  if(!task.solidKey){
+   const p=task.prompt;
+   if(p.includes('tứ diện')){
+    task.solidKey='tu-dien-sabc';
+   }else if(p.includes('hình chóp')){
+    task.solidKey='chop-sabcd';
+   }else if(p.includes('hình hộp')||p.includes('lăng trụ')){
+    task.solidKey='hop-chu-nhat';
+   }
+  }
+  if(solved.has(task.prompt)) {
+   task.metadata={...task.metadata,workedSolution:solved.get(task.prompt)};
+   solutions.push({packageId:result.pkg.id,taskId:task.id,conceptId:ids[task.objectiveIds.map(id=>result.pkg.objectives.findIndex(o=>o.id===id))[0]],prompt:task.prompt,solution:solved.get(task.prompt),evaluation:task.evaluation});
+  }
  }
  result.pkg.contentHash=hashPackage(result.pkg);
  assert.equal(validateLessonPackage(result.pkg).ok,true,result.pkg.id);

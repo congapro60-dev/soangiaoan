@@ -1,0 +1,51 @@
+CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 10 Discover - Kiểm tra giữa học kỳ II
+
+I Câu 1: Lời giải: 2×3+1=7.
+
+
+I Câu 2: Lời giải: Với x2>x1, hiệu giá trị là -3(x2-x1)<0.
+
+
+I Câu 3: Lời giải: Dạng bình phương cho đỉnh (3;-2).
+
+
+I Câu 4: Lời giải: Pháp tuyến đọc từ hai hệ số x,y.
+
+
+I Câu 5: Lời giải: Cùng t=2 cho x=5, y=1.
+
+
+I Câu 6: Lời giải: Tích âm giữa hai nghiệm, không lấy hai đầu mút.
+
+
+I Câu 7: Lời giải: Tâm (2;-1), bán kính3.
+
+
+I Câu 8: Lời giải: c²=25-16=9, c=3.
+
+
+II Câu 1: Hai nghiệm1,5; a>0 nên âm trong, dương ngoài; dấu≤ nhận cả hai nghiệm, tập[1;5]. f(6)=5.
+
+
+II Câu 2: Cộng/trừ hệ cho(3;1); hai pháp tuyến không cùng phương. Tâm(3;1), R=2; điểm(5;1) cách tâm2.
+
+
+III Câu 1: Lời giải: Bình phương không âm; dấu bằng tại x=2, giá trị nhỏ nhất5.
+
+
+III Câu 2: Lời giải: Khoảng cách15/sqrt(9+16)=3.
+
+
+III Câu 3: Lời giải: a=5 nên trục lớn2a=10.
+
+
+III Câu 4: Lời giải: Bình phương x+5=2x+3 cho x=2; hai biểu thức dưới căn cùng7≥0.
+
+
+IV Câu 1: Cần x≥0. Bình phương x+6=x², tức(x-3)(x+2)=0; ứng viên3,-2. Loại-2 vì vế phải âm. x=3 cho sqrt9=3 nên nghiệm duy nhất3.
+Điều kiện:0,4; phương trình sau bình phương:0,4; tìm hai ứng viên:0,4; loại-2 có lý do:0,4; kiểm3 và kết luận:0,4.
+
+IV Câu 2: I=(2;1),R=5; IM=(3;4), 3²+4²=25 nên M thuộc đường tròn. Tiếp tuyến3(x-5)+4(y-5)=0, hay3x+4y-35=0. Khoảng cách I bằng|6+4-35|/5=5.
+Tâm/bán kính:0,4; kiểm M:0,4; lập phương trình:0,8; kiểm khoảng cách:0,4.

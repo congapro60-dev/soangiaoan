@@ -1,0 +1,29 @@
+CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 12 Discover - Kiểm tra giữa học kỳ II
+
+Câu 1 (0.5 điểm): Chỉ giữ nhóm biết bơi: $14$ em. Trong đó có $9$ em đeo kính, nên xác suất là $9/14$.
+
+Câu 2 (0.5 điểm): $P(\text{lỗi})=\frac{14}{30}\frac{8}{14}+\frac{16}{30}\frac{3}{16}=\frac{11}{30}$.
+
+Câu 3 (0.5 điểm): Chia phương trình Q cho $4$. Ba hệ số đầu trùng với P; hằng số khác nên song song phân biệt.
+
+Câu 4 (0.5 điểm): $\vec u\times\vec v=(6;-3;1)$. Kiểm tra $\vec n\cdot\vec u=0$ và $\vec n\cdot\vec v=0$.
+
+Câu 5 (0.5 điểm): Chỉ phương $(1;0;0)$ và $(0;1;0)$ không cùng phương. Hai tọa độ đầu cho $t=9,s=-6$; tọa độ thứ ba mâu thuẫn nên không có giao điểm.
+
+Câu 6 (0.5 điểm): Hoàn thành bình phương được tâm $(4;2;3)$, $R^2=16+4+9-4=25$.
+
+Câu 7 (0.75 điểm): $P=\frac{6}{14}\cdot\frac{5}{13}=\frac{30}{182}$.
+
+Câu 8 (0.75 điểm): Theo Bayes, $P(A\mid L)=\frac{(17/30)(5/17)}{(17/30)(5/17)+(13/30)(4/13)}=\frac{5}{9}$.
+
+Câu 9 (0.75 điểm): $d=\frac{|3\cdot3+4\cdot2-4|}{\sqrt{3^2+4^2}}=\frac{13}5$.
+
+Câu 10 (0.75 điểm): Pháp tuyến $(Oxy)$ là $(0;0;1)$. $\sin^2\alpha=3^2/(6^2+3^2+3^2)=9/54$.
+
+Câu 11 (2 điểm): $\overrightarrow{AB}=(-4;4;0)$, $\overrightarrow{AC}=(-4;0;10)$, tích có hướng $(40;40;16)$. Thay A được $D=-160$.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.
+
+Câu 12 (2 điểm): Trung điểm $I(6;4;3)$. $R^2=AB^2/4=22$. Phương trình $(x-6)^2+(y-4)^2+(z-3)^2=22$. Thay A: $2^2+3^2+3^2=22$, đúng.
+Kết quả hoặc lựa chọn đúng. Giải thích được công thức/điều kiện áp dụng. Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp. Chia đều 2 điểm cho các tiêu chí; GV đánh giá lập luận và biểu diễn, không chỉ đáp số.

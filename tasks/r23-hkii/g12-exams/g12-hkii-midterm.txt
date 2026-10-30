@@ -1,0 +1,73 @@
+Toán 12 Discover - Kiểm tra giữa học kỳ II
+
+Bản nháp tự soạn, cần giáo viên duyệt.
+
+Thời gian: 80 phút
+
+PHẦN I. Trắc nghiệm (6 câu/3 điểm)
+
+Câu 1. (0,5 điểm) Một nhóm có $9$ em vừa biết bơi vừa đeo kính, $5$ em biết bơi không đeo kính, $2$ em không biết bơi có đeo kính và $9$ em không biết bơi không đeo kính. Chọn ngẫu nhiên một em, biết em đó biết bơi. Xác suất em đó đeo kính bằng bao nhiêu?
+
+A. $\frac{9}{14}$
+
+B. $\frac{23}{14}$
+
+C. $\frac{-5}{14}$
+
+Câu 2. (0,5 điểm) Chọn ngẫu nhiên một trong 30 sản phẩm. Kho A có 8 sản phẩm lỗi và 6 sản phẩm tốt; kho B có 3 sản phẩm lỗi và 13 sản phẩm tốt. Dùng công thức toàn phần tính xác suất chọn trúng sản phẩm lỗi.
+
+A. $\frac{41}{30}$
+
+B. $\frac{-19}{30}$
+
+C. $\frac{11}{30}$
+
+Câu 3. (0,5 điểm) Xét $(P):x+2y-z+4=0$ và $(Q):4x+8y-4z+9=0$. Vị trí tương đối là
+
+A. Hai mặt phẳng song song phân biệt.
+
+B. Hai mặt phẳng trùng nhau.
+
+C. Hai mặt phẳng vuông góc.
+
+Câu 4. (0,5 điểm) Mặt phẳng chứa hai vectơ $\vec u=(1;2;0)$, $\vec v=(0;1;3)$. Vectơ nào là một pháp tuyến?
+
+A. $(2;3;1)$
+
+B. $(1;2;3)$
+
+C. $(6;-3;1)$
+
+Câu 5. (0,5 điểm) Hai đường $d_1:(x;y;z)=(t;0;0)$ và $d_2:(x;y;z)=(9;6+s;5)$. Vị trí tương đối là
+
+A. Hai đường song song.
+
+B. Hai đường chéo nhau.
+
+C. Hai đường cắt nhau.
+
+Câu 6. (0,5 điểm) Mặt cầu $x^2+y^2+z^2-8x-4y-6z+4=0$. Tính bình phương bán kính.
+
+A. $24$
+
+B. $25$
+
+C. $26$
+
+PHẦN II. Trả lời ngắn (4 câu/3 điểm)
+
+Câu 7. (0,75 điểm) Hộp có 6 viên đỏ và 8 viên xanh. Rút liên tiếp hai viên không hoàn lại. Xác suất cả hai viên đỏ là bao nhiêu?
+
+Câu 8. (0,75 điểm) Nhà máy có 17 sản phẩm từ máy A, trong đó 5 lỗi; có 13 sản phẩm từ máy B, trong đó 4 lỗi. Chọn ngẫu nhiên một sản phẩm và biết nó lỗi. Xác suất nó từ máy A bằng bao nhiêu?
+
+Câu 9. (0,75 điểm) Tính khoảng cách từ $M(3;2;6)$ đến $(P):3x+4y-4=0$.
+
+Câu 10. (0,75 điểm) Đường có chỉ phương $(6;3;3)$; mặt phẳng là $(Oxy)$. Tính $\sin^2\alpha$ với $\alpha$ là góc đường thẳng và mặt phẳng.
+
+PHẦN III. Tự luận (2 câu/4 điểm)
+
+Câu 11. (2 điểm) Mặt phẳng qua $A(4;0;0), B(0;4;0), C(0;0;10)$ có phương trình $40x+40y+16z+D=0$. Tìm $D$ và kiểm bằng một điểm.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.
+
+Câu 12. (2 điểm) Lập phương trình mặt cầu có đường kính $AB$ với $A(4;1;0), B(8;7;6)$. Kiểm một đầu đường kính thuộc mặt cầu.
+Giải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.

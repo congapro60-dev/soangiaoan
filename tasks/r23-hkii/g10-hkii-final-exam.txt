@@ -1,0 +1,87 @@
+Toán 10 Discover - Kiểm tra cuối học kỳ II
+
+Bản nháp tự soạn, cần giáo viên duyệt.
+
+Thời gian làm bài: 80 phút
+
+Họ và tên: ................................ Lớp: ........
+
+PHẦN I. Trắc nghiệm (8 câu/2 điểm)
+
+Câu 1. (0,25 điểm) Chọn một vật trong 4 bút khác nhau hoặc 3 vở khác nhau. Số cách:
+A. $7$
+B. $12$
+C. $4$
+D. $3$
+
+Câu 2. (0,25 điểm) Xếp 4 cuốn sách khác nhau vào hàng. Số cách:
+A. $4$
+B. $16$
+C. $24$
+D. $12$
+
+Câu 3. (0,25 điểm) Chọn trưởng nhóm và thư kí khác người từ 5 em. Số cách:
+A. $10$
+B. $20$
+C. $25$
+D. $5$
+
+Câu 4. (0,25 điểm) Chọn nhóm 2 em không phân vai từ 6 em. Số nhóm:
+A. $30$
+B. $12$
+C. $36$
+D. $15$
+
+Câu 5. (0,25 điểm) Hệ số của $x^2$ trong $(x+1)^4$ là:
+A. $4$
+B. $6$
+C. $1$
+D. $12$
+
+Câu 6. (0,25 điểm) Đỉnh của $y=(x-2)^2+3$ là:
+A. $(-2;3)$
+B. $(2;-3)$
+C. $(2;3)$
+D. $(3;2)$
+
+Câu 7. (0,25 điểm) Bán kính của $(x-1)^2+(y+2)^2=25$ là:
+A. $25$
+B. $5$
+C. $10$
+D. $-5$
+
+Câu 8. (0,25 điểm) Biến cố đối của “hai viên lấy ra có ít nhất một viên đỏ” là:
+A. Có ít nhất một viên xanh.
+B. Có đúng một viên đỏ.
+C. Cả hai viên đều không đỏ.
+D. Cả hai viên đều đỏ.
+
+PHẦN II. Đúng - Sai (2 câu/2 điểm)
+
+Câu 1. (1 điểm) Hộp có 3 viên đỏ và 2 viên xanh phân biệt. Lấy đều một cặp hai viên cùng lúc, không hoàn lại.
+a) Có 10 cặp đồng khả năng.
+b) Có 6 cặp gồm một đỏ và một xanh.
+c) Xác suất cả hai xanh là 2/5.
+d) Xác suất có ít nhất một đỏ là 9/10.
+
+Câu 2. (1 điểm) Cho $(C):x^2+y^2=25$, $M(3;4)$ và $d:3x+4y=25$.
+a) M thuộc C.
+b) (3;4) là một pháp tuyến của d.
+c) Khoảng cách từ O đến d bằng25.
+d) d tiếp xúc C tại M.
+
+PHẦN III. Trả lời ngắn (4 câu/2 điểm)
+
+Câu 1. (0,5 điểm) Có3 áo,4 mũ; mỗi áo ghép được mỗi mũ. Chọn một áo và một mũ, có bao nhiêu bộ?
+
+Câu 2. (0,5 điểm) Tính hệ số của $x^3$ trong $(x+1)^5$.
+
+Câu 3. (0,5 điểm) Quay hai lần vòng quay nhãn1,2,3,4; ghi cặp theo thứ tự. Có bao nhiêu kết quả có tổng bằng5?
+
+Câu 4. (0,5 điểm) Tính khoảng cách từ $O(0;0)$ đến $3x+4y-10=0$.
+
+PHẦN IV. Tự luận (2 câu/4 điểm)
+
+Câu 1. (2 điểm) Một hộp có4 viên đỏ,3 viên xanh phân biệt. Lấy ngẫu nhiên đều một cặp hai viên cùng lúc, không hoàn lại. Tính xác suất có đúng một viên đỏ và có ít nhất một viên đỏ; giải thích quan hệ giữa hai biến cố này.
+
+Câu 2. (2 điểm) Cho $(C):(x-1)^2+(y+2)^2=25$, $M(4;2)$. Xác định tâm, bán kính; kiểm M thuộc C; viết tiếp tuyến tại M và kiểm bằng khoảng cách từ tâm đến đường vừa lập.

@@ -1,0 +1,51 @@
+Toán 11 Discover - Kiểm tra cuối học kỳ II
+
+BẢN NHÁP - ĐỀ TỰ SOẠN, CẦN GIÁO VIÊN DUYỆT
+
+Thời gian làm bài: 80 phút. Tổng điểm: 10.
+
+PHẦN I. TỰ LUẬN (10 điểm)
+
+Mỗi câu 1 điểm; mỗi ý a, b 0,5 điểm. Trình bày điều kiện và cách làm trong bài; đơn vị theo yêu cầu từng câu.
+
+Câu 1. (1 điểm)
+a) Giải $3^{3x+2}=3^{41}$. Nhập nghiệm $x$; trong vở giải thích phép so số mũ.
+b) Giải $\log_{\frac{1}{4}}(x-4)<1$. Viết tập nghiệm, kiểm một điểm thuộc tập nghiệm.
+
+Câu 2. (1 điểm)
+a) Một nhóm giả định có $27$ học sinh: $8$ em chỉ thích cờ vua, $8$ em chỉ thích bóng bàn, $6$ em thích cả hai, còn lại không thích môn nào. Chọn đều một em. Tính xác suất em đó thích ít nhất một trong hai môn.
+b) Hai học sinh làm độc lập một nhiệm vụ; mô hình cho xác suất hoàn thành lần lượt $\frac{3}{11}$ và $\frac{6}{11}$. Tính xác suất đúng một em hoàn thành.
+
+Câu 3. (1 điểm)
+a) Cho $f(x)=4x^2+4x+2$. Dùng định nghĩa giới hạn để tìm $f'(2)$. Nhập giá trị; trình bày tỉ số số gia trong vở.
+b) Hàm $f(x)=1x^2+6x+2$. Tìm $f'(x)$ và phương trình tiếp tuyến tại $x=4$. Nếu $s(t)=1t^2+6t+2$ là vị trí (m), thời gian tính bằng giây, vận tốc tại $t=4$ s bằng bao nhiêu?
+
+Câu 4. (1 điểm)
+a) Tìm đạo hàm của $f(x)=(x+6)(x^2+1)$ và $g(x)=(6x+1)/(x+2)$. Với $f$, đối chiếu quy tắc tích với cách khai triển rồi lấy đạo hàm. Ghi miền xác định của $g$ và tính $g'(1)$.
+b) Tìm đạo hàm $f(x)=(4x+4)^{2}$ và $g(x)=\sqrt{4x+4}$. Nêu miền dùng công thức đạo hàm của $g$.
+
+Câu 5. (1 điểm)
+a) Tính đạo hàm: $f(x)=\sin(4x)+\cos(4x)$; $p(x)=\tan(4x)+\cot(4x)$; $g(x)=3^{4x}$; $h(x)=\log_3(4x+2)$. Góc tính bằng radian. Ghi điều kiện của $p,h$.
+b) Tìm đạo hàm $f(x)=(x^2+2)e^{3x}$ và $g(x)=\ln(x^2+5)$. Nêu quy tắc dùng ở mỗi bước và miền xác định.
+
+Câu 6. (1 điểm)
+a) Cho $SA\perp AB$, $SA\perp AD$, với $ABCD$ là hình chữ nhật, $AB=7$ cm, $AD=3$ cm, $S$ ngoài $(ABCD)$. Chứng minh $SA\perp(ABCD)$ rồi suy ra $SA\perp BD$. 
+b) Cho $SA\perp(ABCD)$, đáy $ABCD$ là hình chữ nhật với $AB=11$ cm, $AD=5$ cm. Chứng minh $(SAB)\perp(ABCD)$. Chứng minh thêm $(SAD)\perp(SAB)$.
+
+Câu 7. (1 điểm)
+a) Hai nửa mặt phẳng tạo góc nhị diện cạnh $d$. Mặt phẳng vuông góc $d$ cắt chúng theo hai tia $Ox,Oy$ với $\widehat{xOy}=119^\circ$. Tìm số đo góc nhị diện và góc giữa hai mặt phẳng chứa hai mặt của nó.
+b) Hình hộp chữ nhật $ABCD.A'B'C'D'$ có $AB=2$ cm, $AD=3$ cm, $AA'=4$ cm. Tính $d(AB,CD)$, $d(A'B',(ABCD))$, $d((ABB'A'),(DCC'D'))$.
+
+Câu 8. (1 điểm)
+a) Cho $SA\perp(ABCD)$, đáy hình chữ nhật, $AB=8$ cm, $SA=10$ cm. Tính $d(S,(ABCD))$ và $d(S,AB)$. Nếu $H$ là chân đường vuông góc từ $A$ tới $SB$, tính $AH$.
+b) Cho $SA\perp(ABCD)$, đáy hình chữ nhật, $AB=10$ cm, $SA=7$ cm. Gọi $H$ là chân đường vuông góc từ $A$ tới $SB$. Chứng minh $AH\perp(SBC)$ và tính $d(A,(SBC))$.
+
+Câu 9. (1 điểm)
+a) Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, $AB=6$ cm, $AD=9$ cm, $AA'=7$ cm. Chứng minh $BC$ là đoạn vuông góc chung của $AB$ và $CC'$, rồi tính $d(AB,CC')$. 
+b) Khối chóp $S.ABCD$ có đáy hình chữ nhật $AB=5$ cm, $AD=8$ cm, $SA\perp(ABCD)$, $SA=12$ cm. Tính thể tích theo cm$^3$.
+
+Câu 10. (1 điểm)
+a) Lăng trụ đứng đáy tam giác vuông có hai cạnh góc vuông $6$ cm, $4$ cm; cạnh bên $3$ cm. Tính thể tích theo cm$^3$.
+b) Hai phép thử độc lập có xác suất thành công lần lượt $\frac{2}{10}$ và $\frac{3}{10}$. Tính xác suất có ít nhất một lần thành công.
+
+HẾT

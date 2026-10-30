@@ -383,34 +383,45 @@ function buildPeriod(period) {
       { segmentId: introductions.get(ids[i]).id, quote: introductions.get(ids[i]).source.content.cached, origin: 'generated' };
   };
   const solutions = [];
+  const usedPrompts = new Set();
   const makeTask = (i, phaseIndex, branch, difficulty, offset = 0) => {
-    const seed=period.sequence * 131 + phaseIndex * 23 + i * 17 + offset;
-    const original=concepts[i].make(seed,difficulty);
-    const auto=period.kind==='elective'&&[0,2,3,4].includes(phaseIndex);
-    const { solution, ...question } = auto ? {
-      ...automatic[ids[i]].make(seed),
-      hints: ['Xác định đại lượng hoặc điều kiện câu hỏi trước.', 'Thay dữ kiện vào định nghĩa hoặc công thức phù hợp.', 'Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.', 'Nêu điều kiện để kết quả có ý nghĩa.'],
-    } : original;
-    if(branch==='extension'&&question.type==='closed'){
-      question.type='open';delete question.inputSchema;question.evaluation={rubric:{criteria:['Giải đúng bài toán và giải thích được cách làm.'],lookFor:[solution]}};
+    let question, solution, teacherSolution;
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const seed = period.sequence * 131 + phaseIndex * 23 + i * 17 + offset + attempt * 19;
+      const original = concepts[i].make(seed, difficulty);
+      const auto = period.kind === 'elective' && [0, 2, 3, 4].includes(phaseIndex);
+      const cand = auto ? {
+        ...automatic[ids[i]].make(seed),
+        hints: ['Xác định đại lượng hoặc điều kiện câu hỏi trước.', 'Thay dữ kiện vào định nghĩa hoặc công thức phù hợp.', 'Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.', 'Nêu điều kiện để kết quả có ý nghĩa.'],
+      } : original;
+      let prompt = cand.prompt;
+      if (branch === 'extension' && cand.type === 'closed') {
+        cand.type = 'open'; delete cand.inputSchema; cand.evaluation = { rubric: { criteria: ['Giải đúng bài toán và giải thích được cách làm.'], lookFor: [cand.solution] } };
+      }
+      if (phaseIndex === 3) prompt = `Câu kiểm tra lại độc lập: ${prompt}`;
+      if (branch === 'support') prompt += ` Em có thể chia bài thành từng bước: ${cand.hints.slice(0, 3).join(' ')}`;
+      if (branch === 'extension') prompt += ` Mở rộng: ${extensions[ids[i]][0]}`;
+      if (period.kind === 'assessment_feedback') prompt += ` Một bài làm minh họa mắc lỗi: “${concepts[i].error}” Em chỉ ra cách sửa; đây không phải dữ liệu bài kiểm tra thật của lớp.`;
+
+      if (!usedPrompts.has(prompt) || attempt === 99) {
+        usedPrompts.add(prompt);
+        const { solution: sol, ...rest } = cand;
+        question = { ...rest, prompt };
+        solution = sol;
+        if (branch === 'extension') {
+          question.evaluation.rubric.criteria.push('Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận.');
+        }
+        if (period.kind === 'assessment_feedback') {
+          question.evaluation.rubric.criteria.push('Giải thích được lỗi minh họa và một bước tự kiểm, không chỉ chép đáp số.');
+        }
+        teacherSolution = `Lời giải: ${solution}` + (branch === 'extension' ? ` Mở rộng: ${extensions[ids[i]][1]}` : '') + (period.kind === 'assessment_feedback' ? ` Cách sửa: ${concepts[i].teach}` : '');
+        if (question.evaluation.rubric) question.evaluation.rubric.lookFor = [teacherSolution];
+        break;
+      }
     }
-    // Recheck must remain a genuinely separate prompt even when a concept's
-    // deterministic generator repeats the same seed-independent wording.
-    if (phaseIndex === 3) question.prompt = `Câu kiểm tra lại độc lập: ${question.prompt}`;
-    if(branch==='support') question.prompt += ` Em có thể chia bài thành từng bước: ${question.hints.slice(0,3).join(' ')}`;
-    if(branch==='extension') {
-      question.prompt += ` Mở rộng: ${extensions[ids[i]][0]}`;
-      question.evaluation.rubric.criteria.push('Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận.');
-    }
-    if (period.kind === 'assessment_feedback') {
-      question.prompt += ` Một bài làm minh họa mắc lỗi: “${concepts[i].error}” Em chỉ ra cách sửa; đây không phải dữ liệu bài kiểm tra thật của lớp.`;
-      question.evaluation.rubric.criteria.push('Giải thích được lỗi minh họa và một bước tự kiểm, không chỉ chép đáp số.');
-    }
-    const teacherSolution = `Lời giải: ${solution}` + (branch==='extension'?` Mở rộng: ${extensions[ids[i]][1]}`:'') + (period.kind === 'assessment_feedback' ? ` Cách sửa: ${concepts[i].teach}` : '');
-    if(question.evaluation.rubric)question.evaluation.rubric.lookFor=[teacherSolution];
     solutions.push({ conceptId: ids[i], activityIndex: phaseIndex, branch, prompt: question.prompt, solution: teacherSolution });
     return { ...question, minutes: 2, objectiveIndexes: [i], source: sourceFor(i), branch,
-      isCore: !['support','extension'].includes(branch), requiresFullScaffold: true, supportRationale: concepts[i].error };
+      isCore: !['support', 'extension'].includes(branch), requiresFullScaffold: true, supportRationale: concepts[i].error };
   };
   const activity = (phase, minutes, i, participation, studentAction, teacherLookFor, tasks, budgetRole = 'core') => ({ phase, minutes, participation,
     objectiveIndexes: ids.map((_, n) => n), studentAction, teacherLookFor, source: sourceFor(0), budgetRole,

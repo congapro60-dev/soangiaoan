@@ -10,7 +10,7 @@ const ppct = JSON.parse(read('tasks/r23-hkii/ppct-hkii.json'));
 const periods = new Map(ppct.grades.flatMap(grade => grade.lessons.map(period => [period.id, period])));
 const sourcePeriodsById = new Map(ppct.grades.flatMap(grade => [...grade.hki_prerequisites.lessons, ...grade.lessons].map(period => [period.id, period])));
 const units = JSON.parse(read('tasks/r22/unit-objectives.json')).units;
-const sourceTexts = new Map(units.map(unit => [unit.sourceFile, read(unit.sourceFile)]));
+const sourceTexts = new Map(units.map(unit => [unit.sourceFile, read(unit.sourceFile).replace(/\r\n/g, '\n')]));
 const nonempty = value => typeof value === 'string' && value.trim().length > 0;
 const fail = message => { throw new Error(`INVALID_HKII_PACKAGE: ${message}`); };
 for (const unit of units) {

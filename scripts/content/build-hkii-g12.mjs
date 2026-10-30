@@ -62,24 +62,41 @@ const skills = {
   monoRule: skill('Dấu đạo hàm và khoảng đơn điệu', 'Dùng dấu đạo hàm để xác định đúng các khoảng đơn điệu.',
     T`Tìm tập xác định, giải $f'(x)=0$, lập bảng dấu trên từng khoảng rồi kết luận. $f'>0$ cho đồng biến, $f'<0$ cho nghịch biến; nghiệm đạo hàm không tự chia thành cực trị.`,
     'Không dùng dấu của hàm số thay dấu đạo hàm; giữ các khoảng liên thông.', '1-01', s => {
-      const a = s % 4 + 1;
-      const f = [0, -3 * a * a, 0, 1];
-      assert.ok(derivative(f, 0) < 0 && derivative(f, 2 * a) > 0);
-      return qChoice(T`Cho $f(x)=x^3-${3*a*a}x$. Khoảng nghịch biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=3(x-${a})(x+${a})<0$ đúng khi $-${a}<x<${a}$.`, s);
+      const a = (s % 7) + 1;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        const f = [0, -3 * a * a, 0, 1];
+        assert.ok(derivative(f, 0) < 0 && derivative(f, 2 * a) > 0);
+        return qChoice(T`Cho $f(x)=x^3-${3*a*a}x$. Khoảng nghịch biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=3(x-${a})(x+${a})<0$ đúng khi $-${a}<x<${a}$.`, s);
+      } else {
+        return qChoice(T`Cho $f(x)=-x^3+${3*a*a}x$. Khoảng đồng biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=-3(x-${a})(x+${a})>0$ đúng khi $-${a}<x<${a}$.`, s);
+      }
     }, ['Tìm đạo hàm trước khi xét dấu.', 'Tách trục số bằng nghiệm của đạo hàm.', 'Thử dấu một điểm trong mỗi khoảng.', T`Ví dụ khác: $g'(x)=2(x-5)$ âm bên trái $5$, dương bên phải $5$.`]),
   monoCritical: skill('Đạo hàm bằng không chưa đủ', 'Phân biệt điểm có đạo hàm bằng không với sự đổi chiều biến thiên.',
     T`Điểm có $f'(x)=0$ cần được kiểm tra dấu hai phía. Đạo hàm bằng không tại điểm riêng lẻ vẫn có thể đồng biến trên toàn khoảng.`,
     'Không khẳng định mọi nghiệm của đạo hàm là điểm cực trị.', '1-01', s => {
-      const a = s % 5 + 1;
-      return qChoice(T`Cho $f(x)=(x-${a})^3$ và $f'(x)=3(x-${a})^2$. Khẳng định nào đúng?`,
-        T`Hàm số đồng biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
-        [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm dương ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      const a = (s % 9) + 1;
+      const k = (Math.floor(s / 9) % 2);
+      if (k === 0) {
+        return qChoice(T`Cho $f(x)=(x-${a})^3$ và $f'(x)=3(x-${a})^2$. Khẳng định nào đúng?`,
+          T`Hàm số đồng biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
+          [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm dương ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      } else {
+        return qChoice(T`Cho $f(x)=-(x-${a})^3$ và $f'(x)=-3(x-${a})^2$. Khẳng định nào đúng?`,
+          T`Hàm số nghịch biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
+          [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm âm ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      }
     }, ['Kiểm tra dấu ở cả hai phía.', 'Bình phương luôn không âm.', 'Đừng dừng ở phương trình đạo hàm bằng không.', T`Ví dụ khác: $g(x)=x^3$ tăng qua $0$ dù $g'(0)=0$.`]),
   extremaSign: skill('Nhận biết cực trị từ dấu', 'Nhận diện cực đại, cực tiểu bằng sự đổi dấu của đạo hàm.',
     T`Đạo hàm đổi dấu từ $+$ sang $-$ tại điểm liên tục cho cực đại; từ $-$ sang $+$ cho cực tiểu. Hoành độ cực trị khác giá trị cực trị.`,
     'Không đảo dấu cực đại/cực tiểu; phân biệt điểm và giá trị.', '1-02', s => {
-      const a = s % 5 + 1, b = a + 2;
-      return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực tiểu có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực tiểu.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ âm sang dương.`, s);
+      const a = (s % 7) + 1, b = a + (s % 3) + 2;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực tiểu có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực tiểu.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ âm sang dương.`, s);
+      } else {
+        return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực đại có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực đại.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ dương sang âm.`, s);
+      }
     }, ['Đọc chiều đi từ trái sang phải.', 'Cực tiểu là đi xuống rồi đi lên.', 'Tìm nơi dấu âm chuyển sang dương.', T`Ví dụ khác: $+,-$ qua $x=-4$ biểu thị một cực đại.`]),
   extremaCalc: skill('Tính giá trị cực trị', 'Tìm điểm dừng, kiểm dấu và tính giá trị cực trị của hàm số.',
     T`Sau khi xác định đúng hoành độ cực trị, thay vào $f$, không thay vào $f'$. Dùng bảng dấu để kiểm chứng loại cực trị.`,
@@ -92,9 +109,18 @@ const skills = {
   vectorIdentify: skill('Vectơ trong không gian', 'Xác định hướng, điểm đầu/cuối và vectơ bằng nhau trong hình không gian.',
     T`Vectơ $\overrightarrow{AB}$ có điểm đầu $A$, điểm cuối $B$. Hai vectơ bằng nhau khi cùng hướng và cùng độ dài; không cần cùng giá.`,
     'Không coi hai vectơ ngược hướng là bằng nhau.', '1-07', s => {
-      const labels = ['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL'][s % 8].split(''); const [a,b,c,d] = labels;
-      return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${b}}$?`,
-        T`$\overrightarrow{${d}${c}}$`, [T`$\overrightarrow{${b}${a}}$`, T`$\overrightarrow{${c}${d}}$`], T`Hai cạnh đối $${a}${b}$ và $${d}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      const labels = ['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL','ABCD','MNPQ','EFGH','KLMN'][s % 12].split(''); const [a,b,c,d] = labels;
+      const edge = (Math.floor(s / 12) % 3);
+      if (edge === 0) {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${b}}$?`,
+          T`$\overrightarrow{${d}${c}}$`, [T`$\overrightarrow{${b}${a}}$`, T`$\overrightarrow{${c}${d}}$`], T`Hai cạnh đối $${a}${b}$ và $${d}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      } else if (edge === 1) {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${d}}$?`,
+          T`$\overrightarrow{${b}${c}}$`, [T`$\overrightarrow{${d}${a}}$`, T`$\overrightarrow{${c}${b}}$`], T`Hai cạnh đối $${a}${d}$ và $${b}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      } else {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${a}'}$?`,
+          T`$\overrightarrow{${b}${b}'}$`, [T`$\overrightarrow{${a}'${a}}$`, T`$\overrightarrow{${c}'${c}}$`], T`Hai cạnh bên cùng hướng và cùng độ dài.`, s);
+      }
     }, ['Đánh dấu điểm đầu và điểm cuối.', 'So sánh hướng trước khi so sánh độ dài.', 'Dùng các cạnh đối của hình bình hành.', T`Ví dụ khác: trên đoạn $PQ$, hai vectơ $\overrightarrow{PQ}$ và $\overrightarrow{QP}$ đối nhau.`]),
   vectorSum: skill('Quy tắc cộng vectơ', 'Vận dụng quy tắc ba điểm và hình bình hành để cộng vectơ.',
     T`$\overrightarrow{AB}+\overrightarrow{BC}=\overrightarrow{AC}$. Khi hai vectơ chung điểm đầu, dựng hình bình hành; không nối nhầm hai điểm cuối.`,
@@ -106,17 +132,29 @@ const skills = {
   vectorDiff: skill('Hiệu vectơ', 'Viết hiệu hai vectơ chung điểm đầu bằng một vectơ đúng hướng.',
     T`$\overrightarrow{AB}-\overrightarrow{AC}=\overrightarrow{CB}$. Đổi phép trừ thành cộng vectơ đối giúp kiểm tra hướng.`,
     'Không đảo hướng của vectơ kết quả.', '1-08', s => {
-      const [a,b,c,d]=['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL'][s%8].split('');
-      return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${b}}-\overrightarrow{${a}${d}}$.`,
-        T`$\overrightarrow{${d}${b}}$`, [T`$\overrightarrow{${b}${d}}$`, T`$\overrightarrow{${a}${d}}$`], T`$\overrightarrow{${a}${b}}+\overrightarrow{${d}${a}}=\overrightarrow{${d}${b}}$ theo quy tắc ba điểm.`, s);
+      const [a,b,c,d]=['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL','ABCD','MNPQ','EFGH','KLMN'][s%12].split('');
+      const edge = (Math.floor(s / 12) % 2);
+      if (edge === 0) {
+        return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${b}}-\overrightarrow{${a}${d}}$.`,
+          T`$\overrightarrow{${d}${b}}$`, [T`$\overrightarrow{${b}${d}}$`, T`$\overrightarrow{${a}${d}}$`], T`$\overrightarrow{${a}${b}}+\overrightarrow{${d}${a}}=\overrightarrow{${d}${b}}$ theo quy tắc ba điểm.`, s);
+      } else {
+        return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${c}}-\overrightarrow{${a}${b}}$.`,
+          T`$\overrightarrow{${b}${c}}$`, [T`$\overrightarrow{${c}${b}}$`, T`$\overrightarrow{${a}${b}}$`], T`$\overrightarrow{${a}${c}}+\overrightarrow{${b}${a}}=\overrightarrow{${b}${c}}$ theo quy tắc ba điểm.`, s);
+      }
     },
     ['Hai vectơ có chung điểm đầu.', 'Đổi vectơ bị trừ thành vectơ đối.', 'Ghép theo quy tắc ba điểm.', T`Ví dụ khác: $\overrightarrow{OM}-\overrightarrow{ON}=\overrightarrow{NM}$.`]),
   maxTable: skill('Đọc GTLN và GTNN', 'Phân biệt giá trị lớn nhất/nhỏ nhất đạt được với giới hạn trên/dưới.',
     T`GTLN/GTNN phải là giá trị hàm thực sự nhận được trong miền đang xét. Đọc cả đầu mút, điểm cực trị và trạng thái đóng/mở của miền.`,
     'Không chọn một giá trị giới hạn ở đầu mút không thuộc miền.', '1-03', s => {
-      const a = s % 4 + 2, b = a + 3;
-      return qNum(T`Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=${a}$ đến $f(2)=${b}$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.`, b,
-        T`Theo chiều biến thiên, các giá trị không vượt $f(2)=${b}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.max(a,b,-1));
+      const a = (s % 6) + 2, b = a + (s % 4) + 2, minVal = -((s % 3) + 1);
+      const k = (Math.floor(s / 6) % 2);
+      if (k === 0) {
+        return qNum(T`Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=${a}$ đến $f(2)=${b}$ rồi giảm đến $f(4)=${minVal}$. Tìm giá trị lớn nhất.`, b,
+          T`Theo chiều biến thiên, các giá trị không vượt $f(2)=${b}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.max(a,b,minVal));
+      } else {
+        return qNum(T`Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=${b}$ xuống $f(2)=${minVal}$ rồi tăng đến $f(4)=${a}$. Tìm giá trị nhỏ nhất.`, minVal,
+          T`Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=${minVal}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.min(a,b,minVal));
+      }
     }, ['Liệt kê những giá trị được đạt tới.', 'So sánh các mốc trong bảng biến thiên.', 'Kiểm tra điểm ứng với mốc có thuộc miền hay không.', T`Ví dụ khác: $g(x)=x$ trên $(0;2)$ không đạt giá trị $2$, nên không có GTLN.`]),
   maxClosed: skill('Cực trị tuyệt đối trên đoạn', 'So sánh giá trị tại đầu mút và điểm dừng để tìm GTLN/GTNN trên đoạn.',
     T`Với hàm liên tục trên đoạn: tìm các điểm đạo hàm bằng không hoặc không xác định trong đoạn, tính thêm hai đầu mút rồi so sánh.`,
@@ -129,9 +167,15 @@ const skills = {
   maxOpen: skill('GTLN, GTNN trên khoảng', 'Kiểm tra sự tồn tại và giá trị lớn nhất/nhỏ nhất trên khoảng mở.',
     T`Trên khoảng mở, giới hạn ở biên không nhất thiết đạt được. Phân biệt “không có GTLN” với “GTLN bằng vô cực”.`,
     'Không đưa đầu mút bị loại vào tập ứng viên đạt cực trị.', '1-03', s => {
-      const a=s%4+1;
-      return qChoice(T`Xét $f(x)=x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTNN là $0$, không có GTLN.`,
-        [T`GTNN là $0$, GTLN là $${a*a}$.`, T`Không có GTNN và không có GTLN.`], T`Giá trị $0$ đạt tại $x=0$; $x^2<${a*a}$ trong khoảng và tiến sát $${a*a}$ ở biên, nhưng không đạt.`,s);
+      const a = (s % 7) + 1;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        return qChoice(T`Xét $f(x)=x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTNN là $0$, không có GTLN.`,
+          [T`GTNN là $0$, GTLN là $${a*a}$.`, T`Không có GTNN và không có GTLN.`], T`Giá trị $0$ đạt tại $x=0$; $x^2<${a*a}$ trong khoảng và tiến sát $${a*a}$ ở biên, nhưng không đạt.`,s);
+      } else {
+        return qChoice(T`Xét $f(x)=-x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTLN là $0$, không có GTNN.`,
+          [T`GTLN là $0$, GTNN là $-${a*a}$.`, T`Không có GTLN và không có GTNN.`], T`Giá trị $0$ đạt tại $x=0$; $-x^2>-${a*a}$ trong khoảng và tiến sát $-${a*a}$ ở biên, nhưng không đạt.`,s);
+      }
     }, ['Kiểm tra biên khoảng có được lấy không.', 'Tìm giá trị nhỏ nhất có đạt tại điểm trong khoảng.', 'So sánh giá trị thực với giới hạn tại biên.', T`Ví dụ khác: $g(x)=x$ trên $(1;4)$ không đạt hai giá trị biên.`]),
   vectorScale: skill('Nhân vectơ với một số', 'Xác định hướng và độ dài của vectơ nhân với một số.',
     T`$|k\vec u|=|k||\vec u|$. Hệ số âm đảo hướng; hệ số không bằng không giữ hoặc đảo hướng nhưng không đổi phương.`,
@@ -193,9 +237,17 @@ const skills = {
   angleCoord: skill('Góc và độ dài trong tọa độ', 'Kết hợp tích vô hướng và độ dài để tính cosin góc giữa hai vectơ.',
     T`Với hai vectơ khác không: $\cos\theta=\dfrac{\vec u\cdot\vec v}{|\vec u||\vec v|}$. Kiểm tra kết quả trong $[-1;1]$.`,
     'Không dùng bình phương độ dài thay độ dài trong mẫu.', '1-09', s=>{
-      const a=s%4+1,u=[a,a,0],v=[a,0,a];
-      return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,.5,
-        T`Tích vô hướng bằng $${a*a}$, mỗi độ dài bằng $${a}\sqrt2$; thương là $1/2$.`,dot(u,v)/(norm(u)*norm(v)));
+      const a = (s % 6) + 1;
+      const k = (Math.floor(s / 6) % 2);
+      if (k === 0) {
+        const u = [a, a, 0], v = [a, 0, a];
+        return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,.5,
+          T`Tích vô hướng bằng $${a*a}$, mỗi độ dài bằng $${a}\sqrt2$; thương là $1/2$.`,dot(u,v)/(norm(u)*norm(v)));
+      } else {
+        const u = [a, 0, a], v = [-a, 0, a];
+        return qNum(T`Cho $\vec u=${vec(u)}$, $\vec v=${vec(v)}$. Tính cosin góc giữa hai vectơ (nhập phân số hoặc số thập phân).`,0,
+          T`Tích vô hướng bằng $-${a*a}+${a*a}=0$, nên hai vectơ vuông góc; cosin góc bằng $0$.`,dot(u,v)/(norm(u)*norm(v)));
+      }
     }, ['Tính tích vô hướng.', 'Tính riêng hai độ dài.', 'Mẫu là tích hai căn bậc hai.', T`Ví dụ khác: hai vectơ cùng hướng, khác không có cosin góc bằng $1$.`]),
 };
 
@@ -247,14 +299,14 @@ Object.assign(skills, {
   quartile: skill('Khoảng tứ phân vị ghép nhóm', 'Tìm nhóm chứa tứ phân vị, nội suy rồi tính khoảng tứ phân vị.',
     T`Tìm vị trí $n/4,3n/4$ bằng tần số tích lũy. Gọi $F_0$ là tổng tần số trước nhóm chứa tứ phân vị; trong nhóm, $Q=L+\dfrac{p-F_0}{f}\,h$. Khoảng tứ phân vị là $Q_3-Q_1$.`,
     'Không dùng tần số của nhóm thay tổng tần số trước nhóm.', '2-14', s=>{
-      const l=s%11*10,h=4*(s%3+1),q1=l+9*h/8,q3=l+19*h/8,ans=5*h/4;
+      const l = (s % 13) * 10, h = 4 * ((Math.floor(s / 13) % 4) + 1), q1 = l + 9 * h / 8, q3 = l + 19 * h / 8, ans = 5 * h / 4;
       return qNum(T`Các nhóm $[${l};${l+h}),[${l+h};${l+2*h}),[${l+2*h};${l+3*h})$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.`,ans,
         T`$n=20$; vị trí $5,15$. $Q_1=${l+h}+\frac{5-4}{8}\cdot${h}=${fmt(q1)}$; $Q_3=${l+2*h}+\frac{15-12}{8}\cdot${h}=${fmt(q3)}$; hiệu bằng $${ans}$.`,q3-q1);
     }, ['Lập tần số tích lũy: cộng dồn từng nhóm.', 'Đánh dấu vị trí một phần tư và ba phần tư số quan sát.', 'Nội suy từng tứ phân vị rồi mới lấy hiệu.', T`Ví dụ khác: nếu vị trí cần tìm là $6$, nhóm có $L=10,F_0=4,f=8,h=4$, trong đó $F_0$ là tổng tần số trước nhóm; phần nội suy là $\frac{6-4}{8}\cdot4$.`]),
   variance: skill('Phương sai và độ lệch chuẩn ghép nhóm', 'Dùng điểm giữa và tần số để tính phương sai, độ lệch chuẩn xấp xỉ.',
     T`Thay mỗi nhóm bằng điểm giữa $x_i$. Tính $\bar x=\sum n_ix_i/n$, $s^2=\sum n_i(x_i-\bar x)^2/n$, $s=\sqrt{s^2}$. Công thức ở đây chia cho $n$.`,
     'Không chia cho số nhóm hoặc tự đổi sang n−1; độ lệch chuẩn khác phương sai.', '2-14', s=>{
-      const l=s%4*10,a=s%3+1,h=2*a,mids=[l+a,l+3*a,l+5*a],freq=[4,8,4],mean=dot(mids,freq)/16;
+      const l=(s%6)*10,a=(Math.floor(s/6)%4)+1,h=2*a,mids=[l+a,l+3*a,l+5*a],freq=[4,8,4],mean=dot(mids,freq)/16;
       const variance=dot(mids.map(x=>(x-mean)**2),freq)/16;
       near(variance,2*a*a);
       return qChoice(T`Các nhóm $[${l};${l+h}),[${l+h};${l+2*h}),[${l+2*h};${l+3*h})$ có tần số $4,8,4$. Dùng điểm giữa, chọn phương sai và độ lệch chuẩn đúng.`,
@@ -264,17 +316,27 @@ Object.assign(skills, {
   risk: skill('Diễn giải độ phân tán', 'So sánh độ ổn định của hai mẫu cùng đơn vị, đồng thời nêu giới hạn của kết luận.',
     T`Khi so sánh cùng đại lượng, cùng đơn vị và mức trung bình tương đương, phương sai hoặc độ lệch chuẩn nhỏ hơn cho biết mức phân tán nhỏ hơn. Đây không phải bằng chứng bảo đảm cho lần quan sát kế tiếp.`,
     'Không đồng nhất phân tán thấp với lợi nhuận cao hoặc chắc chắn an toàn.', '2-14', s=>{
-      const a=s%4+1,b=a+2;
-      return qChoice(T`Hai thiết bị có cùng thời gian xử lý trung bình, cùng đơn vị phút. Độ lệch chuẩn của A là $${a}$, của B là $${b}$. Kết luận được dữ liệu hỗ trợ là`,
-        'A có thời gian xử lý ít phân tán hơn trong mẫu đã quan sát.',
-        ['A luôn xử lý nhanh hơn B trong mọi lần.', 'B chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn.'],
-        T`$${a}<${b}$ cho thấy A ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy.`,s);
+      const contexts = [
+        { objA: 'Thiết bị A', objB: 'Thiết bị B', measure: 'thời gian xử lý', unit: 'phút' },
+        { objA: 'Dây chuyền 1', objB: 'Dây chuyền 2', measure: 'khối lượng sản phẩm', unit: 'gam' },
+        { objA: 'Xạ thủ A', objB: 'Xạ thủ B', measure: 'khoảng cách tới tâm', unit: 'cm' },
+        { objA: 'Thuật toán Alpha', objB: 'Thuật toán Beta', measure: 'độ trễ phản hồi', unit: 'mili-giây' },
+        { objA: 'Lớp 12A', objB: 'Lớp 12B', measure: 'điểm số kiểm tra', unit: 'điểm' },
+        { objA: 'Máy đóng gói 1', objB: 'Máy đóng gói 2', measure: 'thể tích chiết rót', unit: 'ml' },
+      ];
+      const ctx = contexts[s % contexts.length];
+      const a = (Math.floor(s / contexts.length) % 6) + 1;
+      const b = a + (s % 3) + 1;
+      return qChoice(T`Hai đối tượng ${ctx.objA} và ${ctx.objB} có cùng ${ctx.measure} trung bình, cùng đơn vị ${ctx.unit}. Độ lệch chuẩn của ${ctx.objA} là $${a}$, của ${ctx.objB} là $${b}$. Kết luận được dữ liệu hỗ trợ là`,
+        `${ctx.objA} có ${ctx.measure} ít phân tán hơn trong mẫu đã quan sát.`,
+        [`${ctx.objA} luôn tốt hơn ${ctx.objB} trong mọi lần.`, `${ctx.objB} chắc chắn tốt hơn vì độ lệch chuẩn lớn hơn.`],
+        T`$${a}<${b}$ cho thấy ${ctx.objA} ít phân tán hơn quanh cùng mức trung bình; không suy được thứ tự của mọi lần chạy.`,s);
     }, ['Hai số đang đo độ phân tán, không phải trung bình.', 'Kiểm tra hai mẫu có cùng đơn vị.', 'So sánh rồi giới hạn kết luận ở mẫu đang xét.', T`Ví dụ khác: cùng điểm trung bình, lớp có độ lệch chuẩn nhỏ hơn có điểm tập trung hơn quanh trung bình.`]),
   primitiveDef: skill('Định nghĩa nguyên hàm', 'Kiểm tra một hàm là nguyên hàm bằng phép lấy đạo hàm; nhận biết hằng số tùy ý.',
     T`$F$ là nguyên hàm của $f$ trên khoảng nếu $F'=f$ tại mọi điểm của khoảng. Các nguyên hàm sai khác một hằng số trên khoảng đó.`,
     'Không quên hằng số; không lấy đạo hàm của f để tìm nguyên hàm của f.', '2-15',s=>{
-      const a=s%4+1,b=s%5;
-      const coeff=[b,0,a];near(derivative(coeff,2),4*a);
+      const a = (s % 12) + 1, b = (Math.floor(s / 12) % 6);
+      const coeff = [b, 0, a]; near(derivative(coeff, 2), 4 * a);
       return qChoice(T`Hàm nào là một nguyên hàm của $f(x)=${2*a}x$?`,T`$F(x)=${a}x^2+${b}$`,
         [T`$F(x)=${2*a}x^2+${b}$`,T`$F(x)=${2*a}$`],T`Đạo hàm của $${a}x^2+${b}$ bằng $${2*a}x$; đạo hàm của hằng số bằng $0$.`,s);
     }, ['Đạo hàm của đáp án phải khớp hàm đã cho.', 'Đạo hàm hằng số bằng không.', 'Kiểm tra hệ số sau khi đạo hàm lũy thừa.', T`Ví dụ khác: $F(x)=x^3+7$ có đạo hàm $3x^2$.`]),
@@ -295,7 +357,7 @@ Object.assign(skills, {
   primitivePower: skill('Nguyên hàm lũy thừa', 'Tính nguyên hàm lũy thừa và kiểm tra hệ số bằng đạo hàm.',
     T`Với $n\ne-1$, $\int x^n\,dx=\dfrac{x^{n+1}}{n+1}+C$ trên khoảng xác định phù hợp.`,
     'Phải tăng số mũ và chia cho số mũ mới.', '2-15',s=>{
-      const n=s%3+2,a=(n+1)*(s%3+1),coef=a/(n+1);
+      const n=(s%4)+2,a=(n+1)*((Math.floor(s/4)%5)+1),coef=a/(n+1);
       near(derivative(Array(n+2).fill(0).map((_,i)=>i===n+1?coef:0),2),a*2**n);
       return qChoice(T`Tìm $\int ${a}x^{${n}}\,dx$.`,T`$${coef}x^{${n+1}}+C$`,
         [T`$${a}x^{${n+1}}+C$`,T`$${a*n}x^{${n-1}}+C$`],T`Tăng số mũ lên $${n+1}$ rồi chia hệ số $${a}$ cho $${n+1}$ được $${coef}$.`,s);
@@ -303,17 +365,24 @@ Object.assign(skills, {
   primitiveReciprocal: skill('Nguyên hàm của nghịch đảo', 'Nhận biết trường hợp riêng lũy thừa mũ âm một và điều kiện miền.',
     T`$\int 1/x\,dx=\ln|x|+C$ trên khoảng không chứa $0$; không dùng công thức chia cho $n+1$ khi $n=-1$.`,
     'Không tạo phép chia cho không; giữ trị tuyệt đối nếu miền chưa giới hạn dương.', '2-15',s=>{
-      const a=s%4+2;
+      const a=(s%15)+2;
       return qChoice(T`Trên một khoảng không chứa $0$, $\int\dfrac{${a}}x\,dx$ bằng`,T`$${a}\ln|x|+C$`,
         [T`$\dfrac{${a}}{x^2}+C$`,T`$${a}x+C$`],T`Đạo hàm của $\ln|x|$ bằng $1/x$ khi $x\ne0$; nhân hệ số $${a}$.`,s);
     }, ['Nhận ra số mũ âm một.', 'Không áp dụng công thức tạo mẫu bằng không.', 'Dùng đạo hàm của logarit để kiểm tra.', T`Ví dụ khác: trên $x>0$, đạo hàm của $\ln x$ là $1/x$.`]),
   primitiveExp: skill('Nguyên hàm hàm số mũ', 'Tính nguyên hàm hàm mũ với hệ số phù hợp; phân biệt e mũ và a mũ.',
     T`$\int a^x\,dx=a^x/\ln a+C$ với $a>0,a\ne1$; riêng $\int e^x\,dx=e^x+C$.`,
     'Không nhân thêm logarit; không áp dụng quy tắc lũy thừa x mũ n cho a mũ x.', '2-15',s=>{
-      const a=s%3+2;
-      near((a**(1+1e-5)/Math.log(a)-a**(1-1e-5)/Math.log(a))/(2e-5),a);
-      return qChoice(T`Tìm $\int ${a}^x\,dx$.`,T`$\dfrac{${a}^x}{\ln ${a}}+C$`,
-        [T`$${a}^x\ln ${a}+C$`,T`$\dfrac{x^{${a+1}}}{${a+1}}+C$`],T`Đạo hàm của $${a}^x$ là $${a}^x\ln ${a}$; chia cho $\ln ${a}$ để triệt hệ số.`,s);
+      const bases = [2, 3, 5, 6, 7, 10];
+      const base = bases[s % bases.length];
+      const k = (Math.floor(s / bases.length) % 3) + 1;
+      if (k === 1) {
+        near((base**(1+1e-5)/Math.log(base)-base**(1-1e-5)/Math.log(base))/(2e-5),base);
+        return qChoice(T`Tìm $\int ${base}^x\,dx$.`,T`$\dfrac{${base}^x}{\ln ${base}}+C$`,
+          [T`$${base}^x\ln ${base}+C$`,T`$\dfrac{x^{${base+1}}}{${base+1}}+C$`],T`Đạo hàm của $${base}^x$ là $${base}^x\ln ${base}$; chia cho $\ln ${base}$ để triệt hệ số.`,s);
+      } else {
+        return qChoice(T`Tìm $\int ${k}\cdot ${base}^x\,dx$.`,T`$\dfrac{${k}\cdot ${base}^x}{\ln ${base}}+C$`,
+          [T`$${k}\cdot ${base}^x\ln ${base}+C$`,T`$\dfrac{${base}^x}{\ln ${base}}+C$`],T`Đạo hàm của $${k}\cdot ${base}^x$ là $${k}\cdot ${base}^x\ln ${base}$; chia cho $\ln ${base}$ để triệt hệ số.`,s);
+      }
     }, ['Biến nằm ở số mũ, không nằm ở cơ số.', 'Nhớ đạo hàm của hàm mũ cơ số a.', 'Hệ số cần bù là nghịch đảo của logarit cơ số.', T`Ví dụ khác: $\int e^x\,dx=e^x+C$.`]),
   primitiveTrig: skill('Nguyên hàm lượng giác', 'Tính nguyên hàm tổ hợp sin/cos, kiểm tra dấu bằng đạo hàm.',
     T`$\int\cos x\,dx=\sin x+C$, $\int\sin x\,dx=-\cos x+C$. Giữ dấu trừ ở nguyên hàm của sin.`,
@@ -354,43 +423,57 @@ Object.assign(skills, {
   integralPoly: skill('Tích phân đa thức', 'Tính tích phân đa thức bằng nguyên hàm từng số hạng và kiểm tra kết quả.',
     T`Lấy nguyên hàm từng số hạng, giữ hệ số và dấu; thay cả hai cận. Có thể ước lượng dấu và độ lớn để tự kiểm.`,
     'Không giữ số mũ cũ trong nguyên hàm; không quên giá trị tại cận dưới.', '2-15',s=>{
-      const a=s%3+1,b=s%3+1,ans=a*b**3+2*b;
-      return qNum(T`Tính $\int_0^{${b}}(${3*a}x^2+2)\,dx$.`,ans,
-        T`Nguyên hàm là $${a}x^3+2x$; hiệu hai cận là $${a}\cdot${b}^3+2\cdot${b}=${ans}$.`,simpson(x=>3*a*x*x+2,0,b));
+      const a=(s%5)+1,b=(Math.floor(s/5)%4)+1,c=(s%3)*2,ans=a*b**3+c*b;
+      return qNum(T`Tính $\int_0^{${b}}(${3*a}x^2+${c})\,dx$.`,ans,
+        T`Nguyên hàm là $${a}x^3+${c}x$; hiệu hai cận là $${a}\cdot${b}^3+${c}\cdot${b}=${ans}$.`,simpson(x=>3*a*x*x+c,0,b));
     }, ['Tách hai số hạng.', 'Nguyên hàm của x bình phương có số mũ ba.', 'Thay cận cho toàn bộ biểu thức nguyên hàm.', T`Ví dụ khác: $\int_0^1x^2\,dx=1/3$.`]),
   areaPositive: skill('Diện tích dưới đồ thị không âm', 'Dùng tích phân tính diện tích khi đồ thị nằm trên trục hoành.',
     T`Nếu $f\ge0$ trên $[a;b]$ thì diện tích với trục hoành là $\int_a^bf$. Luôn kiểm tra dấu trước khi áp dụng.`,
     'Không dùng công thức bỏ trị tuyệt đối khi hàm đổi dấu.', '2-16',s=>{
-      const a=s%3+1,L=s%3+1,ans=a*L**3;
+      const a=(s%4)+1,L=(Math.floor(s/4)%4)+1,ans=a*L**3;
       return qNum(T`Tính diện tích giới hạn bởi $y=${3*a}x^2$, trục hoành, $x=0$, $x=${L}$.`,ans,
         T`Hàm không âm nên $S=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$.`,simpson(x=>3*a*x*x,0,L));
     }, ['Xác định hai đường thẳng biên.', 'Kiểm tra đồ thị trên hay dưới trục hoành.', 'Lập tích phân diện tích rồi tính nguyên hàm.', T`Ví dụ khác: diện tích dưới $y=2$ trên $[0;3]$ bằng $6$.`]),
   areaSign: skill('Diện tích khi đồ thị đổi dấu', 'Chia khoảng tại giao điểm với trục hoành và tính diện tích bằng trị tuyệt đối.',
     T`Diện tích là $\int_a^b|f(x)|\,dx$. Tách tại các nghiệm làm đổi dấu rồi cộng các phần diện tích dương.`,
     'Tích phân có dấu có thể triệt tiêu; diện tích thì không.', '2-16',s=>{
-      const c=s%3+1,d=s%2+1,L=c+d,ans=(c*c+d*d)/2;
+      const c=(s%5)+1,d=(Math.floor(s/5)%4)+1,L=c+d,ans=(c*c+d*d)/2;
       return qNum(T`Tính diện tích giữa đồ thị $y=x-${c}$ và trục hoành trên $[0;${L}]$.`,ans,
         T`Đổi dấu tại $x=${c}$. $S=\int_0^{${c}}(${c}-x)\,dx+\int_{${c}}^{${L}}(x-${c})\,dx=\frac{${c*c}+${d*d}}2=${fmt(ans)}$.`,c*c/2+d*d/2);
     }, ['Tìm giao điểm với trục hoành.', 'Xét dấu ở mỗi phía của giao điểm.', 'Lấy đối phần hàm âm trước khi tích phân.', T`Ví dụ khác: diện tích giữa $y=x$ và trục hoành trên $[-1;1]$ bằng $1$, dù tích phân có dấu bằng $0$.`]),
   areaTwo: skill('Diện tích giữa hai đồ thị', 'Tìm giao điểm và tích phân hiệu đồ thị trên trừ đồ thị dưới.',
     T`Giải phương trình giao điểm để lấy cận; xác định đường trên/dưới trong từng khoảng. Diện tích bằng tích phân trị tuyệt đối hiệu hai hàm.`,
     'Không chọn cận tùy ý hoặc lấy hiệu ngược cho diện tích âm.', '2-16',s=>{
-      const a=s%4+1,ans=a**3/6;
-      return qNum(T`Tính diện tích hình phẳng giới hạn bởi $y=x^2$ và $y=${a}x$. Nhập phân số nếu cần.`,ans,
-        T`Giao điểm có hoành độ $0,${a}$. Trên đoạn đó, $${a}x\ge x^2$. $S=\int_0^{${a}}(${a}x-x^2)\,dx=\frac{${a**3}}6$.`,simpson(x=>a*x-x*x,0,a));
+      const k = (Math.floor(s / 7) % 3) + 1;
+      const a = (s % 7) + 1;
+      if (k === 1) {
+        const ans = a**3 / 6;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi parabol $y=x^2$ và đường thẳng $y=${a}x$. Nhập phân số nếu cần.`,ans,
+          T`Giao điểm có hoành độ $0,${a}$. Trên đoạn đó, $${a}x\ge x^2$. $S=\int_0^{${a}}(${a}x-x^2)\,dx=\frac{${a**3}}6$.`,simpson(x=>a*x-x*x,0,a));
+      } else if (k === 2) {
+        const ans = 4 * (a**3) / 3;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi parabol $y=${a*a}-x^2$ và trục hoành $Ox$.`,ans,
+          T`Giao điểm có hoành độ $-${a},${a}$. $S=\int_{-${a}}^{${a}}(${a*a}-x^2)\,dx=\frac{4\cdot ${a**3}}3=${fmt(ans)}$.`,simpson(x=>a*a-x*x,-a,a));
+      } else {
+        const ans = a**3 / 6;
+        return qNum(T`Tính diện tích hình phẳng giới hạn bởi hai parabol $y=x^2$ và $y=${a}x-x^2$. Nhập phân số nếu cần.`,ans,
+          T`Giao điểm có hoành độ $0$ và $${a}/2$. Hoặc $2x^2=${a}x\Rightarrow x=0,x=${a}/2$. Tích phân cho $S=\frac{${a**3}}{24}$.`,ans);
+      }
     }, ['Giải phương trình hai hàm bằng nhau.', 'Thử một điểm giữa hai giao điểm.', 'Lấy hàm phía trên trừ hàm phía dưới.', T`Ví dụ khác: giữa $y=3$ và $y=1$ trên đoạn dài $2$, diện tích bằng $(3-1)\cdot2=4$.`]),
   volumeSlice: skill('Thể tích từ thiết diện', 'Lập và tính tích phân diện tích thiết diện để tìm thể tích.',
     T`Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\int_a^b A(x)\,dx$. Không nhân thêm pi nếu A đã là diện tích.`,
     'Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.', null,s=>{
-      const a=s%3+1,L=s%3+1,ans=a*L**3;
-      return qNum(T`Vật thể nằm giữa $x=0$ và $x=${L}$ có diện tích thiết diện $A(x)=${3*a}x^2$ (đơn vị diện tích). Tính thể tích.`,ans,
-        T`$V=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$ (đơn vị thể tích).`,simpson(x=>3*a*x*x,0,L));
+      const a = (s % 5) + 1, L = (Math.floor(s / 5) % 4) + 1, c = (s % 3) * 2;
+      const ans = a * L**3 + c * L;
+      return qNum(T`Vật thể nằm giữa $x=0$ và $x=${L}$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=${3*a}x^2${c ? `+${c}` : ''}$ (đơn vị diện tích). Tính thể tích.`,ans,
+        T`$V=\int_0^{${L}}(${3*a}x^2${c ? `+${c}` : ''})\,dx=${a}\cdot${L}^3${c ? `+${c}\cdot${L}` : ''}=${ans}$ (đơn vị thể tích).`,simpson(x=>3*a*x*x+c,0,L));
     }, ['Đề đã cho diện tích hay độ dài?', 'Cộng các lớp mỏng bằng tích phân diện tích thiết diện.', 'Giữ đúng hai cận của vật thể.', T`Ví dụ khác: vật thể có diện tích thiết diện không đổi $5$ trên đoạn dài $2$ có thể tích $10$.`]),
   volumeRotate: skill('Thể tích khối tròn xoay', 'Lập thể tích khối quay quanh trục hoành bằng bình phương bán kính.',
     T`Quay miền dưới $y=f(x)\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\pi f(x)^2$; do đó $V=\pi\int_a^bf(x)^2\,dx$.`,
     'Không quên bình phương bán kính hoặc tự bình phương cả tích phân.', null,s=>{
-      const a=s%3+1,L=s%3+1,ans=a*a*L**3/3;
-      return qNum(T`Quay miền giới hạn bởi $y=${a}x$, trục hoành, $x=0$, $x=${L}$ quanh $Ox$. Tính $V/\pi$; nhập phân số nếu cần.`,ans,
+      const a = (s % 5) + 1, L = (Math.floor(s / 5) % 4) + 1;
+      const ans = a * a * (L**3) / 3;
+      return qNum(T`Quay miền phẳng giới hạn bởi đường thẳng $y=${a}x$, trục hoành $Ox$, $x=0$ và $x=${L}$ quanh trục $Ox$. Tính $V/\pi$; nhập phân số nếu cần.`,ans,
         T`$V=\pi\int_0^{${L}}(${a}x)^2\,dx=\pi\,\frac{${a*a*L**3}}3$. Vì vậy $V/\pi=\frac{${a*a*L**3}}3$.`,(a*L)**2*L/3);
     }, ['Bán kính mỗi thiết diện là giá trị y.', 'Diện tích hình tròn dùng bình phương bán kính.', 'Câu hỏi yêu cầu V chia pi.', T`Ví dụ khác: quay hình chữ nhật cao $2$, rộng $3$ quanh cạnh đáy cho hình trụ có thể tích $12\pi$.`]),
 });
@@ -412,6 +495,7 @@ const sub = (u,v) => u.map((x,i)=>x-v[i]);
 const addVec = (u,v) => u.map((x,i)=>x+v[i]);
 const det = (u,v,w) => dot(u,cross(v,w));
 const population = (a,b,c,d) => [...Array.from({length:a},()=>[true,true]),...Array.from({length:b},()=>[true,false]),...Array.from({length:c},()=>[false,true]),...Array.from({length:d},()=>[false,false])];
+
 const conditional = (rows,event,given) => rows.filter(x=>event(x)&&given(x)).length/rows.filter(given).length;
 const h4 = (a,b,c,d) => [a,b,c,`Đối chiếu ví dụ khác: ${d} Sau đó quay lại dữ kiện của câu đang làm.`];
 
@@ -491,8 +575,14 @@ Object.assign(skills, {
   planeSpan: skill('Cặp vectơ chỉ phương của mặt phẳng', 'Kiểm tra hai vectơ có tạo một cặp chỉ phương của mặt phẳng hay không.',
     T`Hai vectơ chỉ phương phải không cùng phương và cùng vuông góc với pháp tuyến. Một vectơ duy nhất không xác định được phương của cả mặt phẳng.`,
     'Hai vectơ cùng phương dù đều nằm trong mặt phẳng vẫn chưa tạo một cặp chỉ phương.',null,s=>{
-      const a=2+s%7,n=[a,-1,0],u=[1,a,0],v=[0,0,1];assert.equal(dot(n,u),0);assert.equal(dot(n,v),0);assert.ok(norm(cross(u,v))>0);
-      return qOpen(T`Mặt phẳng có pháp tuyến $\vec n=${vec(n)}$. Chứng minh $\vec u=${vec(u)}$ và $\vec v=${vec(v)}$ là một cặp vectơ chỉ phương. Vì sao thay $\vec v$ bằng $2\vec u$ thì không được?`,T`$\vec n\cdot\vec u=${a}-${a}=0$, $\vec n\cdot\vec v=0$. $\vec u,\vec v$ không cùng phương vì tọa độ thứ ba của $\vec u$ bằng 0 còn của $\vec v$ khác 0. $2\vec u$ cùng phương với $\vec u$ nên không tạo đủ hai phương độc lập.`,['Kiểm cả hai tích vô hướng bằng không.','Chứng minh hai vectơ không cùng phương.','Giải thích được vì sao cặp cùng phương không đủ.']);
+      const a = 2 + (s % 13), k = (Math.floor(s / 13) % 2);
+      if (k === 0) {
+        const n = [a, -1, 0], u = [1, a, 0], v = [0, 0, 1]; assert.equal(dot(n, u), 0); assert.equal(dot(n, v), 0); assert.ok(norm(cross(u, v)) > 0);
+        return qOpen(T`Mặt phẳng có pháp tuyến $\vec n=${vec(n)}$. Chứng minh $\vec u=${vec(u)}$ và $\vec v=${vec(v)}$ là một cặp vectơ chỉ phương. Vì sao thay $\vec v$ bằng $2\vec u$ thì không được?`, T`$\vec n\cdot\vec u=${a}-${a}=0$, $\vec n\cdot\vec v=0$. $\vec u,\vec v$ không cùng phương vì tọa độ thứ ba của $\vec u$ bằng 0 còn của $\vec v$ khác 0. $2\vec u$ cùng phương với $\vec u$ nên không tạo đủ hai phương độc lập.`, ['Kiểm cả hai tích vô hướng bằng không.', 'Chứng minh hai vectơ không cùng phương.', 'Giải thích được vì sao cặp cùng phương không đủ.']);
+      } else {
+        const n = [0, a, -1], u = [1, 0, 0], v = [0, 1, a]; assert.equal(dot(n, u), 0); assert.equal(dot(n, v), 0); assert.ok(norm(cross(u, v)) > 0);
+        return qOpen(T`Mặt phẳng có pháp tuyến $\vec n=${vec(n)}$. Chứng minh $\vec u=${vec(u)}$ và $\vec v=${vec(v)}$ là một cặp vectơ chỉ phương. Vì sao thay $\vec v$ bằng $2\vec u$ thì không được?`, T`$\vec n\cdot\vec u=0$, $\vec n\cdot\vec v=${a}-${a}=0$. $\vec u,\vec v$ không cùng phương vì tọa độ thứ nhất của $\vec u$ khác 0 còn của $\vec v$ bằng 0. $2\vec u$ cùng phương với $\vec u$ nên không tạo đủ hai phương độc lập.`, ['Kiểm cả hai tích vô hướng bằng không.', 'Chứng minh hai vectơ không cùng phương.', 'Giải thích được vì sao cặp cùng phương không đủ.']);
+      }
     },h4('Có hai điều kiện phải kiểm, không chỉ vuông góc với pháp tuyến.','Tính hai tích vô hướng.','Kiểm tích có hướng có khác vectơ không hay không.','Hai mũi tên trên cùng một cạnh chỉ biểu thị một phương, dù độ dài khác nhau.')),
   planePoint: skill('Mặt phẳng qua điểm, biết pháp tuyến', 'Lập phương trình mặt phẳng từ một điểm và một pháp tuyến khác không.',
     T`Qua $M(x_0;y_0;z_0)$, pháp tuyến $(A;B;C)$: $A(x-x_0)+B(y-y_0)+C(z-z_0)=0$. Kiểm lại bằng cách thay tọa độ M.`,
@@ -574,8 +664,14 @@ Object.assign(skills, {
   angleLines: skill('Góc giữa hai đường thẳng', 'Tính góc nhọn giữa hai đường bằng tích vô hướng và độ dài chỉ phương.',
     T`$\cos\theta=|\vec u\cdot\vec v|/(|\vec u||\vec v|)$, $0\le\theta\le90^\circ$. Trị tuyệt đối làm kết quả không phụ thuộc hướng chọn của vectơ.`,
     'Không dùng góc tù giữa hai vectơ làm góc giữa hai đường.',null,s=>{
-      const a=1+s%7,u=[1,a,0],v=[1,0,a],answer=1/(1+a*a)**2;
-      return qNum(T`Hai đường có chỉ phương $(1;${a};0)$ và $(1;0;${a})$. Tính $\cos^2\theta$, với $\theta$ là góc giữa hai đường.`,answer,T`Tích vô hướng bằng $1$, bình phương mỗi độ dài bằng $${1+a*a}$. Vì vậy $\cos^2\theta=1/${(1+a*a)**2}$.`,dot(u,v)**2/(dot(u,u)*dot(v,v)));
+      const a = 1 + (s % 15), k = (Math.floor(s / 15) % 2);
+      if (k === 0) {
+        const u = [1, a, 0], v = [1, 0, a], answer = 1 / (1 + a * a) ** 2;
+        return qNum(T`Hai đường có chỉ phương $(1;${a};0)$ và $(1;0;${a})$. Tính $\cos^2\theta$, với $\theta$ là góc giữa hai đường.`, answer, T`Tích vô hướng bằng $1$, bình phương mỗi độ dài bằng $${1+a*a}$. Vì vậy $\cos^2\theta=1/${(1+a*a)**2}$.`, dot(u, v) ** 2 / (dot(u, u) * dot(v, v)));
+      } else {
+        const u = [0, 1, a], v = [a, 1, 0], answer = 1 / (1 + a * a) ** 2;
+        return qNum(T`Hai đường có chỉ phương $(0;1;${a})$ và $(${a};1;0)$. Tính $\cos^2\theta$, với $\theta$ là góc giữa hai đường.`, answer, T`Tích vô hướng bằng $1$, bình phương mỗi độ dài bằng $${1+a*a}$. Vì vậy $\cos^2\theta=1/${(1+a*a)**2}$.`, dot(u, v) ** 2 / (dot(u, u) * dot(v, v)));
+      }
     },h4('Dùng vectơ chỉ phương của cả hai đường.','Tính tích vô hướng và hai bình phương độ dài.','Góc đường thẳng lấy giá trị không quá chín mươi độ.','Đổi hướng một vectơ đổi dấu tích vô hướng nhưng không đổi góc giữa hai đường.')),
   angleLinePlane: skill('Góc đường thẳng và mặt phẳng', 'Dùng sin góc đường-mặt từ tích vô hướng chỉ phương và pháp tuyến.',
     T`$\sin\alpha=|\vec u\cdot\vec n|/(|\vec u||\vec n|)$, $0\le\alpha\le90^\circ$. Góc đường-mặt phụ với góc giữa đường và pháp tuyến.`,
@@ -586,7 +682,7 @@ Object.assign(skills, {
   anglePlanes: skill('Góc giữa hai mặt phẳng', 'Tính góc hai mặt phẳng thông qua hai vectơ pháp tuyến.',
     T`$\cos\phi=|\vec n_1\cdot\vec n_2|/(|\vec n_1||\vec n_2|)$, $0\le\phi\le90^\circ$. Chỉ các hệ số x,y,z tham gia tính góc.`,
     'Không lấy hằng số tự do làm tọa độ thứ tư của pháp tuyến.',null,s=>{
-      const a=1+s%7,n=[1,a,1],m=[1,0,-1-a],answer=a*a/((a*a+2)*(1+(1+a)**2));
+      const a = 1 + (s % 15), n = [1, a, 1], m = [1, 0, -1 - a], answer = a * a / ((a * a + 2) * (1 + (1 + a) ** 2));
       return qNum(T`Cho $(P):x+${a}y+z-1=0$, $(Q):x-${1+a}z+3=0$. Tính $\cos^2\phi$ của góc giữa hai mặt phẳng.`,answer,T`Hai pháp tuyến $(1;${a};1)$, $(1;0;-${1+a})$ có tích vô hướng $-${a}$. $\cos^2\phi=\frac{${a*a}}{${a*a+2}\cdot${1+(1+a)**2}}$.`,dot(n,m)**2/(dot(n,n)*dot(m,m)));
     },h4('Trích hai pháp tuyến từ hệ số phương trình.','Tính tích vô hướng, không dùng hằng số tự do.','Chia bình phương tích vô hướng cho tích hai bình phương độ dài.','Các mặt phẳng song song giữ góc không dù khoảng cách giữa chúng thay đổi.')),
   sphereRead: skill('Tâm và bán kính mặt cầu', 'Hoàn thành bình phương để nhận tâm và bán kính, kiểm điều kiện bán kính dương.',
@@ -621,7 +717,16 @@ Object.assign(skills, {
   geometric: skill('Cấp số nhân', 'Dùng công bội để tính số hạng và tổng cấp số nhân hữu hạn.',T`$u_n=u_1q^{n-1}$; khi $q\ne1$, $S_n=u_1(q^n-1)/(q-1)$. Nếu $q=1$, tổng là $nu_1$.`,'Không nhầm công bội với công sai.',null,s=>{const a=1+s%7,q=2+s%2,n=3+s%5,ans=a*q**(n-1);return qNum(T`Cấp số nhân $u_1=${a}$, công bội $q=${q}$. Tính $u_{${n}}$.`,ans,T`$u_{${n}}=${a}\cdot${q}^{${n-1}}=${ans}$.`,Array.from({length:n-1}).reduce(x=>x*q,a));},h4('Công bội dùng phép nhân giữa hai số hạng liên tiếp.','Đếm số lần nhân từ số hạng đầu.','Số mũ bằng chỉ số trừ một.','Dãy nhân đôi mỗi bước khác với dãy cộng thêm hai mỗi bước.')),
   sequenceLimit: skill('Giới hạn dãy hữu tỉ', 'Chia tử và mẫu cho lũy thừa cao nhất để tính giới hạn dãy.',T`Với mẫu bậc cao nhất có hệ số khác không, chia cả tử và mẫu cho lũy thừa đó. Các hạng $1/n,1/n^2$ tiến về không.`,'Không lấy giới hạn riêng tử và mẫu đều vô cực rồi chia hình thức.',null,s=>{const a=2+s%7,b=3+s%5,c=1+s%6,ans=a/b;near((a*1e14+c)/(b*1e14+1),ans);return qNum(T`Tính $\lim_{n\to\infty}\frac{${a}n+${c}}{${b}n+1}$.`,ans,T`Chia n: $\frac{${a}+${c}/n}{${b}+1/n}\to${a}/${b}$.`,a/b);},h4('Tìm bậc lớn nhất của n ở tử và mẫu.','Chia cả tử và mẫu cho cùng lũy thừa.','Dùng giới hạn của các số hạng nghịch đảo.','Tỉ số hai đại lượng tăng tuyến tính về lâu dài do hệ số tăng trưởng quyết định.')),
   expLog: skill('Hàm mũ và lôgarit', 'Dùng định nghĩa lôgarit để chuyển đổi và tính giá trị có điều kiện xác định.',T`$\log_a b=c$ tương đương $a^c=b$, với $a>0,a\ne1,b>0$. Kiểm điều kiện trước khi dùng tính chất.`,'Không định nghĩa lôgarit của số không hoặc số âm.',null,s=>{const a=2+s%3,n=2+s%7,val=a**n;assert.equal(a**n,val);return qNum(T`Tính $\log_{${a}}${val}$.`,n,T`Vì $${a}^{${n}}=${val}$ và cơ số hợp lệ, lôgarit bằng $${n}$.`,Math.log(val)/Math.log(a));},h4('Đọc cơ số của lôgarit.','Chuyển thành câu hỏi về số mũ.','Kiểm cơ số dương khác một, đối số dương.','Logarit trả lời cần mũ nào để từ cơ số thu được đối số.')),
-  expIneq: skill('Bất phương trình mũ', 'Giải bất phương trình mũ và đảo chiều khi cơ số nằm giữa không và một.',T`Với $a>1$, $a^u>a^v\iff u>v$. Với $0<a<1$, chiều bất đẳng thức bị đảo.`,'Không giữ nguyên chiều khi cơ số nhỏ hơn một.',null,s=>{const n=2+s%9;assert.ok(2**(-(n+1))<2**(-n));return qChoice(T`Giải $\left(\frac12\right)^x<\left(\frac12\right)^{${n}}$.`,T`$x>${n}$`,[T`$x<${n}$`,T`$x\ge${n}$`],T`Cơ số thuộc $(0;1)$ nên hàm nghịch biến; bất đẳng thức tương đương $x>${n}$.`,s);},h4('Xét cơ số lớn hơn hay nhỏ hơn một.','Đưa hai vế về cùng cơ số.','Nếu hàm mũ nghịch biến, đổi chiều so sánh số mũ.','Nhân lặp một số dương nhỏ hơn một làm giá trị giảm.')),
+  expIneq: skill('Bất phương trình mũ', 'Giải bất phương trình mũ và đảo chiều khi cơ số nằm giữa không và một.',T`Với $a>1$, $a^u>a^v\iff u>v$. Với $0<a<1$, chiều bất đẳng thức bị đảo.`,'Không giữ nguyên chiều khi cơ số nhỏ hơn một.',null,s=>{
+    const n = 2 + (s % 17), k = (Math.floor(s / 17) % 2);
+    if (k === 0) {
+      assert.ok(2**(-(n+1))<2**(-n));
+      return qChoice(T`Giải $\left(\frac12\right)^x<\left(\frac12\right)^{${n}}$.`,T`$x>${n}$`,[T`$x<${n}$`,T`$x\ge${n}$`],T`Cơ số thuộc $(0;1)$ nên hàm nghịch biến; bất đẳng thức tương đương $x>${n}$.`,s);
+    } else {
+      assert.ok(3**(-(n+1))<3**(-n));
+      return qChoice(T`Giải $\left(\frac13\right)^x<\left(\frac13\right)^{${n}}$.`,T`$x>${n}$`,[T`$x<${n}$`,T`$x\ge${n}$`],T`Cơ số thuộc $(0;1)$ nên hàm nghịch biến; bất đẳng thức tương đương $x>${n}$.`,s);
+    }
+  },h4('Xét cơ số lớn hơn hay nhỏ hơn một.','Đưa hai vế về cùng cơ số.','Nếu hàm mũ nghịch biến, đổi chiều so sánh số mũ.','Nhân lặp một số dương nhỏ hơn một làm giá trị giảm.')),
   logIneq: skill('Bất phương trình lôgarit', 'Kết hợp miền xác định với tính đơn điệu để giải bất phương trình lôgarit.',T`Giải điều kiện đối số dương trước; khi đưa về so sánh đối số, xét cơ số. Tập nghiệm cuối là giao với miền xác định.`,'Không bỏ điều kiện đối số dương khi kết luận.',null,s=>{const a=1+s%8,n=2+s%4,end=a+2**n;assert.equal(Math.log2(end-a),n);return qChoice(T`Giải $\log_2(x-${a})<${n}$.`,T`$${a}<x<${end}$`,[T`$x<${end}$`,T`$x>${end}$`],T`Điều kiện $x>${a}$. Vì cơ số $2>1$, $x-${a}<2^{${n}}=${2**n}$. Giao điều kiện: $${a}<x<${end}$.`,s);},h4('Viết điều kiện đối số dương.','Dùng tính đồng biến theo cơ số.','Lấy giao bất phương trình mới với miền xác định.','Một nghiệm của bất phương trình đại số vẫn bị loại nếu làm đối số lôgarit không dương.')),
 });
 
@@ -803,6 +908,19 @@ for(const period of grade.lessons){
   assert.ok(focus?.length&&focus.length<=2,`Missing explicit focus for ${period.id}`);
   let result;
   try{result=makeEntry(period,focus,eligible);}catch(error){throw new Error(`${period.id} (period ${period.period}): ${error.message}`,{cause:error});}
+  for(const task of result.entry.pkg.tasks){
+    if(!task.solidKey){
+      const p=task.prompt;
+      if(p.includes('tứ diện')){
+        task.solidKey='tu-dien-sabc';
+      }else if(p.includes('hình chóp')){
+        task.solidKey='chop-sabcd';
+      }else if(p.includes('hình hộp')||p.includes('lăng trụ')){
+        task.solidKey='hop-chu-nhat';
+      }
+    }
+  }
+  result.entry.pkg.contentHash = hashPackage(result.entry.pkg);
   lessonEntries.push(result.entry);teacherSolutions.push({sourcePeriodId:period.id,period:period.period,title:result.entry.title,solutions:result.solutions});
 }
 

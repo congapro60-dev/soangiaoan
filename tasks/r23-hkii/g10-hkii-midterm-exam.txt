@@ -1,0 +1,87 @@
+Toán 10 Discover - Kiểm tra giữa học kỳ II
+
+Bản nháp tự soạn, cần giáo viên duyệt.
+
+Thời gian làm bài: 80 phút
+
+Họ và tên: ................................ Lớp: ........
+
+PHẦN I. Trắc nghiệm (8 câu/2 điểm)
+
+Câu 1. (0,25 điểm) Giá trị $f(3)$ với $f(x)=2x+1$ là:
+A. $5$
+B. $7$
+C. $6$
+D. $8$
+
+Câu 2. (0,25 điểm) Hàm $y=-3x+2$ trên $\mathbb R$:
+A. Đồng biến.
+B. Nghịch biến.
+C. Không đổi.
+D. Chỉ xác định khi x>0.
+
+Câu 3. (0,25 điểm) Đỉnh của $y=(x-3)^2-2$ là:
+A. $(3;-2)$
+B. $(-3;-2)$
+C. $(3;2)$
+D. $(-2;3)$
+
+Câu 4. (0,25 điểm) Một pháp tuyến của $2x-3y+1=0$ là:
+A. $(3;2)$
+B. $(2;-3)$
+C. $(2;3)$
+D. $(1;1)$
+
+Câu 5. (0,25 điểm) Với $x=1+2t,y=3-t$, khi $t=2$ điểm nhận được là:
+A. $(3;2)$
+B. $(5;5)$
+C. $(5;1)$
+D. $(2;1)$
+
+Câu 6. (0,25 điểm) Nghiệm của $(x-1)(x-4)<0$ là:
+A. $[1;4]$
+B. $(1;4)$
+C. $(-infty;1)$
+D. $(4;+infty)$
+
+Câu 7. (0,25 điểm) Tâm đường tròn $(x-2)^2+(y+1)^2=9$ là:
+A. $(-2;1)$
+B. $(2;1)$
+C. $(2;-1)$
+D. $(-1;2)$
+
+Câu 8. (0,25 điểm) Elip $x^2/25+y^2/16=1$ có c bằng:
+A. $9$
+B. $3$
+C. $41$
+D. $5$
+
+PHẦN II. Đúng - Sai (2 câu/2 điểm)
+
+Câu 1. (1 điểm) Cho $f(x)=(x-1)(x-5)$.
+a) f(1)=0.
+b) f(x)<0 khi1<x<5.
+c) Nghiệm f(x)≤0 là(1;5).
+d) f(6)>0.
+
+Câu 2. (1 điểm) Cho $d_1:x+y=4$, $d_2:x-y=2$ và đường tròn $(x-3)^2+(y-1)^2=4$.
+a) Hai đường cắt nhau tại(3;1).
+b) Hai đường song song.
+c) Đường tròn có bán kính2.
+d) Điểm(5;1) thuộc đường tròn.
+
+PHẦN III. Trả lời ngắn (4 câu/2 điểm)
+
+Câu 1. (0,5 điểm) Tính giá trị nhỏ nhất của $y=(x-2)^2+5$ trên $\mathbb R$.
+
+Câu 2. (0,5 điểm) Tính khoảng cách từ $O(0;0)$ đến $3x+4y-15=0$.
+
+Câu 3. (0,5 điểm) Elip $x^2/25+y^2/16=1$ có trục lớn dài bao nhiêu?
+
+Câu 4. (0,5 điểm) Giải $\sqrt{x+5}=\sqrt{2x+3}$; ghi nghiệm duy nhất.
+
+PHẦN IV. Tự luận (2 câu/4 điểm)
+
+Câu 1. (2 điểm) Giải $\sqrt{x+6}=x$ trên $\mathbb R$. Trình bày điều kiện, mọi ứng viên sau bình phương, loại nghiệm ngoại lai và kiểm nghiệm còn lại.
+
+Câu 2. (2 điểm) Cho đường tròn $(x-2)^2+(y-1)^2=25$ và $M(5;5)$. Xác định tâm,bán kính; kiểm M thuộc đường tròn; lập tiếp tuyến tại M; kiểm khoảng cách từ tâm tới tiếp tuyến.

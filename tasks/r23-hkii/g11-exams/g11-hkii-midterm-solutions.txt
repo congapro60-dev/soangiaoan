@@ -1,0 +1,65 @@
+HƯỚNG DẪN CHẤM - CHỈ DÀNH CHO GIÁO VIÊN
+
+Toán 11 Discover - Kiểm tra giữa học kỳ II
+
+Đề mới theo PPCT, chưa phải đề chính thức hay ma trận được trường duyệt. Đối soát cách giải, thời lượng và độ phủ trước khi dùng.
+
+Câu 1
+a) Số mũ $x-13$ nhận mọi số thực, nên $D=\mathbb R$. Cơ số nằm giữa $0$ và $1$, nên hàm nghịch biến.
+b) Cần $x-4>0$, tức $x>4$. Hàm nghịch biến trên miền này vì cơ số nằm giữa $0$ và $1$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 2
+a) Ba tung độ lần lượt $\frac{1}{2}+3$, $4$, $5$. Hàm đồng biến trên $\mathbb R$; khi $x\to-\infty$, $y\to3$ và luôn $y>3$. Đường thẳng cần nêu là $y=3$.
+b) Miền $x>8$. Ba điểm $(8+1/3;0)$, $(9;1)$, $(11;2)$. Hàm đồng biến; $y\to-\infty$ khi $x\to8^+$, nên đường giới hạn là $x=8$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba điểm đúng; hình vẽ tăng và nằm trên đường giới hạn. Giải thích bằng cơ số và giá trị của lũy thừa.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Miền và ba điểm đúng. Đồ thị tăng, không chạm đường biên; mô tả giới hạn một phía đúng.
+
+Câu 3
+a) Cơ số $5>1$, nên $2x+4=20$, suy ra $x=8$. Thế lại cho hai số mũ bằng nhau.
+b) Điều kiện $2x-16>0$. Theo định nghĩa, đối số bằng $2^{3}=8$, nên $x=12$; đối số tại nghiệm dương.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 4
+a) Hàm mũ nghịch biến, nên $2x+1>25$. Tập nghiệm: $x>12$.
+b) Điều kiện $x>3$. Vì cơ số $1/5<1$, cần $x-3>1/5$. Tập nghiệm $(3+1/5;+\infty)$. Điểm $x=4$ thuộc tập nghiệm vì lôgarit bằng $0<1$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Điều kiện xác định đúng. Chiều bất đẳng thức và giao miền đúng. Điểm kiểm thuộc miền và thỏa bất phương trình.
+
+Câu 5
+a) Tập cần tìm là $\{2;4;6;8;10;12;14;16;1;3;5\}$, có $11$ phần tử. Hợp chứa phần tử thuộc ít nhất một tập, không đếm trùng.
+b) $P(A)=1/2$, $P(B)=\frac{2}{15}$. Có $2$ kết quả thuận lợi cho giao trong $30$ cặp, nên $P(A\cap B)=\frac{2}{30}=P(A)P(B)$. Chúng độc lập, không xung khắc vì giao có xác suất dương.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba xác suất đúng. Kiểm đẳng thức độc lập; phân biệt xung khắc bằng giao.
+
+Câu 6
+a) Hai màu xung khắc trong một lần rút. Xác suất $\frac{6}{16}+\frac{5}{16}=\frac{11}{16}$.
+b) $P(A\cup B)=P(A)+P(B)-P(A\cap B)=(13+13-5)/27=\frac{21}{27}$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 7
+a) Hai phép rút độc lập nên xác suất $\frac{5}{11}\cdot\frac{3}{11}=\frac{15}{121}$.
+b) Hai trường hợp xung khắc có xác suất $\frac{3}{10}(1-\frac{6}{10})$ và $(1-\frac{3}{10})\frac{6}{10}$. Tổng bằng $\frac{54}{100}$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+
+Câu 8
+a) Hai góc kề bù là $153^\circ$ và $27^\circ$. Góc giữa hai đường lấy giá trị không lớn hơn $90^\circ$, bằng $27^\circ$.
+b) $B'C'\parallel BC$ và $AB\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Cách giải khác đúng vẫn nhận điểm.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chỉ đúng cặp song song và góc vuông ở đáy. Phân biệt cắt nhau và chéo nhau; không dựa vào hình vẽ phối cảnh.
+
+Câu 9
+a) $AB,AD$ thuộc $(ABCD)$ và cắt nhau tại $A$. $SA$ vuông góc cả hai nên $SA\perp(ABCD)$. Vì $BD$ nằm trong mặt phẳng đó, $SA\perp BD$. Vuông góc một đường chưa xác định được hướng pháp tuyến của cả mặt phẳng.
+b) Chân chiếu của $S$ là $A$; $B$ giữ nguyên. Vì thế hình chiếu của $SB$ là $AB$, dài $10$ cm. $SB=\sqrt{116}>10$ cm do tam giác $SAB$ vuông tại $A$.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai đường kiểm tra thuộc mặt phẳng và cắt nhau. Dẫn định lý đúng rồi suy ra quan hệ với đường còn lại.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Ba hình chiếu chính xác. Độ dài và đơn vị đúng; giải thích so sánh nếu được yêu cầu.
+
+Câu 10
+a) $SA\subset(SAB)$ và $SA\perp(ABCD)$ nên $(SAB)\perp(ABCD)$. Với kết luận thêm: $AD\perp AB$, $AD\perp SA$, do đó $AD\perp(SAB)$; $AD\subset(SAD)$ suy ra $(SAD)\perp(SAB)$.
+b) Góc nhị diện có số đo $145^\circ$ theo đúng hai tia đã chọn. Góc giữa hai mặt phẳng là góc không tù $180^\circ-145^\circ=35^\circ$. Hai khái niệm không được thay thế tùy ý.
+a) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Chỉ đúng quan hệ chứa. Chứng minh đường vuông góc mặt phẳng với đủ giả thiết; kết luận đúng.
+b) 0,25 điểm cho điều kiện/phương pháp phù hợp; 0,25 điểm cho lập luận, kết quả và đơn vị đúng. Hai số đo đúng với đúng tên gọi. Giải thích vì sao có thể khác nhau.

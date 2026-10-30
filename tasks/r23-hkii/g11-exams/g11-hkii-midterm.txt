@@ -1,0 +1,51 @@
+Toán 11 Discover - Kiểm tra giữa học kỳ II
+
+BẢN NHÁP - ĐỀ TỰ SOẠN, CẦN GIÁO VIÊN DUYỆT
+
+Thời gian làm bài: 80 phút. Tổng điểm: 10.
+
+PHẦN I. TỰ LUẬN (10 điểm)
+
+Mỗi câu 1 điểm; mỗi ý a, b 0,5 điểm. Trình bày điều kiện và cách làm trong bài; đơn vị theo yêu cầu từng câu.
+
+Câu 1. (1 điểm)
+a) Cho $f(x)=(\frac{1}{3})^{x-13}$. Chọn tập xác định và chiều biến thiên đúng.
+b) Hàm $y=\log_{\frac{1}{5}}(x-4)$ có tập xác định và chiều biến thiên nào?
+
+Câu 2. (1 điểm)
+a) Phác đồ thị $y=2^{x-4}+3$ trong vở. Tính giá trị tại $x=3,4,5$; nêu chiều biến thiên và đường thẳng mà đồ thị tiến gần khi $x\to-\infty$.
+b) Với $y=\log_3(x-8)+1$, xác định miền, ba điểm ứng với $x-8=1/3,1,3$, rồi phác đồ thị. Nêu đường thẳng đồ thị tiến gần khi $x\to8^+$.
+
+Câu 3. (1 điểm)
+a) Giải $5^{2x+4}=5^{20}$. Nhập nghiệm $x$; trong vở giải thích phép so số mũ.
+b) Giải $\log_2(2x-16)=3$. Nhập nghiệm $x$, ghi điều kiện trong vở.
+
+Câu 4. (1 điểm)
+a) Giải $(\frac{1}{2})^{2x+1}<(\frac{1}{2})^{25}$.
+b) Giải $\log_{\frac{1}{5}}(x-3)<1$. Viết tập nghiệm, kiểm một điểm thuộc tập nghiệm.
+
+Câu 5. (1 điểm)
+a) Chọn đều một thẻ trong $1,2,\ldots,16$. $A$: số chẵn; $B$: số không vượt quá $6$. Tìm số phần tử của $A\cup B$; liệt kê tập trong vở.
+b) Gieo một đồng xu cân đối và chọn độc lập một thẻ trong $1,\ldots,15$. $A$: xu ngửa; $B$: số trên thẻ không quá $2$. Tính $P(A),P(B),P(A\cap B)$, kiểm tra độc lập. Có thể gọi $A,B$ là xung khắc không?
+
+Câu 6. (1 điểm)
+a) Hộp có $6$ bóng đỏ, $5$ bóng xanh, $5$ bóng vàng như nhau về kích thước. Rút ngẫu nhiên một bóng. Tính xác suất bóng đỏ hoặc xanh.
+b) Một nhóm giả định có $27$ học sinh: $8$ em chỉ thích cờ vua, $8$ em chỉ thích bóng bàn, $5$ em thích cả hai, còn lại không thích môn nào. Chọn đều một em. Tính xác suất em đó thích ít nhất một trong hai môn.
+
+Câu 7. (1 điểm)
+a) Hai hộp độc lập: hộp I có $5$ thẻ đỏ trong $11$ thẻ, hộp II có $3$ thẻ đỏ trong $11$ thẻ. Rút ngẫu nhiên một thẻ từ mỗi hộp. Tính xác suất cả hai đều đỏ.
+b) Hai học sinh làm độc lập một nhiệm vụ; mô hình cho xác suất hoàn thành lần lượt $\frac{3}{10}$ và $\frac{6}{10}$. Tính xác suất đúng một em hoàn thành.
+
+Câu 8. (1 điểm)
+a) Qua $O$ dựng $a'\parallel a$, $b'\parallel b$. Một góc tạo bởi $a',b'$ bằng $153^\circ$. Tìm góc giữa $a,b$ theo độ; nêu vì sao vị trí chéo nhau của $a,b$ không cản trở cách làm.
+b) Hình hộp chữ nhật $ABCD.A'B'C'D'$ có $AB=6$ cm, $AD=6$ cm. Chứng minh $AB\perp B'C'$ và nêu chúng cắt nhau hay chéo nhau. 
+
+Câu 9. (1 điểm)
+a) Cho $SA\perp AB$, $SA\perp AD$, với $ABCD$ là hình chữ nhật, $AB=6$ cm, $AD=2$ cm, $S$ ngoài $(ABCD)$. Chứng minh $SA\perp(ABCD)$ rồi suy ra $SA\perp BD$. 
+b) Cho hình chóp $S.ABC$ với $SA\perp(ABC)$, $AB=10$ cm và $SA=4$ cm. Xác định hình chiếu của $S$, $B$ và $SB$ lên $(ABC)$. Tính độ dài hình chiếu của $SB$. 
+
+Câu 10. (1 điểm)
+a) Cho $SA\perp(ABCD)$, đáy $ABCD$ là hình chữ nhật với $AB=10$ cm, $AD=5$ cm. Chứng minh $(SAB)\perp(ABCD)$. Chứng minh thêm $(SAD)\perp(SAB)$.
+b) Hai nửa mặt phẳng tạo góc nhị diện cạnh $d$. Mặt phẳng vuông góc $d$ cắt chúng theo hai tia $Ox,Oy$ với $\widehat{xOy}=145^\circ$. Tìm số đo góc nhị diện và góc giữa hai mặt phẳng chứa hai mặt của nó.
+
+HẾT

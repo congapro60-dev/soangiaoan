@@ -1,0 +1,30 @@
+{
+  "packages": 152,
+  "sourcePeriods": 156,
+  "games": 39,
+  "distinctGamePairs": 39,
+  "examSets": 2,
+  "concepts": 83,
+  "seedCases": 19920,
+  "numericCases": 12120,
+  "choiceCases": 6720,
+  "openCases": 1080,
+  "fractionChoices": 5,
+  "distinctMath": 7785,
+  "checks": {
+    "numericOracles": "PASS",
+    "exactExamFractions": "PASS",
+    "sourceCoverage": "PASS",
+    "individualRecheckExit": "PASS",
+    "threeLanes": "PASS",
+    "supportH1H4": "PASS",
+    "strictKatex": "PASS",
+    "hashes": "PASS"
+  },
+  "limitations": [
+    "Authored content remains draft and teacher_review_required.",
+    "Open proofs have worked solutions and rubric; automated checks do not certify pedagogical approval.",
+    "Source Unit I/II plans are older partial sources, not complete HKII objectives.",
+    "No browser, runtime change, full build, publication or classroom trial performed by this author."
+  ]
+}
