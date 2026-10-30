@@ -13,6 +13,15 @@
   - QA Live: Chạy live session `3MvNb43261gPtzmZbQ49` với lớp `10Olinda`, duyệt qua toàn bộ 12 chặng (từ P0 đến P40), đồng bộ GV/HS thời gian thực (`tasks/qa-report-10-12-88.md`).
   - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
+- Tuần 12 — Khối 11 (`tds-g11-82` / `11-12-82`) Tiết 2: Tứ phân vị và mốt của mẫu số liệu ghép nhóm:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-11-12-82.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-11-12-82.md`.
+  - Pha B: Đã nạp thành công spec và AI error vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 9 specs) và timeline `gateD111282` (3-4-2-5-3-1-8-3-5-3-3 phút) vào `src/lib/liveLesson/v4/lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `11-12-82` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P18', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 60 bài).
+  - Validation: Toàn bộ 27 test files (312 tests) Vitest pass 100%. `npm run build` PASS.
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 60/60 bài (0 lỗi, 0 audit fail).
+  - QA Live: Chạy live session `rZ7jL9sGKAxfGcBOlcHj` với lớp `11A1 - Khối 11` (`K8268Y`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), đồng bộ GV/HS thời gian thực (`tasks/qa-report-11-12-82.md`).
+  - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
+
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `10-12-88`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 11 Tiết 1 hoặc Khối 12 Tiết 1).
+1. Trình thầy duyệt kết quả hoàn thành bài `11-12-82`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: Nguyên hàm / Phương pháp tính nguyên hàm hoặc Các số đặc trưng đo mức độ phân tán của mẫu số liệu ghép nhóm).

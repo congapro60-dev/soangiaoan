@@ -761,6 +761,99 @@
         "a. Dãy OT Alpha (11 số): Sắp xếp 0, 5, 8, 10, 12, 12, 12, 15, 16, 18, 20 → Q1 = 8, Q2 = 12, Q3 = 16, Mo = 12.",
         "b. Mẫu 8 số chẵn: 5, 6, 6, 7, 8, 8, 9, 10 → Q1 = 6, Q2 = 7,5, Q3 = 8,5; Mo = 6 và 8."
       ]
+    },
+    {
+      "key": "11-12-82",
+      "grade": 11,
+      "week": 12,
+      "period": 82,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "timelineKey": "gateD111282",
+      "title": "Các số đặc trưng đo xu thế trung tâm",
+      "focus": "Hình thành công thức nội suy tuyến tính tìm Tứ phân vị Q1, Q3 và Mốt Mo của mẫu số liệu ghép nhóm; hiểu bản chất phân vị 25%-75%; xác định đúng nhóm chứa và tần số tích lũy lân cận",
+      "formulas": [
+        "Q_1 = a_p + \\dfrac{n/4 - C}{m_p} \\cdot h \\quad (C = \\sum_{i<p} m_i, \\, cf_p \\ge \\dfrac{n}{4})",
+        "Q_3 = a_k + \\dfrac{3n/4 - C}{m_k} \\cdot h \\quad (C = \\sum_{i<k} m_i, \\, cf_k \\ge \\dfrac{3n}{4})",
+        "M_o = a_j + \\dfrac{m_j - m_{j-1}}{(m_j - m_{j-1}) + (m_j - m_{j+1})} \\cdot h \\quad (m_j = \\max m_i)"
+      ],
+      "examples": [
+        {
+          "question": "Thời gian sử dụng Internet trong ngày nghỉ cuối tuần của 40 học sinh khối 11: nhóm [0;2) có 6 HS, [2;4) có 14 HS, [4;6) có 15 HS, [6;8) có 5 HS. Hãy xác định tứ phân vị thứ nhất Q1, tứ phân vị thứ ba Q3 và mốt Mo của mẫu số liệu ghép nhóm.",
+          "solution": "Tần số tích lũy: cf₁ = 6, cf₂ = 20, cf₃ = 35, cf₄ = 40. Ta có n/4 = 10, nhóm đầu tiên có cf ≥ 10 là [2;4) (h = 2, m₂ = 14, C = 6) nên Q1 = 2 + ((10 - 6)/14)·2 = 2 + 8/14 ≈ 2,57 giờ. 3n/4 = 30, nhóm đầu tiên có cf ≥ 30 là [4;6) (h = 2, m₃ = 15, C = 20) nên Q3 = 4 + ((30 - 20)/15)·2 = 4 + 20/15 ≈ 5,33 giờ. Nhóm có tần số lớn nhất là [4;6) (m₃ = 15, m₂ = 14, m₄ = 5), mốt Mo = 4 + ((15 - 14)/((15 - 14) + (15 - 5)))·2 = 4 + 2/11 ≈ 4,18 giờ."
+        },
+        {
+          "question": "Một mẫu số liệu ghép nhóm khảo sát thời gian hoàn thành bài kiểm tra của 50 học sinh với nhóm chứa mốt là [30;40) có m₂ = 20. Biết nhóm trước có tần số 10, nhóm sau có tần số 15. Tính mốt Mo của mẫu số liệu.",
+          "solution": "Áp dụng công thức mốt với a = 30, h = 10, m_j = 20, m_{j-1} = 10, m_{j+1} = 15: Mo = 30 + ((20 - 10)/((20 - 10) + (20 - 15)))·10 = 30 + (10/(10 + 5))·10 = 30 + 100/15 ≈ 36,67 phút."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho bảng số liệu ghép nhóm gồm 4 nhóm với tần số lần lượt là 5, 12, 18, 15 (cỡ mẫu n = 50). Xác định nhóm chứa tứ phân vị thứ nhất Q1 và nhóm chứa mốt Mo.",
+          "answer": "Tần số tích lũy: 5, 17, 35, 50. Vì n/4 = 12,5 nên nhóm đầu tiên có cf ≥ 12,5 là nhóm thứ hai. Nhóm có tần số lớn nhất là nhóm thứ ba (m₃ = 18). Vậy Q1 thuộc nhóm 2 và Mo thuộc nhóm 3."
+        },
+        {
+          "level": "NB",
+          "question": "Nêu công thức tính mốt Mo của mẫu số liệu ghép nhóm và giải thích các ký hiệu trong công thức.",
+          "answer": "Mo = a_j + [(m_j - m_{j-1}) / ((m_j - m_{j-1}) + (m_j - m_{j+1}))] · h. Trong đó [a_j; a_{j+1}) là nhóm chứa mốt, h = a_{j+1} - a_j là độ dài nhóm, m_j là tần số nhóm chứa mốt, m_{j-1} và m_{j+1} là tần số các nhóm kề trước và sau."
+        },
+        {
+          "level": "TH",
+          "question": "Bảng thời gian chạy cự ly 100m của 30 học sinh: [12; 13) có 4 HS; [13; 14) có 10 HS; [14; 15) có 12 HS; [15; 16) có 4 HS. Tính tứ phân vị thứ nhất Q1 và thứ ba Q3.",
+          "answer": "Tần số tích lũy: 4, 14, 26, 30. n/4 = 7,5 thuộc nhóm [13;14) với C = 4, m = 10, h = 1 → Q1 = 13 + ((7,5 - 4)/10)·1 = 13,35 giây. 3n/4 = 22,5 thuộc nhóm [14;15) với C = 14, m = 12, h = 1 → Q3 = 14 + ((22,5 - 14)/12)·1 = 14,71 giây."
+        },
+        {
+          "level": "TH",
+          "question": "Khảo sát tiền điện (nghìn đồng) của 50 hộ gia đình trong tháng: [200; 400) có 8 hộ; [400; 600) có 20 hộ; [600; 800) có 16 hộ; [800; 1000) có 6 hộ. Tính mốt Mo và nêu ý nghĩa thực tế.",
+          "answer": "Nhóm chứa mốt là [400; 600) có tần số lớn nhất (20). Mo = 400 + ((20 - 8)/((20 - 8) + (20 - 16)))·200 = 400 + (12/(12 + 4))·200 = 550 nghìn đồng. Ý nghĩa: Mức tiền điện phổ biến nhất của các hộ gia đình tập trung quanh mức 550 nghìn đồng."
+        },
+        {
+          "level": "VD",
+          "question": "Khảo sát thời gian tự học mỗi ngày của 40 học sinh cho tứ phân vị Q1 ≈ 2,57 giờ, trung vị Me = 4,0 giờ, Q3 ≈ 5,33 giờ và mốt Mo ≈ 4,18 giờ. Hãy nhận xét về mức độ phân bố và tính đối xứng của thời gian tự học.",
+          "answer": "Ta thấy Q2 - Q1 = 4,0 - 2,57 = 1,43 giờ và Q3 - Q2 = 5,33 - 4,0 = 1,33 giờ. Độ lệch giữa hai nửa (1,43 so với 1,33) rất nhỏ và Me (4,0) gần sát Mo (4,18). Điều này cho thấy dữ liệu phân bố tương đối cân xứng quanh mốc 4 giờ."
+        },
+        {
+          "level": "VD",
+          "question": "Một mẫu số liệu ghép nhóm có 4 nhóm: [10; 20) có 5; [20; 30) có x; [30; 40) có 8; [40; 50) có 4. Biết mốt của mẫu số liệu thuộc nhóm [20; 30) và bằng 26. Tìm số nguyên x.",
+          "answer": "Vì Mo = 26 thuộc [20; 30) nên a = 20, h = 10, m = x (x > 8). Ta có: 26 = 20 + ((x - 5)/((x - 5) + (x - 8)))·10 ⇔ 6/10 = (x - 5)/(2x - 13) ⇔ 3(2x - 13) = 5(x - 5) ⇔ 6x - 39 = 5x - 25 ⇔ x = 14 (thỏa mãn x > 8)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi tính tứ phân vị thứ nhất Q1 của mẫu số liệu ghép nhóm, bạn An lấy C = 0 thay vì lấy tổng tần số của các nhóm trước nhóm chứa Q1. Kết quả Q1 của bạn An sẽ lớn hơn hay nhỏ hơn giá trị thực tế?",
+          "solution": "Vì C = 0 nên tử số (n/4 - C) = n/4 lớn hơn tử số đúng (n/4 - cf_{p-1}). Do đó phân số lớn hơn và giá trị Q1 của bạn An sẽ lớn hơn giá trị thực tế."
+        },
+        {
+          "question": "Có thể khẳng định mốt Mo của mẫu số liệu ghép nhóm luôn luôn bằng trung điểm của nhóm chứa mốt hay không? Vì sao?",
+          "solution": "Không. Mo chỉ rơi đúng trung điểm khi tần số của nhóm liền trước bằng tần số của nhóm liền sau (m_{j-1} = m_{j+1}). Nếu hai tần số lân cận khác nhau, mốt sẽ bị lệch về phía nhóm có tần số lớn hơn."
+        }
+      ],
+      "mistakes": [
+        "Quên trừ tần số tích lũy của các nhóm trước (lấy C = 0) khi tính Q1 hoặc Q3.",
+        "Nhầm nhóm chứa mốt là nhóm đầu tiên thay vì nhóm có tần số mj lớn nhất.",
+        "Nhầm lẫn giữa tần số nhóm mj với độ dài nhóm h trong mẫu số công thức mốt.",
+        "Xác định sai nhóm chứa Q3 khi lấy n/4 thay vì 3n/4."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Tứ phân vị của mẫu số liệu ghép nhóm",
+        "a. Tứ phân vị thứ nhất Q1:",
+        "   - Nhóm [ap; ap+1) chứa Q1 là nhóm đầu tiên có cfp ≥ n/4.",
+        "   - Công thức: Q1 = ap + [(n/4 - C)/mp] · h (với C = cfp-1, h = ap+1 - ap).",
+        "b. Tứ phân vị thứ ba Q3:",
+        "   - Nhóm [ak; ak+1) chứa Q3 là nhóm đầu tiên có cfk ≥ 3n/4.",
+        "   - Công thức: Q3 = ak + [(3n/4 - C)/mk] · h (với C = cfk-1).",
+        "2. Mốt của mẫu số liệu ghép nhóm (Mo)",
+        "a. Định nghĩa: Nhóm chứa mốt là nhóm có tần số lớn nhất.",
+        "b. Công thức nội suy: Mo = aj + [(mj - mj-1)/((mj - mj-1) + (mj - mj+1))] · h.",
+        "c. Ý nghĩa: Cho biết giá trị có mật độ phân bố tập trung dày đặc nhất trong mẫu dữ liệu.",
+        "3. Áp dụng bảng khảo sát 40 HS dùng Internet:",
+        "   - Q1 = 2 + ((10 - 6)/14) · 2 ≈ 2,57 giờ.",
+        "   - Q3 = 4 + ((30 - 20)/15) · 2 ≈ 5,33 giờ.",
+        "   - Mo = 4 + ((15 - 14)/((15 - 14) + (15 - 5))) · 2 ≈ 4,18 giờ."
+      ]
     }
   ],
   "aiErrors": {
@@ -845,6 +938,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + chỉ rõ bước sắp xếp bị thiếu và tính lại bộ (Q1 = 3, Q2 = 5, Q3 = 8).",
       "boardPrompt": "AI tính: Q1 = 2, Q2 = 4, Q3 = 3 (Q3 nhỏ hơn Q1!). Phát hiện bẫy gì?",
       "libraryTitle": "Lỗi AI tìm tứ phân vị khi chưa sắp xếp dãy số liệu"
+    },
+    "11-12-82": {
+      "key": "11-12-82",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Cho mẫu số liệu ghép nhóm gồm 4 nhóm: [0;2) tần số 6; [2;4) tần số 14; [4;6) tần số 15; [6;8) tần số 5 (cỡ mẫu n = 40). AI tính Q1: Cỡ mẫu n = 40 nên n/4 = 10, rơi vào nhóm [2;4). Áp dụng công thức: Q1 = 2 + ((10 - 0)/14)·2 = 2 + 20/14 ≈ 3,43 giờ.",
+      "correction": "Công thức đúng phải trừ đi tần số tích lũy của nhóm trước: C = cf₁ = 6. Do đó Q1 = 2 + ((10 - 6)/14)·2 = 2 + 8/14 ≈ 2,57 giờ.",
+      "proof": "Tần số tích lũy hết nhóm [0;2) đã là 6 học sinh. Để tìm học sinh thứ 10, trong nhóm [2;4) ta chỉ cần đếm thêm 10 - 6 = 4 học sinh (chứ không phải 10 học sinh). Coi C = 0 đã đếm thừa 6 học sinh của nhóm trước, làm giá trị Q1 bị đẩy lệch lên tới 3,43 giờ.",
+      "whyAiError": "AI nhầm lẫn công thức nội suy khi không tính đến giá trị tích lũy đã có từ các nhóm phía trước, mặc định coi C = 0.",
+      "teacherPrompt": "Em hãy nhận xét công thức AI sử dụng để tính Q1: Giá trị C = 0 có đúng không? Hãy sửa lại cho chuẩn xác.",
+      "studentProduct": "Thẻ Đ/S trên máy + nêu rõ C phải là 6 (tần số tích lũy nhóm [0;2)) và tính lại Q1 ≈ 2,57 giờ.",
+      "boardPrompt": "AI tính Q1 = 3,43 giờ với C = 0. Phát hiện bẫy tính toán gì?",
+      "libraryTitle": "Lỗi AI quên trừ tần số tích lũy nhóm trước khi tính tứ phân vị ghép nhóm"
     }
   }
 }

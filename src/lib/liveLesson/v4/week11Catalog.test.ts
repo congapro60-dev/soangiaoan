@@ -49,7 +49,7 @@ describe('Ba bài Tuần 11 nạp được vào registry', () => {
   });
 
   it('chỉ 10 bài Tuần 11 được đánh dấu interactive, các bài còn lại giữ self_study', () => {
-    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '10-12-88', '11-11-75', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '12-11-80']);
+    expect([...INTERACTIVE_SOURCE_KEYS].sort()).toEqual(['10-11-79', '10-11-80', '10-12-88', '11-11-75', '11-11-76', '11-11-78', '11-11-79', '11-12-82', '12-11-77', '12-11-78', '12-11-79', '12-11-80']);
     for (const key of INTERACTIVE_SOURCE_KEYS) {
       expect(getBanToanV4Contract(key).sourceKey).toBe(key);
     }
