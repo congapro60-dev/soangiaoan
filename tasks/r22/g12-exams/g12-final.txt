@@ -62,7 +62,7 @@ Câu 8. (0,75 điểm) Tính $\int_0^{3}(4x+1)\,dx$.
 
 Câu 9. (0,75 điểm) Tính diện tích giữa đồ thị $y=x-4$ và trục hoành trên $[0;6]$.
 
-Câu 10. (0,75 điểm) Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\pi$; nhập phân số nếu cần.
+Câu 10. (0,75 điểm) Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\pi$; nhập phân số nếu cần.
 
 PHẦN III. Tự luận (2 câu/4 điểm)
 

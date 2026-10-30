@@ -19733,74 +19733,74 @@
         "stage": "precheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{2}(3x^2+2)\\,dx=1\\cdot2^3+2cdot2=12$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 12
         }
       },
       {
         "stage": "formation",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(6x^2+2)\\,dx=2\\cdot3^3+2cdot3=60$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 60
         }
       },
       {
         "stage": "guided",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(9x^2+2)\\,dx=3\\cdot4^3+2cdot4=200$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 200
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(3x^2+2)\\,dx=1\\cdot4^3+2cdot4=72$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 72
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "support",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 6
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "core",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{2}(9x^2+4)\\,dx=3\\cdot2^3+4cdot2=32$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 32
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -19809,7 +19809,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+              "$V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích)."
             ]
           }
         }
@@ -19818,8 +19818,8 @@
         "stage": "extension",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{1}(6x^2+2)\\,dx=2\\cdot1^3+2cdot1=4$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -19828,7 +19828,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+              "$V=\\int_0^{1}(6x^2+2)\\,dx=2\\cdot1^3+2cdot1=4$ (đơn vị thể tích)."
             ]
           }
         }
@@ -19837,22 +19837,22 @@
         "stage": "exit",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(12x^2+2)\\,dx=4\\cdot3^3+2cdot3=114$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 114
         }
       },
       {
         "stage": "reserve",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 208
         }
       }
     ]
@@ -19866,40 +19866,62 @@
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(4x)^2\\,dx=\\pi\\,\\frac{1024}3$. Vì vậy $V/\\pi=\\frac{1024}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 341.3333333333333
         }
       },
       {
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 8.333333333333334
         }
       },
       {
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 9
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 42.666666666666664
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "volumeRotate",
+        "branch": "support",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 85.33333333333333
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "volumeRotate",
+        "branch": "core",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
         "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -19909,31 +19931,9 @@
       {
         "stage": "practice",
         "skill": "volumeRotate",
-        "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 81
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "volumeRotate",
-        "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 81
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -19942,7 +19942,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+              "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$."
             ]
           }
         }
@@ -19951,8 +19951,8 @@
         "stage": "extension",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -19961,7 +19961,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+              "$V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$."
             ]
           }
         }
@@ -19970,7 +19970,7 @@
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
         "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -19981,11 +19981,11 @@
         "stage": "reserve",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 36
         }
       }
     ]
@@ -19999,74 +19999,74 @@
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 36
         }
       },
       {
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 192
         }
       },
       {
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 5.333333333333333
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 1.3333333333333333
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 66.66666666666667
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 144
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20075,7 +20075,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+              "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
             ]
           }
         }
@@ -20084,8 +20084,8 @@
         "stage": "extension",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20094,7 +20094,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+              "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$."
             ]
           }
         }
@@ -20103,22 +20103,22 @@
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 533.3333333333334
         }
       },
       {
         "stage": "reserve",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 8.333333333333334
         }
       }
     ]
@@ -20132,140 +20132,140 @@
         "stage": "precheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=15x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{1}(15x^2+2)\\,dx=5\\cdot1^3+2cdot1=7$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 7
         }
       },
       {
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 1.3333333333333333
         }
       },
       {
         "stage": "formation",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(3x^2+2)\\,dx=1\\cdot3^3+2cdot3=33$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 33
         }
       },
       {
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 24
         }
       },
       {
         "stage": "guided",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(6x^2+2)\\,dx=2\\cdot4^3+2cdot4=136$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 136
         }
       },
       {
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 144
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=15x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(15x^2+2)\\,dx=5\\cdot3^3+2cdot3=141$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 141
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 36
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "support",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 5
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 533.3333333333334
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "core",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{2}(6x^2+4)\\,dx=2\\cdot2^3+4cdot2=24$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 24
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 5.333333333333333
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{3}(9x^2+4)\\,dx=3\\cdot3^3+4cdot3=93$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20274,7 +20274,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+              "$V=\\int_0^{3}(9x^2+4)\\,dx=3\\cdot3^3+4cdot3=93$ (đơn vị thể tích)."
             ]
           }
         }
@@ -20283,8 +20283,8 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20293,7 +20293,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+              "$V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$."
             ]
           }
         }
@@ -20302,8 +20302,8 @@
         "stage": "extension",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{1}(3x^2+2)\\,dx=1\\cdot1^3+2cdot1=3$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20312,7 +20312,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+              "$V=\\int_0^{1}(3x^2+2)\\,dx=1\\cdot1^3+2cdot1=3$ (đơn vị thể tích)."
             ]
           }
         }
@@ -20321,33 +20321,33 @@
         "stage": "exit",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(9x^2+2)\\,dx=3\\cdot3^3+2cdot3=87$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 87
         }
       },
       {
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 66.66666666666667
         }
       },
       {
         "stage": "reserve",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(6x^2+4)\\,dx=2\\cdot4^3+4cdot4=144$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 144
         }
       }
     ]
@@ -20601,11 +20601,11 @@
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 24
         }
       },
       {
@@ -20623,11 +20623,11 @@
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 144
         }
       },
       {
@@ -20645,11 +20645,11 @@
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 533.3333333333334
         }
       },
       {
@@ -20667,11 +20667,11 @@
         "stage": "recheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 192
         }
       },
       {
@@ -20689,11 +20689,11 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 2.6666666666666665
         }
       },
       {
@@ -20711,11 +20711,11 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 66.66666666666667
         }
       },
       {
@@ -20741,8 +20741,8 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20751,7 +20751,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
+              "$V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$."
             ]
           }
         }
@@ -20790,11 +20790,11 @@
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 21.333333333333332
         }
       },
       {
@@ -23849,8 +23849,8 @@
         "stage": "precheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{2}(3x^2+4)\\,dx=1\\cdot2^3+4cdot2=16$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 16
@@ -23860,95 +23860,95 @@
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(3x)^2\\,dx=\\pi\\,\\frac{9}3$. Vì vậy $V/\\pi=\\frac{9}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 3
         }
       },
       {
         "stage": "formation",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(6x^2+4)\\,dx=2\\cdot3^3+4cdot3=66$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 66
         }
       },
       {
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 42.666666666666664
         }
       },
       {
         "stage": "guided",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 208
         }
       },
       {
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 225
         }
       },
       {
         "stage": "recheck",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(3x^2+4)\\,dx=1\\cdot4^3+4cdot4=80$ (đơn vị thể tích).",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 80
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "volumeRotate",
+        "branch": "shared",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 81
         }
       },
       {
-        "stage": "recheck",
-        "skill": "volumeRotate",
-        "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
-        }
-      },
-      {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "support",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 8
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
         "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -23959,30 +23959,30 @@
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "core",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{2}(9x^2)\\,dx=3\\cdot2^3=24$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 24
         }
       },
       {
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 8.333333333333334
         }
       },
       {
         "stage": "practice",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{3}(12x^2)\\,dx=4\\cdot3^3=108$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -23991,7 +23991,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích)."
+              "$V=\\int_0^{3}(12x^2)\\,dx=4\\cdot3^3=108$ (đơn vị thể tích)."
             ]
           }
         }
@@ -24000,8 +24000,8 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -24010,7 +24010,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
+              "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$."
             ]
           }
         }
@@ -24019,8 +24019,8 @@
         "stage": "extension",
         "skill": "volumeSlice",
         "branch": "extension",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\int_0^{1}(6x^2+4)\\,dx=2\\cdot1^3+4cdot1=6$ (đơn vị thể tích).",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -24029,7 +24029,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích)."
+              "$V=\\int_0^{1}(6x^2+4)\\,dx=2\\cdot1^3+4cdot1=6$ (đơn vị thể tích)."
             ]
           }
         }
@@ -24038,33 +24038,33 @@
         "stage": "exit",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 1
+          "answerKey": 120
         }
       },
       {
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 9
         }
       },
       {
         "stage": "reserve",
         "skill": "volumeSlice",
         "branch": "shared",
-        "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
-        "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).",
+        "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
+        "solution": "$V=\\int_0^{4}(9x^2)\\,dx=3\\cdot4^3=192$ (đơn vị thể tích).",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 16
+          "answerKey": 192
         }
       }
     ]
@@ -25223,11 +25223,11 @@
         "stage": "precheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 5.333333333333333
         }
       },
       {
@@ -25245,11 +25245,11 @@
         "stage": "formation",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 66.66666666666667
         }
       },
       {
@@ -25267,11 +25267,11 @@
         "stage": "guided",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 21.333333333333332
         }
       },
       {
@@ -25289,11 +25289,11 @@
         "stage": "recheck",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 81
+          "answerKey": 144
         }
       },
       {
@@ -25311,11 +25311,11 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "support",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 1.3333333333333333
         }
       },
       {
@@ -25333,11 +25333,11 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "core",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 2.6666666666666665
         }
       },
       {
@@ -25355,8 +25355,8 @@
         "stage": "practice",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -25365,7 +25365,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+              "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
             ]
           }
         }
@@ -25393,8 +25393,8 @@
         "stage": "extension",
         "skill": "volumeRotate",
         "branch": "extension",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -25403,7 +25403,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+              "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$."
             ]
           }
         }
@@ -25412,11 +25412,11 @@
         "stage": "exit",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 0.3333333333333333
+          "answerKey": 36
         }
       },
       {
@@ -25434,11 +25434,11 @@
         "stage": "reserve",
         "skill": "volumeRotate",
         "branch": "shared",
-        "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
-        "solution": "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+        "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+        "solution": "$V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10.666666666666666
+          "answerKey": 85.33333333333333
         }
       }
     ]

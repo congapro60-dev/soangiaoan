@@ -405,15 +405,17 @@ Object.assign(skills, {
   volumeSlice: skill('Thể tích từ thiết diện', 'Lập và tính tích phân diện tích thiết diện để tìm thể tích.',
     T`Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\int_a^b A(x)\,dx$. Không nhân thêm pi nếu A đã là diện tích.`,
     'Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.', null,s=>{
-      const a=s%3+1,L=s%3+1,ans=a*L**3;
-      return qNum(T`Vật thể nằm giữa $x=0$ và $x=${L}$ có diện tích thiết diện $A(x)=${3*a}x^2$ (đơn vị diện tích). Tính thể tích.`,ans,
-        T`$V=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$ (đơn vị thể tích).`,simpson(x=>3*a*x*x,0,L));
+      const a = (s % 5) + 1, L = (Math.floor(s / 5) % 4) + 1, c = (s % 3) * 2;
+      const ans = a * L**3 + c * L;
+      return qNum(T`Vật thể nằm giữa $x=0$ và $x=${L}$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=${3*a}x^2${c ? `+${c}` : ''}$ (đơn vị diện tích). Tính thể tích.`,ans,
+        T`$V=\int_0^{${L}}(${3*a}x^2${c ? `+${c}` : ''})\,dx=${a}\cdot${L}^3${c ? `+${c}\cdot${L}` : ''}=${ans}$ (đơn vị thể tích).`,simpson(x=>3*a*x*x+c,0,L));
     }, ['Đề đã cho diện tích hay độ dài?', 'Cộng các lớp mỏng bằng tích phân diện tích thiết diện.', 'Giữ đúng hai cận của vật thể.', T`Ví dụ khác: vật thể có diện tích thiết diện không đổi $5$ trên đoạn dài $2$ có thể tích $10$.`]),
   volumeRotate: skill('Thể tích khối tròn xoay', 'Lập thể tích khối quay quanh trục hoành bằng bình phương bán kính.',
     T`Quay miền dưới $y=f(x)\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\pi f(x)^2$; do đó $V=\pi\int_a^bf(x)^2\,dx$.`,
     'Không quên bình phương bán kính hoặc tự bình phương cả tích phân.', null,s=>{
-      const a=s%3+1,L=s%3+1,ans=a*a*L**3/3;
-      return qNum(T`Quay miền giới hạn bởi $y=${a}x$, trục hoành, $x=0$, $x=${L}$ quanh $Ox$. Tính $V/\pi$; nhập phân số nếu cần.`,ans,
+      const a = (s % 5) + 1, L = (Math.floor(s / 5) % 4) + 1;
+      const ans = a * a * (L**3) / 3;
+      return qNum(T`Quay miền phẳng giới hạn bởi đường thẳng $y=${a}x$, trục hoành $Ox$, $x=0$ và $x=${L}$ quanh trục $Ox$. Tính $V/\pi$; nhập phân số nếu cần.`,ans,
         T`$V=\pi\int_0^{${L}}(${a}x)^2\,dx=\pi\,\frac{${a*a*L**3}}3$. Vì vậy $V/\pi=\frac{${a*a*L**3}}3$.`,(a*L)**2*L/3);
     }, ['Bán kính mỗi thiết diện là giá trị y.', 'Diện tích hình tròn dùng bình phương bán kính.', 'Câu hỏi yêu cầu V chia pi.', T`Ví dụ khác: quay hình chữ nhật cao $2$, rộng $3$ quanh cạnh đáy cho hình trụ có thể tích $12\pi$.`]),
 });

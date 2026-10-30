@@ -189020,7 +189020,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{3}(6x^2+2)\\,dx=2\\cdot3^3+2cdot3=60$ (đơn vị thể tích).",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -189180,7 +189180,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189194,10 +189194,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(3x^2+2)\\,dx=1\\cdot2^3+2cdot2=12$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 12
             },
             "metadata": {
               "sourceCitation": {
@@ -189216,7 +189216,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189230,10 +189230,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(6x^2+2)\\,dx=2\\cdot3^3+2cdot3=60$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 60
             },
             "metadata": {
               "sourceCitation": {
@@ -189252,7 +189252,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189266,10 +189266,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+2)\\,dx=3\\cdot4^3+2cdot4=200$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 200
             },
             "metadata": {
               "sourceCitation": {
@@ -189288,7 +189288,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189302,10 +189302,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(3x^2+2)\\,dx=1\\cdot4^3+2cdot4=72$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 72
             },
             "metadata": {
               "sourceCitation": {
@@ -189324,7 +189324,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189341,10 +189341,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 6
             },
             "metadata": {
               "sourceCitation": {
@@ -189363,7 +189363,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189377,10 +189377,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(9x^2+4)\\,dx=3\\cdot2^3+4cdot2=32$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 32
             },
             "metadata": {
               "sourceCitation": {
@@ -189399,7 +189399,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189413,7 +189413,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -189422,7 +189422,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+                  "$V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -189443,7 +189443,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189457,7 +189457,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(6x^2+2)\\,dx=2\\cdot1^3+2cdot1=4$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -189466,7 +189466,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+                  "$V=\\int_0^{1}(6x^2+2)\\,dx=2\\cdot1^3+2cdot1=4$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -189487,7 +189487,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189501,10 +189501,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+2)\\,dx=4\\cdot3^3+2cdot3=114$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 114
             },
             "metadata": {
               "sourceCitation": {
@@ -189523,7 +189523,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r149"
             ],
@@ -189537,10 +189537,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 208
             },
             "metadata": {
               "sourceCitation": {
@@ -189568,7 +189568,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(3x^2+2)\\,dx=1\\cdot2^3+2cdot2=12$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-2-1-1",
@@ -189585,7 +189585,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(6x^2+2)\\,dx=2\\cdot3^3+2cdot3=60$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-3-1-1",
@@ -189602,7 +189602,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+2)\\,dx=3\\cdot4^3+2cdot4=200$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-4-1-1",
@@ -189619,7 +189619,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(3x^2+2)\\,dx=1\\cdot4^3+2cdot4=72$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-1",
@@ -189636,7 +189636,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-2",
@@ -189653,7 +189653,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-3",
@@ -189670,7 +189670,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-4",
@@ -189687,7 +189687,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-2-1",
@@ -189704,7 +189704,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(9x^2+4)\\,dx=3\\cdot2^3+4cdot2=32$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-3-1",
@@ -189721,7 +189721,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-6-1-1",
@@ -189738,7 +189738,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(6x^2+2)\\,dx=2\\cdot1^3+2cdot1=4$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-7-1-1",
@@ -189755,7 +189755,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+2)\\,dx=4\\cdot3^3+2cdot3=114$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-8-1-1",
@@ -189772,7 +189772,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           }
         ],
         "evidenceRules": [
@@ -189899,7 +189899,7 @@
             "group_score"
           ]
         },
-        "contentHash": "231226469c90ea6d8e49587bb4f78d3b20bbcd6d1f3951d79063f33008d3bbb4"
+        "contentHash": "499d208873578f84121666f97b32979ecfff578cd0453ca1ab3186fc5eeeaea5"
       },
       "citations": [
         {
@@ -190274,7 +190274,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -190434,7 +190434,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190448,10 +190448,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(4x)^2\\,dx=\\pi\\,\\frac{1024}3$. Vì vậy $V/\\pi=\\frac{1024}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 341.3333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -190470,7 +190470,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190484,10 +190484,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 8.333333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -190506,7 +190506,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190520,10 +190520,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 9
             },
             "metadata": {
               "sourceCitation": {
@@ -190542,7 +190542,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190556,10 +190556,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 42.666666666666664
             },
             "metadata": {
               "sourceCitation": {
@@ -190578,7 +190578,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190595,10 +190595,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 85.33333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -190617,7 +190617,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190631,10 +190631,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 0.3333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -190653,7 +190653,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190667,7 +190667,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -190676,7 +190676,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+                  "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$."
                 ]
               }
             },
@@ -190697,7 +190697,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190711,7 +190711,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -190720,7 +190720,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+                  "$V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$."
                 ]
               }
             },
@@ -190741,7 +190741,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190777,7 +190777,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r150"
             ],
@@ -190791,10 +190791,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 36
             },
             "metadata": {
               "sourceCitation": {
@@ -190822,7 +190822,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(4x)^2\\,dx=\\pi\\,\\frac{1024}3$. Vì vậy $V/\\pi=\\frac{1024}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-1-1",
@@ -190839,7 +190839,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-1-1",
@@ -190856,7 +190856,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-1-1",
@@ -190873,7 +190873,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-1",
@@ -190890,7 +190890,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-2",
@@ -190907,7 +190907,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-3",
@@ -190924,7 +190924,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-4",
@@ -190941,7 +190941,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-1",
@@ -190958,7 +190958,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-3-1",
@@ -190975,7 +190975,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-6-1-1",
@@ -190992,7 +190992,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-7-1-1",
@@ -191026,7 +191026,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           }
         ],
         "evidenceRules": [
@@ -191153,7 +191153,7 @@
             "group_score"
           ]
         },
-        "contentHash": "76ec0b5c933c1c52d3983a3cf3eb21187c78c9d592f957f22a9b44d6401cd8e8"
+        "contentHash": "011b198cf80b5621ad321b97ff451e5ee9436e6cc3f7b58ed3d8adb5ae8ef9b1"
       },
       "citations": [
         {
@@ -191528,7 +191528,7 @@
             "supportIds": [
               "hint-2-1-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -191688,7 +191688,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191702,10 +191702,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 36
             },
             "metadata": {
               "sourceCitation": {
@@ -191724,7 +191724,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191738,10 +191738,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 192
             },
             "metadata": {
               "sourceCitation": {
@@ -191760,7 +191760,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191774,10 +191774,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 5.333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -191796,7 +191796,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191810,10 +191810,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 1.3333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -191832,7 +191832,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191849,10 +191849,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 66.66666666666667
             },
             "metadata": {
               "sourceCitation": {
@@ -191871,7 +191871,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191885,10 +191885,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 144
             },
             "metadata": {
               "sourceCitation": {
@@ -191907,7 +191907,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191921,7 +191921,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -191930,7 +191930,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+                  "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
                 ]
               }
             },
@@ -191951,7 +191951,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -191965,7 +191965,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -191974,7 +191974,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+                  "$V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$."
                 ]
               }
             },
@@ -191995,7 +191995,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -192009,10 +192009,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 533.3333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -192031,7 +192031,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r151"
             ],
@@ -192045,10 +192045,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 8.333333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -192076,7 +192076,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-1-1",
@@ -192093,7 +192093,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-1-1",
@@ -192110,7 +192110,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-1-1",
@@ -192127,7 +192127,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-1",
@@ -192144,7 +192144,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-2",
@@ -192161,7 +192161,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-3",
@@ -192178,7 +192178,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-4",
@@ -192195,7 +192195,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-1",
@@ -192212,7 +192212,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-3-1",
@@ -192229,7 +192229,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-6-1-1",
@@ -192246,7 +192246,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-7-1-1",
@@ -192263,7 +192263,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-8-1-1",
@@ -192280,7 +192280,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           }
         ],
         "evidenceRules": [
@@ -192407,7 +192407,7 @@
             "group_score"
           ]
         },
-        "contentHash": "59a20a92ca819eed368a6c76e98ff10cd9159792ed39086e94baabf81a48da32"
+        "contentHash": "ec1db9d73b009dfd98f7a6665287d472705d954a18c7092ceb1b5555cc695b6d"
       },
       "citations": [
         {
@@ -192805,7 +192805,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích).\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{3}(3x^2+2)\\,dx=1\\cdot3^3+2cdot3=33$ (đơn vị thể tích).\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -192990,7 +192990,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=15x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193004,10 +193004,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(15x^2+2)\\,dx=5\\cdot1^3+2cdot1=7$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 7
             },
             "metadata": {
               "sourceCitation": {
@@ -193026,7 +193026,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193040,10 +193040,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 1.3333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -193062,7 +193062,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193076,10 +193076,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(3x^2+2)\\,dx=1\\cdot3^3+2cdot3=33$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 33
             },
             "metadata": {
               "sourceCitation": {
@@ -193098,7 +193098,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193112,10 +193112,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 24
             },
             "metadata": {
               "sourceCitation": {
@@ -193134,7 +193134,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193148,10 +193148,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(6x^2+2)\\,dx=2\\cdot4^3+2cdot4=136$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 136
             },
             "metadata": {
               "sourceCitation": {
@@ -193170,7 +193170,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193184,10 +193184,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 144
             },
             "metadata": {
               "sourceCitation": {
@@ -193206,7 +193206,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=15x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193220,10 +193220,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(15x^2+2)\\,dx=5\\cdot3^3+2cdot3=141$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 141
             },
             "metadata": {
               "sourceCitation": {
@@ -193242,7 +193242,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193256,10 +193256,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 36
             },
             "metadata": {
               "sourceCitation": {
@@ -193278,7 +193278,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193295,10 +193295,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 5
             },
             "metadata": {
               "sourceCitation": {
@@ -193317,7 +193317,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193334,10 +193334,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 533.3333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -193356,7 +193356,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193370,10 +193370,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(6x^2+4)\\,dx=2\\cdot2^3+4cdot2=24$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 24
             },
             "metadata": {
               "sourceCitation": {
@@ -193392,7 +193392,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193406,10 +193406,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 5.333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -193428,7 +193428,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193442,7 +193442,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(9x^2+4)\\,dx=3\\cdot3^3+4cdot3=93$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -193451,7 +193451,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+                  "$V=\\int_0^{3}(9x^2+4)\\,dx=3\\cdot3^3+4cdot3=93$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -193472,7 +193472,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193486,7 +193486,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -193495,7 +193495,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+                  "$V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$."
                 ]
               }
             },
@@ -193516,7 +193516,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193530,7 +193530,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(3x^2+2)\\,dx=1\\cdot1^3+2cdot1=3$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -193539,7 +193539,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích)."
+                  "$V=\\int_0^{1}(3x^2+2)\\,dx=1\\cdot1^3+2cdot1=3$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -193560,7 +193560,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193574,10 +193574,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(9x^2+2)\\,dx=3\\cdot3^3+2cdot3=87$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 87
             },
             "metadata": {
               "sourceCitation": {
@@ -193596,7 +193596,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193610,10 +193610,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 66.66666666666667
             },
             "metadata": {
               "sourceCitation": {
@@ -193632,7 +193632,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r152"
             ],
@@ -193646,10 +193646,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(6x^2+4)\\,dx=2\\cdot4^3+4cdot4=144$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 144
             },
             "metadata": {
               "sourceCitation": {
@@ -193677,7 +193677,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(15x^2+2)\\,dx=5\\cdot1^3+2cdot1=7$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-1-2-1",
@@ -193694,7 +193694,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-1-1",
@@ -193711,7 +193711,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(3x^2+2)\\,dx=1\\cdot3^3+2cdot3=33$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-2-2-1",
@@ -193728,7 +193728,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-1-1",
@@ -193745,7 +193745,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(6x^2+2)\\,dx=2\\cdot4^3+2cdot4=136$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-3-2-1",
@@ -193762,7 +193762,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-1-1",
@@ -193779,7 +193779,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(15x^2+2)\\,dx=5\\cdot3^3+2cdot3=141$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-4-2-1",
@@ -193796,7 +193796,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-1",
@@ -193813,7 +193813,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-2",
@@ -193830,7 +193830,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-3",
@@ -193847,7 +193847,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-4",
@@ -193864,7 +193864,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(9x^2+2)\\,dx=3\\cdot1^3+2cdot1=5$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-2-1",
@@ -193881,7 +193881,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-2",
@@ -193898,7 +193898,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-3",
@@ -193915,7 +193915,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-4",
@@ -193932,7 +193932,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-3-1",
@@ -193949,7 +193949,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(6x^2+4)\\,dx=2\\cdot2^3+4cdot2=24$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-4-1",
@@ -193966,7 +193966,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-5-1",
@@ -193983,7 +193983,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(9x^2+4)\\,dx=3\\cdot3^3+4cdot3=93$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-6-1",
@@ -194000,7 +194000,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-6-1-1",
@@ -194017,7 +194017,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(3x^2+2)\\,dx=1\\cdot1^3+2cdot1=3$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-7-1-1",
@@ -194034,7 +194034,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(9x^2+2)\\,dx=3\\cdot3^3+2cdot3=87$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-7-2-1",
@@ -194051,7 +194051,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-8-1-1",
@@ -194068,7 +194068,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(6x^2+4)\\,dx=2\\cdot4^3+4cdot4=144$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           }
         ],
         "evidenceRules": [
@@ -194277,7 +194277,7 @@
             "group_score"
           ]
         },
-        "contentHash": "afe53b1c772e4f57837d8d014b8174e903de3976a60a179ba9c43c909cf1ddc3"
+        "contentHash": "92d6d2ae2c0be8877866fd34b43b0823ca1ff220b6785f4808c334cf0a1cb324"
       },
       "citations": [
         {
@@ -197076,7 +197076,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Diện tích khi đồ thị đổi dấu: Diện tích là $\\int_a^b|f(x)|\\,dx$. Tách tại các nghiệm làm đổi dấu rồi cộng các phần diện tích dương. Ví dụ trên bảng: Tính diện tích giữa đồ thị $y=x-2$ và trục hoành trên $[0;6]$. Đổi dấu tại $x=2$. $S=\\int_0^{2}(2-x)\\,dx+\\int_{2}^{6}(x-2)\\,dx=\\frac{4+16}2=10$.\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Diện tích khi đồ thị đổi dấu: Diện tích là $\\int_a^b|f(x)|\\,dx$. Tách tại các nghiệm làm đổi dấu rồi cộng các phần diện tích dương. Ví dụ trên bảng: Tính diện tích giữa đồ thị $y=x-2$ và trục hoành trên $[0;6]$. Đổi dấu tại $x=2$. $S=\\int_0^{2}(2-x)\\,dx+\\int_{2}^{6}(x-2)\\,dx=\\frac{4+16}2=10$.\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -197297,7 +197297,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197311,10 +197311,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 24
             },
             "metadata": {
               "sourceCitation": {
@@ -197369,7 +197369,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197383,10 +197383,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 144
             },
             "metadata": {
               "sourceCitation": {
@@ -197441,7 +197441,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197455,10 +197455,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 533.3333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -197513,7 +197513,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197527,10 +197527,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 192
             },
             "metadata": {
               "sourceCitation": {
@@ -197588,7 +197588,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197605,10 +197605,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 2.6666666666666665
             },
             "metadata": {
               "sourceCitation": {
@@ -197663,7 +197663,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197677,10 +197677,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 66.66666666666667
             },
             "metadata": {
               "sourceCitation": {
@@ -197743,7 +197743,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197757,7 +197757,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -197766,7 +197766,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
+                  "$V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$."
                 ]
               }
             },
@@ -197867,7 +197867,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r154"
             ],
@@ -197881,10 +197881,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 21.333333333333332
             },
             "metadata": {
               "sourceCitation": {
@@ -197965,7 +197965,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(3x)^2\\,dx=\\pi\\,\\frac{72}3$. Vì vậy $V/\\pi=\\frac{72}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-1-1",
@@ -197999,7 +197999,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-1-1",
@@ -198033,7 +198033,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-1-1",
@@ -198067,7 +198067,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(3x)^2\\,dx=\\pi\\,\\frac{576}3$. Vì vậy $V/\\pi=\\frac{576}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-1",
@@ -198152,7 +198152,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-2",
@@ -198169,7 +198169,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-3",
@@ -198186,7 +198186,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-4",
@@ -198203,7 +198203,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-3-1",
@@ -198237,7 +198237,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-5-1",
@@ -198271,7 +198271,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-6-1-1",
@@ -198322,7 +198322,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-8-1-1",
@@ -198548,7 +198548,7 @@
             "group_score"
           ]
         },
-        "contentHash": "85d7f69cd8d158d176bb583049211ebbd1e99155baea2e991ecc689d59a3a5cd"
+        "contentHash": "49e7c3c217abc6e09ccec72efe63677bbb0f786193cc5809f59759a027aa253e"
       },
       "citations": [
         {
@@ -227587,7 +227587,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích).\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích từ thiết diện: Nếu thiết diện vuông góc trục $Ox$ có diện tích $A(x)$, thể tích từ $a$ đến $b$ là $\\int_a^b A(x)\\,dx$. Không nhân thêm pi nếu A đã là diện tích. Ví dụ trên bảng: Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích. $V=\\int_0^{3}(6x^2+4)\\,dx=2\\cdot3^3+4cdot3=66$ (đơn vị thể tích).\nThể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -227772,7 +227772,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227786,7 +227786,7 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(3x^2+4)\\,dx=1\\cdot2^3+4cdot2=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
               "answerKey": 16
@@ -227808,7 +227808,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227822,10 +227822,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(3x)^2\\,dx=\\pi\\,\\frac{9}3$. Vì vậy $V/\\pi=\\frac{9}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 3
             },
             "metadata": {
               "sourceCitation": {
@@ -227844,7 +227844,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227858,10 +227858,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(6x^2+4)\\,dx=2\\cdot3^3+4cdot3=66$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 66
             },
             "metadata": {
               "sourceCitation": {
@@ -227880,7 +227880,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227894,10 +227894,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 42.666666666666664
             },
             "metadata": {
               "sourceCitation": {
@@ -227916,7 +227916,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227930,10 +227930,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 208
             },
             "metadata": {
               "sourceCitation": {
@@ -227952,7 +227952,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -227966,10 +227966,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 225
             },
             "metadata": {
               "sourceCitation": {
@@ -227988,7 +227988,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=3x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228002,10 +228002,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(3x^2+4)\\,dx=1\\cdot4^3+4cdot4=80$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 80
             },
             "metadata": {
               "sourceCitation": {
@@ -228024,7 +228024,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228038,10 +228038,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 81
             },
             "metadata": {
               "sourceCitation": {
@@ -228060,7 +228060,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228077,10 +228077,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 8
             },
             "metadata": {
               "sourceCitation": {
@@ -228099,7 +228099,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228138,7 +228138,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228152,10 +228152,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(9x^2)\\,dx=3\\cdot2^3=24$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 24
             },
             "metadata": {
               "sourceCitation": {
@@ -228174,7 +228174,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228188,10 +228188,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 8.333333333333334
             },
             "metadata": {
               "sourceCitation": {
@@ -228210,7 +228210,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228224,7 +228224,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2)\\,dx=4\\cdot3^3=108$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -228233,7 +228233,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích)."
+                  "$V=\\int_0^{3}(12x^2)\\,dx=4\\cdot3^3=108$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -228254,7 +228254,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228268,7 +228268,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -228277,7 +228277,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$."
+                  "$V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$."
                 ]
               }
             },
@@ -228298,7 +228298,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=6x^2+4$ (đơn vị diện tích). Tính thể tích.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228312,7 +228312,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(6x^2+4)\\,dx=2\\cdot1^3+4cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -228321,7 +228321,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích)."
+                  "$V=\\int_0^{1}(6x^2+4)\\,dx=2\\cdot1^3+4cdot1=6$ (đơn vị thể tích)."
                 ]
               }
             },
@@ -228342,7 +228342,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện $A(x)=3x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=3$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+4$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228356,10 +228356,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 1
+              "answerKey": 120
             },
             "metadata": {
               "sourceCitation": {
@@ -228378,7 +228378,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228392,10 +228392,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 9
             },
             "metadata": {
               "sourceCitation": {
@@ -228414,7 +228414,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+            "prompt": "Vật thể nằm giữa $x=0$ và $x=4$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=9x^2$ (đơn vị diện tích). Tính thể tích.",
             "sourceRefs": [
               "g12-discover-r171"
             ],
@@ -228428,10 +228428,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2)\\,dx=3\\cdot4^3=192$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 16
+              "answerKey": 192
             },
             "metadata": {
               "sourceCitation": {
@@ -228459,7 +228459,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(3x^2+4)\\,dx=1\\cdot2^3+4cdot2=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-1-2-1",
@@ -228476,7 +228476,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(3x)^2\\,dx=\\pi\\,\\frac{9}3$. Vì vậy $V/\\pi=\\frac{9}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-1-1",
@@ -228493,7 +228493,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(6x^2+4)\\,dx=2\\cdot3^3+4cdot3=66$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-2-2-1",
@@ -228510,7 +228510,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(4x)^2\\,dx=\\pi\\,\\frac{128}3$. Vì vậy $V/\\pi=\\frac{128}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-1-1",
@@ -228527,7 +228527,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2+4)\\,dx=3\\cdot4^3+4cdot4=208$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-3-2-1",
@@ -228544,7 +228544,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(5x)^2\\,dx=\\pi\\,\\frac{675}3$. Vì vậy $V/\\pi=\\frac{675}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-1-1",
@@ -228561,7 +228561,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}9x^2\\,dx=3\\cdot3^3=81$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(3x^2+4)\\,dx=1\\cdot4^3+4cdot4=80$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-4-2-1",
@@ -228578,7 +228578,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-1",
@@ -228595,7 +228595,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-2",
@@ -228612,7 +228612,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-3",
@@ -228629,7 +228629,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-1-4",
@@ -228646,7 +228646,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(12x^2+4)\\,dx=4\\cdot1^3+4cdot1=8$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-2-1",
@@ -228731,7 +228731,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}(9x^2)\\,dx=3\\cdot2^3=24$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-4-1",
@@ -228748,7 +228748,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-5-1",
@@ -228765,7 +228765,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2)\\,dx=4\\cdot3^3=108$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-5-6-1",
@@ -228782,7 +228782,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-6-1-1",
@@ -228799,7 +228799,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}(6x^2+4)\\,dx=2\\cdot1^3+4cdot1=6$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-7-1-1",
@@ -228816,7 +228816,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{1}3x^2\\,dx=1\\cdot1^3=1$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{3}(12x^2+4)\\,dx=4\\cdot3^3+4cdot3=120$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           },
           {
             "id": "hint-7-2-1",
@@ -228833,7 +228833,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(1x)^2\\,dx=\\pi\\,\\frac{27}3$. Vì vậy $V/\\pi=\\frac{27}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-8-1-1",
@@ -228850,7 +228850,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
+            "supportRationale": "Lời giải dành cho GV: $V=\\int_0^{4}(9x^2)\\,dx=3\\cdot4^3=192$ (đơn vị thể tích). Lỗi cần quan sát: Phân biệt diện tích thiết diện với độ dài cạnh của thiết diện."
           }
         ],
         "evidenceRules": [
@@ -229059,7 +229059,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a73e69607d5bf577350699d39a78139467f4db4737f8aec33a4a8e944632a2b1"
+        "contentHash": "69d65f11293a0963b6433151f62ce088b92e86df5113d1012ba70bcdf3c29b92"
       },
       "citations": [
         {
@@ -240304,7 +240304,7 @@
               "hint-2-1-1",
               "hint-2-2-1"
             ],
-            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$.\nNguyên hàm lượng giác: $\\int\\cos x\\,dx=\\sin x+C$, $\\int\\sin x\\,dx=-\\cos x+C$. Giữ dấu trừ ở nguyên hàm của sin. Ví dụ trên bảng: Tìm $\\int(4\\cos x+4\\sin x)\\,dx$. Đạo hàm của $4\\sin x$ là $4\\cos x$; đạo hàm của $-4\\cos x$ là $4\\sin x$.",
+            "teacherLookFor": "GV dành khoảng 4 phút dẫn dắt/chốt, phần còn lại cho HS thử và thảo luận. Thể tích khối tròn xoay: Quay miền dưới $y=f(x)\\ge0$ quanh $Ox$ cho thiết diện tròn diện tích $\\pi f(x)^2$; do đó $V=\\pi\\int_a^bf(x)^2\\,dx$. Ví dụ trên bảng: Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần. $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$.\nNguyên hàm lượng giác: $\\int\\cos x\\,dx=\\sin x+C$, $\\int\\sin x\\,dx=-\\cos x+C$. Giữ dấu trừ ở nguyên hàm của sin. Ví dụ trên bảng: Tìm $\\int(4\\cos x+4\\sin x)\\,dx$. Đạo hàm của $4\\sin x$ là $4\\cos x$; đạo hàm của $-4\\cos x$ là $4\\sin x$.",
             "transition": "GV dừng thiết bị, mời một lời giải hoặc câu hỏi rồi mới chuyển hoạt động."
           },
           {
@@ -240489,7 +240489,7 @@
             ],
             "activityId": "act-1",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240503,10 +240503,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 5.333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -240582,7 +240582,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240596,10 +240596,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 66.66666666666667
             },
             "metadata": {
               "sourceCitation": {
@@ -240675,7 +240675,7 @@
             ],
             "activityId": "act-3",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240689,10 +240689,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 21.333333333333332
             },
             "metadata": {
               "sourceCitation": {
@@ -240768,7 +240768,7 @@
             ],
             "activityId": "act-4",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=4x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240782,10 +240782,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 81
+              "answerKey": 144
             },
             "metadata": {
               "sourceCitation": {
@@ -240861,7 +240861,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240878,10 +240878,10 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "support",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 1.3333333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -240960,7 +240960,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=1x$, trục hoành $Ox$, $x=0$ và $x=2$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -240974,10 +240974,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "core",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 2.6666666666666665
             },
             "metadata": {
               "sourceCitation": {
@@ -241053,7 +241053,7 @@
             ],
             "activityId": "act-5",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=3x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -241067,7 +241067,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -241076,7 +241076,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+                  "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
                 ]
               }
             },
@@ -241141,7 +241141,7 @@
             ],
             "activityId": "act-6",
             "participation": "pair",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -241155,7 +241155,7 @@
             "isCore": false,
             "requiresFullScaffold": false,
             "branch": "extension",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "rubric": {
                 "criteria": [
@@ -241164,7 +241164,7 @@
                   "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
                 ],
                 "lookFor": [
-                  "$V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$."
+                  "$V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$."
                 ]
               }
             },
@@ -241185,7 +241185,7 @@
             ],
             "activityId": "act-7",
             "participation": "individual",
-            "prompt": "Quay miền giới hạn bởi $y=1x$, trục hoành, $x=0$, $x=1$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=3$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -241199,10 +241199,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 0.3333333333333333
+              "answerKey": 36
             },
             "metadata": {
               "sourceCitation": {
@@ -241278,7 +241278,7 @@
             ],
             "activityId": "act-8",
             "participation": "whole_class",
-            "prompt": "Quay miền giới hạn bởi $y=2x$, trục hoành, $x=0$, $x=2$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+            "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=2x$, trục hoành $Ox$, $x=0$ và $x=4$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
             "sourceRefs": [
               "g12-discover-r178"
             ],
@@ -241292,10 +241292,10 @@
             "isCore": true,
             "requiresFullScaffold": false,
             "branch": "shared",
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân.",
             "evaluation": {
               "checkerId": "numeric_exact",
-              "answerKey": 10.666666666666666
+              "answerKey": 85.33333333333333
             },
             "metadata": {
               "sourceCitation": {
@@ -241323,7 +241323,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(4x)^2\\,dx=\\pi\\,\\frac{16}3$. Vì vậy $V/\\pi=\\frac{16}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-1-2-1",
@@ -241357,7 +241357,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(5x)^2\\,dx=\\pi\\,\\frac{200}3$. Vì vậy $V/\\pi=\\frac{200}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-2-2-1",
@@ -241391,7 +241391,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(1x)^2\\,dx=\\pi\\,\\frac{64}3$. Vì vậy $V/\\pi=\\frac{64}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-3-2-1",
@@ -241425,7 +241425,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(4x)^2\\,dx=\\pi\\,\\frac{432}3$. Vì vậy $V/\\pi=\\frac{432}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-4-2-1",
@@ -241459,7 +241459,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-2",
@@ -241476,7 +241476,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-3",
@@ -241493,7 +241493,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-1-4",
@@ -241510,7 +241510,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(2x)^2\\,dx=\\pi\\,\\frac{4}3$. Vì vậy $V/\\pi=\\frac{4}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-2-1",
@@ -241595,7 +241595,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(1x)^2\\,dx=\\pi\\,\\frac{8}3$. Vì vậy $V/\\pi=\\frac{8}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-4-1",
@@ -241629,7 +241629,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-5-6-1",
@@ -241663,7 +241663,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(5x)^2\\,dx=\\pi\\,\\frac{1600}3$. Vì vậy $V/\\pi=\\frac{1600}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-7-1-1",
@@ -241680,7 +241680,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{1}(1x)^2\\,dx=\\pi\\,\\frac{1}3$. Vì vậy $V/\\pi=\\frac{1}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{3}(2x)^2\\,dx=\\pi\\,\\frac{108}3$. Vì vậy $V/\\pi=\\frac{108}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           },
           {
             "id": "hint-7-2-1",
@@ -241714,7 +241714,7 @@
               "score": 0,
               "freeze": 0
             },
-            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{2}(2x)^2\\,dx=\\pi\\,\\frac{32}3$. Vì vậy $V/\\pi=\\frac{32}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
+            "supportRationale": "Lời giải dành cho GV: $V=\\pi\\int_0^{4}(2x)^2\\,dx=\\pi\\,\\frac{256}3$. Vì vậy $V/\\pi=\\frac{256}3$. Lỗi cần quan sát: Không quên bình phương bán kính hoặc tự bình phương cả tích phân."
           }
         ],
         "evidenceRules": [
@@ -241923,7 +241923,7 @@
             "group_score"
           ]
         },
-        "contentHash": "934bc3c290159915fe6b93c739ad03ed9acf22a5aaeaea7461eb8e2f098cb59e"
+        "contentHash": "b6f5954eec9da28d084f9b68113db3d51807fc4179716dcab8d2f30e59628c3d"
       },
       "citations": [
         {

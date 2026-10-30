@@ -1011,12 +1011,12 @@
     "introducedWeek": 15,
     "sample": {
       "type": "closed",
-      "prompt": "Vật thể nằm giữa $x=0$ và $x=2$ có diện tích thiết diện $A(x)=6x^2$ (đơn vị diện tích). Tính thể tích.",
+      "prompt": "Vật thể nằm giữa $x=0$ và $x=1$ có diện tích thiết diện vuông góc trục $Ox$ là $A(x)=12x^2+2$ (đơn vị diện tích). Tính thể tích.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 16
+        "answerKey": 6
       },
-      "solution": "$V=\\int_0^{2}6x^2\\,dx=2\\cdot2^3=16$ (đơn vị thể tích)."
+      "solution": "$V=\\int_0^{1}(12x^2+2)\\,dx=4\\cdot1^3+2cdot1=6$ (đơn vị thể tích)."
     }
   },
   {
@@ -1026,12 +1026,12 @@
     "introducedWeek": 15,
     "sample": {
       "type": "closed",
-      "prompt": "Quay miền giới hạn bởi $y=3x$, trục hoành, $x=0$, $x=3$ quanh $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
+      "prompt": "Quay miền phẳng giới hạn bởi đường thẳng $y=5x$, trục hoành $Ox$, $x=0$ và $x=1$ quanh trục $Ox$. Tính $V/\\pi$; nhập phân số nếu cần.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 81
+        "answerKey": 8.333333333333334
       },
-      "solution": "$V=\\pi\\int_0^{3}(3x)^2\\,dx=\\pi\\,\\frac{243}3$. Vì vậy $V/\\pi=\\frac{243}3$."
+      "solution": "$V=\\pi\\int_0^{1}(5x)^2\\,dx=\\pi\\,\\frac{25}3$. Vì vậy $V/\\pi=\\frac{25}3$."
     }
   }
 ]
