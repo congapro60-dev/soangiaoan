@@ -63,9 +63,15 @@
   - 4 phòng game Tuần 12 chuẩn 40 phút đang hoạt động: `5JGHEK` (K10), `CU4HBF` (K11 Hình), `ZXF62D` (K11 Đại), `PR3ERY` (K12).
   - Các phòng cũ sai thời lượng (PXSZN6, BB3BAS, HD5XNY, Y98C6V) đã được duyệt dọn dẹp.
 - **Kế hoạch tiếp theo (Tuần 13 theo PPCT)**:
-  - Khối 10: Tiết 96 – 103 (Báo cáo dự án, Véctơ trong mp tọa độ, Game tích lũy).
-  - Khối 11: Tiết 90 – 97 (Giới hạn dãy số vô cực, Giới hạn hàm số, Phép chiếu song song, Game tích lũy).
+  - Khối 10: Tiết 96 – 103 (Báo cáo dự án dữ liệu & phản biện, Véctơ trong mp tọa độ, Game tích lũy).
+  - Khối 11: Tiết 90 – 97 (Giới hạn dãy số vô cực, Giới hạn hàm số một bên, Phép chiếu song song, Game tích lũy).
   - Khối 12: Tiết 90 – 97 (Luyện tập nguyên hàm, Tổng hình chữ nhật & Tích phân xác định, Game tích lũy).
+  - Trạng thái nội dung Tuần 13: Đã rà soát chuyên sâu 24/24 tiết, đạt chuẩn 40/40 phút, 100% nhiệm vụ có gợi ý và barem chấm điểm, sẵn sàng phục vụ giảng dạy.
+  - Cấu hình phòng game 40 phút Tuần 13 (chuẩn bị khi giáo viên mở lớp trên web):
+    1. **10Olinda** (Véctơ tọa độ + Báo cáo dự án, Jeopardy/Campaign, 40 phút).
+    2. **11Columbus Hình** (Phép chiếu song song, Boss/Campaign, 40 phút).
+    3. **11Columbus Đại** (Giới hạn hàm số & cấp số nhân lùi vô hạn, Surf/Campaign, 40 phút).
+    4. **Lớp 12** (Tích phân xác định & Tổng hình chữ nhật, Boss/Campaign, 40 phút).
   - Nguyên tắc vận hành: Xong tuần nào thì tiến hành kiểm tra nội dung và chuẩn bị phòng game cho tuần kế tiếp theo đúng PPCT.
 
 ## Latest checkpoint - V41 DA PHAT HANH: ma tran SGK day du + thoi luong tuy chon + AI focus (29/10/2026)
