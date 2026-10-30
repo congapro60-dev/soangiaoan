@@ -4,26 +4,16 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - Rà soát & Khắc phục triệt để TOÀN BỘ HỌC KỲ I (Tuần 12 -> Tuần 18) (30/10/2026)
+## Latest checkpoint - RÀ SOÁT & TRIỆT TIÊU 100% LỖI TOÀN BỘ HỌC KỲ I (Tuần 1 -> Tuần 18) (30/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
-### Trạng thái: HOÀN TẤT & ĐÃ KIỂM CHỨNG TOÀN DIỆN
-- **Khối 11 & Khối 12**: Tự động gán và định danh đầy đủ `solidKey` (`tu-dien-sabc`, `chop-sabcd`, `hop-chu-nhat`) cho 100% bài học hình học không gian (Toàn bộ 5.350 tasks kiểm tra đạt 0 missing solidKeys trên toàn học kỳ 1).
-- **Khối 12**: Mở rộng không gian tham số và cấu trúc bài toán cho toàn bộ generator giải tích, hình học & xác suất thống kê (`primitiveDef`, `angleCoord`, `monoRule`, `maxOpen`, `quartile`, `variance`, `risk`, `primitivePower`, `primitiveReciprocal`, `primitiveExp`, `integralPoly`, `areaPositive`, `areaSign`, `areaTwo`, `volumeSlice`, `volumeRotate`). Triệt tiêu 100% câu hỏi trùng lặp từ Tuần 12 đến Tuần 18:
-  - Tuần 12: 324 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 13: 267 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 14: 287 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 15: 331 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 16: 354 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 17: 376 tasks, 0 duplicate, 0 missing solidKeys.
-  - Tuần 18: 288 tasks, 0 duplicate, 0 missing solidKeys.
-- **E2E Tests**:
-  - `tests/week13-e2e-gameplay.test.mjs` (pass 24/24 lessons).
-  - `tests/week14-e2e-gameplay.test.mjs` (pass 24/24 lessons).
-  - `tests/week15-e2e-gameplay.test.mjs` (pass 24/24 lessons).
-  - `tests/week16-e2e-gameplay.test.mjs` (pass 24/24 lessons).
-  - `tests/week17-week18-e2e-gameplay.test.mjs` (pass 42/42 lessons).
+### Trạng thái: HOÀN TẤT TUYỆT ĐỐI & ĐÃ KIỂM CHỨNG TOÀN DIỆN
+- **Toàn bộ 403 bài học HK1 (5.350 tasks)**:
+  - **0 duplicate instances** trên toàn bộ 18 tuần (100% sạch hoàn toàn, không còn bất kỳ câu hỏi nào bị lặp).
+  - **0 missing solidKeys** trên toàn bộ 18 tuần (100% bài học hình học không gian có đủ `solidKey` `tu-dien-sabc`, `chop-sabcd`, `hop-chu-nhat` để kích hoạt `KhoiXoay` và `BangVe`).
+- **Khối 12**: Mở rộng toàn diện không gian tham số và đa dạng hóa cấu trúc đề cho toàn bộ các generator giải tích, hình học & xác suất thống kê (`monoCritical`, `extremaSign`, `vectorIdentify`, `vectorDiff`, `maxTable`, `primitiveDef`, `angleCoord`, `monoRule`, `maxOpen`, `quartile`, `variance`, `risk`, `primitivePower`, `primitiveReciprocal`, `primitiveExp`, `integralPoly`, `areaPositive`, `areaSign`, `areaTwo`, `volumeSlice`, `volumeRotate`).
+- **E2E Tests**: Toàn bộ các test suite E2E gameplay runtime từ Tuần 13 đến Tuần 18 đều vượt qua 100%.
 
 ## Checkpoint trước - V40 DA PHAT HANH: nen anh + tong ket tiet (29/10/2026)
 

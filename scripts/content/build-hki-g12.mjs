@@ -69,16 +69,28 @@ const skills = {
   monoCritical: skill('Đạo hàm bằng không chưa đủ', 'Phân biệt điểm có đạo hàm bằng không với sự đổi chiều biến thiên.',
     T`Điểm có $f'(x)=0$ cần được kiểm tra dấu hai phía. Đạo hàm bằng không tại điểm riêng lẻ vẫn có thể đồng biến trên toàn khoảng.`,
     'Không khẳng định mọi nghiệm của đạo hàm là điểm cực trị.', '1-01', s => {
-      const a = s % 5 + 1;
-      return qChoice(T`Cho $f(x)=(x-${a})^3$ và $f'(x)=3(x-${a})^2$. Khẳng định nào đúng?`,
-        T`Hàm số đồng biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
-        [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm dương ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      const a = (s % 9) + 1;
+      const k = (Math.floor(s / 9) % 2);
+      if (k === 0) {
+        return qChoice(T`Cho $f(x)=(x-${a})^3$ và $f'(x)=3(x-${a})^2$. Khẳng định nào đúng?`,
+          T`Hàm số đồng biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
+          [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm dương ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      } else {
+        return qChoice(T`Cho $f(x)=-(x-${a})^3$ và $f'(x)=-3(x-${a})^2$. Khẳng định nào đúng?`,
+          T`Hàm số nghịch biến trên $\mathbb R$; $x=${a}$ không là điểm cực trị.`,
+          [T`$x=${a}$ là điểm cực đại.`, T`$x=${a}$ là điểm cực tiểu.`], T`Đạo hàm âm ở hai phía của $${a}$, không đổi dấu qua điểm này.`, s);
+      }
     }, ['Kiểm tra dấu ở cả hai phía.', 'Bình phương luôn không âm.', 'Đừng dừng ở phương trình đạo hàm bằng không.', T`Ví dụ khác: $g(x)=x^3$ tăng qua $0$ dù $g'(0)=0$.`]),
   extremaSign: skill('Nhận biết cực trị từ dấu', 'Nhận diện cực đại, cực tiểu bằng sự đổi dấu của đạo hàm.',
     T`Đạo hàm đổi dấu từ $+$ sang $-$ tại điểm liên tục cho cực đại; từ $-$ sang $+$ cho cực tiểu. Hoành độ cực trị khác giá trị cực trị.`,
     'Không đảo dấu cực đại/cực tiểu; phân biệt điểm và giá trị.', '1-02', s => {
-      const a = s % 5 + 1, b = a + 2;
-      return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực tiểu có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực tiểu.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ âm sang dương.`, s);
+      const a = (s % 7) + 1, b = a + (s % 3) + 2;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực tiểu có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực tiểu.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ âm sang dương.`, s);
+      } else {
+        return qChoice(T`Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\infty;${a})$, $(${a};${b})$, $(${b};+\infty)$. Điểm cực đại có hoành độ nào?`, `$${b}$`, [`$${a}$`, 'Không có cực đại.'], T`Qua $x=${b}$, dấu đạo hàm đổi từ dương sang âm.`, s);
+      }
     }, ['Đọc chiều đi từ trái sang phải.', 'Cực tiểu là đi xuống rồi đi lên.', 'Tìm nơi dấu âm chuyển sang dương.', T`Ví dụ khác: $+,-$ qua $x=-4$ biểu thị một cực đại.`]),
   extremaCalc: skill('Tính giá trị cực trị', 'Tìm điểm dừng, kiểm dấu và tính giá trị cực trị của hàm số.',
     T`Sau khi xác định đúng hoành độ cực trị, thay vào $f$, không thay vào $f'$. Dùng bảng dấu để kiểm chứng loại cực trị.`,
@@ -91,9 +103,18 @@ const skills = {
   vectorIdentify: skill('Vectơ trong không gian', 'Xác định hướng, điểm đầu/cuối và vectơ bằng nhau trong hình không gian.',
     T`Vectơ $\overrightarrow{AB}$ có điểm đầu $A$, điểm cuối $B$. Hai vectơ bằng nhau khi cùng hướng và cùng độ dài; không cần cùng giá.`,
     'Không coi hai vectơ ngược hướng là bằng nhau.', '1-07', s => {
-      const labels = ['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL'][s % 8].split(''); const [a,b,c,d] = labels;
-      return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${b}}$?`,
-        T`$\overrightarrow{${d}${c}}$`, [T`$\overrightarrow{${b}${a}}$`, T`$\overrightarrow{${c}${d}}$`], T`Hai cạnh đối $${a}${b}$ và $${d}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      const labels = ['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL','ABCD','MNPQ','EFGH','KLMN'][s % 12].split(''); const [a,b,c,d] = labels;
+      const edge = (Math.floor(s / 12) % 3);
+      if (edge === 0) {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${b}}$?`,
+          T`$\overrightarrow{${d}${c}}$`, [T`$\overrightarrow{${b}${a}}$`, T`$\overrightarrow{${c}${d}}$`], T`Hai cạnh đối $${a}${b}$ và $${d}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      } else if (edge === 1) {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${d}}$?`,
+          T`$\overrightarrow{${b}${c}}$`, [T`$\overrightarrow{${d}${a}}$`, T`$\overrightarrow{${c}${b}}$`], T`Hai cạnh đối $${a}${d}$ và $${b}${c}$ song song, bằng nhau và cùng hướng.`, s);
+      } else {
+        return qChoice(T`Trong hình hộp $${a}${b}${c}${d}.${a}'${b}'${c}'${d}'$, vectơ nào bằng $\overrightarrow{${a}${a}'}$?`,
+          T`$\overrightarrow{${b}${b}'}$`, [T`$\overrightarrow{${a}'${a}}$`, T`$\overrightarrow{${c}'${c}}$`], T`Hai cạnh bên cùng hướng và cùng độ dài.`, s);
+      }
     }, ['Đánh dấu điểm đầu và điểm cuối.', 'So sánh hướng trước khi so sánh độ dài.', 'Dùng các cạnh đối của hình bình hành.', T`Ví dụ khác: trên đoạn $PQ$, hai vectơ $\overrightarrow{PQ}$ và $\overrightarrow{QP}$ đối nhau.`]),
   vectorSum: skill('Quy tắc cộng vectơ', 'Vận dụng quy tắc ba điểm và hình bình hành để cộng vectơ.',
     T`$\overrightarrow{AB}+\overrightarrow{BC}=\overrightarrow{AC}$. Khi hai vectơ chung điểm đầu, dựng hình bình hành; không nối nhầm hai điểm cuối.`,
@@ -105,17 +126,29 @@ const skills = {
   vectorDiff: skill('Hiệu vectơ', 'Viết hiệu hai vectơ chung điểm đầu bằng một vectơ đúng hướng.',
     T`$\overrightarrow{AB}-\overrightarrow{AC}=\overrightarrow{CB}$. Đổi phép trừ thành cộng vectơ đối giúp kiểm tra hướng.`,
     'Không đảo hướng của vectơ kết quả.', '1-08', s => {
-      const [a,b,c,d]=['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL'][s%8].split('');
-      return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${b}}-\overrightarrow{${a}${d}}$.`,
-        T`$\overrightarrow{${d}${b}}$`, [T`$\overrightarrow{${b}${d}}$`, T`$\overrightarrow{${a}${d}}$`], T`$\overrightarrow{${a}${b}}+\overrightarrow{${d}${a}}=\overrightarrow{${d}${b}}$ theo quy tắc ba điểm.`, s);
+      const [a,b,c,d]=['ABCD','MNPQ','EFGH','KLMN','PQRS','STUV','WXYZ','IJKL','ABCD','MNPQ','EFGH','KLMN'][s%12].split('');
+      const edge = (Math.floor(s / 12) % 2);
+      if (edge === 0) {
+        return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${b}}-\overrightarrow{${a}${d}}$.`,
+          T`$\overrightarrow{${d}${b}}$`, [T`$\overrightarrow{${b}${d}}$`, T`$\overrightarrow{${a}${d}}$`], T`$\overrightarrow{${a}${b}}+\overrightarrow{${d}${a}}=\overrightarrow{${d}${b}}$ theo quy tắc ba điểm.`, s);
+      } else {
+        return qChoice(T`Với tứ diện $${a}${b}${c}${d}$, rút gọn $\overrightarrow{${a}${c}}-\overrightarrow{${a}${b}}$.`,
+          T`$\overrightarrow{${b}${c}}$`, [T`$\overrightarrow{${c}${b}}$`, T`$\overrightarrow{${a}${b}}$`], T`$\overrightarrow{${a}${c}}+\overrightarrow{${b}${a}}=\overrightarrow{${b}${c}}$ theo quy tắc ba điểm.`, s);
+      }
     },
     ['Hai vectơ có chung điểm đầu.', 'Đổi vectơ bị trừ thành vectơ đối.', 'Ghép theo quy tắc ba điểm.', T`Ví dụ khác: $\overrightarrow{OM}-\overrightarrow{ON}=\overrightarrow{NM}$.`]),
   maxTable: skill('Đọc GTLN và GTNN', 'Phân biệt giá trị lớn nhất/nhỏ nhất đạt được với giới hạn trên/dưới.',
     T`GTLN/GTNN phải là giá trị hàm thực sự nhận được trong miền đang xét. Đọc cả đầu mút, điểm cực trị và trạng thái đóng/mở của miền.`,
     'Không chọn một giá trị giới hạn ở đầu mút không thuộc miền.', '1-03', s => {
-      const a = s % 4 + 2, b = a + 3;
-      return qNum(T`Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=${a}$ đến $f(2)=${b}$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.`, b,
-        T`Theo chiều biến thiên, các giá trị không vượt $f(2)=${b}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.max(a,b,-1));
+      const a = (s % 6) + 2, b = a + (s % 4) + 2, minVal = -((s % 3) + 1);
+      const k = (Math.floor(s / 6) % 2);
+      if (k === 0) {
+        return qNum(T`Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=${a}$ đến $f(2)=${b}$ rồi giảm đến $f(4)=${minVal}$. Tìm giá trị lớn nhất.`, b,
+          T`Theo chiều biến thiên, các giá trị không vượt $f(2)=${b}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.max(a,b,minVal));
+      } else {
+        return qNum(T`Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=${b}$ xuống $f(2)=${minVal}$ rồi tăng đến $f(4)=${a}$. Tìm giá trị nhỏ nhất.`, minVal,
+          T`Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=${minVal}$; giá trị này đạt tại điểm thuộc đoạn.`, Math.min(a,b,minVal));
+      }
     }, ['Liệt kê những giá trị được đạt tới.', 'So sánh các mốc trong bảng biến thiên.', 'Kiểm tra điểm ứng với mốc có thuộc miền hay không.', T`Ví dụ khác: $g(x)=x$ trên $(0;2)$ không đạt giá trị $2$, nên không có GTLN.`]),
   maxClosed: skill('Cực trị tuyệt đối trên đoạn', 'So sánh giá trị tại đầu mút và điểm dừng để tìm GTLN/GTNN trên đoạn.',
     T`Với hàm liên tục trên đoạn: tìm các điểm đạo hàm bằng không hoặc không xác định trong đoạn, tính thêm hai đầu mút rồi so sánh.`,

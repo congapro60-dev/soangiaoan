@@ -22,21 +22,21 @@ B. $(-3;3)$
 
 C. $(-\infty;-3)$
 
-Câu 3. (0,5 điểm) Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;3)$, $(3;5)$, $(5;+\infty)$. Điểm cực tiểu có hoành độ nào?
+Câu 3. (0,5 điểm) Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\infty;6)$, $(6;8)$, $(8;+\infty)$. Điểm cực đại có hoành độ nào?
 
-A. $5$
+A. $8$
 
-B. $3$
+B. $6$
 
-C. Không có cực tiểu.
+C. Không có cực đại.
 
-Câu 4. (0,5 điểm) Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\overrightarrow{ST}$?
+Câu 4. (0,5 điểm) Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\overrightarrow{MQ}$?
 
-A. $\overrightarrow{TS}$
+A. $\overrightarrow{QM}$
 
-B. $\overrightarrow{UV}$
+B. $\overrightarrow{PN}$
 
-C. $\overrightarrow{VU}$
+C. $\overrightarrow{NP}$
 
 Câu 5. (0,5 điểm) Trong hình hộp chữ nhật $ABCD.A'B'C'D'$, $AB=2$, $AD=5$. Tính $\left|\overrightarrow{AB}+\overrightarrow{AD}\right|^2$.
 

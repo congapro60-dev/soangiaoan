@@ -285,11 +285,11 @@
         "stage": "precheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-7)^3$ và $f'(x)=-3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $7$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -307,11 +307,11 @@
         "stage": "formation",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -329,8 +329,8 @@
         "stage": "guided",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-3)^3$ và $f'(x)=-3(x-3)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $3$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -351,8 +351,8 @@
         "stage": "recheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-1)^3$ và $f'(x)=-3(x-1)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $1$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -373,8 +373,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "support",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-8)^3$ và $f'(x)=-3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -395,8 +395,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "core",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -425,8 +425,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "extension",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?\nA. $x=2$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=2$ không là điểm cực trị.\nC. $x=2$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-8)^3$ và $f'(x)=3(x-8)^2$. Khẳng định nào đúng?\nA. $x=8$ là điểm cực đại.\nB. $x=8$ là điểm cực tiểu.\nC. Hàm số đồng biến trên $\\mathbb R$; $x=8$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm dương ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -435,7 +435,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này."
+              "Đạo hàm dương ở hai phía của $8$, không đổi dấu qua điểm này."
             ]
           }
         }
@@ -474,11 +474,11 @@
         "stage": "exit",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-2)^3$ và $f'(x)=-3(x-2)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $2$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -503,19 +503,19 @@
         "stage": "precheck",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;6)$, $(6;8)$, $(8;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=8$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
         "stage": "formation",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;6)$, $(6;9)$, $(9;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -523,17 +523,6 @@
       },
       {
         "stage": "guided",
-        "skill": "extremaSign",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "B"
-        }
-      },
-      {
-        "stage": "recheck",
         "skill": "extremaSign",
         "branch": "shared",
         "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
@@ -544,22 +533,33 @@
         }
       },
       {
+        "stage": "recheck",
+        "skill": "extremaSign",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=3$, dấu đạo hàm đổi từ dương sang âm.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "support",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=5$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "core",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;7)$, $(7;10)$, $(10;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=10$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -569,8 +569,8 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. Không có cực tiểu.\nB. $5$\nC. $3$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;6)$, $(6;9)$, $(9;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $6$\nB. Không có cực tiểu.\nC. $9$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -579,7 +579,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương."
             ]
           }
         }
@@ -588,8 +588,8 @@
         "stage": "extension",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $7$\nB. $5$\nC. Không có cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;7)$, $(7;9)$, $(9;+\\infty)$. Điểm cực đại có hoành độ nào?\nA. $9$\nB. $7$\nC. Không có cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -598,7 +598,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=9$, dấu đạo hàm đổi từ dương sang âm."
             ]
           }
         }
@@ -607,8 +607,8 @@
         "stage": "exit",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=7$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -618,8 +618,8 @@
         "stage": "reserve",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -780,11 +780,11 @@
         "stage": "precheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-4)^3$ và $f'(x)=-3(x-4)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $4$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -802,11 +802,11 @@
         "stage": "formation",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -824,8 +824,8 @@
         "stage": "guided",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-9)^3$ và $f'(x)=3(x-9)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $9$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -846,8 +846,8 @@
         "stage": "recheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-7)^3$ và $f'(x)=3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $7$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -868,8 +868,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "support",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-5)^3$ và $f'(x)=-3(x-5)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $5$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -890,8 +890,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "core",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-8)^3$ và $f'(x)=-3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -920,8 +920,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "extension",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?\nA. $x=1$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=1$ không là điểm cực trị.\nC. $x=1$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?\nA. $x=5$ là điểm cực đại.\nB. $x=5$ là điểm cực tiểu.\nC. Hàm số đồng biến trên $\\mathbb R$; $x=5$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -930,7 +930,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này."
+              "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này."
             ]
           }
         }
@@ -969,11 +969,11 @@
         "stage": "exit",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-8)^3$ và $f'(x)=3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -998,37 +998,15 @@
         "stage": "precheck",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MN}$?",
-        "solution": "Hai cạnh đối $MN$ và $QP$ song song, bằng nhau và cùng hướng.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "formation",
-        "skill": "vectorIdentify",
-        "branch": "shared",
-        "prompt": "Trong hình hộp $IJKL.I'J'K'L'$, vectơ nào bằng $\\overrightarrow{IJ}$?",
-        "solution": "Hai cạnh đối $IJ$ và $LK$ song song, bằng nhau và cùng hướng.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "guided",
-        "skill": "vectorIdentify",
-        "branch": "shared",
-        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PQ}$?",
-        "solution": "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $ABCD.A'B'C'D'$, vectơ nào bằng $\\overrightarrow{AB}$?",
+        "solution": "Hai cạnh đối $AB$ và $DC$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
         }
       },
       {
-        "stage": "recheck",
+        "stage": "formation",
         "skill": "vectorIdentify",
         "branch": "shared",
         "prompt": "Trong hình hộp $WXYZ.W'X'Y'Z'$, vectơ nào bằng $\\overrightarrow{WX}$?",
@@ -1039,11 +1017,33 @@
         }
       },
       {
+        "stage": "guided",
+        "skill": "vectorIdentify",
+        "branch": "shared",
+        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MQ}$?",
+        "solution": "Hai cạnh đối $MQ$ và $NP$ song song, bằng nhau và cùng hướng.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "C"
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "vectorIdentify",
+        "branch": "shared",
+        "prompt": "Trong hình hộp $WXYZ.W'X'Y'Z'$, vectơ nào bằng $\\overrightarrow{WW'}$?",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
         "stage": "practice",
         "skill": "vectorIdentify",
         "branch": "support",
-        "prompt": "Trong hình hộp $EFGH.E'F'G'H'$, vectơ nào bằng $\\overrightarrow{EF}$?",
-        "solution": "Hai cạnh đối $EF$ và $HG$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $WXYZ.W'X'Y'Z'$, vectơ nào bằng $\\overrightarrow{WZ}$?",
+        "solution": "Hai cạnh đối $WZ$ và $XY$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -1053,19 +1053,19 @@
         "stage": "practice",
         "skill": "vectorIdentify",
         "branch": "core",
-        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KL}$?",
-        "solution": "Hai cạnh đối $KL$ và $NM$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $EFGH.E'F'G'H'$, vectơ nào bằng $\\overrightarrow{EH}$?",
+        "solution": "Hai cạnh đối $EH$ và $FG$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
         "stage": "practice",
         "skill": "vectorIdentify",
         "branch": "extension",
-        "prompt": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{ST}$?\nA. $\\overrightarrow{UV}$\nB. $\\overrightarrow{VU}$\nC. $\\overrightarrow{TS}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PP'}$?\nA. $\\overrightarrow{P'P}$\nB. $\\overrightarrow{R'R}$\nC. $\\overrightarrow{QQ'}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1074,7 +1074,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng."
+              "Hai cạnh bên cùng hướng và cùng độ dài."
             ]
           }
         }
@@ -1083,8 +1083,8 @@
         "stage": "extension",
         "skill": "vectorIdentify",
         "branch": "extension",
-        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PQ}$?\nA. $\\overrightarrow{SR}$\nB. $\\overrightarrow{QP}$\nC. $\\overrightarrow{RS}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MN}$?\nA. $\\overrightarrow{NM}$\nB. $\\overrightarrow{PQ}$\nC. $\\overrightarrow{QP}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Hai cạnh đối $MN$ và $QP$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1093,7 +1093,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng."
+              "Hai cạnh đối $MN$ và $QP$ song song, bằng nhau và cùng hướng."
             ]
           }
         }
@@ -1102,8 +1102,8 @@
         "stage": "exit",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $ABCD.A'B'C'D'$, vectơ nào bằng $\\overrightarrow{AB}$?",
-        "solution": "Hai cạnh đối $AB$ và $DC$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $ABCD.A'B'C'D'$, vectơ nào bằng $\\overrightarrow{AD}$?",
+        "solution": "Hai cạnh đối $AD$ và $BC$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -1113,8 +1113,8 @@
         "stage": "reserve",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PQ}$?",
-        "solution": "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PS}$?",
+        "solution": "Hai cạnh đối $PS$ và $QR$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -1275,8 +1275,8 @@
         "stage": "formation",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MN}-\\overrightarrow{MQ}$.",
-        "solution": "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{SU}-\\overrightarrow{ST}$.",
+        "solution": "$\\overrightarrow{SU}+\\overrightarrow{TS}=\\overrightarrow{TU}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -1286,8 +1286,8 @@
         "stage": "guided",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EG}-\\overrightarrow{EF}$.",
+        "solution": "$\\overrightarrow{EG}+\\overrightarrow{FE}=\\overrightarrow{FG}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -1297,8 +1297,8 @@
         "stage": "recheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AB}-\\overrightarrow{AD}$.",
-        "solution": "$\\overrightarrow{AB}+\\overrightarrow{DA}=\\overrightarrow{DB}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PR}-\\overrightarrow{PQ}$.",
+        "solution": "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -1319,19 +1319,19 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "core",
-        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{ST}-\\overrightarrow{SV}$.",
-        "solution": "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AB}-\\overrightarrow{AD}$.",
+        "solution": "$\\overrightarrow{AB}+\\overrightarrow{DA}=\\overrightarrow{DB}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "B"
         }
       },
       {
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.\nA. $\\overrightarrow{LJ}$\nB. $\\overrightarrow{JL}$\nC. $\\overrightarrow{IL}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KM}-\\overrightarrow{KL}$.\nA. $\\overrightarrow{LM}$\nB. $\\overrightarrow{ML}$\nC. $\\overrightarrow{KL}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{KM}+\\overrightarrow{LK}=\\overrightarrow{LM}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1340,7 +1340,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{KM}+\\overrightarrow{LK}=\\overrightarrow{LM}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -1349,8 +1349,8 @@
         "stage": "extension",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.\nA. $\\overrightarrow{XZ}$\nB. $\\overrightarrow{WZ}$\nC. $\\overrightarrow{ZX}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MN}-\\overrightarrow{MQ}$.\nA. $\\overrightarrow{NQ}$\nB. $\\overrightarrow{MQ}$\nC. $\\overrightarrow{QN}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1359,7 +1359,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -1379,11 +1379,11 @@
         "stage": "reserve",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WY}-\\overrightarrow{WX}$.",
+        "solution": "$\\overrightarrow{WY}+\\overrightarrow{XW}=\\overrightarrow{XY}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "A"
         }
       }
     ]
@@ -1626,11 +1626,11 @@
         "stage": "precheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -1648,11 +1648,11 @@
         "stage": "formation",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-9)^3$ và $f'(x)=3(x-9)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $9$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -1670,8 +1670,8 @@
         "stage": "guided",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-8)^3$ và $f'(x)=-3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -1692,8 +1692,8 @@
         "stage": "recheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-6)^3$ và $f'(x)=-3(x-6)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $6$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -1736,8 +1736,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "core",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-7)^3$ và $f'(x)=3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $7$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -1758,8 +1758,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "extension",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?\nA. $x=4$ là điểm cực đại.\nB. $x=4$ là điểm cực tiểu.\nC. Hàm số đồng biến trên $\\mathbb R$; $x=4$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-4)^3$ và $f'(x)=-3(x-4)^2$. Khẳng định nào đúng?\nA. Hàm số nghịch biến trên $\\mathbb R$; $x=4$ không là điểm cực trị.\nB. $x=4$ là điểm cực đại.\nC. $x=4$ là điểm cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm âm ở hai phía của $4$, không đổi dấu qua điểm này.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1768,7 +1768,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này."
+              "Đạo hàm âm ở hai phía của $4$, không đổi dấu qua điểm này."
             ]
           }
         }
@@ -1796,8 +1796,8 @@
         "stage": "extension",
         "skill": "monoCritical",
         "branch": "extension",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?\nA. $x=1$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=1$ không là điểm cực trị.\nC. $x=1$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?\nA. $x=5$ là điểm cực đại.\nB. $x=5$ là điểm cực tiểu.\nC. Hàm số đồng biến trên $\\mathbb R$; $x=5$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1806,7 +1806,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này."
+              "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này."
             ]
           }
         }
@@ -1815,11 +1815,11 @@
         "stage": "exit",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-7)^3$ và $f'(x)=-3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $7$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "A"
         }
       },
       {
@@ -1837,8 +1837,8 @@
         "stage": "reserve",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -1855,40 +1855,7 @@
         "stage": "precheck",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 7
-        }
-      },
-      {
-        "stage": "formation",
-        "skill": "maxTable",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 5
-        }
-      },
-      {
-        "stage": "guided",
-        "skill": "maxTable",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
-        "evaluation": {
-          "checkerId": "numeric_exact",
-          "answerKey": 7
-        }
-      },
-      {
-        "stage": "recheck",
-        "skill": "maxTable",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=8$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=8$ rồi giảm đến $f(4)=-3$. Tìm giá trị lớn nhất.",
         "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -1896,33 +1863,66 @@
         }
       },
       {
+        "stage": "formation",
+        "skill": "maxTable",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=6$ xuống $f(2)=-3$ rồi tăng đến $f(4)=4$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": -3
+        }
+      },
+      {
+        "stage": "guided",
+        "skill": "maxTable",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=10$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": 10
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "maxTable",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-2$ rồi tăng đến $f(4)=3$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-2$; giá trị này đạt tại điểm thuộc đoạn.",
+        "evaluation": {
+          "checkerId": "numeric_exact",
+          "answerKey": -2
+        }
+      },
+      {
         "stage": "practice",
         "skill": "maxTable",
         "branch": "support",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-1$ rồi tăng đến $f(4)=5$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-1$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": -1
         }
       },
       {
         "stage": "practice",
         "skill": "maxTable",
         "branch": "core",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=12$ xuống $f(2)=-3$ rồi tăng đến $f(4)=7$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": -3
         }
       },
       {
         "stage": "practice",
         "skill": "maxTable",
         "branch": "extension",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=7$ đến $f(2)=10$ rồi giảm đến $f(4)=-3$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1931,7 +1931,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn."
+              "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn."
             ]
           }
         }
@@ -1940,8 +1940,8 @@
         "stage": "extension",
         "skill": "maxTable",
         "branch": "extension",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=6$ đến $f(2)=8$ rồi giảm đến $f(4)=-2$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1950,7 +1950,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn."
+              "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn."
             ]
           }
         }
@@ -1959,7 +1959,7 @@
         "stage": "exit",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-2$. Tìm giá trị lớn nhất.",
         "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=6$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -1970,11 +1970,11 @@
         "stage": "reserve",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=6$ xuống $f(2)=-1$ rồi tăng đến $f(4)=2$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-1$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": -1
         }
       }
     ]
@@ -2845,19 +2845,19 @@
         "stage": "precheck",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;6)$, $(6;9)$, $(9;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
         "stage": "precheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{ST}-\\overrightarrow{SV}$.",
-        "solution": "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MP}-\\overrightarrow{MN}$.",
+        "solution": "$\\overrightarrow{MP}+\\overrightarrow{NM}=\\overrightarrow{NP}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -2867,8 +2867,8 @@
         "stage": "formation",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;6)$, $(6;10)$, $(10;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=10$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -2878,8 +2878,8 @@
         "stage": "formation",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KL}-\\overrightarrow{KN}$.",
-        "solution": "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IK}-\\overrightarrow{IJ}$.",
+        "solution": "$\\overrightarrow{IK}+\\overrightarrow{JI}=\\overrightarrow{JK}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -2889,11 +2889,11 @@
         "stage": "guided",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
         "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -2911,8 +2911,8 @@
         "stage": "recheck",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;1)$, $(1;4)$, $(4;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=4$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -2922,8 +2922,8 @@
         "stage": "recheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EF}-\\overrightarrow{EH}$.",
-        "solution": "$\\overrightarrow{EF}+\\overrightarrow{HE}=\\overrightarrow{HF}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WY}-\\overrightarrow{WX}$.",
+        "solution": "$\\overrightarrow{WY}+\\overrightarrow{XW}=\\overrightarrow{XY}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -2933,11 +2933,11 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "support",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;3)$, $(3;6)$, $(6;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -2955,8 +2955,8 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "core",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;7)$, $(7;11)$, $(11;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=11$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -2966,19 +2966,19 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "core",
-        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.",
-        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EF}-\\overrightarrow{EH}$.",
+        "solution": "$\\overrightarrow{EF}+\\overrightarrow{HE}=\\overrightarrow{HF}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $7$\nB. $5$\nC. Không có cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;6)$, $(6;10)$, $(10;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. Không có cực tiểu.\nB. $10$\nC. $6$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=10$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -2987,7 +2987,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=10$, dấu đạo hàm đổi từ âm sang dương."
             ]
           }
         }
@@ -2996,8 +2996,8 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MN}-\\overrightarrow{MQ}$.\nA. $\\overrightarrow{MQ}$\nB. $\\overrightarrow{QN}$\nC. $\\overrightarrow{NQ}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PR}-\\overrightarrow{PQ}$.\nA. $\\overrightarrow{RQ}$\nB. $\\overrightarrow{PQ}$\nC. $\\overrightarrow{QR}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -3006,7 +3006,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -3015,8 +3015,8 @@
         "stage": "extension",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $2$\nB. Không có cực tiểu.\nC. $4$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;7)$, $(7;10)$, $(10;+\\infty)$. Điểm cực đại có hoành độ nào?\nA. $7$\nB. Không có cực đại.\nC. $10$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=10$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -3025,7 +3025,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=10$, dấu đạo hàm đổi từ dương sang âm."
             ]
           }
         }
@@ -3034,8 +3034,8 @@
         "stage": "exit",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;5)$, $(5;8)$, $(8;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=8$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -3045,8 +3045,8 @@
         "stage": "exit",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PQ}-\\overrightarrow{PS}$.",
-        "solution": "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AC}-\\overrightarrow{AB}$.",
+        "solution": "$\\overrightarrow{AC}+\\overrightarrow{BA}=\\overrightarrow{BC}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -3056,8 +3056,8 @@
         "stage": "reserve",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -7400,11 +7400,11 @@
         "stage": "precheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-4)^3$ và $f'(x)=-3(x-4)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $4$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -7422,11 +7422,11 @@
         "stage": "formation",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -7444,8 +7444,8 @@
         "stage": "guided",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-9)^3$ và $f'(x)=3(x-9)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $9$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -7466,8 +7466,8 @@
         "stage": "recheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-7)^3$ và $f'(x)=3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $7$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -7488,8 +7488,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "support",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-5)^3$ và $f'(x)=-3(x-5)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $5$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7510,8 +7510,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "core",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=-(x-8)^3$ và $f'(x)=-3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7540,8 +7540,8 @@
         "stage": "practice",
         "skill": "monoCritical",
         "branch": "extension",
-        "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?\nA. $x=4$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=4$ không là điểm cực trị.\nC. $x=4$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?\nA. $x=5$ là điểm cực đại.\nB. $x=5$ là điểm cực tiểu.\nC. Hàm số đồng biến trên $\\mathbb R$; $x=5$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7550,7 +7550,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này."
+              "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này."
             ]
           }
         }
@@ -7589,11 +7589,11 @@
         "stage": "exit",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-8)^3$ và $f'(x)=3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $8$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -7618,11 +7618,11 @@
         "stage": "precheck",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -7640,8 +7640,8 @@
         "stage": "formation",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;3)$, $(3;6)$, $(6;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7662,11 +7662,11 @@
         "stage": "guided",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "A"
         }
       },
       {
@@ -7684,8 +7684,8 @@
         "stage": "recheck",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -7706,11 +7706,11 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "support",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;7)$, $(7;9)$, $(9;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -7728,8 +7728,8 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "core",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;4)$, $(4;7)$, $(7;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=7$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7750,8 +7750,8 @@
         "stage": "practice",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. Không có cực tiểu.\nB. $7$\nC. $5$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $3$\nB. Không có cực tiểu.\nC. $6$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7760,7 +7760,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương."
             ]
           }
         }
@@ -7788,8 +7788,8 @@
         "stage": "extension",
         "skill": "extremaSign",
         "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $4$\nB. $2$\nC. Không có cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực đại có hoành độ nào?\nA. $6$\nB. $4$\nC. Không có cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7798,7 +7798,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương."
+              "Qua $x=6$, dấu đạo hàm đổi từ dương sang âm."
             ]
           }
         }
@@ -7807,8 +7807,8 @@
         "stage": "exit",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=4$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -7829,8 +7829,8 @@
         "stage": "reserve",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;6)$, $(6;9)$, $(9;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -8305,11 +8305,11 @@
         "stage": "precheck",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $ABCD.A'B'C'D'$, vectơ nào bằng $\\overrightarrow{AB}$?",
-        "solution": "Hai cạnh đối $AB$ và $DC$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KN}$?",
+        "solution": "Hai cạnh đối $KN$ và $LM$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -8327,11 +8327,11 @@
         "stage": "formation",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $WXYZ.W'X'Y'Z'$, vectơ nào bằng $\\overrightarrow{WX}$?",
-        "solution": "Hai cạnh đối $WX$ và $ZY$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MQ}$?",
+        "solution": "Hai cạnh đối $MQ$ và $NP$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -8349,11 +8349,11 @@
         "stage": "guided",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KL}$?",
-        "solution": "Hai cạnh đối $KL$ và $NM$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PP'}$?",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -8371,8 +8371,8 @@
         "stage": "recheck",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{ST}$?",
-        "solution": "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MN}$?",
+        "solution": "Hai cạnh đối $MN$ và $QP$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -8393,8 +8393,8 @@
         "stage": "practice",
         "skill": "vectorIdentify",
         "branch": "support",
-        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MN}$?",
-        "solution": "Hai cạnh đối $MN$ và $QP$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MM'}$?",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -8419,7 +8419,7 @@
         "solution": "Hai cạnh đối $EF$ và $HG$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -8437,8 +8437,8 @@
         "stage": "practice",
         "skill": "vectorIdentify",
         "branch": "extension",
-        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PQ}$?\nA. $\\overrightarrow{RS}$\nB. $\\overrightarrow{SR}$\nC. $\\overrightarrow{QP}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $IJKL.I'J'K'L'$, vectơ nào bằng $\\overrightarrow{IJ}$?\nA. $\\overrightarrow{JI}$\nB. $\\overrightarrow{KL}$\nC. $\\overrightarrow{LK}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Hai cạnh đối $IJ$ và $LK$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -8447,7 +8447,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Hai cạnh đối $PQ$ và $SR$ song song, bằng nhau và cùng hướng."
+              "Hai cạnh đối $IJ$ và $LK$ song song, bằng nhau và cùng hướng."
             ]
           }
         }
@@ -8475,8 +8475,8 @@
         "stage": "extension",
         "skill": "vectorIdentify",
         "branch": "extension",
-        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KL}$?\nA. $\\overrightarrow{NM}$\nB. $\\overrightarrow{LK}$\nC. $\\overrightarrow{MN}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Hai cạnh đối $KL$ và $NM$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $PQRS.P'Q'R'S'$, vectơ nào bằng $\\overrightarrow{PS}$?\nA. $\\overrightarrow{SP}$\nB. $\\overrightarrow{RQ}$\nC. $\\overrightarrow{QR}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Hai cạnh đối $PS$ và $QR$ song song, bằng nhau và cùng hướng.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -8485,7 +8485,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Hai cạnh đối $KL$ và $NM$ song song, bằng nhau và cùng hướng."
+              "Hai cạnh đối $PS$ và $QR$ song song, bằng nhau và cùng hướng."
             ]
           }
         }
@@ -8494,8 +8494,8 @@
         "stage": "exit",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $IJKL.I'J'K'L'$, vectơ nào bằng $\\overrightarrow{IJ}$?",
-        "solution": "Hai cạnh đối $IJ$ và $LK$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KK'}$?",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -8516,8 +8516,8 @@
         "stage": "reserve",
         "skill": "vectorIdentify",
         "branch": "shared",
-        "prompt": "Trong hình hộp $KLMN.K'L'M'N'$, vectơ nào bằng $\\overrightarrow{KL}$?",
-        "solution": "Hai cạnh đối $KL$ và $NM$ song song, bằng nhau và cùng hướng.",
+        "prompt": "Trong hình hộp $IJKL.I'J'K'L'$, vectơ nào bằng $\\overrightarrow{II'}$?",
+        "solution": "Hai cạnh bên cùng hướng và cùng độ dài.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -8556,8 +8556,8 @@
         "stage": "formation",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.",
-        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KM}-\\overrightarrow{KL}$.",
+        "solution": "$\\overrightarrow{KM}+\\overrightarrow{LK}=\\overrightarrow{LM}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -8578,8 +8578,8 @@
         "stage": "guided",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PQ}-\\overrightarrow{PS}$.",
-        "solution": "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AC}-\\overrightarrow{AB}$.",
+        "solution": "$\\overrightarrow{AC}+\\overrightarrow{BA}=\\overrightarrow{BC}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -8600,8 +8600,8 @@
         "stage": "recheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EG}-\\overrightarrow{EF}$.",
+        "solution": "$\\overrightarrow{EG}+\\overrightarrow{FE}=\\overrightarrow{FG}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -8644,11 +8644,11 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "core",
-        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KL}-\\overrightarrow{KN}$.",
-        "solution": "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
+        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "A"
         }
       },
       {
@@ -8666,8 +8666,8 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{ST}-\\overrightarrow{SV}$.\nA. $\\overrightarrow{TV}$\nB. $\\overrightarrow{SV}$\nC. $\\overrightarrow{VT}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MP}-\\overrightarrow{MN}$.\nA. $\\overrightarrow{PN}$\nB. $\\overrightarrow{MN}$\nC. $\\overrightarrow{NP}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{MP}+\\overrightarrow{NM}=\\overrightarrow{NP}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -8676,7 +8676,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{MP}+\\overrightarrow{NM}=\\overrightarrow{NP}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -8704,8 +8704,8 @@
         "stage": "extension",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PQ}-\\overrightarrow{PS}$.\nA. $\\overrightarrow{PS}$\nB. $\\overrightarrow{SQ}$\nC. $\\overrightarrow{QS}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KL}-\\overrightarrow{KN}$.\nA. $\\overrightarrow{NL}$\nB. $\\overrightarrow{LN}$\nC. $\\overrightarrow{KN}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -8714,7 +8714,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -8745,11 +8745,11 @@
         "stage": "reserve",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PQ}-\\overrightarrow{PS}$.",
-        "solution": "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PR}-\\overrightarrow{PQ}$.",
+        "solution": "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       }
     ]
@@ -10781,195 +10781,6 @@
         "stage": "precheck",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "precheck",
-        "skill": "extremaSign",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "formation",
-        "skill": "monoCritical",
-        "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "formation",
-        "skill": "extremaSign",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "guided",
-        "skill": "monoCritical",
-        "branch": "shared",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "B"
-        }
-      },
-      {
-        "stage": "guided",
-        "skill": "extremaSign",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "recheck",
-        "skill": "monoCritical",
-        "branch": "shared",
-        "prompt": "Cho $f(x)=(x-1)^3$ và $f'(x)=3(x-1)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $1$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "recheck",
-        "skill": "extremaSign",
-        "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "B"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoCritical",
-        "branch": "support",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "extremaSign",
-        "branch": "support",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoCritical",
-        "branch": "core",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "extremaSign",
-        "branch": "core",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;7)$, $(7;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=7$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoCritical",
-        "branch": "extension",
-        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?\nA. $x=5$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=5$ không là điểm cực trị.\nC. $x=5$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "rubric": {
-            "criteria": [
-              "Kết quả hoặc lựa chọn đúng.",
-              "Giải thích được công thức/điều kiện áp dụng.",
-              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
-            ],
-            "lookFor": [
-              "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này."
-            ]
-          }
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "extremaSign",
-        "branch": "extension",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;2)$, $(2;4)$, $(4;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $2$\nB. Không có cực tiểu.\nC. $4$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương.",
-        "evaluation": {
-          "rubric": {
-            "criteria": [
-              "Kết quả hoặc lựa chọn đúng.",
-              "Giải thích được công thức/điều kiện áp dụng.",
-              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
-            ],
-            "lookFor": [
-              "Qua $x=4$, dấu đạo hàm đổi từ âm sang dương."
-            ]
-          }
-        }
-      },
-      {
-        "stage": "extension",
-        "skill": "monoCritical",
-        "branch": "extension",
-        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?\nA. Hàm số đồng biến trên $\\mathbb R$; $x=2$ không là điểm cực trị.\nB. $x=2$ là điểm cực đại.\nC. $x=2$ là điểm cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
-        "evaluation": {
-          "rubric": {
-            "criteria": [
-              "Kết quả hoặc lựa chọn đúng.",
-              "Giải thích được công thức/điều kiện áp dụng.",
-              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
-            ],
-            "lookFor": [
-              "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này."
-            ]
-          }
-        }
-      },
-      {
-        "stage": "exit",
-        "skill": "monoCritical",
-        "branch": "shared",
         "prompt": "Cho $f(x)=(x-4)^3$ và $f'(x)=3(x-4)^2$. Khẳng định nào đúng?",
         "solution": "Đạo hàm dương ở hai phía của $4$, không đổi dấu qua điểm này.",
         "evaluation": {
@@ -10978,11 +10789,200 @@
         }
       },
       {
+        "stage": "precheck",
+        "skill": "extremaSign",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;7)$, $(7;11)$, $(11;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=11$, dấu đạo hàm đổi từ âm sang dương.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "formation",
+        "skill": "monoCritical",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=-(x-1)^3$ và $f'(x)=-3(x-1)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $1$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
+        "stage": "formation",
+        "skill": "extremaSign",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;7)$, $(7;9)$, $(9;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ dương sang âm.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
+        "stage": "guided",
+        "skill": "monoCritical",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=-(x-9)^3$ và $f'(x)=-3(x-9)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $9$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "guided",
+        "skill": "extremaSign",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;5)$, $(5;9)$, $(9;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "monoCritical",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=-(x-7)^3$ và $f'(x)=-3(x-7)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $7$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "extremaSign",
+        "branch": "shared",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;2)$, $(2;6)$, $(6;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=6$, dấu đạo hàm đổi từ dương sang âm.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoCritical",
+        "branch": "support",
+        "prompt": "Cho $f(x)=(x-5)^3$ và $f'(x)=3(x-5)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "C"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "extremaSign",
+        "branch": "support",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;4)$, $(4;8)$, $(8;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=8$, dấu đạo hàm đổi từ dương sang âm.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoCritical",
+        "branch": "core",
+        "prompt": "Cho $f(x)=(x-8)^3$ và $f'(x)=3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $8$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "C"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "extremaSign",
+        "branch": "core",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "A"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoCritical",
+        "branch": "extension",
+        "prompt": "Cho $f(x)=-(x-5)^3$ và $f'(x)=-3(x-5)^2$. Khẳng định nào đúng?\nA. $x=5$ là điểm cực đại.\nB. $x=5$ là điểm cực tiểu.\nC. Hàm số nghịch biến trên $\\mathbb R$; $x=5$ không là điểm cực trị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm âm ở hai phía của $5$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "rubric": {
+            "criteria": [
+              "Kết quả hoặc lựa chọn đúng.",
+              "Giải thích được công thức/điều kiện áp dụng.",
+              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
+            ],
+            "lookFor": [
+              "Đạo hàm âm ở hai phía của $5$, không đổi dấu qua điểm này."
+            ]
+          }
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "extremaSign",
+        "branch": "extension",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;7)$, $(7;9)$, $(9;+\\infty)$. Điểm cực tiểu có hoành độ nào?\nA. $9$\nB. $7$\nC. Không có cực tiểu.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương.",
+        "evaluation": {
+          "rubric": {
+            "criteria": [
+              "Kết quả hoặc lựa chọn đúng.",
+              "Giải thích được công thức/điều kiện áp dụng.",
+              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
+            ],
+            "lookFor": [
+              "Qua $x=9$, dấu đạo hàm đổi từ âm sang dương."
+            ]
+          }
+        }
+      },
+      {
+        "stage": "extension",
+        "skill": "monoCritical",
+        "branch": "extension",
+        "prompt": "Cho $f(x)=(x-6)^3$ và $f'(x)=3(x-6)^2$. Khẳng định nào đúng?\nA. $x=6$ là điểm cực tiểu.\nB. Hàm số đồng biến trên $\\mathbb R$; $x=6$ không là điểm cực trị.\nC. $x=6$ là điểm cực đại.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Đạo hàm dương ở hai phía của $6$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "rubric": {
+            "criteria": [
+              "Kết quả hoặc lựa chọn đúng.",
+              "Giải thích được công thức/điều kiện áp dụng.",
+              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
+            ],
+            "lookFor": [
+              "Đạo hàm dương ở hai phía của $6$, không đổi dấu qua điểm này."
+            ]
+          }
+        }
+      },
+      {
+        "stage": "exit",
+        "skill": "monoCritical",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=-(x-8)^3$ và $f'(x)=-3(x-8)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm âm ở hai phía của $8$, không đổi dấu qua điểm này.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "C"
+        }
+      },
+      {
         "stage": "exit",
         "skill": "extremaSign",
         "branch": "shared",
-        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
-        "solution": "Qua $x=3$, dấu đạo hàm đổi từ âm sang dương.",
+        "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;6)$, $(6;10)$, $(10;+\\infty)$. Điểm cực đại có hoành độ nào?",
+        "solution": "Qua $x=10$, dấu đạo hàm đổi từ dương sang âm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -10992,8 +10992,8 @@
         "stage": "reserve",
         "skill": "monoCritical",
         "branch": "shared",
-        "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
-        "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này.",
+        "prompt": "Cho $f(x)=(x-2)^3$ và $f'(x)=3(x-2)^2$. Khẳng định nào đúng?",
+        "solution": "Đạo hàm dương ở hai phía của $2$, không đổi dấu qua điểm này.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -11021,11 +11021,11 @@
         "stage": "precheck",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=8$ rồi giảm đến $f(4)=-3$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": 8
         }
       },
       {
@@ -11043,11 +11043,11 @@
         "stage": "formation",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=6$ xuống $f(2)=-3$ rồi tăng đến $f(4)=4$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": -3
         }
       },
       {
@@ -11065,11 +11065,11 @@
         "stage": "guided",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=10$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": 10
         }
       },
       {
@@ -11087,11 +11087,11 @@
         "stage": "recheck",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=8$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-2$ rồi tăng đến $f(4)=3$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-2$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 8
+          "answerKey": -2
         }
       },
       {
@@ -11109,11 +11109,11 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "support",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-1$ rồi tăng đến $f(4)=5$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-1$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": -1
         }
       },
       {
@@ -11131,11 +11131,11 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "core",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=12$ xuống $f(2)=-3$ rồi tăng đến $f(4)=7$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": -3
         }
       },
       {
@@ -11161,8 +11161,8 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "extension",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=7$ đến $f(2)=10$ rồi giảm đến $f(4)=-3$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -11171,7 +11171,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn."
+              "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn."
             ]
           }
         }
@@ -11210,7 +11210,7 @@
         "stage": "exit",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-2$. Tìm giá trị lớn nhất.",
         "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=6$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
@@ -11668,8 +11668,8 @@
         "stage": "precheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $MNPQ$, rút gọn $\\overrightarrow{MN}-\\overrightarrow{MQ}$.",
-        "solution": "$\\overrightarrow{MN}+\\overrightarrow{QM}=\\overrightarrow{QN}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{SU}-\\overrightarrow{ST}$.",
+        "solution": "$\\overrightarrow{SU}+\\overrightarrow{TS}=\\overrightarrow{TU}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -11690,8 +11690,8 @@
         "stage": "formation",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.",
-        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KM}-\\overrightarrow{KL}$.",
+        "solution": "$\\overrightarrow{KM}+\\overrightarrow{LK}=\\overrightarrow{LM}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -11734,8 +11734,8 @@
         "stage": "recheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EG}-\\overrightarrow{EF}$.",
+        "solution": "$\\overrightarrow{EG}+\\overrightarrow{FE}=\\overrightarrow{FG}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -11778,11 +11778,11 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "core",
-        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KL}-\\overrightarrow{KN}$.",
-        "solution": "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WY}-\\overrightarrow{WX}$.",
+        "solution": "$\\overrightarrow{WY}+\\overrightarrow{XW}=\\overrightarrow{XY}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -11808,8 +11808,8 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{ST}-\\overrightarrow{SV}$.\nA. $\\overrightarrow{VT}$\nB. $\\overrightarrow{TV}$\nC. $\\overrightarrow{SV}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AC}-\\overrightarrow{AB}$.\nA. $\\overrightarrow{AB}$\nB. $\\overrightarrow{BC}$\nC. $\\overrightarrow{CB}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{AC}+\\overrightarrow{BA}=\\overrightarrow{BC}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -11818,7 +11818,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{AC}+\\overrightarrow{BA}=\\overrightarrow{BC}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -11857,8 +11857,8 @@
         "stage": "exit",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AB}-\\overrightarrow{AD}$.",
-        "solution": "$\\overrightarrow{AB}+\\overrightarrow{DA}=\\overrightarrow{DB}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PR}-\\overrightarrow{PQ}$.",
+        "solution": "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -13638,8 +13638,8 @@
         "stage": "precheck",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KL}-\\overrightarrow{KN}$.",
-        "solution": "$\\overrightarrow{KL}+\\overrightarrow{NK}=\\overrightarrow{NL}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IK}-\\overrightarrow{IJ}$.",
+        "solution": "$\\overrightarrow{IK}+\\overrightarrow{JI}=\\overrightarrow{JK}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -13726,8 +13726,8 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "support",
-        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PQ}-\\overrightarrow{PS}$.",
-        "solution": "$\\overrightarrow{PQ}+\\overrightarrow{SP}=\\overrightarrow{SQ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $ABCD$, rút gọn $\\overrightarrow{AC}-\\overrightarrow{AB}$.",
+        "solution": "$\\overrightarrow{AC}+\\overrightarrow{BA}=\\overrightarrow{BC}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -13748,11 +13748,11 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "core",
-        "prompt": "Với tứ diện $STUV$, rút gọn $\\overrightarrow{ST}-\\overrightarrow{SV}$.",
-        "solution": "$\\overrightarrow{ST}+\\overrightarrow{VS}=\\overrightarrow{VT}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $PQRS$, rút gọn $\\overrightarrow{PR}-\\overrightarrow{PQ}$.",
+        "solution": "$\\overrightarrow{PR}+\\overrightarrow{QP}=\\overrightarrow{QR}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "C"
         }
       },
       {
@@ -13770,8 +13770,8 @@
         "stage": "practice",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.\nA. $\\overrightarrow{IL}$\nB. $\\overrightarrow{LJ}$\nC. $\\overrightarrow{JL}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EG}-\\overrightarrow{EF}$.\nA. $\\overrightarrow{GF}$\nB. $\\overrightarrow{EF}$\nC. $\\overrightarrow{FG}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{EG}+\\overrightarrow{FE}=\\overrightarrow{FG}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -13780,7 +13780,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{EG}+\\overrightarrow{FE}=\\overrightarrow{FG}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -13808,8 +13808,8 @@
         "stage": "extension",
         "skill": "vectorDiff",
         "branch": "extension",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.\nA. $\\overrightarrow{ZX}$\nB. $\\overrightarrow{XZ}$\nC. $\\overrightarrow{WZ}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $IJKL$, rút gọn $\\overrightarrow{IJ}-\\overrightarrow{IL}$.\nA. $\\overrightarrow{JL}$\nB. $\\overrightarrow{IL}$\nC. $\\overrightarrow{LJ}$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -13818,7 +13818,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm."
+              "$\\overrightarrow{IJ}+\\overrightarrow{LI}=\\overrightarrow{LJ}$ theo quy tắc ba điểm."
             ]
           }
         }
@@ -13827,8 +13827,8 @@
         "stage": "exit",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $EFGH$, rút gọn $\\overrightarrow{EF}-\\overrightarrow{EH}$.",
-        "solution": "$\\overrightarrow{EF}+\\overrightarrow{HE}=\\overrightarrow{HF}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WY}-\\overrightarrow{WX}$.",
+        "solution": "$\\overrightarrow{WY}+\\overrightarrow{XW}=\\overrightarrow{XY}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -13849,11 +13849,11 @@
         "stage": "reserve",
         "skill": "vectorDiff",
         "branch": "shared",
-        "prompt": "Với tứ diện $WXYZ$, rút gọn $\\overrightarrow{WX}-\\overrightarrow{WZ}$.",
-        "solution": "$\\overrightarrow{WX}+\\overrightarrow{ZW}=\\overrightarrow{ZX}$ theo quy tắc ba điểm.",
+        "prompt": "Với tứ diện $KLMN$, rút gọn $\\overrightarrow{KM}-\\overrightarrow{KL}$.",
+        "solution": "$\\overrightarrow{KM}+\\overrightarrow{LK}=\\overrightarrow{LM}$ theo quy tắc ba điểm.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "B"
         }
       }
     ]
@@ -15097,11 +15097,11 @@
         "stage": "precheck",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=6$ đến $f(2)=8$ rồi giảm đến $f(4)=-2$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 8
         }
       },
       {
@@ -15119,11 +15119,11 @@
         "stage": "formation",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=10$ xuống $f(2)=-2$ rồi tăng đến $f(4)=6$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-2$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": -2
         }
       },
       {
@@ -15141,11 +15141,11 @@
         "stage": "guided",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=7$ đến $f(2)=10$ rồi giảm đến $f(4)=-3$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
@@ -15163,11 +15163,11 @@
         "stage": "recheck",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=6$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-1$ rồi tăng đến $f(4)=5$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-1$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 6
+          "answerKey": -1
         }
       },
       {
@@ -15185,11 +15185,11 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "support",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=12$ xuống $f(2)=-3$ rồi tăng đến $f(4)=7$. Tìm giá trị nhỏ nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": -3
         }
       },
       {
@@ -15207,11 +15207,11 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "core",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=4$ đến $f(2)=7$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=7$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=3$ đến $f(2)=6$ rồi giảm đến $f(4)=-2$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=6$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 7
+          "answerKey": 6
         }
       },
       {
@@ -15237,8 +15237,8 @@
         "stage": "practice",
         "skill": "maxTable",
         "branch": "extension",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=8$ xuống $f(2)=-2$ rồi tăng đến $f(4)=3$. Tìm giá trị nhỏ nhất.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-2$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -15247,7 +15247,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn."
+              "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-2$; giá trị này đạt tại điểm thuộc đoạn."
             ]
           }
         }
@@ -15286,11 +15286,11 @@
         "stage": "exit",
         "skill": "maxTable",
         "branch": "shared",
-        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=8$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
-        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=8$; giá trị này đạt tại điểm thuộc đoạn.",
+        "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=5$ đến $f(2)=10$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+        "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=10$; giá trị này đạt tại điểm thuộc đoạn.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 8
+          "answerKey": 10
         }
       },
       {

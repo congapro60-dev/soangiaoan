@@ -6,9 +6,9 @@ Câu 1 (0.5 điểm): Vì $1(x_2-x_1)>0$, $f(x_2)>f(x_1)$ với mọi cặp đã
 
 Câu 2 (0.5 điểm): $f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.
 
-Câu 3 (0.5 điểm): Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.
+Câu 3 (0.5 điểm): Qua $x=8$, dấu đạo hàm đổi từ dương sang âm.
 
-Câu 4 (0.5 điểm): Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng.
+Câu 4 (0.5 điểm): Hai cạnh đối $MQ$ và $NP$ song song, bằng nhau và cùng hướng.
 
 Câu 5 (0.5 điểm): Tổng là $\overrightarrow{AC}$. Tam giác $ABC$ vuông nên $AC^2=2^2+5^2=29$.
 

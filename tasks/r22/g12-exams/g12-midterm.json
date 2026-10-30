@@ -61,20 +61,20 @@
       "label": "Câu 3",
       "type": "mc",
       "points": 0.5,
-      "text": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;3)$, $(3;5)$, $(5;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+      "text": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;6)$, $(6;8)$, $(8;+\\infty)$. Điểm cực đại có hoành độ nào?",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$5$",
-        "B": "$3$",
-        "C": "Không có cực tiểu."
+        "A": "$8$",
+        "B": "$6$",
+        "C": "Không có cực đại."
       },
       "noShuffle": true,
       "key": "A",
-      "solution": "Qua $x=5$, dấu đạo hàm đổi từ âm sang dương."
+      "solution": "Qua $x=8$, dấu đạo hàm đổi từ dương sang âm."
     },
     {
       "id": "q4",
@@ -82,20 +82,20 @@
       "label": "Câu 4",
       "type": "mc",
       "points": 0.5,
-      "text": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{ST}$?",
+      "text": "Trong hình hộp $MNPQ.M'N'P'Q'$, vectơ nào bằng $\\overrightarrow{MQ}$?",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$\\overrightarrow{TS}$",
-        "B": "$\\overrightarrow{UV}$",
-        "C": "$\\overrightarrow{VU}$"
+        "A": "$\\overrightarrow{QM}$",
+        "B": "$\\overrightarrow{PN}$",
+        "C": "$\\overrightarrow{NP}$"
       },
       "noShuffle": false,
       "key": "C",
-      "solution": "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng."
+      "solution": "Hai cạnh đối $MQ$ và $NP$ song song, bằng nhau và cùng hướng."
     },
     {
       "id": "q5",

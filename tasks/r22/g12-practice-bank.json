@@ -68,20 +68,20 @@
     "introducedWeek": 1,
     "sample": {
       "type": "closed",
-      "prompt": "Cho $f(x)=(x-3)^3$ và $f'(x)=3(x-3)^2$. Khẳng định nào đúng?",
+      "prompt": "Cho $f(x)=-(x-6)^3$ và $f'(x)=-3(x-6)^2$. Khẳng định nào đúng?",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$x=3$ là điểm cực tiểu."
+            "label": "$x=6$ là điểm cực tiểu."
           },
           {
             "id": "B",
-            "label": "Hàm số đồng biến trên $\\mathbb R$; $x=3$ không là điểm cực trị."
+            "label": "Hàm số nghịch biến trên $\\mathbb R$; $x=6$ không là điểm cực trị."
           },
           {
             "id": "C",
-            "label": "$x=3$ là điểm cực đại."
+            "label": "$x=6$ là điểm cực đại."
           }
         ]
       },
@@ -89,7 +89,7 @@
         "checkerId": "choice_exact",
         "answerKey": "B"
       },
-      "solution": "Đạo hàm dương ở hai phía của $3$, không đổi dấu qua điểm này."
+      "solution": "Đạo hàm âm ở hai phía của $6$, không đổi dấu qua điểm này."
     }
   },
   {
@@ -99,20 +99,20 @@
     "introducedWeek": 2,
     "sample": {
       "type": "closed",
-      "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\\infty;4)$, $(4;6)$, $(6;+\\infty)$. Điểm cực tiểu có hoành độ nào?",
+      "prompt": "Hàm số liên tục có dấu $f'$ lần lượt là $-,+,-$ trên $(-\\infty;1)$, $(1;3)$, $(3;+\\infty)$. Điểm cực đại có hoành độ nào?",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$6$"
+            "label": "$3$"
           },
           {
             "id": "B",
-            "label": "$4$"
+            "label": "$1$"
           },
           {
             "id": "C",
-            "label": "Không có cực tiểu."
+            "label": "Không có cực đại."
           }
         ]
       },
@@ -120,7 +120,7 @@
         "checkerId": "choice_exact",
         "answerKey": "A"
       },
-      "solution": "Qua $x=6$, dấu đạo hàm đổi từ âm sang dương."
+      "solution": "Qua $x=3$, dấu đạo hàm đổi từ dương sang âm."
     }
   },
   {
@@ -145,20 +145,20 @@
     "introducedWeek": 2,
     "sample": {
       "type": "closed",
-      "prompt": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{ST}$?",
+      "prompt": "Trong hình hộp $STUV.S'T'U'V'$, vectơ nào bằng $\\overrightarrow{SV}$?",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$\\overrightarrow{UV}$"
+            "label": "$\\overrightarrow{UT}$"
           },
           {
             "id": "B",
-            "label": "$\\overrightarrow{VU}$"
+            "label": "$\\overrightarrow{TU}$"
           },
           {
             "id": "C",
-            "label": "$\\overrightarrow{TS}$"
+            "label": "$\\overrightarrow{VS}$"
           }
         ]
       },
@@ -166,7 +166,7 @@
         "checkerId": "choice_exact",
         "answerKey": "B"
       },
-      "solution": "Hai cạnh đối $ST$ và $VU$ song song, bằng nhau và cùng hướng."
+      "solution": "Hai cạnh đối $SV$ và $TU$ song song, bằng nhau và cùng hướng."
     }
   },
   {
@@ -222,12 +222,12 @@
     "introducedWeek": 3,
     "sample": {
       "type": "closed",
-      "prompt": "Hàm số liên tục trên $[0;4]$, tăng từ $f(0)=2$ đến $f(2)=5$ rồi giảm đến $f(4)=-1$. Tìm giá trị lớn nhất.",
+      "prompt": "Hàm số liên tục trên $[0;4]$, giảm từ $f(0)=6$ xuống $f(2)=-3$ rồi tăng đến $f(4)=4$. Tìm giá trị nhỏ nhất.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 5
+        "answerKey": -3
       },
-      "solution": "Theo chiều biến thiên, các giá trị không vượt $f(2)=5$; giá trị này đạt tại điểm thuộc đoạn."
+      "solution": "Theo chiều biến thiên, các giá trị không nhỏ hơn $f(2)=-3$; giá trị này đạt tại điểm thuộc đoạn."
     }
   },
   {
