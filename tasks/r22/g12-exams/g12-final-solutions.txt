@@ -2,7 +2,7 @@ CHỈ DÀNH CHO GIÁO VIÊN
 
 Toán 12 Discover - Kiểm tra cuối học kỳ I
 
-Câu 1 (0.5 điểm): $f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.
+Câu 1 (0.5 điểm): $f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.
 
 Câu 2 (0.5 điểm): Hiệu $f(x)-(x+4)=1/(x-4)\to0$ khi $x\to\pm\infty$.
 
@@ -14,7 +14,7 @@ Câu 5 (0.5 điểm): Tăng số mũ lên $3$ rồi chia hệ số $6$ cho $3$ �
 
 Câu 6 (0.5 điểm): Đạo hàm của $4\sin x$ là $4\cos x$; đạo hàm của $-2\cos x$ là $2\sin x$.
 
-Câu 7 (0.75 điểm): $n=20$; vị trí $5,15$. $Q_1=98+\frac{5-4}{8}\cdot8=99$; $Q_3=106+\frac{15-12}{8}\cdot8=109$; hiệu bằng $10$.
+Câu 7 (0.75 điểm): $n=20$; vị trí $5,15$. $Q_1=46+\frac{5-4}{8}\cdot16=48$; $Q_3=62+\frac{15-12}{8}\cdot16=68$; hiệu bằng $20$.
 
 Câu 8 (0.75 điểm): Nguyên hàm là $2x^2+1x$; thay cận được $2\cdot3^2+1\cdot3=21$.
 

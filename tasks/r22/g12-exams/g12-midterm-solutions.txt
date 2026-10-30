@@ -4,7 +4,7 @@ Toán 12 Discover - Kiểm tra giữa học kỳ I
 
 Câu 1 (0.5 điểm): Vì $1(x_2-x_1)>0$, $f(x_2)>f(x_1)$ với mọi cặp đã cho.
 
-Câu 2 (0.5 điểm): $f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.
+Câu 2 (0.5 điểm): $f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.
 
 Câu 3 (0.5 điểm): Qua $x=5$, dấu đạo hàm đổi từ âm sang dương.
 

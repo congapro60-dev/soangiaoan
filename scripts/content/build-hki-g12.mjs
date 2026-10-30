@@ -56,10 +56,15 @@ const skills = {
   monoRule: skill('Dấu đạo hàm và khoảng đơn điệu', 'Dùng dấu đạo hàm để xác định đúng các khoảng đơn điệu.',
     T`Tìm tập xác định, giải $f'(x)=0$, lập bảng dấu trên từng khoảng rồi kết luận. $f'>0$ cho đồng biến, $f'<0$ cho nghịch biến; nghiệm đạo hàm không tự chia thành cực trị.`,
     'Không dùng dấu của hàm số thay dấu đạo hàm; giữ các khoảng liên thông.', '1-01', s => {
-      const a = s % 4 + 1;
-      const f = [0, -3 * a * a, 0, 1];
-      assert.ok(derivative(f, 0) < 0 && derivative(f, 2 * a) > 0);
-      return qChoice(T`Cho $f(x)=x^3-${3*a*a}x$. Khoảng nghịch biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=3(x-${a})(x+${a})<0$ đúng khi $-${a}<x<${a}$.`, s);
+      const a = (s % 7) + 1;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        const f = [0, -3 * a * a, 0, 1];
+        assert.ok(derivative(f, 0) < 0 && derivative(f, 2 * a) > 0);
+        return qChoice(T`Cho $f(x)=x^3-${3*a*a}x$. Khoảng nghịch biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=3(x-${a})(x+${a})<0$ đúng khi $-${a}<x<${a}$.`, s);
+      } else {
+        return qChoice(T`Cho $f(x)=-x^3+${3*a*a}x$. Khoảng đồng biến là`, `$(-${a};${a})$`, [T`$(-\infty;-${a})$`, T`$(${a};+\infty)$`], T`$f'(x)=-3(x-${a})(x+${a})>0$ đúng khi $-${a}<x<${a}$.`, s);
+      }
     }, ['Tìm đạo hàm trước khi xét dấu.', 'Tách trục số bằng nghiệm của đạo hàm.', 'Thử dấu một điểm trong mỗi khoảng.', T`Ví dụ khác: $g'(x)=2(x-5)$ âm bên trái $5$, dương bên phải $5$.`]),
   monoCritical: skill('Đạo hàm bằng không chưa đủ', 'Phân biệt điểm có đạo hàm bằng không với sự đổi chiều biến thiên.',
     T`Điểm có $f'(x)=0$ cần được kiểm tra dấu hai phía. Đạo hàm bằng không tại điểm riêng lẻ vẫn có thể đồng biến trên toàn khoảng.`,
@@ -123,9 +128,15 @@ const skills = {
   maxOpen: skill('GTLN, GTNN trên khoảng', 'Kiểm tra sự tồn tại và giá trị lớn nhất/nhỏ nhất trên khoảng mở.',
     T`Trên khoảng mở, giới hạn ở biên không nhất thiết đạt được. Phân biệt “không có GTLN” với “GTLN bằng vô cực”.`,
     'Không đưa đầu mút bị loại vào tập ứng viên đạt cực trị.', '1-03', s => {
-      const a=s%4+1;
-      return qChoice(T`Xét $f(x)=x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTNN là $0$, không có GTLN.`,
-        [T`GTNN là $0$, GTLN là $${a*a}$.`, T`Không có GTNN và không có GTLN.`], T`Giá trị $0$ đạt tại $x=0$; $x^2<${a*a}$ trong khoảng và tiến sát $${a*a}$ ở biên, nhưng không đạt.`,s);
+      const a = (s % 7) + 1;
+      const k = (Math.floor(s / 7) % 2);
+      if (k === 0) {
+        return qChoice(T`Xét $f(x)=x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTNN là $0$, không có GTLN.`,
+          [T`GTNN là $0$, GTLN là $${a*a}$.`, T`Không có GTNN và không có GTLN.`], T`Giá trị $0$ đạt tại $x=0$; $x^2<${a*a}$ trong khoảng và tiến sát $${a*a}$ ở biên, nhưng không đạt.`,s);
+      } else {
+        return qChoice(T`Xét $f(x)=-x^2$ trên $(-${a};${a})$. Khẳng định nào đúng?`, T`GTLN là $0$, không có GTNN.`,
+          [T`GTLN là $0$, GTNN là $-${a*a}$.`, T`Không có GTLN và không có GTNN.`], T`Giá trị $0$ đạt tại $x=0$; $-x^2>-${a*a}$ trong khoảng và tiến sát $-${a*a}$ ở biên, nhưng không đạt.`,s);
+      }
     }, ['Kiểm tra biên khoảng có được lấy không.', 'Tìm giá trị nhỏ nhất có đạt tại điểm trong khoảng.', 'So sánh giá trị thực với giới hạn tại biên.', T`Ví dụ khác: $g(x)=x$ trên $(1;4)$ không đạt hai giá trị biên.`]),
   vectorScale: skill('Nhân vectơ với một số', 'Xác định hướng và độ dài của vectơ nhân với một số.',
     T`$|k\vec u|=|k||\vec u|$. Hệ số âm đảo hướng; hệ số không bằng không giữ hoặc đảo hướng nhưng không đổi phương.`,
@@ -241,7 +252,7 @@ Object.assign(skills, {
   quartile: skill('Khoảng tứ phân vị ghép nhóm', 'Tìm nhóm chứa tứ phân vị, nội suy rồi tính khoảng tứ phân vị.',
     T`Tìm vị trí $n/4,3n/4$ bằng tần số tích lũy. Gọi $F_0$ là tổng tần số trước nhóm chứa tứ phân vị; trong nhóm, $Q=L+\dfrac{p-F_0}{f}\,h$. Khoảng tứ phân vị là $Q_3-Q_1$.`,
     'Không dùng tần số của nhóm thay tổng tần số trước nhóm.', '2-14', s=>{
-      const l=s%11*10,h=4*(s%3+1),q1=l+9*h/8,q3=l+19*h/8,ans=5*h/4;
+      const l = (s % 13) * 10, h = 4 * ((Math.floor(s / 13) % 4) + 1), q1 = l + 9 * h / 8, q3 = l + 19 * h / 8, ans = 5 * h / 4;
       return qNum(T`Các nhóm $[${l};${l+h}),[${l+h};${l+2*h}),[${l+2*h};${l+3*h})$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.`,ans,
         T`$n=20$; vị trí $5,15$. $Q_1=${l+h}+\frac{5-4}{8}\cdot${h}=${fmt(q1)}$; $Q_3=${l+2*h}+\frac{15-12}{8}\cdot${h}=${fmt(q3)}$; hiệu bằng $${ans}$.`,q3-q1);
     }, ['Lập tần số tích lũy: cộng dồn từng nhóm.', 'Đánh dấu vị trí một phần tư và ba phần tư số quan sát.', 'Nội suy từng tứ phân vị rồi mới lấy hiệu.', T`Ví dụ khác: nếu vị trí cần tìm là $6$, nhóm có $L=10,F_0=4,f=8,h=4$, trong đó $F_0$ là tổng tần số trước nhóm; phần nội suy là $\frac{6-4}{8}\cdot4$.`]),

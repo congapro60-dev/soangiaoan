@@ -141,19 +141,19 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -161,17 +161,6 @@
       },
       {
         "stage": "guided",
-        "skill": "monoRule",
-        "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
         "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
@@ -182,11 +171,33 @@
         }
       },
       {
+        "stage": "recheck",
+        "skill": "monoRule",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoRule",
+        "branch": "core",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -195,20 +206,9 @@
       {
         "stage": "practice",
         "skill": "monoRule",
-        "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-\\infty;-1)$\nB. $(1;+\\infty)$\nC. $(-1;1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là\nA. $(-\\infty;-5)$\nB. $(5;+\\infty)$\nC. $(-5;5)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -217,7 +217,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$."
             ]
           }
         }
@@ -226,8 +226,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-1;1)$\nB. $(-\\infty;-1)$\nC. $(1;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là\nA. $(-6;6)$\nB. $(-\\infty;-6)$\nC. $(6;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -236,7 +236,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$."
             ]
           }
         }
@@ -245,8 +245,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -256,11 +256,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       }
     ]
@@ -274,11 +274,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -296,8 +296,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -318,11 +318,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -340,8 +340,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -362,11 +362,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+12x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-2)(x+2)>0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -384,11 +384,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -406,8 +406,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là\nA. $(-2;2)$\nB. $(-\\infty;-2)$\nC. $(2;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là\nA. $(-6;6)$\nB. $(-\\infty;-6)$\nC. $(6;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -416,7 +416,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$."
+              "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$."
             ]
           }
         }
@@ -444,8 +444,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là\nA. $(2;+\\infty)$\nB. $(-2;2)$\nC. $(-\\infty;-2)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là\nA. $(7;+\\infty)$\nB. $(-7;7)$\nC. $(-\\infty;-7)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -454,7 +454,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$."
+              "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$."
             ]
           }
         }
@@ -463,8 +463,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -485,11 +485,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       }
     ]
@@ -1397,11 +1397,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -1419,8 +1419,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -1441,11 +1441,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -1463,8 +1463,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -1485,11 +1485,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -1507,11 +1507,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -1529,8 +1529,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(1;+\\infty)$\nB. $(-1;1)$\nC. $(-\\infty;-1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là\nA. $(6;+\\infty)$\nB. $(-6;6)$\nC. $(-\\infty;-6)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1539,7 +1539,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$."
             ]
           }
         }
@@ -1567,8 +1567,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-\\infty;-1)$\nB. $(1;+\\infty)$\nC. $(-1;1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là\nA. $(-\\infty;-7)$\nB. $(7;+\\infty)$\nC. $(-7;7)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -1577,7 +1577,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$."
             ]
           }
         }
@@ -1608,11 +1608,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       }
     ]
@@ -1637,11 +1637,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -1659,8 +1659,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+12x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-2)(x+2)>0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -1681,11 +1681,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -1725,11 +1725,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -1747,11 +1747,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -1826,8 +1826,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -3303,11 +3303,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -3325,19 +3325,19 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -3347,8 +3347,19 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-25$ trong khoảng và tiến sát $-25$ ở biên, nhưng không đạt.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "maxOpen",
+        "branch": "core",
+        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -3357,20 +3368,9 @@
       {
         "stage": "practice",
         "skill": "maxOpen",
-        "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?\nA. GTNN là $0$, GTLN là $9$.\nB. Không có GTNN và không có GTLN.\nC. GTNN là $0$, không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?\nA. GTLN là $0$, GTNN là $-4$.\nB. Không có GTLN và không có GTNN.\nC. GTLN là $0$, không có GTNN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -3379,7 +3379,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -3407,8 +3407,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -3418,11 +3418,11 @@
         "stage": "reserve",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       }
     ]
@@ -3436,11 +3436,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -3480,11 +3480,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<49$ trong khoảng và tiến sát $49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -3502,8 +3502,8 @@
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-16$ trong khoảng và tiến sát $-16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -3524,11 +3524,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-36$ trong khoảng và tiến sát $-36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -3546,11 +3546,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -3568,8 +3568,8 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?\nA. GTNN là $0$, không có GTLN.\nB. GTNN là $0$, GTLN là $16$.\nC. Không có GTNN và không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-3;3)$. Khẳng định nào đúng?\nA. GTLN là $0$, không có GTNN.\nB. GTLN là $0$, GTNN là $-9$.\nC. Không có GTLN và không có GTNN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -3578,7 +3578,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -3625,8 +3625,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -3647,11 +3647,11 @@
         "stage": "reserve",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<25$ trong khoảng và tiến sát $25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       }
     ]
@@ -7171,11 +7171,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7193,8 +7193,8 @@
         "stage": "formation",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-16$ trong khoảng và tiến sát $-16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -7215,11 +7215,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7237,8 +7237,8 @@
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7259,11 +7259,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7281,11 +7281,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-25$ trong khoảng và tiến sát $-25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -7311,8 +7311,8 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?\nA. GTNN là $0$, không có GTLN.\nB. GTNN là $0$, GTLN là $1$.\nC. Không có GTNN và không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-5;5)$. Khẳng định nào đúng?\nA. GTNN là $0$, không có GTLN.\nB. GTNN là $0$, GTLN là $25$.\nC. Không có GTNN và không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<25$ trong khoảng và tiến sát $25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7321,7 +7321,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $x^2<25$ trong khoảng và tiến sát $25$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -7360,8 +7360,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7389,11 +7389,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7411,8 +7411,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+12x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-2)(x+2)>0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -7433,11 +7433,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7455,8 +7455,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7477,11 +7477,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7499,11 +7499,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -7521,8 +7521,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-1;1)$\nB. $(-\\infty;-1)$\nC. $(1;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là\nA. $(-3;3)$\nB. $(-\\infty;-3)$\nC. $(3;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7531,7 +7531,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$."
             ]
           }
         }
@@ -7559,8 +7559,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(1;+\\infty)$\nB. $(-1;1)$\nC. $(-\\infty;-1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là\nA. $(4;+\\infty)$\nB. $(-4;4)$\nC. $(-\\infty;-4)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -7569,7 +7569,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$."
             ]
           }
         }
@@ -7578,8 +7578,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7600,11 +7600,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       }
     ]
@@ -7858,11 +7858,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<49$ trong khoảng và tiến sát $49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7880,8 +7880,8 @@
         "stage": "formation",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -7902,11 +7902,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<25$ trong khoảng và tiến sát $25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7924,8 +7924,8 @@
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -7946,11 +7946,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-16$ trong khoảng và tiến sát $-16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -7968,11 +7968,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -7998,8 +7998,8 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?\nA. GTNN là $0$, không có GTLN.\nB. GTNN là $0$, GTLN là $16$.\nC. Không có GTNN và không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?\nA. GTLN là $0$, không có GTNN.\nB. GTLN là $0$, GTNN là $-1$.\nC. Không có GTLN và không có GTNN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -8008,7 +8008,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -8047,8 +8047,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-36$ trong khoảng và tiến sát $-36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -8992,11 +8992,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+12x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-2)(x+2)>0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -9036,11 +9036,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -9058,8 +9058,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -9080,11 +9080,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -9102,11 +9102,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -9124,8 +9124,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là\nA. $(4;+\\infty)$\nB. $(-4;4)$\nC. $(-\\infty;-4)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là\nA. $(3;+\\infty)$\nB. $(-3;3)$\nC. $(-\\infty;-3)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -9134,7 +9134,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$."
+              "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$."
             ]
           }
         }
@@ -9181,8 +9181,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -9203,11 +9203,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       }
     ]
@@ -9221,11 +9221,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -9243,15 +9243,86 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "recheck",
+        "skill": "monoRule",
+        "branch": "shared",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoRule",
+        "branch": "support",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
+        "evaluation": {
+          "checkerId": "choice_exact",
+          "answerKey": "B"
+        }
+      },
+      {
+        "stage": "practice",
+        "skill": "monoRule",
+        "branch": "core",
+        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
         }
       },
       {
-        "stage": "recheck",
+        "stage": "practice",
+        "skill": "monoRule",
+        "branch": "extension",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là\nA. $(-\\infty;-4)$\nB. $(4;+\\infty)$\nC. $(-4;4)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
+        "evaluation": {
+          "rubric": {
+            "criteria": [
+              "Kết quả hoặc lựa chọn đúng.",
+              "Giải thích được công thức/điều kiện áp dụng.",
+              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
+            ],
+            "lookFor": [
+              "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$."
+            ]
+          }
+        }
+      },
+      {
+        "stage": "extension",
+        "skill": "monoRule",
+        "branch": "extension",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là\nA. $(-5;5)$\nB. $(-\\infty;-5)$\nC. $(5;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
+        "evaluation": {
+          "rubric": {
+            "criteria": [
+              "Kết quả hoặc lựa chọn đúng.",
+              "Giải thích được công thức/điều kiện áp dụng.",
+              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
+            ],
+            "lookFor": [
+              "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$."
+            ]
+          }
+        }
+      },
+      {
+        "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
         "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
@@ -9262,85 +9333,14 @@
         }
       },
       {
-        "stage": "practice",
-        "skill": "monoRule",
-        "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "A"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoRule",
-        "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "C"
-        }
-      },
-      {
-        "stage": "practice",
-        "skill": "monoRule",
-        "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-\\infty;-1)$\nB. $(1;+\\infty)$\nC. $(-1;1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
-        "evaluation": {
-          "rubric": {
-            "criteria": [
-              "Kết quả hoặc lựa chọn đúng.",
-              "Giải thích được công thức/điều kiện áp dụng.",
-              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
-            ],
-            "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
-            ]
-          }
-        }
-      },
-      {
-        "stage": "extension",
-        "skill": "monoRule",
-        "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-1;1)$\nB. $(-\\infty;-1)$\nC. $(1;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
-        "evaluation": {
-          "rubric": {
-            "criteria": [
-              "Kết quả hoặc lựa chọn đúng.",
-              "Giải thích được công thức/điều kiện áp dụng.",
-              "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
-            ],
-            "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
-            ]
-          }
-        }
-      },
-      {
-        "stage": "exit",
-        "skill": "monoRule",
-        "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
-        "evaluation": {
-          "checkerId": "choice_exact",
-          "answerKey": "B"
-        }
-      },
-      {
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       }
     ]
@@ -11010,11 +11010,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<25$ trong khoảng và tiến sát $25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -11032,8 +11032,8 @@
         "stage": "formation",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-25$ trong khoảng và tiến sát $-25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -11054,11 +11054,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -11076,8 +11076,8 @@
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<49$ trong khoảng và tiến sát $49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -11098,11 +11098,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -11120,11 +11120,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-36$ trong khoảng và tiến sát $-36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -11142,8 +11142,8 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?\nA. GTNN là $0$, GTLN là $4$.\nB. Không có GTNN và không có GTLN.\nC. GTNN là $0$, không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?\nA. GTNN là $0$, GTLN là $36$.\nB. Không có GTNN và không có GTLN.\nC. GTNN là $0$, không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -11152,7 +11152,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -11180,8 +11180,8 @@
         "stage": "extension",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?\nA. GTNN là $0$, không có GTLN.\nB. GTNN là $0$, GTLN là $4$.\nC. Không có GTNN và không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?\nA. GTLN là $0$, không có GTNN.\nB. GTLN là $0$, GTNN là $-49$.\nC. Không có GTLN và không có GTNN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -11190,7 +11190,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -11199,8 +11199,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-16$ trong khoảng và tiến sát $-16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -11221,11 +11221,11 @@
         "stage": "reserve",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       }
     ]
@@ -12355,11 +12355,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12377,8 +12377,8 @@
         "stage": "formation",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<49$ trong khoảng và tiến sát $49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -12399,11 +12399,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-25$ trong khoảng và tiến sát $-25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12443,11 +12443,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12465,11 +12465,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -12544,8 +12544,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -12573,11 +12573,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12595,8 +12595,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -12617,11 +12617,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12639,8 +12639,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -12661,11 +12661,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -12683,11 +12683,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -12705,8 +12705,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-1;1)$\nB. $(-\\infty;-1)$\nC. $(1;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là\nA. $(-6;6)$\nB. $(-\\infty;-6)$\nC. $(6;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -12715,7 +12715,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$."
             ]
           }
         }
@@ -12743,8 +12743,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(1;+\\infty)$\nB. $(-1;1)$\nC. $(-\\infty;-1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là\nA. $(7;+\\infty)$\nB. $(-7;7)$\nC. $(-\\infty;-7)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -12753,7 +12753,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$."
             ]
           }
         }
@@ -12784,11 +12784,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       }
     ]
@@ -12813,11 +12813,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -12835,8 +12835,8 @@
         "stage": "formation",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -12857,11 +12857,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -12901,11 +12901,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -12923,11 +12923,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -13002,8 +13002,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -13867,11 +13867,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -13889,8 +13889,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "A"
@@ -13911,11 +13911,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -13933,8 +13933,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -13955,11 +13955,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -13977,11 +13977,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -13999,8 +13999,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-\\infty;-1)$\nB. $(1;+\\infty)$\nC. $(-1;1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là\nA. $(-\\infty;-7)$\nB. $(7;+\\infty)$\nC. $(-7;7)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14009,7 +14009,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$."
             ]
           }
         }
@@ -14056,8 +14056,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -14078,11 +14078,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       }
     ]
@@ -14602,11 +14602,11 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[100;104),[104;108),[108;112)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=104+\\frac{5-4}{8}\\cdot4=104.5$; $Q_3=108+\\frac{15-12}{8}\\cdot4=109.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[50;66),[66;82),[82;98)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=66+\\frac{5-4}{8}\\cdot16=68$; $Q_3=82+\\frac{15-12}{8}\\cdot16=88$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
@@ -14624,11 +14624,11 @@
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[50;54),[54;58),[58;62)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=54+\\frac{5-4}{8}\\cdot4=54.5$; $Q_3=58+\\frac{15-12}{8}\\cdot4=59.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[110;126),[126;142),[142;158)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=126+\\frac{5-4}{8}\\cdot16=128$; $Q_3=142+\\frac{15-12}{8}\\cdot16=148$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
@@ -14646,8 +14646,8 @@
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[0;4),[4;8),[8;12)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=4+\\frac{5-4}{8}\\cdot4=4.5$; $Q_3=8+\\frac{15-12}{8}\\cdot4=9.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[40;44),[44;48),[48;52)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=44+\\frac{5-4}{8}\\cdot4=44.5$; $Q_3=48+\\frac{15-12}{8}\\cdot4=49.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 5
@@ -14668,11 +14668,11 @@
         "stage": "recheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[70;74),[74;78),[78;82)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=74+\\frac{5-4}{8}\\cdot4=74.5$; $Q_3=78+\\frac{15-12}{8}\\cdot4=79.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
@@ -14690,8 +14690,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[60;64),[64;68),[68;72)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=64+\\frac{5-4}{8}\\cdot4=64.5$; $Q_3=68+\\frac{15-12}{8}\\cdot4=69.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[100;104),[104;108),[108;112)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=104+\\frac{5-4}{8}\\cdot4=104.5$; $Q_3=108+\\frac{15-12}{8}\\cdot4=109.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 5
@@ -14712,8 +14712,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[100;108),[108;116),[116;124)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=108+\\frac{5-4}{8}\\cdot8=109$; $Q_3=116+\\frac{15-12}{8}\\cdot8=119$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 10
@@ -14742,8 +14742,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[50;58),[58;66),[66;74)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=58+\\frac{5-4}{8}\\cdot8=59$; $Q_3=66+\\frac{15-12}{8}\\cdot8=69$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14752,7 +14752,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=58+\\frac{5-4}{8}\\cdot8=59$; $Q_3=66+\\frac{15-12}{8}\\cdot8=69$; hiệu bằng $10$."
+              "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$."
             ]
           }
         }
@@ -14791,11 +14791,11 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[30;34),[34;38),[38;42)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=34+\\frac{5-4}{8}\\cdot4=34.5$; $Q_3=38+\\frac{15-12}{8}\\cdot4=39.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[10;26),[26;42),[42;58)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=26+\\frac{5-4}{8}\\cdot16=28$; $Q_3=42+\\frac{15-12}{8}\\cdot16=48$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
@@ -14820,52 +14820,52 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[70;74),[74;78),[78;82)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=74+\\frac{5-4}{8}\\cdot4=74.5$; $Q_3=78+\\frac{15-12}{8}\\cdot4=79.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[100;112),[112;124),[124;136)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=112+\\frac{5-4}{8}\\cdot12=113.5$; $Q_3=124+\\frac{15-12}{8}\\cdot12=128.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 15
         }
       },
       {
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[20;24),[24;28),[28;32)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=24+\\frac{5-4}{8}\\cdot4=24.5$; $Q_3=28+\\frac{15-12}{8}\\cdot4=29.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[30;46),[46;62),[62;78)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=46+\\frac{5-4}{8}\\cdot16=48$; $Q_3=62+\\frac{15-12}{8}\\cdot16=68$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[80;84),[84;88),[88;92)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=84+\\frac{5-4}{8}\\cdot4=84.5$; $Q_3=88+\\frac{15-12}{8}\\cdot4=89.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[90;106),[106;122),[122;138)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=106+\\frac{5-4}{8}\\cdot16=108$; $Q_3=122+\\frac{15-12}{8}\\cdot16=128$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
         "stage": "recheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[40;44),[44;48),[48;52)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=44+\\frac{5-4}{8}\\cdot4=44.5$; $Q_3=48+\\frac{15-12}{8}\\cdot4=49.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[30;34),[34;38),[38;42)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=34+\\frac{5-4}{8}\\cdot4=34.5$; $Q_3=38+\\frac{15-12}{8}\\cdot4=39.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[20;24),[24;28),[28;32)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=24+\\frac{5-4}{8}\\cdot4=24.5$; $Q_3=28+\\frac{15-12}{8}\\cdot4=29.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 5
@@ -14875,19 +14875,19 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[60;64),[64;68),[68;72)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=64+\\frac{5-4}{8}\\cdot4=64.5$; $Q_3=68+\\frac{15-12}{8}\\cdot4=69.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 5
         }
       },
       {
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[20;28),[28;36),[36;44)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[120;124),[124;128),[128;132)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=124+\\frac{5-4}{8}\\cdot4=124.5$; $Q_3=128+\\frac{15-12}{8}\\cdot4=129.5$; hiệu bằng $5$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14896,7 +14896,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$."
+              "$n=20$; vị trí $5,15$. $Q_1=124+\\frac{5-4}{8}\\cdot4=124.5$; $Q_3=128+\\frac{15-12}{8}\\cdot4=129.5$; hiệu bằng $5$."
             ]
           }
         }
@@ -14905,8 +14905,8 @@
         "stage": "extension",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[100;104),[104;108),[108;112)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=104+\\frac{5-4}{8}\\cdot4=104.5$; $Q_3=108+\\frac{15-12}{8}\\cdot4=109.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -14915,7 +14915,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=104+\\frac{5-4}{8}\\cdot4=104.5$; $Q_3=108+\\frac{15-12}{8}\\cdot4=109.5$; hiệu bằng $5$."
+              "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$."
             ]
           }
         }
@@ -14924,22 +14924,22 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[0;4),[4;8),[8;12)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=4+\\frac{5-4}{8}\\cdot4=4.5$; $Q_3=8+\\frac{15-12}{8}\\cdot4=9.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[60;72),[72;84),[84;96)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=72+\\frac{5-4}{8}\\cdot12=73.5$; $Q_3=84+\\frac{15-12}{8}\\cdot12=88.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 15
         }
       },
       {
         "stage": "reserve",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[40;48),[48;56),[56;64)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[110;122),[122;134),[134;146)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=122+\\frac{5-4}{8}\\cdot12=123.5$; $Q_3=134+\\frac{15-12}{8}\\cdot12=138.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 15
         }
       }
     ]
@@ -16305,11 +16305,11 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=14+\\frac{5-4}{8}\\cdot4=14.5$; $Q_3=18+\\frac{15-12}{8}\\cdot4=19.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[0;8),[8;16),[16;24)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=8+\\frac{5-4}{8}\\cdot8=9$; $Q_3=16+\\frac{15-12}{8}\\cdot8=19$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
@@ -16327,11 +16327,11 @@
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[70;74),[74;78),[78;82)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=74+\\frac{5-4}{8}\\cdot4=74.5$; $Q_3=78+\\frac{15-12}{8}\\cdot4=79.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[60;68),[68;76),[76;84)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=68+\\frac{5-4}{8}\\cdot8=69$; $Q_3=76+\\frac{15-12}{8}\\cdot8=79$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
@@ -16349,11 +16349,11 @@
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[20;24),[24;28),[28;32)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=24+\\frac{5-4}{8}\\cdot4=24.5$; $Q_3=28+\\frac{15-12}{8}\\cdot4=29.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[120;128),[128;136),[136;144)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=128+\\frac{5-4}{8}\\cdot8=129$; $Q_3=136+\\frac{15-12}{8}\\cdot8=139$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 10
         }
       },
       {
@@ -16371,11 +16371,11 @@
         "stage": "recheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[90;94),[94;98),[98;102)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=94+\\frac{5-4}{8}\\cdot4=94.5$; $Q_3=98+\\frac{15-12}{8}\\cdot4=99.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[40;56),[56;72),[72;88)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=56+\\frac{5-4}{8}\\cdot16=58$; $Q_3=72+\\frac{15-12}{8}\\cdot16=78$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 20
         }
       },
       {
@@ -16393,11 +16393,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[80;84),[84;88),[88;92)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=84+\\frac{5-4}{8}\\cdot4=84.5$; $Q_3=88+\\frac{15-12}{8}\\cdot4=89.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[50;62),[62;74),[74;86)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=62+\\frac{5-4}{8}\\cdot12=63.5$; $Q_3=74+\\frac{15-12}{8}\\cdot12=78.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 5
+          "answerKey": 15
         }
       },
       {
@@ -16415,11 +16415,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[90;102),[102;114),[114;126)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=102+\\frac{5-4}{8}\\cdot12=103.5$; $Q_3=114+\\frac{15-12}{8}\\cdot12=118.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 15
         }
       },
       {
@@ -16437,8 +16437,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[20;36),[36;52),[52;68)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=36+\\frac{5-4}{8}\\cdot16=38$; $Q_3=52+\\frac{15-12}{8}\\cdot16=58$; hiệu bằng $20$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -16447,7 +16447,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$."
+              "$n=20$; vị trí $5,15$. $Q_1=36+\\frac{5-4}{8}\\cdot16=38$; $Q_3=52+\\frac{15-12}{8}\\cdot16=58$; hiệu bằng $20$."
             ]
           }
         }
@@ -16475,8 +16475,8 @@
         "stage": "extension",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[40;44),[44;48),[48;52)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=44+\\frac{5-4}{8}\\cdot4=44.5$; $Q_3=48+\\frac{15-12}{8}\\cdot4=49.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[100;116),[116;132),[132;148)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=116+\\frac{5-4}{8}\\cdot16=118$; $Q_3=132+\\frac{15-12}{8}\\cdot16=138$; hiệu bằng $20$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -16485,7 +16485,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=44+\\frac{5-4}{8}\\cdot4=44.5$; $Q_3=48+\\frac{15-12}{8}\\cdot4=49.5$; hiệu bằng $5$."
+              "$n=20$; vị trí $5,15$. $Q_1=116+\\frac{5-4}{8}\\cdot16=118$; $Q_3=132+\\frac{15-12}{8}\\cdot16=138$; hiệu bằng $20$."
             ]
           }
         }
@@ -16494,8 +16494,8 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[50;54),[54;58),[58;62)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=54+\\frac{5-4}{8}\\cdot4=54.5$; $Q_3=58+\\frac{15-12}{8}\\cdot4=59.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[90;94),[94;98),[98;102)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=94+\\frac{5-4}{8}\\cdot4=94.5$; $Q_3=98+\\frac{15-12}{8}\\cdot4=99.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 5
@@ -16516,8 +16516,8 @@
         "stage": "reserve",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 10
@@ -16545,11 +16545,11 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[100;108),[108;116),[116;124)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=108+\\frac{5-4}{8}\\cdot8=109$; $Q_3=116+\\frac{15-12}{8}\\cdot8=119$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[0;16),[16;32),[32;48)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=16+\\frac{5-4}{8}\\cdot16=18$; $Q_3=32+\\frac{15-12}{8}\\cdot16=38$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -16567,11 +16567,11 @@
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[50;58),[58;66),[66;74)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=58+\\frac{5-4}{8}\\cdot8=59$; $Q_3=66+\\frac{15-12}{8}\\cdot8=69$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[60;76),[76;92),[92;108)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=76+\\frac{5-4}{8}\\cdot16=78$; $Q_3=92+\\frac{15-12}{8}\\cdot16=98$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -16589,11 +16589,11 @@
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[0;8),[8;16),[16;24)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=8+\\frac{5-4}{8}\\cdot8=9$; $Q_3=16+\\frac{15-12}{8}\\cdot8=19$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[120;136),[136;152),[152;168)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=136+\\frac{5-4}{8}\\cdot16=138$; $Q_3=152+\\frac{15-12}{8}\\cdot16=158$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -16611,8 +16611,8 @@
         "stage": "recheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[40;48),[48;56),[56;64)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 10
@@ -16633,8 +16633,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=14+\\frac{5-4}{8}\\cdot4=14.5$; $Q_3=18+\\frac{15-12}{8}\\cdot4=19.5$; hiệu bằng $5$.",
+        "prompt": "Các nhóm $[50;54),[54;58),[58;62)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=54+\\frac{5-4}{8}\\cdot4=54.5$; $Q_3=58+\\frac{15-12}{8}\\cdot4=59.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 5
@@ -16655,11 +16655,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[100;112),[112;124),[124;136)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=112+\\frac{5-4}{8}\\cdot12=113.5$; $Q_3=124+\\frac{15-12}{8}\\cdot12=128.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[90;94),[94;98),[98;102)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=94+\\frac{5-4}{8}\\cdot4=94.5$; $Q_3=98+\\frac{15-12}{8}\\cdot4=99.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 5
         }
       },
       {
@@ -16685,8 +16685,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[50;62),[62;74),[74;86)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=62+\\frac{5-4}{8}\\cdot12=63.5$; $Q_3=74+\\frac{15-12}{8}\\cdot12=78.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[20;28),[28;36),[36;44)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -16695,7 +16695,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=62+\\frac{5-4}{8}\\cdot12=63.5$; $Q_3=74+\\frac{15-12}{8}\\cdot12=78.5$; hiệu bằng $15$."
+              "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$."
             ]
           }
         }
@@ -16734,11 +16734,11 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[30;38),[38;46),[46;54)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=38+\\frac{5-4}{8}\\cdot8=39$; $Q_3=46+\\frac{15-12}{8}\\cdot8=49$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[90;102),[102;114),[114;126)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=102+\\frac{5-4}{8}\\cdot12=103.5$; $Q_3=114+\\frac{15-12}{8}\\cdot12=118.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 15
         }
       },
       {
@@ -20819,11 +20819,11 @@
         "stage": "precheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -20841,8 +20841,8 @@
         "stage": "formation",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+48x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-4)(x+4)>0$ đúng khi $-4<x<4$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -20863,11 +20863,11 @@
         "stage": "guided",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -20885,8 +20885,8 @@
         "stage": "recheck",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$.",
+        "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
+        "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -20907,11 +20907,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "support",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+3x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-1)(x+1)>0$ đúng khi $-1<x<1$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "B"
+          "answerKey": "C"
         }
       },
       {
@@ -20929,11 +20929,11 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "core",
-        "prompt": "Cho $f(x)=x^3-27x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-3)(x+3)<0$ đúng khi $-3<x<3$.",
+        "prompt": "Cho $f(x)=-x^3+75x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-5)(x+5)>0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -20951,8 +20951,8 @@
         "stage": "practice",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(-1;1)$\nB. $(-\\infty;-1)$\nC. $(1;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=x^3-75x$. Khoảng nghịch biến là\nA. $(-5;5)$\nB. $(-\\infty;-5)$\nC. $(5;+\\infty)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20961,7 +20961,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=3(x-5)(x+5)<0$ đúng khi $-5<x<5$."
             ]
           }
         }
@@ -20989,8 +20989,8 @@
         "stage": "extension",
         "skill": "monoRule",
         "branch": "extension",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là\nA. $(1;+\\infty)$\nB. $(-1;1)$\nC. $(-\\infty;-1)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+108x$. Khoảng đồng biến là\nA. $(6;+\\infty)$\nB. $(-6;6)$\nC. $(-\\infty;-6)$\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -20999,7 +20999,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+              "$f'(x)=-3(x-6)(x+6)>0$ đúng khi $-6<x<6$."
             ]
           }
         }
@@ -21008,8 +21008,8 @@
         "stage": "exit",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$.",
+        "prompt": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "C"
@@ -21030,11 +21030,11 @@
         "stage": "reserve",
         "skill": "monoRule",
         "branch": "shared",
-        "prompt": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
-        "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$.",
+        "prompt": "Cho $f(x)=-x^3+147x$. Khoảng đồng biến là",
+        "solution": "$f'(x)=-3(x-7)(x+7)>0$ đúng khi $-7<x<7$.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       }
     ]
@@ -21059,11 +21059,11 @@
         "stage": "precheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-1$ trong khoảng và tiến sát $-1$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -21103,11 +21103,11 @@
         "stage": "guided",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-6;6)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<36$ trong khoảng và tiến sát $36$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -21125,8 +21125,8 @@
         "stage": "recheck",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-4;4)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<16$ trong khoảng và tiến sát $16$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-9$ trong khoảng và tiến sát $-9$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -21147,11 +21147,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "support",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-5;5)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-25$ trong khoảng và tiến sát $-25$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "A"
+          "answerKey": "B"
         }
       },
       {
@@ -21169,11 +21169,11 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "core",
-        "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
-          "answerKey": "C"
+          "answerKey": "A"
         }
       },
       {
@@ -21199,8 +21199,8 @@
         "stage": "practice",
         "skill": "maxOpen",
         "branch": "extension",
-        "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?\nA. GTNN là $0$, GTLN là $9$.\nB. Không có GTNN và không có GTLN.\nC. GTNN là $0$, không có GTLN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-2;2)$. Khẳng định nào đúng?\nA. GTLN là $0$, GTNN là $-4$.\nB. Không có GTLN và không có GTNN.\nC. GTLN là $0$, không có GTNN.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -21209,7 +21209,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt."
+              "Giá trị $0$ đạt tại $x=0$; $-x^2>-4$ trong khoảng và tiến sát $-4$ ở biên, nhưng không đạt."
             ]
           }
         }
@@ -21248,8 +21248,8 @@
         "stage": "exit",
         "skill": "maxOpen",
         "branch": "shared",
-        "prompt": "Xét $f(x)=x^2$ trên $(-2;2)$. Khẳng định nào đúng?",
-        "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<4$ trong khoảng và tiến sát $4$ ở biên, nhưng không đạt.",
+        "prompt": "Xét $f(x)=-x^2$ trên $(-7;7)$. Khẳng định nào đúng?",
+        "solution": "Giá trị $0$ đạt tại $x=0$; $-x^2>-49$ trong khoảng và tiến sát $-49$ ở biên, nhưng không đạt.",
         "evaluation": {
           "checkerId": "choice_exact",
           "answerKey": "B"
@@ -22113,11 +22113,11 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[20;36),[36;52),[52;68)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=36+\\frac{5-4}{8}\\cdot16=38$; $Q_3=52+\\frac{15-12}{8}\\cdot16=58$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -22135,11 +22135,11 @@
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[40;48),[48;56),[56;64)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[80;96),[96;112),[112;128)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=96+\\frac{5-4}{8}\\cdot16=98$; $Q_3=112+\\frac{15-12}{8}\\cdot16=118$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -22157,11 +22157,11 @@
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[100;108),[108;116),[116;124)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=108+\\frac{5-4}{8}\\cdot8=109$; $Q_3=116+\\frac{15-12}{8}\\cdot8=119$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[10;14),[14;18),[18;22)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=14+\\frac{5-4}{8}\\cdot4=14.5$; $Q_3=18+\\frac{15-12}{8}\\cdot4=19.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 5
         }
       },
       {
@@ -22201,11 +22201,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[60;72),[72;84),[84;96)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=72+\\frac{5-4}{8}\\cdot12=73.5$; $Q_3=84+\\frac{15-12}{8}\\cdot12=88.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[70;74),[74;78),[78;82)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=74+\\frac{5-4}{8}\\cdot4=74.5$; $Q_3=78+\\frac{15-12}{8}\\cdot4=79.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 5
         }
       },
       {
@@ -22223,11 +22223,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[90;102),[102;114),[114;126)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=102+\\frac{5-4}{8}\\cdot12=103.5$; $Q_3=114+\\frac{15-12}{8}\\cdot12=118.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[110;114),[114;118),[118;122)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=114+\\frac{5-4}{8}\\cdot4=114.5$; $Q_3=118+\\frac{15-12}{8}\\cdot4=119.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 5
         }
       },
       {
@@ -22245,8 +22245,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[40;52),[52;64),[64;76)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=52+\\frac{5-4}{8}\\cdot12=53.5$; $Q_3=64+\\frac{15-12}{8}\\cdot12=68.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[40;48),[48;56),[56;64)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -22255,7 +22255,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=52+\\frac{5-4}{8}\\cdot12=53.5$; $Q_3=64+\\frac{15-12}{8}\\cdot12=68.5$; hiệu bằng $15$."
+              "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$."
             ]
           }
         }
@@ -22283,8 +22283,8 @@
         "stage": "extension",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[120;128),[128;136),[136;144)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=128+\\frac{5-4}{8}\\cdot8=129$; $Q_3=136+\\frac{15-12}{8}\\cdot8=139$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -22293,7 +22293,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$."
+              "$n=20$; vị trí $5,15$. $Q_1=128+\\frac{5-4}{8}\\cdot8=129$; $Q_3=136+\\frac{15-12}{8}\\cdot8=139$; hiệu bằng $10$."
             ]
           }
         }
@@ -22302,11 +22302,11 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[20;28),[28;36),[36;44)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[110;122),[122;134),[134;146)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=122+\\frac{5-4}{8}\\cdot12=123.5$; $Q_3=134+\\frac{15-12}{8}\\cdot12=138.5$; hiệu bằng $15$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 15
         }
       },
       {
@@ -22324,11 +22324,11 @@
         "stage": "reserve",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[60;72),[72;84),[84;96)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=72+\\frac{5-4}{8}\\cdot12=73.5$; $Q_3=84+\\frac{15-12}{8}\\cdot12=88.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[30;46),[46;62),[62;78)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=46+\\frac{5-4}{8}\\cdot16=48$; $Q_3=62+\\frac{15-12}{8}\\cdot16=68$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 20
         }
       }
     ]
@@ -24765,11 +24765,11 @@
         "stage": "precheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[10;18),[18;26),[26;34)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=18+\\frac{5-4}{8}\\cdot8=19$; $Q_3=26+\\frac{15-12}{8}\\cdot8=29$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[60;76),[76;92),[92;108)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=76+\\frac{5-4}{8}\\cdot16=78$; $Q_3=92+\\frac{15-12}{8}\\cdot16=98$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -24787,11 +24787,11 @@
         "stage": "formation",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[70;78),[78;86),[86;94)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=78+\\frac{5-4}{8}\\cdot8=79$; $Q_3=86+\\frac{15-12}{8}\\cdot8=89$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[120;136),[136;152),[152;168)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=136+\\frac{5-4}{8}\\cdot16=138$; $Q_3=152+\\frac{15-12}{8}\\cdot16=158$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -24809,11 +24809,11 @@
         "stage": "guided",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[20;28),[28;36),[36;44)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[50;54),[54;58),[58;62)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=54+\\frac{5-4}{8}\\cdot4=54.5$; $Q_3=58+\\frac{15-12}{8}\\cdot4=59.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 5
         }
       },
       {
@@ -24831,8 +24831,8 @@
         "stage": "recheck",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[100;108),[108;116),[116;124)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=108+\\frac{5-4}{8}\\cdot8=109$; $Q_3=116+\\frac{15-12}{8}\\cdot8=119$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
           "answerKey": 10
@@ -24853,11 +24853,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "support",
-        "prompt": "Các nhóm $[90;102),[102;114),[114;126)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=102+\\frac{5-4}{8}\\cdot12=103.5$; $Q_3=114+\\frac{15-12}{8}\\cdot12=118.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[110;114),[114;118),[118;122)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=114+\\frac{5-4}{8}\\cdot4=114.5$; $Q_3=118+\\frac{15-12}{8}\\cdot4=119.5$; hiệu bằng $5$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 5
         }
       },
       {
@@ -24875,11 +24875,11 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "core",
-        "prompt": "Các nhóm $[10;22),[22;34),[34;46)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=22+\\frac{5-4}{8}\\cdot12=23.5$; $Q_3=34+\\frac{15-12}{8}\\cdot12=38.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[20;28),[28;36),[36;44)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=28+\\frac{5-4}{8}\\cdot8=29$; $Q_3=36+\\frac{15-12}{8}\\cdot8=39$; hiệu bằng $10$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 10
         }
       },
       {
@@ -24897,8 +24897,8 @@
         "stage": "practice",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[70;82),[82;94),[94;106)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=82+\\frac{5-4}{8}\\cdot12=83.5$; $Q_3=94+\\frac{15-12}{8}\\cdot12=98.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[80;88),[88;96),[96;104)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=88+\\frac{5-4}{8}\\cdot8=89$; $Q_3=96+\\frac{15-12}{8}\\cdot8=99$; hiệu bằng $10$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -24907,7 +24907,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=82+\\frac{5-4}{8}\\cdot12=83.5$; $Q_3=94+\\frac{15-12}{8}\\cdot12=98.5$; hiệu bằng $15$."
+              "$n=20$; vị trí $5,15$. $Q_1=88+\\frac{5-4}{8}\\cdot8=89$; $Q_3=96+\\frac{15-12}{8}\\cdot8=99$; hiệu bằng $10$."
             ]
           }
         }
@@ -24935,8 +24935,8 @@
         "stage": "extension",
         "skill": "quartile",
         "branch": "extension",
-        "prompt": "Các nhóm $[40;48),[48;56),[56;64)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[30;42),[42;54),[54;66)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.\nGiải thích bằng định nghĩa hoặc công thức; nêu một bước kiểm tra để tránh lỗi thường gặp.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=42+\\frac{5-4}{8}\\cdot12=43.5$; $Q_3=54+\\frac{15-12}{8}\\cdot12=58.5$; hiệu bằng $15$.",
         "evaluation": {
           "rubric": {
             "criteria": [
@@ -24945,7 +24945,7 @@
               "Có bước kiểm tra dấu, miền, đơn vị hoặc biểu diễn phù hợp."
             ],
             "lookFor": [
-              "$n=20$; vị trí $5,15$. $Q_1=48+\\frac{5-4}{8}\\cdot8=49$; $Q_3=56+\\frac{15-12}{8}\\cdot8=59$; hiệu bằng $10$."
+              "$n=20$; vị trí $5,15$. $Q_1=42+\\frac{5-4}{8}\\cdot12=43.5$; $Q_3=54+\\frac{15-12}{8}\\cdot12=58.5$; hiệu bằng $15$."
             ]
           }
         }
@@ -24954,11 +24954,11 @@
         "stage": "exit",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[50;58),[58;66),[66;74)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=58+\\frac{5-4}{8}\\cdot8=59$; $Q_3=66+\\frac{15-12}{8}\\cdot8=69$; hiệu bằng $10$.",
+        "prompt": "Các nhóm $[20;36),[36;52),[52;68)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=36+\\frac{5-4}{8}\\cdot16=38$; $Q_3=52+\\frac{15-12}{8}\\cdot16=58$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 10
+          "answerKey": 20
         }
       },
       {
@@ -24976,11 +24976,11 @@
         "stage": "reserve",
         "skill": "quartile",
         "branch": "shared",
-        "prompt": "Các nhóm $[90;102),[102;114),[114;126)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
-        "solution": "$n=20$; vị trí $5,15$. $Q_1=102+\\frac{5-4}{8}\\cdot12=103.5$; $Q_3=114+\\frac{15-12}{8}\\cdot12=118.5$; hiệu bằng $15$.",
+        "prompt": "Các nhóm $[70;86),[86;102),[102;118)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+        "solution": "$n=20$; vị trí $5,15$. $Q_1=86+\\frac{5-4}{8}\\cdot16=88$; $Q_3=102+\\frac{15-12}{8}\\cdot16=108$; hiệu bằng $20$.",
         "evaluation": {
           "checkerId": "numeric_exact",
-          "answerKey": 15
+          "answerKey": 20
         }
       }
     ]

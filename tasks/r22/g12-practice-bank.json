@@ -37,20 +37,20 @@
     "introducedWeek": 1,
     "sample": {
       "type": "closed",
-      "prompt": "Cho $f(x)=x^3-12x$. Khoảng nghịch biến là",
+      "prompt": "Cho $f(x)=x^3-108x$. Khoảng nghịch biến là",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "$(-\\infty;-2)$"
+            "label": "$(-\\infty;-6)$"
           },
           {
             "id": "B",
-            "label": "$(2;+\\infty)$"
+            "label": "$(6;+\\infty)$"
           },
           {
             "id": "C",
-            "label": "$(-2;2)$"
+            "label": "$(-6;6)$"
           }
         ]
       },
@@ -58,7 +58,7 @@
         "checkerId": "choice_exact",
         "answerKey": "C"
       },
-      "solution": "$f'(x)=3(x-2)(x+2)<0$ đúng khi $-2<x<2$."
+      "solution": "$f'(x)=3(x-6)(x+6)<0$ đúng khi $-6<x<6$."
     }
   },
   {
@@ -252,12 +252,12 @@
     "introducedWeek": 4,
     "sample": {
       "type": "closed",
-      "prompt": "Xét $f(x)=x^2$ trên $(-3;3)$. Khẳng định nào đúng?",
+      "prompt": "Xét $f(x)=x^2$ trên $(-1;1)$. Khẳng định nào đúng?",
       "inputSchema": {
         "options": [
           {
             "id": "A",
-            "label": "GTNN là $0$, GTLN là $9$."
+            "label": "GTNN là $0$, GTLN là $1$."
           },
           {
             "id": "B",
@@ -273,7 +273,7 @@
         "checkerId": "choice_exact",
         "answerKey": "C"
       },
-      "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<9$ trong khoảng và tiến sát $9$ ở biên, nhưng không đạt."
+      "solution": "Giá trị $0$ đạt tại $x=0$; $x^2<1$ trong khoảng và tiến sát $1$ ở biên, nhưng không đạt."
     }
   },
   {
@@ -613,12 +613,12 @@
     "introducedWeek": 11,
     "sample": {
       "type": "closed",
-      "prompt": "Các nhóm $[0;8),[8;16),[16;24)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+      "prompt": "Các nhóm $[90;94),[94;98),[98;102)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
       "evaluation": {
         "checkerId": "numeric_exact",
-        "answerKey": 10
+        "answerKey": 5
       },
-      "solution": "$n=20$; vị trí $5,15$. $Q_1=8+\\frac{5-4}{8}\\cdot8=9$; $Q_3=16+\\frac{15-12}{8}\\cdot8=19$; hiệu bằng $10$."
+      "solution": "$n=20$; vị trí $5,15$. $Q_1=94+\\frac{5-4}{8}\\cdot4=94.5$; $Q_3=98+\\frac{15-12}{8}\\cdot4=99.5$; hiệu bằng $5$."
     }
   },
   {

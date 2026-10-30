@@ -40,20 +40,20 @@
       "label": "Câu 2",
       "type": "mc",
       "points": 0.5,
-      "text": "Cho $f(x)=x^3-48x$. Khoảng nghịch biến là",
+      "text": "Cho $f(x)=-x^3+27x$. Khoảng đồng biến là",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$(4;+\\infty)$",
-        "B": "$(-4;4)$",
-        "C": "$(-\\infty;-4)$"
+        "A": "$(3;+\\infty)$",
+        "B": "$(-3;3)$",
+        "C": "$(-\\infty;-3)$"
       },
       "noShuffle": false,
       "key": "B",
-      "solution": "$f'(x)=3(x-4)(x+4)<0$ đúng khi $-4<x<4$."
+      "solution": "$f'(x)=-3(x-3)(x+3)>0$ đúng khi $-3<x<3$."
     },
     {
       "id": "q3",

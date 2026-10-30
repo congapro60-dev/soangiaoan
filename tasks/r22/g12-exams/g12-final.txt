@@ -6,13 +6,13 @@ Thời gian: 80 phút
 
 PHẦN I. Trắc nghiệm (6 câu/3 điểm)
 
-Câu 1. (0,5 điểm) Cho $f(x)=x^3-3x$. Khoảng nghịch biến là
+Câu 1. (0,5 điểm) Cho $f(x)=x^3-147x$. Khoảng nghịch biến là
 
-A. $(-\infty;-1)$
+A. $(-\infty;-7)$
 
-B. $(1;+\infty)$
+B. $(7;+\infty)$
 
-C. $(-1;1)$
+C. $(-7;7)$
 
 Câu 2. (0,5 điểm) Cho $f(x)=\dfrac{x^2+0x-15}{x-4}=x+4+\dfrac1{x-4}$. Tiệm cận xiên là
 
@@ -56,7 +56,7 @@ C. $-4\sin x-2\cos x+C$
 
 PHẦN II. Trả lời ngắn (4 câu/3 điểm)
 
-Câu 7. (0,75 điểm) Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.
+Câu 7. (0,75 điểm) Các nhóm $[30;46),[46;62),[62;78)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.
 
 Câu 8. (0,75 điểm) Tính $\int_0^{3}(4x+1)\,dx$.
 

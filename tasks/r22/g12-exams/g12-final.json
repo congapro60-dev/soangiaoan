@@ -19,20 +19,20 @@
       "label": "Câu 1",
       "type": "mc",
       "points": 0.5,
-      "text": "Cho $f(x)=x^3-3x$. Khoảng nghịch biến là",
+      "text": "Cho $f(x)=x^3-147x$. Khoảng nghịch biến là",
       "options": [
         "A",
         "B",
         "C"
       ],
       "choiceText": {
-        "A": "$(-\\infty;-1)$",
-        "B": "$(1;+\\infty)$",
-        "C": "$(-1;1)$"
+        "A": "$(-\\infty;-7)$",
+        "B": "$(7;+\\infty)$",
+        "C": "$(-7;7)$"
       },
       "noShuffle": false,
       "key": "C",
-      "solution": "$f'(x)=3(x-1)(x+1)<0$ đúng khi $-1<x<1$."
+      "solution": "$f'(x)=3(x-7)(x+7)<0$ đúng khi $-7<x<7$."
     },
     {
       "id": "q2",
@@ -145,15 +145,15 @@
       "label": "Câu 7",
       "type": "short",
       "points": 0.75,
-      "text": "Các nhóm $[90;98),[98;106),[106;114)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
+      "text": "Các nhóm $[30;46),[46;62),[62;78)$ có tần số $4,8,8$. Dùng nội suy, tính khoảng tứ phân vị.",
       "noShuffle": false,
       "key": {
         "accept": [
-          "10",
-          "10"
+          "20",
+          "20"
         ]
       },
-      "solution": "$n=20$; vị trí $5,15$. $Q_1=98+\\frac{5-4}{8}\\cdot8=99$; $Q_3=106+\\frac{15-12}{8}\\cdot8=109$; hiệu bằng $10$."
+      "solution": "$n=20$; vị trí $5,15$. $Q_1=46+\\frac{5-4}{8}\\cdot16=48$; $Q_3=62+\\frac{15-12}{8}\\cdot16=68$; hiệu bằng $20$."
     },
     {
       "id": "q8",

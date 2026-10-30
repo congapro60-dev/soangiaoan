@@ -14,13 +14,13 @@ B. Hàm số không đổi.
 
 C. Hàm số đồng biến.
 
-Câu 2. (0,5 điểm) Cho $f(x)=x^3-48x$. Khoảng nghịch biến là
+Câu 2. (0,5 điểm) Cho $f(x)=-x^3+27x$. Khoảng đồng biến là
 
-A. $(4;+\infty)$
+A. $(3;+\infty)$
 
-B. $(-4;4)$
+B. $(-3;3)$
 
-C. $(-\infty;-4)$
+C. $(-\infty;-3)$
 
 Câu 3. (0,5 điểm) Hàm số liên tục có dấu $f'$ lần lượt là $+,-,+$ trên $(-\infty;3)$, $(3;5)$, $(5;+\infty)$. Điểm cực tiểu có hoành độ nào?
 
