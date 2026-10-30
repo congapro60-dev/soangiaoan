@@ -736,6 +736,8 @@ export interface GradingAdapter {
   tier: 're' | 'phi';
   /** Trần thời gian một lượt khi lớp này CHƯA phải lớp cuối (để còn giờ cho lớp sau). */
   maxMs?: number;
+  /** Model chấm kém hơn tầng chính: kết quả từ lớp này phải để GV soát (xem `withServedTap`). */
+  lowerQuality?: boolean;
   call: (prompt: string, images: InlineImage[], options: GeminiOptions, segment?: GeminiPromptSegment) => Promise<string>;
 }
 
@@ -754,9 +756,9 @@ export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRAD
 
 /**
  * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
- * Thứ tự: Vilao Gemini Flash (nhà bán chính) → Vilao Gemini Flash nhà bán khác → xKiro Gemini Flash
- * (gói xKiro) → Gemini Google (env GRADING_GEMINI_API_KEY/GEMINI_API_KEY). Cùng một dòng model đọc ảnh;
- * nguồn hỏng bị cầu dao gác 5 phút rồi tự thử lại (xem `orderByHealth`).
+ * Thứ tự: Vilao Gemini Flash → xKiro Gemini Flash (gói xKiro; hiện hay 503 nhưng hỏng NHANH, chạy lại
+ * là tự được dùng) → Vilao deepseek (kém hơn, bài bị gắn cờ GV soát) → Gemini Google. Nguồn hỏng bị cầu
+ * dao gác 5 phút rồi tự thử lại đúng vị trí cũ (xem `orderByHealth`).
  * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
  * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
  * dưới đây — không có cờ/env thừa.
@@ -781,6 +783,14 @@ export const orderByHealth = (chain: GradingAdapter[], now = Date.now()): Gradin
   return [...healthy, ...chain.filter(a => !healthy.includes(a))];
 };
 export const resetGradingHealth = () => downUntil.clear();
+
+/** Ghi lại lớp nào đã trả kết quả trong một khối việc — để biết bài có bị chấm bằng model kém hơn không. */
+const servedStorage = new AsyncLocalStorage<{ name: string; lowerQuality: boolean }[]>();
+export const withServedTap = async <T>(fn: () => Promise<T>): Promise<{ value: T; served: { name: string; lowerQuality: boolean }[] }> => {
+  const served: { name: string; lowerQuality: boolean }[] = [];
+  const value = await servedStorage.run(served, fn);
+  return { value, served };
+};
 
 /** Ép chuỗi chấm = đúng một model trong một khối việc (đo so sánh model). Ngoài khối này không ảnh hưởng gì. */
 const forcedChain = new AsyncLocalStorage<GradingAdapter[]>();
@@ -849,15 +859,6 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
       maxMs: 120_000,
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment, { provider: 'vilao', model: `vilao/${vilaoOptions.model}` }),
     });
-    // Cùng Gemini Flash nhưng NHÀ BÁN KHÁC trên chợ Vilao (Codely) — cứu khi nhà bán chính nghẽn.
-    // Đã đăng ký vào khoá chấm 30/10/2026; tối thiểu 20₫/lượt.
-    const backup: OpenAiVisionOptions = { baseUrl: vilaoOptions.baseUrl, model: 'gemini-3.8-flash-high' };
-    chain.push({
-      name: `vilao/${backup.model}`,
-      tier: 're',
-      maxMs: 120_000,
-      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...backup, ...options }, segment, { provider: 'vilao', model: `vilao/${backup.model}` }),
-    });
   }
   const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
   if (xkiroKey) {
@@ -869,7 +870,21 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
     chain.push({
       name: `xkiro/${xkiroOptions.model}`,
       tier: 're',
+      maxMs: 60_000,
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${xkiroOptions.model}` }),
+    });
+  }
+  if (vilaoKey) {
+    // Đo 30/10/2026: hai nhà bán Gemini khác trên Vilao (Codely, Butterfly) quá giờ 10/11 lượt, xKiro Gemini
+    // 503 cả 12 lượt → không có Gemini dự phòng dùng được. deepseek-v4.1-flash chạy được (lệch ~1,4/10 so
+    // với GV, gấp 3 lần Gemini) nên chỉ dùng khi Gemini hỏng, và bài chấm bằng lớp này luôn để GV soát.
+    const fallback: OpenAiVisionOptions = { baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1', model: 'deepseek-v4.1-flash' };
+    chain.push({
+      name: `vilao/${fallback.model}`,
+      tier: 're',
+      lowerQuality: true,
+      maxMs: 120_000,
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...fallback, ...options }, segment, { provider: 'vilao', model: `vilao/${fallback.model}` }),
     });
   }
   const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
@@ -913,6 +928,7 @@ export const callGradingVision = async (
     try {
       const raw = await adapter.call(prompt, images, timeoutMs === null ? options : { ...options, timeoutMs }, segment);
       markHealthy(adapter.name);
+      servedStorage.getStore()?.push({ name: adapter.name, lowerQuality: adapter.lowerQuality === true });
       return raw;
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.

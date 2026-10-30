@@ -39,7 +39,7 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
     expect(names[0]).toMatch(/^gemini\//);
   });
 
-  it('Vilao nhà bán chính → Vilao nhà bán khác → xKiro → Gemini làm lớp chót', () => {
+  it('Vilao Gemini → xKiro → Vilao deepseek (dự phòng kém hơn) → Gemini làm lớp chót', () => {
     stubEnv({
       GRADING_VILAO_API_KEY: 'k-vilao',
       GRADING_XKIRO_API_KEY: 'k-xkiro',
@@ -51,9 +51,10 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
 
     expect(names).toHaveLength(4);
     expect(names[0]).toBe('vilao/gemini-3.8-flash');
-    expect(names[1]).toBe('vilao/gemini-3.8-flash-high');
-    expect(names[2]).toMatch(/^xkiro\//);
+    expect(names[1]).toMatch(/^xkiro\//);
+    expect(names[2]).toBe('vilao/deepseek-v4.1-flash');
     expect(names[3]).toMatch(/^gemini\//);
+    expect(getGradingChain().find(a => a.name === 'vilao/deepseek-v4.1-flash')?.lowerQuality).toBe(true);
   });
 
   it('thiếu key xKiro thì chuỗi bỏ lớp đó, không vỡ', () => {
@@ -110,14 +111,14 @@ describe('callGradingVision — rơi xuống lớp xKiro khi lớp trước hỏ
     const signal = vi.spyOn(AbortSignal, 'timeout');
     let vilaoCalls = 0;
     const fetchMock = vi.fn(async (url: string) => {
-      // Lớp Vilao đầu ăn 45s rồi hỏng; lớp Vilao nhà bán khác hỏng ngay.
+      // Lớp Vilao đầu ăn 45s rồi hỏng; xKiro phục vụ.
       if (String(url).includes('api.vilao.ai')) { if (vilaoCalls++ === 0) vi.setSystemTime(Date.now() + 45_000); return failResponse(503); }
       return okResponse('ok');
     });
     vi.stubGlobal('fetch', fetchMock);
     try {
       expect(await callGradingVision('prompt', [], { timeoutMs: 50_000 })).toBe('ok');
-      expect(signal.mock.calls.map(call => call[0])).toEqual([50_000, 5_000, 5_000]);
+      expect(signal.mock.calls.map(call => call[0])).toEqual([50_000, 5_000]);
     } finally { signal.mockRestore(); vi.useRealTimers(); }
   });
 
@@ -149,11 +150,10 @@ describe('callGradingVision — rơi xuống lớp xKiro khi lớp trước hỏ
     const ketQua = await callGradingVision('prompt', [], {});
 
     expect(ketQua).toBe('trả lời từ xKiro');
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const urls = fetchMock.mock.calls.map(c => String(c[0]));
     expect(urls[0]).toContain('api.vilao.ai');
-    expect(urls[1]).toContain('api.vilao.ai');
-    expect(urls[2]).toContain('api.xkiro.com');
+    expect(urls[1]).toContain('api.xkiro.com');
   });
 
   it('không key nào thì báo lỗi nói rõ biến cần set', async () => {
@@ -206,10 +206,9 @@ describe('G4 — callUtilityVision đi qua chuỗi dự phòng', () => {
 
     expect(text).toBe('{"code":"103"}');
     const urls = fetchMock.mock.calls.map(c => String(c[0]));
-    expect(urls).toHaveLength(3);
+    expect(urls).toHaveLength(2);
     expect(urls[0]).toContain('api.vilao.ai');
-    expect(urls[1]).toContain('api.vilao.ai');
-    expect(urls[2]).toContain('api.xkiro.com');
+    expect(urls[1]).toContain('api.xkiro.com');
     expect(urls.some(u => u.includes('generativelanguage'))).toBe(false);
   });
 
@@ -256,8 +255,8 @@ describe('G4 — callUtilityVision đi qua chuỗi dự phòng', () => {
 
     expect(getGradingChain().map(a => a.name)).toEqual([
       'vilao/gemini-3.8-flash',
-      'vilao/gemini-3.8-flash-high',
       'xkiro/google/gemini-3.8-flash',
+      'vilao/deepseek-v4.1-flash',
     ]);
     expect(getGradingChain('utility').some(a => a.name.startsWith('gemini/'))).toBe(false);
   });

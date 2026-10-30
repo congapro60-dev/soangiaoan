@@ -61,6 +61,8 @@ const RULES: PriceRule[] = [
     ],
   },
   { label: 'Gemini 3.8 Flash', matches: m => m.startsWith('gemini-3.8-flash'), periods: FLASH_PERIODS },
+  // Lớp dự phòng chấm bài qua gói xKiro (30/10/2026): tính theo giá niêm yết Google, như lớp Gemini gốc.
+  { label: 'Gemini 3.8 Flash (xKiro)', matches: m => m.startsWith('xkiro/google/gemini-3.8-flash'), periods: FLASH_PERIODS },
   { label: 'Gemini 3.7 Flash', matches: m => m.startsWith('gemini-3.7-flash'), periods: FLASH_PERIODS },
   {
     label: 'Gemini 3.1 Pro',

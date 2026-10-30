@@ -28,6 +28,7 @@ import {
   benchmarkAdapter,
   listBenchmarkModels,
   runWithGradingChain,
+  withServedTap,
 } from './_grading-core.js';
 import {
   buildHomeworkGradingSegments,
@@ -630,20 +631,23 @@ const gradeOneSubmission = async (
       }
     }
 
-    let attempt: GradeAttemptResult;
-    try {
-      attempt = await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - 60_000), false, studentImageUrls);
-    } catch (error) {
-      if (!isRetryableGradeAttemptError(error)) throw error;
-      // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
-      // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
-      if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
-      attempt = await attemptHomeworkGrade(
-        gradeCtx, images, studentText, apiKey, 1, transcription, conLaiMs(),
-        error instanceof GeminiResponseError && error.kind === 'recitation',
-        studentImageUrls,
-      );
-    }
+    const { value: attempt, served } = await withServedTap(async (): Promise<GradeAttemptResult> => {
+      try {
+        return await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - 60_000), false, studentImageUrls);
+      } catch (error) {
+        if (!isRetryableGradeAttemptError(error)) throw error;
+        // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
+        // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
+        if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
+        return attemptHomeworkGrade(
+          gradeCtx, images, studentText, apiKey, 1, transcription, conLaiMs(),
+          error instanceof GeminiResponseError && error.kind === 'recitation',
+          studentImageUrls,
+        );
+      }
+    });
+    // Tầng chính (Gemini) hỏng, bài được chấm bằng model dự phòng kém hơn → mọi câu để GV soát, không tự duyệt.
+    const fallbackModel = served.find(entry => entry.lowerQuality)?.name;
     // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
     // giữ nguyên câu thầy cô đã soát tay ở lần trước.
     // Phiếu tô mẫu Bộ: câu tô lấy theo máy dò (tất định), AI chỉ còn chấm tự luận. Không có phiếu → bộ dò cũ.
@@ -671,6 +675,11 @@ const gradeOneSubmission = async (
       });
       if (uncertain || !omrDetected.length) reconciled.noteForTeacher = [reconciled.noteForTeacher,
         'Máy dò bóng không chắc — GV kiểm tra lại phần trắc nghiệm.'].filter(Boolean).join('\n');
+    }
+    if (fallbackModel) {
+      reconciled.questionResults = reconciled.questionResults?.map(q => (q.teacherEdited ? q : { ...q, needsTeacherReview: true }));
+      reconciled.noteForTeacher = [reconciled.noteForTeacher,
+        `Máy chấm chính tạm lỗi nên bài này được chấm bằng model dự phòng (${fallbackModel}), độ chính xác thấp hơn — thầy cô soát lại trước khi duyệt.`].filter(Boolean).join('\n');
     }
     if (omrSheetApplied?.uncertain) reconciled.noteForTeacher = [reconciled.noteForTeacher,
       `Máy dò phiếu tô chưa chắc ${omrSheetApplied.uncertain} câu (tô mờ, tô hai ô hoặc nét chấm phủ ô) — thầy cô soát các câu gắn cờ.`].filter(Boolean).join('\n');

@@ -108,9 +108,7 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     vi.stubEnv('GRADING_GEMINI_API_KEY', '');
     vi.stubEnv('GRADING_XKIRO_API_KEY', 'k-xkiro');
     vi.stubEnv('GRADING_XKIRO_MODEL', 'qwen/qwen3.8-max:free');
-    // Cả hai lớp Vilao (nhà bán chính + nhà bán khác) hỏng → xKiro phục vụ.
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
       .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
       .mockImplementationOnce(vilaoOk('ok-xkiro', { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }));
     vi.stubGlobal('fetch', fetchMock);
@@ -132,7 +130,7 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     })));
 
     await expect(asBilledTeacher(() => callGradingVision('chấm', [], {}))).rejects.toMatchObject({ kind: 'max_tokens' });
-    // Hai lớp Vilao cùng bị cắt → mỗi lượt đều ghi và trừ tiền (400₫ × 2).
+    // Lớp Vilao Gemini và lớp Vilao deepseek cùng bị cắt → mỗi lượt đều ghi và trừ tiền (400₫ × 2).
     expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 9_200, heldVnd: 0 });
     expect(usageRows()[0]).toMatchObject({ finishReason: 'length' });
   });
@@ -157,12 +155,14 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
     vi.stubEnv('GRADING_GEMINI_API_KEY', '');
     vi.stubEnv('GRADING_XKIRO_API_KEY', 'k-xkiro');
+    vi.stubEnv('GRADING_XKIRO_MODEL', 'qwen/qwen3.8-max:free');
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'down' })
       .mockImplementationOnce(vilaoOk('ok-xkiro')));
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     await asBilledTeacher(() => callGradingVision('chấm', [], {}));
+    resetGradingHealth(); // lượt 2 phải đi lại từ Vilao (đã có giá), không bị cầu dao dồn xuống
     h.store['aiWallets/gv-1'] = { balanceVnd: 10_000 };
     vi.stubGlobal('fetch', vilaoOk());
     await asBilledTeacher(() => callGradingVision('chấm', [], {}));
