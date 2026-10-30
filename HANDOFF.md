@@ -29,11 +29,11 @@
 | archive | `C:\Users\ADMIN\.codex\sites-release\release-20261029-v40.tar.gz` |
 | archive size | 44143412 bytes |
 
-## Latest checkpoint - V42 DANG DEPLOY: chan vao muon + luong khan gia (29/10/2026)
+## Latest checkpoint - V42 DA PHAT HANH: chan vao muon + luong khan gia (30/10/2026)
 
 **Branch**: 'codex/universal-content-release' · Base: '0698daf' (= version 41 da phat hanh).
 
-### Trang thai: DANG DEPLOY — code + test + build xong, cho deploy.
+### Trang thai: DA PHAT HANH — deployment `appgdep_6ae4147b144081919f462f5a011cf622`, Site version 42.
 
 ### Noi dung thay doi v42
 
@@ -50,10 +50,10 @@
 | Truong | Gia tri |
 |---|---|
 | version_number | **42** |
-| deployment_id | (placeholder — Codex dien sau deploy) |
-| commit_sha | (placeholder — Codex dien sau commit) |
-| archive | release-20261029-v42.tar.gz (placeholder) |
-| archive size | (placeholder) |
+| deployment_id | `appgdep_6ae4147b144081919f462f5a011cf622` |
+| commit_sha | `c857096aacb6cb6edff72cbc4d52778adb6150b4` |
+| archive | `C:\Users\ADMIN\.codex\sites-release\release-20261030-v42.tar.gz` |
+| archive size | 44149944 bytes |
 
 
 ### Ghi chú Tuần 12 (29/10)
