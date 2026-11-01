@@ -13,6 +13,7 @@
 - **Sửa triệt để**: 4 builder (`build-hki-g11/g12`, `build-hkii-g11/g12`) chuyển sang `prompt.toLowerCase()` trước khi so khớp; test `tests/hkii-e2e-gameplay.test.mjs` đổi sang regex `/tứ diện|hình chóp|lăng trụ|hình hộp/i`.
 - Rebuild toàn bộ + catalogue → audit case-insensitive: **HKI 5.350 tasks & HKII 5.882 tasks đều 0 duplicates, 0 missing solidKey**.
 - 7/7 test E2E PASS (HKII test giờ bắt được lỗi hoa/thường).
+- Dọn dẹp: xóa script tạm `do-commit.mjs` khỏi repo; giữ `check_cheo_payload_20261101.md` làm bằng chứng QA của lần check chéo.
 
 ## Checkpoint trước - PHÁT HÀNH TOÀN DIỆN HỌC KỲ II (Tuần 19 -> Tuần 35/38) 100% SẠCH (30/10/2026)
 
