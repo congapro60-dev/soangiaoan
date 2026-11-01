@@ -29,7 +29,7 @@ test('HKII E2E: all 404 lessons across G10, G11, G12 run smoothly with 0 duplica
       promptSet.add(p);
 
       // Verify solidKey for 3D geometry
-      const is3D = p.includes('tứ diện') || p.includes('hình chóp') || p.includes('lăng trụ') || p.includes('hình hộp');
+      const is3D = /tứ diện|hình chóp|lăng trụ|hình hộp/i.test(p);
       if (is3D) {
         assert.ok(t.solidKey, `Missing solidKey in lesson ${lessonMeta.id}: ${p}`);
       }

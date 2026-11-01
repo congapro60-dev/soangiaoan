@@ -910,7 +910,7 @@ for(const period of grade.lessons){
   try{result=makeEntry(period,focus,eligible);}catch(error){throw new Error(`${period.id} (period ${period.period}): ${error.message}`,{cause:error});}
   for(const task of result.entry.pkg.tasks){
     if(!task.solidKey){
-      const p=task.prompt;
+      const p=task.prompt.toLowerCase();
       if(p.includes('tứ diện')){
         task.solidKey='tu-dien-sabc';
       }else if(p.includes('hình chóp')){

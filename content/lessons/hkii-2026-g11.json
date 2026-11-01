@@ -8456,7 +8456,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -8500,7 +8501,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -8547,7 +8549,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -8591,7 +8594,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -8635,7 +8639,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -8682,7 +8687,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -8726,7 +8732,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -8770,7 +8777,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-6-1",
@@ -8814,7 +8822,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -9257,7 +9266,7 @@
       "group_score"
      ]
     },
-    "contentHash": "9af6ef779803d28fc76839583f170136c2920c6acb51a8f0ea69e07c70f9cefe"
+    "contentHash": "3b6916e549c6f9802c9269f8ef0acb21345e932e5b930740abeb2d97642ef702"
    },
    "citations": [
     {
@@ -24471,7 +24480,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -24552,7 +24562,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -24676,7 +24687,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -24720,7 +24732,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -24801,7 +24814,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -25002,7 +25016,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -25663,7 +25678,7 @@
       "group_score"
      ]
     },
-    "contentHash": "0ef2275580b9cb87cde9b9d32319f0160a7172664c5dd69b0c5e2c7c2e8ad777"
+    "contentHash": "4f9c5333c554ab422506194e89cfe3c10b22f17f70364d49095c65b475149a39"
    },
    "citations": [
     {
@@ -77095,7 +77110,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -77176,7 +77192,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -77300,7 +77317,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -77344,7 +77362,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -77425,7 +77444,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -77626,7 +77646,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -78287,7 +78308,7 @@
       "group_score"
      ]
     },
-    "contentHash": "22a730efd3a0d344b9cc36b9ea8c3bd905de7fbcafb83651fc927112719bc6ad"
+    "contentHash": "45c4ed328df950bd56ec68cf639294abf4efd4089aaa4b0658d7d420b9c5c028"
    },
    "citations": [
     {
@@ -102187,7 +102208,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -102268,7 +102290,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -102392,7 +102415,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -102436,7 +102460,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -102517,7 +102542,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -102718,7 +102744,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$B'C'\\parallel BC$ và $AB\\perp BC$ vì đáy là hình chữ nhật; do đó góc giữa $AB,B'C'$ bằng $90^\\circ$. Hai đường không cắt nhau, không song song, nên chéo nhau. $AB,BC$ cắt nhau vuông góc tại $B$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -103379,7 +103406,7 @@
       "group_score"
      ]
     },
-    "contentHash": "f72a74626a6e6f5daf49767396c5849bce12f7199e403a6aa46d85ce82d34258"
+    "contentHash": "38e1e2c2604b80a8b4490ab535ac73dc407c57dbd0952e7a52b31df6e59ae996"
    },
    "citations": [
     {
@@ -146469,7 +146496,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=8$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $9$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $8$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -146513,7 +146541,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=4$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $8$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $4$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -146560,7 +146589,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=7$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $7$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -146604,7 +146634,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=3$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $6$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $3$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -146648,7 +146679,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=6$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $5$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $6$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -146695,7 +146727,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=9$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $4$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $9$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -146739,7 +146772,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=5$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $9$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $5$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -146827,7 +146861,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=4$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $4$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -147270,7 +147305,7 @@
       "group_score"
      ]
     },
-    "contentHash": "5b994338504c29348f2703070522f5d9d1a198f5fbed68679c5ef5d4cf572a15"
+    "contentHash": "9c09c3942ebe5a768e0d0da4c2167ca4734733e32c5c9ef29b6a7888fef9da14"
    },
    "citations": [
     {
@@ -157694,7 +157729,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=3$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $9$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $3$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -157782,7 +157818,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=6$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $8$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $6$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -157920,7 +157957,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=9$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $9$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -157964,7 +158002,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=5$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $6$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $5$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -158052,7 +158091,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=8$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $5$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $8$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -158274,7 +158314,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=6$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $6$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -158935,7 +158976,7 @@
       "group_score"
      ]
     },
-    "contentHash": "95126f37b28ad349bf6c577abf6fc9a2dc857058846d0e5748f797f2cbab7b73"
+    "contentHash": "9d3367e1aeb0319f75aa269ac7b32c160c1e68ee6661a9daabb9c2342e3e78f1"
    },
    "citations": [
     {
@@ -172708,7 +172749,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $6\\cdot10=60$ cm$^2$. Chiều cao $4$ cm, nên $V=S_{\\text{đáy}}h=240$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -172745,7 +172787,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot7\\cdot14=49$ cm$^2$. Chiều cao $7$ cm, nên $V=S_{\\text{đáy}}h=343$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -172785,7 +172828,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $8\\cdot4=32$ cm$^2$. Chiều cao $3$ cm, nên $V=S_{\\text{đáy}}h=96$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -172822,7 +172866,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $9\\cdot8=72$ cm$^2$. Chiều cao $6$ cm, nên $V=S_{\\text{đáy}}h=432$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -172859,7 +172904,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot2\\cdot12=12$ cm$^2$. Chiều cao $9$ cm, nên $V=S_{\\text{đáy}}h=108$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -172899,7 +172945,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $3\\cdot16=48$ cm$^2$. Chiều cao $5$ cm, nên $V=S_{\\text{đáy}}h=240$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -172936,7 +172983,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot4\\cdot6=12$ cm$^2$. Chiều cao $8$ cm, nên $V=S_{\\text{đáy}}h=96$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -173017,7 +173065,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $6\\cdot14=84$ cm$^2$. Chiều cao $7$ cm, nên $V=S_{\\text{đáy}}h=588$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -173460,7 +173509,7 @@
       "group_score"
      ]
     },
-    "contentHash": "44006492fde019368437575d18f4bb6d348eb6a255136f3fc33790002d4791ca"
+    "contentHash": "56673a3cdd4f0b0ab34286aca498f8dfc8ce328c52ed1f08726d8238f7f1a60c"
    },
    "citations": [
     {
@@ -175339,7 +175388,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $4\\cdot4=16$ cm$^2$. Chiều cao $3$ cm, nên $V=S_{\\text{đáy}}h=48$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -175376,7 +175426,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot5\\cdot8=20$ cm$^2$. Chiều cao $6$ cm, nên $V=S_{\\text{đáy}}h=120$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -175416,7 +175467,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $6\\cdot12=72$ cm$^2$. Chiều cao $9$ cm, nên $V=S_{\\text{đáy}}h=648$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-2",
@@ -175453,7 +175505,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $7\\cdot16=112$ cm$^2$. Chiều cao $5$ cm, nên $V=S_{\\text{đáy}}h=560$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -175490,7 +175543,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot8\\cdot6=24$ cm$^2$. Chiều cao $8$ cm, nên $V=S_{\\text{đáy}}h=192$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -175530,7 +175584,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $9\\cdot10=90$ cm$^2$. Chiều cao $4$ cm, nên $V=S_{\\text{đáy}}h=360$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-2",
@@ -175567,7 +175622,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot2\\cdot14=14$ cm$^2$. Chiều cao $7$ cm, nên $V=S_{\\text{đáy}}h=98$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-3",
@@ -175648,7 +175704,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $4\\cdot8=32$ cm$^2$. Chiều cao $6$ cm, nên $V=S_{\\text{đáy}}h=192$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -176091,7 +176148,7 @@
       "group_score"
      ]
     },
-    "contentHash": "d5ce86d116f475662baf33388d9294dc7487b9db7de4e300d6ca8b811fcdd90a"
+    "contentHash": "d9792c0dcc20181c98e5f7e77804f05676986cb7829de0201470fc8b6cb5b9ec"
    },
    "citations": [
     {
@@ -203556,7 +203613,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=5$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $9$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $5$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -203645,7 +203703,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=8$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $8$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $8$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -203785,7 +203844,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=4$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $4$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -203829,7 +203889,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=7$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $6$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $7$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -203918,7 +203979,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=3$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $5$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $3$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -204145,7 +204207,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "$AB\\parallel CD$ và $AD\\perp AB,CD$, nên khoảng cách thứ nhất $AD=8$ cm. Đường $A'B'$ song song đáy; đoạn $A'A$ vuông góc đáy cho khoảng cách $7$ cm. Hai mặt bên song song, $AD$ vuông góc cả hai nên khoảng cách $8$ cm."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -204806,7 +204869,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1b840da7a51b922845ba2f6a43be4c89e61cc739ecf2ec3e40bf8c244957d6a0"
+    "contentHash": "9ac83b74fc4ddc68d0c33c43642ea72343dbf0dca1e9a59051754a49c275f7fb"
    },
    "citations": [
     {
@@ -213988,7 +214051,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $8\\cdot8=64$ cm$^2$. Chiều cao $6$ cm, nên $V=S_{\\text{đáy}}h=384$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-2-1",
@@ -214062,7 +214126,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot9\\cdot12=54$ cm$^2$. Chiều cao $9$ cm, nên $V=S_{\\text{đáy}}h=486$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-1",
@@ -214179,7 +214244,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $2\\cdot16=32$ cm$^2$. Chiều cao $5$ cm, nên $V=S_{\\text{đáy}}h=160$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-3-4",
@@ -214216,7 +214282,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $3\\cdot6=18$ cm$^2$. Chiều cao $8$ cm, nên $V=S_{\\text{đáy}}h=144$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-4-1",
@@ -214290,7 +214357,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $\\frac12\\cdot4\\cdot10=20$ cm$^2$. Chiều cao $4$ cm, nên $V=S_{\\text{đáy}}h=80$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-5-1",
@@ -214484,7 +214552,8 @@
        },
        "numericReviewRequired": true,
        "workedSolution": "Diện tích đáy $8\\cdot12=96$ cm$^2$. Chiều cao $9$ cm, nên $V=S_{\\text{đáy}}h=864$ cm$^3$."
-      }
+      },
+      "solidKey": "hop-chu-nhat"
      },
      {
       "id": "task-7-1",
@@ -215145,7 +215214,7 @@
       "group_score"
      ]
     },
-    "contentHash": "0e96c8d469a8b789a28b57227b989e1089c131c890548e03b131617a61139742"
+    "contentHash": "001b6d105064701383815f32005cfb2b8182a97aeec99395e533c7c2b960ee9b"
    },
    "citations": [
     {

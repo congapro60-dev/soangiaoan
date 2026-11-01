@@ -1,0 +1,55 @@
+#!/bin/sh
+# Chặn push khi HANDOFF.md không được cập nhật trong đám commit sắp đẩy đi.
+# Bỏ qua một lần (hotfix gấp):  git push --no-verify
+# Đây là quyết định của NGƯỜI DÙNG. Trợ lý AI không được tự thêm cờ này để đi vòng.
+FILE="HANDOFF.md"
+KHONG="0000000000000000000000000000000000000000"
+TRAN=150
+loi=0
+
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$KHONG" ] && continue
+
+  moc=""
+  if [ "$remote_sha" != "$KHONG" ] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    moc="$remote_sha"
+  else
+    nhanh=${remote_ref#refs/heads/}
+    moc=$(git rev-parse --verify --quiet "refs/remotes/origin/$nhanh")
+  fi
+
+  if [ -n "$moc" ]; then
+    files=$(git diff --name-only "$moc" "$local_sha" 2>/dev/null)
+  else
+    files=$(git show --pretty=format: --name-only "$local_sha" 2>/dev/null)
+  fi
+  [ -z "$files" ] && continue
+
+  chi_tai_lieu=1
+  for f in $files; do
+    case "$f" in
+      tasks/lessons.md|docs/*) ;;
+      *) chi_tai_lieu=0; break ;;
+    esac
+  done
+  [ "$chi_tai_lieu" = "1" ] && continue
+
+  if [ ! -f "$FILE" ]; then
+    printf >&2 '\n[handoff] CHẶN push: dự án chưa có %s.\n' "$FILE"
+    loi=1
+    continue
+  fi
+
+  if ! printf '%s\n' "$files" | grep -qx "$FILE"; then
+    printf >&2 '\n[handoff] CHẶN push: %s KHÔNG được cập nhật trong các commit sắp đẩy đi.\n' "$FILE"
+    printf >&2 'Ghi vào %s: đã đổi gì và VÌ SAO, còn dở gì, cái gì sắp cắn người sau, lệnh nghiệm thu.\n' "$FILE"
+    printf >&2 'Commit chỉ đụng tasks/lessons.md hoặc docs/** thì được miễn. Hotfix gấp: git push --no-verify\n'
+    loi=1
+  fi
+done
+
+if [ -f "$FILE" ]; then
+  n=$(wc -l < "$FILE" | tr -d ' ')
+  [ "$n" -gt "$TRAN" ] && printf >&2 '\n[handoff] ⚠ %s đang %s dòng, vượt trần %s. Nên cắt sang docs/HANDOFF-ARCHIVE.md.\n' "$FILE" "$n" "$TRAN"
+fi
+exit $loi

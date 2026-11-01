@@ -4,7 +4,17 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - PHÁT HÀNH TOÀN DIỆN HỌC KỲ II (Tuần 19 -> Tuần 35/38) 100% SẠCH (30/10/2026)
+## Latest checkpoint - FIX TRIỆT ĐỂ LỖI CASE-SENSITIVE solidKey (tìm ra nhờ check chéo Claude CLI) (01/11/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Phát hiện & xử lý
+- Check chéo bằng **Claude CLI** phát hiện: 69 task G11-HKII (10 bài `r23-g11-discover-r*`) có prompt viết hoa đầu câu (`"Hình hộp chữ nhật..."`) nhưng **thiếu `solidKey`** — audit và test E2E cũ đều so khớp **case-sensitive** nên báo 0 giả (false green).
+- **Sửa triệt để**: 4 builder (`build-hki-g11/g12`, `build-hkii-g11/g12`) chuyển sang `prompt.toLowerCase()` trước khi so khớp; test `tests/hkii-e2e-gameplay.test.mjs` đổi sang regex `/tứ diện|hình chóp|lăng trụ|hình hộp/i`.
+- Rebuild toàn bộ + catalogue → audit case-insensitive: **HKI 5.350 tasks & HKII 5.882 tasks đều 0 duplicates, 0 missing solidKey**.
+- 7/7 test E2E PASS (HKII test giờ bắt được lỗi hoa/thường).
+
+## Checkpoint trước - PHÁT HÀNH TOÀN DIỆN HỌC KỲ II (Tuần 19 -> Tuần 35/38) 100% SẠCH (30/10/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release`.
 

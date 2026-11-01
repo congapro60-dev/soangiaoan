@@ -591,7 +591,7 @@ function buildLesson(period, ids, eligible = []) {
  const result=assembleHkiiPackage({period,title,slotMinutes:40,sourcePeriods,unitReferences,prerequisites:['Kiến thức được dẫn ở các tiết PPCT nguồn; GV dùng dự đoán đầu giờ để xác nhận trước khi tăng mức.'],outline:{format:'lesson-outline-v1',essentialQuestion:ids.map(id=>bank[id].statement).join(' '),objectives:ids.map(id=>({statement:bank[id].statement,level:'must',source:citationFor(id)})),activities,uncertainties:[...(ids.some(id=>Object.hasOwn(hk,id))?['OBJECTIVES_AUTHORED_FROM_CURRENT_PPCT_NOT_EXACT_UNIT_OVERVIEW_LO']:[]),...(feedback?['FEEDBACK_EXAMPLES_ARE_SYNTHETIC_NO_ACTUAL_CLASS_RESULTS']:[])]},rubric:{criteria:ids.map(id=>bank[id].statement),lookFor:ids.map(id=>`Kiểm cách làm và điều kiện; lỗi cần quan sát: ${bank[id].error}`)}});
  for(const task of result.pkg.tasks) {
   if(!task.solidKey){
-   const p=task.prompt;
+   const p=task.prompt.toLowerCase();
    if(p.includes('tứ diện')){
     task.solidKey='tu-dien-sabc';
    }else if(p.includes('hình chóp')){

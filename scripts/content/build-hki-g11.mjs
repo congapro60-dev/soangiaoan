@@ -360,12 +360,12 @@ function buildLesson(period,ids,eligible=[]){
  for(const task of result.pkg.tasks){
   task.metadata={...task.metadata,...(solutions.has(task.prompt)?{workedSolution:solutions.get(task.prompt)}:{})};
   if(!task.solidKey){
-   const p=task.prompt;
-   if(p.includes('tứ diện')||p.includes('SABC')){
+   const p=task.prompt.toLowerCase();
+   if(p.includes('tứ diện')||p.includes('sabc')){
     task.solidKey='tu-dien-sabc';
-   }else if(p.includes('hình chóp $S.ABCD$')||p.includes('S.ABCD')||p.includes('hình chóp')){
+   }else if(p.includes('hình chóp $s.abcd$')||p.includes('s.abcd')||p.includes('hình chóp')){
     task.solidKey='chop-sabcd';
-   }else if(p.includes('hình hộp')||p.includes('lăng trụ')||p.includes("ABC.A'B'C'")){
+   }else if(p.includes('hình hộp')||p.includes('lăng trụ')||p.includes("abc.a'b'c'")){
     task.solidKey='hop-chu-nhat';
    }
   }
