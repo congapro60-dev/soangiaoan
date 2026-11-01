@@ -8,5 +8,6 @@
 | 4 | Math Diagram Standard v1.0 — áp vào MathFigureZoom (zoom/pan/reset, tỉ lệ chuẩn 1x–4x) | XONG | tích hợp trong `MathFigureZoom.tsx` |
 | 5 | Tuần 12 — Bài mở đầu: Khối 10 (`tds-g10-86` / `10-12-88`) Tiết 2 Tứ phân vị và Mốt | XONG | Pha A + B xong, đã nạp snapshot, timeline `gateD101288`, xuất bản portal (59 gói), QA live 12 chặng PASS (`tasks/qa-report-10-12-88.md`). Đã đồng bộ Git cả 2 nhánh. |
 | 6 | Tuần 12 — Khối 11 (`tds-g11-82` / `11-12-82`) Tiết 2 Tứ phân vị và mốt của mẫu số liệu ghép nhóm | XONG | Pha A + B xong, đã nạp snapshot, timeline `gateD111282`, xuất bản portal (60 gói), QA live 12 chặng PASS (`tasks/qa-report-11-12-82.md`). Đã nghiệm thu xong. |
+| 7 | Tuần 12 — Khối 12 (`tds-g12-82` / `12-12-82`) Nguyên hàm: Tiết 3 Tính chất cơ bản của nguyên hàm | XONG | Pha A + B xong, đã nạp snapshot, timeline `gateD121282`, xuất bản portal (61 gói), QA live 12 chặng PASS (`tasks/qa-report-12-12-82.md`). Đã nghiệm thu xong. |
 
-Thứ tự: 1–6 (xong toàn diện). Chuẩn bị chuyển sang bài tiếp theo của Tuần 12 theo PPCT (Khối 12).
+Thứ tự: 1–7 (xong toàn diện). Chuẩn bị chuyển sang bài tiếp theo của Tuần 12 theo PPCT.

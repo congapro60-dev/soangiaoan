@@ -10,8 +10,8 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
   });
 
   it('Cổng chốt catalog batch2 — đủ đúng 7 key mới nghiệm thu đợt (Task 11 Step 1b)', () => {
-    expect(W11BATCH2).toHaveLength(9);
-    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88', '11-12-82']);
+    expect(W11BATCH2).toHaveLength(10);
+    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88', '11-12-82', '12-12-82']);
   });
 
   it('merge batch2 không làm mất gói gốc', () => {
@@ -32,7 +32,7 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
 
   it.each(W11BATCH2)('$key có metadata packageId khớp quy ước', ({ key, grade, period, title }) => {
     const metadata = getBanToanV4PackageMetadata().find(item => item.sourceKey === key);
-    const week = (key === '10-12-88' || key === '11-12-82') ? 12 : 11;
+    const week = (key === '10-12-88' || key === '11-12-82' || key === '12-12-82') ? 12 : 11;
     expect(metadata?.packageId).toBe(`g${grade}_w${week}_p${period}_v4`);
     expect(metadata?.title).toBe(title);
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe(key);
@@ -83,6 +83,14 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
     expect(spans).toEqual([
       [0, 180], [180, 420], [420, 540], [540, 840], [840, 1020], [1020, 1080],
       [1080, 1560], [1560, 1740], [1740, 2040], [2040, 2220], [2220, 2400],
+    ]);
+  });
+
+  it('12-12-82 chạy timeline Gate D riêng (3-4-2-6-3-1-7-3-5-3-3 phút)', () => {
+    const spans = getBanToanV4Contract('12-12-82').timeline.map((b) => [b.startSeconds, b.endSeconds]);
+    expect(spans).toEqual([
+      [0, 180], [180, 420], [420, 540], [540, 900], [900, 1080], [1080, 1140],
+      [1140, 1560], [1560, 1740], [1740, 2040], [2040, 2220], [2220, 2400],
     ]);
   });
 

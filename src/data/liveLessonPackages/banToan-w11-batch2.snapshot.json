@@ -854,6 +854,93 @@
         "   - Q3 = 4 + ((30 - 20)/15) · 2 ≈ 5,33 giờ.",
         "   - Mo = 4 + ((15 - 14)/((15 - 14) + (15 - 5))) · 2 ≈ 4,18 giờ."
       ]
+    },
+    {
+      "key": "12-12-82",
+      "grade": 12,
+      "week": 12,
+      "period": 82,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "timelineKey": "gateD121282",
+      "title": "Tính chất cơ bản của nguyên hàm",
+      "focus": "Hình thành và vận dụng các tính chất cơ bản của nguyên hàm (tính chất tuyến tính: nhân hằng số khác 0, cộng trừ hai hàm số); nhận diện bẫy nguyên hàm của tích và đưa biến ra ngoài dấu tích phân; xác định nguyên hàm qua điều kiện ban đầu",
+      "formulas": [
+        "\\int k f(x) dx = k \\int f(x) dx \\quad (k \\neq 0)",
+        "\\int [f(x) \\pm g(x)] dx = \\int f(x) dx \\pm \\int g(x) dx",
+        "F(x_0) = y_0 \\Rightarrow C = y_0 - F_0(x_0)"
+      ],
+      "examples": [
+        {
+          "question": "Tìm họ nguyên hàm của hàm số đa thức: F(x) = ∫ (6x² - 4x + 3) dx.",
+          "solution": "Áp dụng tính chất tuyến tính của nguyên hàm: F(x) = 6 ∫ x² dx - 4 ∫ x dx + 3 ∫ dx = 6·(x³/3) - 4·(x²/2) + 3x + C = 2x³ - 2x² + 3x + C."
+        },
+        {
+          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = 4x³ - 3cos x + 1 thỏa mãn điều kiện ban đầu F(0) = 5.",
+          "solution": "Họ nguyên hàm của f(x) là: F(x) = ∫ (4x³ - 3cos x + 1) dx = x⁴ - 3sin x + x + C. Thay điều kiện ban đầu F(0) = 5: 0⁴ - 3sin 0 + 0 + C = 5 ⇔ C = 5. Vậy nguyên hàm cần tìm là F(x) = x⁴ - 3sin x + x + 5."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nêu 2 tính chất cơ bản của nguyên hàm và tính họ nguyên hàm I = ∫ (3x² + 2x) dx.",
+          "answer": "Hai tính chất: 1) ∫ k f(x) dx = k ∫ f(x) dx (k ≠ 0); 2) ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx. Áp dụng: I = 3(x³/3) + 2(x²/2) + C = x³ + x² + C."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm họ nguyên hàm của hàm số: f(x) = 4e^x - 5sin x.",
+          "answer": "F(x) = ∫ (4e^x - 5sin x) dx = 4 ∫ e^x dx - 5 ∫ sin x dx = 4e^x + 5cos x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm họ nguyên hàm của hàm phân thức: f(x) = (2x² + 3x - 1) / x trên khoảng (0; +∞).",
+          "answer": "Tách phân thức: f(x) = 2x + 3 - 1/x. Khi đó F(x) = ∫ (2x + 3 - 1/x) dx = x² + 3x - ln|x| + C = x² + 3x - ln x + C (do x > 0)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hàm số f(x) = 3x² - 2x + 4. Tìm nguyên hàm F(x) của f(x) biết rằng đồ thị hàm số y = F(x) đi qua điểm M(1; 8).",
+          "answer": "Họ nguyên hàm: F(x) = x³ - x² + 4x + C. Đồ thị đi qua M(1; 8) nên F(1) = 8 ⇔ 1 - 1 + 4 + C = 8 ⇔ C = 4. Vậy F(x) = x³ - x² + 4x + 4."
+        },
+        {
+          "level": "VD",
+          "question": "Một vật chuyển động thẳng với gia tốc a(t) = 6t - 2 (m/s²). Biết vận tốc ban đầu v(0) = 4 m/s và tại thời điểm ban đầu t = 0 vật đang ở vị trí s(0) = 5 m. Tìm phương trình vận tốc v(t) và phương trình tọa độ chuyển động s(t).",
+          "answer": "Vận tốc v(t) = ∫ a(t) dt = ∫ (6t - 2) dt = 3t² - 2t + C₁. Vì v(0) = 4 nên C₁ = 4 → v(t) = 3t² - 2t + 4. Tọa độ s(t) = ∫ v(t) dt = ∫ (3t² - 2t + 4) dt = t³ - t² + 4t + C₂. Vì s(0) = 5 nên C₂ = 5 → s(t) = t³ - t² + 4t + 5."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = cos² x biết F(π) = π/2.",
+          "answer": "Hạ bậc: cos² x = (1 + cos 2x)/2. F(x) = ∫ (1/2 + (cos 2x)/2) dx = x/2 + (sin 2x)/4 + C. F(π) = π/2 + (sin 2π)/4 + C = π/2 ⇔ C = 0. Vậy F(x) = x/2 + (sin 2x)/4."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi tính nguyên hàm ∫ x cos x dx, bạn Bình đưa biến x ra ngoài dấu tích phân và viết: ∫ x cos x dx = x ∫ cos x dx = x sin x + C. Cách giải của bạn Bình đúng hay sai? Vì sao?",
+          "solution": "Sai. Biến x là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài dấu nguyên hàm. Đạo hàm của x sin x + C là sin x + x cos x ≠ x cos x."
+        },
+        {
+          "question": "Có thể khẳng định ∫ [f(x) · g(x)] dx = ∫ f(x) dx · ∫ g(x) dx với mọi hàm số f(x), g(x) hay không? Nêu một ví dụ chứng minh.",
+          "solution": "Không. Phép lấy nguyên hàm không có tính chất nhân. Ví dụ: f(x) = x, g(x) = x thì ∫ (x · x) dx = ∫ x² dx = x³/3 + C; trong khi (∫ x dx) · (∫ x dx) = (x²/2 + C₁)(x²/2 + C₂) = x⁴/4 + ... hoàn toàn khác x³/3."
+        }
+      ],
+      "mistakes": [
+        "Tự ý đưa biến số x ra ngoài dấu nguyên hàm như một hằng số k.",
+        "Áp dụng sai lầm coi nguyên hàm của tích bằng tích hai nguyên hàm.",
+        "Quên hằng số + C khi tìm họ nguyên hàm hoặc nhầm dấu khi lấy nguyên hàm của sin(x) và cos(x).",
+        "Không tìm hoặc tính sai hằng số C khi bài toán có điều kiện ban đầu F(x0) = y0."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Tính chất cơ bản của nguyên hàm",
+        "a. Tính chất 1: ∫ k f(x) dx = k ∫ f(x) dx với mọi hằng số k ≠ 0.",
+        "b. Tính chất 2: ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx.",
+        "2. Chú ý bẫy then chốt",
+        "   - Không có nguyên hàm của tích: ∫ f(x)g(x) dx ≠ ∫ f(x) dx · ∫ g(x) dx.",
+        "   - Tuyệt đối không đưa biến số x ra ngoài dấu tích phân: ∫ x f(x) dx ≠ x ∫ f(x) dx.",
+        "3. Bài toán xác định hằng số C",
+        "   - Tìm họ nguyên hàm F(x) = G(x) + C.",
+        "   - Thay điều kiện F(x0) = y0 để giải tìm hằng số C."
+      ]
     }
   ],
   "aiErrors": {
@@ -950,6 +1037,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + nêu rõ C phải là 6 (tần số tích lũy nhóm [0;2)) và tính lại Q1 ≈ 2,57 giờ.",
       "boardPrompt": "AI tính Q1 = 3,43 giờ với C = 0. Phát hiện bẫy tính toán gì?",
       "libraryTitle": "Lỗi AI quên trừ tần số tích lũy nhóm trước khi tính tứ phân vị ghép nhóm"
+    },
+    "12-12-82": {
+      "key": "12-12-82",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Cho bài toán tìm họ nguyên hàm: I = ∫ x · sin x dx. AI giải: Áp dụng tính chất đưa thừa số ra ngoài dấu nguyên hàm, ta có I = x ∫ sin x dx = x(-cos x) + C = -x cos x + C.",
+      "correction": "Biến số x không được phép đưa ra ngoài dấu nguyên hàm vì x là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài. Nguyên hàm này phải dùng phương pháp nguyên hàm từng phần cho kết quả đúng là -x cos x + sin x + C.",
+      "proof": "Thử lại bằng đạo hàm: (-x cos x + C)' = -(cos x - x sin x) = -cos x + x sin x ≠ x sin x. Như vậy kết quả của AI sai hoàn toàn.",
+      "whyAiError": "Mô hình ngôn ngữ nhầm lẫn giữa hằng số nhân k với biến số độc lập x khi áp dụng tính chất tuyến tính của nguyên hàm.",
+      "teacherPrompt": "Em hãy nhận xét bước biến đổi của AI: Có được đưa biến x ra ngoài dấu nguyên hàm không? Hãy thử lại bằng đạo hàm để chứng minh.",
+      "studentProduct": "Thẻ Đ/S trên máy + nêu rõ chỉ đưa hằng số k ≠ 0 ra ngoài dấu nguyên hàm, biến x phải giữ nguyên bên trong.",
+      "boardPrompt": "AI đưa biến x ra ngoài: ∫ x sin x dx = x ∫ sin x dx. Đúng hay sai? Vì sao?",
+      "libraryTitle": "Lỗi AI tự ý đưa biến số x ra ngoài dấu nguyên hàm"
     }
   }
 }

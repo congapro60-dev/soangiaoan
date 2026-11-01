@@ -20,8 +20,17 @@
   - Validation: Toàn bộ 27 test files (312 tests) Vitest pass 100%. `npm run build` PASS.
   - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 60/60 bài (0 lỗi, 0 audit fail).
   - QA Live: Chạy live session `rZ7jL9sGKAxfGcBOlcHj` với lớp `11A1 - Khối 11` (`K8268Y`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), đồng bộ GV/HS thời gian thực (`tasks/qa-report-11-12-82.md`).
+  - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main` (commit `72703ce`).
+
+- Tuần 12 — Khối 12 (`tds-g12-82` / `12-12-82`) Nguyên hàm: Tiết 3 Tính chất cơ bản của nguyên hàm:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-82.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-82.md`.
+  - Pha B: Đã nạp thành công spec và AI error vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 10 specs), timeline `gateD121282` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `src/lib/liveLesson/v4/lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `12-12-82` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 61 bài). Đặt tiêu đề hiển thị `Tính chất cơ bản của nguyên hàm` để duy nhất trong khối 12.
+  - Validation: Toàn bộ 27 test files (316 tests) Vitest pass 100%. `npm run build` PASS.
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 61/61 bài (0 lỗi, 0 audit fail).
+  - QA Live: Chạy live session `9iKRvkMqm4vDbX1e2f4K` với lớp `12A1 - Toán 12` (`K1282Z`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), đồng bộ GV/HS thời gian thực (`tasks/qa-report-12-12-82.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `11-12-82`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: Nguyên hàm / Phương pháp tính nguyên hàm hoặc Các số đặc trưng đo mức độ phân tán của mẫu số liệu ghép nhóm).
+1. Trình thầy duyệt kết quả hoàn thành bài `12-12-82`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-86` Phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm — Tiết 2).
