@@ -225,6 +225,21 @@ const TIMELINE_BY_KEY: Readonly<Record<string, ReadonlyArray<readonly [string, n
     ['P34', 2040, 2220, 'S9', 'summary'],
     ['P37', 2220, 2400, 'S10', 'exitTicket'],
   ],
+  // gateD121286 — "Phương sai và độ lệch chuẩn — Tiết 2: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro" (12-12-86):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121286: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
   // gateD121282 — "Nguyên hàm — Tiết 3: Tính chất cơ bản của nguyên hàm" (12-12-82):
   // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
   gateD121282: [

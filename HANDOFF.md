@@ -1,6 +1,6 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 30/10/2026
+> Cập nhật: 01/11/2026
 
 ## 1. Trạng thái hiện tại
 - Tuần 11 & Addendum: Đã hoàn tất 100% (7/7 bài batch 2 + COMM-AQ-01 + ASS-MDP-01).
@@ -29,8 +29,17 @@
   - Validation: Toàn bộ 27 test files (316 tests) Vitest pass 100%. `npm run build` PASS.
   - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 61/61 bài (0 lỗi, 0 audit fail).
   - QA Live: Chạy live session `9iKRvkMqm4vDbX1e2f4K` với lớp `12A1 - Toán 12` (`K1282Z`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), đồng bộ GV/HS thời gian thực (`tasks/qa-report-12-12-82.md`).
+  - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main` (commit `5d3ece6`).
+
+- Tuần 12 — Khối 12 (`tds-g12-86` / `12-12-86`) Phương sai và độ lệch chuẩn: Tiết 2 Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-86.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-86.md`. Sửa số kế thừa Tiết 1 (x̄_A = x̄_B = 9, s²_A = 0,8, s²_B = 2,8) khớp quyết định thầy duyệt 2026-10-25 (khoá số trong `g12VarianceNumbers.test.ts`).
+  - Pha B: Đã nạp thành công spec và AI error ("Thiếu điều kiện" — khuyến nghị đầu tư thiếu khẩu vị rủi ro) vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 11 specs), timeline `gateD121286` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `src/lib/liveLesson/v4/lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `12-12-86` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 62 bài).
+  - Validation: 6 file test liên quan 104/104 PASS (batch2 = 11 gói). Full suite 4684/4700 (16 fail không liên quan: 12 timeout môi trường — chạy riêng PASS, 4 hash v832 nền sẵn trên nhánh). `npm run build` PASS.
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 62/62 bài (0 lỗi, 0 audit fail).
+  - QA Live: Chạy live session `KcPYWecqYriSZ84Xzzh5` với lớp `12A1 - Toán 12` (`K1282Z`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-86.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `12-12-82`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-86` Phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm — Tiết 2).
+1. Trình thầy duyệt kết quả hoàn thành bài `12-12-86`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-83` Nguyên hàm — Tiết 4: Nguyên hàm của hàm số lũy thừa).
