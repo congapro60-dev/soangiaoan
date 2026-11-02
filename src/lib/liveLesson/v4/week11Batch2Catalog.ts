@@ -26,5 +26,6 @@ export const W11BATCH2: ReadonlyArray<W11Batch2Entry> = [
   { key: '11-12-82', grade: 11, period: 82, title: 'Các số đặc trưng đo xu thế trung tâm' },
   { key: '12-12-82', grade: 12, period: 82, title: 'Tính chất cơ bản của nguyên hàm' },
   { key: '12-12-83', grade: 12, period: 83, title: 'Nguyên hàm' },
-  { key: '12-12-86', grade: 12, period: 86, title: 'Phương sai và độ lệch chuẩn' },
+  { key: '12-12-84', grade: 12, period: 84, title: 'Nguyên hàm' },
+  { key: '12-12-86', grade: 12, period: 86, title: 'Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro' },
 ];

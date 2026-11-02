@@ -1,6 +1,6 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 02/11/2026
+> Cập nhật: 02/11/2026 (bài 12-12-84)
 
 ## 1. Trạng thái hiện tại
 - Tuần 11 & Addendum: Đã hoàn tất 100% (7/7 bài batch 2 + COMM-AQ-01 + ASS-MDP-01).
@@ -47,8 +47,18 @@
   - Validation: 7 file test liên quan 114/114 PASS (batch2 = 12 gói). `npm run build` PASS (8m15s, zero lỗi).
   - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 63/63 bài (0 bỏ qua, 0 audit fail, 0 lỗi).
   - QA Live: Chạy live session `La9N8SalKCEz1xzgkPku` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-83.md`). Lưu ý hạ tầng: Chrome 136+ chặn debug port trên profile mặc định → dùng `chrome_debug_profile` + bridge auth từ production (`tmp-bridge-auth-local.cjs`); lớp `12A1` không còn, dùng `12LoTrinh1`.
+  - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main` (commit `7daec78`).
+
+- Tuần 12 — Khối 12 (`tds-g12-84` / `12-12-84`) Nguyên hàm: Tiết 5 Nguyên hàm của hàm số mũ:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-84.md` (đã tự sửa 1 lỗi số Casio: R(3) = 21/ln2 ≈ 30,30) và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-84.md`.
+  - Pha B: Đã nạp thành công spec (2 công thức ∫e^x dx = e^x + C và ∫a^x dx = a^x/ln a + C) và AI error ("Lỗi đại số" — quên chia ln a) vào `banToan-w11-batch2.snapshot.json` (tổng 13 specs), timeline `gateD121284` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `lessonAdapter.ts`.
+  - Fix trùng tiêu đề: test `lessonAdapter.test.ts` bắt "Phương sai và độ lệch chuẩn — Tiết 4" trùng giữa `12-12-80` (w11) và `12-12-86` (w12) khi thêm `12-12-84` → đổi tiêu đề spec `12-12-86` thành "Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro" (tiền lệ `12-12-82`); cập nhật snapshot + catalog + `gate-d-12-12-86.md`.
+  - Đăng ký hệ thống: Thêm `12-12-84` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 64 bài).
+  - Validation: 7 file test liên quan 118/118 PASS (batch2 = 13 gói). `npm run build` PASS (2m42s, zero lỗi).
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 64/64 bài (0 bỏ qua, 0 audit fail, 0 lỗi).
+  - QA Live: Chạy live session `ILHiLDgBZTIiRardKCxw` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-84.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `12-12-83`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-84` Nguyên hàm — Tiết 5: Nguyên hàm của hàm số mũ).
+1. Trình thầy duyệt kết quả hoàn thành bài `12-12-84`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-85` Nguyên hàm — Tiết 6: Nguyên hàm của hàm số lượng giác).

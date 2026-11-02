@@ -11,5 +11,6 @@
 | 7 | Tuần 12 — Khối 12 (`tds-g12-82` / `12-12-82`) Nguyên hàm: Tiết 3 Tính chất cơ bản của nguyên hàm | XONG | Pha A + B xong, đã nạp snapshot, timeline `gateD121282`, xuất bản portal (61 gói), QA live 12 chặng PASS (`tasks/qa-report-12-12-82.md`). Đã nghiệm thu xong. |
 | 8 | Tuần 12 — Khối 12 (`tds-g12-86` / `12-12-86`) Phương sai và độ lệch chuẩn: Tiết 2 Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro | XONG | Pha A + B xong, sửa số kế thừa Tiết 1 (x̄=9, s²=0,8/2,8), timeline `gateD121286`, xuất bản portal (62 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-86.md`). |
 | 9 | Tuần 12 — Khối 12 (`tds-g12-83` / `12-12-83`) Nguyên hàm: Tiết 4 Nguyên hàm của hàm số lũy thừa | XONG | Pha A + B xong, timeline `gateD121283`, xuất bản portal (63 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-83.md`). |
+| 10 | Tuần 12 — Khối 12 (`tds-g12-84` / `12-12-84`) Nguyên hàm: Tiết 5 Nguyên hàm của hàm số mũ | XONG | Pha A + B xong, timeline `gateD121284`, fix trùng tiêu đề `12-12-86` (bắt bởi test), xuất bản portal (64 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-84.md`). |
 
-Thứ tự: 1–9 (xong toàn diện). Chuẩn bị chuyển sang bài tiếp theo của Tuần 12 theo PPCT.
+Thứ tự: 1–10 (xong toàn diện). Chuẩn bị chuyển sang bài tiếp theo của Tuần 12 theo PPCT.

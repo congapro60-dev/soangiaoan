@@ -951,7 +951,7 @@
       "lessonType": "formation",
       "selfChoice": false,
       "timelineKey": "gateD121286",
-      "title": "Phương sai và độ lệch chuẩn",
+      "title": "Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro",
       "focus": "Sử dụng phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm để đo độ rủi ro: quy tắc so sánh hai mẫu khi số trung bình bằng nhau (s nhỏ → ổn định hơn), quy trình 4 bước tính s², s, khuyến nghị phương án theo khẩu vị rủi ro; nhận diện khuyến nghị tư vấn thiếu điều kiện",
       "formulas": [
         "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i",
@@ -1119,6 +1119,94 @@
         "   - Nêu miền (x > 0 hoặc x < 0) trước khi viết ln.",
         "   - Tìm họ nguyên hàm F(x) = G(x) + C rồi thay điều kiện F(x₀) = y₀ để tìm C."
       ]
+    },
+    {
+      "key": "12-12-84",
+      "grade": 12,
+      "week": 12,
+      "period": 84,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "timelineKey": "gateD121284",
+      "title": "Nguyên hàm",
+      "focus": "Hình thành công thức nguyên hàm của hàm số mũ: nguyên hàm của e^x bằng e^x + C và nguyên hàm của a^x (a > 0, a khác 1) bằng a^x/ln a + C; phân biệt hàm số mũ (biến ở số mũ) với hàm số lũy thừa (biến ở cơ số); kiểm chứng bằng đạo hàm; kết hợp tính chất tuyến tính (Tiết 3) và điều kiện ban đầu; nhận diện lỗi quên chia ln a",
+      "formulas": [
+        "\\int e^x dx = e^x + C",
+        "\\int a^x dx = \\dfrac{a^x}{\\ln a} + C \\quad (a > 0,\\ a \\neq 1)",
+        "\\left(\\dfrac{a^x}{\\ln a}\\right)\\!\\prime = \\dfrac{1}{\\ln a} \\cdot a^x \\ln a = a^x"
+      ],
+      "examples": [
+        {
+          "question": "Tìm họ nguyên hàm của hàm số kết hợp đa thức và hàm mũ: F(x) = ∫ (x² + e^x) dx.",
+          "solution": "Áp dụng tính chất tuyến tính (Tiết 3) và công thức hàm mũ: F(x) = x³/3 + e^x + C. Kiểm chứng đạo hàm: (x³/3)′ = x²; (e^x)′ = e^x."
+        },
+        {
+          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = e^x − 2^x biết F(0) = 3.",
+          "solution": "F(x) = e^x − 2^x/ln 2 + C. Thay điều kiện F(0) = 3: 1 − 1/ln 2 + C = 3 ⇔ C = 2 + 1/ln 2. Vậy F(x) = e^x − 2^x/ln 2 + 2 + 1/ln 2."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết 2 công thức nguyên hàm của hàm số mũ kèm điều kiện, rồi tính I = ∫ 5^x dx.",
+          "answer": "Hai công thức: 1) ∫ e^x dx = e^x + C; 2) ∫ a^x dx = a^x/ln a + C với a > 0, a ≠ 1. Áp dụng: I = 5^x/ln 5 + C."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm họ nguyên hàm của f(x) = x² + e^x.",
+          "answer": "F(x) = ∫ (x² + e^x) dx = x³/3 + e^x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm họ nguyên hàm của hàm số f(x) = 2e^x + 3^x.",
+          "answer": "F(x) = 2∫ e^x dx + ∫ 3^x dx = 2e^x + 3^x/ln 3 + C."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hàm số f(x) = e^x − 2^x. Tìm nguyên hàm F(x) của f(x) biết F(0) = 3.",
+          "answer": "F(x) = e^x − 2^x/ln 2 + C. F(0) = 1 − 1/ln 2 + C = 3 ⇔ C = 2 + 1/ln 2. Vậy F(x) = e^x − 2^x/ln 2 + 2 + 1/ln 2."
+        },
+        {
+          "level": "VD",
+          "question": "Một cửa hàng có doanh thu tăng theo cấp số nhân với tốc độ R′(t) = 3 · 2^t (triệu đồng/ngày), t là số ngày bán. Biết tổng doanh thu tích lũy tại thời điểm khởi mở t = 0 bằng 0. Tìm hàm tổng doanh thu R(t) và tính tổng doanh thu sau 3 ngày (làm tròn 2 chữ số thập phân).",
+          "answer": "R(t) = ∫ 3 · 2^t dt = 3 · 2^t/ln 2 + C. R(0) = 3/ln 2 + C = 0 ⇔ C = −3/ln 2. Vậy R(t) = 3(2^t − 1)/ln 2. R(3) = 3(8 − 1)/ln 2 = 21/ln 2 ≈ 30,30 triệu đồng."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm họ nguyên hàm I = ∫ (e^x + 2^x)/2 dx và kiểm chứng kết quả bằng đạo hàm.",
+          "answer": "I = (1/2)∫ e^x dx + (1/2)∫ 2^x dx = e^x/2 + 2^x/(2 ln 2) + C. Kiểm chứng: (e^x/2)′ = e^x/2; (2^x/(2 ln 2))′ = 2^x/2; tổng lại đúng (e^x + 2^x)/2."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Bạn An khẳng định: \"Hàm 3^x là hàm số mũ nên có đạo hàm bằng chính nó, do đó ∫ 3^x dx = 3^x + C\". Khẳng định của bạn An đúng hay sai? Vì sao?",
+          "solution": "Sai. Chỉ e^x mới có đạo hàm bằng chính nó (vì ln e = 1); với a ≠ e thì (a^x)′ = a^x ln a ≠ a^x. Kiểm chứng: (3^x + C)′ = 3^x ln 3 ≠ 3^x. Đáp án đúng: ∫ 3^x dx = 3^x/ln 3 + C."
+        },
+        {
+          "question": "Hàm 2^x và x^2 khác nhau ở điểm nào? Vì sao không thể dùng công thức ∫ x^α dx = x^(α+1)/(α+1) + C để tính ∫ 2^x dx?",
+          "solution": "x^2 là hàm số lũy thừa (biến x ở cơ số, số mũ 2 là hằng); 2^x là hàm số mũ (cơ số 2 là hằng, biến x ở số mũ). Công thức ∫ x^α dx chỉ áp dụng cho hàm lũy thừa với biến ở cơ số; áp vào 2^x (thay α = x) là sai phạm pháp vì α phải là hằng số. Nguyên hàm của 2^x là 2^x/ln 2 + C theo công thức hàm số mũ."
+        }
+      ],
+      "mistakes": [
+        "Ngộ nhận hàm số mũ a^x là hàm số lũy thừa x^α rồi thay α = x vào công thức x^(α+1)/(α+1).",
+        "Quên chia ln a khi lấy nguyên hàm a^x: viết ∫ 3^x dx = 3^x + C thay vì 3^x/ln 3 + C.",
+        "Khẳng định sai \"mọi hàm số mũ đều có đạo hàm bằng chính nó\" — chỉ e^x (a = e, ln e = 1) mới có tính chất đó.",
+        "Quên hằng số + C hoặc sai dấu khi tìm C từ điều kiện ban đầu F(x₀) = y₀."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Công thức nguyên hàm của hàm số mũ",
+        "a. Công thức 1: ∫ e^x dx = e^x + C.",
+        "b. Công thức 2: ∫ a^x dx = a^x/ln a + C với a > 0, a ≠ 1.",
+        "   - Kiểm chứng: (a^x/ln a)′ = (1/ln a)·a^x·ln a = a^x.",
+        "   - e là trường hợp riêng a = e vì ln e = 1 → e^x có đạo hàm bằng chính nó.",
+        "2. Phân biệt hai nhóm hàm",
+        "   - Hàm số lũy thừa x^α: biến ở cơ số → dùng x^(α+1)/(α+1) + C (α ≠ −1, Tiết 4).",
+        "   - Hàm số mũ a^x: biến ở số mũ → dùng a^x/ln a + C (Tiết 5).",
+        "3. Quy trình tính",
+        "   - Nhận diện nhóm hàm → áp dụng tuyến tính (Tiết 3) → chọn công thức → tìm C theo điều kiện ban đầu."
+      ]
     }
   ],
   "aiErrors": {
@@ -1251,6 +1339,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu điều kiện α ≠ −1 của công thức, hoặc nêu nguyên hàm đúng ln|x| + C và kiểm chứng bằng đạo hàm).",
       "boardPrompt": "AI thay α = −1 vào công thức lũy thừa rồi kết luận \"1/x không có nguyên hàm\". Bẫy nằm ở đâu?",
       "libraryTitle": "Lỗi AI áp công thức nguyên hàm lũy thừa ngoài điều kiện α ≠ −1"
+    },
+    "12-12-84": {
+      "key": "12-12-84",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tìm nguyên hàm I = ∫ 3^x dx. AI giải: \"Hàm 3^x là hàm số mũ có đạo hàm bằng chính nó (giống e^x), nên nguyên hàm của 3^x là 3^x + C.\"",
+      "correction": "Chỉ e^x mới có đạo hàm bằng chính nó (vì ln e = 1). Với a ≠ e thì (a^x)′ = a^x ln a ≠ a^x, nên khi lấy nguyên hàm phải chia ln a: I = 3^x/ln 3 + C. Kiểm chứng: (3^x + C)′ = 3^x ln 3 ≠ 3^x — kết quả của AI sai hệ số ln 3.",
+      "proof": "Đạo hàm của 3^x là 3^x ln 3 (định nghĩa đạo hàm hàm số mũ). Do đó (3^x + C)′ = 3^x ln 3 ≠ 3^x → 3^x + C không phải nguyên hàm của 3^x. Ngược lại (3^x/ln 3)′ = (1/ln 3)·3^x·ln 3 = 3^x ✓. Lỗi của AI là bỏ hệ số 1/ln 3 khi khử đạo hàm — lỗi đại số trên hệ số nhân.",
+      "whyAiError": "Mô hình ngôn ngữ khái quát hóa nhầm tính chất đặc biệt của e^x (\"đạo hàm bằng chính nó\") cho mọi hàm số mũ, bỏ qua hệ số ln a xuất hiện khi a ≠ e.",
+      "teacherPrompt": "Em hãy nhận xét khẳng định của AI: Đạo hàm của 3^x có bằng chính nó không? Hãy kiểm chứng bằng đạo hàm rồi sửa lại đáp án.",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (3^x)′ = 3^x ln 3 ≠ 3^x, hoặc nêu đáp án đúng 3^x/ln 3 + C).",
+      "boardPrompt": "AI nói \"3^x có đạo hàm bằng chính nó nên nguyên hàm là 3^x + C\". Em kiểm chứng bằng đạo hàm xem sao?",
+      "libraryTitle": "Lỗi AI quên chia ln a khi lấy nguyên hàm hàm số mũ 3^x"
     }
   }
 }
