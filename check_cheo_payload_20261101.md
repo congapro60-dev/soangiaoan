@@ -6,6 +6,7 @@ Kiểm chứng độc lập trạng thái phát hành Học kỳ II trong repo n
 2. Tổng số tasks trên toàn bộ bài học HKII = 5.882.
 3. Số câu hỏi trùng lặp (prompt trùng sau trim, đếm theo instance lặp trong cùng bài) = 0.
 4. Số task có prompt chứa từ khóa hình học 3D (`tứ diện`, `hình chóp`, `lăng trụ`, `hình hộp`) nhưng thiếu trường `solidKey` = 0.
+   - BẮT BUỘC so khớp **case-insensitive** (regex `/i` hoặc toLowerCase trước khi test) — các prompt viết hoa đầu câu như "Hình hộp chữ nhật..." phải được tính là 3D.
 5. Test E2E `tests/hkii-e2e-gameplay.test.mjs` chạy PASS.
 
 ## Ràng buộc cấm (BẮT BUỘC)

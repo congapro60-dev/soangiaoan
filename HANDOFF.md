@@ -14,7 +14,7 @@
 - Rebuild toàn bộ + catalogue → audit case-insensitive: **HKI 5.350 tasks & HKII 5.882 tasks đều 0 duplicates, 0 missing solidKey**.
 - 7/7 test E2E PASS (HKII test giờ bắt được lỗi hoa/thường).
 - Dọn dẹp: xóa script tạm `do-commit.mjs` khỏi repo; giữ `check_cheo_payload_20261101.md` làm bằng chứng QA của lần check chéo.
-- **Check chéo 2 hãng hoàn tất (01-02/11/2026)**: Claude CLI PASS 5/5 và Codex CLI PASS 5/5 trên HEAD `b5f3e06` — đồng thuận đầy đủ. Cả hai hãng độc lập xác nhận commit cũ `4f7bc78` có đúng 69/230 task 3D thiếu `solidKey` (Codex tự `git show` catalogue cũ để đếm), chứng minh fix case-insensitive trong `346f1a4` là có thật và cần thiết. Lưu ý: payload `check_cheo_payload_20261101.md` ghi commit `4f7bc78` là tham chiếu cũ; HEAD phát hành là `b5f3e06`. Phạm vi audit: 404 bài học (chưa gồm 6 đề thi), trùng lặp xét trong cùng bài.
+- **Check chéo 2 hãng hoàn tất (01-02/11/2026)**: Claude CLI PASS 5/5 và Codex CLI PASS 5/5 trên HEAD `b5f3e06` — đồng thuận đầy đủ. Cả hai hãng độc lập xác nhận commit cũ `4f7bc78` có đúng 69/230 task 3D thiếu `solidKey` (Codex tự `git show` catalogue cũ để đếm), chứng minh fix case-insensitive trong `346f1a4` là có thật và cần thiết. Lưu ý: payload `check_cheo_payload_20261101.md` ghi commit `4f7bc78` là tham chiếu cũ; HEAD phát hành là `b5f3e06`. Payload đã được cập nhật bổ sung ràng buộc bắt buộc so khớp case-insensitive trước khi cả hai hãng chạy lại. Phạm vi audit: 404 bài học (chưa gồm 6 đề thi), trùng lặp xét trong cùng bài.
 
 ## Checkpoint trước - PHÁT HÀNH TOÀN DIỆN HỌC KỲ II (Tuần 19 -> Tuần 35/38) 100% SẠCH (30/10/2026)
 
