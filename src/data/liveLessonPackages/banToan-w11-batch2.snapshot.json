@@ -1207,6 +1207,95 @@
         "3. Quy trình tính",
         "   - Nhận diện nhóm hàm → áp dụng tuyến tính (Tiết 3) → chọn công thức → tìm C theo điều kiện ban đầu."
       ]
+    },
+    {
+      "key": "12-12-85",
+      "grade": 12,
+      "week": 12,
+      "period": 85,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "timelineKey": "gateD121285",
+      "title": "Nguyên hàm",
+      "focus": "Hình thành công thức nguyên hàm của hàm số lượng giác: nguyên hàm của cos x bằng sin x + C và nguyên hàm của sin x bằng −cos x + C; hiểu nguyên hàm là chiều ngược của đạo hàm để giải thích dấu trừ; kết hợp tính chất tuyến tính (Tiết 3) và điều kiện ban đầu; nhận diện lỗi nhầm chiều đạo hàm — nguyên hàm; ứng dụng bài toán dao động",
+      "formulas": [
+        "\\int \\cos x\\, dx = \\sin x + C",
+        "\\int \\sin x\\, dx = -\\cos x + C",
+        "(\\sin x)\\prime = \\cos x;\\quad (\\cos x)\\prime = -\\sin x \\Rightarrow \\int \\sin x\\, dx = -\\cos x + C"
+      ],
+      "examples": [
+        {
+          "question": "Tìm họ nguyên hàm của hàm số kết hợp đa thức và lượng giác: F(x) = ∫ (x² + cos x) dx.",
+          "solution": "Áp dụng tính chất tuyến tính (Tiết 3) và công thức lượng giác: F(x) = x³/3 + sin x + C. Kiểm chứng đạo hàm: (x³/3)′ = x²; (sin x)′ = cos x."
+        },
+        {
+          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = sin x + 2cos x biết F(0) = 5.",
+          "solution": "F(x) = −cos x + 2 sin x + C. Thay điều kiện F(0) = 5: −cos 0 + 2 sin 0 + C = 5 ⇔ −1 + 0 + C = 5 ⇔ C = 6. Vậy F(x) = −cos x + 2 sin x + 6."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết 2 công thức nguyên hàm của hàm số lượng giác kèm kiểm chứng, rồi tính I = ∫ 2 sin x dx.",
+          "answer": "Hai công thức: 1) ∫ cos x dx = sin x + C (vì (sin x)′ = cos x); 2) ∫ sin x dx = −cos x + C (vì (−cos x)′ = sin x). Áp dụng: I = −2 cos x + C."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm họ nguyên hàm của f(x) = x² + cos x.",
+          "answer": "F(x) = x³/3 + sin x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm họ nguyên hàm của hàm số f(x) = 2 sin x − 3 cos x.",
+          "answer": "F(x) = 2∫ sin x dx − 3∫ cos x dx = −2 cos x − 3 sin x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hàm số f(x) = sin x + 2 cos x. Tìm nguyên hàm F(x) của f(x) biết F(0) = 5.",
+          "answer": "F(x) = −cos x + 2 sin x + C. F(0) = −1 + 0 + C = 5 ⇔ C = 6. Vậy F(x) = −cos x + 2 sin x + 6."
+        },
+        {
+          "level": "VD",
+          "question": "Một vật dao động điều hòa có vận tốc v(t) = 3 cos t (m/s). Biết tại t = 0 vật ở vị trí s(0) = 0. Tìm phương trình li độ s(t) và xác định li độ cực đại của vật.",
+          "answer": "s(t) = ∫ 3 cos t dt = 3 sin t + C. s(0) = 3 sin 0 + C = 0 ⇔ C = 0. Vậy s(t) = 3 sin t (m). Vì sin t ∈ [−1; 1] nên li độ dao động trong khoảng [−3; 3] m — li độ cực đại bằng 3 m (tại t = π/2 + k·2π)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm họ nguyên hàm I = ∫ (sin x − 2 cos x + e^x) dx và kiểm chứng kết quả bằng đạo hàm.",
+          "answer": "I = −cos x − 2 sin x + e^x + C. Kiểm chứng: (−cos x)′ = sin x; (−2 sin x)′ = −2 cos x; (e^x)′ = e^x — tổng lại đúng sin x − 2 cos x + e^x."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Bạn An khẳng định: \"Vì đạo hàm của sin x là cos x nên nguyên hàm của sin x là cos x + C\". Khẳng định của bạn An đúng hay sai? Vì sao?",
+          "solution": "Sai. Nguyên hàm của f là hàm có đạo hàm bằng f (chiều ngược của đạo hàm). Kiểm chứng: (cos x + C)′ = −sin x ≠ sin x. Đáp án đúng: ∫ sin x dx = −cos x + C, vì (−cos x)′ = −(−sin x) = sin x."
+        },
+        {
+          "question": "Vì sao nguyên hàm của sin x mang dấu trừ (−cos x + C) trong khi nguyên hàm của cos x không mang dấu trừ (sin x + C)?",
+          "solution": "Vì theo bảng đạo hàm: (sin x)′ = cos x (không đổi dấu) nên nguyên hàm của cos x là sin x; còn (cos x)′ = −sin x (đổi dấu) nên để có đạo hàm bằng sin x phải lấy −cos x: (−cos x)′ = sin x. Dấu trừ xuất hiện từ đạo hàm của cos x mang dấu âm."
+        }
+      ],
+      "mistakes": [
+        "Nhầm chiều giữa đạo hàm và nguyên hàm: viết ∫ sin x dx = cos x + C (đây là đạo hàm của sin x, không phải nguyên hàm).",
+        "Quên dấu trừ: viết ∫ sin x dx = cos x + C thay vì −cos x + C; hoặc vi ∫ cos x dx = −sin x + C (đảo ngược hai công thức).",
+        "Sai hệ số khi áp tuyến tính: ∫ 2 sin x dx phải là −2 cos x + C, không phải −cos x + C.",
+        "Tính sai C theo điều kiện ban đầu do quên cos 0 = 1, sin 0 = 0."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Công thức nguyên hàm của hàm số lượng giác",
+        "a. Công thức 1: ∫ cos x dx = sin x + C (vì (sin x)′ = cos x).",
+        "b. Công thức 2: ∫ sin x dx = −cos x + C (vì (−cos x)′ = sin x).",
+        "   - Dấu trừ có nguồn gốc từ (cos x)′ = −sin x.",
+        "2. Nguyên hàm là chiều ngược của đạo hàm",
+        "   - f → F với F′ = f; kiểm chứng kết quả luôn bằng đạo hàm.",
+        "3. Kết hợp tuyến tính (Tiết 3)",
+        "   - ∫ [a sin x + b cos x] dx = −a cos x + b sin x + C.",
+        "   - Kết hợp đa thức, e^x: ∫ (x² + cos x) dx = x³/3 + sin x + C.",
+        "4. Ứng dụng dao động",
+        "   - v(t) = v₀ cos t, s(0) = 0 → s(t) = v₀ sin t; li độ cực đại = v₀ (biên độ)."
+      ]
     }
   ],
   "aiErrors": {
@@ -1351,6 +1440,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (3^x)′ = 3^x ln 3 ≠ 3^x, hoặc nêu đáp án đúng 3^x/ln 3 + C).",
       "boardPrompt": "AI nói \"3^x có đạo hàm bằng chính nó nên nguyên hàm là 3^x + C\". Em kiểm chứng bằng đạo hàm xem sao?",
       "libraryTitle": "Lỗi AI quên chia ln a khi lấy nguyên hàm hàm số mũ 3^x"
+    },
+    "12-12-85": {
+      "key": "12-12-85",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Tìm nguyên hàm I = ∫ sin x dx. AI giải: \"Vì đạo hàm của sin x là cos x, nên nguyên hàm của sin x là cos x + C.\"",
+      "correction": "Nguyên hàm của f là hàm có đạo hàm BẰNG f (chiều ngược của đạo hàm), không phải đạo hàm của f. Kiểm chứng: (cos x + C)′ = −sin x ≠ sin x — sai. Đáp án đúng: I = −cos x + C, vì (−cos x)′ = −(−sin x) = sin x.",
+      "proof": "Đạo hàm cần tìm: tìm F sao cho F′ = sin x. Thử cos x: (cos x)′ = −sin x — sai dấu. Thử −cos x: (−cos x)′ = sin x ✓. Vậy nguyên hàm của sin x là −cos x + C. Lỗi của AI là đọc bảng đạo hàm theo chiều xuôi (f → f′) thay vì chiều ngược (f′ → f) và bỏ sót dấu trừ từ đạo hàm của cos x.",
+      "whyAiError": "Mô hình ngôn ngữ học thuộc cặp \"(sin x)′ = cos x\" theo chiều đạo hàm và phản xạ ánh xạ sin → cos khi gặp câu hỏi nguyên hàm, bỏ qua việc đảo chiều quan hệ và kiểm chứng bằng đạo hàm ngược.",
+      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Nguyên hàm của sin x có phải là đạo hàm của sin x không? Hãy kiểm chứng bằng đạo hàm rồi sửa lại.",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (cos x)′ = −sin x ≠ sin x, hoặc nêu đáp án đúng −cos x + C kèm kiểm chứng).",
+      "boardPrompt": "AI nói \"đạo hàm của sin x là cos x nên nguyên hàm của sin x là cos x\". Em phát hiện sai ở chiều nào?",
+      "libraryTitle": "Lỗi AI nhầm chiều giữa đạo hàm và nguyên hàm của sin x"
     }
   }
 }

@@ -1,6 +1,6 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 02/11/2026 (bài 12-12-84)
+> Cập nhật: 02/11/2026 (bài 12-12-85)
 
 ## 1. Trạng thái hiện tại
 - Tuần 11 & Addendum: Đã hoàn tất 100% (7/7 bài batch 2 + COMM-AQ-01 + ASS-MDP-01).
@@ -57,8 +57,17 @@
   - Validation: 7 file test liên quan 118/118 PASS (batch2 = 13 gói). `npm run build` PASS (2m42s, zero lỗi).
   - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 64/64 bài (0 bỏ qua, 0 audit fail, 0 lỗi).
   - QA Live: Chạy live session `ILHiLDgBZTIiRardKCxw` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-84.md`).
+  - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main` (commit `01ad41b`).
+
+- Tuần 12 — Khối 12 (`tds-g12-85` / `12-12-85`) Nguyên hàm: Tiết 6 Nguyên hàm của hàm số lượng giác:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-85.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-85.md`. Kế thừa tuyến tính Tiết 3 và công thức mũ Tiết 4-5.
+  - Pha B: Đã nạp thành công spec (2 công thức ∫cos x dx = sin x + C và ∫sin x dx = −cos x + C) và AI error ("Lỗi khái niệm" — nhầm chiều đạo hàm — nguyên hàm) vào `banToan-w11-batch2.snapshot.json` (tổng 14 specs), timeline `gateD121285` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `12-12-85` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 65 bài). Hiển thị "Nguyên hàm — Tiết 4", `12-12-86` → "— Tiết 5".
+  - Validation: 7 file test liên quan 122/122 PASS (batch2 = 14 gói, test tiêu đề duy nhất PASS). `npm run build` PASS (1m19s, zero lỗi).
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 65/65 bài (0 bỏ qua, 0 audit fail, 0 lỗi).
+  - QA Live: Chạy live session `96LHQ85J4cfbIMq7xWhD` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-85.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `12-12-84`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-85` Nguyên hàm — Tiết 6: Nguyên hàm của hàm số lượng giác).
+1. Trình thầy duyệt kết quả hoàn thành bài `12-12-85`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-87` Phương sai và độ lệch chuẩn — Tiết 3: Luyện tập).
