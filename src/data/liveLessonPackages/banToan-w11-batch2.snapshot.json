@@ -1031,6 +1031,94 @@
         "   - s lớn không tự động \"xấu\": với người chấp nhận mạo hiểm, biến động lớn đi kèm cơ hội thu lợi cao hơn.",
         "   - Khuyến nghị đầu tư/chọn phương án phải đủ điều kiện: khẩu vị rủi ro, mục tiêu, khả năng chịu mất vốn."
       ]
+    },
+    {
+      "key": "12-12-83",
+      "grade": 12,
+      "week": 12,
+      "period": 83,
+      "kind": "formation",
+      "lessonType": "formation",
+      "selfChoice": false,
+      "timelineKey": "gateD121283",
+      "title": "Nguyên hàm",
+      "focus": "Hình thành công thức nguyên hàm của hàm số lũy thừa: nguyên hàm của x^alpha với alpha khác -1 và trường hợp đặc biệt nguyên hàm của 1/x bằng ln|x| với x khác 0; quy đổi căn thức và phân thức về lũy thừa trước khi tính; kết hợp tính chất tuyến tính (Tiết 3) và điều kiện xác định trên miền để tìm hằng số C; nhận diện lỗi áp công thức cho alpha = -1",
+      "formulas": [
+        "\\int x^{\\alpha} dx = \\dfrac{x^{\\alpha+1}}{\\alpha+1} + C \\quad (\\alpha \\in \\mathbb{Q},\\ \\alpha \\neq -1)",
+        "\\int \\dfrac{1}{x} dx = \\ln|x| + C \\quad (x \\neq 0)",
+        "(0; +\\infty):\\ \\ln|x| = \\ln x;\\quad (-\\infty; 0):\\ \\ln|x| = \\ln(-x)"
+      ],
+      "examples": [
+        {
+          "question": "Tìm họ nguyên hàm của hàm số đa thức kết hợp căn thức: F(x) = ∫ (3x² − 4√x) dx.",
+          "solution": "Quy √x = x^(1/2). Áp dụng tính chất tuyến tính và công thức lũy thừa: F(x) = 3·(x³/3) − 4·(x^(3/2)/(3/2)) + C = x³ − (8/3)·x√x + C. Kiểm chứng đạo hàm: (x³)′ = 3x²; ((8/3)x^(3/2))′ = (8/3)·(3/2)x^(1/2) = 4√x."
+        },
+        {
+          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = 6x² + 1/x trên (0; +∞) biết F(1) = 5.",
+          "solution": "Trên (0; +∞) ta có ln|x| = ln x. F(x) = ∫ (6x² + 1/x) dx = 2x³ + ln x + C. Thay điều kiện F(1) = 5: 2·1 + ln 1 + C = 5 ⇔ 2 + 0 + C = 5 ⇔ C = 3. Vậy F(x) = 2x³ + ln x + 3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết 2 công thức nguyên hàm của hàm số lũy thừa kèm điều kiện, rồi tính I = ∫ (5x³ − 2x) dx.",
+          "answer": "Hai công thức: 1) ∫ x^α dx = x^(α+1)/(α+1) + C với α ∈ ℚ, α ≠ −1; 2) ∫ (1/x) dx = ln|x| + C với x ≠ 0. Áp dụng: I = 5·(x⁴/4) − 2·(x²/2) + C = (5/4)x⁴ − x² + C."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm họ nguyên hàm của f(x) = √x và của f(x) = 1/x² (x ≠ 0).",
+          "answer": "√x = x^(1/2) nên ∫ √x dx = x^(3/2)/(3/2) + C = (2/3)x√x + C. 1/x² = x^(−2) nên ∫ x^(−2) dx = x^(−1)/(−1) + C = −1/x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm họ nguyên hàm của hàm phân thức f(x) = (x² + 2x − 3)/x trên khoảng (0; +∞).",
+          "answer": "Tách phân thức: f(x) = x + 2 − 3/x. Trên (0; +∞): F(x) = ∫ (x + 2 − 3/x) dx = x²/2 + 2x − 3 ln x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hàm số f(x) = 3x² − 1/x với x > 0. Tìm nguyên hàm F(x) của f(x) biết đồ thị hàm số y = F(x) đi qua điểm M(1; 4).",
+          "answer": "F(x) = ∫ (3x² − 1/x) dx = x³ − ln x + C (trên (0; +∞)). Đi qua M(1; 4): F(1) = 1 − 0 + C = 4 ⇔ C = 3. Vậy F(x) = x³ − ln x + 3."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm họ nguyên hàm I = ∫ (2x − 1)²/√x dx với x > 0.",
+          "answer": "Khai triển và quy về lũy thừa: (2x − 1)²/√x = (4x² − 4x + 1)·x^(−1/2) = 4x^(3/2) − 4x^(1/2) + x^(−1/2). I = 4·(x^(5/2)/(5/2)) − 4·(x^(3/2)/(3/2)) + (x^(1/2)/(1/2)) + C = (8/5)x²√x − (8/3)x√x + 2√x + C."
+        },
+        {
+          "level": "VD",
+          "question": "Một doanh nghiệp có chi phí biên C′(x) = 3x² + 100/x (triệu đồng) khi sản xuất x đơn vị sản phẩm (x > 0). Biết chi phí sản xuất 1 đơn vị là C(1) = 143 triệu đồng. Tìm hàm tổng chi phí C(x).",
+          "answer": "C(x) = ∫ (3x² + 100/x) dx = x³ + 100 ln x + C₀ (x > 0). Thay C(1) = 143: 1 + 0 + C₀ = 143 ⇔ C₀ = 42. Vậy C(x) = x³ + 100 ln x + 42 (triệu đồng)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Bạn An tính ∫ (1/x²) dx như sau: \"Áp dụng công thức ∫ x^α dx = x^(α+1)/(α+1) + C với α = −1, được x⁰/0 + C, nên hàm 1/x không có nguyên hàm.\" Cách giải của bạn An đúng hay sai? Vì sao?",
+          "solution": "Sai ở hai điểm. Một: 1/x² = x^(−2) (α = −2 ≠ −1) nên dùng được công thức: ∫ x^(−2) dx = x^(−1)/(−1) + C = −1/x + C. Hai: ngay cả với α = −1 (tức ∫ dx/x) thì nguyên hàm vẫn tồn tại là ln|x| + C trên từng khoảng (0; +∞) và (−∞; 0) — công thức lũy thừa có điều kiện α ≠ −1, không được kết luận \"không có nguyên hàm\" khi điều kiện không thỏa."
+        },
+        {
+          "question": "Trên miền (−∞; 0), nguyên hàm ∫ (1/x) dx viết dưới dạng ln|x| + C trở thành gì? Tại sao không viết ln x + C?",
+          "solution": "Trên (−∞; 0) ta có |x| = −x nên ∫ (1/x) dx = ln(−x) + C. Không viết ln x + C vì x < 0 khi đó ln x không xác định (hàm ln chỉ xác định với đối số dương); giá trị tuyệt đối |x| bảo đảm đối số luôn dương trên cả hai miền."
+        }
+      ],
+      "mistakes": [
+        "Thay α = −1 vào công thức ∫ x^α dx = x^(α+1)/(α+1) + C (mẫu số bằng 0) và kết luận sai rằng 1/x không có nguyên hàm.",
+        "Viết ln x thay vì ln|x| khi chưa nêu điều kiện x > 0 (hoặc ln(−x) trên miền x < 0).",
+        "Sai khi quy đổi căn thức/phân thức về lũy thừa: √x = x^(1/2), 1/x² = x^(−2), 1/√x = x^(−1/2).",
+        "Cộng sai chỉ số khi α là phân số, hoặc quên hằng số + C khi tìm họ nguyên hàm."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Công thức nguyên hàm của hàm số lũy thừa",
+        "a. Công thức 1: ∫ x^α dx = (x^(α+1))/(α+1) + C với mọi α ∈ ℚ, α ≠ −1.",
+        "b. Công thức 2 (trường hợp α = −1): ∫ (1/x) dx = ln|x| + C với x ≠ 0.",
+        "   - Trên (0; +∞): ∫ (1/x) dx = ln x + C; trên (−∞; 0): ∫ (1/x) dx = ln(−x) + C.",
+        "2. Kỹ thuật quy về lũy thừa",
+        "   - √x = x^(1/2); 1/x² = x^(−2); 1/√x = x^(−1/2) — tính x^(α+1)/(α+1) sau khi quy.",
+        "   - Tách phân thức thành tổng đơn thức + 1/x rồi áp dụng tính chất tuyến tính (Tiết 3).",
+        "3. Điều kiện xác định và hằng số C",
+        "   - Nêu miền (x > 0 hoặc x < 0) trước khi viết ln.",
+        "   - Tìm họ nguyên hàm F(x) = G(x) + C rồi thay điều kiện F(x₀) = y₀ để tìm C."
+      ]
     }
   ],
   "aiErrors": {
@@ -1151,6 +1239,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu thiếu khẩu vị rủi ro/mục tiêu khách hàng, hoặc nêu s lớn = rủi ro cao không phải \"tốt hơn\" một chiều).",
       "boardPrompt": "AI khuyên: \"s_Y > s_X nên chuyển toàn bộ sang Y\". Em phát hiện thiếu điều kiện gì?",
       "libraryTitle": "Lỗi AI khuyên đầu tư thiếu điều kiện khẩu vị rủi ro của khách hàng"
+    },
+    "12-12-83": {
+      "key": "12-12-83",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Tìm nguyên hàm I = ∫ (1/x) dx (x ≠ 0). AI giải: Áp dụng công thức ∫ x^α dx = x^(α+1)/(α+1) + C với α = −1, ta có I = x⁰/0 + C. Vì 1/0 không xác định nên hàm số y = 1/x không có nguyên hàm.",
+      "correction": "Công thức ∫ x^α dx = x^(α+1)/(α+1) + C chỉ áp dụng khi α ≠ −1 — AI dùng công thức ngoài phạm vi điều kiện rồi suy ra kết luận sai. Trường hợp α = −1 có nguyên hàm riêng: ∫ (1/x) dx = ln|x| + C, tồn tại trên từng khoảng (0; +∞) và (−∞; 0). Kiểm chứng: đạo hàm của ln|x| trên từng nửa mặt phẳng là (ln|x|)′ = 1/x.",
+      "proof": "Với x > 0: (ln x)′ = 1/x. Với x < 0: (ln(−x))′ = (−1)/(−x) = 1/x. Vậy trên cả hai miền, ln|x| + C đều là nguyên hàm của 1/x — kết luận \"không có nguyên hàm\" của AI sai hoàn toàn. Cái sai nằm ở chỗ: điều kiện α ≠ −1 của công thức lũy thừa được vi phạm thì phải dùng công thức khác, chứ không suy ra \"không tồn tại\".",
+      "whyAiError": "Mô hình ngôn ngữ nhìn thấy dạng x^α và áp máy móc công thức tổng quát mà bỏ qua điều kiện α ≠ −1; khi công thức cho kết quả vô nghĩa (chia 0) lại suy diễn sai thành \"không tồn tại nguyên hàm\" thay vì chuyển sang trường hợp đặc biệt ln|x|.",
+      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Công thức ∫ x^α dx dùng được với α = −1 không? Khi công thức không áp dụng được thì kết luận \"không tồn tại nguyên hàm\" đã chắc chắn đúng chưa?",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu điều kiện α ≠ −1 của công thức, hoặc nêu nguyên hàm đúng ln|x| + C và kiểm chứng bằng đạo hàm).",
+      "boardPrompt": "AI thay α = −1 vào công thức lũy thừa rồi kết luận \"1/x không có nguyên hàm\". Bẫy nằm ở đâu?",
+      "libraryTitle": "Lỗi AI áp công thức nguyên hàm lũy thừa ngoài điều kiện α ≠ −1"
     }
   }
 }

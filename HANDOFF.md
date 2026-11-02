@@ -1,6 +1,6 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 01/11/2026
+> Cập nhật: 02/11/2026
 
 ## 1. Trạng thái hiện tại
 - Tuần 11 & Addendum: Đã hoàn tất 100% (7/7 bài batch 2 + COMM-AQ-01 + ASS-MDP-01).
@@ -38,8 +38,17 @@
   - Validation: 6 file test liên quan 104/104 PASS (batch2 = 11 gói). Full suite 4684/4700 (16 fail không liên quan: 12 timeout môi trường — chạy riêng PASS, 4 hash v832 nền sẵn trên nhánh). `npm run build` PASS.
   - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 62/62 bài (0 lỗi, 0 audit fail).
   - QA Live: Chạy live session `KcPYWecqYriSZ84Xzzh5` với lớp `12A1 - Toán 12` (`K1282Z`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-86.md`).
+  - Git Sync: Đã đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main` (commit `c7c7d65`).
+
+- Tuần 12 — Khối 12 (`tds-g12-83` / `12-12-83`) Nguyên hàm: Tiết 4 Nguyên hàm của hàm số lũy thừa:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-83.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-83.md`. Kế thừa tính chất tuyến tính Tiết 3 và bảng nguyên hàm Tiết 2.
+  - Pha B: Đã nạp thành công spec (2 công thức $\int x^{\alpha} dx$ với $\alpha \neq -1$ và $\int \frac{dx}{x} = \ln|x| + C$) và AI error ("Lỗi khái niệm" — áp công thức ngoài điều kiện $\alpha \neq -1$) vào `banToan-w11-batch2.snapshot.json` (tổng 12 specs), timeline `gateD121283` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `12-12-83` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 63 bài). Hiển thị: "Nguyên hàm — Tiết 2"; `12-12-86` tự đổi thành "— Tiết 3" theo sequence (quy tắc batch2).
+  - Validation: 7 file test liên quan 114/114 PASS (batch2 = 12 gói). `npm run build` PASS (8m15s, zero lỗi).
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 63/63 bài (0 bỏ qua, 0 audit fail, 0 lỗi).
+  - QA Live: Chạy live session `La9N8SalKCEz1xzgkPku` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-83.md`). Lưu ý hạ tầng: Chrome 136+ chặn debug port trên profile mặc định → dùng `chrome_debug_profile` + bridge auth từ production (`tmp-bridge-auth-local.cjs`); lớp `12A1` không còn, dùng `12LoTrinh1`.
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `12-12-86`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-83` Nguyên hàm — Tiết 4: Nguyên hàm của hàm số lũy thừa).
+1. Trình thầy duyệt kết quả hoàn thành bài `12-12-83`.
+2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-84` Nguyên hàm — Tiết 5: Nguyên hàm của hàm số mũ).
