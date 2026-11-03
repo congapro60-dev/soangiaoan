@@ -16,7 +16,7 @@
 - **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
 
 ### Dọn dẹp
-- Commit `b9dec2a` lỡ kèm `ship-story.mjs` + 2 err.log — đã xóa; thêm `.gitignore` chặn tái diễn (`ship-*.mjs`, script patch tạm, `*-check-cheo-*.err.log`).
+- Commit `b9dec2a` lỡ kèm `ship-story.mjs` + 2 err.log — đã xóa; thêm `.gitignore` chặn tái diễn (`ship-*.mjs`, script patch tạm, `*_check_cheo_*.err.log`; pattern ban đầu dùng gạch ngang không khớp tên file, đã sửa trong commit `09c0252`).
 
 ### Lệnh nghiệm thu
 \`\`\`powershell
