@@ -13,5 +13,7 @@
 | 9 | Tuần 12 — Khối 12 (`tds-g12-83` / `12-12-83`) Nguyên hàm: Tiết 4 Nguyên hàm của hàm số lũy thừa | XONG | Pha A + B xong, timeline `gateD121283`, xuất bản portal (63 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-83.md`). |
 | 10 | Tuần 12 — Khối 12 (`tds-g12-84` / `12-12-84`) Nguyên hàm: Tiết 5 Nguyên hàm của hàm số mũ | XONG | Pha A + B xong, timeline `gateD121284`, fix trùng tiêu đề `12-12-86` (bắt bởi test), xuất bản portal (64 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-84.md`). |
 | 11 | Tuần 12 — Khối 12 (`tds-g12-85` / `12-12-85`) Nguyên hàm: Tiết 6 Nguyên hàm của hàm số lượng giác | XONG | Pha A + B xong, timeline `gateD121285`, xuất bản portal (65 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-85.md`). |
+| 12 | Tuần 12 — Khối 12 (`tds-g12-87` / `12-12-87`) Phương sai và độ lệch chuẩn: Tiết 3 Luyện tập | XONG | Pha A + B xong, chuẩn V8.8 Master Teacher (trục dữ liệu 50 đơn hàng 2 dịch vụ GiaoNhanh/SieuToc, hướng dẫn lớp yếu, câu hỏi phân tầng có hint), timeline `gateD121287`, xuất bản portal (66 gói, 0 audit fail), QA live 12 chặng PASS (`tasks/qa-report-12-12-87.md`). |
+| 13 | Nâng cấp hồi tố các bài cũ Tuần 12 (`12-12-82` đến `12-12-86`) theo chuẩn V8.8 Master Teacher | ĐANG LÀM | User đã duyệt kế hoạch: hoàn thành bài mới rồi quay lại nâng cấp toàn diện các bài cũ đã tạo. |
 
-Thứ tự: 1–11 (xong toàn diện). Chuẩn bị chuyển sang bài tiếp theo của Tuần 12 theo PPCT.
+Thứ tự: 1–12 (xong toàn diện). Đang triển khai mục 13 (nâng cấp hồi tố các bài cũ).

@@ -10,8 +10,8 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
   });
 
   it('Cổng chốt catalog batch2 — đủ đúng key mới nghiệm thu đợt (Task 11 Step 1b)', () => {
-    expect(W11BATCH2).toHaveLength(14);
-    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88', '11-12-82', '12-12-82', '12-12-83', '12-12-84', '12-12-85', '12-12-86']);
+    expect(W11BATCH2).toHaveLength(15);
+    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88', '11-12-82', '12-12-82', '12-12-83', '12-12-84', '12-12-85', '12-12-86', '12-12-87']);
   });
 
   it('merge batch2 không làm mất gói gốc', () => {
@@ -120,6 +120,14 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
 
   it('12-12-86 chạy timeline Gate D riêng (3-4-2-6-3-1-7-3-5-3-3 phút)', () => {
     const spans = getBanToanV4Contract('12-12-86').timeline.map((b) => [b.startSeconds, b.endSeconds]);
+    expect(spans).toEqual([
+      [0, 180], [180, 420], [420, 540], [540, 900], [900, 1080], [1080, 1140],
+      [1140, 1560], [1560, 1740], [1740, 2040], [2040, 2220], [2220, 2400],
+    ]);
+  });
+
+  it('12-12-87 chạy timeline Gate D riêng (3-4-2-6-3-1-7-3-5-3-3 phút)', () => {
+    const spans = getBanToanV4Contract('12-12-87').timeline.map((b) => [b.startSeconds, b.endSeconds]);
     expect(spans).toEqual([
       [0, 180], [180, 420], [420, 540], [540, 900], [900, 1080], [1080, 1140],
       [1140, 1560], [1560, 1740], [1740, 2040], [2040, 2220], [2220, 2400],

@@ -68,6 +68,16 @@
   - QA Live: Chạy live session `96LHQ85J4cfbIMq7xWhD` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-85.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
+- Tuần 12 — Khối 12 (`tds-g12-87` / `12-12-87`) Phương sai và độ lệch chuẩn: Tiết 3 Luyện tập:
+  - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-12-12-87.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-12-12-87.md` (kế thừa công thức ghép nhóm và đo rủi ro từ Tiết 1-2 `12-11-80`, `12-12-86`).
+  - Tiêu chuẩn V8.8 Master Teacher: Trục dữ liệu thực nghiệm xuyên suốt 50 đơn hàng giờ cao điểm giữa 2 ứng dụng GiaoNhanh (A) và SieuToc (B) trên 5 khoảng có $c=[15,25,35,45,55]$; cùng $\bar{x}=35$ phút; $s^2_A=72 \implies s_A\approx 8{,}49$ phút; $s^2_B=200 \implies s_B\approx 14{,}14$ phút; hướng dẫn cụ thể cho học sinh yếu; câu hỏi phân tầng có hint; bẫy AI quên trừ $\bar{x}^2$; Exit Ticket cô đọng.
+  - Pha B: Đã nạp thành công spec và AI error vào `banToan-w11-batch2.snapshot.json` (tổng 15 specs), timeline `gateD121287` (3-4-2-6-3-1-7-3-5-3-3 phút) vào `lessonAdapter.ts`.
+  - Đăng ký hệ thống: Thêm `12-12-87` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY` (`['P19', 'P26']`), danh mục `W11BATCH2` (nâng tổng gói portal lên 66 bài). Hiển thị: "Luyện tập phương sai và độ lệch chuẩn — Tiết 6", tiêu đề duy nhất 100% trong toàn khối 12.
+  - Validation: 39 file test Vitest PASS 442/442 (100%). Test tiêu đề duy nhất PASS toàn bộ 66 bài. `npm run build` PASS (2m28s, zero lỗi).
+  - Portal & Xuất bản: Đã xuất bản tuần tự trọn vẹn 66/66 bài (0 audit fail, 0 lỗi).
+  - QA Live: Chạy live session `hJedovT1shHfMCLdWU0z` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-87.md`).
+  - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
+
 ## 2. Việc tiếp theo
-1. Trình thầy duyệt kết quả hoàn thành bài `12-12-85`.
-2. Tiếp tục triển khai bài tiếp theo của Tuần 12 theo PPCT (Khối 12: `12-12-87` Phương sai và độ lệch chuẩn — Tiết 3: Luyện tập).
+1. Trình duyệt kết quả hoàn thành bài `12-12-87`.
+2. Triển khai kế hoạch nâng cấp hồi tố các bài cũ Tuần 12 (`12-12-82` đến `12-12-86`) theo chuẩn V8.8 Master Teacher (bổ sung trục dữ liệu thực nghiệm xuyên suốt, câu hỏi tương tác cụ thể kèm hints, teacherCue định hướng cho lớp yếu, chốt Exit Ticket sâu sắc).

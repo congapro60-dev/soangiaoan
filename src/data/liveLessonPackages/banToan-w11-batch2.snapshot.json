@@ -1296,6 +1296,97 @@
         "4. Ứng dụng dao động",
         "   - v(t) = v₀ cos t, s(0) = 0 → s(t) = v₀ sin t; li độ cực đại = v₀ (biên độ)."
       ]
+    },
+    {
+      "key": "12-12-87",
+      "grade": 12,
+      "week": 12,
+      "period": 87,
+      "kind": "practice",
+      "lessonType": "practice",
+      "selfChoice": false,
+      "timelineKey": "gateD121287",
+      "title": "Luyện tập phương sai và độ lệch chuẩn",
+      "focus": "Luyện tập tính phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm: áp dụng linh hoạt 2 công thức tính s², s; kiểm soát bẫy quên trừ x̄²; so sánh độ phân tán và rủi ro giữa 2 dịch vụ giao hàng có cùng số trung bình x̄ = 35 phút; đối chiếu chỉ số σx (chia n) trên máy tính Casio",
+      "formulas": [
+        "s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i^2 - \\bar{x}^2",
+        "s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i (c_i - \\bar{x})^2",
+        "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i;\\quad s = \\sqrt{s^2} \\ge 0"
+      ],
+      "examples": [
+        {
+          "question": "Thời gian giao hàng (phút) của 50 đơn dịch vụ A ghép nhóm: [10;20) có 2 đơn, [20;30) có 10 đơn, [30;40) có 26 đơn, [40;50) có 10 đơn, [50;60) có 2 đơn. Tính số trung bình, phương sai và độ lệch chuẩn.",
+          "solution": "Giá trị đại diện: c = [15, 25, 35, 45, 55]; n = 50. x̄_A = (2·15 + 10·25 + 26·35 + 10·45 + 2·55)/50 = 1750/50 = 35 (phút). Σnᵢcᵢ² = 2·225 + 10·625 + 26·1225 + 10·2025 + 2·3025 = 64850. s²_A = 64850/50 − 35² = 1297 − 1225 = 72 (phút²). s_A = √72 ≈ 8,49 (phút)."
+        },
+        {
+          "question": "Thời gian giao hàng của 50 đơn dịch vụ B có n = 50, x̄_B = 35 phút, phân bố đều: mỗi nhóm 10 đơn. Tính s²_B, s_B và so sánh với dịch vụ A.",
+          "solution": "Σnᵢcᵢ² = 10·(225 + 625 + 1225 + 2025 + 3025) = 71250. s²_B = 71250/50 − 35² = 1425 − 1225 = 200 (phút²). s_B = √200 ≈ 14,14 (phút). So sánh: Vì x̄_A = x̄_B = 35 nhưng s_A ≈ 8,49 < s_B ≈ 14,14 nên dịch vụ A có thời gian giao hàng ổn định và ít rủi ro hơn dịch vụ B."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nêu 4 bước tính phương sai của mẫu số liệu ghép nhóm và chỉ ra 1 lỗi học sinh dễ mắc nhất.",
+          "answer": "4 bước: 1) Xác định giá trị đại diện cᵢ; 2) Tính số trung bình x̄; 3) Tính s² = (1/n)Σnᵢcᵢ² − x̄² (hoặc theo độ lệch); 4) Tính s = √s². Lỗi dễ mắc nhất: quên trừ x̄² ở bước 3, dẫn tới s² bị phóng đại phi lý."
+        },
+        {
+          "level": "NB",
+          "question": "Cho mẫu số liệu ghép nhóm có n = 40, x̄ = 20 và Σnᵢcᵢ² = 16400. Tính phương sai s² và độ lệch chuẩn s.",
+          "answer": "s² = 16400/40 − 20² = 410 − 400 = 10. Độ lệch chuẩn s = √10 ≈ 3,16."
+        },
+        {
+          "level": "TH",
+          "question": "Tính phương sai và độ lệch chuẩn của dịch vụ giao hàng B (50 đơn hàng chia đều 5 nhóm, mỗi nhóm 10 đơn; x̄ = 35 phút).",
+          "answer": "Σnᵢcᵢ² = 10·(15² + 25² + 35² + 45² + 55²) = 71250. s²_B = 71250/50 − 35² = 1425 − 1225 = 200. s_B = √200 ≈ 14,14 (phút)."
+        },
+        {
+          "level": "TH",
+          "question": "Bạn Lan cần nhận đồ ăn trước 12h00 (còn 45 phút). Biết cả 2 dịch vụ A và B đều có thời gian trung bình 35 phút, nhưng s_A ≈ 8,49 phút và s_B ≈ 14,14 phút. Em khuyên Lan chọn dịch vụ nào? Vì sao?",
+          "answer": "Khuyên Lan chọn dịch vụ A. Vì A có độ lệch chuẩn nhỏ hơn nhiều (8,49 < 14,14), thời gian giao hàng tập trung quanh 35 phút (nhóm [30;40) chiếm tới 26/50 đơn, chỉ có 2 đơn > 50 phút). Dịch vụ B biến động mạnh, có tới 10 đơn > 50 phút (20%) khiến nguy cơ trễ cuộc họp của Lan rất cao."
+        },
+        {
+          "level": "VD",
+          "question": "Khi dùng máy tính Casio fx-580VN X để kiểm tra phương sai mẫu số liệu ghép nhóm, trên màn hình hiện cả σx và sx. Em chọn chỉ số nào? Vì sao có sự khác nhau?",
+          "answer": "Chọn chỉ số σx. Vì trong chương trình Toán 12, phương sai mẫu ghép nhóm được tính theo mẫu số n (độ lệch chuẩn chia n tương ứng với ký hiệu σx trên máy). Ký hiệu sx trên máy chia cho n − 1 (độ lệch chuẩn mẫu hiệu chỉnh dùng trong thống kê suy diễn)."
+        },
+        {
+          "level": "VD",
+          "question": "Nếu hai mẫu số liệu có số trung bình rất khác nhau (ví dụ: x̄₁ = 10, s₁ = 2; x̄₂ = 100, s₂ = 10), so sánh trực tiếp độ lệch chuẩn có phản ánh đúng độ phân tán tương đối không? Hãy đề xuất cách so sánh.",
+          "answer": "Không thỏa đáng khi so sánh trực tiếp s, vì độ lớn của s phụ thuộc vào thang đo của x̄. Nên dùng hệ số biến thiên CV = s / x̄: CV₁ = 2/10 = 20%; CV₂ = 10/100 = 10%. Mẫu 1 biến động tương đối mạnh gấp đôi mẫu 2 dù s₁ nhỏ hơn s₂."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi tính phương sai theo công thức s² = (1/n)Σnᵢcᵢ² − x̄², nếu học sinh quên trừ x̄² thì kết quả thu được sẽ như thế nào?",
+          "solution": "Kết quả thu được là (1/n)Σnᵢcᵢ² (trung bình bình phương), bị phóng đại rất lớn so với phương sai thực tế. Khi đó căn bậc hai s sẽ thường lớn hơn cả số trung bình x̄, trái với bản chất độ lệch quanh trung bình."
+        },
+        {
+          "question": "Hai mẫu ghép nhóm có x̄_A = x̄_B = 50, s_A = 2 và s_B = 8. Khẳng định nào đúng về độ ổn định của hai mẫu?",
+          "solution": "Mẫu A có s_A = 2 < s_B = 8 nên dữ liệu tập trung quanh trung bình hơn, độ phân tán thấp hơn và độ ổn định cao hơn mẫu B."
+        }
+      ],
+      "mistakes": [
+        "Quên trừ x̄² trong công thức s² = (1/n)Σnᵢcᵢ² − x̄², dẫn đến phương sai bị phóng đại khổng lồ.",
+        "Dùng nhầm đầu mút khoảng (aᵢ hoặc aᵢ₊₁) thay vì giá trị đại diện cᵢ = (aᵢ + aᵢ₊₁)/2.",
+        "Nhầm lẫn giữa phương sai s² (đơn vị bình phương) và độ lệch chuẩn s (cùng đơn vị với dữ liệu).",
+        "Chọn nhầm chỉ số sx (chia n−1) thay vì σx (chia n) khi đối chiếu trên máy tính Casio."
+      ],
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bảng số liệu ghép nhóm: 50 đơn hàng giờ cao điểm",
+        "   - Khoảng [10;20), [20;30), [30;40), [40;50), [50;60) có cᵢ = 15, 25, 35, 45, 55.",
+        "   - x̄_A = x̄_B = 35 phút.",
+        "2. Công thức tính phương sai và độ lệch chuẩn",
+        "   - s² = (1/n)Σnᵢcᵢ² − x̄²  (nhớ trừ x̄²).",
+        "   - s = √s² (độ lệch chuẩn).",
+        "   - Dịch vụ A: s²_A = 1297 − 1225 = 72 → s_A ≈ 8,49 phút.",
+        "   - Dịch vụ B: s²_B = 1425 − 1225 = 200 → s_B ≈ 14,14 phút.",
+        "3. Quy tắc đánh giá độ rủi ro",
+        "   - Cùng x̄: s càng nhỏ → độ ổn định càng cao, ít rủi ro trễ hẹn.",
+        "   - Lan cần nhận cơm trước giờ họp → chọn Dịch vụ A.",
+        "4. Lưu ý máy tính cầm tay",
+        "   - Chọn σx cho độ lệch chuẩn chia n; sx là chia n−1."
+      ]
     }
   ],
   "aiErrors": {
@@ -1452,6 +1543,18 @@
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (cos x)′ = −sin x ≠ sin x, hoặc nêu đáp án đúng −cos x + C kèm kiểm chứng).",
       "boardPrompt": "AI nói \"đạo hàm của sin x là cos x nên nguyên hàm của sin x là cos x\". Em phát hiện sai ở chiều nào?",
       "libraryTitle": "Lỗi AI nhầm chiều giữa đạo hàm và nguyên hàm của sin x"
+    },
+    "12-12-87": {
+      "key": "12-12-87",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Dịch vụ giao hàng A có n = 50, x̄ = 35 phút và Σnᵢcᵢ² = 64850. AI tính: \"Phương sai của dịch vụ A là s² = 64850/50 = 1297. Suy ra độ lệch chuẩn s = √1297 ≈ 36,01 phút.\"",
+      "correction": "AI đã quên trừ x̄² trong công thức phương sai s² = (1/n)Σnᵢcᵢ² − x̄². Giá trị 1297 mới chỉ là (1/n)Σnᵢcᵢ² (kỳ vọng bình phương), chưa phải phương sai. Sửa đúng: s² = 1297 − 35² = 1297 − 1225 = 72 (phút²). Suy ra s = √72 ≈ 8,49 (phút).",
+      "proof": "Dữ liệu nằm gọn trong [10; 60) phút với trung bình 35 phút mà độ lệch chuẩn lên tới 36 phút (lớn hơn cả số trung bình) là phi lý. Công thức định nghĩa: s² = (1/n)Σnᵢ(cᵢ − x̄)² = (1/n)Σnᵢcᵢ² − 2x̄(1/n)Σnᵢcᵢ + x̄² = (1/n)Σnᵢcᵢ² − 2x̄² + x̄² = (1/n)Σnᵢcᵢ² − x̄². Bỏ sót số hạng x̄² vi phạm khai triển đại số.",
+      "whyAiError": "Mô hình ghi nhớ công thức một cách chắp vá, dừng lại ở bước chia tổng bình phương cho n mà bỏ qua số hạng hiệu chỉnh trung bình bình phương x̄².",
+      "teacherPrompt": "Em hãy nhận xét kết quả s ≈ 36,01 phút của AI: Kết quả này có hợp lý không khi thời gian giao hàng nằm trong khoảng [10; 60) phút? Hãy chỉ ra bước biến đổi AI bỏ sót.",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu AI quên trừ x̄² = 1225; đáp án đúng s² = 72, s ≈ 8,49 phút).",
+      "boardPrompt": "AI tính s² = 64850/50 = 1297. Em phát hiện AI bỏ sót số hạng nào trong công thức?",
+      "libraryTitle": "Lỗi AI quên trừ x̄² khi tính phương sai mẫu số liệu ghép nhóm"
     }
   }
 }

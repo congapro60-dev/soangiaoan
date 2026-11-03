@@ -29,4 +29,5 @@ export const W11BATCH2: ReadonlyArray<W11Batch2Entry> = [
   { key: '12-12-84', grade: 12, period: 84, title: 'Nguyên hàm' },
   { key: '12-12-85', grade: 12, period: 85, title: 'Nguyên hàm' },
   { key: '12-12-86', grade: 12, period: 86, title: 'Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro' },
+  { key: '12-12-87', grade: 12, period: 87, title: 'Luyện tập phương sai và độ lệch chuẩn' },
 ];
