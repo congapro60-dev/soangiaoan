@@ -16,6 +16,14 @@
 - **Sửa ~50 lỗi dính chữ** ("bằng0", "và9cm", "từ2bút", "Xếp5cuốn"...) trong G10 extensions/solutions/mc + auto-bank.
 - **Audit**: HKI 5.350 & HKII 5.882 tasks — 0 trùng, 0 thiếu solidKey (case-insensitive), 0 glue, 0 task thiếu hint. 7/7 E2E PASS. `npm run build` ✓.
 
+### Check chéo 2 hãng cho đợt nâng cấp này (03/11/2026) — ĐỒNG THUẬN PASS
+- Payload `check_cheo_payload_20261103.md` (10 mục, HEAD `9fbbe35`), Claude CLI + Codex CLI (`-m cx/gpt-6.1-terra`, config `ai-stack-economy` mặc định bị provider trả 400) chạy song song. Bằng chứng: `claude_check_cheo_20261103.log`, `codex_check_cheo_20261103.log`, commit `c073fd2`.
+- 8/10 mục PASS đồng thuận. 2 mục lệch số kỳ vọng trong payload, đã verify độc lập và chốt PASS:
+  - H1 anchor thực tế **3.784** (payload ghi stale 3.779 — số chụp trước lần rebuild cuối).
+  - Storyline nằm ở **6 bài** `r177, r178, r327, r328, r336, r337` (payload liệt kê thiếu; 30 task khớp dataset A/B 12 phiên).
+  - Codex build FAIL do EPERM trong sandbox của nó; Claude (và chủ máy trước đó) build exit 0.
+- Rủi ro ghi nhận: 105 task `type:"open"` (pattern `task-5-3`) chỉ có 1 hint (data-anchor) — by-design bước tự kiểm, theo dõi nếu muốn đủ tầng.
+
 ### Dọn dẹp trong commit `74431b1`
 - Xóa `ship.mjs` (script tạm bị commit nhầm vào `1d65ff4`).
 - Cắt HANDOFF.md 495 dòng → ~60 dòng; toàn bộ checkpoint cũ chuyển sang `docs/HANDOFF-ARCHIVE.md`.
