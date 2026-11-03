@@ -36,6 +36,24 @@ function concept(id, title, statement, teach, error, hints, make) {
   } };
 }
 const k = seed => 2 + seed % 11;
+// H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
+const dataAnchor = prompt => {
+  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+  const eqDigit = new RegExp('=\\s*[-+]?\\d');
+  const verbal = [];
+  for (const sn of ms) {
+    const body = sn.slice(1, -1);
+    if (!eqDigit.test(body)) { verbal.push(sn); continue; }
+    const structural = body.replace(/\\[-{}]/g, '');
+    if (/[_^{}]/.test(structural)) continue;
+    const i = body.search(eqDigit);
+    const left = body.slice(0, i);
+    const rest = body.slice(i + 1).replace(/^\\s*/, '');
+    if (eqDigit.test(rest)) continue;
+    verbal.push('$' + left + '$ bằng $' + rest + '$');
+  }
+  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
+};
 
 concept('sets', 'Giao, hợp và hiệu hai tập hữu hạn', 'Tìm giao, hợp, hiệu hai tập hữu hạn và kiểm phần tử được nhận.',
   'GV vẽ hai miền trên bảng trắng; HS đặt phần tử chung trước, sau đó mới đặt phần riêng. Chốt hợp không lặp phần tử; hiệu giữ đúng thứ tự hai tập.',
@@ -48,10 +66,14 @@ concept('sets', 'Giao, hợp và hiệu hai tập hữu hạn', 'Tìm giao, hợ
 concept('mean', 'Trung bình và trung vị', 'Tính trung bình, trung vị của mẫu nhỏ và phân biệt ảnh hưởng của giá trị lớn.',
   'GV viết dữ liệu chưa sắp; HS giữ mọi lần lặp khi sắp tăng. Chốt trung bình theo tổng, trung vị theo vị trí.', 'Bỏ giá trị lặp khi tính trung bình.',
   ['Đếm đủ số quan sát.', 'Sắp mẫu để tìm vị trí giữa.', 'Tổng phải gồm mọi lần xuất hiện.', 'Kiểm trung bình nằm giữa giá trị nhỏ nhất và lớn nhất.'], s => {
-    const a = k(s), data = [a + 6, a, a + 2, a + 2, a + 5], sorted = [...data].sort((x, y) => x - y);
-    equal(sum(data) / 5, a + 3); equal(sorted[2], a + 2);
-    return { prompt: R`Số phút đọc của năm lượt quan sát là $${data.join(';')}$. Tính trung bình, trung vị. Nếu riêng giá trị lớn nhất tăng thêm 10 phút thì mỗi đại lượng đổi thế nào?`,
-      solution: R`Mẫu sắp $${sorted.join(';')}$. Trung bình $${a + 3}$ phút, trung vị $${a + 2}$ phút. Tăng giá trị lớn nhất thêm 10 làm trung bình tăng $10/5=2$ phút, trung vị giữ nguyên.` };
+    const stockSrc = s % 2 ? [-1, 12, -2, -1, 2, -1, 3, -3, -1, 1, -2, -1] : [0, 2, -1, 1, 0, 2, -2, 1, 0, 2, 1, 0];
+    const stockName = s % 2 ? 'B' : 'A';
+    let start = s % 8, data = stockSrc.slice(start, start + 5);
+    for (let t = 0; t < 8 && sum(data) % 5 !== 0; t++) { start = (s % 8 + t) % 8; data = stockSrc.slice(start, start + 5); }
+    equal(sum(data) % 5, 0);
+    const sorted = [...data].sort((x, y) => x - y), avg = sum(data) / 5, median = sorted[2];
+    return { prompt: R`Tiếp nối tình huống hai cổ phiếu A/B ở bài học tương tác: năm phiên từ phiên ${start + 1} đến phiên ${start + 5} của cổ phiếu ${stockName} là $${data.join(';')}$ điểm phần trăm. Tính trung bình, trung vị. Nếu riêng phiên có lợi suất cao nhất tăng thêm 10 điểm phần trăm thì mỗi đại lượng đổi thế nào?`,
+      solution: R`Mẫu sắp $${sorted.join(';')}$. Trung bình $${avg}$, trung vị $${median}$ điểm phần trăm. Tăng giá trị lớn nhất thêm 10 làm trung bình tăng $10/5=2$, trung vị giữ nguyên.` };
   });
 concept('dot', 'Tích vô hướng theo tọa độ', 'Tính tích vô hướng và dùng điều kiện khác không để xét vuông góc.',
   'GV viết hai vectơ theo từng cột tọa độ; nhân các thành phần cùng vị trí rồi cộng. Chốt hai vectơ khác không có tích vô hướng bằng không thì vuông góc.', 'Cộng chéo các thành phần khi tính tích vô hướng.',
@@ -147,14 +169,14 @@ concept('quadsign', 'Dấu của tam thức bậc hai', 'Lập bảng dấu tam 
   'Cho tam thức dương tại cả hai nghiệm.', ['Sắp hai nghiệm theo thứ tự.', 'Chia trục số thành ba khoảng.', 'Theo dõi dấu của từng nhân tử trên mỗi khoảng.', 'Các mốc nghiệm phải ghi giá trị bằng không, không gộp với dấu trong khoảng.'], s => {
     const a = k(s), b = a + 4; equal([a - 1, a + 1, b + 1].map(x => Math.sign((x - a) * (x - b))), [1, -1, 1]);
     return { prompt: R`Lập bảng dấu của $f(x)=(x-${a})(x-${b})$ trên $\mathbb R$. Nêu nơi dương, âm, bằng không và kiểm bằng một giá trị trong mỗi khoảng.`,
-      solution: R`Hai nghiệm ${a}<${b}. f dương trên $(-\infty;${a})\cup(${b};+\infty)$, âm trên $(${a};${b})$, bằng0 tại ${a},${b}. Thử ${a - 1},${a + 1},${b + 1} cho dấu +,-,+.` };
+      solution: R`Hai nghiệm ${a}<${b}. f dương trên $(-\infty;${a})\cup(${b};+\infty)$, âm trên $(${a};${b})$, bằng 0 tại ${a},${b}. Thử ${a - 1},${a + 1},${b + 1} cho dấu +,-,+.` };
   });
 concept('quadineq', 'Bất phương trình bậc hai', 'Giải bất phương trình bậc hai bằng bảng dấu, giữ đúng đầu mút.',
   'GV tách việc tìm nghiệm phương trình biên với việc chọn khoảng dấu. Dấu không nghiêm nhận đầu mút, dấu nghiêm loại đầu mút.',
   'Chỉ trả hai nghiệm phương trình thay cho cả tập nghiệm bất phương trình.', ['Đưa về một vế bằng tích hoặc tam thức.', 'Tìm các nghiệm làm mốc.', 'Chọn khoảng có dấu được yêu cầu.', 'Thử một điểm trong khoảng và kiểm riêng hai đầu mút.'], s => {
     const a = k(s), b = a + 5; equal(range(a - 2, b + 2).filter(x => (x - a) * (x - b) <= 0), range(a, b));
-    return { prompt: R`Giải $(x-${a})(x-${b})\le0$ trên $\mathbb R$. Sau đó viết nghiệm của bất phương trình cùng vế trái nhưng dấu $<0$. Giải thích sự khác nhau ở đầu mút.`,
-      solution: R`Tích âm giữa hai nghiệm, bằng0 tại hai nghiệm. Với dấu không nghiêm, $S=[${a};${b}]$; với dấu nghiêm, $S=(${a};${b})$. Không chỉ liệt kê hai nghiệm biên.` };
+    return { prompt: R`Giải $(x-${a})(x-${b})\le 0$ trên $\mathbb R$. Sau đó viết nghiệm của bất phương trình cùng vế trái nhưng dấu $<0$. Giải thích sự khác nhau ở đầu mút.`,
+      solution: R`Tích âm giữa hai nghiệm, bằng 0 tại hai nghiệm. Với dấu không nghiêm, $S=[${a};${b}]$; với dấu nghiêm, $S=(${a};${b})$. Không chỉ liệt kê hai nghiệm biên.` };
   });
 concept('radicalequal', 'Phương trình hai căn bậc hai', 'Giải phương trình hai căn bằng nhau và đối chiếu điều kiện xác định.',
   'GV ghi cả hai biểu thức dưới căn không âm trước khi bình phương. Sau khi hai biểu thức bằng nhau, vẫn phải kiểm nghiệm vào điều kiện và phương trình gốc.',
@@ -331,39 +353,39 @@ for (const p of ppct.lessons.filter(p => p.kind === 'core')) for (const id of by
 assert.deepEqual([...introductions.keys()].sort(), Object.keys(bank).sort());
 const extensions = {
   sets:['Với ba tập A,B,C hữu hạn, giải thích vì sao một phần tử thuộc A giao (B hợp C) cũng thuộc (A giao B) hợp (A giao C).','Phần tử thuộc A và thuộc ít nhất một trong B,C; ghép hai điều kiện cho thấy nó thuộc ít nhất một trong A giao B, A giao C. Chiều ngược dùng cùng lập luận.'],
-  mean:['Nếu cộng cùng 3 phút vào mọi giá trị ban đầu, trung bình và trung vị đổi thế nào? Giải thích bằng tổng và vị trí.','Tổng tăng 3n nên trung bình tăng3. Thứ tự không đổi; giá trị giữa hoặc trung bình hai giá trị giữa đều tăng3 nên trung vị cũng tăng3.'],
-  dot:['Thay v bằng v+u, hai vectơ u và v+u có còn vuông góc không? Giải thích mà không tính lại từng tọa độ.','Tích u với v+u bằng tích u với v cộng bình phương độ dài u. Tích đầu bằng0, bình phương độ dài u dương, nên không vuông góc.'],
-  function:['Một bảng mới gán cùng đầu vào 0 cho hai đầu ra khác nhau 1 và2. Bảng có còn biểu diễn một hàm số không? Phân biệt với việc hai đầu vào có cùng đầu ra.','Không: đầu vào0 không có đầu ra duy nhất. Nhiều đầu vào cùng đầu ra vẫn hợp lệ; một đầu vào hai đầu ra khác nhau thì không.'],
-  monotonic:['Tổng một hàm đồng biến và một hàm nghịch biến có nhất thiết đồng biến không? Dùng hai hàm bậc nhất cụ thể để phản biện.','Không. Chọn f(x)=x đồng biến, g(x)=-2x nghịch biến; tổng=-x nghịch biến. Chọn g(x)=-x còn cho tổng hằng0.'],
-  linegeneral:['Nhân toàn bộ phương trình vừa lập với -2 có làm đổi đường thẳng không? Chứng minh bằng tập nghiệm.','Không: một biểu thức bằng0 khi và chỉ khi -2 lần biểu thức đó bằng0. Cả hai phương trình có cùng tập điểm, pháp tuyến có thể đổi hướng và độ dài.'],
+  mean:['Nếu cộng cùng 3 phút vào mọi giá trị ban đầu, trung bình và trung vị đổi thế nào? Giải thích bằng tổng và vị trí.','Tổng tăng 3 n nên trung bình tăng 3. Thứ tự không đổi; giá trị giữa hoặc trung bình hai giá trị giữa đều tăng 3 nên trung vị cũng tăng 3.'],
+  dot:['Thay v bằng v+u, hai vectơ u và v+u có còn vuông góc không? Giải thích mà không tính lại từng tọa độ.','Tích u với v+u bằng tích u với v cộng bình phương độ dài u. Tích đầu bằng 0, bình phương độ dài u dương, nên không vuông góc.'],
+  function:['Một bảng mới gán cùng đầu vào 0 cho hai đầu ra khác nhau 1 và 2. Bảng có còn biểu diễn một hàm số không? Phân biệt với việc hai đầu vào có cùng đầu ra.','Không: đầu vào 0 không có đầu ra duy nhất. Nhiều đầu vào cùng đầu ra vẫn hợp lệ; một đầu vào hai đầu ra khác nhau thì không.'],
+  monotonic:['Tổng một hàm đồng biến và một hàm nghịch biến có nhất thiết đồng biến không? Dùng hai hàm bậc nhất cụ thể để phản biện.','Không. Chọn f(x)=x đồng biến, g(x)=-2 x nghịch biến; tổng=-x nghịch biến. Chọn g(x)=-x còn cho tổng hằng 0.'],
+  linegeneral:['Nhân toàn bộ phương trình vừa lập với -2 có làm đổi đường thẳng không? Chứng minh bằng tập nghiệm.','Không: một biểu thức bằng 0 khi và chỉ khi -2 lần biểu thức đó bằng 0. Cả hai phương trình có cùng tập điểm, pháp tuyến có thể đổi hướng và độ dài.'],
   lineparam:['Nếu giữ công thức nhưng chỉ cho t không âm, có còn nhận toàn bộ đường thẳng không?','Không; nhận tia xuất phát từ điểm gốc theo hướng vectơ chỉ phương. Các giá trị t âm tạo nửa đường thẳng phía đối diện nên bị loại.'],
-  quadconcept:['Trong dạng a(x-h) bình phương cộng b, nếu a bằng0 thì đồ thị thuộc loại nào? Vì sao không còn bậc hai?','Khi a=0, hàm chỉ còn y=b, là hàm hằng với đồ thị đường ngang. Hệ số bậc hai bằng0 nên không đáp ứng định nghĩa hàm bậc hai.'],
+  quadconcept:['Trong dạng a(x-h) bình phương cộng b, nếu a bằng 0 thì đồ thị thuộc loại nào? Vì sao không còn bậc hai?','Khi a=0, hàm chỉ còn y=b, là hàm hằng với đồ thị đường ngang. Hệ số bậc hai bằng 0 nên không đáp ứng định nghĩa hàm bậc hai.'],
   quadgraph:['Giữ đỉnh, đổi dấu hệ số trước bình phương. Nêu thay đổi của chiều mở và hai khoảng biến thiên.','Đồ thị đối xứng qua đường ngang đi qua đỉnh. Chiều mở đảo lại, đồng biến và nghịch biến trên hai phía của đỉnh đổi vai trò; trục đối xứng giữ nguyên.'],
-  quadapplication:['Nếu chỉ quan sát từ lúc0 đến một thời điểm dương trước thời điểm đạt đỉnh, độ cao lớn nhất trên đoạn quan sát nằm ở đâu?','Trước đỉnh, độ cao tăng khi thời gian tiến về đỉnh. Trên đoạn quan sát ngắn ấy, lớn nhất ở đầu phải; không được lấy độ cao tại đỉnh nằm ngoài miền quan sát.'],
-  lineconvert:['Có thể thay vectơ chỉ phương vừa tìm bằng vectơ không để viết cùng đường thẳng không?','Không. Vectơ chỉ phương phải khác0. Công thức điểm gốc cộng t nhân vectơ0 chỉ tạo một điểm, không tạo đường thẳng.'],
-  linerelative:['Hai phương trình có các hệ số x,y tỉ lệ. Cần điều kiện nào nữa để chúng biểu diễn cùng một đường thẳng?','Hằng số cũng phải theo cùng tỉ lệ, với hệ số nhân khác0. Nếu không, hai đường song song phân biệt; nếu có, hai phương trình tương đương.'],
-  lineangle:['Công thức cos góc có dùng được nếu một vectơ chỉ phương bằng vectơ không không? Chỉ ra lỗi trong công thức và trong mô hình.','Không. Mẫu chứa độ dài vectơ0 nên bằng0. Vectơ0 không xác định hướng, không được chọn làm chỉ phương của một đường thẳng.'],
-  distance:['Tại sao nhân phương trình với -3 giữ khoảng cách, còn nhân với0 thì không thể dùng công thức khoảng cách nữa?','Nhân -3 làm tử tăng3 lần và mẫu tăng3 lần nên tỉ số giữ nguyên. Nhân0 tạo đẳng thức0=0 cho toàn mặt phẳng, không còn đường thẳng; pháp tuyến bằng0 và mẫu bằng0.'],
-  quadsign:['So sánh với tam thức (x-1) bình phương: có khoảng âm giữa hai nghiệm không?','Không có hai nghiệm phân biệt. Chỉ có nghiệm kép1; bình phương dương khi x khác1, bằng0 tại1, không có khoảng nào mang dấu âm. Quy tắc có một khoảng âm cần hai nghiệm phân biệt và hệ số đầu dương.'],
+  quadapplication:['Nếu chỉ quan sát từ lúc 0 đến một thời điểm dương trước thời điểm đạt đỉnh, độ cao lớn nhất trên đoạn quan sát nằm ở đâu?','Trước đỉnh, độ cao tăng khi thời gian tiến về đỉnh. Trên đoạn quan sát ngắn ấy, lớn nhất ở đầu phải; không được lấy độ cao tại đỉnh nằm ngoài miền quan sát.'],
+  lineconvert:['Có thể thay vectơ chỉ phương vừa tìm bằng vectơ không để viết cùng đường thẳng không?','Không. Vectơ chỉ phương phải khác 0. Công thức điểm gốc cộng t nhân vectơ 0 chỉ tạo một điểm, không tạo đường thẳng.'],
+  linerelative:['Hai phương trình có các hệ số x,y tỉ lệ. Cần điều kiện nào nữa để chúng biểu diễn cùng một đường thẳng?','Hằng số cũng phải theo cùng tỉ lệ, với hệ số nhân khác 0. Nếu không, hai đường song song phân biệt; nếu có, hai phương trình tương đương.'],
+  lineangle:['Công thức cos góc có dùng được nếu một vectơ chỉ phương bằng vectơ không không? Chỉ ra lỗi trong công thức và trong mô hình.','Không. Mẫu chứa độ dài vectơ 0 nên bằng 0. Vectơ 0 không xác định hướng, không được chọn làm chỉ phương của một đường thẳng.'],
+  distance:['Tại sao nhân phương trình với -3 giữ khoảng cách, còn nhân với 0 thì không thể dùng công thức khoảng cách nữa?','Nhân -3 làm tử tăng 3 lần và mẫu tăng 3 lần nên tỉ số giữ nguyên. Nhân 0 tạo đẳng thức 0=0 cho toàn mặt phẳng, không còn đường thẳng; pháp tuyến bằng 0 và mẫu bằng 0.'],
+  quadsign:['So sánh với tam thức (x-1) bình phương: có khoảng âm giữa hai nghiệm không?','Không có hai nghiệm phân biệt. Chỉ có nghiệm kép 1; bình phương dương khi x khác 1, bằng 0 tại 1, không có khoảng nào mang dấu âm. Quy tắc có một khoảng âm cần hai nghiệm phân biệt và hệ số đầu dương.'],
   quadineq:['Nếu nhân cả hai vế của bất phương trình đầu với -1, phải đổi dấu thế nào để giữ tập nghiệm?','Dấu nhỏ hơn hoặc bằng đổi thành lớn hơn hoặc bằng. Nhân số âm đảo chiều bất đẳng thức; giữ nguyên chiều sẽ chọn sai miền.'],
-  radicalequal:['Kiểm phương trình sqrt(x)=sqrt(2x+1): ứng viên sau bình phương có hợp lệ không?','Bình phương cho x=-1. Nhưng căn x không xác định trên số thực tại-1; phương trình vô nghiệm. Đẳng thức sau bình phương không tự thay điều kiện xác định.'],
-  radicallinear:['Nếu một ứng viên sau bình phương làm vế phải bằng0, có phải loại ngay không? Nêu điều kiện kiểm.','Không loại chỉ vì bằng0. Cần biểu thức dưới căn cũng bằng0; khi đó hai vế gốc đều0 và ứng viên hợp lệ. Chỉ vế phải âm mới chắc chắn không bằng căn bậc hai.'],
-  circle:['Nếu bình phương bán kính ở vế phải bằng0, tập điểm còn là một đường tròn bán kính dương không?','Không. Hai bình phương không âm có tổng0 khi mỗi bình phương bằng0, nên chỉ có điểm tâm. Đường tròn trong bài yêu cầu R>0.'],
+  radicalequal:['Kiểm phương trình sqrt(x)=sqrt(2 x+1): ứng viên sau bình phương có hợp lệ không?','Bình phương cho x=-1. Nhưng căn x không xác định trên số thực tại-1; phương trình vô nghiệm. Đẳng thức sau bình phương không tự thay điều kiện xác định.'],
+  radicallinear:['Nếu một ứng viên sau bình phương làm vế phải bằng 0, có phải loại ngay không? Nêu điều kiện kiểm.','Không loại chỉ vì bằng 0. Cần biểu thức dưới căn cũng bằng 0; khi đó hai vế gốc đều 0 và ứng viên hợp lệ. Chỉ vế phải âm mới chắc chắn không bằng căn bậc hai.'],
+  circle:['Nếu bình phương bán kính ở vế phải bằng 0, tập điểm còn là một đường tròn bán kính dương không?','Không. Hai bình phương không âm có tổng 0 khi mỗi bình phương bằng 0, nên chỉ có điểm tâm. Đường tròn trong bài yêu cầu R>0.'],
   circlepoints:['Nếu chỉ biết đường tròn đi qua A,B nhưng không biết AB là đường kính, có xác định duy nhất tâm không?','Không. Tâm có thể là mọi điểm trên đường trung trực AB; các điểm ấy cách A,B bằng nhau. Điều kiện AB là đường kính mới buộc tâm là trung điểm AB.'],
   tangent:['Giải thích vì sao đường thẳng qua tiếp điểm và vuông góc bán kính chỉ gặp đường tròn ở đúng một điểm.','Với điểm khác M trên đường đó, tam giác tâm-M-điểm vuông tại M; bình phương khoảng cách tới tâm bằng R² cộng một số dương nên lớn hơn R². Chỉ M thuộc đường tròn.'],
   ellipse:['Nếu hai mẫu trong phương trình chính tắc bằng nhau và dương, tập điểm là gì? Hai tiêu điểm có còn phân biệt không?','Phương trình trở thành x²+y²=a², là đường tròn. c²=a²-b²=0 nên hai tiêu điểm trùng tâm; không còn trường hợp elip có a>b>0 đang xét.'],
-  addition:['Nếu hai danh sách lựa chọn có chung đúng2 đối tượng, phép cộng ban đầu cần sửa thế nào?','Tổng hai số lượng đếm hai đối tượng chung hai lần. Số lựa chọn phân biệt bằng tổng trừ2; cần xác nhận đúng hai đối tượng chung, không trừ từng nhóm riêng.'],
-  multiplication:['Có2 lựa chọn bước đầu; lựa chọn thứ nhất cho2 cách bước sau, lựa chọn thứ hai cho3 cách. Tính số kết quả và giải thích vì sao không dùng2 nhân3.','Có2+3=5 kết quả. Số cách bước sau phụ thuộc nhánh đầu; dùng2×3 giả sử cả hai nhánh đều có3, gây đếm thừa.'],
+  addition:['Nếu hai danh sách lựa chọn có chung đúng 2 đối tượng, phép cộng ban đầu cần sửa thế nào?','Tổng hai số lượng đếm hai đối tượng chung hai lần. Số lựa chọn phân biệt bằng tổng trừ 2; cần xác nhận đúng hai đối tượng chung, không trừ từng nhóm riêng.'],
+  multiplication:['Có 2 lựa chọn bước đầu; lựa chọn thứ nhất cho 2 cách bước sau, lựa chọn thứ hai cho 3 cách. Tính số kết quả và giải thích vì sao không dùng 2 nhân 3.','Có 2+3=5 kết quả. Số cách bước sau phụ thuộc nhánh đầu; dùng 2×3 giả sử cả hai nhánh đều có 3, gây đếm thừa.'],
   mixedcount:['Nếu bắt buộc đi qua C, phần nào trong phép đếm ban đầu phải bỏ? Giải thích bằng tập các hành trình.','Loại toàn bộ hành trình đi thẳng. Chỉ còn tích số tuyến A-C và C-B, vì mỗi kết quả phải thực hiện cả hai chặng.'],
-  permutation:['Nếu trong4 cuốn có đúng2 cuốn không phân biệt,2 cuốn còn lại khác nhau và khác loại ấy, số cách xếp thay đổi thế nào?','Tạm gắn nhãn hai cuốn giống nhau cho4!=24 thứ tự. Bỏ nhãn, mỗi thứ tự thật bị đếm2 lần do đổi hai cuốn giống nhau; còn24/2=12 cách.'],
+  permutation:['Nếu trong 4 cuốn có đúng 2 cuốn không phân biệt,2 cuốn còn lại khác nhau và khác loại ấy, số cách xếp thay đổi thế nào?','Tạm gắn nhãn hai cuốn giống nhau cho 4!=24 thứ tự. Bỏ nhãn, mỗi thứ tự thật bị đếm 2 lần do đổi hai cuốn giống nhau; còn 24/2=12 cách.'],
   arrangement:['Nếu cho phép một người giữ đồng thời hai vai trò, với n người số cách trở thành bao nhiêu?','Vai trò đầu có n cách, vai trò sau vẫn n cách vì cho phép trùng người; số cách n². Điều kiện không lặp người ban đầu mới làm bước sau còn n-1.'],
-  combination:['Giải thích vì sao chọn nhóm3 người từ n người tương đương chọn những người không ở trong nhóm đó.','Mỗi nhóm3 người có duy nhất một nhóm bổ sung n-3 người và ngược lại. Đây là song ánh nên số nhóm bằng nhau: C(n,3)=C(n,n-3).'],
+  combination:['Giải thích vì sao chọn nhóm 3 người từ n người tương đương chọn những người không ở trong nhóm đó.','Mỗi nhóm 3 người có duy nhất một nhóm bổ sung n-3 người và ngược lại. Đây là song ánh nên số nhóm bằng nhau: C(n,3)=C(n,n-3).'],
   newton4:['Nếu thay dấu cộng giữa hai hạng bằng dấu trừ, dấu các hệ số thay đổi theo quy tắc nào?','Trong (x-a)^4, hệ số x mũ j là C(4,j)(-a) mũ(4-j). Số lần chọn -a chẵn cho dấu dương, lẻ cho dấu âm; không đổi mọi hệ số cùng một dấu.'],
   newton5:['Nếu thay dấu cộng giữa hai hạng bằng dấu trừ, dấu các hệ số thay đổi theo quy tắc nào?','Trong (x-a)^5, hệ số x mũ j là C(5,j)(-a) mũ(5-j). Dấu theo tính chẵn/lẻ của số lần chọn -a; hằng số âm khi a dương.'],
   samplespace:['Nếu bỏ thứ tự hai nhãn, số kiểu cặp có lặp từ n nhãn có còn n² không?','Không. Các cặp khác nhãn gộp hai thứ tự thành một, được n(n-1)/2 kiểu; cộng n kiểu trùng nhãn, tổng n(n+1)/2. Các kiểu mới không nhất thiết đồng khả năng.'],
   probability:['Nếu các viên có xác suất được chọn khác nhau, chỉ biết số viên mỗi màu có đủ tính xác suất theo tỉ số vừa dùng không?','Không. Tỉ số số kết quả thuận lợi trên tổng kết quả dùng khi kết quả sơ cấp đồng khả năng. Khi xác suất khác nhau, cần biết xác suất của từng viên hoặc quy luật chọn.'],
-  combprob:['Nếu lấy lần lượt hai viên và hoàn lại sau lần đầu, với r viên đỏ,b viên xanh xác suất đúng một đỏ được tính thế nào?','Hai thứ tự đỏ-xanh và xanh-đỏ rời nhau. Mỗi thứ tự có xác suất rb/(r+b)², tổng2rb/(r+b)². Mẫu số tổ hợp không hoàn lại của bài gốc không áp dụng.'],
-  complement:['Phân biệt ít nhất một đỏ với đúng một đỏ; các kết quả nào tạo phần chênh lệch?','Phần chênh là các cặp có cả hai đỏ, đếm bằng C(r,2). Vì không hoàn lại, xác suất chênh bằng C(r,2)/C(r+b,2), có thể bằng0 khi không đủ hai viên đỏ.'],
+  combprob:['Nếu lấy lần lượt hai viên và hoàn lại sau lần đầu, với r viên đỏ,b viên xanh xác suất đúng một đỏ được tính thế nào?','Hai thứ tự đỏ-xanh và xanh-đỏ rời nhau. Mỗi thứ tự có xác suất rb/(r+b)², tổng 2 rb/(r+b)². Mẫu số tổ hợp không hoàn lại của bài gốc không áp dụng.'],
+  complement:['Phân biệt ít nhất một đỏ với đúng một đỏ; các kết quả nào tạo phần chênh lệch?','Phần chênh là các cặp có cả hai đỏ, đếm bằng C(r,2). Vì không hoàn lại, xác suất chênh bằng C(r,2)/C(r+b,2), có thể bằng 0 khi không đủ hai viên đỏ.'],
 };
 for(const id of Object.keys(additionalHki))extensions[id]=['Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.',bank[id].teach];
 assert.deepEqual(Object.keys(extensions).sort(),Object.keys(bank).sort());
@@ -390,9 +412,10 @@ function buildPeriod(period) {
       const seed = period.sequence * 131 + phaseIndex * 23 + i * 17 + offset + attempt * 19;
       const original = concepts[i].make(seed, difficulty);
       const auto = period.kind === 'elective' && [0, 2, 3, 4].includes(phaseIndex);
+      const baseAuto = automatic[ids[i]].make(seed);
       const cand = auto ? {
-        ...automatic[ids[i]].make(seed),
-        hints: ['Xác định đại lượng hoặc điều kiện câu hỏi trước.', 'Thay dữ kiện vào định nghĩa hoặc công thức phù hợp.', 'Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.', 'Nêu điều kiện để kết quả có ý nghĩa.'],
+        ...baseAuto,
+        hints: [dataAnchor(baseAuto.prompt), 'Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp.', 'Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.', 'Nêu điều kiện để kết quả có ý nghĩa.'],
       } : original;
       let prompt = cand.prompt;
       if (branch === 'extension' && cand.type === 'closed') {
@@ -501,9 +524,9 @@ function buildExam(final) {
     mc('Chọn một vật trong 4 bút khác nhau hoặc 3 vở khác nhau. Số cách:', ['$7$','$12$','$4$','$3$'],0,'Hai nhóm vật rời nhau, chọn đúng một: 4+3=7.'),
     mc('Xếp 4 cuốn sách khác nhau vào hàng. Số cách:', ['$4$','$16$','$24$','$12$'],2,'4!=24 cách xếp có thứ tự.'),
     mc('Chọn trưởng nhóm và thư kí khác người từ 5 em. Số cách:', ['$10$','$20$','$25$','$5$'],1,'Hai vai trò khác nhau: 5×4=20.'),
-    mc('Chọn nhóm 2 em không phân vai từ 6 em. Số nhóm:', ['$30$','$12$','$36$','$15$'],3,'C6^2=6×5/2=15.'),
-    mc(R`Hệ số của $x^2$ trong $(x+1)^4$ là:`, ['$4$','$6$','$1$','$12$'],1,'Chọn x từ hai trong bốn thừa số: C4^2=6.'),
-    mc(R`Đỉnh của $y=(x-2)^2+3$ là:`, ['$(-2;3)$','$(2;-3)$','$(2;3)$','$(3;2)$'],2,'Bình phương nhỏ nhất bằng0 tại x=2, y=3.'),
+    mc('Chọn nhóm 2 em không phân vai từ 6 em. Số nhóm:', ['$30$','$12$','$36$','$15$'],3,'C 6^2=6×5/2=15.'),
+    mc(R`Hệ số của $x^2$ trong $(x+1)^4$ là:`, ['$4$','$6$','$1$','$12$'],1,'Chọn x từ hai trong bốn thừa số: C 4^2=6.'),
+    mc(R`Đỉnh của $y=(x-2)^2+3$ là:`, ['$(-2;3)$','$(2;-3)$','$(2;3)$','$(3;2)$'],2,'Bình phương nhỏ nhất bằng 0 tại x=2, y=3.'),
     mc(R`Bán kính của $(x-1)^2+(y+2)^2=25$ là:`, ['$25$','$5$','$10$','$-5$'],1,'R>0 và R²=25 nên R=5.'),
     mc('Biến cố đối của “hai viên lấy ra có ít nhất một viên đỏ” là:', ['Có ít nhất một viên xanh.','Có đúng một viên đỏ.','Cả hai viên đều không đỏ.','Cả hai viên đều đỏ.'],2,'Không có viên đỏ nào chính là phủ định của có ít nhất một đỏ.'),
   ]:[

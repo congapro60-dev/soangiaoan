@@ -4,7 +4,18 @@
 
 > Lich su V27-V30 da luu tru: `tasks/archive/handoff-history-v27-v30-2026-10-25.md`.
 
-## Latest checkpoint - FIX TRIỆT ĐỂ LỖI CASE-SENSITIVE solidKey (tìm ra nhờ check chéo Claude CLI) (01/11/2026)
+## Latest checkpoint - GĐ1+GĐ2: STORYLINE Bài 14 + HINT 3-4 TẦNG + VISUAL THỐNG KÊ (02/11/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Nâng cấp chất lượng theo chuẩn bài học tương tác (so đối chiếu V88 Bài 14)
+- **Storyline liên hệ mật thiết**: 5 generator thống kê G10 (`mean, quartileMode, mode, spread, variance`) + `bank.mean` giờ dùng đúng **dataset 12 phiên cổ phiếu A/B của Bài 14** (bài học tương tác) — mỗi seed chọn cửa sổ phiên khác nhau, prompt nêu rõ "bài học tương tác Bài 14" (30 task).
+- **Hint 3-4 tầng có dữ kiện**: H1 "Chép lại dữ kiện trước khi làm: ..." (chiết xuất từ đề, diễn đạt "=" thành "bằng" ngoài công thức để không lộ đáp án); G11 giữ đủ 4 tầng data-specific cho mọi branch (trước chỉ 1 tầng generic); G12 3 tầng; G10 auto 4 tầng. Phân bố: 3.257 task × 4 tầng, 2.187 × 3 tầng.
+- **Visual thống kê (GĐ2)**: field `task.visual` (dataset-table) — 30 task game thống kê có bảng A/B 12 phiên highlight cửa sổ đang hỏi; pipeline: `DataVisual.tsx` (SVG table/bar-chart) → `TaskImage` → 5 page/panel; validate `ERR_VISUAL_INVALID`; serialize 2 path.
+- **Sửa 50 lỗi dính chữ** ("bằng0", "và9cm", "từ2bút", "Xếp5cuốn"...) trong G10 extensions/solutions/auto-bank.
+- **Audit**: HKI 5.350 & HKII 5.882 tasks — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task thiếu hint. 7/7 E2E PASS. `npm run build` ✓.
+
+## Checkpoint trước - FIX TRIỆT ĐỂ LỖI CASE-SENSITIVE solidKey (tìm ra nhờ check chéo Claude CLI) (01/11/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 

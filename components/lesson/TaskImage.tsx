@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import { KhoiXoay } from "./KhoiXoay";
 import { BangVe } from "./BangVe";
+import DataVisual, { taskVisualOf, type TaskVisual } from "./DataVisual";
+
+// Re-export cho các page gọi cùng kiểu taskImageOf/taskSolidOf
+export { taskVisualOf };
 
 /**
  * Lấy ảnh minh hoạ của task (v28): ưu tiên `imageUrl` (serializer mới),
@@ -33,17 +37,29 @@ type Mode = "xem" | "ve";
 export default function TaskImage({
   image,
   solidKey,
+  visual,
   alt = "Hình minh hoạ đề bài",
   maxHeight = 260,
 }: {
   image?: string;
   solidKey?: string;
+  visual?: TaskVisual;
   alt?: string;
   maxHeight?: number;
 }) {
   // Mặc định là chế độ Xem: phần lớn học sinh cần THẤY hình đúng trước đã.
   // Chế độ Vẽ là bài tập, chỉ mở khi học sinh chủ động chuyển.
   const [mode, setMode] = useState<Mode>("xem");
+
+  const resolvedVisual = visual;
+
+  if (resolvedVisual) {
+    return (
+      <div className="task-prompt-visual" style={{ margin: ".5rem 0" }}>
+        <DataVisual visual={resolvedVisual} />
+      </div>
+    );
+  }
 
   if (solidKey) {
     return (

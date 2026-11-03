@@ -11,13 +11,13 @@ I Câu 2: Lời giải: 4!=24 cách xếp có thứ tự.
 I Câu 3: Lời giải: Hai vai trò khác nhau: 5×4=20.
 
 
-I Câu 4: Lời giải: C6^2=6×5/2=15.
+I Câu 4: Lời giải: C 6^2=6×5/2=15.
 
 
-I Câu 5: Lời giải: Chọn x từ hai trong bốn thừa số: C4^2=6.
+I Câu 5: Lời giải: Chọn x từ hai trong bốn thừa số: C 4^2=6.
 
 
-I Câu 6: Lời giải: Bình phương nhỏ nhất bằng0 tại x=2, y=3.
+I Câu 6: Lời giải: Bình phương nhỏ nhất bằng 0 tại x=2, y=3.
 
 
 I Câu 7: Lời giải: R>0 và R²=25 nên R=5.
