@@ -2415,7 +2415,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r103",
-            "contentHash": "276c64c6eea7bab8ed8d670f6dcfb0f2bbf312ae53d2fa41fbc658a5c0cda748",
+            "contentHash": "59777b052b2622427af322a4f552786f16f0bcf9baba621693ba8438dff25767",
             "sourceConcept": "vectorSum"
           }
         },
@@ -2440,7 +2440,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r105",
-            "contentHash": "4f13147c1fcfca0f982e7b773c66271fecebfeb32a34ed88286d9017dd39e94a",
+            "contentHash": "6dcc287430d65e6b76a1b2daac03d3a55948db9c960a7054de81d8b640818833",
             "sourceConcept": "vectorDifference"
           }
         },
@@ -2712,7 +2712,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r100",
-            "contentHash": "1990286e5897afb86b62462848abd50c2c2e177bc22c7442aa91d23750bcafdc",
+            "contentHash": "57b832bbab3315a0627c480443740cf7a40b9c3f8352713c88c4657af2a3b0bc",
             "sourceConcept": "approximation"
           }
         },
@@ -2965,7 +2965,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r108",
-            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "contentHash": "c23f7d8a2b7f607efadb61db8525cd71fcc404d2c65fb6f5992e85f7357e48a1",
             "sourceConcept": "quartileMode"
           }
         },
@@ -2990,7 +2990,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r108",
-            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "contentHash": "c23f7d8a2b7f607efadb61db8525cd71fcc404d2c65fb6f5992e85f7357e48a1",
             "sourceConcept": "quartileMode"
           }
         },
@@ -3091,7 +3091,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r110",
-            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "contentHash": "2901fcc54a814504608e31bb84e66a05ec3cd8f8b3a47029c4935c9058d0b81d",
             "sourceConcept": "spread"
           }
         },
@@ -3116,7 +3116,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r110",
-            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "contentHash": "2901fcc54a814504608e31bb84e66a05ec3cd8f8b3a47029c4935c9058d0b81d",
             "sourceConcept": "variance"
           }
         },

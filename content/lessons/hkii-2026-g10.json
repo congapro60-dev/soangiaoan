@@ -57381,7 +57381,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "g10-discover-r197"
             ],
@@ -57866,7 +57866,7 @@
           {
             "id": "hint-1-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-1-2",
             "objectiveIds": [
               "obj-2"
@@ -58206,7 +58206,7 @@
           {
             "id": "hint-3-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-3-3",
             "objectiveIds": [
               "obj-2"
@@ -58274,7 +58274,7 @@
           {
             "id": "hint-3-4-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-8)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-3-4",
             "objectiveIds": [
               "obj-2"
@@ -58410,7 +58410,7 @@
           {
             "id": "hint-4-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-7)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-4-2",
             "objectiveIds": [
               "obj-2"
@@ -58546,7 +58546,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=3(x-8)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-2"
@@ -58962,7 +58962,7 @@
             "group_score"
           ]
         },
-        "contentHash": "90d7dc1ff0b7af6a04acd379a897a75a52aa052c59c46047a2b8a5e7b9ac954c"
+        "contentHash": "0c7b179926546256717dfb5da037a5005ff71db7f6676a39c86fba5f8174ad5e"
       },
       "citations": [
         {
@@ -59624,7 +59624,7 @@
           "conceptId": "quadconcept",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: Khai triển bình phương; hệ số x là-24.",
           "taskId": "task-3-3"
         },
@@ -161755,7 +161755,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(8;1),B(16;1). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "g10-discover-r236"
             ],
@@ -162291,7 +162291,7 @@
           {
             "id": "hint-1-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(7;1),B(13;1).",
             "taskId": "task-1-2",
             "objectiveIds": [
               "obj-2"
@@ -162631,7 +162631,7 @@
           {
             "id": "hint-3-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(8;1),B(16;1).",
             "taskId": "task-3-3",
             "objectiveIds": [
               "obj-2"
@@ -162699,7 +162699,7 @@
           {
             "id": "hint-3-4-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(-3;1),B(9;1).",
             "taskId": "task-3-4",
             "objectiveIds": [
               "obj-2"
@@ -162835,7 +162835,7 @@
           {
             "id": "hint-4-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(0;1),B(4;1).",
             "taskId": "task-4-2",
             "objectiveIds": [
               "obj-2"
@@ -162971,7 +162971,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(-2;1),B(8;1).",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-2"
@@ -163387,7 +163387,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e59f2bc759b04ae373822721ad3f7bb305a2b3f301875dbf640d9947950a35f6"
+        "contentHash": "59b77282a523062eeab8b5e7ed2f080fca7272daa571891e11c9e51fd8ff888a"
       },
       "citations": [
         {
@@ -164049,7 +164049,7 @@
           "conceptId": "circlepoints",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(8;1),B(16;1). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: AB=8,R=AB/2=4,R²=16.",
           "taskId": "task-3-3"
         },
@@ -188751,7 +188751,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "g10-discover-r197"
             ],
@@ -189235,7 +189235,7 @@
           {
             "id": "hint-1-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=3(x-2)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-1-2",
             "objectiveIds": [
               "obj-2"
@@ -189575,7 +189575,7 @@
           {
             "id": "hint-3-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-3-3",
             "objectiveIds": [
               "obj-2"
@@ -189643,7 +189643,7 @@
           {
             "id": "hint-3-4-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-6)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-3-4",
             "objectiveIds": [
               "obj-2"
@@ -189779,7 +189779,7 @@
           {
             "id": "hint-4-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=3(x-5)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-4-2",
             "objectiveIds": [
               "obj-2"
@@ -189915,7 +189915,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-2"
@@ -190331,7 +190331,7 @@
             "group_score"
           ]
         },
-        "contentHash": "8d10efdd1150fcfc74036af19d8f19cb15cc1221a0e82af7f1005e1c45c87f44"
+        "contentHash": "477647955fd60a70686195d968a1bbfe9099ac9b1c70e609288df521f16bee20"
       },
       "citations": [
         {
@@ -190993,7 +190993,7 @@
           "conceptId": "quadconcept",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: Khai triển bình phương; hệ số x là-8.",
           "taskId": "task-3-3"
         },
@@ -232291,7 +232291,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r103",
-            "contentHash": "276c64c6eea7bab8ed8d670f6dcfb0f2bbf312ae53d2fa41fbc658a5c0cda748",
+            "contentHash": "59777b052b2622427af322a4f552786f16f0bcf9baba621693ba8438dff25767",
             "sourceConcept": "vectorSum"
           }
         },
@@ -236886,7 +236886,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r105",
-            "contentHash": "4f13147c1fcfca0f982e7b773c66271fecebfeb32a34ed88286d9017dd39e94a",
+            "contentHash": "6dcc287430d65e6b76a1b2daac03d3a55948db9c960a7054de81d8b640818833",
             "sourceConcept": "vectorDifference"
           }
         },
@@ -272895,7 +272895,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: A(10;-2), B(14;4). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "r22-g10-u2-lo02"
             ],
@@ -273392,7 +273392,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: A(8;-2), B(12;4).",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -273664,7 +273664,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: A(10;-2), B(14;4).",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -273732,7 +273732,7 @@
           {
             "id": "hint-3-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: A(12;-2), B(16;4).",
             "taskId": "task-3-2",
             "objectiveIds": [
               "obj-1"
@@ -273936,7 +273936,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: A(11;-2), B(15;4).",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -274072,7 +274072,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: A(9;-2), B(13;4).",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -274556,7 +274556,7 @@
             "group_score"
           ]
         },
-        "contentHash": "b2e3ce15deb4e066cd94ebcfc73796bcd62cf725f18446fef0fa91a03227e843"
+        "contentHash": "b1d7586602e82d95af8eea4023f38c30e10d709619044dd9db58e5ae89f37580"
       },
       "citations": [
         {
@@ -275202,7 +275202,7 @@
           "conceptId": "coordinateMidpoint",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: A(10;-2), B(14;4). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: Hoành độ M=(10+14)/2=12; tung độ M=1.",
           "taskId": "task-3-1"
         },
@@ -277411,7 +277411,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170{,}47$ đến hàng đơn vị.",
+            "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170.47$ đến hàng đơn vị.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -277436,7 +277436,7 @@
                   "Đúng tỉ số, phần trăm, mẫu số; quy tròn đúng."
                 ],
                 "lookFor": [
-                  "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
+                  "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
                 ]
               }
             },
@@ -277447,7 +277447,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
+              "workedSolution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5."
             }
           },
           {
@@ -277505,7 +277505,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -277825,7 +277825,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160{,}47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+            "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160.47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -277851,7 +277851,7 @@
                   "Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận."
                 ],
                 "lookFor": [
-                  "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn."
+                  "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn."
                 ]
               }
             },
@@ -277862,7 +277862,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn."
+              "workedSolution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn."
             }
           },
           {
@@ -278002,7 +278002,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Giá trị đúng là 107 cm, dùng số gần đúng 112 cm.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -278274,7 +278274,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Giá trị đúng là 109 cm, dùng số gần đúng 112 cm.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -278342,7 +278342,7 @@
           {
             "id": "hint-3-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Giá trị đúng là 111 cm, dùng số gần đúng 115 cm.",
             "taskId": "task-3-2",
             "objectiveIds": [
               "obj-1"
@@ -278546,7 +278546,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Giá trị đúng là 110 cm, dùng số gần đúng 112 cm.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -278682,7 +278682,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Giá trị đúng là 111 cm, dùng số gần đúng 116 cm.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -279166,7 +279166,7 @@
             "group_score"
           ]
         },
-        "contentHash": "271cc9793e217710a96cb85cb5e2ae52c890b8c62d23be50c2fde0abbd314543"
+        "contentHash": "29312e34556ff109168ef75c3380fe20df3da89cd1ade06058860df0cd573c83"
       },
       "citations": [
         {
@@ -279796,8 +279796,8 @@
           "conceptId": "approximation",
           "activityIndex": 1,
           "branch": "shared",
-          "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170{,}47$ đến hàng đơn vị.",
-          "solution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5.",
+          "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170.47$ đến hàng đơn vị.",
+          "solution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5.",
           "taskId": "task-2-1"
         },
         {
@@ -279812,7 +279812,7 @@
           "conceptId": "approximation",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: Sai số tuyệt đối là trị tuyệt đối hiệu: |112-109|=3 cm.",
           "taskId": "task-3-1"
         },
@@ -279876,8 +279876,8 @@
           "conceptId": "approximation",
           "activityIndex": 5,
           "branch": "extension",
-          "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160{,}47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-          "solution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn.",
+          "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160.47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+          "solution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn.",
           "taskId": "task-6-1"
         },
         {
@@ -279899,7 +279899,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r100",
-            "contentHash": "1990286e5897afb86b62462848abd50c2c2e177bc22c7442aa91d23750bcafdc",
+            "contentHash": "57b832bbab3315a0627c480443740cf7a40b9c3f8352713c88c4657af2a3b0bc",
             "sourceConcept": "approximation"
           }
         },
@@ -317893,7 +317893,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -317918,7 +317918,7 @@
                   "Mốt và giải thích tần số/vị trí đúng."
                 ],
                 "lookFor": [
-                  "Lời giải: $Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự."
+                  "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3."
                 ]
               }
             },
@@ -317929,7 +317929,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự."
+              "workedSolution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3."
             }
           },
           {
@@ -318595,7 +318595,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -318621,7 +318621,7 @@
                   "Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận."
                 ],
                 "lookFor": [
-                  "Lời giải: $Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
+                  "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
                 ]
               }
             },
@@ -318632,7 +318632,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
+              "workedSolution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
             }
           },
           {
@@ -318908,7 +318908,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Có tám giá trị, hai nửa mỗi nửa bốn giá trị.",
+            "text": "Chép lại dữ kiện trước khi làm: $-2;0;0;0;1;1;2;2$; $Q_1,Q_2,Q_3$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -318925,7 +318925,7 @@
           {
             "id": "hint-2-1-2",
             "tier": "H2",
-            "text": "Tìm trung vị của cả mẫu rồi của từng nửa.",
+            "text": "Có tám giá trị, mỗi nửa bốn giá trị.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -319588,7 +319588,7 @@
           {
             "id": "hint-6-1-1",
             "tier": "H1",
-            "text": "Có tám giá trị, hai nửa mỗi nửa bốn giá trị.",
+            "text": "Chép lại dữ kiện trước khi làm: $-2;0;0;0;1;1;2;2$; $Q_1,Q_2,Q_3$.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -319605,7 +319605,7 @@
           {
             "id": "hint-6-1-2",
             "tier": "H2",
-            "text": "Tìm trung vị của cả mẫu rồi của từng nửa.",
+            "text": "Có tám giá trị, mỗi nửa bốn giá trị.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -319936,7 +319936,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a2b0b321b2073de973d07afd75d52188b68ad3fe2b412357a833c44b4557752b"
+        "contentHash": "de324cfee861ee1b9bddde4e6a0f080a2c071ebfde2223c42a31f5b7ab641df7"
       },
       "citations": [
         {
@@ -320566,8 +320566,8 @@
           "conceptId": "quartileMode",
           "activityIndex": 1,
           "branch": "shared",
-          "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-          "solution": "Lời giải: $Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+          "solution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
           "taskId": "task-2-1"
         },
         {
@@ -320646,8 +320646,8 @@
           "conceptId": "quartileMode",
           "activityIndex": 5,
           "branch": "extension",
-          "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-          "solution": "Lời giải: $Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+          "solution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
           "taskId": "task-6-1"
         },
         {
@@ -320669,7 +320669,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r108",
-            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "contentHash": "c23f7d8a2b7f607efadb61db8525cd71fcc404d2c65fb6f5992e85f7357e48a1",
             "sourceConcept": "quartileMode"
           }
         },
@@ -323025,7 +323025,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -323050,7 +323050,7 @@
                   "Mốt và giải thích tần số/vị trí đúng."
                 ],
                 "lookFor": [
-                  "Lời giải: $Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự."
+                  "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3."
                 ]
               }
             },
@@ -323061,7 +323061,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự."
+              "workedSolution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3."
             }
           },
           {
@@ -323831,7 +323831,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Mẫu đã sắp: $12;13;13;14;15;15;15;17$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -323857,7 +323857,7 @@
                   "Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận."
                 ],
                 "lookFor": [
-                  "Lời giải: $Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
+                  "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
                 ]
               }
             },
@@ -323868,7 +323868,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: $Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
+              "workedSolution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất."
             }
           },
           {
@@ -324144,7 +324144,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Có tám giá trị, hai nửa mỗi nửa bốn giá trị.",
+            "text": "Chép lại dữ kiện trước khi làm: $-3;-2;-1;-1;-1;1;2;3$; $Q_1,Q_2,Q_3$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -324161,7 +324161,7 @@
           {
             "id": "hint-2-1-2",
             "tier": "H2",
-            "text": "Tìm trung vị của cả mẫu rồi của từng nửa.",
+            "text": "Có tám giá trị, mỗi nửa bốn giá trị.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -324824,7 +324824,7 @@
           {
             "id": "hint-6-1-1",
             "tier": "H1",
-            "text": "Có tám giá trị, hai nửa mỗi nửa bốn giá trị.",
+            "text": "Chép lại dữ kiện trước khi làm: $-3;-2;-1;-1;-1;2;3;12$; $Q_1,Q_2,Q_3$.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -324841,7 +324841,7 @@
           {
             "id": "hint-6-1-2",
             "tier": "H2",
-            "text": "Tìm trung vị của cả mẫu rồi của từng nửa.",
+            "text": "Có tám giá trị, mỗi nửa bốn giá trị.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -325172,7 +325172,7 @@
             "group_score"
           ]
         },
-        "contentHash": "7eb9e1c60331d773c996bb78f739652b417b7dfe5454eab30f565e3d4ac51d1f"
+        "contentHash": "c9166fe287d981149accdb5acde11404d8e70729856577beb868a95cba87f325"
       },
       "citations": [
         {
@@ -325802,8 +325802,8 @@
           "conceptId": "mode",
           "activityIndex": 1,
           "branch": "shared",
-          "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-          "solution": "Lời giải: $Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+          "solution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
           "taskId": "task-2-1"
         },
         {
@@ -325882,8 +325882,8 @@
           "conceptId": "mode",
           "activityIndex": 5,
           "branch": "extension",
-          "prompt": "Mẫu đã sắp: $12;13;13;14;15;15;15;17$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-          "solution": "Lời giải: $Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+          "solution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
           "taskId": "task-6-1"
         },
         {
@@ -325905,7 +325905,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r108",
-            "contentHash": "98eb1503f8317b85b43f46e1f747af5aa9845cc97d1f97b5457f75b0336e8090",
+            "contentHash": "c23f7d8a2b7f607efadb61db8525cd71fcc404d2c65fb6f5992e85f7357e48a1",
             "sourceConcept": "quartileMode"
           }
         },
@@ -340163,7 +340163,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Mẫu tăng dần $7;8;8;9;9;10;10;22$ có $Q_1=8$, $Q_3=10$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-1;1;0;2;-2;1;0;2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -340188,7 +340188,7 @@
                   "Chỉ ra đúng ngoại lệ và không tự loại dữ liệu."
                 ],
                 "lookFor": [
-                  "Lời giải: Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa."
+                  "Lời giải: Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu."
                 ]
               }
             },
@@ -340199,7 +340199,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa."
+              "workedSolution": "Lời giải: Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu."
             }
           },
           {
@@ -340865,7 +340865,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;22$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -340891,7 +340891,7 @@
                   "Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận."
                 ],
                 "lookFor": [
-                  "Lời giải: Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
+                  "Lời giải: Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
                 ]
               }
             },
@@ -340902,7 +340902,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
+              "workedSolution": "Lời giải: Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
             }
           },
           {
@@ -341178,7 +341178,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Khoảng biến thiên dùng hai đầu mẫu, IQR dùng Q1 và Q3.",
+            "text": "Chép lại dữ kiện trước khi làm: $-1;1;0;2;-2;1;0;2$; $Q_1-1{,}5IQR$; $Q_3+1{,}5IQR$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -341858,7 +341858,7 @@
           {
             "id": "hint-6-1-1",
             "tier": "H1",
-            "text": "Khoảng biến thiên dùng hai đầu mẫu, IQR dùng Q1 và Q3.",
+            "text": "Chép lại dữ kiện trước khi làm: $-1;2;-1;3;-3;-1;1;-2$; $Q_1-1{,}5IQR$; $Q_3+1{,}5IQR$.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -342206,7 +342206,7 @@
             "group_score"
           ]
         },
-        "contentHash": "5ff9a804262193b9fda0c54cc9d98e29e59104c1eb49096c0b74ee429a631588"
+        "contentHash": "44965a8569bd2ec89a1266d04f7c9a38362ba40c01c8de852f3c0c3f5b4bc032"
       },
       "citations": [
         {
@@ -342836,8 +342836,8 @@
           "conceptId": "spread",
           "activityIndex": 1,
           "branch": "shared",
-          "prompt": "Mẫu tăng dần $7;8;8;9;9;10;10;22$ có $Q_1=8$, $Q_3=10$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-          "solution": "Lời giải: Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-1;1;0;2;-2;1;0;2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+          "solution": "Lời giải: Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
           "taskId": "task-2-1"
         },
         {
@@ -342916,8 +342916,8 @@
           "conceptId": "spread",
           "activityIndex": 5,
           "branch": "extension",
-          "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;22$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-          "solution": "Lời giải: Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+          "solution": "Lời giải: Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
           "taskId": "task-6-1"
         },
         {
@@ -342939,7 +342939,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r110",
-            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "contentHash": "2901fcc54a814504608e31bb84e66a05ec3cd8f8b3a47029c4935c9058d0b81d",
             "sourceConcept": "spread"
           }
         },
@@ -345269,7 +345269,7 @@
             ],
             "activityId": "act-2",
             "participation": "whole_class",
-            "prompt": "Mẫu $13;13;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -345290,11 +345290,11 @@
             "evaluation": {
               "rubric": {
                 "criteria": [
-                  "Trung bình, phương sai và độ lệch chuẩn đúng.",
-                  "Đơn vị và tính bất biến khi dịch dữ liệu đúng."
+                  "Phương sai hai cổ phiếu đúng.",
+                  "So sánh đúng và nêu đúng tính bất biến khi dịch dữ liệu."
                 ],
                 "lookFor": [
-                  "Lời giải: Trung bình $14$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi."
+                  "Lời giải: Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi."
                 ]
               }
             },
@@ -345305,7 +345305,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: Trung bình $14$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi."
+              "workedSolution": "Lời giải: Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi."
             }
           },
           {
@@ -345587,7 +345587,7 @@
             ],
             "activityId": "act-3",
             "participation": "individual",
-            "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+            "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
             "sourceRefs": [
               "g10-discover-r284"
             ],
@@ -345971,7 +345971,7 @@
             ],
             "activityId": "act-6",
             "participation": "individual",
-            "prompt": "Mẫu $3;3;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+            "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
             "sourceRefs": [
               "r22-g10-u2-lo03"
             ],
@@ -345992,12 +345992,12 @@
             "evaluation": {
               "rubric": {
                 "criteria": [
-                  "Trung bình, phương sai và độ lệch chuẩn đúng.",
-                  "Đơn vị và tính bất biến khi dịch dữ liệu đúng.",
+                  "Phương sai hai cổ phiếu đúng.",
+                  "So sánh đúng và nêu đúng tính bất biến khi dịch dữ liệu.",
                   "Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận."
                 ],
                 "lookFor": [
-                  "Lời giải: Trung bình $5$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
+                  "Lời giải: Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
                 ]
               }
             },
@@ -346008,7 +346008,7 @@
                 "origin": "adapted"
               },
               "numericReviewRequired": true,
-              "workedSolution": "Lời giải: Trung bình $5$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
+              "workedSolution": "Lời giải: Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán."
             }
           },
           {
@@ -346216,7 +346216,7 @@
           {
             "id": "hint-1-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 2 bút khác nhau hoặc 6 vở khác nhau.",
             "taskId": "task-1-2",
             "objectiveIds": [
               "obj-2"
@@ -346284,7 +346284,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Tìm trung bình trước.",
+            "text": "Chép lại dữ kiện trước khi làm: $0;2;-2;1$; $2;-1;3;-3$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -346318,7 +346318,7 @@
           {
             "id": "hint-2-1-3",
             "tier": "H3",
-            "text": "Lập bốn độ lệch; chia tổng bình phương cho số phần tử.",
+            "text": "Chia tổng bình phương độ lệch cho số phần tử của từng cổ phiếu.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -346335,7 +346335,7 @@
           {
             "id": "hint-2-1-4",
             "tier": "H4",
-            "text": "Ví dụ khác: dữ liệu bằng nhau hoàn toàn có độ lệch chuẩn bằng không.",
+            "text": "Ví dụ khác: dữ liệu bằng nhau hoàn toàn có phương sai bằng không.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -346556,7 +346556,7 @@
           {
             "id": "hint-3-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau.",
             "taskId": "task-3-3",
             "objectiveIds": [
               "obj-2"
@@ -346624,7 +346624,7 @@
           {
             "id": "hint-3-4-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 6 bút khác nhau hoặc 4 vở khác nhau.",
             "taskId": "task-3-4",
             "objectiveIds": [
               "obj-2"
@@ -346760,7 +346760,7 @@
           {
             "id": "hint-4-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 5 bút khác nhau hoặc 5 vở khác nhau.",
             "taskId": "task-4-2",
             "objectiveIds": [
               "obj-2"
@@ -346896,7 +346896,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 6 bút khác nhau hoặc 3 vở khác nhau.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-2"
@@ -346964,7 +346964,7 @@
           {
             "id": "hint-6-1-1",
             "tier": "H1",
-            "text": "Tìm trung bình trước.",
+            "text": "Chép lại dữ kiện trước khi làm: $-1;1;0;2$; $-2;-1;2;-1$.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -346998,7 +346998,7 @@
           {
             "id": "hint-6-1-3",
             "tier": "H3",
-            "text": "Lập bốn độ lệch; chia tổng bình phương cho số phần tử.",
+            "text": "Chia tổng bình phương độ lệch cho số phần tử của từng cổ phiếu.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -347015,7 +347015,7 @@
           {
             "id": "hint-6-1-4",
             "tier": "H4",
-            "text": "Ví dụ khác: dữ liệu bằng nhau hoàn toàn có độ lệch chuẩn bằng không.",
+            "text": "Ví dụ khác: dữ liệu bằng nhau hoàn toàn có phương sai bằng không.",
             "taskId": "task-6-1",
             "objectiveIds": [
               "obj-1"
@@ -347312,7 +347312,7 @@
             "group_score"
           ]
         },
-        "contentHash": "58e455f783460bbd81cc1b1cda3cd50bd13754ea0d9641b0198e8638f63105bc"
+        "contentHash": "a3c6722163ba069657d1cf9d0e198fc253b2fd8cb3d47f22bc5d725f48eff179"
       },
       "citations": [
         {
@@ -347942,8 +347942,8 @@
           "conceptId": "variance",
           "activityIndex": 1,
           "branch": "shared",
-          "prompt": "Mẫu $13;13;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-          "solution": "Lời giải: Trung bình $14$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+          "solution": "Lời giải: Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
           "taskId": "task-2-1"
         },
         {
@@ -347974,7 +347974,7 @@
           "conceptId": "addition",
           "activityIndex": 2,
           "branch": "support",
-          "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+          "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
           "solution": "Lời giải: Hai nhóm rời nhau; dùng cộng 4 + 2=6.",
           "taskId": "task-3-3"
         },
@@ -348022,8 +348022,8 @@
           "conceptId": "variance",
           "activityIndex": 5,
           "branch": "extension",
-          "prompt": "Mẫu $3;3;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-          "solution": "Lời giải: Trung bình $5$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
+          "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+          "solution": "Lời giải: Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
           "taskId": "task-6-1"
         },
         {
@@ -348045,7 +348045,7 @@
           "readOnlyReuse": {
             "file": "content/lessons/hki-2026-g10.json",
             "packageId": "r22-g10-discover-r110",
-            "contentHash": "5a05a648f0fa06fac5b22a35fb30abb7dabdb53c2d1c74a84523b2b90dd23f3b",
+            "contentHash": "2901fcc54a814504608e31bb84e66a05ec3cd8f8b3a47029c4935c9058d0b81d",
             "sourceConcept": "variance"
           }
         },

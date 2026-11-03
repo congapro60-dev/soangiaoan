@@ -52,7 +52,8 @@ const qOpen = (prompt, solution, criteria) => ({ type: 'open', prompt, solution,
 const skill = (title, goal, rule, error, lo, make, hints) => ({ title, goal, rule, error, lo, make, hints });
 // H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
 const dataAnchor = prompt => {
-  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+  const text = String(prompt);
+  const ms = [...text.matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
   const eqDigit = new RegExp('=\\s*[-+]?\\d');
   const verbal = [];
   for (const sn of ms) {
@@ -66,7 +67,10 @@ const dataAnchor = prompt => {
     if (eqDigit.test(rest)) continue;
     verbal.push('$' + left + '$ bằng $' + rest + '$');
   }
-  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
+  if (verbal.length) return `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.`;
+  // Fallback: trích câu dữ kiện văn bản thuần — có số, không phải câu hỏi đáp số, độ dài vừa phải.
+  const picked = text.split(/[.?!]/).map(x => x.trim()).filter(x => /\d/.test(x) && !/bao nhiêu/i.test(x) && x.length >= 10 && x.length <= 90).slice(0, 2);
+  return picked.length ? `Chép lại dữ kiện trước khi làm: ${picked.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
 };
 
 const skills = {

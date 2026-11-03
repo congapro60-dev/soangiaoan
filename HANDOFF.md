@@ -8,6 +8,11 @@
 
 **Branch**: `codex/universal-content-release` · HEAD commit này. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
+### DataAnchor v4 — trích cả dữ kiện văn bản thuần (04/11/2026, buổi tối)
+- Nới `dataAnchor` ở cả 6 builder: khi LaTeX không trích được snippet, fallback trích **câu dữ kiện văn bản thuần** (có số, không phải câu hỏi đáp số, 10–90 ký tự, tối đa 2 câu).
+- Kết quả: H1 anchor HKI 3.487 → **3.595** (fallback 0) · HKII 3.784 → **4.368** (fallback còn 20 — đúng là câu khái niệm không có dữ kiện như "mệnh đề"). Tổng **7.963/11.241 task có H1 gắn dữ kiện thật**.
+- Full suite lại **1470 PASS / 0 FAIL**; archive V43 tái tạo (44.482.142 bytes) từ nội dung này.
+
 ### Nội dung đợt chốt
 - **Challenge G11 đủ bậc thang**: helper `challenge()` (open, 1 hint) trước đây bị ghi đè hint riêng bằng dataAnchor — regression âm thầm. Sửa cả HKI + HKII: giữ hint riêng làm **H2**, dựng đủ 4 tầng (H1 data anchor · H2 hint riêng · H3 điều kiện áp dụng · H4 kiểm lại). 323 task open được nâng: HKI 218 + HKII 105 → **0 task non-reflection dưới 4 tầng** ở cả 2 kỳ.
 - **Audit tổng cuối**: HKI 5.359 task (3.358×4 + 1.722×3 + 279×1: 270 reflection + 9 THPTQG pilot authored) · HKII 5.882 task (3.362×4 + 2.187×3 + 333×1 reflection) — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu tầng. Storyline Bài 14: 170 task + 170 visual. H1 anchor: HKI 3.487 + HKII 3.784.

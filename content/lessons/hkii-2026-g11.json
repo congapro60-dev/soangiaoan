@@ -1820,7 +1820,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $\\log_3(x-1)=2$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -2227,7 +2227,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1bdb8cdc5194ab2eeef4aff73d5b5dfa540a0ef1166881fee271e4f56a611d56"
+    "contentHash": "58bd3b4ede00ab561cd18947febc5b4fb126e297a4c1ef99a954c6ca401294ed"
    },
    "citations": [
     {
@@ -7147,7 +7147,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: So sánh tính đơn điệu của $f(x)=6^{x-2}$ và $g(x)=6^{2-x}$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -7422,7 +7422,7 @@
       "group_score"
      ]
     },
-    "contentHash": "fdba54a2364c87c18b06755943fe7a46c998a7543b251ced75dc602c3df1d065"
+    "contentHash": "ae0abf98d6075be50c317248ab994109fc0037828b984c0a6d31d3037b4fd7d3"
    },
    "citations": [
     {
@@ -9035,7 +9035,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Hai đồ thị $y=4^{x-7}$ và $y=4^{7-x}$ đối xứng qua đường thẳng nào.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -9310,7 +9310,7 @@
       "group_score"
      ]
     },
-    "contentHash": "c41d588e183fbdc4256bb0c753681ce185d6b895334b515ad261612dfbb22c11"
+    "contentHash": "96b8db843a1408418f4899d0fd9a00e5c47c174b04549672ffcd71facdc74f0b"
    },
    "citations": [
     {
@@ -24573,7 +24573,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $5^{2x}-(5+25)5^x+125=0$ bằng đặt ẩn phụ; giải thích vì sao chỉ nhận ẩn phụ dương.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -24848,7 +24848,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1708704adeeff59fdebb53c2adc868ab903b0096daeeac63e233a89652491c74"
+    "contentHash": "668c9fe443d3440d1137247344a930b8c5f4e945141dd47a32f90577d13c1a8f"
    },
    "citations": [
     {
@@ -35705,7 +35705,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $\\log_4(x-1)=2$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -36112,7 +36112,7 @@
       "group_score"
      ]
     },
-    "contentHash": "21919c622db0dcde755205648c204e9a8d813066b47c6448a6668ac8de0ef4db"
+    "contentHash": "fdc8072848e92b5117f7557b374812b8a5959d7ff931545607efa76d0f0e271a"
    },
    "citations": [
     {
@@ -38677,7 +38677,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $3^{2x}-(3+9)3^x+27=0$ bằng đặt ẩn phụ; giải thích vì sao chỉ nhận ẩn phụ dương.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -39084,7 +39084,7 @@
       "group_score"
      ]
     },
-    "contentHash": "6c74a222c358a83a181ecbe61316d087d1f7c9cd0333ae9496843593c5ca46d8"
+    "contentHash": "a22a9cbfe61d8ceb0bc55960ade57b6dd310e6abd4d31d5f75183a8de5369e59"
    },
    "citations": [
     {
@@ -59941,7 +59941,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: So sánh tính đơn điệu của $f(x)=3^{x-8}$ và $g(x)=3^{8-x}$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -60348,7 +60348,7 @@
       "group_score"
      ]
     },
-    "contentHash": "34030947b97f6cdc4339f1f884ee4d369c3e721f17b88a98575c85ac1df3cc15"
+    "contentHash": "7098aa556da34f5465d498047decf511fe37849adbb999d2905aec951eb4b5f4"
    },
    "citations": [
     {
@@ -62787,7 +62787,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $2^{2x}-(2+4)2^x+8=0$ bằng đặt ẩn phụ; giải thích vì sao chỉ nhận ẩn phụ dương.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -63194,7 +63194,7 @@
       "group_score"
      ]
     },
-    "contentHash": "0d5a4f2a4272a8530c230d0bc103d29129fc7c6103f81ecc5b3ab2cc4db2ed42"
+    "contentHash": "7e6f05979811283c2152220c5b12108345ae0031c5836fa1b7567e28d3a87fd7"
    },
    "citations": [
     {
@@ -106207,7 +106207,7 @@
      {
       "id": "hint-1-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 2 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-1-1",
       "objectiveIds": [
        "obj-1"
@@ -106343,7 +106343,7 @@
      {
       "id": "hint-2-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 6 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-2-1",
       "objectiveIds": [
        "obj-1"
@@ -106479,7 +106479,7 @@
      {
       "id": "hint-3-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 10 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-3-1",
       "objectiveIds": [
        "obj-1"
@@ -106547,7 +106547,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 14 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -106751,7 +106751,7 @@
      {
       "id": "hint-4-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 5 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-4-1",
       "objectiveIds": [
        "obj-1"
@@ -106887,7 +106887,7 @@
      {
       "id": "hint-5-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 9 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-5-1",
       "objectiveIds": [
        "obj-1"
@@ -106955,7 +106955,7 @@
      {
       "id": "hint-5-2-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 13 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-5-2",
       "objectiveIds": [
        "obj-1"
@@ -107091,7 +107091,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một trò chơi thưởng vòng đầu 8 xu; mỗi vòng sau thưởng gấp đôi vòng trước.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -107430,7 +107430,7 @@
       "group_score"
      ]
     },
-    "contentHash": "c1821f029769ccaf1817bc9fbd88cbaa5b56a02d03009d6dae574dc50cb6d2f5"
+    "contentHash": "69cf176684805d24d7c283f525ddc1faf01886e60c8e78c6cebb673b3e6cd9cb"
    },
    "citations": [
     {
@@ -130080,7 +130080,7 @@
      {
       "id": "hint-3-2-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một khán đài có 9 hàng, hàng đầu 7 ghế, mỗi hàng sau thêm 1 ghế.",
       "taskId": "task-3-2",
       "objectiveIds": [
        "obj-1"
@@ -130624,7 +130624,7 @@
      {
       "id": "hint-6-1-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Một khán đài có 6 hàng, hàng đầu 14 ghế, mỗi hàng sau thêm 2 ghế.",
       "taskId": "task-6-1",
       "objectiveIds": [
        "obj-1"
@@ -130963,7 +130963,7 @@
       "group_score"
      ]
     },
-    "contentHash": "1eb6fe7f6aef49c214ad507bad083aa6ab90658b58786a34ea104094592237ad"
+    "contentHash": "98879502f3f7dd7458b9c430e7650f012470fed064690491c862992eabbd70d0"
    },
    "citations": [
     {
@@ -133820,7 +133820,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: So sánh tính đơn điệu của $f(x)=3^{x-2}$ và $g(x)=3^{2-x}$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -134227,7 +134227,7 @@
       "group_score"
      ]
     },
-    "contentHash": "62dd4a2c54ab28fa2c9bc44016ecbb2a16cda9671094b4a5444f34c22c6500f6"
+    "contentHash": "7c9bd17f2e577c0ba4d9a469c9e17dabd59476b325398e835701eee0e7addc63"
    },
    "citations": [
     {
@@ -139762,7 +139762,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $3^{2x}-(9+27)3^x+243=0$ bằng đặt ẩn phụ; giải thích vì sao chỉ nhận ẩn phụ dương.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -140169,7 +140169,7 @@
       "group_score"
      ]
     },
-    "contentHash": "aa08409a4ce57706faaf9cd8b0604ac4730200e09431c02ff2079f4777791662"
+    "contentHash": "b831c757b5b8a6a9b4c750475b83fc0a1367539777f51ed1c505d60188eb4107"
    },
    "citations": [
     {
@@ -258046,7 +258046,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $4^{2x}-(4+16)4^x+64=0$ bằng đặt ẩn phụ; giải thích vì sao chỉ nhận ẩn phụ dương.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -258453,7 +258453,7 @@
       "group_score"
      ]
     },
-    "contentHash": "79ebf29397a7e76d92781349aba8905bf824215e562cf6ce5bbce464c34f55b2"
+    "contentHash": "db4ba6f2d123cd518ffdc6bab805cf588e47058fd411ac9677ac6d6a0d9e26aa"
    },
    "citations": [
     {
@@ -299322,7 +299322,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Giải $\\log_2(x-1)=2$.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -299729,7 +299729,7 @@
       "group_score"
      ]
     },
-    "contentHash": "e101b159f37ec59a5fceed93f844aaf3a7d4371fdcf6fe1ddda1a8893ac4ad47"
+    "contentHash": "8c2fef48b453cbd3c5d6677b6cc6e55f799028bc84574d997ffc7c471f8902fd"
    },
    "citations": [
     {
@@ -314156,7 +314156,7 @@
      {
       "id": "hint-5-3-1",
       "tier": "H1",
-      "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+      "text": "Chép lại dữ kiện trước khi làm: Hai đồ thị $y=5^{x-4}$ và $y=5^{4-x}$ đối xứng qua đường thẳng nào.",
       "taskId": "task-5-3",
       "objectiveIds": [
        "obj-1"
@@ -314563,7 +314563,7 @@
       "group_score"
      ]
     },
-    "contentHash": "bc25be73463260a4a1938100fa6518a5a84511d696da41bc385b1fa585ee4560"
+    "contentHash": "8e4da916f23e024d14d4b737517575cd1879b1e5c4b0208db2c00017e0bd6e20"
    },
    "citations": [
     {

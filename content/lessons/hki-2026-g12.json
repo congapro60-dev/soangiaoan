@@ -49916,7 +49916,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{4}{x-4}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -49967,7 +49967,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{4}{x-3}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -50018,7 +50018,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{5}{x-3}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -50069,7 +50069,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{3}{x-3}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -50120,7 +50120,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{2}{x-4}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -50188,7 +50188,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{5}{x-4}$.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-1"
@@ -50341,7 +50341,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{1}{x-3}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -50392,7 +50392,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{2}{x-3}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -50565,7 +50565,7 @@
             "group_score"
           ]
         },
-        "contentHash": "7a407bc052270fa58ca0c7181012a99c670ab5726e163c4df1ad84f8481f0fac"
+        "contentHash": "9ea3c7c46ed86fa66dd1627cb834a4078863b759756d20e1bcf6c6d5370228f3"
       },
       "citations": [
         {
@@ -51795,7 +51795,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{2}{x-3}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -51846,7 +51846,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{2}{x-5}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -51897,7 +51897,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{3}{x-5}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -51948,7 +51948,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{1}{x-5}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -51999,7 +51999,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{5}{x-3}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -52067,7 +52067,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{3}{x-3}$.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-1"
@@ -52220,7 +52220,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{4}{x-5}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -52271,7 +52271,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{5}{x-5}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -52444,7 +52444,7 @@
             "group_score"
           ]
         },
-        "contentHash": "b8acb294ab0c253f33c012fc83ea1e425525fef03c09d49e2a70acf2a725c83f"
+        "contentHash": "7a7b057267bd6aba50bcbab513372a5672445c1c58d05629f72ee4b0204abcb8"
       },
       "citations": [
         {
@@ -61121,7 +61121,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{4}{x-5}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -61223,7 +61223,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{4}{x-4}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -61325,7 +61325,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{5}{x-4}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -61427,7 +61427,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{3}{x-4}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -61529,7 +61529,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{2}{x-5}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -61665,7 +61665,7 @@
           {
             "id": "hint-5-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{5}{x-5}$.",
             "taskId": "task-5-3",
             "objectiveIds": [
               "obj-1"
@@ -61920,7 +61920,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{1}{x-4}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -62022,7 +62022,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{2}{x-4}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -62277,7 +62277,7 @@
             "group_score"
           ]
         },
-        "contentHash": "81b655de2c45f4ce54b0ae8c83c8130d141c54ede1273e85cea901eee43e3a6c"
+        "contentHash": "e679e2b72db770cb6d135334d4c211e75dc4c747b25cc9abe68396d3677042ac"
       },
       "citations": [
         {
@@ -105006,7 +105006,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{3}{x-5}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -105108,7 +105108,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{3}{x-4}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -105210,7 +105210,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{4}{x-4}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -105312,7 +105312,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{2}{x-4}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -105414,7 +105414,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{1}{x-5}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -105550,7 +105550,7 @@
           {
             "id": "hint-5-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{4}{x-5}$.",
             "taskId": "task-5-3",
             "objectiveIds": [
               "obj-1"
@@ -105805,7 +105805,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{5}{x-4}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -105907,7 +105907,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{1}{x-4}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -106162,7 +106162,7 @@
             "group_score"
           ]
         },
-        "contentHash": "9de79650d8e6122a672a09b6c0ef36e3dee6786aea708616f6302ee8629592cf"
+        "contentHash": "160bf88a046f5f744fb72788542fd388aac6899284ae5517c39e837c9d8bbd83"
       },
       "citations": [
         {
@@ -125050,7 +125050,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{4}{x-4}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -125152,7 +125152,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{4}{x-3}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -125254,7 +125254,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{5}{x-3}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -125356,7 +125356,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{3}{x-3}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -125458,7 +125458,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{2}{x-4}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -125594,7 +125594,7 @@
           {
             "id": "hint-5-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{5}{x-4}$.",
             "taskId": "task-5-3",
             "objectiveIds": [
               "obj-1"
@@ -125849,7 +125849,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{1}{x-3}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -125951,7 +125951,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{2}{x-3}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -126206,7 +126206,7 @@
             "group_score"
           ]
         },
-        "contentHash": "2dbb80de3cf7a8455249847f9ce957b75075b5c69b073178a68fcee53bec3b0e"
+        "contentHash": "ea879fc2f771b9c09d4226ac52e79f00b260802127c6a81c4ea6e80fd18c285f"
       },
       "citations": [
         {
@@ -147521,7 +147521,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{1}{x-4}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -147623,7 +147623,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{1}{x-3}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -147725,7 +147725,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{2}{x-3}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -147827,7 +147827,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{5}{x-3}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -147929,7 +147929,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{4}{x-4}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -148065,7 +148065,7 @@
           {
             "id": "hint-5-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=2+\\dfrac{2}{x-4}$.",
             "taskId": "task-5-3",
             "objectiveIds": [
               "obj-1"
@@ -148320,7 +148320,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{3}{x-3}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -148422,7 +148422,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{4}{x-3}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -148677,7 +148677,7 @@
             "group_score"
           ]
         },
-        "contentHash": "d1fa12308f90c44132b7f4b6732bb8026c293d95ff5fd6aee59062021bed83a2"
+        "contentHash": "d6ce2aa05cbca3ec4f229a88d44e2eb4daab311a25771d92cd43c1a8b830f8e9"
       },
       "citations": [
         {
@@ -276054,7 +276054,7 @@
           {
             "id": "hint-1-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{1}{x-3}$.",
             "taskId": "task-1-1",
             "objectiveIds": [
               "obj-1"
@@ -276156,7 +276156,7 @@
           {
             "id": "hint-2-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{1}{x-5}$.",
             "taskId": "task-2-1",
             "objectiveIds": [
               "obj-1"
@@ -276258,7 +276258,7 @@
           {
             "id": "hint-3-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{2}{x-5}$.",
             "taskId": "task-3-1",
             "objectiveIds": [
               "obj-1"
@@ -276360,7 +276360,7 @@
           {
             "id": "hint-4-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{5}{x-5}$.",
             "taskId": "task-4-1",
             "objectiveIds": [
               "obj-1"
@@ -276462,7 +276462,7 @@
           {
             "id": "hint-5-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{4}{x-3}$.",
             "taskId": "task-5-1",
             "objectiveIds": [
               "obj-1"
@@ -276598,7 +276598,7 @@
           {
             "id": "hint-5-3-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{2}{x-3}$.",
             "taskId": "task-5-3",
             "objectiveIds": [
               "obj-1"
@@ -276853,7 +276853,7 @@
           {
             "id": "hint-7-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{3}{x-5}$.",
             "taskId": "task-7-1",
             "objectiveIds": [
               "obj-1"
@@ -276955,7 +276955,7 @@
           {
             "id": "hint-8-1-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{4}{x-5}$.",
             "taskId": "task-8-1",
             "objectiveIds": [
               "obj-1"
@@ -277210,7 +277210,7 @@
             "group_score"
           ]
         },
-        "contentHash": "2429aae5cad1789f1a196a2a5237bbb9662b3fd2f91fe96ca8864abfa7f1e7ec"
+        "contentHash": "e6c70ca22e55748d07c5a4a9fd4e2a069a83ff9126ba39b6d1ab5dd816f5124f"
       },
       "citations": [
         {
@@ -288704,7 +288704,7 @@
           {
             "id": "hint-1-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{3}{x-3}$.",
             "taskId": "task-1-2",
             "objectiveIds": [
               "obj-2"
@@ -288806,7 +288806,7 @@
           {
             "id": "hint-2-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{3}{x-5}$.",
             "taskId": "task-2-2",
             "objectiveIds": [
               "obj-2"
@@ -288908,7 +288908,7 @@
           {
             "id": "hint-3-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{4}{x-5}$.",
             "taskId": "task-3-2",
             "objectiveIds": [
               "obj-2"
@@ -289010,7 +289010,7 @@
           {
             "id": "hint-4-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{2}{x-5}$.",
             "taskId": "task-4-2",
             "objectiveIds": [
               "obj-2"
@@ -289129,7 +289129,7 @@
           {
             "id": "hint-5-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{1}{x-3}$.",
             "taskId": "task-5-2",
             "objectiveIds": [
               "obj-2"
@@ -289248,7 +289248,7 @@
           {
             "id": "hint-5-4-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=1+\\dfrac{4}{x-3}$.",
             "taskId": "task-5-4",
             "objectiveIds": [
               "obj-2"
@@ -289503,7 +289503,7 @@
           {
             "id": "hint-7-2-1",
             "tier": "H1",
-            "text": "Ghi dữ kiện và điều kiện trước khi làm.",
+            "text": "Chép lại dữ kiện trước khi làm: Cho $f(x)=3+\\dfrac{5}{x-5}$.",
             "taskId": "task-7-2",
             "objectiveIds": [
               "obj-2"
@@ -289809,7 +289809,7 @@
             "group_score"
           ]
         },
-        "contentHash": "7d964738764fe88cdef17da8d47f2d8074ec95ef3b064409fee323765b84fc6f"
+        "contentHash": "d23ca880d18efedd2bcf11678d78b30361690c65e3faff2ca0354224983a118e"
       },
       "citations": [
         {

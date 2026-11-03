@@ -33,8 +33,9 @@ const stockTable = (start, len) => ({ // bảng dataset 12 phiên, highlight c�
   rows: STOCK_A.map((v, i) => [`Phiên ${i + 1}`, v, STOCK_B[i]]),
   highlight: start >= 0 && start + len <= STOCK_A.length ? start : undefined,
 });
-const dataAnchor = prompt => { // H1 gắn dữ liệu; "=" ngay trước số diễn đạt "bằng" để không lộ đáp án theo quy tắc validator
-  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+const dataAnchor = prompt => {
+  const text = String(prompt);
+  const ms = [...text.matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
   const eqDigit = new RegExp('=\\s*[-+]?\\d');
   const verbal = [];
   for (const sn of ms) {
@@ -44,11 +45,14 @@ const dataAnchor = prompt => { // H1 gắn dữ liệu; "=" ngay trước số d
     if (/[_^{}]/.test(structural)) continue;
     const i = body.search(eqDigit);
     const left = body.slice(0, i);
-    const rest = body.slice(i + 1).replace(/^\s*/, '');
+    const rest = body.slice(i + 1).replace(/^\\s*/, '');
     if (eqDigit.test(rest)) continue;
     verbal.push('$' + left + '$ bằng $' + rest + '$');
   }
-  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join('; ')}.` : 'Ghi dữ kiện và điều kiện trước khi làm.';
+  if (verbal.length) return `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.`;
+  // Fallback: trích câu dữ kiện văn bản thuần — có số, không phải câu hỏi đáp số, độ dài vừa phải.
+  const picked = text.split(/[.?!]/).map(x => x.trim()).filter(x => /\d/.test(x) && !/bao nhiêu/i.test(x) && x.length >= 10 && x.length <= 90).slice(0, 2);
+  return picked.length ? `Chép lại dữ kiện trước khi làm: ${picked.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
 };
 let mathematicalChecks = 0;
 function numeric(prompt, key, solution, hints, independent) {

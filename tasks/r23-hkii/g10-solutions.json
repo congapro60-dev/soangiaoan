@@ -2140,7 +2140,7 @@
       "conceptId": "quadconcept",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=2(x-6)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: Khai triển bình phương; hệ số x là-24.",
       "taskId": "task-3-3"
     },
@@ -5983,7 +5983,7 @@
       "conceptId": "circlepoints",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "Đường tròn có đường kính A(8;1),B(16;1). Bình phương bán kính bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Đường tròn có đường kính A(8;1),B(16;1). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: AB=8,R=AB/2=4,R²=16.",
       "taskId": "task-3-3"
     },
@@ -6991,7 +6991,7 @@
       "conceptId": "quadconcept",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Tìm B. Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Khai triển $f(x)=1(x-4)^2+2=Ax^2+Bx+C$. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: Khai triển bình phương; hệ số x là-8.",
       "taskId": "task-3-3"
     },
@@ -9934,7 +9934,7 @@
       "conceptId": "coordinateMidpoint",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "A(10;-2), B(14;4). Hoành độ trung điểm M của AB bằng bao nhiêu? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: A(10;-2), B(14;4). Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: Hoành độ M=(10+14)/2=12; tung độ M=1.",
       "taskId": "task-3-1"
     },
@@ -10042,8 +10042,8 @@
       "conceptId": "approximation",
       "activityIndex": 1,
       "branch": "shared",
-      "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170{,}47$ đến hàng đơn vị.",
-      "solution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170{,}47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5.",
+      "prompt": "Giá trị đúng là $171$ cm, giá trị gần đúng là $170$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $170.47$ đến hàng đơn vị.",
+      "solution": "Lời giải: $\\Delta=|171-170|=1$ cm; $\\delta=1/170$, tương ứng $100/170\\%$. Số $170.47$ quy tròn đến hàng đơn vị là $170$ vì chữ số hàng phần mười nhỏ hơn 5.",
       "taskId": "task-2-1"
     },
     {
@@ -10060,7 +10060,7 @@
       "conceptId": "approximation",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Sai số tuyệt đối bằng bao nhiêu cm? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Giá trị đúng là 109 cm, dùng số gần đúng 112 cm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: Sai số tuyệt đối là trị tuyệt đối hiệu: |112-109|=3 cm.",
       "taskId": "task-3-1"
     },
@@ -10132,8 +10132,8 @@
       "conceptId": "approximation",
       "activityIndex": 5,
       "branch": "extension",
-      "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với $a$ là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160{,}47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-      "solution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160{,}47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn.",
+      "prompt": "Giá trị đúng là $159$ cm, giá trị gần đúng là $160$ cm. Tính sai số tuyệt đối và sai số tương đối theo công thức $\\delta=\\Delta/|a|$ với a là giá trị gần đúng; ghi dạng phân số và phần trăm. Quy tròn $160.47$ đến hàng đơn vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+      "solution": "Lời giải: $\\Delta=|159-160|=1$ cm; $\\delta=1/160$, tương ứng $100/160\\%$. Số $160.47$ quy tròn đến hàng đơn vị là $160$ vì chữ số hàng phần mười nhỏ hơn 5. Mở rộng: GV so giá trị đúng 2,50 với gần đúng 2,48; sai số tuyệt đối là độ chênh, tương đối bằng độ chênh chia độ lớn giá trị gần đúng theo quy ước bài. Chốt rõ mẫu số, đơn vị và hàng quy tròn; không tự cho sai số bằng một nửa đơn vị nếu chưa biết phép làm tròn.",
       "taskId": "task-6-1"
     },
     {
@@ -11680,8 +11680,8 @@
       "conceptId": "quartileMode",
       "activityIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "Lời giải: $Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-2-1"
     },
     {
@@ -11770,8 +11770,8 @@
       "conceptId": "quartileMode",
       "activityIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-      "solution": "Lời giải: $Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+      "solution": "Lời giải: Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
       "taskId": "task-6-1"
     },
     {
@@ -11806,8 +11806,8 @@
       "conceptId": "mode",
       "activityIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "Lời giải: $Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-2-1"
     },
     {
@@ -11896,8 +11896,8 @@
       "conceptId": "mode",
       "activityIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $12;13;13;14;15;15;15;17$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-      "solution": "Lời giải: $Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị. Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+      "solution": "Lời giải: Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau. Mở rộng: GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.",
       "taskId": "task-6-1"
     },
     {
@@ -12436,8 +12436,8 @@
       "conceptId": "spread",
       "activityIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $7;8;8;9;9;10;10;22$ có $Q_1=8$, $Q_3=10$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Lời giải: Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-1;1;0;2;-2;1;0;2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Lời giải: Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-2-1"
     },
     {
@@ -12526,8 +12526,8 @@
       "conceptId": "spread",
       "activityIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;22$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-      "solution": "Lời giải: Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+      "solution": "Lời giải: Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
       "taskId": "task-6-1"
     },
     {
@@ -12562,8 +12562,8 @@
       "conceptId": "variance",
       "activityIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $13;13;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Lời giải: Trung bình $14$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Lời giải: Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -12598,7 +12598,7 @@
       "conceptId": "addition",
       "activityIndex": 2,
       "branch": "support",
-      "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Ghi dữ kiện và điều kiện trước khi làm. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
+      "prompt": "Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Có bao nhiêu lựa chọn? Em có thể chia bài thành từng bước: Chép lại dữ kiện trước khi làm: Chọn đúng một vật từ 4 bút khác nhau hoặc 2 vở khác nhau. Thay dữ kiện đã chép vào định nghĩa hoặc công thức phù hợp. Kiểm lại kết quả bằng phép tính hoặc lựa chọn khác.",
       "solution": "Lời giải: Hai nhóm rời nhau; dùng cộng 4 + 2=6.",
       "taskId": "task-3-3"
     },
@@ -12652,8 +12652,8 @@
       "conceptId": "variance",
       "activityIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $3;3;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
-      "solution": "Lời giải: Trung bình $5$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không? Mở rộng: Giải thích cơ sở của cách làm, rồi nêu một bước kiểm tra kết quả bằng kiến thức đã học.",
+      "solution": "Lời giải: Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi. Mở rộng: GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.\nGV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.",
       "taskId": "task-6-1"
     },
     {
