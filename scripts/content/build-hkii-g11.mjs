@@ -578,7 +578,14 @@ function buildLesson(period, ids, eligible = []) {
   assert.ok(!used.has(q.prompt),`Need distinct question ${period.period}/${id}/${stage}/${depth}`);
   used.add(q.prompt);
   const {solution,hints:help,...task}=q;
-  help[0]=dataAnchor(q.prompt);
+  // H1 = data anchor; câu 1-hint (challenge) giữ hint riêng làm H2 + dựng đủ bậc thang 4 tầng.
+  if (help.length === 1) {
+    const specific = help[0];
+    help.length = 0;
+    help.push(dataAnchor(q.prompt), specific, 'Nêu điều kiện áp dụng của công thức hoặc định lí dùng để biến đổi.', 'Kiểm lại kết quả bằng cách thay ngược hoặc xét một trường hợp riêng.');
+  } else {
+    help[0]=dataAnchor(q.prompt);
+  }
   solved.set(q.prompt,solution);
   assert.ok(Array.isArray(help)&&help.length, id);
   const scaffolds=help;

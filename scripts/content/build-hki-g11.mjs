@@ -349,7 +349,14 @@ function buildLesson(period,ids,eligible=[]){
   }
   assert.ok(!used.has(question.prompt),`No distinct question for ${period.period}/${id}/${stage}`);used.add(question.prompt);
   const {solution,hints:scaffold,...task}=question;
-  scaffold[0]=dataAnchor(question.prompt);
+  // H1 = data anchor; câu 1-hint (challenge) giữ hint riêng làm H2 + dựng đủ bậc thang 4 tầng.
+  if (scaffold.length === 1) {
+    const specific = scaffold[0];
+    scaffold.length = 0;
+    scaffold.push(dataAnchor(question.prompt), specific, 'Nêu điều kiện áp dụng của công thức hoặc định lí dùng để biến đổi.', 'Kiểm lại kết quả bằng cách thay ngược hoặc xét một trường hợp riêng.');
+  } else {
+    scaffold[0]=dataAnchor(question.prompt);
+  }
   solutions.set(task.prompt,solution);
   return {...task,minutes,objectiveIndexes:[index],participation,branch,isCore:!['support','extension'].includes(branch),requiresFullScaffold:branch==='support',supportRationale:`Lời giải đối soát: ${solution} Lỗi cần quan sát: ${bank[id].error}`,hints:scaffold,source:{...citationFor(id),origin:'generated'}};
  };

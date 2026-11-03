@@ -4,6 +4,22 @@
 > - `docs/HANDOFF-ARCHIVE.md` (toàn bộ checkpoint trước 03/11/2026)
 > - `tasks/archive/handoff-history-to-2026-10-23.md`, `tasks/archive/handoff-history-v27-v30-2026-10-25.md`
 
+## Latest checkpoint - TỐI ƯU TOÀN NĂM HOÀN TẤT: 0 TASK NON-REFLECTION DƯỚI 4 TẦNG (04/11/2026)
+
+**Branch**: `codex/universal-content-release` · HEAD commit này. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Nội dung đợt chốt
+- **Challenge G11 đủ bậc thang**: helper `challenge()` (open, 1 hint) trước đây bị ghi đè hint riêng bằng dataAnchor — regression âm thầm. Sửa cả HKI + HKII: giữ hint riêng làm **H2**, dựng đủ 4 tầng (H1 data anchor · H2 hint riêng · H3 điều kiện áp dụng · H4 kiểm lại). 323 task open được nâng: HKI 218 + HKII 105 → **0 task non-reflection dưới 4 tầng** ở cả 2 kỳ.
+- **Audit tổng cuối**: HKI 5.359 task (3.358×4 + 1.722×3 + 279×1: 270 reflection + 9 THPTQG pilot authored) · HKII 5.882 task (3.362×4 + 2.187×3 + 333×1 reflection) — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu tầng. Storyline Bài 14: 170 task + 170 visual. H1 anchor: HKI 3.487 + HKII 3.784.
+- **Full suite toàn repo: 1470 PASS / 0 FAIL / 2 skip** (lần chạy cuối, gồm thptqg + takeover + jeopardy + class-events + media-ui + themed-route-ui sau khi patch stub).
+- **Archive V43 tái tạo**: `C:\Users\ADMIN\.codex\sites-release\release-20261103-v43.tar.gz` (44.483.380 bytes) tại commit này — chứa pilot 9 task + challenge 4 tầng + toàn bộ nội dung năm học.
+- Đã ghi 4 bài học kỹ thuật vào `tasks/lessons.md` (rebuilder xóa injection post-build; grep dist phải bung gzip; stub test đồng bộ export; không ghi đè hint riêng).
+
+### Việc cần chủ máy (gom 1 lần — chưa làm được tự động)
+1. **Nạp V43 lên panel** → ghi `deployment_id` vào HANDOFF (Site version 43).
+2. **Vế Claude check chéo** cho đợt storyline + challenge — chờ weekly limit hồi (sau 22:00 ngày 04/11); Codex đã PASS 6/6 single-source.
+3. **Lưu ý không merge `main`** — hai dòng lịch sử không có tổ tiên chung.
+
 ## Latest checkpoint - STORYLINE Bài 14 MỞ RỘNG SANG HKI (04/11/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
