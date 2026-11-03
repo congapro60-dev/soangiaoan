@@ -90,6 +90,12 @@
   - Bổ sung: interactive question S1 (3 options), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
   - Validation: Vitest 442/442 PASS; build PASS 3m5s; xuất bản 1 bài mới / 65 bỏ qua (0 audit fail); QA live session `fbbdl3hlD5kH7H5h0T44` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-83-upgrade.md`).
 
+- Tuần 12 — Khối 12 (`12-12-84`) Nguyên hàm: Tiết 5 Nguyên hàm của hàm số mũ — NÂNG CẤP HỒI TỐ V8.8 MASTER TEACHER (03/11/2026):
+  - Trục thực nghiệm mới: Cuộc đua lãi kép 2 ngân hàng (Lan gửi 10 triệu, 10 năm). BlueBank ghép mỗi năm B(t) = 10·(1,06)^t → B(10) ≈ 17,91 triệu; GreenBank ghép liên tục A(t) = 10·e^(0,06t) → A(10) ≈ 18,22 triệu — e thắng 0,31 triệu.
+  - AI Error viết lại: AI dự báo lãi BlueBank "∫(1,06)^t dt = (1,06)^t + C" — quên chia ln 1,06 (kiểm chứng đạo hàm thừa hệ số); hậu quả: bảng dự báo lãi lệch hệ số.
+  - Bổ sung: interactive question S1 (3 options, có bẫy t(1,06)^(t−1)), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
+  - Validation: Vitest 442/442 PASS; build PASS 4m23s; QA live session `DzHFVh8pJIStuxIO89hW` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; nội dung mới (BlueBank/GreenBank, 17,91/18,22) xác nhận live ở chặng 2,3,5,6,8,11,12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-84-upgrade.md`).
+
 ## 2. Việc tiếp theo
-1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`, `12-12-83`.
-2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-84` (Nguyên hàm — Tiết 5) → `12-12-85` → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.
+1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`, `12-12-83`, `12-12-84`.
+2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-85` (Nguyên hàm — Tiết 6: lượng giác) → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.
