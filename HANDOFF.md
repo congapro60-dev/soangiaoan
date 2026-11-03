@@ -15,6 +15,9 @@
 - **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
 - **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
 
+### Dọn dẹp
+- Commit `b9dec2a` lỡ kèm `ship-story.mjs` + 2 err.log — đã xóa; thêm `.gitignore` chặn tái diễn (`ship-*.mjs`, script patch tạm, `*-check-cheo-*.err.log`).
+
 ### Lệnh nghiệm thu
 \`\`\`powershell
 node --test tests/hki-content.test.mjs tests/hki-package.test.mjs
