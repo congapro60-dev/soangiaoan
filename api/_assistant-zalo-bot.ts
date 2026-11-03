@@ -6,7 +6,7 @@ import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkM
 
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
 import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, MENU_REPLIES, MENU_HINT, withWebPortalLink } from './_assistant-ph-hs-menu.js';
-import { AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
+import { AI_CHAT_REPLIES, answerGroupQuestion, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
@@ -34,6 +34,35 @@ const send = async (token: string, chatId: string, message: string) => {
 };
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
 const TEACHER_COMMANDS = new Set(['/classes', '/confirm', '/cancel', '/status']);
+
+/** Bot có bị @mention trong tin nhóm không? Ưu tiên mảng `mentions` của Zalo; thiếu thì dò `@Tên bot` trong text. */
+const mentionsBot = (m: Record<string, unknown>, botId: string, botName = ''): boolean => {
+  const list = m.mentions;
+  if (Array.isArray(list)) {
+    for (const item of list) {
+      const entry = item as Record<string, unknown> | null;
+      if (text(entry?.user_id) === botId || text(entry?.id) === botId) return true;
+      if (botName && text(entry?.display_name) === botName) return true;
+    }
+  }
+  return Boolean(botName) && msgTextOf(m).includes(`@${botName}`);
+};
+const msgTextOf = (m: Record<string, unknown>): string => text(m.text);
+/** Cắt @mention khỏi tin nhóm: ưu tiên offset/length trong mảng mentions (chuẩn Zalo Bot), fallback theo `@Tên bot`. */
+const stripMentions = (m: Record<string, unknown>, value: string, botName = ''): string => {
+  let s = value.normalize('NFC');
+  const list = Array.isArray(m.mentions) ? (m.mentions as Array<Record<string, unknown> | null>) : [];
+  const spans = list
+    .map(item => ({ offset: Number(item?.offset), length: Number(item?.length) }))
+    .filter(x => Number.isInteger(x.offset) && x.offset >= 0 && x.offset < s.length && x.length > 0)
+    .sort((a, b) => b.offset - a.offset);
+  if (spans.length) {
+    for (const span of spans) s = s.slice(0, span.offset) + ' ' + s.slice(Math.min(s.length, span.offset + span.length));
+  } else if (botName) {
+    s = s.replace(new RegExp(`@${botName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi'), ' ');
+  }
+  return s.replace(/\s+/g, ' ').trim();
+};
 export const STRANGER_HINT = [
   '👋 Chào bạn! Đây là Trợ lý học tập SmartPlan AI.',
   '',
@@ -415,6 +444,8 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const fromId = text(m?.from?.id); const chatId = text(m?.chat?.id ?? m?.chat_id);
   const msgDate = Number(m?.date); const msgId = text(m?.message_id);
   const msgText = text(m?.text);
+  const chatType = text(m?.chat?.chat_type);
+  const isGroupChat = chatType === 'GROUP';
   // Việc 4 — Zalo gửi ảnh (message.image.received): URL TẠM THỜI nằm ở m.photo (chuỗi) hoặc
   // m.photo.url / m.photo.attach_url (đối tượng, tùy phiên bản payload); caption bỏ qua.
   // URL này dùng 1 lần để tải về Storage ngay, không lưu lại.
@@ -430,7 +461,9 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const isOtherEvent = eventName === 'message.sticker.received'
     || eventName === 'message.voice.received' || eventName === 'message.unsupported.received';
   if ((!isTextEvent && !isImageEvent && !isOtherEvent) || !m || m.from?.is_bot !== false
-    || text(m?.chat?.chat_type) !== 'PRIVATE' || fromId !== chatId
+    || (chatType !== 'PRIVATE' && !isGroupChat)
+    || (chatType === 'PRIVATE' && fromId !== chatId)
+    || (isGroupChat && !isTextEvent) // nhóm: chỉ nhận text (ảnh/sticker/voice trong nhóm bỏ qua)
     || !msgId || !Number.isInteger(msgDate) || msgDate < 1e12
     || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000
     || (isTextEvent && (!msgText || msgText.length > 2000))
@@ -441,6 +474,27 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
   const meBody = me && await me.json().catch(() => null);
   if (!me?.ok || meBody?.ok !== true || text(meBody?.result?.id) !== botId) { console.error(`[zalo-bot] getMe failed: http=${me ? me.status : 'fetch-error'} apiOk=${meBody?.ok === true} idMatch=${text(meBody?.result?.id) === botId} body=${JSON.stringify(meBody ?? null).slice(0, 300)}`); res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true; }
+  // Nhóm Zalo (phương án B, chốt 3/11): chỉ trả lời khi ĐƯỢC @MENTION bot; chỉ giải toán/
+  // kiến thức chung — KHÔNG dùng dữ liệu cá nhân nào (mọi thành viên nhóm cùng đọc được).
+  if (isGroupChat) {
+    const botName = text(meBody?.result?.display_name) || text(meBody?.result?.name);
+    if (!mentionsBot(m as Record<string, unknown>, botId, botName)) { res.status(200).json({ ok: true }); return true; }
+    // Chống spam nhóm: tối đa 1 câu trả lời / nhóm / 15 giây (dùng cơ chế claim nonce có sẵn).
+    const groupKey = `zalo_bot_group_${crypto.createHash('sha256').update(`${botId}:${chatId}`).digest('hex')}`;
+    try { await claimAssistantRequestNonce(groupKey, Date.now(), undefined, 15_000); }
+    catch (error) {
+      if (/replay/i.test(error instanceof Error ? error.message : '')) { res.status(200).json({ ok: true }); return true; }
+      console.error(`[zalo-bot] group claim failed: ${(error instanceof Error ? error.message : 'unknown').slice(0, 200)}`);
+      res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true;
+    }
+    const question = stripMentions(m as Record<string, unknown>, msgText, botName).slice(0, 1000);
+    const reply = question
+      ? (await answerGroupQuestion(vilaoCaller(String(process.env.PH_CHAT_VILAO_KEY || '')), question))
+        ?? 'Em đang bận chút, nhóm mình thử lại sau ít phút nhé! 🙏'
+      : 'Bạn muốn mình giải bài gì, gửi câu hỏi hoặc chụp đề @ mình nhé! 📸';
+    await sendStyled(token, chatId, reply, false);
+    res.status(200).json({ ok: true }); return true;
+  }
   const senderId = fromId;
   const command = msgText.split(/\s+/, 1)[0];
   if (allowedUsers.size && !allowedUsers.has(senderId)) { res.status(200).json({ ok: true }); return true; }

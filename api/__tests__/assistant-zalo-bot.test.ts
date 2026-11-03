@@ -77,13 +77,14 @@ import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartRep
 
 
 
-const { answerDetailed, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), sendGeometryPhotoMock: vi.fn(), sendMathFormulaPhotoMock: vi.fn() }));
+const { answerDetailed, answerGroup, sendGeometryPhotoMock, sendMathFormulaPhotoMock } = vi.hoisted(() => ({ answerDetailed: vi.fn(), answerGroup: vi.fn(async () => null), sendGeometryPhotoMock: vi.fn(), sendMathFormulaPhotoMock: vi.fn() }));
 // Chat AI + vẽ hình/ảnh công thức mock TOÀN BỘ file này: nhánh AI chat chưa từng có test — mock giữ
 // đúng bộ export mà zalo-bot dùng (AI_CHAT_REPLIES, answerParentQuestionDetailed, vilaoCaller).
 vi.mock('../_assistant-ph-hs-chat', () => ({
   AI_CHAT_REPLIES: { unavailable: 'AI_BAN', empty: 'AI_RONG' },
   AI_MENU_HINT: 'Nhắn 0 để xem lại menu.',
   answerParentQuestionDetailed: (...args: unknown[]) => answerDetailed(...(args as [])),
+  answerGroupQuestion: (...args: unknown[]) => answerGroup(...(args as [])),
   vilaoCaller: vi.fn(() => async () => ''),
   // Module giải đề từ ảnh (29/10) import các hàm này — mock phải đủ để file test load được.
   buildSystemPrompt: vi.fn(() => 'SYS'),
@@ -142,7 +143,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', 'other-user');
     expect((await request(event('/help'))).code).toBe(200); expect(sent()).toHaveLength(0);
   });
-  it.each(['group', 'bot', 'sender', 'chat', 'stale', 'future', 'missing-id', 'oversized', 'event', 'seconds'])('rejects invalid event: %s', async invalid => {
+  it.each(['bot', 'sender', 'chat', 'stale', 'future', 'missing-id', 'oversized', 'event', 'seconds'])('rejects invalid event: %s', async invalid => {
     const body = event(); const m = body.result.message;
     if (invalid === 'group') m.chat.chat_type = 'GROUP';
     if (invalid === 'bot') m.from.is_bot = true;
@@ -380,6 +381,47 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     const result = await request(event('1', 'm-1'));
     expect(result.code).toBe(200);
     // sendStyled(markdown=false) chỉ POST 1 lần; gửi trùng 2 tin là lỗi cần tránh.
+    expect(sent()).toHaveLength(1);
+  });
+});
+
+describe('nhóm Zalo — chỉ trả lời khi @mention bot (phương án B)', () => {
+  const groupEvent = (text: string, messageId: string, mentions?: unknown[]) => ({
+    ok: true,
+    result: {
+      event_name: 'message.text.received',
+      message: {
+        from: { id: 'user-1', is_bot: false },
+        chat: { id: 'group-1', chat_type: 'GROUP' },
+        text, message_id: messageId, date: Date.now(),
+        ...(mentions ? { mentions } : {}),
+      },
+    },
+  });
+
+  it('nhóm có @mention bot → AI giải câu hỏi chung, không đụng dữ liệu cá nhân', async () => {
+    answerGroup.mockResolvedValueOnce('Bài này mình giải vậy nè 👋');
+    await request(groupEvent('@SmartPlan Bot giải giúp 2x+3=7', 'g-1', [{ user_id: 'bot-1', offset: 0, length: 14 }]));
+    expect(answerGroup).toHaveBeenCalledTimes(1);
+    expect(answerGroup.mock.calls[0][1]).toContain('2x+3=7'); // mention đã được cắt khỏi câu hỏi
+    expect(answerGroup.mock.calls[0][1]).not.toContain('@');
+    expect(answerGroup.mock.calls[0][1]).not.toContain('SmartPlan');
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Bài này mình giải vậy nè');
+  });
+
+  it('nhóm KHÔNG mention bot → im lặng, không gọi AI', async () => {
+    await request(groupEvent('ai rảnh giúp bài này với', 'g-2'));
+    expect(answerGroup).not.toHaveBeenCalled();
+    expect(sent()).toHaveLength(0);
+  });
+
+  it('chống spam: 2 tin mention liên tiếp trong 15s → tin thứ 2 bị bỏ qua', async () => {
+    vi.mocked(claimAssistantRequestNonce).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('replay'));
+    await request(groupEvent('@SmartPlan Bot câu 1', 'g-3', [{ user_id: 'bot-1', offset: 0, length: 14 }]));
+    expect(sent()).toHaveLength(1);
+    await request(groupEvent('@SmartPlan Bot câu 2', 'g-4', [{ user_id: 'bot-1', offset: 0, length: 14 }]));
+    expect(answerGroup).toHaveBeenCalledTimes(1); // chỉ lần đầu gọi AI
     expect(sent()).toHaveLength(1);
   });
 });

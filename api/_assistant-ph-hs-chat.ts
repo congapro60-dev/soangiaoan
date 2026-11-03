@@ -250,3 +250,27 @@ export const answerParentQuestion = async (
   role: ChatRole = 'parent',
   signal?: AbortSignal,
 ): Promise<string | null> => (await answerParentQuestionDetailed(call, question, report, periodicIds, role, signal))?.text ?? null;
+
+/**
+ * Nhóm Zalo (chốt 3/11 — phương án B): trả lời câu hỏi chung khi được @mention.
+ * KHÔNG dùng dữ liệu học sinh nào cả — chỉ giải toán/kiến thức chung, an toàn khi mọi
+ * thành viên nhóm cùng đọc. Không kèm quy tắc vẽ hình (nhóm chỉ trả text).
+ */
+export const buildGroupSystemPrompt = (): string => [
+  'Bạn là trợ lý Toán thân thiện của học sinh Việt Nam, đang được nhắc (@mention) trong một nhóm Zalo lớp học.',
+  'Trả lời bằng tiếng Việt, giọng nhiệt tình gần gũi như nhắn tin thật (xưng "mình/em", gọi người hỏi là "bạn/em"), dùng 0–2 emoji vừa phải.',
+  'Tối đa 6 câu. Chỉ giải toán, hướng dẫn học tập và trả lời câu hỏi kiến thức CHUNG.',
+  'KHÔNG bàn về điểm số, bài nộp hay thông tin cá nhân của bất kỳ ai — bạn không có dữ liệu này trong nhóm.',
+  'KHÔNG tự giới thiệu là AI, KHÔNG mở đầu bằng "Dạ vâng", KHÔNG đưa liên kết web.',
+  '',
+  MATH_FORMAT_RULE,
+].join('\n');
+
+export const answerGroupQuestion = async (call: AiCaller, question: string): Promise<string | null> => {
+  const q = String(question ?? '').trim().slice(0, 1000);
+  if (!q) return null;
+  const raw = await call(buildGroupSystemPrompt(), q);
+  const clean = latexToUnicodeMath(sanitizeAiReply(raw));
+  if (!clean) return null;
+  return clean.slice(0, 1800);
+};
