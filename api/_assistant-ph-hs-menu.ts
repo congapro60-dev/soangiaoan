@@ -65,11 +65,35 @@ const trendText = (report: ParentSafeReport): string => {
 const scoreText = (score: number | null | undefined, maxScore: number | null | undefined): string =>
   `${score ?? '-'}/${maxScore ?? '-'}`;
 
-/** Nhận xét rút gọn cho tin nhắn: bỏ ký hiệu định dạng, gọn 1 dòng, tối đa ~80 ký tự. */
+/** Nhận xét rút gọn cho tin nhắn: bỏ ký hiệu định dạng, gọn 1 dòng, tối đa ~200 ký tự (chốt 3/11: hiện đầy đủ hơn). */
 const shortFeedback = (feedback: string): string => {
   // GV có thể gõ công thức LaTeX trong nhận xét; Zalo không render nên phải đổi sang Unicode.
   const flat = latexToUnicodeMath(feedback).replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
-  return flat.length > 80 ? `${flat.slice(0, 79).trimEnd()}…` : flat;
+  return flat.length > 200 ? `${flat.slice(0, 199).trimEnd()}…` : flat;
+};
+
+/** Trần ký tự an toàn của 1 tin Zalo (sendStyled cắt cứng 2000) — chừa biên cho MENU_HINT và dòng cuối. */
+const ZALO_BODY_ROOM = 1850;
+
+/**
+ * Ghép danh sách HIỂN THỊ ĐỦ (chốt 3/11: không tóm tắt mất dữ liệu — mọi mục cần hiện thì hiện).
+ * Nếu tổng vượt trần 2000 ký tự của Zalo thì giữ tối đa các dòng vừa khít trần và ghi rõ
+ * "…và N mục nữa — xem đầy đủ: nhắn web." — không bao giờ cắt im lặng làm mất dữ liệu.
+ */
+export const fitZaloList = (header: string[], lines: string[], footer: string[] = []): string => {
+  const tail = ['', ...footer].join('\n');
+  const budget = ZALO_BODY_ROOM - header.join('\n').length - tail.length - MENU_HINT.length - 4;
+  let kept = 0;
+  let used = 0;
+  for (const line of lines) {
+    const cost = line.length + 1;
+    if (kept > 0 && used + cost > budget) break;
+    used += cost;
+    kept += 1;
+  }
+  const hidden = lines.length - kept;
+  const shown = hidden > 0 ? [...lines.slice(0, kept), `…và ${hidden} mục nữa — xem đầy đủ: nhắn web.`] : lines;
+  return `${[...header, ...shown].join('\n')}${tail ? `\n${tail}` : ''}\n\n${MENU_HINT}`;
 };
 
 /** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
@@ -152,37 +176,41 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       const graded = report.results.filter(item => item.status === 'official' && !isPeriodic(item.assignmentId));
       if (!graded.length) return `ℹ️ Chưa có bài tập nào được chấm cho ${name}.`;
       // Bản HS: kèm nhận xét GV cho từng bài đã duyệt (chỉ có trên báo cáo role=student).
-      // Giảm xuống 5 bài để tin không phình; PH giữ nguyên 8 bài, không có nhận xét.
+      // Chốt 3/11: hiện ĐỦ mọi bài đã chấm (chỉ chặn khi vượt trần ký tự Zalo, có ghi số còn ẩn).
       const forStudent = role === 'student';
-      const lines = graded.slice(0, forStudent ? 5 : 8).map(item => {
+      const lines = graded.map(item => {
         const score = `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
         return forStudent && item.feedback ? `${score}\n  💬 ${shortFeedback(item.feedback)}` : score;
       });
-      return [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`, ...lines, '', '👉 Xem bài kiểm tra định kỳ: nhắn 7.'].join('\n');
+      return fitZaloList(
+        [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`],
+        lines,
+        ['👉 Xem bài kiểm tra định kỳ: nhắn 7.'],
+      );
     }
     case '3': {
       const todo = report.results.filter(item => item.status === 'not_submitted' || item.status === 'pending' || item.status === 'grading' || item.status === 'error');
       if (!todo.length) return `🎉 ${name} không còn bài nào đang chờ nộp hay chờ chấm.`;
-      const lines = todo.slice(0, 8).map(item => {
+      const lines = todo.map(item => {
         const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
         return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
       });
-      return [`⏳ Bài đang chờ của ${name} (${todo.length} bài):`, ...lines].join('\n');
+      return fitZaloList([`⏳ Bài đang chờ của ${name} (${todo.length} bài):`], lines);
     }
     case '4': {
-      const strong = report.strengths.length ? report.strengths.slice(0, 4).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
-      const weak = report.areasToPractice.length ? report.areasToPractice.slice(0, 4).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
-      return [`🌟 Điểm mạnh của ${name}:`, ...strong, '', '🎯 Cần luyện thêm:', ...weak].join('\n');
+      const strong = report.strengths.length ? report.strengths.map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
+      const weak = report.areasToPractice.length ? report.areasToPractice.map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
+      return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần luyện thêm:', ...weak]);
     }
     case '5': {
       // HS tự luyện: dùng `areasToPractice` (dữ liệu có thật, cùng nguồn mục 4) thay cho
       // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
       if (role === 'student') {
         if (!report.areasToPractice.length) return 'ℹ️ Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần nhé.';
-        return [`💡 Gợi ý tự học của ${name}:`, ...report.areasToPractice.slice(0, 5).map(item => `• ${item}`)].join('\n');
+        return fitZaloList([`💡 Gợi ý tự học của ${name}:`], report.areasToPractice.map(item => `• ${item}`));
       }
       if (!report.parentActions.length) return 'ℹ️ Chưa có gợi ý riêng — phụ huynh nhắn thầy cô để được tư vấn thêm.';
-      return [`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`, ...report.parentActions.slice(0, 5).map(item => `• ${item}`)].join('\n');
+      return fitZaloList([`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`], report.parentActions.map(item => `• ${item}`));
     }
     case '6':
       return [`🔗 Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
@@ -197,15 +225,14 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       // Bài kiểm tra định kì — nhận diện bằng `assignment.periodicTest`, cùng cờ app và portal HS đang dùng.
       const periodic = report.results.filter(item => isPeriodic(item.assignmentId));
       if (!periodic.length) return `ℹ️ Chưa có bài kiểm tra định kì nào cho ${name}.`;
-      const graded = periodic.filter(item => item.status === 'official' && item.score !== null && item.maxScore);
-      const lines = periodic.slice(0, 8).map(item => {
+      const lines = periodic.map(item => {
         if (item.status === 'official') {
           return `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
         }
         const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
         return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
       });
-      return [`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`, ...lines].join('\n');
+      return fitZaloList([`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`], lines);
     }
     case '8':
       // Việc 4 — nộp bài bằng ảnh. Cả HS và PH nộp bài hộ con.

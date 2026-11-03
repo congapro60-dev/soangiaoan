@@ -18,7 +18,7 @@ import type { QuotaDoc } from './_grading-core.js';
 import { AiKeyRequiredError } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { sendStyled } from './_assistant-zalo-send.js';
-import { MENU_HINT } from './_assistant-ph-hs-menu.js';
+import { MENU_HINT, fitZaloList } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 
@@ -89,16 +89,14 @@ export const parsePhotoCommand = (raw: string): PhotoCommand | null => {
   return null;
 };
 
-export const MAX_PENDING_LIST = 10;
-
 /**
  * Bài giao đang chờ em nộp: cùng điều kiện chặn của luồng web (`assertActorCurrent`) —
  * không exam, không online, chưa khóa nộp, đúng đối tượng được giao, và em CHƯA có bài nộp nào
  * cho bài đó (bài đang lỗi/chờ chấm nhờ thầy cô xử lý trên web, không nộp trùng qua bot).
  * teacherId đọc từ class doc (link chỉ mang classId + studentId) — phiên nộp phải theo đúng GV chủ lớp.
- * Dữ liệu query TRỰC TIẾP Firestore mỗi lần gọi → luôn real-time. Sắp: bài còn hạn trước (hạn gần
- * nhất lên đầu), bài KHÔNG hạn kế tiếp, bài QUÁ HẠN xuống cuối (gắn nhãn). `total` = tổng số bài
- * chờ; `items` cắt còn MAX_PENDING_LIST để tin nhắn gọn.
+ * Dữ liệu query TRỰC TIẾP Firestore mỗi lần gọi → luôn real-time. Chốt 3/11: trả ĐỦ mọi bài chờ
+ * (không cắt 5/10 bài nữa) — sắp: bài còn hạn trước (hạn gần nhất lên đầu), bài KHÔNG hạn kế
+ * tiếp, bài QUÁ HẠN xuống cuối (gắn cờ overdue). Chỉ chặn hiển thị khi vượt trần ký tự Zalo.
  */
 export const pendingAssignmentsForStudent = async (
   classId: string,
@@ -131,23 +129,24 @@ export const pendingAssignmentsForStudent = async (
     if (da !== db_) return da.localeCompare(db_); // hạn gần nhất lên đầu
     return a.title.localeCompare(b.title, 'vi');
   });
-  return { teacherId, items: decorated.slice(0, MAX_PENDING_LIST), total: decorated.length };
+  return { teacherId, items: decorated, total: decorated.length };
 };
 
 export const photoListReply = (items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean }>, total = items.length): string => {
   if (!items.length) {
     return ['🎉 Hiện không có bài nào đang chờ em nộp.', '👉 Bài đã nộp hoặc đang chờ chấm: nhắn 2 để xem.', '', MENU_HINT].join('\n');
   }
-  const today = new Date().toISOString().slice(0, 10);
   const lines = items.map((item, index) => {
     if (item.overdue) return `${index + 1}. ${item.title} — [quá hạn${item.dueAt ? `: ${item.dueAt.slice(0, 10)}` : ''}]`;
     const due = item.dueAt ? ` — [hạn: ${item.dueAt.slice(0, 10)}]` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  const more = total > items.length
-    ? [`…và ${total - items.length} bài chưa nộp khác — nộp các bài trên xong rồi nhắn 8 để xem tiếp, hoặc nhắn web để xem đầy đủ.`, '']
-    : [];
-  return ['📸 Chọn bài để gửi ảnh chấm:', ...lines, '', ...more, '👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n');
+  const body = fitZaloList(
+    [`📸 Chọn bài để gửi ảnh chấm (${items.length} bài):`],
+    lines,
+    ['👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".'],
+  );
+  return body;
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
@@ -223,8 +222,7 @@ const saveTargetAndList = async (
       : item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  const more = total > items.length ? [`…và ${total - items.length} bài chưa nộp khác của ${target.name}.`, ''] : [];
-  return [`Bài đang chờ nộp của ${target.name}:`, ...lines, '', ...more, 'Nhắn: nộp hộ <số> (ví dụ: nộp hộ 1).', '', MENU_HINT].join('\n');
+  return fitZaloList([`Bài đang chờ nộp của ${target.name} (${items.length} bài):`], lines, ['Nhắn: nộp hộ <số> (ví dụ: nộp hộ 1).']);
 };
 
 /** Nhận tên bạn gõ vào: khớp 1 → liệt kê bài của bạn đó; trùng → liệt kê chọn số; không thấy → mời gõ lại. */

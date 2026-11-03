@@ -30,14 +30,14 @@ describe('menu PH/HS — Phase 2', () => {
     expect(MENU_REPLIES.needChoice).toContain('Nhắn 0 để xem lại menu.');
   });
 
-  it('mục 2 và 7 lấy 8 bài mới nhất theo thứ tự báo cáo', () => {
+  it('mục 2 và 7 hiện ĐỦ các bài theo thứ tự báo cáo (chốt 3/11: không cắt mất bài)', () => {
     const report = { studentName: 'HS Mẫu', results: Array.from({ length: 10 }, (_, i) => ({
       assignmentId: `a${i}`, title: `Bài thứ ${i}`, status: 'official', score: 8, maxScore: 10,
       submittedAt: new Date(Date.UTC(2026, 9, 25 - i)).toISOString(),
     })) } as any;
     for (const [key, periodic] of [['2', new Set<string>()], ['7', new Set(report.results.map((r: any) => r.assignmentId))]] as const) {
       const out = menuSectionText(key, report, periodic as Set<string>);
-      expect(out).toContain('Bài thứ 0:'); expect(out).not.toContain('Bài thứ 9:');
+      expect(out).toContain('Bài thứ 0:'); expect(out).toContain('Bài thứ 9:');
     }
   });
 

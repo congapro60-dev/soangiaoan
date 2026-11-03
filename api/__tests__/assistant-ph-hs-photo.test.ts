@@ -137,7 +137,7 @@ describe('pendingAssignmentsForStudent', () => {
     expect(out.items[0].overdue).toBe(false);
     expect(out.total).toBe(3);
   });
-  it('lớp nhiều bài chờ nộp → chỉ hiện 10 bài đầu, total trả đủ; bài hạn gần nhất lên đầu', async () => {
+  it('lớp nhiều bài chờ nộp → trả ĐỦ mọi bài (không cắt), bài hạn gần nhất lên đầu', async () => {
     seed();
     const today = new Date();
     for (let i = 1; i <= 12; i++) {
@@ -146,9 +146,9 @@ describe('pendingAssignmentsForStudent', () => {
     }
     const out = await pendingAssignmentsForStudent('c1', 's1');
     expect(out.total).toBe(14); // 12 bài mới + a1 + a6 (cả hai đã quá hạn nhưng vẫn tính vào tổng)
-    expect(out.items).toHaveLength(10);
+    expect(out.items).toHaveLength(14);
     expect(out.items[0].title).toBe('Bài số 1'); // hạn gần nhất lên đầu
-    expect(out.items.every(i => !i.overdue)).toBe(true); // 10 slot đầu là bài còn hạn, bài quá hạn bị cắt khỏi hiển thị
+    expect(out.items.filter(i => i.overdue).map(i => i.id)).toEqual(['a6', 'a1']); // quá hạn xếp sau bài còn hạn
   });
   it('lớp không tồn tại → danh sách rỗng, teacherId rỗng', async () => {
     expect(await pendingAssignmentsForStudent('nope', 's1')).toEqual({ teacherId: '', items: [], total: 0 });
