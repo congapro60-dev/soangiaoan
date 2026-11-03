@@ -170,6 +170,15 @@ describe('chat AI theo vai trò (C11)', () => {
     const ph = buildSystemPrompt('DỮ LIỆU GIẢ');
     expect(ph).toContain('anh/chị');
   });
+  it('C11c: phương án A — prompt HS kèm tên em để AI gọi tên như người thật; không tên thì giữ câu cũ', () => {
+    const hs = buildSystemPrompt('DỮ LIỆU GIẢ', 'student', 'Nguyễn Bảo Trâm');
+    expect(hs).toContain('Nguyễn Bảo Trâm');
+    expect(hs).toContain('như nhắn tin Zalo thật');
+    expect(hs).toContain('KHÔNG tự giới thiệu');
+    // Không có tên (caller cũ) → chuỗi gọi "em" cũ giữ nguyên để test C11a không vỡ.
+    const noName = buildSystemPrompt('DỮ LIỆU GIẢ', 'student');
+    expect(noName).toContain('gọi người nhắn là "em"');
+  });
 
   it('C11b: ngữ cảnh HS có nhận xét GV đã duyệt; ngữ cảnh PH không có', () => {
     const withFeedback = {

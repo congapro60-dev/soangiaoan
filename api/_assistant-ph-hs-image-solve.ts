@@ -92,7 +92,7 @@ export const solveProblemFromImage = async (
   if (!candidates.length) return null;
   const context = buildAiContext(report, periodicIds, role);
   const prompt = [
-    buildSystemPrompt(context, role),
+    buildSystemPrompt(context, role, report.studentName ?? ''),
     '',
     IMAGE_SOLVE_RULE,
     '',

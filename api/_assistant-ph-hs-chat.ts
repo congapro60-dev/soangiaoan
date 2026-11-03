@@ -105,14 +105,19 @@ export const GEOMETRY_PROMPT_RULE = [
 ].join('\n');
 
 /** Prompt hệ thống — chống bịa là yêu cầu cứng, không phải lời khuyên. Văn phong theo vai trò. */
-export const buildSystemPrompt = (context: string, role: ChatRole = 'parent'): string => {
+export const buildSystemPrompt = (context: string, role: ChatRole = 'parent', studentName = ''): string => {
   const student = role === 'student';
+  // Phương án A (chốt 3/11): nhắn tin NHƯ NGƯỜI THẬT — gọi tên em, nhiệt tình, emoji vừa phải.
+  // Không đụng 6 quy tắc an toàn ở dưới: vẫn chỉ được nói dữ liệu có thật trong báo cáo.
+  const callerName = student && studentName.trim() ? studentName.trim() : '';
   return [
     student
-      ? 'Bạn là trợ lý hỗ trợ học sinh của một giáo viên Toán ở Việt Nam.'
-      : 'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam.',
+      ? 'Bạn là trợ lý hỗ trợ học sinh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật (anh chị kèm học thân thiện), KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".'
+      : 'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật, KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".',
     student
-      ? 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, khích lệ, gọi người nhắn là "em" — em đang hỏi về bài của chính mình.'
+      ? callerName
+        ? `Trả lời bằng tiếng Việt, giọng nhiệt tình gần gũi như nhắn tin Zalo thật: khi tự nhiên thì mở đầu bằng tên "${callerName}", xưng "mình/em" và gọi người nhắn là "em" hoặc "${callerName}". Câu văn ngắn, tự nhiên như người thật gõ tin; dùng 0–2 emoji vừa phải khi hợp bối cảnh. Tối đa 6 câu.`
+        : 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, khích lệ, gọi người nhắn là "em" — em đang hỏi về bài của chính mình.'
       : 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, gọi phụ huynh là "anh/chị".',
     '',
     'QUY TẮC BẮT BUỘC:',
@@ -221,7 +226,7 @@ export const answerParentQuestionDetailed = async (
   const q = String(question ?? '').trim();
   if (!q) return null;
   const context = buildAiContext(report, periodicIds, role);
-  const raw = await call(buildSystemPrompt(context, role), q.slice(0, 1000), signal);
+  const raw = await call(buildSystemPrompt(context, role, report.studentName ?? ''), q.slice(0, 1000), signal);
   const { text, spec } = extractGeometryReply(raw);
   // Lọc rò rỉ trên bản raw TRƯỚC, nhưng KHÔNG convert công thức — giữ LaTeX cho renderer.
   const mathSource = sanitizeAiReply(text);
