@@ -4,7 +4,24 @@
 > - `docs/HANDOFF-ARCHIVE.md` (toàn bộ checkpoint trước 03/11/2026)
 > - `tasks/archive/handoff-history-to-2026-10-23.md`, `tasks/archive/handoff-history-v27-v30-2026-10-25.md`
 
-## Latest checkpoint - NÂNG CẤP HKI CHUẨN V88: HINT 3-4 TẦNG DATA-ANCHORED (03/11/2026)
+## Latest checkpoint - STORYLINE Bài 14 MỞ RỘNG SANG HKI (04/11/2026)
+
+**Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Nội dung
+- 4 concept thống kê G10-HKI (`meanMedian`, `quartileMode`, `spread`, `variance` — cùng chương Thống kê với bài học tương tác Bài 14) chuyển sang **dataset 12 phiên cổ phiếu A/B**: prompt nêu "bài học tương tác Bài 14", mỗi seed chọn cửa sổ phiên khác nhau; `variance` so sánh phân tán A vs B — đúng tinh thần cốt lõi của Bài 14. `projectReport` giữ nguyên (dạy phương pháp thu thập dữ liệu).
+- **Visual**: 140 task HKI có bảng dataset 12 phiên (`stockTable`, highlight cửa sổ đang hỏi); `open()` nhận tham số `visual` thứ 5; pipeline GĐ2 (DataVisual → TaskImage → 5 page) đã có sẵn dùng được cho HKI.
+- **Chống trùng**: `makeTask` G10-HKI thêm vòng retry 8 lần (seed + attempt×977) + `usedPrompts` set — sửa `ERR_RECHECK_DUPLICATE` do seed tuyến tính va chạm khi cửa sổ ít.
+- **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
+- **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
+
+### Lệnh nghiệm thu
+\`\`\`powershell
+node --test tests/hki-content.test.mjs tests/hki-package.test.mjs
+npm --prefix "C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release" run build
+\`\`\`
+
+## Previous checkpoint - NÂNG CẤP HKI CHUẨN V88: HINT 3-4 TẦNG DATA-ANCHORED (03/11/2026)
 
 **Branch**: `codex/universal-content-release` · HEAD sau commit này. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 

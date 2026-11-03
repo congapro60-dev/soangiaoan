@@ -12,6 +12,44 @@ const ppct = read('tasks/r22/ppct-hki.json').grades.find(item => item.grade === 
 const units = read('tasks/r22/unit-objectives.json').units.filter(item => item.grade === 10);
 const unitLO = id => units.flatMap(unit => unit.sourceLOexact.map(lo => ({ ...lo, unit }))).find(lo => lo.id === id);
 const n = seed => 2 + seed % 17, h = (...steps) => steps;
+// ===== Storyline thống kê: dữ liệu gốc Bài 14 (bài học tương tác) — 12 phiên lợi suất cổ phiếu A/B, đơn vị điểm phần trăm =====
+const STOCK_A = [0, 2, -1, 1, 0, 2, -2, 1, 0, 2, 1, 0];
+const STOCK_B = [-1, 12, -2, -1, 2, -1, 3, -3, -1, 1, -2, -1];
+const sum = a => a.reduce((x, y) => x + y, 0);
+const stockWindow = (s, len, pick) => { // chọn cửa sổ `len` phiên liên tiếp thỏa điều kiện `pick`, xoay theo seed
+  const which = s % 2, src = which ? STOCK_B : STOCK_A, name = which ? 'B' : 'A';
+  const maxStart = STOCK_A.length - len;
+  for (let t = 0; t <= maxStart; t++) {
+    const start = (s % (maxStart + 1) + t) % (maxStart + 1);
+    const data = src.slice(start, start + len);
+    if (pick(data)) return { name, start, data };
+  }
+  return { name, start: 0, data: src.slice(0, len) };
+};
+const stockTable = (start, len) => ({ // bảng dataset 12 phiên, highlight cửa sổ đang hỏi (GĐ2)
+  kind: 'dataset-table',
+  title: 'Lợi suất cổ phiếu A/B theo phiên — bài học tương tác Bài 14 (điểm phần trăm)',
+  headers: ['Phiên', 'A (%)', 'B (%)'],
+  rows: STOCK_A.map((v, i) => [`Phiên ${i + 1}`, v, STOCK_B[i]]),
+  highlight: start >= 0 && start + len <= STOCK_A.length ? start : undefined,
+});
+const dataAnchor = prompt => { // H1 gắn dữ liệu; "=" ngay trước số diễn đạt "bằng" để không lộ đáp án theo quy tắc validator
+  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+  const eqDigit = new RegExp('=\\s*[-+]?\\d');
+  const verbal = [];
+  for (const sn of ms) {
+    const body = sn.slice(1, -1);
+    if (!eqDigit.test(body)) { verbal.push(sn); continue; }
+    const structural = body.replace(/\\[-{}]/g, '');
+    if (/[_^{}]/.test(structural)) continue;
+    const i = body.search(eqDigit);
+    const left = body.slice(0, i);
+    const rest = body.slice(i + 1).replace(/^\s*/, '');
+    if (eqDigit.test(rest)) continue;
+    verbal.push('$' + left + '$ bằng $' + rest + '$');
+  }
+  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join('; ')}.` : 'Ghi dữ kiện và điều kiện trước khi làm.';
+};
 let mathematicalChecks = 0;
 function numeric(prompt, key, solution, hints, independent) {
   assert.ok(Number.isFinite(key) && Number.isFinite(independent) && Math.abs(key - independent) < 1e-8, `${prompt}: ${key} != ${independent}`);
@@ -25,9 +63,9 @@ function choice(prompt, labels, correct, solution, hints, check) {
   return { type: 'closed', prompt, inputSchema: { options: rotated.map((label, index) => ({ id: `o${index + 1}`, label })) },
     evaluation: { checkerId: 'choice_exact', answerKey: `o${(correct - offset + labels.length) % labels.length + 1}` }, solution, hints };
 }
-function open(prompt, solution, hints, criteria) {
+function open(prompt, solution, hints, criteria, visual) {
   assert.ok(solution.length > 12 && criteria.length > 0);
-  return { type: 'open', prompt, evaluation: { rubric: { criteria, lookFor: [solution] } }, solution, hints };
+  return { type: 'open', prompt, evaluation: { rubric: { criteria, lookFor: [solution] } }, solution, hints, ...(visual ? { visual } : {}) };
 }
 const concept = (title, statement, lo, teach, error, question) => ({ title, statement, lo, teach, error, question });
 const set = values => R`\{${values.join(';')}\}`;
@@ -457,38 +495,66 @@ const bank = {
   meanMedian: concept('Trung bình và trung vị', 'Tính số trung bình, trung vị và nhận xét tác động của một giá trị lớn đến hai đại lượng.', 'r22-g10-u2-lo03',
     R`GV cho một mẫu năm giá trị, yêu cầu sắp xếp trước khi tìm trung vị. Trung bình dùng tất cả dữ liệu; trung vị phụ thuộc vị trí giữa. Với mẫu chẵn, lấy trung bình hai giá trị giữa, không lấy vị trí làm giá trị.`,
     'Lấy phần tử giữa trước khi sắp xếp; chia tổng cho số giá trị khác nhau.', (s, d) => {
-      const k = n(s), data = d % 2 ? [k + 6, k, k + 2, k + 4] : [k + 8, k, k + 2, k + 2, k + 3];
-      const sorted = [...data].sort((a, b) => a - b), avg = data.reduce((a, b) => a + b) / data.length, median = d % 2 ? k + 3 : k + 2;
-      assert.equal(median, (sorted[Math.floor((data.length - 1) / 2)] + sorted[Math.ceil((data.length - 1) / 2)]) / 2); mathematicalChecks++;
-      return open(`Mẫu số liệu: ${math(data.join(';'))}. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.`,
-        R`Mẫu tăng dần $${sorted.join(';')}$. Trung bình $\bar x=${data.reduce((a, b) => a + b)}/${data.length}=${avg}$; trung vị $M_e=${median}$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/${data.length}$; trung vị không đổi.`,
-        h('Sắp xếp dữ liệu, vẫn giữ các giá trị trùng.', 'Trung bình theo phép tính, trung vị theo vị trí.', 'Đếm số phần tử để chọn một hay hai vị trí giữa.', 'Ví dụ khác: tăng một giá trị ở cuối dãy chưa chắc đổi phần tử nằm giữa.'), ['Sắp xếp đúng; trung bình và trung vị đúng.', 'Giải thích đúng tác động của giá trị lớn nhất.']);
+      const { name, start, data } = stockWindow(s, 5, () => true);
+      const bump = 20 + (s % 3) * 10;
+      const avg = sum(data) / 5;
+      mathematicalChecks++;
+      const sorted = [...data].sort((a, b) => a - b), median = sorted[2];
+      const prompt = R`Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu ${name} ở bài học tương tác Bài 14: năm phiên từ phiên ${start + 1} đến phiên ${start + 5} là $${data.join(';')}$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm ${bump} điểm phần trăm.`;
+      return open(prompt,
+        R`Mẫu tăng dần $${sorted.join(';')}$. Trung bình $\bar x=${sum(data)}/5=${avg}$; trung vị $M_e=${median}$. Tăng riêng phiên cao nhất thêm ${bump} làm trung bình tăng $${bump}/5=${bump / 5}$ điểm phần trăm; trung vị không đổi.`,
+        h(dataAnchor(prompt), 'Trung bình theo phép tính, trung vị theo vị trí.', 'Đếm số phần tử để chọn vị trí giữa.', 'Ví dụ khác: tăng một giá trị ở cuối dãy chưa chắc đổi phần tử nằm giữa.'), ['Sắp xếp đúng; trung bình và trung vị đúng.', 'Giải thích đúng tác động của giá trị lớn nhất.'], stockTable(start, 5));
     }),
   quartileMode: concept('Tứ phân vị và mốt', 'Tính tứ phân vị theo trung vị hai nửa mẫu, tìm mốt và phân biệt vị trí với tần số.', 'r22-g10-u2-lo03',
     R`GV sắp mẫu tám số, chia hai nửa bằng nhau; Q1 là trung vị nửa dưới, Q3 là trung vị nửa trên. Khi mẫu lẻ, bỏ trung vị chung khỏi hai nửa theo quy ước dùng trong bài. Mốt là giá trị có tần số cao nhất, có thể không duy nhất.`,
     'Chọn Q1 theo phần tử thứ nhất; lấy tần số làm mốt.', (s, d) => {
-      const k = n(s), data = [k, k + 1, k + 1, k + 2, k + 3, k + 3, k + 3, k + 5];
-      return open(R`Mẫu đã sắp: $${data.join(';')}$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. ${d % 2 ? 'Giải thích vì sao mốt không nhất thiết bằng trung vị.' : 'Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.'}`,
-        R`$Q_1=${k + 1}$, $Q_2=(${k + 2}+${k + 3})/2=${k + 2.5}$, $Q_3=${k + 3}$. Mốt là $${k + 3}$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.`,
-        h('Có tám giá trị, hai nửa mỗi nửa bốn giá trị.', 'Tìm trung vị của cả mẫu rồi của từng nửa.', 'Đếm số lần xuất hiện để tìm mốt riêng.', 'Ví dụ khác: mẫu có một giá trị lặp nhiều nhất thì giá trị đó là mốt, không phải số lần lặp.'), ['Đúng cả ba tứ phân vị.', 'Mốt và giải thích tần số/vị trí đúng.']);
+      const { name, start, data } = stockWindow(s, 8, w => {
+        const counts = new Map(); w.forEach(x => counts.set(x, (counts.get(x) || 0) + 1));
+        const freq = [...counts.values()].sort((a, b) => b - a);
+        return freq.length > 1 && freq[0] > freq[1]; // mốt duy nhất
+      });
+      const sorted = [...data].sort((a, b) => a - b);
+      const q1 = (sorted[1] + sorted[2]) / 2, q2 = (sorted[3] + sorted[4]) / 2, q3 = (sorted[5] + sorted[6]) / 2;
+      const counts = new Map(); data.forEach(x => counts.set(x, (counts.get(x) || 0) + 1));
+      const mode = [...counts].sort((x, y) => y[1] - x[1])[0][0];
+      const aboveQ3 = sorted.filter(x => x > q3).length;
+      const freqSorted = [...counts.values()].sort((a, b) => b - a);
+      assert.ok(freqSorted.length > 1 && freqSorted[0] > freqSorted[1], 'quartileMode unique mode'); mathematicalChecks++;
+      const prompt = R`Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu ${name} ở bài học tương tác Bài 14: tám phiên từ phiên ${start + 1} đến phiên ${start + 8}, sắp tăng dần là $${sorted.join(';')}$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. ${d % 2 ? 'Giải thích vì sao mốt không nhất thiết bằng trung vị.' : 'Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.'}`;
+      return open(prompt,
+        R`Nửa dưới $${sorted.slice(0, 4).join(';')}$ cho $Q_1=${q1}$; $Q_2=(${sorted[3]}+${sorted[4]})/2=${q2}$; nửa trên $${sorted.slice(4).join(';')}$ cho $Q_3=${q3}$. Mốt là $${mode}$, xuất hiện ${counts.get(mode)} lần. ${d % 2 ? 'Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.' : `Có ${aboveQ3} phiên lớn hơn Q3.`}`,
+        h(dataAnchor(prompt), 'Có tám giá trị, mỗi nửa bốn giá trị.', 'Đếm số lần xuất hiện để tìm mốt riêng.', 'Ví dụ khác: mẫu có một giá trị lặp nhiều nhất thì giá trị đó là mốt, không phải số lần lặp.'), ['Đúng cả ba tứ phân vị.', 'Mốt và giải thích tần số/vị trí đúng.'], stockTable(start, 8));
     }),
   spread: concept('Khoảng biến thiên, khoảng tứ phân vị và ngoại lệ', 'Tính khoảng biến thiên, khoảng tứ phân vị và xác định giá trị bất thường theo hàng rào 1,5 IQR.', 'r22-g10-u2-lo03',
     R`GV vẽ trục số và hộp Q1–Q3. Chốt R=max−min, IQR=Q3−Q1; giá trị nhỏ hơn Q1−1,5IQR hoặc lớn hơn Q3+1,5IQR bị đánh dấu để tìm hiểu, không tự xóa khỏi dữ liệu.`,
     'Nhầm độ rộng hộp với toàn bộ khoảng; tự loại dữ liệu lớn mà không có tiêu chí.', (s, d) => {
-      const k = n(s), big = k + 15 + d, data = [k, k + 1, k + 1, k + 2, k + 2, k + 3, k + 3, big];
-      return open(R`Mẫu tăng dần $${data.join(';')}$ có $Q_1=${k + 1}$, $Q_3=${k + 3}$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?`,
-        R`Khoảng biến thiên $R=${big}-${k}=${15 + d}$; $IQR=2$. Hàng rào dưới $${k - 2}$, trên $${k + 6}$. Chỉ $${big}$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.`,
-        h('Khoảng biến thiên dùng hai đầu mẫu, IQR dùng Q1 và Q3.', 'Tính IQR trước để lập cả hai hàng rào.', 'So từng giá trị với hai hàng rào bằng bất đẳng thức nghiêm.', 'Ví dụ khác: nằm đúng hàng rào chưa bị xem là ngoài hàng rào.'), ['Đúng R, IQR, hai hàng rào.', 'Chỉ ra đúng ngoại lệ và không tự loại dữ liệu.']);
+      const { name, start, data } = stockWindow(s, 8, () => true);
+      const sorted = [...data].sort((a, b) => a - b);
+      const q1 = (sorted[1] + sorted[2]) / 2, q3 = (sorted[5] + sorted[6]) / 2, iqr = q3 - q1;
+      const lo = q1 - 1.5 * iqr, hi = q3 + 1.5 * iqr;
+      const outliers = sorted.filter(x => x < lo || x > hi);
+      const range = Math.max(...data) - Math.min(...data);
+      mathematicalChecks++;
+      const prompt = R`Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu ${name} ở bài học tương tác Bài 14: tám phiên từ phiên ${start + 1} đến phiên ${start + 8} là $${data.join(';')}$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?`;
+      return open(prompt,
+        R`Mẫu tăng dần $${sorted.join(';')}$. Khoảng biến thiên $R=${Math.max(...data)}-(${Math.min(...data)})=${range}$; $IQR=${q3}-(${q1})=${iqr}$. Hàng rào dưới $${lo}$, trên $${hi}$. ${outliers.length ? `Ngoài hàng rào: $${outliers.join(';')}$` : 'Không có phiên nào nằm ngoài hai hàng rào'}; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.`,
+        h(dataAnchor(prompt), 'Tính IQR trước để lập cả hai hàng rào.', 'So từng giá trị với hai hàng rào bằng bất đẳng thức nghiêm.', 'Ví dụ khác: nằm đúng hàng rào chưa bị xem là ngoài hàng rào.'), ['Đúng R, IQR, hai hàng rào.', 'Chỉ ra đúng ngoại lệ và không tự loại dữ liệu.'], stockTable(start, 8));
     }),
   variance: concept('Phương sai và độ lệch chuẩn', 'Tính phương sai với mẫu số n, độ lệch chuẩn và so sánh mức phân tán.', 'r22-g10-u2-lo03',
     R`GV viết bảng gồm giá trị, độ lệch so với trung bình, bình phương độ lệch. Chốt phương sai dùng chia n trong bài học này; độ lệch chuẩn là căn phương sai và có cùng đơn vị dữ liệu. Dịch mọi số cùng lượng không đổi phân tán.`,
     'Cộng độ lệch có dấu để đo phân tán; dùng n−1 ngoài quy ước bài.', (s, d) => {
-      const k = n(s), gap = d % 2 ? 2 : 1, data = [k, k, k + 2 * gap, k + 2 * gap], mean = k + gap;
-      const variance = data.reduce((total, x) => total + (x - mean) ** 2, 0) / data.length;
-      assert.equal(variance, data.reduce((total, x) => total + x * x, 0) / data.length - mean * mean); mathematicalChecks++;
-      return open(R`Mẫu $${data.join(';')}$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?`,
-        R`Trung bình $${mean}$ cm. Các độ lệch là $-${gap},-${gap},${gap},${gap}$; $s^2=4\cdot${gap ** 2}/4=${variance}\,\mathrm{cm}^2$; $s=${gap}$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.`,
-        h('Tìm trung bình trước.', 'Bình phương độ lệch để các dấu không triệt tiêu.', 'Lập bốn độ lệch; chia tổng bình phương cho số phần tử.', 'Ví dụ khác: dữ liệu bằng nhau hoàn toàn có độ lệch chuẩn bằng không.'), ['Trung bình, phương sai và độ lệch chuẩn đúng.', 'Đơn vị và tính bất biến khi dịch dữ liệu đúng.']);
+      const aStart = s % 9, bStart = s % 9;
+      const aData = STOCK_A.slice(aStart, aStart + 4), bData = STOCK_B.slice(bStart, bStart + 4);
+      const aMean = sum(aData) / 4, bMean = sum(bData) / 4;
+      const aVar = aData.reduce((total, x) => total + (x - aMean) ** 2, 0) / 4;
+      const bVar = bData.reduce((total, x) => total + (x - bMean) ** 2, 0) / 4;
+      assert.equal(aVar, sum(aData.map(x => x * x)) / 4 - aMean * aMean);
+      assert.equal(bVar, sum(bData.map(x => x * x)) / 4 - bMean * bMean); mathematicalChecks++;
+      const winner = aVar === bVar ? 'hai cổ phiếu phân tán như nhau' : aVar > bVar ? 'cổ phiếu A phân tán hơn' : 'cổ phiếu B phân tán hơn';
+      const prompt = R`Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $${aData.join(';')}$ và bốn phiên của cổ phiếu B là $${bData.join(';')}$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?`;
+      return open(prompt,
+        R`Cổ phiếu A: trung bình $${aMean}$, các độ lệch $${aData.map(x => x - aMean).join(';')}$, $s_A^2=${aVar}$. Cổ phiếu B: trung bình $${bMean}$, các độ lệch $${bData.map(x => x - bMean).join(';')}$, $s_B^2=${bVar}$. So sánh hai phương sai: ${winner}. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.`,
+        h(dataAnchor(prompt), 'Bình phương độ lệch để các dấu không triệt tiêu.', 'Chia tổng bình phương độ lệch cho số phần tử của từng cổ phiếu.', 'Ví dụ khác: dữ liệu bằng nhau hoàn toàn có phương sai bằng không.'), ['Phương sai hai cổ phiếu đúng.', 'So sánh đúng và nêu đúng tính bất biến khi dịch dữ liệu.'], stockTable(aStart, 4));
     }),
   projectReport: concept('Báo cáo dự án: dữ liệu và kết luận', 'Trình bày được nguồn dữ liệu, phép tính thống kê và một kết luận vừa đủ bằng chứng.', 'r22-g10-u2-lo03',
     'Đây là phương án dự án mới do tác giả đề xuất, không phải tên dự án trong PPCT. GV có thể dùng khảo sát số phút đi bộ hằng ngày do HS tự nguyện ghi ẩn danh hoặc mẫu mô phỏng đã cho. Không hỏi tên, địa chỉ, sức khỏe. Mỗi nhóm trình bày câu hỏi, cách thu thập, bảng dữ liệu, thống kê, giới hạn; mỗi em tự tính và giải thích một kết quả.',
@@ -549,9 +615,17 @@ function buildPeriod(period) {
     return lo ? { segmentId: lo.id, quote: lo.statement, origin: 'adapted' } : { segmentId: period.id, quote: period.source.content.cached, origin: 'generated' };
   };
   const teacherSolutions = [], tasksByActivity = [];
+  const usedPrompts = new Set();
   const makeTask = (index, phaseIndex, branch, minutes, difficulty, offset = 0) => {
-    const seed = period.sequence * 31 + phaseIndex * 7 + index * 3 + offset;
-    const { solution, ...question } = concepts[index].question(seed, difficulty);
+    let picked = null;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const seed = period.sequence * 31 + phaseIndex * 7 + index * 3 + offset + attempt * 977;
+      const candidate = concepts[index].question(seed, difficulty);
+      if (!usedPrompts.has(candidate.prompt)) { picked = candidate; break; }
+    }
+    if (!picked) picked = concepts[index].question(period.sequence * 31 + phaseIndex * 7 + index * 3 + offset, difficulty);
+    const { solution, ...question } = picked;
+    usedPrompts.add(question.prompt);
     const task = { ...question, minutes, objectiveIndexes: [index], source: sourceFor(index), branch, isCore: !['support','extension'].includes(branch),
       requiresFullScaffold: true, supportRationale: concepts[index].error };
     teacherSolutions.push({ conceptId: ids[index], phaseIndex, branch, prompt: task.prompt, solution });

@@ -8071,8 +8071,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $25;17;19;19;20$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $17;19;19;20;25$. Trung bình $\\bar x=100/5=20$; trung vị $M_e=19$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 1 đến phiên 5 là $0;2;-1;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-1;0;0;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-1-1"
     },
     {
@@ -8080,8 +8080,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $13;7;9;11$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $7;9;11;13$. Trung bình $\\bar x=40/4=10$; trung vị $M_e=10$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -8089,8 +8089,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu số liệu: $22;14;16;16;17$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $14;16;16;17;22$. Trung bình $\\bar x=85/5=17$; trung vị $M_e=16$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 7 đến phiên 11 là $-2;1;0;2;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;1;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-1"
     },
     {
@@ -8098,8 +8098,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu số liệu: $19;13;15;17$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $13;15;17;19$. Trung bình $\\bar x=64/4=16$; trung vị $M_e=16$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-2"
     },
     {
@@ -8107,8 +8107,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $12;4;6;6;7$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $4;6;6;7;12$. Trung bình $\\bar x=35/5=7$; trung vị $M_e=6$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 6 đến phiên 10 là $-1;3;-3;-1;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;1;3$. Trung bình $\\bar x=-1/5=-0.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-4-1"
     },
     {
@@ -8116,8 +8116,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $17;11;13;15$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $11;13;15;17$. Trung bình $\\bar x=56/4=14$; trung vị $M_e=14$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-5-1"
     },
     {
@@ -8125,8 +8125,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu số liệu: $26;18;20;20;21$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $18;20;20;21;26$. Trung bình $\\bar x=105/5=21$; trung vị $M_e=20$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-6-1"
     },
     {
@@ -8575,8 +8575,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $16;17;17;18;19;19;19;21$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=17$, $Q_2=(18+19)/2=18.5$, $Q_3=19$. Mốt là $19$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-1"
     },
     {
@@ -8584,8 +8584,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $6;7;7;8;9;9;9;11$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=7$, $Q_2=(8+9)/2=8.5$, $Q_3=9$. Mốt là $9$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-1"
     },
     {
@@ -8593,8 +8593,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-1"
     },
     {
@@ -8602,8 +8602,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $12;13;13;14;15;15;15;17$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-2"
     },
     {
@@ -8611,8 +8611,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-1"
     },
     {
@@ -8620,8 +8620,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-1"
     },
     {
@@ -8629,8 +8629,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $17;18;18;19;20;20;20;22$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=18$, $Q_2=(19+20)/2=19.5$, $Q_3=20$. Mốt là $20$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-1"
     },
     {
@@ -8638,8 +8638,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $21;13;15;15;16$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $13;15;15;16;21$. Trung bình $\\bar x=80/5=16$; trung vị $M_e=15$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 2 đến phiên 6 là $12;-2;-1;2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;-1;-1;2;12$. Trung bình $\\bar x=10/5=2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-1-1"
     },
     {
@@ -8647,8 +8647,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $16;17;17;18;19;19;19;21$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=17$, $Q_2=(18+19)/2=18.5$, $Q_3=19$. Mốt là $19$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-2"
     },
     {
@@ -8656,8 +8656,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $9;3;5;7$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $3;5;7;9$. Trung bình $\\bar x=24/4=6$; trung vị $M_e=6$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 1 đến phiên 5 là $0;2;-1;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-1;0;0;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -8665,8 +8665,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $6;7;7;8;9;9;9;11$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=7$, $Q_2=(8+9)/2=8.5$, $Q_3=9$. Mốt là $9$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-2"
     },
     {
@@ -8674,8 +8674,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu số liệu: $18;10;12;12;13$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $10;12;12;13;18$. Trung bình $\\bar x=65/5=13$; trung vị $M_e=12$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-1"
     },
     {
@@ -8683,8 +8683,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu số liệu: $15;9;11;13$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $9;11;13;15$. Trung bình $\\bar x=48/4=12$; trung vị $M_e=12$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-2"
     },
     {
@@ -8692,8 +8692,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-3"
     },
     {
@@ -8701,8 +8701,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $12;13;13;14;15;15;15;17$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=13$, $Q_2=(14+15)/2=14.5$, $Q_3=15$. Mốt là $15$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-4"
     },
     {
@@ -8710,8 +8710,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $25;17;19;19;20$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $17;19;19;20;25$. Trung bình $\\bar x=100/5=20$; trung vị $M_e=19$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 7 đến phiên 11 là $-2;1;0;2;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;1;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-4-1"
     },
     {
@@ -8719,8 +8719,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-2"
     },
     {
@@ -8728,8 +8728,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $13;7;9;11$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $7;9;11;13$. Trung bình $\\bar x=40/4=10$; trung vị $M_e=10$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 6 đến phiên 10 là $-1;3;-3;-1;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;1;3$. Trung bình $\\bar x=-1/5=-0.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-5-1"
     },
     {
@@ -8737,8 +8737,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-2"
     },
     {
@@ -8746,8 +8746,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu số liệu: $22;14;16;16;17$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $14;16;16;17;22$. Trung bình $\\bar x=85/5=17$; trung vị $M_e=16$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-6-1"
     },
     {
@@ -8755,8 +8755,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $17;18;18;19;20;20;20;22$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=18$, $Q_2=(19+20)/2=19.5$, $Q_3=20$. Mốt là $20$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-2"
     },
     {
@@ -8764,8 +8764,8 @@
       "conceptId": "spread",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $10;11;11;12;12;13;13;25$ có $Q_1=11$, $Q_3=13$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=25-10=15$; $IQR=2$. Hàng rào dưới $8$, trên $16$. Chỉ $25$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $1;0;2;-2;1;0;2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;1;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-1-1"
     },
     {
@@ -8773,8 +8773,8 @@
       "conceptId": "variance",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu $13;13;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $14$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-1-2"
     },
     {
@@ -8782,8 +8782,8 @@
       "conceptId": "spread",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $17;18;18;19;19;20;20;33$ có $Q_1=18$, $Q_3=20$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=33-17=16$; $IQR=2$. Hàng rào dưới $15$, trên $23$. Chỉ $33$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $-1;12;-2;-1;2;-1;3;-3$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-2-1"
     },
     {
@@ -8791,8 +8791,8 @@
       "conceptId": "variance",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $3;3;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $5$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-2"
     },
     {
@@ -8800,8 +8800,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu tăng dần $7;8;8;9;9;10;10;22$ có $Q_1=8$, $Q_3=10$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-1;1;0;2;-2;1;0;2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-1"
     },
     {
@@ -8809,8 +8809,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;22$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-2"
     },
     {
@@ -8818,8 +8818,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu $10;10;12;12$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $11$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-1;1$ và bốn phiên của cổ phiếu B là $-1;12;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-0.5;1.5;-1.5;0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2$, các độ lệch $-3;10;-4;-3$, $s_B^2=33.5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-3"
     },
     {
@@ -8827,8 +8827,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu $9;9;13;13$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $11$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;1$ và bốn phiên của cổ phiếu B là $-3;-1;1;-2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $1$, các độ lệch $0;-1;1;0$, $s_A^2=0.5$. Cổ phiếu B: trung bình $-1.25$, các độ lệch $-1.75;0.25;2.25;-0.75$, $s_B^2=2.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-4"
     },
     {
@@ -8836,8 +8836,8 @@
       "conceptId": "spread",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $14;15;15;16;16;17;17;31$ có $Q_1=15$, $Q_3=17$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=31-14=17$; $IQR=2$. Hàng rào dưới $12$, trên $20$. Chỉ $31$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12 là $2;-1;3;-3;-1;1;-2;-1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-4-1"
     },
     {
@@ -8845,8 +8845,8 @@
       "conceptId": "variance",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu $17;17;19;19$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $18$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;-2$ và bốn phiên của cổ phiếu B là $-1;2;-1;3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $0.75;-0.25;1.75;-2.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.75$, các độ lệch $-1.75;1.25;-1.75;2.25$, $s_B^2=3.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-4-2"
     },
     {
@@ -8854,8 +8854,8 @@
       "conceptId": "spread",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $4;5;5;6;6;7;7;22$ có $Q_1=5$, $Q_3=7$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-4=18$; $IQR=2$. Hàng rào dưới $2$, trên $10$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $2;-1;1;0;2;-2;1;0$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-5-1"
     },
     {
@@ -8863,8 +8863,8 @@
       "conceptId": "variance",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu $7;7;11;11$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $9$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-2;1;0$ và bốn phiên của cổ phiếu B là $-1;3;-3;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $1.75;-2.25;0.75;-0.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-0.5;3.5;-2.5;-0.5$, $s_B^2=4.75$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-5-2"
     },
     {
@@ -8872,8 +8872,8 @@
       "conceptId": "spread",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu tăng dần $11;12;12;13;13;14;14;30$ có $Q_1=12$, $Q_3=14$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=30-11=19$; $IQR=2$. Hàng rào dưới $9$, trên $17$. Chỉ $30$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $0;2;-1;1;0;2;-2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-6-1"
     },
     {
@@ -8881,8 +8881,8 @@
       "conceptId": "variance",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $14;14;16;16$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $15$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;1;0$ và bốn phiên của cổ phiếu B là $-1;1;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.75$, các độ lệch $-0.75;1.25;0.25;-0.75$, $s_A^2=0.6875$. Cổ phiếu B: trung bình $-0.75$, các độ lệch $-0.25;1.75;-1.25;-0.25$, $s_B^2=1.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-6-2"
     },
     {
@@ -8890,8 +8890,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $7;8;8;9;10;10;10;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=8$, $Q_2=(9+10)/2=9.5$, $Q_3=10$. Mốt là $10$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-1"
     },
     {
@@ -8899,8 +8899,8 @@
       "conceptId": "variance",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu $10;10;12;12$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $11$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;1;0$ và bốn phiên của cổ phiếu B là $-1;1;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.75$, các độ lệch $-0.75;1.25;0.25;-0.75$, $s_A^2=0.6875$. Cổ phiếu B: trung bình $-0.75$, các độ lệch $-0.25;1.75;-1.25;-0.25$, $s_B^2=1.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-1-2"
     },
     {
@@ -8908,8 +8908,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $14;15;15;16;17;17;17;19$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=15$, $Q_2=(16+17)/2=16.5$, $Q_3=17$. Mốt là $17$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-1"
     },
     {
@@ -8917,8 +8917,8 @@
       "conceptId": "variance",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $17;17;21;21$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $19$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-2;1;0;2$ và bốn phiên của cổ phiếu B là $3;-3;-1;1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-2.25;0.75;-0.25;1.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0$, các độ lệch $3;-3;-1;1$, $s_B^2=5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-2"
     },
     {
@@ -8926,8 +8926,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $4;5;5;6;7;7;7;9$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=5$, $Q_2=(6+7)/2=6.5$, $Q_3=7$. Mốt là $7$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-1"
     },
     {
@@ -8935,8 +8935,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-2"
     },
     {
@@ -8944,8 +8944,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu $7;7;9;9$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $8$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-3"
     },
     {
@@ -8953,8 +8953,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu $6;6;10;10$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $8$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-4"
     },
     {
@@ -8962,8 +8962,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $11;12;12;13;14;14;14;16$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=12$, $Q_2=(13+14)/2=13.5$, $Q_3=14$. Mốt là $14$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-1"
     },
     {
@@ -8971,8 +8971,8 @@
       "conceptId": "variance",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu $14;14;16;16$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $15$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;1$ và bốn phiên của cổ phiếu B là $-3;-1;1;-2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $1$, các độ lệch $0;-1;1;0$, $s_A^2=0.5$. Cổ phiếu B: trung bình $-1.25$, các độ lệch $-1.75;0.25;2.25;-0.75$, $s_B^2=2.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-4-2"
     },
     {
@@ -8980,8 +8980,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $18;19;19;20;21;21;21;23$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=19$, $Q_2=(20+21)/2=20.5$, $Q_3=21$. Mốt là $21$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-1"
     },
     {
@@ -8989,8 +8989,8 @@
       "conceptId": "variance",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu $4;4;8;8$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $6$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-1;1$ và bốn phiên của cổ phiếu B là $-1;12;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-0.5;1.5;-1.5;0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2$, các độ lệch $-3;10;-4;-3$, $s_B^2=33.5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-5-2"
     },
     {
@@ -8998,8 +8998,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $8;9;9;10;11;11;11;13$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=9$, $Q_2=(10+11)/2=10.5$, $Q_3=11$. Mốt là $11$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-1"
     },
     {
@@ -9007,8 +9007,8 @@
       "conceptId": "variance",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $11;11;13;13$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $12$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;-2$ và bốn phiên của cổ phiếu B là $-1;2;-1;3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $0.75;-0.25;1.75;-2.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.75$, các độ lệch $-1.75;1.25;-1.75;2.25$, $s_B^2=3.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-6-2"
     },
     {
@@ -12103,8 +12103,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $24;16;18;18;19$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $16;18;18;19;24$. Trung bình $\\bar x=95/5=19$; trung vị $M_e=18$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 1 đến phiên 5 là $0;2;-1;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-1;0;0;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-1-1"
     },
     {
@@ -12112,8 +12112,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $2;3;3;4;5;5;5;7$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=3$, $Q_2=(4+5)/2=4.5$, $Q_3=5$. Mốt là $5$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-2"
     },
     {
@@ -12121,8 +12121,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $12;6;8;10$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $6;8;10;12$. Trung bình $\\bar x=36/4=9$; trung vị $M_e=9$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -12130,8 +12130,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $9;10;10;11;12;12;12;14$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=10$, $Q_2=(11+12)/2=11.5$, $Q_3=12$. Mốt là $12$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-2"
     },
     {
@@ -12139,8 +12139,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu số liệu: $21;13;15;15;16$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $13;15;15;16;21$. Trung bình $\\bar x=80/5=16$; trung vị $M_e=15$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 7 đến phiên 11 là $-2;1;0;2;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;1;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-1"
     },
     {
@@ -12148,8 +12148,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu số liệu: $18;12;14;16$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $12;14;16;18$. Trung bình $\\bar x=60/4=15$; trung vị $M_e=15$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-2"
     },
     {
@@ -12157,8 +12157,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $16;17;17;18;19;19;19;21$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=17$, $Q_2=(18+19)/2=18.5$, $Q_3=19$. Mốt là $19$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-3"
     },
     {
@@ -12166,8 +12166,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $15;16;16;17;18;18;18;20$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=16$, $Q_2=(17+18)/2=17.5$, $Q_3=18$. Mốt là $18$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-4"
     },
     {
@@ -12175,8 +12175,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $11;3;5;5;6$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $3;5;5;6;11$. Trung bình $\\bar x=30/5=6$; trung vị $M_e=5$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 6 đến phiên 10 là $-1;3;-3;-1;1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;1;3$. Trung bình $\\bar x=-1/5=-0.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-4-1"
     },
     {
@@ -12184,8 +12184,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $6;7;7;8;9;9;9;11$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=7$, $Q_2=(8+9)/2=8.5$, $Q_3=9$. Mốt là $9$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-2"
     },
     {
@@ -12193,8 +12193,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $16;10;12;14$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $10;12;14;16$. Trung bình $\\bar x=52/4=13$; trung vị $M_e=13$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-5-1"
     },
     {
@@ -12202,8 +12202,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-2"
     },
     {
@@ -12211,8 +12211,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu số liệu: $25;17;19;19;20$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $17;19;19;20;25$. Trung bình $\\bar x=100/5=20$; trung vị $M_e=19$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-6-1"
     },
     {
@@ -12220,8 +12220,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-2"
     },
     {
@@ -12994,8 +12994,8 @@
       "conceptId": "variance",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu $15;15;17;17$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $16$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;1$ và bốn phiên của cổ phiếu B là $-3;-1;1;-2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $1$, các độ lệch $0;-1;1;0$, $s_A^2=0.5$. Cổ phiếu B: trung bình $-1.25$, các độ lệch $-1.75;0.25;2.25;-0.75$, $s_B^2=2.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-1-2"
     },
     {
@@ -13012,8 +13012,8 @@
       "conceptId": "variance",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $5;5;9;9$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $7$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-2;1;0$ và bốn phiên của cổ phiếu B là $-1;3;-3;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $1.75;-2.25;0.75;-0.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-0.5;3.5;-2.5;-0.5$, $s_B^2=4.75$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-2"
     },
     {
@@ -13039,8 +13039,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu $12;12;14;14$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $13$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;-2$ và bốn phiên của cổ phiếu B là $-1;2;-1;3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $0.75;-0.25;1.75;-2.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.75$, các độ lệch $-1.75;1.25;-1.75;2.25$, $s_B^2=3.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-3"
     },
     {
@@ -13048,8 +13048,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu $11;11;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $13$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-1;1;0$ và bốn phiên của cổ phiếu B là $12;-2;-1;2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $1.5;-1.5;0.5;-0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2.75$, các độ lệch $9.25;-4.75;-3.75;-0.75$, $s_B^2=30.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-4"
     },
     {
@@ -13066,8 +13066,8 @@
       "conceptId": "variance",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu $2;2;4;4$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $3$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-2;1;0;2$ và bốn phiên của cổ phiếu B là $3;-3;-1;1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-2.25;0.75;-0.25;1.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0$, các độ lệch $3;-3;-1;1$, $s_B^2=5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-4-2"
     },
     {
@@ -13084,8 +13084,8 @@
       "conceptId": "variance",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu $9;9;13;13$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $11$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;1;0$ và bốn phiên của cổ phiếu B là $-1;1;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.75$, các độ lệch $-0.75;1.25;0.25;-0.75$, $s_A^2=0.6875$. Cổ phiếu B: trung bình $-0.75$, các độ lệch $-0.25;1.75;-1.25;-0.25$, $s_B^2=1.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-5-2"
     },
     {
@@ -13102,8 +13102,8 @@
       "conceptId": "variance",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $16;16;18;18$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $17$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-6-2"
     },
     {
@@ -13111,8 +13111,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $9;10;10;11;12;12;12;14$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=10$, $Q_2=(11+12)/2=11.5$, $Q_3=12$. Mốt là $12$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-1"
     },
     {
@@ -13120,8 +13120,8 @@
       "conceptId": "spread",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $12;13;13;14;14;15;15;27$ có $Q_1=13$, $Q_3=15$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=27-12=15$; $IQR=2$. Hàng rào dưới $10$, trên $18$. Chỉ $27$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $12;-2;-1;2;-1;3;-3;-1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-1-2"
     },
     {
@@ -13129,8 +13129,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $16;17;17;18;19;19;19;21$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=17$, $Q_2=(18+19)/2=18.5$, $Q_3=19$. Mốt là $19$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-1"
     },
     {
@@ -13138,8 +13138,8 @@
       "conceptId": "spread",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $2;3;3;4;4;5;5;18$ có $Q_1=3$, $Q_3=5$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=18-2=16$; $IQR=2$. Hàng rào dưới $0$, trên $8$. Chỉ $18$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $1;0;2;-2;1;0;2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;1;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-2-2"
     },
     {
@@ -13147,8 +13147,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $6;7;7;8;9;9;9;11$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=7$, $Q_2=(8+9)/2=8.5$, $Q_3=9$. Mốt là $9$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-1"
     },
     {
@@ -13156,8 +13156,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $5;6;6;7;8;8;8;10$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=6$, $Q_2=(7+8)/2=7.5$, $Q_3=8$. Mốt là $8$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-2"
     },
     {
@@ -13165,8 +13165,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu tăng dần $9;10;10;11;11;12;12;24$ có $Q_1=10$, $Q_3=12$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=24-9=15$; $IQR=2$. Hàng rào dưới $7$, trên $15$. Chỉ $24$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $-1;12;-2;-1;2;-1;3;-3$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-3"
     },
     {
@@ -13174,8 +13174,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu tăng dần $8;9;9;10;10;11;11;24$ có $Q_1=9$, $Q_3=11$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=24-8=16$; $IQR=2$. Hàng rào dưới $6$, trên $14$. Chỉ $24$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $2;-1;1;0;2;-2;1;0$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-4"
     },
     {
@@ -13183,8 +13183,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $13;14;14;15;16;16;16;18$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=14$, $Q_2=(15+16)/2=15.5$, $Q_3=16$. Mốt là $16$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-1"
     },
     {
@@ -13192,8 +13192,8 @@
       "conceptId": "spread",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $16;17;17;18;18;19;19;33$ có $Q_1=17$, $Q_3=19$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=33-16=17$; $IQR=2$. Hàng rào dưới $14$, trên $22$. Chỉ $33$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-1;1;0;2;-2;1;0;2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-4-2"
     },
     {
@@ -13201,8 +13201,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-1"
     },
     {
@@ -13210,8 +13210,8 @@
       "conceptId": "spread",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;24$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=24-6=18$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $24$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12 là $2;-1;3;-3;-1;1;-2;-1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-5-2"
     },
     {
@@ -13219,8 +13219,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $10;11;11;12;13;13;13;15$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=11$, $Q_2=(12+13)/2=12.5$, $Q_3=13$. Mốt là $13$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-1"
     },
     {
@@ -13228,8 +13228,8 @@
       "conceptId": "spread",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu tăng dần $13;14;14;15;15;16;16;32$ có $Q_1=14$, $Q_3=16$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=32-13=19$; $IQR=2$. Hàng rào dưới $11$, trên $19$. Chỉ $32$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-6-2"
     },
     {
@@ -13615,8 +13615,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $22;14;16;16;17$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $14;16;16;17;22$. Trung bình $\\bar x=85/5=17$; trung vị $M_e=16$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-1-1"
     },
     {
@@ -13633,8 +13633,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $10;4;6;8$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $4;6;8;10$. Trung bình $\\bar x=28/4=7$; trung vị $M_e=7$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -13651,8 +13651,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu số liệu: $19;11;13;13;14$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $11;13;13;14;19$. Trung bình $\\bar x=70/5=14$; trung vị $M_e=13$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 3 đến phiên 7 là $-1;1;0;2;-2$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;-1;0;1;2$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-1"
     },
     {
@@ -13660,8 +13660,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu số liệu: $16;10;12;14$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $10;12;14;16$. Trung bình $\\bar x=52/4=13$; trung vị $M_e=13$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-2"
     },
     {
@@ -13687,8 +13687,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $26;18;20;20;21$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $18;20;20;21;26$. Trung bình $\\bar x=105/5=21$; trung vị $M_e=20$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 2 đến phiên 6 là $12;-2;-1;2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;-1;-1;2;12$. Trung bình $\\bar x=10/5=2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-4-1"
     },
     {
@@ -13705,8 +13705,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $14;8;10;12$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $8;10;12;14$. Trung bình $\\bar x=44/4=11$; trung vị $M_e=11$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 1 đến phiên 5 là $0;2;-1;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-1;0;0;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-5-1"
     },
     {
@@ -13723,8 +13723,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu số liệu: $23;15;17;17;18$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $15;17;17;18;23$. Trung bình $\\bar x=90/5=18$; trung vị $M_e=17$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-6-1"
     },
     {
@@ -14002,8 +14002,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $16;8;10;10;11$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $8;10;10;11;16$. Trung bình $\\bar x=55/5=11$; trung vị $M_e=10$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 5 đến phiên 9 là $0;2;-2;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;0;0;1;2$. Trung bình $\\bar x=1/5=0.2$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-1-2"
     },
     {
@@ -14020,8 +14020,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $21;15;17;19$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $15;17;19;21$. Trung bình $\\bar x=72/4=18$; trung vị $M_e=18$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 4 đến phiên 8 là $-1;2;-1;3;-3$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-1;-1;2;3$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-2-2"
     },
     {
@@ -14047,8 +14047,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu số liệu: $13;5;7;7;8$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $5;7;7;8;13$. Trung bình $\\bar x=40/5=8$; trung vị $M_e=7$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 3 đến phiên 7 là $-1;1;0;2;-2$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;-1;0;1;2$. Trung bình $\\bar x=0/5=0$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-3"
     },
     {
@@ -14056,8 +14056,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu số liệu: $10;4;6;8$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $4;6;8;10$. Trung bình $\\bar x=28/4=7$; trung vị $M_e=7$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-3-4"
     },
     {
@@ -14074,8 +14074,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $20;12;14;14;15$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $12;14;14;15;20$. Trung bình $\\bar x=75/5=15$; trung vị $M_e=14$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 2 đến phiên 6 là $12;-2;-1;2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 20 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-2;-1;-1;2;12$. Trung bình $\\bar x=10/5=2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 20 làm trung bình tăng $20/5=4$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-4-2"
     },
     {
@@ -14092,8 +14092,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu số liệu: $8;2;4;6$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $2;4;6;8$. Trung bình $\\bar x=20/4=5$; trung vị $M_e=5$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/4$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: năm phiên từ phiên 1 đến phiên 5 là $0;2;-1;1;0$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 30 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-1;0;0;1;2$. Trung bình $\\bar x=2/5=0.4$; trung vị $M_e=0$. Tăng riêng phiên cao nhất thêm 30 làm trung bình tăng $30/5=6$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-5-2"
     },
     {
@@ -14110,8 +14110,8 @@
       "conceptId": "meanMedian",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu số liệu: $17;9;11;11;12$. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng giá trị lớn nhất thêm 20.",
-      "solution": "Mẫu tăng dần $9;11;11;12;17$. Trung bình $\\bar x=60/5=12$; trung vị $M_e=11$. Tăng riêng giá trị lớn nhất thêm 20 làm trung bình tăng $20/5$; trung vị không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: năm phiên từ phiên 8 đến phiên 12 là $-3;-1;1;-2;-1$ điểm phần trăm. Em sắp xếp mẫu, tính số trung bình và trung vị; nêu đại lượng nào thay đổi nhiều hơn nếu tăng riêng phiên cao nhất thêm 40 điểm phần trăm.",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;1$. Trung bình $\\bar x=-6/5=-1.2$; trung vị $M_e=-1$. Tăng riêng phiên cao nhất thêm 40 làm trung bình tăng $40/5=8$ điểm phần trăm; trung vị không đổi.",
       "taskId": "task-6-2"
     },
     {
@@ -14119,8 +14119,8 @@
       "conceptId": "spread",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $2;3;3;4;4;5;5;17$ có $Q_1=3$, $Q_3=5$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=17-2=15$; $IQR=2$. Hàng rào dưới $0$, trên $8$. Chỉ $17$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $2;-1;1;0;2;-2;1;0$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-1-1"
     },
     {
@@ -14128,8 +14128,8 @@
       "conceptId": "variance",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu $5;5;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $6$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;1$ và bốn phiên của cổ phiếu B là $-3;-1;1;-2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $1$, các độ lệch $0;-1;1;0$, $s_A^2=0.5$. Cổ phiếu B: trung bình $-1.25$, các độ lệch $-1.75;0.25;2.25;-0.75$, $s_B^2=2.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-1-2"
     },
     {
@@ -14137,8 +14137,8 @@
       "conceptId": "spread",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $9;10;10;11;11;12;12;25$ có $Q_1=10$, $Q_3=12$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=25-9=16$; $IQR=2$. Hàng rào dưới $7$, trên $15$. Chỉ $25$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-2-1"
     },
     {
@@ -14146,8 +14146,8 @@
       "conceptId": "variance",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $12;12;16;16$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $14$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-2;1;0$ và bốn phiên của cổ phiếu B là $-1;3;-3;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $1.75;-2.25;0.75;-0.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-0.5;3.5;-2.5;-0.5$, $s_B^2=4.75$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-2"
     },
     {
@@ -14155,8 +14155,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu tăng dần $16;17;17;18;18;19;19;31$ có $Q_1=17$, $Q_3=19$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=31-16=15$; $IQR=2$. Hàng rào dưới $14$, trên $22$. Chỉ $31$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $0;2;-1;1;0;2;-2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-1"
     },
     {
@@ -14164,8 +14164,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu tăng dần $15;16;16;17;17;18;18;31$ có $Q_1=16$, $Q_3=18$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=31-15=16$; $IQR=2$. Hàng rào dưới $13$, trên $21$. Chỉ $31$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $12;-2;-1;2;-1;3;-3;-1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-2"
     },
     {
@@ -14173,8 +14173,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu $2;2;4;4$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $3$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;-2$ và bốn phiên của cổ phiếu B là $-1;2;-1;3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $0.75;-0.25;1.75;-2.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.75$, các độ lệch $-1.75;1.25;-1.75;2.25$, $s_B^2=3.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-3"
     },
     {
@@ -14182,8 +14182,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu $18;18;22;22$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $20$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-1;1;0$ và bốn phiên của cổ phiếu B là $12;-2;-1;2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $1.5;-1.5;0.5;-0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2.75$, các độ lệch $9.25;-4.75;-3.75;-0.75$, $s_B^2=30.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-4"
     },
     {
@@ -14191,8 +14191,8 @@
       "conceptId": "spread",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;23$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=23-6=17$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $23$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-2;-1;2;-1;3;-3;-1;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-4-1"
     },
     {
@@ -14200,8 +14200,8 @@
       "conceptId": "variance",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu $9;9;11;11$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $10$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-2;1;0;2$ và bốn phiên của cổ phiếu B là $3;-3;-1;1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-2.25;0.75;-0.25;1.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0$, các độ lệch $3;-3;-1;1$, $s_B^2=5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-4-2"
     },
     {
@@ -14209,8 +14209,8 @@
       "conceptId": "spread",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $13;14;14;15;15;16;16;31$ có $Q_1=14$, $Q_3=16$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=31-13=18$; $IQR=2$. Hàng rào dưới $11$, trên $19$. Chỉ $31$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12 là $0;2;-2;1;0;2;1;0$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-5-1"
     },
     {
@@ -14218,8 +14218,8 @@
       "conceptId": "variance",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu $16;16;20;20$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $18$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;1;0$ và bốn phiên của cổ phiếu B là $-1;1;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.75$, các độ lệch $-0.75;1.25;0.25;-0.75$, $s_A^2=0.6875$. Cổ phiếu B: trung bình $-0.75$, các độ lệch $-0.25;1.75;-1.25;-0.25$, $s_B^2=1.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-5-2"
     },
     {
@@ -14227,8 +14227,8 @@
       "conceptId": "spread",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu tăng dần $3;4;4;5;5;6;6;22$ có $Q_1=4$, $Q_3=6$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-3=19$; $IQR=2$. Hàng rào dưới $1$, trên $9$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $1;0;2;-2;1;0;2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;1;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-6-1"
     },
     {
@@ -14236,8 +14236,8 @@
       "conceptId": "variance",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $6;6;8;8$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $7$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-6-2"
     },
     {
@@ -14371,8 +14371,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $7;8;8;9;10;10;10;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=8$, $Q_2=(9+10)/2=9.5$, $Q_3=10$. Mốt là $10$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-1-1"
     },
     {
@@ -14380,8 +14380,8 @@
       "conceptId": "spread",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $10;11;11;12;12;13;13;25$ có $Q_1=11$, $Q_3=13$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=25-10=15$; $IQR=2$. Hàng rào dưới $8$, trên $16$. Chỉ $25$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $-1;2;-1;3;-3;-1;1;-2$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-1-2"
     },
     {
@@ -14389,8 +14389,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $14;15;15;16;17;17;17;19$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=15$, $Q_2=(16+17)/2=16.5$, $Q_3=17$. Mốt là $17$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10, sắp tăng dần là $-3;-2;-1;-1;-1;1;2;3$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;1;2;3$ cho $Q_3=1.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-2-1"
     },
     {
@@ -14398,8 +14398,8 @@
       "conceptId": "spread",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $17;18;18;19;19;20;20;33$ có $Q_1=18$, $Q_3=20$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=33-17=16$; $IQR=2$. Hàng rào dưới $15$, trên $23$. Chỉ $33$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $0;2;-1;1;0;2;-2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;-1;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(-0.5)=2$. Hàng rào dưới $-3.5$, trên $4.5$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-2-2"
     },
     {
@@ -14407,8 +14407,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu đã sắp: $4;5;5;6;7;7;7;9$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=5$, $Q_2=(6+7)/2=6.5$, $Q_3=7$. Mốt là $7$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12, sắp tăng dần là $-2;0;0;0;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-2;0;0;0$ cho $Q_1=0$; $Q_2=(0+1)/2=0.5$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $0$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-3-1"
     },
     {
@@ -14416,8 +14416,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu đã sắp: $3;4;4;5;6;6;6;8$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=4$, $Q_2=(5+6)/2=5.5$, $Q_3=6$. Mốt là $6$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-3-2"
     },
     {
@@ -14425,8 +14425,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu tăng dần $7;8;8;9;9;10;10;22$ có $Q_1=8$, $Q_3=10$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-7=15$; $IQR=2$. Hàng rào dưới $5$, trên $13$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 3 đến phiên 10 là $-2;-1;2;-1;3;-3;-1;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;1;2;3$. Khoảng biến thiên $R=3-(-3)=6$; $IQR=1.5-(-1.5)=3$. Hàng rào dưới $-6$, trên $6$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-3"
     },
     {
@@ -14434,8 +14434,8 @@
       "conceptId": "spread",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu tăng dần $6;7;7;8;8;9;9;22$ có $Q_1=7$, $Q_3=9$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-6=16$; $IQR=2$. Hàng rào dưới $4$, trên $12$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11 là $1;0;2;-2;1;0;2;1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;1;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-3-4"
     },
     {
@@ -14443,8 +14443,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $11;12;12;13;14;14;14;16$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=12$, $Q_2=(13+14)/2=13.5$, $Q_3=14$. Mốt là $14$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-4-1"
     },
     {
@@ -14452,8 +14452,8 @@
       "conceptId": "spread",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $14;15;15;16;16;17;17;31$ có $Q_1=15$, $Q_3=17$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=31-14=17$; $IQR=2$. Hàng rào dưới $12$, trên $20$. Chỉ $31$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 5 đến phiên 12 là $0;2;-2;1;0;2;1;0$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-2;0;0;0;1;1;2;2$. Khoảng biến thiên $R=2-(-2)=4$; $IQR=1.5-(0)=1.5$. Hàng rào dưới $-2.25$, trên $3.75$. Không có phiên nào nằm ngoài hai hàng rào; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-4-2"
     },
     {
@@ -14461,8 +14461,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu đã sắp: $18;19;19;20;21;21;21;23$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
-      "solution": "$Q_1=19$, $Q_2=(20+21)/2=20.5$, $Q_3=21$. Mốt là $21$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu A ở bài học tương tác Bài 14: tám phiên từ phiên 4 đến phiên 11, sắp tăng dần là $-2;0;0;1;1;1;2;2$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Giải thích vì sao mốt không nhất thiết bằng trung vị.",
+      "solution": "Nửa dưới $-2;0;0;1$ cho $Q_1=0$; $Q_2=(1+1)/2=1$; nửa trên $1;1;2;2$ cho $Q_3=1.5$. Mốt là $1$, xuất hiện 3 lần. Mốt theo tần số, trung vị theo thứ tự nên hai đại lượng không nhất thiết trùng nhau.",
       "taskId": "task-5-1"
     },
     {
@@ -14470,8 +14470,8 @@
       "conceptId": "spread",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu tăng dần $4;5;5;6;6;7;7;22$ có $Q_1=5$, $Q_3=7$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=22-4=18$; $IQR=2$. Hàng rào dưới $2$, trên $10$. Chỉ $22$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 2 đến phiên 9 là $12;-2;-1;2;-1;3;-3;-1$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-5-2"
     },
     {
@@ -14479,8 +14479,8 @@
       "conceptId": "quartileMode",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu đã sắp: $8;9;9;10;11;11;11;13$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu giá trị lớn hơn Q3 trong mẫu này.",
-      "solution": "$Q_1=9$, $Q_2=(10+11)/2=10.5$, $Q_3=11$. Mốt là $11$, xuất hiện ba lần. Có một giá trị lớn hơn Q3. Mốt theo tần số, trung vị theo thứ tự.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8, sắp tăng dần là $-3;-2;-1;-1;-1;2;3;12$. Tính $Q_1,Q_2,Q_3$ bằng trung vị hai nửa mẫu, tìm mốt. Cho biết có bao nhiêu phiên có lợi suất lớn hơn Q3 trong tám phiên này.",
+      "solution": "Nửa dưới $-3;-2;-1;-1$ cho $Q_1=-1.5$; $Q_2=(-1+-1)/2=-1$; nửa trên $-1;2;3;12$ cho $Q_3=2.5$. Mốt là $-1$, xuất hiện 3 lần. Có 2 phiên lớn hơn Q3.",
       "taskId": "task-6-1"
     },
     {
@@ -14488,8 +14488,8 @@
       "conceptId": "spread",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu tăng dần $11;12;12;13;13;14;14;30$ có $Q_1=12$, $Q_3=14$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Giá trị nào bất thường theo quy tắc này?",
-      "solution": "Khoảng biến thiên $R=30-11=19$; $IQR=2$. Hàng rào dưới $9$, trên $17$. Chỉ $30$ nằm ngoài; cần kiểm bối cảnh/ghi nhận, không tự xóa.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất của cổ phiếu B ở bài học tương tác Bài 14: tám phiên từ phiên 1 đến phiên 8 là $-1;12;-2;-1;2;-1;3;-3$. Tính khoảng biến thiên, IQR và hai hàng rào $Q_1-1{,}5IQR$, $Q_3+1{,}5IQR$. Những phiên nào bất thường theo quy tắc này?",
+      "solution": "Mẫu tăng dần $-3;-2;-1;-1;-1;2;3;12$. Khoảng biến thiên $R=12-(-3)=15$; $IQR=2.5-(-1.5)=4$. Hàng rào dưới $-7.5$, trên $8.5$. Ngoài hàng rào: $12$; cần kiểm bối cảnh và ghi nhận, không tự xóa khỏi dữ liệu.",
       "taskId": "task-6-2"
     },
     {
@@ -14497,8 +14497,8 @@
       "conceptId": "variance",
       "phaseIndex": 0,
       "branch": "shared",
-      "prompt": "Mẫu $4;4;6;6$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $5$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-2;1;0;2$ và bốn phiên của cổ phiếu B là $3;-3;-1;1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-2.25;0.75;-0.25;1.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0$, các độ lệch $3;-3;-1;1$, $s_B^2=5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-1-1"
     },
     {
@@ -14515,8 +14515,8 @@
       "conceptId": "variance",
       "phaseIndex": 1,
       "branch": "shared",
-      "prompt": "Mẫu $11;11;15;15$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $13$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-2;1$ và bốn phiên của cổ phiếu B là $2;-1;3;-3$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $-0.25;1.75;-2.25;0.75$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $0.25$, các độ lệch $1.75;-1.25;2.75;-3.25$, $s_B^2=5.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-2-1"
     },
     {
@@ -14533,8 +14533,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "support",
-      "prompt": "Mẫu $18;18;20;20$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $19$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $-1;1;0;2$ và bốn phiên của cổ phiếu B là $-2;-1;2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-1.5;0.5;-0.5;1.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-1.5;-0.5;2.5;-0.5$, $s_B^2=2.25$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-1"
     },
     {
@@ -14542,8 +14542,8 @@
       "conceptId": "variance",
       "phaseIndex": 2,
       "branch": "core",
-      "prompt": "Mẫu $17;17;21;21$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $19$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $0;2;-1;1$ và bốn phiên của cổ phiếu B là $-1;12;-2;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $-0.5;1.5;-1.5;0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2$, các độ lệch $-3;10;-4;-3$, $s_B^2=33.5$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-3-2"
     },
     {
@@ -14569,8 +14569,8 @@
       "conceptId": "variance",
       "phaseIndex": 3,
       "branch": "shared",
-      "prompt": "Mẫu $8;8;10;10$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $9$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-2;1;0$ và bốn phiên của cổ phiếu B là $-1;3;-3;-1$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.25$, các độ lệch $1.75;-2.25;0.75;-0.25$, $s_A^2=2.1875$. Cổ phiếu B: trung bình $-0.5$, các độ lệch $-0.5;3.5;-2.5;-0.5$, $s_B^2=4.75$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-4-1"
     },
     {
@@ -14587,8 +14587,8 @@
       "conceptId": "variance",
       "phaseIndex": 4,
       "branch": "shared",
-      "prompt": "Mẫu $15;15;19;19$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $17$ cm. Các độ lệch là $-2,-2,2,2$; $s^2=4\\cdot4/4=4\\,\\mathrm{cm}^2$; $s=2$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $1;0;2;1$ và bốn phiên của cổ phiếu B là $-3;-1;1;-2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $1$, các độ lệch $0;-1;1;0$, $s_A^2=0.5$. Cổ phiếu B: trung bình $-1.25$, các độ lệch $-1.75;0.25;2.25;-0.75$, $s_B^2=2.1875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-5-1"
     },
     {
@@ -14605,8 +14605,8 @@
       "conceptId": "variance",
       "phaseIndex": 5,
       "branch": "extension",
-      "prompt": "Mẫu $5;5;7;7$ (cm). Tính trung bình, phương sai với mẫu số n và độ lệch chuẩn. Nếu cộng 5 cm vào mọi số đo, độ lệch chuẩn có đổi không?",
-      "solution": "Trung bình $6$ cm. Các độ lệch là $-1,-1,1,1$; $s^2=4\\cdot1/4=1\\,\\mathrm{cm}^2$; $s=1$ cm. Cộng cùng 5 làm trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên s không đổi.",
+      "prompt": "Tiếp nối dữ liệu 12 phiên lợi suất ở bài học tương tác Bài 14: bốn phiên của cổ phiếu A là $2;-1;1;0$ và bốn phiên của cổ phiếu B là $12;-2;-1;2$ điểm phần trăm. Tính phương sai với mẫu số n cho mỗi cổ phiếu và cho biết cổ phiếu nào có lợi suất phân tán hơn. Nếu cộng cùng 5 điểm vào mọi phiên của cả hai cổ phiếu thì phương sai có đổi không?",
+      "solution": "Cổ phiếu A: trung bình $0.5$, các độ lệch $1.5;-1.5;0.5;-0.5$, $s_A^2=1.25$. Cổ phiếu B: trung bình $2.75$, các độ lệch $9.25;-4.75;-3.75;-0.75$, $s_B^2=30.6875$. So sánh hai phương sai: cổ phiếu B phân tán hơn. Độ lệch chuẩn là căn phương sai nên cổ phiếu có $s^2$ lớn hơn có $s$ lớn hơn. Cộng cùng 5 điểm làm hai trung bình tăng 5 nhưng các độ lệch giữ nguyên, nên cả hai phương sai không đổi.",
       "taskId": "task-6-1"
     },
     {
