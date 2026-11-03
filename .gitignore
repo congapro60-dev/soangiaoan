@@ -53,4 +53,4 @@ fix-*.mjs
 wire-*.mjs
 apply-*.mjs
 patch-*.mjs
-*-check-cheo-*.err.log
+*_check_cheo_*.err.log
