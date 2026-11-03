@@ -15,6 +15,11 @@
 - **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
 - **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
 
+### Full suite + phục hồi pilot THPTQG (04/11/2026)
+- Full suite **1470 PASS / 0 FAIL / 2 skip** sau khi: (1) chạy lại `scripts/thptqg-v27-pilot.mjs` khôi phục 9 task THPTQG bị **rebuild HKI G11 xóa sạch** (di sản V27 ghép tay sau build — bài học: MỌI injection sau build phải re-run sau mỗi lần rebuild builder); (2) bổ sung `taskVisualOf` vào 6 stub TaskImage trong test (stub viết tay thiếu export GĐ2).
+- `content/lessons/hki-2026-g11.json` giờ là JSON compact 1 dòng (7,5 MB, 133 entries + 2 exams nguyên vẹn) — diff 292k dòng chỉ là đổi format pretty→compact, không mất nội dung.
+- Commit `10dbf5ee` + `24ac1639`.
+
 ### Release record V43 (04/11/2026) — CHỜ NẠP PANEL
 - Archive đã tạo: `C:\Users\ADMIN\.codex\sites-release\release-20261103-v43.tar.gz` (44.435.004 bytes, nội dung `dist/` đúng chuẩn V39–V42), commit `c91b9ea`.
 - **Đã xác minh archive chứa nội dung mới**: chunk `semester-content` trong dist bung được 819 lessons — 170 task Bài 14 + 170 visual (140 HKI + 30 HKII). Lưu ý kỹ thuật: prompt nằm trong blob base64-gzip nên grep văn bản trực tiếp trong dist KHÔNG thấy — phải bung data mới kiểm được (đã có bài học này).
