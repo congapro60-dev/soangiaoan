@@ -1048,7 +1048,7 @@
       "selfChoice": false,
       "timelineKey": "gateD121283",
       "title": "Nguyên hàm",
-      "focus": "Hình thành công thức nguyên hàm của hàm số lũy thừa: nguyên hàm của x^alpha với alpha khác -1 và trường hợp đặc biệt nguyên hàm của 1/x bằng ln|x| với x khác 0; quy đổi căn thức và phân thức về lũy thừa trước khi tính; kết hợp tính chất tuyến tính (Tiết 3) và điều kiện xác định trên miền để tìm hằng số C; nhận diện lỗi áp công thức cho alpha = -1",
+      "focus": "Hình thành công thức nguyên hàm của hàm số lũy thừa trên trục thực nghiệm chuyến thám hiểm Mặt Trăng: nguyên hàm của x^alpha với alpha khác -1 và trường hợp đặc biệt ∫dm/m = ln|m| suy ra phương trình Tsiolkovsky Δv = v_e·ln(m₀/m_f) = 3ln4 ≈ 4,16 km/s; lực hút Trái Đất F = k/r² cho tốc độ thoát 11,2 km/s; quy đổi căn thức và phân thức về lũy thừa; phân biệt 'không xác định' với 'không tồn tại' khi alpha = -1",
       "formulas": [
         "\\int x^{\\alpha} dx = \\dfrac{x^{\\alpha+1}}{\\alpha+1} + C \\quad (\\alpha \\in \\mathbb{Q},\\ \\alpha \\neq -1)",
         "\\int \\dfrac{1}{x} dx = \\ln|x| + C \\quad (x \\neq 0)",
@@ -1056,50 +1056,50 @@
       ],
       "examples": [
         {
-          "question": "Tìm họ nguyên hàm của hàm số đa thức kết hợp căn thức: F(x) = ∫ (3x² − 4√x) dx.",
-          "solution": "Quy √x = x^(1/2). Áp dụng tính chất tuyến tính và công thức lũy thừa: F(x) = 3·(x³/3) − 4·(x^(3/2)/(3/2)) + C = x³ − (8/3)·x√x + C. Kiểm chứng đạo hàm: (x³)′ = 3x²; ((8/3)x^(3/2))′ = (8/3)·(3/2)x^(1/2) = 4√x."
+          "question": "Tàu thám hiểm Mặt Trăng phóng lên: khối lượng giảm từ m₀ = 200 tấn xuống m_f = 50 tấn, vận tốc xả khí v_e = 3 km/s. Theo Tsiolkovsky, Δv = v_e·∫(dm/m) với dm lấy từ m_f đến m₀. Tính Δv của tàu.",
+          "solution": "Nhận diện dm/m = m⁻¹ — đúng trường hợp α = −1 nên dùng công thức ∫(dm/m) = ln m + C (vì m > 0). Thay cận: ∫ từ m_f đến m₀ của dm/m = ln m₀ − ln m_f = ln(m₀/m_f) = ln(200/50) = ln 4 ≈ 1,386. Vậy Δv = 3·ln 4 ≈ 4,16 km/s. Kiểm chứng đạo hàm: (ln m)′ = 1/m ✓."
         },
         {
-          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = 6x² + 1/x trên (0; +∞) biết F(1) = 5.",
-          "solution": "Trên (0; +∞) ta có ln|x| = ln x. F(x) = ∫ (6x² + 1/x) dx = 2x³ + ln x + C. Thay điều kiện F(1) = 5: 2·1 + ln 1 + C = 5 ⇔ 2 + 0 + C = 5 ⇔ C = 3. Vậy F(x) = 2x³ + ln x + 3."
+          "question": "Giai đoạn bay tự do: lực hút Trái Đất tác dụng lên tàu 10 tấn là F(r) = 4×10¹⁸/r² (N) với r là khoảng cách tới tâm Trái Đất (R = 6,4×10⁶ m). Tính công W cần thiết để tàu thoát hẳn khỏi Trái Đất và tốc độ thoát v.",
+          "solution": "Quy về lũy thừa: F(r) = 4×10¹⁸·r⁻² (α = −2 ≠ −1). W = ∫ từ R đến +∞ của 4×10¹⁸·r⁻² dr = [−4×10¹⁸/r] từ R đến +∞ = 4×10¹⁸/R = 6,25×10¹¹ J. Động năng cần bằng W: (1/2)mv² = 6,25×10¹¹ ⇒ v = √(2×6,25×10¹¹/10⁴) = √(1,25×10⁸) ≈ 11 180 m/s ≈ 11,2 km/s — trùng tốc độ thoát thực tế của Trái Đất."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết 2 công thức nguyên hàm của hàm số lũy thừa kèm điều kiện, rồi tính I = ∫ (5x³ − 2x) dx.",
-          "answer": "Hai công thức: 1) ∫ x^α dx = x^(α+1)/(α+1) + C với α ∈ ℚ, α ≠ −1; 2) ∫ (1/x) dx = ln|x| + C với x ≠ 0. Áp dụng: I = 5·(x⁴/4) − 2·(x²/2) + C = (5/4)x⁴ − x² + C."
+          "question": "Viết 2 công thức nguyên hàm của hàm số lũy thừa kèm điều kiện, rồi tính I = ∫ (5r³ − 2r) dr (mô hình dữ liệu quỹ đạo).",
+          "answer": "Hai công thức: 1) ∫ x^α dx = x^(α+1)/(α+1) + C với α ∈ ℚ, α ≠ −1; 2) ∫ (1/x) dx = ln|x| + C với x ≠ 0. Áp dụng: I = 5·(r⁴/4) − 2·(r²/2) + C = (5/4)r⁴ − r² + C."
         },
         {
           "level": "NB",
-          "question": "Tìm họ nguyên hàm của f(x) = √x và của f(x) = 1/x² (x ≠ 0).",
-          "answer": "√x = x^(1/2) nên ∫ √x dx = x^(3/2)/(3/2) + C = (2/3)x√x + C. 1/x² = x^(−2) nên ∫ x^(−2) dx = x^(−1)/(−1) + C = −1/x + C."
+          "question": "Tính ∫ √r dr và ∫ dr/r² (tích phân lực hút F = k/r² cho thế năng của tàu).",
+          "answer": "√r = r^(1/2) nên ∫ r^(1/2) dr = r^(3/2)/(3/2) + C = (2/3)r√r + C. 1/r² = r^(−2) nên ∫ r^(−2) dr = r^(−1)/(−1) + C = −1/r + C."
         },
         {
           "level": "TH",
-          "question": "Tìm họ nguyên hàm của hàm phân thức f(x) = (x² + 2x − 3)/x trên khoảng (0; +∞).",
-          "answer": "Tách phân thức: f(x) = x + 2 − 3/x. Trên (0; +∞): F(x) = ∫ (x + 2 − 3/x) dx = x²/2 + 2x − 3 ln x + C."
+          "question": "Tìm họ nguyên hàm của hàm phân thức f(r) = (r² + 2r − 3)/r trên khoảng (0; +∞) (gợi ý: tách phân thức trước khi tích phân, nhớ nêu miền).",
+          "answer": "Tách phân thức: f(r) = r + 2 − 3/r. Trên (0; +∞): F(r) = ∫ (r + 2 − 3/r) dr = r²/2 + 2r − 3 ln r + C."
         },
         {
           "level": "TH",
-          "question": "Cho hàm số f(x) = 3x² − 1/x với x > 0. Tìm nguyên hàm F(x) của f(x) biết đồ thị hàm số y = F(x) đi qua điểm M(1; 4).",
-          "answer": "F(x) = ∫ (3x² − 1/x) dx = x³ − ln x + C (trên (0; +∞)). Đi qua M(1; 4): F(1) = 1 − 0 + C = 4 ⇔ C = 3. Vậy F(x) = x³ − ln x + 3."
+          "question": "Cho f(r) = 6r² + 1/r với r > 0. Tìm nguyên hàm F(r) của f(r) biết F(1) = 5.",
+          "answer": "F(r) = ∫ (6r² + 1/r) dr = 2r³ + ln r + C (trên (0; +∞)). F(1) = 2 + 0 + C = 5 ⇔ C = 3. Vậy F(r) = 2r³ + ln r + 3."
         },
         {
           "level": "VD",
-          "question": "Tìm họ nguyên hàm I = ∫ (2x − 1)²/√x dx với x > 0.",
-          "answer": "Khai triển và quy về lũy thừa: (2x − 1)²/√x = (4x² − 4x + 1)·x^(−1/2) = 4x^(3/2) − 4x^(1/2) + x^(−1/2). I = 4·(x^(5/2)/(5/2)) − 4·(x^(3/2)/(3/2)) + (x^(1/2)/(1/2)) + C = (8/5)x²√x − (8/3)x√x + 2√x + C."
+          "question": "Tìm họ nguyên hàm I = ∫ (2r − 1)²/√r dr với r > 0 (gợi ý: khai triển rồi quy về lũy thừa phân số).",
+          "answer": "Khai triển và quy về lũy thừa: (2r − 1)²/√r = (4r² − 4r + 1)·r^(−1/2) = 4r^(3/2) − 4r^(1/2) + r^(−1/2). I = 4·(r^(5/2)/(5/2)) − 4·(r^(3/2)/(3/2)) + (r^(1/2)/(1/2)) + C = (8/5)r²√r − (8/3)r√r + 2√r + C."
         },
         {
           "level": "VD",
-          "question": "Một doanh nghiệp có chi phí biên C′(x) = 3x² + 100/x (triệu đồng) khi sản xuất x đơn vị sản phẩm (x > 0). Biết chi phí sản xuất 1 đơn vị là C(1) = 143 triệu đồng. Tìm hàm tổng chi phí C(x).",
+          "question": "Trạm phóng có chi phí biên C′(x) = 3x² + 100/x (triệu đồng) khi chuẩn bị x tấn nhiên liệu (x > 0). Biết chi phí chuẩn bị 1 tấn là C(1) = 143 triệu đồng. Tìm hàm tổng chi phí C(x).",
           "answer": "C(x) = ∫ (3x² + 100/x) dx = x³ + 100 ln x + C₀ (x > 0). Thay C(1) = 143: 1 + 0 + C₀ = 143 ⇔ C₀ = 42. Vậy C(x) = x³ + 100 ln x + 42 (triệu đồng)."
         }
       ],
       "quick": [
         {
-          "question": "Bạn An tính ∫ (1/x²) dx như sau: \"Áp dụng công thức ∫ x^α dx = x^(α+1)/(α+1) + C với α = −1, được x⁰/0 + C, nên hàm 1/x không có nguyên hàm.\" Cách giải của bạn An đúng hay sai? Vì sao?",
-          "solution": "Sai ở hai điểm. Một: 1/x² = x^(−2) (α = −2 ≠ −1) nên dùng được công thức: ∫ x^(−2) dx = x^(−1)/(−1) + C = −1/x + C. Hai: ngay cả với α = −1 (tức ∫ dx/x) thì nguyên hàm vẫn tồn tại là ln|x| + C trên từng khoảng (0; +∞) và (−∞; 0) — công thức lũy thừa có điều kiện α ≠ −1, không được kết luận \"không có nguyên hàm\" khi điều kiện không thỏa."
+          "question": "Bạn An tính ∫ (1/r²) dr như sau: \"Áp dụng công thức ∫ r^α dr = r^(α+1)/(α+1) + C với α = −1, được r⁰/0 + C, nên hàm 1/r² không có nguyên hàm.\" Cách giải của bạn An đúng hay sai? Vì sao?",
+          "solution": "Sai ở hai điểm. Một: 1/r² = r^(−2) (α = −2 ≠ −1) nên dùng được công thức: ∫ r^(−2) dr = r^(−1)/(−1) + C = −1/r + C. Hai: ngay cả với α = −1 (tức ∫ dr/r) thì nguyên hàm vẫn tồn tại là ln|r| + C trên từng khoảng — công thức lũy thừa có điều kiện α ≠ −1, không được kết luận \"không có nguyên hàm\" khi điều kiện không thỏa."
         },
         {
           "question": "Trên miền (−∞; 0), nguyên hàm ∫ (1/x) dx viết dưới dạng ln|x| + C trở thành gì? Tại sao không viết ln x + C?",
@@ -1107,23 +1107,29 @@
         }
       ],
       "mistakes": [
-        "Thay α = −1 vào công thức ∫ x^α dx = x^(α+1)/(α+1) + C (mẫu số bằng 0) và kết luận sai rằng 1/x không có nguyên hàm.",
+        "Thay α = −1 vào công thức ∫ x^α dx = x^(α+1)/(α+1) + C (mẫu số bằng 0) rồi kết luận sai \"Δv không tồn tại, tàu không thể tăng tốc\" — nhầm 'không xác định' với 'không tồn tại'.",
         "Viết ln x thay vì ln|x| khi chưa nêu điều kiện x > 0 (hoặc ln(−x) trên miền x < 0).",
-        "Sai khi quy đổi căn thức/phân thức về lũy thừa: √x = x^(1/2), 1/x² = x^(−2), 1/√x = x^(−1/2).",
+        "Sai khi quy đổi căn thức/phân thức về lũy thừa: √r = r^(1/2), 1/r² = r^(−2), 1/√r = r^(−1/2).",
         "Cộng sai chỉ số khi α là phân số, hoặc quên hằng số + C khi tìm họ nguyên hàm."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Công thức nguyên hàm của hàm số lũy thừa",
-        "a. Công thức 1: ∫ x^α dx = (x^(α+1))/(α+1) + C với mọi α ∈ ℚ, α ≠ −1.",
-        "b. Công thức 2 (trường hợp α = −1): ∫ (1/x) dx = ln|x| + C với x ≠ 0.",
-        "   - Trên (0; +∞): ∫ (1/x) dx = ln x + C; trên (−∞; 0): ∫ (1/x) dx = ln(−x) + C.",
-        "2. Kỹ thuật quy về lũy thừa",
-        "   - √x = x^(1/2); 1/x² = x^(−2); 1/√x = x^(−1/2) — tính x^(α+1)/(α+1) sau khi quy.",
+        "1. Dữ liệu thực nghiệm: chuyến thám hiểm Mặt Trăng",
+        "   - Phóng: m₀ = 200 tấn, m_f = 50 tấn, v_e = 3 km/s → Δv = v_e·ln(m₀/m_f).",
+        "   - Bay tự do: F(r) = 4×10¹⁸/r² (N), R = 6,4×10⁶ m.",
+        "2. Công thức nguyên hàm của hàm số lũy thừa",
+        "   a. Công thức 1: ∫ x^α dx = (x^(α+1))/(α+1) + C với mọi α ∈ ℚ, α ≠ −1.",
+        "   b. Công thức 2 (trường hợp α = −1): ∫ (1/x) dx = ln|x| + C với x ≠ 0.",
+        "   - Trên (0; +∞): ln x; trên (−∞; 0): ln(−x).",
+        "3. Kết quả của tàu",
+        "   - Δv = 3·ln 4 ≈ 4,16 km/s (phương trình Tsiolkovsky).",
+        "   - Công thoát W = k/R = 6,25×10¹¹ J; tốc độ thoát v ≈ 11,2 km/s (khớp thực tế).",
+        "4. Kỹ thuật quy về lũy thừa",
+        "   - √r = r^(1/2); 1/r² = r^(−2); 1/√r = r^(−1/2) — tính r^(α+1)/(α+1) sau khi quy.",
         "   - Tách phân thức thành tổng đơn thức + 1/x rồi áp dụng tính chất tuyến tính (Tiết 3).",
-        "3. Điều kiện xác định và hằng số C",
-        "   - Nêu miền (x > 0 hoặc x < 0) trước khi viết ln.",
-        "   - Tìm họ nguyên hàm F(x) = G(x) + C rồi thay điều kiện F(x₀) = y₀ để tìm C."
+        "5. Chú ý bẫy then chốt",
+        "   - Không thay α = −1 vào công thức 1; 'không xác định' ≠ 'không tồn tại'.",
+        "   - Nêu miền (x > 0 hoặc x < 0) trước khi viết ln."
       ]
     },
     {
@@ -1517,14 +1523,14 @@
     "12-12-83": {
       "key": "12-12-83",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "Tìm nguyên hàm I = ∫ (1/x) dx (x ≠ 0). AI giải: Áp dụng công thức ∫ x^α dx = x^(α+1)/(α+1) + C với α = −1, ta có I = x⁰/0 + C. Vì 1/0 không xác định nên hàm số y = 1/x không có nguyên hàm.",
-      "correction": "Công thức ∫ x^α dx = x^(α+1)/(α+1) + C chỉ áp dụng khi α ≠ −1 — AI dùng công thức ngoài phạm vi điều kiện rồi suy ra kết luận sai. Trường hợp α = −1 có nguyên hàm riêng: ∫ (1/x) dx = ln|x| + C, tồn tại trên từng khoảng (0; +∞) và (−∞; 0). Kiểm chứng: đạo hàm của ln|x| trên từng nửa mặt phẳng là (ln|x|)′ = 1/x.",
-      "proof": "Với x > 0: (ln x)′ = 1/x. Với x < 0: (ln(−x))′ = (−1)/(−x) = 1/x. Vậy trên cả hai miền, ln|x| + C đều là nguyên hàm của 1/x — kết luận \"không có nguyên hàm\" của AI sai hoàn toàn. Cái sai nằm ở chỗ: điều kiện α ≠ −1 của công thức lũy thừa được vi phạm thì phải dùng công thức khác, chứ không suy ra \"không tồn tại\".",
-      "whyAiError": "Mô hình ngôn ngữ nhìn thấy dạng x^α và áp máy móc công thức tổng quát mà bỏ qua điều kiện α ≠ −1; khi công thức cho kết quả vô nghĩa (chia 0) lại suy diễn sai thành \"không tồn tại nguyên hàm\" thay vì chuyển sang trường hợp đặc biệt ln|x|.",
-      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Công thức ∫ x^α dx dùng được với α = −1 không? Khi công thức không áp dụng được thì kết luận \"không tồn tại nguyên hàm\" đã chắc chắn đúng chưa?",
-      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu điều kiện α ≠ −1 của công thức, hoặc nêu nguyên hàm đúng ln|x| + C và kiểm chứng bằng đạo hàm).",
-      "boardPrompt": "AI thay α = −1 vào công thức lũy thừa rồi kết luận \"1/x không có nguyên hàm\". Bẫy nằm ở đâu?",
-      "libraryTitle": "Lỗi AI áp công thức nguyên hàm lũy thừa ngoài điều kiện α ≠ −1"
+      "wrongSolution": "Tàu thám hiểm Mặt Trăng phóng lên: Δv = v_e·∫(dm/m) với m₀ = 200 tấn, m_f = 50 tấn, v_e = 3 km/s. AI giải: \"Áp dụng công thức ∫ m^α dm = m^(α+1)/(α+1) + C với α = −1, ta có ∫(dm/m) = m⁰/0. Vì 1/0 không xác định nên Δv không tồn tại — tàu không thể tăng tốc bằng cách đốt nhiên liệu.\"",
+      "correction": "Công thức ∫ x^α dx = x^(α+1)/(α+1) + C chỉ áp dụng khi α ≠ −1 — AI dùng công thức ngoài phạm vi điều kiện rồi suy ra kết luận sai \"không tồn tại\". Trường hợp α = −1 có nguyên hàm riêng: ∫ (dm/m) = ln m + C (với m > 0). Sửa đúng: Δv = v_e·ln(m₀/m_f) = 3·ln(200/50) = 3·ln 4 ≈ 4,16 km/s.",
+      "proof": "Kiểm chứng đạo hàm: (ln m)′ = 1/m với m > 0 — nguyên hàm của 1/m tồn tại. Bằng chứng thực tế: các tàu Apollo đều tăng tốc thành công nhờ đốt nhiên liệu, trong khi AI kết luận \"không thể tăng tốc\". Cái sai nằm ở chỗ: điều kiện α ≠ −1 của công thức lũy thừa bị vi phạm thì phải chuyển sang công thức khác (ln), chứ không suy ra \"không tồn tại\". \"Kết quả không xác định\" (thay α = −1) hoàn toàn khác \"nguyên hàm không tồn tại\".",
+      "whyAiError": "Mô hình ngôn ngữ nhìn thấy dạng m^α và áp máy móc công thức tổng quát mà bỏ qua điều kiện α ≠ −1; khi công thức cho kết quả vô nghĩa (chia 0) lại suy diễn sai thành \"không tồn tại\" thay vì chuyển sang trường hợp đặc biệt ln|m|.",
+      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Công thức ∫ m^α dm dùng được với α = −1 không? Tàu Apollo có bay được không? Khi công thức không áp dụng được thì kết luận \"Δv không tồn tại\" đã chắc chắn đúng chưa?",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu điều kiện α ≠ −1 của công thức, hoặc nêu nguyên hàm đúng ln m + C và Δv = 3·ln 4 ≈ 4,16 km/s).",
+      "boardPrompt": "AI thay α = −1 vào công thức lũy thừa rồi kết luận \"Δv không tồn tại, tàu không thể tăng tốc\". Bẫy nằm ở đâu?",
+      "libraryTitle": "Lỗi AI áp công thức nguyên hàm lũy thừa ngoài điều kiện α ≠ −1 và kết luận Δv của tàu không tồn tại"
     },
     "12-12-84": {
       "key": "12-12-84",

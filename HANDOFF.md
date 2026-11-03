@@ -84,6 +84,12 @@
   - Bổ sung: interactive question S1 (3 options), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C, bài Challenge phanh $a=-4t+8$ dừng $t=5$s quãng đường 200/3 m (sửa số liệu sai cũ $v(6)\neq 0$).
   - Validation: Vitest 442/442 PASS; build PASS 56s; xuất bản 66/66 (0 audit fail); QA live session `2LcMkY5ExQ6r7LQ6JViK` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-82-upgrade.md`).
 
+- Tuần 12 — Khối 12 (`12-12-83`) Nguyên hàm: Tiết 4 Nguyên hàm của hàm số lũy thừa — NÂNG CẤP HỒI TỐ V8.8 MASTER TEACHER (03/11/2026):
+  - Trục thực nghiệm mới: Chuyến thám hiểm Mặt Trăng. Phóng: Tsiolkovsky Δv = v_e·ln(m₀/m_f) = 3·ln4 ≈ 4,16 km/s (m₀=200 tấn, m_f=50 tấn, v_e=3 km/s). Bay tự do: F = k/r², W = k/R = 6,25×10¹¹ J, tốc độ thoát v ≈ 11,2 km/s khớp thực tế (F(R) ≈ g kiểm chứng ✓).
+  - AI Error viết lại: AI thay α = −1 → "Δv không tồn tại, tàu không thể tăng tốc" + bằng chứng thực tế tàu Apollo; phân biệt "không xác định" ≠ "không tồn tại".
+  - Bổ sung: interactive question S1 (3 options), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
+  - Validation: Vitest 442/442 PASS; build PASS 3m5s; xuất bản 1 bài mới / 65 bỏ qua (0 audit fail); QA live session `fbbdl3hlD5kH7H5h0T44` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-83-upgrade.md`).
+
 ## 2. Việc tiếp theo
-1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`.
-2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-83` (Nguyên hàm — Tiết 4: Công thức mũ) → `12-12-84` → `12-12-85` → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.
+1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`, `12-12-83`.
+2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-84` (Nguyên hàm — Tiết 5) → `12-12-85` → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.
