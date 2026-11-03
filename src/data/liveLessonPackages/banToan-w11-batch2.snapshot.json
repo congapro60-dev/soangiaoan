@@ -958,7 +958,7 @@
       "selfChoice": false,
       "timelineKey": "gateD121286",
       "title": "Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro",
-      "focus": "Sử dụng phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm để đo độ rủi ro: quy tắc so sánh hai mẫu khi số trung bình bằng nhau (s nhỏ → ổn định hơn), quy trình 4 bước tính s², s, khuyến nghị phương án theo khẩu vị rủi ro; nhận diện khuyến nghị tư vấn thiếu điều kiện",
+      "focus": "Sử dụng phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm để đo độ rủi ro trên trục thực nghiệm 3 cổ phiếu X/Y/Z cùng lợi suất trung bình 6,8%/phiên (n = 40): quy tắc so sánh hai mẫu khi x̄ bằng nhau (s nhỏ → ổn định hơn), quy trình 4 bước tính s², s với bảng trung gian 3 cột; xếp hạng rủi ro X (7,36) < Z (8,96) < Y (12,16); khuyến nghị theo khẩu vị rủi ro (thận trọng — cân bằng — mạo hiểm); nhận diện khuyến nghị tư vấn thiếu điều kiện",
       "formulas": [
         "\\bar{x} = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i",
         "s^2 = \\dfrac{1}{n}\\sum_{i=1}^{k} n_i c_i^2 - \\bar{x}^2",
@@ -967,19 +967,19 @@
       ],
       "examples": [
         {
-          "question": "Điểm bắn 20 phát của xạ thủ An: nhóm c = 7 có 2 phát, c = 9 có 16 phát, c = 11 có 2 phát. Xạ thủ Bình: c = 7 có 7 phát, c = 9 có 6 phát, c = 11 có 7 phát. Em có nhận xét gì về độ đều tay của hai xạ thủ?",
-          "solution": "Cả hai có điểm trung bình bằng nhau: x̄_A = (2·7 + 16·9 + 2·11)/20 = 180/20 = 9; x̄_B = (7·7 + 6·9 + 7·11)/20 = 180/20 = 9. Vì trung bình bằng nhau nên so sánh phương sai: s²_A = (2·49 + 16·81 + 2·121)/20 − 9² = 1636/20 − 81 = 0,8 → s_A ≈ 0,89; s²_B = (7·49 + 6·81 + 7·121)/20 − 9² = 1676/20 − 81 = 2,8 → s_B ≈ 1,67. Vì s_A < s_B nên An bắn ổn định (đều tay) hơn Bình."
+          "question": "Chị Hương có 100 triệu định đầu tư. Cổ phiếu X có lợi suất ghép nhóm (%/phiên) trong 40 phiên: [0;4) có 6 phiên, [4;8) có 20 phiên, [8;12) có 14 phiên. Tính số trung bình, phương sai và độ lệch chuẩn của lợi suất X theo quy trình 4 bước.",
+          "solution": "Bước 1: c = [2; 6; 10], n = 40. Bước 2: x̄_X = (6·2 + 20·6 + 14·10)/40 = 272/40 = 6,8 (%/phiên). Bước 3: Bảng trung gian đủ 3 cột nᵢ, cᵢ, nᵢcᵢ²: Σnᵢcᵢ² = 6·4 + 20·36 + 14·100 = 2144. Bước 4: s²_X = 2144/40 − 6,8² = 53,6 − 46,24 = 7,36; s_X = √7,36 ≈ 2,71 (%/phiên)."
         },
         {
-          "question": "Lợi suất của cổ phiếu X trong 40 phiên giao dịch được ghép nhóm: [0;4) có 6 phiên, [4;8) có 20 phiên, [8;12) có 14 phiên. Tính số trung bình, phương sai và độ lệch chuẩn của lợi suất X.",
-          "solution": "Giá trị đại diện: c₁ = 2, c₂ = 6, c₃ = 10; n = 40. x̄_X = (6·2 + 20·6 + 14·10)/40 = 272/40 = 6,8 (%/phiên). Σnᵢcᵢ² = 6·4 + 20·36 + 14·100 = 2144. s²_X = 2144/40 − 6,8² = 53,6 − 46,24 = 7,36. s_X = √7,36 ≈ 2,71 (%/phiên)."
+          "question": "Cổ phiếu Y có bảng lợi suất: [0;4) có 12 phiên, [4;8) có 8 phiên, [8;12) có 20 phiên. Em có nhận xét gì về 'tính cách' của Y so với X (cả hai cùng x̄ = 6,8)?",
+          "solution": "Kiểm chứng x̄: (12·2 + 8·6 + 20·10)/40 = 272/40 = 6,8 ✓ — điều kiện so sánh hợp lệ. Y chỉ có 8/40 phiên ở giữa mà dồn về hai đầu (20 phiên ở [8;12)) nên biến động mạnh: s²_Y = (12·4 + 8·36 + 20·100)/40 − 46,24 = 2336/40 − 46,24 = 12,16, s_Y ≈ 3,49 > s_X ≈ 2,71. X dồn về giữa (20/40 phiên) nên ổn định hơn, ít rủi ro hơn Y."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Hai mẫu số liệu ghép nhóm có cùng số trung bình x̄ = 9. Mẫu A có s²_A = 0,8, mẫu B có s²_B = 2,8. Mẫu nào ổn định hơn? Vì sao?",
-          "answer": "Mẫu A ổn định hơn. Vì hai mẫu có cùng số trung bình nên so sánh phương sai: s²_A = 0,8 < s²_B = 2,8, mẫu có phương sai (độ lệch chuẩn) nhỏ hơn phân tán ít hơn quanh số trung bình, tức ổn định hơn, ít rủi ro hơn."
+          "question": "Phát biểu quy tắc so sánh độ rủi ro hai mẫu khi số trung bình bằng nhau, rồi cho biết mẫu nào ổn định hơn: mẫu có s² = 7,36 hay mẫu có s² = 12,16?",
+          "answer": "Quy tắc: hai mẫu cùng đơn vị đo, x̄ bằng nhau (hoặc xấp xỉ) — mẫu có s² (hay s) nhỏ hơn phân tán ít hơn quanh số trung bình, tức ổn định hơn, ít rủi ro hơn. Mẫu có s² = 7,36 ổn định hơn mẫu có s² = 12,16."
         },
         {
           "level": "NB",
@@ -988,18 +988,18 @@
         },
         {
           "level": "TH",
-          "question": "Lợi suất của cổ phiếu Y trong 40 phiên: [0;4) có 12 phiên, [4;8) có 8 phiên, [8;12) có 20 phiên. Biết lợi suất trung bình của Y cũng là 6,8%/phiên. Hãy tính s² và s của Y, rồi so sánh rủi ro giữa Y và cổ phiếu X (s²_X = 7,36; s_X ≈ 2,71).",
-          "answer": "Σnᵢcᵢ² = 12·4 + 8·36 + 20·100 = 48 + 288 + 2000 = 2336. s²_Y = 2336/40 − 6,8² = 58,4 − 46,24 = 12,16 → s_Y ≈ 3,49. Vì x̄_X = x̄_Y = 6,8 và s²_X = 7,36 < s²_Y = 12,16 nên cổ phiếu X ít rủi ro hơn Y; Y biến động mạnh hơn, phù hợp nhà đầu tư chấp nhận rủi ro cao."
+          "question": "Cổ phiếu Z có bảng lợi suất: [0;4) có 8 phiên, [4;8) có m phiên, [8;12) có 16 phiên, biết x̄_Z = 6,8%/phiên. (a) Tìm m; (b) Tính s², s của Z (gợi ý: dùng điều kiện x̄ giải ngược m trước).",
+          "answer": "(a) Tổng các phiên: 8 + m + 16 = 40 ⇒ m = 16 (bảng 8/16/16, n = 40). Kiểm chứng x̄: (8·2 + 16·6 + 16·10)/40 = 272/40 = 6,8 ✓. (b) Σnᵢcᵢ² = 8·4 + 16·36 + 16·100 = 2208; s²_Z = 2208/40 − 46,24 = 8,96; s_Z ≈ 2,99. Xếp hạng rủi ro: X (7,36) < Z (8,96) < Y (12,16)."
         },
         {
           "level": "TH",
-          "question": "Một xưởng sản xuất so sánh hai máy đóng chai cùng sản lượng trung bình 500 chai/giờ. Máy 1 có s₁ ≈ 6,2 chai, máy 2 có s₂ ≈ 14,8 chai. Nếu xưởng ưu tiên đơn hàng yêu cầu sản lượng đều đặn thì nên chọn máy nào? Nêu lý luận toán học.",
-          "answer": "Chọn máy 1. Hai máy có cùng sản lượng trung bình nên so sánh độ lệch chuẩn: s₁ ≈ 6,2 < s₂ ≈ 14,8, máy 1 có sản lượng phân tán ít hơn quanh trung bình → đều đặn, ít rủi ro lệch sản lượng hơn. (Ngược lại, nếu cần \"đánh liều\" đạt sản lượng vượt cao trong thời điểm cao điểm, máy 2 có biến động lớn hơn mới có cơ hội đó.)"
+          "question": "Ba nhà đầu tư: bác Long (sắp nghỉ hưu, thận trọng), chị Hương (tích lũy, cân bằng), bạn Nam (trẻ, chấp nhận rủi ro cao). Cả ba cổ phiếu X (s² = 7,36), Z (s² = 8,96), Y (s² = 12,16) cùng lợi suất trung bình 6,8%/phiên. Khuyến nghị cổ phiếu cho từng người và giải thích.",
+          "answer": "Khuyến nghị phải đủ 3 điều kiện (khẩu vị — mục tiêu — khả năng chịu mất vốn): bác Long → X (s² nhỏ nhất, ổn định nhất); chị Hương → phân bổ X/Z (cân bằng an toàn và tăng trưởng); bạn Nam → cân nhắc thêm Y (biến động mạnh, cơ hội cao kèm rủi ro cao) nhưng không 'toàn bộ' (quy tắc phân tán danh mục)."
         },
         {
           "level": "VD",
-          "question": "Lợi suất của cổ phiếu Z trong 40 phiên: [0;4) có 8 phiên, [4;8) có m phiên, [8;12) có số phiên còn lại. Biết lợi suất trung bình của Z là 6,8%/phiên. (a) Tìm m; (b) Tính s² và s của Z; (c) Xếp hạng rủi ro ba cổ phiếu X (s² = 7,36), Y (s² = 12,16), Z.",
-          "answer": "(a) x̄_Z = (8·2 + m·6 + (32−m)·10)/40 = (336 − 4m)/40 = 6,8 ⇒ 336 − 4m = 272 ⇒ m = 16. (b) Σnᵢcᵢ² = 8·4 + 16·36 + 16·100 = 32 + 576 + 1600 = 2208; s²_Z = 2208/40 − 46,24 = 55,2 − 46,24 = 8,96; s_Z = √8,96 ≈ 2,99. (c) s²_X (7,36) < s²_Z (8,96) < s²_Y (12,16): X ít rủi ro nhất, Z trung gian, Y rủi ro nhất."
+          "question": "Cổ phiếu Z trong 40 phiên: [0;4) có 8 phiên, [4;8) có m phiên, [8;12) có số phiên còn lại, x̄_Z = 6,8%/phiên. (a) Tìm m; (b) Tính s² và s của Z; (c) Xếp hạng rủi ro ba cổ phiếu X (s² = 7,36), Y (s² = 12,16), Z.",
+          "answer": "(a) x̄_Z = (8·2 + m·6 + (32−m)·10)/40 = (336 − 4m)/40 = 6,8 ⇒ 336 − 4m = 272 ⇒ m = 16. (b) Σnᵢcᵢ² = 8·4 + 16·36 + 16·100 = 2208; s²_Z = 2208/40 − 46,24 = 55,2 − 46,24 = 8,96; s_Z = √8,96 ≈ 2,99. (c) s²_X (7,36) < s²_Z (8,96) < s²_Y (12,16): X ít rủi ro nhất, Z trung gian, Y rủi ro nhất."
         },
         {
           "level": "VD",
@@ -1025,17 +1025,21 @@
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Ý nghĩa đo rủi ro của phương sai và độ lệch chuẩn",
-        "   - Hai mẫu cùng đơn vị đo, x̄ bằng nhau (hoặc xấp xỉ): mẫu có s² (hay s) nhỏ hơn → phân tán ít hơn → ổn định hơn, ít rủi ro hơn.",
+        "1. Dữ liệu thực nghiệm: 3 cổ phiếu X/Y/Z cùng lợi suất trung bình 6,8%/phiên (n = 40)",
+        "   - X: bảng 6/20/14 → s² = 7,36, s ≈ 2,71 (dồn về giữa: 20/40 phiên).",
+        "   - Y: bảng 12/8/20 → s² = 12,16, s ≈ 3,49 (dồn về hai đầu).",
+        "   - Z: bảng 8/16/16 → s² = 8,96, s ≈ 2,99 (trung gian).",
+        "2. Quy tắc so sánh độ rủi ro",
+        "   - Hai mẫu cùng đơn vị đo, x̄ bằng nhau (hoặc xấp xỉ): s² (hay s) nhỏ hơn → phân tán ít hơn → ổn định hơn, ít rủi ro hơn.",
         "   - s cùng đơn vị với dữ liệu; s = 0 ⇔ mọi giá trị đều bằng x̄.",
-        "2. Quy trình 4 bước đo rủi ro",
+        "3. Quy trình 4 bước đo rủi ro",
         "   - Bước 1: Xác định cᵢ và n = Σnᵢ.",
         "   - Bước 2: Tính x̄ = (Σnᵢcᵢ)/n.",
-        "   - Bước 3: Lập bảng trung gian tính Σnᵢcᵢ² (hoặc Σnᵢ(cᵢ − x̄)²).",
-        "   - Bước 4: Tính s² = Σnᵢcᵢ²/n − x̄², s = √s² → so sánh → kết luận theo ngữ cảnh.",
-        "3. Lưu ý ra quyết định",
-        "   - s lớn không tự động \"xấu\": với người chấp nhận mạo hiểm, biến động lớn đi kèm cơ hội thu lợi cao hơn.",
-        "   - Khuyến nghị đầu tư/chọn phương án phải đủ điều kiện: khẩu vị rủi ro, mục tiêu, khả năng chịu mất vốn."
+        "   - Bước 3: Lập bảng trung gian 3 cột (nᵢ, cᵢ, nᵢcᵢ²) tính Σnᵢcᵢ².",
+        "   - Bước 4: s² = Σnᵢcᵢ²/n − x̄², s = √s² → so sánh → kết luận theo ngữ cảnh.",
+        "4. Lưu ý ra quyết định",
+        "   - s lớn không tự động \"xấu\": người chấp nhận mạo hiểm cân nhắc phương án biến động mạnh.",
+        "   - Khuyến nghị đầu tư phải đủ 3 điều kiện: khẩu vị rủi ro, mục tiêu, khả năng chịu mất vốn."
       ]
     },
     {
@@ -1515,11 +1519,11 @@
     "12-12-86": {
       "key": "12-12-86",
       "category": "Thiếu điều kiện",
-      "wrongSolution": "AI tư vấn: \"Cổ phiếu X và Y đều có lợi suất trung bình 6,8%/tháng. Nhưng độ lệch chuẩn của Y (3,49) lớn hơn X (2,71), chứng tỏ Y biến động mạnh, cơ hội thu lợi cao hơn. Vậy cô nên bán hết cổ phiếu X, chuyển toàn bộ sang Y.\"",
-      "correction": "Khuyến nghị \"chuyển toàn bộ sang Y\" thiếu điều kiện quyết định: chưa biết khẩu vị rủi ro, mục tiêu đầu tư và khả năng chịu mất vốn của khách hàng. Độ lệch chuẩn lớn hơn nghĩa là rủi ro cao hơn, không phải \"cơ hội cao hơn\" một chiều. Nhà đầu tư thận trọng nên giữ X; chỉ nhà đầu tư chấp nhận rủi ro mới cân nhắc Y — và ngay cả khi đó cũng không nên \"chuyển toàn bộ\" (quy tắc phân tán danh mục).",
-      "proof": "Hai mẫu cùng x̄ = 6,8 nhưng s²_X = 7,36 < s²_Y = 12,16: lợi suất Y phân tán mạnh hơn quanh trung bình — phiên tốt có thể rất cao nhưng phiên xấu có thể gần 0%. Kết luận \"Y tốt hơn X\" là mệnh đề không có cơ sở toán học khi thiếu hàm lợi ích/khẩu vị rủi ro của người quyết định; đây đúng lỗi \"thiếu điều kiện\" của kết luận.",
+      "wrongSolution": "Chị Hương có 100 triệu định đầu tư. AI tư vấn: \"Cổ phiếu X và Y đều có lợi suất trung bình 6,8%/phiên. Nhưng độ lệch chuẩn của Y (3,49) lớn hơn X (2,71), chứng tỏ Y biến động mạnh, cơ hội thu lợi cao hơn. Vậy chị nên bán hết X, chuyển toàn bộ sang Y.\"",
+      "correction": "Khuyến nghị \"chuyển toàn bộ sang Y\" thiếu điều kiện quyết định: chưa biết khẩu vị rủi ro, mục tiêu đầu tư và khả năng chịu mất vốn của chị Hương. Độ lệch chuẩn lớn hơn nghĩa là rủi ro cao hơn, không phải \"cơ hội cao hơn\" một chiều. Nhà đầu tư thận trọng nên giữ X; chỉ nhà đầu tư chấp nhận rủi ro mới cân nhắc Y — và ngay cả khi đó cũng không nên \"chuyển toàn bộ\" (quy tắc phân tán danh mục).",
+      "proof": "Hai mẫu cùng x̄ = 6,8 nhưng s²_X = 7,36 < s²_Y = 12,16: lợi suất Y phân tán mạnh hơn quanh trung bình — phiên tốt có thể rất cao nhưng phiên xấu có thể gần 0%. X dồn về giữa (20/40 phiên ở [4;8)) nên \"dự đoán được\"; Y dồn về hai đầu nên \"bất ngờ\". Kết luận \"Y tốt hơn X\" là mệnh đề không có cơ sở toán học khi thiếu hàm lợi ích/khẩu vị rủi ro của người quyết định; đây đúng lỗi \"thiếu điều kiện\" của kết luận.",
       "whyAiError": "Mô hình ngôn ngữ diễn giải \"biến động mạnh = cơ hội cao\" theo hướng tích cực một chiều và rút ra khuyến nghị tuyệt đối mà không kiểm tra các điều kiện quyết định (khẩu vị rủi ro, mục tiêu, dung nạp mất vốn) của chủ thể.",
-      "teacherPrompt": "Em đồng ý hay phản đối khuyến nghị của AI? Khuyến nghị đầu tư cần thêm những điều kiện nào mới có cơ sở?",
+      "teacherPrompt": "Em đồng ý hay phản đối khuyến nghị của AI cho chị Hương? Khuyến nghị đầu tư cần thêm những điều kiện nào mới có cơ sở?",
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu thiếu khẩu vị rủi ro/mục tiêu khách hàng, hoặc nêu s lớn = rủi ro cao không phải \"tốt hơn\" một chiều).",
       "boardPrompt": "AI khuyên: \"s_Y > s_X nên chuyển toàn bộ sang Y\". Em phát hiện thiếu điều kiện gì?",
       "libraryTitle": "Lỗi AI khuyên đầu tư thiếu điều kiện khẩu vị rủi ro của khách hàng"

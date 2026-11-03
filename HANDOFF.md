@@ -102,6 +102,11 @@
   - Bổ sung: interactive question S1 (3 options, bẫy "giống đạo hàm"), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
   - Validation: Vitest 442/442 PASS; build PASS 1m37s; QA live session `6bSogl7CqrBwInBbthXx` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; nội dung con lắc live ở 7/12 chặng; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-85-upgrade.md`).
 
+- Tuần 12 — Khối 12 (`12-12-86`) Phương sai đo độ rủi ro — NÂNG CẤP HỒI TỐ V8.8 MASTER TEACHER (03/11/2026) — **BÀI CUỐI, MỤC 13 HOÀN THÀNH**:
+  - Trục thực nghiệm mới: 3 cổ phiếu X/Y/Z cùng x̄ = 6,8%/phiên (n = 40): X s² = 7,36 (dồn giữa 20/40), Y s² = 12,16 (dồn hai đầu), Z s² = 8,96 — xếp hạng rủi ro X < Z < Y; chốt quyết định chị Hương (100 triệu) theo khẩu vị rủi ro.
+  - Bổ sung: interactive question S1 (3 options), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C, bài tập mới khuyến nghị theo khẩu vị 3 nhà đầu tư; AI Error gắn chặt trục chị Hương.
+  - Validation: Vitest 442/442 PASS; build PASS 3m6s; xuất bản 66/66 (0 audit fail); QA live session `zzHtlZJAhuCDBOMW4naj` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; nội dung 3 cổ phiếu live ở cả 12 chặng; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-86-upgrade.md`).
+
 ## 2. Việc tiếp theo
-1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82` → `12-12-85`.
-2. Nâng cấp hồi tố bài cuối: `12-12-86` (Phương sai, độ lệch chuẩn đo độ rủi ro), đối chiếu chuẩn đã đạt ở `12-12-87`.
+1. Trình duyệt kết quả nâng cấp hồi tố toàn bộ 5 bài `12-12-82` → `12-12-86` (mục 13 XONG).
+2. Khối 12 Tuần 12 hoàn chỉnh 6/6 bài chuẩn V8.8 Master Teacher — sẵn sàng cho các tuần tiếp theo theo PPCT.

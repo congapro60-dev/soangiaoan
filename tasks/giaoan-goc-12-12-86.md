@@ -1,78 +1,99 @@
-<!-- Nguồn: PPCT Chuẩn Bộ GD&ĐT Toán 12 · tds-g12-86 — "Phương sai và độ lệch chuẩn — Tiết 2: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro" · Soạn ngày 2026-11-01 -->
-<!-- Kế thừa: dữ liệu 2 xạ thủ An/Bình từ Tiết 1 (tasks/giaoan-goc-g12.md · tds-g12-80) — đã KIỂM CHỨNG và SỬA SỐ:
-     - Giáo án gốc ghi x̄_A = (2·7 + 16·9 + 2·11)/20 = 8,5 — SAI số học (180/20 = 9).
-     - s²_A = 1,05 và s²_B = 3,05 đều tính trên x̄ = 8,5 sai; dòng "81,8 − 72,25 = 1,05" sai số học (đúng ra 9,55).
-     - Số đã sửa dùng cho Tiết 2: x̄_A = x̄_B = 9; s²_A = 0,8 (s_A ≈ 0,89); s²_B = 2,8 (s_B ≈ 1,67). -->
+<!-- Nguồn: PPCT Chuẩn Bộ GD&ĐT Toán 12 · tds-g12-86 — "Phương sai, độ lệch chuẩn — Tiết 5: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro" · Soạn lại 03/11/2026 chuẩn V8.8 Master Teacher -->
+<!-- Kế thừa: quy trình 4 bước tính s², s từ Tiết 1-2 (`12-11-80`, `12-11-81`); khái niệm phân tán từ các số đặc trưng. -->
 
-# KẾ HOẠCH DẠY HỌC — PHƯƠNG SAI VÀ ĐỘ LỆCH CHUẨN (Tiết 2: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro)
+# KẾ HOẠCH DẠY HỌC — THỐNG KÊ (Tiết 5: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro)
 
-| Lớp | 12 | Tên bài học | Phương sai và độ lệch chuẩn — Tiết 2: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro | Môn học | Toán |
+| Lớp | 12 | Tên bài học | Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro | Môn học | Toán |
 |---|---|---|---|---|---|
 | Giáo viên | .......... | Tuần học | 12 | Năm học | 2024–2025 |
+
+> **Chuẩn V8.8 Master Teacher:** Trục dữ liệu thực nghiệm xuyên suốt (Quỹ tư vấn đầu tư — 3 cổ phiếu X/Y/Z cùng lợi suất trung bình 6,8%/phiên), câu hỏi phân tầng có hint, teacherCue định hướng học sinh yếu, reveal giấu đáp án, Exit Ticket cô đọng.
 
 ---
 
 ## I. MỤC TIÊU BÀI HỌC
 
 ### 1. Năng lực toán học cốt lõi
-- **Năng lực tư duy và lập luận toán học:** Giải thích vì sao khi hai mẫu số liệu có cùng số trung bình thì phương sai và độ lệch chuẩn là thước đo hợp lý để so sánh mức độ phân tán (độ ổn định/độ rủi ro).
-- **Năng lực giải quyết vấn đề toán học:** Thiết lập quy trình 4 bước (tính $c_i$ → $\bar{x}$ → bảng trung gian → $s^2, s$) để đo và so sánh độ rủi ro giữa hai phương án thực tế; ra khuyến nghị phù hợp với khẩu vị rủi ro của người quyết định.
-- **Năng lực giao tiếp toán học:** Phản biện khuyến nghị tư vấn thiếu cơ sở (ví dụ khuyên chọn phương án rủi ro cao mà không xét khẩu vị rủi ro của khách hàng); trình bày được ý nghĩa "$s$ nhỏ → dữ liệu tập trung quanh $\bar{x}$ → ổn định hơn".
-- **Năng lực mô hình hóa toán học:** Mô hình hóa bài toán đầu tư (lợi suất cổ phiếu ghép nhóm), thể thao (điểm bắn xạ thủ), sản xuất (máy đóng chai) bằng phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm.
+- **Năng lực tư duy và lập luận toán học:** Giải thích vì sao khi hai mẫu có số trung bình bằng nhau thì phương sai/độ lệch chuẩn là thước đo độ phân tán — rủi ro; quy trình 4 bước tính $s^2$, $s$ của mẫu ghép nhóm.
+- **Năng lực giải quyết vấn đề toán học:** Từ bảng lợi suất ghép nhóm của 3 cổ phiếu X/Y/Z, tính $s^2$, $s$ và xếp hạng rủi ro; phát hiện ngược bảng ($m$ ẩn) từ điều kiện $x̄$ cho trước.
+- **Năng lực giao tiếp toán học:** Phản biện khuyến nghị tư vấn thiếu điều kiện ("bán hết A chuyển toàn bộ sang B"); diễn giải s lớn không tự động "xấu" — phụ thuộc khẩu vị rủi ro.
+- **Năng lực mô hình hóa toán học:** Mô hình hóa quyết định đầu tư thực tế: khớp cổ phiếu với khẩu vị rủi ro của từng nhà đầu tư (thận trọng — cân bằng — mạo hiểm).
 
 ### 2. Mục tiêu học tập phân hoá (M / S / C)
-- **Must (Cơ bản - NB):** Nhắc lại công thức $s^2 = \frac{1}{n}\sum n_i c_i^2 - \bar{x}^2$, $s = \sqrt{s^2}$; tính đúng $s^2, s$ cho mẫu ghép nhóm đơn giản ($k \le 3$ nhóm) và kết luận mẫu nào ổn định hơn khi $\bar{x}$ bằng nhau.
-- **Should (Trọng tâm - TH):** Tính $s^2, s$ cho cả hai phương án bằng công thức rút gọn, so sánh và khuyến nghị phương án ít rủi ro hơn; giải thích ý nghĩa kết quả trong ngữ cảnh thực tế.
-- **Could (Nâng cao - VD/VDC):** Giải bài toán ngược tìm tần số ẩn khi biết $\bar{x}$ (hoặc $s^2$); phân tích tình huống "s lớn không hẳn xấu" — khuyến nghị phụ thuộc khẩu vị rủi ro; nhận biết hạn chế của $s$ khi dữ liệu có giá trị ngoại lai.
+- **Must (Cơ bản - NB):** Phát biểu quy tắc so sánh (cùng x̄ → s nhỏ hơn ổn định hơn); tính $s^2 = 12{,}16$, $s \approx 3{,}49$ cho cổ phiếu Y từ bảng ghép nhóm cho trước.
+- **Should (Trọng tâm - TH):** Thực hiện trọn quy trình 4 bước cho cổ phiếu Z (tìm $m = 16$ từ $x̄ = 6{,}8$ rồi tính $s^2 = 8{,}96$, $s \approx 2{,}99$); xếp hạng rủi ro X < Z < Y.
+- **Could (Nâng cao - VD/VDC):** Khuyến nghị đầu tư theo khẩu vị rủi ro của 3 nhà đầu tư khác nhau; phản biện khuyến nghị "chuyển toàn bộ" thiếu điều kiện; đánh giá khi nào cần chuẩn hóa trước khi so sánh.
 
 ---
 
-## II. THIẾT BỊ VÀ HỌC LIỆU
+## II. TRỤC DỮ LIỆU THỰC NGHIỆM XUYÊN SUỐT (THEMATIC DATASET)
+
+**Tình huống: Chị Hương có 100 triệu đồng định đầu tư. Quỹ nghiên cứu cung cấp bảng lợi suất ghép nhóm (%/phiên) của 3 cổ phiếu trong 40 phiên:**
+
+| Cổ phiếu | $[0;4)$ | $[4;8)$ | $[8;12)$ | $n$ | $x̄$ (%/phiên) | $s^2$ | $s$ |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **X** | 6 | 20 | 14 | 40 | **6,8** | **7,36** | **≈ 2,71** |
+| **Y** | 12 | 8 | 20 | 40 | **6,8** | **12,16** | **≈ 3,49** |
+| **Z** | 8 | 16 | 16 | 40 | **6,8** | **8,96** | **≈ 2,99** |
+
+- **Kiểm chứng trung bình:** cả 3 bảng đều cho $\Sigma n_i c_i = 272$ → $x̄ = 272/40 = 6{,}8$ ✓ (điều kiện để so sánh s hợp lệ).
+- **Xếp hạng rủi ro:** $s^2_X = 7{,}36 < s^2_Z = 8{,}96 < s^2_Y = 12{,}16$ → X ít rủi ro nhất, Y rủi ro nhất.
+- **Ý nghĩa:** Y ít khi ở giữa (chỉ 8/40 phiên tại [4;8)) mà dồn về hai đầu — biến động mạnh; X dồn về giữa (20/40) — ổn định.
+
+**Bẫy kiểm chứng (dùng ở AI Error):** AI khuyên "cùng lợi suất trung bình nhưng s của Y lớn hơn → bán hết X chuyển toàn bộ sang Y" — khuyến nghị **thiếu điều kiện**: chưa xét khẩu vị rủi ro, mục tiêu, khả năng chịu mất vốn của chị Hương.
+
+---
+
+## III. THIẾT BỊ VÀ HỌC LIỆU
 - Máy chiếu TV thông minh trình chiếu bài giảng tương tác V8.8.
 - Thiết bị cá nhân của học sinh kết nối hệ thống SmartPlan AI Live.
-- Phiếu học tập phân hoá 3 luồng (Mã M, S, C) — chủ đề đầu tư cổ phiếu X/Y/Z.
+- Phiếu học tập phân hoá 3 luồng (Mã M, S, C) kèm hint.
 - Bảng con học sinh dùng kiểm tra nhanh và tương tác ĐGTX.
-- Máy tính Casio fx-580VN X (chế độ Statistics có cột tần số) để kiểm chứng.
 
 ---
 
-## III. TIẾN TRÌNH DẠY HỌC (40 PHÚT)
+## IV. TIẾN TRÌNH DẠY HỌC (40 PHÚT)
 
-### 1. Hoạt động 1: Khởi động — Kế thừa dữ liệu 2 xạ thủ, đặt vấn đề "cùng trung bình, khác gì?" (7 phút)
-- **Tình huống (kế thừa Tiết 1, số đã kiểm chứng):** Bảng điểm bắn 20 phát của hai xạ thủ (điểm ghi theo nhóm, giá trị đại diện $c_i$):
-  - An: nhóm $c = 7$ có 2 phát, $c = 9$ có 16 phát, $c = 11$ có 2 phát.
-  - Bình: nhóm $c = 7$ có 7 phát, $c = 9$ có 6 phát, $c = 11$ có 7 phát.
-- **Bảng con ôn kiến thức (Kỹ thuật chờ hai nhịp):**
-  1. Tính $\bar{x}_A$ và $\bar{x}_B$. (Kết quả: cùng bằng 9!)
-  2. Chỉ cần nhìn bảng tần số, đoán xem xạ thủ nào "đều tay" hơn?
-  3. Công thức tính $s^2$ của mẫu ghép nhóm ở Tiết 1 là gì?
-- **Câu hỏi thiết yếu giữ nguyên suốt tiết:** *"Khi hai phương án có cùng giá trị trung bình, đại lượng nào đo độ rủi ro (mức phân tán) và dùng nó ra quyết định thế nào?"*
+### 1. Hoạt động 1: Khởi động & Đặt vấn đề (7 phút)
+- **Tình huống:** Chị Hương có 100 triệu, cân nhắc 3 cổ phiếu X/Y/Z. Bảng lợi suất cho thấy cả 3 đều có lợi suất trung bình 6,8%/phiên — "như nhau"? Chọn cổ phiếu nào?
+- **Câu hỏi tương tác (máy HS):**
+  1. `[NHẬN DIỆN]` Hai cổ phiếu cùng lợi suất trung bình 6,8%. Muốn đánh giá cổ phiếu nào "an toàn" hơn, em cần tính gì? (A) Chỉ cần nhìn lợi suất trung bình; (B) Tính phương sai/độ lệch chuẩn; (C) Không thể so sánh? → Đáp án B.
+  2. `[SO SÁNH]` Nhìn bảng Y: chỉ 8/40 phiên ở giữa ([4;8)) nhưng 20/40 phiên ở đầu [8;12). Điều đó nói lên điều gì về "tính cách" của Y?
+- **TeacherCue (lớp yếu):** Nhắc trước: trung bình nói "điểm rơi phổ biến", phương sai nói "độ dao động quanh điểm rơi" — cùng trung bình nhưng dao động khác nhau là 2 câu chuyện khác nhau.
 
-### 2. Hoạt động 2: Hình thành — Ý nghĩa đo rủi ro của $s^2, s$ (8 phút)
-- **Quy tắc so sánh:** Hai mẫu có cùng đơn vị đo và số trung bình bằng nhau (hoặc xấp xỉ nhau): mẫu có $s^2$ (hay $s$) **nhỏ hơn** phân tán ít hơn, **ổn định hơn, ít rủi ro hơn**.
-- **Quy trình 4 bước đo rủi ro:** (1) Tính $c_i$, xác định $n$; (2) Tính $\bar{x}$; (3) Lập bảng trung gian tính $\sum n_i c_i^2$ (hoặc $\sum n_i(c_i-\bar{x})^2$); (4) Tính $s^2 = \frac{1}{n}\sum n_i c_i^2 - \bar{x}^2$, $s = \sqrt{s^2}$, so sánh và kết luận.
-- **Chú ý then chốt:** $s$ có cùng đơn vị với dữ liệu; $s^2$ luôn không âm; $s = 0 \Leftrightarrow$ tất cả giá trị bằng $\bar{x}$; $s$ lớn không tự động "xấu" — với nhà đầu tư thích mạo hiểm, biến động lớn đi kèm cơ hội thu lợi cao hơn.
+### 2. Hoạt động 2: Hình thành kiến thức — Quy trình 4 bước đo rủi ro (6 phút)
+- **Quy tắc:** Hai mẫu cùng đơn vị đo, $x̄$ bằng nhau (hoặc xấp xỉ): mẫu có $s^2$ (hay $s$) nhỏ hơn → phân tán ít hơn → ổn định hơn, ít rủi ro hơn.
+- **Quy trình 4 bước** (làm mẫu cho cổ phiếu X):
+  - Bước 1: $c = [2; 6; 10]$, $n = 40$.
+  - Bước 2: $x̄ = \frac{6\cdot2 + 20\cdot6 + 14\cdot10}{40} = \frac{272}{40} = 6{,}8$ (%/phiên).
+  - Bước 3: Lập bảng trung gian: $\Sigma n_ic_i^2 = 6\cdot4 + 20\cdot36 + 14\cdot100 = 2144$.
+  - Bước 4: $s^2 = \frac{2144}{40} - 6{,}8^2 = 53{,}6 - 46{,}24 = 7{,}36$ → $s = \sqrt{7{,}36} \approx 2{,}71$ (%/phiên).
+- **TeacherCue:** Nhấn mạnh bước 3 — bảng trung gian là nơi sai số hay phát sinh (nhầm $c_i^2$ thành $c_i$); nhắc học sinh lập bảng đủ 3 cột $n_i$, $c_i$, $n_ic_i^2$.
+- **Chú ý then chốt (Bẫy kinh điển):** $s = \sqrt{s^2} \ge 0$ (không có $s = -\sqrt{s^2}$); chỉ so sánh trực tiếp khi $x̄$ bằng nhau/xấp xỉ và cùng đơn vị đo.
 
 ### 3. Hoạt động 3: Phát hiện lỗi sai AI (AI Error of the Week) (3 phút)
-- **Tình huống AI tư vấn:** "Cổ phiếu X và Y đều có lợi suất trung bình 6,8%/tháng. Nhưng độ lệch chuẩn của Y ($3{,}49$) lớn hơn X ($2{,}71$), chứng tỏ Y biến động mạnh, cơ hội thu lợi cao hơn. Vậy cô nên bán hết cổ phiếu X, chuyển toàn bộ sang Y."
-- **Nhiệm vụ HS:** Chỉ ra khuyến nghị của AI thiếu cơ sở: kết luận "Y tốt hơn" đòi hỏi biết khẩu vị rủi ro và mục tiêu của khách hàng; $s$ lớn đồng nghĩa rủi ro mất vốn lớn, không phải "cơ hội cao hơn" một chiều.
+- **Tình huống AI tư vấn:** "Cổ phiếu Y có cùng lợi suất trung bình 6,8% với X nhưng độ lệch chuẩn lớn hơn (3,49 > 2,71), chứng tỏ Y biến động mạnh, cơ hội thu lợi cao hơn. Vậy chị nên **bán hết X, chuyển toàn bộ sang Y**."
+- **Nhiệm vụ HS:**
+  1. Bắt lỗi: khuyến nghị **thiếu điều kiện** — chưa xét khẩu vị rủi ro, mục tiêu đầu tư, khả năng chịu mất vốn của chị Hương.
+  2. Bằng chứng: $s^2_Y = 12{,}16 > s^2_X = 7{,}36$ nghĩa là rủi ro cao hơn (phiên xấu có thể gần 0%), không phải "tốt hơn" một chiều.
+  3. Kết luận hợp lý: nhà đầu tư thận trọng giữ X; chỉ người chấp nhận rủi ro mới cân nhắc Y — và không bao giờ "chuyển toàn bộ" (quy tắc phân tán danh mục).
 
-### 4. Hoạt động 4: Luyện tập phân hoá 3 luồng — Chủ đề đầu tư (8 phút)
-- **Luồng Master (Must):** Cổ phiếu X — 40 phiên, lợi suất (%/phiên) ghép nhóm: $[0;4)$: 6 phiên, $[4;8)$: 20 phiên, $[8;12)$: 14 phiên. Tính $\bar{x}$, $s^2$, $s$ của X. (Đáp án: $\bar{x} = 6{,}8$; $s^2 = 7{,}36$; $s \approx 2{,}71$.)
-- **Luồng Support (Should):** Thêm cổ phiếu Y — 40 phiên: $[0;4)$: 12 phiên, $[4;8)$: 8 phiên, $[8;12)$: 20 phiên. Tính $s^2, s$ cho cả X và Y (dùng công thức rút gọn), kết luận cổ phiếu nào ít rủi ro hơn. (Đáp án: Y có $\bar{x} = 6{,}8$; $s^2 = 12{,}16$; $s \approx 3{,}49$; vì cùng $\bar{x}$ và $s_X < s_Y$ nên X ít rủi ro hơn.)
-- **Luồng Challenge (Could):** Cổ phiếu Z — 40 phiên: $[0;4)$: 8 phiên, $[4;8)$: $m$ phiên, $[8;12)$: còn lại. Biết $\bar{x}_Z = 6{,}8$. (a) Tìm $m$; (b) tính $s^2, s$ của Z; (c) xếp hạng rủi ro X, Y, Z. (Đáp án: $m = 16$; $s^2_Z = 8{,}96$; $s_Z \approx 2{,}99$; $s_X < s_Z < s_Y$.)
+### 4. Hoạt động 4: Luyện tập phân hoá 3 luồng kèm hint (8 phút)
+- **Luồng Master (Must) —_hint: đi đúng 4 bước, lập bảng trung gian đủ 3 cột:**
+  1. Tính $s^2$ và $s$ của cổ phiếu Y (bảng: 12/8/20). → $s^2 = 12{,}16$, $s \approx 3{,}49$.
+  2. So sánh rủi ro X và Y khi cùng $x̄ = 6{,}8$. → X ổn định hơn ($7{,}36 < 12{,}16$).
+- **Luồng Support (Should) —_hint: dùng điều kiện x̄ = 6,8 giải ngược m; xếp hạng theo s²:**
+  1. Tìm $m$ của cổ phiếu Z (bảng 8/$m$/16) biết $x̄_Z = 6{,}8$. → $m = 16$.
+  2. Tính $s^2_Z$, $s_Z$ và xếp hạng rủi ro X, Y, Z. → $s^2_Z = 8{,}96$, $s_Z \approx 2{,}99$; $X < Z < Y$.
+- **Luồng Challenge (Could) —_hint: khuyến nghị phải đủ 3 điều kiện (khẩu vị — mục tiêu — chịu mất vốn); s lớn không tự động xấu:**
+  1. Ba nhà đầu tư: bác Long (sắp nghỉ hưu, thận trọng), chị Hương (tích lũy, cân bằng), bạn Nam (trẻ, chấp nhận rủi ro cao). Khuyến nghị cổ phiếu X/Y/Z cho từng người và giải thích. → Long: X; Hương: X/Z theo tỷ trọng; Nam: cân nhắc Y (không toàn bộ).
+  2. Hai xạ thủ cùng điểm trung bình 9: An có $s_A \approx 0{,}89$, Bình có $s_B \approx 1{,}67$. Huấn luyện viên chọn người thi chính thức và người "thử chiến thuật đánh liều"? → An chính thức (ổn định); Bình khi cần bứt phá và chấp nhận rủi ro.
 
 ### 5. Hoạt động 5: Post-Check & Đánh giá thường xuyên (3 phút)
-- Bảng con/trắc nghiệm máy: nhận biết mẫu ổn định hơn khi cùng $\bar{x}$; tính nhanh $s$ từ $s^2$.
+- **ĐGTX máy:** Một mẫu ghép nhóm có $n = 40$, $x̄ = 6{,}8$, $\Sigma n_ic_i^2 = 2336$. Tính $s^2$, $s$. → $s^2 = 58{,}4 - 46{,}24 = 12{,}16$; $s \approx 3{,}49$ — trùng cổ phiếu Y; hoàn nguyên bảng trung gian ✓.
+- **Câu hỏi bảng con:** Nhận định Đúng/Sai: (a) "s = −√s² khi s² > 0"; (b) "x̄ khác nhau nhiều vẫn so sánh s trực tiếp"; (c) "s nhỏ hơn → ổn định hơn khi x̄ bằng nhau".
 
 ### 6. Hoạt động 6: Vận dụng thực tế & Tổng kết (8 phút)
-- **Bài toán bắn súng quay lại:** Tính $s_A \approx 0{,}89$, $s_B \approx 1{,}67$ → An ổn định hơn; mở rộng: huấn luyện viên chọn An thi đấu, chọn Bình "thử chiến thuật mới" (khẩu vị rủi ro).
-- **Bài toán kiểm chứng Casio:** nhập dữ liệu X (cột $x$ = $c_i$, cột Freq = $n_i$), đối soát $\sigma x \approx 2{,}71$.
-- **Tổng kết + Exit Ticket:** quy trình 4 bước; "s nhỏ → ổn định"; phản tư KWLI.
-
----
-
-## IV. KIẾN THỨC BẢNG (tóm tắt)
-1. Cùng $\bar{x}$ (hoặc xấp xỉ): mẫu có $s^2$ nhỏ hơn → phân tán ít hơn → ổn định hơn / ít rủi ro hơn.
-2. $s^2 = \frac{1}{n}\sum n_i c_i^2 - \bar{x}^2$; $s = \sqrt{s^2}$ (cùng đơn vị với dữ liệu, $s \ge 0$).
-3. Quy trình 4 bước: $c_i, n$ → $\bar{x}$ → bảng trung gian → $s^2, s$ → kết luận theo ngữ cảnh và khẩu vị rủi ro.
+- **Ứng dụng — Chốt quyết định của chị Hương:** Với 100 triệu: thận trọng → X (s² nhỏ nhất 7,36); cân bằng → phân bổ X/Z; mạo hiểm → cân nhắc thêm Y nhưng không "chuyển toàn bộ" (quy tắc phân tán danh mục).
+- **Quick-check:** 2 câu chốt (so sánh s² = 7,36 vs 12,16; nhận định sai của AI tư vấn).
+- **Exit Ticket:** 1) Phát biểu quy tắc so sánh khi x̄ bằng nhau; 2) Nêu 1 bẫy (so sánh s khi x̄ khác xa / quên √ / "s lớn luôn xấu"); 3) Tự đánh giá M/S/C; 4) Chốt ngữ cảnh: cổ phiếu nào ít rủi ro nhất? → X ($s^2 = 7{,}36$, $s \approx 2{,}71$).
