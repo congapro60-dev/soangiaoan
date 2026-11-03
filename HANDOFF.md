@@ -22,6 +22,9 @@ node --test tests/hki-content.test.mjs tests/hki-package.test.mjs
 npm --prefix "C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release" run build
 \`\`\`
 
+### Dọn dẹp
+- Commit `196ccc0` lỡ kèm `ship-hki.mjs` + 2 err.log rác — đã xóa trong commit này.
+
 ### Bài học kỹ thuật (lặp lại từ HKII)
 - Patch script phải dùng \`split/join\` (không \`String.replace\` với replacement chứa \`$\`).
 - Thay dòng trong file có `;` lồng trong chuỗi → dùng ranh giới `\n};` chứ không phải `;` đầu tiên.
