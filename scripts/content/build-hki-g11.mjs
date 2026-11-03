@@ -28,6 +28,24 @@ function open(prompt,solution,hints,criteria=['Nêu đúng kết luận, đủ �
  return {type:'open',prompt,evaluation:{rubric:{criteria,lookFor:[solution]}},solution,hints};
 }
 const hints=(read,strategy,first,example)=>[read,strategy,first,example];
+// H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
+const dataAnchor = prompt => {
+  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+  const eqDigit = new RegExp('=\\s*[-+]?\\d');
+  const verbal = [];
+  for (const sn of ms) {
+    const body = sn.slice(1, -1);
+    if (!eqDigit.test(body)) { verbal.push(sn); continue; }
+    const structural = body.replace(/\\[-{}]/g, '');
+    if (/[_^{}]/.test(structural)) continue;
+    const i = body.search(eqDigit);
+    const left = body.slice(0, i);
+    const rest = body.slice(i + 1).replace(/^\\s*/, '');
+    if (eqDigit.test(rest)) continue;
+    verbal.push('$' + left + '$ bằng $' + rest + '$');
+  }
+  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
+};
 const concept=(title,statement,unit,lo,teach,error,question)=>({title,statement,unit,lo,teach,error,question});
 const bank={
  radian:concept('Góc lượng giác và radian','Đổi độ sang radian, giải thích số vòng quay và tính độ dài cung theo góc ở tâm.',1,[1],R`Vẽ đường tròn bán kính $r$, đánh dấu chiều dương. Chốt $180^\circ=\pi$ rad, độ dài cung $l=r\alpha$ khi $\alpha$ tính bằng radian; không nhân trực tiếp với số đo độ.`, 'Nhầm đơn vị độ với radian; coi mọi góc cùng điểm cuối có cùng số đo.',(s,d)=>{
@@ -331,8 +349,9 @@ function buildLesson(period,ids,eligible=[]){
   }
   assert.ok(!used.has(question.prompt),`No distinct question for ${period.period}/${id}/${stage}`);used.add(question.prompt);
   const {solution,hints:scaffold,...task}=question;
+  scaffold[0]=dataAnchor(question.prompt);
   solutions.set(task.prompt,solution);
-  return {...task,minutes,objectiveIndexes:[index],participation,branch,isCore:!['support','extension'].includes(branch),requiresFullScaffold:branch==='support',supportRationale:`Lời giải đối soát: ${solution} Lỗi cần quan sát: ${bank[id].error}`,hints:branch==='support'?scaffold:[scaffold[0]],source:{...citationFor(id),origin:'generated'}};
+  return {...task,minutes,objectiveIndexes:[index],participation,branch,isCore:!['support','extension'].includes(branch),requiresFullScaffold:branch==='support',supportRationale:`Lời giải đối soát: ${solution} Lỗi cần quan sát: ${bank[id].error}`,hints:scaffold,source:{...citationFor(id),origin:'generated'}};
  };
  const minutes=total=>ids.map((_,i)=>Math.floor(total/ids.length)+(i<total%ids.length?1:0));
  const makeActivity=(phase,duration,participation,tasks,action,product,look,role='core')=>({phase,minutes:duration,participation,objectiveIndexes:all,studentAction:action,expectedProduct:product,teacherLookFor:look,transition:'GV kiểm tra sản phẩm, chốt một lỗi cần sửa rồi mở hoạt động tiếp theo.',budgetRole:role,source:citationFor(ids[0]),tasks});

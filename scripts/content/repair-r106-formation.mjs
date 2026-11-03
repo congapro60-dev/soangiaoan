@@ -135,8 +135,10 @@ export function repairR106Formation(entry) {
     task.supportRationale = `Lời giải dành cho GV: ${question.solution}`;
     task.metadata = { ...task.metadata, workedSolution: question.solution };
     const hints = pkg.hints.filter(hint => hint.taskId === task.id);
-    assert.equal(hints.length, question.hints.length);
-    hints.forEach((hint, index) => { hint.text = question.hints[index]; hint.supportRationale = task.supportRationale; });
+    // Chính sách hint mới: mọi branch đủ 4 tầng; repair question có thể chỉ định nghĩa 1 hint — khi đó giữ tầng của builder.
+    if (hints.length === question.hints.length) {
+      hints.forEach((hint, index) => { hint.text = question.hints[index]; hint.supportRationale = task.supportRationale; });
+    }
   }
   pkg.rubric = { criteria: [pkg.objectives[0].statement], lookFor: ['Nhầm hai miếng bìa không chạm nhau với hai mặt phẳng không có điểm chung.', 'Bỏ điều kiện hai đường cắt nhau hoặc bỏ điều kiện đường không nằm trong mặt phẳng đích.'] };
   pkg.contentHash = hashPackage(pkg);

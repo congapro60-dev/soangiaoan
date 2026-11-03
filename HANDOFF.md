@@ -4,7 +4,29 @@
 > - `docs/HANDOFF-ARCHIVE.md` (toàn bộ checkpoint trước 03/11/2026)
 > - `tasks/archive/handoff-history-to-2026-10-23.md`, `tasks/archive/handoff-history-v27-v30-2026-10-25.md`
 
-## Latest checkpoint - GD1+GD2: STORYLINE Bài 14 + HINT 3-4 TẦNG + VISUAL THỐNG KÊ (03/11/2026)
+## Latest checkpoint - NÂNG CẤP HKI CHUẨN V88: HINT 3-4 TẦNG DATA-ANCHORED (03/11/2026)
+
+**Branch**: `codex/universal-content-release` · HEAD sau commit này. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Nội dung
+- **G11 HKI** (`build-hki-g11.mjs`): bỏ cắt 1 tầng (`branch==='support'?scaffold:[scaffold[0]]` → `hints:scaffold`); H1 thay bằng `dataAnchor(prompt)` trích dữ kiện từ đề. Trước: 1.441 task × 1 tầng generic → sau: 4 tầng mọi branch.
+- **G12 HKI** (`build-hki-g12.mjs`): support 4 tầng / còn lại 3 tầng, H1 = dataAnchor. Trước: 1.722 task × 1 tầng.
+- **G10 HKI**: giữ nguyên (1.624 task × 4 tầng method hints từ trước; 137 reflection 1 tầng by-design).
+- **`repair-r106-formation.mjs`**: bỏ assert ép số hint khớp; khi repair question định nghĩa khác số tầng thì giữ tầng của builder.
+- **Audit HKI sau rebuild**: 5.350 task — 3.140 × 4 tầng + 1.722 × 3 tầng + 488 × 1 tầng (270 reflection + 218 open, by-design); H1 data-anchor 3.346; 0 trùng, 0 thiếu solidKey (case-insensitive), 0 glue, 0 task non-reflection thiếu hint.
+- **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓; HKII không đổi (builder HKII không đụng).
+
+### Lệnh nghiệm thu
+\`\`\`powershell
+node --test tests/hki-content.test.mjs tests/hki-package.test.mjs
+npm --prefix "C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release" run build
+\`\`\`
+
+### Bài học kỹ thuật (lặp lại từ HKII)
+- Patch script phải dùng \`split/join\` (không \`String.replace\` với replacement chứa \`$\`).
+- Thay dòng trong file có `;` lồng trong chuỗi → dùng ranh giới `\n};` chứ không phải `;` đầu tiên.
+
+## Previous checkpoint - GD1+GD2: STORYLINE Bài 14 + HINT 3-4 TẦNG + VISUAL THỐNG KÊ (03/11/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 **HEAD**: `74431b1` (chore: remove leftover temporary ship script) — trên `1d65ff4` (feat nội dung).

@@ -44,6 +44,24 @@ const qChoice = (prompt, correct, distractors, solution, seed = 0) => {
 const qOpen = (prompt, solution, criteria) => ({ type: 'open', prompt, solution,
   evaluation: { rubric: { criteria: criteria || ['Lập luận đúng theo dữ kiện.', 'Kết quả và điều kiện đúng.'], lookFor: [solution] } } });
 const skill = (title, goal, rule, error, lo, make, hints) => ({ title, goal, rule, error, lo, make, hints });
+// H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
+const dataAnchor = prompt => {
+  const ms = [...String(prompt).matchAll(/\$[^$]+\$/g)].map(m => m[0]).slice(0, 3);
+  const eqDigit = new RegExp('=\\s*[-+]?\\d');
+  const verbal = [];
+  for (const sn of ms) {
+    const body = sn.slice(1, -1);
+    if (!eqDigit.test(body)) { verbal.push(sn); continue; }
+    const structural = body.replace(/\\[-{}]/g, '');
+    if (/[_^{}]/.test(structural)) continue;
+    const i = body.search(eqDigit);
+    const left = body.slice(0, i);
+    const rest = body.slice(i + 1).replace(/^\\s*/, '');
+    if (eqDigit.test(rest)) continue;
+    verbal.push('$' + left + '$ bằng $' + rest + '$');
+  }
+  return verbal.length ? `Chép lại dữ kiện trước khi làm: ${verbal.join("; ")}.` : "Ghi dữ kiện và điều kiện trước khi làm.";
+};
 
 const skills = {
   monoDef: skill('Đọc tính đơn điệu', 'Nhận biết chiều biến thiên trên một khoảng từ giá trị hàm và định nghĩa.',
@@ -554,7 +572,7 @@ function makeEntry(period, focus, eligible) {
     solutions.push({stage,skill:focus[i],branch,prompt:q.prompt,solution:q.solution,evaluation:q.evaluation});
     return {type:q.type,prompt:q.prompt,minutes,participation,branch,objectiveIndexes:[i],source:sources[i],
       ...(q.inputSchema?{inputSchema:q.inputSchema}:{}),evaluation:q.evaluation,
-      hints:branch==='support'?spec.hints:[spec.hints[0]],requiresFullScaffold:false,isCore:branch==='core'||branch==='shared',
+      hints:branch==='support'?[dataAnchor(q.prompt),...spec.hints.slice(1)]:[dataAnchor(q.prompt),...spec.hints.slice(1,3)],requiresFullScaffold:false,isCore:branch==='core'||branch==='shared',
       supportRationale:`Lời giải dành cho GV: ${q.solution} Lỗi cần quan sát: ${spec.error}`};
   };
   const ix=focus.map((_,i)=>i), n=focus.length;
