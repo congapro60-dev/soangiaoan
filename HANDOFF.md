@@ -96,6 +96,12 @@
   - Bổ sung: interactive question S1 (3 options, có bẫy t(1,06)^(t−1)), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
   - Validation: Vitest 442/442 PASS; build PASS 4m23s; QA live session `DzHFVh8pJIStuxIO89hW` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; nội dung mới (BlueBank/GreenBank, 17,91/18,22) xác nhận live ở chặng 2,3,5,6,8,11,12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-84-upgrade.md`).
 
+- Tuần 12 — Khối 12 (`12-12-85`) Nguyên hàm: Tiết 6 Nguyên hàm của hàm số lượng giác — NÂNG CẤP HỒI TỐ V8.8 MASTER TEACHER (03/11/2026):
+  - Trục thực nghiệm mới: Con lắc Foucault bảo tàng Khoa học (l ≈ 9,8 m → ω = 1 rad/s → T = 2π ≈ 6,28 s). Cảm biến v(t) = 0,5·cos t, s(0) = 0 → s(t) = 0,5·sin t, biên độ 0,5 m. S8 nối trục Tiết 3: hệ thống treo cabin tàu metro, F(0) = 5 → F(t) = −cos t + 2 sin t + 6.
+  - AI Error viết lại: AI trợ lý bảo tàng dựng li độ sai chiều → "AI làm con lắc chạy ngược chiều" (v > 0 nhưng s′ < 0); sửa đúng s(t) = −cos t + C, với s(0) = 0 → s(t) = 1 − cos t.
+  - Bổ sung: interactive question S1 (3 options, bẫy "giống đạo hàm"), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C.
+  - Validation: Vitest 442/442 PASS; build PASS 1m37s; QA live session `6bSogl7CqrBwInBbthXx` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; nội dung con lắc live ở 7/12 chặng; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-85-upgrade.md`).
+
 ## 2. Việc tiếp theo
-1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`, `12-12-83`, `12-12-84`.
-2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-85` (Nguyên hàm — Tiết 6: lượng giác) → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.
+1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82` → `12-12-85`.
+2. Nâng cấp hồi tố bài cuối: `12-12-86` (Phương sai, độ lệch chuẩn đo độ rủi ro), đối chiếu chuẩn đã đạt ở `12-12-87`.

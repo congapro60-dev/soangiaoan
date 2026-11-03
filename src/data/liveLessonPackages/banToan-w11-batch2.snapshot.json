@@ -1233,7 +1233,7 @@
       "selfChoice": false,
       "timelineKey": "gateD121285",
       "title": "Nguyên hàm",
-      "focus": "Hình thành công thức nguyên hàm của hàm số lượng giác: nguyên hàm của cos x bằng sin x + C và nguyên hàm của sin x bằng −cos x + C; hiểu nguyên hàm là chiều ngược của đạo hàm để giải thích dấu trừ; kết hợp tính chất tuyến tính (Tiết 3) và điều kiện ban đầu; nhận diện lỗi nhầm chiều đạo hàm — nguyên hàm; ứng dụng bài toán dao động",
+      "focus": "Hình thành công thức nguyên hàm của hàm số lượng giác trên trục thực nghiệm con lắc Foucault bảo tàng Khoa học (l ≈ 9,8 m, ω = 1 rad/s, T = 2π ≈ 6,28 s): nguyên hàm của cos x bằng sin x + C và nguyên hàm của sin x bằng −cos x + C; hiểu nguyên hàm là chiều ngược của đạo hàm để giải thích dấu trừ; dựng lại li độ s(t) = 0,5·sin t từ vận tốc v(t) = 0,5·cos t với điều kiện s(0) = 0; nhận diện lỗi nhầm chiều đạo hàm — nguyên hàm (AI làm con lắc chạy ngược); ứng dụng dao động điều hòa và hệ thống treo cabin tàu",
       "formulas": [
         "\\int \\cos x\\, dx = \\sin x + C",
         "\\int \\sin x\\, dx = -\\cos x + C",
@@ -1241,44 +1241,44 @@
       ],
       "examples": [
         {
-          "question": "Tìm họ nguyên hàm của hàm số kết hợp đa thức và lượng giác: F(x) = ∫ (x² + cos x) dx.",
-          "solution": "Áp dụng tính chất tuyến tính (Tiết 3) và công thức lượng giác: F(x) = x³/3 + sin x + C. Kiểm chứng đạo hàm: (x³/3)′ = x²; (sin x)′ = cos x."
+          "question": "Con lắc Foucault bảo tàng Khoa học (l ≈ 9,8 m) swing qua vị trí thấp nhất lúc t = 0: cảm biến đo vận tốc ngang v(t) = 0,5·cos t (m/s), s(0) = 0. Dựng phương trình li độ s(t), tính biên độ và chu kỳ dao động.",
+          "solution": "Nhận diện s = ∫v (chiều ngược). Tách hệ số: ∫ 0,5·cos t dt = 0,5∫ cos t dt = 0,5·sin t + C (vì (sin t)′ = cos t). Điều kiện s(0) = 0: 0,5·sin 0 + C = 0 ⇔ C = 0. Vậy s(t) = 0,5·sin t (m). Biên độ A = 0,5 m; chu kỳ T = 2π ≈ 6,28 s khớp thiết kế l ≈ 9,8 m (ω = √(g/l) = 1 rad/s). Kiểm chứng: s′(t) = 0,5·cos t = v(t) ✓."
         },
         {
-          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = sin x + 2cos x biết F(0) = 5.",
-          "solution": "F(x) = −cos x + 2 sin x + C. Thay điều kiện F(0) = 5: −cos 0 + 2 sin 0 + C = 5 ⇔ −1 + 0 + C = 5 ⇔ C = 6. Vậy F(x) = −cos x + 2 sin x + 6."
+          "question": "Hệ thống treo cabin tàu metro có gia tốc thẳng đứng chuẩn hóa f(t) = sin t + 2cos t (m/s²). Biết độ lệch tại thời điểm tàu vừa rời đoạn ray xấu là F(0) = 5. Tìm hàm độ lệch F(t).",
+          "solution": "F(t) = ∫ (sin t + 2cos t) dt = −cos t + 2 sin t + C. Thay điều kiện F(0) = 5: −cos 0 + 2 sin 0 + C = 5 ⇔ −1 + 0 + C = 5 ⇔ C = 6. Vậy F(t) = −cos t + 2 sin t + 6."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết 2 công thức nguyên hàm của hàm số lượng giác kèm kiểm chứng, rồi tính I = ∫ 2 sin x dx.",
-          "answer": "Hai công thức: 1) ∫ cos x dx = sin x + C (vì (sin x)′ = cos x); 2) ∫ sin x dx = −cos x + C (vì (−cos x)′ = sin x). Áp dụng: I = −2 cos x + C."
+          "question": "Viết 2 công thức nguyên hàm của hàm số lượng giác kèm kiểm chứng, rồi tính I = ∫ 2 sin t dt (dữ liệu cảm biến gấp đôi).",
+          "answer": "Hai công thức: 1) ∫ cos t dt = sin t + C (vì (sin t)′ = cos t); 2) ∫ sin t dt = −cos t + C (vì (−cos t)′ = sin t). Áp dụng: I = −2 cos t + C."
         },
         {
           "level": "NB",
-          "question": "Tìm họ nguyên hàm của f(x) = x² + cos x.",
-          "answer": "F(x) = x³/3 + sin x + C."
+          "question": "Tìm họ nguyên hàm của f(t) = t² + cos t (xu thế + rung động).",
+          "answer": "F(t) = t³/3 + sin t + C."
         },
         {
           "level": "TH",
-          "question": "Tìm họ nguyên hàm của hàm số f(x) = 2 sin x − 3 cos x.",
-          "answer": "F(x) = 2∫ sin x dx − 3∫ cos x dx = −2 cos x − 3 sin x + C."
+          "question": "Tìm họ nguyên hàm của hàm số f(t) = 2 sin t − 3 cos t (gợi ý: tách tuyến tính trước).",
+          "answer": "F(t) = 2∫ sin t dt − 3∫ cos t dt = −2 cos t − 3 sin t + C."
         },
         {
           "level": "TH",
-          "question": "Cho hàm số f(x) = sin x + 2 cos x. Tìm nguyên hàm F(x) của f(x) biết F(0) = 5.",
-          "answer": "F(x) = −cos x + 2 sin x + C. F(0) = −1 + 0 + C = 5 ⇔ C = 6. Vậy F(x) = −cos x + 2 sin x + 6."
+          "question": "Cho hàm số f(t) = sin t + 2 cos t. Tìm nguyên hàm F(t) của f(t) biết F(0) = 5 (gợi ý: nhớ cos 0 = 1, sin 0 = 0).",
+          "answer": "F(t) = −cos t + 2 sin t + C. F(0) = −1 + 0 + C = 5 ⇔ C = 6. Vậy F(t) = −cos t + 2 sin t + 6."
         },
         {
           "level": "VD",
-          "question": "Một vật dao động điều hòa có vận tốc v(t) = 3 cos t (m/s). Biết tại t = 0 vật ở vị trí s(0) = 0. Tìm phương trình li độ s(t) và xác định li độ cực đại của vật.",
-          "answer": "s(t) = ∫ 3 cos t dt = 3 sin t + C. s(0) = 3 sin 0 + C = 0 ⇔ C = 0. Vậy s(t) = 3 sin t (m). Vì sin t ∈ [−1; 1] nên li độ dao động trong khoảng [−3; 3] m — li độ cực đại bằng 3 m (tại t = π/2 + k·2π)."
+          "question": "Một vật dao động điều hòa có vận tốc v(t) = 3 cos t (m/s). Biết tại t = 0 vật ở vị trí s(0) = 0. Tìm phương trình li độ s(t) và xác định biên độ dao động của vật.",
+          "answer": "s(t) = ∫ 3 cos t dt = 3 sin t + C. s(0) = 3 sin 0 + C = 0 ⇔ C = 0. Vậy s(t) = 3 sin t (m). Vì sin t ∈ [−1; 1] nên li độ dao động trong khoảng [−3; 3] m — biên độ bằng 3 m (tại t = π/2 + k·2π)."
         },
         {
           "level": "VD",
-          "question": "Tìm họ nguyên hàm I = ∫ (sin x − 2 cos x + e^x) dx và kiểm chứng kết quả bằng đạo hàm.",
-          "answer": "I = −cos x − 2 sin x + e^x + C. Kiểm chứng: (−cos x)′ = sin x; (−2 sin x)′ = −2 cos x; (e^x)′ = e^x — tổng lại đúng sin x − 2 cos x + e^x."
+          "question": "Tìm họ nguyên hàm I = ∫ (sin t − 2 cos t + e^t) dt và kiểm chứng kết quả bằng đạo hàm.",
+          "answer": "I = −cos t − 2 sin t + e^t + C. Kiểm chứng: (−cos t)′ = sin t; (−2 sin t)′ = −2 cos t; (e^t)′ = e^t — tổng lại đúng sin t − 2 cos t + e^t."
         }
       ],
       "quick": [
@@ -1292,24 +1292,25 @@
         }
       ],
       "mistakes": [
-        "Nhầm chiều giữa đạo hàm và nguyên hàm: viết ∫ sin x dx = cos x + C (đây là đạo hàm của sin x, không phải nguyên hàm).",
-        "Quên dấu trừ: viết ∫ sin x dx = cos x + C thay vì −cos x + C; hoặc vi ∫ cos x dx = −sin x + C (đảo ngược hai công thức).",
-        "Sai hệ số khi áp tuyến tính: ∫ 2 sin x dx phải là −2 cos x + C, không phải −cos x + C.",
+        "Nhầm chiều giữa đạo hàm và nguyên hàm: viết ∫ sin t dt = cos t + C — làm con lắc chạy ngược chiều (đây là đạo hàm của sin t, không phải nguyên hàm).",
+        "Quên dấu trừ: viết ∫ sin x dx = cos x + C thay vì −cos x + C; hoặc viết ∫ cos x dx = −sin x + C (đảo ngược hai công thức).",
+        "Sai hệ số khi áp tuyến tính: ∫ 2 sin t dt phải là −2 cos t + C, không phải −cos t + C.",
         "Tính sai C theo điều kiện ban đầu do quên cos 0 = 1, sin 0 = 0."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Công thức nguyên hàm của hàm số lượng giác",
-        "a. Công thức 1: ∫ cos x dx = sin x + C (vì (sin x)′ = cos x).",
-        "b. Công thức 2: ∫ sin x dx = −cos x + C (vì (−cos x)′ = sin x).",
+        "1. Dữ liệu thực nghiệm: con lắc Foucault bảo tàng Khoa học",
+        "   - Dây l ≈ 9,8 m → ω = √(g/l) = 1 rad/s → chu kỳ T = 2π ≈ 6,28 s.",
+        "   - Cảm biến: v(t) = 0,5·cos t (m/s), s(0) = 0 → s(t) = 0,5·sin t; biên độ 0,5 m.",
+        "2. Công thức nguyên hàm của hàm số lượng giác",
+        "   a. Công thức 1: ∫ cos x dx = sin x + C (vì (sin x)′ = cos x).",
+        "   b. Công thức 2: ∫ sin x dx = −cos x + C (vì (−cos x)′ = sin x).",
         "   - Dấu trừ có nguồn gốc từ (cos x)′ = −sin x.",
-        "2. Nguyên hàm là chiều ngược của đạo hàm",
+        "3. Nguyên hàm là chiều ngược của đạo hàm",
         "   - f → F với F′ = f; kiểm chứng kết quả luôn bằng đạo hàm.",
-        "3. Kết hợp tuyến tính (Tiết 3)",
-        "   - ∫ [a sin x + b cos x] dx = −a cos x + b sin x + C.",
-        "   - Kết hợp đa thức, e^x: ∫ (x² + cos x) dx = x³/3 + sin x + C.",
-        "4. Ứng dụng dao động",
-        "   - v(t) = v₀ cos t, s(0) = 0 → s(t) = v₀ sin t; li độ cực đại = v₀ (biên độ)."
+        "4. Kết hợp tuyến tính (Tiết 3) và ứng dụng dao động",
+        "   - ∫ [a sin t + b cos t] dt = −a cos t + b sin t + C.",
+        "   - v(t) = v₀ cos t, s(0) = 0 → s(t) = v₀ sin t; biên độ = v₀ (chu kỳ T = 2π với ω = 1)."
       ]
     },
     {
@@ -1550,14 +1551,14 @@
     "12-12-85": {
       "key": "12-12-85",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "Tìm nguyên hàm I = ∫ sin x dx. AI giải: \"Vì đạo hàm của sin x là cos x, nên nguyên hàm của sin x là cos x + C.\"",
-      "correction": "Nguyên hàm của f là hàm có đạo hàm BẰNG f (chiều ngược của đạo hàm), không phải đạo hàm của f. Kiểm chứng: (cos x + C)′ = −sin x ≠ sin x — sai. Đáp án đúng: I = −cos x + C, vì (−cos x)′ = −(−sin x) = sin x.",
-      "proof": "Đạo hàm cần tìm: tìm F sao cho F′ = sin x. Thử cos x: (cos x)′ = −sin x — sai dấu. Thử −cos x: (−cos x)′ = sin x ✓. Vậy nguyên hàm của sin x là −cos x + C. Lỗi của AI là đọc bảng đạo hàm theo chiều xuôi (f → f′) thay vì chiều ngược (f′ → f) và bỏ sót dấu trừ từ đạo hàm của cos x.",
-      "whyAiError": "Mô hình ngôn ngữ học thuộc cặp \"(sin x)′ = cos x\" theo chiều đạo hàm và phản xạ ánh xạ sin → cos khi gặp câu hỏi nguyên hàm, bỏ qua việc đảo chiều quan hệ và kiểm chứng bằng đạo hàm ngược.",
-      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Nguyên hàm của sin x có phải là đạo hàm của sin x không? Hãy kiểm chứng bằng đạo hàm rồi sửa lại.",
-      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (cos x)′ = −sin x ≠ sin x, hoặc nêu đáp án đúng −cos x + C kèm kiểm chứng).",
-      "boardPrompt": "AI nói \"đạo hàm của sin x là cos x nên nguyên hàm của sin x là cos x\". Em phát hiện sai ở chiều nào?",
-      "libraryTitle": "Lỗi AI nhầm chiều giữa đạo hàm và nguyên hàm của sin x"
+      "wrongSolution": "Con lắc Foucault bảo tàng Khoa học: cảm biến đo tín hiệu vận tốc chuẩn hóa v(t) = sin t. AI trợ lý dựng li độ: \"Vì đạo hàm của sin t là cos t, nên s(t) = cos t + C.\"",
+      "correction": "AI nhầm chiều đạo hàm — nguyên hàm: nguyên hàm của sin t là hàm có đạo hàm BẰNG sin t, không phải đạo hàm của sin t. Kiểm chứng: (cos t + C)′ = −sin t ≠ sin t — sai dấu. Đáp án đúng: s(t) = −cos t + C, vì (−cos t)′ = −(−sin t) = sin t. Với điều kiện con lắc qua vị trí thấp nhất lúc t = 0 thì s(0) = 0 ⇒ −1 + C = 0 ⇒ C = 1, nên s(t) = 1 − cos t.",
+      "proof": "Bằng chứng vật lý: tại t nhỏ dương, con lắc đang đi tới (v = sin t > 0) nhưng đạo hàm của cos t là −sin t < 0 — AI làm con lắc chạy ngược chiều. Vẽ phác đồ thị: sin t tăng từ 0 trong khi cos t giảm từ 1 — mâu thuẫn lộ ngay. Lỗi của AI là đọc bảng đạo hàm theo chiều xuôi (f → f′) thay vì chiều ngược (f′ → f) và bỏ sót dấu trừ từ đạo hàm của cos t.",
+      "whyAiError": "Mô hình ngôn ngữ học thuộc cặp \"(sin t)′ = cos t\" theo chiều đạo hàm và phản xạ ánh xạ sin → cos khi gặp câu hỏi nguyên hàm, bỏ qua việc đảo chiều quan hệ và kiểm chứng bằng đạo hàm ngược.",
+      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Nguyên hàm của sin t có phải là đạo hàm của sin t không? Nếu theo AI, con lắc đang đi tới hay đi lui ở thời điểm t nhỏ dương? Hãy kiểm chứng bằng đạo hàm rồi sửa lại.",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu (cos t + C)′ = −sin t ≠ sin t, hoặc nêu đáp án đúng −cos t + C kèm kiểm chứng).",
+      "boardPrompt": "AI nói \"đạo hàm của sin t là cos t nên s(t) = cos t + C\". Em phát hiện sai ở chiều nào?",
+      "libraryTitle": "Lỗi AI nhầm chiều giữa đạo hàm và nguyên hàm của sin t — làm con lắc Foucault chạy ngược chiều"
     },
     "12-12-87": {
       "key": "12-12-87",
