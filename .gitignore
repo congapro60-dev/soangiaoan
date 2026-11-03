@@ -47,3 +47,10 @@ next-env.d.ts
 /work/
 
 /.dieu-phoi/
+ship-*.mjs
+cleanup-*.mjs
+fix-*.mjs
+wire-*.mjs
+apply-*.mjs
+patch-*.mjs
+*-check-cheo-*.err.log
