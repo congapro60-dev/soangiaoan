@@ -46,10 +46,12 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   hasLiveAssignmentSession: vi.fn(async () => false),
 }));
 // Giải đề từ ảnh: mock để không gọi vision thật. fetchPhotoBuffer trả null (ảnh test không tải được).
+const { fetchPhotoMock, solveGroupImageMock } = vi.hoisted(() => ({ fetchPhotoMock: vi.fn(async () => null as unknown), solveGroupImageMock: vi.fn(async () => null) }));
 vi.mock('../_assistant-ph-hs-image-solve', () => ({
   IMAGE_SOLVE_REPLIES: { unreadable: 'Ảnh chưa đọc được, em chụp lại nhé.', busy: 'AI bận.' },
-  fetchPhotoBuffer: vi.fn(async () => null),
+  fetchPhotoBuffer: (...args: unknown[]) => fetchPhotoMock(...(args as [])),
   solveProblemFromImage: vi.fn(async () => null),
+  solveGroupImage: (...args: unknown[]) => solveGroupImageMock(...(args as [])),
 }));
 vi.mock('../_assistant-ph-hs-menu', async () => ({
   ...await vi.importActual<typeof import('../_assistant-ph-hs-menu')>('../_assistant-ph-hs-menu'),
@@ -423,6 +425,47 @@ describe('nhóm Zalo — chỉ trả lời khi @mention bot (phương án B)', (
     await request(groupEvent('@SmartPlan Bot câu 2', 'g-4', [{ user_id: 'bot-1', offset: 0, length: 14 }]));
     expect(answerGroup).toHaveBeenCalledTimes(1); // chỉ lần đầu gọi AI
     expect(sent()).toHaveLength(1);
+  });
+
+  it('ảnh + @mention bot trong nhóm → giải đề từ ảnh (không dữ liệu cá nhân)', async () => {
+    fetchPhotoMock.mockResolvedValueOnce({ buffer: Buffer.from('img'), mimeType: 'image/jpeg' });
+    solveGroupImageMock.mockResolvedValueOnce('Đề trong ảnh giải vậy nè ✏️');
+    const body = {
+      ok: true,
+      result: {
+        event_name: 'message.image.received',
+        message: {
+          from: { id: 'user-1', is_bot: false },
+          chat: { id: 'group-1', chat_type: 'GROUP' },
+          text: '@SmartPlan Bot giải giúp', photo: 'https://zalo.example/photo.jpg',
+          message_id: 'gi-1', date: Date.now(),
+          mentions: [{ user_id: 'bot-1', offset: 0, length: 14 }],
+        },
+      },
+    };
+    await request(body);
+    expect(solveGroupImageMock).toHaveBeenCalledTimes(1);
+    expect(solveGroupImageMock.mock.calls[0][1]).toBe('giải giúp'); // mention + khoảng trắng thừa đã cắt
+    expect(answerGroup).not.toHaveBeenCalled();
+    expect(sent()).toHaveLength(1);
+    expect(JSON.parse(sent()[0][1].body).text).toContain('giải vậy nè');
+  });
+
+  it('ảnh trong nhóm KHÔNG mention bot → im lặng, không tải ảnh', async () => {
+    await request({
+      ok: true,
+      result: {
+        event_name: 'message.image.received',
+        message: {
+          from: { id: 'user-1', is_bot: false },
+          chat: { id: 'group-1', chat_type: 'GROUP' },
+          photo: 'https://zalo.example/photo.jpg', message_id: 'gi-2', date: Date.now(),
+        },
+      },
+    });
+    expect(fetchPhotoMock).not.toHaveBeenCalled();
+    expect(solveGroupImageMock).not.toHaveBeenCalled();
+    expect(sent()).toHaveLength(0);
   });
 });
 

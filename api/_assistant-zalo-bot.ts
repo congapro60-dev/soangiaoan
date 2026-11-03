@@ -13,7 +13,7 @@ import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
 import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
-import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
+import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
@@ -463,7 +463,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   if ((!isTextEvent && !isImageEvent && !isOtherEvent) || !m || m.from?.is_bot !== false
     || (chatType !== 'PRIVATE' && !isGroupChat)
     || (chatType === 'PRIVATE' && fromId !== chatId)
-    || (isGroupChat && !isTextEvent) // nhóm: chỉ nhận text (ảnh/sticker/voice trong nhóm bỏ qua)
+    || (isGroupChat && !isTextEvent && !isImageEvent) // nhóm: chỉ nhận text + ảnh (sticker/voice bỏ qua)
     || !msgId || !Number.isInteger(msgDate) || msgDate < 1e12
     || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000
     || (isTextEvent && (!msgText || msgText.length > 2000))
@@ -488,6 +488,17 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
       res.status(503).json({ kind: 'error', code: 'ZALO_BOT_UNAVAILABLE' }); return true;
     }
     const question = stripMentions(m as Record<string, unknown>, msgText, botName).slice(0, 1000);
+    if (isImageEvent) {
+      // Ảnh trong nhóm: caption (nếu có) nằm trong m.text; mention đã cắt. Fail-safe:
+      // ảnh hỏng/AI lỗi luôn trả lời hướng dẫn, không bao giờ im lặng sau khi đã nhận mention.
+      const image = await fetchPhotoBuffer(photoUrl);
+      const reply = !image
+        ? 'Ảnh này mình chưa đọc được (mờ, quá lớn hoặc không phải ảnh) — nhóm mình gửi lại ảnh rõ hơn nhé! 📸'
+        : (await solveGroupImage(image, question))
+          ?? 'Em đang bận chút, nhóm mình thử lại sau ít phút hoặc gõ đề bằng chữ @ mình nhé! 🙏';
+      await sendStyled(token, chatId, reply, false);
+      res.status(200).json({ ok: true }); return true;
+    }
     const reply = question
       ? (await answerGroupQuestion(vilaoCaller(String(process.env.PH_CHAT_VILAO_KEY || '')), question))
         ?? 'Em đang bận chút, nhóm mình thử lại sau ít phút nhé! 🙏'

@@ -13,7 +13,7 @@
  */
 import { getAdminDb } from './_exam-core.js';
 import { callOpenAiCompatibleVision, type InlineImage } from './_grading-core.js';
-import { AI_MENU_HINT, buildSystemPrompt, composeAiReply, sanitizeAiReply, type ChatRole } from './_assistant-ph-hs-chat.js';
+import { AI_MENU_HINT, buildGroupSystemPrompt, buildSystemPrompt, composeAiReply, sanitizeAiReply, type ChatRole } from './_assistant-ph-hs-chat.js';
 import { extractGeometryReply, type GeometrySpec } from './_assistant-geometry.js';
 import { hasLatexFormula } from './_assistant-math-image.js';
 import { latexToUnicodeMath } from './_assistant-math-text.js';
@@ -138,3 +138,36 @@ export const IMAGE_SOLVE_REPLIES = {
   unreadable: `Thầy cô chưa đọc được ảnh này (ảnh mờ, quá lớn hoặc không phải ảnh đề bài). Em chụp lại rõ hơn rồi gửi nhé.\n\n${AI_MENU_HINT}`,
   busy: `Trợ lý đang bận nên chưa giải được ảnh này. Em thử lại sau ít phút, hoặc gõ đề bằng chữ cũng được nhé.\n\n${AI_MENU_HINT}`,
 } as const;
+
+/**
+ * Giải đề trong ảnh cho NHÓM Zalo (chốt 3/11): KHÔNG có báo cáo cá nhân nào cả — chỉ
+ * prompt nhóm + quy tắc đọc đề. Trả text thuần (nhóm không vẽ hình/công thức render).
+ * Trả null khi lỗi — caller phải có fallback, không im lặng.
+ */
+export const solveGroupImage = async (image: { buffer: Buffer; mimeType: string }, caption?: string): Promise<string | null> => {
+  const candidates = visionCandidates();
+  if (!candidates.length) return null;
+  const prompt = [
+    buildGroupSystemPrompt(),
+    '',
+    IMAGE_SOLVE_RULE,
+    '',
+    caption?.trim() ? `Người gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}` : 'Không có lời nhắn kèm theo — hãy giải đề trong ảnh.',
+  ].join('\n');
+  const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
+  for (const candidate of candidates) {
+    try {
+      const raw = await callOpenAiCompatibleVision(prompt, images, candidate.key, {
+        baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: 55_000,
+      });
+      if (!raw?.trim()) { console.error(`[assistant-image-solve] group ${candidate.model}: trả rỗng`); continue; }
+      console.log(`[assistant-image-solve] group OK model=${candidate.model} chars=${raw.length}`);
+      const clean = composeAiReply(latexToUnicodeMath(sanitizeAiReply(raw)));
+      if (!clean) continue;
+      return clean.slice(0, 1800);
+    } catch (error) {
+      console.error(`[assistant-image-solve] group ${candidate.model} lỗi:`, error instanceof Error ? error.message.slice(0, 160) : error);
+    }
+  }
+  return null;
+};
