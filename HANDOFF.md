@@ -78,6 +78,12 @@
   - QA Live: Chạy live session `hJedovT1shHfMCLdWU0z` với lớp `12LoTrinh1` (`AD4GKT`), duyệt qua toàn bộ 12 chặng (từ P0 đến P40), HS nhận diện đúng phiên GV (`tasks/qa-report-12-12-87.md`).
   - Git Sync: Đang chuẩn bị đồng bộ push lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
 
+- Tuần 12 — Khối 12 (`12-12-82`) Nguyên hàm: Tiết 3 Tính chất cơ bản — NÂNG CẤP HỒI TỐ V8.8 MASTER TEACHER (03/11/2026):
+  - Trục thực nghiệm mới: Tàu Metro tuyến số 1 rời ga, cảm biến IMU $a(t) = t^2 + 3t$ (dữ liệu 0/4/10/18 m/s²), $v(t) = t^3/3 + 3t^2/2$, $v(3) = 22{,}5$ m/s = 81 km/h, $s(3) = 20{,}25$ m.
+  - AI Error viết lại: $\int t(t+3)dt = t\int(t+3)dt$ → $v_{AI}(3) = 40{,}5$ m/s = 145,8 km/h vô lý; đáp án đúng nằm đúng trong 2 tính chất của tiết (bỏ lỗi cũ cần từng phần — ngoài phạm vi tiết học).
+  - Bổ sung: interactive question S1 (3 options), teacherCue lớp yếu (S1/S3/S4/S10), hint phân tầng M/S/C, bài Challenge phanh $a=-4t+8$ dừng $t=5$s quãng đường 200/3 m (sửa số liệu sai cũ $v(6)\neq 0$).
+  - Validation: Vitest 442/442 PASS; build PASS 56s; xuất bản 66/66 (0 audit fail); QA live session `2LcMkY5ExQ6r7LQ6JViK` lớp `12LoTrinh1` 12 chặng + nút Sau disabled ở chặng 12; HS đồng bộ đúng lớp (`tasks/qa-report-12-12-82-upgrade.md`).
+
 ## 2. Việc tiếp theo
-1. Trình duyệt kết quả hoàn thành bài `12-12-87`.
-2. Triển khai kế hoạch nâng cấp hồi tố các bài cũ Tuần 12 (`12-12-82` đến `12-12-86`) theo chuẩn V8.8 Master Teacher (bổ sung trục dữ liệu thực nghiệm xuyên suốt, câu hỏi tương tác cụ thể kèm hints, teacherCue định hướng cho lớp yếu, chốt Exit Ticket sâu sắc).
+1. Trình duyệt kết quả nâng cấp hồi tố `12-12-82`.
+2. Tiếp tục nâng cấp hồi tố theo thứ tự: `12-12-83` (Nguyên hàm — Tiết 4: Công thức mũ) → `12-12-84` → `12-12-85` → `12-12-86`, đối chiếu chuẩn đã đạt ở `12-12-87`.

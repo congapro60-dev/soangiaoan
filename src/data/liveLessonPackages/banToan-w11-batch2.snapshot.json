@@ -865,7 +865,7 @@
       "selfChoice": false,
       "timelineKey": "gateD121282",
       "title": "Tính chất cơ bản của nguyên hàm",
-      "focus": "Hình thành và vận dụng các tính chất cơ bản của nguyên hàm (tính chất tuyến tính: nhân hằng số khác 0, cộng trừ hai hàm số); nhận diện bẫy nguyên hàm của tích và đưa biến ra ngoài dấu tích phân; xác định nguyên hàm qua điều kiện ban đầu",
+      "focus": "Hình thành và vận dụng các tính chất cơ bản của nguyên hàm (tính chất tuyến tính: nhân hằng số khác 0, cộng trừ hai hàm số) trên trục dữ liệu thực nghiệm tàu Metro tuyến số 1: tái lập vận tốc v(t) = t³/3 + 3t²/2 và quãng đường s(t) = t⁴/12 + t³/2 từ gia tốc cảm biến a(t) = t² + 3t; nhận diện bẫy nguyên hàm của tích và đưa biến t ra ngoài dấu tích phân (AI tính v(3) = 145,8 km/h vô lý); xác định nguyên hàm qua điều kiện ban đầu v(0) = 0",
       "formulas": [
         "\\int k f(x) dx = k \\int f(x) dx \\quad (k \\neq 0)",
         "\\int [f(x) \\pm g(x)] dx = \\int f(x) dx \\pm \\int g(x) dx",
@@ -873,50 +873,50 @@
       ],
       "examples": [
         {
-          "question": "Tìm họ nguyên hàm của hàm số đa thức: F(x) = ∫ (6x² - 4x + 3) dx.",
-          "solution": "Áp dụng tính chất tuyến tính của nguyên hàm: F(x) = 6 ∫ x² dx - 4 ∫ x dx + 3 ∫ dx = 6·(x³/3) - 4·(x²/2) + 3x + C = 2x³ - 2x² + 3x + C."
+          "question": "Tàu metro tuyến số 1 rời ga Bến Thành: cảm biến IMU đo gia tốc a(t) = t² + 3t (m/s²), tàu đứng yên khi t = 0. Tìm hàm vận tốc v(t) và tốc độ tàu tại t = 3 giây.",
+          "solution": "Vì a là đạo hàm của v nên v là nguyên hàm của a: v(t) = ∫ (t² + 3t) dt = ∫ t² dt + 3∫ t dt = t³/3 + 3t²/2 + C. Điều kiện tàu rời ga đứng yên v(0) = 0 ⇒ C = 0. Vậy v(t) = t³/3 + 3t²/2. Tại t = 3: v(3) = 9 + 13,5 = 22,5 m/s = 81 km/h."
         },
         {
-          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = 4x³ - 3cos x + 1 thỏa mãn điều kiện ban đầu F(0) = 5.",
-          "solution": "Họ nguyên hàm của f(x) là: F(x) = ∫ (4x³ - 3cos x + 1) dx = x⁴ - 3sin x + x + C. Thay điều kiện ban đầu F(0) = 5: 0⁴ - 3sin 0 + 0 + C = 5 ⇔ C = 5. Vậy nguyên hàm cần tìm là F(x) = x⁴ - 3sin x + x + 5."
+          "question": "Từ vận tốc v(t) = t³/3 + 3t²/2 của tàu, tìm quãng đường s(t) biết s(0) = 0 và tính quãng đường tàu đi được trong 3 giây đầu.",
+          "solution": "Tích phân hai lần, lần nào cũng tách trước khi tính: s(t) = ∫ v(t) dt = (1/3)∫ t³ dt + (3/2)∫ t² dt = t⁴/12 + t³/2 + C. Điều kiện s(0) = 0 ⇒ C = 0. Vậy s(t) = t⁴/12 + t³/2. Tại t = 3: s(3) = 81/12 + 27/2 = 6,75 + 13,5 = 20,25 m."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu 2 tính chất cơ bản của nguyên hàm và tính họ nguyên hàm I = ∫ (3x² + 2x) dx.",
-          "answer": "Hai tính chất: 1) ∫ k f(x) dx = k ∫ f(x) dx (k ≠ 0); 2) ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx. Áp dụng: I = 3(x³/3) + 2(x²/2) + C = x³ + x² + C."
+          "question": "Nêu 2 tính chất cơ bản của nguyên hàm và tách tích phân I = ∫ (t² + 3t) dt theo 2 tính chất đó (gợi ý: tách trước, tích phân sau).",
+          "answer": "Hai tính chất: 1) ∫ k f(x) dx = k ∫ f(x) dx (k ≠ 0); 2) ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx. Áp dụng: I = ∫ t² dt + ∫ 3t dt = ∫ t² dt + 3∫ t dt = t³/3 + 3t²/2 + C."
         },
         {
           "level": "NB",
-          "question": "Tìm họ nguyên hàm của hàm số: f(x) = 4e^x - 5sin x.",
-          "answer": "F(x) = ∫ (4e^x - 5sin x) dx = 4 ∫ e^x dx - 5 ∫ sin x dx = 4e^x + 5cos x + C."
+          "question": "Tìm họ nguyên hàm của hàm số: f(t) = 4e^t - 5sin t.",
+          "answer": "F(t) = ∫ (4e^t - 5sin t) dt = 4 ∫ e^t dt - 5 ∫ sin t dt = 4e^t + 5cos t + C."
         },
         {
           "level": "TH",
-          "question": "Tìm họ nguyên hàm của hàm phân thức: f(x) = (2x² + 3x - 1) / x trên khoảng (0; +∞).",
+          "question": "Tìm họ nguyên hàm của hàm phân thức: f(x) = (2x² + 3x - 1) / x trên khoảng (0; +∞) (gợi ý: tách tử số trước khi tích phân).",
           "answer": "Tách phân thức: f(x) = 2x + 3 - 1/x. Khi đó F(x) = ∫ (2x + 3 - 1/x) dx = x² + 3x - ln|x| + C = x² + 3x - ln x + C (do x > 0)."
         },
         {
           "level": "TH",
-          "question": "Cho hàm số f(x) = 3x² - 2x + 4. Tìm nguyên hàm F(x) của f(x) biết rằng đồ thị hàm số y = F(x) đi qua điểm M(1; 8).",
-          "answer": "Họ nguyên hàm: F(x) = x³ - x² + 4x + C. Đồ thị đi qua M(1; 8) nên F(1) = 8 ⇔ 1 - 1 + 4 + C = 8 ⇔ C = 4. Vậy F(x) = x³ - x² + 4x + 4."
+          "question": "Tàu chạy ở chế độ tăng tốc mô phỏng a(t) = 3t² - 2t + 4 (m/s²). Tìm vận tốc v(t) của tàu biết rằng tại thời điểm t = 1 giây, tàu có tốc độ v(1) = 8 m/s.",
+          "answer": "Vận tốc: v(t) = ∫ (3t² - 2t + 4) dt = t³ - t² + 4t + C. Thay điều kiện v(1) = 8: 1 - 1 + 4 + C = 8 ⇔ C = 4. Vậy v(t) = t³ - t² + 4t + 4."
         },
         {
           "level": "VD",
-          "question": "Một vật chuyển động thẳng với gia tốc a(t) = 6t - 2 (m/s²). Biết vận tốc ban đầu v(0) = 4 m/s và tại thời điểm ban đầu t = 0 vật đang ở vị trí s(0) = 5 m. Tìm phương trình vận tốc v(t) và phương trình tọa độ chuyển động s(t).",
+          "question": "Một tàu metro rời depot với gia tốc a(t) = 6t - 2 (m/s²). Biết vận tốc ban đầu v(0) = 4 m/s và tại thời điểm ban đầu t = 0 tàu đang ở vị trí s(0) = 5 m. Tìm phương trình vận tốc v(t) và phương trình tọa độ chuyển động s(t).",
           "answer": "Vận tốc v(t) = ∫ a(t) dt = ∫ (6t - 2) dt = 3t² - 2t + C₁. Vì v(0) = 4 nên C₁ = 4 → v(t) = 3t² - 2t + 4. Tọa độ s(t) = ∫ v(t) dt = ∫ (3t² - 2t + 4) dt = t³ - t² + 4t + C₂. Vì s(0) = 5 nên C₂ = 5 → s(t) = t³ - t² + 4t + 5."
         },
         {
           "level": "VD",
-          "question": "Tìm nguyên hàm F(x) của hàm số f(x) = cos² x biết F(π) = π/2.",
+          "question": "Dao động nhỏ của hệ thống treo cabin tàu được mô tả bởi f(x) = cos² x. Tìm nguyên hàm F(x) của f(x) biết F(π) = π/2 (gợi ý: hạ bậc cos² x = (1 + cos 2x)/2).",
           "answer": "Hạ bậc: cos² x = (1 + cos 2x)/2. F(x) = ∫ (1/2 + (cos 2x)/2) dx = x/2 + (sin 2x)/4 + C. F(π) = π/2 + (sin 2π)/4 + C = π/2 ⇔ C = 0. Vậy F(x) = x/2 + (sin 2x)/4."
         }
       ],
       "quick": [
         {
-          "question": "Khi tính nguyên hàm ∫ x cos x dx, bạn Bình đưa biến x ra ngoài dấu tích phân và viết: ∫ x cos x dx = x ∫ cos x dx = x sin x + C. Cách giải của bạn Bình đúng hay sai? Vì sao?",
-          "solution": "Sai. Biến x là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài dấu nguyên hàm. Đạo hàm của x sin x + C là sin x + x cos x ≠ x cos x."
+          "question": "Khi tính nguyên hàm ∫ t·cos t dt, bạn Bình đưa biến t ra ngoài dấu tích phân và viết: ∫ t cos t dt = t ∫ cos t dt = t sin t + C. Cách giải của bạn Bình đúng hay sai? Vì sao?",
+          "solution": "Sai. Biến t là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài dấu nguyên hàm. Đạo hàm của t sin t + C là sin t + t cos t ≠ t cos t."
         },
         {
           "question": "Có thể khẳng định ∫ [f(x) · g(x)] dx = ∫ f(x) dx · ∫ g(x) dx với mọi hàm số f(x), g(x) hay không? Nêu một ví dụ chứng minh.",
@@ -924,22 +924,28 @@
         }
       ],
       "mistakes": [
-        "Tự ý đưa biến số x ra ngoài dấu nguyên hàm như một hằng số k.",
+        "Tự ý đưa biến số (thời gian t hoặc biến x) ra ngoài dấu nguyên hàm như một hằng số k — dẫn tới v(3) = 40,5 m/s = 145,8 km/h vô lý.",
         "Áp dụng sai lầm coi nguyên hàm của tích bằng tích hai nguyên hàm.",
         "Quên hằng số + C khi tìm họ nguyên hàm hoặc nhầm dấu khi lấy nguyên hàm của sin(x) và cos(x).",
-        "Không tìm hoặc tính sai hằng số C khi bài toán có điều kiện ban đầu F(x0) = y0."
+        "Không tìm hoặc tính sai hằng số C khi bài toán có điều kiện ban đầu v(0) = 0, s(0) = 0 hoặc v(1) = 8."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Tính chất cơ bản của nguyên hàm",
-        "a. Tính chất 1: ∫ k f(x) dx = k ∫ f(x) dx với mọi hằng số k ≠ 0.",
-        "b. Tính chất 2: ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx.",
-        "2. Chú ý bẫy then chốt",
+        "1. Bảng dữ liệu thực nghiệm: tàu Metro tuyến số 1 rời ga",
+        "   - Cảm biến IMU: a(0) = 0, a(1) = 4, a(2) = 10, a(3) = 18 (m/s²) → a(t) = t² + 3t.",
+        "   - Điều kiện ban đầu: tàu đứng yên tại ga → v(0) = 0, s(0) = 0.",
+        "2. Tính chất cơ bản của nguyên hàm",
+        "   a. Tính chất 1: ∫ k f(x) dx = k ∫ f(x) dx với mọi hằng số k ≠ 0.",
+        "   b. Tính chất 2: ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx.",
+        "3. Chuỗi tích phân của tàu (4 bước: tách → tính → điều kiện → kết luận)",
+        "   - v(t) = t³/3 + 3t²/2 → v(3) = 22,5 m/s = 81 km/h.",
+        "   - s(t) = t⁴/12 + t³/2 → s(3) = 20,25 m.",
+        "4. Chú ý bẫy then chốt",
         "   - Không có nguyên hàm của tích: ∫ f(x)g(x) dx ≠ ∫ f(x) dx · ∫ g(x) dx.",
-        "   - Tuyệt đối không đưa biến số x ra ngoài dấu tích phân: ∫ x f(x) dx ≠ x ∫ f(x) dx.",
-        "3. Bài toán xác định hằng số C",
+        "   - Tuyệt đối không đưa biến số x (hoặc t) ra ngoài dấu tích phân: ∫ t f(t) dt ≠ t ∫ f(t) dt.",
+        "5. Bài toán xác định hằng số C",
         "   - Tìm họ nguyên hàm F(x) = G(x) + C.",
-        "   - Thay điều kiện F(x0) = y0 để giải tìm hằng số C."
+        "   - Thay điều kiện F(x0) = y0 (như v(0) = 0, C(0) = 50) để giải tìm hằng số C."
       ]
     },
     {
@@ -1487,14 +1493,14 @@
     "12-12-82": {
       "key": "12-12-82",
       "category": "Lỗi đại số",
-      "wrongSolution": "Cho bài toán tìm họ nguyên hàm: I = ∫ x · sin x dx. AI giải: Áp dụng tính chất đưa thừa số ra ngoài dấu nguyên hàm, ta có I = x ∫ sin x dx = x(-cos x) + C = -x cos x + C.",
-      "correction": "Biến số x không được phép đưa ra ngoài dấu nguyên hàm vì x là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài. Nguyên hàm này phải dùng phương pháp nguyên hàm từng phần cho kết quả đúng là -x cos x + sin x + C.",
-      "proof": "Thử lại bằng đạo hàm: (-x cos x + C)' = -(cos x - x sin x) = -cos x + x sin x ≠ x sin x. Như vậy kết quả của AI sai hoàn toàn.",
-      "whyAiError": "Mô hình ngôn ngữ nhầm lẫn giữa hằng số nhân k với biến số độc lập x khi áp dụng tính chất tuyến tính của nguyên hàm.",
-      "teacherPrompt": "Em hãy nhận xét bước biến đổi của AI: Có được đưa biến x ra ngoài dấu nguyên hàm không? Hãy thử lại bằng đạo hàm để chứng minh.",
-      "studentProduct": "Thẻ Đ/S trên máy + nêu rõ chỉ đưa hằng số k ≠ 0 ra ngoài dấu nguyên hàm, biến x phải giữ nguyên bên trong.",
-      "boardPrompt": "AI đưa biến x ra ngoài: ∫ x sin x dx = x ∫ sin x dx. Đúng hay sai? Vì sao?",
-      "libraryTitle": "Lỗi AI tự ý đưa biến số x ra ngoài dấu nguyên hàm"
+      "wrongSolution": "Tàu metro tuyến số 1 rời ga với gia tốc a(t) = t(t + 3) (m/s²). AI tính vận tốc: \"Đưa thừa số t ra ngoài dấu nguyên hàm, ta có v(t) = ∫ t(t + 3) dt = t ∫ (t + 3) dt = t(t²/2 + 3t) = t³/2 + 3t² (m/s).\"",
+      "correction": "Biến số t không được phép đưa ra ngoài dấu nguyên hàm vì t là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài. Sửa đúng bằng 2 tính chất tuyến tính: v(t) = ∫ (t² + 3t) dt = ∫ t² dt + 3∫ t dt = t³/3 + 3t²/2 + C. Điều kiện tàu rời ga đứng yên v(0) = 0 ⇒ C = 0, nên v(t) = t³/3 + 3t²/2 (m/s).",
+      "proof": "Thử lại bằng đạo hàm: (t³/2 + 3t²)' = 3t²/2 + 6t ≠ t² + 3t — kết quả của AI sai hoàn toàn. Bằng chứng vật lý: theo AI, v(3) = 13,5 + 27 = 40,5 m/s = 145,8 km/h, vượt xa tốc độ tối đa 80 km/h của tàu metro khi còn trong ga — vô lý. Đáp án đúng cho v(3) = 9 + 13,5 = 22,5 m/s = 81 km/h, hợp lý với dữ liệu cảm biến.",
+      "whyAiError": "Mô hình ngôn ngữ nhầm lẫn giữa hằng số nhân k với biến số độc lập t (thời gian) khi áp dụng tính chất tuyến tính của nguyên hàm — thấy thừa số t(t + 3) liền phản xạ tách như hằng số.",
+      "teacherPrompt": "Em hãy nhận xét kết quả v(3) = 40,5 m/s của AI: Tàu metro có thể đạt tốc độ này khi còn trong ga không? Hãy thử lại bằng đạo hàm để chứng minh AI sai ở đâu.",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu AI quên rằng t là biến số, chỉ hằng số k ≠ 0 được đưa ra ngoài; đáp án đúng v(t) = t³/3 + 3t²/2, v(3) = 22,5 m/s).",
+      "boardPrompt": "AI tính v(t) = ∫ t(t + 3) dt = t ∫ (t + 3) dt. Đúng hay sai? Vì sao?",
+      "libraryTitle": "Lỗi AI tự ý đưa biến thời gian t ra ngoài dấu nguyên hàm khi tính vận tốc tàu metro"
     },
     "12-12-86": {
       "key": "12-12-86",
