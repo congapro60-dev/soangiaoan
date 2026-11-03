@@ -15,6 +15,11 @@
 - **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
 - **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
 
+### Release record V43 (04/11/2026) — CHỜ NẠP PANEL
+- Archive đã tạo: `C:\Users\ADMIN\.codex\sites-release\release-20261103-v43.tar.gz` (44.435.004 bytes, nội dung `dist/` đúng chuẩn V39–V42), commit `c91b9ea`.
+- **Đã xác minh archive chứa nội dung mới**: chunk `semester-content` trong dist bung được 819 lessons — 170 task Bài 14 + 170 visual (140 HKI + 30 HKII). Lưu ý kỹ thuật: prompt nằm trong blob base64-gzip nên grep văn bản trực tiếp trong dist KHÔNG thấy — phải bung data mới kiểm được (đã có bài học này).
+- **Việc còn lại (cần chủ máy)**: nạp archive lên panel hosting → nhận `deployment_id` `appgdep_*` → Site version 43 live. Cơ chế deploy trước nay là nạp tar.gz thủ công (V39–V42 đều vậy); KHÔNG merge vào `main` — `main` là dòng phát triển khác hoàn toàn (không có tổ tiên chung với nhánh này).
+
 ### Check chéo đợt storyline HKI (04/11/2026) — SINGLE-SOURCE (Codex), PASS 6/6
 - Payload `check_cheo_payload_hki_story_20261104.md` (6 mục: dataset khớp, toán lời giải đúng, test/build).
 - **Claude CLI chết weekly limit** (nguyên văn: "You've hit your weekly limit · resets Nov 4, 10pm") → chỉ Codex chạy. Kết quả: **PASS 6/6** — 140 storyline/140 visual khớp dataset từng phiên; đối chiếu số: 35 meanMedian + 42 quartileMode + 28 spread + 35 variance đều đúng toán (vd phương sai A `[0,2,-2,1]` = 2,1875 < B `[2,-1,3,-3]` = 5,6875 → kết luận "B phân tán hơn" đúng); test 5/5, build exit 0.
