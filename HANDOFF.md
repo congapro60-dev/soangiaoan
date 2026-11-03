@@ -25,6 +25,12 @@ npm --prefix "C:\\Users\\ADMIN\\.codex\\worktrees\\universal-content-release" ru
 ### Dọn dẹp
 - Commit `196ccc0` lỡ kèm `ship-hki.mjs` + 2 err.log rác — đã xóa trong commit này.
 
+### Check chéo 2 hãng cho đợt HKI (03/11/2026) — ĐỒNG THUẬN PASS
+- Payload `check_cheo_payload_hki_20261103.md` (8 mục), Claude CLI + Codex CLI (`-m cx/gpt-6.1-terra`) chạy song song. Bằng chứng: `claude_check_cheo_hki.log`, `codex_check_cheo_hki.log`.
+- Claude **PASS 8/8** (kể cả `npm run build` exit 0; validator chạy trực tiếp trên 403 bài: 0 lỗi, 0 `ERR_SCAFFOLD_PENALTY_FORBIDDEN`).
+- Codex 6 PASS; 2 mục "FAIL" đều do sandbox của nó bị EPERM khi build (môi trường, không phải nội dung) — số liệu nó đếm được khớp 100% với Claude (3.346 H1, phân bố tầng, 0 trùng/solidKey/glue).
+- Verdict chốt: **PASS**.
+
 ### Bài học kỹ thuật (lặp lại từ HKII)
 - Patch script phải dùng \`split/join\` (không \`String.replace\` với replacement chứa \`$\`).
 - Thay dòng trong file có `;` lồng trong chuỗi → dùng ranh giới `\n};` chứ không phải `;` đầu tiên.
