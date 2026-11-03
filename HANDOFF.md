@@ -15,6 +15,12 @@
 - **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
 - **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
 
+### Check chéo đợt storyline HKI (04/11/2026) — SINGLE-SOURCE (Codex), PASS 6/6
+- Payload `check_cheo_payload_hki_story_20261104.md` (6 mục: dataset khớp, toán lời giải đúng, test/build).
+- **Claude CLI chết weekly limit** (nguyên văn: "You've hit your weekly limit · resets Nov 4, 10pm") → chỉ Codex chạy. Kết quả: **PASS 6/6** — 140 storyline/140 visual khớp dataset từng phiên; đối chiếu số: 35 meanMedian + 42 quartileMode + 28 spread + 35 variance đều đúng toán (vd phương sai A `[0,2,-2,1]` = 2,1875 < B `[2,-1,3,-3]` = 5,6875 → kết luận "B phân tán hơn" đúng); test 5/5, build exit 0.
+- **Mục này CHƯA CHÉO** (single-source) — chờ Claude hồi weekly limit (sau 22:00 ngày 04/11) nếu muốn chéo đủ.
+- Bằng chứng: `codex_story_check.log`, commit lưu bằng chứng.
+
 ### Dọn dẹp
 - Commit `b9dec2a` lỡ kèm `ship-story.mjs` + 2 err.log — đã xóa; thêm `.gitignore` chặn tái diễn (`ship-*.mjs`, script patch tạm, `*_check_cheo_*.err.log`; pattern ban đầu dùng gạch ngang không khớp tên file, đã sửa trong commit `09c0252`).
 
