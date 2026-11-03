@@ -113,10 +113,10 @@ const chooseAndOpen = async (
   botId: string, userId: string, classId: string, studentId: string,
   cmd: { kind: 'list' } | { kind: 'pick'; n: number }, role?: 'student' | 'parent',
 ): Promise<string> => {
-  const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
-  if (cmd.kind === 'list' || !items.length) return photoListReply(items);
+  const { teacherId, items, total } = await pendingAssignmentsForStudent(classId, studentId);
+  if (cmd.kind === 'list' || !items.length) return photoListReply(items, total);
   const target = cmd.n >= 1 && cmd.n <= items.length ? items[cmd.n - 1] : null;
-  if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items)}`;
+  if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items, total)}`;
   return openPhotoSession(botId, userId, { studentId, classId, teacherId, ...(role && role !== 'student' ? { role } : {}) }, target);
 };
 /**

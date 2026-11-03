@@ -89,45 +89,65 @@ export const parsePhotoCommand = (raw: string): PhotoCommand | null => {
   return null;
 };
 
+export const MAX_PENDING_LIST = 10;
+
 /**
  * Bài giao đang chờ em nộp: cùng điều kiện chặn của luồng web (`assertActorCurrent`) —
  * không exam, không online, chưa khóa nộp, đúng đối tượng được giao, và em CHƯA có bài nộp nào
  * cho bài đó (bài đang lỗi/chờ chấm nhờ thầy cô xử lý trên web, không nộp trùng qua bot).
  * teacherId đọc từ class doc (link chỉ mang classId + studentId) — phiên nộp phải theo đúng GV chủ lớp.
+ * Dữ liệu query TRỰC TIẾP Firestore mỗi lần gọi → luôn real-time. Sắp: bài còn hạn trước (hạn gần
+ * nhất lên đầu), bài KHÔNG hạn kế tiếp, bài QUÁ HẠN xuống cuối (gắn nhãn). `total` = tổng số bài
+ * chờ; `items` cắt còn MAX_PENDING_LIST để tin nhắn gọn.
  */
 export const pendingAssignmentsForStudent = async (
   classId: string,
   studentId: string,
-): Promise<{ teacherId: string; items: Array<{ id: string; title: string; dueAt?: string }> }> => {
+): Promise<{ teacherId: string; items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean }>; total: number }> => {
   const [classSnap, assignmentsSnap, submissionsSnap] = await Promise.all([
     db().collection('classes').doc(classId).get(),
     db().collection('assignments').where('classId', '==', classId).get(),
     db().collection('submissions').where('studentId', '==', studentId).get(),
   ]);
   const cls = classSnap.data() as Record<string, unknown> | undefined;
-  if (!cls) return { teacherId: '', items: [] };
+  if (!cls) return { teacherId: '', items: [], total: 0 };
   const teacherId = String(cls.teacherId ?? '');
   const submittedAssignmentIds = new Set(submissionsSnap.docs.map(doc => String(doc.data()?.assignmentId ?? '')).filter(Boolean));
-  const items = assignmentsSnap.docs
+  const today = new Date().toISOString().slice(0, 10);
+  const raw = assignmentsSnap.docs
     .map(doc => ({ id: doc.id, ...(doc.data() as Record<string, unknown>) }) as { id: string } & Record<string, unknown>)
     .filter(item => item.type !== 'exam' && item.deliveryMode !== 'online' && item.submissionLocked !== true
       && (!Array.isArray(item.targetStudentIds) || !item.targetStudentIds.length || item.targetStudentIds.includes(studentId))
-      && !submittedAssignmentIds.has(item.id))
-    .map(item => ({ id: item.id, title: String(item.title ?? '').slice(0, 120), ...(item.dueAt ? { dueAt: String(item.dueAt) } : {}) }))
-    .sort((a, b) => (a.dueAt ?? '9999').localeCompare(b.dueAt ?? '9999'))
-    .slice(0, 5);
-  return { teacherId, items };
+      && !submittedAssignmentIds.has(item.id));
+  const decorated = raw.map(item => {
+    const dueAt = item.dueAt ? String(item.dueAt) : '';
+    // dueAt dạng ISO (date hoặc datetime) so sánh từ điển với YYYY-MM-DD vẫn đúng thứ tự thời gian.
+    const overdue = Boolean(dueAt) && dueAt < today;
+    return { id: item.id, title: String(item.title ?? '').slice(0, 120), dueAt, overdue };
+  });
+  decorated.sort((a, b) => {
+    if (a.overdue !== b.overdue) return a.overdue ? 1 : -1; // bài quá hạn xuống cuối
+    const da = a.dueAt || '9999'; const db_ = b.dueAt || '9999';
+    if (da !== db_) return da.localeCompare(db_); // hạn gần nhất lên đầu
+    return a.title.localeCompare(b.title, 'vi');
+  });
+  return { teacherId, items: decorated.slice(0, MAX_PENDING_LIST), total: decorated.length };
 };
 
-export const photoListReply = (items: Array<{ id: string; title: string; dueAt?: string }>): string => {
+export const photoListReply = (items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean }>, total = items.length): string => {
   if (!items.length) {
     return ['🎉 Hiện không có bài nào đang chờ em nộp.', '👉 Bài đã nộp hoặc đang chờ chấm: nhắn 2 để xem.', '', MENU_HINT].join('\n');
   }
+  const today = new Date().toISOString().slice(0, 10);
   const lines = items.map((item, index) => {
+    if (item.overdue) return `${index + 1}. ${item.title} — [quá hạn${item.dueAt ? `: ${item.dueAt.slice(0, 10)}` : ''}]`;
     const due = item.dueAt ? ` — [hạn: ${item.dueAt.slice(0, 10)}]` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  return ['📸 Chọn bài để gửi ảnh chấm:', ...lines, '', '👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n');
+  const more = total > items.length
+    ? [`…và ${total - items.length} bài chưa nộp khác — nộp các bài trên xong rồi nhắn 8 để xem tiếp, hoặc nhắn web để xem đầy đủ.`, '']
+    : [];
+  return ['📸 Chọn bài để gửi ảnh chấm:', ...lines, '', ...more, '👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".', '', MENU_HINT].join('\n');
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
@@ -190,7 +210,7 @@ const changePreSession = async (
 const saveTargetAndList = async (
   classId: string, target: { id: string; name: string }, session: { id: string; data: PhotoSessionData },
 ): Promise<string> => {
-  const { items } = await pendingAssignmentsForStudent(classId, target.id);
+  const { items, total } = await pendingAssignmentsForStudent(classId, target.id);
   if (!items.length) {
     if (!await changePreSession(session, null)) return PHOTO_REPLIES.sessionChanged;
     return [`Bạn ${target.name} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
@@ -198,10 +218,13 @@ const saveTargetAndList = async (
   if (!await changePreSession(session, { assistState: 'list', assist: { targetStudentId: target.id, targetName: target.name },
     targetCandidates: [], expiresAt: Date.now() + SESSION_MS })) return PHOTO_REPLIES.sessionChanged;
   const lines = items.map((item, index) => {
-    const due = item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
+    const due = item.overdue
+      ? ` — quá hạn${item.dueAt ? `: ${item.dueAt.slice(0, 10)}` : ''}`
+      : item.dueAt ? ` — hạn ${item.dueAt.slice(0, 10)}` : '';
     return `${index + 1}. ${item.title}${due}`;
   });
-  return [`Bài đang chờ nộp của ${target.name}:`, ...lines, '', 'Nhắn: nộp hộ <số> (ví dụ: nộp hộ 1).', '', MENU_HINT].join('\n');
+  const more = total > items.length ? [`…và ${total - items.length} bài chưa nộp khác của ${target.name}.`, ''] : [];
+  return [`Bài đang chờ nộp của ${target.name}:`, ...lines, '', ...more, 'Nhắn: nộp hộ <số> (ví dụ: nộp hộ 1).', '', MENU_HINT].join('\n');
 };
 
 /** Nhận tên bạn gõ vào: khớp 1 → liệt kê bài của bạn đó; trùng → liệt kê chọn số; không thấy → mời gõ lại. */
@@ -273,8 +296,8 @@ export const assistOpenReply = async (botId: string, userId: string, classId: st
  * được hiểu là chọn bài (không rơi vào menu mục 1–7).
  */
 export const listPendingReply = async (botId: string, userId: string, classId: string, studentId: string, role?: 'student' | 'parent'): Promise<string> => {
-  const { items } = await pendingAssignmentsForStudent(classId, studentId);
-  if (!items.length) return photoListReply(items);
+  const { items, total } = await pendingAssignmentsForStudent(classId, studentId);
+  if (!items.length) return photoListReply(items, total);
   const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
   await db().runTransaction(async tx => {
     const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
@@ -288,7 +311,7 @@ export const listPendingReply = async (botId: string, userId: string, classId: s
       ...(role ? { role } : {}),
     } satisfies PhotoSessionData);
   });
-  return photoListReply(items);
+  return photoListReply(items, total);
 };
 
 /**
@@ -301,11 +324,11 @@ export const pickAssignmentByNumber = async (
   const session = await liveSession(botId, userId);
   if (!session || session.data.awaitingPick !== true) return null;
   const userRole = role ?? session.data.role;
-  const { teacherId, items } = await pendingAssignmentsForStudent(classId, studentId);
+  const { teacherId, items, total } = await pendingAssignmentsForStudent(classId, studentId);
   const target = n >= 1 && n <= items.length ? items[n - 1] : null;
   if (!target) {
     // Số không khớp: giữ trạng thái chờ chọn để em nhắn lại đúng số.
-    return [`Số không khớp danh sách (có ${items.length} bài).`, '', photoListReply(items)].join('\n');
+    return [`Số không khớp danh sách (có ${items.length} bài).`, '', photoListReply(items, total)].join('\n');
   }
   // Xoá cờ chờ chọn rồi mới mở phiên (openPhotoSession ghi đè doc).
   await db().collection(SESSIONS).doc(session.id).delete().catch(() => undefined);

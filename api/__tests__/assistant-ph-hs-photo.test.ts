@@ -119,15 +119,39 @@ describe('pendingAssignmentsForStudent', () => {
     h.db.put('assignments/a8', { classId: 'c2', teacherId: 'gv2', title: 'Lớp khác', maxScore: 10 });
     h.db.put('submissions/sub1', { classId: 'c1', studentId: 's1', assignmentId: 'a7', status: 'graded' });
   };
-  it('chỉ trả bài thường chờ nộp của đúng lớp, sắp theo hạn, tối đa 5 bài', async () => {
+  it('chỉ trả bài thường chờ nộp của đúng lớp; bài QUÁ HẠN có nhãn; tối đa 10 bài kèm tổng số', async () => {
     seed();
     const out = await pendingAssignmentsForStudent('c1', 's1');
     expect(out.teacherId).toBe('gv1');
+    // Cả a1 (hạn 27/10) và a6 (hạn 26/10) đều đã quá hạn → sắp theo hạn tăng dần, kèm nhãn quá hạn.
     expect(out.items.map(i => i.id)).toEqual(['a6', 'a1']);
-    expect(out.items[0].title).toBe('Giao riêng');
+    expect(out.items.every(i => i.overdue)).toBe(true);
+    expect(out.total).toBe(2);
+  });
+  it('bài CÒN HẠN đứng trước bài quá hạn; quá hạn gắn cờ overdue', async () => {
+    seed();
+    const future = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+    h.db.put('assignments/soon', { classId: 'c1', teacherId: 'gv1', title: 'Còn hạn', maxScore: 10, dueAt: future, targetStudentIds: ['s1'] });
+    const out = await pendingAssignmentsForStudent('c1', 's1');
+    expect(out.items.map(i => i.id)).toEqual(['soon', 'a6', 'a1']);
+    expect(out.items[0].overdue).toBe(false);
+    expect(out.total).toBe(3);
+  });
+  it('lớp nhiều bài chờ nộp → chỉ hiện 10 bài đầu, total trả đủ; bài hạn gần nhất lên đầu', async () => {
+    seed();
+    const today = new Date();
+    for (let i = 1; i <= 12; i++) {
+      const due = new Date(today.getTime() + i * 86_400_000).toISOString().slice(0, 10);
+      h.db.put(`assignments/bulk-${i}`, { classId: 'c1', teacherId: 'gv1', title: `Bài số ${i}`, maxScore: 10, dueAt: due });
+    }
+    const out = await pendingAssignmentsForStudent('c1', 's1');
+    expect(out.total).toBe(14); // 12 bài mới + a1 + a6 (cả hai đã quá hạn nhưng vẫn tính vào tổng)
+    expect(out.items).toHaveLength(10);
+    expect(out.items[0].title).toBe('Bài số 1'); // hạn gần nhất lên đầu
+    expect(out.items.every(i => !i.overdue)).toBe(true); // 10 slot đầu là bài còn hạn, bài quá hạn bị cắt khỏi hiển thị
   });
   it('lớp không tồn tại → danh sách rỗng, teacherId rỗng', async () => {
-    expect(await pendingAssignmentsForStudent('nope', 's1')).toEqual({ teacherId: '', items: [] });
+    expect(await pendingAssignmentsForStudent('nope', 's1')).toEqual({ teacherId: '', items: [], total: 0 });
   });
   it('danh sách rỗng → câu trả lời tử tế', async () => {
     h.db.put('classes/c-empty', { name: 'Lớp trống', teacherId: 'gv9' });
