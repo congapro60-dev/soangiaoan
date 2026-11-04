@@ -346,6 +346,9 @@ const writeSubmissionDeletedNotification = async (
   }
 };
 
+/** Điểm lưu bằng phép Σ số thực nhị phân nên có bản ghi cũ dính 9.999999999999998 — làm tròn khi chiếu ra. */
+const round2 = (value: number): number => Math.round(value * 100) / 100;
+
 const storedHomeworkSkillEvidence = (submissionId: string, submission: Record<string, unknown>) => {
   const rawGrade = submission.grade;
   if (!rawGrade || typeof rawGrade !== 'object' || Array.isArray(rawGrade)) return [];
@@ -355,7 +358,7 @@ const storedHomeworkSkillEvidence = (submissionId: string, submission: Record<st
     submissionId,
     assignmentId: typeof submission.assignmentId === 'string' ? submission.assignmentId : undefined,
     grade: {
-      score: Number(grade.score) || 0,
+      score: round2(Number(grade.score) || 0),
       maxScore: Number(grade.maxScore) || 0,
       weakTopics: Array.isArray(grade.weakTopics) ? grade.weakTopics.map(String) : [],
       strengths: Array.isArray(grade.strengths) ? grade.strengths.map(String) : [],
@@ -1078,7 +1081,7 @@ export const projectStudentSubmission = (id: string, data: FirebaseFirestore.Doc
     : awaitingClarification ? hideWhileAwaitingClarification(fullRows)
       : approved ? fullRows : undefined;
   const grade: SubmissionGrade | undefined = rawGrade ? {
-    score: hidden ? 0 : Number(rawGrade.score) || 0,
+    score: hidden ? 0 : round2(Number(rawGrade.score) || 0),
     maxScore: Number(rawGrade.maxScore) || 0,
     feedback: hidden ? '' : String(rawGrade.feedback || ''),
     strengths: !hidden && Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],

@@ -24,4 +24,17 @@ describe('PDF pure renderer', () => {
     f.canvas.getContext.mockReturnValueOnce(null);
     await expect(pdfToImages(new File(['pdf'], 'paper.pdf'))).rejects.toThrow('chưa hỗ trợ'); expect(f.document.destroy).toHaveBeenCalledOnce();
   });
+  // Bài làm in sẵn: bản 72 DPI + JPEG 0,4 làm mất dấu bôi màu và chỉ số dưới của công thức.
+  it('maxCanh phóng trang cho tới mốc cạnh dài, quality đổi chất lượng JPEG', async () => {
+    const viewports: number[] = [];
+    f.document.getPage.mockReset().mockResolvedValue({
+      getViewport: ({ scale }: { scale: number }) => { viewports.push(scale); return { width: 10 * scale, height: 20 * scale }; },
+      render: () => ({ promise: Promise.resolve() }),
+    });
+    await pdfToImages(new File(['pdf'], 'paper.pdf'), undefined, false, undefined, { maxCanh: 100, quality: 0.72 });
+    // Trang 10x20 → scale 5 bị chặn ở 3 (không phóng quá tay).
+    expect(viewports).toEqual([1, 3, 1, 3]);
+    expect(f.canvas.toDataURL).toHaveBeenLastCalledWith('image/jpeg', 0.72);
+    expect(f.canvas.width).toBe(0);
+  });
 });

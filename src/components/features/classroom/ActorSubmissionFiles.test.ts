@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const fixtures = vi.hoisted(() => ({ pdf: vi.fn(), compress: vi.fn() }));
-vi.mock('../../../utils/pdfToImages', () => ({ pdfToImages: fixtures.pdf }));
+vi.mock('../../../utils/pdfToImages', () => ({ pdfToImages: fixtures.pdf, BAI_LAM_MAX_CANH: 1536, BAI_LAM_JPEG_QUALITY: 0.72 }));
+vi.mock('../../../lib/classroom/pdfAnnotations', () => ({ docChuThichPdf: async () => '', NHAN_BAI_LAM_CHU_THICH: 'BÀI LÀM ĐÁNH DẤU TRÊN FILE ĐỀ (máy đọc từ chú thích PDF)' }));
 vi.mock('../../../utils/imageCompress', () => ({
   // Ảnh nén thẳng ra File (không qua base64) — xem `nenAnhBaiLamToFile` trong utils/imageCompress.
   nenAnhBaiLamToFile: fixtures.compress,
@@ -19,7 +20,7 @@ describe('nộp hộ PDF/ảnh đủ bằng chứng để chấm', () => {
     expect(result.map(file => file.type)).toEqual(['image/jpeg', 'image/jpeg', 'application/pdf']);
     expect(result.map(file => file.name)).toEqual(['baithi.pdf-trang-1.jpg', 'baithi.pdf-trang-2.jpg', 'baithi.pdf']);
     expect(await result[2].text()).toBe('pdf content');
-    expect(fixtures.pdf).toHaveBeenCalledWith(original, undefined, false, undefined, { maxPages: 11, rejectOverflow: true });
+    expect(fixtures.pdf).toHaveBeenCalledWith(original, undefined, false, undefined, { maxPages: 11, rejectOverflow: true, maxCanh: 1536, quality: 0.72 });
   });
   it('ảnh dùng bộ nén hiện có; cộng tệp PDF gốc vào giới hạn 12, không âm thầm cắt trang', async () => {
     const image = new File(['img'], 'paper.png', { type: 'image/png' });

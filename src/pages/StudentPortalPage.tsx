@@ -17,6 +17,8 @@ import {
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import { dataUrlToFile, dichLoiNopBai, nenAnhBaiLamToFile } from '../utils/imageCompress';
+import { BAI_LAM_JPEG_QUALITY, BAI_LAM_MAX_CANH, pdfToImages } from '../utils/pdfToImages';
+import { NHAN_BAI_LAM_CHU_THICH, docChuThichPdf } from '../lib/classroom/pdfAnnotations';
 import { fetchRoster, fetchStudentAdaptiveAssignments, fetchStudentDiscoverCatalog, fetchStudentScoreBook, loginStudent, type RosterEntry, type StudentAdaptiveAssignment } from '../services/studentPortalApi';
 import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
 import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
@@ -530,12 +532,22 @@ export const StudentPortalPage = () => {
         // PDF: tach thanh tung trang anh roi cham nhu anh thuong. Duong cham dung Gemini Vision
         // nen phai la anh; tach o day thi may chu khong phai biet gi ve PDF.
         // Giữ thêm file gốc để giáo viên mở khi cần đối chiếu trang PDF.
+        // Bài làm in sẵn: em trả lời bằng bôi màu/khoanh trên chính tờ đề, nên render phải đủ nét
+        // (1536 px cạnh dài, JPEG 0,72) — bản 72 DPI chất lượng 0,4 trước đây làm mất dấu bôi.
+        // Chú thích PDF đọc riêng: nhiều ứng dụng vẽ highlight bằng annotation không kèm appearance
+        // stream, render ra canvas sẽ mất sạch dấu.
         if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
-          const { pdfToImages } = await import('../utils/examImportUtils');
-          const trang = await pdfToImages(file);
+          const room = MAX_ANH - images.length - 1;
+          if (room < 1) throw new Error(`Đã đủ ${MAX_ANH} tệp. Em bỏ bớt ảnh hoặc nộp PDF ở lượt bổ sung tiếp theo nhé.`);
+          const trang = await pdfToImages(file, undefined, false, undefined, {
+            maxPages: room, rejectOverflow: true, maxCanh: BAI_LAM_MAX_CANH, quality: BAI_LAM_JPEG_QUALITY,
+          });
           if (trang.length === 0) throw new Error(`Không đọc được trang nào trong ${file.name}.`);
           images.push(...trang.map((dataUrl, index) => dataUrlToFile(dataUrl, `${file.name}-trang-${index + 1}.jpg`)));
           rawFiles.push(file);
+          setBuocNop('Đang đọc dấu bôi màu/khoanh trên tờ đề...');
+          const chuThich = await docChuThichPdf(file, { maxPages: trang.length }).catch(() => '');
+          if (chuThich) textParts.push(`${NHAN_BAI_LAM_CHU_THICH}\n${chuThich}`);
         } else if (/\.doc$/i.test(file.name)) {
           throw new Error('Định dạng .doc cũ chưa được hỗ trợ ổn định. Em lưu lại thành .docx hoặc PDF rồi nộp lại nhé.');
         } else if (/\.docx$/i.test(file.name) || file.type.includes('wordprocessingml')) {

@@ -262,6 +262,19 @@ CÂU TRẮC NGHIỆM / ĐÚNG-SAI / TRẢ LỜI NGẮN — ghi đúng khuôn đ�
   Thấy từ hai lựa chọn còn nguyên, hoặc không chắc đâu là lựa chọn cuối → KHÔNG đoán: ghi các lựa chọn nhìn
   thấy (ví dụ "B hoặc D (D có vết tẩy)") và đặt "needsTeacherReview" = true.
 
+BÀI LÀM TRÊN TỜ ĐỀ IN SẴN — đọc luật này trước khi chấm:
+- Nhiều em không viết lại bài: em BÔI MÀU / KHOANH / GẠCH CHÂN lên phương án đã chọn, hoặc viết thêm chữ
+  ngay trên tờ đề in sẵn rồi nộp lại chính file đó. Ảnh bài làm có thể vì thế mà trông y như tờ đề trắng.
+- Chữ IN SẴN của đề (nội dung câu hỏi, các phương án A/B/C/D, lời giải mẫu) KHÔNG phải bài làm của em.
+  "studentAnswer" chỉ ghi phần em ĐÁNH DẤU hoặc TỰ VIẾT. Trắc nghiệm thì ghi chữ cái của phương án được
+  bôi/khoanh; nhiều phương án cùng có dấu thì lấy phương án có dấu rõ nhất, không chắc thì ghi các phương
+  án nhìn thấy (ví dụ "B hoặc D") và đặt "needsTeacherReview" = true.
+- Cả tờ không có dấu nào của em (không bôi, không viết thêm) thì mọi câu là "not_attempted";
+  TUYỆT ĐỐI không lấy phương án in sẵn làm câu trả lời.
+- Nếu bài làm dạng chữ có mục "BÀI LÀM ĐÁNH DẤU TRÊN FILE ĐỀ (máy đọc từ chú thích PDF)" thì đó là chữ
+  máy đọc đúng ngay tại các vùng em bôi/ghi trên file: dùng làm căn cứ chính cho câu tương ứng, ảnh chỉ
+  để đối chiếu lại.
+
 ĐỌC BÀI LÀM CHO ĐÚNG — quan trọng vì ảnh chụp tay dễ đọc nhầm:
 - "studentAnswer" phải CHÉP LẠI TRUNG THỰC đúng những gì em viết, KHÔNG diễn giải, KHÔNG sửa hộ.
   Mọi công thức/biểu thức chép bằng LaTeX trong dấu $...$ (ví dụ $\\frac{11\\pi}{8}$, $x^2-3x+2$).
@@ -358,6 +371,13 @@ const toStringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.map(v => String(v).trim()).filter(Boolean) : [];
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+/**
+ * Điểm lưu và hiển thị làm tròn 2 chữ số thập phân. Σ điểm từng câu cộng bằng số thực nhị phân
+ * nên hay ra 9.999999999999998 / 9.169999999999998 (9 câu × 1.111111…, 12 câu × 9,17/12):
+ * lưu nguyên chuỗi lỗi đó vào Firestore rồi in thô ra bảng chấm là không đọc được.
+ */
+const round2 = (value: number): number => Math.round(value * 100) / 100;
 
 const normalizeQuestionStatus = (value: unknown): QuestionResultStatus => {
   const raw = String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -483,7 +503,7 @@ const coerceHomeworkGrade = (
       : (questionResults.length > 0 ? summedScore : 0));
 
   return {
-    score: clamp(baseScore, 0, effectiveMax),
+    score: clamp(round2(baseScore), 0, effectiveMax),
     maxScore: effectiveMax,
     feedbackForStudent: String(parsed.feedbackForStudent || '').trim(),
     noteForTeacher: String(parsed.noteForTeacher || '').trim(),
@@ -985,7 +1005,7 @@ export const parsePracticeAssessment = (
       } satisfies PracticeQuestionResult;
     });
     return {
-      score: questionResults.reduce((sum, result) => sum + result.score, 0),
+      score: clamp(round2(questionResults.reduce((sum, result) => sum + result.score, 0)), 0, effectiveMax),
       maxScore: effectiveMax,
       feedback: String(parsed.feedback || '').trim(),
       questionResults,

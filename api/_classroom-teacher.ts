@@ -172,6 +172,9 @@ const attachTeacherSolutions = async (db: Db, submissions: SubmissionDoc[]): Pro
   return submissions.map(submission => { const assignment = assignments.get(submission.assignmentId || ''); return assignment && assignment.classId === submission.classId && assignment.teacherId === submission.teacherId ? attachAssignmentSolutions(submission, assignment) : submission; });
 };
 
+/** Điểm lưu bằng phép Σ số thực nhị phân nên có bản ghi cũ dính 9.999999999999998 — làm tròn khi chiếu ra. */
+const round2 = (value: number): number => Math.round(value * 100) / 100;
+
 const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
   const rawStatus = String(data.status || 'submitted');
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
@@ -195,7 +198,7 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     : undefined;
 
   const gradeObj = rawGrade ? {
-      score: Number(rawGrade.score) || 0,
+      score: round2(Number(rawGrade.score) || 0),
       maxScore: Number(rawGrade.maxScore) || 0,
       feedback: String(rawGrade.feedback || ''),
       strengths: Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],

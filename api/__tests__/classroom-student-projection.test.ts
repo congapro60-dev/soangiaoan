@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleClassroomOnlineAction } from '../_classroom-online';
-import handler from '../classroom';
+import handler, { projectStudentSubmission } from '../classroom';
 
 type Doc = Record<string, unknown>;
 const h = vi.hoisted(() => ({ uid: 'student-uid-1', db: null as unknown }));
@@ -284,5 +284,29 @@ describe('student homework projection (projectStudentSubmission)', () => {
       const grade = submissions.find(s => s.id === id)!.grade as Doc;
       expect(JSON.stringify(grade)).not.toContain('photoMarks');
     }
+  });
+
+  // Lỗi thật 04/11/2026: bảng chấm in "9.999999999999998/10" vì điểm tổng lưu nguyên Σ số thực
+  // nhị phân của các dòng. Bản chiếu phải làm tròn 2 chữ số, không chỉ sửa ở giao diện.
+  it('điểm lưu dính lỗi số thực (9.999999999999998) được làm tròn khi chiếu ra', async () => {
+    const result = await callClassroom({ action: 'studentSubmissions' });
+    const submissions = result.payload?.submissions as Doc[];
+    expect(submissions.find(s => s.id === 'sub-3')!.grade).toMatchObject({ score: 9 });
+
+    const projected = projectStudentSubmission('sub-float', {
+      teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
+      fileUrls: [], status: 'graded',
+      grade: { score: 9.999999999999998, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-11-04T08:21:00.000Z' },
+      createdAt: '2026-11-04T08:00:00.000Z', updatedAt: '2026-11-04T08:21:00.000Z',
+    } as Doc);
+    expect(projected.grade?.score).toBe(10);
+
+    const projectedDirty = projectStudentSubmission('sub-float-2', {
+      teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1',
+      fileUrls: [], status: 'graded',
+      grade: { score: 9.169999999999998, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-11-04T08:21:00.000Z' },
+      createdAt: '2026-11-04T08:00:00.000Z', updatedAt: '2026-11-04T08:21:00.000Z',
+    } as Doc);
+    expect(projectedDirty.grade?.score).toBe(9.17);
   });
 });

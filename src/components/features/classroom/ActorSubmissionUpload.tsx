@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { SubmissionActorCredentials } from '../../../services/submissionActorsApi';
 import { uploadActorEvidence, submitActorSubmission, actorGradeOne } from '../../../services/submissionActorsApi';
 import { dataUrlToFile, nenAnhBaiLamToFile, quetAnhVaPhieu } from '../../../utils/imageCompress';
-import { pdfToImages } from '../../../utils/pdfToImages';
+import { BAI_LAM_JPEG_QUALITY, BAI_LAM_MAX_CANH, pdfToImages } from '../../../utils/pdfToImages';
+import { NHAN_BAI_LAM_CHU_THICH, docChuThichPdf } from '../../../lib/classroom/pdfAnnotations';
 interface Props { credentials: SubmissionActorCredentials; assignmentId: string; locked?: boolean; supplementOf?: string; handMarked?: boolean; onSubmitted: () => void; onClose?: () => void; /** Báo ra ngoài lúc đang nộp (để khoá chuyển sang em khác) và khi đã xong. */ onBusyChange?: (busy: boolean) => void }
 /** Nhường khung hình cho trình duyệt vẽ giữa các tệp (điện thoại không bị "treo"). */
 const choKhungHinh = () => new Promise<void>(resolve => { setTimeout(() => resolve(), 0); });
@@ -27,7 +28,9 @@ export const prepareActorFiles = async (
       const room = 12 - prepared.length - (files.length - index);
       if (room < 1) throw new Error('Không còn chỗ cho các trang PDF. Chọn ít tệp hơn rồi nộp tiếp.');
       onProgress?.(`Đang tách trang PDF ${index + 1}/${files.length}…`);
-      const pages = await pdfToImages(file, undefined, false, undefined, { maxPages: room, rejectOverflow: true });
+      const pages = await pdfToImages(file, undefined, false, undefined, {
+        maxPages: room, rejectOverflow: true, maxCanh: BAI_LAM_MAX_CANH, quality: BAI_LAM_JPEG_QUALITY,
+      });
       if (!pages.length) throw new Error(`Không đọc được trang nào trong ${file.name}.`);
       prepared.push(...pages.map((page, number) => dataUrlToFile(page, `${file.name}-trang-${number + 1}.jpg`)), new File([file], file.name, { type: 'application/pdf' }));
     } else if (file.type.startsWith('image/')) prepared.push(await nenAnhBaiLamToFile(file));
@@ -63,10 +66,21 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
       setProgress('Đang làm phẳng ảnh và dò phiếu tô…');
       await choKhungHinh();
       const { files: scanned, omrSheet, detectedAnswers } = await quetAnhVaPhieu(prepared);
+      // Bài làm in sẵn: dấu bôi màu/khoanh có thể nằm trong chú thích PDF mà ảnh render không có.
+      const chuThichPdf: string[] = [];
+      for (const file of files) {
+        if (!(file.type === 'application/pdf' || /\.pdf$/i.test(file.name))) continue;
+        const chu = await docChuThichPdf(file).catch(() => '');
+        if (chu) chuThichPdf.push(chu);
+      }
       setProgress(`Đang tải ${scanned.length} tệp lên máy chủ…`);
       const grant = await uploadActorEvidence(credentials, assignmentId, scanned);
       setProgress('Đã tải xong — đang lưu bài nộp…');
-      const payload = { assignmentId, uploadGrantId: grant, supplementOf, note, handMarked, detectedAnswers, ...(omrSheet ? { omrSheet } : {}) };
+      const payload = {
+        assignmentId, uploadGrantId: grant, supplementOf, note, handMarked, detectedAnswers,
+        ...(omrSheet ? { omrSheet } : {}),
+        ...(chuThichPdf.length ? { textContent: `${NHAN_BAI_LAM_CHU_THICH}\n${chuThichPdf.join('\n')}` } : {}),
+      };
       const { submission } = await submitActorSubmission(credentials, payload);
       if (alive.current) { setAccepted(true); setFiles([]); setNote(''); }
       // Chấm NỀN: máy chấm sau, thầy không phải đứng chờ (điện thoại hay lag vì chờ AI).

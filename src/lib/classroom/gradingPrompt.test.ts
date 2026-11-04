@@ -54,6 +54,17 @@ describe('prompt tách phần cố định / phần đổi theo học sinh', () 
     expect(full).toContain('Bài làm của em A');
     expect(full).toContain('imageIndex 1..2');
   });
+
+  // Lớp dùng đề in sẵn, học sinh trả lời bằng bôi màu/khoanh rồi nộp lại chính file PDF đó.
+  it('luôn dặn máy chấm: chữ in sẵn của đề không phải bài làm', () => {
+    const { prefix } = buildHomeworkGradingSegments({ ...chung, studentText: '', studentImageCount: 4 });
+    expect(prefix).toContain('BÀI LÀM TRÊN TỜ ĐỀ IN SẴN');
+    expect(prefix).toContain('KHÔNG phải bài làm của em');
+    expect(prefix).toContain('BÀI LÀM ĐÁNH DẤU TRÊN FILE ĐỀ (máy đọc từ chú thích PDF)');
+    // Tiền tố phải giống nhau cho mọi em để Gemini cache được: không phụ thuộc bài làm.
+    const other = buildHomeworkGradingSegments({ ...chung, studentText: 'Em chọn B', studentImageCount: 1 });
+    expect(other.prefix).toBe(prefix);
+  });
 });
 
 describe('photo marks grading contract', () => {
@@ -237,6 +248,23 @@ describe('parseHomeworkGrade', () => {
   it('điểm gồm tổng các dòng, bỏ score của model khi đã có dòng', () => {
     const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 9.75, questionResults: dongPhuThang }), 10, false);
     expect(g.score).toBe(8);
+  });
+
+  // Lỗi thật 04/11/2026 (bảng chấm lớp 12): Σ điểm từng dòng bằng số thực nhị phân ra
+  // 9.999999999999998/10 và 9.169999999999998/10, in nguyên chuỗi lỗi lên bảng chấm.
+  it('làm tròn Σ điểm từng dòng về 2 chữ số thập phân', () => {
+    const chiaDeu = (soCau: number, thang: number) => Array.from({ length: soCau }, (_, index) => ({
+      ...mau.questionResults[1],
+      questionNumber: `Câu ${index + 1}`,
+      score: thang / soCau,
+      maxScore: thang / soCau,
+    }));
+
+    const chinCau = parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: chiaDeu(9, 10) }), 10, false);
+    expect(chinCau.score).toBe(10);
+
+    const muoiHaiCau = parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: chiaDeu(12, 9.17) }), 9.17, false);
+    expect(muoiHaiCau.score).toBe(9.17);
   });
 
   it('không có dòng câu nào thì lấy score của model', () => {
