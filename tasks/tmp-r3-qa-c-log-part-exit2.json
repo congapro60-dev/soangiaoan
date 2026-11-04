@@ -1,0 +1,414 @@
+{
+ "sessionFile": "tasks/tmp-r3-qa-session3.json",
+ "session": "uhPPt02TXSVwLXoAaCMV",
+ "join": "view-stable",
+ "gvOpen": {
+  "stage": "11",
+  "plan": "Kế hoạch 38–40′ · tiết 40′",
+  "timer": null,
+  "status": "running",
+  "expired": false
+ },
+ "routeChoice": {
+  "info6": {
+   "stage": "6",
+   "plan": "Kế hoạch 19–20′ · tiết 40′",
+   "timer": "0:55",
+   "status": "running",
+   "expired": false
+  },
+  "clicked": "Bắt đầu với hỗ trợCho hình chóp S.ABCDS.ABCDS.ABCD có đáy ABCDABCDABCD là hình bình hành, mặt phẳng (α)∥(ABCD)(\\alpha) \\",
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD có đáy \n𝐴\n𝐵\n𝐶\n𝐷\nABCD là hình bình hành, mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(α)∥(ABCD) cắt các cạnh \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\n,\n𝑆\n𝐷\nSA,SB,SC,SD lần lượt tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\n,\n𝐷\n′\nA\n′\n,B\n′\n,C\n′\n,D\n′\n. a) Chứng minh \n𝐴\n′\n𝐵\n′\n∥\n𝐴\n𝐵\nA\n′\nB\n′\n∥AB và \n𝐶\n′\n𝐷\n′\n∥\n𝐶\n𝐷\nC\n",
+  "taskAppeared": true
+ },
+ "s7": {
+  "info": {
+   "stage": "7",
+   "plan": "Kế hoạch 20–27′ · tiết 40′",
+   "timer": "6:55",
+   "status": "running",
+   "expired": false
+  },
+  "hsBand": "Chặng 20–27 phút",
+  "tvButtons": []
+ },
+ "exit": {
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 11/12\nKế hoạch 38–40′ · tiết 40′\n1:35\nĐANG HỌC\nP39 · 39:17\nSƠ KẾT — còn 2 phút.\nSƠ KẾT — còn 2 phút.\nKẾT THÚC\nEXIT TICKET\nCÙNG THỰC HIỆN\nGửi exit ticket trên máy của em, rồi giữ vở mở.\nExit ticket\nViết một kết luận có căn cứ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\nĐỐI CHIẾU MỤC TIÊU\nHai mặt phẳng song song\nBẰNG CHỨNG EM ĐÃ TẠO\n1. Nhận diện dữ kiện và công cụ cần dùng trong Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n2. Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n3. Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.\n← Trước\n11/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 11/12\nKế hoạch 38–40′ · tiết 40′\n1:35\nĐANG HỌC\nP39 · 39:17\nSƠ KẾT — còn 2 phút.\nSƠ KẾT — còn 2 phút.\nKẾT THÚC\nEXIT TICKET\nCÙNG THỰC HIỆN\nGửi exit ticket trên máy của em, rồi giữ vở mở.\nExit ticket\nViết một kết luận có căn cứ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\nĐỐI CHIẾU MỤC TIÊU\nHai mặt phẳng song song\nBẰNG CHỨNG EM ĐÃ TẠO\n1. Nhận diện dữ kiện và công cụ cần dùng trong Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n2. Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n3. Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.",
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nĐã gửi.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 38–40 phút · theo nhịp thầy cô\nExit ticket\nHS thực hiện exitTicket, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nNHÌN LẠI HÀNH TRÌNH CỦA EM\nMục tiêu em đặt đầu tiết\nEm chưa có mục tiêu được lưu ở bước đầu. Hãy dùng mục tiêu trong vở để đối chiếu.\nĐích đến chung của lớp\nĐọc lại đúng câu đầu tiết rồi chọn mức phù hợp với bằng chứng em đã tạo.\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\nChưa chắc\nĐang tiến bộ\nĐã làm được\nVận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\nChưa chắc\nĐang tiến bộ\nĐã làm được\nKiểm chứng kết quả và giải thích kết luận bằng căn cứ.\nChưa chắc\nĐang tiến bộ\nĐã làm được\nChèn tự đánh giá vào exit ticket\nChọn một bước giải, hình vẽ hoặc phép kiểm do em thực hiện.\nGiải thích bằng chứng đó cho thấy em tiến bộ ở điểm nào.\nNêu một điều em còn cần hỗ trợ ở tiết sau.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nViết một kết luận có căn cứ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nNháp đã lưu trên máy\n183/500\nKhung này vượt phần ký tự còn lại. Em hãy viết ngắn theo gợi ý; nháp hiện tại được giữ nguyên.\nGửi câu trả lời\nĐã xác nhận trên máy chủ.\nTiếp theo\nGiữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.\nNếu đổi ý, em có thể gửi lại câu trả lời ở bước này.\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "exit": {
+   "hsBand": "Chặng 38–40 phút",
+   "clickedRow": "Đã làm được",
+   "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+   "openedTab": null,
+   "typed": {
+    "ok": true,
+    "kind": "textarea"
+   },
+   "clickedSend": true,
+   "status": [
+    "Đã gửi.",
+    "Đã xác nhận trên máy chủ."
+   ],
+   "gvProgress": null,
+   "tvProgress": null,
+   "gvHas1HS": false,
+   "tvHas1HS": false
+  }
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "timer": null,
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "timer": null,
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 12/12\nKế hoạch 40–40′ · tiết 40′\n+0:11\nĐANG HỌC\nP39 · 39:34\nSƠ KẾT — còn 2 phút.\nSƠ KẾT — còn 2 phút.\nKẾT THÚC\nEXIT TICKET\nCÙNG THỰC HIỆN\nGửi exit ticket trên máy của em, rồi giữ vở mở.\nExit ticket\nViết một kết luận có căn cứ về Hình thành định lý giao tuyến của mặt phẳng thứ ba với hai mặt phẳng song song và định lý Thales trong không gian qua kỹ thuật dựng cát tuyến phụ song song; lập tỉ số theo đúng mút tương ứng nằm giữa hai mặt phẳng song song; phản biện kết luận thiếu điều kiện đồng phẳng.\n← Trước\n12/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình"
+ },
+ "think": {
+  "reads": [
+   {
+    "at": "12:44:41",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:42",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:43",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:44",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:44",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:45",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:46",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:47",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:48",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:49",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:49",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:50",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:51",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:51",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:53",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:53",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:54",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:55",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:56",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:56",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:57",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:58",
+    "text": "Chờ 5s",
+    "disabled": true
+   },
+   {
+    "at": "12:44:59",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:00",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:01",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:01",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:02",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:03",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:14",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:14",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:15",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:16",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:17",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:17",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:19",
+    "text": "Chờ 5s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:19",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:20",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:21",
+    "text": "Chờ 3s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:22",
+    "text": "Chờ 2s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:22",
+    "text": "Chờ 1s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:24",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:24",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:25",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:26",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:27",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:27",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:28",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:29",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:30",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:31",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:32",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:32",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:33",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:34",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:46",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:47",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:47",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:48",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:49",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:50",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:50",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:52",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:52",
+    "text": "Chờ 4s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:53",
+    "text": "Chờ 3s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:54",
+    "text": "Chờ 2s",
+    "disabled": true
+   },
+   {
+    "at": "12:45:55",
+    "text": "Chờ 1s",
+    "disabled": true
+   }
+  ],
+  "count": 66,
+  "decreasing": true,
+  "lockedAll": true
+ }
+}

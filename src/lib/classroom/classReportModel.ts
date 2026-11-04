@@ -31,6 +31,8 @@ export interface ClassReportSubmission {
   /** Grade-level weak-topic evidence, in addition to question-level weakTopics. */
   weakTopics?: readonly string[] | string | null;
   questionResults?: readonly ClassReportQuestionResult[];
+  /** Bài kiểm tra nhiều mã đề: mã của bài này — "Câu 5" của mỗi mã là một câu khác nhau. */
+  examCode?: string | null;
 }
 
 /** One assignment after its upload/exam source has been normalized for this pure model. */
@@ -41,6 +43,8 @@ export interface ClassReportAssignment {
   purpose?: ActivityPurpose;
   deliveryMode?: DeliveryMode;
   maxScore?: number | null;
+  /** Ngày dùng để xếp bài vào tuần học: hạn nộp (bài upload) hoặc ngày giao (đề online). */
+  weekDate?: string;
   /** Nội dung câu hỏi đã chuẩn hóa từ đề online hoặc phần chữ của đề upload. */
   questionCatalog?: readonly ClassReportQuestionCatalogItem[];
   /** File đề gốc để đối chiếu khi bài upload không có cấu trúc câu dạng chữ. */
@@ -69,7 +73,10 @@ export interface ClassReportMetrics {
 }
 
 export interface ClassReportQuestionStats {
+  /** Nhãn hiển thị; bài nhiều mã đề có tiền tố "Mã 1201 · ". */
   questionNumber: string;
+  /** Bài nhiều mã đề: mã của câu này. */
+  examCode?: string;
   evidenceCount: number;
   correct: number;
   partial: number;
@@ -111,7 +118,7 @@ export interface ClassReportRecommendation {
 }
 
 export interface ClassAssignmentReport {
-  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'purpose' | 'deliveryMode' | 'maxScore'> & {
+  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'purpose' | 'deliveryMode' | 'maxScore' | 'weekDate'> & {
     questionCatalog?: ClassReportQuestionCatalogItem[];
     questionSources?: ClassReportQuestionSource[];
   };
@@ -284,9 +291,13 @@ const buildQuestionStats = (
       if (!isCountableQuestionResult(result)) continue;
       const status = normalizeKey(result.status).replace('partially_correct', 'partial');
       const questionNumber = normalizeWhitespace(String(result.questionNumber ?? ''));
-      const groupKey = questionGroupKey(questionNumber) || questionNumber;
+      // Bài nhiều mã đề: gộp theo (mã, câu) — gộp "Câu 5" của mọi mã là trộn các câu khác nhau thành một tỉ lệ vô nghĩa.
+      const examCode = normalizeWhitespace(String(submission.examCode ?? ''));
+      const baseKey = questionGroupKey(questionNumber) || questionNumber;
+      const groupKey = examCode ? `${examCode}::${baseKey}` : baseKey;
       const current = stats.get(groupKey) ?? {
         questionNumber,
+        ...(examCode ? { examCode } : {}),
         evidenceCount: 0,
         correct: 0,
         partial: 0,
@@ -315,7 +326,7 @@ const buildQuestionStats = (
   return [...stats.values()]
     .map(({ score, maxScore, labels, ...stat }) => ({
       ...stat,
-      questionNumber: bestQuestionLabel(labels),
+      questionNumber: stat.examCode ? `Mã ${stat.examCode} · ${bestQuestionLabel(labels)}` : bestQuestionLabel(labels),
       correctRate: stat.evidenceCount > 0 ? stat.correct / stat.evidenceCount : 0,
       scoreRate: maxScore > 0 ? score / maxScore : 0,
     }))
@@ -580,6 +591,7 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
       title: assignment.title,
       type: assignment.type,
       maxScore: assignment.maxScore,
+      ...(assignment.weekDate ? { weekDate: assignment.weekDate } : {}),
       questionCatalog: projectQuestionCatalog(assignment.questionCatalog),
       questionSources: projectQuestionSources(assignment.questionSources),
     },

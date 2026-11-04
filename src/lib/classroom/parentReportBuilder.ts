@@ -2,15 +2,16 @@
  * Dựng báo cáo phụ huynh cho MỘT học sinh theo khoảng thời gian — dùng chung cho xuất từng em và xuất cả lớp,
  * để hai đường luôn ra cùng một nội dung.
  */
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
-import type { ExamSubmission } from '../../types';
-import type { StudentScoreView } from './scoreBook';
-import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport';
-import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements';
-import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportPrintDoc';
-import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel';
-import { asCompetencyGrade } from './competency/framework';
-import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod';
+import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types.js';
+import type { ExamSubmission } from '../../types.js';
+import type { StudentScoreView } from './scoreBook.js';
+import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport.js';
+import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements.js';
+import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes.js';
+import { buildStudentCompetencyPortfolio } from './competency/portfolioModel.js';
+import { asCompetencyGrade } from './competency/framework.js';
+import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage.js';
+import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod.js';
 
 export interface ParentReportSource {
   studentId: string;
@@ -18,6 +19,8 @@ export interface ParentReportSource {
   className: string;
   studentCode?: string;
   classGrade?: string;
+  /** Chương trình của lớp (TDS/MOET) — lọc đúng các bài biên mà hai chương trình xếp khác học kì. Chưa chọn = null. */
+  program?: Program | null;
   assignments: readonly AssignmentDoc[];
   /** Bài nộp của CHÍNH học sinh này. */
   submissions: readonly SubmissionDoc[];
@@ -32,6 +35,7 @@ export const parentCompetencyFor = (
   classGrade: string | undefined,
   submissions: readonly SubmissionDoc[],
   assignments: readonly AssignmentDoc[],
+  stage?: ReportStage | null,
 ): ParentCompetencySummary | null => {
   const grade = asCompetencyGrade(classGrade);
   if (!grade) return null;
@@ -43,10 +47,15 @@ export const parentCompetencyFor = (
     submittedAt: s.createdAt,
   }));
   const areas = buildStudentCompetencyPortfolio(grade, subs, assignments.map(a => ({ id: a.id, competencyTags: a.competencyTags })));
-  const { assessed, total } = portfolioProgress(areas);
+  // Chỉ năng lực cùng giai đoạn (học kì) với kì báo cáo: không đếm "x/y" cả những năng lực chưa/không học trong giai đoạn này.
   const items: ParentCompetencyItem[] = [];
+  let assessed = 0;
+  let total = 0;
   for (const area of areas) {
     for (const row of area.rows) {
+      if (!inStage(competencyTerms(row.competency.id, stage?.program ?? null), stage)) continue;
+      total += 1;
+      if (row.result) assessed += 1;
       if (row.result?.level) items.push({ area: area.area, topic: row.competency.topic, level: row.result.level });
     }
   }
@@ -65,6 +74,8 @@ export interface PeriodParentReport {
 
 // Trần để một lượt AI xong trong ~50s và dữ liệu gửi đi < 60k kí tự (tháng thực tế ~90 câu mất ~25s).
 const MAX_EVIDENCE_SUBMISSIONS = 16;
+// Bài kiểm tra định kì luôn được giữ (làm tại lớp — căn cứ đáng tin nhất), tối đa chừng này bài gần nhất.
+const MAX_TEST_SUBMISSIONS = 3;
 // Không cắt ít câu mỗi bài: phiếu dài (Phần I/II/III) có câu làm ĐÚNG ở cuối — cắt là mất bằng chứng, mức bị thấp oan.
 const MAX_QUESTIONS_PER_SUBMISSION = 60;
 const MAX_EVIDENCE_QUESTIONS = 120;
@@ -93,6 +104,8 @@ export const buildRequirementEvidence = (
   assignments: readonly AssignmentDoc[],
 ): EvidenceSubmission[] => {
   const titles = new Map(assignments.map(a => [a.id, a.title]));
+  const periodic = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
+  const isTest = (s: SubmissionDoc) => Boolean(s.assignmentId && periodic.has(s.assignmentId));
   const latest = new Map<string, SubmissionDoc>();
   for (const submission of [...submissions].sort((l, r) => String(r.createdAt).localeCompare(String(l.createdAt)))) {
     if (!validScorePair(submission)) continue;
@@ -101,24 +114,36 @@ export const buildRequirementEvidence = (
   }
   const questionCount = (s: SubmissionDoc) => Math.min(MAX_QUESTIONS_PER_SUBMISSION, Math.max(1, s.grade?.questionResults?.length ?? 1));
   const ordered = [...latest.values()].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
-  let chosen = spreadEvenly(ordered, MAX_EVIDENCE_SUBMISSIONS);
-  while (chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
-    chosen = spreadEvenly(ordered, chosen.length - 1);
+  const tests = ordered.filter(isTest).slice(-MAX_TEST_SUBMISSIONS);
+  const homework = ordered.filter(s => !isTest(s));
+  const pick = (count: number) => [...tests, ...(count > 0 ? spreadEvenly(homework, count) : [])].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
+  let count = Math.min(homework.length, MAX_EVIDENCE_SUBMISSIONS - tests.length);
+  let chosen = pick(count);
+  // Quá nhiều câu thì bớt BTVN trước; bài kiểm tra giữ nguyên.
+  while (count > 0 && chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
+    count -= 1;
+    chosen = pick(count);
   }
   // Dữ liệu vẫn quá dài thì cắt ngắn chữ từng câu dần, thay vì để máy chủ từ chối cả lượt.
   for (const scale of [1, 0.6, 0.35]) {
-    const built = buildEvidenceRows(chosen, titles, scale);
+    const built = buildEvidenceRows(chosen, titles, scale, isTest);
     if (JSON.stringify(built).length <= MAX_EVIDENCE_CHARS || scale === 0.35) return built;
   }
   return [];
 };
 
-const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap<string, string>, scale: number): EvidenceSubmission[] => {
+const buildEvidenceRows = (
+  chosen: readonly SubmissionDoc[],
+  titles: ReadonlyMap<string, string>,
+  scale: number,
+  isTest: (submission: SubmissionDoc) => boolean,
+): EvidenceSubmission[] => {
   const n = (max: number) => Math.max(40, Math.round(max * scale));
   return chosen
     .map((submission, index) => {
       const ma = `b${index + 1}`;
       const grade = submission.grade!;
+      const kt = isTest(submission) ? { kt: true as const } : {};
       const details = (grade.questionResults ?? []).filter(q => Number.isFinite(q.score) && Number.isFinite(q.maxScore) && q.maxScore > 0);
       const cau: EvidenceQuestion[] = details.length > 0
         ? details.slice(0, MAX_QUESTIONS_PER_SUBMISSION).map((q, qi) => ({
@@ -130,8 +155,9 @@ const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap
           giaiThich: clip(q.explanation, n(200)),
           dapAn: clip(q.expectedAnswer, n(110)),
           baiLam: scale === 1 ? clip(q.studentAnswer, 110) : undefined,
+          ...kt,
         }))
-        : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300) }];
+        : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300), ...kt }];
       return { ma, ten: (submission.assignmentId && titles.get(submission.assignmentId)) || 'Bài tự nộp', ngay: vnDay(submission.createdAt), cau };
     });
 };
@@ -168,23 +194,34 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     .map(normalizeExamToSubmissionDoc);
   const allSubmissions = convertedExams.length > 0 ? [...src.submissions, ...convertedExams] : src.submissions;
 
+  // Bài giao riêng cho nhóm khác (targetStudentIds) không phải của em này — không tính "chưa nộp".
+  const assignments = src.assignments.filter(a => !a.targetStudentIds?.length || a.targetStudentIds.includes(src.studentId));
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
-    ? filterForPeriod(period, { assignments: src.assignments, submissions: allSubmissions, hs1: hs1All })
-    : { assignments: [...src.assignments], submissions: [...allSubmissions], hs1: hs1All };
-  const report = buildParentSafeReport({ ...base, assignments: scoped.assignments, submissions: scoped.submissions });
+    ? filterForPeriod(period, { assignments, submissions: allSubmissions, hs1: hs1All })
+    : { assignments: [...assignments], submissions: [...allSubmissions], hs1: hs1All };
+  // Bài kiểm tra định kì: điểm chính thức đã ở "Điểm thi định kì" (sổ điểm) → không cộng vào số liệu BTVN
+  // (điểm TB, xu hướng, từng bài, chưa nộp) và hồ sơ năng lực; chỉ làm căn cứ từng câu cho "Bản đồ theo bài SGK".
+  const periodicIds = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
+  const homework = <T extends { assignments: readonly AssignmentDoc[]; submissions: readonly SubmissionDoc[] }>(data: T) => ({
+    assignments: data.assignments.filter(a => !periodicIds.has(a.id)),
+    submissions: data.submissions.filter(s => !s.assignmentId || !periodicIds.has(s.assignmentId)),
+  });
+  const scopedHomework = homework(scoped);
+  const allHomework = homework({ assignments, submissions: allSubmissions });
+  const report = buildParentSafeReport({ ...base, ...scopedHomework });
 
   let comparison = null;
   let monthly = null;
   if (period) {
-    const full = buildParentSafeReport({ ...base, assignments: src.assignments, submissions: allSubmissions });
+    const full = buildParentSafeReport({ ...base, ...allHomework });
     comparison = periodComparison(period, full.results);
     monthly = monthlyAverages(report.results);
   }
   // Năng lực là thứ tích luỹ: tính tới hết khoảng báo cáo (không cắt đầu khoảng).
-  const upToEnd = period ? allSubmissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : allSubmissions;
-  const competency = parentCompetencyFor(src.classGrade, upToEnd, src.assignments);
+  const upToEnd = period ? allHomework.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : allHomework.submissions;
+  const competency = parentCompetencyFor(src.classGrade, upToEnd, allHomework.assignments, period ? stageForPeriod(period, src.program) : null);
   const exams = src.scoreView?.exams ?? null;
   const title = period ? reportTitle(period) : 'Báo cáo học tập môn Toán';
 
@@ -216,7 +253,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     canRenThem: report.areasToPractice.slice(0, 6),
     ...(comparison ? { soSanh: { truoc: { ...comparison.before, avgPercent: round1(comparison.before.avgPercent) }, sau: { ...comparison.after, avgPercent: round1(comparison.after.avgPercent) } } } : {}),
     ...(exams && (exams.moet.length > 0 || exams.tds.length > 0) ? { diemThiDinhKi: [...exams.moet.map(m => `${m.label}: ${m.score}/10`), ...exams.tds.map(m => `${m.label}: ${m.score}${m.letter ? ` (${m.letter})` : ''}`)] } : {}),
-    ...(scoped.hs1.length > 0 ? { diemHeSo1: scoped.hs1.map(m => `${m.label}: ${m.score}/10`) } : {}),
+    ...(scoped.hs1.length > 0 ? { diemHeSo1: scoped.hs1.map(m => `${m.label} (HS${m.weight ?? 1}): ${m.score}/10`) } : {}),
     ...(competency && competency.items.length > 0 ? { nangLuc: competency.items.slice(0, 12).map(i => `${i.topic}: ${i.level}`) } : {}),
   };
 

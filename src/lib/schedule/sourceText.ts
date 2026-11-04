@@ -10,6 +10,7 @@ import { getDriveAccessToken } from '../googleDrive';
 import { readSheetValues, readSpreadsheetInfo } from '../classroom/sheetsApi';
 import type { GoogleLink } from './googleLink';
 import { rankSheetsText } from './sheetText';
+import { moTaLoiDichVu } from '../httpErrorText';
 
 /** Loại tài liệu đang đọc: dấu hiệu trang liên quan + giới hạn chữ gửi AI. */
 export interface ReadHint {
@@ -43,7 +44,7 @@ const driveGet = async (url: string): Promise<Response> => {
   const token = await getDriveAccessToken();
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (res.status === 403 || res.status === 404) throw new Error('Tài khoản Google của cô chưa được mở file này — kiểm tra quyền chia sẻ.');
-  if (!res.ok) throw new Error(`Google trả lỗi ${res.status}.`);
+  if (!res.ok) throw new Error(moTaLoiDichVu(res.status, 'Google'));
   return res;
 };
 

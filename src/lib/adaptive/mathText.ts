@@ -7,7 +7,7 @@
  * 1. Tokenize chuỗi thành vùng math ($...$) / text TRƯỚC, mọi transform chỉ chạy
  *    trên đúng loại vùng của mình — KHÔNG BAO GIỜ chèn `$` vào trong vùng math.
  * 2. `$` lẻ được vá trước khi tokenize (gỡ `$` rác đầu/cuối, hoặc bọc cả cụm nếu có lệnh LaTeX).
- * 3. assertClean hậu-kiểm; vi phạm → bọc cả chuỗi làm cứu cánh + console.warn có tag.
+ * 3. assertClean hậu-kiểm; vi phạm → giữ mảnh text an toàn + console.warn có tag.
  *
  * CẤM viết regex xử lý công thức mới ngoài module này (xem tasks/lessons.md).
  */
@@ -20,7 +20,7 @@ export interface MathToken {
 }
 
 /** Lệnh LaTeX phổ biến — xuất hiện NGOÀI vùng $...$ nghĩa là dữ liệu lỗi cần vá. */
-const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)(?![A-Za-z])/;
+const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne|int|iint|oint|sum|prod|partial|nabla|forall|exists|cdots|ldots|dots|circ|angle|perp|parallel|triangle|widehat|overrightarrow|bar|dfrac|tfrac|binom|equiv|sim|varphi|phi|rho|tau|epsilon|varepsilon|Omega|Sigma|Pi|Gamma|Lambda|Theta|Phi|emptyset|varnothing|setminus|max|min|exp|arcsin|arccos|arctan|rightarrow|leftarrow|Leftarrow|mapsto|implies|iff)(?![A-Za-z])/;
 
 /**
  * Dữ liệu chấm cũ đôi khi làm mất dấu `\\` khi đi qua JSON, ví dụ `D in SA`.
@@ -64,7 +64,7 @@ const wrapWhole = (s: string): string => {
 /**
  * Vá `$` lẻ TRƯỚC khi tokenize:
  * - `$` rác ở cuối/đầu chuỗi → gỡ, nếu phần còn lại cân thì xong;
- * - còn lẻ → gỡ hết `$`; có lệnh LaTeX/caret thì bọc cả cụm, không thì trả text sạch.
+ * - còn lẻ → gỡ hết `$`; tokenizer sau đó chỉ bọc mảnh toán xác định, giữ lời dẫn.
  */
 const repairDollarBalance = (s: string): string => {
   const isBalanced = (t: string) => ((t.match(/\$/g) || []).length) % 2 === 0;
@@ -79,7 +79,7 @@ const repairDollarBalance = (s: string): string => {
     if (isBalanced(t)) return t;
   }
   const stripped = s.replace(/\$/g, '');
-  if (LATEX_CMD_RE.test(stripped) || /[\^_]\{?\w/.test(stripped)) return wrapWhole(stripped);
+  // Re-tokenize bare fragments later; never turn mixed prose into one formula.
   return stripped;
 };
 
@@ -181,30 +181,87 @@ const splitBareText = (s: string): string[] => {
   return chunks;
 };
 
+/** Ký hiệu toán viết bằng chữ thường gặp, đứng riêng giữa các dấu cách (vi phân, hàm). */
+const MATH_WORDS = new Set(['dx', 'dy', 'dz', 'dt', 'du', 'dv', 'ln', 'lg', 'tg', 'sin', 'cos', 'tan', 'cot', 'log', 'max', 'min', 'lim', 'mod']);
+const isMathToken = (token: string): boolean => /^[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^|']+$/.test(token)
+  && (/[^A-Za-z]/.test(token) || token.length === 1 || /^[A-Z]{2,4}$/.test(token) || MATH_WORDS.has(token));
+
+/**
+ * Công thức bắt đầu từ đâu trong phần đứng trước lệnh LaTeX đầu tiên: lùi qua TỪNG cụm cách bằng dấu cách khi cụm đó
+ * là ký hiệu toán (`y`, `=`, `2x`, `+`, `dx`, tên hình `AB`…), dừng ở chữ thường (`Ta`). Trước đây chỉ lùi tới dấu cách gần nhất
+ * nên `y = 2x + \frac{1}{2}` bị cắt thành `y = 2x $+ \frac{1}{2}$`.
+ */
 const mathStartBeforeCommand = (prefix: string): number => {
-  const trimmed = prefix.trimEnd();
-  const match = trimmed.match(/[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^]+$/);
-  return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
+  let start = prefix.length;
+  for (;;) {
+    const match = prefix.slice(0, start).match(/(\S+)\s*$/);
+    if (!match) return start;
+    if (!isMathToken(match[1])) {
+      // Cụm dính liền ngay trước lệnh (`"M\left(`): như trước, lấy phần đuôi mang dạng ký hiệu toán của cụm đó.
+      if (start !== prefix.length || match[0] !== match[1]) return start;
+      const tail = match[1].match(/[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^]+$/);
+      return tail ? start - tail[0].length : start;
+    }
+    start -= match[0].length;
+  }
+};
+
+/**
+ * Từ tiếng Việt 2 chữ không dấu hay gặp trong lời giải. Chỉ coi là chữ khi đứng riêng (cách bằng khoảng trắng) — không
+ * dùng quy tắc "mọi từ 2 chữ thường" vì sẽ cắt nhầm ký hiệu toán như `dx`, `ln`, `tg`.
+ */
+const SHORT_PROSE_WORDS = new Set(['ta', 'em', 'ra', 'ai', 'ba']);
+
+/** ponytail: short ASCII math atoms only; longer identifiers need explicit LaTeX delimiters. */
+const proseFragments = (source: string): string[] => {
+  const pieces: string[] = [];
+  let cursor = 0;
+  let depth = 0;
+  for (let i = 0; i < source.length;) {
+    if (source[i] === '\\') {
+      const command = source.slice(i).match(/^\\[A-Za-z]+/);
+      i += command?.[0].length || 2;
+      continue;
+    }
+    if (source[i] === '{') depth++;
+    if (source[i] === '}') depth = Math.max(0, depth - 1);
+    const word = depth === 0 ? source.slice(i).match(/^[A-Za-zÀ-ỹ]+/) : null;
+    if (word) {
+      const standalone = /\s/.test(source[i - 1] || ' ') && /^(\s|$)/.test(source.slice(i + word[0].length, i + word[0].length + 1));
+      if (/[À-ỹ]/.test(word[0]) || (word[0].length > 2 && !/^[A-Z]+$/.test(word[0])) || (standalone && SHORT_PROSE_WORDS.has(word[0]))) {
+        pieces.push(source.slice(cursor, i), word[0]);
+        cursor = i + word[0].length;
+      }
+      i += word[0].length;
+    } else i++;
+  }
+  pieces.push(source.slice(cursor));
+  return pieces;
 };
 
 const wrapBareSegment = (segment: string): string => {
-  const left = segment.search(/\S/);
-  if (left < 0) return segment;
-  const right = segment.search(/\s*$/);
-  const leading = segment.slice(0, left);
-  const trailing = right > left ? segment.slice(right) : '';
-  const core = segment.slice(left, right > left ? right : segment.length);
+  const normalized = normalizeLegacyWordOperators(segment);
+  const pieces = proseFragments(normalized);
+  if (pieces.length > 1) return pieces.map(piece => /^[A-Za-zÀ-ỹ]+$/.test(piece) ? piece : wrapBareSegment(piece)).join('');
+  // Dấu câu đứng đầu mảnh (vd "Đáp án: x = 2") thuộc câu chữ, không thuộc công thức.
+  const left = normalized.search(/[^\s.,;:!?]/);
+  if (left < 0) return normalized;
+  const leading = normalized.slice(0, left);
+  let core = normalized.slice(left).trimEnd();
+  let trailing = normalized.slice(left + core.length);
   if (core === '=>') return `${leading}$\\Rightarrow$${trailing}`;
-  const normalizedCore = normalizeLegacyWordOperators(core);
-  const hasCommand = LATEX_CMD_RE.test(normalizedCore);
-  const hasRelation = /[=]/.test(core);
-  if (!hasCommand && !hasRelation) return leading + convertCaretsInText(core) + trailing;
-
-  const source = hasCommand ? normalizedCore : convertCaretsInText(core);
+  if (!LATEX_CMD_RE.test(core) && !core.includes('=')) return leading + convertCaretsInText(core) + trailing;
+  // Sentence punctuation and unmatched prose brackets stay outside the math span.
+  // Ngoặc mở cuối mảnh (lời giải thích kiểu "= 5 (thỏa mãn)") cũng thuộc phần chữ, không thuộc công thức.
+  const opensMore = (text: string) => (text.match(/\(/g)?.length || 0) > (text.match(/\)/g)?.length || 0);
+  while (/[.,;:!?]$/.test(core) || (core.endsWith(')') && (core.match(/\)/g)?.length || 0) > (core.match(/\(/g)?.length || 0))
+    || (core.endsWith('(') && opensMore(core)) || (/\s$/.test(core) && core.trim() !== '')) {
+    trailing = core.slice(-1) + trailing;
+    core = core.slice(0, -1);
+  }
+  const source = LATEX_CMD_RE.test(core) ? core : convertCaretsInText(core);
   const commandIndex = source.search(LATEX_CMD_RE);
-  if (commandIndex <= 0) return leading + wrapWhole(source) + trailing;
-
-  const start = mathStartBeforeCommand(source.slice(0, commandIndex));
+  const start = commandIndex > 0 ? mathStartBeforeCommand(source.slice(0, commandIndex)) : 0;
   return leading + source.slice(0, start) + wrapWhole(source.slice(start)) + trailing;
 };
 
@@ -247,12 +304,67 @@ export const sanitizeDisplayText = (value: string | undefined | null): string =>
       ? { ...t, content: normalizeMathContent(t.content) }
       : { ...t, content: wrapBareFragmentsInText(t.content) },
   );
-  let result = joinTokens(out);
+  // Normalize newly wrapped spans in the same pass for idempotence.
+  let result = joinTokens(tokenizeMath(joinTokens(out)).map(t => t.type === 'math' ? { ...t, content: normalizeMathContent(t.content) } : t));
   if (!assertClean(result)) {
-    console.warn('[mathText] assertClean FAIL — bọc cả chuỗi làm cứu cánh:', result.slice(0, 120));
-    result = wrapWhole(result.replace(/\$/g, ''));
+    console.warn('[mathText] assertClean FAIL — giữ text thay vì bọc cả lời dẫn.');
+    result = wrapBareFragmentsInText(result.replace(/\$/g, ''));
   }
   return result;
+};
+
+/** ponytail: chỉ chia chuỗi dấu bằng ở cấp ngoài; công thức phức tạp giữ nguyên, prompt phải tạo aligned. */
+export const formatFeedbackMath = (value: string): string => {
+  const tokens = tokenizeMath(sanitizeDisplayText(value));
+  return tokens.map((token, index) => {
+    // remark-math treats text after an opening $$ as metadata, not TeX. Fence display math on its own lines.
+    if (token.type === 'math' && (token.open === '$$' || token.open === '\\[')) {
+      const previous = tokens[index - 1], next = tokens[index + 1];
+      const line = previous?.type === 'text' ? previous.content.split('\n').at(-1) || '' : '';
+      if (line.includes('|') || line.trimStart().startsWith('>')) return joinTokens([token]);
+      const list = line.match(/^(\s*)(?:[-*+]|\d+[.)])\s+/);
+      const indent = list ? ' '.repeat(list[0].length) : line.match(/^\s*/)?.[0] || '';
+      const before = line.trim() ? '\n\n' + indent : '';
+      const after = next?.type === 'text' && next.content && !next.content.startsWith('\n') ? '\n\n' + indent : '';
+      return before + '$$\n' + token.content.trim().split('\n').map(part => part.startsWith(indent) ? part : indent + part).join('\n') + '\n' + indent + '$$' + after;
+    }
+    if (token.type !== 'math' || token.content.length < 60
+      || /\\(?:begin|end|left|right|Rightarrow|Leftrightarrow)|[&\r\n]|\\\\|[<>!]=|==/.test(token.content)
+      || /[À-ỹ]|[a-zA-Z]{3}/.test(token.content.replace(/\\[a-zA-Z]+/g, ''))) {
+      return joinTokens([token]);
+    }
+    const parts: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < token.content.length; i++) {
+      const char = token.content[i];
+      if ('{(['.includes(char)) depth++;
+      if ('})]'.includes(char)) depth--;
+      if (depth < 0) return joinTokens([token]);
+      if (depth === 0 && ',;|'.includes(char) && token.content[i - 1] !== '\\') return joinTokens([token]);
+      if (char === '=' && depth === 0) {
+        parts.push(token.content.slice(start, i).trim());
+        start = i + 1;
+      }
+    }
+    parts.push(token.content.slice(start).trim());
+    if (depth || parts.length < 3 || parts.some(part => !part)) return joinTokens([token]);
+    const previous = tokens[index - 1];
+    const line = previous?.type === 'text' ? previous.content.split('\n').at(-1) || '' : '';
+    if (line.includes('|') || line.trimStart().startsWith('>')) return joinTokens([token]);
+    const next = tokens[index + 1];
+    if (next?.type === 'text' && /^\.(?:\s|$)/.test(next.content)) {
+      parts[parts.length - 1] += '.';
+      next.content = next.content.slice(1);
+    }
+    const prefix = line.match(/^(\s*)(?:[-*+]|\d+[.)])\s+/);
+    const indent = prefix ? ' '.repeat(prefix[0].length) : line.match(/^\s*/)?.[0] || '';
+    const block = '$$\n\\begin{aligned}\n'
+      + parts[0] + ' &= ' + parts[1]
+      + parts.slice(2).map(part => '\\\\\n&= ' + part).join('')
+      + '\n\\end{aligned}\n$$';
+    return '\n\n' + block.split('\n').map(line => indent + line).join('\n') + '\n\n' + indent;
+  }).join('');
 };
 
 /**

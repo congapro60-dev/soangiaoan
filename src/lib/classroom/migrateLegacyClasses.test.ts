@@ -110,4 +110,19 @@ describe('joinCode', () => {
     expect(isValidJoinCode('ACDEF0')).toBe(false);
     expect(isValidJoinCode('ACDEFI')).toBe(false);
   });
+
+  it('mã lớp mới không trùng nhau trong cùng lượt chuyển, cũng không trùng mã lớp sẵn có', () => {
+    const codes = ['AAAAAA', 'AAAAAA', 'BBBBBB', 'BBBBBB', 'CCCCCC'];
+    const plan = planLegacyClassMigration(
+      [lopCu({ id: 'c1' }), lopCu({ id: 'c2' }), lopCu({ id: 'c3' })],
+      TEACHER,
+      { joinCodeFactory: () => codes.shift() ?? 'ZZZZZZ', now: () => '2026-08-20T00:00:00.000Z', existingJoinCodes: ['bbbbbb'] },
+    );
+    expect(plan.classes.map(item => item.joinCode)).toEqual(['AAAAAA', 'CCCCCC', 'ZZZZZZ']);
+    expect(new Set(plan.classes.map(item => item.joinCode)).size).toBe(3);
+  });
+
+  it('không bốc được mã không trùng sau nhiều lần thử → báo lỗi thay vì ghi mã trùng', () => {
+    expect(() => planLegacyClassMigration([lopCu()], TEACHER, { ...OPTS, existingJoinCodes: ['ACDEFG'] })).toThrow('mã lớp không trùng');
+  });
 });

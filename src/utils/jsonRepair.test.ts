@@ -145,3 +145,36 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
     expectNamedError(() => parseJsonWithRecovery('{"score":8'), 'JsonRecoveryError');
   });
 });
+
+describe('trailing comma recovery', () => {
+  it('bỏ dấu phẩy dư trước đóng ngoặc object và mảng', () => {
+    const result = parseJsonWithRecovery<{ items: number[]; name: string }>(
+      '{"items":[1,2,],"name":"toán",}',
+    );
+
+    expect(result.value).toEqual({ items: [1, 2], name: 'toán' });
+    expect(result.parseMode).toBe('repaired');
+    expect(result.repairKinds).toEqual(['trailing_comma']);
+  });
+
+  it('bỏ dấu phẩy dư cách nhau bởi khoảng trắng và xuống dòng', () => {
+    const result = parseJsonWithRecovery<{ score: number; questionResults: unknown[] }>(
+      '{\n  "score": 8,\n  "questionResults": [\n    {"questionNumber":"Câu 1","score":8,}\n  ],\n}',
+    );
+
+    expect(result.value.score).toBe(8);
+    expect(result.value.questionResults).toHaveLength(1);
+    expect(result.repairKinds).toEqual(['trailing_comma']);
+  });
+
+  it('không đụng dấu phẩy trong chuỗi dữ liệu', () => {
+    const result = parseJsonWithRecovery<{ text: string }>('{"text":"độ lệch a, } và b, ]"}');
+
+    expect(result.value.text).toBe('độ lệch a, } và b, ]');
+    expect(result.repairKinds).toEqual([]);
+  });
+
+  it('parseLooseJson cũng chịu được JSON có dấu phẩy dư', () => {
+    expect(parseLooseJson<{ a: number }>('{ "a": 1, }')).toEqual({ a: 1 });
+  });
+});

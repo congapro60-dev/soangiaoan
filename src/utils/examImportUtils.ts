@@ -1,10 +1,14 @@
 import * as mammoth from 'mammoth';
+import { pdfToImages } from './pdfToImages';
+export { pdfToImages } from './pdfToImages';
 import * as pdfjsLib from 'pdfjs-dist';
+if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { storage } from '../lib/firebase';
 import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
-import { applyCleanFilterToCanvas, cleanImageBase64 } from './imageCleanup';
+import { cleanImageBase64 } from './imageCleanup';
+import { validateExamQuestions } from './examScoring';
 
 type Settings = AppData['settings'];
 
@@ -18,44 +22,8 @@ const fileToDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-// Set worker once at module level (shared with TestingTab)
-if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-}
-
 export const MAX_IMPORT_MB = 20;
-
 const MAX_PDF_PAGES = 6;
-const PDF_SCALE = 1.0;
-const IMG_QUALITY = 0.4;
-
-/** Convert PDF pages to data URLs */
-export const pdfToImages = async (file: File, onProgress?: (p: number) => void, autoClean?: boolean): Promise<string[]> => {
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  const images: string[] = [];
-  const pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
-  for (let i = 1; i <= pageCount; i++) {
-    const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: PDF_SCALE }); 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) continue;
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-    await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
-    
-    if (autoClean) {
-      applyCleanFilterToCanvas(canvas, ctx);
-    }
-    
-    images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
-    canvas.width = 0; canvas.height = 0; // release GPU memory
-    if (onProgress) onProgress(Math.round((i / pageCount) * 100));
-  }
-  return images;
-};
 
 /** Crop image from data URL and bounding box [ymin, xmin, ymax, xmax] (0-1000) */
 export const cropImage = async (dataUrl: string, box: number[]): Promise<string> => {
@@ -264,7 +232,7 @@ export const parseExamFromFiles = async (
     const rawList = extractJSON(response);
     const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
 
-    return Promise.all(rawList.map(async (q, idx): Promise<ExamQuestion> => {
+    return validateExamQuestions(await Promise.all(rawList.map(async (q, idx): Promise<ExamQuestion> => {
       const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
       const question: ExamQuestion = {
         id: q.id ? String(q.id) : `q${idx + 1}`,
@@ -290,7 +258,7 @@ export const parseExamFromFiles = async (
       if (type === 'multiple_choice' && Array.isArray(q.options)) {
         question.options = q.options.map(o => o.toString());
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
-        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+        if (ans) question.correctAnswer = ans;
       } else if (type === 'true_false') {
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
         if (Array.isArray(q.options) && q.options.length > 0) {
@@ -305,7 +273,7 @@ export const parseExamFromFiles = async (
 
       if (q.explanation) question.explanation = q.explanation.toString();
       return question;
-    }));
+    })));
   } else {
     // Fast Text-only path (Default for PDF and DOCX)
     const examText = await extractTextFromFile(examFile);
@@ -317,7 +285,7 @@ export const parseExamFromFiles = async (
     const rawList = extractJSON(response);
     const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
 
-    return rawList.map((q, idx): ExamQuestion => {
+    const questions = rawList.map((q, idx): ExamQuestion => {
       const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
       const question: ExamQuestion = {
         id: q.id ? String(q.id) : `q${idx + 1}`,
@@ -328,19 +296,20 @@ export const parseExamFromFiles = async (
       if (type === 'multiple_choice' && Array.isArray(q.options)) {
         question.options = q.options.map(o => o.toString());
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
-        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+        if (ans) question.correctAnswer = ans;
       } else if (type === 'true_false') {
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
         // Support both single T/F and compound T/F (4 statements)
         if (Array.isArray(q.options) && q.options.length > 0) {
           question.options = q.options.map(o => o.toString());
-          // Normalize answer to comma-separated format if it's multiple parts
-          question.correctAnswer = ans.includes(',') ? ans : ans.split('').join(',');
+          // Normalize compound keys only when four statements were extracted.
+          question.correctAnswer = q.options.length === 4
+            ? (ans.includes(',') ? ans : ans.split('').join(','))
+            : ans;
         } else {
           // If AI failed to extract options but it's a T/F question, 
           // try to find statements in the content or just provide placeholders
-          question.options = ['', '', '', ''];
-          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đ,Đ,Đ,Đ' : 'S,S,S,S';
+          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đúng' : 'Sai';
         }
       } else if (type === 'short_answer') {
         question.correctAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
@@ -348,6 +317,7 @@ export const parseExamFromFiles = async (
       if (q.explanation) question.explanation = q.explanation.toString();
       return question;
     });
+    return validateExamQuestions(questions);
   }
 };
 

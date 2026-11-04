@@ -1,0 +1,24 @@
+{
+ "sessionId": "T5lfCYGxrpRSg1aikwhj",
+ "marker": "Nháp R4 79 — kiểm tra lưu 28/10",
+ "hsJoin": "view",
+ "gvStarted": {
+  "started": false,
+  "stage": "6",
+  "status": "running"
+ },
+ "gvAtS4": {
+  "stage": "5",
+  "status": "running"
+ },
+ "hsReadyBefore": true,
+ "typed": true,
+ "bandBefore": "Chặng 12–15 phút",
+ "relogged": "view",
+ "hsReadyAfter": true,
+ "bandAfter": "Chặng 12–15 phút",
+ "aiErrorStill": true,
+ "kept": false,
+ "keptInField": true,
+ "nhapPanel": true
+}

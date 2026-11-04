@@ -1,5 +1,5 @@
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
-import { namesSpecificProblem } from './topicHygiene';
+import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types.js';
+import { namesSpecificProblem } from './topicHygiene.js';
 
 export type ParentSafeAssignmentStatus = 'official' | 'pending' | 'grading' | 'error' | 'not_submitted';
 export type ParentSafeTrend = 'up' | 'flat' | 'down' | 'not_enough_data';
@@ -25,6 +25,8 @@ export interface ParentSafeAssignmentResult {
   title: string;
   status: ParentSafeAssignmentStatus;
   submittedAt?: string;
+  /** Hạn nộp của bài (để xếp vào tuần học). */
+  dueAt?: string;
   score: number | null;
   maxScore: number | null;
 }
@@ -115,6 +117,7 @@ const resultFromSubmission = (
     title: titleFor(assignment, submission),
     status: safeStatus(submission),
     submittedAt: submission.createdAt,
+    ...(assignment?.dueAt ? { dueAt: assignment.dueAt } : {}),
     score: official ? pair.score : null,
     maxScore: official ? pair.maxScore : null,
   };
@@ -227,6 +230,7 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
         assignmentId: assignment.id,
         title: assignment.title,
         status: 'not_submitted' as const,
+        ...(assignment.dueAt ? { dueAt: assignment.dueAt } : {}),
         score: null,
         maxScore: null,
       };

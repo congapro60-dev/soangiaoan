@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AiKeyStatus, StatementItem } from './aiBillingApi';
 import type { TokenUsageSnapshot } from '../../hooks/useTokenTracker';
-import { chipView, itemsOfDay, quotaRow, quotaTone, summarizeDay, vnDayOf } from './usageToday';
+import { chipView, itemsOfDay, quotaRow, quotaTone, summarizeDay, vnDayOf, walletJustEmptied } from './usageToday';
 
 const status = (patch: Partial<AiKeyStatus>): AiKeyStatus => ({
   gateEnabled: true, exempt: false, balanceVnd: 48_200, todayVnd: 1_300, todayCalls: 4, mode: 'both', ...patch,
@@ -82,5 +82,19 @@ describe('còn lại của khoá riêng (kiểu 9Router)', () => {
   it('màu theo phần còn lại', () => {
     expect([quotaTone(93), quotaTone(40), quotaTone(41), quotaTone(15), quotaTone(0), quotaTone(null)])
       .toEqual(['ok', 'warn', 'ok', 'danger', 'danger', 'none']);
+  });
+});
+
+describe('walletJustEmptied — mời nạp ngay khi ví vừa về 0đ', () => {
+  it('lần trước còn tiền, lần này hết → mời; đã hết từ trước hoặc lần đọc đầu tiên → không lặp lại', () => {
+    expect(walletJustEmptied(status({ balanceVnd: 1_200 }), status({ balanceVnd: 0 }))).toBe(true);
+    expect(walletJustEmptied(status({ balanceVnd: 0 }), status({ balanceVnd: 0 }))).toBe(false);
+    expect(walletJustEmptied(null, status({ balanceVnd: 0 }))).toBe(false);
+    expect(walletJustEmptied(status({ balanceVnd: 50_000 }), status({ balanceVnd: 30_000 }))).toBe(false);
+  });
+  it('ví chỉ là dự phòng (khoá riêng đang chạy, chỉ khoá riêng) hoặc không trừ ví → không làm phiền', () => {
+    expect(walletJustEmptied(status({ balanceVnd: 1_200, hasKey: true, keyStatus: 'ok' }), status({ balanceVnd: 0, hasKey: true, keyStatus: 'ok' }))).toBe(false);
+    expect(walletJustEmptied(status({ balanceVnd: 1_200, mode: 'own' }), status({ balanceVnd: 0, mode: 'own' }))).toBe(false);
+    expect(walletJustEmptied(status({ balanceVnd: 1_200, exempt: true }), status({ balanceVnd: 0, exempt: true }))).toBe(false);
   });
 });

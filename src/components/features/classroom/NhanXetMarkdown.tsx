@@ -3,7 +3,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { sanitizeDisplayText } from '../../../lib/adaptive/mathText';
+import { formatFeedbackMath } from '../../../lib/adaptive/mathText';
 
 interface Props {
   children: string;
@@ -20,7 +20,7 @@ interface Props {
  * cũng không tới được người cần nghe.
  */
 export const NhanXetMarkdown = ({ children, tone = 'thuong' }: Props) => {
-  const text = sanitizeDisplayText(String(children || ''));
+  const text = formatFeedbackMath(String(children || ''));
   if (!text) return null;
 
   const mau = tone === 'sang'
@@ -29,8 +29,8 @@ export const NhanXetMarkdown = ({ children, tone = 'thuong' }: Props) => {
 
   return (
     <div
-      className={`nhan-xet text-sm font-medium leading-7 ${mau}
-        [&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0
+      className={`nhan-xet min-w-0 text-sm font-medium leading-6 ${mau}
+        [&_p]:my-2 [&_p]:whitespace-pre-line [&_p:first-child]:mt-0 [&_p:last-child]:mb-0
         [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5
         [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5
         [&_strong]:font-black
@@ -40,7 +40,9 @@ export const NhanXetMarkdown = ({ children, tone = 'thuong' }: Props) => {
         [&_table]:my-2 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[0.95em]
         [&_th]:border [&_th]:border-current/20 [&_th]:px-2 [&_th]:py-1
         [&_td]:border [&_td]:border-current/20 [&_td]:px-2 [&_td]:py-1
-        [&_.katex]:text-[1.02em] [&_.katex-display]:my-3 [&_.katex-display]:overflow-x-auto`}
+        [&_.katex]:text-[1.1em] [&_.katex]:whitespace-nowrap [&_.katex]:inline-block
+        [&_.katex-display]:my-3 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden
+        [&_.katex-display>.katex]:block [&_.katex-display>.katex]:text-left`}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
         {text}

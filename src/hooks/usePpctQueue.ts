@@ -3,12 +3,13 @@
 // Mọi logic khó — thứ tự, huỷ, lỗi liên tiếp, chạy tiếp — nằm ở tầng thuần và đã có test. Ở đây
 // chỉ còn trạng thái giao diện và việc ghi nhớ tiến độ.
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LessonPlan, ToanKeHoach, BuiltinFormat } from '../types';
 import type { PpctJob, QueuePlan } from '../lib/ppct/lessonJob';
 import { moTaKetQua, runPpctQueue, type JobOutcome, type QueueOutcome } from '../lib/ppct/runQueue';
 
 const KHOA_TIEN_DO = 'smartplan.ppctQueue.v1';
+const khoaBoNho = (userId?: string | null) => `${KHOA_TIEN_DO}:${userId || 'anonymous'}`;
 
 export interface TienDoQueue {
   dangChay: boolean;
@@ -25,19 +26,19 @@ export interface BanGhiTienDo {
   capNhat: string;
 }
 
-const docTienDo = (): BanGhiTienDo | null => {
+const docTienDo = (userId?: string | null): BanGhiTienDo | null => {
   try {
-    const raw = localStorage.getItem(KHOA_TIEN_DO);
+    const raw = localStorage.getItem(khoaBoNho(userId));
     return raw ? (JSON.parse(raw) as BanGhiTienDo) : null;
   } catch {
     return null;
   }
 };
 
-const ghiTienDo = (ban: BanGhiTienDo | null): void => {
+const ghiTienDo = (userId: string | null | undefined, ban: BanGhiTienDo | null): void => {
   try {
-    if (ban) localStorage.setItem(KHOA_TIEN_DO, JSON.stringify(ban));
-    else localStorage.removeItem(KHOA_TIEN_DO);
+    if (ban) localStorage.setItem(khoaBoNho(userId), JSON.stringify(ban));
+    else localStorage.removeItem(khoaBoNho(userId));
   } catch {
     // Chế độ riêng tư chặn localStorage — mất khả năng chạy tiếp, nhưng không được làm hỏng lô.
   }
@@ -54,13 +55,18 @@ interface Params {
   builtinFormat: BuiltinFormat;
   subjectId?: string;
   grade: number;
+  userId?: string | null;
 }
 
-export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat, subjectId, grade }: Params) => {
+export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat, subjectId, grade, userId }: Params) => {
   const [tienDo, setTienDo] = useState<TienDoQueue>({ dangChay: false, daLam: 0, tong: 0, dangSoan: '' });
   const [ketQua, setKetQua] = useState<JobOutcome[]>([]);
-  const [banGhi, setBanGhi] = useState<BanGhiTienDo | null>(() => docTienDo());
+  const [banGhi, setBanGhi] = useState<BanGhiTienDo | null>(() => docTienDo(userId));
   const cancelRef = useRef(false);
+
+  useEffect(() => {
+    setBanGhi(docTienDo(userId));
+  }, [userId]);
 
   const dung = useCallback(() => {
     cancelRef.current = true;
@@ -68,9 +74,9 @@ export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat,
   }, []);
 
   const xoaTienDo = useCallback(() => {
-    ghiTienDo(null);
+    ghiTienDo(userId, null);
     setBanGhi(null);
-  }, []);
+  }, [userId]);
 
   const chay = useCallback(async (
     plan: QueuePlan,
@@ -82,7 +88,7 @@ export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat,
       return null;
     }
 
-    const truoc = docTienDo();
+    const truoc = docTienDo(userId);
     const daXong = new Set<string>(chayTiep && truoc?.khoa === lo.khoa ? truoc.daXong : []);
 
     cancelRef.current = false;
@@ -92,7 +98,7 @@ export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat,
     const xong: string[] = [...daXong];
     const luu = (): void => {
       const ban: BanGhiTienDo = { khoa: lo.khoa, nhan: lo.nhan, daXong: xong, capNhat: new Date().toISOString() };
-      ghiTienDo(ban);
+      ghiTienDo(userId, ban);
       setBanGhi(ban);
     };
 
@@ -141,7 +147,7 @@ export const usePpctQueue = ({ soanMotTiet, luuGiaoAn, showToast, builtinFormat,
       setTienDo({ dangChay: false, daLam: 0, tong: 0, dangSoan: '' });
       cancelRef.current = false;
     }
-  }, [soanMotTiet, luuGiaoAn, showToast, builtinFormat, subjectId, grade, xoaTienDo]);
+  }, [soanMotTiet, luuGiaoAn, showToast, builtinFormat, subjectId, grade, userId, xoaTienDo]);
 
   return { tienDo, ketQua, banGhi, chay, dung, xoaTienDo };
 };

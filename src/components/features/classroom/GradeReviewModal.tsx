@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Loader2, Save, Sparkles, X } from 'lucide-react';
-import type { SubmissionDoc } from '../../../lib/classroom/types';
+import type { QuestionResult, SubmissionDoc } from '../../../lib/classroom/types';
+import { recomputeTotal } from '../../../lib/classroom/questionRescore';
 import { rewriteFeedback } from '../../../services/gradingApi';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
-import { QuestionResultsList } from './QuestionResultsList';
+import { SubmissionPhotoReview } from './SubmissionPhotoReview';
+import { QuestionResultsEditor } from './QuestionResultsEditor';
 
 export interface GradeReviewValue {
   score: number;
@@ -11,6 +13,9 @@ export interface GradeReviewValue {
   feedback: string;
   weakTopics: string[];
   teacherNote: string;
+  questionResults: QuestionResult[];
+  /** Câu thầy cô sửa đáp án và muốn áp cho cả lớp. */
+  classFixes: { questionNumber: string; expectedAnswer: string }[];
 }
 
 interface Props {
@@ -39,12 +44,27 @@ const tachDong = (text: string): string[] =>
  */
 export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, onClose, onSubmit }: Props) => {
   const g = submission.grade;
+  const [activeQuestion, setActiveQuestion] = useState(g?.questionResults?.[0]?.questionNumber || '');
+  const images = [...new Set([...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(g?.questionResults?.flatMap(question => question.clarify?.photoUrls ?? []) ?? [])])];
   const maxScore = g?.maxScore ?? 10;
 
   const [score, setScore] = useState(String(g?.score ?? ''));
   const [feedback, setFeedback] = useState(g?.feedback || '');
   const [topics, setTopics] = useState((g?.weakTopics || []).join('\n'));
   const [teacherNote, setTeacherNote] = useState(g?.teacherNote || '');
+  const [rows, setRows] = useState<QuestionResult[]>(g?.questionResults || []);
+  const [classFixes, setClassFixes] = useState<ReadonlySet<string>>(new Set());
+
+  /** Sửa câu nào thì điểm tổng tự cộng lại — thầy cô vẫn sửa tay điểm tổng được sau đó. */
+  const doiCau = (next: QuestionResult[]) => {
+    setRows(next);
+    if (g) setScore(String(recomputeTotal(g, next)));
+  };
+  const batTatCaLop = (questionNumber: string) => setClassFixes(prev => {
+    const next = new Set(prev);
+    if (next.has(questionNumber)) next.delete(questionNumber); else next.add(questionNumber);
+    return next;
+  });
 
   const [dangViet, setDangViet] = useState(false);
   const [ghiChu, setGhiChu] = useState('');
@@ -76,7 +96,7 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:p-8" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-6xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Sửa điểm / chấm tay</p>
@@ -86,9 +106,23 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
         </div>
 
         <div className="mt-4 space-y-5">
-          <QuestionResultsList results={g?.questionResults} title="Kết quả AI theo từng câu (chỉ xem)" />
+          {rows.length > 0 && <div className="grid min-w-0 gap-4 md:grid-cols-2">
+            {images.length > 0 && <div className="min-w-0 md:sticky md:top-4 md:self-start"><SubmissionPhotoReview imageUrl={images[0]} imageUrls={images} alt="Đối chiếu bài làm khi sửa điểm" questionResults={rows} teacherView approved={Boolean(g?.teacherApproved)} pending={Boolean(rows.find(row => row.questionNumber === activeQuestion)?.clarify && ['open', 'photo_saved', 'regrading'].includes(rows.find(row => row.questionNumber === activeQuestion)!.clarify!.state))} selectedQuestion={activeQuestion} onSelectQuestion={setActiveQuestion} detailHidden /></div>}
+            <div className="min-w-0 max-h-[75vh] overflow-y-auto">
+            <QuestionResultsEditor
+              rows={rows}
+              original={g?.questionResults || []}
+              canFixForClass={Boolean(submission.assignmentId)}
+              classFixes={classFixes}
+              onChange={doiCau}
+              onFocusQuestion={setActiveQuestion}
+              onToggleClassFix={batTatCaLop}
+            />
+            </div></div>}
           <div>
-            <label className="mb-1 block text-sm font-black text-slate-700">Điểm (tối đa {maxScore})</label>
+            <label className="mb-1 block text-sm font-black text-slate-700">
+              Điểm (tối đa {maxScore}){rows.length > 0 && <span className="font-semibold text-slate-500"> — tự cộng từ các câu, vẫn sửa tay được</span>}
+            </label>
             <input type="number" min={0} max={maxScore} step={0.25} value={score}
               onChange={e => setScore(e.target.value)} className={`${O} font-semibold`} />
             {!diemHopLe && score !== '' && (
@@ -158,6 +192,10 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
               feedback: feedback.trim(),
               weakTopics: tachDong(topics),
               teacherNote: teacherNote.trim(),
+              questionResults: rows,
+              classFixes: rows
+                .filter(q => classFixes.has(q.questionNumber) && q.expectedAnswer.trim())
+                .map(q => ({ questionNumber: q.questionNumber, expectedAnswer: q.expectedAnswer.trim() })),
             })}
             disabled={!diemHopLe || dangLuu || dangViet}
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"

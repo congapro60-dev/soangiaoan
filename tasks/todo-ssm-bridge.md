@@ -97,3 +97,88 @@ Mục mới "Lịch báo giảng" trên thanh bên (`src/components/tabs/LessonS
 - Kiểm: TDS 10Olinda tuần 5 trùng ảnh mẫu; MOET tuần 1/4/5/6 trùng file LBG thầy Cường; Excel đọc lại đúng; UI thử trên dev (demo) + mobile width.
 - Chưa kiểm được trên dev: nút "Tải" link Prime (dev proxy sang production chưa có action) và luồng AI (demo không có key) → kiểm sau khi lên production với tài khoản trường.
 - Bẫy dữ liệu: PPCT tds-g10 có 6 tiết subject "Tự chọn" nhưng isElective=false (tds-g12 có 1) — UI đã bỏ khỏi danh sách phân môn.
+
+## Đợt 4 — Đẩy điểm LO từ web lên SSM (2026-10-22)
+
+**Mục tiêu**: Web tính điểm LO từ bài đã duyệt → đọc cây LO + id học sinh trực tiếp từ SSM qua tiện ích → hiện bảng preview → giáo viên xác nhận → ghi điểm lên SSM bằng API. Không dùng file Excel trung gian.
+
+**Ràng buộc cứng:**
+- SSM gửi thông báo phụ huynh NGAY khi lưu điểm → app KHÔNG tự ghi. Luôn: preview → GV bấm xác nhận → ghi → đọc lại kiểm tra.
+- Token SSM không rời trình duyệt (giữ nguyên kiến trúc extension).
+- Ghi điểm = thao tác GHI trong `background.js`, phải qua `readSession(true)` và kiểm workspace.
+
+**Kiến trúc API SSM (ĐÃ verify từ bundle `umi.e3306a2c` + chunk 8173/521, 2026-10-22):**
+```
+ĐỌC (1 endpoint đủ hết cây + thang + điểm đã có):
+  GET /v2/evaluation/class-subject-assessment?assessment_form_id=X&criteria_id=Y&class_id=Z
+  → data: {
+      quarter: {id}, result_assessment_form_id, can_edit, is_approved, is_draft_set,
+      quarter_has_branch_id, class: {id}, subject: {id, subject_name},
+      assessment_forms: { data: {
+        focal_points: { data: [{ id, code, name, coefficient_type,
+          power_standards: { data: [{ id, code, name, coefficient_type,
+            learning_outcomes: { data: [{ id, code, name, coefficient_type }] } }] } }] },
+        scoring_scale: { data: { score_configs: { data: [
+          { id, point, is_number, is_calculate_score } ] } } } } },
+      students: [ { id, full_name {vi}, code,
+        point: { focal_points: [ { id, power_standards: [ { id,
+          learning_outcomes: [ { id, point_id, grading_student_id } ] } ] } ] } } ]
+    }  // wrapper {data:...} phân trang có thể có/vắng ở từng tầng — parser xử lý cả hai
+ĐỌC quý: GET /v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=X
+ĐỌC cây riêng: GET /v2/evaluation/criteria-has-assessment-form/{assessmentFormId}
+ĐỌC HS: GET /v2/evaluation/student-by-subject
+Làm mới form: GET /v2/evaluation/assessment-forms-reopen?class_id&subject_id&quarter_has_branch_id
+
+GHI MỚI (result_assessment_form_id = null):
+  POST /v2/evaluation/grading-student-by-assessment-form/{assessmentFormId}
+SỬA (đã có result):
+  POST /v2/evaluation/update-result-grading-student/{resultAssessmentFormId}
+  Body (cả hai): {class_id, criteria_id, quarter_has_branch_id,
+    students: [{id: ssmStudentId, name,
+      result: [{learning_outcome_id, scoring_setting_id: id(OfThang),      // ← id THANG, không phải id LO
+        is_number: thang.is_number, point: String(thang.point),
+        grading_student_id: chỉ khi sửa ô đã có}]}]}
+DUYỆT (Gửi Phê Duyệt): POST /v2/evaluation/approve-assessment-form  ← app KHÔNG gọi; GV tự bấm
+Nhận xét môn: PUT /v2/evaluation/subject-comments (đợt sau)
+Khác: POST /v2/evaluation/update-status-result-assessment-form, GET /v2/evaluation/final-subject-score-students
+⚠️ Chưa biết chắc: ô "N" đang lưu ở thang nào (is_number=false, point=?). Dump JSON thật để chốt.
+
+### Task 1: Dò cấu trúc JSON thật của SSM API LO (CHẶN — cần dữ liệu thật)
+- [x] Thêm op `criteriaAssessment` vào `OPS` trong `background.js`: gọi `GET /v2/evaluation/criteria-has-assessment-form/{assessmentFormId}`, trả raw JSON về app.
+- [x] Thêm op `evaluationQuarters` vào `OPS`: gọi `GET /v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=X`.
+- [x] Thêm op `subjectClass` vào `OPS`: gọi `GET /v1/subject-class?class_id={classId}&school_year_id={schoolYearId}`.
+- [x] Thêm type `SsmOp` và các hàm wrapper tương ứng trong `ssmBridge.ts`.
+- [x] Dò bundle JS công khai SSM (`umi.e3306a2c` + chunk 8173 + 521): đã xác định 100% cấu trúc JSON của class-subject-assessment, score_configs, point map, và endpoint POST ghi điểm.
+
+### Task 2: Parser LO tree từ JSON SSM → cấu trúc app dùng được
+- [x] Tạo `src/lib/ssm/loSsmParser.ts`: parse cây FP→PS→LO dẹt về danh sách phẳng, parse thang điểm `score_configs`, parse học sinh kèm `existingPointId` và `existingGradingId`.
+- [x] Test: `loSsmParser.test.ts` 8/8 test xanh.
+
+### Task 3: Tái dùng pipeline tính điểm LO hiện có (không sửa logic chấm)
+- [x] Tích hợp vào `SsmPanel.tsx`: đọc trực tiếp danh sách quý + bài đánh giá từ SSM qua tiện ích.
+- [x] Tái dùng `buildLoMappingPrompt` + `buildClassLoScores` + `suggestGrid` để tính điểm LO tự động từ bài nộp trên web cho danh sách học sinh của SSM.
+
+### Task 4: UI Preview trước khi ghi
+- [x] Tạo `src/lib/ssm/loSsmWrite.ts`: `diffLoGrid` so sánh điểm đang có trên SSM với điểm web tính, đếm số ô thêm mới, ô ghi đè, phát hiện điểm lệch thang.
+- [x] Tạo `src/components/features/classroom/LoPushPreviewModal.tsx`: bảng diff chi tiết (Học sinh | Mã HS | LO | Điểm cũ | Điểm mới | Trạng thái), cảnh báo ghi đè, nút xác nhận.
+- [x] Test: `loSsmWrite.test.ts` 9/9 test xanh.
+
+### Task 5: Op ghi điểm qua extension
+- [x] Thêm op `writeLoGrades` vào `OPS` (`background.js`): gọi `POST /v2/evaluation/grading-student-by-assessment-form/{formId}` (thêm mới) hoặc `POST /v2/evaluation/update-result-grading-student/{resultId}` (cập nhật).
+- [x] `writeSsmLoGrades` trong `ssmBridge.ts`.
+- [x] Read-back verification trong `loSsmWrite.ts` (`verifyWritten`) sau khi đẩy điểm.
+
+### Task 6: Cập nhật tiện ích + phát hành
+- [x] Bump version `manifest.json` từ 0.3.4 lên 0.4.0.
+- [x] Cập nhật test `package.test.ts`.
+- [x] Đóng gói tự động `public/downloads/ssm-bridge.zip` (11,377 bytes).
+
+### Task 7: Verify E2E + build
+- [x] `npm run build` PASS (built in 1m 27s, zero errors).
+- [x] 111/111 vitest tests trong `src/lib/ssm/` và `extension/ssm-bridge/` PASS.
+
+### Chưa làm (YAGNI)
+- Tự động approve trên SSM: GV tự bấm "Gửi Phê Duyệt" trên SSM.
+- Ghi nhận xét môn (`PUT /v2/evaluation/subject-comments`): đợt sau.
+- Sync ngược điểm TDS SSM → app: item 4 cũ vẫn chờ Q1 có data.
+- Trọng số LO theo chương trình trường: user chọn giữ thô.

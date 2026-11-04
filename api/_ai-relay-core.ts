@@ -3,18 +3,20 @@
  *
  * Vì sao có: soạn giáo án, nâng cấp, dự giờ, ra đề… gọi Gemini THẲNG từ trình duyệt bằng khoá của giáo viên, nên ví web
  * không trả được cho chúng. Chủ dự án chốt 2026-09-30: token mua trên web dùng cho MỌI tính năng AI. Đường này để
- * trình duyệt nhờ máy chủ gọi Gemini bằng khoá chung, trừ ví như các lượt chấm bài.
+ * trình duyệt nhờ máy chủ gọi AI bằng khoá chung (từ 24/10/2026 đích của provider 'gemini' là chợ API Vilao), trừ ví như các lượt chấm bài.
  *
  * Chỉ nhận model đã có giá trong `aiPricing.ts` — model chưa có giá sẽ bị tính 0đ, tức tặng miễn phí.
  */
 import type { InlineImage } from './_grading-core.js';
+import { resolveEffort } from '../src/data/reasoningEffort.js';
 
 /** Khớp `functions["api/ai-relay.ts"].maxDuration` trong vercel.json (có test khoá hai bên bằng nhau). */
 export const RELAY_MAX_DURATION_S = 300;
 /** Chừa ~30 giây cuối để ghi sổ và trả lời trước khi Vercel cắt hàm. */
 export const RELAY_GEMINI_TIMEOUT_MS = (RELAY_MAX_DURATION_S - 30) * 1000;
 
-export const RELAY_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'] as const;
+/** Model Gemini chạy QUA chợ API Vilao (G1 — 24/10/2026): máy chủ không gọi Google trực tiếp nữa; thêm model = phải đăng ký model đó vào key Vilao trước. Trùng `RELAY_MODEL_IDS` ở `src/lib/aiRelay.ts` (có test khoá hai bên). */
+export const RELAY_MODELS = ['gemini-3.8-flash'] as const;
 export const RELAY_DEFAULT_MODEL = RELAY_MODELS[0];
 
 /**
@@ -25,6 +27,12 @@ export const RELAY_DEFAULT_MODEL = RELAY_MODELS[0];
 export const RELAY_VENDORS = ['claude', 'openai'] as const;
 export type RelayVendor = (typeof RELAY_VENDORS)[number];
 export type RelayProvider = 'gemini' | RelayVendor;
+/**
+ * Đích máy chủ của từng provider. Provider 'gemini' KHÔNG gọi Google nữa (G1 — 24/10/2026) mà chạy trên
+ * chợ API Vilao (OpenAI-compatible) bằng khoá môi trường `GRADING_VILAO_API_KEY`; 'vilao' chỉ là đích nội bộ
+ * máy chủ — client vẫn chọn gemini, không có hãng 'vilao' trong ví web.
+ */
+export type RelayApiVendor = RelayVendor | 'vilao';
 export const RELAY_VENDOR_MODELS: Record<RelayVendor, readonly string[]> = {
   claude: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'],
   openai: ['gpt-6.1-sol', 'gpt-6-luna', 'gpt-6-astra'],
@@ -33,14 +41,13 @@ export const RELAY_VENDOR_ENV: Record<RelayVendor, string> = { claude: 'ANTHROPI
 
 /** Khoá của máy chủ cho hãng đó (null = chưa cấu hình → hãng đó chưa dùng được bằng ví). */
 export const relayVendorKey = (vendor: RelayVendor, env: NodeJS.ProcessEnv = process.env): string | null => env[RELAY_VENDOR_ENV[vendor]]?.trim() || null;
+/** Khoá Vilao cho đích của provider 'gemini' (null = chưa cấu hình → relay chưa dùng được). */
+export const relayGeminiBackendKey = (env: NodeJS.ProcessEnv = process.env): string | null => env.GRADING_VILAO_API_KEY?.trim() || null;
 /** Các hãng đã cấu hình khoá trên máy chủ — client chỉ chuyển sang ví cho những hãng này. */
 export const enabledRelayVendors = (env: NodeJS.ProcessEnv = process.env): RelayVendor[] => RELAY_VENDORS.filter(vendor => relayVendorKey(vendor, env));
 
 /** Trần đầu ra mỗi lượt: dưới ngưỡng 10 phút của Anthropic cho lời gọi không stream; bị cắt thì client tự xin viết tiếp. */
-export const RELAY_VENDOR_MAX_OUTPUT_TOKENS: Record<RelayVendor, number> = { claude: 16_000, openai: 16_384 };
-
-export const RELAY_TEMPERATURE = 0.1;
-export const RELAY_MAX_OUTPUT_TOKENS = 65_536;
+export const RELAY_VENDOR_MAX_OUTPUT_TOKENS: Record<RelayApiVendor, number> = { claude: 16_000, openai: 16_384, vilao: 16_000 };
 
 /**
  * Số lượt relay chạy CÙNG LÚC tối đa cho một giáo viên. Ví chỉ bị trừ SAU khi Google trả lời, nên các lượt chạy song song
@@ -58,6 +65,10 @@ export const RELAY_MAX_IMAGE_BASE64_CHARS = 3_600_000;
 
 /** Chặn vét khoá: số lượt relay tối đa mỗi giáo viên mỗi ngày (tiền vẫn do ví giới hạn). */
 export const relayDailyLimit = (env: NodeJS.ProcessEnv = process.env): number => Number(env.AI_RELAY_DAILY_LIMIT) || 400;
+/** Nhánh AI học sinh (G3): số lượt fallback server tối đa MỖI HỌC SINH mỗi ngày. */
+export const studentDailyLimit = (env: NodeJS.ProcessEnv = process.env): number => Number(env.STUDENT_AI_DAILY_LIMIT) || 20;
+/** Trần TỔNG lượt AI học sinh cả hệ thống mỗi ngày — bảo vệ khoá Vilao server khỏi lạm dụng. */
+export const studentDayTotalCap = (env: NodeJS.ProcessEnv = process.env): number => Number(env.STUDENT_AI_DAY_TOTAL) || 500;
 
 export interface RelayRequest {
   provider: RelayProvider;
@@ -65,6 +76,8 @@ export interface RelayRequest {
   prompt: string;
   system?: string;
   images: InlineImage[];
+  /** Mức suy nghĩ ĐÃ kiểm hợp (hãng, model); vắng = không gửi tham số, model chạy mặc định. */
+  effort?: string;
 }
 
 export type RelayParse = { ok: true; value: RelayRequest } | { ok: false; status: number; error: string };
@@ -113,5 +126,9 @@ export const parseRelayBody = (body: unknown): RelayParse => {
     images.push({ mimeType: match[1], data: match[2] });
   }
 
-  return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images } };
+  // Mức không hợp model thì bỏ (không báo lỗi): gửi lên hãng sẽ bị 400, còn bỏ đi chỉ là chạy mặc định.
+  // Provider 'gemini' giờ chạy TRÊN Vilao (G1): mức hiệu lực theo rules Vilao (POC xác thực none/low).
+  const effort = resolveEffort(provider === 'gemini' ? 'vilao' : (provider as string), model, typeof source.effort === 'string' ? source.effort : undefined);
+
+  return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images, ...(effort ? { effort } : {}) } };
 };

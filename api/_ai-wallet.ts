@@ -101,7 +101,7 @@ const paymentAccountAction = async (db: Db, body: Body, adminUid: string): Promi
     const raw = (body.account && typeof body.account === 'object' ? body.account : {}) as Record<string, unknown>;
     const previous = settings.accounts.find(a => a.id === String(raw.id || ''));
     const checked = validatePaymentAccount({ ...raw, qrImageUrl: '' });
-    if (!checked.ok) return { status: 422, payload: { error: checked.error } };
+    if (checked.ok === false) return { status: 422, payload: { error: checked.error } };
     const duplicate = settings.accounts.some(a => a.id !== previous?.id && a.bank === checked.account.bank && a.accountNumber === checked.account.accountNumber);
     if (duplicate) return { status: 422, payload: { error: 'Tài khoản này đã có trong danh sách.' } };
     if (!previous && settings.accounts.length >= MAX_PAYMENT_ACCOUNTS) return { status: 422, payload: { error: `Tối đa ${MAX_PAYMENT_ACCOUNTS} tài khoản.` } };
@@ -275,7 +275,7 @@ export const adminWalletAction = async (db: Db, action: string, body: Body, admi
   }
   if (action === 'adminSaveVoucher') {
     const checked = validateVoucherInput((body.voucher ?? {}) as Partial<VoucherDef>);
-    if (!checked.ok) return { status: 422, payload: { error: checked.error } };
+    if (checked.ok === false) return { status: 422, payload: { error: checked.error } };
     const ref = db.collection(AI_VOUCHERS_COL).doc(checked.voucher.code);
     const existing = await ref.get();
     const { usedCount: _ignore, ...rest } = checked.voucher;
@@ -287,7 +287,7 @@ export const adminWalletAction = async (db: Db, action: string, body: Body, admi
     const user = await getAuth().getUserByEmail(email).catch(() => null);
     if (!user) return { status: 404, payload: { error: `Chưa có tài khoản đăng nhập web với email ${email}.` } };
     const result = await redeemVoucher(db, user.uid, email, String(body.code || ''), adminUid);
-    return result.ok ? { status: 200, payload: { redemption: result.redemption, uid: user.uid } } : { status: 422, payload: { error: result.error } };
+    return result.ok === true ? { status: 200, payload: { redemption: result.redemption, uid: user.uid } } : { status: 422, payload: { error: result.error } };
   }
   if (action === 'adminAdjustWallet') {
     const uid = String(body.uid || '');

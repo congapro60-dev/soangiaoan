@@ -178,6 +178,8 @@ export interface Exam {
   updatedAt: string;
   // Advanced config (Phase 5)
   password?: string;
+  /** Public exam fetches use this marker before the student supplies the password. */
+  passwordRequired?: boolean;
   maxAttempts?: number;
   proctorMode?: 'off' | 'tab-exit' | 'advanced';
   showResultWhen?: 'submit' | 'all_done' | 'never';
@@ -226,6 +228,10 @@ export interface ExamSubmission {
   tabSwitches?: number;
   /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
   clientNonce?: string;
+  /** Server or owner-teacher grading marker; public student Rules forbid writing it. */
+  publicAutoGradedAt?: string;
+  /** Client-derived warning: old unmarked essay scores need explicit teacher review. */
+  requiresScoreReview?: boolean;
   classId?: string;
   assignmentId?: string;
   attemptNumber?: number;
@@ -268,13 +274,18 @@ export interface AppData {
     theme: 'light' | 'dark';
     autoSave: boolean;
     geminiApiKey: string;
+    /** Nhiều khoá Gemini (mỗi tài khoản Google một khoá) để gom hạn mức miễn phí; `geminiApiKey` luôn là khoá đầu tiên. Chỉ lưu trong trình duyệt. */
+    geminiApiKeys?: string[];
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway' | 'vilao';
     selectedModel: string;
+    /** Mức suy nghĩ giáo viên chọn theo hãng (xem `data/reasoningEffort.ts`); vắng = mặc định của model. */
+    effort?: Partial<Record<'gemini' | 'claude' | 'openai', string>>;
     grokApiKey: string;
     deepseekApiKey: string;
     nvidiaApiKey: string;
+    vilaoApiKey?: string;
     openaiCompatibleApiKey?: string;
     openaiCompatibleBaseUrl?: string;
     openaiCompatibleModelId?: string;
@@ -308,12 +319,13 @@ export const DEFAULT_DATA: AppData = {
     grokApiKey: '',
     deepseekApiKey: '',
     nvidiaApiKey: '',
+    vilaoApiKey: '',
     openaiCompatibleApiKey: '',
     openaiCompatibleBaseUrl: 'https://digishop-api.io.vn/v1',
     openaiCompatibleModelId: 'claude-opus-4-7',
-    selectedProvider: 'gemini',
+    selectedProvider: 'vilao',
     selectedModel: 'gemini-3.8-flash',
-    models: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro-preview'],
+    models: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro-preview', 'gemini-4-argon'],
     driveFolders: {},
   },
   gradingSessions: [],

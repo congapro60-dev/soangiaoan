@@ -1,9 +1,13 @@
 /// <reference types="node" />
+import { AsyncLocalStorage } from 'node:async_hooks';
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { acquireCallHoldWaiting, geminiUsageCounts, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { acquireCallHoldWaiting, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
+import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
-import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
+import { classifyGeminiKeyFailure, rateLimitRetryMs, type AiKeyStatus } from '../src/lib/admin/aiKeyPolicy.js';
+import { moTaGioiHanPhut, moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -128,6 +132,15 @@ export const reserveQuota = async (
   });
 };
 
+/** One-off maintenance waiver: records each refresh outside the normal daily cap. */
+export const reserveTeacherRefreshQuota = async (db: FirebaseFirestore.Firestore, uid: string): Promise<void> => {
+  const ref = db.collection('gradingQuota').doc(uid);
+  await db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    transaction.set(ref, bumpQuota(rollQuota(snap.exists ? snap.data() as Partial<QuotaDoc> : null, today()), 'teacher', '', 1));
+  });
+};
+
 // ── Chạy ngầm sau khi đã trả lời client ──────────────────────────────────────
 
 /**
@@ -171,6 +184,34 @@ export const getGradingApiKey = (): string => {
 // Doi model = sua dong nay roi deploy, de trang thai that luon nam trong git.
 export const GRADING_MODEL = 'gemini-3.8-flash';
 
+/**
+ * Model cho VIỆC PHỤ (đọc mã đề trên ảnh, tách danh mục câu hỏi): nhẹ hơn hẳn model chấm
+ * chính nên rẻ hơn nhiều, mà hai việc này không cần suy luận sâu.
+ *
+ * Nếu khoá của lớp không dùng được model này thì đường đọc mã đề đã có chuỗi
+ * `callUtilityVision` đỡ (Vilao → xKiro → Gemini rẻ) — không bao giờ để lượt chấm
+ * hỏng vì tiết kiệm token.
+ */
+export const UTILITY_MODEL = 'gemini-2.5-flash-lite';
+
+/**
+ * Tách prompt thành phần CỐ ĐỊNH và phần ĐỔI theo từng học sinh.
+ *
+ * Gemini cache tiền tố (implicit prompt caching) cho phần đầu request giống hệt nhau:
+ * phần cố định (đề, đáp án, luật chấm) + ảnh đề/đáp án đặt trước mọi phần đổi theo em, thì
+ * cả lớp chấm chung một cache — 39/40 bài chỉ trả giá đọc cache thay vì đọc lại từ đầu.
+ */
+export interface GeminiPromptSegment {
+  /** Chữ cố định cho cả lớp. Đặt TRƯỚC mọi phần động để được cache. */
+  prefix: string;
+  /** Ảnh cố định cho cả lớp (ảnh đề, ảnh đáp án) — đặt ngay sau prefix. */
+  prefixImages?: InlineImage[];
+  /** Chữ đổi theo từng học sinh (bài làm dạng chữ, số ảnh bài làm). */
+  suffix: string;
+  /** Ảnh bài làm của học sinh. */
+  suffixImages?: InlineImage[];
+}
+
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
   const match = /^data:([^;,]+);base64,(.+)$/.exec(String(dataUrl || '').trim());
@@ -190,6 +231,8 @@ export interface GeminiOptions {
   maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /** Mức suy nghĩ Gemini (`thinkingConfig.thinkingLevel`, chữ thường) — nơi gọi PHẢI kiểm hợp model trước (`resolveEffort`). */
+  thinkingLevel?: string;
   /** Chỉ dẫn hệ thống (đường relay giữ đúng chỉ dẫn mà trình duyệt vốn gửi khi gọi Gemini bằng khoá của giáo viên). */
   systemInstruction?: string;
   /**
@@ -219,6 +262,10 @@ export class GeminiResponseError extends Error {
     message: string,
     readonly finishReason?: string,
     cause?: unknown,
+    /** Google từ chối vì chính khoá (hết hạn mức / hỏng) — đợt chấm nền dựa vào đây để dừng thay vì đốt bài. */
+    readonly keyFailure?: AiKeyStatus | null,
+    /** 429 chỉ vì gọi quá nhanh (giới hạn mỗi phút): đợi chừng này rồi thử lại, không phải hết hạn mức. */
+    readonly retryAfterMs?: number | null,
   ) {
     super(message, cause === undefined ? undefined : { cause });
     this.name = 'GeminiResponseError';
@@ -265,10 +312,11 @@ export const callGeminiRaw = async (
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
 ): Promise<{ text: string; finishReason?: string }> => {
   const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
   try {
-    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold);
+    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold, segment);
   } finally {
     // Đã giữ chỗ tiền mà lượt gọi hỏng TRƯỚC khi tới bước ghi/trừ tiền (lỗi mạng, Google từ chối…) thì trả lại phần giữ.
     if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
@@ -291,6 +339,7 @@ const callGeminiRawHeld = async (
   model: string,
   options: GeminiOptions,
   hold: CallHold,
+  segment?: GeminiPromptSegment,
 ): Promise<{ text: string; finishReason?: string }> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
@@ -300,6 +349,8 @@ const callGeminiRawHeld = async (
   // model. An toàn hơn tự điền một con số — điền quá tay là bị từ chối, điền dè là lại bị cắt.
   if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
+  // Mức suy nghĩ (đã kiểm hợp model ở nơi gọi): REST dùng chữ thường như tài liệu.
+  if (options.thinkingLevel) generationConfig.thinkingConfig = { thinkingLevel: options.thinkingLevel };
 
   // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
   let keyChoice = await ensureGeminiKey(apiKey);
@@ -314,14 +365,20 @@ const callGeminiRawHeld = async (
     undefined,
     cause,
   );
+  // Khoá chung: thử lần lượt các khoá trong danh sách của chủ dự án (free trước, paid sau), khoá môi trường là chốt cuối.
+  const triedPoolKeys = new Set<string>();
+  let pooled: PooledKey | null = null;
   for (let attempt = 0; ; attempt += 1) {
+    pooled = keyChoice.source !== 'own' && triedPoolKeys.size < POOL_MAX_TRIES_PER_CALL
+      ? await pickFromPool(model, triedPoolKeys)
+      : null;
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
     // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
     if (hold.vnd === 0) {
       const held = await acquireCallHoldWaiting(keyChoice, deadline);
-      if (!held.ok && held.reason === 'timeout') throw timedOutError();
-      if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
+      if (held.ok === false && held.reason === 'timeout') throw timedOutError();
+      if (held.ok === false) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
       if (held.holdVnd > 0) {
         hold.vnd = held.holdVnd;
         hold.ownerUid = keyChoice.ownerUid;
@@ -329,17 +386,26 @@ const callGeminiRawHeld = async (
     }
     try {
       res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(pooled?.key ?? keyChoice.key)}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               role: 'user',
-              parts: [
-                { text: prompt },
-                ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-              ],
+              parts: segment
+                // Thứ tự parts = thứ tự token của request. Phần cố định (chữ + ảnh đề/đáp án)
+                // đứng trước phần đổi theo học sinh để Gemini cache được tiền tố đó cho cả lớp.
+                ? [
+                  ...(segment.prefix ? [{ text: segment.prefix }] : []),
+                  ...(segment.prefixImages ?? []).map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                  ...(segment.suffix ? [{ text: segment.suffix }] : []),
+                  ...(segment.suffixImages ?? []).map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                ]
+                : [
+                  { text: prompt },
+                  ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+                ],
             }],
             generationConfig,
             ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
@@ -362,21 +428,42 @@ const callGeminiRawHeld = async (
         ? timedOutError(error)
         : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.', undefined, error);
     }
+    if (pooled && !res.ok) {
+      // Khoá trong danh sách bị Google từ chối vì chính khoá (hết hạn mức / hỏng): cho nghỉ rồi thử khoá kế tiếp, không báo lỗi ra ngoài.
+      const detail = await res.clone().text().catch(() => '');
+      const failure = classifyGeminiKeyFailure(res.status, detail);
+      if (failure) {
+        triedPoolKeys.add(pooled.id);
+        await reportPoolKeyFailure(pooled, model, failure, detail);
+        continue;
+      }
+    }
     if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
     // sang khoá chung (đã đồng ý tính phí) và gọi lại MỘT lần, hoặc ném AiKeyRequiredError.
     const detail = await res.clone().text().catch(() => '');
     const keyFailure = classifyGeminiKeyFailure(res.status, detail);
     if (!keyFailure) break;
+    // Chỉ gọi quá nhanh (giới hạn mỗi phút): khoá vẫn còn hạn mức. KHÔNG đánh dấu "hết" 60 phút, KHÔNG chuyển sang ví
+    // (GV sẽ bị trừ tiền oan) — báo lỗi kèm thời gian chờ ở dưới, lượt sau lại dùng khoá riêng.
+    if (rateLimitRetryMs(res.status, detail)) break;
     keyChoice = await onOwnKeyFailure(keyChoice, keyFailure, detail, apiKey);
   }
 
   if (!res.ok) {
     // Kèm mã HTTP: 429 (hết hạn mức), 400 (payload sai), 503 (Gemini quá tải) đòi ba cách xử lý
     // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
+    const detail = await Promise.resolve().then(() => res.clone().text()).catch(() => '');
+    const retryAfterMs = rateLimitRetryMs(res.status, detail);
     throw new GeminiResponseError(
       'http',
-      `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+      retryAfterMs
+        ? moTaGioiHanPhut(retryAfterMs)
+        : moTaLoiDichVu(res.status, 'Gemini'),
+      undefined,
+      undefined,
+      classifyGeminiKeyFailure(res.status, detail),
+      retryAfterMs,
     );
   }
 
@@ -400,7 +487,9 @@ const callGeminiRawHeld = async (
   await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
     finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
     holdVnd: hold.vnd,
+    ...(keyChoice.source !== 'own' ? { poolKey: pooled ? { id: pooled.id, tier: pooled.tier } : { tier: 'env' as const } } : {}),
   });
+  if (pooled) await reportPoolKeySuccess(pooled);
   console.info('[gemini] gọi xong', {
     model,
     images: images.length,
@@ -424,8 +513,10 @@ export const callGeminiVision = async (
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
+  /** Khi có: dùng đúng các parts này (prefix cố định trước, phần đổi theo học sinh sau) thay cho prompt+images. */
+  segment?: GeminiPromptSegment,
 ): Promise<string> => {
-  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options);
+  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options, segment);
   const hasText = text.trim().length > 0;
 
   if (finishReason === 'MAX_TOKENS') {
@@ -461,4 +552,451 @@ export const callGeminiVision = async (
   }
 
   return text;
+};
+
+/**
+ * Gọi model RẺ cho việc phụ (đọc mã đề, tách danh mục câu).
+ *
+ * Đã vào CHUỖI DỰ PHÒNG (G4): ngày trước hàm này gọi thẳng Google, nên khoá Google
+ * chết là khâu đọc mã đề chết theo dù Vilao/xKiro còn sống. Nay thứ tự là
+ * Vilao → xKiro → Gemini, và lớp Google dùng UTILITY_MODEL (model rẻ) chứ không phải
+ * model chấm chính — giữ đặc tính "việc phụ thì model rẻ trước".
+ *
+ * Vì lượt gọi đã ở lớp rẻ nhất, KHÔNG lùi thêm sang model chấm chính nữa: mọi lớp
+ * đều thử rồi mới hỏng, lùi nữa chỉ tốn thêm một lượt gọi đắt tiền cùng khoá Google.
+ * Riêng tầng Google có thể tắt hẳn bằng `GRADING_GEMINI_FALLBACK=off`.
+ */
+export const callUtilityVision = async (
+  prompt: string,
+  images: InlineImage[],
+  _apiKey: string,
+  options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
+): Promise<string> => {
+  const chain = getGradingChain('utility');
+  if (chain.length === 0) {
+    throw new Error('Máy chủ chưa cấu hình khoá cho việc đọc mã đề (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
+  }
+  let lastError: unknown;
+  for (const adapter of chain) {
+    try {
+      return await adapter.call(prompt, images, options, segment);
+    } catch (error) {
+      // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
+      if (error instanceof AiKeyRequiredError) throw error;
+      lastError = error;
+      console.warn(`[grading-chain/utility] ${adapter.name} hỏng, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+    }
+  }
+  throw lastError;
+};
+
+// ── Chuỗi dự phòng "rẻ trước, đắt sau" (2026-10-22) ──────────────────────────
+// Luồng chấm bài tiêu khoá CHỦ DỰ ÁN. Quyết định của chủ dự án: Vilao (chợ API,
+// đóng tiền nhỏ theo từng request) đứng đầu chuỗi, Gemini trả phí là lớp chót.
+// Hạn mức tính tiền cho giáo viên/học sinh KHÔNG đổi — lớp gọi model này chỉ
+// quyết định "tiền thật của chủ dự án chảy vào đâu" (ensureGeminiKey/ví vẫn
+// chạy như cũ ở nơi gọi).
+
+export interface OpenAiVisionOptions {
+  baseUrl: string;
+  model: string;
+  /**
+   * Mức suy nghĩ (`reasoning_effort`) của API OpenAI-compatible. Model Gemini trên Vilao
+   * nhận 'none' = tắt hẳn suy nghĩ: nhanh hơn hẳn mà chất lượng chấm không giảm (A/B
+   * 10/2026 chấm 5 bài × 2 lượt: 10/10 đạt chuẩn phần 1), tiền token suy nghĩ về 0.
+   */
+  reasoningEffort?: string;
+}
+
+/** Phẳng bucket cache (segment) thành prompt+ảnh phẳng cho đường OpenAI-compatible. */
+const nhoiSegment = (
+  prompt: string,
+  images: InlineImage[],
+  segment?: GeminiPromptSegment,
+): { prompt: string; images: InlineImage[] } => (
+  segment
+    ? {
+        prompt: [segment.prefix, segment.suffix].filter(Boolean).join('\n\n'),
+        images: [...(segment.prefixImages ?? []), ...(segment.suffixImages ?? [])],
+      }
+    : { prompt, images }
+);
+
+/**
+ * Gọi API OpenAI-compatible có vision (Vilao…). Hợp đồng giống callGeminiVision:
+ * trả text, ném lỗi có thông điệp người dùng đọc hiểu và phân loại được (kinds
+ * 'max_tokens'/'empty' khớp bộ retry của đường chấm). jsonMode của Gemini không có
+ * tương đương chuẩn trên đường này — prompt đã yêu cầu trả JSON, bộ parse bọc ```json
+ * vốn đã xử lý. `'model-max'` → bỏ gửi max_tokens, để model dùng trần riêng của nó.
+ *
+ * `meter` (các lớp của chuỗi chấm): cùng luật khoá/ví/trần như lớp Gemini — chọn người chịu phí, giữ chỗ tiền trước
+ * khi gọi, ghi lượt + trừ ví khi có phản hồi (kể cả bị cắt), trả lại phần giữ khi lượt hỏng trước bước đó.
+ */
+export const callOpenAiCompatibleVision = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  options: OpenAiVisionOptions & Pick<GeminiOptions, 'maxOutputTokens' | 'temperature' | 'timeoutMs'>,
+  segment?: GeminiPromptSegment,
+  meter?: { provider: AiProvider; model: string },
+): Promise<string> => {
+  const deadline = Date.now() + (options.timeoutMs ?? 30_000);
+  const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
+  if (meter) {
+    // Khoá dự phòng là khoá GEMINI: lựa chọn được cache cho cả request, lớp Google phía sau dùng lại `choice.key`.
+    const choice = await ensureGeminiKey(process.env.GRADING_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '');
+    const held = await acquireCallHoldWaiting(choice, deadline);
+    if (held.ok === false && held.reason === 'timeout') {
+      throw new GeminiResponseError('provider', 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại sau ít phút.');
+    }
+    if (held.ok === false) throw new AiKeyRequiredError(held.reason, choice.ownerUid);
+    hold.vnd = held.holdVnd;
+    hold.ownerUid = choice.ownerUid;
+  }
+  try {
+    return await callOpenAiCompatibleVisionHeld(prompt, images, apiKey, options, deadline, hold, segment, meter);
+  } finally {
+    if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
+      await releaseWalletHold(getAdminDb(), hold.ownerUid, hold.vnd).catch(error => console.error('[grading-chain] không trả được chỗ giữ tiền:', error));
+    }
+  }
+};
+
+const callOpenAiCompatibleVisionHeld = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  options: OpenAiVisionOptions & Pick<GeminiOptions, 'maxOutputTokens' | 'temperature' | 'timeoutMs'>,
+  deadline: number,
+  hold: CallHold,
+  segment?: GeminiPromptSegment,
+  meter?: { provider: AiProvider; model: string },
+): Promise<string> => {
+  const dung = nhoiSegment(prompt, images, segment);
+  const res = await fetch(
+    `${options.baseUrl.replace(/\/+$/, '')}/chat/completions`,
+    {
+      method: 'POST',
+      signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: options.model,
+        ...(options.reasoningEffort ? { reasoning_effort: options.reasoningEffort } : {}),
+        ...(options.maxOutputTokens && options.maxOutputTokens !== 'model-max'
+          ? { max_tokens: options.maxOutputTokens }
+          : {}),
+        temperature: options.temperature ?? 0.2,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: dung.prompt },
+            ...dung.images.map(img => ({
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType};base64,${img.data}` },
+            })),
+          ],
+        }],
+      }),
+    },
+  );
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new GeminiResponseError('http', `kênh rẻ trả lỗi ${res.status}: ${detail.slice(0, 200)}`, String(res.status));
+  }
+
+  const data = await res.json() as {
+    choices?: Array<{ finish_reason?: string; message?: { content?: string | Array<{ text?: string }> } }>;
+    usage?: unknown;
+  };
+  const choice = data.choices?.[0];
+  if (meter) {
+    // Ghi token TRƯỚC mọi nhánh ném lỗi: hãng tính tiền cả lượt bị cắt. `recordAiUsage` nhận luôn phần giữ chỗ.
+    hold.handedOver = true;
+    await recordAiUsage(meter.provider, meter.model, openAiUsageCounts(data.usage), { finishReason: choice?.finish_reason, holdVnd: hold.vnd });
+  }
+  const rawContent = choice?.message?.content;
+  const text = typeof rawContent === 'string'
+    ? rawContent
+    : Array.isArray(rawContent) ? rawContent.map(part => part?.text || '').join('') : '';
+
+  if (choice?.finish_reason === 'length') {
+    throw new GeminiResponseError('max_tokens', moTaFinishReason('MAX_TOKENS', true) || 'AI trả lời dài quá trần cho phép.', 'MAX_TOKENS');
+  }
+  if (!text.trim()) {
+    throw new GeminiResponseError('empty', `Kênh rẻ không trả về chữ nào${choice?.finish_reason ? ` (dừng vì ${choice.finish_reason})` : ''}.`);
+  }
+  return text;
+};
+
+export interface GradingAdapter {
+  name: string;
+  /** Vai trong chuỗi chi phí: 're' (rẻ) | 'phi' (trả phí cao hơn). */
+  tier: 're' | 'phi';
+  /** Trần thời gian một lượt khi lớp này CHƯA phải lớp cuối (để còn giờ cho lớp sau). */
+  maxMs?: number;
+  /** Model chấm kém hơn tầng chính: kết quả từ lớp này phải để GV soát (xem `withServedTap`). */
+  lowerQuality?: boolean;
+  call: (prompt: string, images: InlineImage[], options: GeminiOptions, segment?: GeminiPromptSegment) => Promise<string>;
+}
+
+/**
+ * Tầng Google có được phép làm lớp đỡ cuối hay không.
+ *
+ * Mặc định BẬT: giữ nguyên hành vi cũ (Google là lớp chót của mọi chuỗi).
+ * Đặt `GRADING_GEMINI_FALLBACK=off` (hoặc 0/false/no) để tắt hẳn tầng Google mà
+ * không phải sửa code — dùng khi muốn cắt chi phí Google hoàn toàn hoặc khi
+ * khoá Google đã cạn hạn mức và ta không muốn lượt chấm chờ nó timeout.
+ */
+export const geminiFallbackEnabled = (raw: string | undefined = process.env.GRADING_GEMINI_FALLBACK): boolean => {
+  const v = raw?.trim().toLowerCase();
+  return !(v === 'off' || v === '0' || v === 'false' || v === 'no');
+};
+
+/**
+ * Chuỗi nhà cung cấp chấm bài, xếp theo chi phí tăng dần.
+ * Thứ tự: Vilao Gemini Flash → xKiro Gemini Flash (gói xKiro; hiện hay 503 nhưng hỏng NHANH, chạy lại
+ * là tự được dùng) → Vilao deepseek (kém hơn, bài bị gắn cờ GV soát) → Gemini Google. Nguồn hỏng bị cầu
+ * dao gác 5 phút rồi tự thử lại đúng vị trí cũ (xem `orderByHealth`).
+ * Thiếu key nào thì bỏ lớp đó; không set key nào mới thì hành vi cũ giữ nguyên.
+ * Muốn đổi thứ tự (vd đưa xKiro lên đầu vì free) thì chỉ cần sửa thứ tự push
+ * dưới đây — không có cờ/env thừa.
+ *
+ * `variant = 'utility'` đổi model của lớp Google sang `UTILITY_MODEL` (model rẻ dùng
+ * cho việc phụ như đọc mã đề) thay vì model chấm chính: hai đường dùng cùng thứ tự
+ * nhà cung cấp nhưng khác mức giá, đúng đặc tính "việc phụ thì model rẻ trước".
+ */
+/**
+ * Sức khoẻ từng nguồn (cầu dao): nguồn vừa hỏng bị GÁC `COOLDOWN_MS`, các lượt sau dùng nguồn kế
+ * ngay mà không phí giờ chờ nó; hết thời gian gác thì nguồn đó (thường là nguồn miễn phí) được thử lại
+ * ở đúng vị trí ưu tiên cũ — chạy được là tự quay về dùng miễn phí. Lưu trong bộ nhớ của từng phiên
+ * máy chủ (khởi động lại thì quên — an toàn: chỉ thử lại sớm hơn).
+ */
+const COOLDOWN_MS = 5 * 60_000;
+const downUntil = new Map<string, number>();
+const markDown = (name: string) => downUntil.set(name, Date.now() + COOLDOWN_MS);
+const markHealthy = (name: string) => downUntil.delete(name);
+/** Nguồn khoẻ giữ thứ tự ưu tiên; nguồn đang bị gác dồn xuống cuối (vẫn thử khi mọi nguồn khác hỏng). */
+export const orderByHealth = (chain: GradingAdapter[], now = Date.now()): GradingAdapter[] => {
+  const healthy = chain.filter(a => (downUntil.get(a.name) ?? 0) <= now);
+  return [...healthy, ...chain.filter(a => !healthy.includes(a))];
+};
+export const resetGradingHealth = () => downUntil.clear();
+
+/** Ghi lại lớp nào đã trả kết quả trong một khối việc — để biết bài có bị chấm bằng model kém hơn không. */
+const servedStorage = new AsyncLocalStorage<{ name: string; lowerQuality: boolean }[]>();
+export const withServedTap = async <T>(fn: () => Promise<T>): Promise<{ value: T; served: { name: string; lowerQuality: boolean }[] }> => {
+  const served: { name: string; lowerQuality: boolean }[] = [];
+  const value = await servedStorage.run(served, fn);
+  return { value, served };
+};
+
+/** Ép chuỗi chấm = đúng một model trong một khối việc (đo so sánh model). Ngoài khối này không ảnh hưởng gì. */
+const forcedChain = new AsyncLocalStorage<GradingAdapter[]>();
+export const runWithGradingChain = <T>(chain: GradingAdapter[], fn: () => Promise<T>): Promise<T> => forcedChain.run(chain, fn);
+
+/**
+ * Dựng một lớp chấm từ chuỗi "nhà/model[@mức-suy-nghĩ]" — chỉ ba nhà đã có khoá máy chủ:
+ * `vilao/gemini-3.8-flash@none`, `xkiro/qwen/qwen3.8-max:free`, `gemini/gemini-3.8-flash`.
+ */
+export const benchmarkAdapter = (spec: string): GradingAdapter | null => {
+  const m = /^(vilao|xkiro|gemini)\/([\w.:/-]{1,80})(?:@(none|low|medium|high))?$/.exec(spec.trim());
+  if (!m) return null;
+  const [, provider, model, effort] = m;
+  if (provider === 'gemini') {
+    const key = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+    if (!key) return null;
+    return { name: spec, tier: 'phi', call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, model, options, segment) };
+  }
+  const key = (provider === 'vilao' ? process.env.GRADING_VILAO_API_KEY : process.env.GRADING_XKIRO_API_KEY)?.trim();
+  if (!key) return null;
+  const baseUrl = provider === 'vilao'
+    ? process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1'
+    : process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1';
+  const options: OpenAiVisionOptions = { baseUrl, model, ...(effort ? { reasoningEffort: effort } : {}) };
+  return {
+    name: spec,
+    tier: 're',
+    call: (prompt, images, callOptions, segment) => callOpenAiCompatibleVision(prompt, images, key, { ...options, ...callOptions }, segment, { provider: provider as 'vilao' | 'xkiro', model: `${provider}/${model}` }),
+  };
+};
+
+/** Danh sách model hai chợ API trả về (để chọn model đo). Lỗi một chợ → mảng rỗng của chợ đó. */
+export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro' | 'pshare' | 'opencode', unknown[]>> => {
+  const fetchList = async (baseUrl: string, key: string | undefined): Promise<unknown[]> => {
+    if (!key) return [];
+    try {
+      const response = await fetch(`${baseUrl.replace(/\/$/, '')}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15_000) });
+      const data = await response.json() as { data?: unknown[] };
+      return Array.isArray(data.data) ? data.data.slice(0, 300) : [];
+    } catch { return []; }
+  };
+  const [vilao, xkiro, pshare, opencode] = await Promise.all([
+    fetchList(process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1', process.env.GRADING_VILAO_API_KEY?.trim()),
+    fetchList(process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1', process.env.GRADING_XKIRO_API_KEY?.trim()),
+    fetchList(process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', process.env.TEXT_PSHARE_API_KEY?.trim()),
+    fetchList(process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1', process.env.TEXT_OPENCODE_API_KEY?.trim()),
+  ]);
+  return { vilao, xkiro, pshare, opencode };
+};
+
+export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
+  const forced = forcedChain.getStore();
+  if (forced) return forced;
+  const chain: GradingAdapter[] = [];
+  const vilaoKey = process.env.GRADING_VILAO_API_KEY?.trim();
+  if (vilaoKey) {
+    // Model + thinking 0 là cấu hình ĐÃ KIỂM CHỨNG chấm ảnh (A/B 10/2026: 5 bài × 2 lượt qua
+    // lane chib 10/10 đạt, ~5₫/bài, trung bình 30s/lượt). Ghim trong code như GRADING_MODEL:
+    // đổi model = sửa dòng này rồi deploy, đừng lật qua env để kẻo trạng thái thật lệch với git.
+    const vilaoOptions: OpenAiVisionOptions = {
+      baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1',
+      model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
+      reasoningEffort: 'none',
+    };
+    chain.push({
+      name: `vilao/${vilaoOptions.model}`,
+      tier: 're',
+      maxMs: 120_000,
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment, { provider: 'vilao', model: `vilao/${vilaoOptions.model}` }),
+    });
+  }
+  const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
+  if (xkiroKey) {
+    const xkiroOptions: OpenAiVisionOptions = {
+      baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1',
+      // 30/10/2026: bỏ qwen3.8-max:free — đo trên 54 bài GHKI quá giờ 5/6 lượt. Dùng Gemini Flash (trừ gói xKiro).
+      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'google/gemini-3.8-flash',
+    };
+    chain.push({
+      name: `xkiro/${xkiroOptions.model}`,
+      tier: 're',
+      maxMs: 60_000,
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${xkiroOptions.model}` }),
+    });
+  }
+  if (vilaoKey) {
+    // Đo 30/10/2026: hai nhà bán Gemini khác trên Vilao (Codely, Butterfly) quá giờ 10/11 lượt, xKiro Gemini
+    // 503 cả 12 lượt → không có Gemini dự phòng dùng được. deepseek-v4.1-flash chạy được (lệch ~1,4/10 so
+    // với GV, gấp 3 lần Gemini) nên chỉ dùng khi Gemini hỏng, và bài chấm bằng lớp này luôn để GV soát.
+    const fallback: OpenAiVisionOptions = { baseUrl: process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1', model: 'deepseek-v4.1-flash' };
+    chain.push({
+      name: `vilao/${fallback.model}`,
+      tier: 're',
+      lowerQuality: true,
+      maxMs: 120_000,
+      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...fallback, ...options }, segment, { provider: 'vilao', model: `vilao/${fallback.model}` }),
+    });
+  }
+  const geminiKey = process.env.GRADING_GEMINI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
+  if (geminiKey && geminiFallbackEnabled()) {
+    const key = geminiKey;
+    const model = variant === 'utility' ? UTILITY_MODEL : GRADING_MODEL;
+    chain.push({
+      name: `gemini/${model}`,
+      tier: 'phi',
+      call: (prompt, images, options, segment) => callGeminiVision(prompt, images, key, model, options, segment),
+    });
+  }
+  return chain;
+};
+
+/**
+ * Gọi chấm bài đi qua chuỗi dự phòng: thử từng nhà cung cấp theo thứ tự chi phí,
+ * lớp trước hỏng thì nhảy sang lớp kế. Lỗi cuối cùng được ném NGUYÊN — nơi gọi
+ * vẫn phân loại được (retry lớp empty/max_tokens, thông điệp đọc hiểu) và log
+ * ghi rõ lớp nào đã đi qua.
+ */
+export const callGradingVision = async (
+  prompt: string,
+  images: InlineImage[],
+  options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
+): Promise<string> => runChain(getGradingChain(), prompt, images, options, segment);
+
+/**
+ * Nhóm CHỮ (không ảnh, không thông tin định danh học sinh — chỉ đề/đáp án/thang điểm): cùng model
+ * deepseek-v4.1-flash, thử nguồn miễn phí / gói đã mua trước (OpenCode → PShareHub), hỏng hết mới
+ * rơi về chuỗi chấm thường (Vilao…). Cầu dao chung với chuỗi chấm: nguồn hỏng gác 5 phút rồi tự thử lại.
+ * Thiếu khoá nào thì bỏ lớp đó — không có khoá nào thì y như cũ.
+ */
+export const getTextChain = (): GradingAdapter[] => {
+  const chain: GradingAdapter[] = [];
+  const sources: { env: string; name: string; baseUrl: string; model: string }[] = [
+    { env: 'TEXT_OPENCODE_API_KEY', name: 'opencode', baseUrl: process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1', model: process.env.TEXT_OPENCODE_MODEL?.trim() || 'deepseek-v4.1-flash-free' },
+    { env: 'TEXT_PSHARE_API_KEY', name: 'pshare', baseUrl: process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', model: process.env.TEXT_PSHARE_MODEL?.trim() || 'deepseek-ai/DeepSeek-V4.1-Flash' },
+    // Dò 30/10/2026 bằng khoá máy chủ: PShareHub chạy DeepSeek-V4.1-Flash và glm-5.3-flash; OpenCode từ chối
+    // mọi model miễn phí khi gọi bằng khoá API (FreeUsageLimitError — cần gói OpenCode Go), lỗi trả ngay nên giữ lại.
+    { env: 'TEXT_PSHARE_API_KEY', name: 'pshare', baseUrl: process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1', model: 'glm-5.3-flash' },
+  ];
+  for (const source of sources) {
+    const key = process.env[source.env]?.trim();
+    if (!key) continue;
+    const options: OpenAiVisionOptions = { baseUrl: source.baseUrl, model: source.model };
+    chain.push({
+      name: `${source.name}/${source.model}`,
+      tier: 're',
+      maxMs: 60_000,
+      // Không ghi sổ tiền (meter): nguồn miễn phí / gói trả trước, không trừ ví giáo viên.
+      call: (prompt, images, callOptions, segment) => callOpenAiCompatibleVision(prompt, images, key, { ...options, ...callOptions }, segment),
+    });
+  }
+  return [...chain, ...getGradingChain()];
+};
+
+/** Gọi thử một model chữ trên OpenCode / PShareHub bằng khoá máy chủ (trang Quản trị dò model dùng được). */
+export const pingTextModel = async (provider: 'opencode' | 'pshare', model: string): Promise<{ ok: boolean; ms: number; text?: string; error?: string }> => {
+  const key = process.env[provider === 'opencode' ? 'TEXT_OPENCODE_API_KEY' : 'TEXT_PSHARE_API_KEY']?.trim();
+  if (!key) return { ok: false, ms: 0, error: 'Chưa có khoá.' };
+  const baseUrl = provider === 'opencode'
+    ? process.env.TEXT_OPENCODE_BASE_URL?.trim() || 'https://opencode.ai/zen/v1'
+    : process.env.TEXT_PSHARE_BASE_URL?.trim() || 'https://ai.psharehub.com/v1';
+  const started = Date.now();
+  try {
+    const text = await callOpenAiCompatibleVision('Trả lời đúng một số: 17 nhân 19 bằng bao nhiêu?', [], key, { baseUrl, model, maxOutputTokens: 256, timeoutMs: 30_000 });
+    return { ok: true, ms: Date.now() - started, text: text.slice(0, 80) };
+  } catch (error) {
+    return { ok: false, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 200) : 'lỗi' };
+  }
+};
+
+export const callTextModel = (prompt: string, options: GeminiOptions = {}): Promise<string> =>
+  runChain(getTextChain(), prompt, [], options);
+
+const runChain = async (
+  chain: GradingAdapter[],
+  prompt: string,
+  images: InlineImage[],
+  options: GeminiOptions = {},
+  segment?: GeminiPromptSegment,
+): Promise<string> => {
+  if (chain.length === 0) {
+    throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
+  }
+  let lastError: unknown;
+  const deadline = options.timeoutMs === undefined ? null : Date.now() + options.timeoutMs;
+  const ordered = orderByHealth(chain);
+  for (const [index, adapter] of ordered.entries()) {
+    const remainingMs = deadline === null ? null : deadline - Date.now();
+    if (remainingMs !== null && remainingMs <= 0) throw new Error('AI xử lý quá lâu nên máy chủ đã dừng lượt gọi. Vui lòng thử lại.');
+    // Lớp chưa phải cuối chỉ được tiêu tối đa `maxMs`: nguồn miễn phí treo không được ăn hết giờ của lớp trả phí phía sau.
+    const cap = index < ordered.length - 1 && adapter.maxMs ? adapter.maxMs : null;
+    const timeoutMs = cap === null ? remainingMs : remainingMs === null ? cap : Math.min(cap, remainingMs);
+    try {
+      const raw = await adapter.call(prompt, images, timeoutMs === null ? options : { ...options, timeoutMs }, segment);
+      markHealthy(adapter.name);
+      servedStorage.getStore()?.push({ name: adapter.name, lowerQuality: adapter.lowerQuality === true });
+      // Một dòng log mỗi lượt: biết nguồn nào thật sự phục vụ (miễn phí hay trả phí) mà không cần đoán.
+      console.info(`[ai-chain] ${adapter.name} phục vụ (lớp ${index + 1}/${ordered.length})`);
+      return raw;
+    } catch (error) {
+      // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
+      if (error instanceof AiKeyRequiredError) throw error;
+      lastError = error;
+      markDown(adapter.name);
+      console.warn(`[grading-chain] ${adapter.name} hỏng, gác ${COOLDOWN_MS / 60_000} phút, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+    }
+  }
+  throw lastError;
 };

@@ -38,6 +38,8 @@ BƯỚC 2 — QUY TẮC CHẤM:
 1. TRẮC NGHIỆM: Đối soát từng câu, ghi đúng/sai kèm đáp án chuẩn.
 2. TỰ LUẬN: Cho điểm thành phần (partial credit) khi làm đúng một phần.
 3. Tổng điểm phải BẰNG tổng các câu đã chấm — không ước lượng cảm tính.
+4. TỰ KIỂM TRA SỐ HỌC: trường "score" PHẢI ĐÚNG BẰNG tổng cột Điểm của bảng "Kết quả từng câu" — cộng lại từng dòng, nếu lệch thì sửa bảng cho khớp trước khi ghi "score".
+5. TUYỆT ĐỐI KHÔNG lấy bất kỳ số điểm hay chữ mực đỏ nào có sẵn trên ảnh bài nộp (phần của giáo viên) làm căn cứ chấm — chỉ chấm theo đáp án chuẩn và HƯỚNG DẪN CHẤM.
 
 BƯỚC 3 — ĐỊNH DẠNG TRƯỜNG "details" (Markdown):
 Bắt buộc bao gồm:
@@ -197,7 +199,8 @@ Viết báo cáo phân tích theo cấu trúc Markdown (đầy đủ, không b�
 
     if (isImage) {
       const prompt = gradingUtils.getGradingPrompt(masterFile.content, undefined, targetMaxScore, gradingRubric);
-      text = await callAIWithVision(prompt, studentFile.content, settings);
+      // Cấu hình chấm chính đã kiểm chứng (A/B 10/2026): Flash + thinking 0 + output 16k — nhanh hơn, output gọn hơn
+      text = await callAIWithVision(prompt, studentFile.content, settings, { thinkingBudget: 0, maxOutputTokens: 16384 });
     } else {
       const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content, targetMaxScore, gradingRubric);
       text = await callAI(prompt, settings);

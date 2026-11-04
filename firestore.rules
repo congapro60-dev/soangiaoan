@@ -7,7 +7,10 @@ service cloud.firestore {
 
     // Giáo án cá nhân — chỉ owner đọc/ghi, cộng đồng đọc khi isPublic=true
     match /lessonPlans/{planId} {
-      allow list: if request.auth != null;
+      // Firestore rules are OR-ed. Keep list constrained to the same owner/public
+      // predicate as read so an unconstrained query cannot enumerate private plans.
+      allow list: if request.auth != null
+                  && (resource.data.isPublic == true || request.auth.uid == resource.data.userId);
       allow read: if resource.data.isPublic == true
                   || (request.auth != null && request.auth.uid == resource.data.userId);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
@@ -37,9 +40,10 @@ service cloud.firestore {
 
     // Bài học phân hoá — service lưu document theo lesson.id, owner nằm trong field teacherId
     match /adaptiveLessons/{lessonId} {
-      // Đọc: giáo viên đã đăng nhập đọc được (listLessonsForTeacher query theo field teacherId).
-      // Học sinh ẩn danh đọc được CHỈ KHI bài đã bật cổng (portalEnabled == true) — link cổng là công khai.
-      allow read: if request.auth != null
+      // Đọc: CHỦ bài học, hoặc bài đã mở cổng công khai (link demo của GV).
+      // Trước đây `request.auth != null` là đủ → MỌI user đăng nhập (kể cả HS ẩn danh) đọc được
+      // MỌI bài học kèm đáp án. Bài giao cho lớp đi qua máy chủ (đã bỏ đáp án) nên không cần quyền này.
+      allow read: if (request.auth != null && request.auth.uid == resource.data.teacherId)
                   || resource.data.get('portalEnabled', false) == true;
       // Tạo: chỉ khi teacherId trong document trùng với uid người tạo
       allow create: if request.auth != null
@@ -51,10 +55,58 @@ service cloud.firestore {
                     && request.auth.uid == resource.data.teacherId;
     }
 
+    // Bài học phân hoá GV giao cho lớp + tiến trình + sự kiện học tập: CHỈ máy chủ (Admin SDK) ghi.
+    // Client đọc: GV chủ lớp (để xem thống kê). Học sinh đọc qua máy chủ, không đọc thẳng.
+    match /adaptiveAssignments/{assignmentId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
+    }
+
+    match /adaptiveAssignmentProgress/{progressId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
+    }
+
+    match /adaptiveEvents/{eventId} {
+      function adaptiveClassTeacher(uid, classId) {
+        return uid != null && classId is string
+               && exists(/databases/$(database)/documents/classes/$(classId))
+               && (get(/databases/$(database)/documents/classes/$(classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(classId)).data.teacherId) == uid
+                || (exists(/databases/$(database)/documents/classMembers/$(classId + '__' + uid))
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.status == 'active'
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.uid == uid
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.classId == classId
+                   && get(/databases/$(database)/documents/classMembers/$(classId + '__' + uid)).data.role in ['owner','co_owner']));
+      }
+      allow read: if request.auth != null && adaptiveClassTeacher(request.auth.uid, resource.data.classId);
+      allow write: if false;
+    }
+
     // Cache kết quả sinh lộ trình AI (Task 2)
     match /personalizationCache/{cacheId} {
-      // Cho phép giáo viên và học sinh nặc danh đọc/ghi cache
-      allow read, write: if true;
+      // Cache contains generated student-facing content; keep it server-only.
+      // The client falls back to its in-memory cache when this path is denied.
+      allow read, write: if false;
     }
 
     // Tiến trình từng tiết học phân hoá — ưu tiên API Admin; client nặc danh chỉ là kênh fallback có kiểm tra định danh/link bài học.
@@ -209,7 +261,7 @@ service cloud.firestore {
     //  - create: học sinh nặc danh được tạo bài in_progress với id khó đoán do client sinh
     //  - update: học sinh nặc danh chỉ được sửa bài khi còn in_progress và không đổi định danh bài/đề
     //  - teacher: giáo viên chủ đề được đọc/chấm/cập nhật bài thuộc đề của mình
-    //  - read public: chỉ cho đọc bài đã nộp/chấm theo link kết quả có subId khó đoán; không list được nếu query có thể chứa in_progress
+    //  - read: chỉ giáo viên chủ đề; trang kết quả của thí sinh đọc qua máy chủ
     match /examSubmissions/{subId} {
       function examDoc(examId) {
         return get(/databases/$(database)/documents/exams/$(examId));
@@ -229,6 +281,7 @@ service cloud.firestore {
       }
       function validStudentCreate() {
         return request.resource.data.id == subId
+               && request.resource.data.keys().hasOnly(['id', 'examId', 'examCode', 'studentName', 'studentClass', 'startedAt', 'answers', 'maxScore', 'tabSwitches', 'clientNonce', 'status'])
                && request.resource.data.status == 'in_progress'
                && request.resource.data.examId is string
                && request.resource.data.examCode is string
@@ -254,6 +307,7 @@ service cloud.firestore {
         // Điểm học sinh ghi vẫn là client-computed — trang theo dõi của giáo viên sẽ tự xác minh
         // và tính lại từ đáp án gốc (verifySubmissionScore) mỗi lần mở.
         return resource.data.status == 'in_progress'
+               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'status', 'submittedAt', 'tabSwitches'])
                && keepsSubmissionIdentity()
                && request.resource.data.status in ['in_progress', 'submitted']
                && request.resource.data.answers is list
@@ -267,9 +321,13 @@ service cloud.firestore {
                && (!('tabSwitches' in request.resource.data) || request.resource.data.tabSwitches is number);
       }
 
-      allow create: if validStudentCreate();
-      allow update: if isExamTeacher(resource.data.examId) || validStudentUpdate();
-      allow read: if isExamTeacher(resource.data.examId) || resource.data.status in ['submitted', 'graded'];
+      // Public attempts are issued and mutated only by /api/exam with Admin SDK.
+      // Client writes would let a caller forge a submitted proof for a passworded exam.
+      allow create: if false;
+      allow update: if isExamTeacher(resource.data.examId);
+      // Chỉ giáo viên chủ đề đọc trực tiếp. Thí sinh xem kết quả qua máy chủ (GET /api/exam?submissionId=) — máy chủ áp
+      // cài đặt hiện điểm / xem lại và không trả bài trong lớp (điểm bài lớp chỉ hiện ở cổng học sinh sau khi được duyệt).
+      allow read: if isExamTeacher(resource.data.examId);
       allow delete: if isExamTeacher(resource.data.examId);
     }
 
@@ -344,7 +402,10 @@ service cloud.firestore {
         return data.keys().hasOnly([
                  'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
                  'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
-                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds',
+                 // P-timer neo vào đầu tiết (V8.8) — không có 2 trường này thì đồng hồ
+                 // không tính được tổng thời gian tiết khi đổi cue.
+                 'lessonStartedAt', 'lessonElapsedSeconds'
                ])
                && data.keys().hasAll([
                     'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
@@ -483,7 +544,7 @@ service cloud.firestore {
           && data.get('cueElapsedSeconds', 0) is number && data.get('cueElapsedSeconds', 0) >= 0 && data.get('cueElapsedSeconds', 0) <= 86400;
       }
       function llv3ValidPublicState(data) {
-        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
                && data.get('cueId', '') is string
                && data.get('cueId', '').size() > 0
@@ -657,7 +718,8 @@ service cloud.firestore {
                          .hasOnly([
                            'status', 'currentCueId', 'currentTvScreenId',
                            'publicStateEnabled', 'publicStatsEnabled',
-                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt'
+                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt',
+                           'lessonStartedAt', 'lessonElapsedSeconds'
                          ])
                     && request.resource.data.get('updatedAt', null) == request.time;
       allow delete: if llv3SessionOwner();
@@ -786,6 +848,7 @@ service cloud.firestore {
                      && llv3ActiveSession();
           allow list, create, update, delete: if false;
         }
+
       }
 
         match /public/state {
@@ -794,7 +857,7 @@ service cloud.firestore {
                    && llv3ActiveSession()
                    && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true;
         allow create, update: if llv3SessionOwner()
-                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                               && llv3ValidPublicState(request.resource.data)
                               && request.resource.data.get('updatedAt', null) == request.time;
         allow delete: if false;
@@ -810,6 +873,74 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['groupNumber', 'updatedAt'])
           && request.resource.data.get('groupNumber', '') in ['1','2','3','4','5','6','7','8','9','10','11','12']
           && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+
+      // COMM-AQ-01 — Giơ tay: hành động CÓ tên để giáo viên gọi. Doc theo participantUid
+      // nên bấm nhiều lần không tạo bản ghi trùng; lower/rase ghi đè cùng doc.
+      match /handRaises/{participantUid} {
+        function llv3ValidHandRaise(data) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.get('participantUid', '') == participantUid
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('studentName', '') is string
+            && data.get('studentName', '').size() > 0
+            && data.get('studentName', '').size() <= 128
+            && data.get('action', '') in ['raise', 'lower']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && request.auth.uid == participantUid && llv3StudentLinkedToSession() && llv3ActiveSession());
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == participantUid
+          && llv3ValidHandRaise(request.resource.data)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
+        allow delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ẩn danh: review queue CHỈ giáo viên đọc. Client không được
+      // write trực tiếp — câu hỏi vào qua server (Admin SDK ghi, không có field định danh).
+      match /questions/{questionId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ĐÃ CÔNG BỘ: cả lớp đọc khi phiên active; nội dung chỉ có
+      // body + mã ẩn danh, không tên. Write chỉ qua Admin SDK. (Subcollection ngang cấp public)
+      match /publishedQuestions/{questionId} {
+        allow get, list: if llv3ActiveSession() && llv3PublicAudience();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Understanding Pulse: dữ liệu cá nhân theo lesson contract, có tên
+      // cho GV xem tổng hợp. Riêng biệt tuyệt đối với câu hỏi ẩn danh (không tham chiếu chéo).
+      match /pulses/{pulseId} {
+        function llv3ValidPulse(data, pulseId) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && pulseId.matches('.{1,128}__[^/]{1,128}')
+            && data.get('participantUid', '') + '__' + data.get('cueId', '') == pulseId
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('cueId', '') is string
+            && data.get('cueId', '').size() > 0
+            && data.get('cueId', '').size() <= 128
+            && data.get('selfReport', '') in ['understood', 'need_example', 'unclear']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && llv3StudentLinkedToSession() && llv3ActiveSession()
+          && resource.data.get('participantUid', '') == request.auth.uid);
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == request.resource.data.get('participantUid', '')
+          && request.resource.data.get('participantUid', '') + '__' + request.resource.data.get('cueId', '') == pulseId
+          && llv3ValidPulse(request.resource.data, pulseId)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
         allow delete: if false;
       }
 
@@ -938,7 +1069,8 @@ service cloud.firestore {
     /* Giáo viên CHỈ được ghi đúng ô tự đánh giá. Không sửa được điểm, nhận xét
        hay bất cứ thứ gì của người dự giờ. */
     function chiSuaTuDanhGia() {
-      return request.resource.data.diff(resource.data)
+      return resource.data.get('tuDanhGia', {}).get('hoanThanhLuc', '') == ''
+             && request.resource.data.diff(resource.data)
                .affectedKeys().hasOnly(['tuDanhGia', 'updatedAt', 'capNhatLuc']);
     }
 
@@ -1084,6 +1216,7 @@ service cloud.firestore {
                     && resource.data.teacherId == request.auth.uid
                     && request.resource.data.teacherId == resource.data.teacherId
                     && request.resource.data.classId == resource.data.classId
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['submissionLocked', 'lockedAt', 'lockedBy'])
                     && (!('sourceText' in request.resource.data)
                         || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
                     && (!('sourceImageUrls' in request.resource.data)
@@ -1121,56 +1254,39 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /submissionHandMarkedReviews/{reviewId} { allow read, write: if false; }
+    match /submissionHandMarkedAudit/{auditId} { allow read, write: if false; }
+
     match /submissions/{submissionId} {
-      // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
-      // và tuyệt đối không được kèm sẵn điểm.
-      function hocSinhNopHopLe() {
-        let d = request.resource.data;
-        return coLienKetHocSinh()
-               && d.keys().hasOnly([
-                    'id', 'teacherId', 'classId', 'studentId', 'assignmentId', 'fileUrls',
-                    'supplementOf', 'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
-                  ])
-               && d.id == submissionId
-               && d.studentId == lienKetHocSinh().studentId
-               && d.classId == lienKetHocSinh().classId
-               && d.teacherId == lienKetHocSinh().teacherId
-               && (d.assignmentId == null || d.assignmentId is string)
-               && (!('supplementOf' in d)
-                   || (d.supplementOf is string && d.supplementOf.size() <= 150))
-               && d.status == 'submitted'
-               && !('grade' in d)
-               && d.fileUrls is list
-               && d.fileUrls.size() >= 1
-               && d.fileUrls.size() <= 12
-               && (!('textContent' in d)
-                   || (d.textContent is string && d.textContent.size() <= 60000))
-               && (!('attachments' in d)
-                   || (d.attachments is list && d.attachments.size() >= 1 && d.attachments.size() <= 12));
-      }
-
-      // Nộp lại khi chưa chấm: chỉ được đổi file và ghi chú, không đụng gì khác.
-      function hocSinhNopLai() {
-        return laHocSinh(resource.data.studentId)
-               && resource.data.status == 'submitted'
-               && request.resource.data.diff(resource.data).affectedKeys()
-                    .hasOnly(['fileUrls', 'textContent', 'attachments', 'note', 'updatedAt']);
-      }
-
-      // Học sinh nhận projection từ /api/classroom studentSubmissions để loại teacherNote/noteForTeacher;
-      // Firestore rules không redaction theo field nên không cho đọc document gốc trực tiếp.
+      // All evidence and grades use API transactions; no direct client writes can bypass hard locks.
       allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
 
-      allow create: if hocSinhNopHopLe()
-                    || (request.auth != null && request.resource.data.teacherId == request.auth.uid);
-
-      allow update: if hocSinhNopLai()
-                    || (request.auth != null
-                        && resource.data.teacherId == request.auth.uid
-                        && request.resource.data.teacherId == resource.data.teacherId
-                        && request.resource.data.studentId == resource.data.studentId);
-
-      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    // HẠNG MỤC 4 (SSM): ghép lớp SSM của từng giáo viên. Document ID = `{uid}_{classId}`.
+    // Mỗi GV chỉ đọc/ghi được ghép lớp của chính mình.
+    match /ssmClassLinks/{linkId} {
+      function ssmOwnClass(d) {
+        return request.auth != null && d.userId == request.auth.uid && d.classId is string
+          && exists(/databases/$(database)/documents/classes/$(d.classId))
+          && ((get(/databases/$(database)/documents/classes/$(d.classId)).data.get('ownerId', get(/databases/$(database)/documents/classes/$(d.classId)).data.teacherId) == request.auth.uid
+               && (!exists(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)) || get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.status == 'active'))
+              || (exists(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid))
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.status == 'active'
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.uid == request.auth.uid
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.classId == d.classId
+                  && get(/databases/$(database)/documents/classMembers/$(d.classId + '__' + request.auth.uid)).data.role in ['owner','co_owner']));
+      }
+      function validSsmLink(d) {
+        return ssmOwnClass(d) && linkId == request.auth.uid + '_' + d.classId
+          && d.keys().hasOnly(['userId','classId','ssmClassId','ssmClassName','workspace','updatedAt'])
+          && (!('workspace' in d) || (d.workspace is string && d.workspace.size() <= 150))
+          && d.ssmClassId is int && d.ssmClassId > 0 && d.ssmClassName is string && d.ssmClassName.size() <= 200 && d.updatedAt is string;
+      }
+      allow get, list: if ssmOwnClass(resource.data);
+      allow create: if validSsmLink(request.resource.data);
+      allow update: if ssmOwnClass(resource.data) && validSsmLink(request.resource.data) && request.resource.data.classId == resource.data.classId;
+      allow delete: if ssmOwnClass(resource.data);
     }
 
     // Hồ sơ tích luỹ. Học sinh ĐỌC được phần của mình, không bao giờ ghi được —
@@ -1185,6 +1301,131 @@ service cloud.firestore {
                     && resource.data.teacherId == request.auth.uid
                     && request.resource.data.teacherId == resource.data.teacherId;
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Assistant gateway state is server-only. Admin-side code enforces channel
+    // identity, ownership, sharing, confirmation, and audit rules.
+    match /assistantLinkCodes/{codeHash} {
+      allow read, write: if false;
+    }
+    match /channelLinks/{linkId} {
+      allow read, write: if false;
+    }
+    match /assistantShares/{shareId} {
+      allow read, write: if false;
+    }
+    match /assistantConfirmations/{confirmationId} {
+      allow read, write: if false;
+    }
+    match /assistantAuditLogs/{logId} {
+      allow read, write: if false;
+    }
+    match /assistantJobs/{jobId} {
+      allow read, write: if false;
+    }
+    match /assistantRequestNonces/{nonce} {
+      allow read, write: if false;
+    }
+
+    // ============================================================
+    // V8.3.2 Studio + phòng học 3 luồng (V8.4/V8.8)
+    // Quy ước: toàn bộ GHI vận hành phòng (tạo phòng, phản hồi, điểm danh,
+    // đóng bài, phân tích, yêu cầu sửa) đi qua /api/classroom bằng
+    // firebase-admin nên không cần rules. Browser chỉ ĐỌC trực tiếp,
+    // giáo viên tự ghi bản nháp studio của chính mình.
+    // ============================================================
+
+    // Bản nháp studio: import V8.3.2 + tạo từ ý tưởng V8.8 — chỉ chủ sở hữu
+    match /lessonGenDrafts/{draftId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Bản build runtime: chỉ chủ bài đọc (chứa lesson IR riêng tư)
+    match /lessonV832Builds/{packageId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Hộp thư "Yêu cầu sửa từ bản xem trước" + ứng viên sửa chữa:
+    // giáo viên đọc yêu cầu của mình, server mới được ghi
+    match /lessonV832ReviewRequests/{requestId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+    match /lessonV832RepairCandidates/{candidateId} {
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Gói bài AI tạo: bản riêng và bản public đều chỉ chủ sở hữu thao tác
+    // (bản public chứa runtime definition — học sinh nhận bài qua phòng,
+    // không đọc trực tiếp collection này)
+    match /lessonGenPackages/{packageId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+    match /lessonGenPublicPackages/{packageId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.ownerUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Phòng học: tổng riêng tư chỉ chủ phòng; ảnh công khai ai đã đăng nhập
+    // (kể cả ẩn danh khi vào phòng) đều đọc được vì chỉ chứa dữ liệu tổng hợp
+    match /lessonV832Rooms/{roomId} {
+      function roomOwner() {
+        return get(/databases/$(database)/documents/lessonV832Rooms/$(roomId)).data.ownerUid;
+      }
+      allow read: if request.auth != null
+                  && resource.data.ownerUid == request.auth.uid;
+      allow write: if false;
+
+      // Ảnh chạy lớp + tổng kết công khai (đã tổng hợp, không cá nhân)
+      match /public/{docId} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+      match /publicClosing/{rev} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+      // Kết quả đóng bài của từng học sinh: chính người đó (đã vào phòng)
+      // hoặc chủ phòng đọc
+      match /studentClosing/{studentId}/revisions/{rev} {
+        allow read: if request.auth != null
+          && (exists(/databases/$(database)/documents/lessonV832Rooms/$(roomId)/participants/$(request.auth.uid))
+              || roomOwner() == request.auth.uid);
+        allow write: if false;
+      }
+      // Phân tích giáo viên theo từng em: chỉ chủ phòng
+      match /teacherAnalytics/{docId}/revisions/{rev} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      // Bài làm và nháp mô phỏng: chỉ chủ phòng
+      match /responses/{responseId} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      match /simulationDrafts/{draftKey} {
+        allow read: if request.auth != null && roomOwner() == request.auth.uid;
+        allow write: if false;
+      }
+      // Người trong phòng đọc được chính mình; chủ phòng đọc tất cả
+      match /participants/{participantUid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == participantUid || roomOwner() == request.auth.uid);
+        allow write: if false;
+      }
     }
 
   }

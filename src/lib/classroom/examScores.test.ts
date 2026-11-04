@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseStudentExamScores } from './examScores';
+import { examLabelKey, parseStudentExamScores } from './examScores';
 
 // Mô phỏng đúng cấu trúc file lớp thật: dòng 1 trống, dòng 2 tiêu đề phụ, dòng 3 header, dòng 4 số
 // cột, dữ liệu từ dòng 5. Cột "Phân loại điểm"/"Điểm chữ" là CÔNG THỨC nội bộ — phải bị bỏ.
@@ -22,6 +22,15 @@ const TDS = [
 ];
 
 describe('parseStudentExamScores', () => {
+  it('gom nhãn Thi GHKI và Giữa học kì I về cùng mã', () => {
+    expect(examLabelKey('Thi GHKI')).toBe('ghki');
+    expect(examLabelKey('Giữa học kì I')).toBe('ghki');
+    expect(examLabelKey('Điểm T10 ĐGGHKI')).toBe('ghki');
+    expect(examLabelKey('Thi giữa HKI')).toBe('ghki');
+    expect(examLabelKey('Thi giữa HKII')).toBe('ghkii');
+    expect(examLabelKey('Thi cuối HKI')).toBe('chki');
+    expect(examLabelKey('Thi cuối HKII')).toBe('chkii');
+  });
   it('rút điểm MOET (thang 10) đúng mốc, việt hoá tên, bỏ ô trống', () => {
     const { moet } = parseStudentExamScores(MOET, TDS, 'GB0117010125');
     expect(moet).toEqual([

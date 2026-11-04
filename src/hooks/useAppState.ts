@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { stripLocalOnlyKeys } from '../lib/settingsSecrets';
 import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession, TeacherClass } from '../types';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -8,16 +9,59 @@ import { normalizePlanTitle } from '../utils/fileUtils';
 const PAGE_SIZE = 20;
 const LOCAL_CACHE_KEY = 'smart_lesson_plan_data';
 
+const localCacheKey = (uid?: string | null) => `${LOCAL_CACHE_KEY}:${uid || 'anonymous'}`;
+
 /** Model mặc định cũ: cài đặt còn lưu đúng giá trị này (hầu hết là chưa từng tự chọn) → lên model mặc định mới. */
 const LEGACY_DEFAULT_MODEL = 'gemini-3.7-flash';
 export const withCurrentDefaultModel = (settings: AppData['settings']): AppData['settings'] =>
   settings.selectedModel === LEGACY_DEFAULT_MODEL ? { ...settings, selectedModel: DEFAULT_DATA.settings.selectedModel } : settings;
+
+/**
+ * Chuyển nhà cung cấp cũ sang Vilao (10/2026).
+ *
+ * Vì sao: từ G2, Vilao là đường chính — khoá nằm ở máy chủ, giáo viên không phải trả gì thêm. Nhưng
+ * cài đặt lưu từ trước vẫn mang `'gemini'`, mà chọn Gemini khi CHƯA có key riêng thì chỉ nhận câu
+ * "chưa có API key" — bẫy đã gặp thật: giáo viên tưởng phải mua key Google, dán key trả phí vào rồi
+ * mất tiền trong khi đường Vilao vẫn sống.
+ *
+ * Chỉ chuyển khi người dùng LƯU LẠI đúng giá trị mặc định cũ và KHÔNG có key Gemini riêng: ai đã tự
+ * chọn Gemini và có key thì giữ nguyên ý định của họ.
+ */
+export const withVilaoDefaultProvider = (settings: AppData['settings']): AppData['settings'] => {
+  const hasOwnGeminiKey = Boolean(
+    (settings.geminiApiKeys ?? []).some(key => String(key ?? '').trim()) || String(settings.geminiApiKey ?? '').trim(),
+  );
+  if (settings.selectedProvider !== 'gemini' || hasOwnGeminiKey) return settings;
+  return { ...settings, selectedProvider: DEFAULT_DATA.settings.selectedProvider };
+};
 
 const buildLocalCache = (data: AppData) => ({
   settings: data.settings,
   authorName: data.authorName,
   classes: data.classes,
 });
+
+const readLocalCache = (uid?: string | null): AppData => {
+  try {
+    const saved = localStorage.getItem(localCacheKey(uid));
+    if (!saved) return DEFAULT_DATA;
+    const parsed = JSON.parse(saved);
+    return {
+      ...DEFAULT_DATA,
+      ...parsed,
+      lessonPlans: parsed.lessonPlans || [],
+      subjects: parsed.subjects || DEFAULT_DATA.subjects,
+      templates: parsed.templates || DEFAULT_DATA.templates,
+      distributions: parsed.distributions || [],
+      classes: parsed.classes || [],
+      settings: withVilaoDefaultProvider(withCurrentDefaultModel({ ...DEFAULT_DATA.settings, ...(parsed.settings || {}) })),
+      authorName: parsed.authorName || '',
+    };
+  } catch (error) {
+    console.error('Lỗi parse dữ liệu local', error);
+    return DEFAULT_DATA;
+  }
+};
 
 const fetchCollectionSafely = async <T,>(label: string, loader: () => Promise<T>, fallback: T): Promise<T> => {
   try {
@@ -29,30 +73,8 @@ const fetchCollectionSafely = async <T,>(label: string, loader: () => Promise<T>
 };
 
 export const useAppState = (user: User | null, showToast: (msg: string, icon?: any) => void) => {
-  const [data, setData] = useState<AppData>(() => {
-    const saved = localStorage.getItem(LOCAL_CACHE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Đảm bảo cấu trúc dữ liệu mới nhất được hợp nhất với dữ liệu cũ
-        return {
-          ...DEFAULT_DATA,
-          ...parsed,
-          lessonPlans: parsed.lessonPlans || [],
-          subjects: parsed.subjects || DEFAULT_DATA.subjects,
-          templates: parsed.templates || DEFAULT_DATA.templates,
-          distributions: parsed.distributions || [],
-          classes: parsed.classes || [],
-          settings: withCurrentDefaultModel({ ...DEFAULT_DATA.settings, ...(parsed.settings || {}) }),
-          authorName: parsed.authorName || ''
-        };
-      } catch (e) {
-        console.error("Lỗi parse dữ liệu local", e);
-        return DEFAULT_DATA;
-      }
-    }
-    return DEFAULT_DATA;
-  });
+  const [data, setData] = useState<AppData>(() => readLocalCache(user?.uid));
+  const [cacheOwnerUid, setCacheOwnerUid] = useState<string | null>(user?.uid || null);
 
   const [communityPlans, setCommunityPlans] = useState<LessonPlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,24 +84,43 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   const [hasMoreCommunity, setHasMoreCommunity] = useState(false);
   // Chỉ bật sync lớp học lên cloud SAU khi đã đọc xong userSettings — tránh ghi đè dữ liệu cloud bằng state cục bộ lúc mới đăng nhập
   const cloudClassesReadyRef = useRef(false);
+  const fetchGenerationRef = useRef(0);
+
+  // Reset immediately on identity changes; never merge one account's state into another.
+  useEffect(() => {
+    const nextUid = user?.uid || null;
+    fetchGenerationRef.current += 1;
+    cloudClassesReadyRef.current = false;
+    setCacheOwnerUid(nextUid);
+    setData(readLocalCache(nextUid));
+    setCommunityPlans([]);
+    setLastPlanDoc(null);
+    setHasMorePlans(false);
+    setLastCommunityDoc(null);
+    setHasMoreCommunity(false);
+    setIsLoading(Boolean(user));
+  }, [user?.uid]);
 
   // Sync only lightweight local preferences/API keys/classes to avoid localStorage quota pressure.
   useEffect(() => {
+    if (cacheOwnerUid !== (user?.uid || null)) return;
     const timer = setTimeout(() => {
       try {
-        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(buildLocalCache(data)));
+        localStorage.setItem(localCacheKey(user?.uid), JSON.stringify(buildLocalCache(data)));
       } catch (error) {
         console.error('Lỗi lưu cache cục bộ', error);
         showToast('Bộ nhớ trình duyệt đã đầy, không thể lưu cache cục bộ.', 'warning');
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [data.settings, data.authorName, data.classes, showToast]);
+  }, [cacheOwnerUid, user?.uid, data.settings, data.authorName, data.classes, showToast]);
 
   // Fetch Cloud data (Plans, Templates, Settings, Distributions) when user logs in
   useEffect(() => {
     if (user) {
       const fetchCloudData = async () => {
+        const generation = fetchGenerationRef.current;
+        const localData = readLocalCache(user.uid);
         setIsLoading(true);
         try {
           const cloudPlansResult = await fetchCollectionSafely('lessonPlans', async () => {
@@ -97,9 +138,6 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
             });
             return { plans, lastDoc: snapPlans.docs[snapPlans.docs.length - 1] || null, hasMore: snapPlans.docs.length === PAGE_SIZE };
           }, { plans: [] as LessonPlan[], lastDoc: null as QueryDocumentSnapshot<DocumentData> | null, hasMore: false });
-          setLastPlanDoc(cloudPlansResult.lastDoc);
-          setHasMorePlans(cloudPlansResult.hasMore);
-
           const userTemplates = await fetchCollectionSafely('userTemplates', async () => {
             const qTemplates = query(collection(db, 'userTemplates'), where('userId', '==', user.uid));
             const snapTemplates = await getDocs(qTemplates);
@@ -110,14 +148,13 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
 
           const cloudSettingsResult = await fetchCollectionSafely('userSettings', async () => {
             const docSnap = await getDoc(doc(db, 'userSettings', user.uid));
-            let cloudSettings = data.settings;
-            let cloudAuthorName = data.authorName;
+            let cloudSettings = localData.settings;
+            let cloudAuthorName = localData.authorName;
             let cloudClasses: TeacherClass[] | null = null;
             if (docSnap.exists()) {
               const settingsData = docSnap.data();
               if (settingsData.settings) {
-                const { geminiApiKey, claudeApiKey, openaiApiKey, grokApiKey, deepseekApiKey, ...rest } = settingsData.settings;
-                cloudSettings = { ...cloudSettings, ...rest };
+                cloudSettings = { ...cloudSettings, ...stripLocalOnlyKeys(settingsData.settings) };
               }
               cloudAuthorName = settingsData.authorName || '';
               if (Array.isArray(settingsData.classes)) {
@@ -129,7 +166,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
               await setDoc(doc(db, 'userSettings', user.uid), { authorName: cloudAuthorName }, { merge: true });
             }
             return { cloudSettings, cloudAuthorName, cloudClasses };
-          }, { cloudSettings: data.settings, cloudAuthorName: data.authorName, cloudClasses: null as TeacherClass[] | null });
+          }, { cloudSettings: localData.settings, cloudAuthorName: localData.authorName, cloudClasses: null as TeacherClass[] | null });
 
           const cloudDist = await fetchCollectionSafely('distributions', async () => {
             const qDist = query(collection(db, 'distributions'), where('userId', '==', user.uid));
@@ -154,6 +191,9 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
 
           const combinedTemplates = [...userTemplates, ...DEFAULT_DATA.templates.filter(dt => !userTemplates.some(ut => ut.id === dt.id))];
 
+          if (generation !== fetchGenerationRef.current) return;
+          setLastPlanDoc(cloudPlansResult.lastDoc);
+          setHasMorePlans(cloudPlansResult.hasMore);
           setData(prev => {
             const cloudPlanIds = new Set(cloudPlansResult.plans.map(p => p.id));
             const localOnlyPlans = prev.lessonPlans.filter(p => !cloudPlanIds.has(p.id));
@@ -166,13 +206,13 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
               distributions: cloudDist,
               classes: cloudSettingsResult.cloudClasses ?? prev.classes,
               authorName: cloudSettingsResult.cloudAuthorName,
-              settings: withCurrentDefaultModel({ ...prev.settings, ...cloudSettingsResult.cloudSettings }),
+              settings: withVilaoDefaultProvider(withCurrentDefaultModel({ ...prev.settings, ...cloudSettingsResult.cloudSettings })),
               gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });
           cloudClassesReadyRef.current = true;
         } finally {
-          setIsLoading(false);
+          if (generation === fetchGenerationRef.current) setIsLoading(false);
         }
       };
       fetchCloudData();
@@ -264,7 +304,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     if (user) {
       try {
         // Loại bỏ API Keys trước khi ghi lên Firebase — chỉ lưu cục bộ
-        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, grokApiKey: _k4, deepseekApiKey: _k5, ...settingsToSync } = updated;
+        const settingsToSync = stripLocalOnlyKeys(updated);
         await setDoc(doc(db, 'userSettings', user.uid), { userId: user.uid, settings: settingsToSync, authorName: data.authorName }, { merge: true });
       } catch (e) {
         console.error("Lỗi lưu cài đặt", e);
@@ -327,7 +367,8 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     }
   };
 
-  const updateTemplate = async (templateId: string, updatedTemplate: Partial<LessonTemplate>) => {
+  const updateTemplate = async (templateId: string, updatedTemplate: Partial<LessonTemplate>): Promise<boolean> => {
+    const previousTemplates = data.templates || [];
     setData(prev => {
       const currentTemplates = prev.templates || [];
       const newTemplates = currentTemplates.map(t => t.id === templateId ? { ...t, ...updatedTemplate } : t);
@@ -338,8 +379,11 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
         await setDoc(doc(db, 'userTemplates', templateId), { ...updatedTemplate, id: templateId, userId: user.uid }, { merge: true });
       } catch (e) {
         console.error("Lỗi cập nhật mẫu Cloud", e);
+        setData(prev => ({ ...prev, templates: previousTemplates }));
+        return false;
       }
     }
+    return true;
   };
 
   const deleteFile = async (templateId: string, fileId: string) => {

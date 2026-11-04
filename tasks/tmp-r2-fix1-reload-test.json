@@ -1,0 +1,24 @@
+{
+ "sessionId": "qurni8VpdXY9aeLyilVk",
+ "marker": "Nháp R2 fix1 — kiểm tra lưu 27/10",
+ "hsJoin": "view",
+ "gvStarted": {
+  "started": true,
+  "stage": "1",
+  "status": "running"
+ },
+ "gvAtS4": {
+  "stage": "5",
+  "status": "running"
+ },
+ "hsReadyBefore": true,
+ "typed": true,
+ "bandBefore": "Chặng 16–19 phút",
+ "relogged": "view",
+ "hsReadyAfter": true,
+ "bandAfter": "Chặng 16–19 phút",
+ "aiErrorStill": true,
+ "kept": false,
+ "keptInField": true,
+ "nhapPanel": true
+}

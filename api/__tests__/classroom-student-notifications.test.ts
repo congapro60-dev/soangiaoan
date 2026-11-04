@@ -59,7 +59,12 @@ const makeDb = (harness: Harness) => {
       }),
       where: (field: string, _op: string, value: unknown) => query(name, [{ field, value }]),
     }),
-    runTransaction: async (work: (transaction: unknown) => Promise<unknown>) => work({}),
+    runTransaction: async (work: (transaction: unknown) => Promise<unknown>) => {
+      const writes: Array<() => Promise<void>> = [];
+      const result = await work({ get: (ref: { get(): Promise<unknown> }) => ref.get(), update: (ref: { update(data: DocData): Promise<void> }, data: DocData) => { writes.push(() => ref.update(data)); } });
+      for (const write of writes) await write();
+      return result;
+    },
   };
 };
 

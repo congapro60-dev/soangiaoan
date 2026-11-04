@@ -1,0 +1,10 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+let t = readFileSync('tasks/tmp-qa-xoaytua4.mjs', 'utf8');
+t = t.split('k02h199J7BmwCbHUujTW').join('EyrNANoC3IE3gZ5Yv7Xo');
+const anchor = 'const gvEval = async (fn, arg) =>';
+const cdp = `const cdp1 = await gv2.target().createCDPSession(); await cdp1.send('Network.enable'); await cdp1.send('Network.setCacheDisabled', { cacheDisabled: true });
+const cdp2 = await hp.target().createCDPSession(); await cdp2.send('Network.enable'); await cdp2.send('Network.setCacheDisabled', { cacheDisabled: true });
+` + anchor;
+t = t.replace(anchor, cdp);
+writeFileSync('tasks/tmp-qa-xoaytua6.mjs', t, 'utf8');
+console.log('written, has cdp:', t.includes('setCacheDisabled'));

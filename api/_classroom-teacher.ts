@@ -1,4 +1,7 @@
+import { attachAssignmentSolutions } from './_assignment-solutions.js';
+import { handMarkedProjection } from './_hand-marked-work.js';
 import type { VercelResponse } from '@vercel/node';
+import { projectPhotoMarks, projectPhotoSteps, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
 import { getAuth } from 'firebase-admin/auth';
 import {
   canLeaveClass,
@@ -22,8 +25,13 @@ import type {
   SubmissionDoc,
 } from '../src/lib/classroom/types.js';
 import { buildExamContentSnapshot } from '../src/lib/classroom/activitySnapshot.js';
+import { sanitizeClarify } from '../src/lib/classroom/clarification.js';
+import { sanitizeExamVariants } from '../src/lib/classroom/examVariants.js';
 import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.js';
 import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
+import { isSafeDocId } from '../src/lib/classroom/parentAccess.js';
+import type { AdaptiveLesson } from '../src/lib/adaptive/types.js';
+import { buildCloseArtifacts, type StudentAttempts } from '../src/lib/adaptive/closeAssignment.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -44,9 +52,64 @@ interface TeacherClassContext {
 
 const nowIso = (): string => new Date().toISOString();
 
+const normalizeAdaptiveLesson = (raw: unknown, fallbackId: string): AdaptiveLesson | null => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const data = raw as Record<string, unknown> & { lesson?: Record<string, unknown> };
+  const lesson = data.lesson && typeof data.lesson === 'object' && !Array.isArray(data.lesson) ? { ...data.lesson } : { ...data };
+  if (!lesson.id) lesson.id = typeof data.lessonId === 'string' ? data.lessonId : typeof data.id === 'string' ? data.id : fallbackId;
+  if (!lesson.teacherId && typeof data.teacherId === 'string') lesson.teacherId = data.teacherId;
+  if (!lesson.title && typeof data.title === 'string') lesson.title = data.title;
+  return lesson.id ? lesson as unknown as AdaptiveLesson : null;
+};
+
 const compact = <T extends Record<string, unknown>>(value: T): T => Object.fromEntries(
   Object.entries(value).filter(([, item]) => item !== undefined),
 ) as T;
+
+export const handleAssignAdaptiveLesson = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const classId = typeof body.classId === 'string' ? body.classId.trim() : '';
+  const lessonId = typeof body.lessonId === 'string' ? body.lessonId.trim() : '';
+  if (!isSafeDocId(classId) || !isSafeDocId(lessonId)) return void res.status(400).json({ error: 'Invalid class or lesson code.' });
+  const context = await teacherContext(db, { ...body, classId }, res);
+  if (!context) return;
+  if (context.classData.teacherId !== context.uid) return void res.status(403).json({ error: 'Class is not owned by the teacher.' });
+  const lessonSnapshot = await db.collection('adaptiveLessons').doc(lessonId).get();
+  const lesson = normalizeAdaptiveLesson(lessonSnapshot.data(), lessonId);
+  if (!lessonSnapshot.exists || !lesson) return void res.status(404).json({ error: 'Lesson not found.' });
+  if (lesson.teacherId !== context.uid || lesson.status !== 'published') return void res.status(403).json({ error: 'Lesson is not owned by the teacher or is not published.' });
+  const rawTargets = body.targetStudentIds;
+  const targetStudentIds = rawTargets === undefined ? undefined : Array.isArray(rawTargets) && rawTargets.every(isSafeDocId) ? [...new Set(rawTargets)] : null;
+  if (targetStudentIds === null) return void res.status(400).json({ error: 'Invalid student list.' });
+  const id = `${classId}_${lessonId}`;
+  const ref = db.collection('adaptiveAssignments').doc(id);
+  const current = await ref.get();
+  const now = nowIso();
+  const assignment = compact({ teacherId: context.uid, classId, lessonId, discoverSeedId: typeof body.discoverSeedId === 'string' ? body.discoverSeedId.trim() : lesson.discoverSeedId, title: typeof body.title === 'string' && body.title.trim() ? body.title.trim() : lesson.title, targetStudentIds: targetStudentIds === undefined ? current.data()?.targetStudentIds : targetStudentIds, isOpen: body.isOpen !== false, createdAt: current.exists ? current.data()?.createdAt : now, updatedAt: now });
+  await ref.set(assignment);
+  return void res.status(200).json({ assignmentId: id, assignment });
+};
+
+export const handleCloseAdaptiveAssignment = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
+  if (!isSafeDocId(assignmentId)) return void res.status(400).json({ error: 'Invalid assignment code.' });
+  const assignmentRef = db.collection('adaptiveAssignments').doc(assignmentId);
+  const assignmentSnap = await assignmentRef.get();
+  const assignment = assignmentSnap.data() || {};
+  if (!assignmentSnap.exists || typeof assignment.classId !== 'string' || !isSafeDocId(assignment.lessonId)) return void res.status(404).json({ error: 'Assignment not found.' });
+  const context = await teacherContext(db, { ...body, classId: assignment.classId }, res);
+  if (!context) return;
+  if (assignment.teacherId !== context.uid) return void res.status(403).json({ error: 'Assignment is not owned by the teacher.' });
+  const lesson = normalizeAdaptiveLesson((await db.collection('adaptiveLessons').doc(assignment.lessonId).get()).data(), assignment.lessonId);
+  if (!lesson || lesson.teacherId !== context.uid) return void res.status(404).json({ error: 'Lesson not found.' });
+  const progress = await db.collection('adaptiveAssignmentProgress').where('assignmentId', '==', assignmentId).get();
+  const students: StudentAttempts = {};
+  progress.docs.forEach(doc => { const data = doc.data(); if (typeof data.studentId === 'string' && data.attempts && typeof data.attempts === 'object') students[data.studentId] = data.attempts; });
+  const artifacts = buildCloseArtifacts(lesson, students, nowIso());
+  await assignmentRef.set({ isOpen: false, closeArtifacts: artifacts, updatedAt: artifacts.closedAt }, { merge: true });
+  const names: Record<string, string> = {};
+  await Promise.all(Object.keys(students).map(async id => { const name = (await context.classRef.collection('students').doc(id).get()).data()?.name; if (typeof name === 'string') names[id] = name; }));
+  return void res.status(200).json({ assignmentId, artifacts, names });
+};
 
 const safeId = (value: unknown, fallback: string): string => {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -103,6 +166,12 @@ const assignmentFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
   ...data,
 }) as AssignmentDoc;
 
+const attachTeacherSolutions = async (db: Db, submissions: SubmissionDoc[]): Promise<SubmissionDoc[]> => {
+  const ids = [...new Set(submissions.map(submission => submission.assignmentId).filter((value): value is string => typeof value === 'string' && !!value))];
+  const assignments = new Map(await Promise.all(ids.map(async id => [id, (await db.collection('assignments').doc(id).get()).data()] as const)));
+  return submissions.map(submission => { const assignment = assignments.get(submission.assignmentId || ''); return assignment && assignment.classId === submission.classId && assignment.teacherId === submission.teacherId ? attachAssignmentSolutions(submission, assignment) : submission; });
+};
+
 const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
   const rawStatus = String(data.status || 'submitted');
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
@@ -142,14 +211,26 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             score: Number(item.score) || 0,
             maxScore: Number(item.maxScore) || 0,
             studentAnswer: String(item.studentAnswer || ''),
-            expectedAnswer: rawGrade?.teacherApproved === true ? String(item.expectedAnswer || '') : '',
+            // Giáo viên phải thấy đáp án + giải thích của máy ĐÚNG LÚC chưa duyệt — đó là lúc soát.
+            // (Ẩn trước khi duyệt là luật của bản chiếu HỌC SINH, xem projectStudentSubmission.)
+            expectedAnswer: String(item.expectedAnswer || ''),
             errorType: String(item.errorType || ''),
-            explanation: rawGrade?.teacherApproved === true ? String(item.explanation || '') : '',
+            explanation: String(item.explanation || ''),
             correction: String(item.correction || ''),
             nextPractice: String(item.nextPractice || ''),
+            ...(typeof item.workedSolution === 'string' ? { workedSolution: item.workedSolution } : {}),
+            ...(typeof item.workedSolutionVersion === 'string' ? { workedSolutionVersion: item.workedSolutionVersion } : {}),
+            ...(item.workedSolutionStatus === 'ready' || item.workedSolutionStatus === 'unavailable' ? { workedSolutionStatus: item.workedSolutionStatus } : {}),
+            ...(projectReadingRegions(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { readingRegions: projectReadingRegions(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
             ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
             ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
             needsTeacherReview: Boolean(item.needsTeacherReview),
+            ...(item.photoMarksCleared === true ? { photoMarksCleared: true } : {}),
+            ...(projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length
+              ? { photoMarks: projectPhotoMarks(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
+            ...(projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]).length ? { photoSteps: projectPhotoSteps(item, [...(Array.isArray(data.fileUrls) ? data.fileUrls : []), ...(sanitizeClarify(item.clarify)?.photoUrls || [])]) } : {}),
+            ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
+            ...(sanitizeClarify(item.clarify) ? { clarify: sanitizeClarify(item.clarify) } : {}),
           }))
         : undefined,
       weakTopics: Array.isArray(rawGrade.weakTopics) ? rawGrade.weakTopics.map(String) : [],
@@ -160,6 +241,9 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
       editedByTeacher: rawGrade.editedByTeacher === true,
       noteForTeacher: typeof rawGrade.noteForTeacher === 'string' ? rawGrade.noteForTeacher : undefined,
       gradingRecovery: rawGrade.gradingRecovery,
+      // Bài định kì: khớp/lệch điểm giáo viên — thiếu ở đây thì nhãn "Lệch điểm GV" không bao giờ hiện.
+      ...(rawGrade.examCheck && typeof rawGrade.examCheck === 'object' ? { examCheck: rawGrade.examCheck } : {}),
+      ...(rawGrade.paperScore && typeof rawGrade.paperScore === 'object' ? { paperScore: rawGrade.paperScore } : {}),
     } : undefined;
 
   return {
@@ -169,6 +253,9 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     studentId: String(data.studentId || ''),
     assignmentId: typeof data.assignmentId === 'string' ? data.assignmentId : null,
     ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
+    ...(data.feedbackSummary ? { feedbackSummary: { pending: Number(data.feedbackSummary.pending) || 0, replies: Number(data.feedbackSummary.replies) || 0, lastReplyAt: data.feedbackSummary.lastReplyAt } } : {}),
+    ...(data.submittedBy ? { submittedBy: data.submittedBy } : {}),
+    ...handMarkedProjection(data, true),
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     textContent: typeof data.textContent === 'string' ? data.textContent : undefined,
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
@@ -180,6 +267,8 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     ...(lastGradingErrorRaw ? { lastGradingErrorRaw } : {}),
     ...(errorMessage ? { errorMessage } : {}),
     ...(typeof data.evidenceSyncError === 'string' && data.evidenceSyncError ? { evidenceSyncError: data.evidenceSyncError } : {}),
+    ...(typeof data.examCode === 'string' && data.examCode ? { examCode: data.examCode } : {}),
+    ...(data.examCodeSource === 'ai' || data.examCodeSource === 'omr' || data.examCodeSource === 'teacher' || data.examCodeSource === 'student' ? { examCodeSource: data.examCodeSource } : {}),
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;
@@ -270,6 +359,10 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     teacherNote: data.teacherNote,
     hasAnswerKey: data.hasAnswerKey,
     isOpen: data.isOpen,
+    submissionLocked: data.submissionLocked === true,
+    lockedAt: data.lockedAt, lockedBy: data.lockedBy,
+    workedSolutions: data.workedSolutions, workedSolutionsByExamCode: data.workedSolutionsByExamCode,
+    questionCatalogByExamCode: data.questionCatalogByExamCode,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
     createdBy: data.createdBy,
@@ -282,6 +375,9 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     contentVersion: data.contentVersion,
     exportBundle: data.exportBundle,
     targetStudentIds: data.targetStudentIds,
+    // Bài kiểm tra định kì: thiếu ở đây thì giáo viên mở lại bài sẽ thấy như BTVN thường, mất các mã đề.
+    periodicTest: data.periodicTest,
+    examVariants: data.examVariants,
   });
   return allowed as AssignmentDoc;
 };
@@ -422,6 +518,45 @@ export const handleTeacherExamSubmissions = async (db: Db, body: Body, res: Verc
   return void res.status(200).json({ submissions });
 };
 
+/**
+ * Bài giao + bài nộp (cả bài online) của MỘT học sinh trong MỘT lớp, không cần phiên giáo viên.
+ * Dùng cho cổng phụ huynh (đã kiểm PIN) dựng báo cáo tự chọn khoảng ngày — cùng quy tắc lọc như nhánh
+ * `teacherSubmissions` theo học sinh: chỉ bản ghi đúng lớp và đúng giáo viên chủ lớp.
+ */
+export const loadStudentRecordsForClass = async (
+  db: Db,
+  classId: string,
+  classData: FirebaseFirestore.DocumentData,
+  studentId: string,
+): Promise<{ assignments: AssignmentDoc[]; submissions: SubmissionDoc[] }> => {
+  const teacherId = String(classData.teacherId || '');
+  const assignmentSnapshot = await db.collection('assignments').where('classId', '==', classId).get();
+  const assignments = assignmentSnapshot.docs
+    .map(document => teacherAssignmentProjection(document.id, document.data() || {}))
+    .filter(assignment => assignment.teacherId === teacherId);
+
+  const submissionSnapshot = await db.collection('submissions').where('studentId', '==', studentId).get();
+  const submissions = submissionSnapshot.docs
+    .map(document => submissionFromSnapshot(document.id, document.data() || {}))
+    .filter(submission => submission.classId === classId && submission.teacherId === teacherId);
+
+  const examAssignments = new Map<string, AssignmentDoc>();
+  for (const document of assignmentSnapshot.docs) {
+    const assignment = assignmentFromSnapshot(document.id, document.data() || {});
+    if (assignment.type === 'exam' && assignment.teacherId === teacherId) examAssignments.set(assignment.id, assignment);
+  }
+  const onlineSnapshot = await db.collection('examSubmissions').where('studentId', '==', studentId).get();
+  for (const document of onlineSnapshot.docs) {
+    const data = document.data() || {};
+    const assignment = examAssignments.get(typeof data.assignmentId === 'string' ? data.assignmentId.trim() : '');
+    if (!assignment || assignment.classId !== classId || data.classId !== classId) continue;
+    const online = onlineSubmissionFromSnapshot(document.id, data, assignment);
+    if (online && online.studentId === studentId) submissions.push(online);
+  }
+  submissions.sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+  return { assignments, submissions };
+};
+
 export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   let classId = typeof body.classId === 'string' ? body.classId.trim() : '';
   const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
@@ -491,7 +626,7 @@ export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelRe
       if (onlineSubmission && onlineSubmission.studentId === studentId) submissions.push(onlineSubmission);
     }
     submissions.sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
-    return void res.status(200).json({ submissions });
+    return void res.status(200).json({ submissions: await attachTeacherSolutions(db, submissions) });
   }
   const context = await teacherContext(db, { ...body, classId }, res);
   if (!context) return;
@@ -519,7 +654,7 @@ export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelRe
     .filter(submission => !assignmentId || submission.assignmentId === assignmentId);
   const submissions = [...legacySubmissions, ...onlineSubmissions]
     .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
-  return void res.status(200).json({ submissions });
+  return void res.status(200).json({ submissions: await attachTeacherSolutions(db, submissions) });
 };
 
 export const handleTeacherRoster = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -543,8 +678,21 @@ export const handleCreateAssignment = async (db: Db, body: Body, res: VercelResp
   if (!title) return void res.status(422).json({ error: 'Tên bài giao không được để trống.' });
   const id = safeId(input.id, `asg_${Date.now()}_${Math.random().toString(16).slice(2)}`);
   const now = nowIso();
+  // Bài kiểm tra định kì: chỉ nhận mã đề hợp lệ, mã nào cũng phải có đáp án (thiếu là cả lớp mã đó bị chấm mò).
+  const periodic = input.periodicTest && typeof input.periodicTest === 'object' && !Array.isArray(input.periodicTest);
+  const examVariants = periodic ? sanitizeExamVariants(input.examVariants) : [];
+  if (periodic) {
+    if (examVariants.length === 0) return void res.status(422).json({ error: 'Bài kiểm tra định kì cần ít nhất một mã đề có đáp án.' });
+    const missing = examVariants.filter(variant => !variant.answerKey).map(variant => variant.code);
+    if (missing.length > 0) return void res.status(422).json({ error: `Mã ${missing.join(', ')} chưa có đáp án.` });
+  }
+  const sheetLabel = periodic && typeof (input.periodicTest as Body).sheetLabel === 'string'
+    ? String((input.periodicTest as Body).sheetLabel).normalize('NFC').replace(/\s+/gu, ' ').trim().slice(0, 80)
+    : '';
   const assignment = compact({
     ...input,
+    periodicTest: periodic ? (sheetLabel ? { sheetLabel } : {}) : undefined,
+    examVariants: periodic ? examVariants : undefined,
     id,
     teacherId: String(context.classData.teacherId || context.uid),
     classId: context.classId,
@@ -783,6 +931,15 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
     for (const key of ['answerKey', 'rubric', 'gradingInstructions', 'sourceText', 'teacherNote']) {
       if (typeof (raw as Body)[key] === 'string') patch[key] = (raw as Body)[key];
     }
+    // Sửa/thêm MÃ ĐỀ + ĐÁP ÁN của bài kiểm tra định kì (thầy cô sửa sau khi đã giao).
+    if (Array.isArray((raw as Body).examVariants)) {
+      if (!found.assignment.periodicTest) return void res.status(422).json({ error: 'Chỉ bài kiểm tra định kì mới có mã đề.' });
+      const variants = sanitizeExamVariants((raw as Body).examVariants);
+      if (variants.length === 0) return void res.status(422).json({ error: 'Bài kiểm tra định kì cần ít nhất một mã đề có đáp án.' });
+      const thieuDapAn = variants.filter(variant => !variant.answerKey.trim()).map(variant => variant.code);
+      if (thieuDapAn.length) return void res.status(422).json({ error: `Mã đề ${thieuDapAn.join(', ')} chưa có đáp án.` });
+      patch.examVariants = variants;
+    }
   } else if (action === 'updateAssignmentDeadline') {
     if (body.dueAt !== null && typeof body.dueAt !== 'string') return void res.status(422).json({ error: 'Hạn nộp không hợp lệ.' });
     patch.dueAt = body.dueAt || null;
@@ -963,6 +1120,30 @@ export const handleSetStudentCode = async (db: Db, body: Body, res: VercelRespon
   const previousCodes = oldCode && !priorCodes.includes(oldCode) ? [...priorCodes, oldCode].slice(-20) : priorCodes;
   await studentRef.update({ code, previousCodes, updatedAt: nowIso(), updatedBy: context.uid });
   return void res.status(200).json({ updated: true, classId: context.classId, studentId, code, previousCodes });
+};
+
+const handleSyncSsmRosterMissing = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res); if (!context) return;
+  if (!Array.isArray(body.students) || !body.students.length || body.students.length > 400) return void res.status(422).json({error:'Danh sách SSM cần từ 1 đến 400 học sinh.'});
+  const incoming = body.students.map(raw => { const value = raw && typeof raw === 'object' ? raw as Body : {}; return {id: typeof value.id === 'string' ? value.id.trim() : '',name: typeof value.name === 'string' ? value.name.trim() : '',code: typeof value.code === 'string' ? value.code.trim().toUpperCase() : ''}; });
+  if (incoming.some(student => !student.id || student.id.length > 150 || student.id.includes('/') || !student.name || student.name.length > 200 || !student.code || student.code.length > 100)) return void res.status(422).json({error:'Mã hoặc tên học sinh SSM chưa hợp lệ. Chưa thêm em nào.'});
+  try {
+    const result = await db.runTransaction(async tx => {
+      const classSnap = await tx.get(context.classRef), memberSnap = await tx.get(db.collection('classMembers').doc(classMemberId(context.classId,context.uid)));
+      const classData = classSnap.data();
+      if (!classData || !deriveClassAccess(classData,memberFromData(memberSnap.data()),context.uid)) throw new Error('Quyền giáo viên với lớp đã bị thu hồi.');
+      const snapshot = await tx.get(context.classRef.collection('students'));
+      const existing = snapshot.docs.map(document => ({id:document.id,...document.data()}));
+      const codes = new Set(existing.map(student => String((student as Body).code || '').trim().toUpperCase()).filter(Boolean));
+      const ids = new Set(existing.map(student => student.id));
+      const fresh = [];
+      for (const student of incoming) { if (codes.has(student.code)) continue; if (ids.has(student.id)) throw new Error('ID học sinh đã tồn tại với mã khác. Không ghi đè danh sách.'); codes.add(student.code);ids.add(student.id);fresh.push({...student,status:'active',progress:0,classId:context.classId,teacherId:classData.teacherId,createdAt:nowIso(),updatedBy:context.uid}); }
+      for (const student of fresh) tx.create(context.classRef.collection('students').doc(student.id),student);
+      if (fresh.length) tx.update(context.classRef,{studentCount:existing.length+fresh.length,updatedAt:nowIso(),updatedBy:context.uid});
+      return {added:fresh.length,students:[...existing,...fresh].map(student=>({id:student.id,name:String((student as Body).name||''),code:String((student as Body).code||''),status:(student as Body).status||'active',progress:Number((student as Body).progress)||0}))};
+    });
+    res.status(200).json(result);
+  } catch(reason) { res.status(409).json({error:reason instanceof Error?reason.message:'Danh sách vừa đổi. Tải lại rồi thử đồng bộ SSM.'}); }
 };
 
 export const handleAddStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -1179,6 +1360,8 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'teacherExamSubmissions') { await handleTeacherExamSubmissions(db, body, res); return true; }
   if (action === 'teacherRoster') { await handleTeacherRoster(db, body, res); return true; }
   if (action === 'createAssignment') { await handleCreateAssignment(db, body, res); return true; }
+  if (action === 'teacherAssignAdaptiveLesson') { await handleAssignAdaptiveLesson(db, body, res); return true; }
+  if (action === 'teacherCloseAdaptiveAssignment') { await handleCloseAdaptiveAssignment(db, body, res); return true; }
   if (action === 'createExamAssignment') { await handleCreateExamAssignment(db, body, res); return true; }
   if (action === 'createSupportActivity') { await handleCreateSupportActivity(db, body, res); return true; }
   if (['renameAssignment', 'updateAssignmentContent', 'updateAssignmentDeadline', 'setAssignmentOpen'].includes(action)) { await handleUpdateAssignment(db, body, res); return true; }
@@ -1188,6 +1371,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'setClassExamSheet') { await handleSetClassExamSheet(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
   if (action === 'setStudentCode') { await handleSetStudentCode(db, body, res); return true; }
+  if (action === 'syncSsmRosterMissing') { await handleSyncSsmRosterMissing(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }
   if (action === 'teacherMembers') { await handleTeacherMembers(db, body, res); return true; }
   if (action === 'teacherInvitations') { await handleTeacherInvitations(db, body, res); return true; }

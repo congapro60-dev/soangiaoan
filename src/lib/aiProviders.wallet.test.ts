@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const m = vi.hoisted(() => ({
   callAiRelay: vi.fn(),
   claudeCreate: vi.fn(),
+  openaiCreate: vi.fn(),
+  geminiRaw: vi.fn(),
 }));
 
 vi.mock('./firebase', () => ({ auth: { currentUser: null } }));
@@ -12,8 +14,15 @@ vi.mock('./aiRelay', async () => {
   const actual = await vi.importActual<typeof import('./aiRelay')>('./aiRelay');
   return { ...actual, callAiRelay: m.callAiRelay };
 });
+vi.mock('./gemini', async () => {
+  const actual = await vi.importActual<typeof import('./gemini')>('./gemini');
+  return { ...actual, callGeminiAIRaw: m.geminiRaw };
+});
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class { messages = { create: m.claudeCreate }; },
+}));
+vi.mock('openai', () => ({
+  default: class { chat = { completions: { create: m.openaiCreate } }; },
 }));
 
 import { WALLET_MANAGED_API_KEY, callAI, callAIStream, getActiveApiKey } from './aiProviders';
@@ -108,5 +117,66 @@ describe('Claude / ChatGPT — đường gọi theo chế độ', () => {
     await callAIStream('x', settings({ selectedProvider: 'openai' }), chunk => chunks.push(chunk));
     expect(chunks).toEqual(['từ ví web']);
     expect(m.callAiRelay).toHaveBeenCalledWith(expect.objectContaining({ provider: 'openai' }));
+  });
+});
+
+describe('Gemini — nhiều khoá riêng trong Cài đặt', () => {
+  const quota = () => new Error('429 RESOURCE_EXHAUSTED: quota exceeded');
+
+  it('khoá đầu hết hạn mức thì dùng khoá thứ hai, KHÔNG đốt ví; hết cả hai mới sang ví (chế độ "cả hai")', async () => {
+    on('both');
+    const own = settings({ geminiApiKey: 'AIza-first', geminiApiKeys: ['AIza-first', 'AIza-second'] });
+    m.geminiRaw.mockImplementation(async (_prompt: string, key: string) => {
+      if (key === 'AIza-first') throw quota();
+      return { text: `từ ${key}`, usage: undefined, truncated: false };
+    });
+    expect(await callAI('x', own)).toBe('từ AIza-second');
+    expect(m.callAiRelay).not.toHaveBeenCalled();
+
+    m.geminiRaw.mockRejectedValue(quota());
+    const both = settings({ geminiApiKey: 'AIza-three', geminiApiKeys: ['AIza-three', 'AIza-four'] });
+    expect(await callAI('x', both)).toBe('từ ví web');
+    expect(m.callAiRelay).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('mức suy nghĩ — trình duyệt gửi đúng tham số cho từng hãng', () => {
+  it('Claude (khoá riêng): output_config.effort theo Cài đặt; model không nhận (Haiku 4.5) hoặc chưa chọn thì không gửi', async () => {
+    m.claudeCreate.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }], usage: {}, stop_reason: 'end_turn' });
+    const base = { selectedProvider: 'claude', claudeApiKey: 'sk-ant-own' };
+    await callAI('x', settings({ ...base, selectedModel: 'claude-opus-5-5', effort: { claude: 'xhigh' } }));
+    expect(m.claudeCreate.mock.calls.at(-1)?.[0]).toMatchObject({ model: 'claude-opus-5-5', output_config: { effort: 'xhigh' } });
+    await callAI('x', settings({ ...base, selectedModel: 'claude-opus-5-5', effort: { claude: 'low' } }));
+    expect(m.claudeCreate.mock.calls.at(-1)?.[0].output_config).toEqual({ effort: 'low' });
+    await callAI('x', settings({ ...base, selectedModel: 'claude-haiku-4-5-20251001', effort: { claude: 'high' } }));
+    expect(m.claudeCreate.mock.calls.at(-1)?.[0].output_config).toBeUndefined();
+    await callAI('x', settings({ ...base, selectedModel: 'claude-sonnet-5-5' }));
+    expect(m.claudeCreate.mock.calls.at(-1)?.[0].output_config).toBeUndefined();
+  });
+
+  it('ChatGPT (khoá riêng): reasoning_effort theo Cài đặt', async () => {
+    m.openaiCreate.mockResolvedValue({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }], usage: {} });
+    const base = { selectedProvider: 'openai', openaiApiKey: 'sk-own' };
+    await callAI('x', settings({ ...base, selectedModel: 'gpt-6.1-sol', effort: { openai: 'max' } }));
+    expect(m.openaiCreate.mock.calls.at(-1)?.[0]).toMatchObject({ model: 'gpt-6.1-sol', reasoning_effort: 'max' });
+    await callAI('x', settings({ ...base, selectedModel: 'gpt-6.1-sol', effort: { openai: 'none' } }));
+    expect(m.openaiCreate.mock.calls.at(-1)?.[0].reasoning_effort).toBeUndefined();
+  });
+
+  it('Gemini (khoá riêng): mức của hãng được chuyển cho lời gọi SDK', async () => {
+    m.geminiRaw.mockResolvedValue({ text: 'ok', truncated: false });
+    await callAI('x', settings({ geminiApiKey: 'AIza-own', selectedModel: 'gemini-3.8-flash', effort: { gemini: 'high' } }));
+    expect(m.geminiRaw.mock.calls.at(-1)?.[3]).toBe('high');
+  });
+
+  it('qua ví web: mức đã kiểm hợp model đi kèm lượt relay (Gemini và hãng khác)', async () => {
+    on('wallet');
+    m.callAiRelay.mockResolvedValue({ text: 'từ ví web', model: 'm', truncated: false });
+    await callAI('x', settings({ selectedModel: 'gemini-3.8-flash', effort: { gemini: 'low' } }));
+    expect(m.callAiRelay.mock.calls.at(-1)?.[0]).toMatchObject({ model: 'gemini-3.8-flash', effort: 'low' });
+    await callAI('x', settings({ selectedProvider: 'claude', selectedModel: 'claude-sonnet-5-5', effort: { claude: 'max' } }));
+    expect(m.callAiRelay.mock.calls.at(-1)?.[0]).toMatchObject({ provider: 'claude', model: 'claude-sonnet-5-5', effort: 'max' });
+    await callAI('x', settings({ selectedProvider: 'claude', selectedModel: 'claude-haiku-4-5-20251001', effort: { claude: 'max' } }));
+    expect(m.callAiRelay.mock.calls.at(-1)?.[0].effort).toBeUndefined();
   });
 });

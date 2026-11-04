@@ -152,13 +152,13 @@ describe('lessonPlans · tạo, sửa, xoá', () => {
  * Khi vá xong: hai ca dưới sẽ đỏ. Đổi `assertSucceeds` → `assertFails` và xoá
  * khối comment này.
  */
-describe('lessonPlans · lỗ hổng đã biết: allow list quá rộng', () => {
-  it('11. [LỖ HỔNG] Người đăng nhập bất kỳ liệt kê toàn bộ lessonPlans → hiện tại ALLOW', async () => {
-    await assertSucceeds(getDocs(query(collection(dbNguoiKhac(), 'lessonPlans'))));
+describe('lessonPlans · list chỉ theo owner/public', () => {
+  it('11. Người đăng nhập bất kỳ không liệt kê được toàn bộ lessonPlans', async () => {
+    await assertFails(getDocs(query(collection(dbNguoiKhac(), 'lessonPlans'))));
   });
 
-  it('12. [LỖ HỔNG] Người lạ lọc đúng userId của tôi để lấy giáo án riêng → hiện tại ALLOW', async () => {
-    await assertSucceeds(
+  it('12. Người lạ không lấy được giáo án riêng dù lọc đúng userId', async () => {
+    await assertFails(
       getDocs(query(collection(dbNguoiKhac(), 'lessonPlans'), where('userId', '==', UID_TOI))),
     );
   });

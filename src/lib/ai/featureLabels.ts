@@ -6,6 +6,7 @@ const LABELS: Record<string, string> = {
   submitPractice: 'Chấm bài luyện của học sinh',
   solveAnswerKey: 'AI giải đáp án',
   solveAnswerKeyForAssignment: 'AI giải đáp án bài giao',
+  extractExamVariantKeys: 'Rút đáp án các mã đề',
   buildQuestionCatalog: 'Tách câu hỏi trong đề',
   suggestRubric: 'Gợi ý hướng dẫn chấm',
   rewriteFeedback: 'Viết lại nhận xét',

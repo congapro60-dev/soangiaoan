@@ -32,12 +32,15 @@ interface Harness {
 }
 
 const makeDb = (harness: Harness) => {
+  harness.state.classes ||= {};
+  for (const submission of Object.values(harness.state.submissions || {})) { const classId = String(submission.classId || ''); if (classId) { harness.state.classes[classId] ||= { teacherId: submission.teacherId }; harness.state[`classes/${classId}/students`] ||= {}; harness.state[`classes/${classId}/students`][String(submission.studentId)] ||= { name: 'HS' }; } }
   const ensure = (name: string) => {
     harness.state[name] ||= {};
     return harness.state[name];
   };
   const collection = (name: string) => ({
     doc: (id: string) => ({
+      collection: (sub: string) => collection(`${name}/${id}/${sub}`),
       get: async () => {
         const data = ensure(name)[id];
         return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
@@ -180,6 +183,30 @@ describe('gradeOne · trần thời gian và trần token', () => {
       contents?: Array<{ parts?: Array<{ text?: string }> }>;
     };
     expect(String(lanHai.contents?.[0]?.parts?.[0]?.text)).toMatch(/viết GỌN|quá dài/i);
+  });
+
+  it('GV xin chấm NỀN (điện thoại): trả lời ngay, chấm tiếp ở nền — thầy không phải đứng chờ AI', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    h.uid = 'gv-1';
+    h.db = makeDb(harness);
+    vi.stubGlobal('fetch', vi.fn(async () => geminiOk(validGradeJson)));
+
+    const nen: Promise<unknown>[] = [];
+    (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] = {
+      get: () => ({ waitUntil: (promise: Promise<unknown>) => { nen.push(promise); } }),
+    };
+
+    try {
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1', background: true });
+      expect(result.statusCode).toBe(202);
+      expect(result.body).toMatchObject({ pending: true });
+      expect(nen).toHaveLength(1);
+      await Promise.all(nen);
+      expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
+    } finally {
+      delete (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')];
+    }
   });
 
   it('học sinh tự chấm: trả lời NGAY rồi chấm ngầm, em tắt máy vẫn ra điểm', async () => {

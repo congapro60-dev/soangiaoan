@@ -1,15 +1,26 @@
-import { useState } from 'react';
-import { Download, Link2, Loader2, RefreshCw, Unlink } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download, Key, Link2, Loader2, RefreshCw, Unlink, UserPlus } from 'lucide-react';
 import type { Student } from '../../../types';
-import { readSsmLink, saveSsmLink, ssmRequest } from '../../../lib/ssm/ssmBridge';
 import {
-  emailsMatch,
+  getStoredSsmSession,
+  pingSsmBridge,
+  readSsmLink,
+  readSsmLinkCloud,
+  saveSsmLink,
+  saveSsmLinkCloud,
+  ssmRequest,
+  type StoredSsmSession,
+} from '../../../lib/ssm/ssmBridge';
+import { SsmConnectModal } from './SsmConnectModal';
+import { getLinkedGoogleEmail } from '../../../lib/adminLink';
+import {
   guessSsmClass,
   matchRoster,
   parseClasses,
   parseProfileEmail,
   parseStudents,
   pickCurrentSchoolYear,
+  ssmAccountAllowed,
   type RosterMatch,
   type SsmClass,
 } from '../../../lib/ssm/ssmModel';
@@ -19,15 +30,22 @@ interface Props {
   className: string;
   students: Student[];
   userEmail: string | null;
+  /** UID Firebase — để đồng bộ ghép lớp lên cloud (Hạng mục 4). */
+  userId?: string | null;
+  /** Callback khi bấm "Cập nhật DS học sinh từ SSM" — cha cập nhật danh sách lớp. */
+  onSyncStudents?: (students: Student[]) => Promise<void>;
 }
 
 const errorText = (error: unknown): string => error instanceof Error ? error.message : 'Có lỗi, thử lại sau.';
 
 /**
  * Ghép lớp app với lớp SSM rồi so danh sách học sinh theo Mã HS. CHỈ ĐỌC SSM — không sửa lớp app,
- * không ghi gì lên SSM. Cần tiện ích Edge "SmartPlan ↔ SSM" và một tab SSM đang đăng nhập.
+ * không ghi gì lên SSM. Cần tiện ích Edge "SmartPlan ↔ SSM" (tiện ích tự nhớ phiên, không bắt mở tab SSM thủ công).
+ *
+ * HẠNG MỤC 4: ghép lớp đồng bộ lên Firestore (đổi máy không phải ghép lại);
+ * nút "Cập nhật DS học sinh từ SSM" thêm học sinh mới từ SSM vào lớp app trong 1 click.
  */
-export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props) => {
+export const SsmLinkPanel = ({ classId, className, students, userEmail, userId, onSyncStudents }: Props) => {
   const [link, setLink] = useState(() => readSsmLink(classId));
   const [choices, setChoices] = useState<SsmClass[] | null>(null);
   const [picked, setPicked] = useState<number | ''>('');
@@ -35,6 +53,21 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [needInstall, setNeedInstall] = useState(false);
+  const [workspace, setWorkspace] = useState('');
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [ssmSession, setSsmSession] = useState<StoredSsmSession | null>(() => getStoredSsmSession());
+
+  // HẠNG MỤC 4: lúc mở panel, thử lấy ghép lớp từ cloud (trường hợp đổi máy / xoá cache).
+  useEffect(() => {
+    const local = readSsmLink(classId); setLink(local); setChoices(null); setRoster(null); setPicked('');
+    if (!userId || local) return;
+    let cancelled = false;
+    void readSsmLinkCloud(userId, classId).then(cloud => {
+      if (!cancelled && cloud) { saveSsmLink(classId,cloud); setLink(cloud); }
+    }).catch(error => { if(!cancelled) setError(errorText(error)); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, classId]);
 
   const run = async (label: string, task: () => Promise<void>) => {
     setBusy(label);
@@ -50,15 +83,21 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
 
   const loadClasses = () => run('Đang đọc lớp trên SSM…', async () => {
     try {
-      await ssmRequest('ping');
+      await pingSsmBridge();
       setNeedInstall(false);
     } catch (err) {
+      if (!getStoredSsmSession()) {
+        setShowConnectModal(true);
+      }
       setNeedInstall(true);
       throw err;
     }
     if (!userEmail) throw new Error('Đăng nhập app bằng mail trường trước khi ghép với SSM.');
-    const email = parseProfileEmail(await ssmRequest('profile'));
-    if (!emailsMatch(email, userEmail)) {
+    const profile = await ssmRequest('profile') as {ssmWorkspace?:string};
+    const email = parseProfileEmail(profile);
+    if (!profile.ssmWorkspace) throw new Error('Tiện ích SSM cần cập nhật lên 0.3.1 rồi tải lại trang.');
+    setWorkspace(profile.ssmWorkspace);
+    if (!ssmAccountAllowed(email, userEmail, getLinkedGoogleEmail())) {
       throw new Error(`Tab SSM đang đăng nhập ${email || 'tài khoản không rõ'}, khác tài khoản app ${userEmail || ''}. Đăng nhập SSM đúng mail trường của bạn.`);
     }
     const year = pickCurrentSchoolYear(await ssmRequest('schoolYears'));
@@ -69,26 +108,62 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
     setPicked(guessSsmClass(className, classes)?.id ?? '');
   });
 
-  const confirmLink = () => {
+  const confirmLink = () => run('Đang lưu ghép lớp…', async () => {
     const chosen = choices?.find(c => c.id === picked);
     if (!chosen) return;
-    saveSsmLink(classId, chosen);
-    setLink(chosen);
+    const newLink = { id: chosen.id, name: chosen.name, workspace };
+    // HẠNG MỤC 4: lưu đồng thời lên cloud (nếu đã đăng nhập).
+    if (!userId) throw new Error('Đăng nhập giáo viên trước khi ghép lớp.');
+    await saveSsmLinkCloud(userId, classId, newLink);
+    setLink(newLink);
     setChoices(null);
     setRoster(null);
-  };
+  });
 
-  const unlink = () => {
-    saveSsmLink(classId, null);
+  const unlink = () => run('Đang bỏ ghép lớp…', async () => {
+    if (!userId) throw new Error('Đăng nhập giáo viên trước khi bỏ ghép.');
+    await saveSsmLinkCloud(userId, classId, null);
     setLink(null);
     setRoster(null);
-  };
+  });
 
   const compareRoster = () => run('Đang so danh sách với SSM…', async () => {
     if (!link) return;
-    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id }));
+    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id, expectedWorkspace: link.workspace || '__relink_required__' }));
     if (unknownKeys) throw new Error(`Chưa đọc được mã học sinh từ SSM (các ô SSM trả về: ${unknownKeys.join(', ')}). Gửi dòng này cho người làm app.`);
     setRoster(matchRoster(students, ssmStudents));
+  });
+
+  // HẠNG MỤC 4: 1-click cập nhật danh sách học sinh từ SSM về lớp app.
+  const syncStudentsFromSsm = () => run('Đang cập nhật danh sách từ SSM…', async () => {
+    if (!link) return;
+    if (!onSyncStudents) throw new Error('Chức năng đồng bộ chưa được bật cho lớp này.');
+    const { students: ssmStudents, unknownKeys } = parseStudents(await ssmRequest('classStudents', { classId: link.id, expectedWorkspace: link.workspace || '__relink_required__' }));
+    if (unknownKeys) throw new Error(`Chưa đọc được mã học sinh từ SSM (các ô SSM trả về: ${unknownKeys.join(', ')}).`);
+    const existingCodes = new Set(students.map(s => s.code.trim().toUpperCase()).filter(Boolean));
+    const fresh: Student[] = [];
+    let added = 0;
+    for (const s of ssmStudents) {
+      const code = (s.code || '').trim().toUpperCase();
+      if (!code) continue;
+      if (existingCodes.has(code)) continue; // đã có trong app — giữ nguyên (không ghi đè tên)
+      existingCodes.add(code);
+      fresh.push({
+        id: `ssm-${link.id}-${encodeURIComponent(code)}`,
+        name: s.name || code,
+        code,
+        progress: 0,
+        status: 'active',
+      });
+      added++;
+    }
+    if (added === 0) {
+      setError('');
+      setRoster(matchRoster(students, ssmStudents));
+      throw new Error('Danh sách đã khớp với SSM — không có học sinh mới.');
+    }
+    await onSyncStudents(fresh);
+    setRoster(null);
   });
 
   return (
@@ -100,12 +175,27 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
             {link ? <>Đã ghép với lớp SSM <b>{link.name}</b></> : 'Chưa ghép lớp này với SSM.'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowConnectModal(true)}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
+            title="Quản lý mã kết nối SSM (Server Proxy — không cần tiện ích)"
+          >
+            <Key className="h-4 w-4" />
+            {ssmSession ? (ssmSession.userName || 'Đã kết nối SSM') : 'Kết nối SSM'}
+          </button>
+
           {link ? (
             <>
               <button type="button" disabled={!!busy} onClick={() => void compareRoster()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">
                 <RefreshCw className="h-4 w-4" /> So danh sách với SSM
               </button>
+              {onSyncStudents && (
+                <button type="button" disabled={!!busy} onClick={() => void syncStudentsFromSsm()} title="Thêm học sinh mới từ SSM vào lớp app trong 1 click" className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60">
+                  <UserPlus className="h-4 w-4" /> Cập nhật DS từ SSM
+                </button>
+              )}
               <button type="button" disabled={!!busy} onClick={unlink} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100 disabled:opacity-60">
                 <Unlink className="h-4 w-4" /> Bỏ ghép
               </button>
@@ -132,15 +222,21 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
       {busy && <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> {busy}</p>}
       {error && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
 
-      {needInstall && (
-        <div className="mt-3 rounded-xl border border-indigo-100 bg-white p-3 text-sm text-slate-700">
-          <p className="font-black text-slate-900">Cài tiện ích SSM cho Edge (làm 1 lần, khoảng 1 phút)</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 font-medium">
-            <li><a href="/downloads/ssm-bridge.zip" download className="inline-flex items-center gap-1 font-black text-indigo-700 underline"><Download className="h-4 w-4" /> Tải tiện ích</a>, rồi giải nén (chuột phải → Extract All).</li>
-            <li>Mở tab mới, gõ <b>edge://extensions</b>, bật <b>Chế độ nhà phát triển</b> (công tắc cạnh trái).</li>
-            <li>Bấm <b>Tải tiện ích đã giải nén</b>, chọn thư mục <b>ssm-bridge</b> vừa giải nén.</li>
-            <li>Mở <b>ssm.edufit.vn</b> trong một tab (đăng nhập mail trường), rồi tải lại trang này.</li>
-          </ol>
+      {needInstall && !ssmSession && (
+        <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/70 p-3.5 text-xs text-slate-700 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-black text-indigo-950">Chưa kết nối SSM — Không cần cài đặt Extension</span>
+            <button
+              type="button"
+              onClick={() => setShowConnectModal(true)}
+              className="rounded-lg bg-indigo-600 px-3 py-1 font-black text-white hover:bg-indigo-700"
+            >
+              Kết nối ngay
+            </button>
+          </div>
+          <p className="font-medium text-slate-600">
+            Hệ thống hỗ trợ <b>Server Proxy trực tiếp</b>: bấm <b>Kết nối ngay</b> để dán mã kết nối (token) mà không cần cài thêm bất kỳ tiện ích trình duyệt nào.
+          </p>
         </div>
       )}
 
@@ -154,9 +250,20 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
             <p className="font-semibold text-amber-700">Có trên SSM, chưa có trong app ({roster.onlyInSsm.length}): {roster.onlyInSsm.map(s => `${s.name || 'Không tên'} (${s.code})`).join(', ')}</p>
           )}
           {roster.onlyInApp.length === 0 && roster.onlyInSsm.length === 0 && <p className="font-semibold text-slate-600">Danh sách app và SSM trùng khớp.</p>}
-          <p className="text-xs font-medium text-slate-500">Chỉ so sánh — app không tự thêm hay xoá học sinh.</p>
+          <p className="text-xs font-medium text-slate-500">Nút "Cập nhật DS từ SSM" chỉ thêm học sinh mới — không xoá, không sửa học sinh đã có.</p>
         </div>
       )}
+
+      <SsmConnectModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+        onConnected={(s) => {
+          setSsmSession(s);
+          setNeedInstall(false);
+          void loadClasses();
+        }}
+        showToast={() => {}}
+      />
     </div>
   );
 };

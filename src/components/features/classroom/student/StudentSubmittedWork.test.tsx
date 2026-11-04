@@ -1,0 +1,102 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SubmissionDoc } from '../../../../lib/classroom/types';
+
+const view = vi.hoisted(() => ({ open: false, stateIndex: 0 }));
+vi.mock('react', async original => ({
+  ...await original<typeof import('react')>(),
+  useState: (initial: unknown) => [view.stateIndex++ === 0 ? view.open : initial, () => undefined],
+}));
+import { StudentSubmittedWork } from './StudentSubmittedWork';
+
+const render = (submissions: SubmissionDoc[]) => {
+  view.stateIndex = 0;
+  return renderToStaticMarkup(<StudentSubmittedWork submissions={submissions} />);
+};
+
+const submission = {
+  id: 'own', studentId: 'hs', fileUrls: ['https://example.test/first.jpg', 'https://example.test/second.jpg'],
+  attachments: [{ name: 'Ảnh 2', url: 'https://example.test/second.jpg', kind: 'image' }],
+  createdAt: '2026-10-13T10:00:00Z', grade: { score: 8, feedback: 'PRIVATE FEEDBACK', teacherApproved: false },
+} as SubmissionDoc;
+
+describe('HS xem lại ảnh đã nộp', () => {
+  beforeEach(() => { view.open = false; });
+  it('có nút xem trước duyệt, chỉ tải ảnh khi mở', () => {
+    const html = render([submission]);
+    expect(html).toContain('Xem bài đã nộp');
+    expect(html).not.toContain('<img');
+  });
+  it('shows separately published hand-marked evidence even when the official grade is pending', () => {
+    const evidence = { id: 'review', files: [{ id: 'file', name: 'ban-cham.pdf', mimeType: 'application/pdf', size: 20, kind: 'pdf' as const }], note: '', submittedBy: { role: 'teacher' as const, studentId: 'hs', at: '' }, createdAt: '' };
+    const html = render([{ ...submission, fileUrls: [], attachments: [], grade: undefined, handMarkedEvidence: evidence, handMarkedPublished: true } as SubmissionDoc]);
+    expect(html).toContain('Bản chấm tay của giáo viên'); expect(html).toContain('ban-cham.pdf'); expect(html).not.toContain('PRIVATE FEEDBACK');
+  });
+  it('giữ ảnh thiếu metadata, không trùng, không lộ điểm/nhận xét', () => {
+    view.open = true;
+    const html = render([submission]);
+    expect(html.match(/<img /g)).toHaveLength(1);
+    expect(html).toContain('first.jpg'); expect(html).toContain('2/2');
+    expect(html).toContain('loading="lazy"');
+    expect(html).toContain('noopener noreferrer');
+    expect(html).not.toContain('PRIVATE FEEDBACK');
+    expect(html).not.toContain('8/10');
+  });
+  it('hiện mọi lượt cũ; từ chối URL nguy hiểm và không vẽ PDF thành ảnh', () => {
+    view.open = true;
+    const other = { ...submission, id: 'older', fileUrls: ['javascript:alert(1)', 'https://example.test/old%2Epdf'], attachments: [] };
+    const html = render([submission, other]);
+    expect(html).not.toContain('javascript:');
+    expect(html).toContain('old%2Epdf');
+    expect(html.match(/<img /g)).toHaveLength(1);
+    expect(html).toContain('Lượt 2');
+  });
+  it('chỉ hiện dấu đúng ảnh sau duyệt; ẩn khi còn hỏi lại hoặc ẩn điểm', () => {
+    view.open = true;
+    const question = { questionNumber: 'Câu 3', status: 'incorrect', studentAnswer: 'x=2', explanation: 'PRIVATE EXPLANATION', correction: 'PRIVATE CORRECTION',
+      photoMarks: [{ imageIndex: 1, imageUrl: submission.fileUrls[0], x: .1, y: .2, width: .2, height: .1, confidence: .9 }] };
+    const approved = { ...submission, grade: { ...submission.grade, teacherApproved: true, questionResults: [question] } } as SubmissionDoc;
+    expect(render([approved])).toContain('<ellipse');
+    for (const hidden of [
+      { teacherApproved: false }, { awaitingClarification: true }, { scoreHidden: true },
+    ]) {
+      const html = render([{ ...approved, grade: { ...approved.grade!, ...hidden } }]);
+      expect(html).not.toContain('<ellipse');
+      expect(html).not.toContain('PRIVATE');
+      expect(html).toContain('<img');
+    }
+  });
+  it('hiện ảnh chụp lại cùng dấu mới, không nhân đôi ảnh cũ', () => {
+    view.open = true;
+    const photo = 'https://example.test/clarify-upload';
+    const approved = { ...submission, grade: { ...submission.grade, teacherApproved: true, questionResults: [{
+      questionNumber: 'Câu 4', status: 'incorrect', studentAnswer: '2',
+      clarify: { kind: 'photo', state: 'done', reading: '', photoUrls: [photo, submission.fileUrls[0]] },
+      photoMarks: [{ imageIndex: 1, imageUrl: photo, x: .1, y: .2, width: .2, height: .1, confidence: .9 }],
+    }] } } as SubmissionDoc;
+    const html = render([approved]);
+    expect(html.match(/<img /g)).toHaveLength(1);
+    expect(html).toContain('Câu 4'); expect(html).toContain('3/3');
+    expect(html).toContain('Câu 4');
+  });
+  it('phản hồi và bài chữa vẫn truy cập được khi khung ảnh đóng hoặc bài không có ảnh', () => {
+    const approved = { ...submission, grade: { ...submission.grade, teacherApproved: true } } as SubmissionDoc;
+    expect(render([approved])).toContain('Phản hồi bài chấm');
+    expect(render([approved])).toContain('Chụp ảnh bài chữa');
+    const withoutPhotos = { ...approved, fileUrls: [], attachments: [] };
+    expect(render([withoutPhotos])).toContain('Phản hồi bài chấm');
+  });
+  it('mở ảnh không nhân đôi biểu mẫu của cùng lượt nộp', () => {
+    view.open = true;
+    const html = render([{ ...submission, grade: { ...submission.grade, teacherApproved: true } } as SubmissionDoc]);
+    expect(html.match(/aria-label="Phản hồi bài chấm"/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Bài chữa và làm lại"/g)).toHaveLength(1);
+  });
+  it('giữ lịch sử bài chữa khi GV ẩn điểm, kể cả bài không còn ảnh gốc', () => {
+    const html = render([{ ...submission, fileUrls: [], attachments: [], grade: undefined }]);
+    expect(html).toContain('Bài chữa / làm lại');
+    expect(html).toContain('Lịch sử bài chữa vẫn xem được');
+    expect(html).not.toContain('Phản hồi bài chấm');
+    expect(html).not.toContain('PRIVATE');
+  });
+});

@@ -1,0 +1,18 @@
+{
+ "savedAt": "2026-10-27T02:16:22.516Z",
+ "checks": {
+  "url": "https://giaoandewey.vercel.app/adaptive-builder/adaptive-v4-11-11-76-24YyULmWgBOM6HZCfJ56RN5tiet2",
+  "lessonId": null,
+  "pht1_auto215": false,
+  "pht1_goiTuTinh": false,
+  "internet_395": false,
+  "internet_coNhanPHT1": false,
+  "y3_dichMoi": false,
+  "con_73k365": false,
+  "k5_15227": false,
+  "me22": false,
+  "casioGuide": false,
+  "textLen": 1595
+ },
+ "detailText": "Quay lại danh sách\nLESSON PATH DESIGNER\nThiết kế bài học phân hoá\nTriển khai từ giáo án nguồn đã được AI rà soát: mục tiêu, chẩn đoán, các mảnh kiến thức, tuyến học và xuất bản cổng học sinh.\nMỨC HOÀN THIỆN\n100%\n4 mục tiêu\n1 mảnh\n3 phút\n⚠️ Cảnh báo chất lượng từ pipeline tạo bài (3)\nV4 candidate · source 11-11-76 · fingerprint ff7e800a0298f1a5ae527e3b0e1bd19ed938dba777781dfe7e5d2d3f19717550.\nLesson mode: formation; elective route is a choice, not an ability label.\nGiáo viên cần rà thuật ngữ/bản dịch và xuất bản thủ công trước khi mở phiên live.\nHình ảnh & mô phỏng đã sinh — xem trước khi xuất bản\n0 ảnh khởi động · 0/1 mảnh có học liệu trực quan\nXem trước bài học (như học sinh thấy)\nChưa có hình ảnh/mô phỏng nào. Khi tạo bài hãy bật \"Sinh mô phỏng tương tác\", hoặc kiểm tra cảnh báo chất lượng ở trên.\n1\nBước 1\nThông tin cơ bản\n2\nBước 2\nMục tiêu & Chẩn đoán\n3\nBước 3\nCác mảnh kiến thức\n4\nBước 4\nHoàn tất & Xuất bản\nThông tin nền của bài học\nGiữ ngắn gọn để học sinh nhận diện bài học nhanh trên cổng thích ứng.\nTIÊU ĐỀ BÀI *\nLỚP\n10\n11\n12\nTUẦN\nTIẾT SỐ\nHƯỚNG DẪN CHUẨN BỊ\nTHỜI GIAN CHUẨN BỊ ƯỚC TÍNH (PHÚT)\nẢnh đầu bài học\nUpload hai phiên bản ảnh minh hoạ để dùng trong cổng học sinh.\nLưu\nẢnh REALISTIC/Cinematic\nDùng cho minh hoạ cảm xúc, bối cảnh thật hoặc ảnh mở bài giàu hình ảnh.\nClick chọn ảnh hoặc kéo-thả vào đây\nFile sẽ lưu vào Firebase Storage dưới dạng PNG cố định theo lessonId.\nẢnh TEXTBOOK Style\nDùng cho minh hoạ kiểu sách giáo khoa, sơ đồ hoặc hình học tập rõ ràng.\nClick chọn ảnh hoặc kéo-thả vào đây\nFile sẽ lưu vào Firebase Storage dưới dạng PNG cố định theo lessonId."
+}

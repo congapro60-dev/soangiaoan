@@ -1,6 +1,14 @@
 import './liveClassroom.css';
 import { StudentActivityGuide } from './StudentActivityGuide';
 import { StudentGroupPicker } from './StudentGroupPicker';
+import { subscribeToLiveGroupProgress, subscribeToMyLiveGroup, type LiveGroupProgress } from '../../services/liveActivityService';
+import { StudentAskBar } from './StudentAskBar';
+import { UnderstandingPulse } from './UnderstandingPulse';
+import { pulseCuesFor } from '../../services/liveQuestionService';
+import { StudentPublishedQuestion } from './StudentPublishedQuestion';
+import { MathFigureZoom } from './MathFigureZoom';
+import { StudentPaperPhotoUploader } from './StudentPaperPhotoUploader';
+import { isGroupDone } from '../../lib/liveLesson/v4/grouping';
 import { StudentWritingSupport } from './StudentWritingSupport';
 import { StudentGoalReflection } from './StudentGoalReflection';
 import { StudentPracticeSet } from './StudentPracticeSet';
@@ -11,6 +19,8 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import type { StudentDefinitionProjection } from '../../pages/LiveLessonPage';
 import type { LiveResponseType, LivePublicState, SubmitLiveResponseInput } from '../../lib/liveLesson/types';
+import { ThinkWindowBanner, useThinkWindow } from './ThinkWindow';
+import { CasioKeyGuide } from './CasioKeyGuide';
 import {
   enqueueLiveResponse,
   flushLiveResponseQueue,
@@ -282,6 +292,18 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const [languageView, setLanguageView] = useState<StudentLanguageView>(() => buildStudentLanguageChoiceState(null).view);
   const [glossaryPopup, setGlossaryPopup] = useState<StudentGlossaryPopupPayload | null>(null);
   const [assignedGroup, setAssignedGroup] = useState<{ groupId: string; scaffold: string; startedAt: number } | null>(null);
+  const [groupCounters, setGroupCounters] = useState<LiveGroupProgress | null>(null);
+  const [myGroupNumber, setMyGroupNumber] = useState('');
+
+  // Nhóm xoay tua tự động (R1) — theo dõi tiến độ nhóm công khai của phiên.
+  // `public/groupProgress` chỉ đọc được khi GV bật "Hiện kết quả lớp" (rule yêu cầu
+  // publicStatsEnabled). Nếu subscribe lúc stats còn tắt, Firestore trả 403 và listener
+  // chết vĩnh viễn — nên chỉ subscribe khi stats bật và subscribe lại khi cờ đổi.
+  useEffect(() => {
+    if (!sessionId || !publicState.showStats) { setGroupCounters(null); return; }
+    const unsubscribe = subscribeToLiveGroupProgress(sessionId, (value) => setGroupCounters(value), () => setGroupCounters(null));
+    return () => unsubscribe();
+  }, [sessionId, publicState.showStats]);
   const [currentRoute, setCurrentRoute] = useState<V4Route | null>(null);
   const [hintState, setHintState] = useState<HintRevealState>({ revealedCount: 0, totalHints: 0 });
 
@@ -332,11 +354,16 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const isPracticeSet = activitySteps.length > 1;
   const isGroupActivity = publicState.cueId === 'P20' || publicState.cueId === 'P22' || step?.id === 'cp-group-product';
-  const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
+  const pulseActive = pulseCuesFor(definitionKey).includes(publicState.cueId);
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
   const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
   const participantUid = identity?.participantUid ?? null;
+  // Nhóm của chính em (từ StudentGroupPicker — chọn nhóm công khai theo phiên).
+  useEffect(() => {
+    if (!sessionId || !participantUid) return;
+    return subscribeToMyLiveGroup(sessionId, participantUid, (group) => setMyGroupNumber(group ?? ''), () => setMyGroupNumber(''));
+  }, [sessionId, participantUid]);
   // A mutable lock avoids making the retry effect depend on its own busy state.
   // A second edit while a request is in flight requests one more drain.
   const queueDrain = useMemo(() => ({ running: false, requested: false }), [sessionId, participantUid]);
@@ -352,6 +379,17 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const v4Contract = useMemo(() => getBanToanV4ContractForLiveDefinitionId(definition.id) ?? getG10P31V4Contract(), [definition.id]);
   // Chỉ dịch phần chữ HS; công thức/ký hiệu Toán giữ nguyên trong nội dung gốc.
   // Màn hình chung (TV) luôn tiếng Việt — không đổi theo lựa chọn của HS.
+  // R1 — nhóm xong sớm (mọi thành viên đã gửi) → hiện nhiệm vụ mở rộng (câu VD đề trần, không nộp).
+  // myGroupNumber đến từ nhóm HS đã chọn qua StudentGroupPicker (subscribeToMyLiveGroup).
+  const groupDone = isGroupActivity && Boolean(myGroupNumber) && groupCounters !== null
+    && groupCounters.cueId === publicState.cueId
+    && isGroupDone({ members: groupCounters.members, submitted: groupCounters.submitted }, myGroupNumber);
+  const deepExercise = useMemo(() => {
+    const vd = [...(v4Contract.sourceContent?.exercises ?? [])].filter((item) => item.level === 'VD');
+    return vd.length > 0 ? vd[vd.length - 1] : null;
+  }, [v4Contract.sourceContent?.exercises]);
+  const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
+
   const localizedScreen = getLocalizedStudentCopy(definitionKey, languageView.language, studentScreen?.id ?? '');
   const localizedStep = step ? getLocalizedStudentCopy(definitionKey, languageView.language, step.id) : null;
   const studentScreenLabel = !step ? (tvScreen?.title ?? 'Cùng theo dõi') : localizedScreen?.label ?? studentScreen?.label ?? 'Theo dõi hướng dẫn';
@@ -509,6 +547,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   }, [flushQueue, refreshQueueState, syncStudentLanguagePreference]);
 
   const submitStep = async (responseStep: NonNullable<typeof step>, responseType: LiveResponseType, rawValue: string | boolean | number, recordDraft?: () => void) => {
+    if (!thinkWindow.canAnswer || publicState.showStats || publicState.status === 'closed' || publicStateError) return;
     if (!student || !definition.allowedStepIds.includes(responseStep.id)) return;
     if (!identity) {
       setStepStatuses(current => ({ ...current, [responseStep.id]: { tone: 'error', message: 'Liên kết học sinh không khớp với lớp của phiên; không gửi phản hồi.' } }));
@@ -585,6 +624,23 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
+  // Câu trắc nghiệm / chọn tuyến: HS chọn 1 đáp án rồi bấm Gửi — không gửi ngay khi chạm,
+  // vì lúc đang khoá nhịp suy nghĩ mà chạm nhầm là mất câu trả lời.
+  const choiceControl = useMemo(
+    () => step && !(textControl && (step.id === 'cp-ai-error' || step.id === 'ai-error-w01'))
+      && (step.responseTypes.includes('choice') || step.responseTypes.includes('route') || step.responseTypes.includes('boolean')),
+    [step, textControl],
+  );
+  // Chờ hai nhịp: câu thăm dò mở ngay, còn câu cần suy nghĩ thì khoá 10 giây
+  // (giáo án gốc dùng 10–15 giây). Đổi câu hỏi là đồng hồ chạy lại.
+  const thinkWindow = useThinkWindow({
+    roundKey: `${publicState.cueId}:${step?.id ?? ''}`,
+    thinkSeconds: 10,
+    skip: Boolean(step?.options?.length && step.options.length <= 2),
+    running: publicState.status === 'running',
+    // GV bấm Công bố (showStats) ⇒ khoá hẳn, HS không sửa bài sau khi thấy kết quả.
+    locked: publicState.showStats || publicState.status === 'closed',
+  });
   const goalStep = definition.responseSteps.find(item => item.id === 'cp-student-goal' || item.id === 'goals');
   const reflectionMoment = publicState.cueId === 'P35' || publicState.cueId === 'P39' || Boolean(step?.responseTypes.includes('exit_ticket')) || studentScreen?.id === 'HS9';
   const insertIntoAnswer = (content: string) => {
@@ -631,6 +687,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
         {languageChoiceOpen && <LanguageChoicePanel view={languageView} availableLanguages={availableLanguages} description={languageCoverage.description} onPick={pickLanguage} />}
         {!languageChoiceOpen && languageView.language !== 'vi' && <p className="student-language-coverage">{languageCoverage.description}</p>}
       </div>
+      <div className="student-slot" data-slot="ask-bar">
+        {participantUid && student && <StudentAskBar sessionId={sessionId} participantUid={participantUid} classId={student.classId} studentName={student.studentName} activityId={definitionKey} />}
+        {participantUid && student && pulseActive && <UnderstandingPulse sessionId={sessionId} participantUid={participantUid} classId={student.classId} cueId={publicState.cueId} />}
+      </div>
+      <div className="student-slot" data-slot="published-question">
+        <StudentPublishedQuestion sessionId={sessionId} />
+      </div>
       <div className="student-slot" data-slot="notices">
         {languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}
         <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : retryableQueueCount > 0 ? 'warning' : hasSubmitted ? 'success' : 'neutral'}>{offlineStatusText}</LiveLessonStatus>
@@ -639,6 +702,11 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       <div className="student-slot" data-slot="assignment">
         {assignedGroup && <section className="student-group-card">
           <div><p className="activity-kicker">Nhóm đã phân công</p><h2>{assignedGroup.groupId}</h2><p>{assignedGroup.scaffold}</p><p className="student-group-note">Bắt đầu: {new Date(assignedGroup.startedAt).toLocaleTimeString()}</p></div>
+        </section>}
+        {groupDone && deepExercise && <section className="student-task-card" style={{ borderColor: '#10b981', background: '#ecfdf5' }}>
+          <p className="activity-kicker" style={{ color: '#047857' }}>Nhóm em xong sớm — nhận nhiệm vụ mở rộng</p>
+          <LiveLessonRichText text={deepExercise.question} className="mt-2 text-sm font-semibold leading-6 text-emerald-950" />
+          <p className="mt-2 text-xs font-semibold text-emerald-700">Thảo luận trong nhóm và ghi lời giải vào vở — phần này không nộp máy, thầy cô sẽ mời trình bày.</p>
         </section>}
       </div>
 
@@ -657,6 +725,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       </div>
       <div className="student-slot" data-slot="activity-guide">
         <StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreen?.action} supportingAction={languageCoverage.content && languageView.language !== 'vi' ? localizedScreen?.action : undefined} route={currentRoute} />
+        <CasioKeyGuide lessonIdOrSourceKey={definition.sourceKey ?? definition.lessonId} />
       </div>
 
       <div className="student-slot" data-slot="reflection">
@@ -665,25 +734,46 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
       <details key={publicState.cueId} className="student-tv-reference" open={step?.id === 'cp-ai-error' || step?.id === 'ai-error-w01'}>
         <summary>Đề bài và nội dung chung</summary>
-        <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p>
-        <h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2>
-        <LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" />
+        <MathFigureZoom title={tvScreen?.title ?? 'Nội dung chung'}>
+          <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p>
+          <h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2>
+          <LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" />
+        </MathFigureZoom>
       </details>
 
       <div className="student-slot" data-slot="response">
-      {isPracticeSet && participantUid && <StudentPracticeSet steps={activitySteps} contract={v4Contract} cueId={publicState.cueId} sessionId={sessionId} participantUid={participantUid} route={currentRoute} languageView={languageView} onSubmit={(practiceStep, value) => { void submitStep(practiceStep, 'text', value); }} />}
+      {isPracticeSet && participantUid && <><ThinkWindowBanner window={thinkWindow} /><StudentPracticeSet steps={activitySteps} contract={v4Contract} cueId={publicState.cueId} sessionId={sessionId} participantUid={participantUid} route={currentRoute} languageView={languageView} canAnswer={thinkWindow.canAnswer && !publicStateError} onSubmit={(practiceStep, value, recordDraft) => { void submitStep(practiceStep, 'text', value, recordDraft); }} /></>}
       {!isPracticeSet && step && <section className="student-response-card">
         <p className="text-xs font-black uppercase tracking-widest text-slate-500">Phản hồi nhanh</p>
         <LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" />
         {localizedStep && languageView.language !== 'vi' && <LiveLessonRichText text={stepLabel} className="student-support-translation" />}
         <div className="mt-4 space-y-4">
-          <StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' ? insertIntoAnswer : undefined} />
-          <ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />
+          <ThinkWindowBanner window={thinkWindow} />
+          <StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' && thinkWindow.canAnswer ? insertIntoAnswer : undefined} />
+          <ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={value => { if (!thinkWindow.canAnswer) return; setSelectedValue(value); }} />
+          {choiceControl && <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={!thinkWindow.canAnswer || !selectedValue}
+              onClick={() => { if (!thinkWindow.canAnswer || !selectedValue) return; void submit(step.responseTypes.includes('route') ? 'route' : step.responseTypes.includes('boolean') ? 'boolean' : 'choice', selectedValue); }}
+              className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {thinkWindow.canAnswer ? textControl ? 'Gửi lựa chọn' : 'Gửi câu trả lời' : `Chờ ${thinkWindow.remainingSeconds}s`}
+            </button>
+            {selectedValue && !thinkWindow.canAnswer && <span className="text-xs font-bold text-slate-500">Đã chọn — chờ hết nhịp suy nghĩ rồi bấm gửi.</span>}
+          </div>}
           {textControl && <div className="space-y-2">
-            <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" />
+            <textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" readOnly={!thinkWindow.canAnswer} aria-disabled={!thinkWindow.canAnswer} />
+            {participantUid && (
+              <StudentPaperPhotoUploader
+                participantUid={participantUid}
+                disabled={!thinkWindow.canAnswer}
+                onPhotoInserted={(imgRef) => setTextValue(textValue ? textValue + imgRef : imgRef.trim())}
+              />
+            )}
             <div className="student-draft-meta"><span role="status">{responseDraft.storageFailed ? 'Chưa lưu được nháp trên máy; hãy giữ tab mở và chép phần cần giữ vào vở.' : responseDraft.hasDraft ? responseDraft.hasUnsentChanges ? 'Nháp đã lưu trên máy · chưa gửi' : 'Nháp đã lưu trên máy' : 'Bài em viết được giữ khi thầy cô chuyển hoạt động.'}</span><span>{textValue.length}/{step.maxTextLength ?? 2000}</span></div>
             {insertionNotice && <p role="alert" className="student-insert-notice">{insertionNotice}</p>}
-            <button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button>
+            <button type="button" disabled={!thinkWindow.canAnswer} onClick={() => { if (!thinkWindow.canAnswer) return; void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue); }} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50">{thinkWindow.canAnswer ? choiceControl ? 'Gửi nội dung viết' : 'Gửi câu trả lời' : `Chờ ${thinkWindow.remainingSeconds}s`}</button>
           </div>}
           {status && (status.tone !== 'success' || !responseDraft.hasUnsentChanges) && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}
           {hasSubmitted && <aside className="student-after-submit"><strong>Tiếp theo</strong><p>Giữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.</p><p className="mt-2">Nếu đổi ý, em có thể gửi lại câu trả lời ở bước này.</p></aside>}

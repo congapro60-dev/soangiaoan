@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Swal from 'sweetalert2';
 
@@ -9,7 +9,6 @@ import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { usePpctQueue } from './hooks/usePpctQueue';
-import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
 import { isAdminEmail } from './lib/admin/adminConfig';
 
@@ -18,8 +17,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
-import { SettingsModal } from './components/modals/SettingsModal';
-import { LatexModal } from './components/modals/LatexModal';
 import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
 import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
 import { AiWalletChip } from './components/features/aiBilling/AiWalletChip';
@@ -46,15 +43,21 @@ const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab')
 const LessonScheduleTab = lazy(() => import('./components/tabs/LessonScheduleTab').then(m => ({ default: m.LessonScheduleTab })));
 const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
 const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m => ({ default: m.AiBillingTab })));
+const PpctBulkPanel = lazy(() => import('./components/features/creator/PpctBulkPanel').then(m => ({ default: m.PpctBulkPanel })));
+const SettingsModal = lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const LatexModal = lazy(() => import('./components/modals/LatexModal').then(m => ({ default: m.LatexModal })));
 
 // Utils
-import { processUploadedFile } from './utils/fileUtils';
-import * as exportUtils from './utils/exportUtils';
-import { downloadBlob, safeFilename } from './utils/fileUtils';
+const loadFileUtils = () => import('./utils/fileUtils');
+// Tải module xuất (kéo theo pptxgenjs, docx…) chỉ khi bấm xuất — không nằm trong bundle ban đầu.
+const loadExportUtils = () => import('./utils/exportUtils');
 
 // Types
 import { TemplateFile } from './types';
 import type { AdaptiveLesson } from './lib/adaptive/types';
+import { listAccessibleClasses } from './lib/classroom/classroomService';
+import { teacherClassFromServer } from './lib/classroom/teacherClassFromServer';
+import type { TeacherClass } from './types';
 
 export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
@@ -74,7 +77,17 @@ export default function App() {
   const aiMode = useAiModeSnapshot();
   const walletCoversGemini = Boolean(aiMode?.gateEnabled && aiMode.mode !== 'own');
   // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
-  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
+  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number; studentId?: string } | null>(null);
+  const headerStudentClassesPromise = useRef<Promise<TeacherClass[]> | null>(null);
+  useEffect(() => { headerStudentClassesPromise.current = null; }, [user?.uid]);
+  const loadHeaderStudentClasses = useCallback(() => {
+    if (!headerStudentClassesPromise.current) {
+      const request = listAccessibleClasses().then(remoteClasses => remoteClasses.map(remote => teacherClassFromServer(remote)));
+      headerStudentClassesPromise.current = request;
+      request.catch(() => { if (headerStudentClassesPromise.current === request) headerStudentClassesPromise.current = null; });
+    }
+    return headerStudentClassesPromise.current;
+  }, []);
   // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
   useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -84,11 +97,13 @@ export default function App() {
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
+  const [testingInitialResult, setTestingInitialResult] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
   const [liveLessonToLaunch, setLiveLessonToLaunch] = useState<AdaptiveLesson | null>(null);
   const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
+    setTestingInitialResult(undefined);
     setTestingInitialContent(`Soạn đề kiểm tra từ giáo án: "${lessonTitle}"\n\nNội dung bài học:\n${lessonContent}`);
     setActiveTab('testing');
   };
@@ -112,6 +127,7 @@ export default function App() {
 
   // Hàng đợi soạn theo PPCT: gọi lại ĐÚNG đường soạn đơn của creator rồi lưu ngay từng tiết.
   const ppctQueue = usePpctQueue({
+    userId: user?.uid,
     soanMotTiet: (job) => creator.handleCreateLesson({
       title: job.title,
       requirement: job.requirement,
@@ -129,13 +145,15 @@ export default function App() {
   const { savedExams, communityExams, fetchCommunityExams, saveExam: saveExamToLib, deleteExam: deleteExamFromLib, toggleShareExam } =
     useSavedExams(user);
 
+  const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
   const handleSaveExam = async (content: string, _hint: string) => {
     if (!user) { showToast('Vui lòng đăng nhập để lưu đề thi.', 'error'); return; }
     const { value: formValues } = await Swal.fire({
       title: 'Lưu đề thi vào Thư viện',
       html: `
         <input id="ex-title" class="swal2-input" placeholder="Tên đề thi (VD: Đề kiểm tra HK2 Toán 12)">
-        <select id="ex-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}</select>
+        <select id="ex-subject" class="swal2-input">${data.subjects.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('')}</select>
         <select id="ex-grade" class="swal2-input">${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select>
       `,
       focusConfirm: false,
@@ -185,6 +203,7 @@ export default function App() {
     try {
       const processedFiles: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
+        const { processUploadedFile } = await loadFileUtils();
         const resultFiles = await processUploadedFile(files[i], uploadingFiles.category, i);
         processedFiles.push(...resultFiles);
       }
@@ -204,12 +223,10 @@ export default function App() {
         addDistribution(newDist);
       } else if (uploadingFiles.templateId) {
         const tId = uploadingFiles.templateId;
-        setData(prev => ({
-          ...prev,
-          templates: prev.templates.map(t => 
-            t.id === tId ? { ...t, files: [...t.files, ...processedFiles] } : t
-          )
-        }));
+        const template = data.templates.find(t => t.id === tId);
+        if (!template) throw new Error('Không tìm thấy bộ mẫu để lưu tệp.');
+        const saved = await updateTemplate(tId, { files: [...(template.files || []), ...processedFiles] });
+        if (!saved) throw new Error('Không lưu được tệp mẫu lên Cloud.');
       }
       showToast('Tải tệp lên thành công!');
     } catch (error: any) {
@@ -245,13 +262,11 @@ export default function App() {
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#005ea1] text-lg font-black text-white shadow-sm shadow-blue-100">D</div>
               <div>
                 <p className="text-base font-black tracking-tight text-[#005ea1]">Giao An Dewey</p>
-                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[#717782] sm:block">AI lesson workspace</p>
+                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--dewey-muted)] sm:block">AI lesson workspace</p>
               </div>
             </div>
             <nav className="hidden items-center gap-6 text-sm font-semibold text-[#414751] md:flex">
               <a href="#features" className="hover:text-[#005ea1]">Tính năng</a>
-              <a href="#workflow" className="hover:text-[#005ea1]">Quy trình</a>
-              <a href="#community" className="hover:text-[#005ea1]">Cộng đồng</a>
             </nav>
             <div className="flex items-center gap-2">
               <button onClick={handleDemoLogin} className="hidden rounded-full border border-[#c0c7d3] px-4 py-2 text-sm font-bold text-[#414751] transition hover:border-[#005ea1]/40 hover:bg-[#eff4ff] hover:text-[#005ea1] sm:inline-flex">Dùng thử</button>
@@ -270,8 +285,8 @@ export default function App() {
                   ✨ Trợ lý AI cho giáo viên Việt Nam
                 </div>
                 <div className="space-y-5">
-                  <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-[-0.03em] text-[#0d1c2e] sm:text-5xl lg:text-6xl">
-                    Soạn giáo án, tạo đề và quản lý lớp học trong một workspace rõ ràng.
+                  <h1 className="max-w-3xl text-balance text-4xl font-black leading-tight tracking-[-0.03em] text-[#0d1c2e] sm:text-5xl lg:text-6xl">
+                    Soạn giáo án, tạo đề và quản lý lớp học trong một workspace rõ&nbsp;ràng.
                   </h1>
                   <p className="max-w-2xl text-base leading-8 text-[#414751] sm:text-lg">
                     Giao An Dewey giúp giáo viên tạo giáo án theo mục tiêu, biên soạn đề kiểm tra, xuất Word/PDF chuẩn A4, chấm tự luận bằng AI và theo dõi học tập thích ứng — giảm thao tác lặp lại, giữ chất lượng sư phạm.
@@ -288,7 +303,7 @@ export default function App() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   {highlights.map(item => (
                     <div key={item.label} className="rounded-2xl border border-[#c0c7d3]/50 bg-white p-4 shadow-[0_4px_12px_rgba(0,94,161,0.06)]">
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#717782]">{item.label}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--dewey-muted)]">{item.label}</p>
                       <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold ${item.tone}`}>{item.value}</p>
                     </div>
                   ))}
@@ -306,11 +321,16 @@ export default function App() {
                       <div className="rounded-2xl bg-white px-3 py-2 text-xs font-bold text-emerald-700">Sẵn sàng</div>
                     </div>
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      {['Giáo án Vật lí 12', 'Đề kiểm tra Toán 10', 'Chấm tự luận Văn', 'Lộ trình cá nhân hoá'].map((title, idx) => (
+                      {[
+                        ['Giáo án Vật lí 12', '📘', 'Mẫu giáo án theo CV 5512, tự động chia hoạt động theo thời lượng.'],
+                        ['Đề kiểm tra Toán 10', '🧩', 'Ma trận đề 2 mặt, trộn câu hỏi và đáp án trong 1 click.'],
+                        ['Chấm tự luận Văn', '✍️', 'AI chấm theo rubric, gợi ý nhận xét chi tiết từng bài.'],
+                        ['Lộ trình cá nhân hoá', '🎯', 'Gợi ý bài tập theo năng lực từng học sinh.'],
+                      ].map(([title, icon, desc]) => (
                         <div key={title} className="rounded-2xl border border-white/70 bg-white p-4 shadow-sm">
-                          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{['📘', '🧩', '✍️', '🎯'][idx]}</div>
+                          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{icon}</div>
                           <p className="text-sm font-black text-[#0d1c2e]">{title}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#717782]">Tự động gợi ý bước tiếp theo, có thể chỉnh sửa trước khi xuất bản.</p>
+                          <p className="mt-1 text-xs leading-5 text-[color:var(--dewey-muted)]">{desc}</p>
                         </div>
                       ))}
                     </div>
@@ -331,12 +351,12 @@ export default function App() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                ['Soạn nhanh nhưng vẫn kiểm soát', 'Tạo giáo án, tài liệu và hoạt động theo lớp, môn, tuần học.'],
-                ['Thi online & chấm AI', 'Biên soạn câu hỏi, phát hành mã thi, chấm tự luận và xuất kết quả.'],
-                ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.'],
-              ].map(([title, desc]) => (
+                ['Soạn nhanh nhưng vẫn kiểm soát', 'Tạo giáo án, tài liệu và hoạt động theo lớp, môn, tuần học.', '📝'],
+                ['Thi online & chấm AI', 'Biên soạn câu hỏi, phát hành mã thi, chấm tự luận và xuất kết quả.', '✅'],
+                ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.', '📚'],
+              ].map(([title, desc, icon]) => (
                 <div key={title} className="rounded-3xl border border-[#c0c7d3]/50 bg-white p-6 shadow-[0_4px_12px_rgba(0,94,161,0.06)] transition hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,94,161,0.12)]">
-                  <div className="mb-5 h-12 w-12 rounded-2xl bg-[#d2e4ff]" />
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d2e4ff] text-2xl">{icon}</div>
                   <h3 className="text-lg font-black text-[#0d1c2e]">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#414751]">{desc}</p>
                 </div>
@@ -344,6 +364,17 @@ export default function App() {
             </div>
           </section>
         </main>
+        <footer className="border-t border-[#c0c7d3]/50 bg-white px-4 py-8 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#005ea1] text-sm font-black text-white">D</div>
+              <div>
+                <p className="text-sm font-black text-[#005ea1]">Giao An Dewey</p>
+                <p className="text-xs text-[color:var(--dewey-muted)]">© 2026 The Dewey Schools. All rights reserved.</p>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     );
   }
@@ -364,7 +395,6 @@ export default function App() {
       <Sidebar
         activeTab={activeTab} setActiveTab={setActiveTab}
         onCreatorTabClick={() => {
-          creator.setCurrentPlan({ title: '', content: '', subjectId: creator.currentPlan.subjectId || 'math', templateId: '', grade: creator.currentPlan.grade || '10', week: creator.currentPlan.week || '1' });
           setActiveTab('creator');
         }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
@@ -374,7 +404,14 @@ export default function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header
-          activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          activeTab={activeTab} data={data} userId={user?.uid} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          onStudentSearchSelect={(classId, studentId) => {
+            void loadHeaderStudentClasses().then(loaded => setData(prev => ({ ...prev, classes: [...prev.classes, ...loaded.filter(cls => !prev.classes.some(local => local.id === cls.id))] }))).catch(() => {});
+            setClassFocus({ classId, studentId, nonce: Date.now() });
+            setActiveTab('classes');
+          }}
+          loadStudentSearchClasses={loadHeaderStudentClasses}
+          isAdmin={isAdmin}
           aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
         />
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}
@@ -383,9 +420,9 @@ export default function App() {
           const activeProvider = s.selectedProvider || 'gemini';
           if (activeProvider === 'vercel-gateway') return null;
           if (activeProvider === 'gemini' && walletCoversGemini) return null;
-          const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey;
-          const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey };
-          const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API' };
+          const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey && !s.vilaoApiKey;
+          const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey, vilao: s.vilaoApiKey };
+          const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API', vilao: 'Vilao' };
           const activeKeyMissing = !allEmpty && !providerKey[activeProvider];
           if (!allEmpty && !activeKeyMissing) return null;
           return (
@@ -412,7 +449,7 @@ export default function App() {
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} />
+              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} onFocusApplied={() => setClassFocus(null)} />
             )}
 
             {activeTab === 'creator' && (
@@ -433,8 +470,8 @@ export default function App() {
                     onXoaTienDo={ppctQueue.xoaTienDo}
                   />
                 )}
-                exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
-                exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
+                exportToPDF={(orientation) => loadExportUtils().then(m => m.exportToPDF(creator.currentPlan, showToast, orientation))}
+                exportToLaTeX={() => loadExportUtils().then(m => m.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen))}
                 onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}
                 onSaveDriveFolder={(key, folderId) => setData(prev => ({
                   ...prev,
@@ -448,6 +485,8 @@ export default function App() {
                 data={data} user={user} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
                 initialContent={testingInitialContent}
                 onConsumeInitialContent={() => setTestingInitialContent(undefined)}
+                initialResult={testingInitialResult}
+                onConsumeInitialResult={() => setTestingInitialResult(undefined)}
                 onSaveExam={handleSaveExam}
               />
             )}
@@ -528,7 +567,8 @@ export default function App() {
                 onToggleShareExam={toggleShareExam}
                 onFetchCommunityExams={fetchCommunityExams}
                 onOpenExamInEditor={(exam) => {
-                  setTestingInitialContent(exam.content);
+                  setTestingInitialContent(undefined);
+                  setTestingInitialResult(exam.content);
                   setActiveTab('testing');
                 }}
                 showToast={showToast}
@@ -541,7 +581,7 @@ export default function App() {
                 addTemplate={() => {
                   Swal.fire({
                     title: 'Thêm mẫu mới',
-                    html: `<input id="tpl-name" class="swal2-input" placeholder="Tên mẫu"><select id="tpl-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>`,
+                    html: `<input id="tpl-name" class="swal2-input" placeholder="Tên mẫu"><select id="tpl-subject" class="swal2-input">${data.subjects.map(s => `<option value="${escapeHtml(String(s.id))}">${escapeHtml(s.name)}</option>`).join('')}</select>`,
                     preConfirm: () => ({ name: (document.getElementById('tpl-name') as HTMLInputElement).value, subjectId: (document.getElementById('tpl-subject') as HTMLSelectElement).value })
                   }).then(res => {
                     if (res.isConfirmed && res.value.name) {
@@ -571,13 +611,13 @@ export default function App() {
         </div>
       </main>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} data={data} setData={setData} showToast={showToast} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} data={data} setData={setData} showToast={showToast} isAdmin={isAdmin} />
       
       <LatexModal 
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
-        downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
-        openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
+        downloadLaTeXFile={() => loadFileUtils().then(({ downloadBlob, safeFilename }) => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`))}
+        openInOverleaf={() => loadExportUtils().then(m => m.openInOverleaf(latexContent, creator.currentPlan, showToast))}
         showToast={showToast}
       />
       <FloatingChatWidget {...chat} isLoading={isLoading} />

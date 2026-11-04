@@ -4,6 +4,54 @@ import remarkMath from 'remark-math';
 
 const LATEX_COMMAND = /\\[A-Za-z]/;
 
+const UNICODE_MATH_SIGNAL = /[²³⁴⁵⁶⁷⁸⁹√≤≥≠∈∉∩∪∖∞π∑∫]/u;
+
+const normalizeUnicodeMath = (line: string): string => {
+  // Escape braces from the original Unicode expression before generating
+  // LaTeX commands, so generated \sqrt{…}/\mathbb{R} braces remain valid.
+  let normalized = line
+    .replace(/ℝ/g, '__REAL_NUMBERS__')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/²/g, '^2')
+    .replace(/³/g, '^3')
+    .replace(/⁴/g, '^4')
+    .replace(/⁵/g, '^5')
+    .replace(/⁶/g, '^6')
+    .replace(/⁷/g, '^7')
+    .replace(/⁸/g, '^8')
+    .replace(/⁹/g, '^9')
+    .replace(/≤/g, '\\le ')
+    .replace(/≥/g, '\\ge ')
+    .replace(/≠/g, '\\ne ')
+    .replace(/∈/g, '\\in ')
+    .replace(/∉/g, '\\notin ')
+    .replace(/∩/g, '\\cap ')
+    .replace(/∪/g, '\\cup ')
+    .replace(/∖/g, '\\setminus ')
+    .replace(/∞/g, '\\infty ')
+    .replace(/π/g, '\\pi ')
+    .replace(/−/g, '-')
+    .replace(/√\s*([^\s]+)/g, '\\sqrt{$1}')
+    .replace(/__REAL_NUMBERS__/g, '\\mathbb{R}')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return normalized;
+};
+
+const isStandaloneUnicodeMathLine = (trimmed: string): boolean => {
+  if (!trimmed || trimmed.includes('$') || !/[=<>≤≥²³√∖]/u.test(trimmed)) return false;
+  if (/\p{L}{3,}/u.test(trimmed.replace(/[xynabcdfRℝ]/g, ''))) return false;
+  return /^[\p{L}\p{N}\s+\-−=<>≤≥²³⁴⁵⁶⁷⁸⁹√∖{}().,;:'/_|]+$/u.test(trimmed);
+};
+
+const wrapRawInlineMath = (line: string): string => {
+  if (line.includes('$')) return line;
+  return line
+    .replace(/(?<!\$)([A-Za-z](?:\s*\\to\s*[+\-]?\s*\\infty))(?!\$)/g, '$$$1$')
+    .replace(/(?<!\$)(\\frac\{[^{}]*\}\{[^{}]*\}|\\sqrt\{[^{}]*\})(?!\$)/g, '$$$1$');
+};
+
 // Strip LaTeX command tokens (including the Vietnamese text inside \text{…})
 // so what remains is only the non-math residue of the line.
 const stripMathTokens = (line: string): string =>
@@ -30,13 +78,21 @@ export const toLiveLessonMarkdown = (text: string): string => {
   for (const rawLine of text.split('\n')) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
-    blocks.push(isPureFormulaLine(trimmed) ? `$$${trimmed}$$` : trimmed);
+    if (isPureFormulaLine(trimmed)) {
+      blocks.push(`$$${trimmed}$$`);
+    } else if (isStandaloneUnicodeMathLine(trimmed)) {
+      blocks.push(`$$${normalizeUnicodeMath(trimmed)}$$`);
+    } else {
+      blocks.push(wrapRawInlineMath(trimmed));
+    }
   }
   return blocks.join('\n\n');
 };
 
-export const LiveLessonRichText = ({ text, className = '' }: { text: string; className?: string }) => (
-  <div className={`${className} [&_p]:my-1 [&_.katex-display]:my-2`}>
+export type LiveMathScale = 'tv' | 'student' | 'inline';
+
+export const LiveLessonRichText = ({ text, className = '', mathScale = 'inline' }: { text: string; className?: string; mathScale?: LiveMathScale }) => (
+  <div className={`live-rich-text live-rich-text--${mathScale} ${className} [&_p]:my-1 [&_.katex-display]:my-2`}>
     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
       {toLiveLessonMarkdown(text)}
     </ReactMarkdown>

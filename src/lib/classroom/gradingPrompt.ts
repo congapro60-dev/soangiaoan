@@ -2,6 +2,7 @@ import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type { CompetencyTag } from './competency/framework.js';
 import { repairLatexEscapes, type PracticeMistake } from './practiceBasis.js';
+import { sanitizePhotoMarks, sanitizePhotoSteps, sanitizeReadingRegions } from './photoMarks.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -17,6 +18,16 @@ import type {
  * số bố cục form Toán — sửa một chỗ, người dùng vẫn thấy sai ở chỗ kia.
  */
 
+const FEEDBACK_LAYOUT = String.raw`
+TRÌNH BÀY LỜI CHỮA (feedbackForStudent, explanation, correction):
+- Mỗi đoạn một ý, dòng trống giữa các đoạn. Tách lời dẫn khỏi phép tính; chỉ đánh số bước khi có nhiều bước.
+- Công thức ngắn dùng $...$; chuỗi biến đổi dài dùng khối $$ trên dòng riêng, căn dấu bằng bằng \\begin{aligned}...\\end{aligned}.
+- Mỗi dòng một bước tính, ngắt tại dấu bằng/suy ra; giữ nguyên dấu, số hạng, điều kiện và đơn vị. Không dồn chuỗi tính vào câu văn.
+- Ví dụ bố cục (chuỗi JSON phải escape backslash và xuống dòng đúng):
+  Công của lực là tích vô hướng.\n\n$$\n\\begin{aligned}\nA &= \\vec{F}\\cdot\\overrightarrow{AB}\\\\\n&= 2\\cdot4+1\\cdot(-2)+3\\cdot1\\\\\n&= 9\\,\\mathrm{J}\n\\end{aligned}\n$$
+- Dùng \\frac, \\sqrt, chỉ số/mũ và vectơ đúng cấu trúc. Viết gọn theo chế độ chấm; không tự thêm bước/nhận định khi thiếu bằng chứng.
+`;
+
 export interface HomeworkGradingInput {
   /** Đáp án chuẩn dạng văn bản. Rỗng = tầng 3: không có đề, AI phải tự đọc đề trong ảnh. */
   answerKey: string;
@@ -28,13 +39,38 @@ export interface HomeworkGradingInput {
   answerKeyImageCount?: number;
   /** Số ảnh đề của giáo viên gửi trước đáp án và bài làm. */
   assignmentImageCount?: number;
+  /** Số ảnh bài HS thực sự gửi Vision, không tính đề/đáp án. */
+  studentImageCount?: number;
   /** Chữ rút từ file đề của giáo viên, dùng làm nguồn tham chiếu chung. */
   assignmentText?: string;
   /** Lệnh riêng của giáo viên về phạm vi và cách chấm. */
   gradingInstructions?: string;
   /** Bài em đánh máy (thường rút từ DOCX). Có thì AI phải chấm phần chữ này cùng ảnh nếu có. */
   studentText?: string;
+  /** Đáp án từng câu thầy cô sửa sau khi chấm; đè đáp án chuẩn ở đúng các câu đó. */
+  answerKeyFixes?: { questionNumber: string; expectedAnswer: string }[];
+  /** Bài kiểm tra định kì: giáo viên đã chấm tay trên giấy trước khi em chụp nộp. */
+  teacherMarkedPaper?: boolean;
+  /** Bài nhiều mã đề: mã của bài này (đề + đáp án ở trên là của đúng mã này). */
+  examCode?: string;
 }
+
+/**
+ * Bài kiểm tra đã chấm tay: trên ảnh có nét bút giáo viên — có khi là ĐÁP ÁN ĐÚNG viết chữa cạnh câu em làm sai.
+ * Đọc nhầm nét đó thành bài làm là cho em điểm oan, nên phải dặn riêng.
+ */
+export const TEACHER_MARKED_PAPER_NOTE = `BÀI KIỂM TRA ĐÃ ĐƯỢC GIÁO VIÊN CHẤM TAY TRƯỚC — ảnh có nét bút của giáo viên (thường màu đỏ):
+dấu đúng/sai, điểm từng câu, tổng điểm, và có khi là ĐÁP ÁN ĐÚNG giáo viên viết chữa cạnh câu em làm sai.
+- Những nét đó KHÔNG phải bài làm của em. "studentAnswer" chỉ chép phần CHÍNH EM làm (bút xanh/đen, ô em tô trên phiếu trả lời).
+  Nét đỏ viết đáp án đúng chữa cạnh câu KHÔNG được chép vào "studentAnswer" và KHÔNG được tính là em làm đúng.
+- Không chép điểm giáo viên ghi; tự chấm từng câu theo ĐÁP ÁN CHUẨN.
+- Chữ chữa của giáo viên đè lên làm không phân biệt được đâu là của em → "status" = "unreadable", "needsTeacherReview" = true.
+- RIÊNG field gốc "teacherMarkedScore": đọc TỔNG ĐIỂM giáo viên viết tay trên bài, dạng {"score": 7.5, "maxScore": 10}
+  (maxScore = thang ghi trên bài, ví dụ "9/10" → maxScore 10, "8/12" → 12; không ghi thang thì dùng đúng thang của bài này).
+  Chỗ thường thấy: góc trên đề hoặc đầu bài làm, dạng "9/10", "9,5đ", "8 điểm".
+  Điểm từng câu GV ghi cạnh từng câu KHÔNG phải tổng điểm; cộng lại từng câu cũng không thay thế tổng điểm GV đã viết.
+  Chỉ để thầy cô đối chiếu, KHÔNG dùng để chấm từng câu.
+  Không thấy tổng điểm, hoặc đọc không chắc chữ số → "teacherMarkedScore": null. Không tự cộng điểm từng câu để điền vào đây.`;
 
 export interface HomeworkGrade {
   score: number;
@@ -50,7 +86,19 @@ export interface HomeworkGrade {
   weakTopics: string[];
   /** true khi chấm mà KHÔNG có đáp án chuẩn — kết quả kém tin cậy hơn. */
   gradedWithoutAnswerKey: boolean;
+  /** Bài chấm tay: tổng điểm giáo viên viết trên bài, máy đọc (không dùng để chấm). */
+  teacherMarkedScore?: { score: number; maxScore: number };
 }
+
+/** Tổng điểm giáo viên viết tay AI đọc ra: chỉ nhận số hợp lệ trong thang (thang 1–100). Sai dạng → bỏ, không đoán. */
+export const parseTeacherMarkedScore = (raw: unknown): { score: number; maxScore: number } | undefined => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const record = raw as Record<string, unknown>;
+  const score = Number(record.score);
+  const maxScore = record.maxScore === undefined || record.maxScore === null ? 10 : Number(record.maxScore);
+  if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || maxScore > 100 || score < 0 || score > maxScore) return undefined;
+  return { score: Math.round(score * 100) / 100, maxScore };
+};
 
 export interface HomeworkGradeRecovery {
   parseMode: JsonParseMode;
@@ -77,7 +125,52 @@ nếu không có thì em học sinh phải chụp cả đề lẫn bài làm tro
 Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu với bài làm của em.
 Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
 
-export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
+/** Bút đỏ từng bước (câu tự luận). Dùng chung cho lượt chấm và lượt chỉ vẽ dấu. */
+export const PHOTO_STEPS_RULES = `BÚT ĐỎ TỪNG BƯỚC (photoSteps) — CHỈ cho câu TỰ LUẬN có từ 2 bước lập luận trở lên; câu trắc nghiệm, Đúng/Sai, điền đáp số, bỏ trống hoặc bỏ qua theo lệnh GV: "photoSteps": [].
+- Có HƯỚNG DẪN CHẤM chia bước thì dùng ĐÚNG các bước và điểm tối đa từng bước trong đó (maxScore bước theo hướng dẫn); chỉ khi không có mới tự chia.
+- Chia câu thành 2..8 bước theo dòng em viết (đặt ẩn, lập phương trình, biến đổi, giải, đối chiếu điều kiện, kết luận…). Mỗi bước: {"text":"tóm tắt bước ≤ 12 từ","verdict":"correct|partial|wrong","score":0.25,"maxScore":0.25,"note":"lời sửa ngắn ≤ 20 từ, chỉ khi partial/wrong","mark":{"imageIndex":1,"x":0.1,"y":0.3,"width":0.8,"height":0.04,"confidence":0.9}}.
+- BẮT BUỘC: tổng score các bước = đúng score của câu; tổng maxScore các bước = đúng maxScore của câu. Chia điểm theo bội 0,125 nếu được. Bước dù sai vẫn liệt kê với score 0.
+- mark là dải ngang bao dòng em viết cho bước đó (cùng luật toạ độ ở trên, confidence >= 0.85); không chắc vị trí thì bỏ mark, vẫn giữ bước.
+- Ghi lời sửa bằng lời của thầy cô, cụ thể chỗ sai ("Loại x = −19 vì x > 0"); không chép lại đề.`;
+
+/**
+ * Luật vùng ảnh — phần CỐ ĐỊNH (không chứa số ảnh) để Gemini cache được cho cả lớp.
+ * Số ảnh bài làm nằm ở `buildPhotoMarksCount` (phần đổi theo từng học sinh).
+ */
+export const buildPhotoMarksRules = (referenceImageCount: number): string =>
+  `VÙNG CÂU TRÊN ẢNH BÀI LÀM (trả photoMarks và readingRegions cho mỗi câu, cùng lượt chấm này):
+- Bỏ qua ${referenceImageCount} ảnh ĐỀ/ĐÁP ÁN đầu tiên. Các ảnh HS còn lại được đánh số imageIndex từ 1 theo thứ tự gửi; không dùng số thứ tự ảnh chung.
+- photoMarks cho correct/incorrect/partially_correct có nét HS thực sự viết; không đánh dấu câu bỏ trống hoặc bỏ qua theo lệnh GV. Câu đúng vẫn có vùng để xem lời giải, không đồng nghĩa lỗi. Không khoanh nét chữa cũ của GV.
+- readingRegions riêng là vùng TRUNG TÍNH cho câu đọc chưa chắc: độ chắc vị trí độc lập confidence đọc chữ. Có thấy chữ nhưng chưa đọc chắc vẫn định vị khi confidence vị trí >= 0.85. Không thấy nét nào thì [] và không khoanh bừa.
+- Tối đa 3 vùng bài làm/câu, kể cả câu đúng. x,y là góc trên trái; width,height là kích thước, chuẩn hóa 0..1 trên ẢNH GỐC. Vùng phải nằm hoàn toàn trong ảnh, diện tích dương.
+- Chỉ trả khi chắc vị trí confidence >= 0.85; không chắc thì photoMarks: [], giữ lời chữa dạng chữ. Không đoán vị trí, không chọn URL, không viết imageUrl.
+- Ví dụ hình dạng field: "photoMarks":[{"imageIndex":1,"x":0.1,"y":0.2,"width":0.3,"height":0.04,"confidence":0.95}]. Dấu chỉ bổ trợ lời chữa, không thay đổi điểm hay needsTeacherReview.
+${PHOTO_STEPS_RULES}`;
+
+/** Số ảnh bài làm của học sinh — phần ĐỔI theo từng em, nên tách khỏi phần cố định. */
+export const buildPhotoMarksCount = (studentImageCount: number): string => studentImageCount > 0
+  ? `- Bài làm của em gồm ${studentImageCount} ảnh: imageIndex 1..${studentImageCount} (ảnh đầu tiên là 1).`
+  : '- Không có ảnh bài HS: không trả photoMarks, readingRegions hoặc photoSteps.';
+
+export const buildPhotoMarksPrompt = (studentImageCount: number, referenceImageCount: number): string => studentImageCount > 0
+  ? `${buildPhotoMarksRules(referenceImageCount)}\n${buildPhotoMarksCount(studentImageCount)}`
+  : 'Không có ảnh bài HS: không trả photoMarks, readingRegions hoặc photoSteps.';
+
+/**
+ * Tách prompt chấm thành hai phần: phần CỐ ĐỊNH cho cả lớp và phần ĐỔI theo từng học sinh.
+ *
+ * Gemini cache tiền tố của request: phần cố định (đề, đáp án, luật chấm, khuôn JSON) đứng
+ * TRƯỚC phần đổi theo em thì cả lớp chấm chung một cache — 39/40 bài chỉ trả giá đọc cache
+ * thay vì đọc lại từ đầu.
+ */
+export interface HomeworkGradingSegments {
+  /** Phần cố định cho cả lớp. */
+  prefix: string;
+  /** Phần đổi theo từng học sinh. */
+  suffix: string;
+}
+
+export const buildHomeworkGradingSegments = (input: HomeworkGradingInput): HomeworkGradingSegments => {
   const soAnhDe = input.assignmentImageCount ?? 0;
   const soAnhDapAn = input.answerKeyImageCount ?? 0;
   const coDapAn = input.answerKey.trim().length > 0 || soAnhDapAn > 0;
@@ -114,17 +207,19 @@ ${gradingInstructions.slice(0, 6000)}${gradingInstructions.length > 6000 ? '\n[L
     ? `\r\nBÀI LÀM DẠNG CHỮ CỦA HỌC SINH (nguồn chính khi em nộp Word; không phải đáp án):\r\n${studentText.slice(0, 60000)}${studentText.length > 60000 ? '\r\n[Phần chữ quá dài đã được cắt bớt để chấm.]' : ''}\r\n`
     : '';
 
-  return `Bạn là giáo viên chấm bài tập về nhà cho học sinh phổ thông Việt Nam.
+  const prefix = `Bạn là giáo viên chấm bài tập về nhà cho học sinh phổ thông Việt Nam.
 
-${input.assignmentTitle ? `TÊN BÀI: ${input.assignmentTitle}\n` : ''}
+${input.assignmentTitle ? `TÊN BÀI: ${input.assignmentTitle}\n` : ''}${input.examCode ? `MÃ ĐỀ CỦA BÀI NÀY: ${input.examCode} — đề và đáp án dưới đây là của đúng mã này.\n` : ''}
 ${danAnh}${assignmentTextSection}${gradingInstructionsSection}${coDapAn
   ? (input.answerKey.trim()
       ? `ĐÁP ÁN CHUẨN (dùng làm mốc chấm, không tự nghĩ ra đáp án khác):\n${input.answerKey.trim()}`
       : 'ĐÁP ÁN CHUẨN nằm trong các ảnh đầu tiên nói trên. Dùng làm mốc chấm, không tự nghĩ ra đáp án khác.')
   : KHONG_CO_DAP_AN}
 
-${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}
-${studentTextSection}
+${input.answerKeyFixes?.length ? `ĐÁP ÁN THẦY CÔ ĐÃ SỬA SAU KHI CHẤM (ưu tiên hơn đáp án chuẩn ở trên, đúng các câu này):
+${input.answerKeyFixes.map(f => `- ${f.questionNumber}: ${f.expectedAnswer}`).join('\n')}
+` : ''}
+${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}${input.teacherMarkedPaper ? `\n${TEACHER_MARKED_PAPER_NOTE}\n` : ''}
 THANG ĐIỂM: tối đa ${input.maxScore} điểm. Quy đổi về đúng thang này.
 
 RANH GIỚI NGUỒN CHỈ DẪN:
@@ -153,10 +248,19 @@ CÁCH PHÂN TÍCH THEO TỪNG CÂU — bắt buộc:
   "status" = "unreadable", "needsTeacherReview" = true; tuyệt đối không đoán nội dung bị mờ.
 - "errorType" phải nói loại lỗi cụ thể (ví dụ: sai dấu, nhầm công thức, thiếu bước, tính toán, bỏ câu),
   không dùng mỗi chữ "sai". Với câu đúng ghi "Không có".
-- "explanation" phải chỉ ra vì sao cách làm dẫn tới kết quả đó; "correction" phải nói em sửa từ bước nào;
+- "explanation" giải thích rõ quy tắc, bước em đã dùng và vì sao dẫn tới kết quả đó, như thầy cô giảng; câu đúng cũng giải thích căn cứ, không chỉ nói đúng đáp án; "correction" phải nói em sửa từ bước nào;
   "nextPractice" phải là một việc luyện cụ thể. Nếu thiếu dữ kiện để kết luận, đánh dấu cần giáo viên soát.
 - Điểm từng câu nằm trong khoảng 0..maxScore của chính câu đó. Tổng các câu nên khớp điểm tổng theo hướng dẫn chấm.
 - Không bịa câu hỏi, đáp án hoặc lỗi không có bằng chứng trong ảnh/chữ.
+
+CÂU TRẮC NGHIỆM / ĐÚNG-SAI / TRẢ LỜI NGẮN — ghi đúng khuôn để máy đối chiếu lại được:
+- Trắc nghiệm: "studentAnswer" và "expectedAnswer" chỉ ghi MỘT chữ cái in hoa (A, B, C hoặc D).
+- Đúng/Sai: MỖI câu (gồm các ý a, b, c, d) là MỘT phần tử, ghi dạng "a) Đ; b) S; c) Đ; d) S".
+  Điểm theo thang thi THPT: đúng 1 ý được 0,1 điểm của câu; 2 ý 0,25; 3 ý 0,5; cả 4 ý trọn điểm câu.
+- Trả lời ngắn: chỉ ghi con số kết quả (ví dụ "-1,5").
+- Phiếu tô/khoanh: ô đã tẩy, gạch chéo, hoặc khoanh rồi gạch đi là HUỶ — chỉ tính lựa chọn cuối còn nguyên.
+  Thấy từ hai lựa chọn còn nguyên, hoặc không chắc đâu là lựa chọn cuối → KHÔNG đoán: ghi các lựa chọn nhìn
+  thấy (ví dụ "B hoặc D (D có vết tẩy)") và đặt "needsTeacherReview" = true.
 
 ĐỌC BÀI LÀM CHO ĐÚNG — quan trọng vì ảnh chụp tay dễ đọc nhầm:
 - "studentAnswer" phải CHÉP LẠI TRUNG THỰC đúng những gì em viết, KHÔNG diễn giải, KHÔNG sửa hộ.
@@ -189,6 +293,8 @@ KHÔNG dùng chữ này, mà tổng hợp chung theo chủ đề từ weakTopics
 - Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
 
 
+${FEEDBACK_LAYOUT}
+${buildPhotoMarksRules(soAnhDe + soAnhDapAn)}
 CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
 {
   "score": 0.0,
@@ -211,9 +317,25 @@ CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
     "nextPractice": "...",
     "confidence": 0.0,
     "ignoredByTeacherInstruction": false,
-    "needsTeacherReview": false
+    "needsTeacherReview": false,
+    "photoMarks": [],
+    "readingRegions": [],
+    "photoSteps": []
   }]
 }`;
+
+  // Phần đổi theo từng em: bài làm dạng chữ + số ảnh bài làm. Đặt CUỐI cùng để phần cố định
+  // ở trên giữ nguyên một khối giống hệt nhau cho mọi bài trong lớp.
+  const suffix = `${studentTextSection}
+${buildPhotoMarksCount(input.studentImageCount ?? 0)}
+Trả về đúng khuôn JSON ở trên, không kèm chữ nào khác.`;
+  return { prefix, suffix };
+};
+
+/** Prompt chấm bài đầy đủ (phần cố định + phần đổi theo học sinh) — dùng khi không cần tách parts. */
+export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
+  const { prefix, suffix } = buildHomeworkGradingSegments(input);
+  return `${prefix}\n\n${suffix}`;
 };
 
 export const buildHomeworkGradingRetryPrompt = (input: HomeworkGradingInput): string => `
@@ -222,13 +344,14 @@ Chỉ trả về JSON thuần, không có code fence và không có lời dẫn 
 Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feedbackForStudent", "noteForTeacher", "strengths", "weaknesses", "weakTopics" và "questionResults" cùng đầy đủ field của từng câu.
 Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
 Không đưa raw output lỗi của lần trước vào câu trả lời.
-Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
+${FEEDBACK_LAYOUT}
+Bỏ chữ lặp, không nhắc lại đề, nhưng giữ đủ lý do và bước sửa. Không ép lời giải/giải thích thành một câu ngắn; thiếu căn cứ phải báo chưa đủ, không báo đã giải đủ.
 `;
 
 /** Chỉ nối thêm vào lượt thử lại sau khi Gemini dừng với RECITATION (nghi câu trả lời trích nguyên văn tài liệu có sẵn). */
 export const HOMEWORK_GRADING_RECITATION_NOTE = `
 LẦN TRƯỚC BỊ DỪNG VÌ NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN:
-Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" tối đa một câu ngắn do chính bạn diễn đạt lại.
+Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" dùng lời riêng, giữ đủ lý do và bước sửa; không thu gọn mất lập luận.
 `;
 
 const toStringArray = (value: unknown): string[] =>
@@ -245,6 +368,21 @@ const normalizeQuestionStatus = (value: unknown): QuestionResultStatus => {
   return 'unreadable';
 };
 
+/**
+ * Nhận diện hàng "tổng" model tự ghi cuối bảng câu (Tổng kết, Tổng cộng, Cộng lại…).
+ * Gỡ dấu + khoảng trắng + số đuôi rồi so với bộ từ khóa, để khỏi nhầm câu thật có tên
+ * kiều "Phần 2 – Tổng hợp" (những câu đó không khớp trọn một từ khóa).
+ */
+const laHangTongKet = (questionNumber: string): boolean => {
+  const key = questionNumber
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s|[-–—_.,:：/()]+/g, '')
+    .replace(/\d.*$/, '');
+  return ['tongket', 'tong', 'tongcong', 'tongdiem', 'tongso', 'cong', 'conglai'].includes(key);
+};
+
 const toQuestionResults = (value: unknown): QuestionResult[] => {
   if (!Array.isArray(value)) return [];
 
@@ -255,6 +393,9 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
       const q = item as Record<string, unknown>;
       const questionNumber = String(q.questionNumber ?? q.question ?? '').trim();
       if (!questionNumber) return null;
+      // Hàng "tổng kết" model tự chèn cuối bảng (A/B 10/2026 gặp ở nhiều hãng): không phải
+      // câu hỏi thật, để lọt là đội cả bảng điểm lẫn tổng Σ → loại ngay.
+      if (laHangTongKet(questionNumber)) return null;
 
       const max = Number(q.maxScore);
       const maxScore = Number.isFinite(max) && max >= 0 ? max : 0;
@@ -263,18 +404,18 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
       const expectedAnswer = String(q.expectedAnswer ?? '').trim();
       const status = normalizeQuestionStatus(q.status);
       const ignoredByTeacherInstruction = q.ignoredByTeacherInstruction === true;
+      // Cờ "máy đọc chưa chắc" (hiện nhãn "Đọc chưa rõ"): model tự báo, không đọc được, hoặc thiếu hẳn bài làm /
+      // đáp án để đối chiếu. KHÔNG bật chỉ vì câu bỏ trống, hay vì model để trống lời giải thích / cách sửa /
+      // luyện tiếp (câu đúng vốn không có) — trước đây hai trường hợp đó gắn nhãn cho cả bài dù không có gì đọc sai,
+      // và bài không có câu nào để hỏi lại em vẫn dính nhãn.
       const needsTeacherReview = q.needsTeacherReview === true
         || status === 'unreadable'
-        || (!ignoredByTeacherInstruction && (
-          status === 'not_attempted'
-          || !studentAnswer
-          || !expectedAnswer
-          || !String(q.explanation ?? '').trim()
-          || !String(q.correction ?? '').trim()
-          || !String(q.nextPractice ?? '').trim()
-        ));
+        || (!ignoredByTeacherInstruction && status !== 'not_attempted' && (!studentAnswer || !expectedAnswer));
       const confidenceValue = Number(q.confidence);
 
+      const photoMarks = sanitizePhotoMarks(q.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
+      const readingRegions = sanitizeReadingRegions(q.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
+      const photoSteps = sanitizePhotoSteps(q.photoSteps, { status, studentAnswer, ignoredByTeacherInstruction });
       return {
         questionNumber,
         status,
@@ -289,6 +430,9 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
         confidence: Number.isFinite(confidenceValue) ? clamp(confidenceValue, 0, 1) : undefined,
         ignoredByTeacherInstruction,
         needsTeacherReview,
+        ...(photoMarks.length ? { photoMarks } : {}),
+        ...(readingRegions.length ? { readingRegions } : {}),
+        ...(photoSteps.length ? { photoSteps } : {}),
       } as QuestionResult;
     })
     .filter((item): item is QuestionResult => item !== null);
@@ -324,9 +468,19 @@ const coerceHomeworkGrade = (
   const questionResults = toQuestionResults(parsed.questionResults ?? parsed.questionDetails);
   const rawScore = Number(parsed.score);
   const summedScore = questionResults.reduce((sum, q) => sum + (Number.isFinite(q.score) ? q.score : 0), 0);
-  const baseScore = Number.isFinite(rawScore)
-    ? rawScore
-    : (questionResults.length > 0 ? summedScore : 0);
+  // Điểm hiển thị = Σ các dòng CHỈ KHI các dòng phủ thang bài (tổng maxScore của dòng ≈ maxScore) —
+  // cùng một nguyên tắc với `recomputeTotal` sau khi chấm lại đáp án khách quan. A/B 10/2026
+  // (5 bài × 22 lượt × 5 hãng): 17/18 lượt trả bảng đủ thang và field score lệch Σ gần hết lượt
+  // (kể cả Google direct) → Σ thắng; lượt lệch còn lại model lặp bảng (rowMax 20/10). Khi dòng
+  // KHÔNG phủ thang (bảng rất ngắn; luồng bài kiểm tra định kì model chỉ ĐỌC TỔNG điểm thầy ghi
+  // trên bài) thì giữ score model đọc — cộng dòng khuyết thang là mất tổng.
+  const rowMaxScore = questionResults.reduce((sum, q) => sum + (Number.isFinite(q.maxScore) ? q.maxScore : 0), 0);
+  const rowsCoverScale = rowMaxScore > 0 && Math.abs(rowMaxScore - effectiveMax) <= 0.01;
+  const baseScore = rowsCoverScale
+    ? summedScore
+    : (Number.isFinite(rawScore)
+      ? rawScore
+      : (questionResults.length > 0 ? summedScore : 0));
 
   return {
     score: clamp(baseScore, 0, effectiveMax),
@@ -338,6 +492,7 @@ const coerceHomeworkGrade = (
     weakTopics: toStringArray(parsed.weakTopics),
     questionResults,
     gradedWithoutAnswerKey,
+    ...(parseTeacherMarkedScore(parsed.teacherMarkedScore) ? { teacherMarkedScore: parseTeacherMarkedScore(parsed.teacherMarkedScore) } : {}),
   };
 };
 
@@ -480,6 +635,9 @@ const parseStrictQuestionResult = (
       : contractError(`questionResults[${index}].ignoredByTeacherInstruction phải là boolean`);
   }
 
+  const photoMarks = sanitizePhotoMarks(record.photoMarks, { status, studentAnswer, ignoredByTeacherInstruction });
+  const readingRegions = sanitizeReadingRegions(record.readingRegions, { status, studentAnswer, ignoredByTeacherInstruction });
+  const photoSteps = sanitizePhotoSteps(record.photoSteps, { status, studentAnswer, ignoredByTeacherInstruction });
   return {
     questionNumber,
     status,
@@ -494,6 +652,9 @@ const parseStrictQuestionResult = (
     ...(hasConfidence ? { confidence } : {}),
     ...(hasIgnoredByTeacherInstruction ? { ignoredByTeacherInstruction } : {}),
     needsTeacherReview,
+    ...(photoMarks.length ? { photoMarks } : {}),
+        ...(readingRegions.length ? { readingRegions } : {}),
+    ...(photoSteps.length ? { photoSteps } : {}),
   };
 };
 
@@ -870,6 +1031,8 @@ export interface SolveExamInput {
   maxScore: number;
   /** Lệnh riêng của giáo viên về phạm vi giải/chấm, lưu cùng bài giao. */
   gradingInstructions?: string;
+  /** Đề kiểm tra định kì: đáp án theo khuôn "Phần I – Câu 1: C", câu khách quan không nêu bước giải. */
+  periodic?: boolean;
 }
 
 /**
@@ -879,6 +1042,19 @@ export interface SolveExamInput {
  * câu 5, rồi sai đó còn nhân tiếp vào hồ sơ học tập từng em. Nên prompt bắt AI tự nêu chỗ nó
  * không chắc, để giáo viên biết cần soát kỹ chỗ nào.
  */
+/**
+ * Đề kiểm tra định kì: đáp án phải đúng khuôn để máy đối chiếu từng câu, và câu khách quan chỉ ghi đáp án
+ * (không bước giải) — một bước giải dài cho câu trắc nghiệm chỉ làm loãng đáp án thầy cô phải soát.
+ */
+export const PERIODIC_SOLVE_NOTE = `
+ĐÂY LÀ ĐỀ KIỂM TRA ĐỊNH KÌ — ghi đáp án theo khuôn sau (mỗi câu MỘT dòng, đúng nhãn câu trong đề):
+- Đề chia Phần I/II/III và số câu đánh lại từ đầu mỗi phần: ghi "Phần I – Câu 1: C", "Phần II – Câu 1: a) Đ; b) S; c) Đ; d) S", "Phần III – Bài 1 (0,5 điểm): …".
+- Trắc nghiệm: chỉ MỘT chữ cái in hoa. Đúng/Sai: chỉ "a) Đ; b) S; c) Đ; d) S". Trả lời ngắn: chỉ con số (dấu phẩy thập phân). KHÔNG nêu các bước giải cho ba dạng này.
+- Tự luận: ghi số điểm của bài, các bước chính, đáp số, và chia điểm theo từng bước (vd "0,25 lập luận + 0,25 kết quả"). Giữ công thức bằng LaTeX trong $...$.
+- Câu có hình/đồ thị/bảng: đọc hình trong ảnh để giải. Không đọc chắc số liệu trên hình → ghi "CHƯA CHẮC: ..." và thêm vào "uncertainties".
+- Điểm mỗi câu theo ghi chú trong đề (vd "12 câu/3 điểm" → mỗi câu 0,25; Đúng/Sai thang THPT 0,1 / 0,25 / 0,5 / 1).
+`;
+
 export const buildSolveExamPrompt = (input: SolveExamInput): string => {
   const gradingInstructions = input.gradingInstructions?.trim() || '';
   const lenhPhamVi = gradingInstructions
@@ -896,7 +1072,7 @@ ${gradingInstructions.slice(0, 6000)}${gradingInstructions.length > 6000 ? '\n[L
 ${input.examImageCount > 0
     ? `Đề nằm trong ${input.examImageCount} ảnh gửi kèm. Đọc kỹ đề trong ảnh trước khi giải.`
     : `ĐỀ BÀI:\n${input.examText.trim()}`}
-${lenhPhamVi}
+${lenhPhamVi}${input.periodic ? PERIODIC_SOLVE_NOTE : ''}
 ${gradingInstructions
     ? 'Giải TỪNG câu THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, theo thứ tự đề ra. Với mỗi câu được giao:'
     : 'Giải TỪNG câu, theo thứ tự đề ra. Với mỗi câu:'}
@@ -962,7 +1138,8 @@ Viết hướng dẫn chấm để người khác chấm cũng ra cùng kết qu
 ${lenh
     ? `- Chia ${maxScore} điểm cho TỪNG câu/phần THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, ghi rõ số điểm mỗi phần. Tổng đúng bằng ${maxScore}.`
     : `- Chia ${maxScore} điểm cho từng câu, ghi rõ số điểm mỗi câu. Tổng đúng bằng ${maxScore}.`}
-- Trong mỗi câu, nêu các mốc cho điểm thành phần: làm được bước nào thì được bao nhiêu.
+- Câu TỰ LUẬN: chia điểm câu theo TỪNG BƯỚC, mỗi bước một dòng đánh số, dạng "Bước 1: đặt ẩn, điều kiện — 0,25đ". Điểm bước là bội 0,125 hoặc 0,25; tổng các bước đúng bằng điểm câu. Máy chấm dùng đúng các bước này để ghi Đ/S và điểm cạnh từng dòng bài em.
+- Câu trắc nghiệm, Đúng/Sai, điền đáp số: chỉ ghi điểm cả câu (Đúng/Sai theo thang của đề), không chia bước.
 - Nêu lỗi thường gặp ở dạng bài này và mức trừ tương ứng.
 - Nói rõ chỗ nào vẫn cho điểm dù kết quả cuối sai (ví dụ sai số học nhưng phương pháp đúng).
 
@@ -1203,6 +1380,7 @@ CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học si
 - Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
 
 
+${FEEDBACK_LAYOUT}
 TUYỆT ĐỐI KHÔNG:
 - Không thêm nhận định mà giáo viên không nêu. Không tự suy ra em yếu chỗ khác.
 - Không nhắc tới việc nhận xét này do máy viết hay đã được sửa.

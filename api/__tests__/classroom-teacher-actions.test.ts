@@ -373,4 +373,56 @@ describe('POST /api/classroom · teacher collaboration', () => {
 
     expect(res.statusCode).toBe(403);
   });
+
+  it('bài kiểm tra định kì: mã nào cũng phải có đáp án; lưu mã đã làm sạch + cột sổ điểm; đọc lại còn nguyên', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'lop-12': { teacherId: 'owner-1', name: '12A', grade: '12' } };
+    const base = { action: 'createAssignment', classId: 'lop-12' };
+    const variants = [
+      { code: '1201', sourceText: 'Câu 1. …', answerKey: 'Phần I – Câu 1: A' },
+      { code: '1202', sourceText: 'Câu 1. …', answerKey: '' },
+    ];
+    const missing = await call({ ...base, assignment: { classId: 'lop-12', title: 'Giữa kì I', periodicTest: { sheetLabel: 'Giữa học kì I' }, examVariants: variants } });
+    expect(missing.statusCode).toBe(422);
+    expect(missing.payload?.error).toBe('Mã 1202 chưa có đáp án.');
+    expect((await call({ ...base, assignment: { classId: 'lop-12', title: 'Giữa kì I', periodicTest: {}, examVariants: [] } })).statusCode).toBe(422);
+
+    const ok = await call({ ...base, assignment: {
+      id: 'kt-1', classId: 'lop-12', title: 'Giữa kì I', periodicTest: { sheetLabel: '  Giữa   học kì I ' },
+      examVariants: [variants[0], { ...variants[0] }, { code: 'mã sai', sourceText: 'x', answerKey: 'x' }],
+    } });
+    expect(ok.statusCode).toBe(200);
+    expect(harness.store.assignments['kt-1']).toMatchObject({ periodicTest: { sheetLabel: 'Giữa học kì I' }, examVariants: [variants[0]] });
+
+    const list = await call({ action: 'teacherAssignments', classId: 'lop-12' });
+    expect((list.payload?.assignments as DocData[])[0]).toMatchObject({ periodicTest: { sheetLabel: 'Giữa học kì I' }, examVariants: [variants[0]] });
+  });
+
+  it('bài thường không bị gắn cờ định kì', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'lop-10': { teacherId: 'owner-1', name: '10A', grade: '10' } };
+    const res = await call({ action: 'createAssignment', classId: 'lop-10', assignment: { id: 'bt-1', classId: 'lop-10', title: 'BTVN', examVariants: [{ code: '101', sourceText: 'x', answerKey: 'y' }] } });
+    expect(res.statusCode).toBe(200);
+    expect(harness.store.assignments['bt-1']).not.toHaveProperty('periodicTest');
+    expect(harness.store.assignments['bt-1']).not.toHaveProperty('examVariants');
+  });
+
+  it('danh sách bài nộp cho giáo viên giữ mã đề + kết quả đối chiếu điểm (bản chiếu là danh sách cho phép)', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'lop-12': { teacherId: 'owner-1', name: '12A', grade: '12' } };
+    harness.store.submissions = {
+      s1: {
+        teacherId: 'owner-1', classId: 'lop-12', studentId: 'hs-1', assignmentId: 'kt-1', fileUrls: ['u'], note: '', status: 'graded',
+        examCode: '1202', examCodeSource: 'ai', createdAt: '2026-10-06', updatedAt: '2026-10-06',
+        grade: { score: 6, maxScore: 10, feedback: '', strengths: [], weaknesses: [], gradedAt: '2026-10-06', teacherApproved: false,
+          examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 7.5, diff: 1.5, mismatch: true } },
+      },
+    };
+    const res = await call({ action: 'teacherSubmissions', classId: 'lop-12' });
+    expect(res.statusCode).toBe(200);
+    expect((res.payload?.submissions as DocData[])[0]).toMatchObject({
+      examCode: '1202', examCodeSource: 'ai', grade: { examCheck: { sheetScore: 7.5, mismatch: true } },
+    });
+  });
 });
+

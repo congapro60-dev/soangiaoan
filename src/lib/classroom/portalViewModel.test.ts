@@ -64,8 +64,14 @@ describe('getStudentAssignmentState', () => {
     expect(getStudentAssignmentState(assignment, submission({ status: 'grading' })).canResubmit).toBeFalsy();
   });
 
-  it('turns a failed attempt into an explicit retry state', () => {
-    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorMessage: 'Ảnh bị mờ' }))).toMatchObject({ status: 'retry', action: 'retry' });
+  it('ảnh chưa rõ → bảo em nộp lại ảnh; chưa đọc được mã đề → em chọn mã, không nộp lại; lỗi hệ thống → em không cần làm gì', () => {
+    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'photo', errorMessage: 'Ảnh bị mờ' })))
+      .toMatchObject({ status: 'retry', action: 'retry', label: 'Nộp lại ảnh' });
+    expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'exam_code', examCodeAsk: ['101', '102'], errorMessage: 'chọn mã' })))
+      .toMatchObject({ status: 'waiting', action: 'status', detail: 'chọn mã' });
+    const system = getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'system', errorMessage: 'Em không cần nộp lại' }));
+    expect(system).toMatchObject({ status: 'waiting', action: 'status', detail: 'Em không cần nộp lại' });
+    expect(system.label).not.toMatch(/Nộp lại/);
   });
 
   it('shows the graded result and review action, still allowing a fresh attempt', () => {
@@ -76,8 +82,14 @@ describe('getStudentAssignmentState', () => {
       strengths: [],
       weaknesses: [],
       gradedAt: '2026-08-22T11:00:00.000Z',
-      teacherApproved: false,
+      teacherApproved: true,
     } }))).toMatchObject({ status: 'graded', action: 'review', canResubmit: true });
+  });
+
+  it('chấm xong nhưng chưa duyệt: học sinh chỉ thấy "chờ thầy cô duyệt", không có nút xem nhận xét', () => {
+    expect(getStudentAssignmentState(assignment, submission({ status: 'graded', grade: {
+      score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], gradedAt: '2026-08-22T11:00:00.000Z', teacherApproved: false, scoreHidden: true,
+    } }))).toMatchObject({ status: 'pending-approval', action: 'status', label: 'Chờ thầy cô duyệt', canResubmit: true });
   });
 
   it('does not offer resubmit for assignments without an attempt or for self-submissions', () => {
@@ -90,9 +102,29 @@ describe('getStudentAssignmentState', () => {
   });
 
   it('does not turn a failed submission into an empty state', () => {
-    const state = getStudentAssignmentState(assignment, submission({ status: 'error', errorMessage: 'Không đọc được ảnh' }));
+    const state = getStudentAssignmentState(assignment, submission({ status: 'error', errorReason: 'photo', errorMessage: 'Không đọc được ảnh' }));
 
     expect(state.status).toBe('retry');
     expect(state.detail).toBe('Không đọc được ảnh');
+  });
+});
+
+describe('bài còn chờ em xác nhận', () => {
+  it('không hiện "đã chấm" và không cho nộp bổ sung đè lên các câu đang xác nhận', () => {
+    const state = getStudentAssignmentState(assignment, submission({ status: 'graded', grade: {
+      score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, awaitingClarification: true, gradedAt: '2026-10-09T10:00:00.000Z',
+    } }));
+    expect(state).toMatchObject({ status: 'waiting', label: 'Cần em xác nhận' });
+    expect(state.canResubmit).toBeFalsy();
+  });
+});
+
+describe('bài "Chấm thử" (không gắn bài giao)', () => {
+  it('không phải chờ duyệt: em xem được ngay kết quả tự kiểm', async () => {
+    const { scoreHiddenFromStudent } = await import('./portalViewModel');
+    const grade = { score: 7, maxScore: 10, feedback: 'x', strengths: [], weaknesses: [], gradedAt: '2026-10-09T00:00:00.000Z', teacherApproved: false };
+    expect(scoreHiddenFromStudent({ assignmentId: null, grade })).toBe(false);
+    expect(scoreHiddenFromStudent({ assignmentId: 'a1', grade })).toBe(true);
+    expect(scoreHiddenFromStudent({ assignmentId: 'a1', grade: { ...grade, teacherApproved: true } })).toBe(false);
   });
 });

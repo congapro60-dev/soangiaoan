@@ -1,3 +1,4 @@
+import { autofillSsmFields } from '../../../lib/ssm/ssmBridge';
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ClipboardCopy, Loader2, MessageSquareText, NotebookPen } from 'lucide-react';
 import type { Student } from '../../../types';
@@ -42,6 +43,11 @@ const copyText = async (text: string, showToast: (m: string, i?: string) => void
   }
 };
 
+const fillDraft = async (key: string, value: string, target: 'exact' | 'focused', showToast: Props['showToast'], classId: string) => {
+  try { await autofillSsmFields([{key,value}],target,classId); showToast('Đã điền và tô viền ô SSM. Thầy cô đối chiếu rồi tự bấm Lưu.', 'success'); }
+  catch(reason) { showToast(reason instanceof Error ? reason.message : 'Chưa điền được SSM.', 'error'); }
+};
+
 const htmlToPlain = (html: string): string => html
   .replace(/<\/li>/g, '\n').replace(/<li>/g, '- ').replace(/<\/(h3|p)>/g, '\n')
   .replace(/<[^>]+>/g, '').replace(/\n{2,}/g, '\n').trim();
@@ -71,14 +77,14 @@ export const SsmDraftCards = ({ classId, teacherId, className, classGrade, stude
   return (
     <div className="space-y-4">
       {loadErr && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{loadErr}</p>}
-      <ScheduleCard className={className} classGrade={classGrade} showToast={showToast} />
+      <ScheduleCard classId={classId} className={className} classGrade={classGrade} showToast={showToast} />
       <HomeworkCard assignments={assignments} showToast={showToast} />
-      <CommentCard className={className} students={students} assignments={assignments} submissions={submissions} showToast={showToast} />
+      <CommentCard classId={classId} className={className} students={students} assignments={assignments} submissions={submissions} showToast={showToast} />
     </div>
   );
 };
 
-const ScheduleCard = ({ className, classGrade, showToast }: { className: string; classGrade: string; showToast: Props['showToast'] }) => {
+const ScheduleCard = ({ classId, className, classGrade, showToast }: { classId: string; className: string; classGrade: string; showToast: Props['showToast'] }) => {
   const [week, setWeek] = useState(1);
   const [lessons, setLessons] = useState<{ title: string; detail?: string }[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -99,13 +105,13 @@ const ScheduleCard = ({ className, classGrade, showToast }: { className: string;
   const html = lessons ? buildScheduleContent(className, 'VN TOÁN', label, lessons) : '';
 
   return (
-    <Card icon={CalendarDays} title="Lịch báo giảng tuần" desc="App dựng nội dung tuần theo phân phối chương trình. Cô chép vào ô báo giảng SSM rồi sắp theo buổi.">
+    <Card icon={CalendarDays} title="Lịch báo giảng tuần" desc="Soát nội dung tuần; chọn đúng ô báo giảng trên SSM trước khi bấm Điền. Tiện ích chỉ điền và tô viền, thầy cô tự bấm Lưu.">
       <div className="flex flex-wrap items-center gap-2">
         <label className="text-sm font-semibold text-slate-600">Tuần</label>
         <input type="number" min={1} max={40} value={week} onChange={(e) => setWeek(Math.max(1, Number(e.target.value) || 1))} className="min-h-9 w-20 rounded-lg border border-slate-200 px-2 text-sm" />
         <button type="button" disabled={busy || !Number.isInteger(grade)} onClick={() => void load()} className="min-h-9 rounded-lg bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">Xem nội dung</button>
         {lessons && lessons.length > 0 && (
-          <button type="button" onClick={() => void copyRich(html, htmlToPlain(html), showToast)} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-4 w-4" /> Chép</button>
+          <><button type="button" onClick={() => void fillDraft('schedule',htmlToPlain(html),'focused',showToast,classId)} className="min-h-9 rounded-lg border px-3 text-sm font-bold">Điền ô SSM đã chọn</button><button type="button" onClick={() => void copyRich(html, htmlToPlain(html), showToast)} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-4 w-4" /> Chép</button></>
         )}
       </div>
       {busy && <p className="mt-2 flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Đang tải…</p>}
@@ -152,8 +158,8 @@ const HomeworkCard = ({ assignments, showToast }: { assignments: AssignmentDoc[]
   );
 };
 
-const CommentCard = ({ className, students, assignments, submissions, showToast }: {
-  className: string; students: Student[]; assignments: AssignmentDoc[]; submissions: SubmissionDoc[]; showToast: Props['showToast'];
+const CommentCard = ({ classId, className, students, assignments, submissions, showToast }: {
+  classId: string; className: string; students: Student[]; assignments: AssignmentDoc[]; submissions: SubmissionDoc[]; showToast: Props['showToast'];
 }) => {
   const asgInput = useMemo(() => assignments.map((a) => ({ id: a.id, title: a.title, maxScore: a.maxScore ?? null, ...(a.dueAt ? { dueAt: a.dueAt } : {}) })), [assignments]);
   const byStudent = useMemo(() => {
@@ -173,7 +179,7 @@ const CommentCard = ({ className, students, assignments, submissions, showToast 
               <div key={st.id} className="rounded-xl border border-slate-100 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold text-slate-800">{st.name}</div>
-                  <button type="button" onClick={() => void copyText(comment, showToast)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>
+                  <div className="flex flex-wrap gap-2"><button type="button" disabled={!st.code.trim()} onClick={() => void fillDraft(st.code,comment,'exact',showToast,classId)} className="min-h-9 rounded-lg border px-2 text-xs font-bold disabled:opacity-50">Điền ô SSM</button><button type="button" onClick={() => void copyText(comment, showToast)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button></div>
                 </div>
                 <p className="mt-1 text-sm text-slate-600">{comment}</p>
               </div>

@@ -19,6 +19,9 @@ const GATED_PATHS = ['/api/grade-homework', '/api/classroom', '/api/generate-sim
 /** Phát sau mỗi phản hồi của các đường AI — chip Ví AI ở Header nghe để làm mới số dư. */
 export const AI_BILLING_UPDATED_EVENT = 'ai-billing-updated';
 
+/** Chip Ví AI phát khi ví vừa về 0đ giữa lúc dùng — hộp nạp tiền nghe để mời nạp ngay. */
+export const AI_WALLET_EMPTY_EVENT = 'ai-wallet-empty';
+
 /** Header đánh dấu lượt ĐỌC số liệu ví: không coi là lượt dùng AI (nếu không chip sẽ tự làm mới chính nó mãi). */
 export const AI_QUIET_HEADER = 'X-Ai-Quiet';
 

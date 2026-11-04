@@ -1,0 +1,215 @@
+import { describe, expect, it } from 'vitest';
+import {
+  hideWhileAwaitingClarification, answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyKindFor, failPhotoRegrade,
+  finishPhotoRegrade, hasStudentWriting, isActionableClarifyQuestion, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade, sanitizeClarify,
+} from './clarification';
+import type { QuestionResult } from './types';
+
+const row = (patch: Partial<QuestionResult> = {}): QuestionResult => ({
+  questionNumber: 'Phần I – Câu 1', status: 'correct', score: 0.25, maxScore: 0.25, studentAnswer: 'B', expectedAnswer: 'B',
+  errorType: 'Không có', explanation: 'đúng', correction: '', nextPractice: '', confidence: 0.95, needsTeacherReview: false, ...patch,
+});
+
+describe('câu máy đọc chưa chắc', () => {
+  it('keeps safe confirmation provenance without UID, PIN or unrelated fields', () => {
+    const confirmedBy = { role: 'parent', studentId: 'student-1', at: '2026-10-14T01:00:00.000Z', uid: 'private-uid', pin: 'private-pin', nested: { secret: 'private' } };
+    expect(sanitizeClarify({ kind: 'mcq', state: 'answered', reading: 'B', confirmedBy })?.confirmedBy).toEqual({ role: 'parent', studentId: 'student-1', at: '2026-10-14T01:00:00.000Z' });
+    for (const invalid of [{ ...confirmedBy, role: 'admin' }, { ...confirmedBy, studentId: '../other' }, { ...confirmedBy, at: 'invalid' }]) expect(sanitizeClarify({ kind: 'mcq', state: 'answered', reading: 'B', confirmedBy: invalid })?.confirmedBy).toBeUndefined();
+  });
+  it('không hỏi câu trống/placeholder, nhưng vẫn hỏi phần bài làm thực sự đọc được', () => {
+    for (const studentAnswer of ['', 'Bỏ trống', '(Bỏ trống: không thấy bài)', 'Không đọc rõ nét chữ', 'chưa làm', 'not attempted']) {
+      const q = row({ studentAnswer, status: 'unreadable', clarify: { kind: 'photo', state: 'open', reading: studentAnswer } });
+      expect(hasStudentWriting(q)).toBe(false);
+      expect(isActionableClarifyQuestion(q)).toBe(false);
+      expect(buildClarifyRows([{ ...q, clarify: undefined }]).asked).toBe(0);
+      expect(awaitsClarification([q])).toBe(true);
+    }
+    const q = row({ studentAnswer: 'B hoặc D', status: 'unreadable', clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+    expect(isActionableClarifyQuestion(q)).toBe(true);
+    expect(isActionableClarifyQuestion({ ...q, clarify: { ...q.clarify!, state: 'photo_saved' } })).toBe(true);
+    expect(isActionableClarifyQuestion({ ...q, clarify: { ...q.clarify!, state: 'regrading' } })).toBe(false);
+    expect(hasStudentWriting({ ...q, status: 'not_attempted' })).toBe(false);
+    expect(hasStudentWriting({ ...q, ignoredByTeacherInstruction: true })).toBe(false);
+  });
+  it('typed clarification and new photos clear marks from old evidence', () => {
+    const photoMarks = [{ imageIndex: 1, imageUrl: 'https://old', x: .1, y: .1, width: .2, height: .1, confidence: .95 }];
+    const typed = row({ status: 'incorrect', photoMarks, clarify: { kind: 'mcq', state: 'open', reading: 'B' } });
+    expect(answerClarifyRow(typed, 'C', 'T')!.photoMarks).toBeUndefined();
+    const step = startPhotoRegrade({ ...typed, clarify: { kind: 'photo', state: 'open', reading: 'B' } }, ['https://new'], 'T', 0);
+    expect(step.ok && step.row.photoMarks).toBeUndefined();
+  });
+  it('không đọc được / tự đánh dấu cần soát / độ chắc thấp → chưa chắc; rõ ràng → không; câu bỏ qua theo lệnh GV → không', () => {
+    expect(isUncertainQuestion(row())).toBe(false);
+    expect(isUncertainQuestion(row({ status: 'unreadable' }))).toBe(true);
+    expect(isUncertainQuestion(row({ needsTeacherReview: true }))).toBe(true);
+    expect(isUncertainQuestion(row({ confidence: 0.4 }))).toBe(true);
+    expect(isUncertainQuestion(row({ confidence: 0.6 }))).toBe(false);
+    expect(isUncertainQuestion(row({ status: 'unreadable', ignoredByTeacherInstruction: true }))).toBe(false);
+  });
+});
+
+describe('cách làm rõ từng câu', () => {
+  it('theo dạng đáp án chuẩn: một chữ cái → chọn, a–d Đ/S → đúng-sai, một con số → gõ số (kể cả câu tự luận có đáp số)', () => {
+    expect(clarifyKindFor(row({ expectedAnswer: 'C' }))).toBe('mcq');
+    expect(clarifyKindFor(row({ expectedAnswer: 'a) Đ; b) S; c) Đ; d) S' }))).toBe('true_false');
+    expect(clarifyKindFor(row({ expectedAnswer: 'Đúng' }))).toBe('true_false');
+    expect(clarifyKindFor(row({ expectedAnswer: '-1,5' }))).toBe('short');
+    expect(clarifyKindFor(row({ questionNumber: 'Tự luận – Bài 2', expectedAnswer: '12' }))).toBe('short');
+  });
+
+  it('đáp án chuẩn không theo khuôn: xem nhãn phần của đề; vẫn không rõ → tự luận (chụp lại)', () => {
+    expect(clarifyKindFor(row({ questionNumber: 'Phần I – Câu 3', expectedAnswer: '' }))).toBe('mcq');
+    expect(clarifyKindFor(row({ questionNumber: 'Phần II – Câu 1', expectedAnswer: '' }))).toBe('true_false');
+    expect(clarifyKindFor(row({ questionNumber: 'Phần III – Câu 2', expectedAnswer: 'x^2+1' }))).toBe('short');
+    expect(clarifyKindFor(row({ questionNumber: 'Tự luận – Bài 1', expectedAnswer: 'Giải hệ phương trình ra x = 2' }))).toBe('photo');
+    expect(clarifyKindFor(row({ questionNumber: 'Bài 4', expectedAnswer: 'Chứng minh …' }))).toBe('photo');
+  });
+
+  it('buildClarifyRows chỉ đánh dấu câu chưa chắc, ghi lại máy đã đọc ra gì, kèm các ý Đúng/Sai', () => {
+    const { rows, asked } = buildClarifyRows([
+      row(),
+      row({ questionNumber: 'Phần I – Câu 2', status: 'unreadable', studentAnswer: 'B hoặc D', expectedAnswer: 'D', needsTeacherReview: true }),
+      row({ questionNumber: 'Phần II – Câu 1', expectedAnswer: 'a) Đ; b) S; c) Đ; d) S', studentAnswer: 'không rõ', confidence: 0.3 }),
+      row({ questionNumber: 'Tự luận – Bài 1', expectedAnswer: 'chứng minh', status: 'unreadable', needsTeacherReview: true }),
+    ]);
+    expect(asked).toBe(3);
+    expect(rows[0].clarify).toBeUndefined();
+    expect(rows[1].clarify).toMatchObject({ kind: 'mcq', state: 'open', reading: 'B hoặc D' });
+    expect(rows[2].clarify).toMatchObject({ kind: 'true_false', state: 'open', parts: ['a', 'b', 'c', 'd'] });
+    expect(rows[3].clarify).toMatchObject({ kind: 'photo', state: 'open' });
+    expect(pendingClarifyCount(rows)).toBe(3);
+    expect(awaitsClarification(rows)).toBe(true);
+    // Gọi lại không đè câu đã xử lý
+    const answered = answerClarifyRow(rows[1], 'D', '2026-10-09T00:00:00Z')!;
+    expect(buildClarifyRows([answered]).rows[0]).toBe(answered);
+  });
+
+  it('câu em không viết gì (máy không thấy trên ảnh) → không hỏi lại, kẻo em được làm bù sau khi nộp', () => {
+    const { rows, asked } = buildClarifyRows([
+      row({ questionNumber: 'Phần I – Câu 9', status: 'unreadable', studentAnswer: '', needsTeacherReview: true }),
+      row({ questionNumber: 'Phần I – Câu 10', status: 'unreadable', studentAnswer: '   ', needsTeacherReview: true }),
+    ]);
+    expect(asked).toBe(0);
+    expect(rows.every(item => item.clarify === undefined)).toBe(true);
+  });
+});
+
+describe('chuẩn hoá đáp án em gõ', () => {
+  it('trắc nghiệm: một chữ A–D (viết thường, có ngoặc đều được); chữ khác bị từ chối', () => {
+    expect(canonicalAnswer('mcq', ' b ')).toEqual({ ok: true, value: 'B' });
+    expect(canonicalAnswer('mcq', '(c)')).toEqual({ ok: true, value: 'C' });
+    expect(canonicalAnswer('mcq', 'E').ok).toBe(false);
+    expect(canonicalAnswer('mcq', 'AB').ok).toBe(false);
+    expect(canonicalAnswer('mcq', '').ok).toBe(false);
+    expect(canonicalAnswer('mcq', 5).ok).toBe(false);
+  });
+
+  it('đúng-sai nhiều ý: phải đủ các ý, ra đúng khuôn "a) Đ; b) S…" theo thứ tự', () => {
+    const parts = ['a', 'b', 'c', 'd'];
+    expect(canonicalAnswer('true_false', 'd) S; a) Đ; c) Đ; b) S', parts)).toEqual({ ok: true, value: 'a) Đ; b) S; c) Đ; d) S' });
+    expect(canonicalAnswer('true_false', 'a) Đ; b) S', parts).ok).toBe(false);
+    expect(canonicalAnswer('true_false', 'a) X; b) S; c) Đ; d) S', parts).ok).toBe(false);
+  });
+
+  it('đúng-sai một ý: Đúng/Sai; trả lời ngắn: một con số (dấu phẩy, âm, phân số), không nhận chữ', () => {
+    expect(canonicalAnswer('true_false', 'sai')).toEqual({ ok: true, value: 'Sai' });
+    expect(canonicalAnswer('true_false', 'có')).toMatchObject({ ok: false });
+    expect(canonicalAnswer('short', ' −1,5 ')).toEqual({ ok: true, value: '-1,5' });
+    expect(canonicalAnswer('short', '3/4')).toEqual({ ok: true, value: '3/4' });
+    expect(canonicalAnswer('short', 'x = 2').ok).toBe(false);
+    expect(canonicalAnswer('photo', 'abc').ok).toBe(false);
+  });
+});
+
+describe('áp đáp án em gõ', () => {
+  const open = (patch: Partial<QuestionResult>) => buildClarifyRows([row({ status: 'unreadable', needsTeacherReview: true, studentAnswer: 'B hoặc D', score: 0, ...patch })]).rows[0];
+
+  it('chấm tất định theo đáp án, ghi đáp án vào "Em làm", đóng cờ, đánh dấu em đã tự điền', () => {
+    const wrong = answerClarifyRow(open({ expectedAnswer: 'D' }), 'B', 'T')!;
+    expect(wrong).toMatchObject({ studentAnswer: 'B', score: 0, status: 'incorrect', needsTeacherReview: false, clarify: { state: 'answered', at: 'T' } });
+    const right = answerClarifyRow(open({ expectedAnswer: 'D' }), 'D', 'T')!;
+    expect(right).toMatchObject({ studentAnswer: 'D', score: 0.25, status: 'correct', needsTeacherReview: false });
+    expect(right.explanation).toContain('tự điền');
+  });
+
+  it('đáp án chuẩn không chấm tất định được → giữ cờ cho thầy cô (không đoán điểm)', () => {
+    const q = open({ questionNumber: 'Phần I – Câu 5', expectedAnswer: '' });
+    const out = answerClarifyRow(q, 'C', 'T')!;
+    expect(out).toMatchObject({ studentAnswer: 'C', needsTeacherReview: true, clarify: { state: 'answered' } });
+  });
+
+  it('chỉ trả lời được câu đang mở loại gõ: trả lời lần 2, câu tự luận → null', () => {
+    const q = open({ expectedAnswer: 'D' });
+    const done = answerClarifyRow(q, 'D', 'T')!;
+    expect(answerClarifyRow(done, 'A', 'T')).toBeNull();
+    expect(answerClarifyRow(open({ questionNumber: 'Tự luận – Bài 1', expectedAnswer: 'chứng minh' }), 'x', 'T')).toBeNull();
+  });
+
+  it('em chọn "để thầy cô xem" → câu giữ cờ soát, không hỏi nữa; câu đã xong thì bỏ qua không được', () => {
+    const q = open({ expectedAnswer: 'D' });
+    const skipped = skipClarifyRow(q, 'T')!;
+    expect(skipped).toMatchObject({ needsTeacherReview: true, clarify: { state: 'skipped' } });
+    expect(pendingClarifyCount([skipped])).toBe(0);
+    expect(skipClarifyRow(answerClarifyRow(q, 'D', 'T')!, 'T')).toBeNull();
+  });
+});
+
+describe('tự luận: chụp lại từng câu', () => {
+  const essay = (clarify: QuestionResult['clarify']): QuestionResult => row({ questionNumber: 'Tự luận – Bài 1', maxScore: 2, clarify });
+  const url = (uid: string, name = 'a.jpg') => `https://firebasestorage.googleapis.com/v0/b/p.appspot.com/o/${encodeURIComponent(`homework/${uid}/${name}`)}?alt=media&token=t`;
+
+  it('chỉ nhận ảnh trong thư mục của chính em trên Firebase Storage', () => {
+    expect(isOwnClarifyPhotoUrl(url('u1'), 'u1')).toBe(true);
+    expect(isOwnClarifyPhotoUrl(url('u2'), 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl(url('u1/../u2'), 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl('https://evil.example.com/v0/b/p/o/homework%2Fu1%2Fa.jpg', 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl('http://firebasestorage.googleapis.com/v0/b/p/o/homework%2Fu1%2Fa.jpg', 'u1')).toBe(false);
+    expect(isOwnClarifyPhotoUrl(42, 'u1')).toBe(false);
+  });
+
+  it('startPhotoRegrade nối ảnh, đếm lần chụp, chặn khi đang chấm / quá số lần / không có ảnh', () => {
+    const open = essay({ kind: 'photo', state: 'open', reading: '' });
+    const first = startPhotoRegrade(open, ['u1'], '2026-10-09T00:00:00Z', Date.parse('2026-10-09T00:00:00Z'));
+    expect(first).toMatchObject({ ok: true, row: { clarify: { state: 'regrading', photoUrls: ['u1'], tries: 1 } } });
+    const busy = startPhotoRegrade((first as { row: QuestionResult }).row, ['u2'], 'x', Date.parse('2026-10-09T00:01:00Z'));
+    expect(busy.ok).toBe(false);
+    const stale = startPhotoRegrade((first as { row: QuestionResult }).row, [], 'x', Date.parse('2026-10-09T00:10:00Z'));
+    expect(stale).toMatchObject({ ok: true, row: { clarify: { photoUrls: ['u1'], tries: 1 } } });
+    expect(startPhotoRegrade(open, [], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(essay({ kind: 'photo', state: 'open', reading: '', tries: 5 }), ['u'], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(essay({ kind: 'photo', state: 'done', reading: '' }), ['u'], 'x', 0).ok).toBe(false);
+    expect(startPhotoRegrade(row({ clarify: { kind: 'mcq', state: 'open', reading: '' } }), ['u'], 'x', 0).ok).toBe(false);
+  });
+
+  it('finishPhotoRegrade: đủ chắc → done; vẫn mờ → hỏi tiếp bằng lời cố định', () => {
+    const regrading = essay({ kind: 'photo', state: 'regrading', reading: '?', photoUrls: ['u1'], tries: 1, at: 'a' });
+    const sure = finishPhotoRegrade(regrading, row({ score: 2, maxScore: 2, confidence: 0.9, explanation: 'Đúng' }), 'b');
+    expect(sure).toMatchObject({ needsTeacherReview: false, score: 2, clarify: { state: 'done', photoUrls: ['u1'] } });
+    const unsure = finishPhotoRegrade(regrading, row({ status: 'unreadable', needsTeacherReview: true, explanation: 'Đáp án là 7' }), 'b');
+    expect(unsure.clarify).toMatchObject({ state: 'open', photoUrls: ['u1'] });
+    expect(unsure.clarify?.message).not.toContain('7');
+    const failed = failPhotoRegrade(regrading, 'c');
+    expect(failed.clarify).toMatchObject({ state: 'photo_saved', photoUrls: ['u1'] });
+  });
+});
+
+it('pending projection exposes only neutral bound location, never solution or grading marks', () => {
+  const region = { imageIndex: 1, imageUrl: 'own', x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const old = row({ studentAnswer: 'B hoặc D', workedSolution: 'Đáp án B vì...', workedSolutionVersion: 'v', photoMarks: [region], readingRegions: [region],
+    clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+  const projected = hideWhileAwaitingClarification([old])[0];
+  expect(projected.readingRegions).toEqual([region]);
+  expect(projected).not.toHaveProperty('workedSolution');
+  expect(projected).not.toHaveProperty('photoMarks');
+  expect(hideWhileAwaitingClarification([{ ...old, readingRegions: undefined }])[0].readingRegions).toEqual([region]);
+  const typed = answerClarifyRow(old, 'B', 'now');
+  expect(typed?.workedSolution).toBe(old.workedSolution);
+  expect(typed).not.toHaveProperty('readingRegions');
+});
+
+it('does not attach invalid-first region URL onto later valid geometry', () => {
+  const region = { imageIndex: 2, imageUrl: 'second', x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const old = row({ studentAnswer: 'B hoặc D', readingRegions: [{ ...region, imageIndex: 1, imageUrl: 'first', width: 2 }, region],
+    clarify: { kind: 'mcq', state: 'open', reading: 'B hoặc D' } });
+  expect(hideWhileAwaitingClarification([old])[0].readingRegions).toEqual([region]);
+});

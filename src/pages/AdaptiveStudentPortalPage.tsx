@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from 'react';
 import { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { motion } from 'motion/react';
@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Clock3,
   Key,
+  LibraryBig,
   Lightbulb,
   Loader2,
   Route,
@@ -37,6 +38,12 @@ import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
+import {
+  openStudentAdaptiveAssignment,
+  openStudentAdaptiveLibraryLesson,
+  submitStudentAdaptiveLibraryAssessment,
+  submitStudentAdaptiveAssessment,
+} from '../services/studentPortalApi';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
 import { GEMINI_MODELS } from '../lib/aiProviders';
 import {
@@ -56,10 +63,10 @@ import {
   AdaptiveLesson,
   AssessmentAttempt,
   LearningRoute,
-  MasteryStatus,
   StudentLearningProfile,
   StudentSessionProgressRecord,
 } from '../lib/adaptive/types';
+import { averageMastery, countMisconceptions, mergeObjectiveMemory } from '../lib/adaptive/learningProfile';
 import { cn } from '../lib/utils';
 import {
   saveAdaptiveProgressOffline,
@@ -69,8 +76,10 @@ import {
 import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 import { sanitizeDisplayText } from '../lib/adaptive/mathText';
+import { getLearningPurposePlan, learningPurposeOptions, type LearningPurpose } from '../lib/adaptive/learningPurpose';
+import { createDeweyCheckpoint, isTrustedDeweyMessage } from '../lib/dewey/checkpoint';
 
-type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
+type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'exit-ticket' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
 
 type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
@@ -235,12 +244,6 @@ const uploadWorkedExampleImage = async ({
   return { downloadUrl, path };
 };
 
-const averageMastery = (attempts: AssessmentAttempt[]) => {
-  const scores = attempts.flatMap(attempt => attempt.objectiveScores.map(score => score.masteryEstimate));
-  if (scores.length === 0) return 0;
-  return Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2));
-};
-
 const buildProfile = ({
   existingProfile,
   teacherId,
@@ -264,38 +267,10 @@ const buildProfile = ({
 }): StudentLearningProfile => {
   const now = new Date().toISOString();
   const previousMemory = existingProfile?.objectiveMemory || [];
-  const objectiveMemory = lesson.objectives.map(objective => {
-    const evidence = attempts.flatMap(attempt => attempt.objectiveScores.filter(score => score.objectiveId === objective.id));
-    const latestEvidence = evidence[evidence.length - 1];
-    const previous = previousMemory.find(item => item.objectiveId === objective.id);
-    const masteryEstimate = latestEvidence?.masteryEstimate ?? previous?.masteryEstimate ?? 0;
-
-    const lastStatus: MasteryStatus = masteryEstimate >= objective.masteryThreshold
-      ? 'mastered'
-      : masteryEstimate >= 0.55
-        ? 'near_mastery'
-        : 'weak';
-
-    return {
-      objectiveId: objective.id,
-      objectiveCode: objective.code,
-      ...(objective.skillId ? { skillId: objective.skillId } : {}),
-      title: objective.title,
-      attempts: (previous?.attempts || 0) + evidence.length,
-      masteryEstimate,
-      lastStatus,
-      lastUpdatedAt: now,
-    };
-  });
-  const misconceptionCounts = { ...(existingProfile?.misconceptionCounts || {}) };
-
-  attempts.forEach(attempt => {
-    attempt.answers.forEach(answer => {
-      (answer.detectedMisconceptionIds || []).forEach(misconceptionId => {
-        misconceptionCounts[misconceptionId] = (misconceptionCounts[misconceptionId] || 0) + 1;
-      });
-    });
-  });
+  // Tính mastery dùng chung với máy chủ (src/lib/adaptive/learningProfile.ts) để bảng GV
+  // và hồ sơ trình duyệt không lệch nhau.
+  const objectiveMemory = mergeObjectiveMemory(lesson, attempts, previousMemory);
+  const misconceptionCounts = countMisconceptions(attempts, existingProfile?.misconceptionCounts || {});
 
   const sessionMastery = averageMastery(attempts);
   const totalSessions = (existingProfile?.totalSessions || 0) + 1;
@@ -324,13 +299,19 @@ const buildProfile = ({
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || 'unknown');
 
 export const AdaptiveStudentPortalPage = () => {
-  const { id, teacherId } = useParams<{ id?: string; teacherId?: string }>();
+  const { id, teacherId, assignmentId, libraryLessonId } = useParams<{ id?: string; teacherId?: string; assignmentId?: string; libraryLessonId?: string }>();
+  // Chế độ học lại từ Thư viện: máy chấm qua server (bản đã bỏ đáp án) nhưng KHÔNG ghi điểm.
+  const libraryMode = Boolean(libraryLessonId);
   const [stage, setStage] = useState<PortalStage>('loading');
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
   const [portalError, setPortalError] = useState<string | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentCode, setStudentCode] = useState('');
+  const [learningPurpose, setLearningPurpose] = useState<LearningPurpose>(() => {
+    const value = new URLSearchParams(window.location.search).get('purpose');
+    return value === 'preparation' || value === 'remediation' ? value : 'self_paced';
+  });
   const [studentAiKeyInput, setStudentAiKeyInput] = useState(() => getStudentAiKey());
   const [aiKeySaved, setAiKeySaved] = useState(false);
   const [profile, setProfile] = useState<StudentLearningProfile | null>(null);
@@ -358,6 +339,24 @@ export const AdaptiveStudentPortalPage = () => {
       setLesson(null);
 
       try {
+        // Thư viện học lại: mở bài TỰ HỌC công khai qua máy chủ (bản đã bỏ đáp án, không ghi điểm).
+        if (libraryLessonId) {
+          const opened = await openStudentAdaptiveLibraryLesson(libraryLessonId);
+          setLesson(opened.lesson);
+          setStage('identify');
+          setNotice({ tone: 'info', message: 'Chế độ học lại — máy vẫn chấm giúp em nhưng không ghi điểm hay lên bảng lớp.' });
+          return;
+        }
+
+        // Bài THẦY CÔ GIAO cho lớp: mở qua máy chủ để em không đọc được đáp án trong mạng.
+        if (assignmentId) {
+          const opened = await openStudentAdaptiveAssignment(assignmentId);
+          setLesson(opened.lesson);
+          setStage('identify');
+          setNotice({ tone: 'info', message: 'Bài này thầy cô đã giao cho em. Máy sẽ chấm giúp em khi em nộp.' });
+          return;
+        }
+
         if (teacherId) {
           const snapshot = await getDoc(doc(db, 'adaptiveLessons', teacherId));
           if (!snapshot.exists()) {
@@ -387,13 +386,20 @@ export const AdaptiveStudentPortalPage = () => {
         setStage('identify');
       } catch (err) {
         console.error('Không tải được cổng học sinh', err);
+        const message = err instanceof Error ? err.message : '';
+        // Thư viện học lại: HS chưa đăng nhập lớp → dẫn sang trang đăng nhập (/lop).
+        if (libraryLessonId && /Phiên học sinh chưa được xác nhận|đăng nhập học sinh/.test(message)) {
+          setPortalError('Em cần đăng nhập lớp trước khi học lại bài này. Bấm nút bên dưới, nhập mã lớp và mã học sinh của em.');
+          setStage('not_found');
+          return;
+        }
         setPortalError('Không tải được bài học phân hoá từ hệ thống.');
         setStage('not_found');
       }
     };
 
     void loadLesson();
-  }, [id, teacherId]);
+  }, [id, teacherId, assignmentId, libraryLessonId]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 1000);
@@ -438,6 +444,7 @@ export const AdaptiveStudentPortalPage = () => {
   const activeTeacherId = teacherId || lesson?.teacherId || '';
   const currentUnit = lesson?.knowledgeUnits[currentUnitIndex] || null;
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
+  const learningPurposePlan = getLearningPurposePlan(learningPurpose);
   const routeContent = currentUnit?.routes.find(item => item.route === recommendedRoute) || currentUnit?.routes[1] || currentUnit?.routes[0];
   const totalDiagnosticScore = diagnosticAttempt?.answers.reduce((sum, item) => sum + item.score, 0) || 0;
   const maxDiagnosticScore = lesson?.diagnosticTest.questions.reduce((sum, item) => sum + item.points, 0) || 0;
@@ -606,7 +613,21 @@ export const AdaptiveStudentPortalPage = () => {
   const handleDiagnosticSubmit = async () => {
     if (!lesson) return;
     const plannedSeconds = lesson.diagnosticTest.durationMinutes * 60;
-    const attempt = gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
+    // Bài được giao: MÁY CHỦ chấm (đáp án không bao giờ về máy em). Link công khai: chấm tại
+    // trình duyệt như cũ để bản demo của GV vẫn chạy được.
+    const attempt = assignmentId
+      ? (await submitStudentAdaptiveAssessment(assignmentId, {
+        kind: 'diagnostic',
+        answers: diagnosticAnswers,
+        durationSeconds: measuredDurationFor('diagnostic', plannedSeconds),
+      })).attempt
+      : libraryMode
+      ? (await submitStudentAdaptiveLibraryAssessment(libraryLessonId!, {
+        kind: 'diagnostic',
+        answers: diagnosticAnswers,
+        durationSeconds: measuredDurationFor('diagnostic', plannedSeconds),
+      })).attempt
+      : gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
     setDiagnosticAttempt(attempt);
     setQuickCheckAttempts([]);
     setQuickCheckAttemptStateForNextUnit(0);
@@ -624,20 +645,14 @@ export const AdaptiveStudentPortalPage = () => {
     setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[deweyRoute]}. Đang cá nhân hóa nội dung...` });
 
     // Call PA3 Engine — falls back to original lesson if it times out or fails.
-    // Dùng key AI của học sinh (nhập ở cổng); không có key → học bài gốc theo tuyến,
-    // không coi là lỗi.
+    // G3: không cần key AI trên máy — có key riêng (Gemini/Vilao) thì ưu tiên, không thì AI của thầy qua server.
     const callApiFn = async (prompt: string) =>
       callStudentGemini(prompt, { model: DEFAULT_PERSONALIZATION_MODEL });
 
-    const personalizedLesson = getStudentAiKey()
-      ? await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn)
-      : lesson;
-    if (!getStudentAiKey()) {
-      console.info('[portal] Chưa có API key AI của học sinh — dùng bài học gốc theo tuyến, bỏ qua cá nhân hóa.');
-    }
+    const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
 
     const deweyAssets = await loadDeweyAssets(personalizedLesson);
-    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets);
+    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets, learningPurpose);
     const html = renderDeweyLesson(deweyContent, 'classic', { studentCode });
     setDeweyHtml(html);
     setStage('dewey-lesson');
@@ -649,91 +664,50 @@ export const AdaptiveStudentPortalPage = () => {
     setQuickCheckAnswers({});
   };
 
-  const handleDeweyComplete = useCallback(async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number }) => {
+  const handleDeweyComplete = useCallback(async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number; notebookEntries?: string[] }) => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
-    const { olympiaScore, unitIds, durationSeconds } = data;
-    const now = new Date().toISOString();
-    const studentId = buildStudentId(activeTeacherId, studentCode);
-    const progressId = buildProgressId(activeTeacherId, lesson.id, studentCode);
-    const mockExitAttempt: AssessmentAttempt = {
-      id: `dewey-exit-${Date.now()}`,
-      assessmentId: lesson.exitTicket.id,
-      purpose: 'exit_ticket',
-      submittedAt: now,
-      durationSeconds,
-      answers: [],
-      objectiveScores: lesson.objectives.map(obj => ({
-        objectiveId: obj.id,
-        score: olympiaScore,
-        maxScore: 60,
-        masteryEstimate: Math.min(1, olympiaScore / 60),
-      })),
-      recommendedRoute: recommendedRoute,
-    };
-    setExitTicketAttempt(mockExitAttempt);
-    const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
-    const progressRecord: StudentSessionProgressRecord = {
-      id: progressId,
-      teacherId: activeTeacherId,
-      lessonId: lesson.id,
-      lessonTitle: lesson.title,
-      studentId,
-      studentCode: normalizeStudentCode(studentCode),
-      studentName: studentName.trim(),
-      studentClass: studentClass.trim() || undefined,
-      route: recommendedRoute,
-      status: 'completed',
-      diagnosticAttempt,
-      quickCheckAttempts: [],
-      exitTicketAttempt: mockExitAttempt,
-      objectiveStates: progress.objectiveStates,
-      remediationAttempts: 0,
-      completedUnitIds: unitIds,
-      timings: {
-        diagnostic: {
-          startedAt: timestampFor('diagnostic'),
-          completedAt: diagnosticAttempt.submittedAt,
-          durationSeconds: diagnosticAttempt.durationSeconds,
-          plannedSeconds: lesson.diagnosticTest.durationMinutes * 60,
-        },
-      },
-      startedAt: timestampFor('diagnostic'),
-      completedAt: now,
-      updatedAt: now,
-    };
-    const nextProfile = buildProfile({
-      existingProfile: profile,
-      teacherId: activeTeacherId,
-      studentId,
-      studentCode,
-      studentName,
-      studentClass,
-      lesson,
-      attempts: [diagnosticAttempt, mockExitAttempt],
-      route: recommendedRoute,
-    });
-    setIsSaving(true);
+
+    const checkpoint = createDeweyCheckpoint(lesson.id, studentCode, data);
     try {
-      const result = await saveAdaptiveProgressViaApi({ teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile });
-      setProfile(result.profile || nextProfile);
-    } catch (error) {
-      void saveAdaptiveProgressOffline(
-        { teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile },
-        getErrorMessage(error),
-        now
-      );
-    } finally {
-      setIsSaving(false);
-      setStage('complete');
+      window.localStorage.setItem(`adaptive-checkpoint-${lesson.id}-${normalizeStudentCode(studentCode)}`, JSON.stringify(checkpoint));
+    } catch {
+      // A full/private storage area must not turn a partial lesson into a completed one.
     }
-  }, [lesson, diagnosticAttempt, studentCode, studentName, studentClass, profile, sectionStarts]);
+    // Vừa học xong bài → sang BƯỚC CUỐI (bài kiểm tra cuối). Không chuyển thì em mắc màn
+    // bài học vĩnh viễn và bài không bao giờ được chốt là hoàn thành (lỗi P1 của Codex review).
+    setStage('exit-ticket');
+    setNotice({ tone: 'info', message: 'Đã lưu vị trí học. Làm bài kiểm tra cuối để khép lại bài này nhé.' });
+    setIsSaving(false);
+    return;
+
+  }, [lesson, studentCode, diagnosticAttempt]);
 
   const handleExitTicketSubmit = async () => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
 
     const plannedSeconds = lesson.exitTicket.durationMinutes * 60;
-    const finalExitTicketAttempt = gradeAssessment(lesson.exitTicket, exitTicketAnswers, measuredDurationFor('exit-ticket', plannedSeconds));
+    const finalExitTicketAttempt = assignmentId
+      ? (await submitStudentAdaptiveAssessment(assignmentId, {
+        kind: 'exitTicket',
+        answers: exitTicketAnswers,
+        durationSeconds: measuredDurationFor('exit-ticket', plannedSeconds),
+      })).attempt
+      : libraryMode
+      ? (await submitStudentAdaptiveLibraryAssessment(libraryLessonId!, {
+        kind: 'exitTicket',
+        answers: exitTicketAnswers,
+        durationSeconds: measuredDurationFor('exit-ticket', plannedSeconds),
+      })).attempt
+      : gradeAssessment(lesson.exitTicket, exitTicketAnswers, measuredDurationFor('exit-ticket', plannedSeconds));
     setExitTicketAttempt(finalExitTicketAttempt);
+
+    // Bài được giao: máy chủ đã ghi tiến độ + hồ sơ (có classId) trong lúc chấm.
+    // Không ghi thêm từ trình duyệt để không tạo bản tiến độ trùng lớp.
+    if (assignmentId) {
+      setStage('complete');
+      setNotice({ tone: 'info', message: 'Em đã hoàn thành bài. Thầy cô sẽ xem kết quả trên bảng lớp.' });
+      return;
+    }
 
     const attempts = [diagnosticAttempt, ...quickCheckAttempts, finalExitTicketAttempt];
     const studentId = buildStudentId(activeTeacherId, studentCode);
@@ -764,6 +738,7 @@ export const AdaptiveStudentPortalPage = () => {
       studentCode: normalizeStudentCode(studentCode),
       studentName: studentName.trim(),
       studentClass: studentClass.trim() || undefined,
+      learningPurpose,
       route: recommendedRoute,
       status: needsTeacherSupport ? 'needs_support' : 'completed',
       diagnosticAttempt,
@@ -916,10 +891,7 @@ export const AdaptiveStudentPortalPage = () => {
       return;
     }
 
-    if (!getStudentAiKey()) {
-      sendResult({ requestId: data.requestId, error: 'Em cần nhập API key AI ở bước đầu để dùng tính năng chấm ảnh. Tải lại trang và nhập key trước khi bắt đầu học.' });
-      return;
-    }
+    // G3: không yêu cầu key ở máy em nữa — có key riêng thì ưu tiên, không thì AI của thầy qua server.
 
     try {
       const prompt = [
@@ -947,8 +919,10 @@ export const AdaptiveStudentPortalPage = () => {
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      const iframe = document.querySelector<HTMLIFrameElement>('iframe[title="Bài học Dewey"]');
+      if (!iframe || !isTrustedDeweyMessage(e, iframe.contentWindow)) return;
       if (e.data?.type === 'dewey:complete') {
-        void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number });
+        void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number; notebookEntries?: string[] });
       }
       if (e.data?.type === 'dewey:gradeImageRequest') {
         void handleDeweyGradeImageRequest(e.data.data);
@@ -960,7 +934,14 @@ export const AdaptiveStudentPortalPage = () => {
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
   if (stage === 'personalizing') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-purple-600" />} title="Đang chuẩn bị bài học cho em..." message="AI đang cá nhân hoá nội dung theo tuyến và điểm yếu của em." />;
-  if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
+  if (stage === 'not_found' || !lesson) return (
+    <FullPageState
+      icon={<AlertTriangle className="h-8 w-8 text-amber-500" />}
+      title="Chưa tìm thấy bài học"
+      message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'}
+      action={portalError?.includes('đăng nhập lớp') ? <Link to="/lop" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-5 text-sm font-black text-blue-800 transition hover:bg-blue-100">Đăng nhập lớp của em</Link> : undefined}
+    />
+  );
 
   const stepNames = lesson.fiveStepFlow.steps.map(step => step.name);
   const activeStepIndex = stage === 'identify'
@@ -969,7 +950,9 @@ export const AdaptiveStudentPortalPage = () => {
       ? 1
       : stage === 'dewey-lesson'
         ? 2
-        : 4;
+        : stage === 'exit-ticket'
+          ? 3
+          : 4;
 
   return (
     <div className={cn(
@@ -986,8 +969,13 @@ export const AdaptiveStudentPortalPage = () => {
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none ring-1 ring-white/20">
-                <BookOpenCheck className="h-4 w-4" /> Cổng học sinh · học từng bước
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none ring-1 ring-white/20">
+                  <BookOpenCheck className="h-4 w-4" /> Cổng học sinh · học từng bước
+                </span>
+                <Link to="/adaptive-library" className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-blue-800 ring-1 ring-white/40 transition hover:bg-white">
+                  <LibraryBig className="h-3.5 w-3.5" /> Thư viện học lại — chọn bài tự học
+                </Link>
               </div>
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{lesson.title}</h1>
               <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-blue-50">
@@ -1135,6 +1123,27 @@ export const AdaptiveStudentPortalPage = () => {
                 </p>
               </div>
 
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <p className="text-sm font-black text-blue-950">Em muốn học theo cách nào?</p>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  {learningPurposeOptions.map(option => (
+                    <button
+                      key={option.purpose}
+                      type="button"
+                      onClick={() => setLearningPurpose(option.purpose)}
+                      className={cn(
+                        'rounded-2xl border px-3 py-3 text-left transition',
+                        learningPurpose === option.purpose ? 'border-blue-500 bg-white ring-2 ring-blue-200' : 'border-blue-100 bg-blue-50 hover:bg-white',
+                      )}
+                    >
+                      <span className="block text-sm font-black text-slate-800">{option.label}</span>
+                      <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs font-bold text-blue-700">{learningPurposePlan.description}</p>
+              </div>
+
               <button onClick={handleIdentify} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 sm:w-auto">
                 Bắt đầu học <ArrowRight className="h-4 w-4" />
               </button>
@@ -1176,6 +1185,23 @@ export const AdaptiveStudentPortalPage = () => {
                 }}
               />
             </>
+        )}
+
+        {stage === 'exit-ticket' && (
+          <StudentAssessmentCard
+            title="Bước 3. Bài kiểm tra cuối"
+            description={`Làm trong khoảng ${lesson.exitTicket.durationMinutes} phút để khép lại bài học này.`}
+            questions={lesson.exitTicket.questions}
+            answers={exitTicketAnswers}
+            setAnswers={setExitTicketAnswers}
+            submitLabel="Nộp bài kiểm tra cuối"
+            onSubmit={handleExitTicketSubmit}
+            timer={{
+              plannedSeconds: lesson.exitTicket.durationMinutes * 60,
+              elapsedSeconds: elapsedSecondsFor('exit-ticket'),
+              remainingSeconds: remainingSecondsFor('exit-ticket', lesson.exitTicket.durationMinutes * 60),
+            }}
+          />
         )}
 
         {stage === 'dewey-lesson' && deweyHtml && (
@@ -1544,12 +1570,13 @@ const ResultTile = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const FullPageState = ({ icon, title, message }: { icon: ReactNode; title: string; message: string }) => (
+const FullPageState = ({ icon, title, message, action }: { icon: ReactNode; title: string; message: string; action?: ReactNode }) => (
   <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
     <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50">{icon}</div>
       <h1 className="text-xl font-black text-slate-800">{title}</h1>
       <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">{message}</p>
+      {action && <div className="mt-4">{action}</div>}
     </div>
   </div>
 );

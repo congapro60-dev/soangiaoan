@@ -8,10 +8,12 @@ import type {
 } from './types';
 import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
 import type { StudentExamScores } from './examScores';
-import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
+import { normalizeScoreBook, type Hs1Weight, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 import type { ParentRequirementLine } from './parentRequirements';
-import type { PublishedParentGroup } from './parentAccess';
+import type { ReportOverrides } from './reportOverrides';
+import type { ParentActivityEvent, ParentActivityRow, PublishedParentGroup } from './parentAccess';
+import { moTaLoiHttp } from '../httpErrorText';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -54,7 +56,7 @@ const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> =
     body: JSON.stringify({ ...payload, idToken }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   return data as T;
 };
 
@@ -119,14 +121,50 @@ export const loadScoreBook = async (classId: string): Promise<ScoreBookDoc> => {
   return normalizeScoreBook(classId, scoreBook);
 };
 
+export interface ScoreCellEdit {
+  kind: 'hs1' | 'moet';
+  key: string;
+  studentId: string;
+  score: number | null;
+  previous: number | null;
+}
+
+export const saveScoreCells = async (classId: string, cells: ScoreCellEdit[]): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveScoreCells', classId, cells });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
 /** Tạo (không truyền columnId) hoặc sửa một cột điểm hệ số 1. `scores`: studentId → điểm gõ, '' = xoá. */
 export const saveHs1Column = async (
   classId: string,
   columnId: string | null,
-  column: { label: string; date: string },
+  column: { label: string; date: string; weight?: Hs1Weight },
   scores: Record<string, string>,
 ): Promise<ScoreBookDoc> => {
   const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveHs1Column', classId, columnId, column, scores });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Đưa các bài giao lên sổ thành cột liên kết sống; bài đã có cột thì chỉ đổi hệ số. */
+export const linkAssignmentColumns = async (
+  classId: string,
+  items: Array<{ assignmentId: string; weight: Hs1Weight }>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'linkAssignments', classId, items });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+export const linkPeriodicAssignments = async (
+  classId: string,
+  items: Array<{ assignmentId: string; examKey: string }>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'linkPeriodicAssignments', classId, items });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Chọn hệ số cho các mốc thi MOET (mốc vắng trong `weights` = không tính vào điểm trung bình). */
+export const saveExamWeights = async (classId: string, weights: Record<string, Hs1Weight>): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'setExamWeights', classId, weights });
   return normalizeScoreBook(classId, scoreBook);
 };
 
@@ -139,8 +177,38 @@ export const saveExamScores = async (
   classId: string,
   spreadsheetTitle: string,
   exams: Record<string, StudentExamScores>,
+  columns?: { moet: string[]; tds: string[] },
 ): Promise<ScoreBookDoc> => {
-  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamScores', classId, spreadsheetTitle, exams });
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamScores', classId, spreadsheetTitle, exams, columns });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Sửa/xóa một mốc thi trong sổ; không ghi ngược Google Sheet. `null` = ẩn/xóa mốc. */
+export const saveExamColumn = async (
+  classId: string,
+  label: string,
+  scores: Record<string, number | null>,
+  kind?: 'moet' | 'tds' | 'both',
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamColumn', classId, label, scores, ...(kind ? { kind } : {}) });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+export const saveExamColumnSettings = async (
+  classId: string,
+  label: string,
+  input: { newLabel?: string; hidden: boolean },
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamColumnSettings', classId, label, ...input });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Thầy cô xác nhận điểm chấm tay (máy đọc từ ảnh bài định kì) để đưa vào sổ điểm. `score: null` = gỡ. */
+export const confirmPaperExamScore = async (
+  classId: string,
+  input: { studentId: string; assignmentId: string; label: string; score: number | null },
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'confirmPaperExamScore', classId, ...input });
   return normalizeScoreBook(classId, scoreBook);
 };
 
@@ -306,8 +374,12 @@ export interface ParentReportNoteKey {
 
 export interface ParentReportNote {
   text: string;
+  /** Cảnh báo cho bản nháp AI chưa đủ nội dung; giáo viên cần đối chiếu trước khi dùng. */
+  warnings?: string[];
   /** Dòng "kết quả theo yêu cầu cần đạt" (rỗng = báo cáo dùng danh sách chủ đề cũ). */
   requirements: ParentRequirementLine[];
+  /** Chỗ thầy cô chỉnh tay trên báo cáo (chữ, số…) — xem `reportOverrides`. */
+  overrides?: ReportOverrides;
 }
 
 export const loadParentReportNote = (key: ParentReportNoteKey) =>
@@ -317,22 +389,30 @@ export const saveParentReportNote = (key: ParentReportNoteKey, note: ParentRepor
   callTeacherApi<ParentReportNote & { updatedAt: string }>({ action: 'saveParentReportNote', ...key, ...note });
 
 /** AI soạn nháp nhận xét + ghép bài đã duyệt vào yêu cầu cần đạt; giáo viên sửa rồi mới lưu. */
-export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>) =>
-  callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts });
+export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>, program?: string | null) =>
+  callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts, ...(program ? { program } : {}) });
 
 /** Cổng phụ huynh (/ph): cấp PIN riêng cho phụ huynh — gọi lại thì giữ PIN cũ, chỉ cấp cho em chưa có. */
 export const issueParentPins = (classId: string) =>
-  callTeacherApi<{ joinCode: string; className: string; rows: Array<{ studentId: string; name: string; pin: string }> }>({ action: 'issueParentPins', classId });
+  callTeacherApi<{ joinCode: string; className: string; rows: Array<{ studentId: string; name: string; pin: string; parentSet: boolean }> }>({ action: 'issueParentPins', classId });
 
 export const resetParentPin = (classId: string, studentId: string) =>
   callTeacherApi<{ studentId: string; pin: string }>({ action: 'resetParentPin', classId, studentId });
 
 /** Công bố báo cáo một kì cho các em (mỗi lượt vài em); công bố lại cùng kì thì ghi đè. */
-export const publishParentReports = (classId: string, period: { kind: string; from: string; to: string }, reports: Array<{ studentId: string; input: unknown }>) =>
+export const publishParentReports = (classId: string, period: { kind: string; from: string; to: string; hk2From?: string; program?: string | null }, reports: Array<{ studentId: string; input: unknown }>) =>
   callTeacherApi<{ saved: number; skipped: string[] }>({ action: 'publishParentReports', classId, ...period, reports });
 
 export const listParentPublished = async (classId: string): Promise<PublishedParentGroup[]> =>
   (await callTeacherApi<{ groups: PublishedParentGroup[] }>({ action: 'listParentPublished', classId })).groups;
+
+/** Thống kê hoạt động của phụ huynh cả lớp (số lần vào, lần cuối, đang xem…). */
+export const loadParentActivity = async (classId: string): Promise<ParentActivityRow[]> =>
+  (await callTeacherApi<{ rows: ParentActivityRow[] }>({ action: 'parentActivity', classId })).rows;
+
+/** Dòng thời gian chi tiết của một em (mới nhất trước). */
+export const loadParentActivityDetail = async (classId: string, studentId: string): Promise<ParentActivityEvent[]> =>
+  (await callTeacherApi<{ events: ParentActivityEvent[] }>({ action: 'parentActivityDetail', classId, studentId })).events;
 
 export const unpublishParentReports = (classId: string, period: { kind: string; from: string; to: string }) =>
   callTeacherApi<{ removed: number }>({ action: 'unpublishParentReports', classId, ...period });

@@ -48,6 +48,8 @@ export interface LiveLessonIntent {
 export interface LiveLessonDefinition {
   id: string;
   lessonId: string;
+  /** V4 sourceKey (grade-week-period) — undefined cho P31 demo. */
+  sourceKey?: string;
   title: string;
   durationSeconds: number;
   cues: LiveCue[];
@@ -85,7 +87,12 @@ export interface LiveLessonSession {
   currentCueId: string;
   currentTvScreenId: string;
   cueStartedAt?: number;
+  /** Số giây đã trôi TRONG CUE hiện tại — reset về 0 mỗi lần đổi cue. */
   cueElapsedSeconds?: number;
+  /** Mốc đầu tiết (ms) — neo cho P-timer, không đổi khi chuyển cue. */
+  lessonStartedAt?: number;
+  /** Tổng giây đã dạy tích luỹ trước lần pause gần nhất — P-timer cộng thêm phần đang chạy. */
+  lessonElapsedSeconds?: number;
   publicStateEnabled: boolean;
   publicStatsEnabled: boolean;
   createdAt: number;
@@ -125,6 +132,8 @@ export interface LivePublicState {
   updatedAt: number;
   cueStartedAt?: number;
   cueElapsedSeconds?: number;
+  lessonStartedAt?: number;
+  lessonElapsedSeconds?: number;
 }
 
 export interface CreateLiveSessionInput {

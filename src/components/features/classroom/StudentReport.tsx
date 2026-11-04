@@ -2,7 +2,7 @@ import type { AppData } from '../../../types';
 import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { Award, CalendarRange, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, PenLine, Printer, Save, Sparkles, Target, TrendingUp } from 'lucide-react';
-import { db } from '../../../lib/firebase';
+import { auth, db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
@@ -13,12 +13,18 @@ import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import type { ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
 import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
-import { brandingForReport, loadParentBranding } from '../../../lib/classroom/parentBranding';
+import { brandingForReport } from '../../../lib/classroom/parentBranding';
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
-import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
-import { parentActionsForRequirements, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { TEACHER_REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
+import { parentActionsForRequirements, requirementsInStage, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { stageForPeriod } from '../../../lib/classroom/reportStage';
+import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
 import { RequirementLinesEditor } from './RequirementLinesEditor';
+import { ReportOverridesEditor } from './ReportOverridesEditor';
+import { groupResultsByWeek, weekTitle, type WeekGroup } from '../../../lib/classroom/reportWeeks';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
+import { applyReportOverrides, overriddenKeys, type ReportOverrides } from '../../../lib/classroom/reportOverrides';
 
 interface Props {
   classId: string;
@@ -58,6 +64,20 @@ const parentScore = (score: number | null, maxScore: number | null): string => (
   score === null || maxScore === null ? '—' : `${score}/${maxScore}`
 );
 
+/** Tiêu đề một tuần học: "Tuần 5 · 28/9 – 4/10" + số bài đã có kết quả. Mỗi cụm là một khối, không ngắt giữa chừng. */
+const WeekHeading = ({ group }: { group: WeekGroup }) => (
+  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b-2 border-slate-200 pb-1 pt-2">
+    <p className="whitespace-nowrap text-xs font-black text-indigo-700">{weekTitle(group)}</p>
+    <p className="whitespace-nowrap text-[11px] font-bold text-slate-500">{group.officialCount}/{group.results.length} bài đã có kết quả</p>
+  </div>
+);
+
+const KpiGrid = ({ items }: { items: { label: string; value: string }[] }) => (
+  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {items.map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
+  </div>
+);
+
 /**
  * Báo cáo học tập của một học sinh.
  *
@@ -81,9 +101,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   // Kết quả theo yêu cầu cần đạt (AI ghép, giáo viên soát) — lưu cùng nhận xét, theo đúng kì.
   const [yccd, setYccd] = useState<ParentRequirementLine[]>([]);
   const [yccdDaLuu, setYccdDaLuu] = useState<ParentRequirementLine[]>([]);
+  // Chỗ thầy cô chỉnh tay trên báo cáo (chữ, số…); cổng phụ huynh áp cùng bản này nên sửa xong là phụ huynh thấy ngay.
+  const [chinhTay, setChinhTay] = useState<ReportOverrides>({});
+  const [chinhTayDaLuu, setChinhTayDaLuu] = useState<ReportOverrides>({});
   const [dangSoan, setDangSoan] = useState(false);
   const [dangLuuNX, setDangLuuNX] = useState(false);
   const [loiNX, setLoiNX] = useState('');
+  const [canhBaoNX, setCanhBaoNX] = useState<string[]>([]);
 
   useEffect(() => {
     let huy = false;
@@ -110,25 +134,35 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const loiKy = kyBaoCao ? periodError(kyBaoCao) : null;
   const kyHopLe = kyBaoCao && !loiKy ? kyBaoCao : null;
   const baoCaoPH = useMemo(() => buildPeriodParentReport({
-    studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, scoreView: soDiem,
-  }, forAdult ? kyHopLe : null), [studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
-  const parentReport = baoCaoPH.report;
-  const parentCompetency = baoCaoPH.printInput.competency ?? null;
-  const hs1HienThi = baoCaoPH.printInput.hs1 ?? [];
+    studentId, studentName, className, studentCode, classGrade, program: effectiveClassProgram(classId, className), assignments, submissions, profile, scoreView: soDiem,
+  }, forAdult ? kyHopLe : null), [classId, studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
+  // Mọi nơi bên dưới (màn hình, PDF) đọc bản đã áp chỉnh tay; `baoCaoPH.printInput` là bản tự động để so và "về bản tự động".
+  // Tuần học đánh số theo Lịch dạy của giáo viên (lưu trên trình duyệt này); chưa có thì chỉ ghi khoảng ngày của tuần.
+  const weekPlan = useMemo(() => weekPlanFor(teacherId, className, auth.currentUser?.email), [teacherId, className]);
+  const inputHienThi = useMemo(() => ({ ...applyReportOverrides(baoCaoPH.printInput, chinhTay), weekPlan }), [baoCaoPH, chinhTay, weekPlan]);
+  const parentReport = inputHienThi.report;
+  const parentCompetency = inputHienThi.competency ?? null;
+  const hs1HienThi = inputHienThi.hs1 ?? [];
+  const examsHienThi = inputHienThi.exams ?? { moet: [], tds: [] };
   const khoaNhanXet = kyHopLe ? { classId, studentId, kind: kyHopLe.kind, from: kyHopLe.from, to: kyHopLe.to } : null;
-  const khoaNhanXetStr = khoaNhanXet ? JSON.stringify(khoaNhanXet) : '';
+  // Báo cáo "tổng hợp từ đầu năm" không có kì: dùng khoá giả để vẫn lưu được chỗ chỉnh tay (loại này không công bố lên cổng).
+  const khoaChinh = khoaNhanXet ?? { classId, studentId, kind: 'all', from: '2000-01-01', to: '2099-12-31' };
+  const khoaNhanXetStr = JSON.stringify(khoaChinh);
 
   // Đổi kì → nạp nhận xét đã lưu của đúng kì đó.
   useEffect(() => {
     let huy = false;
     setLoiNX('');
-    const datLai = (text: string, lines: ParentRequirementLine[]) => {
-      setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines);
+    setCanhBaoNX([]);
+    const datLai = (text: string, lines: ParentRequirementLine[], chinh: ReportOverrides) => {
+      setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines); setChinhTay(chinh); setChinhTayDaLuu(chinh);
     };
-    if (!khoaNhanXetStr || !forAdult) { datLai('', []); return; }
-    loadParentReportNote(JSON.parse(khoaNhanXetStr))
-      .then(r => { if (!huy) datLai(r.text, r.requirements ?? []); })
-      .catch(() => { if (!huy) datLai('', []); });
+    if (!forAdult) { datLai('', [], {}); return; }
+    const khoa = JSON.parse(khoaNhanXetStr) as typeof khoaChinh;
+    const coKy = khoa.kind !== 'all';
+    loadParentReportNote(khoa)
+      .then(r => { if (!huy) datLai(coKy ? r.text : '', coKy ? requirementsInStage(r.requirements ?? [], classGrade, stageForPeriod(khoa, effectiveClassProgram(classId, className))) : [], r.overrides ?? {}); })
+      .catch(() => { if (!huy) datLai('', [], {}); });
     return () => { huy = true; };
   }, [khoaNhanXetStr, forAdult]);
 
@@ -141,9 +175,10 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     setDangSoan(true);
     setLoiNX('');
     try {
-      const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts);
+      const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts, effectiveClassProgram(classId, className));
+      setCanhBaoNX(nhap.warnings ?? []);
       setNhanXet(nhap.text);
-      setYccd(nhap.requirements ?? []);
+      setYccd(requirementsInStage(nhap.requirements ?? [], classGrade, stageForPeriod(khoaNhanXet, effectiveClassProgram(classId, className))));
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'AI chưa soạn được, thử lại.');
     } finally {
@@ -151,23 +186,38 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     }
   };
   const luuNhanXet = async () => {
-    if (!khoaNhanXet) return;
     setDangLuuNX(true);
     setLoiNX('');
     try {
-      const r = await saveParentReportNote(khoaNhanXet, { text: nhanXet, requirements: yccd });
+      const r = await saveParentReportNote(khoaChinh, { text: nhanXet, requirements: yccd, overrides: chinhTay });
       setNhanXet(r.text);
       setNhanXetDaLuu(r.text);
       setYccd(r.requirements);
       setYccdDaLuu(r.requirements);
+      setChinhTay(r.overrides ?? {});
+      setChinhTayDaLuu(r.overrides ?? {});
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'Chưa lưu được nhận xét.');
     } finally {
       setDangLuuNX(false);
     }
   };
-  const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu);
-  const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
+  const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu) || JSON.stringify(chinhTay) !== JSON.stringify(chinhTayDaLuu);
+  // Cùng một bộ số cho bản giáo viên và bản phụ huynh — hai màn hình không được lệch nhau.
+  const chiSoChung = [
+    { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
+    { label: 'Điểm trung bình', value: parentReport.officialAveragePercent === null ? '—' : `${parentReport.officialAveragePercent.toFixed(1)}%` },
+    { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
+    { label: 'Chưa nộp', value: String(parentReport.missingCount) },
+  ];
+  // "Bài đã chấm" chia theo tuần học: theo hạn nộp của bài giao, bài tự nộp (không có hạn) theo ngày nộp.
+  const hanBai = new Map(assignments.map(a => [a.id, a.dueAt]));
+  const daChamTheoId = new Map(model.gradedSubmissions.map(s => [s.id, s]));
+  const nhomDaCham = groupResultsByWeek(model.gradedSubmissions.map(s => ({
+    // Tiêu đề tuần đếm "bài đã có kết quả" = bài đã duyệt; bài máy chấm nhưng chưa duyệt không tính.
+    assignmentId: s.id, title: '', status: s.grade?.teacherApproved ? 'official' as const : 'pending' as const, score: s.grade?.score ?? null, maxScore: s.grade?.maxScore ?? null,
+    submittedAt: s.createdAt, ...(s.assignmentId && hanBai.get(s.assignmentId) ? { dueAt: hanBai.get(s.assignmentId) } : {}),
+  })), weekPlan);
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
   const competencyGrade = asCompetencyGrade(classGrade);
@@ -218,6 +268,92 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     }
   };
 
+  // Các khối giống hệt nhau ở bản giáo viên và bản phụ huynh.
+  const khoiChung = (
+    <>
+    <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+      <p className="mb-1 flex items-center gap-2 text-sm font-black text-indigo-950"><Lightbulb className="h-4 w-4" /> Nhận xét chung về con</p>
+      <p className="text-sm font-semibold leading-6 text-indigo-950">{parentReport.overallSummary}</p>
+    </div>
+
+    {forAdult && (
+      <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+        <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
+        {(examsHienThi.moet.length > 0 || examsHienThi.tds.length > 0 || hs1HienThi.length > 0) ? (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {examsHienThi.moet.length > 0 && (
+              <div>
+                <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Đánh giá định kì (thang 10)</p>
+                <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                  {examsHienThi.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                </ul>
+              </div>
+            )}
+            {examsHienThi.tds.length > 0 && (
+              <div>
+                <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm theo quý (TDS)</p>
+                <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                  {examsHienThi.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
+                </ul>
+              </div>
+            )}
+            {hs1HienThi.length > 0 && (
+              <div>
+                <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm có hệ số (thang 10) · TB {hs1Average(hs1HienThi)}</p>
+                <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                  {hs1HienThi.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label} <span className="text-[11px] font-semibold text-slate-400">HS{mark.weight ?? 1}</span></span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có điểm của em trong Sổ điểm lớp.</p>
+        )}
+        <p className="mt-2 text-[11px] font-semibold text-slate-400">
+          Lấy từ tab <span className="font-black text-violet-700">Sổ điểm</span> của lớp{soDiem?.examsSyncedAt ? ` (điểm thi đồng bộ ${new Date(soDiem.examsSyncedAt).toLocaleString('vi-VN')})` : ''}. Đồng bộ điểm thi hoặc nhập điểm hệ số 1 ở tab đó — bản PDF gửi phụ huynh tự dùng số mới nhất.
+        </p>
+      </div>
+    )}
+
+    {yccd.length === 0 && (<>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+        <p className="mb-2 flex items-center gap-2 text-sm font-black text-emerald-800"><TrendingUp className="h-4 w-4" /> Điểm mạnh</p>
+        {parentReport.strengths.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa đủ bằng chứng chính thức.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.strengths.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
+      </div>
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+        <p className="mb-2 flex items-center gap-2 text-sm font-black text-amber-800"><Target className="h-4 w-4" /> Cần rèn thêm</p>
+        {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
+      </div>
+    </div>
+    {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
+      <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
+    )}
+    </>)}
+
+    {parentCompetency && parentCompetency.total > 0 && (
+      <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="flex items-center gap-2 text-sm font-black text-indigo-950"><Award className="h-4 w-4" /> Năng lực Toán học</p>
+          <span className="text-xs font-bold text-indigo-700">Đã đánh giá {parentCompetency.assessed}/{parentCompetency.total} năng lực</span>
+        </div>
+        {parentCompetency.items.length === 0 ? (
+          <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có năng lực nào đủ bài đã duyệt để kết luận.</p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {COMPETENCY_LEVELS.filter(level => parentCompetency.items.some(item => item.level === level)).map(level => (
+              <div key={level} className="flex items-start gap-2">
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${parentLevelBadge[level]}`}>{level}</span>
+                <p className="text-sm font-semibold leading-6 text-slate-700">{parentCompetency.items.filter(item => item.level === level).map(item => item.topic).join(' · ')}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    </>
+  );
+
   if (dangTai) {
     return <p className="py-8 text-center text-sm font-semibold text-slate-400">Đang tải dữ liệu học tập...</p>;
   }
@@ -240,7 +376,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <div className="flex flex-wrap items-end gap-2">
               <select value={kyBaoCao?.kind ?? 'all'} onChange={event => chonLoai(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
                 <option value="all">Tổng hợp từ đầu năm tới nay</option>
-                {REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
+                {TEACHER_REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
               </select>
               {kyBaoCao?.kind === 'month' && (
                 <input type="month" value={kyBaoCao.from.slice(0, 7)} onChange={event => event.target.value && setKyBaoCao(defaultPeriod('month', kyBaoCao.from, event.target.value))} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
@@ -270,6 +406,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                   </div>
                 </div>
                 <textarea value={nhanXet} onChange={event => setNhanXet(event.target.value)} rows={4} placeholder="Bấm “AI soạn nháp” để AI viết dựa trên số liệu của kì này, rồi sửa lại cho đúng ý thầy cô. Để trống thì báo cáo không có mục này." className="mt-2 w-full rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-800 outline-none focus:border-violet-300" />
+                {canhBaoNX.length > 0 && <div role="status" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{canhBaoNX.map((message, index) => <p key={index}>{message}</p>)}</div>}
                 <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : chuaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang gõ.' : nhanXetDaLuu || yccdDaLuu.length > 0 ? 'Đã lưu cho đúng học sinh và kì này.' : 'AI chỉ dùng số liệu đã duyệt trong kì, không dùng họ tên của em.'}</p>
                 {yccd.length > 0 && (
                   <div className="mt-3 rounded-xl border border-violet-100 bg-white p-3">
@@ -279,105 +416,39 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                 )}
               </div>
             )}
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
-            { label: 'Điểm trung bình', value: parentReport.officialAveragePercent === null ? '—' : `${parentReport.officialAveragePercent.toFixed(1)}%` },
-            { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
-            { label: 'Chưa nộp', value: String(parentReport.missingCount) },
-          ].map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
-        </div>
-
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-          <p className="mb-1 flex items-center gap-2 text-sm font-black text-indigo-950"><Lightbulb className="h-4 w-4" /> Nhận xét chung về con</p>
-          <p className="text-sm font-semibold leading-6 text-indigo-950">{parentReport.overallSummary}</p>
-        </div>
-
-        {forAdult && (
-          <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
-            <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
-            {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || hs1HienThi.length > 0) ? (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {soDiem.exams.moet.length > 0 && (
-                  <div>
-                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Đánh giá định kì (thang 10)</p>
-                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {soDiem.exams.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
-                    </ul>
-                  </div>
-                )}
-                {soDiem.exams.tds.length > 0 && (
-                  <div>
-                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm theo quý (TDS)</p>
-                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {soDiem.exams.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
-                    </ul>
-                  </div>
-                )}
-                {hs1HienThi.length > 0 && (
-                  <div>
-                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(hs1HienThi)}</p>
-                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {hs1HienThi.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
-                    </ul>
-                  </div>
-                )}
+            <details className="rounded-xl border border-violet-100 bg-white p-3" open={overriddenKeys(chinhTay).size > 0 || undefined}>
+              <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm font-black text-violet-950">
+                <PenLine className="h-4 w-4" /> Chỉnh sửa nội dung báo cáo
+                {overriddenKeys(chinhTay).size > 0 && <span className="whitespace-nowrap rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-black text-violet-800">{overriddenKeys(chinhTay).size} chỗ đã chỉnh tay</span>}
+              </summary>
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : chuaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang sửa.' : 'Đã lưu. Báo cáo đã gửi phụ huynh đã cập nhật theo.'}</p>
+                  <button type="button" onClick={() => void luuNhanXet()} disabled={dangLuuNX || !chuaLuu} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">
+                    {dangLuuNX ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Lưu
+                  </button>
+                </div>
+                <ReportOverridesEditor base={baoCaoPH.printInput} value={chinhTay} onChange={setChinhTay} />
               </div>
-            ) : (
-              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có điểm của em trong Sổ điểm lớp.</p>
-            )}
-            <p className="mt-2 text-[11px] font-semibold text-slate-400">
-              Lấy từ tab <span className="font-black text-violet-700">Sổ điểm</span> của lớp{soDiem?.examsSyncedAt ? ` (điểm thi đồng bộ ${new Date(soDiem.examsSyncedAt).toLocaleString('vi-VN')})` : ''}. Đồng bộ điểm thi hoặc nhập điểm hệ số 1 ở tab đó — bản PDF gửi phụ huynh tự dùng số mới nhất.
-            </p>
+            </details>
           </div>
         )}
+        <KpiGrid items={chiSoChung} />
 
-        {yccd.length === 0 && (<>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-            <p className="mb-2 flex items-center gap-2 text-sm font-black text-emerald-800"><TrendingUp className="h-4 w-4" /> Điểm mạnh</p>
-            {parentReport.strengths.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa đủ bằng chứng chính thức.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.strengths.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
-          </div>
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
-            <p className="mb-2 flex items-center gap-2 text-sm font-black text-amber-800"><Target className="h-4 w-4" /> Cần rèn thêm</p>
-            {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
-          </div>
-        </div>
-        {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
-          <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
-        )}
-        </>)}
-
-        {parentCompetency && parentCompetency.total > 0 && (
-          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="flex items-center gap-2 text-sm font-black text-indigo-950"><Award className="h-4 w-4" /> Năng lực Toán học</p>
-              <span className="text-xs font-bold text-indigo-700">Đã đánh giá {parentCompetency.assessed}/{parentCompetency.total} năng lực</span>
-            </div>
-            {parentCompetency.items.length === 0 ? (
-              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có năng lực nào đủ bài đã duyệt để kết luận.</p>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {COMPETENCY_LEVELS.filter(level => parentCompetency.items.some(item => item.level === level)).map(level => (
-                  <div key={level} className="flex items-start gap-2">
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${parentLevelBadge[level]}`}>{level}</span>
-                    <p className="text-sm font-semibold leading-6 text-slate-700">{parentCompetency.items.filter(item => item.level === level).map(item => item.topic).join(' · ')}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {khoiChung}
 
         <div className="rounded-2xl border border-slate-100 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="text-sm font-black text-slate-900">Kết quả theo bài</p><span className="text-xs font-semibold text-slate-500">Xu hướng: {parentReport.progress.trend === 'up' ? 'Tiến bộ' : parentReport.progress.trend === 'down' ? 'Cần theo dõi' : parentReport.progress.trend === 'flat' ? 'Ổn định' : 'Chưa đủ dữ liệu'}</span></div>
           <div className="mt-3 space-y-2">
-            {parentReport.results.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có bài được ghi nhận.</p> : parentReport.results.map(result => (
-              <div key={result.assignmentId} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div><p className="text-sm font-black text-slate-800">{result.title}</p><p className="text-xs font-semibold text-slate-500">{parentStatusLabel[result.status]}</p></div>
-                <span className="text-sm font-black text-slate-800">{parentScore(result.score, result.maxScore)}</span>
+            {parentReport.results.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có bài được ghi nhận.</p> : groupResultsByWeek(parentReport.results, weekPlan).map(group => (
+              <div key={group.monday || 'khong-ngay'} className="space-y-2">
+                {(group.monday !== '' || parentReport.results.length !== group.results.length) && <WeekHeading group={group} />}
+                {group.results.map(result => (
+                  <div key={result.assignmentId} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div><p className="text-sm font-black text-slate-800">{result.title}</p><p className="text-xs font-semibold text-slate-500">{parentStatusLabel[result.status]}</p></div>
+                    <span className="text-sm font-black text-slate-800">{parentScore(result.score, result.maxScore)}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -406,18 +477,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Bài hiện hành', value: String(model.currentSubmissions.length) },
-          { label: 'Điểm trung bình', value: diemTB },
-          { label: 'Đã duyệt', value: `${model.approvedSubmissions.length}/${model.gradedSubmissions.length}` },
-        ].map(item => (
-          <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-xs font-bold text-slate-500">{item.label}</p>
-            <p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p>
-          </div>
-        ))}
-      </div>
+      <KpiGrid items={chiSoChung} />
+      {kyHopLe && <p className="text-xs font-semibold text-slate-500">Số liệu trên tính theo {rangeLabel(kyHopLe)} — giống bản phụ huynh.</p>}
 
       {forAdult && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
@@ -429,6 +490,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         </div>
       )}
 
+      {forAdult && <div className="space-y-4">{khoiChung}</div>}
+
       <div>
         <p className="text-xs font-black uppercase tracking-wide text-slate-400">Bài đã chấm</p>
         <div className="mt-2 space-y-2">
@@ -436,7 +499,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
               Chưa có bài nào được chấm.
             </p>
-          ) : model.gradedSubmissions.map(s => (
+          ) : nhomDaCham.map(group => (
+            <div key={group.monday || 'khong-ngay'} className="space-y-2">
+              <WeekHeading group={group} />
+              {group.results.map(item => {
+                const s = daChamTheoId.get(item.assignmentId);
+                if (!s) return null;
+                return (
             <div key={s.id} className="rounded-2xl border border-slate-100 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-black text-slate-900">{s.grade?.score} / {s.grade?.maxScore}</span>
@@ -454,6 +523,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                 <p className="mt-1 text-xs font-semibold italic leading-5 text-slate-500">Ghi chú: {s.grade.noteForTeacher}</p>
               )}
             </div>
+                );
+              })}
+            </div>
           ))}
         </div>
       </div>
@@ -462,7 +534,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         <CompetencyPortfolio classId={classId} studentId={studentId} grade={competencyGrade} submissions={submissions} assignments={assignments} studentName={studentName} studentCode={studentCode} settings={settings} />
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      {!forAdult && <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-100 p-4">
           <p className="mb-2 flex items-center gap-2 text-sm font-black text-amber-700">
             <Target className="h-4 w-4" /> {forAdult ? 'Chủ đề còn yếu' : 'Nên luyện thêm'}
@@ -490,7 +562,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <p className="text-sm font-semibold leading-6 text-slate-700">{dangLen.map(t => t.topic).join(' · ')}</p>
           )}
         </div>
-      </div>
+      </div>}
 
       {forAdult && (
         <>

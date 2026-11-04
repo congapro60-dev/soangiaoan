@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { verifySubmissionScore } from './examScoring';
+import { computeAutoScore, validateExamQuestions, verifySubmissionScore } from './examScoring';
+import { computeAutoScoreCore } from '../../api/_exam-core';
 import type { ExamQuestion, StudentAnswer } from '../types';
 
 const questions: ExamQuestion[] = [
@@ -7,6 +8,47 @@ const questions: ExamQuestion[] = [
   { id: 'q2', type: 'short_answer', content: 'SA', correctAnswer: '42', points: 1 },
   { id: 'q3', type: 'essay', content: 'Essay', points: 3 },
 ];
+
+describe('computeAutoScore true/false parity', () => {
+  const question: ExamQuestion = {
+    id: 'tf', type: 'true_false', content: 'TF', options: ['a', 'b', 'c', 'd'], correctAnswer: 'Đ,S,Đ,S', points: 1,
+  };
+
+  it('matches server semantics for CSV/JSON and missing keys', () => {
+    expect(computeAutoScore(question, JSON.stringify({ a: 'đ', b: 's', c: 'đ', d: 's' }))).toBe(1);
+    expect(computeAutoScore(question, '{}', 'thpt2025')).toBe(0);
+    expect(computeAutoScore(question, JSON.stringify({ a: 'Đ' }), 'thpt2025')).toBe(0.1);
+    expect(computeAutoScore({ ...question, correctAnswer: 'Đ,S,Đ' }, 'Đ,S,Đ,S')).toBe(0);
+  });
+
+  it('agrees with the actual server for every partial score and simple true/false', () => {
+    for (const mode of ['all_or_nothing', 'thpt2025'] as const) {
+      for (let count = 0; count <= 4; count++) {
+        const q = { ...question, correctAnswer: 'Đ,Đ,Đ,Đ', points: 4 };
+        const answer = Array.from({ length: 4 }, (_, i) => i < count ? 'Đ' : 'S').join(',');
+        expect(computeAutoScore(q, answer, mode)).toBe(computeAutoScoreCore(q, answer, mode));
+      }
+    }
+    const q = { ...question, options: undefined, correctAnswer: 'Đúng' };
+    expect(computeAutoScore(q, 'Đúng')).toBe(computeAutoScoreCore(q, 'Đúng'));
+  });
+
+  it('refreshes review keys when explicitly regrading', () => {
+    const q = { ...question, type: 'multiple_choice' as const, correctAnswer: 'B' };
+    expect(verifySubmissionScore([q], [{ questionId: q.id, answer: 'B', autoScore: 0, correctAnswer: 'A' }], 0).answers[0]).toMatchObject({ autoScore: 1, correctAnswer: 'B' });
+  });
+
+  it('normalizes full-text MCQ keys and rejects invalid compound T/F tokens', () => {
+    const normalized = validateExamQuestions([{
+      id: 'full-text', type: 'multiple_choice', content: 'Câu hỏi',
+      options: ['A. Hà Nội', 'B. Huế'], correctAnswer: 'Hà Nội', points: 1,
+    }]);
+    expect(normalized[0].correctAnswer).toBe('A');
+    expect(() => validateExamQuestions([{
+      id: 'bad-tf', type: 'true_false', content: 'Câu hỏi', options: ['a', 'b', 'c', 'd'], correctAnswer: 'X,X,X,X', points: 1,
+    }])).toThrow();
+  });
+});
 
 describe('verifySubmissionScore', () => {
   it('không đổi gì khi điểm trung thực', () => {

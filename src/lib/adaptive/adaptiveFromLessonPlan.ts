@@ -3,6 +3,7 @@ import { checkTikzWithKroki } from '../krokiRender';
 import { repairMathDeep } from './mathText';
 import { sampleGeometry2DTriangleSimulation, sampleGeometry3DPyramidSimulation } from './simulationTypes';
 import { mapObjectiveToSkill } from '../learning/skillBridge';
+import { normalizeApprovedMedia } from './media';
 import type { AdaptiveSimulationSpec, HtmlSimulationSpec } from './simulationTypes';
 import type {
   AdaptiveAssessment,
@@ -19,6 +20,7 @@ import type {
 type AdaptiveGrade = AdaptiveLesson['grade'];
 
 export interface AdaptiveLessonSource {
+  seedId?: string;
   title: string;
   content: string;
   grade?: string;
@@ -55,11 +57,26 @@ const validateQuestionForPublish = (question: AdaptiveQuestion, path: string, is
 
 export const validateAdaptiveLessonPublishReadiness = (lesson: AdaptiveLesson): AdaptiveLessonQualityIssue[] => {
   const issues: AdaptiveLessonQualityIssue[] = [];
+  (lesson.mediaManifest || []).forEach((media, mediaIndex) => {
+    const path = `mediaManifest[${mediaIndex}]`;
+    if (media.status !== 'approved') {
+      issues.push({ severity: 'error', code: 'unapproved_media', message: 'Media phải được giáo viên duyệt trước khi xuất bản.', path: `${path}.status` });
+    }
+    if (!media.altText?.trim()) {
+      issues.push({ severity: 'error', code: 'missing_media_alt_text', message: 'Ảnh/video/âm thanh phải có mô tả thay thế.', path: `${path}.altText` });
+    }
+    const normalized = normalizeApprovedMedia({ ...media, status: 'approved', altText: media.altText || 'media' });
+    if (!normalized) {
+      issues.push({ severity: 'error', code: 'invalid_media_reference', message: 'Media thiếu URL an toàn hoặc phiên bản hợp lệ.', path });
+    } else if ((normalized.kind === 'video' || normalized.kind === 'audio') && !normalized.captionUrl && !normalized.transcriptUrl) {
+      issues.push({ severity: 'error', code: 'missing_media_text_alternative', message: 'Video/âm thanh phải có phụ đề hoặc bản chép lời.', path });
+    }
+  });
   if (!hasRealText(lesson.title)) issues.push({ severity: 'warning', code: 'missing_title', message: 'Tiêu đề bài học còn trống hoặc không hợp lệ.', path: 'title' });
-  if (!lesson.objectives?.length) issues.push({ severity: 'warning', code: 'missing_objectives', message: 'Bài học cần có ít nhất một mục tiêu học tập.', path: 'objectives' });
-  if ((lesson.diagnosticTest?.questions || []).length < 5) issues.push({ severity: 'warning', code: 'insufficient_diagnostic', message: 'Pre-test cần tối thiểu 5 câu hỏi thật.', path: 'diagnosticTest.questions' });
+  if (!lesson.objectives?.length) issues.push({ severity: 'error', code: 'missing_objectives', message: 'Bài học cần có ít nhất một mục tiêu học tập.', path: 'objectives' });
+  if ((lesson.diagnosticTest?.questions || []).length < 5) issues.push({ severity: 'error', code: 'insufficient_diagnostic', message: 'Pre-test cần tối thiểu 5 câu hỏi thật.', path: 'diagnosticTest.questions' });
   (lesson.diagnosticTest?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `diagnosticTest.questions[${index}]`, issues));
-  if (!lesson.knowledgeUnits?.length) issues.push({ severity: 'warning', code: 'missing_units', message: 'Bài học cần có ít nhất một mảnh kiến thức.', path: 'knowledgeUnits' });
+  if (!lesson.knowledgeUnits?.length) issues.push({ severity: 'error', code: 'missing_units', message: 'Bài học cần có ít nhất một mảnh kiến thức.', path: 'knowledgeUnits' });
   (lesson.knowledgeUnits || []).forEach((unit, unitIndex) => {
     if (!hasRealText(unit.title)) issues.push({ severity: 'warning', code: 'invalid_unit_title', message: 'Mảnh kiến thức thiếu tiêu đề thật.', path: `knowledgeUnits[${unitIndex}].title` });
     routeOptions.forEach(route => {
@@ -72,7 +89,7 @@ export const validateAdaptiveLessonPublishReadiness = (lesson: AdaptiveLesson): 
     if ((unit.quickCheck?.questions || []).length < 2) issues.push({ severity: 'warning', code: 'insufficient_quick_check', message: 'Mỗi mảnh kiến thức cần tối thiểu 2 câu quick check.', path: `knowledgeUnits[${unitIndex}].quickCheck.questions` });
     (unit.quickCheck?.questions || []).forEach((question, questionIndex) => validateQuestionForPublish(question, `knowledgeUnits[${unitIndex}].quickCheck.questions[${questionIndex}]`, issues));
   });
-  if ((lesson.exitTicket?.questions || []).length < 3) issues.push({ severity: 'warning', code: 'insufficient_exit_ticket', message: 'Exit ticket cần tối thiểu 3 câu hỏi thật.', path: 'exitTicket.questions' });
+  if ((lesson.exitTicket?.questions || []).length < 3) issues.push({ severity: 'error', code: 'insufficient_exit_ticket', message: 'Exit ticket cần tối thiểu 3 câu hỏi thật.', path: 'exitTicket.questions' });
   (lesson.exitTicket?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `exitTicket.questions[${index}]`, issues));
   return issues;
 };
@@ -464,6 +481,7 @@ export const buildAdaptiveLessonFromReviewedPlan = (
     teacherId,
     createdAt: now,
     updatedAt: now,
+    ...(source.seedId ? { discoverSeedId: source.seedId } : {}),
     curriculumRef: {
       programType: 'CUSTOM',
       week: source.week || '',
@@ -2276,6 +2294,7 @@ export const runAdaptivePipeline = async (
     teacherId,
     createdAt: now,
     updatedAt: now,
+    ...(source.seedId ? { discoverSeedId: source.seedId } : {}),
     curriculumRef: {
       programType: 'CUSTOM',
       week: source.week || '',

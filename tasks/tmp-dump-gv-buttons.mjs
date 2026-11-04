@@ -1,0 +1,14 @@
+import puppeteer from 'puppeteer';
+import { setTimeout as sleep } from 'node:timers/promises';
+const APP = 'https://giaoandewey.vercel.app';
+const STUDENT_LINK = APP + '/adaptive-live/5rBcNNMCwlLTSM6si1pR?mode=student&definitionKey=11-11-76&lessonId=adaptive-v4-11-11-76-24YyULmWgBOM6HZCfJ56RN5tiet2&classId=class-1787188523562&joinCode=R6RCFC';
+const gb = await puppeteer.connect({ browserWSEndpoint: (await (await fetch('http://127.0.0.1:9222/json/version')).json()).webSocketDebuggerUrl, defaultViewport: null, protocolTimeout: 180000 });
+const gv2 = await gb.newPage();
+await gv2.setViewport({ width: 1440, height: 900 });
+await gv2.goto(STUDENT_LINK.replace('mode=student', 'mode=tv-control'), { waitUntil: 'domcontentloaded', timeout: 90000 });
+await sleep(10000);
+const btns = await gv2.evaluate(() => Array.from(document.querySelectorAll('button')).map((b) => ({ t: (b.textContent || '').trim().slice(0, 40), dis: b.disabled })).filter((x) => x.t));
+console.log(JSON.stringify(btns, null, 1).slice(0, 1500));
+await gv2.close();
+await gb.disconnect();
+process.exit(0);

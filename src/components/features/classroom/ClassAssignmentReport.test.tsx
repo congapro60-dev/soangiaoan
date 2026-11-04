@@ -257,6 +257,13 @@ describe('ClassAssignmentReport adapters', () => {
     expect(JSON.stringify(adapted)).not.toContain('noteForTeacher');
   });
 
+  it('bài nộp bài kiểm tra nhiều mã đề mang theo mã để thống kê tách theo mã; một mã thì không', () => {
+    const submission = { id: 'kt-sub', studentId: 'student-1', status: 'graded', createdAt: '2026-10-06', examCode: '1202', grade: { score: 6, maxScore: 10, teacherApproved: true, questionResults: [] } } as unknown as SubmissionDoc;
+    const variant = (code: string) => ({ code, sourceText: 'x', answerKey: 'y' });
+    expect(adaptUploadSubmission(submission, { id: 'kt', maxScore: 10, examVariants: [variant('1201'), variant('1202')] } as AssignmentDoc).examCode).toBe('1202');
+    expect(adaptUploadSubmission(submission, { id: 'kt', maxScore: 10, examVariants: [variant('1202')] } as AssignmentDoc)).not.toHaveProperty('examCode');
+  });
+
   it('giữ nguồn đề gốc an toàn để popup mở đối chiếu khi đề upload là ảnh scan', () => {
     expect(buildAssignmentQuestionSources({
       attachments: [

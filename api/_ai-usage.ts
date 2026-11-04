@@ -59,6 +59,8 @@ export interface AiKeyChoice {
   ownerUid: string | null;
   /** Có trừ ví trả trước không (null = không trừ: chưa bật kiểm soát / khoá riêng / chủ dự án). */
   billing?: { usdVnd: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
+  /** Khoá RIÊNG của học sinh (`studentAiKeys/{id}`), source = 'own': em tự trả Google, không tính cho thầy cô. */
+  studentKeyId?: string;
 }
 
 export interface AiTokenCounts {
@@ -71,13 +73,21 @@ export interface AiTokenCounts {
   totalTokens: number;
 }
 
-export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai';
+export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai' | 'vilao' | 'xkiro';
 
 const storage = new AsyncLocalStorage<AiUsageContext>();
 
 export const runWithAiUsage = <T>(context: AiUsageContext, fn: () => Promise<T>): Promise<T> => storage.run(context, fn);
 
 export const currentAiUsageContext = (): AiUsageContext | null => storage.getStore() ?? null;
+
+/** Nghe lén số token từng lượt gọi trong một khối việc (đo so sánh model ở trang Quản trị). Không đổi việc ghi sổ. */
+const tapStorage = new AsyncLocalStorage<{ model: string; counts: AiTokenCounts }[]>();
+export const withUsageTap = async <T>(fn: () => Promise<T>): Promise<{ value: T; calls: { model: string; counts: AiTokenCounts }[] }> => {
+  const calls: { model: string; counts: AiTokenCounts }[] = [];
+  const value = await tapStorage.run(calls, fn);
+  return { value, calls };
+};
 
 /** Handler gắn giáo viên chịu khoá/tiền cho lượt này (vd chủ lớp khi học sinh tự nộp). */
 export const setAiKeyOwner = (uid: string | null): void => {
@@ -166,6 +176,8 @@ export const buildAiUsageRecord = (
   // 'own' = giáo viên tự trả Google, KHÔNG vào bảng kê. Lượt cũ (trước khi có trường này) là khoá chung.
   keySource: context?.keyChoice?.source ?? 'shared',
   ...(context?.keyChoice?.ownerUid ? { keyOwnerUid: context.keyChoice.ownerUid } : {}),
+  // Khoá của học sinh: tách khỏi "lượt chạy bằng khoá riêng" của thầy cô trong sao kê.
+  ...(context?.keyChoice?.studentKeyId ? { keyHolder: 'student' } : {}),
   ...counts,
   ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
 });
@@ -241,7 +253,7 @@ export const acquireCallHoldWaiting = async (
   deadline: number | null = null,
 ): Promise<HoldResult | { ok: false; reason: 'timeout' }> => {
   let held = await acquireCallHold(choice);
-  for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+  for (let waited = 0; held.ok === false && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
     await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
     if (deadline !== null && deadline - Date.now() <= 0) return { ok: false, reason: 'timeout' };
     held = await acquireCallHold(choice);
@@ -281,8 +293,14 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
   const usageRef = db.collection(AI_USAGE_COL).doc(randomUUID());
   const spendRef = db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month)));
   const walletRef = db.collection(AI_WALLETS_COL).doc(ownerUid);
-  const debit = o.charge?.chargeVnd ?? 0;
   await db.runTransaction(async transaction => {
+    // Ví KHÔNG BAO GIỜ âm: tiền giữ chỗ chỉ bằng số dư còn lại, nên lượt cuối có thể đắt hơn số dư. Trừ tối đa bằng số dư;
+    // phần thiếu chủ dự án chịu và ghi `uncoveredVnd` để sao kê tự giải thích. Đọc trong cùng giao dịch, trước mọi lần ghi.
+    const fullVnd = o.charge?.chargeVnd ?? 0;
+    const balanceVnd = fullVnd > 0 ? Math.max(0, Number((await transaction.get(walletRef)).data()?.balanceVnd) || 0) : 0;
+    const debit = Math.min(fullVnd, balanceVnd);
+    const charge = o.charge ? { chargeVnd: debit } : null;
+    if (debit < fullVnd) Object.assign(record, { chargeVnd: debit, uncoveredVnd: fullVnd - debit });
     transaction.set(usageRef, record);
     // Sổ chi tiêu tháng của giáo viên chịu phí — để hiện "đã dùng" và chặn khi chạm trần tự đặt.
     transaction.set(spendRef, {
@@ -291,8 +309,8 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
       costUsd: FieldValue.increment(o.costUsd),
       calls: FieldValue.increment(1),
       ...(o.images ? { images: FieldValue.increment(o.images) } : {}),
-      ...(o.charge ? { chargeVnd: FieldValue.increment(o.charge.chargeVnd) } : {}),
-      ...spendByDay(record.day, o.costUsd, o.charge),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      ...spendByDay(record.day, o.costUsd, charge),
       updatedAt: record.at,
     }, { merge: true });
     if (debit > 0 || o.holdVnd) {
@@ -306,26 +324,45 @@ const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<strin
   });
 };
 
+/**
+ * CẦU CHÌ: lượt bị trừ ví mà model chưa có trong bảng giá thì bị tính 0đ — kêu lên trong log thay vì im lặng tặng miễn phí
+ * (vd đổi `GRADING_XKIRO_MODEL` sang model trả phí mà quên thêm giá). Model ":free" là 0đ thật nên không kêu.
+ */
+const warnUnpriced = (model: string, costUsd: number | null, choice: AiKeyChoice | null | undefined): void => {
+  if (costUsd !== null || !choice?.billing || model.endsWith(':free')) return;
+  console.warn(`[ai-usage] model chưa có giá, lượt trừ ví bị tính 0đ: ${model} (người chịu phí ${choice.ownerUid}) — thêm giá vào src/lib/admin/aiPricing.ts`);
+};
+
 /** Ghi một lượt dùng. KHÔNG bao giờ ném lỗi ra ngoài. */
 export const recordAiUsage = async (
   provider: AiProvider,
   model: string,
   counts: AiTokenCounts | null,
-  extra: { finishReason?: string; /** Phần tiền đã giữ chỗ cho lượt này (`acquireCallHold`) — được thay bằng số tiền thật khi trừ ví. */ holdVnd?: number } = {},
+  extra: {
+    finishReason?: string;
+    /** Phần tiền đã giữ chỗ cho lượt này (`acquireCallHold`) — được thay bằng số tiền thật khi trừ ví. */
+    holdVnd?: number;
+    /** Khoá chung nào phục vụ lượt này: một khoá trong danh sách của chủ dự án (kèm hạng free/paid) hay khoá môi trường. Chỉ để chủ dự án biết đã tiết kiệm được bao nhiêu — KHÔNG đổi số tiền trừ ví. */
+    poolKey?: { id?: string; tier: 'free' | 'paid' | 'env' };
+  } = {},
 ): Promise<void> => {
   if (!counts) {
     await releaseCurrentHold(extra.holdVnd);
     return;
   }
+  tapStorage.getStore()?.push({ model, counts });
   try {
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
     const record = buildAiUsageRecord(context, identity, provider, model, counts, { finishReason: extra.finishReason });
+    if (extra.poolKey) Object.assign(record, { keyTier: extra.poolKey.tier, ...(extra.poolKey.id ? { poolKeyId: extra.poolKey.id } : {}) });
     const db = getAdminDb();
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;
     const billable = Boolean(ownerUid) && record.keySource !== 'own';
-    const costUsd = billable ? costUsdOfCall(model, String(record.day), counts) ?? 0 : 0;
+    const priced = billable ? costUsdOfCall(model, String(record.day), counts) : null;
+    if (billable) warnUnpriced(model, priced, choice);
+    const costUsd = priced ?? 0;
     // Ví trả trước: lượt này bị trừ bao nhiêu — ghi luôn giá gốc, tỷ giá, % giảm để sao kê tự giải thích.
     const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
     if (charge && choice?.billing) {
@@ -379,7 +416,9 @@ export const recordImageUsage = async (
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;
     const billable = Boolean(ownerUid) && record.keySource !== 'own';
-    const costUsd = billable ? costUsdOfImage(model, String(record.day), images) ?? 0 : 0;
+    const priced = billable ? costUsdOfImage(model, String(record.day), images) : null;
+    if (billable) warnUnpriced(model, priced, choice);
+    const costUsd = priced ?? 0;
     const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
@@ -392,6 +431,19 @@ export const recordImageUsage = async (
 };
 
 const REF_KEYS = ['classId', 'submissionId', 'assignmentId', 'setId', 'studentId', 'examId', 'attemptId'] as const;
+
+/**
+ * Bổ sung mã tham chiếu cho lượt AI ĐANG chạy khi chỉ biết sau lúc đọc dữ liệu (vd bài nộp → học sinh). Không đè giá trị đã có.
+ * Nhờ vậy mọi lượt AI của một em đều tra lại được theo `refs.studentId` — cổng học sinh hiện chi phí AI của chính em từ đây.
+ */
+export const tagAiUsageRefs = (refs: Partial<Record<(typeof REF_KEYS)[number], unknown>>): void => {
+  const context = currentAiUsageContext();
+  if (!context) return;
+  for (const key of REF_KEYS) {
+    const value = refs[key];
+    if (typeof value === 'string' && value.trim() && value.length <= 200 && !context.refs[key]) context.refs[key] = value.trim();
+  }
+};
 
 /** Rút mã tham chiếu có trong body (không tin để phân quyền — chỉ để quy về lớp khi lập bảng kê). */
 export const refsFromBody = (body: Record<string, unknown>): Record<string, string> => {

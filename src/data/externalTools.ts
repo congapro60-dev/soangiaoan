@@ -17,7 +17,7 @@ export interface ExternalTool {
   isEmbeddable?: boolean;
 }
 
-import externalToolsData from './externalToolsData.json';
+import externalToolsData from './externalToolsData.json' with { type: 'json' };
 
 export const EXTERNAL_TOOLS: ExternalTool[] = [
   ...externalToolsData.map(t => ({

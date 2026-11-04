@@ -1,6 +1,7 @@
 /** Gọi các action quản trị ở /api/classroom. Quyền được kiểm lại ở máy chủ. */
 import { auth } from '../firebase';
 import type { TeacherUsage } from './billing';
+import { moTaLoiHttp } from '../httpErrorText';
 
 export interface AdminUser {
   uid: string;
@@ -44,6 +45,8 @@ export interface AdminOverview {
   aiEventsAfter: Record<string, number>;
   settings: AdminBillingSettings;
   meteringStartDay: string;
+  /** Mã lớp đang bị dùng chung bởi từ hai lớp (đáng lẽ rỗng). */
+  duplicateJoinCodes: Array<{ code: string; classes: Array<{ id: string; name: string; teacherId: string }> }>;
 }
 
 export interface AdminUsage {
@@ -63,11 +66,52 @@ const callAdmin = async <T>(payload: Record<string, unknown>): Promise<T> => {
     body: JSON.stringify({ ...payload, idToken }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   return data as T;
 };
 
 export const loadAdminOverview = () => callAdmin<AdminOverview>({ action: 'adminOverview' });
+
+/** Một dòng trong kế hoạch khôi phục sau sự cố chấm lại 15–16/10 (xem `api/_refresh-restore.ts`). */
+export interface RefreshRestoreItem {
+  submissionId: string;
+  classId: string;
+  studentName: string;
+  assignmentTitle: string;
+  oldScore: number | null;
+  currentScore: number | null;
+  maxScore: number | null;
+  oldApproved: boolean | null;
+  currentApproved: boolean | null;
+  action: 'restore' | 'skip';
+  reason: string;
+}
+
+export interface RefreshRestoreResult { plan: RefreshRestoreItem[]; restored: number; failed: number; pending: number; batch: number }
+
+/** `run=false`: chỉ xem trước. `run=true`: khôi phục một lô (tối đa `batch` bài) rồi trả kế hoạch mới. */
+export const refreshRestore = (run: boolean) => callAdmin<RefreshRestoreResult>({ action: 'adminRefreshRestore', run });
+
+export interface GhkiRestoreItem {
+  submissionId: string;
+  studentName: string;
+  assignment: string;
+  currentScore: number | null;
+  newScore: number | null;
+  maxScore: number | null;
+  currentApproved: boolean | null;
+  newApproved: boolean | null;
+  currentBroken: boolean;
+  newBroken: boolean;
+  feedbackPreview: string;
+  action: 'restore' | 'skip';
+  reason: string;
+}
+
+export interface GhkiRestoreResult { plan: GhkiRestoreItem[]; restored: number; failed: number; pending: number; batch: number }
+
+/** Khôi phục sau sự cố GHKI 23/10. `run=false`: chỉ xem trước. */
+export const ghkiRestore = (run: boolean) => callAdmin<GhkiRestoreResult>({ action: 'adminGhkiRestore', run });
 
 export const loadAdminUsage = (fromDay: string, toDay: string) => callAdmin<AdminUsage>({ action: 'adminUsage', fromDay, toDay });
 

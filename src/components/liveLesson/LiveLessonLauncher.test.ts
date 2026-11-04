@@ -19,7 +19,9 @@ describe('live lesson launcher helpers', () => {
 
   it('builds teacher, TV and student URLs with one session id', () => {
     const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123', 'JOIN123');
-    expect(urls.teacher).toBe('https://smartplan.test/adaptive-live/session-123?mode=teacher');
+    // Link GV phải là Presenter V8.8 (tv-control) — mode=teacher là màn cũ không có P-timer.
+    expect(urls.teacher).toBe('https://smartplan.test/adaptive-live/session-123?mode=tv-control');
+    expect(urls.tvControl).toBe('https://smartplan.test/adaptive-live/session-123?mode=tv-control');
     expect(urls.tv).toBe('https://smartplan.test/adaptive-live/session-123?mode=tv');
     expect(urls.student).toContain('mode=student');
     expect(urls.student).toContain('classId=class-123');

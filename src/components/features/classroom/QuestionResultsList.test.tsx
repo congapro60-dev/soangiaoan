@@ -105,4 +105,17 @@ describe('QuestionResultsList', () => {
     expect(render).not.toThrow();
     expect(render()).not.toContain('<unknown');
   });
+
+  it('hideScores (bài kiểm tra định kì): vẫn hiện đúng/sai + nhận xét, không hiện điểm từng câu', () => {
+    const row = {
+      questionNumber: 'Phần I – Câu 1', status: 'incorrect' as const, score: 0, maxScore: 0.25, studentAnswer: 'B', expectedAnswer: 'C',
+      errorType: 'Nhầm dấu', explanation: 'Sai dấu khi đạo hàm.', correction: '', nextPractice: '', needsTeacherReview: false,
+    };
+    const shown = renderToStaticMarkup(<QuestionResultsList results={[row]} />);
+    const hidden = renderToStaticMarkup(<QuestionResultsList results={[row]} hideScores />);
+    expect(shown).toContain('0/0.25');
+    expect(hidden).not.toContain('0/0.25');
+    expect(hidden).toContain('Sai dấu khi đạo hàm.');
+  });
 });
+

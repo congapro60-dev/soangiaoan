@@ -56,6 +56,14 @@ describe('studentExamPolicy', () => {
     }))).toEqual({ allowed: false, reason: 'max_attempts_reached' });
   });
 
+  it('zero means unlimited attempts and assignment dueAt alone does not lock work', () => {
+    expect(evaluateStudentExamStart(baseInput({
+      exam: { id: 'exam-1', isActive: true, maxAttempts: 0 },
+      assignment: { id: 'assignment-1', classId: 'class-1', type: 'exam', examId: 'exam-1', isOpen: true, dueAt: '2026-08-27T10:00:00Z' },
+      attempts: [{ id: 'attempt-1', studentId: 'student-1', classId: 'class-1', assignmentId: 'assignment-1', status: 'submitted' }],
+    }))).toEqual({ allowed: true, reason: 'ok' });
+  });
+
   it('resumes the student in-progress attempt and ignores another student attempt', () => {
     const attempts = [
       { id: 'other', studentId: 'student-2', classId: 'class-1', assignmentId: 'assignment-1', status: 'in_progress' as const },

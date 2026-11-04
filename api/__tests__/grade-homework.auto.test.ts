@@ -128,16 +128,18 @@ describe('quét tự chấm + tự duyệt sau 60 phút', () => {
     expect((await call('Bearer sai')).statusCode).toBe(401);
   });
 
-  it('duyệt bài chờ duyệt quá 60 phút, chấm + duyệt bài chờ chấm quá 60 phút; bài chưa chắc / mới thì giữ nguyên', async () => {
+  it('duyệt quá 60 phút cả bài thường lẫn bài chưa chắc; chấm + duyệt bài chờ chấm quá 60 phút', async () => {
     const state = seed();
     h.db = makeDb(state);
     const result = await call('Bearer bi-mat');
     expect(result.statusCode).toBe(200);
-    expect(result.body).toMatchObject({ approved: 2, graded: 1, failed: 0, remaining: 0 });
+    expect(result.body).toMatchObject({ approved: 3, graded: 1, failed: 0, remaining: 0 });
     const s = state.submissions;
     expect(s['cho-duyet'].grade).toMatchObject({ teacherApproved: true, approvalSource: 'auto_timeout' });
+    expect(s['chua-chac'].grade).toMatchObject({ teacherApproved: true, approvalSource: 'auto_timeout' });
+    // Duyệt phải KHÔNG xoá dữ liệu cờ: bài cần soát giữ nguyên questionResults gốc sau khi được duyệt.
+    expect(s['chua-chac'].grade.questionResults).toEqual([{ confidence: 0.2 }]);
     expect(s['cho-cham']).toMatchObject({ status: 'graded', grade: expect.objectContaining({ score: 8, teacherApproved: true, approvalSource: 'auto_timeout' }) });
-    expect(s['chua-chac'].grade).toMatchObject({ teacherApproved: false });
     expect(s['moi-cham'].grade).toMatchObject({ teacherApproved: false });
     expect(s['moi-nop'].status).toBe('submitted');
   });

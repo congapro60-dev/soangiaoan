@@ -21,6 +21,7 @@ import {
   recordAiUsage,
   refsFromBody,
   runWithAiUsage,
+  tagAiUsageRefs,
 } from '../_ai-usage';
 
 describe('đếm token', () => {
@@ -75,5 +76,14 @@ describe('đếm token', () => {
 
   it('chỉ lấy các mã tham chiếu hợp lệ trong body', () => {
     expect(refsFromBody({ classId: ' lop ', submissionId: '', idToken: 'bí mật', assignmentId: 7 })).toEqual({ classId: 'lop' });
+  });
+
+  it('bổ sung mã học sinh/lớp/bài cho lượt ĐANG chạy: không đè mã đã có, bỏ giá trị rỗng/lạ, ngoài ngữ cảnh thì không làm gì', async () => {
+    expect(() => tagAiUsageRefs({ studentId: 'hs-1' })).not.toThrow();
+    const context = createAiUsageContext('t', 'practice', { classId: 'lop-goc' }, async () => ({ uid: 'u', email: null, anonymous: true }));
+    await runWithAiUsage(context, async () => {
+      tagAiUsageRefs({ studentId: ' hs-1 ', classId: 'lop-khac', assignmentId: '', submissionId: 5 });
+    });
+    expect(context.refs).toEqual({ classId: 'lop-goc', studentId: 'hs-1' });
   });
 });

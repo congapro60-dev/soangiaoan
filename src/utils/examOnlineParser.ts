@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { geminiKeysOf, withGeminiKeys } from '../lib/geminiKeyRing';
 import { DEFAULT_GEMINI_RUNTIME_MODEL } from '../lib/gemini';
 import { callAI } from '../lib/aiProviders';
 import { parseLooseJson } from './jsonRepair';
@@ -220,7 +221,7 @@ export async function parseMarkdownToOnlineExam(
   // Các provider khác (Claude/OpenAI/Grok/DeepSeek) đi qua callAI như phần còn lại của app.
   const provider = settings.selectedProvider ?? 'gemini';
   if (provider === 'gemini' && settings.geminiApiKey?.trim()) {
-    return parseWithGeminiDirect(markdownContent, settings.geminiApiKey);
+    return withGeminiKeys(geminiKeysOf(settings), key => parseWithGeminiDirect(markdownContent, key));
   }
 
   const rawText = await callAI(

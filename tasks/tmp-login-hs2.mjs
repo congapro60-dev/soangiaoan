@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer';
+import { setTimeout as sleep } from 'node:timers/promises';
+const hs = await puppeteer.connect({ browserWSEndpoint: (await (await fetch('http://127.0.0.1:9223/json/version')).json()).webSocketDebuggerUrl, defaultViewport: null, protocolTimeout: 180000 });
+const hp = await hs.newPage();
+await hp.setViewport({ width: 1000, height: 900 });
+await hp.goto('https://giaoandewey.vercel.app/adaptive-live/sY4gRJSMS1h6v9eTy7A5?mode=student&definitionKey=11-11-76&lessonId=adaptive-v4-11-11-76-24YyULmWgBOM6HZCfJ56RN5tiet2&classId=class-1787188523562&joinCode=R6RCFC', { waitUntil: 'networkidle2', timeout: 120000 });
+await sleep(10000);
+const t = await hp.evaluate(() => (document.body.innerText || '').replace(/\n{2,}/g, '\n'));
+console.log('TEXT (400):', t.slice(0, 400).replace(/\n/g, ' | '));
+console.log('R1:', t.includes('Nhóm em xong sớm') ? '✓ HIỆN' : '✗');
+const hasSelect = await hp.evaluate(() => Boolean(document.querySelector('select')));
+console.log('select:', hasSelect);
+await hp.close(); await hs.disconnect(); process.exit(0);

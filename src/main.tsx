@@ -2,16 +2,6 @@ import { StrictMode, Component, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
-import { StudentExamPage } from './pages/StudentExamPage';
-import { StudentResultPage } from './pages/StudentResultPage';
-import { AnswerReviewPage } from './pages/AnswerReviewPage';
-import { TeacherGradingPage } from './pages/TeacherGradingPage';
-import { ExamConfigPage } from './pages/ExamConfigPage';
-import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
-import { DuGioPage } from './pages/DuGioPage';
-import { StudentPortalPage } from './pages/StudentPortalPage';
-import { ParentPortalPage } from './pages/ParentPortalPage';
-import { StudentClassExamPage } from './pages/StudentClassExamPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
 import { isStaleChunkError, isStaleReloadInProgress, reloadForStaleChunk } from './lib/staleChunkReload';
@@ -24,7 +14,22 @@ window.addEventListener('vite:preloadError', event => {
 
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+const LessonGenPage = lazy(() => import('./pages/LessonGenPage').then(m => ({ default: m.LessonGenPage })));
+const V832RoomPage = lazy(() => import('./pages/V832RoomPage').then(m => ({ default: m.V832RoomPage })));
+const V832StudioPage = lazy(() => import('./pages/V832StudioPage').then(m => ({ default: m.V832StudioPage })));
 const LiveLessonPage = lazy(() => import('./pages/LiveLessonPage').then(m => ({ default: m.LiveLessonPage })));
+const StudentExamPage = lazy(() => import('./pages/StudentExamPage').then(m => ({ default: m.StudentExamPage })));
+const StudentResultPage = lazy(() => import('./pages/StudentResultPage').then(m => ({ default: m.StudentResultPage })));
+const AnswerReviewPage = lazy(() => import('./pages/AnswerReviewPage').then(m => ({ default: m.AnswerReviewPage })));
+const TeacherGradingPage = lazy(() => import('./pages/TeacherGradingPage').then(m => ({ default: m.TeacherGradingPage })));
+const ExamConfigPage = lazy(() => import('./pages/ExamConfigPage').then(m => ({ default: m.ExamConfigPage })));
+const AdaptiveStudentPortalPage = lazy(() => import('./pages/AdaptiveStudentPortalPage').then(m => ({ default: m.AdaptiveStudentPortalPage })));
+const AdaptiveLibraryPage = lazy(() => import('./pages/AdaptiveLibraryPage').then(m => ({ default: m.AdaptiveLibraryPage })));
+const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m.DuGioPage })));
+const StudentPortalPage = lazy(() => import('./pages/StudentPortalPage').then(m => ({ default: m.StudentPortalPage })));
+const ParentPortalPage = lazy(() => import('./pages/ParentPortalPage').then(m => ({ default: m.ParentPortalPage })));
+const StudentClassExamPage = lazy(() => import('./pages/StudentClassExamPage').then(m => ({ default: m.StudentClassExamPage })));
+const DiscoverSelfStudyPage = lazy(() => import('./pages/DiscoverSelfStudyPage').then(m => ({ default: m.DiscoverSelfStudyPage })));
 
 const RouteLoading = () => (
   <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-700">
@@ -94,24 +99,35 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route path="/lop" element={<StudentPortalPage />} />
-          <Route path="/lop/:joinCode/exam/:assignmentId" element={<StudentClassExamPage />} />
-          <Route path="/lop/:joinCode" element={<StudentPortalPage />} />
-          <Route path="/ph" element={<ParentPortalPage />} />
-          <Route path="/ph/:joinCode" element={<ParentPortalPage />} />
-          <Route path="/du-gio" element={<DuGioPage />} />
-          <Route path="/du-gio/:id" element={<DuGioPage />} />
+          <Route path="/lop" element={<Suspense fallback={<RouteLoading />}><StudentPortalPage /></Suspense>} />
+          <Route path="/lop/:joinCode/exam/:assignmentId" element={<Suspense fallback={<RouteLoading />}><StudentClassExamPage /></Suspense>} />
+          <Route path="/lop/:joinCode" element={<Suspense fallback={<RouteLoading />}><StudentPortalPage /></Suspense>} />
+          <Route path="/ph" element={<Suspense fallback={<RouteLoading />}><ParentPortalPage /></Suspense>} />
+          <Route path="/ph/:joinCode" element={<Suspense fallback={<RouteLoading />}><ParentPortalPage /></Suspense>} />
+          <Route path="/du-gio" element={<Suspense fallback={<RouteLoading />}><DuGioPage /></Suspense>} />
+          <Route path="/du-gio/:id" element={<Suspense fallback={<RouteLoading />}><DuGioPage /></Suspense>} />
           <Route path="/adaptive-lessons" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonListPage /></Suspense>} />
           <Route path="/adaptive-builder/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonBuilderPage /></Suspense>} />
-          <Route path="/adaptive-portal/:id" element={<AdaptiveStudentPortalPage />} />
-          <Route path="/adaptive-portal" element={<AdaptiveStudentPortalPage />} />
+          <Route path="/lesson-gen" element={<Suspense fallback={<RouteLoading />}><LessonGenPage /></Suspense>} />
+          <Route path="/lesson-gen/:draftId" element={<Suspense fallback={<RouteLoading />}><LessonGenPage /></Suspense>} />
+          <Route path="/lesson-compiler-v832" element={<Suspense fallback={<RouteLoading />}><V832StudioPage /></Suspense>} />
+          <Route path="/v832-room/:roomId" element={<Suspense fallback={<RouteLoading />}><V832RoomPage /></Suspense>} />
+          <Route path="/adaptive-portal/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          {/* Thư viện học lại — list công khai bài tự học phân hoá, mọi HS xem + chọn (thầy 28/10). */}
+          <Route path="/adaptive-library" element={<Suspense fallback={<RouteLoading />}><AdaptiveLibraryPage /></Suspense>} />
+          {/* Học lại qua máy chủ: bản đã bỏ đáp án, chấm không ghi điểm. */}
+          <Route path="/adaptive-library/:libraryLessonId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          {/* Bài học phân hoá THẦY CÔ GIAO cho lớp: mở qua máy chủ (bản đã bỏ đáp án). */}
+          <Route path="/adaptive-portal/assignment/:assignmentId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          <Route path="/adaptive-portal" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
           <Route path="/adaptive-live/:sessionId" element={<Suspense fallback={<RouteLoading />}><LiveLessonPage /></Suspense>} />
-          <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
-          <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
-          <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />
-          <Route path="/exam/:examId/grade" element={<TeacherGradingPage />} />
-          <Route path="/exam/:examId/config" element={<ExamConfigPage />} />
-          <Route path="/exam/:code" element={<StudentExamPage />} />
+          <Route path="/adaptive/student/:teacherId" element={<Suspense fallback={<RouteLoading />}><AdaptiveStudentPortalPage /></Suspense>} />
+          <Route path="/discover-self-study" element={<Suspense fallback={<RouteLoading />}><DiscoverSelfStudyPage /></Suspense>} />
+          <Route path="/exam/:code/review/:submissionId" element={<Suspense fallback={<RouteLoading />}><AnswerReviewPage /></Suspense>} />
+          <Route path="/exam/:code/result/:submissionId" element={<Suspense fallback={<RouteLoading />}><StudentResultPage /></Suspense>} />
+          <Route path="/exam/:examId/grade" element={<Suspense fallback={<RouteLoading />}><TeacherGradingPage /></Suspense>} />
+          <Route path="/exam/:examId/config" element={<Suspense fallback={<RouteLoading />}><ExamConfigPage /></Suspense>} />
+          <Route path="/exam/:code" element={<Suspense fallback={<RouteLoading />}><StudentExamPage /></Suspense>} />
           <Route path="*" element={<App />} />
         </Routes>
       </BrowserRouter>

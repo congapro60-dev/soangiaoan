@@ -1,5 +1,6 @@
 import { auth } from '../lib/firebase';
 import type { AssignmentCompetencyTag, AssignmentQuestionCatalogItem } from '../lib/classroom/types';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export interface GradeBatchResult {
   graded: number;
@@ -16,7 +17,7 @@ export interface GradeBatchResult {
 
 export type HomeworkGradingMode = 'quick' | 'thorough';
 
-const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult> => {
+const callApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi thử lại.');
 
@@ -26,9 +27,11 @@ const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult>
     body: JSON.stringify({ ...payload, idToken: await user.getIdToken() }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
-  return data as GradeBatchResult;
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
+  return data as T;
 };
+
+const call = (payload: Record<string, unknown>): Promise<GradeBatchResult> => callApi<GradeBatchResult>(payload);
 
 /**
  * Chấm cả lớp. Máy chủ chỉ chấm vài bài mỗi lượt (trần thời gian chạy của Vercel), nên ở đây lặp
@@ -64,6 +67,38 @@ export const gradeAssignmentAll = async (
 /** Chấm một bài — mặc định để server chọn quick; teacher UI có thể yêu cầu thorough. */
 export const gradeOneSubmission = (submissionId: string, mode?: HomeworkGradingMode): Promise<GradeBatchResult> =>
   call({ action: 'gradeOne', submissionId, ...(mode ? { mode } : {}) });
+
+/** Máy chưa đọc được mã đề: em chọn mã ghi trên tờ đề của em, máy đọc tiếp bài ngay. */
+export const answerExamCode = (submissionId: string, examCode: string): Promise<GradeBatchResult> =>
+  call({ action: 'answerExamCode', submissionId, examCode });
+
+export interface ClarifyAnswersResult {
+  /** Số câu còn chờ em làm rõ sau lượt gửi này; null nếu bài không còn ở trạng thái chấm. */
+  pending: number | null;
+  rejected: Array<{ questionNumber: string; reason: string }>;
+}
+
+/** Học sinh gửi đáp án gõ tay cho các câu máy hỏi lại, hoặc chọn "để thầy cô xem" (skip). Mỗi lượt được lưu ngay. */
+export const submitClarifyAnswers = (
+  submissionId: string,
+  answers: ReadonlyArray<{ questionNumber: string; answer: string }>,
+  skip: readonly string[] = [],
+): Promise<ClarifyAnswersResult> =>
+  callApi<ClarifyAnswersResult>({ action: 'clarifyAnswers', submissionId, answers, skip });
+
+export interface ClarifyPhotoResult {
+  /** Máy đang chấm lại câu ở nền (em chờ hoặc thoát đều được). */
+  regrading?: boolean;
+  pending?: number;
+}
+
+/** Câu tự luận: gửi link ảnh em vừa chụp lại (không kèm ảnh = bấm "thử lại" sau lượt chấm lỗi). Ảnh đã được tải lên Storage trước đó. */
+export const submitClarifyPhotos = (
+  submissionId: string,
+  questionNumber: string,
+  photoUrls: readonly string[] = [],
+): Promise<ClarifyPhotoResult> =>
+  callApi<ClarifyPhotoResult>({ action: 'clarifyPhoto', submissionId, questionNumber, photoUrls });
 
 export interface PracticeQuestion {
   id: string;
@@ -123,7 +158,7 @@ export const fetchPractice = async (setId?: string, attemptId?: string): Promise
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -152,7 +187,7 @@ export const submitPractice = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -174,6 +209,8 @@ export const solveAnswerKey = async (
   examImages: string[],
   maxScore: number,
   gradingInstructions?: string,
+  /** Đề kiểm tra định kì: đáp án theo khuôn từng câu một dòng. */
+  periodic?: boolean,
 ): Promise<SolvedAnswerKeyResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
@@ -182,6 +219,7 @@ export const solveAnswerKey = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...(periodic ? { periodic: true } : {}),
       action: 'solveAnswerKey',
       idToken: await user.getIdToken(),
       classId,
@@ -193,7 +231,7 @@ export const solveAnswerKey = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
@@ -224,11 +262,34 @@ export const solveAnswerKeyForAssignment = async (
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    const error = new Error(data?.error || moTaLoiHttp(res.status)) as Error & { status?: number };
     error.status = res.status;
     throw error;
   }
   return data as SolvedAnswerKeyResult;
+};
+
+/**
+ * Bài kiểm tra định kì nhiều mã: AI rút đáp án TỪNG mã từ tư liệu đáp án (một lượt cho mọi mã).
+ * Kết quả chỉ đổ vào bảng xác nhận — giáo viên soát rồi mới giao.
+ */
+export const extractExamVariantKeys = async (
+  classId: string,
+  codes: string[],
+  answerMaterial: string,
+  hints: Record<string, string>,
+): Promise<Record<string, string>> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'extractExamVariantKeys', idToken: await user.getIdToken(), classId, codes, answerMaterial, hints }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
+  return data?.keys && typeof data.keys === 'object' ? data.keys as Record<string, string> : {};
 };
 
 /**
@@ -255,7 +316,7 @@ export const buildQuestionCatalog = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return {
     questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
     competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [],
@@ -282,7 +343,7 @@ export const setAssignmentCompetencyTags = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return { competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [] };
 };
 
@@ -309,7 +370,7 @@ export const suggestRubric = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return String((data as { rubric?: string })?.rubric || '');
 };
 
@@ -333,6 +394,6 @@ export const rewriteFeedback = async (input: RewriteFeedbackInput): Promise<stri
     body: JSON.stringify({ action: 'rewriteFeedback', idToken: await user.getIdToken(), ...input }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) throw new Error(data?.error || moTaLoiHttp(res.status));
   return String((data as { feedback?: string })?.feedback || '');
 };

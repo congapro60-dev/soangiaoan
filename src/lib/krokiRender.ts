@@ -1,4 +1,5 @@
 import pako from 'pako';
+import { moTaLoiDichVu } from './httpErrorText';
 
 export type DiagramType = 'tikz' | 'mermaid' | 'svg' | 'geogebra' | 'aiimg';
 
@@ -126,7 +127,7 @@ export const checkTikzWithKroki = async (tikzCode: string): Promise<{ ok: boolea
   try {
     const res = await fetch(url);
     const body = await res.text();
-    if (!res.ok) return { ok: false, error: `Kroki ${res.status}: ${body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 300)}` };
+    if (!res.ok) return { ok: false, error: `${moTaLoiDichVu(res.status, 'Dịch vụ vẽ sơ đồ Kroki')} Chi tiết: ${body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 300)}` };
     if (!/<svg[\s>]/i.test(body)) return { ok: false, error: 'Kroki không trả về SVG.' };
     const errMatch = body.match(/(?:tikz Error|Package\s+\w+\s+Error|Undefined control sequence|Emergency stop|! LaTeX Error)[^<]{0,200}/i);
     if (errMatch) return { ok: false, error: errMatch[0] };

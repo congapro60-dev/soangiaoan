@@ -146,7 +146,7 @@ describe('practice set/attempt privacy and persistence', () => {
     db.state.submissions = {
       'homework-1': {
         studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1', assignmentId: 'bai-1', status: 'graded', createdAt: '2026-09-18T02:00:00.000Z',
-        grade: { questionResults: [{ questionNumber: 'Câu 2', status: 'incorrect', errorType: 'Sai dấu', explanation: 'Chuyển vế quên đổi dấu', correction: 'Đổi dấu', nextPractice: '' }] },
+        grade: { teacherApproved: true, questionResults: [{ questionNumber: 'Câu 2', status: 'incorrect', errorType: 'Sai dấu', explanation: 'Chuyển vế quên đổi dấu', correction: 'Đổi dấu', nextPractice: '' }] },
       },
       'lop-khac': {
         studentId: 'student-1', classId: 'class-cu', teacherId: 'teacher-9', status: 'graded', createdAt: '2026-09-19T02:00:00.000Z',

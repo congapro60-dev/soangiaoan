@@ -92,9 +92,12 @@ const call = async (body: unknown, opts: { method?: string; token?: string | nul
 const geminiOk = (text = 'Giáo án mẫu', finishReason = 'STOP', usage = { promptTokenCount: 1_000_000, candidatesTokenCount: 0, totalTokenCount: 1_000_000 }) =>
   vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ candidates: [{ finishReason, content: { parts: text ? [{ text }] : [] } }], usageMetadata: usage }) }));
 
+const vilaoOk = (text = 'Giáo án mẫu', finishReason = 'stop', usage = { prompt_tokens: 1_000_000, completion_tokens: 0, total_tokens: 1_000_000 }) =>
+  vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: text }, finish_reason: finishReason }], usage }) }));
+
 describe('relay Gemini cho ví web — kiểm đầu vào', () => {
   it('chỉ nhận model đã có giá (model chưa có giá sẽ bị tính 0đ = tặng miễn phí)', () => {
-    for (const model of RELAY_MODELS) expect(priceFor(model, today), model).not.toBeNull();
+for (const model of RELAY_MODELS) expect(priceFor(`vilao/${model}`, today), model).not.toBeNull();
     expect(parseRelayBody({ prompt: 'x', model: 'gemini-3.5-flash' })).toMatchObject({ ok: false, status: 400 });
     expect(parseRelayBody({ prompt: 'x', model: 'gpt-6-luna' })).toMatchObject({ ok: false, status: 400 });
     expect(parseRelayBody({ prompt: 'x' })).toMatchObject({ ok: true, value: { model: 'gemini-3.8-flash', images: [] } });
@@ -121,10 +124,14 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     h.store = {};
     h.verifyFails = false;
     h.claims = { uid: 'gv-1', email: 'gv1@x.vn', firebase: { sign_in_provider: 'google.com' } };
-    process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
+process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
+    process.env.GRADING_VILAO_API_KEY = OWNER_KEY;
     delete process.env.AI_RELAY_DAILY_LIMIT;
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.GRADING_VILAO_API_KEY;
+  });
 
   it('chỉ nhận POST, phải đăng nhập, và học sinh (ẩn danh) không được dùng', async () => {
     expect((await call({ prompt: 'x' }, { method: 'GET' })).statusCode).toBe(405);
@@ -137,30 +144,92 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     expect((await call({ prompt: 'x', model: 'khong-co' })).statusCode).toBe(403); // ẩn danh bị chặn trước cả kiểm đầu vào
   });
 
-  it('đầu vào sai thì 400, không gọi Google', async () => {
-    const fetchMock = geminiOk();
+  it('nhánh AI HỌC SINH: token ẩn danh + studentAi:true đi qua được, đếm cả doc tổng ngày (hồi quy lỗi total)', async () => {
+    h.claims = { uid: 'hs-1', firebase: { sign_in_provider: 'anonymous' } };
+    h.store['studentLinks/hs-1'] = { classId: 'lop-1', studentId: 'em-1', teacherId: 'gv-9' };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', model: 'gemini-3.8-flash', studentAi: true });
+    expect(res.statusCode).toBe(200);
+    expect(h.store[`aiRelayQuota/hs-1`]).toMatchObject({ day: today, count: 1, student: true });
+    expect(h.store[`aiRelayQuota/_studentDayTotal`]).toMatchObject({ day: today, count: 1 });
+  });
+
+  it('nhánh AI HỌC SINH khi ĐÃ BẬT kiểm soát: chủ lớp suy từ studentLinks, chạy khoá Vilao máy chủ, KHÔNG trừ ví thầy cô', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store['studentLinks/hs-3'] = { classId: 'lop-1', studentId: 'em-3', teacherId: 'gv-9' };
+    h.store['aiWallets/gv-9'] = { balanceVnd: 5_000 };
+    h.claims = { uid: 'hs-3', firebase: { sign_in_provider: 'anonymous' } };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', studentAi: true });
+    expect(res.statusCode).toBe(200);
+    expect((fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }])[1].headers.authorization).toBe(`Bearer ${OWNER_KEY}`);
+    expect(h.store['aiWallets/gv-9']).toEqual({ balanceVnd: 5_000 }); // không trừ, không giữ chỗ
+    const usage = Object.entries(h.store).find(([p]) => p.startsWith('aiUsage/'))?.[1];
+    // Gắn chủ lớp + mã em để sao kê quy về lớp và chip "AI hôm nay" của em đọc được (`refs.studentId`).
+    expect(usage).toMatchObject({ feature: 'studentAi', keyOwnerUid: 'gv-9', keySource: 'shared', refs: { classId: 'lop-1', studentId: 'em-3' } });
+    expect(usage?.chargeVnd).toBeUndefined();
+    expect(h.store['aiSpend/hs-3_' + today.slice(0, 7)]).toBeUndefined(); // không còn sổ rác theo uid ẩn danh
+  });
+
+  it('nhánh AI HỌC SINH: phiên ẩn danh không gắn với lớp nào thì 403, không gọi Vilao, không tốn hạn mức', async () => {
+    h.claims = { uid: 'hs-lac', firebase: { sign_in_provider: 'anonymous' } };
+    const fetchMock = vilaoOk('OK');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ prompt: 'x', studentAi: true });
+    expect(res.statusCode).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(h.store['aiRelayQuota/hs-lac']).toBeUndefined();
+    expect(h.store['aiRelayQuota/_studentDayTotal']).toBeUndefined();
+  });
+
+  it('nhánh AI HỌC SINH dừng khi chạm trần tổng cả hệ thống trong ngày', async () => {
+    h.claims = { uid: 'hs-2', firebase: { sign_in_provider: 'anonymous' } };
+    h.store['studentLinks/hs-2'] = { classId: 'lop-1', studentId: 'em-2', teacherId: 'gv-9' };
+    vi.stubGlobal('fetch', vilaoOk('OK'));
+    process.env.STUDENT_AI_DAY_TOTAL = '1';
+    try {
+      h.store['aiRelayQuota/_studentDayTotal'] = { day: today, count: 1 };
+      const res = await call({ prompt: 'x', studentAi: true });
+      expect(res.statusCode).toBe(429);
+      expect(String(res.payload?.error)).toContain('trần chung');
+      expect(h.store['aiRelayQuota/hs-2']).toBeUndefined(); // không giữ chỗ khi đã hết trần
+    } finally {
+      delete process.env.STUDENT_AI_DAY_TOTAL;
+    }
+  });
+
+  it('đầu vào sai thì 400, không gọi Vilao', async () => {
+    const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     expect((await call({ prompt: '', model: 'gemini-3.8-flash' })).statusCode).toBe(400);
     expect((await call({ prompt: 'x', model: 'gemini-9' })).statusCode).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('chưa bật kiểm soát: chạy bằng khoá chung, chuyển đúng chỉ dẫn + ảnh sang Google, ghi lượt "aiRelay" cho giáo viên', async () => {
-    const fetchMock = geminiOk('Giáo án Toán 10');
+    it('chưa bật kiểm soát: chạy bằng khoá chung, chuyển đúng chỉ dẫn + ảnh sang Vilao, ghi lượt "aiRelay" cho giáo viên', async () => {
+    const fetchMock = vilaoOk('Giáo án Toán 10');
     vi.stubGlobal('fetch', fetchMock);
     const res = await call({ prompt: 'Soạn bài mệnh đề', system: 'Bạn là trợ lý soạn bài.', images: [IMG] });
 
     expect(res.statusCode).toBe(200);
     expect(res.payload).toEqual({ text: 'Giáo án Toán 10', model: 'gemini-3.8-flash', truncated: false });
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { body: string }];
-    expect(url).toContain('models/gemini-3.8-flash:generateContent');
-    expect(url).toContain(OWNER_KEY);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string>; body: string }];
+    expect(url).toBe('https://api.vilao.ai/v1/chat/completions');
+    expect(init.headers.authorization).toBe(`Bearer ${OWNER_KEY}`);
     const sent = JSON.parse(init.body);
-    expect(sent.systemInstruction).toEqual({ parts: [{ text: 'Bạn là trợ lý soạn bài.' }] });
-    expect(sent.contents[0].parts).toEqual([{ text: 'Soạn bài mệnh đề' }, { inlineData: { mimeType: 'image/png', data: 'iVBORw0KGgo=' } }]);
-    expect(sent.generationConfig).toMatchObject({ temperature: 0.1, maxOutputTokens: 65_536 });
+    expect(sent.messages[0]).toEqual({ role: 'system', content: 'Bạn là trợ lý soạn bài.' });
+    expect(sent.messages[1].content).toEqual([
+      { type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } },
+      { type: 'text', text: 'Soạn bài mệnh đề' },
+    ]);
+    expect(sent.max_tokens).toBe(16_000);
     const usage = Object.entries(h.store).find(([p]) => p.startsWith('aiUsage/'))?.[1];
-    expect(usage).toMatchObject({ feature: 'aiRelay', keyOwnerUid: 'gv-1', keySource: 'shared', model: 'gemini-3.8-flash' });
+    expect(usage).toMatchObject({ feature: 'aiRelay', keyOwnerUid: 'gv-1', keySource: 'shared', provider: 'vilao', model: 'vilao/gemini-3.8-flash' });
   });
 
   it('đã bật kiểm soát + đã đồng ý + chọn "chỉ ví web": dùng khoá chung dù có khoá riêng, TRỪ VÍ đúng giá, cộng "hôm nay"', async () => {
@@ -168,23 +237,25 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     h.store['adminSettings/billing'] = { usdVnd: 26_000 };
     h.store['aiWallets/gv-1'] = { balanceVnd: 50_000 };
     h.store['teacherAiKeys/gv-1'] = { geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'wallet' };
-    const fetchMock = geminiOk();
+        const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
 
     const res = await call({ prompt: 'Soạn bài' });
     expect(res.statusCode).toBe(200);
-    expect(String(fetchMock.mock.calls[0][0])).toContain(OWNER_KEY); // không phải khoá riêng
-    // 1.000.000 token vào × $0,75/1M × 26.000 = 19.500đ
-    expect(h.store['aiWallets/gv-1'].balanceVnd).toBe(30_500);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
+    expect(url).toBe('https://api.vilao.ai/v1/chat/completions');
+    expect(init.headers.authorization).toBe(`Bearer ${OWNER_KEY}`); // không phải khoá riêng
+    // 1.000.000 token vào × (400/26190) USD × 26.000 VND ≈ 397đ
+    expect(h.store['aiWallets/gv-1'].balanceVnd).toBe(49_603);
     const usage = Object.entries(h.store).find(([p]) => p.startsWith('aiUsage/'))?.[1];
-    expect(usage).toMatchObject({ keySource: 'owner_consent', chargeVnd: 19_500, feature: 'aiRelay' });
+    expect(usage).toMatchObject({ keySource: 'owner_consent', chargeVnd: 397, feature: 'aiRelay' });
     const month = today.slice(0, 7);
-    expect(h.store[`aiSpend/gv-1_${month}`].days[today]).toMatchObject({ calls: 1, chargeVnd: 19_500 });
+    expect(h.store[`aiSpend/gv-1_${month}`].days[today]).toMatchObject({ calls: 1, chargeVnd: 397 });
   });
 
-  it('chưa có khoá và chưa đồng ý tính phí: 402 AI_KEY_REQUIRED, không gọi Google, không tốn hạn mức ngày', async () => {
+  it('chưa có khoá và chưa đồng ý tính phí: 402 AI_KEY_REQUIRED, không gọi Vilao, không tốn hạn mức ngày', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-    const fetchMock = geminiOk();
+    const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     const res = await call({ prompt: 'Soạn bài' });
     expect(res.statusCode).toBe(402);
@@ -197,25 +268,25 @@ describe('relay Gemini cho ví web — máy chủ', () => {
   it('hết số dư: 402 no_balance', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-1'], exemptUids: [] };
     h.store['aiWallets/gv-1'] = { balanceVnd: 0 };
-    vi.stubGlobal('fetch', geminiOk());
+vi.stubGlobal('fetch', vilaoOk());
     const res = await call({ prompt: 'Soạn bài' });
     expect(res.statusCode).toBe(402);
     expect(res.payload).toMatchObject({ reason: 'no_balance' });
   });
 
   it('bị cắt vì hết trần token thì trả phần đã có kèm cờ truncated để trình duyệt tự viết tiếp', async () => {
-    vi.stubGlobal('fetch', geminiOk('Phần đầu của giáo án…', 'MAX_TOKENS'));
+    vi.stubGlobal('fetch', vilaoOk('Phần đầu của giáo án…', 'length'));
     const res = await call({ prompt: 'Soạn bài dài' });
     expect(res.statusCode).toBe(200);
     expect(res.payload).toEqual({ text: 'Phần đầu của giáo án…', model: 'gemini-3.8-flash', truncated: true });
   });
 
   it('AI từ chối hoặc không trả chữ: 422 với câu giải thích, không giả vờ thành công', async () => {
-    vi.stubGlobal('fetch', geminiOk('', 'SAFETY'));
+    vi.stubGlobal('fetch', vilaoOk('', 'content_filter'));
     const blocked = await call({ prompt: 'x' });
     expect(blocked.statusCode).toBe(422);
     expect(String(blocked.payload.error)).toContain('từ chối');
-    vi.stubGlobal('fetch', geminiOk('', 'STOP'));
+    vi.stubGlobal('fetch', vilaoOk('', 'stop'));
     expect((await call({ prompt: 'x' })).statusCode).toBe(422);
   });
 
@@ -229,7 +300,7 @@ describe('relay Gemini cho ví web — máy chủ', () => {
 
   it('hạn mức lượt mỗi ngày: đủ thì 429, sang ngày mới thì về 0', async () => {
     process.env.AI_RELAY_DAILY_LIMIT = '2';
-    const fetchMock = geminiOk();
+    const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     expect((await call({ prompt: 'a' })).statusCode).toBe(200);
     expect((await call({ prompt: 'b' })).statusCode).toBe(200);
@@ -242,9 +313,9 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ day: today, count: 1 });
   });
 
-  it('QA F2: ba lượt cùng lúc khi chỉ còn 1 lượt/ngày → đúng MỘT lượt gọi Google, hai lượt kia 429', async () => {
+  it('QA F2: ba lượt cùng lúc khi chỉ còn 1 lượt/ngày → đúng MỘT lượt gọi Vilao, hai lượt kia 429', async () => {
     process.env.AI_RELAY_DAILY_LIMIT = '1';
-    const fetchMock = geminiOk();
+    const fetchMock = vilaoOk();
     vi.stubGlobal('fetch', fetchMock);
     const results = await Promise.all([call({ prompt: 'a' }), call({ prompt: 'b' }), call({ prompt: 'c' })]);
     expect(results.map(r => r.statusCode).sort()).toEqual([200, 429, 429]);
@@ -257,7 +328,7 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     const gate = new Promise<void>(resolve => { release = resolve; });
     const fetchMock = vi.fn(async () => {
       await gate;
-      return { ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 } }) };
+      return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }], usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } }) };
     });
     vi.stubGlobal('fetch', fetchMock);
     const running = Array.from({ length: 5 }, (_, i) => call({ prompt: `p${i}` }));
@@ -273,7 +344,7 @@ describe('relay Gemini cho ví web — máy chủ', () => {
 
   it('lượt "đang chạy" bị treo quá lâu (hàm bị giết) thì hết hiệu lực, không khoá giáo viên mãi', async () => {
     h.store['aiRelayQuota/gv-1'] = { day: today, count: 5, inflight: 3, inflightAt: Date.now() - 20 * 60_000 };
-    vi.stubGlobal('fetch', geminiOk());
+vi.stubGlobal('fetch', vilaoOk());
     expect((await call({ prompt: 'x' })).statusCode).toBe(200);
     expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ count: 6, inflight: 0 });
   });
@@ -430,5 +501,79 @@ describe('relay cho Claude / ChatGPT (ví web trả cho hãng khác Gemini)', ()
     const res = await call({ provider: 'claude', prompt: 'x' });
     expect(res.statusCode).toBe(200);
     expect(h.store['aiWallets/gv-1'].balanceVnd).toBe(0);
+  });
+});
+
+describe('mức suy nghĩ qua relay — mỗi mức là tham số thật gửi cho hãng', () => {
+  const claudeOk = vi.fn(async (..._args: unknown[]) => ({ ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn', usage: { input_tokens: 10, output_tokens: 10 } }) }));
+  const openaiOk = vi.fn(async (..._args: unknown[]) => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }], usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } }) }));
+  const sentBody = (mock: { mock: { calls: unknown[][] } }): any => JSON.parse(((mock.mock.calls.at(-1) as unknown[])[1] as { body: string }).body);
+
+  beforeEach(() => {
+    h.store = {};
+    h.verifyFails = false;
+    h.claims = { uid: 'gv-1', email: 'gv1@x.vn', firebase: { sign_in_provider: 'google.com' } };
+    process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
+    process.env.GRADING_VILAO_API_KEY = OWNER_KEY;
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-OWNER';
+    process.env.OPENAI_API_KEY = 'sk-OWNER-OPENAI';
+    claudeOk.mockClear();
+    openaiOk.mockClear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.GRADING_VILAO_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  it('Vilao (provider gemini): gửi "none"/"low" (đã POC); mức medium/high còn lại để model tự chạy mặc định, vắng thì không gửi', async () => {
+    const fetchMock = vilaoOk();
+    vi.stubGlobal('fetch', fetchMock);
+    const efforts: Array<string | undefined> = [];
+    for (const effort of ['none', 'low', 'medium', 'high', undefined]) {
+      expect((await call({ prompt: 'x', model: 'gemini-3.8-flash', ...(effort ? { effort } : {}) })).statusCode).toBe(200);
+      efforts.push(sentBody(fetchMock).reasoning_effort);
+    }
+    expect(efforts).toEqual(['none', 'low', undefined, undefined, undefined]);
+  });
+
+  it('Vilao (provider gemini): mức model không nhận (3.8 Flash không có "minimal") bị bỏ, lượt vẫn chạy bình thường; model không tồn tại bị 400', async () => {
+    const fetchMock = vilaoOk();
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await call({ prompt: 'x', model: 'gemini-3.8-flash', effort: 'minimal' })).statusCode).toBe(200);
+    expect(sentBody(fetchMock).reasoning_effort).toBeUndefined();
+    expect((await call({ prompt: 'x', model: 'gemini-4-argon', effort: 'high' })).statusCode).toBe(400);
+  });
+
+  it('Claude: đủ 5 mức vào output_config.effort; Haiku 4.5 không nhận nên không gửi', async () => {
+    vi.stubGlobal('fetch', claudeOk);
+    const seen: Array<string | undefined> = [];
+    for (const effort of ['low', 'medium', 'high', 'xhigh', 'max']) {
+      expect((await call({ provider: 'claude', model: 'claude-opus-5-5', prompt: 'x', effort })).statusCode).toBe(200);
+      seen.push(sentBody(claudeOk).output_config?.effort);
+    }
+    expect(seen).toEqual(['low', 'medium', 'high', 'xhigh', 'max']);
+    await call({ provider: 'claude', model: 'claude-haiku-4-5-20251001', prompt: 'x', effort: 'high' });
+    expect(sentBody(claudeOk).output_config).toBeUndefined();
+    await call({ provider: 'claude', model: 'claude-sonnet-5-5', prompt: 'x' });
+    expect(sentBody(claudeOk).output_config).toBeUndefined();
+  });
+
+  it('ChatGPT: mức vào reasoning_effort đúng theo từng model (Luna nhận "none", Sol thì không)', async () => {
+    vi.stubGlobal('fetch', openaiOk);
+    await call({ provider: 'openai', model: 'gpt-6-luna', prompt: 'x', effort: 'none' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('none');
+    await call({ provider: 'openai', model: 'gpt-6.1-sol', prompt: 'x', effort: 'none' });
+    expect(sentBody(openaiOk).reasoning_effort).toBeUndefined();
+    await call({ provider: 'openai', model: 'gpt-6.1-sol', prompt: 'x', effort: 'max' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('max');
+    await call({ provider: 'openai', model: 'gpt-6-astra', prompt: 'x', effort: 'minimal' });
+    expect(sentBody(openaiOk).reasoning_effort).toBe('minimal');
+  });
+
+  it('thân request sai kiểu mức (số, mảng…) thì bỏ qua, không làm hỏng lượt', () => {
+    expect(parseRelayBody({ prompt: 'x', effort: 5 })).toMatchObject({ ok: true });
+    expect((parseRelayBody({ prompt: 'x', effort: ['high'] }) as any).value.effort).toBeUndefined();
   });
 });

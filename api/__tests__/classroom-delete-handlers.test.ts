@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import handler from '../classroom';
+import handler, { projectStudentSubmission } from '../classroom';
 
 /**
  * Test hồi quy cho hai action xoá bài (057cd7b): quyền giáo viên, thứ tự dọn file
@@ -45,6 +45,7 @@ interface Harness {
 const makeBucket = (harness: Harness) => ({
   name: BUCKET,
   file: (path: string) => ({
+    getMetadata: async () => [{ name: path, size: '100', contentType: 'image/jpeg' }], copy: async () => [], setMetadata: async () => [],
     delete: async () => {
       harness.events.push(`storage:${path}`);
       harness.deletedPaths.push(path);
@@ -53,6 +54,7 @@ const makeBucket = (harness: Harness) => ({
 });
 
 const makeDb = (harness: Harness) => ({
+  runTransaction: async (work: any) => { const operations: any[] = []; const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, data: DocData) => operations.push(() => ref.update(data)), create: (ref: any, data: DocData) => operations.push(() => ref.set(data)) }); for (const operation of operations) await operation(); return result; },
   collection: (colName: string) => ({
     doc: (docId: string) => {
       const touch = (col: string, id: string) => {
@@ -60,6 +62,9 @@ const makeDb = (harness: Harness) => ({
         return harness.store[col];
       };
       return {
+        id: docId,
+        collection: (sub: string) => makeDb(harness).collection(`${colName}/${docId}/${sub}`),
+        update: async (data: DocData) => { const col = touch(colName, docId); col[docId] = { ...col[docId], ...data }; },
         get: async () => {
           const col = touch(colName, docId);
           const data = col[docId];
@@ -89,7 +94,7 @@ const makeDb = (harness: Harness) => ({
             const docs = Object.entries(col)
               .filter(([, d]) => constraints.every(item => d[item.field] === item.value))
               .slice(0, count)
-              .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+              .map(([id, data]) => ({ id, data: () => ({ ...data }), ref: makeDb(harness).collection(colName).doc(id) }));
             return { empty: docs.length === 0, docs };
           },
         }),
@@ -97,7 +102,7 @@ const makeDb = (harness: Harness) => ({
           const col = harness.store[colName] || {};
           const docs = Object.entries(col)
             .filter(([, d]) => constraints.every(item => d[item.field] === item.value))
-            .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+            .map(([id, data]) => ({ id, data: () => ({ ...data }), ref: makeDb(harness).collection(colName).doc(id) }));
           return { empty: docs.length === 0, docs };
         },
       });
@@ -114,9 +119,12 @@ const buildHarness = (): Harness => {
 };
 
 const call = async (body: DocData) => {
+  const database = h.db as ReturnType<typeof makeDb>;
+  if (body.action === 'createSupplementSubmission') { await database.collection('classes').doc('lop-1').set({ teacherId: 'gv-1' }); await database.collection('classes/lop-1/students').doc('hs-1').set({ name: 'HS' }); }
   const res = {
     statusCode: 0,
     payload: null as DocData | null,
+    setHeader() { return res; },
     status(code: number) { res.statusCode = code; return res; },
     json(payload: DocData) { res.payload = payload; return res; },
   };
@@ -126,6 +134,73 @@ const call = async (body: DocData) => {
 
 describe('POST /api/classroom · deleteSubmission', () => {
   beforeEach(() => { h.uid = 'gv-1'; });
+
+  it.each([false, true])('dọn mọi revision chấm tay; lỗi Storage=%s giữ dữ liệu để thử lại', async (storageFails) => {
+    const harness = buildHarness();
+    const owner = { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1' };
+    harness.store.submissions = { 'sub-1': { ...owner, fileUrls: [] } };
+    harness.store.submissionHandMarkedReviews = {
+      old: { ...owner, submissionId: 'sub-1', files: [{ path: 'hand-marked-homework/lop-1/hs-1/old.pdf' }] },
+      current: { ...owner, submissionId: 'sub-1', files: [{ path: 'hand-marked-homework/lop-1/hs-1/current.jpg' }] },
+      other: { ...owner, submissionId: 'sub-2', files: [{ path: 'hand-marked-homework/lop-1/hs-1/other.jpg' }] },
+    };
+    harness.store.submissionHandMarkedAudit = { own: { submissionId: 'sub-1' }, other: { submissionId: 'sub-2' } };
+    if (storageFails) h.bucket = { name: BUCKET, file: () => ({ delete: async () => { throw new Error('Storage unavailable'); } }) };
+    const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+    expect(res.statusCode).toBe(storageFails ? 500 : 200);
+    if (storageFails) {
+      expect(harness.store.submissions['sub-1']).toBeDefined();
+      expect(harness.store.submissionHandMarkedReviews.old).toBeDefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeDefined();
+      expect(harness.store.submissionHandMarkedAudit.own).toBeDefined();
+      expect(harness.store.submissions['sub-1'].deletionRunId).toBe('');
+      h.bucket = makeBucket(harness);
+      expect((await call({ action: 'deleteSubmission', submissionId: 'sub-1' })).statusCode).toBe(200);
+      expect(harness.store.submissions['sub-1']).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.old).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeUndefined();
+    } else {
+      expect(harness.deletedPaths).toEqual(expect.arrayContaining(['hand-marked-homework/lop-1/hs-1/old.pdf', 'hand-marked-homework/lop-1/hs-1/current.jpg']));
+      expect(harness.store.submissionHandMarkedReviews.old).toBeUndefined();
+      expect(harness.store.submissionHandMarkedReviews.current).toBeUndefined();
+      expect(harness.store.submissionHandMarkedAudit.own).toBeUndefined();
+    }
+    expect(harness.store.submissionHandMarkedReviews.other).toBeDefined();
+    expect(harness.store.submissionHandMarkedAudit.other).toBeDefined();
+  });
+
+  it('khóa finalize bản chấm tay đang tải trước khi dọn revision, không tạo tệp mồ côi', async () => {
+    const harness = buildHarness();
+    const owner = { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1' };
+    harness.store.classes = { 'lop-1': { teacherId: 'gv-1' } };
+    harness.store['classes/lop-1/students'] = { 'hs-1': { name: 'HS' } };
+    harness.store.submissions = { 'sub-1': { ...owner, assignmentId: null, fileUrls: [baiLamUrl] } };
+    harness.store.submissionUploadGrants = { grant: { ...owner, role: 'teacher', uid: 'gv-1', assignmentId: null, submissionId: 'sub-1', purpose: 'hand_marked', pinRevision: '', expiresAt: Date.now() + 60000, consumed: false, files: [{ path: 'pending-homework/grant/0', name: 'marked.jpg', mimeType: 'image/jpeg', size: 100 }] } };
+    let copying!: () => void, deleting!: () => void, finishCopy!: () => void, finishDelete!: () => void;
+    const copyStarted = new Promise<void>(resolve => { copying = resolve; });
+    const deleteStarted = new Promise<void>(resolve => { deleting = resolve; });
+    const copyGate = new Promise<void>(resolve => { finishCopy = resolve; });
+    const deleteGate = new Promise<void>(resolve => { finishDelete = resolve; });
+    const bucket = makeBucket(harness);
+    h.bucket = { ...bucket, file: (path: string) => ({ ...bucket.file(path),
+      copy: async () => { copying(); await copyGate; return []; },
+      delete: async () => { if (path === 'homework/hs-uid/sub-1-0.jpg') { deleting(); await deleteGate; } await bucket.file(path).delete(); },
+    }) };
+    const uploading = call({ action: 'saveHandMarkedWork', role: 'teacher', submissionId: 'sub-1', uploadGrantId: 'grant' });
+    await copyStarted;
+    const removal = call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+    await deleteStarted;
+    expect(projectStudentSubmission('sub-1', harness.store.submissions['sub-1'])).not.toHaveProperty('deletionRunId');
+    expect((await call({ action: 'deleteSubmission', submissionId: 'sub-1' })).statusCode).toBe(409);
+    finishCopy();
+    expect((await uploading).statusCode).toBe(409);
+    expect(harness.store.submissionUploadGrants.grant.consumed).toBe(false);
+    expect(Object.keys(harness.store.submissionHandMarkedReviews || {})).toHaveLength(0);
+    expect(harness.deletedPaths.some(path => path.startsWith('hand-marked-homework/lop-1/hs-1/'))).toBe(true);
+    finishDelete();
+    expect((await removal).statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1']).toBeUndefined();
+  });
 
   it('không xóa cả bài nộp khi worker đang giữ trạng thái grading', async () => {
     const harness = buildHarness();
@@ -186,6 +261,25 @@ describe('POST /api/classroom · deleteSubmission', () => {
     expect(harness.events[5]).toMatch(/^set:studentNotifications\/del_sub-1_/u);
     expect(harness.events).toHaveLength(6);
     expect(harness.store['studentSkillEvidence']['hs-1__sub-1%3Amath.line-equation']).toBeUndefined();
+  });
+
+  it('xoá bài nộp dọn luôn bài chữa gắn với bài đó (cả ảnh chữa), không đụng bài chữa của bài khác', async () => {
+    const harness = buildHarness();
+    const chuaUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent('accepted-homework/lop-1/hs-1/batch-0')}?alt=media&token=c`;
+    harness.store['submissions'] = {
+      'sub-1': { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1', fileUrls: [baiLamUrl] },
+    };
+    harness.store['correctionAttempts'] = {
+      'ca-1': { submissionId: 'sub-1', studentId: 'hs-1', fileUrls: [chuaUrl], attachments: [{ url: chuaUrl }] },
+      'ca-2': { submissionId: 'sub-khac', studentId: 'hs-1', fileUrls: [] },
+    };
+
+    const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.deletedPaths).toContain('accepted-homework/lop-1/hs-1/batch-0');
+    expect(harness.store['correctionAttempts']['ca-1']).toBeUndefined();
+    expect(harness.store['correctionAttempts']['ca-2']).toBeDefined();
   });
 
   it('URL ngoài Firebase không chặn xoá document bằng lỗi chung — trả 422 kèm nguyên nhân, giữ bài nộp để sửa dữ liệu', async () => {
@@ -323,12 +417,12 @@ describe('POST /api/classroom · createSupplementSubmission', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.payload).toMatchObject({ submission: expect.objectContaining({
-      id: 'sub-new', status: 'submitted', supplementOf: 'sub-old',
-      fileUrls: [studentHomeworkUrl('old-1.jpg'), studentHomeworkUrl('old-2.jpg'), studentHomeworkUrl('new-1.jpg')],
+      status: 'submitted', supplementOf: 'sub-old',
+      fileUrls: [studentHomeworkUrl('old-1.jpg'), studentHomeworkUrl('old-2.jpg'), expect.stringContaining('accepted-homework'), expect.stringContaining('accepted-homework')],
       textContent: 'Phần cũ\n\nPhần bổ sung',
     }) });
     expect((harness.store['submissions']['sub-old'] as DocData).status).toBe('graded');
-    expect((harness.store['submissions']['sub-new'] as DocData).grade).toBeUndefined();
+    expect((res.payload?.submission as DocData).grade).toBeUndefined();
   });
 
   it('từ chối parent không thuộc đúng học sinh/lớp/bài', async () => {
@@ -385,13 +479,13 @@ describe('POST /api/classroom · createSupplementSubmission', () => {
     expect(harness.store['submissions']['sub-new']).toBeUndefined();
   });
 
-  it('từ chối bổ sung khi bài giao đã đóng', async () => {
+  it('từ chối bổ sung khi bài giao đã khóa chốt', async () => {
     const harness = buildHarness();
     harness.store['studentLinks'] = {
       'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' },
     };
     harness.store['assignments'] = {
-      'asg-1': { teacherId: 'gv-1', classId: 'lop-1', isOpen: false },
+      'asg-1': { teacherId: 'gv-1', classId: 'lop-1', isOpen: false, submissionLocked: true },
     };
     harness.store['submissions'] = {
       'sub-old': {
@@ -465,6 +559,24 @@ describe('POST /api/classroom · studentAssignments', () => {
     expect(JSON.stringify(res.payload)).not.toContain('Mỗi bước 1 điểm');
     expect(JSON.stringify(res.payload)).not.toContain('Chấm câu 1-3');
     expect(JSON.stringify(res.payload)).not.toContain('https://storage/key.jpg');
+  });
+
+  it('bài kiểm tra định kì: học sinh nhận cờ định kì để ẩn điểm AI, KHÔNG nhận mã đề / đáp án / tên cột sổ điểm', async () => {
+    const harness = buildHarness();
+    harness.store['studentLinks'] = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    harness.store['assignments'] = {
+      'kt-1': {
+        id: 'kt-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Kiểm tra giữa kì I', description: '', type: 'upload', isOpen: true,
+        periodicTest: { sheetLabel: 'Cột-bí-mật' },
+        examVariants: [{ code: '1201', sourceText: 'Đề-mã-1201', answerKey: 'Phần I – Câu 1: A' }],
+        createdAt: '2026-10-06T01:00:00.000Z', updatedAt: '2026-10-06T01:00:00.000Z',
+      },
+    };
+    const res = await call({ action: 'studentAssignments' });
+    expect(res.statusCode).toBe(200);
+    // hasAnswerKey chỉ là cờ đúng/sai (có đáp án theo mã đề) để máy quét bài ngay lúc em nộp — không lộ nội dung đáp án.
+    expect(res.payload?.assignments).toEqual([expect.objectContaining({ id: 'kt-1', periodicTest: {}, hasAnswerKey: true })]);
+    for (const secret of ['examVariants', 'Đề-mã-1201', 'Câu 1: A', 'Cột-bí-mật']) expect(JSON.stringify(res.payload)).not.toContain(secret);
   });
 
   it('không để 100 assignment đóng che mất assignment mở phía sau', async () => {
@@ -571,8 +683,12 @@ describe('POST /api/classroom · studentSubmissions', () => {
     const res = await call({ action: 'studentSubmissions' });
 
     expect(res.statusCode).toBe(200);
-    const question = (((res.payload?.submissions as DocData[])[0].grade as DocData).questionResults as DocData[])[0];
-    expect(question).toEqual(expect.objectContaining({ studentAnswer: 'Đáp án của em', expectedAnswer: '', explanation: '' }));
+    // Chưa duyệt: học sinh không nhận điểm, nhận xét, kết quả từng câu — dữ liệu không rời máy chủ.
+    const grade = (res.payload?.submissions as DocData[])[0].grade as DocData;
+    expect(grade).toMatchObject({ score: 0, feedback: '', scoreHidden: true, teacherApproved: false });
+    expect(grade.questionResults).toBeUndefined();
+    expect(JSON.stringify(res.payload)).not.toContain('Kết quả tạm thời');
+    expect(JSON.stringify(res.payload)).not.toContain('Đáp án của em');
     expect(JSON.stringify(res.payload)).not.toContain('Đáp án chuẩn bí mật');
     expect(JSON.stringify(res.payload)).not.toContain('Giải thích nội bộ bí mật');
   });

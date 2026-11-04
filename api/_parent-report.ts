@@ -8,8 +8,12 @@
 import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
-import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
-import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import { callGradingVision } from './_grading-core.js';
+import { TEACHER_REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import { sanitizeReportOverrides, type ReportOverrides } from '../src/lib/classroom/reportOverrides.js';
+import { PARENT_REPORTS_SUB, parentReportDocId } from '../src/lib/classroom/parentAccess.js';
+import { asProgram, stageForPeriod } from '../src/lib/classroom/reportStage.js';
+import { parseLooseJson } from '../src/utils/jsonRepair.js';
 import {
   aggregateRequirementLines, applyRequirementNotes, mapRequirementQuestions, sanitizeRequirementLines, yccdOptionsForPrompt,
   type EvidenceSubmission, type ParentRequirementLine,
@@ -38,25 +42,28 @@ const callWithinTime = async (call: () => Promise<string>, timeoutMs = AI_TIMEOU
   }
 };
 
+/** Báo cáo "Tổng hợp từ đầu năm" không có kì cụ thể: dùng khoá giả để vẫn lưu được bản chỉnh (loại này không công bố lên cổng). */
+export const ALL_PERIOD_KIND = 'all';
+
 interface NoteKey {
   studentId: string;
-  kind: ReportKind;
+  kind: ReportKind | typeof ALL_PERIOD_KIND;
   from: string;
   to: string;
 }
 
 const readKey = (body: Body): NoteKey | { error: string } => {
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
-  const kind = String(body.kind || '') as ReportKind;
+  const kind = String(body.kind || '') as ReportKind | typeof ALL_PERIOD_KIND;
   const from = String(body.from || '');
   const to = String(body.to || '');
   if (!studentId || studentId.includes('/')) return { error: 'Thiếu học sinh.' };
-  if (!REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
+  if (kind !== ALL_PERIOD_KIND && !TEACHER_REPORT_KINDS.some(item => item.kind === kind)) return { error: 'Loại báo cáo không hợp lệ.' };
   if (!DAY_RE.test(from) || !DAY_RE.test(to) || from > to) return { error: 'Khoảng thời gian không hợp lệ.' };
   return { studentId, kind, from, to };
 };
 
-const noteDocId = (classId: string, key: NoteKey): string => `${classId}_${key.studentId}_${key.kind}_${key.from}_${key.to}`;
+export const noteDocId = (classId: string, key: NoteKey): string => `${classId}_${key.studentId}_${key.kind}_${key.from}_${key.to}`;
 
 export const buildParentCommentPrompt = (factsJson: string): string => [
   'Bạn là giáo viên môn Toán THPT ở Việt Nam, viết NHẬN XÉT gửi phụ huynh trong báo cáo học tập của một học sinh.',
@@ -148,21 +155,75 @@ const readEvidence = (facts: unknown): EvidenceSubmission[] => {
   });
 };
 
-const parseDraftJson = (raw: string): Record<string, unknown> | null => {
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start < 0 || end <= start) return null;
-  try {
-    const parsed = JSON.parse(raw.slice(start, end + 1));
-    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
-  } catch {
+type DraftType = 'yccd' | 'ghiChu';
+const validDraft = (value: unknown, type: DraftType): value is Record<string, unknown> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const rows = (value as Record<string, unknown>)[type];
+  return Array.isArray(rows) && rows.every(row => row && typeof row === 'object' && !Array.isArray(row)
+    && typeof row.ma === 'string' && (type === 'yccd'
+      ? Array.isArray(row.cau) && row.cau.every((code: unknown) => typeof code === 'string')
+      : typeof row.ghiChu === 'string'));
+};
+
+const parseDraftJson = (raw: string, type: DraftType): Record<string, unknown> | null => {
+  const findCandidate = (source: string): Record<string, unknown> | null => {
+    // Lấy từng object cân bằng; bỏ qua {…} trong lời dẫn và dấu ngoặc nằm trong chuỗi JSON.
+    for (let start = source.indexOf('{'); start >= 0; start = source.indexOf('{', start + 1)) {
+      let depth = 0, quoted = false, escaped = false;
+      for (let end = start; end < source.length; end++) {
+        const char = source[end];
+        if (quoted) {
+          if (escaped) escaped = false;
+          else if (char === '\\') escaped = true;
+          else if (char === '"') quoted = false;
+        } else if (char === '"') quoted = true;
+        else if (char === '{') depth++;
+        else if (char === '}' && --depth === 0) {
+          try {
+            const parsed = parseLooseJson<unknown>(source.slice(start, end + 1));
+            if (validDraft(parsed, type)) return parsed;
+          } catch { /* thử khối kế tiếp */ }
+          start = end; // Object kín sai schema: không nhận nhầm object con.
+          break;
+        }
+      }
+      if (depth > 0 && /^\{\s*"/.test(source.slice(start))) return null; // JSON cắt cụt: không cứu object con.
+    }
     return null;
+  };
+  for (const fenced of raw.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
+    const parsed = findCandidate(fenced[1]);
+    if (parsed) return parsed;
   }
+  return findCandidate(raw);
+};
+
+type DraftParse = { kind: 'slow' } | { kind: 'bad' } | { kind: 'ok'; value: Record<string, unknown> };
+
+/**
+ * Gọi AI xin khối JSON: parse lệch thì nhờ gửi lại ĐÚNG MỘT lần nữa (Vilao không khoá JSON như jsonMode cũ);
+ * `null` -hết giờ- vẫn theo `callWithinTime` để phân biệt 504 với lỗi cấu trúc 422.
+ */
+const callDraftJson = async (call: (timeoutMs: number) => Promise<string>, type: DraftType, deadline: number): Promise<DraftParse> => {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return { kind: 'slow' };
+    const raw = await callWithinTime(() => call(remainingMs), remainingMs);
+    if (raw === null || Date.now() >= deadline) return { kind: 'slow' };
+    const parsed = parseDraftJson(raw, type);
+    if (parsed) return { kind: 'ok', value: parsed };
+    console.warn('[parent-report] AI trả JSON sai hoặc thiếu cấu trúc', { type, attempt, length: raw.length });
+  }
+  return { kind: 'bad' };
 };
 
 const cleanComment = (value: unknown): string => (
   typeof value === 'string' ? value.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS) : ''
 );
+
+/** Bản chỉnh đi kèm báo cáo đã công bố: chỉnh tay + nhận xét + dòng yêu cầu cần đạt (cả khi rỗng, để xoá được phía cổng). */
+export const publishedOverridesJson = (note: { text: string; requirements: ParentRequirementLine[]; overrides: ReportOverrides }): string =>
+  JSON.stringify({ ...note.overrides, teacherComment: note.text, requirements: note.requirements });
 
 const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
@@ -174,6 +235,7 @@ const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<v
   res.status(200).json({
     text: typeof data.text === 'string' ? data.text : '',
     requirements: sanitizeRequirementLines(context.classData.grade, data.requirements),
+    overrides: sanitizeReportOverrides(data.overrides, context.classData.grade),
     updatedAt: data.updatedAt ?? null,
   });
 };
@@ -185,11 +247,19 @@ const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, MAX_NOTE_CHARS) : '';
   const requirements = sanitizeRequirementLines(context.classData.grade, body.requirements);
+  // Nơi lưu nhận xét mà không gửi `overrides` (vd. soạn hàng loạt) thì giữ nguyên chỗ thầy cô đã chỉnh tay, không xoá.
+  const noteRef = db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key));
+  const overrides = sanitizeReportOverrides(body.overrides === undefined ? (await noteRef.get()).data()?.overrides : body.overrides, context.classData.grade);
   const updatedAt = new Date().toISOString();
-  await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).set({
-    classId: context.classId, ...key, text, requirements, updatedAt, updatedBy: context.uid,
+  await noteRef.set({
+    classId: context.classId, ...key, text, requirements, overrides, updatedAt, updatedBy: context.uid,
   });
-  res.status(200).json({ text, requirements, updatedAt });
+  // Báo cáo kì này đã công bố cho phụ huynh rồi thì cập nhật luôn: phụ huynh mở lần sau là thấy bản đã sửa, khỏi công bố lại.
+  if (key.kind !== ALL_PERIOD_KIND) {
+    const published = context.classRef.collection(PARENT_REPORTS_SUB).doc(parentReportDocId(key.studentId, key.kind, key.from, key.to));
+    if ((await published.get()).exists) await published.update({ overridesJson: publishedOverridesJson({ text, requirements, overrides }), overridesUpdatedAt: updatedAt });
+  }
+  res.status(200).json({ text, requirements, overrides, updatedAt });
 };
 
 const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -202,11 +272,13 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   // Lượt AI tính cho giáo viên chủ lớp (như chấm bài), không phải người bấm.
   setAiKeyOwner(String(context.classData.teacherId || context.uid));
   const grade = context.classData.grade;
-  const yccdOptions = yccdOptionsForPrompt(grade);
+  // Chỉ đưa cho AI các YCCĐ cùng giai đoạn (học kì) với kì báo cáo — AI không ghép nhầm sang bài của học kì khác.
+  const stage = stageForPeriod(key, asProgram(body.program));
+  const yccdOptions = yccdOptionsForPrompt(grade, stage);
   const evidence = readEvidence(body.facts);
   // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
   if (!yccdOptions || evidence.length === 0) {
-    const raw = await callWithinTime(() => callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
+    const raw = await callWithinTime(() => callGradingVision(buildParentCommentPrompt(factsJson), [], {
       temperature: 0.4,
       maxOutputTokens: 'model-max',
       timeoutMs: AI_TIMEOUT_MS,
@@ -218,33 +290,36 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   }
   // Bước 1: nhận xét (lượt ngắn, không kèm từng câu) + ghép từng nhóm bài — tất cả chạy song song.
   const startedAt = Date.now();
+  const deadline = startedAt + AI_TIMEOUT_MS;
   const overview = { ...(body.facts as Record<string, unknown>) };
   delete overview.baiDaDuyet;
-  const [commentRaw, ...mappingRaws] = await Promise.all([
-    callWithinTime(() => callGeminiVision(buildParentCommentPrompt(JSON.stringify(overview)), [], getGradingApiKey(), GRADING_MODEL, {
+  const [commentRaw, ...mappingDrafts] = await Promise.all([
+    callWithinTime(() => callGradingVision(buildParentCommentPrompt(JSON.stringify(overview)), [], {
       temperature: 0.4,
       maxOutputTokens: 'model-max',
       timeoutMs: AI_TIMEOUT_MS,
     })),
-    ...chunkEvidence(evidence).map(chunk => callWithinTime(() => callGeminiVision(
-      buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
+    ...chunkEvidence(evidence).map(chunk => callDraftJson(timeoutMs => callGradingVision(
+      buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], {
         temperature: 0.2,
         maxOutputTokens: 'model-max',
-        jsonMode: true,
-        timeoutMs: AI_TIMEOUT_MS,
-      }))),
+        timeoutMs,
+      }), 'yccd', deadline)),
   ]);
-  if (commentRaw === null || mappingRaws.some(raw => raw === null)) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
+  if (commentRaw === null || mappingDrafts.some(draft => draft.kind === 'slow') || Date.now() >= deadline) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
   const text = cleanComment(commentRaw);
-  const mappings = mappingRaws.map(raw => parseDraftJson(raw as string));
   // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
-  if (!text || mappings.some(m => m === null)) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
-  const merged = { yccd: mappings.flatMap(m => (Array.isArray(m!.yccd) ? m!.yccd : [])) };
-  const grouped = mapRequirementQuestions(grade, evidence, merged);
-  let requirements = aggregateRequirementLines(grade, evidence, merged);
+  if (!text) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  if (mappingDrafts.some(draft => draft.kind === 'bad')) return void res.status(422).json({ error: 'AI trả dữ liệu YCCĐ thiếu hoặc sai dạng. Bấm "AI soạn nháp" để thử lại.' });
+  const merged = { yccd: mappingDrafts.flatMap(draft => (draft.kind === 'ok' && Array.isArray(draft.value.yccd) ? draft.value.yccd : [])) };
+  const grouped = mapRequirementQuestions(grade, evidence, merged, stage);
+  let requirements = aggregateRequirementLines(grade, evidence, merged, stage);
+  const warnings: string[] = [];
+  let missingNotes = false;
+  if (requirements.length === 0) warnings.push('AI chưa ghép được YCCĐ nào với câu đã duyệt; giáo viên cần kiểm tra bản nháp.');
 
   // Bước 2: ghi chú cho từng YCCĐ trong phần thời gian còn lại. Hết giờ → vẫn trả các dòng (mức đúng), ghi chú để trống.
-  const remainingMs = startedAt + AI_TIMEOUT_MS - Date.now();
+  const remainingMs = deadline - Date.now();
   if (grouped.length > 0 && remainingMs > 8000) {
     const groupsJson = JSON.stringify(grouped.map(({ item, questions }, index) => ({
       ma: item.id,
@@ -252,15 +327,23 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
       tiLeDiem: `${Math.round(requirements[index].percent)}%`,
       cau: questions,
     })));
-    const notesRaw = await callWithinTime(() => callGeminiVision(buildRequirementNotesPrompt(groupsJson), [], getGradingApiKey(), GRADING_MODEL, {
+    const notesDraft = await callDraftJson(timeoutMs => callGradingVision(buildRequirementNotesPrompt(groupsJson), [], {
       temperature: 0.2,
       maxOutputTokens: 'model-max',
-      jsonMode: true,
-      timeoutMs: remainingMs,
-    }), remainingMs);
-    if (notesRaw !== null) requirements = applyRequirementNotes(requirements, parseDraftJson(notesRaw));
+      timeoutMs,
+    }), 'ghiChu', deadline);
+    if (notesDraft.kind === 'bad') return void res.status(422).json({ error: 'AI trả ghi chú YCCĐ thiếu hoặc sai dạng. Bấm "AI soạn nháp" để thử lại.' });
+    if (notesDraft.kind === 'ok') {
+      const rows = notesDraft.value.ghiChu as { ma: string; ghiChu: string }[];
+      missingNotes = requirements.some(line => !rows.some(row => row.ma.trim() === line.id && row.ghiChu.trim()));
+      requirements = applyRequirementNotes(requirements, notesDraft.value);
+    }
+    else warnings.push('AI soạn ghi chú quá lâu; giáo viên cần bổ sung các ghi chú còn trống.');
+  } else if (grouped.length > 0) {
+    warnings.push('Không đủ thời gian soạn ghi chú YCCĐ; giáo viên cần bổ sung các ghi chú còn trống.');
   }
-  res.status(200).json({ text, requirements });
+  if (missingNotes || requirements.some(line => !line.note.trim())) warnings.push('Một số YCCĐ chưa có ghi chú; giáo viên cần bổ sung trước khi lưu.');
+  res.status(200).json({ text, requirements, warnings });
 };
 
 export const handleParentReportAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {

@@ -141,11 +141,11 @@ function auditContract(contract: LiveLessonV4Contract): AuditIssue[] {
     });
   }
 
-  // 7. Quick-check: 2 questions
-  if (!contract.sourceContent || contract.sourceContent.quickChecks.length !== 2) {
+  // 7. Quick-check: 2–3 câu (Gate D từng bài: bài 78 có 3 câu kiểm nhanh gốc)
+  if (!contract.sourceContent || !(contract.sourceContent.quickChecks.length === 2 || contract.sourceContent.quickChecks.length === 3)) {
     issues.push({
-      code: 'SOURCE_QUICK_NOT_2',
-      message: `sourceContent.quickChecks cần 2 câu, nhận ${contract.sourceContent?.quickChecks.length ?? 0}.`,
+      code: 'SOURCE_QUICK_COUNT',
+      message: `sourceContent.quickChecks cần 2 hoặc 3 câu, nhận ${contract.sourceContent?.quickChecks.length ?? 0}.`,
     });
   }
 
@@ -438,8 +438,43 @@ export function buildCanonicalDraft(
   return buildBanToanV4AdaptiveLessonDraft(sourceKey, teacherId);
 }
 
-export interface SequentialPublicationOptions {
-  /** Existing lessons indexed by sourceKey (curriculumRef.lessonCode). */
+/**
+ * Các bài học tương tác Tuần 11 (3 bài batch 1 + bổ sung dần batch 2) là Bài học
+ * tương tác V8.8 (Gate D duyệt 2026-10-25), chạy 3 luồng Presenter / Student /
+ * Coach trong tiết thật — khác Bài tự học phân hoá.
+ */
+export const INTERACTIVE_SOURCE_KEYS: ReadonlySet<string> = new Set([
+  '10-11-79',
+  '10-11-80',
+  '10-12-88',
+  '11-11-75',
+  '11-11-76',
+  '11-11-78',
+  '11-11-79',
+  '11-12-82',
+  '12-11-77',
+  '12-11-78',
+  '12-11-79',
+  '12-11-80',
+  '12-12-82',
+  '12-12-83',
+  '12-12-84',
+  '12-12-85',
+  '12-12-86',
+  '12-12-87',
+  '10-12-89',
+  '10-12-90',
+  '10-12-91',
+  '10-12-92',
+  '10-12-93',
+  '11-12-83',
+  '11-12-84',
+  '11-12-85',
+  '11-12-86',
+  '11-12-87',
+]);
+
+export interface SequentialPublicationOptions {  /** Existing lessons indexed by sourceKey (curriculumRef.lessonCode). */
   existingLessons: Map<string, AdaptiveLesson>;
   /** Teacher ID for new canonical drafts. */
   teacherId: string;
@@ -511,9 +546,15 @@ export async function publishSequentially(
       continue;
     }
 
+    // Bài tương tác Tuần 11 đã publish dạng self_study từ trước vẫn phải được
+    // nâng cấp sang interactive — nếu bỏ qua thì tab "Bài học tương tác" không bao giờ nhận.
+    const needsInteractiveUpgrade = INTERACTIVE_SOURCE_KEYS.has(sourceKey)
+      && existing?.status === 'published'
+      && existing.lessonKind !== 'interactive';
+
     // The original P31 demo is the first V4 lesson, not a second lesson.
     // Upgrade it in place so its existing link/document id remains usable.
-    if (existing?.status === 'published' && !isLegacyP31Demo(existing, sourceKey)) {
+    if (existing?.status === 'published' && !isLegacyP31Demo(existing, sourceKey) && !needsInteractiveUpgrade) {
       reports.push({
         sourceKey,
         status: 'skipped_already_published',
@@ -558,9 +599,15 @@ export async function publishSequentially(
     }
 
     // Publish: set status and persist
+    // Các bài học tương tác Tuần 11 (3 bài batch 1 + bổ sung dần batch 2) là Bài học
+    // tương tác V8.8 (Gate D duyệt 2026-10-25), không phải Bài tự học phân hoá. Đánh
+    // dấu ở đây để tab "Bài học tương tác" nhận đúng bài; 48 bài Tuần 5–6 giữ
+    // lessonKind mặc định (self_study) như cũ.
+    const isInteractiveLesson = INTERACTIVE_SOURCE_KEYS.has(sourceKey);
     const publishedLesson: AdaptiveLesson = {
       ...lessonToPublish,
       status: 'published',
+      ...(isInteractiveLesson ? { lessonKind: 'interactive' as const } : {}),
       updatedAt: new Date().toISOString(),
     };
 

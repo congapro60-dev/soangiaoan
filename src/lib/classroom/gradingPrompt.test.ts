@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
+  buildHomeworkGradingSegments,
   buildHomeworkGradingRetryPrompt,
   buildPracticePrompt,
   buildPracticeGradingPrompt,
@@ -22,7 +23,76 @@ import {
   toPublicPracticeQuestions,
 } from './gradingPrompt';
 
+describe('prompt tách phần cố định / phần đổi theo học sinh', () => {
+  const chung = { answerKey: 'Câu 1: x = 2', maxScore: 10, assignmentTitle: 'KT 15 phút', rubric: 'Sai dấu trừ 0,25', assignmentImageCount: 2, answerKeyImageCount: 1 };
+
+  it('tiền tố GIỐNG HỆT cho mọi học sinh trong lớp (để Gemini cache được)', () => {
+    const a = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em A', studentImageCount: 3 });
+    const b = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em B', studentImageCount: 5 });
+    expect(a.prefix).toBe(b.prefix);
+    expect(a.prefix).not.toContain('Bài làm của em A');
+    expect(a.prefix).not.toContain('Bài làm của em B');
+    expect(a.prefix).not.toContain('imageIndex 1..3');
+    expect(a.prefix).not.toContain('imageIndex 1..5');
+  });
+
+  it('phần đổi theo em chứa bài làm và số ảnh bài làm', () => {
+    const a = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em A', studentImageCount: 3 });
+    const b = buildHomeworkGradingSegments({ ...chung, studentText: 'Bài làm của em B', studentImageCount: 5 });
+    expect(a.suffix).toContain('Bài làm của em A');
+    expect(a.suffix).toContain('imageIndex 1..3');
+    expect(b.suffix).toContain('imageIndex 1..5');
+    expect(a.suffix).not.toBe(b.suffix);
+  });
+
+  it('prompt đầy đủ vẫn nối tiền tố + phần đổi, không mất nội dung nào', () => {
+    const input = { ...chung, studentText: 'Bài làm của em A', studentImageCount: 2 };
+    const full = buildHomeworkGradingPrompt(input);
+    const { prefix, suffix } = buildHomeworkGradingSegments(input);
+    expect(full).toBe(`${prefix}\n\n${suffix}`);
+    expect(full).toContain('ĐÁP ÁN CHUẨN');
+    expect(full).toContain('Bài làm của em A');
+    expect(full).toContain('imageIndex 1..2');
+  });
+});
+
+describe('photo marks grading contract', () => {
+  it('numbers student images independently of question and answer images', () => {
+    const prompt = buildHomeworkGradingPrompt({ answerKey: 'A', maxScore: 10, assignmentImageCount: 2, answerKeyImageCount: 1, studentImageCount: 3 });
+    expect(prompt).toContain('imageIndex 1..3');
+    expect(prompt).toContain('photoMarks');
+    expect(prompt).toContain('0.85');
+    // Khuôn JSON nằm ở phần CỐ ĐỊNH (tiền tố) — phần đổi theo học sinh nằm sau nó.
+    const schema = JSON.parse(buildHomeworkGradingSegments({ answerKey: 'A', maxScore: 10, studentImageCount: 3 }).prefix.split('CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:')[1]);
+    expect(schema.questionResults[0]).toHaveProperty('photoMarks');
+    expect(schema.questionResults[0]).toHaveProperty('readingRegions');
+  });
+  it('keeps optional valid geometry, rejects bad geometry and all model URLs', () => {
+    const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+    const result = parseHomeworkGrade(JSON.stringify({ score: 0, maxScore: 1, questionResults: [{ questionNumber: 'Câu 1',
+      status: 'incorrect', studentAnswer: 'x=2', photoMarks: [{ ...mark, imageUrl: 'https://foreign' }, { ...mark, width: 9 }] }] }), 1, false);
+    expect(result.questionResults[0].photoMarks).toEqual([mark]);
+  });
+});
+
 describe('buildHomeworkGradingPrompt', () => {
+  it('đưa đáp án thầy cô đã sửa vào prompt và dặn khuôn trắc nghiệm / Đúng-Sai / ô tẩy', () => {
+    const prompt = buildHomeworkGradingPrompt({
+      answerKey: 'Câu 2: A',
+      maxScore: 10,
+      answerKeyFixes: [{ questionNumber: 'Câu 2', expectedAnswer: 'B' }],
+    });
+    expect(prompt).toContain('ĐÁP ÁN THẦY CÔ ĐÃ SỬA SAU KHI CHẤM');
+    expect(prompt).toContain('- Câu 2: B');
+    expect(prompt).toContain('a) Đ; b) S; c) Đ; d) S');
+    expect(prompt).toContain('2 ý 0,25');
+    expect(prompt).toContain('là HUỶ');
+  });
+
+  it('không có đáp án sửa thì không có mục đó', () => {
+    expect(buildHomeworkGradingPrompt({ answerKey: 'x', maxScore: 10 })).not.toContain('ĐÃ SỬA SAU KHI CHẤM');
+  });
+
   it('có đáp án thì bảo AI dùng làm mốc, không tự nghĩ đáp án khác', () => {
     const prompt = buildHomeworkGradingPrompt({ answerKey: 'Câu 1: x = 2', maxScore: 10 });
 
@@ -113,6 +183,18 @@ describe('parseHomeworkGrade', () => {
       correction: 'Thay lại x = 2.',
       nextPractice: 'Luyện 2 bài tương tự.',
       needsTeacherReview: false,
+    }, {
+      questionNumber: 'Câu 2',
+      status: 'correct',
+      score: 8,
+      maxScore: 10,
+      studentAnswer: 'x = 2',
+      expectedAnswer: 'x = 2',
+      errorType: 'Không có',
+      explanation: 'Em làm đúng.',
+      correction: 'Không cần sửa.',
+      nextPractice: 'Giữ độ chính xác này.',
+      needsTeacherReview: false,
     }],
   };
 
@@ -133,24 +215,84 @@ describe('parseHomeworkGrade', () => {
   });
 
   it('kẹp điểm vượt thang về đúng thang', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 12 }), 10, false);
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], score: 8, maxScore: 4 },
+        { ...mau.questionResults[1], questionNumber: 'Câu 3', score: 6, maxScore: 6 },
+      ],
+    }), 10, false);
     expect(g.score).toBe(10);
   });
 
-  it('kẹp điểm âm về 0', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: -3 }), 10, false);
-    expect(g.score).toBe(0);
+  // Quyết định 10/2026 (tinh chỉnh đêm 23/10): khi các dòng PHỦ THANG (ΣmaxScore dòng ≈ maxScore)
+  // thì điểm hiển thị = Σ từng dòng, không tin "score" của model (A/B 22 lượt × 5 hãng: điểm bảng
+  // chuẩn, score lệch Σ gần hết lượt). Dòng KHÔNG phủ thang (mô hình chỉ đọc tổng điểm thầy ghi trên
+  // bài ở luồng bài kiểm tra định kì) thì giữ score model đọc — giống nguyên tắc recomputeTotal.
+  const dongPhuThang = [
+    { ...mau.questionResults[0] },
+    { ...mau.questionResults[1], maxScore: 8 },
+  ];
+
+  it('điểm gồm tổng các dòng, bỏ score của model khi đã có dòng', () => {
+    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 9.75, questionResults: dongPhuThang }), 10, false);
+    expect(g.score).toBe(8);
+  });
+
+  it('không có dòng câu nào thì lấy score của model', () => {
+    const g = parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: [] }), 10, false);
+    expect(g.score).toBe(8);
+  });
+
+  it('score âm hoặc không đọc được của model đều bị bỏ', () => {
+    expect(parseHomeworkGrade(JSON.stringify({ ...mau, score: -3, questionResults: dongPhuThang }), 10, false).score).toBe(8);
+    expect(parseHomeworkGrade(JSON.stringify({ ...mau, score: 'tám', questionResults: dongPhuThang }), 10, false).score).toBe(8);
   });
 
   it('giữ nguyên thang điểm giáo viên dù AI trả maxScore khác', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, maxScore: 4, score: 4 }), 10, false);
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      maxScore: 4,
+      questionResults: [
+        { ...mau.questionResults[1], score: 2, maxScore: 5 },
+        { ...mau.questionResults[1], questionNumber: 'Câu 3', score: 2, maxScore: 5 },
+      ],
+    }), 10, false);
     expect(g.maxScore).toBe(10);
     expect(g.score).toBe(4);
   });
 
-  it('điểm không đọc được thì về 0 chứ không thành NaN', () => {
-    const g = parseHomeworkGrade(JSON.stringify({ ...mau, score: 'tám' }), 10, false);
+  it('loại hàng tổng kết model tự chèn khỏi bảng và khỏi tổng điểm', () => {
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], score: 6 },
+        { questionNumber: 'Tổng kết', status: 'correct', score: 20, maxScore: 10, studentAnswer: 'x = ?', expectedAnswer: 'x = ?' },
+      ],
+    }), 10, false);
+    expect(g.questionResults.map(r => r.questionNumber)).toEqual(['Câu 2']);
+    expect(g.score).toBe(6);
+  });
+
+  it('không nhầm câu thật có tên kèm chữ tổng', () => {
+    const g = parseHomeworkGrade(JSON.stringify({
+      ...mau,
+      questionResults: [
+        { ...mau.questionResults[1], questionNumber: 'Phần 2 – Tổng hợp', score: 5 },
+      ],
+    }), 10, false);
+    expect(g.questionResults.map(r => r.questionNumber)).toEqual(['Phần 2 – Tổng hợp']);
+    expect(g.score).toBe(5);
+  });
+
+  it('chịu được JSON có dấu phẩy thừa trước đóng ngoặc', () => {
+    const g = parseHomeworkGrade(
+      '{"score": 99, "maxScore": 10, "questionResults": [' + JSON.stringify({ ...mau.questionResults[0], maxScore: 10 }) + ',],}',
+      10,
+      false,
+    );
     expect(g.score).toBe(0);
+    expect(g.questionResults).toHaveLength(1);
   });
 
   it('mảng thiếu hoặc sai kiểu thì thành mảng rỗng, không vỡ', () => {
@@ -160,9 +302,10 @@ describe('parseHomeworkGrade', () => {
     expect(g.weakTopics).toEqual([]);
     expect(g.maxScore).toBe(10);
     expect(g.questionResults).toEqual([]);
+    expect(g.score).toBe(5);
   });
 
-  it('kẹp điểm từng câu và đánh dấu dữ liệu thiếu là cần giáo viên soát', () => {
+  it('kẹp điểm từng câu; thiếu lời giải thích/cách sửa KHÔNG thành "đọc chưa rõ", chỉ thiếu bài làm/đáp án hoặc không đọc được mới bị cờ', () => {
     const g = parseHomeworkGrade(JSON.stringify({
       ...mau,
       questionResults: [{
@@ -181,7 +324,7 @@ describe('parseHomeworkGrade', () => {
 
     expect(g.questionResults[0].score).toBe(4);
     expect(g.questionResults[0].status).toBe('partially_correct');
-    expect(g.questionResults[0].needsTeacherReview).toBe(true);
+    expect(g.questionResults[0].needsTeacherReview).toBe(false);
     expect(g.questionResults[1].status).toBe('unreadable');
     expect(g.questionResults[1].needsTeacherReview).toBe(true);
   });
@@ -194,6 +337,16 @@ describe('parseHomeworkGrade', () => {
   it('ghi nhận cờ chấm khi không có đáp án chuẩn', () => {
     const g = parseHomeworkGrade(JSON.stringify(mau), 10, true);
     expect(g.gradedWithoutAnswerKey).toBe(true);
+  });
+
+  it('cờ cần soát: câu bỏ trống và câu đúng thiếu cách sửa không bật; thiếu bài làm/đáp án, không đọc được, model tự báo thì bật', () => {
+    const flag = (q: Record<string, unknown>) => parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: [{ questionNumber: 'Câu 1', score: 0, maxScore: 1, ...q }] }), 10, false).questionResults[0].needsTeacherReview;
+    expect(flag({ status: 'not_attempted', studentAnswer: '', expectedAnswer: 'B' })).toBe(false);
+    expect(flag({ status: 'correct', studentAnswer: 'B', expectedAnswer: 'B' })).toBe(false);
+    expect(flag({ status: 'correct', studentAnswer: '', expectedAnswer: 'B' })).toBe(true);
+    expect(flag({ status: 'incorrect', studentAnswer: 'A', expectedAnswer: '' })).toBe(true);
+    expect(flag({ status: 'unreadable', studentAnswer: '', expectedAnswer: 'B' })).toBe(true);
+    expect(flag({ status: 'correct', studentAnswer: 'B', expectedAnswer: 'B', needsTeacherReview: true })).toBe(true);
   });
 
   it('không biến phần được bỏ qua theo lệnh giáo viên thành cảnh báo giả', () => {
@@ -340,7 +493,11 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
   });
 
   it('chuẩn hoá maxScore AI trả lệch (20) về thang assignment (10)', () => {
-    const result = parse({ ...valid, maxScore: 20, score: 9 });
+    const result = parse({
+      ...valid,
+      maxScore: 20,
+      questionResults: [{ ...valid.questionResults[0], score: 9 }],
+    });
     expect(result.grade.maxScore).toBe(10);
     expect(result.grade.score).toBe(9);
   });
@@ -368,7 +525,7 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
       }],
     });
     expect(result.grade.questionResults).toHaveLength(1);
-    expect(result.grade.questionResults[0].needsTeacherReview).toBe(true);
+    expect(result.grade.questionResults[0].needsTeacherReview).toBe(false);
   });
 
   it('REGRESSION: cộng điểm từng câu khi thiếu điểm tổng', () => {
@@ -637,7 +794,7 @@ describe('AI đề xuất hướng dẫn chấm', () => {
   it('bắt nêu mốc điểm thành phần và chỗ vẫn cho điểm dù kết quả sai', () => {
     const p = buildRubricPrompt('x', 10);
 
-    expect(p).toContain('điểm thành phần');
+    expect(p).toContain('theo TỪNG BƯỚC');
     expect(p).toContain('phương pháp đúng');
   });
 
@@ -938,5 +1095,26 @@ describe('parseCompetencyTags', () => {
       .toEqual([{ competencyId: 'g10-vecto-va-phep-toan', confidence: 0, reason: '' }]);
     expect(parseCompetencyTags('không phải json', allowed)).toEqual([]);
     expect(parseCompetencyTags('{"questions":[]}', allowed)).toEqual([]);
+  });
+});
+
+it('preserves independent uncertain reading regions and avoids one-sentence retry constraint', () => {
+  const mark = { imageIndex: 1, x: .1, y: .2, width: .2, height: .1, confidence: .95 };
+  const result = parseHomeworkGrade(JSON.stringify({ score: 0, maxScore: 1, questionResults: [{ questionNumber: 'Câu 1',
+    status: 'unreadable', studentAnswer: 'B hoặc D', confidence: .3, readingRegions: [{ ...mark, imageUrl: 'foreign' }] }] }), 1, false);
+  expect(result.questionResults[0].readingRegions).toEqual([mark]);
+  expect(buildHomeworkGradingRetryPrompt({ answerKey: 'B', maxScore: 1 })).not.toContain('một hai câu ngắn');
+});
+
+describe('tổng điểm giáo viên ghi tay (bài chấm tay)', () => {
+  it('chỉ nhận số hợp lệ trong thang; thiếu thang thì là 10; sai dạng thì bỏ', async () => {
+    const { parseTeacherMarkedScore, TEACHER_MARKED_PAPER_NOTE } = await import('./gradingPrompt');
+    expect(parseTeacherMarkedScore({ score: 7.5 })).toEqual({ score: 7.5, maxScore: 10 });
+    expect(parseTeacherMarkedScore({ score: '15', maxScore: 20 })).toEqual({ score: 15, maxScore: 20 });
+    expect(parseTeacherMarkedScore({ score: 12, maxScore: 10 })).toBeUndefined();
+    expect(parseTeacherMarkedScore(null)).toBeUndefined();
+    expect(parseTeacherMarkedScore({ score: 'bảy' })).toBeUndefined();
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('teacherMarkedScore');
+    expect(TEACHER_MARKED_PAPER_NOTE).toContain('KHÔNG dùng để chấm');
   });
 });

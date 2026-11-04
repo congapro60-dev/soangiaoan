@@ -8,6 +8,8 @@ import type {
 } from '../src/lib/classroom/types.js';
 import { removeSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { stripUndefinedDeep } from './_firestore-sanitize.js';
+import { assignmentSolutionInput } from './_assignment-solutions.js';
+import { workedSolutionVersion } from './_worked-solutions.js';
 
 const historyIdForGrade = (
   submission: SubmissionDoc,
@@ -53,6 +55,7 @@ export const commitAiGradeIfClaimed = async (
   grade: SubmissionGrade,
   actorUid: string,
   now: string,
+  source?: { assignmentId: string; examCode: string; version: string },
 ): Promise<{ committed: boolean; historyId: string | null }> => {
   const historyId = previous.grade ? historyIdForGrade(previous, 'ai_regrade') : null;
   let committed = false;
@@ -62,6 +65,11 @@ export const commitAiGradeIfClaimed = async (
     if (!latestSnapshot.exists) return;
     const latest = latestSnapshot.data() as FirebaseFirestore.DocumentData;
     if (latest.status !== 'grading' || latest.gradingRunId !== gradingRunId) return;
+    if (source) {
+      const assignment = (await transaction.get(db.collection('assignments').doc(source.assignmentId))).data();
+      if (!assignment || assignment.teacherId !== previous.teacherId || assignment.classId !== previous.classId
+        || workedSolutionVersion(assignmentSolutionInput(assignment, source.examCode)) !== source.version) throw new GradeLifecycleConflictError();
+    }
 
     if (previous.grade && historyId) {
       transaction.set(

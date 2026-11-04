@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { ExamQuestion, StudentAnswer } from '../../types.js';
+import type { ExamQuestion, ExamSubmission, StudentAnswer } from '../../types.js';
 import {
   applyTeacherOnlineGradeEdit,
   approveOnlineGrade,
   applyAiOnlineGradeSuggestion,
   buildAutomaticOnlineGrade,
+  hideUnofficialOnlineScore,
+  isOnlineAttemptOfficial,
   projectOnlineGradeForStudent,
   removeOnlineGrade,
   type OnlineGradeSource,
@@ -152,5 +154,26 @@ describe('online grade lifecycle', () => {
     expect(safe.questionResults?.[0]).toMatchObject({ expectedAnswer: '', explanation: '' });
     const reviewed = projectOnlineGradeForStudent(grade, true);
     expect(reviewed.questionResults?.[0]).toMatchObject({ expectedAnswer: 'A', explanation: 'Vì A đúng.' });
+  });
+});
+
+describe('điểm bài online chỉ tới học sinh khi đã chính thức', () => {
+  const attempt = (patch: Partial<ExamSubmission>): ExamSubmission => ({
+    id: 'a', examId: 'e', examCode: '', studentName: '', studentClass: '', startedAt: '', answers: [], maxScore: 10,
+    totalScore: 7, status: 'graded', ...patch,
+  } as ExamSubmission);
+
+  it('điểm AI tạm / chờ duyệt → bỏ điểm và kết quả; đã duyệt hoặc bài cũ không có vòng đời → giữ', () => {
+    expect(isOnlineAttemptOfficial(attempt({ gradeState: 'provisional' }))).toBe(false);
+    expect(isOnlineAttemptOfficial(attempt({ gradeState: 'pending_teacher_review' }))).toBe(false);
+    expect(isOnlineAttemptOfficial(attempt({ gradeState: 'official' }))).toBe(true);
+    expect(isOnlineAttemptOfficial(attempt({}))).toBe(true);
+    expect(isOnlineAttemptOfficial(attempt({ status: 'submitted' }))).toBe(false);
+
+    const hidden = hideUnofficialOnlineScore(attempt({ gradeState: 'provisional', grade: { score: 7, maxScore: 10, feedback: 'x', strengths: [], weaknesses: [], gradedAt: '', teacherApproved: false } }));
+    expect(hidden).not.toHaveProperty('totalScore');
+    expect(hidden).not.toHaveProperty('grade');
+    expect(hidden.gradeState).toBe('provisional');
+    expect(hideUnofficialOnlineScore(attempt({ gradeState: 'official' })).totalScore).toBe(7);
   });
 });

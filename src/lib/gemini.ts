@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { resolveEffort } from "../data/reasoningEffort";
 
 export const DEFAULT_GEMINI_RUNTIME_MODEL = 'gemini-3.8-flash';
 
@@ -15,6 +16,8 @@ export const GEMINI_RUNTIME_MODELS = [
   'gemini-2.5-pro',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
+  // Cuối danh sách: thứ tự là chuỗi dự phòng nên model đắt, chỉ gói trả phí không được đứng ngay sau mặc định.
+  'gemini-4-argon',
 ];
 
 // Backward-compatible alias used by existing callers.
@@ -49,7 +52,13 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
   return result ? result.text : null;
 }
 
-export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex = 0): Promise<GeminiCallResult | null> {
+/** `thinkingConfig` cho đúng model đang gọi (mức không hợp model thì bỏ — gửi lên sẽ bị 400). SDK dùng tên enum VIẾT HOA. */
+const thinkingConfigFor = (model: string, effort?: string) => {
+  const level = resolveEffort('gemini', model, effort);
+  return level ? { thinkingConfig: { thinkingLevel: level.toUpperCase() as never } } : {};
+};
+
+export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex = 0, effort?: string): Promise<GeminiCallResult | null> {
   if (!apiKey) return null;
 
   const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1beta' } });
@@ -67,6 +76,7 @@ export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex
           temperature: 0.1,
           maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
           systemInstruction: EXAM_FORMAT_SYSTEM_INSTRUCTION,
+          ...thinkingConfigFor(modelName, effort),
         },
       });
       const finishReason = (response as any)?.candidates?.[0]?.finishReason;
@@ -113,7 +123,8 @@ export async function callGeminiAIStream(
   apiKey: string,
   onChunk: (chunk: string) => void,
   modelIndex = 0,
-  modelOverride?: string
+  modelOverride?: string,
+  effort?: string,
 ): Promise<void> {
   if (!apiKey) return;
 
@@ -134,6 +145,7 @@ export async function callGeminiAIStream(
           temperature: 0.1,
           maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
           systemInstruction: EXAM_FORMAT_SYSTEM_INSTRUCTION,
+          ...thinkingConfigFor(modelName, effort),
         },
       });
 

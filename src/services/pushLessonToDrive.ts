@@ -12,6 +12,7 @@ import {
   parseFolderId,
   type DriveFile,
 } from '../lib/googleDrive';
+import { moTaLoiHttp } from '../lib/httpErrorText';
 
 export { DriveAuthError } from '../lib/googleDrive';
 
@@ -139,7 +140,7 @@ async function exportLesson(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as Record<string, unknown>;
-    throw new Error(String(err['error'] ?? `Export thất bại: ${res.status}`));
+    throw new Error(String(err['error'] ?? `Chưa xuất được bài lên Drive. ${moTaLoiHttp(res.status)}`));
   }
   const data = await res.json() as Record<string, unknown>;
   const fileData = format === 'docx' ? data['word'] : data['pdf'];

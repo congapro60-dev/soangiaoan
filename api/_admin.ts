@@ -7,6 +7,8 @@
  * tab chỉ là tiện lợi, không phải hàng rào.
  */
 import type { VercelResponse } from '@vercel/node';
+import { handleRefreshRestore } from './_refresh-restore.js';
+import { handleGhkiRestore } from './_ghki-restore.js';
 import { getAuth } from 'firebase-admin/auth';
 import { isAdminEmail, METERING_START_DAY } from '../src/lib/admin/adminConfig.js';
 import { aggregateUsage, type UsageRecord } from '../src/lib/admin/billing.js';
@@ -16,8 +18,10 @@ import { adminWalletAction } from './_ai-wallet.js';
 /** Giữ export cũ cho test/nơi gọi trước đây. */
 export { parseVcbUsdSell } from './_ai-billing.js';
 import { adminAiAccessView, adminSaveAiAccess } from './_ai-keys.js';
+import { GRADING_MODEL } from './_grading-core.js';
+import { handleGeminiPoolAdmin } from './_gemini-key-pool.js';
 import { classKey } from '../src/lib/admin/classSetup.js';
-import { createJoinCode } from '../src/lib/classroom/joinCode.js';
+import { createJoinCode, findDuplicateJoinCodes } from '../src/lib/classroom/joinCode.js';
 import { AI_USAGE_COL } from './_ai-usage.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -143,8 +147,12 @@ const handleOverview = async (db: Db, res: VercelResponse) => {
     };
   });
 
+  // Mỗi link vào lớp phải có mã RIÊNG. Quét mọi lớp (đã đọc sẵn ở trên) để báo ngay nếu có mã bị dùng chung.
+  const duplicateJoinCodes = findDuplicateJoinCodes(classSnap.docs.map(doc => ({
+    id: doc.id, name: String(doc.get('name') ?? ''), teacherId: String(doc.get('ownerId') || doc.get('teacherId') || ''), joinCode: String(doc.get('joinCode') ?? ''),
+  })));
   return res.status(200).json({
-    users, anonymousCount, classes, aiEventsBefore, aiEventsAfter, settings, meteringStartDay: METERING_START_DAY,
+    users, anonymousCount, classes, aiEventsBefore, aiEventsAfter, settings, meteringStartDay: METERING_START_DAY, duplicateJoinCodes,
   });
 };
 
@@ -284,6 +292,8 @@ export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse)
   const admin = await requireAdmin(body, res);
   if (!admin) return true;
   if (action === 'adminOverview') { await handleOverview(db, res); return true; }
+  if (action === 'adminRefreshRestore') { await handleRefreshRestore(db, body, admin.uid, res); return true; }
+  if (action === 'adminGhkiRestore') { await handleGhkiRestore(db, body, admin.uid, res); return true; }
   if (action === 'adminUsage') { await handleUsage(db, body, res); return true; }
   if (action === 'adminSaveSettings') { await handleSaveSettings(db, body, res); return true; }
   if (action === 'adminFetchVcbRate') { await handleFetchVcbRate(res); return true; }
@@ -307,6 +317,8 @@ export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse)
     res.status(status).json(payload);
     return true;
   }
+  const poolResult = await handleGeminiPoolAdmin(db, action, body, GRADING_MODEL, Boolean(process.env.GRADING_GEMINI_API_KEY || process.env.GEMINI_API_KEY));
+  if (poolResult) { res.status(poolResult.status).json(poolResult.payload); return true; }
   res.status(400).json({ error: `Hành động quản trị không hợp lệ: ${action}` });
   return true;
 };

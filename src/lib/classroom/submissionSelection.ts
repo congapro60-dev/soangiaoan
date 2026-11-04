@@ -29,8 +29,10 @@ export const isGradableNow = (submission: SubmissionDoc, nowMs = Date.now()): bo
 /**
  * Máy đọc bài "chưa chắc": có câu không đọc rõ, có câu tự đánh dấu cần giáo viên soát, hoặc độ
  * chắc chắn đọc chữ thấp. Dùng để hiện nhãn nhắc GV mở ra kiểm — bắt lỗi AI đọc nhầm công thức.
+ * Bài giáo viên đã sửa tay (editedByTeacher) coi như thầy đã soát chốt: máy không kéo cờ nữa.
  */
 export const hasUncertainRead = (grade?: SubmissionGrade): boolean => {
+  if (grade?.editedByTeacher) return false;
   const results = grade?.questionResults;
   if (!Array.isArray(results)) return false;
   return results.some(question =>
@@ -38,6 +40,14 @@ export const hasUncertainRead = (grade?: SubmissionGrade): boolean => {
     || question?.needsTeacherReview === true
     || (typeof question?.confidence === 'number' && question.confidence < READ_CONFIDENCE_FLOOR));
 };
+
+/**
+ * Bài đăng ký cờ "cần thầy soát": máy đọc chưa chắc, HOẶC (bài kiểm tra định kì) tổng điểm AI lệch
+ * điểm giáo viên trong sổ. Không chặn duyệt nữa (chính sách 2026-10-24) — chỉ dùng để hiện cờ
+ * cảnh báo ở dòng bài, và nhóm "cần soát" trong việc tồn của lớp.
+ */
+export const needsTeacherCheck = (grade?: SubmissionGrade): boolean =>
+  hasUncertainRead(grade) || grade?.examCheck?.mismatch === true;
 
 const createdAtValue = (value?: string): number => {
   const parsed = Date.parse(String(value || ''));
@@ -117,9 +127,9 @@ export interface ClassBacklog {
   toGrade: SubmissionDoc[];
   /** Lượt mới nhất máy chấm lỗi (ảnh mờ, không đọc được…) — tách riêng để giáo viên thấy lý do. */
   errored: SubmissionDoc[];
-  /** Đã chấm, chưa duyệt, máy đọc chắc chắn — duyệt loạt được. */
+  /** Đã chấm, chưa duyệt — gồm cả bài cần soát (chính sách 2026-10-24); duyệt loạt được. */
   toApprove: SubmissionDoc[];
-  /** Đã chấm, chưa duyệt nhưng máy đọc chưa chắc — mặc định giữ lại cho giáo viên xem. */
+  /** Tập con của toApprove mà máy đọc chưa chắc — chỉ để đếm/hiện cờ nhắc thầy soát. */
   uncertain: SubmissionDoc[];
   /** Số bài giao đang có việc tồn. */
   assignmentCount: number;
@@ -148,8 +158,10 @@ export const classBacklog = (
   return {
     toGrade,
     errored,
-    toApprove: waiting.filter(submission => !hasUncertainRead(submission.grade)),
-    uncertain: waiting.filter(submission => hasUncertainRead(submission.grade)),
+    // Chính sách 2026-10-24: bài cần soát cũng được duyệt — toApprove gồm toàn bộ bài chờ duyệt,
+    // uncertain chỉ còn vai trò đếm/hiện cờ.
+    toApprove: waiting,
+    uncertain: waiting.filter(submission => needsTeacherCheck(submission.grade)),
     assignmentCount: new Set([...toGrade, ...errored, ...waiting].map(submission => submission.assignmentId)).size,
   };
 };

@@ -1,0 +1,663 @@
+/**
+ * Bản rã của contract validator chất lượng bài học dùng cho cả client và lambda.
+ * SINH TỰ ĐỘNG từ CIS_TDS_Lesson_Validator_v1.1.json — KHÔNG sửa tay. Muốn đổi, sửa file JSON chuẩn
+ * rồi chạy lại bước sinh (test ghép keo cùng thư mục sẽ chặn hai bản lệch nhau).
+ * Lý do không static-import JSON: compiler serverless của Vercel làm rơi import
+ * attribute `with { type: 'json' }` khi transform TS -> ESM, khiến lambda chết
+ * ngay lúc nạp module (ERR_IMPORT_ATTRIBUTE_MISSING).
+ */
+export const lessonValidatorContractV11 = {
+  "standard_id": "TDS-CIS-LQS",
+  "version": "1.1.0",
+  "date": "2026-09-23",
+  "status_note": "Internal CIS-aligned/TDS lesson-quality standard; not an official CIS standard document.",
+  "compatibility": {
+    "masterSpec": "8.3.2",
+    "qualityStandard": "1.1.0",
+    "lessonIRCapability": "8.3.2",
+    "compilerSpec": "1.3",
+    "reviewFixSpec": "1.2"
+  },
+  "statuses": [
+    "BLOCKED",
+    "NEEDS_TEACHER_CONFIRMATION",
+    "READY_WITH_WARNINGS",
+    "READY"
+  ],
+  "must_rules": [
+    {
+      "id": "M01",
+      "title": "Mathematical correctness & curriculum alignment",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "sourceVerification.status",
+        "lesson.curriculumUnit",
+        "timeline"
+      ],
+      "evidence_paths": [
+        "sourceVerification.status",
+        "lesson.curriculumUnit",
+        "timeline"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "math_error_or_curriculum_mismatch"
+      ],
+      "fail_message": "M01 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M02",
+      "title": "Know the learners / data-informed planning",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "learnerContext.evidence",
+        "learnerContext.planningImplications"
+      ],
+      "evidence_paths": [
+        "learnerContext.evidence",
+        "learnerContext.planningImplications"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "missing_learner_context_or_explicit_assumptions"
+      ],
+      "fail_message": "M02 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M03",
+      "title": "Clear learning intention & success criteria",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "learningDesign.learningIntention",
+        "learningDesign.successCriteria"
+      ],
+      "evidence_paths": [
+        "learningDesign.learningIntention",
+        "learningDesign.successCriteria"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "missing_learning_intention",
+        "missing_success_criteria"
+      ],
+      "fail_message": "M03 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M04",
+      "title": "Coherent learning arc",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline"
+      ],
+      "evidence_paths": [
+        "timeline"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "incoherent_learning_arc"
+      ],
+      "fail_message": "M04 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M05",
+      "title": "Intellectual engagement",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "learningDesign.intellectualDemand",
+        "timeline[].cognitiveDemand"
+      ],
+      "evidence_paths": [
+        "learningDesign.intellectualDemand",
+        "timeline[].cognitiveDemand"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "no_rich_mathematical_thinking"
+      ],
+      "fail_message": "M05 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M06",
+      "title": "Formative evidence during lesson",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "formativeDecisionCycles"
+      ],
+      "evidence_paths": [
+        "formativeDecisionCycles"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "no_midlesson_formative_evidence"
+      ],
+      "fail_message": "M06 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M07",
+      "title": "Evidence -> interpretation -> decision -> action -> recheck",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "formativeDecisionCycles[].collect",
+        "formativeDecisionCycles[].decisionRule",
+        "formativeDecisionCycles[].recheck"
+      ],
+      "evidence_paths": [
+        "formativeDecisionCycles[].collect",
+        "formativeDecisionCycles[].decisionRule",
+        "formativeDecisionCycles[].recheck"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "incomplete_formative_decision_cycle",
+        "formative_check_without_recheck"
+      ],
+      "fail_message": "M07 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M08",
+      "title": "Responsive differentiation with common core learning",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline[].differentiation"
+      ],
+      "evidence_paths": [
+        "timeline[].differentiation"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "differentiation_lowers_core_standard_without_formal_support_plan"
+      ],
+      "fail_message": "M08 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M09",
+      "title": "Equitable access & language support",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline[].differentiation.scaffolds",
+        "languageSupport.activitySupport"
+      ],
+      "evidence_paths": [
+        "timeline[].differentiation.scaffolds",
+        "languageSupport.activitySupport"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "triggered_access_need_without_support"
+      ],
+      "fail_message": "M09 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M10",
+      "title": "Safe, respectful, purposeful environment",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline[].privacy",
+        "cisEvidenceMap"
+      ],
+      "evidence_paths": [
+        "timeline[].privacy",
+        "cisEvidenceMap"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "unsafe_or_private_student_data_exposed"
+      ],
+      "fail_message": "M10 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M11",
+      "title": "Student reflection / self-monitoring / next step",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "reflectionContract"
+      ],
+      "evidence_paths": [
+        "reflectionContract"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "missing_reflection_or_next_step"
+      ],
+      "fail_message": "M11 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M12",
+      "title": "Time feasibility",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "lesson.runtimeMin",
+        "timeline[].durationSec",
+        "timeline[].timingPolicy.surfaceSwitchCostSec"
+      ],
+      "evidence_paths": [
+        "lesson.runtimeMin",
+        "timeline[].durationSec",
+        "timeline[].timingPolicy.surfaceSwitchCostSec"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "runtime_materially_exceeded"
+      ],
+      "fail_message": "M12 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M13",
+      "title": "Observable evidence of learning",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline[].expectedEvidence",
+        "timeline[].successLookFor"
+      ],
+      "evidence_paths": [
+        "timeline[].expectedEvidence",
+        "timeline[].successLookFor"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "main_activity_without_learning_evidence"
+      ],
+      "fail_message": "M13 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M14",
+      "title": "Teacher prompts & anticipated responses",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "timeline[].coach",
+        "questions",
+        "timeline[].questionInstances"
+      ],
+      "evidence_paths": [
+        "timeline[].coach",
+        "questions",
+        "timeline[].questionInstances"
+      ],
+      "evaluation": "Evidence-based semantic validation; do not infer missing learner facts.",
+      "fail_codes": [
+        "critical_prompt_without_expected_response_or_followup"
+      ],
+      "fail_message": "M14 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Repair the mapped Lesson IR field(s), preserve provenance, then rerun validation.",
+      "auto_fix_allowed": false
+    },
+    {
+      "id": "M15",
+      "title": "Evidence provenance & planning honesty",
+      "severity": "BLOCK",
+      "applies_when": "always",
+      "required_paths": [
+        "learnerContext.evidence[].type",
+        "learnerContext.evidence[].summary",
+        "learnerContext.evidence[].requiresTeacherConfirmation"
+      ],
+      "evidence_paths": [
+        "learnerContext.evidence[].type",
+        "learnerContext.evidence[].summary",
+        "learnerContext.evidence[].requiresTeacherConfirmation"
+      ],
+      "evaluation": "All LearnerEvidence requires type, summary and confirmation semantics. Provenance requirements are conditional on evidence type; sourceRef is not universally required.",
+      "fail_codes": [
+        "fabricated_student_percentage",
+        "fabricated_named_student_need",
+        "assumption_presented_as_observed_fact",
+        "learner_evidence_without_provenance"
+      ],
+      "fail_message": "M15 is not satisfied by the current Lesson IR.",
+      "repair_hint": "Keep unknown/assumption honest. Add traceable provenance for observed/source-based evidence; for planning_assumption/unknown, sourceRef may be null but teacher confirmation is required.",
+      "auto_fix_allowed": false,
+      "conditional_provenance": {
+        "observed_or_source_based_types": {
+          "types": [
+            "teacher_provided",
+            "assessment_result",
+            "student_work",
+            "runtime_observation",
+            "previous_lesson",
+            "teacher_observed"
+          ],
+          "require": "sourceRef OR equivalent traceable provenance (lessonRef/activityRef/capturedAt appropriate to the evidence type)"
+        },
+        "planning_or_unknown_types": {
+          "types": [
+            "planning_assumption",
+            "unknown"
+          ],
+          "sourceRef_may_be_null": true,
+          "requiresTeacherConfirmation": true,
+          "must_not_be_presented_as_observed_fact": true
+        }
+      }
+    }
+  ],
+  "conditional_rules": [
+    {
+      "id": "C01",
+      "title": "Global citizenship / intercultural learning",
+      "trigger": "authentic_context_or_perspective_adds_learning_value",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C02",
+      "title": "Digital citizenship",
+      "trigger": "student_uses_digital_data_tools_with_choices_or_risks",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C03",
+      "title": "Technology-enhanced mathematics",
+      "trigger": "technology_adds_cognitive_or_evidence_value",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C04",
+      "title": "Experiential / real-world context",
+      "trigger": "context_deepens_math_or_modelling",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C05",
+      "title": "Group work",
+      "trigger": "task_requires_exchange_synthesis_critique_or_cognitive_roles",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C06",
+      "title": "Peer assessment",
+      "trigger": "clear_quality_criteria_and_learning_value",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C07",
+      "title": "Flipped learning",
+      "trigger": "prework_frees_class_time_for_deeper_learning",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    },
+    {
+      "id": "C08",
+      "title": "Intensive language scaffold",
+      "trigger": "evidence_of_language_barrier",
+      "blocking_by_default": false,
+      "feature_valid_when": "triggered == false OR (triggerReason AND learningValue AND studentAction AND expectedEvidence)",
+      "on_invalid_feature": "WARN_OR_INVALIDATE_FEATURE"
+    }
+  ],
+  "hard_checks": [
+    {
+      "code": "incomplete_formative_decision_cycle",
+      "severity": "BLOCK",
+      "requires": [
+        "collect",
+        "interpret",
+        "decide",
+        "act",
+        "recheck"
+      ],
+      "message": "A key formative checkpoint must include collect -> interpret -> decide -> act -> recheck.",
+      "repair_hint": "Add interpretation, decision/action branches and a recheck mapped to success criteria.",
+      "auto_fix_allowed": false
+    },
+    {
+      "code": "formative_check_without_recheck",
+      "severity": "BLOCK",
+      "message": "A key formative checkpoint has an action but no recheck.",
+      "repair_hint": "Add a new-evidence recheck after the intervention.",
+      "auto_fix_allowed": false
+    },
+    {
+      "code": "assumption_presented_as_observed_fact",
+      "severity": "BLOCK",
+      "message": "Planning assumption is presented as observed learner evidence.",
+      "repair_hint": "Change evidence type to planning_assumption, add teacher confirmation, and remove fabricated certainty.",
+      "auto_fix_allowed": false
+    },
+    {
+      "code": "observed_evidence_without_traceable_provenance",
+      "severity": "BLOCK",
+      "applies_when": "LearnerEvidence.type in teacher_provided|assessment_result|student_work|runtime_observation|previous_lesson|teacher_observed",
+      "message": "Observed/source-based learner evidence must have traceable provenance.",
+      "repair_hint": "Add sourceRef or equivalent lesson/activity/timestamp provenance.",
+      "auto_fix_allowed": false
+    },
+    {
+      "code": "planning_assumption_missing_confirmation",
+      "severity": "BLOCK",
+      "applies_when": "LearnerEvidence.type in planning_assumption|unknown AND requiresTeacherConfirmation != true",
+      "message": "Planning assumption/unknown evidence must remain explicitly unconfirmed.",
+      "repair_hint": "Set requiresTeacherConfirmation=true; do not fabricate sourceRef or observed status.",
+      "auto_fix_allowed": false
+    }
+  ],
+  "teacher_confirmation_rules": [
+    {
+      "code": "planning_assumption_requires_teacher_confirmation",
+      "applies_when": "learner evidence is unavailable and planning assumptions materially affect differentiation, grouping, threshold, decision rule, required support, or teaching readiness",
+      "status": "NEEDS_TEACHER_CONFIRMATION",
+      "authoring_blocking": false,
+      "design_blocking": false,
+      "preview_blocking": false,
+      "ready_to_teach_blocking": true,
+      "publish_blocking": true
+    }
+  ],
+  "student_agency_checks": [
+    "agency_claim_without_meaningful_choice",
+    "choice_is_fixed_ability_label",
+    "choice_does_not_change_learning_process_or_product"
+  ],
+  "warning_checks": [
+    "challenge_is_more_volume_not_more_depth",
+    "conditional_feature_trigger_without_learning_value",
+    "differentiation_lowers_core_standard_without_formal_support_plan",
+    "exit_ticket_not_mapped_to_success_criteria",
+    "global_digital_experiential_tag_without_student_action_and_evidence",
+    "group_work_has_no_cognitive_reason_or_individual_accountability",
+    "grouping_based_on_fixed_history_without_current_evidence",
+    "reflection_not_used_for_next_step",
+    "scaffold_has_no_fade_condition",
+    "teacher_talk_over_25_percent_without_clear_pedagogical_reason",
+    "too_many_major_transitions_for_runtime"
+  ],
+  "activity_required_fields": [
+    "id",
+    "title",
+    "durationSec",
+    "objectiveRefs",
+    "successCriteriaRefs",
+    "formativeCycleRefs",
+    "studentAction",
+    "teacherAction",
+    "cognitiveDemand",
+    "expectedEvidence",
+    "successLookFor",
+    "materials",
+    "threeWayOrchestration",
+    "attentionBeacon",
+    "deviceAdaptation",
+    "differentiation"
+  ],
+  "quality_validation_result_schema": {
+    "status": "enum",
+    "passedRules": "array",
+    "failedRules": "array",
+    "warnings": "array",
+    "teacherConfirmationsRequired": "array",
+    "evidenceMap": "object",
+    "remediation": "array",
+    "standardVersion": "string",
+    "validatorVersion": "string"
+  },
+  "attention_states": {
+    "projector": [
+      "LOOK_UP",
+      "CONTEXT",
+      "DEBRIEF"
+    ],
+    "student": [
+      "LOOK_DOWN",
+      "RESPOND",
+      "WAIT"
+    ],
+    "coach": [
+      "MONITOR",
+      "DECIDE",
+      "SUPPORT"
+    ]
+  },
+  "attention_conflict_rule": "Projector and student flow must not both demand high attention at the same time. Explicitly hand off attention before student interaction.",
+  "anti_patterns": [
+    "CIS_theatre",
+    "surface_participation_equals_learning",
+    "fixed_ability_labels",
+    "public_colour_coding_by_ability",
+    "global_decoration",
+    "technology_equals_digital_citizenship",
+    "formative_assessment_without_response",
+    "overloaded_40_minute_lesson",
+    "fake_student_agency",
+    "scaffold_lowers_expectations",
+    "generic_teacher_monitoring",
+    "premature_answer_reveal",
+    "reflection_as_ritual",
+    "forced_real_world_context",
+    "fabricated_learner_data",
+    "assumption_as_fact"
+  ],
+  "release_gate": {
+    "logic": "BLOCKED if any blocking failure. NEEDS_TEACHER_CONFIRMATION may continue through authoring/design/preview when unknown/assumption provenance is explicit. READY_TO_TEACH and PUBLISH are blocked if any material required confirmation remains unresolved. READY_WITH_WARNINGS if no blockers and confirmations required for release are resolved but material warnings remain. READY if no blockers, no material pending confirmations, and no material warnings.",
+    "publish_requires_teacher_confirmations_resolved": true,
+    "ready_to_teach_requires_teacher_confirmations_resolved": true,
+    "authoring_may_continue_with_confirmation_pending": true,
+    "do_not_compute_single_cis_score": true
+  },
+  "migration_policy": {
+    "fabricate_missing_quality_fields": false,
+    "unknown_stays_unknown": true,
+    "missing_learner_evidence_behavior": "unknown_or_planning_assumption",
+    "planning_assumption_requires_provenance": true,
+    "material_assumption_requires_teacher_confirmation": true,
+    "goal": "truth-preserving migration, not validator gaming"
+  },
+  "formative_cycle_required_paths": [
+    "formativeDecisionCycles[].id",
+    "formativeDecisionCycles[].mappedSuccessCriteria",
+    "formativeDecisionCycles[].activityRef",
+    "formativeDecisionCycles[].collect.method",
+    "formativeDecisionCycles[].collect.evidenceCollected",
+    "formativeDecisionCycles[].decisionRule.below.interpretation",
+    "formativeDecisionCycles[].decisionRule.below.decision",
+    "formativeDecisionCycles[].decisionRule.below.action",
+    "formativeDecisionCycles[].decisionRule.onTrack.interpretation",
+    "formativeDecisionCycles[].decisionRule.onTrack.decision",
+    "formativeDecisionCycles[].decisionRule.onTrack.action",
+    "formativeDecisionCycles[].decisionRule.above.interpretation",
+    "formativeDecisionCycles[].decisionRule.above.decision",
+    "formativeDecisionCycles[].decisionRule.above.action",
+    "formativeDecisionCycles[].recheck.method",
+    "formativeDecisionCycles[].recheck.newEvidence",
+    "formativeDecisionCycles[].recheck.timing"
+  ],
+  "conditional_feature_validity": {
+    "canonical_path": "conditionalFeatures",
+    "required_fields_when_triggered": [
+      "triggerReason",
+      "learningValue",
+      "studentAction",
+      "expectedEvidence"
+    ],
+    "observerEvidence_role": "Optional feature-level observer note; not equivalent to CIS badge evidence.",
+    "validity_logic": "Each C01-C08 feature is validated as a learning feature. No C-rule directly grants a CIS badge.",
+    "invalid_behavior": "WARN_OR_INVALIDATE_FEATURE",
+    "do_not_block_absence_of_optional_features": true
+  },
+  "cis_badge_eligibility": {
+    "canonical_path": "cisEvidenceMap",
+    "supported_pillars": [
+      "differentiation",
+      "global_intercultural",
+      "digital_citizenship",
+      "assessment_for_learning"
+    ],
+    "derivation": {
+      "differentiation": "M08 evidence + observable student access/challenge behavior",
+      "global_intercultural": "valid C01 when used + observable student behavior + observer evidence",
+      "digital_citizenship": "valid C02 when used + observable student behavior + observer evidence",
+      "assessment_for_learning": "M06 + M07 evidence, including responsive action and recheck"
+    },
+    "logic": "Badge eligibility is derived independently after learning-quality validation. C03-C08 do not create standalone CIS badges.",
+    "invalid_behavior": "REMOVE_BADGE_AND_WARN",
+    "does_not_automatically_invalidate_conditional_feature": true
+  },
+  "path_conventions": {
+    "style": "camelCase",
+    "time_unit": "durationSec for activity runtime; lesson.runtimeMin for lesson total",
+    "question_bank_path": "questions",
+    "question_instance_path": "timeline[].questionInstances",
+    "forbidden_legacy_examples": [
+      "duration_min",
+      "minutes",
+      "objective_refs",
+      "student_action",
+      "teacher_action",
+      "cognitive_demand",
+      "expected_evidence",
+      "success_look_for",
+      "formative_check",
+      "questionInstances at root"
+    ]
+  }
+};

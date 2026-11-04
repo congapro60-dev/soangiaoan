@@ -14,6 +14,8 @@ import {
   updateAssignmentContent,
   updateAssignmentDeadline,
   updateSubmissionGradeManually,
+  suaDapAnCaLop,
+  chonMaDeBaiNop,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
   uploadAssignmentImages,
@@ -26,11 +28,26 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
+import { ActorSubmissionUpload } from './ActorSubmissionUpload';
+import { ExamVariantsEditor } from './ExamVariantsEditor';
+import { SubmissionFeedback } from './SubmissionFeedback';
+import { CorrectionAttempts } from './CorrectionAttempts';
+import { HandMarkedWork } from './HandMarkedWork';
+import { ClarifyPanel } from './student/ClarifyPanel';
+import { isActionableClarifyQuestion } from '../../../lib/classroom/clarification';
+import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos, setSubmissionPhotosVisibility } from '../../../services/submissionActorsApi';
+import { isBlankAnswer } from '../../../lib/classroom/questionRescore';
+import { SubmissionPhotoReview } from './SubmissionPhotoReview';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
-import { renameAssignment } from '../../../lib/classroom/teacherService';
+import { confirmPaperExamScore, renameAssignment } from '../../../lib/classroom/teacherService';
+import { countKeyQuestions } from '../../../lib/classroom/examVariants';
+import type { VariantChange } from '../../../lib/classroom/examVariantDiff';
 import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
+import { groupResultsByWeek, weekTitle } from '../../../lib/classroom/reportWeeks';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
+import { auth } from '../../../lib/firebase';
 import { CompetencyTagEditor } from './CompetencyTagEditor';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
@@ -65,18 +82,18 @@ const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> 
   error: { nhan: 'Lỗi', mau: 'bg-red-50 text-red-700' },
 };
 
-const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; className: string } | null => {
+const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; title: string; className: string } | null => {
   if (!grade?.teacherApproved) {
-    if (grade) return { label: 'Chờ GV duyệt', className: 'bg-amber-50 text-amber-700' };
+    if (grade) return { label: 'Chờ duyệt', title: 'Chờ giáo viên duyệt điểm', className: 'bg-amber-50 text-amber-700' };
     return null;
   }
   if (grade.approvalSource === 'student_ai') {
-    return { label: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
+    return { label: 'AI duyệt', title: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
   }
   if (grade.approvalSource === 'auto_timeout') {
-    return { label: 'Tự duyệt sau 60 phút', className: 'bg-violet-50 text-violet-700' };
+    return { label: 'Tự duyệt', title: 'Tự duyệt sau 60 phút', className: 'bg-violet-50 text-violet-700' };
   }
-  return { label: 'GV đã duyệt', className: 'bg-emerald-50 text-emerald-700' };
+  return { label: 'GV duyệt', title: 'Giáo viên đã duyệt điểm', className: 'bg-emerald-50 text-emerald-700' };
 };
 
 const denONhapNgay = (iso?: string): string => {
@@ -105,7 +122,7 @@ interface SubmissionViewFile {
 
 const isImageSubmissionFile = (file: SubmissionViewFile): boolean => file.kind === 'image' || file.mimeType?.startsWith('image/') === true;
 
-const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionViewFile[]; studentName: string }) => {
+const SubmissionImageViewer = ({ images, studentName, grade, periodic = false }: { images: SubmissionViewFile[]; studentName: string; grade?: SubmissionDoc['grade']; periodic?: boolean }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -159,9 +176,10 @@ const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionView
               <p className="min-w-0 truncate text-sm font-black">Bài làm của {studentName} · Ảnh {selectedIndex + 1}/{images.length}</p>
               <button type="button" onClick={() => setSelectedIndex(null)} aria-label="Đóng trình xem ảnh" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"><X className="h-5 w-5" /></button>
             </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center gap-2 p-3 sm:gap-4 sm:p-5">
+            <div className="flex min-h-0 flex-1 items-start justify-center gap-2 overflow-y-auto p-3 sm:gap-4 sm:p-5">
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.max(0, index - 1))} disabled={selectedIndex === 0} aria-label="Ảnh trước" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-6 w-6" /></button>
-              <img src={selectedImage.url} alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} className="max-h-[calc(100vh-10rem)] max-w-[calc(100vw-7rem)] object-contain" />
+              <div className="min-w-0 flex-1"><SubmissionPhotoReview key={selectedImage.url} imageUrl={selectedImage.url}
+                alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} imageUrls={images.map(image => image.url)} grade={grade} hideScores={periodic} questionResults={grade?.questionResults ?? []} teacherView approved={grade?.teacherApproved} /></div>
               <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.min(images.length - 1, index + 1))} disabled={selectedIndex === images.length - 1} aria-label="Ảnh sau" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-6 w-6" /></button>
             </div>
             <p className="border-t border-white/10 px-4 py-2 text-center text-xs font-semibold text-slate-400">Dùng nút Trước/Sau hoặc phím ← → · Esc để đóng</p>
@@ -174,6 +192,8 @@ const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionView
 
 interface BaiNopTheoLopProps {
   baiNop: SubmissionDoc[];
+  assignment?: AssignmentDoc;
+  onRefresh?: () => void;
   hanNop?: string;
   lopHocSinh: RosterStudent[];
   moRongId: string;
@@ -191,18 +211,28 @@ interface BaiNopTheoLopProps {
   toggleAllSubmissions: (submissionIds: readonly string[], selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
   bulkChamLai: () => void | Promise<void>;
+  /** Báo ra ngoài khi một lượt nộp vừa lưu xong (để thầy thấy rõ đã nộp được chưa). */
+  onBaiNopXong?: (message: string) => void;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
   retryEvidenceSync: (s: SubmissionDoc) => void | Promise<void>;
   bulkRetrySync: () => void | Promise<void>;
+  /** Bài kiểm tra định kì nhiều mã: các mã đề, và thao tác giáo viên chọn mã cho một bài nộp. */
+  maDe?: string[];
+  chonMaDe?: (s: SubmissionDoc, examCode: string, ten: string) => void | Promise<void>;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe, onBaiNopXong }: BaiNopTheoLopProps) => {
+  const [proxyStudent, setProxyStudent] = useState('');
+  const [proxyBase, setProxyBase] = useState('');
+  const [proxyHandMarked, setProxyHandMarked] = useState(false);
+  /** Em đang được nộp bài: khoá chuyển sang em khác để không mất lượt nộp dở dang. */
+  const [dangNopHS, setDangNopHS] = useState('');
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -234,7 +264,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100">
+    <div className={`teacher-submission-list overflow-hidden rounded-2xl border border-slate-100${maDe && maDe.length > 1 ? ' has-exam-codes' : ''}`}>
       <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-3 py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex min-h-11 items-center gap-2 text-sm font-black text-slate-700">
@@ -291,6 +321,19 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
         {historyMode === 'latest' && baiNop.length > current.length && (
           <p className="text-xs font-semibold text-slate-500">Đang ẩn {baiNop.length - current.length} lượt nộp cũ; chuyển sang “Hiện cả lịch sử” để đối chiếu hoặc xóa có chủ đích.</p>
         )}
+        {dangNopHS && (
+          <p role="status" className="mt-2 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Đang nộp bài cho em {dangNopHS} — đợi xong đã nộp rồi hãy chuyển em khác (đổi em lúc này sẽ mất lượt nộp đang chạy).
+          </p>
+        )}
+      </div>
+      <div className="teacher-submission-head teacher-submission-row border-b border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px] font-bold text-slate-500" aria-hidden="true">
+        <span />
+        <div className="teacher-submission-columns">
+          <span>Học sinh</span><span>Trạng thái</span><span>Hạn nộp</span><span>Lưu ý</span><span className="text-right">Điểm</span><span>Duyệt</span><span>Nộp lúc</span>
+        </div>
+        {maDe && maDe.length > 1 && <span>Mã đề</span>}
       </div>
       {baiNopHienThi.map(s => {
         const ten = tenTheoId.get(s.studentId) || `HS …${s.studentId.slice(-4)}`;
@@ -298,75 +341,115 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
         const gradingLockFresh = s.status === 'grading' && !isStaleGradingTimestamp(s.updatedAt);
         return (
           <div key={s.id} id={`bai-nop-${s.id}`} className="scroll-mt-24 border-b border-slate-100 last:border-b-0">
-            <div className="flex items-center gap-2 px-3 py-3">
+            <div className="teacher-submission-row px-3 py-3">
               <input
                 type="checkbox"
                 checked={selectedIds.has(s.id)}
                 onChange={event => toggleSelected(s.id, event.target.checked)}
                 disabled={dangBulk !== ''}
                 title={currentIds.has(s.id) ? 'Chọn lượt nộp mới nhất để chấm, duyệt hoặc xóa' : 'Chọn lượt nộp cũ để xóa theo mong muốn'}
+                aria-label={`Chọn bài của ${ten}`}
                 className="h-4 w-4 shrink-0 accent-indigo-600 disabled:opacity-30"
               />
-              <button type="button" onClick={() => troMoRong(dangMo ? '' : s.id)} className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left transition hover:bg-slate-50">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">{ten.charAt(0)}</span>
-              <span className="font-black text-slate-900">{ten}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${trangThai[s.status].mau}`}>{trangThai[s.status].nhan}</span>
-              {hanNop && (
+              <button type="button" aria-expanded={dangMo} onClick={() => troMoRong(dangMo ? '' : s.id)} className="teacher-submission-columns teacher-submission-summary min-w-0 text-left transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500">
+              <span data-column="student" className="flex min-w-0 items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">{ten.charAt(0)}</span>
+                <span className="min-w-0 break-words text-sm font-black text-slate-900">{ten}</span>
+              </span>
+              <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${trangThai[s.status].mau}`}>{trangThai[s.status].nhan}</span></span>
+              <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span>
+              {hanNop ? (
                 laNopQuaHan(s.createdAt, hanNop)
-                  ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Muộn</span>
+                  ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Nộp muộn</span>
                   : <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Đúng hạn</span>
-              )}
+              ) : <span className="text-xs text-slate-400">Không hạn</span>}
+              </span>
+              <span data-column="notes" className="teacher-submission-cell"><span className="teacher-submission-label">Lưu ý</span><span className="teacher-submission-notes">
+              {Boolean(s.feedbackSummary?.pending) && <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-800" title={`${s.feedbackSummary?.pending} phản hồi chưa trả lời`}>{s.feedbackSummary?.pending} phản hồi</span>}
               {s.grade?.editedByTeacher && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
               {s.grade?.gradingRecovery && (
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
-                  {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title={s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}>
+                  {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI thử lại' : 'AI phục hồi'}
                 </span>
               )}
               {s.grade && hasUncertainRead(s.grade) && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Máy đọc chưa chắc</span>
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Đọc chưa rõ</span>
               )}
               {(s.status === 'graded' && s.lastGradingError) && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={s.lastGradingError}>Đã giữ điểm (lỗi chấm lại)</span>
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={`Đã giữ điểm vì lỗi chấm lại: ${s.lastGradingError}`}>Giữ điểm</span>
               )}
               {s.evidenceSyncError && (
-                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={s.evidenceSyncError}>Đồng bộ minh chứng đang chờ</span>
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={`Đồng bộ minh chứng đang chờ: ${s.evidenceSyncError}`}>Chờ đồng bộ</span>
+              )}
+              {s.grade?.examCheck && (
+                <span
+                  className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${s.grade.examCheck.mismatch ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}
+                  title={`Điểm GV: ${s.grade.examCheck.sheetScore}/10 ở cột “${s.grade.examCheck.sheetLabel}”; lệch ${s.grade.examCheck.diff} điểm.`}
+                >
+                  {s.grade.examCheck.mismatch ? 'Lệch điểm GV' : 'Khớp điểm GV'}
+                </span>
               )}
               {nhanLanNop.get(s.id) && (
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   nhanLanNop.get(s.id) === 'Lần nộp mới nhất' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {nhanLanNop.get(s.id)}
+                }`} title={nhanLanNop.get(s.id)}>
+                  {currentIds.has(s.id) ? 'Mới nhất' : 'Lượt cũ'}
                 </span>
               )}
-              {/* Điểm + nhãn duyệt */}
-              <span className="flex items-center gap-1.5">
-                {s.grade && <span className="text-sm font-black text-slate-900">{s.grade.score}/{s.grade.maxScore}</span>}
+              </span></span>
+              <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{s.grade ? `${s.grade.score}/${s.grade.maxScore}` : '—'}</span></span>
+              <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span>
                 {(() => {
                   const approval = getApprovalLabel(s.grade);
-                  if (!approval) return null;
-                  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approval.className}`}>{approval.label}</span>;
+                  if (!approval) return <span className="text-xs text-slate-400">—</span>;
+                  return <span title={approval.title} className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approval.className}`}>{approval.label}</span>;
                 })()}
               </span>
-              <span className="text-[11px] font-semibold text-slate-400">
-                {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} tệp
+              <span data-column="time" className="teacher-submission-cell text-[11px] font-semibold tabular-nums text-slate-500"><span className="teacher-submission-label">Nộp lúc</span>
+                <span className="teacher-submission-time"><span>{new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span><span className="text-slate-400">{s.fileUrls.length} tệp</span></span>
               </span>
               </button>
+              {maDe && maDe.length > 1 && (
+                <label
+                  className={`teacher-submission-exam flex flex-wrap items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${s.examCode ? 'bg-sky-50 text-sky-800' : 'bg-rose-50 text-rose-700'}`}
+                  title={s.examCodeSource === 'teacher' ? 'Thầy cô đã chọn mã này' : s.examCodeSource === 'student' ? 'Máy không đọc được mã, học sinh tự chọn — soát lại trên bài rồi chọn lại nếu sai' : s.examCode ? 'Mã AI đọc trên bài — chọn lại nếu sai rồi chấm lại' : 'Chưa có mã đề — chọn mã rồi chấm lại'}
+                >
+                  Mã đề
+                  <select
+                    value={s.examCode ?? ''}
+                    disabled={gradingLockFresh || !chonMaDe}
+                    onChange={event => { if (event.target.value) void chonMaDe?.(s, event.target.value, ten); }}
+                    aria-label={`Mã đề của bài ${ten}`}
+                    title={s.examCode || 'Chưa có mã đề'}
+                    className="min-w-0 max-w-full bg-transparent font-black outline-none disabled:opacity-50"
+                  >
+                    <option value="">?</option>
+                    {maDe.map(code => <option key={code} value={code}>{code}</option>)}
+                  </select>
+                  {s.examCodeSource === 'ai' && <span className="font-semibold text-sky-600">AI đọc</span>}
+                  {s.examCodeSource === 'omr' && <span className="font-semibold text-emerald-600">Máy dò phiếu</span>}
+                  {s.examCodeSource === 'student' && <span className="font-semibold text-amber-700">HS chọn</span>}
+                </label>
+              )}
             </div>
 
             {dangMo && (
               <div className="space-y-3 rounded-2xl bg-slate-50 mx-3 mb-3 p-3">
                 {(s.attachments && s.attachments.length > 0) || s.fileUrls.length > 0 ? (
                   (() => {
-                    const files: SubmissionViewFile[] = s.attachments && s.attachments.length > 0
+                    const originalFiles: SubmissionViewFile[] = s.attachments && s.attachments.length > 0
                       ? s.attachments
                       : s.fileUrls.map((url, i) => ({ name: `Tệp ${i + 1}`, url, kind: 'image' }));
+                    const clarifyPhotos = s.grade?.questionResults?.flatMap(result => result.clarify?.photoUrls ?? []) ?? [];
+                    const files = [...originalFiles, ...[...new Set(clarifyPhotos)].filter(url => !originalFiles.some(file => file.url === url))
+                      .map((url, index) => ({ name: `Ảnh chụp lại ${index + 1}`, url, kind: 'image' }))];
                     const images = files.filter(isImageSubmissionFile);
                     const otherFiles = files.filter(file => !isImageSubmissionFile(file));
                     return (
                       <>
-                        <SubmissionImageViewer images={images} studentName={ten} />
+                        <SubmissionImageViewer images={images} studentName={ten} grade={s.grade} periodic={Boolean(assignment?.periodicTest)} />
                         {otherFiles.length > 0 && <div className="flex flex-wrap gap-2">
                           {otherFiles.map(file => (
                             <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">
@@ -422,6 +505,10 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 )}
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {assignment?.type !== 'exam' && assignment?.deliveryMode !== 'online' && <AnnotateSubmissionPhotosButton submission={s} disabled={gradingLockFresh || tienDo !== ''} onChanged={() => onRefresh?.()} />}
+                  {assignment?.periodicTest && <PaperScoreButton submission={s} assignment={assignment} />}
+                  {s.handMarkedPaper && s.handMarkedDeclaredBy !== 'teacher' && <PaperScoreAdoptButton submission={s} />}
+                  {s.handMarkedPaper && <HandMarkedPhotosButton submission={s} onChanged={() => onRefresh?.()} />}
                   <button
                     type="button"
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
@@ -482,16 +569,41 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     Xóa lượt nộp
                   </button>
                 </div>
+                {assignment && <>
+                  {!assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 rounded-lg border px-3 text-xs font-bold text-indigo-700 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(s.studentId); setProxyBase(s.id); }}>Nộp hộ / bổ sung ảnh</button>}
+                  {assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === s.studentId && proxyBase === s.id && <ActorSubmissionUpload key={`${assignment.id}:${s.studentId}:${s.id}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} assignmentId={assignment.id} supplementOf={s.id} locked={assignment.submissionLocked} onBusyChange={busy => setDangNopHS(busy ? ten : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${ten} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} />}
+                  {s.grade?.questionResults?.some(isActionableClarifyQuestion) && <ClarifyPanel items={[{ title: assignment.title, submission: { ...s, grade: { ...s.grade, questionResults: s.grade.questionResults.filter(isActionableClarifyQuestion) } } }]} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={() => onRefresh?.()} />}
+                  <SubmissionFeedback submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} onEditGrade={() => void suaDiem(s, ten)} onChanged={onRefresh} />
+                  <HandMarkedWork submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} locked={assignment.submissionLocked} onChanged={onRefresh} />
+                  <CorrectionAttempts submission={s} credentials={{ role: 'teacher', classId: assignment.classId, studentId: s.studentId }} />
+                </>}
               </div>
             )}
           </div>
         );
       })}
       {chuaNop.map(hs => (
-        <div key={hs.studentId} className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5 last:border-b-0">
+        <div key={hs.studentId} className="border-b border-slate-100 last:border-b-0">
+          <div className="teacher-submission-row px-3 py-2.5">
           <Hourglass className="h-4 w-4 shrink-0 text-slate-300" />
-          <span className="text-sm font-bold text-slate-400">{hs.name}</span>
-          <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-400">Chưa nộp</span>
+          <div className="teacher-submission-columns teacher-submission-summary text-slate-400">
+            <span data-column="student" className="min-w-0 break-words text-sm font-bold">{hs.name}</span>
+            <span data-column="status" className="teacher-submission-cell"><span className="teacher-submission-label">Trạng thái</span><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold">Chưa nộp</span></span>
+            <span data-column="deadline" className="teacher-submission-cell"><span className="teacher-submission-label">Hạn nộp</span><span className="text-xs">—</span></span>
+            <span data-column="notes" className="teacher-submission-cell">
+              {assignment && !assignment.submissionLocked && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && (
+                <div className="flex flex-wrap items-center gap-1">
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(false); }}>Nộp hộ</button>
+                  <button type="button" disabled={Boolean(dangNopHS)} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50" title={dangNopHS ? `Đang nộp bài cho em ${dangNopHS} — đợi xong đã nộp em khác.` : undefined} onClick={() => { setProxyStudent(hs.studentId); setProxyBase(''); setProxyHandMarked(true); }}>Nộp bài đã chấm</button>
+                </div>
+              )}
+            </span>
+            <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="text-xs">—</span></span>
+            <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span><span className="text-xs">—</span></span>
+            <span data-column="time" className="teacher-submission-cell"><span className="teacher-submission-label">Nộp lúc</span><span className="text-xs">—</span></span>
+          </div>
+          </div>
+          {assignment && assignment.type !== 'exam' && assignment.deliveryMode !== 'online' && proxyStudent === hs.studentId && !proxyBase && <div className="px-3 pb-3"><ActorSubmissionUpload key={`${assignment.id}:${hs.studentId}:new:${proxyHandMarked ? 'hm' : 'raw'}`} credentials={{ role: 'teacher', classId: assignment.classId, studentId: hs.studentId }} assignmentId={assignment.id} locked={assignment.submissionLocked} handMarked={proxyHandMarked} onBusyChange={busy => setDangNopHS(busy ? hs.name : '')} onClose={() => setProxyStudent('')} onSubmitted={() => { setProxyStudent(''); onRefresh?.(); onBaiNopXong?.(`Đã lưu bài cho em ${hs.name} lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}. Máy đang chấm ở chế độ nền.`); }} /></div>}
         </div>
       ))}
     </div>
@@ -525,6 +637,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Chỉ lưu id submission, không lưu cả object — sau khi refresh không bị dùng bản grade cũ.
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
   const [dangBulk, setDangBulk] = useState('');
+  // Bảng gợi ý chấm lại theo mã của lần Lưu mã đề gần nhất — giữ ở đây vì taiBai() dựng lại màn sửa mã đề.
+  const [goiYChamLai, setGoiYChamLai] = useState<Record<string, VariantChange[]>>({});
   // Bản nháp đang sửa của bài đang mở. Rỗng = chưa sửa gì.
   const [nhap, setNhap] = useState<{ answerKey: string; rubric: string; gradingInstructions: string } | null>(null);
   const [dangLuu, setDangLuu] = useState(false);
@@ -538,8 +652,11 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   useEffect(() => {
     let huy = false;
     getClassDoc(classId)
-      .then(lop => { if (!huy) setTuChamSau60(lop ? autoGradeEnabledFor(lop as unknown as Record<string, unknown>) : null); })
-      .catch(() => { if (!huy) setTuChamSau60(null); });
+      .then(lop => {
+        if (huy) return;
+        setTuChamSau60(lop ? autoGradeEnabledFor(lop as unknown as Record<string, unknown>) : null);
+      })
+      .catch(() => { if (!huy) { setTuChamSau60(null); } });
     return () => { huy = true; };
   }, [classId]);
   const doiTuChamSau60 = async (bat: boolean) => {
@@ -554,7 +671,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Việc tồn của cả lớp qua MỌI bài giao nộp ảnh — kể cả bài cũ học sinh nộp muộn.
   const idsBaiNopAnh = useMemo(() => new Set(assignments.filter(a => a.type !== 'exam').map(a => a.id)), [assignments]);
   const tonDong = useMemo(() => classBacklog(tatCaBaiNop, idsBaiNopAnh), [tatCaBaiNop, idsBaiNopAnh]);
-  const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length + tonDong.uncertain.length;
+  const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length;
   const [nhomMo, setNhomMo] = useState<NhomTon | ''>('');
   const khungTonRef = useRef<HTMLDivElement>(null);
   // Mở từ Bảng điều khiển: bung nhóm đầu tiên còn việc rồi cuộn tới khung việc tồn.
@@ -581,6 +698,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   const taiBai = useCallback(async () => {
+    if (lopHienTai.current !== classId) return;
     setDangTai(true);
     setLoiTai('');
     try {
@@ -658,7 +776,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     selectedSubmissionsForAssignment(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
 
   const guiBaiMoi = async (value: AssignmentFormValue) => {
-    if (!value.answerKey && value.answerKeyImages.length === 0) {
+    // Bài định kì: đáp án nằm trong từng mã đề (hộp giao bài đã chặn mã thiếu đáp án).
+    if (!value.periodicTest && !value.answerKey && value.answerKeyImages.length === 0) {
       const { isConfirmed } = await Swal.fire({
         icon: 'warning',
         title: 'Giao bài không kèm đáp án?',
@@ -694,6 +813,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         gradingInstructions: value.gradingInstructions,
         answerKeyImageUrls,
         answerKeyByAi: value.answerKeyByAi,
+        periodicTest: value.periodicTest,
+        examVariants: value.examVariants,
       });
       setMoForm(false);
       showToast(`Đã giao "${value.title}" cho ${className}.`, 'success');
@@ -779,8 +900,14 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
    * đã lo phần còn lại: bài đã duyệt bị chấm lại sẽ về "chờ duyệt lại" và bằng chứng cũ được gỡ
    * khỏi hồ sơ tích luỹ; điểm cũ được giữ nếu lượt chấm lại lỗi.
    */
-  const chamLaiDaChon = async (assignment: AssignmentDoc) => {
-    const chon = selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'graded' && Boolean(s.grade));
+  const chamLaiDaChon = (assignment: AssignmentDoc) =>
+    chamLaiCacBai(selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'graded' && Boolean(s.grade)), 'đã chọn');
+
+  /** Chấm lại THEO MÃ ĐỀ (gợi ý sau khi sửa mã đề): cùng đường "Chấm lại" loạt, chỉ bài đã chấm bằng AI của đúng mã. */
+  const chamLaiTheoMa = (assignment: AssignmentDoc, code: string) =>
+    chamLaiCacBai(currentSubmissionsForAssignment(baiNopCua(assignment.id)).filter(s => s.examCode === code && s.status === 'graded' && Boolean(s.grade)), `mã ${code}`);
+
+  const chamLaiCacBai = async (chon: SubmissionDoc[], nhan: string) => {
     const selected = chon.filter(s => s.grade?.editedByTeacher !== true);
     const boQuaSuaTay = chon.length - selected.length;
     if (selected.length === 0) {
@@ -791,7 +918,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
     const { isConfirmed } = await Swal.fire({
       icon: 'question',
-      title: `Chấm lại ${selected.length} bài đã chấm bằng AI?`,
+      title: `Chấm lại ${selected.length} bài ${nhan} (đã chấm bằng AI)?`,
       html: `Điểm và nhận xét cũ do AI chấm sẽ bị thay bằng kết quả mới theo đáp án hiện tại.<br/>Bài đã <b>duyệt</b> sẽ quay về <b>chờ duyệt lại</b>.${boQuaSuaTay > 0 ? `<br/><span style="font-size:12px;color:#94a3b8;">Bỏ qua ${boQuaSuaTay} bài thầy cô đã sửa tay.</span>` : ''}`,
       showCancelButton: true,
       confirmButtonText: 'Chấm lại',
@@ -865,7 +992,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /**
    * Chấm AI mọi lượt mới nhất còn chờ chấm, rồi duyệt mọi bài đã chấm chưa duyệt — trên TẤT CẢ bài giao
-   * của lớp. Bài máy đọc chưa chắc giữ lại cho giáo viên xem, trừ khi giáo viên tick duyệt luôn.
+   * của lớp; bài cần soát (đọc chưa chắc, lệch sổ) cũng được duyệt kèm cờ nhắc thầy cô ở dòng bài.
    * Chạy tuần tự như các nút loạt khác để hồ sơ tích luỹ không ghi đè nhau.
    */
   const chamDuyetTatCa = async () => {
@@ -883,21 +1010,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         <ul style="text-align:left;margin:8px 0 0 18px;list-style:disc">
           ${toGrade.length > 0 ? `<li>Chấm AI <b>${toGrade.length}</b> bài chưa chấm${tonDong.errored.length > 0 ? ` (gồm ${tonDong.errored.length} bài chấm lỗi — thử lại)` : ''} (mỗi bài một lượt AI).</li>` : ''}
           <li>Duyệt <b>${toApprove.length}</b> bài đã chấm${toGrade.length > 0 ? ' và các bài vừa chấm xong' : ''} — học sinh, phụ huynh thấy điểm chính thức.</li>
-          ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc được giữ lại để thầy cô xem, trừ khi tick ô bên dưới.</li>` : ''}
+          ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc cũng được duyệt — dòng bài có cờ "Lệch điểm GV" hoặc "Đọc chưa rõ" để thầy cô soát lại sau.</li>` : ''}
         </ul>
-        <p style="margin-top:8px;font-size:12px;color:#64748b">Bài đã duyệt giữ nguyên. Bài chấm xong mà máy đọc chưa chắc cũng được giữ lại như trên.</p>`,
-      ...(uncertain.length > 0 || toGrade.length > 0 ? {
-        input: 'checkbox' as const,
-        inputValue: 0,
-        inputPlaceholder: 'Duyệt luôn cả bài máy đọc chưa chắc',
-      } : {}),
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Bài đã duyệt giữ nguyên.</p>`,
       showCancelButton: true,
       confirmButtonText: 'Chấm & duyệt',
       cancelButtonText: 'Thôi',
       confirmButtonColor: '#4f46e5',
     });
     if (!result.isConfirmed) return;
-    const duyetCaChuaChac = result.value === 1;
 
     setDangBulk('all');
     let daCham = 0;
@@ -919,7 +1040,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       setTatCaBaiNop(sauCham);
       setLoiBaiNop(null);
       const tonSau = classBacklog(sauCham, idsBaiNopAnh);
-      const canDuyet = duyetCaChuaChac ? [...tonSau.toApprove, ...tonSau.uncertain] : tonSau.toApprove;
+      const canDuyet = tonSau.toApprove;
       for (let i = 0; i < canDuyet.length; i += 1) {
         setTienDoTatCa(`Đang duyệt ${i + 1}/${canDuyet.length}...`);
         try {
@@ -929,9 +1050,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
           loiDuyet += 1;
         }
       }
-      const conChuaChac = duyetCaChuaChac ? 0 : tonSau.uncertain.length;
       showToast(
-        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${conChuaChac > 0 ? `; ${conChuaChac} bài máy đọc chưa chắc đang chờ thầy cô xem` : ''}.`,
+        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${tonSau.uncertain.length > 0 ? `; có cờ ở ${tonSau.uncertain.length} bài cần thầy cô soát lại` : ''}.`,
         loiCham + loiDuyet > 0 ? 'warning' : 'success',
       );
       setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
@@ -1204,6 +1324,18 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /** Chạy lại AI cho ĐÚNG MỘT bài nộp — giáo viên xem thấy chấm sai thì không phải đợi cả lớp. */
+  // Bài định kì nhiều mã: thầy cô chọn mã khi AI không đọc được / đọc sai → lưu rồi đề nghị chấm lại theo mã đó.
+  const chonMaDe = async (s: SubmissionDoc, examCode: string, tenHocSinh: string) => {
+    try {
+      await chonMaDeBaiNop(s.id, examCode);
+      const capNhat: SubmissionDoc = { ...s, examCode, examCodeSource: 'teacher' };
+      setTatCaBaiNop(ds => ds.map(item => (item.id === s.id ? capNhat : item)));
+      await chamLaiMotBai(capNhat, tenHocSinh, 'quick');
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Chưa lưu được mã đề', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+    }
+  };
+
   const chamLaiMotBai = async (s: SubmissionDoc, tenHocSinh: string, mode: HomeworkGradingMode) => {
     const laChamKi = mode === 'thorough';
     const { isConfirmed } = await Swal.fire({
@@ -1324,8 +1456,21 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         feedback: value.feedback,
         weakTopics: value.weakTopics,
         teacherNote: value.teacherNote,
+        questionResults: value.questionResults,
       });
-      showToast(`Đã lưu chấm tay cho ${dang.tenHocSinh}; cần duyệt lại kết quả.`, 'success');
+      // Đáp án gốc sai thì cả lớp cùng bị: tính lại câu đó ở mọi bài, không bắt thầy cô mở từng bài.
+      const assignmentId = dang.submission.assignmentId;
+      const caLop: string[] = [];
+      for (const fix of assignmentId ? value.classFixes : []) {
+        const kq = await suaDapAnCaLop(assignmentId as string, fix.questionNumber, fix.expectedAnswer, dang.submission.examCode);
+        caLop.push(`${fix.questionNumber}: tính lại ${kq.updated} bài`
+          + (kq.needsReview > 0 ? `, ${kq.needsReview} bài cần soát tay` : '')
+          + (kq.busy > 0 ? `, ${kq.busy} bài đang chấm nên chưa áp` : ''));
+      }
+      showToast(
+        `Đã lưu chấm tay cho ${dang.tenHocSinh}; ${dang.submission.grade?.teacherApproved ? 'điểm đã duyệt được cập nhật vào sổ.' : 'kết quả đang chờ duyệt.'}${caLop.length ? ` Sửa đáp án cả lớp — ${caLop.join('; ')}.` : ''}`,
+        'success',
+      );
       setDangChamLai(null);
       await taiBai();
     } catch (error) {
@@ -1424,6 +1569,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
   };
 
+  // Danh sách bài giao chia theo TUẦN HỌC (tuần đánh số theo Lịch dạy; chưa có thì ghi khoảng ngày), tuần mới nhất trước.
+  const baiTheoId = new Map(assignments.map(a => [a.id, a]));
+  const nhomTuan = groupResultsByWeek(assignments.map(a => ({
+    assignmentId: a.id, title: a.title, status: 'official' as const, score: null, maxScore: null,
+    ...(a.dueAt ? { dueAt: a.dueAt } : {}), ...(a.createdAt ? { submittedAt: a.createdAt } : {}),
+  })), weekPlanFor(teacherId, className, auth.currentUser?.email));
+
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       {dangChamLai && (
@@ -1459,7 +1611,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       {tuChamSau60 !== null && (
         <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
           <input type="checkbox" checked={tuChamSau60} onChange={event => void doiTuChamSau60(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
-          <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài máy đọc chưa chắc vẫn giữ lại cho thầy cô xem).</span>
+          <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài cần soát được duyệt kèm cờ nhắc thầy cô ở dòng bài).</span>
         </label>
       )}
 
@@ -1546,14 +1698,34 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         </div>
       ) : (
         <div className="mt-4 space-y-3">
-          {assignments.map(a => (
+          {nhomTuan.map(group => (
+            <div key={group.monday || 'khong-ngay'} className="space-y-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b-2 border-slate-200 pb-1 pt-1">
+                <p className="whitespace-nowrap text-xs font-black text-indigo-700">{weekTitle(group)}</p>
+                <p className="text-[11px] font-bold text-slate-500">
+                  <span className="whitespace-nowrap">{group.results.length} bài giao</span>
+                  {lopHocSinh.length > 0 && (() => {
+                    // Lượt nộp của cả tuần: mỗi bài đếm theo học sinh (nộp lại nhiều lần chỉ tính một).
+                    const baiTrongTuan = group.results.map(item => baiTheoId.get(item.assignmentId)).filter(a => a && a.type !== 'exam');
+                    if (baiTrongTuan.length === 0) return null;
+                    const daNop = baiTrongTuan.reduce((sum, a) => sum + new Set(baiNopCua(a!.id).map(s => s.studentId)).size, 0);
+                    return <> · <span className="whitespace-nowrap">đã nộp {daNop}/{baiTrongTuan.length * lopHocSinh.length}</span></>;
+                  })()}
+                </p>
+              </div>
+              {group.results.map(item => {
+                const a = baiTheoId.get(item.assignmentId);
+                if (!a) return null;
+                return (
             <div key={a.id} className="rounded-3xl border border-slate-100">
               <div className="flex flex-wrap items-center gap-3 p-4">
-                <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
-                  <p className="truncate font-black text-slate-900">{a.title}</p>
+                <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 basis-full text-left sm:basis-0">
+                  <p className="break-words font-black text-slate-900 sm:truncate">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
-                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.type === 'exam' ? 'bài kiểm tra online' : ((a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án')}
-                    {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
+                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.periodicTest
+                      ? `kiểm tra định kì · ${a.examVariants?.length ?? 0} mã đề${a.periodicTest.sheetLabel ? ` · đối chiếu cột “${a.periodicTest.sheetLabel}”` : ''}`
+                      : <>{a.type === 'exam' ? 'bài kiểm tra online' : ((a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án')}
+                    {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}</>}
                     {a.gradingInstructions ? ' · có lệnh chấm riêng' : ''}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
@@ -1591,10 +1763,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   <CalendarClock className="h-3.5 w-3.5" /> {dinhDangHan(a.dueAt)}
                 </button>
                 <button
-                  onClick={() => setAssignmentOpen(a.id, !a.isOpen).then(taiBai)}
+                  onClick={() => { const studentId = lopHocSinh[0]?.studentId; if (!studentId) { showToast('Lớp chưa có học sinh.', 'info'); return; } void (a.type === 'exam' ? setAssignmentOpen(a.id, !a.isOpen) : setSubmissionLock({ role: 'teacher', classId, studentId }, a.id, !a.submissionLocked)).then(taiBai).catch(error => showToast(error.message, 'error')); }}
                   className="rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-50"
                 >
-                  {a.isOpen ? 'Đóng bài' : 'Mở lại'}
+                  {a.type === 'exam' ? a.isOpen ? 'Đóng bài' : 'Mở lại' : a.submissionLocked ? 'Mở khóa chốt' : 'Khóa chốt'}
                 </button>
                 {a.type === 'exam' ? (
                   <button
@@ -1624,7 +1796,31 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     <>
                   {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
                       lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
-                  {!submissionsOnly && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                  {!submissionsOnly && a.periodicTest && (
+                    <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Kiểm tra định kì — các mã đề</p>
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {(a.examVariants || []).map(variant => (
+                          <li key={variant.code} className="whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700 ring-1 ring-slate-200">
+                            Mã {variant.code} · {countKeyQuestions(variant.answerKey)} câu
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                        AI đọc mã đề trên ảnh bài của từng em rồi chấm theo đúng đề + đáp án của mã đó. Đáp án sai một câu thì mở
+                        “Sửa điểm” ở bài của một em mã đó và sửa câu đó cho cả lớp — chỉ bài cùng mã được tính lại.
+                        Điểm chính thức vẫn là điểm trong sổ điểm; bài này không cộng vào điểm BTVN.
+                      </p>
+                      <ExamVariantsEditor
+                        assignment={a}
+                        submissions={baiNopCua(a.id)}
+                        initialChanges={goiYChamLai[a.id]}
+                        onSaved={changes => { setGoiYChamLai(previous => ({ ...previous, [a.id]: changes })); void taiBai(); }}
+                        onRegradeCode={code => chamLaiTheoMa(a, code)}
+                      />
+                    </div>
+                  )}
+                  {!submissionsOnly && !a.periodicTest && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nội dung đã giao</p>
 
                     <div className="mt-3">
@@ -1678,6 +1874,14 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         placeholder="Chưa có đáp án. AI sẽ phải tự đọc đề trong ảnh từng em rồi tự giải."
                         className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
                       />
+                      {(a.answerKeyFixes || []).length > 0 && (
+                        <div className="mt-2 rounded-2xl bg-violet-50 px-3 py-2 ring-1 ring-violet-100">
+                          <p className="text-xs font-black text-violet-800">Đáp án đã sửa sau khi chấm (đè lên đáp án trên ở mọi lượt chấm):</p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs font-semibold text-violet-800">
+                            {(a.answerKeyFixes || []).map(f => <li key={f.questionNumber}>{f.questionNumber}: {f.expectedAnswer}</li>)}
+                          </ul>
+                        </div>
+                      )}
                       {choChuaChac.length > 0 && (
                         <div className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 ring-1 ring-amber-100">
                           <p className="text-xs font-black text-amber-800">AI báo chưa chắc ở {choChuaChac.length} chỗ — soát kỹ trước khi lưu:</p>
@@ -1756,13 +1960,18 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     </div>
                   </div>}
 
-                  {!submissionsOnly && competencyGrade && (
+                  {!submissionsOnly && competencyGrade && !a.periodicTest && (
                     <CompetencyTagEditor assignment={a} grade={competencyGrade} showToast={showToast} onSaved={taiBai} />
                   )}
 
+                  <WorkedSolutionsButton assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />
                   <BaiNopTheoLop
+                    assignment={a} onRefresh={() => void taiBai()}
+                    onBaiNopXong={message => showToast(message, 'success')}
                     baiNop={baiNopCua(a.id)}
                     hanNop={a.dueAt}
+                    maDe={a.examVariants?.map(variant => variant.code)}
+                    chonMaDe={chonMaDe}
                     lopHocSinh={lopHocSinh}
                     moRongId={moRongId}
                     troMoRong={setMoRongId}
@@ -1786,16 +1995,140 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     bulkRetrySync={() => thuLaiDongBoTatCa(a)}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
-                    Học sinh tự chấm AI thành công → tự động ghi nhận vào hồ sơ (AI tự duyệt). Chấm lại của thầy cô / sửa điểm tay → cần bấm <b>Duyệt điểm</b> mới vào hồ sơ.
+                    Máy quét bài ngay khi học sinh nộp và hỏi lại em câu chưa rõ; em <b>không thấy điểm</b> cho tới khi thầy cô bấm <b>Duyệt điểm</b> (hoặc máy tự duyệt sau 60 phút khi lớp bật). Chỉ bài đã duyệt mới vào hồ sơ và báo cáo.
                   </p>
                     </>
                   )}
                 </div>
               )}
             </div>
+            );
+              })}
+            </div>
           ))}
         </div>
       )}
     </section>
   );
+};
+
+
+export const AnnotateSubmissionPhotosButton = ({ submission, disabled = false, onChanged }: { submission: SubmissionDoc; disabled?: boolean; onChanged: () => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const images = [...(submission.attachments ?? []).filter(file => file.kind === 'image').map(file => file.url), ...(submission.fileUrls ?? []).filter(url => !/\.(pdf|docx?)(?:\?|$)/i.test(url)), ...(submission.grade?.questionResults?.flatMap(row => row.clarify?.photoUrls ?? []) ?? [])];
+  if (submission.status !== 'graded' || !submission.grade || !images.length || !submission.grade.questionResults?.some(row => !row.photoMarksCleared && !row.ignoredByTeacherInstruction && !isBlankAnswer(row.studentAnswer))) return null;
+  const run = (force: boolean) => {
+    if (busy || disabled) return;
+    setBusy(true); setMessage('');
+    void annotateSubmissionPhotos({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, force).then(result => {
+      setMessage(result.total === 0 ? 'Không có câu cần định vị thêm.' : `Đã có vị trí ${result.mapped}/${result.total} câu.${result.unlocated ? ` ${result.unlocated} câu chưa có vị trí đủ chắc; xem lời chữa trong danh sách câu.` : ''}${force ? ' Câu tự luận có bút đỏ từng bước khi máy chia điểm khớp điểm câu.' : ''} Giữ nguyên điểm và trạng thái duyệt.`);
+      onChanged();
+    }).catch(error => setMessage(error instanceof Error ? error.message : 'Chưa bổ sung được dấu trên ảnh. Thử lại.')).finally(() => setBusy(false));
+  };
+  return <div className="flex flex-wrap gap-2">
+    <button type="button" disabled={busy || disabled} title="Chỉ bổ sung vị trí câu trên ảnh; giữ điểm, nội dung và trạng thái duyệt." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-teal-900 disabled:opacity-50" onClick={() => run(false)}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}{busy ? 'Đang định vị câu trên ảnh…' : 'Bổ sung dấu chấm trên ảnh'}</button>
+    <button type="button" disabled={busy || disabled} title="Vẽ lại dấu và chia điểm câu tự luận theo từng bước (Đ/S + điểm cạnh dòng, lời sửa dưới dòng sai). Không chấm lại: điểm, nhận xét, trạng thái duyệt giữ nguyên. Tốn một lượt AI." className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-800 disabled:opacity-50" onClick={() => run(true)}><PenLine className="h-4 w-4" />Vẽ bút đỏ từng bước</button>
+    {message && <p role="status" className="w-full max-w-lg text-xs leading-5 text-slate-600">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài kiểm tra định kì đã chấm tay: máy đọc TỔNG điểm thầy cô viết trên ảnh; thầy cô soát số rồi đưa vào sổ điểm
+ * (cột theo "tên cột sổ điểm" của bài). Cột đã có điểm từ file điểm thì file điểm vẫn được ưu tiên.
+ */
+export const PaperScoreButton = ({ submission, assignment }: { submission: SubmissionDoc; assignment: AssignmentDoc }) => {
+  const paper = submission.grade?.paperScore;
+  const label = assignment.periodicTest?.sheetLabel?.trim() || assignment.title;
+  const [score, setScore] = useState(paper ? String(Math.round((paper.score / paper.maxScore) * 1000) / 100) : '');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  if (submission.status !== 'graded' || !submission.grade) return null;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-900">
+    <span>{paper ? `Điểm thầy cô ghi trên bài (máy đọc): ${paper.score}/${paper.maxScore}` : 'Máy chưa đọc được điểm ghi tay trên bài'}</span>
+    <label className="inline-flex items-center gap-1">Đưa vào sổ cột “{label}”:
+      <input value={score} onChange={event => setScore(event.target.value)} inputMode="decimal" aria-label="Điểm chấm tay thang 10" placeholder="0–10"
+        className="w-16 rounded-lg border border-rose-200 bg-white px-2 py-1 text-right text-sm font-black text-slate-900" />/10
+    </label>
+    <button type="button" disabled={busy || !score.trim()} className="min-h-9 rounded-lg bg-rose-600 px-3 text-white disabled:opacity-50" onClick={() => {
+      const value = Number(score.trim().replace(',', '.'));
+      if (!Number.isFinite(value) || value < 0 || value > 10) { setMessage('Điểm phải từ 0 đến 10.'); return; }
+      setBusy(true); setMessage('');
+      void confirmPaperExamScore(submission.classId, { studentId: submission.studentId, assignmentId: assignment.id, label, score: value })
+        .then(() => setMessage(`Đã đưa ${value}/10 vào sổ điểm (cột “${label}”). Cột đã có điểm từ file điểm thì file điểm vẫn được ưu tiên.`))
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được vào sổ điểm.'))
+        .finally(() => setBusy(false));
+    }}>{busy ? 'Đang lưu…' : 'Xác nhận vào sổ'}</button>
+    {paper && <>
+      {/* Bài kiểm tra định kì nộp tay: điểm GV ghi trên giấy là chuẩn — thầy bấm để lấy làm điểm bài. */}
+      <button type="button" disabled={busy} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50" onClick={() => {
+        setBusy(true); setMessage('');
+        void updateSubmissionGradeManually(submission, { score: paper.score, maxScore: paper.maxScore, feedback: submission.grade?.feedback || '', weakTopics: submission.grade?.weakTopics || [] })
+          .then(() => setMessage(`Đã dùng điểm thầy ghi trên bài (${paper.score}/${paper.maxScore}) làm điểm bài. Bấm "Duyệt" để công bố cho học sinh.`))
+          .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm bài.'))
+          .finally(() => setBusy(false));
+      }}>Dùng làm điểm bài</button>
+    </>}
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài HS tự khai "thầy cô đã chấm tay": máy đọc được điểm thầy ghi trên giấy. Thầy bấm để
+ * DÙNG đúng số đó làm điểm bài (bấm 1 lần, không phải gõ tay) — điểm GV là chuẩn.
+ */
+export const PaperScoreAdoptButton = ({ submission }: { submission: SubmissionDoc }) => {
+  const paper = submission.grade?.paperScore;
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  if (submission.status !== 'graded' || !submission.grade) return null;
+  if (!paper) return <p className="text-xs font-semibold text-rose-800">Máy chưa đọc được điểm thầy ghi trên bài. Thầy xem bản chấm rồi sửa điểm tay nếu cần.</p>;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>Điểm thầy ghi trên bài (máy đọc): {paper.score}/{paper.maxScore}</span>
+    <button type="button" disabled={busy} className="min-h-9 rounded-lg bg-emerald-600 px-3 text-white disabled:opacity-50" onClick={() => {
+      setBusy(true); setMessage('');
+      void updateSubmissionGradeManually(submission, {
+        score: paper.score,
+        maxScore: paper.maxScore,
+        feedback: submission.grade?.feedback || '',
+        weakTopics: submission.grade?.weakTopics || [],
+      })
+        .then(() => setMessage(`Đã dùng điểm thầy ghi (${paper.score}/${paper.maxScore}) làm điểm bài.`))
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được điểm.'))
+        .finally(() => setBusy(false));
+    }}>{busy ? 'Đang lưu…' : 'Dùng điểm GV ghi trên bài'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+/**
+ * Bài GV nộp hộ đã chấm tay: ẢNH bài nộp chính là bài chấm tay (có điểm, chữ đỏ).
+ * Phụ huynh CHỈ được xem sau khi thầy cô bấm công bố; học sinh vẫn xem bài của mình.
+ */
+export const HandMarkedPhotosButton = ({ submission, onChanged }: { submission: SubmissionDoc; onChanged?: () => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const published = submission.handMarkedPublished === true;
+  return <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">
+    <span>{published ? 'Đã cho phụ huynh xem bài chấm tay' : 'Phụ huynh chưa được xem bài chấm tay'}</span>
+    <button type="button" disabled={busy} onClick={() => {
+      setBusy(true); setMessage('');
+      void setSubmissionPhotosVisibility({ role: 'teacher', classId: submission.classId, studentId: submission.studentId }, submission.id, !published)
+        .then(() => { setMessage(published ? 'Đã ẩn bài chấm tay với phụ huynh.' : 'Đã cho phụ huynh xem bài chấm tay.'); onChanged?.(); })
+        .catch(error => setMessage(error instanceof Error ? error.message : 'Chưa lưu được.'))
+        .finally(() => setBusy(false));
+    }} className="min-h-9 rounded-lg border border-emerald-300 bg-white px-3 text-emerald-800 disabled:opacity-50">{busy ? 'Đang lưu…' : published ? 'Ẩn với phụ huynh' : 'Cho phụ huynh xem'}</button>
+    {message && <p role="status" className="w-full font-semibold text-slate-700">{message}</p>}
+  </div>;
+};
+
+export const WorkedSolutionsButton = ({ assignment, classId, studentId, onChanged }: { assignment: AssignmentDoc; classId: string; studentId?: string; onChanged: () => void }) => {  const [examCode, setExamCode] = useState(assignment.examVariants?.[0]?.code || '');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  return <div className="my-3 rounded-xl border border-slate-200 bg-white p-3">
+    <p className="text-xs text-slate-500">Tạo lời giải chung cho mọi câu, gồm câu đúng. Thầy cô đọc và sửa trong màn sửa điểm.</p>
+    {!!assignment.examVariants?.length && <select aria-label="Mã đề tạo lời giải" value={examCode} onChange={event => setExamCode(event.target.value)} className="mr-2 min-h-11 rounded-lg border p-2 text-sm">{assignment.examVariants.map(variant => <option key={variant.code} value={variant.code}>{variant.code}</option>)}</select>}
+    <button type="button" disabled={busy || !studentId} className="min-h-11 rounded-lg border px-3 text-sm font-bold text-indigo-700 disabled:opacity-50" onClick={() => { if (!studentId || busy) return; setBusy(true); setMessage(''); void prepareWorkedSolutions({ role: 'teacher', classId, studentId }, assignment.id, examCode || undefined, true).then(({ cache }) => { const missing = cache.questions.filter(row => row.status !== 'ready' || !row.workedSolution.trim()); setMessage(cache.status === 'ready' && !missing.length && cache.questions.length ? 'Đã tạo lời giải. Mở bài để kiểm tra nội dung.' : `Lời giải chưa đầy đủ: ${cache.questions.length - missing.length}/${cache.questions.length} câu có lời giải.${missing.length ? ` Cần bổ sung: ${missing.map(row => row.questionNumber).join(', ')}.` : ' Cần kiểm tra lại nguồn đề và đáp án.'}`); onChanged(); }).catch(error => setMessage(error.message)).finally(() => setBusy(false)); }}>{busy ? 'Đang tạo lời giải…' : 'Tạo / cập nhật lời giải đầy đủ'}</button>
+    {message && <p role="status" className="mt-2 text-sm text-slate-600">{message}</p>}
+  </div>;
 };

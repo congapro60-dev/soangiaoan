@@ -12,9 +12,9 @@ import { cn } from '../../lib/utils';
 import { AppData, LessonPlan } from '../../types';
 import { SavedExam } from '../../hooks/useSavedExams';
 import { ViewPlanModal } from '../modals/ViewPlanModal';
-import { downloadBlob } from '../../utils/fileUtils';
 import * as worksheetUtils from '../../utils/worksheetUtils';
 import * as scormUtils from '../../utils/scormUtils';
+import { PHIEU_TO_MAU } from '../../utils/answerSheetTemplate';
 import { Package } from 'lucide-react';
 
 interface LibraryTabProps {
@@ -126,19 +126,11 @@ export const LibraryTab = ({
     
     if (worksheetMarkdown) {
       try {
-        const fakePlan: Partial<LessonPlan> = {
-          title: (plan.title || 'GiaoAn') + ' - Phieu hoc tap',
-          content: worksheetMarkdown,
-          templateId: plan.templateId
-        };
-        const { marked } = await import('marked');
-        const htmlBody = await marked(worksheetMarkdown);
-        const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
-<body>${htmlBody}</body></html>`;
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, new TextEncoder().encode(html)], { type: 'application/msword' });
-        downloadBlob(blob, `${fakePlan.title?.replace(/\s+/g, '_')}.doc`);
+        const { renderWordBlob, safeFilename } = await import('../../utils/renderWordCore');
+        const title = `${plan.title || 'GiaoAn'} - Phieu hoc tap`;
+        const blob = await renderWordBlob({ title, content: worksheetMarkdown, orientation: 'portrait' });
+        const { saveAs } = await import('file-saver');
+        saveAs(blob, `${safeFilename(title, 'phieu-hoc-tap')}.docx`);
         showToast('Đã tải Phiếu học tập (Word)!', 'success');
       } catch (err) {
         console.error(err);
@@ -155,16 +147,13 @@ export const LibraryTab = ({
 
   const handleExportExamWord = async (exam: SavedExam) => {
     try {
-      const { marked } = await import('marked');
-      const { WORD_EXPORT_STYLES } = await import('../../utils/examPaperStyles');
-      const htmlBody = await marked(exam.content);
-      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><style>${WORD_EXPORT_STYLES}</style></head>
-<body>${htmlBody}</body></html>`;
-      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-      const blob = new Blob([bom, new TextEncoder().encode(html)], { type: 'application/msword' });
-      downloadBlob(blob, `${exam.title.replace(/\s+/g, '_')}.doc`);
-    } catch { /* silently fail */ }
+      const { exportExamToDocx } = await import('../../utils/examWordExport');
+      await exportExamToDocx(exam.content, exam.title);
+      showToast('Đã xuất đề thi Word.', 'success');
+    } catch (error: any) {
+      console.error('Lỗi xuất đề thi Word', error);
+      showToast(`Lỗi xuất đề thi Word: ${error?.message || 'Vui lòng thử lại.'}`, 'error');
+    }
   };
 
   const handleDeleteExam = async (exam: SavedExam) => {
@@ -271,6 +260,24 @@ export const LibraryTab = ({
                   <X className="h-4 w-4" /> Xóa bộ lọc
                 </button>
               )}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+              <Download className="h-3.5 w-3.5" /> Tài liệu tải về
+            </div>
+            <div className="space-y-2">
+              {PHIEU_TO_MAU.map(m => (
+                <a key={m.href} href={m.href} download
+                  className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition hover:bg-blue-50">
+                  <FileText className="h-4 w-4 shrink-0 text-blue-600" />
+                  <span>
+                    <span className="block text-sm font-black text-slate-800">{m.label}</span>
+                    <span className="block text-xs font-medium text-slate-500">{m.note} · PDF A4</span>
+                  </span>
+                </a>
+              ))}
             </div>
           </div>
 

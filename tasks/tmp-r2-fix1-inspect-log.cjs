@@ -1,0 +1,11 @@
+const fs = require('fs');
+const j = JSON.parse(fs.readFileSync('tasks/tmp-r2-qa-c-log.json', 'utf8'));
+const s = JSON.stringify(j);
+const hits = [];
+const re = /"[^"]*[Dd]isabled[^"]*"\s*:\s*(true|false)/g;
+let m;
+while ((m = re.exec(s)) && hits.length < 12) hits.push(m[0]);
+console.log(hits.join('\n') || '(không có field disabled)');
+console.log('draftTest_lan1:', JSON.stringify(j.draftTest_lan1).slice(0, 350));
+console.log('draftTest:', JSON.stringify(j.draftTest).slice(0, 350));
+console.log('s6Send:', JSON.stringify(j.s6Send).slice(0, 300));

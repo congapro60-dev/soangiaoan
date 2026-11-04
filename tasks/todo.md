@@ -1,98 +1,43 @@
-# Kế hoạch 2026-09-30: Báo cáo PH — "Điểm mạnh & cần rèn" theo YÊU CẦU CẦN ĐẠT
+# TODO - 28/10/2026: Batch2 HOÀN THÀNH — 10/10 bài Tuần 11 V8.8 (R1–R7 + Task 9–11 chốt đợt)
 
-Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học (gia sư/cố vấn đọc là biết con kém/tốt ở đâu);
-số dòng phụ thuộc YCCĐ; tra CT GDPT 2018 + SGK Kết nối tri thức + LO TDS.
+Plan: [2026-10-26-week11-batch2-v88.md](../docs/superpowers/plans/2026-10-26-week11-batch2-v88.md) — Gate D duyệt 28/10: `gate-d-12-11-79.md` (thầy chốt 4 đề xuất: S0–S10 = 1-4-2-5-2-1-8-2-7-4-4 phút; 3 BLOCKER sửa số; `category` AI-error "Lỗi đại số"; kind `practice` + timeline key `gateD1279`).
 
-## Sự thật đã kiểm
-- CT GDPT 2018 (TT 32) rút chữ được; SGK KNTT là PDF scan — ô "Kiến thức, kĩ năng" ≈ YCCĐ của CT chia theo bài.
-- LO TDS khối 10 (19 LO, mức chủ đề) lấy từ file mẫu điểm SSM user đã gửi — thô hơn YCCĐ, để dành gắn sau.
-- Hiện tại danh sách lấy từ `profile.topics` (chữ tự do AI ghi mỗi lần chấm) → trùng ý, lẫn tầng, ~26 dòng.
-- Bằng chứng thật có sẵn: `grade.questionResults` (từng câu: status/score/errorType/explanation).
+## Pha A (xong 28/10)
 
-## Làm (xong 01/10 — QA Codex PASS; còn: YCCĐ lớp 11, 12)
-- [x] `src/lib/curriculum/yccdToan.ts` — YCCĐ lớp 10 (75 mục, lời CT; mục phép toán vectơ tách theo bài SGK). Lớp 11, 12 sau.
-- [x] Facts gửi AI: bài đã duyệt trong kì → từng câu (token b1q2, % điểm, loại lỗi, giải thích ngắn).
-- [x] AI (chung một lượt với nhận xét) trả JSON: nhận xét + ghép câu→YCCĐ + ghi chú lỗi/điểm mạnh bằng thuật ngữ.
-      Máy chủ kiểm id YCCĐ/token, TỰ TÍNH mức từ điểm các câu làm căn cứ (≥80% vững, ≥50% đang hình thành, còn lại chưa đạt).
-- [x] Lưu cùng nhận xét (`parentReportNotes`), GV sửa mức/ghi chú/xoá dòng; xuất cả lớp dùng bản đã lưu.
-- [x] PDF: mục "Kết quả theo yêu cầu cần đạt" nhóm theo chủ đề; chưa có bản AI → danh sách cũ gộp trùng, tối đa 6.
-- [x] Test + build + nghiệm thu trên web thật (Bảo Khánh, 10Olinda, tháng 9).
+- [x] A1 - xác minh PPCT `tds-g12-79` (week 11, periodNo 79, title "Tiết 2: Luyện tập", Thống kê g12).
+- [x] A2 - tải giáo án gốc → `tasks/giaoan-goc-12-11-79.md` (Firestore lessonPlans/315100a6-dfab-40ef-9d03-aa13df0d5f78, 31 187 ký tự). Vướng: tab dashboard gốc đã đóng → `tasks/tmp-open-lib-12-79.cjs` (tạo tab mới + click sidebar "Thư viện").
+- [x] A3 - soạn `tasks/gate-d-12-11-79.md` — phát hiện 3 BLOCKER số liệu (vinh danh 29,5/84,75/75 + σx 9,21 không khớp chữa chung; PM2.5 45/8,12/15,46 không khớp bảng; Σ = 20980 sai → x = 8 sai) — đã tự kiểm bằng tay.
+- [x] A4 - thầy duyệt Gate D 79 g12 (28/10).
 
-# Kế hoạch 2026-09-23: Quản trị + đếm token/chi phí + sổ điểm
+## Pha B
 
-Chủ dự án chốt: (1) làm trang quản trị cho tài khoản congapro60@gmail.com, (2) sổ điểm đủ (đồng bộ điểm thi + nhập điểm HS1),
-(3) rà soát + chuẩn bị lớp cho cô Vân/Hạnh/Hồng qua trang quản trị, KHÔNG ghi đè dữ liệu có sẵn (cô Hạnh).
+- [x] B1 - spec `12-11-79` (kind/lessonType `practice`, formulas×4, examples×2 = chữa chung 13,75/81/9 + PM2.5, exercises×6 = PHT TB/Khá + y=ax+b + ẩn số x=9 + PM2.5 A/B, quick×3 = B/B/C, mistakes×4, boardKnowledge, timelineKey `gateD1279`) + aiError `ai-error-12-11-79` (category "Lỗi đại số", bẫy làm tròn x̄ sớm, proof khuếch đại 2ε·x̄, plain Unicode) + `source.files` thêm `tasks/giaoan-goc-12-11-79.md` → fingerprint `a83ce82df4c7448f19419c37a341a9989e4cbe3c02da4db46ae0c2d96f9e242b` (file hash 79g12 = `ff8ad32e…`).
+- [x] B2 - `'12-11-79'` vào `INTERACTIVE_SOURCE_KEYS` (10 mã — ĐỦ LOẠT).
+- [x] B3 - entry thứ 7 vào `W11BATCH2` (g12, period 79, title "Các số đặc trưng đo mức độ phân tán").
+- [x] B4 - mảng exact-keys 9→10 mã + tên test 9→10; +2 test R7 (timeline `gateD1279` + binding phase 79 g12).
+- [x] B1b - `TIMELINE_BY_KEY` thêm `gateD1279` (lessonAdapter.ts).
+- [x] B5 - vitest v4: **27 file / 299 PASS** (baseline R6 294, +5); `npm run build` 0 TS error (~1m37s).
+- [x] B6 - commit `a5b090d` (11 files) → push feat+main (`c94c12b..a5b090d`, exit 0) → deploy success 2 Vercel → **republish "Tạo và xuất bản 58 bài"**: hàng "Lớp 12 · Tuần 11 · Tiết 79" xuất hiện (`tmp-r7-publish.json`).
+- [x] B8 - QA A–F ĐẠT trên Production, phiên `3jpow388uY6B6aCx0EH7`: bands 12/12 khớp Gate D; AI-error chặng 5 ("AI"+"176,7", không lộ proof); route choice thẻ S → PHT Mức TB (taskAppeared); nháp giữ reload + tự rejoin không PIN; exit trống chặn + gửi trọn + "Tiến độ gửi · 1 HS"; think 63 reads, 11 windows decreasing+locked; Sau disabled stage 12; tvButtons=[]; no-spoiler 0/6.
+- [x] B9 - append `tasks/qa-w11-batch2-acceptance.md` mục R7 + TỔNG KẾT LOẠT 7/7 (untracked) + báo thầy.
 
-## Sự thật đã kiểm (không đoán)
-- Chưa có ghi token ở đâu cả. Gọi AI bằng KEY CHUNG của chủ dự án (tốn tiền chủ): `_grading-core.ts` (chấm BTVN,
-  GRADING_GEMINI_API_KEY/GEMINI_API_KEY), `generate-simulation.ts` (GEMINI_API_KEY), `_ai-gateway-core.ts` (AI_GATEWAY_API_KEY, GLM 5.2).
-  Soạn giáo án/tạo đề chạy ở trình duyệt bằng key riêng người dùng → người dùng tự trả.
-- Lịch sử đăng nhập có sẵn trong Firebase Auth (metadata createdAt/lastSignIn) → đọc bằng Admin SDK phía máy chủ.
-- Không có trang quản trị nào; giới hạn 12 Vercel Function → thêm action vào endpoint có sẵn.
+## Task 9–11 (chốt đợt — 28/10)
 
-## GĐ1 — Bộ đếm token (làm trước: mỗi ngày trễ là mất dữ liệu)
-- [ ] `api/_ai-usage.ts`: `recordAiUsage({uid,email,role,classId,ownerTeacherId,feature,model,inputTokens,outputTokens,cachedTokens})`
-      → collection `aiUsage` (chỉ máy chủ ghi; rules chặn client). Lỗi ghi KHÔNG làm hỏng lượt chấm.
-- [ ] Gắn vào 3 chỗ gọi key chung, lấy số từ `usageMetadata` (Gemini) / `usage` (gateway). Lượt HS nộp → tính cho GV chủ lớp.
-- [ ] Test: ghi đúng số token, thiếu usage vẫn không vỡ; rules chặn client đọc/ghi `aiUsage`.
-
-## GĐ2 — Trang quản trị (chỉ congapro60@gmail.com, email Google đã xác minh, kiểm ở MÁY CHỦ)
-- [ ] Người dùng: email, vai trò, ngày tạo, lần đăng nhập cuối (Auth listUsers).
-- [ ] Lớp theo giáo viên: sĩ số, số bài giao, số bài nộp/đã chấm AI (đọc-only).
-- [ ] Token & tiền theo người/lớp/tháng: USD theo bảng giá chính thức (ghi nguồn + ngày), quy VND theo tỷ giá (sửa được, ghi ngày).
-      Có cả dòng của chủ dự án. Quá khứ trước GĐ1: dòng "ƯỚC TÍNH" = số bài đã chấm × token TB đo được.
-- [ ] Xuất bảng kê (CSV) từng người để thu tiền.
-- [ ] Chuẩn bị lớp cho các cô: xem lớp đã có; tạo lớp mới từ danh sách file Drive — BỎ QUA lớp đã tồn tại.
-
-## GĐ3 — Sổ điểm (HS xem, báo cáo PH dùng chung) — kế hoạch chi tiết 2026-09-24
-Quyết định: 1 document `scoreBooks/{classId}` (≤ vài chục HS, xa trần 1MB), CHỈ máy chủ đọc/ghi (rules mặc định chặn →
-KHÔNG phải phát hành lại firestore.rules). HS đọc qua action `studentScoreBook` (lọc đúng dòng của mình theo studentLinks,
-như `studentSubmissions`). BTVN KHÔNG chép vào sổ — lấy thẳng từ bài đã duyệt (một nguồn sự thật).
-- [x] `src/lib/classroom/scoreBook.ts` (thuần): kiểu dữ liệu, kiểm điểm HS1 (0–10, ≤2 số lẻ), làm sạch điểm thi,
-      `studentScoreView`. BTVN dùng thẳng `officialActivities` (không cần hàm riêng). Test 6.
-- [x] `examService.fetchClassExamScores(sheet, roster)`: đọc file điểm 1 lần cho cả lớp, khớp Mã HS.
-- [x] `api/_score-book.ts`: `teacherScoreBook`, `saveHs1Column`, `deleteHs1Column`, `saveExamScores`, `studentScoreBook`. Test 5.
-- [x] GV: tab "Sổ điểm" trong lớp — đồng bộ MOET/TDS, bảng nhập/sửa/xoá cột điểm hệ số 1.
-- [x] HS: mục "Bảng điểm của em" (BTVN, thi định kì MOET, điểm quý TDS, hệ số 1).
-- [x] Báo cáo PH (màn hình + PDF) đọc điểm thi + HS1 từ sổ điểm.
-- [x] Nghiệm thu: 180 file/2.080 test, lint, lint:api, build; production `a423c72`.
-
-### Review GĐ3 (production 24/09)
-- 11Columbus: đồng bộ 26/26 em khớp Mã HS (Khảo sát đầu năm). 12LoTrinh1: 8/8, có Tuấn Nam (3.6) sau chuyển lớp.
-- Cột HS1 thử: ô "11" bị tô đỏ + chặn lưu; sửa 9 lưu được, TB đúng; bản phụ huynh hiện MOET + HS1; mở lại cột điền sẵn điểm; xoá cột sạch trên máy chủ.
-- 10Olinda: 18/19 — sửa Mã HS tạm `10OLINDA-19` của Bảo Khánh thành GB0120040234 (theo Sheet) rồi đồng bộ lại → 7. Trần Hữu Bảo Nam: ô KSĐN trên Sheet trống.
-- CHƯA: cổng học sinh chưa thử bằng phiên HS thật (đăng nhập HS sẽ đá phiên GV) — dựa test API.
-
-## Cần chủ dự án chốt trước GĐ2
-- Tính tiền cho ai khi HỌC SINH nộp bài được chấm: giáo viên chủ lớp (đề xuất).
-- Tỷ giá: Vietcombank bán ra ngày chốt (đề xuất), sửa tay được.
-
-# Kế hoạch 2026-09-24 (tiếp): khoá AI riêng + trần chi tiêu + hoá đơn tháng
-Chủ dự án chốt: nhóm (chủ dự án + Hạnh, Vân, Hồng) dùng thẳng khoá chung; GV khác dùng khoá Gemini riêng, hết/không có
-khoá → AI dừng, bài HS nằm chờ + báo khi đăng nhập; bất kỳ lúc nào GV có thể đồng ý dùng khoá chung và bị tính tiền.
-Khoá cất vùng chỉ máy chủ. Trần tiền/tháng TUỲ CHỌN với mọi GV (chạm trần → AI dừng, GV nâng trần là chạy tiếp).
-Hoá đơn TỰ PHÁT HÀNH ngày 1 (lập khi có người mở lần đầu sau khi hết tháng), xem trong app + tải PDF, kèm minh chứng từng lượt.
-- [x] `aiKeyPolicy.ts` (thuần) + test; `_ai-keys.ts`; chọn khoá trong `callGeminiVision`/mô phỏng/cổng GLM; 402 AI_KEY_REQUIRED.
-- [x] Bài HS bị chặn → `aiBlocked` giữ trạng thái cũ; bảng kê bỏ lượt khoá riêng (`keySource`).
-- [x] Bộ đếm chi tiêu tháng `aiSpend/{uid}_{YYYY-MM}` + trần `monthlyCapVnd` (lý do chặn `cap_reached`).
-- [x] ĐỔI MÔ HÌNH (chủ dự án chốt 09-24): trả trước qua ví SePay, trừ dần từng lượt; sao kê tháng thay hoá đơn trả sau
-      (đầu kỳ + nạp + điều chỉnh − trừ, minh chứng từng lượt, tỷ giá lưu trên từng lượt); mã giảm giá 10–100%.
-- [x] Giao diện GV: tab "Chi phí AI" (ví + QR, mã giảm giá, trần, khoá riêng, đồng ý, chấm lại bài chờ, sao kê + PDF),
-      hộp chọn khi bị chặn (tự thử lại), banner khi có bài chờ / ví cạn.
-- [x] Quản trị mục 6–10: công tắc + nhóm, tài khoản nhận tiền + webhook, mã giảm giá, ví + điều chỉnh, giao dịch chưa khớp, sao kê.
-- [x] Test + lint + build (186 file / 2.121 test).
-- [x] QA production 25/09: tab Chi phí AI + Quản trị mục 1–10 chạy; lưu nhóm (Hạnh, Hồng, 3 tài khoản của Vân);
-      mã THANG10 100% 25/09–31/10 gán 5 tài khoản; BẬT tính phí; "Chấm cả lớp" của chủ dự án qua cổng bình thường.
-- [x] Mục 7 làm lại theo ý chủ dự án: nhiều tài khoản nhận tiền + ảnh QR tự tải, chọn tài khoản đang dùng.
-- [x] Sửa: khoá riêng luôn chạy trước kể cả người trong nhóm (trước đây bị bỏ qua → trừ ví oan).
-- [ ] Chủ dự án tự làm: thêm tài khoản nhận tiền (mục 7), webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` — xong trước 01/11.
-
-# Kế hoạch 2026-09-29: báo cáo PH theo kì (tháng / GK1 / CK1 / GK2 / CK2 / cả năm)
-Chủ dự án chốt: chọn tay "từ ngày … đến ngày …" mỗi lần xuất; điểm thi định kì hiện TẤT CẢ cột (không phân kì →
-không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu lại; xuất từng em + cả lớp (ZIP).
-- [x] `reportPeriod.ts` (thuần): loại báo cáo, khoảng mặc định (chỉ để điền sẵn), lọc bài giao/bài nộp/HS1 theo khoảng,
-      chuỗi điểm theo tháng, so sánh (tháng trước / nửa đầu–nửa sau / HK1–HK2) + test.
-- [x] Bản in: tiêu đề + khoảng thời gian, khối so sánh, biểu đồ theo tháng (kì/năm), mục "Nhận xét của giáo viên".
-- [x] Máy chủ: `draftParentComment` (AI, tính cho GV chủ lớp) + lưu/đọc nhận xét `parentReportNotes` (chỉ qua API).
-- [x] Giao diện từng em (chọn loại + khoảng, AI soạn nháp, sửa, lưu, tải PDF) + xuất cả lớp ZIP ở tab Báo cáo.
-- [x] Test + lint + build + QA production.
+- [x] Task 9 - QA 2 bài batch1: `10-11-79` (g10, 7W288E, phiên `8DIcKxBIDeFTlyVivIMV`) + `11-11-75` (g11, R6RCFC, phiên `3f6l2fI1RriYA1ZWfnJe`) — A–F ĐẠT + CasioKeyGuide ẨN (bằng chứng dump 0 lần).
+- [x] Task 10 - hồi quy bài 12 `12-11-80` (g12, AD4GKT, phiên `2vuuqC9VtmVhVGihSyD6`) — ĐẠT + CasioKeyGuide HIỆN đủ 4 bước (σx = 0,89443 nguyên trạng); g12VarianceNumbers + casioGuide test 17/17.
+- [x] Task 11 Step 1/1b - báo cáo 10 mục QA + cổng chốt `expect(W11BATCH2).toHaveLength(7)` — vitest v4 **300/300 PASS**.
+- [x] Task 11 Step 2 - chốt: mọi mục ĐẠT, đợt batch2 hoàn thành (0 sự cố).
+- [x] Task 11 Step 3 - HANDOFF cuối đợt (10/10 bài V8.8; registry 10 key).
+- [x] Task 11 Step 4 - commit + push tài liệu.
+- [x] Thầy xác nhận đồng ý chốt đợt (28/10) — batch2 đóng, không còn mục CHỜ.
+- [x] Việc 2 - nhãn Tuần 11 · Tiết 75–80 cho 10 bài nguồn trên thư viện (override client, QA 10/10 ✓).
+- [x] Việc 1 (phương án B, thầy chọn) - server strip + chấm không ghi điểm: `studentAdaptiveLibraryOpen`/`studentAdaptiveLibrarySubmit` (`gradeLibraryAssessment`); route `/adaptive-library/:libraryLessonId`; auto đăng nhập ẩn danh; QA ĐẠT (mở bài strip + nộp diagnostic scored:false). Lưu ý: quickCheck nhúng Dewey giữ hành vi luồng công khai nguyên trạng.
+- [x] Việc 3 - giao 10 bài tự học Tuần 11 cho 3 lớp (g10 2, g11 4, g12 4 — 10/10 → 200; QA portal g12 hiện đúng 4 bài).
+- [x] Thầy xác nhận đồng ý kết hợp 2 loại bài (28/10) — đợt đóng.
+## 29/10 — 2 chức năng mới (addendum)
+- [ ] Hoàn tất QA nhóm xoay tua (đang dở — Edge WS fetch failed, retry).
+- [ ] Chức năng 1: Hand Raise + Câu hỏi ẩn danh + Pulse (spec-hand-raise.md) — audit → P0 → test.
+- [ ] Chức năng 2: Mobile/Desktop Parity theo 4 bước (spec-parity.md) — áp Math Diagram Standard cho hình.
+- [x] Quy tắc kiểm thử mở rộng (test component + TDZ check) đã ghi HANDOFF sau lỗi TDZ participantUid.
+- [x] QA live nhóm xoaytua chốt: R1 VERIFIED live (session Dypueu4PNboPdTOqQGon); R2 unit 6/6 PASS (live cần 2 HS — NOT_RUN).
+- [x] Fix 2 lỗi tìm thấy khi QA: listener groupProgress 403 chết vĩnh viễn; R2 gắn sai màn hình (TeacherLiveView không render) → tách TvSlowGroups.

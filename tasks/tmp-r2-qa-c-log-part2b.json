@@ -1,0 +1,50 @@
+{
+ "draftTest": {
+  "stage": 5,
+  "typed": true,
+  "reloaded": true,
+  "loggedIn": "view",
+  "kept": false,
+  "bandBefore": "Chặng 20–27 phút",
+  "bandAfter": null,
+  "sameBand": false,
+  "aiErrorStill": false
+ },
+ "routeChoice": {
+  "cards": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "Bắt đầu với hỗ trợBảng thời gian tự học (giờ/ngày) của 40 học sinh (SGK tr. 52): [0;1) có 5 · [1;2) có 12 · [2;3) có 15 · [3;4) có 8. Xác định cỡ mẫu n và tính giá trị đại diện c₁, c₂, c₃, c₄ của bốn nhóm.Chọn nhiệm vụ này",
+   "Kết nối kiến thứcVới bảng tự học ở trên, lập bảng tích m_i·c_i và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được.Chọn nhiệm vụ này",
+   "Mở rộng lập luậnNếu thêm 1 bạn học 6 giờ/ngày vào mẫu tự học 40 bạn ở trên thì x̄ thay đổi thế nào?Chọn nhiệm vụ này"
+  ],
+  "clicked": "Bắt đầu với hỗ trợBảng thời gian tự học (giờ/ngày) của 40 học sinh (SGK tr. 52): [0;1) có 5 · [1;2) có 12 · [2;3) có 15 · [3;4) có 8. Xác định cỡ mẫu n và tính giá trị đại diện c₁, c₂, c₃, c₄ của bốn ",
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nCác số đặc trưng đo xu thế trung tâm\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nBản"
+ },
+ "gvProbe": {
+  "buttons": [
+   "← Trước",
+   "Tạm dừng",
+   "Sau →",
+   "Toàn màn hình",
+   "Hiện kết quả lớp",
+   "Đóng phiên"
+  ],
+  "domS6": {
+   "has22": false,
+   "has587": false,
+   "tuTinh": false,
+   "ctx22": null,
+   "ctx587": null,
+   "ctxTuTinh": null
+  }
+ },
+ "s6Recheck": null
+}

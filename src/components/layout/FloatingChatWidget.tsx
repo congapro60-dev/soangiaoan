@@ -161,10 +161,12 @@ export const FloatingChatWidget = ({
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 z-50",
+          "w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 z-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700",
           isOpen ? "bg-slate-800 text-white" : "gradient-bg text-white"
         )}
         title="Trợ lý AI Tutor"
+        aria-label={isOpen ? 'Đóng trợ lý AI Tutor' : 'Mở trợ lý AI Tutor'}
+        aria-expanded={isOpen}
       >
         {isOpen ? <X className="w-6 h-6" /> : (
           <>

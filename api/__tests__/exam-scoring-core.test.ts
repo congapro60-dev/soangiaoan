@@ -21,6 +21,19 @@ describe('computeAutoScoreCore', () => {
     expect(computeAutoScoreCore(questions[1], three, 'thpt2025')).toBe(2);
     expect(computeAutoScoreCore(questions[1], three, 'all_or_nothing')).toBe(0);
   });
+  it('Đ/S nhận cả answer key CSV và bài làm JSON (và ngược lại)', () => {
+    const csvQuestion = { ...questions[1], correctAnswer: 'Đ,S,Đ,S' };
+    const jsonAnswer = JSON.stringify({ a: 'Đ', b: 'S', c: 'Đ', d: 'S' });
+
+    expect(computeAutoScoreCore(csvQuestion, jsonAnswer)).toBe(4);
+    expect(computeAutoScoreCore(questions[1], 'Đ,S,Đ,S')).toBe(4);
+  });
+  it('Đ/S không tính key thiếu là khớp', () => {
+    const csvQuestion = { ...questions[1], correctAnswer: 'Đ,S,Đ,S' };
+
+    expect(computeAutoScoreCore(csvQuestion, '{}')).toBe(0);
+    expect(computeAutoScoreCore(csvQuestion, JSON.stringify({ a: 'Đ' }), 'thpt2025')).toBe(0.4);
+  });
   it('essay trả undefined', () => {
     expect(computeAutoScoreCore(questions[3], 'bài làm')).toBeUndefined();
   });

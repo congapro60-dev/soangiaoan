@@ -1,4 +1,5 @@
 import snapshotText from '../../../data/liveLessonPackages/banToan-w5-w6.snapshot.json?raw';
+import batch2Text from '../../../data/liveLessonPackages/banToan-w11-batch2.snapshot.json?raw';
 import type {
   AiErrorOfTheWeek,
   Checkpoint,
@@ -48,6 +49,8 @@ interface SourceLessonSpec {
   exercises: SourceExercise[];
   quick: SourceExample[];
   mistakes: string[];
+  /** Override timeline theo Gate D từng bài (thầy duyệt dải phút riêng). Không có → TIMELINE chung. */
+  timelineKey?: string;
   guidingQuestion?: string;
   languageObjective?: string;
   globalCompetency?: string;
@@ -118,6 +121,202 @@ const TIMELINE: ReadonlyArray<readonly [string, number, number, string, string]>
   ['P38', 2280, 2400, 'S10', 'exitTicket'],
 ];
 
+// Timeline theo Gate D từng bài — thầy duyệt dải phút riêng (bản ghi nằm trong
+// mục "Kiểm nhanh trước khi nộp" của Gate D). Bài không khai báo timelineKey
+// thì chạy TIMELINE chung phía trên.
+const TIMELINE_BY_KEY: Readonly<Record<string, ReadonlyArray<readonly [string, number, number, string, string]>>> = {
+  // gateD78 — "Hai mặt phẳng song song" (11-11-78): phân bổ 1-2-3-5-3-1-7-3-5-8-2 phút.
+  gateD78: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 180, 'S1', 'guidingQuestion'],
+    ['P03', 180, 300, 'S2', 'goals'],
+    ['P05', 300, 600, 'S3', 'knowledgeCycle'],
+    ['P10', 600, 780, 'S4', 'aiError'],
+    ['P13', 780, 840, 'S5', 'grouping'],
+    ['P14', 840, 1260, 'S6', 'differentiatedPractice'],
+    ['P21', 1260, 1440, 'S7', 'postCheck'],
+    ['P24', 1440, 1740, 'S8', 'quickCheck'],
+    ['P29', 1740, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD79 — "Hai mặt phẳng song song — Tiết 3" (11-11-79): phân bổ 1-4-2-5-3-1-8-5-6-3-2 phút.
+  gateD79: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 300, 'S1', 'guidingQuestion'],
+    ['P03', 300, 420, 'S2', 'goals'],
+    ['P05', 420, 720, 'S3', 'knowledgeCycle'],
+    ['P10', 720, 900, 'S4', 'aiError'],
+    ['P13', 900, 960, 'S5', 'grouping'],
+    ['P14', 960, 1440, 'S6', 'differentiatedPractice'],
+    ['P21', 1440, 1740, 'S7', 'postCheck'],
+    ['P24', 1740, 2100, 'S8', 'quickCheck'],
+    ['P29', 2100, 2280, 'S9', 'summary'],
+    ['P37', 2280, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD77 — "Nguyên hàm — Tiết 2" (12-11-77): phân bổ 1-5-3-4-3-1-5-4-7-5-2 phút.
+  gateD77: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 360, 'S1', 'guidingQuestion'],
+    ['P03', 360, 540, 'S2', 'goals'],
+    ['P05', 540, 780, 'S3', 'knowledgeCycle'],
+    ['P10', 780, 960, 'S4', 'aiError'],
+    ['P13', 960, 1020, 'S5', 'grouping'],
+    ['P14', 1020, 1320, 'S6', 'differentiatedPractice'],
+    ['P21', 1320, 1560, 'S7', 'postCheck'],
+    ['P24', 1560, 1980, 'S8', 'quickCheck'],
+    ['P29', 1980, 2280, 'S9', 'summary'],
+    ['P37', 2280, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD1278 — "Khoảng biến thiên và khoảng tứ phân vị" (12-11-78): phân bổ 1-4-3-4-3-1-8-5-6-3-2 phút.
+  gateD1278: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 300, 'S1', 'guidingQuestion'],
+    ['P03', 300, 480, 'S2', 'goals'],
+    ['P05', 480, 720, 'S3', 'knowledgeCycle'],
+    ['P10', 720, 900, 'S4', 'aiError'],
+    ['P13', 900, 960, 'S5', 'grouping'],
+    ['P14', 960, 1440, 'S6', 'differentiatedPractice'],
+    ['P21', 1440, 1740, 'S7', 'postCheck'],
+    ['P24', 1740, 2100, 'S8', 'quickCheck'],
+    ['P29', 2100, 2340, 'S9', 'summary'],
+    ['P37', 2340, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD1279 — "Các số đặc trưng đo mức độ phân tán — Tiết 2" (12-11-79): phân bổ 1-4-2-5-2-1-8-2-7-4-4 phút.
+  gateD1279: [
+    ['P00', 0, 60, 'S0', 'opening'],
+    ['P01', 60, 300, 'S1', 'guidingQuestion'],
+    ['P03', 300, 420, 'S2', 'goals'],
+    ['P05', 420, 720, 'S3', 'knowledgeCycle'],
+    ['P10', 720, 840, 'S4', 'aiError'],
+    ['P13', 840, 900, 'S5', 'grouping'],
+    ['P14', 900, 1380, 'S6', 'differentiatedPractice'],
+    ['P21', 1380, 1500, 'S7', 'postCheck'],
+    ['P24', 1500, 1920, 'S8', 'quickCheck'],
+    ['P29', 1920, 2160, 'S9', 'summary'],
+    ['P37', 2160, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD101288 — "Các số đặc trưng đo xu thế trung tâm — Tiết 2: Tứ phân vị và Mốt" (10-12-88):
+  // Phân bổ 3-2-3-8-3-1-7-3-5-3-2 phút (P0–P40).
+  gateD101288: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 300, 'S1', 'guidingQuestion'],
+    ['P05', 300, 480, 'S2', 'goals'],
+    ['P08', 480, 960, 'S3', 'knowledgeCycle'],
+    ['P16', 960, 1140, 'S4', 'aiError'],
+    ['P19', 1140, 1200, 'S5', 'grouping'],
+    ['P20', 1200, 1620, 'S6', 'differentiatedPractice'],
+    ['P27', 1620, 1800, 'S7', 'postCheck'],
+    ['P30', 1800, 2100, 'S8', 'quickCheck'],
+    ['P35', 2100, 2280, 'S9', 'summary'],
+    ['P38', 2280, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD111282 — "Các số đặc trưng đo xu thế trung tâm — Tiết 2: Tứ phân vị và Mốt của mẫu số liệu ghép nhóm" (11-12-82):
+  // Phân bổ 3-4-2-5-3-1-8-3-5-3-3 phút (P0–P40).
+  gateD111282: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 840, 'S3', 'knowledgeCycle'],
+    ['P14', 840, 1020, 'S4', 'aiError'],
+    ['P17', 1020, 1080, 'S5', 'grouping'],
+    ['P18', 1080, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121283 — "Nguyên hàm — Tiết 4: Nguyên hàm của hàm số lũy thừa" (12-12-83):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121283: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121284 — "Nguyên hàm — Tiết 5: Nguyên hàm của hàm số mũ" (12-12-84):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121284: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121285 — "Nguyên hàm — Tiết 6: Nguyên hàm của hàm số lượng giác" (12-12-85):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121285: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121286 — "Phương sai và độ lệch chuẩn — Tiết 2: Sử dụng phương sai, độ lệch chuẩn đo độ rủi ro" (12-12-86):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121286: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121287 — "Phương sai và độ lệch chuẩn — Tiết 3: Luyện tập" (12-12-87):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121287: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+  // gateD121282 — "Nguyên hàm — Tiết 3: Tính chất cơ bản của nguyên hàm" (12-12-82):
+  // Phân bổ 3-4-2-6-3-1-7-3-5-3-3 phút (P0–P40).
+  gateD121282: [
+    ['P00', 0, 180, 'S0', 'opening'],
+    ['P03', 180, 420, 'S1', 'guidingQuestion'],
+    ['P07', 420, 540, 'S2', 'goals'],
+    ['P09', 540, 900, 'S3', 'knowledgeCycle'],
+    ['P15', 900, 1080, 'S4', 'aiError'],
+    ['P18', 1080, 1140, 'S5', 'grouping'],
+    ['P19', 1140, 1560, 'S6', 'differentiatedPractice'],
+    ['P26', 1560, 1740, 'S7', 'postCheck'],
+    ['P29', 1740, 2040, 'S8', 'quickCheck'],
+    ['P34', 2040, 2220, 'S9', 'summary'],
+    ['P37', 2220, 2400, 'S10', 'exitTicket'],
+  ],
+};
+
 // V7.2 keeps the lesson at 40 minutes but gives practice its own questions
 // and enough time to move from core work to extension.
 const V72_TIMELINE: ReadonlyArray<readonly [string, number, number, string, string]> = [
@@ -142,6 +341,19 @@ const V72_TIMELINE: ReadonlyArray<readonly [string, number, number, string, stri
 // controls the generic adapter used by the other source packages.
 const isV72 = (spec: SourceLessonSpec): boolean => spec.week === 5 || spec.week === 6;
 
+// Fix2: mọi liên kết nhiệm vụ (checkpoint, aiError, evidence, fading, language,
+// grouping) suy theo PHASE của timeline đang chạy thay vì id chặng cứng của
+// template. Bài Gate D có dải phút riêng (timelineKey) đổi id chặng (vd 78:
+// aiError là P10 chứ không phải P16) nên id cứng làm nhiệm vụ biến mất khỏi
+// màn hình HS. Fallback luôn là id template ⇒ template giữ hành vi 100% cũ.
+const timelineBeatsFor = (spec: SourceLessonSpec): ReadonlyArray<readonly [string, number, number, string, string]> => {
+  if (isV72(spec)) return V72_TIMELINE;
+  return (spec.timelineKey ? TIMELINE_BY_KEY[spec.timelineKey] : undefined) ?? TIMELINE;
+};
+
+const beatIdForPhase = (spec: SourceLessonSpec, phase: string, templateFallback: string): string =>
+  timelineBeatsFor(spec).find((beat) => beat[4] === phase)?.[0] ?? templateFallback;
+
 const TERM_LIBRARY: ReadonlyArray<{
   id: string;
   vietnamese: string;
@@ -157,35 +369,63 @@ const TERM_LIBRARY: ReadonlyArray<{
   { id: 'cong-thuc', vietnamese: 'công thức', translations: { en: 'formula', ja: '公式', ko: '공식', zh: '公式' }, explanation: 'Biểu thức khái quát dùng để tính hoặc suy luận.' },
 ];
 
-function parseSnapshot(): SourceSnapshot {
+function parseSnapshot(raw: string, label: string, expectedCount: number | null): SourceSnapshot {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(snapshotText) as unknown;
+    parsed = JSON.parse(raw) as unknown;
   } catch {
-    throw new Error('Không đọc được snapshot Ban Toán W5–W6.');
+    throw new Error(`Không đọc được snapshot Ban Toán ${label}.`);
   }
-  if (!parsed || typeof parsed !== 'object') throw new Error('Snapshot Ban Toán không hợp lệ.');
+  if (!parsed || typeof parsed !== 'object') throw new Error(`Snapshot Ban Toán ${label} không hợp lệ.`);
   const snapshot = parsed as Partial<SourceSnapshot>;
   if (snapshot.schemaVersion !== 1
     || !snapshot.source?.fingerprint
     || !Array.isArray(snapshot.lessonSpecs)
-    || snapshot.lessonSpecs.length !== 48
+    || (expectedCount !== null && snapshot.lessonSpecs.length !== expectedCount)
     || !snapshot.aiErrors) {
-    throw new Error('Snapshot Ban Toán phải có schema 1, 48 bài và AI error tương ứng.');
+    throw new Error(`Snapshot Ban Toán ${label} phải có schema 1${expectedCount === null ? '' : `, ${expectedCount} bài`} và AI error tương ứng.`);
   }
   const seen = new Set<string>();
   for (const spec of snapshot.lessonSpecs) {
-    if (!spec.key || seen.has(spec.key)) throw new Error(`Snapshot có key trùng hoặc rỗng: ${spec.key}.`);
+    if (!spec.key || seen.has(spec.key)) throw new Error(`Snapshot ${label} có key trùng hoặc rỗng: ${spec.key}.`);
     seen.add(spec.key);
-    if (spec.examples?.length !== 2 || spec.exercises?.length !== 6 || spec.quick?.length !== 2) {
-      throw new Error(`Snapshot sai số lượng nội dung ở ${spec.key}.`);
+    if (spec.examples?.length !== 2 || spec.exercises?.length !== 6 || !(spec.quick?.length === 2 || spec.quick?.length === 3)) {
+      throw new Error(`Snapshot ${label} sai số lượng nội dung ở ${spec.key}.`);
     }
-    if (!snapshot.aiErrors[spec.key]) throw new Error(`Snapshot thiếu AI error ở ${spec.key}.`);
+    if (!snapshot.aiErrors[spec.key]) throw new Error(`Snapshot ${label} thiếu AI error ở ${spec.key}.`);
   }
   return snapshot as SourceSnapshot;
 }
 
-const SNAPSHOT = parseSnapshot();
+const MAIN_SNAPSHOT = parseSnapshot(snapshotText, 'W5–W6', 51);
+const BATCH2_SNAPSHOT = parseSnapshot(batch2Text, 'W11 batch2', null);
+
+// `source` của SNAPSHOT giữ của MAIN (fingerprint provenance W5–W6): fingerprint
+// batch2 không dùng được cho contract — validateContract bắt buộc hex-64.
+const SNAPSHOT: SourceSnapshot = {
+  ...MAIN_SNAPSHOT,
+  lessonSpecs: [...MAIN_SNAPSHOT.lessonSpecs, ...BATCH2_SNAPSHOT.lessonSpecs],
+  aiErrors: { ...MAIN_SNAPSHOT.aiErrors, ...BATCH2_SNAPSHOT.aiErrors },
+};
+
+// Chống trùng key XUYÊN file (mỗi file tự kiểm trong parseSnapshot ở trên).
+// Duyệt cả aiErrors để bắt "aiError mồ côi" trong batch2 ghi đè im lặng của MAIN:
+// key aiErrors của mỗi file phải khớp spec của CHÍNH file đó, nếu không khi merge
+// sẽ clobber aiError hợp lệ của file kia.
+{
+  const globalKeys = new Set<string>();
+  for (const key of SNAPSHOT.lessonSpecs.map((spec) => spec.key)) {
+    if (globalKeys.has(key)) throw new Error(`Key trùng giữa 2 snapshot: ${key}.`);
+    globalKeys.add(key);
+  }
+  for (const snapshot of [MAIN_SNAPSHOT, BATCH2_SNAPSHOT]) {
+    const specKeys = new Set(snapshot.lessonSpecs.map((spec) => spec.key));
+    for (const key of Object.keys(snapshot.aiErrors)) {
+      if (!specKeys.has(key)) throw new Error(`AI error mồ côi không khớp spec trong cùng snapshot: ${key}.`);
+    }
+  }
+}
+
 const SPECS_BY_KEY = new Map(SNAPSHOT.lessonSpecs.map((spec) => [spec.key, spec]));
 
 /** Tên hiển thị ngắn, cùng kiểu với bài demo; sourceKey vẫn là định danh kỹ thuật. */
@@ -291,7 +531,7 @@ function buildGlossary(spec: SourceLessonSpec): GlossaryItem[] {
 }
 
 function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId: string): TimelineBlock[] {
-  const beats = isV72(spec) ? V72_TIMELINE : TIMELINE;
+  const beats = timelineBeatsFor(spec);
   return beats.map(([id, startSeconds, endSeconds, tvScreenId, phase]) => {
     const sourcePhase: Record<string, string> = {
       opening: 'Khởi động', prediction: 'Khởi động', goals: 'Xác định mục tiêu',
@@ -327,15 +567,19 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       if (id === 'P36') checkpointId = 'cp-exit-ticket';
       if (id === 'P39') checkpointId = 'cp-self-assessment';
     } else {
-      if (id === 'P03') checkpointId = 'cp-guiding-question';
-      if (id === 'P05') checkpointId = 'cp-student-goal';
-      if (id === 'P08') checkpointId = 'cp-diagnostic';
-      if (id === 'P16') checkpointId = 'cp-ai-error';
-      if (id === 'P19') checkpointId = 'cp-route-choice';
-      if (id === 'P20') checkpointId = 'cp-group-product';
-      if (id === 'P27') checkpointId = postCheckId;
-      if (id === 'P30') checkpointId = 'cp-quick-check';
-      if (id === 'P38') checkpointId = 'cp-exit-ticket';
+      // Gate D từng bài: id chặng suy theo phase của timeline đang chạy
+      // (template ⇒ trả đúng id cũ P03/P05/…; gateD78 ⇒ P01/P03/P05/P10/P13/P14/P21/P24/P37).
+      const phaseBeat = (phaseName: string, templateFallback: string): string =>
+        beats.find((beat) => beat[4] === phaseName)?.[0] ?? templateFallback;
+      if (id === phaseBeat('guidingQuestion', 'P03')) checkpointId = 'cp-guiding-question';
+      if (id === phaseBeat('goals', 'P05')) checkpointId = 'cp-student-goal';
+      if (id === phaseBeat('knowledgeCycle', 'P08')) checkpointId = 'cp-diagnostic';
+      if (id === phaseBeat('aiError', 'P16')) checkpointId = 'cp-ai-error';
+      if (id === phaseBeat('grouping', 'P19')) checkpointId = 'cp-route-choice';
+      if (id === phaseBeat('differentiatedPractice', 'P20')) checkpointId = 'cp-group-product';
+      if (id === phaseBeat('postCheck', 'P27')) checkpointId = postCheckId;
+      if (id === phaseBeat('quickCheck', 'P30')) checkpointId = 'cp-quick-check';
+      if (id === phaseBeat('exitTicket', 'P38')) checkpointId = 'cp-exit-ticket';
     }
     return {
       id,
@@ -344,6 +588,7 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       endSeconds,
       teacherScript,
       tvScreenId,
+      phase,
       studentAction,
       boardLarge,
       boardSide,
@@ -455,7 +700,7 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
   }));
   const aiError: AiErrorOfTheWeek = {
     id: `ai-error-${spec.key}`,
-    stepId: isV72(spec) ? 'P15' : 'P16',
+    stepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'),
     category: aiErrorCategory(error.category),
     faultyStatement: error.wrongSolution,
     correction: error.correction,
@@ -471,9 +716,9 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     { id: 'math-3', kind: 'math', text: 'Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.' },
   ];
   const languageDemands: LanguageDemand[] = [
-    { stepId: isV72(spec) ? 'P02' : 'P03', terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
-    { stepId: isV72(spec) ? 'P15' : 'P16', terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
-    { stepId: isV72(spec) ? 'P22' : 'P27', terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
+    { stepId: isV72(spec) ? 'P02' : beatIdForPhase(spec, 'guidingQuestion', 'P03'), terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
+    { stepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'), terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
+    { stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'postCheck', 'P27'), terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
   ];
   const v72Practice = [
     ['cp-practice-a', 'A · CỐT LÕI', spec.exercises[0]?.question ?? spec.focus],
@@ -494,15 +739,15 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     { id: 'cp-exit-ticket', stepId: 'P36', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
     { id: 'cp-self-assessment', stepId: 'P39', kind: 'post_check', prompt: 'Đọc lại MUST · SHOULD · COULD và chọn mức phù hợp với bằng chứng của em.', responseType: 'exit_ticket', evidenceSignal: 'Tự đánh giá được đối chiếu với bài A–D và exit ticket.', teacherNextActions: ['Gắn cờ trường hợp tự đánh giá lệch với bằng chứng.'] },
   ] : [
-    { id: 'cp-guiding-question', stepId: 'P03', kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu một câu hỏi hoặc điều muốn biết gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
-    { id: 'cp-student-goal', stepId: 'P05', kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'choice', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng, không bắt buộc giống nhau.', teacherNextActions: ['Tổng hợp mục tiêu chung trên bảng phụ.'] },
-    { id: 'cp-diagnostic', stepId: 'P08', kind: 'in_class', prompt: `Chọn công cụ/bước đầu tiên để xử lý ${spec.focus}.`, responseType: 'choice', evidenceSignal: 'Tín hiệu điểm xuất phát về khái niệm hoặc quy trình.', teacherNextActions: ['Đọc thống kê ẩn danh và chọn scaffold.'] },
-    { id: 'cp-ai-error', stepId: 'P16', kind: 'in_class', prompt: error.teacherPrompt, responseType: 'text', evidenceSignal: 'HS phân loại lỗi, sửa lời giải và nêu phép chứng minh.', teacherNextActions: ['Ghi thẻ lỗi vào thư viện AI Error; hỏi vì sao AI có thể mắc lỗi.'] },
-    { id: 'cp-route-choice', stepId: 'P19', kind: 'in_class', prompt: 'Chọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.', responseType: 'route', evidenceSignal: 'HS tự chọn tuyến theo nhu cầu hiện tại, không bị gắn nhãn năng lực.', teacherNextActions: ['Đọc thống kê ẩn danh và duyệt đề xuất nhóm trước khi giao nhiệm vụ.'] },
-    { id: 'cp-group-product', stepId: 'P20', kind: 'in_class', prompt: `Cùng giải thích và kiểm chứng ${spec.focus} bằng sản phẩm nhóm.`, responseType: 'text', evidenceSignal: 'Sản phẩm nhóm có bước làm, lý do và phép kiểm; không thay post-check cá nhân.', teacherNextActions: ['Duyệt/đổi đề xuất nhóm theo evidence; mời một nhóm giải thích.'] },
-    { id: postCheckId, stepId: 'P27', kind: 'post_check', prompt: `Với dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về ${spec.focus} và nêu căn cứ.`, responseType: 'text', evidenceSignal: 'Sản phẩm cá nhân sau can thiệp để đánh giá lại skill gap.', teacherNextActions: ['Đối chiếu tiêu chí chung và ghi bước hỗ trợ tiết sau.'] },
-    { id: 'cp-quick-check', stepId: 'P30', kind: 'in_class', prompt: 'Trả lời nhanh rồi sửa một lỗi nếu phát hiện.', responseType: 'choice', evidenceSignal: 'Tỷ lệ đúng và loại lỗi sau luyện tập.', teacherNextActions: ['Chọn một lỗi chung để chốt, không công khai cá nhân.'] },
-    { id: 'cp-exit-ticket', stepId: 'P38', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
+    { id: 'cp-guiding-question', stepId: beatIdForPhase(spec, 'guidingQuestion', 'P03'), kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu một câu hỏi hoặc điều muốn biết gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
+    { id: 'cp-student-goal', stepId: beatIdForPhase(spec, 'goals', 'P05'), kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'choice', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng, không bắt buộc giống nhau.', teacherNextActions: ['Tổng hợp mục tiêu chung trên bảng phụ.'] },
+    { id: 'cp-diagnostic', stepId: beatIdForPhase(spec, 'knowledgeCycle', 'P08'), kind: 'in_class', prompt: `Chọn công cụ/bước đầu tiên để xử lý ${spec.focus}.`, responseType: 'choice', evidenceSignal: 'Tín hiệu điểm xuất phát về khái niệm hoặc quy trình.', teacherNextActions: ['Đọc thống kê ẩn danh và chọn scaffold.'] },
+    { id: 'cp-ai-error', stepId: beatIdForPhase(spec, 'aiError', 'P16'), kind: 'in_class', prompt: error.teacherPrompt, responseType: 'text', evidenceSignal: 'HS phân loại lỗi, sửa lời giải và nêu phép chứng minh.', teacherNextActions: ['Ghi thẻ lỗi vào thư viện AI Error; hỏi vì sao AI có thể mắc lỗi.'] },
+    { id: 'cp-route-choice', stepId: beatIdForPhase(spec, 'grouping', 'P19'), kind: 'in_class', prompt: 'Chọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.', responseType: 'route', evidenceSignal: 'HS tự chọn tuyến theo nhu cầu hiện tại, không bị gắn nhãn năng lực.', teacherNextActions: ['Đọc thống kê ẩn danh và duyệt đề xuất nhóm trước khi giao nhiệm vụ.'] },
+    { id: 'cp-group-product', stepId: beatIdForPhase(spec, 'differentiatedPractice', 'P20'), kind: 'in_class', prompt: `Cùng giải thích và kiểm chứng ${spec.focus} bằng sản phẩm nhóm.`, responseType: 'text', evidenceSignal: 'Sản phẩm nhóm có bước làm, lý do và phép kiểm; không thay post-check cá nhân.', teacherNextActions: ['Duyệt/đổi đề xuất nhóm theo evidence; mời một nhóm giải thích.'] },
+    { id: postCheckId, stepId: beatIdForPhase(spec, 'postCheck', 'P27'), kind: 'post_check', prompt: `Với dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về ${spec.focus} và nêu căn cứ.`, responseType: 'text', evidenceSignal: 'Sản phẩm cá nhân sau can thiệp để đánh giá lại skill gap.', teacherNextActions: ['Đối chiếu tiêu chí chung và ghi bước hỗ trợ tiết sau.'] },
+    { id: 'cp-quick-check', stepId: beatIdForPhase(spec, 'quickCheck', 'P30'), kind: 'in_class', prompt: 'Trả lời nhanh rồi sửa một lỗi nếu phát hiện.', responseType: 'choice', evidenceSignal: 'Tỷ lệ đúng và loại lỗi sau luyện tập.', teacherNextActions: ['Chọn một lỗi chung để chốt, không công khai cá nhân.'] },
+    { id: 'cp-exit-ticket', stepId: beatIdForPhase(spec, 'exitTicket', 'P38'), kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
   ];
   const routePolicy = {
     enabled: isV72(spec) || spec.selfChoice,
@@ -553,20 +798,20 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     } satisfies CurriculumBridge],
     scaffoldSets,
     fading: [
-      { stepId: isV72(spec) ? 'P22' : 'P20', maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
-      { stepId: isV72(spec) ? 'P36' : 'P27', maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
+      { stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'), maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
+      { stepId: isV72(spec) ? 'P36' : beatIdForPhase(spec, 'postCheck', 'P27'), maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
     ],
     evidenceRules: [
-      { id: 'evidence-diagnostic', sourceStepId: isV72(spec) ? 'P09' : 'P08', dimension: 'concept', minConfidence: 0.6 },
-      { id: 'evidence-ai-error', sourceStepId: isV72(spec) ? 'P15' : 'P16', dimension: 'reasoning', minConfidence: 0.6 },
-      { id: 'evidence-group', sourceStepId: isV72(spec) ? 'P22' : 'P20', dimension: 'autonomyCollaboration', minConfidence: 0.6 },
-      { id: 'evidence-post-check', sourceStepId: isV72(spec) ? 'P36' : 'P27', dimension: 'procedure', minConfidence: 0.6 },
+      { id: 'evidence-diagnostic', sourceStepId: isV72(spec) ? 'P09' : beatIdForPhase(spec, 'knowledgeCycle', 'P08'), dimension: 'concept', minConfidence: 0.6 },
+      { id: 'evidence-ai-error', sourceStepId: isV72(spec) ? 'P15' : beatIdForPhase(spec, 'aiError', 'P16'), dimension: 'reasoning', minConfidence: 0.6 },
+      { id: 'evidence-group', sourceStepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'), dimension: 'autonomyCollaboration', minConfidence: 0.6 },
+      { id: 'evidence-post-check', sourceStepId: isV72(spec) ? 'P36' : beatIdForPhase(spec, 'postCheck', 'P27'), dimension: 'procedure', minConfidence: 0.6 },
     ],
     checkpoints,
     taskVariants,
     groupingCheckpoints: [{
       id: 'group-checkpoint',
-      stepId: isV72(spec) ? 'P22' : 'P20',
+      stepId: isV72(spec) ? 'P22' : beatIdForPhase(spec, 'differentiatedPractice', 'P20'),
       purpose: 'same_need_workshop',
       minGroupSize: 3,
       maxGroupSize: 4,

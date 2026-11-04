@@ -1,21 +1,42 @@
-import { doc, setDoc } from 'firebase/firestore';
-import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
-import { auth, db, removeUndefinedFields, storage } from '../firebase';
+import { uploadActorEvidence, submitActorSubmission } from '../../services/submissionActorsApi';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { auth, removeUndefinedFields, storage } from '../firebase';
 import type { ManualGradeInput } from './manualGrade';
 import {
-  SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
+  type PeriodicTestInfo,
   type StudentNotificationDoc,
-  type SubmissionAttachment,
   type SubmissionDoc,
 } from './types';
+import type { ExamVariant } from './examVariants';
+import { nenAnhBaiLam, quetAnhVaPhieu } from '../../utils/imageCompress';
+import { moTaLoiHttp } from '../httpErrorText';
 
 const newId = (prefix: string): string => {
   const rand = typeof globalThis.crypto?.randomUUID === 'function'
     ? globalThis.crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return `${prefix}_${rand}`;
+};
+
+/**
+ * Em chụp lại bài làm của MỘT câu tự luận (máy hỏi lại): nén rồi tải lên NGAY, trả về link để gửi cho máy chủ.
+ * Ảnh nằm trong `homework/<uid>/…` như ảnh nộp bài; không xoá ở đâu cả — em thoát giữa chừng vẫn còn.
+ */
+export const uploadClarifyPhotos = async (submissionId: string, files: readonly File[]): Promise<string[]> => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
+  const stamp = Date.now().toString(36);
+  const urls: string[] = [];
+  for (let i = 0; i < files.length; i += 1) {
+    const dataUrl = await nenAnhBaiLam(files[i]);
+    const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
+    const fileRef = ref(storage, `homework/${uid}/${submissionId}-clar-${stamp}-${i}.${mime.split('/')[1] || 'jpg'}`);
+    await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
+    urls.push(await getDownloadURL(fileRef));
+  }
+  return urls;
 };
 
 // ── Giáo viên: giao bài ──────────────────────────────────────────────────────
@@ -36,6 +57,9 @@ export interface NewAssignment {
   gradingInstructions?: string;
   answerKeyImageUrls?: string[];
   answerKeyByAi?: boolean;
+  /** Bài kiểm tra định kì + các mã đề (đề, đáp án) — xem `AssignmentDoc.periodicTest`. */
+  periodicTest?: PeriodicTestInfo;
+  examVariants?: ExamVariant[];
 }
 
 /**
@@ -84,7 +108,7 @@ const callClassroomTeacherApi = async <T>(payload: Record<string, unknown>): Pro
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
   if (!response.ok) {
-    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+    throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   }
   return data as T;
 };
@@ -103,7 +127,7 @@ const callClassroomStudentApi = async <T>(payload: Record<string, unknown>): Pro
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
   if (!response.ok) {
-    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+    throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   }
   return data as T;
 };
@@ -128,6 +152,7 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     gradingInstructions: input.gradingInstructions?.trim() || undefined,
     answerKeyImageUrls: input.answerKeyImageUrls || [],
     answerKeyByAi: input.answerKeyByAi === true,
+    ...(input.periodicTest ? { periodicTest: input.periodicTest, examVariants: input.examVariants ?? [] } : {}),
     isOpen: true,
     createdAt: now,
     updatedAt: now,
@@ -172,7 +197,7 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
+  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string; examVariants?: { code: string; sourceText?: string; answerKey: string }[] },
 ): Promise<void> => {
   await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };
@@ -276,6 +301,25 @@ export const updateSubmissionGradeManually = async (
   await callClassroomTeacherApi({ action: 'saveSubmissionGrade', submissionId: submission.id, grade: patch });
 };
 
+export interface ClassAnswerFixResult {
+  /** Số bài đã tính lại câu đó. */
+  updated: number;
+  /** Câu tự luận / bài em không theo khuôn: giữ điểm, gắn cờ cần soát. */
+  needsReview: number;
+  /** Bài đang được AI chấm hoặc vừa đổi giữa chừng — chưa áp được. */
+  busy: number;
+  syncFailed: number;
+}
+
+/** Sửa đáp án một câu cho cả lớp: lưu vào bài giao và tính lại câu đó ở mọi bài đã chấm. */
+/** `examCode`: bài nhiều mã đề — sửa đáp án của đúng mã đó (bắt buộc với bài kiểm tra định kì nhiều mã). */
+export const suaDapAnCaLop = (assignmentId: string, questionNumber: string, expectedAnswer: string, examCode?: string) =>
+  callClassroomTeacherApi<ClassAnswerFixResult>({ action: 'fixAnswerKeyForClass', assignmentId, questionNumber, expectedAnswer, ...(examCode ? { examCode } : {}) });
+
+/** Giáo viên chọn mã đề cho một bài nộp (khi AI không đọc được hoặc đọc sai) — chấm lại sau đó theo mã này. */
+export const chonMaDeBaiNop = (submissionId: string, examCode: string) =>
+  callClassroomTeacherApi<{ examCode: string }>({ action: 'setSubmissionExamCode', submissionId, examCode });
+
 /**
  * Giáo viên duyệt điểm. Đây là CỬA DUY NHẤT để kết luận của máy đi vào hồ sơ tích luỹ —
  * bỏ duyệt thì bằng chứng của bài đó cũng bị gỡ ra, không để lại nhãn mồ côi.
@@ -292,8 +336,8 @@ export interface SubmitInput {
   teacherId: string;
   /** null = bài em tự nộp, không phải bài được giao. */
   assignmentId: string | null;
-  /** Ảnh dạng data URL. */
-  images: string[];
+  /** Ảnh bài làm (đã nén sẵn trên máy em). */
+  images: File[];
   /** File giữ nguyên (PDF/DOCX) để giáo viên mở bản gốc. */
   rawFiles?: File[];
   /** Chữ rút từ DOCX — đường chấm dùng khi không có ảnh. */
@@ -301,83 +345,18 @@ export interface SubmitInput {
   note?: string;
   /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
   supplementOf?: string;
+  /** Bài này thầy cô đã chấm tay rồi (máy đọc điểm GV ghi để thầy xác nhận). */
+  handMarked?: boolean;
 }
 
-const attachmentKind = (file: File): SubmissionAttachment['kind'] => {
-  const type = file.type.toLowerCase();
-  if (type.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(file.name)) return 'image';
-  if (type === 'application/pdf' || /\.pdf$/i.test(file.name)) return 'pdf';
-  if (type.includes('word') || /\.docx?$/i.test(file.name)) return 'document';
-  return 'unknown';
-};
-
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
-  const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
-  if (input.images.length === 0 && (input.rawFiles || []).length === 0) throw new Error('Chưa chọn bài làm để nộp.');
-
-  const submissionId = newId('sub');
-  const fileUrls: string[] = [];
-  const attachments: SubmissionAttachment[] = [];
-  const uploadedRefs: ReturnType<typeof ref>[] = [];
-
-  try {
-    for (let i = 0; i < input.images.length; i += 1) {
-      const dataUrl = input.images[i];
-      const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-      // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
-      const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
-      const fileRef = ref(storage, path);
-      uploadedRefs.push(fileRef);
-      await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
-      const url = await getDownloadURL(fileRef);
-      fileUrls.push(url);
-      attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
-    }
-
-    for (const file of input.rawFiles || []) {
-      const an = file.name.replace(/[^\w.\-]+/g, '_');
-      const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
-      uploadedRefs.push(fileRef);
-      await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
-      const url = await getDownloadURL(fileRef);
-      fileUrls.push(url);
-      attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
-    }
-
-    const now = new Date().toISOString();
-    const submission: SubmissionDoc = {
-      id: submissionId,
-      teacherId: input.teacherId,
-      classId: input.classId,
-      studentId: input.studentId,
-      assignmentId: input.assignmentId,
-      ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}),
-      fileUrls,
-      textContent: input.textContent?.trim() || '',
-      attachments,
-      note: input.note || '',
-      status: 'submitted',
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    if (input.supplementOf) {
-      const result = await callClassroomStudentApi<{ submission: SubmissionDoc }>({
-        action: 'createSupplementSubmission',
-        submission: removeUndefinedFields(submission),
-      });
-      return result.submission;
-    }
-
-    await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
-    return submission;
-  } catch (error) {
-    // Action revision có thể bị từ chối sau khi Storage đã nhận file (parent sai, quá 12 tệp,
-    // hoặc mạng lỗi). Dọn các object vừa tạo để không để rác mồ côi; lượt nộp cũ vẫn nguyên.
-    if (input.supplementOf && uploadedRefs.length > 0) {
-      await Promise.allSettled(uploadedRefs.map(fileRef => deleteObject(fileRef)));
-    }
-    throw error;
-  }
+  if (!auth.currentUser) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
+  if (!input.images.length && !input.rawFiles?.length) throw new Error('Chưa chọn bài làm để nộp.');
+  const { files: images, omrSheet, detectedAnswers } = await quetAnhVaPhieu(input.images);
+  const files = [...images, ...(input.rawFiles || [])];
+  const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
+  const payload = { assignmentId: input.assignmentId, uploadGrantId, detectedAnswers, ...(omrSheet ? { omrSheet } : {}),
+    ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent,
+    ...(input.handMarked ? { handMarked: true } : {}) };
+  return (await submitActorSubmission({ role: 'student' }, payload)).submission;
 };

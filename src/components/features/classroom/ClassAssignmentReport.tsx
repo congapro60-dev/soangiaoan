@@ -24,6 +24,9 @@ import {
 import { buildQuestionCatalog } from '../../../services/gradingApi';
 import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
+import { ClassWeeklyOverview } from './ClassWeeklyOverview';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
+import { auth } from '../../../lib/firebase';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { SupportActivityModal } from './SupportActivityModal';
 
@@ -161,9 +164,11 @@ const mapQuestionResult = (result: {
 
 export const adaptUploadSubmission = (
   submission: SubmissionDoc,
-  assignment: Pick<AssignmentDoc, 'id' | 'maxScore'>,
+  assignment: Pick<AssignmentDoc, 'id' | 'maxScore' | 'examVariants'>,
 ): ClassReportSubmission => {
   const grade = submission.grade;
+  // Chỉ bài có từ 2 mã đề mới tách thống kê theo mã; bài một đề giữ nguyên như trước.
+  const multiVariant = (assignment.examVariants?.length ?? 0) > 1;
   return {
     id: asText(submission.id),
     studentKey: asText(submission.studentId),
@@ -174,7 +179,26 @@ export const adaptUploadSubmission = (
     official: submission.status === 'graded' && grade?.teacherApproved === true,
     weakTopics: grade?.weakTopics ?? [],
     questionResults: (grade?.questionResults ?? []).map(mapQuestionResult),
+    ...(multiVariant && submission.examCode ? { examCode: submission.examCode } : {}),
   };
+};
+
+/**
+ * Bài nhiều mã đề: nội dung câu lấy từ đề của ĐÚNG mã, nhãn có tiền tố "Mã X · " cho khớp dòng thống kê.
+ * Không có mã nào (bài thường) → undefined, giữ cách cũ.
+ */
+const variantQuestionCatalog = (
+  assignment: Pick<AssignmentDoc, 'examVariants'>,
+  submissions: readonly ClassReportSubmission[],
+): ClassReportQuestionCatalogItem[] | undefined => {
+  if ((assignment.examVariants?.length ?? 0) < 2) return undefined;
+  return (assignment.examVariants ?? []).flatMap(variant => {
+    const numbers = [...new Set(submissions
+      .filter(submission => submission.examCode === variant.code)
+      .flatMap(submission => (submission.questionResults ?? []).map(result => result.questionNumber).filter(Boolean)))];
+    return extractQuestionCatalogFromText(variant.sourceText, numbers)
+      .map(item => ({ ...item, questionNumber: `Mã ${variant.code} · ${item.questionNumber}` }));
+  });
 };
 
 const scoreForAnswer = (answer: ExamSubmission['answers'][number] | undefined): number | null =>
@@ -697,11 +721,12 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'file',
         maxScore: asFiniteNumber(assignment.maxScore),
+        weekDate: assignment.dueAt || assignment.createdAt,
         // Danh mục máy chủ đã đọc và lưu là nguồn tốt nhất: có công thức LaTeX, không phải dò
         // lại chữ. Bài giao cũ chưa có thì tạm dò trong sourceText cho tới khi giáo viên bấm đọc.
-        questionCatalog: assignment.questionCatalog?.length
+        questionCatalog: variantQuestionCatalog(assignment, submissions) ?? (assignment.questionCatalog?.length
           ? assignment.questionCatalog
-          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
+          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers)),
         questionSources: buildAssignmentQuestionSources(assignment),
         submissions,
       };
@@ -732,6 +757,7 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'online',
         maxScore: asFiniteNumber(exam.maxScore),
+        weekDate: assignment.assignedAt,
         questionCatalog: exam.questions.map((question, index) => ({
           questionNumber: String(index + 1),
           content: asText(question.content).trim(),
@@ -977,6 +1003,7 @@ export const ClassAssignmentReport = ({
         </div>
       ) : (
         <>
+          <ClassWeeklyOverview reports={reports} weekPlan={weekPlanFor(teacherId, className, auth.currentUser?.email)} />
           <ClassStudentProgressMatrix students={students} reports={reports} />
           <div className="flex items-center justify-between gap-4">
             <div><p className="text-xs font-black uppercase tracking-wide text-indigo-600">{selectedReport.assignment.type}</p><h3 className="mt-1 text-xl font-black text-slate-900">{selectedReport.assignment.title}</h3></div>

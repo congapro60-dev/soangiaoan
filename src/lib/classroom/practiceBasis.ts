@@ -41,7 +41,8 @@ export const collectHomeworkMistakes = (
   const seen = new Set<string>();
   const mistakes: PracticeMistake[] = [];
   const graded = [...submissions]
-    .filter(s => s.status === 'graded' && Array.isArray(s.grade?.questionResults))
+    // Chỉ bài đã được thầy cô duyệt: bài luyện không được gián tiếp cho em biết câu nào sai khi điểm còn chưa duyệt.
+    .filter(s => s.status === 'graded' && s.grade?.teacherApproved === true && Array.isArray(s.grade?.questionResults))
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   for (const submission of graded) {
     const title = submission.assignmentId ? titleOf(submission.assignmentId) : '';

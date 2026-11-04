@@ -3,6 +3,7 @@ import { auth } from '../firebase';
 import { AI_QUIET_HEADER } from './aiKeyGate';
 import type { AiKeyBlockReason, AiKeyMode } from '../admin/aiKeyPolicy';
 import type { PaymentAccount, PaymentSettings, VoucherDef, VoucherRedemption } from '../admin/aiWallet';
+import { moTaLoiHttp } from '../httpErrorText';
 
 const call = async <T>(payload: Record<string, unknown>, quiet = false): Promise<T> => {
   const user = auth.currentUser;
@@ -13,7 +14,7 @@ const call = async <T>(payload: Record<string, unknown>, quiet = false): Promise
     body: JSON.stringify({ ...payload, idToken: await user.getIdToken() }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${res.status}.`);
+  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(res.status));
   return data as T;
 };
 
@@ -138,6 +139,18 @@ export interface AdminAiAccess {
 
 export const adminGetAiAccess = () => call<AdminAiAccess>({ action: 'adminAiAccess' });
 export const adminSaveAiAccess = (enabled: boolean, sharedEmails: string[]) => call<AdminAiAccess>({ action: 'adminSaveAiAccess', enabled, sharedEmails });
+
+export type { PoolKeyView as AdminGeminiKey } from '../admin/geminiKeyPool';
+export interface AdminGeminiKeys {
+  keys: import('../admin/geminiKeyPool').PoolKeyView[];
+  /** Khoá ở biến môi trường (chốt cuối khi mọi khoá trong danh sách đều nghỉ). */
+  envKeyConfigured: boolean;
+  maxKeys: number;
+}
+export const adminGetGeminiKeys = () => call<AdminGeminiKeys>({ action: 'adminGeminiKeys' });
+export const adminSaveGeminiKey = (key: { id?: string; key?: string; label: string; tier: 'free' | 'paid'; enabled: boolean; clearStatus?: boolean }) =>
+  call<AdminGeminiKeys>({ action: 'adminSaveGeminiKey', ...key });
+export const adminDeleteGeminiKey = (id: string) => call<AdminGeminiKeys>({ action: 'adminDeleteGeminiKey', id });
 
 export const adminGetVouchers = () => call<{ vouchers: Array<VoucherDef & { createdAt?: string }> }>({ action: 'adminVouchers' });
 export const adminSaveVoucher = (voucher: Partial<VoucherDef>) => call<{ voucher: VoucherDef }>({ action: 'adminSaveVoucher', voucher });

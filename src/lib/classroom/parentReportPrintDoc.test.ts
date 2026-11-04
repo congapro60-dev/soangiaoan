@@ -32,7 +32,8 @@ describe('buildParentReportPrintDoc', () => {
     expect(html).toContain('Con học rất tốt, tiếp tục phát huy.');
     expect(html).toContain('Hỏi con mỗi ngày');
     expect(html).toContain('Giao bài luyện đúng phần yếu');
-    expect(html).toContain('Đang tiến bộ'); // nhãn xu hướng
+    expect(html).toContain('Mới có 1 bài đã chấm'); // mới 1 bài → không nhận định xu hướng
+    expect(html).not.toContain('Đang tiến bộ');
     expect(html).toContain('8/10'); // điểm bài official
     expect(html).toContain('80.0%'); // điểm trung bình
   });
@@ -104,7 +105,7 @@ describe('buildParentReportPrintDoc', () => {
       hs1: [{ label: 'KT 15 phút lần 1', date: '2026-09-20', score: 8 }, { label: 'Miệng', date: '2026-09-22', score: 9.5 }],
     });
     expect(html).toContain('Điểm kiểm tra &amp; thi định kì');
-    expect(html).toContain('Điểm hệ số 1 trên lớp (thang 10) · TB 8.75');
+    expect(html).toContain('Điểm trên lớp (thang 10, có hệ số) · TB 8.75');
     expect(html).toContain('KT 15 phút lần 1');
     expect(html).toContain('20/09/2026');
     expect(html).toContain('9.5/10');
@@ -171,7 +172,8 @@ describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện t
   it('tóm tắt nhanh: điểm mạnh = dòng Vững cao nhất, cần chú ý = dòng yếu nhất, việc nhà = gợi ý đầu', () => {
     expect(keyTakeaways(report, requirements)).toEqual([
       { tone: 'good', label: 'Điểm mạnh', text: 'Phát biểu đúng mệnh đề đảo.' },
-      { tone: 'focus', label: 'Cần chú ý', text: 'Chưa lập được sơ đồ Ven.' },
+      // dòng "Chưa đạt" chỉ có 2 câu căn cứ nên không được lấy làm kết luận; lấy dòng yếu nhất ĐỦ căn cứ
+      { tone: 'focus', label: 'Cần chú ý', text: 'Còn nhầm khi tìm phần bù.' },
       { tone: 'home', label: 'Phụ huynh có thể làm', text: 'Hỏi con mỗi ngày' },
     ]);
   });
@@ -200,7 +202,8 @@ describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện t
     const logo = 'data:image/png;base64,iVBORw0KGgo=';
     const ok = buildParentReportPrintDoc({ ...base, report, branding: { schoolName: 'Trường <A>', teacherName: 'Cô Lan', logoDataUrl: logo } });
     expect(ok).toContain('Trường &lt;A&gt;');
-    expect(ok).toContain('Giáo viên: Cô Lan');
+    expect(ok).toContain('<div class="sig-name">Cô Lan</div>');
+    expect(ok.indexOf('Trường &lt;A&gt;')).toBeLessThan(ok.indexOf('Cô Lan'));
     expect(ok).toContain(`src="${logo}"`);
     const bad = buildParentReportPrintDoc({ ...base, report, branding: { schoolName: 'T', logoDataUrl: 'javascript:alert(1)' } });
     expect(bad).not.toContain('<img');
@@ -214,4 +217,93 @@ describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện t
     expect(html).toContain('class="ico"');
     expect(html).not.toMatch(/[✅🎯🤝🎓]/u);
   });
+
+  it('hai tầng: tóm tắt ở trên, chi tiết ở dưới; web thu gọn bằng <details>, bản in có dải ngăn cách', () => {
+    const web = buildParentReportPrintDoc({ ...base, report, teacherComment: 'Tốt' }, 'web');
+    const print = buildParentReportPrintDoc({ ...base, report, teacherComment: 'Tốt' });
+    for (const html of [web, print]) {
+      expect(html.indexOf('Tóm tắt nhanh')).toBeLessThan(html.indexOf('Chi tiết báo cáo'));
+      expect(html.indexOf('Nhận xét của giáo viên')).toBeLessThan(html.indexOf('Chi tiết báo cáo'));
+      expect(html.indexOf('Chi tiết báo cáo')).toBeLessThan(html.indexOf('Tổng quan bằng số'));
+      expect(html.indexOf('Chi tiết báo cáo')).toBeLessThan(html.indexOf('Kết quả từng bài'));
+    }
+    expect(web).toContain('<details class="more"');
+    expect(print).not.toContain('<details');
+    expect(print).toContain('more-banner');
+  });
+
+  it('tên giáo viên đứng CUỐI báo cáo (web: thẻ có chữ cái đầu; in: dưới dòng ký), không còn ở đầu trang', () => {
+    const input = { ...base, report, branding: { schoolName: 'Trường A', teacherName: 'Vũ Việt Cường' } };
+    const web = buildParentReportPrintDoc(input, 'web');
+    const print = buildParentReportPrintDoc(input);
+    expect(web).toContain('class="avatar">VC<');
+    expect(web.lastIndexOf('Vũ Việt Cường')).toBeGreaterThan(web.indexOf('Chi tiết báo cáo'));
+    expect(web.indexOf('Vũ Việt Cường')).toBeGreaterThan(web.indexOf('Cùng đồng hành với con'));
+    expect(print.indexOf('<div class="sig-name">')).toBeGreaterThan(print.indexOf('Kết quả từng bài'));
+    expect(buildParentReportPrintDoc({ ...base, report }, 'web')).not.toContain('<div class="teacher-foot">');
+  });
+
+  it('độ tin cậy: ghi số bài; dưới 3 bài không nhận định xu hướng; yêu cầu dưới 3 câu căn cứ ghi "Chưa đủ căn cứ"', () => {
+    const one = { ...report, results: [report.results[0]], officialCount: 1 };
+    const few = buildParentReportPrintDoc({ ...base, report: one });
+    expect(few).toContain('Mới có 1 bài đã chấm');
+    expect(few).toContain('Cần thêm bài để nhận định');
+    expect(few).toContain('Cần ít nhất 3 bài đã chấm để vẽ xu hướng');
+    const three = buildParentReportPrintDoc({ ...base, report: { ...report, results: [report.results[0], report.results[0], report.results[0]] } });
+    expect(three).toContain('Dựa trên 3 bài đã chấm');
+    expect(three).toContain('Đang tiến bộ');
+    const thin = buildParentReportPrintDoc({ ...base, report, requirements: [{ id: 'T10.05', level: 'chua', evidence: 2, percent: 30, note: 'Chưa lập được sơ đồ Ven.' }] });
+    expect(thin).toContain('Chưa đủ căn cứ');
+    expect(thin).not.toContain('Chưa đạt: 1');
+    expect(keyTakeaways(report, [{ id: 'T10.05', level: 'chua', evidence: 2, percent: 30, note: 'x' }]).find(item => item.tone === 'focus')?.text).toBe('Cần rèn thêm: Xác suất.');
+  });
+
+  it('mục đồng hành không nhắc lại gợi ý đã có ở Tóm tắt nhanh', () => {
+    const two = { ...report, parentActions: ['Gợi ý A', 'Gợi ý B'] };
+    const html = buildParentReportPrintDoc({ ...base, report: two });
+    expect(html.split('Gợi ý A').length - 1).toBe(1);
+    expect(html).toContain('Gợi ý B');
+  });
+
+  it('bản đồ theo bài SGK: ngay dưới đoạn tổng quan, trước nhận xét; thay "Tóm tắt nhanh"; ưu tiên ôn + thẻ từng bài', () => {
+    for (const variant of ['web', 'print'] as const) {
+      const html = buildParentReportPrintDoc({ ...base, report, teacherComment: 'Tốt', requirements: [...requirements] }, variant);
+      expect(html).toContain('Bản đồ theo bài SGK');
+      expect(html.indexOf('class="lead"')).toBeLessThan(html.indexOf('Bản đồ theo bài SGK'));
+      expect(html.indexOf('Bản đồ theo bài SGK')).toBeLessThan(html.indexOf('Nhận xét của giáo viên'));
+      expect(html).not.toContain('Tóm tắt nhanh');
+      expect(html).toContain('SGK Toán 10</span>');
+      expect(html.match(/class="lm-card /g)).toHaveLength(2);
+      expect(html).toContain('<span class="lm-bai nw">Bài 2</span><span class="lm-lv nw">Đang hình thành</span>');
+      expect(html).toMatch(/Ưu tiên ôn trước<\/p><ol><li><b class="nw">Bài 2<\/b> — Tập hợp/);
+      // Gợi ý đầu không còn bị chuyển lên "Tóm tắt nhanh" → mục đồng hành in đủ.
+      expect(html).toContain('Hỏi con mỗi ngày');
+    }
+  });
+
+  it('bản đồ: mọi bài đã đủ căn cứ đều Vững thì báo "chưa có bài nào cần ôn gấp"; không có YCCĐ thì không có bản đồ', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, requirements: [requirements[0]] }, 'web');
+    expect(html).toContain('Chưa có bài nào cần ôn gấp');
+    const none = buildParentReportPrintDoc({ ...base, report, requirements: [] }, 'web');
+    expect(none).not.toContain('Bản đồ theo bài SGK');
+    expect(none).toContain('Tóm tắt nhanh');
+  });
+
+  it('xuống dòng theo cụm: nhãn mức, chú thích, mã học sinh là khối không ngắt; chú thích mỗi mức một mục riêng', () => {
+    const html = buildParentReportPrintDoc({ ...base, studentCode: 'GB0231', report, requirements: [...requirements] }, 'web');
+    expect(html).toContain('<span class="nw">Mã HS GB0231</span>');
+    expect(html).toContain('<span class="nw">Đang hình thành 50–79%</span>');
+    expect(html).toContain('<li><i class="lm-d lm-dang"></i>Đang hình thành: 50–79%</li>');
+    expect(html).toContain('.lm-legend li { display:flex; align-items:center; gap:7px; margin:0; white-space:nowrap;');
+    expect(html).toContain('.lm-legend { flex-direction:column;');
+    expect(html).toContain('.nw { white-space:nowrap; }');
+  });
+
+  it('thẻ bài ghi rõ số câu đến từ bài kiểm tra định kì', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, requirements: [{ id: 'T10.04', level: 'dang', evidence: 3, percent: 66.7, note: '', questions: [
+      { code: 'b1q1', score: 1, max: 1 }, { code: 'b1q2', score: 1, max: 1 }, { code: 'b2q1', score: 0, max: 1, test: true },
+    ] }] }, 'web');
+    expect(html).toContain('<span class="nw">3&nbsp;câu làm căn cứ</span><span class="nw">trong đó 1&nbsp;câu bài kiểm tra</span>');
+  });
 });
+

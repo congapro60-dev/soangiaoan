@@ -1,3 +1,9 @@
+/** Phiếu tô mẫu Bộ 2025 (in A4) — file nằm ở public/mau. */
+export const PHIEU_TO_MAU = [
+  { href: '/mau/phieu-to-khoi-10-11.pdf', label: 'Phiếu tô khối 10–11', note: 'Phần I, II tô + trang tự luận' },
+  { href: '/mau/phieu-to-khoi-12.pdf', label: 'Phiếu tô khối 12', note: 'Mẫu Bộ: Phần I, II, III tô' },
+] as const;
+
 export const generateAnswerSheetHTML = (): string => `<!DOCTYPE html>
 <html lang="vi">
 <head>

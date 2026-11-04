@@ -25,8 +25,8 @@ describe('relay ví web — trình duyệt và máy chủ phải thống nhất'
   });
 
   it('model đang chọn nếu ví trả được, không thì Gemini 3.8 Flash', () => {
-    expect(relayModelFor('gemini-3.7-flash')).toBe('gemini-3.7-flash');
-    expect(relayModelFor(undefined, 'gemini-3.1-pro-preview')).toBe('gemini-3.1-pro-preview');
+    expect(relayModelFor('gemini-3.8-flash')).toBe('gemini-3.8-flash');
+    expect(relayModelFor(undefined, 'gemini-3.8-flash')).toBe('gemini-3.8-flash');
     expect(relayModelFor('gemini-3.5-flash')).toBe('gemini-3.8-flash');
     expect(relayModelFor(undefined)).toBe('gemini-3.8-flash');
   });

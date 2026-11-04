@@ -1,23 +1,34 @@
+import { useState } from 'react';
 import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw, BookOpen } from 'lucide-react';
+import { isActionableClarifyQuestion } from '../../../../lib/classroom/clarification';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import { QuestionResultsList } from '../QuestionResultsList';
+import { StudentSubmittedWork } from './StudentSubmittedWork';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import type { StudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
 
 interface Props {
   assignment: AssignmentDoc;
   submission?: SubmissionDoc;
+  submissions?: SubmissionDoc[];
   state: StudentAssignmentState;
   /** Lời nhắc khi thầy cô vừa xoá bài nộp của em. Không có thì không hiện gì. */
   deletedNotice?: string;
+  detailView?: boolean;
+  feedbackSubmissionId?: string;
+  feedbackOpenRequest?: number;
+  onFeedbackChanged?: () => void;
   uploading: boolean;
   onUpload: (assignmentId: string, supplementOf?: string) => void;
   onOpen: (assignment: AssignmentDoc, submission?: SubmissionDoc) => void;
+  /** Em chọn mã đề khi máy chưa đọc được; ném lỗi (câu tiếng Việt) nếu chưa gửi được. */
+  onAnswerExamCode: (submissionId: string, examCode: string) => Promise<void>;
 }
 
 const statusMeta: Record<StudentAssignmentState['status'], { label: string; className: string; icon: typeof Clock3 }> = {
   todo: { label: 'Cần nộp', className: 'bg-indigo-50 text-indigo-700', icon: Camera },
   waiting: { label: 'Đang chờ chấm', className: 'bg-amber-50 text-amber-700', icon: Clock3 },
+  'pending-approval': { label: 'Chờ thầy cô duyệt', className: 'bg-sky-50 text-sky-700', icon: Clock3 },
   grading: { label: 'Đang chấm', className: 'bg-blue-50 text-blue-700', icon: Loader2 },
   retry: { label: 'Cần nộp lại', className: 'bg-red-50 text-red-700', icon: RotateCcw },
   graded: { label: 'Đã chấm', className: 'bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
@@ -34,15 +45,35 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
   return { label, className: 'text-slate-500' };
 };
 
-const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
-
-export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen }: Props) => {
-  const meta = statusMeta[state.status];
+export const StudentAssignmentCard = ({ assignment, submission, submissions, state, deletedNotice, detailView, feedbackSubmissionId, feedbackOpenRequest, onFeedbackChanged, uploading, onUpload, onOpen, onAnswerExamCode }: Props) => {
+  const [dangGuiMa, setDangGuiMa] = useState('');
+  const [loiMa, setLoiMa] = useState('');
+  const examCodes = (assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && submission?.status === 'error' ? submission.examCodeAsk ?? [] : [];
+  const chonMa = async (code: string) => {
+    if (!submission || dangGuiMa || assignment.submissionLocked === true) return;
+    setDangGuiMa(code);
+    setLoiMa('');
+    try {
+      await onAnswerExamCode(submission.id, code);
+    } catch (error) {
+      setLoiMa(error instanceof Error ? error.message : 'Chưa gửi được mã đề. Em thử lại nhé.');
+    } finally {
+      setDangGuiMa('');
+    }
+  };
+  const awaitingClarification = Boolean(submission?.grade?.awaitingClarification);
+  const actionableCount = (submission?.grade?.questionResults ?? []).filter(isActionableClarifyQuestion).length;
+  const regrading = (submission?.grade?.questionResults ?? []).some(question => question.clarify?.state === 'regrading');
+  const meta = awaitingClarification
+    ? { label: assignment.submissionLocked === true ? 'Bài đã khóa chốt · Chờ thầy cô soát' : actionableCount ? `Cần xác nhận ${actionableCount} câu` : regrading ? 'Đang đọc lại ảnh' : 'Chờ thầy cô soát', className: 'bg-amber-100 text-amber-800', icon: AlertTriangle }
+    : submission?.status === 'error' && submission.errorReason === 'exam_code'
+      ? { label: assignment.submissionLocked === true ? 'Bài đã khóa chốt · Chờ thầy cô soát' : 'Cần em chọn mã đề', className: 'bg-amber-100 text-amber-800', icon: AlertTriangle }
+      : assignment.submissionLocked === true && !submission ? { label: 'Đã khóa chốt', className: 'bg-slate-100 text-slate-600', icon: Clock3 } : statusMeta[state.status];
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
   const isOnlineExam = assignment.type === 'exam';
-  const isUploadAction = !isOnlineExam && (state.action === 'submit' || state.action === 'retry');
-  const canSupplement = !isOnlineExam && state.canResubmit && Boolean(submission?.id);
+  const isUploadAction = (assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && !isOnlineExam && assignment.deliveryMode !== 'online' && (state.action === 'submit' || state.action === 'retry');
+  const canSupplement = (assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && !isOnlineExam && assignment.deliveryMode !== 'online' && Boolean(submission?.id);
   const handleAction = () => {
     if (isOnlineExam || !isUploadAction) onOpen(assignment, submission);
     else onUpload(assignment.id);
@@ -100,30 +131,60 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
               </div>
             </div>
           )}
-          {state.status === 'retry' && (
-            <p className="mt-3 flex items-start gap-2 text-sm font-bold text-red-700">
+          {submission?.status === 'error' && state.detail && (
+            <p className={`mt-3 flex items-start gap-2 text-sm font-bold leading-6 ${state.status === 'retry' ? 'text-red-700' : 'text-amber-800'}`}>
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              {STUDENT_GRADING_ERROR_COPY}
+              <span>{state.detail}</span>
+            </p>
+          )}
+          {examCodes.length > 0 && (
+            <div className="mt-2 rounded-2xl bg-amber-50 px-4 py-3">
+              <p className="text-xs font-black text-amber-900">Mã đề trên tờ đề của em là:</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {examCodes.map(code => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => void chonMa(code)}
+                    disabled={Boolean(dangGuiMa)}
+                    className="inline-flex min-h-11 min-w-16 items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-white px-4 text-sm font-black text-amber-900 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {dangGuiMa === code && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {code}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-5 text-amber-800">Chọn đúng mã in trên đề. Thầy cô sẽ soát lại mã em chọn.</p>
+              {loiMa && <p className="mt-1 text-xs font-bold text-red-700">{loiMa}</p>}
+            </div>
+          )}
+          {state.status === 'pending-approval' && (
+            <p className="mt-3 flex items-start gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-sm font-bold leading-6 text-sky-900">
+              <Clock3 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>Em đã nộp xong. Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.</span>
             </p>
           )}
           {state.status === 'graded' && submission?.grade && (
             <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3">
               <p className="flex items-center gap-2 text-sm font-black text-emerald-800">
-                <CheckCircle2 className="h-4 w-4" /> {submission.grade.score}/{submission.grade.maxScore} điểm
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {assignment.periodicTest
+                  ? 'Đã phân tích từng câu — điểm chính thức là điểm thầy cô chấm trên bài giấy'
+                  : `${submission.grade.score}/${submission.grade.maxScore} điểm`}
               </p>
               {submission.grade.feedback && (
                 <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
               )}
-              <QuestionResultsList results={submission.grade.questionResults} compact />
+              <QuestionResultsList results={submission.grade.questionResults} compact hideScores={Boolean(assignment.periodicTest)} />
             </div>
           )}
         </div>
 
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
-          <button
+          {(!detailView || isOnlineExam || isUploadAction) && <button
             type="button"
             onClick={handleAction}
-            disabled={uploading}
+            disabled={uploading || (assignment.submissionLocked === true && !submission && state.status !== 'graded')}
             className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto ${
               isUploadAction
                 ? state.status === 'retry' ? 'border border-red-200 bg-white text-red-700 hover:bg-red-50' : 'bg-indigo-600 text-white shadow-md shadow-indigo-200 hover:bg-indigo-700'
@@ -131,22 +192,23 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
             }`}
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isOnlineExam ? <BookOpen className="h-4 w-4" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-            {uploading ? 'Đang nộp...' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : state.label}
-          </button>
+            {uploading ? 'Đang nộp...' : assignment.submissionLocked === true && !submission && state.status !== 'graded' ? 'Bài đã khóa chốt' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : state.label}
+          </button>}
           {/* Nút phụ nộp lại: bài đã chấm/đang chờ vẫn phải tạo được lần nộp mới khi phản
               hồi yêu cầu chụp lại — đây chính là P1 của báo cáo QA cổng học sinh 22/08. */}
-          {state.canResubmit && !isOnlineExam && (
+          {(assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && !assignment.submissionLocked && !isOnlineExam && assignment.deliveryMode !== 'online' && (
             <button
               type="button"
               onClick={() => onUpload(assignment.id, canSupplement ? submission?.id : undefined)}
               disabled={uploading}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              <Camera className="h-4 w-4" /> {canSupplement ? 'Bổ sung ảnh và chấm lại' : 'Bổ sung ảnh'}
+              <Camera className="h-4 w-4" /> Bổ sung ảnh
             </button>
           )}
         </div>
       </div>
+      {!isOnlineExam && <StudentSubmittedWork hideScores={Boolean(assignment.periodicTest)} submissions={submissions ?? (submission ? [submission] : [])} feedbackSubmissionId={feedbackSubmissionId} feedbackOpenRequest={feedbackOpenRequest} onFeedbackChanged={onFeedbackChanged} />}
     </article>
   );
 };

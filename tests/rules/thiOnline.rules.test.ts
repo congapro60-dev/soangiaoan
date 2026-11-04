@@ -158,8 +158,8 @@ describe('exams · đề thi chứa đáp án', () => {
 });
 
 describe('examSubmissions · học sinh nặc danh vào thi', () => {
-  it('8. Tạo bài làm hợp lệ trên đề đang mở → ALLOW', async () => {
-    await assertSucceeds(
+  it('8. Tạo bài làm trực tiếp bị chặn — phải qua API cấp attempt', async () => {
+    await assertFails(
       setDoc(doc(dbHS(), 'examSubmissions/bai-moi'), baiLamMau({ id: 'bai-moi' })),
     );
   });
@@ -212,16 +212,16 @@ describe('examSubmissions · học sinh nặc danh vào thi', () => {
 });
 
 describe('examSubmissions · học sinh làm bài và nộp', () => {
-  it('15. Ghi đáp án khi bài còn in_progress → ALLOW', async () => {
-    await assertSucceeds(
+  it('15. Ghi đáp án trực tiếp bị chặn — API giữ attempt', async () => {
+    await assertFails(
       updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), { answers: [{ cau: 1, chon: 'A' }] }),
     );
   });
 
-  it('16. Nộp bài (in_progress → submitted) → ALLOW', async () => {
-    await assertSucceeds(
+  it('16. Nộp bài trực tiếp bị chặn — API chấm và nộp', async () => {
+    await assertFails(
       updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), {
-        status: 'submitted', submittedAt: '2026-08-01T01:20:00.000Z', totalScore: 7,
+        status: 'submitted', submittedAt: '2026-08-01T01:20:00.000Z',
       }),
     );
   });
@@ -230,6 +230,12 @@ describe('examSubmissions · học sinh làm bài và nộp', () => {
     await assertFails(
       updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), { status: 'graded', totalScore: 10 }),
     );
+  });
+  it('student cannot create or set server autograde marker, score or arbitrary fields', async () => {
+    for (const patch of [{ publicAutoGradedAt: 'forged' }, { totalScore: 7 }, { teacherApproved: true }]) {
+      await assertFails(setDoc(doc(dbHS(), 'examSubmissions/forged'), baiLamMau({ id: 'forged', ...patch })));
+      await assertFails(updateDoc(doc(dbHS(), 'examSubmissions/bai-lam-1'), patch));
+    }
   });
 
   it('18. totalScore vượt maxScore → DENY', async () => {
@@ -264,8 +270,8 @@ describe('examSubmissions · học sinh làm bài và nộp', () => {
 });
 
 describe('examSubmissions · đọc kết quả', () => {
-  it('24. Đọc bài ĐÃ NỘP qua link kết quả → ALLOW (subId khó đoán là hàng rào)', async () => {
-    await assertSucceeds(getDoc(doc(dbHS(), 'examSubmissions/bai-da-nop')));
+  it('24. Đọc thẳng bài ĐÃ NỘP → DENY (trang kết quả đọc qua máy chủ, máy chủ áp cài đặt hiện điểm)', async () => {
+    await assertFails(getDoc(doc(dbHS(), 'examSubmissions/bai-da-nop')));
   });
 
   it('25. Đọc bài người khác đang làm dở → DENY (chống nhìn bài)', async () => {

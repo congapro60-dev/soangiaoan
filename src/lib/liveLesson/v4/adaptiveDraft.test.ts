@@ -38,13 +38,18 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
     expect(lesson.knowledgeUnits[0]?.routes.every((route) => route.explanation.includes('có thể đổi'))).toBe(true);
   });
 
-  it('keeps all 48 generated drafts content-complete enough for the existing editor gate', () => {
+  it('labels the chapter by week: W5–W6 for MAIN, W11 for batch2 lessons', () => {
+    expect(buildBanToanV4AdaptiveLessonDraft('10-5-31', 'teacher-1').curriculumRef?.chapter).toBe('Ban Toán · W5–W6');
+    expect(buildBanToanV4AdaptiveLessonDraft('10-11-80', 'teacher-1').curriculumRef?.chapter).toBe('Ban Toán · W11');
+  });
+
+  it('keeps all 51 generated drafts content-complete enough for the existing editor gate', () => {
     for (const contract of getAllBanToanV4Contracts()) {
       const lesson = buildBanToanV4AdaptiveLessonDraft(contract.sourceKey, 'teacher-qa');
       const codes = new Set(validateAdaptiveLessonPublishReadiness(lesson).map((issue) => issue.code));
 
       expect(lesson.diagnosticTest.questions).toHaveLength(5);
-      expect(lesson.knowledgeUnits[0]?.quickCheck.questions).toHaveLength(2);
+      expect(lesson.knowledgeUnits[0]?.quickCheck.questions).toHaveLength(contract.sourceContent?.quickChecks.length ?? 2);
       expect(lesson.exitTicket.questions).toHaveLength(3);
       expect(codes.has('insufficient_diagnostic')).toBe(false);
       expect(codes.has('insufficient_quick_check')).toBe(false);
@@ -52,5 +57,26 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
       expect(codes.has('invalid_worked_example')).toBe(false);
       expect(codes.has('invalid_question_options')).toBe(false);
     }
+  });
+
+  it('blocks publishing when required learning evidence is missing', () => {
+    const source = buildBanToanV4AdaptiveLessonDraft('10-5-31', 'teacher-qa');
+    const incomplete = {
+      ...source,
+      objectives: [],
+      diagnosticTest: { ...source.diagnosticTest, questions: [] },
+      knowledgeUnits: [],
+      exitTicket: { ...source.exitTicket, questions: [] },
+    };
+
+    const issues = validateAdaptiveLessonPublishReadiness(incomplete);
+
+    expect(new Set(issues.map(issue => issue.code))).toEqual(new Set([
+      'missing_objectives',
+      'insufficient_diagnostic',
+      'missing_units',
+      'insufficient_exit_ticket',
+    ]));
+    expect(issues.every(issue => issue.severity === 'error')).toBe(true);
   });
 });

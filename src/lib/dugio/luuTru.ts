@@ -20,6 +20,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import { db, removeUndefinedFields } from '../firebase';
@@ -31,7 +32,7 @@ const GIOI_HAN = 200;
 
 /** Firestore không nhận undefined; các map con cũng phải sạch trước khi ghi. */
 function chuanBiGhi(bb: BienBanDuGio) {
-  const { id: _bo, ...phanConLai } = bb;
+  const { id: _bo, tuDanhGia: _tuDanhGia, ...phanConLai } = bb;
   return removeUndefinedFields({
     ...phanConLai,
     updatedAt: new Date().toISOString(),
@@ -90,6 +91,15 @@ export async function luuBienBan(bb: BienBanDuGio): Promise<string> {
     taoLuc: serverTimestamp(),
   });
   return ref.id;
+}
+
+/** Giáo viên gửi tự đánh giá qua patch riêng, tránh ghi đè snapshot biên bản cũ. */
+export async function guiTuDanhGia(id: string, tuDanhGia: BienBanDuGio['tuDanhGia']): Promise<void> {
+  await updateDoc(doc(db, COLL, id), {
+    tuDanhGia: removeUndefinedFields(tuDanhGia),
+    updatedAt: new Date().toISOString(),
+    capNhatLuc: serverTimestamp(),
+  });
 }
 
 export async function xoaBienBan(id: string): Promise<void> {

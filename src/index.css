@@ -467,3 +467,51 @@ body:has(.w-md-editor-fullscreen) aside,
 body:has(.w-md-editor-fullscreen) header {
   z-index: 0 !important;
 }
+
+/* Use the list width, not the viewport: the teacher sidebar also takes space. */
+.teacher-submission-list { container-type: inline-size; }
+.teacher-submission-row {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  align-items: center;
+  gap: .5rem;
+}
+.teacher-submission-row > input { align-self: start; margin-top: .375rem; }
+.teacher-submission-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: .75rem .5rem;
+}
+.teacher-submission-summary {
+  grid-template-areas: "student student student" "status deadline score" "notes notes notes" "approval time time";
+}
+.teacher-submission-summary > [data-column="student"] { grid-area: student; }
+.teacher-submission-summary > [data-column="status"] { grid-area: status; }
+.teacher-submission-summary > [data-column="deadline"] { grid-area: deadline; }
+.teacher-submission-summary > [data-column="notes"] { grid-area: notes; }
+.teacher-submission-summary > [data-column="score"] { grid-area: score; }
+.teacher-submission-summary > [data-column="approval"] { grid-area: approval; }
+.teacher-submission-summary > [data-column="time"] { grid-area: time; }
+.teacher-submission-cell { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .25rem; }
+.teacher-submission-cell > span, .teacher-submission-notes > span { white-space: nowrap; }
+.teacher-submission-label { font-size: 10px; font-weight: 600; color: #64748b; }
+.teacher-submission-time { display: flex; gap: .5rem; }
+.teacher-submission-notes { display: flex; flex-wrap: wrap; gap: .25rem; }
+.teacher-submission-notes:empty::after { content: "\2014"; font-size: 12px; color: #94a3b8; }
+.teacher-submission-exam { grid-column: 2; justify-self: start; }
+.teacher-submission-head { display: none; }
+@container (min-width: 56rem) {
+  .teacher-submission-columns {
+    grid-template-columns: minmax(9.5rem, 1.25fr) 4.75rem 4.75rem minmax(8.5rem, 1fr) 3.75rem 5.75rem 4.25rem;
+  }
+  .teacher-submission-summary { grid-template-areas: "student status deadline notes score approval time"; }
+  .teacher-submission-head { display: grid; }
+  .teacher-submission-row > input { align-self: center; margin-top: 0; }
+  .teacher-submission-label { display: none; }
+  .teacher-submission-time { flex-direction: column; gap: .25rem; }
+  .teacher-submission-summary > [data-column="score"] { align-items: flex-end; }
+  .teacher-submission-notes { flex-direction: column; align-items: flex-start; }
+  .has-exam-codes .teacher-submission-row { grid-template-columns: 1rem minmax(0, 1fr) 6rem; }
+  .teacher-submission-exam { grid-column: 3; justify-self: stretch; }
+}

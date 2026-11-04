@@ -7,34 +7,45 @@ const h = vi.hoisted(() => ({
   allowed: true,
   grade: '' as string,
   reply: '**Con** học chăm, cần luyện thêm hàm số.',
-  jsonMode: false as boolean | undefined,
-  fail: '' as '' | 'slow' | 'fast' | 'notesSlow',
+  fail: '' as '' | 'slow' | 'fast' | 'notesSlow' | 'mappingNearDeadline',
   notesReply: '{"ghiChu": []}',
   mapReply: '{"yccd": []}',
   calls: [] as string[],
+  timeouts: [] as number[],
+  mappingAdvanceMs: 0,
+  notesAdvanceMs: 0,
 }));
 
 vi.mock('../_classroom-teacher.js', () => ({
   teacherContext: async (_db: unknown, body: Record<string, unknown>, res: { status: (c: number) => { json: (b: unknown) => void } }) => {
     if (!h.allowed) { res.status(403).json({ error: 'Bạn không thuộc lớp này.' }); return null; }
-    return { uid: 'gv-dong', classId: String(body.classId), classData: { teacherId: 'gv-chu', grade: h.grade } };
+    const base = `classes/${String(body.classId)}`;
+    const classRef = { collection: (sub: string) => ({ doc: (id: string) => ({
+      get: async () => ({ exists: Boolean(h.store[`${base}/${sub}/${id}`]) }),
+      update: async (data: Record<string, unknown>) => { h.store[`${base}/${sub}/${id}`] = { ...h.store[`${base}/${sub}/${id}`], ...data }; },
+    }) }) };
+    return { uid: 'gv-dong', classId: String(body.classId), classRef, classData: { teacherId: 'gv-chu', grade: h.grade } };
   },
 }));
 vi.mock('../_ai-usage.js', () => ({ setAiKeyOwner: (uid: string | null) => { h.owner = uid; } }));
 vi.mock('../_grading-core.js', () => ({
-  GRADING_MODEL: 'gemini-test',
-  getGradingApiKey: () => 'k',
-  callGeminiVision: async (prompt: string, _files: unknown, _key: string, _model: string, options: { jsonMode?: boolean }) => {
+  callGradingVision: async (prompt: string, _files: unknown, _options: { timeoutMs?: number }) => {
     h.prompt = prompt;
-    h.jsonMode = options.jsonMode;
     h.calls.push(prompt);
+    h.timeouts.push(Number(_options.timeoutMs));
     if (h.fail === 'slow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
     if (h.fail === 'fast') throw new Error('Chưa có khoá Gemini');
     if (prompt.includes('tỉ lệ điểm đạt')) {
       if (h.fail === 'notesSlow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
+      if (h.notesAdvanceMs && h.calls.filter(p => p.includes('tỉ lệ điểm đạt')).length === 1) vi.setSystemTime(Date.now() + h.notesAdvanceMs);
       return h.notesReply;
     }
-    return prompt.includes('đối chiếu bài làm') ? h.mapReply : h.reply;
+    if (prompt.includes('đối chiếu bài làm')) {
+      if (h.fail === 'mappingNearDeadline') vi.setSystemTime(Date.now() + 43_000);
+      if (h.mappingAdvanceMs && h.calls.filter(p => p.includes('đối chiếu bài làm')).length === 1) vi.setSystemTime(Date.now() + h.mappingAdvanceMs);
+      return h.mapReply;
+    }
+    return h.reply;
   },
 }));
 
@@ -61,7 +72,7 @@ const key = { studentId: 'hs1', kind: 'gk1', from: '2026-09-01', to: '2026-10-31
 describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   beforeEach(() => {
     h.store = {}; h.owner = ''; h.prompt = ''; h.allowed = true; h.grade = '';
-    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = ''; h.mapReply = '{"yccd": []}'; h.notesReply = '{"ghiChu": []}'; h.calls = [];
+    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.fail = ''; h.mapReply = '{"yccd": []}'; h.notesReply = '{"ghiChu": []}'; h.calls = []; h.timeouts = []; h.mappingAdvanceMs = 0; h.notesAdvanceMs = 0;
     vi.useRealTimers();
   });
 
@@ -109,8 +120,158 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     expect(h.calls.find(p => !p.includes('đối chiếu bài làm'))).not.toContain('b1q1');
     expect(out.body.text).toBe('Con tiến bộ ở phần vectơ.');
     expect(out.body.requirements).toEqual([
-      { id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.' },
+      {
+        id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.',
+        questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q2', score: 0, max: 2 }],
+      },
     ]);
+  });
+
+  it('Vilao bọc JSON trong khối ```json … ``` (đúng như log production 25/10): vẫn đọc được, trả 200 đủ dòng YCCĐ + ghi chú', async () => {
+    h.grade = '10';
+    h.reply = 'Con tiến bộ ở phần vectơ.';
+    h.mapReply = '```json\n{\n  "yccd": [\n    {\n      "ma": "T10.30",\n      "cau": ["b1q1", "b1q2"]\n    }\n  ]\n}\n```';
+    h.notesReply = '```json\n{"ghiChu": [{"ma": "T10.30", "ghiChu": "Nhầm chiều khi áp dụng quy tắc hiệu."}]}\n```';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [
+      { ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' },
+      { ma: 'b1q2', diem: 0, toiDa: 2, ketQua: 'sai' },
+    ] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(1); // đọc được ngay, không phải gọi lại
+    expect(out.body.requirements).toEqual([{
+      id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.',
+      questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q2', score: 0, max: 2 }],
+    }]);
+  });
+
+  it('lượt ghép trả JSON sai 2 lần: 422; log chỉ chứa metadata', async () => {
+    h.grade = '10';
+    h.reply = 'Nhận xét.';
+    h.mapReply = 'Dưới đây là kết quả ghép: {"yccd": [{"ma": "T10.30", "cau": ["b1q1"]';
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(422);
+    expect(String(out.body.error)).toContain('YCCĐ');
+    const logs = warn.mock.calls.filter(args => String(args[0]).includes('[parent-report]'));
+    expect(logs).toHaveLength(2); // mỗi lần thử một dòng
+    expect(JSON.stringify(logs[0])).not.toContain('Dưới đây là kết quả ghép');
+    expect(JSON.stringify(logs[0])).toContain('length');
+    warn.mockRestore();
+  });
+
+  it('bỏ dấu ngoặc ở lời dẫn, lấy khối JSON hợp lệ đầu tiên; giữ ngoặc trong chuỗi', async () => {
+    h.grade = '10';
+    h.mapReply = 'Nhóm {nhom}: ```json\n{"yccd":[{"ma":"T10.30","cau":["b1q1"]}],"chuThich":"a {b} \\"c\\""}\n```\n{"yccd":[]}';
+    h.notesReply = '{"ghiChu":[{"ma":"T10.30","ghiChu":"Đúng {quy tắc} \\"hiệu\\"."}]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(1);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.30', note: 'Đúng {quy tắc} "hiệu".' }]);
+  });
+
+  it('hai khối JSON: bỏ khối sai schema, chọn khối hợp lệ đầu tiên', async () => {
+    h.grade = '10';
+    h.mapReply = '{"foo":1}\n{"yccd":[{"ma":"T10.30","cau":["b1q1"]}]}\n{"yccd":[]}';
+    h.notesReply = '{"ghiChu":[{"ma":"T10.30","ghiChu":"Cần luyện thêm."}]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.30' }]);
+  });
+
+  it('ưu tiên JSON trong fence hơn object hợp lệ trong lời dẫn', async () => {
+    h.grade = '10';
+    h.mapReply = 'Ví dụ: {"yccd":[]}\n```json\n{"yccd":[{"ma":"T10.30","cau":["b1q1"]}]}\n```';
+    h.notesReply = '{"ghiChu":[{"ma":"T10.30","ghiChu":"Cần luyện thêm."}]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.30' }]);
+  });
+
+  it('YCCĐ thiếu hoặc sai dạng: thử lại rồi trả 422; mảng rỗng hợp lệ vẫn trả 200 với cảnh báo', async () => {
+    h.grade = '10';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    for (const invalid of ['{"foo":[]}', '{"yccd":[{"ma":3,"cau":"b1q1"}]}', '{"wrapper":{"yccd":[]}}', '{"wrapper":{"yccd":[]}']) {
+      h.calls = []; h.mapReply = invalid;
+      const out = await call({ action: 'draftParentReportComment', ...key, facts });
+      expect(out.status).toBe(422);
+      expect(String(out.body.error)).toContain('YCCĐ');
+      expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(2);
+    }
+    h.mapReply = '{"yccd":[]}';
+    const empty = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(empty.status).toBe(200);
+    expect(empty.body.requirements).toEqual([]);
+    expect(empty.body.warnings).toEqual(expect.arrayContaining([expect.stringContaining('YCCĐ')]));
+  });
+
+  it('ghi chú sai dạng: thử lại rồi trả 422, không trả nháp thiếu như thành công', async () => {
+    h.grade = '10';
+    h.mapReply = '{"yccd":[{"ma":"T10.30","cau":["b1q1"]}]}';
+    h.notesReply = '{"ghiChu":[{"ma":"T10.30","ghiChu":4,"hocSinh":"Tên riêng cần giữ kín"}]}';
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(422);
+    expect(String(out.body.error)).toContain('ghi chú');
+    expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(2);
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('Tên riêng cần giữ kín');
+    warn.mockRestore();
+  });
+
+  it('mã ghi chú có khoảng trắng: gắn đúng dòng, không cảnh báo thiếu', async () => {
+    h.grade = '10';
+    h.mapReply = '{"yccd":[{"ma":"T10.30","cau":["b1q1"]}]}';
+    h.notesReply = '{"ghiChu":[{"ma":" T10.30 ","ghiChu":"Cần luyện thêm."}]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.30', note: 'Cần luyện thêm.' }]);
+    expect(out.body.warnings).toEqual([]);
+  });
+
+  it('lượt ghép JSON sai ăn hết ngân sách: 504, không gọi lại', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.grade = '10'; h.mapReply = '{"foo":1}'; h.mappingAdvanceMs = 51_000;
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(504);
+    expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(1);
+  });
+
+  it('lượt ghép còn 5 giây: retry dùng đúng ngân sách còn lại', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.grade = '10'; h.mapReply = '{"foo":1}'; h.mappingAdvanceMs = 45_000;
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(422);
+    expect(h.timeouts.filter((_, i) => h.calls[i].includes('đối chiếu bài làm'))).toEqual([50_000, 5_000]);
+  });
+
+  it('ghi chú JSON sai ăn hết ngân sách: 200 với cảnh báo, không gọi lại', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.grade = '10'; h.mapReply = '{"yccd":[{"ma":"T10.30","cau":["b1q1"]}]}';
+    h.notesReply = '{"foo":1}'; h.notesAdvanceMs = 51_000;
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.warnings).toEqual(expect.arrayContaining([expect.stringContaining('quá lâu')]));
+    expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(1);
+  });
+
+  it('ghi chú hợp lệ nhưng thiếu dòng: cảnh báo dù lượt ghép có ghi chú', async () => {
+    h.grade = '10';
+    h.mapReply = '{"yccd":[{"ma":"T10.30","cau":["b1q1"],"ghiChu":"Lời ghi chú nhầm bước."}]}';
+    h.notesReply = '{"ghiChu":[]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.30' }]);
+    expect(out.body.warnings).toEqual(expect.arrayContaining([expect.stringContaining('ghi chú')]));
   });
 
   it('nhiều bài: chia nhóm ≤30 câu chạy song song, gộp câu căn cứ và nối ghi chú của cùng một YCCĐ', async () => {
@@ -122,7 +283,10 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     const out = await call({ action: 'draftParentReportComment', ...key, facts: { baiDaDuyet: [bai(1), bai(2)] } });
     expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(2);
     expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(1);
-    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.' }]);
+    expect(out.body.requirements).toEqual([{
+      id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.',
+      questions: [{ code: 'b1q1', score: 1, max: 1 }, { code: 'b2q1', score: 0, max: 1 }],
+    }]);
   });
 
   it('bước ghi chú hết giờ: vẫn trả các dòng với mức đúng, ghi chú để trống cho giáo viên điền', async () => {
@@ -134,7 +298,20 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 2, toiDa: 2, ketQua: 'đúng' }] }] };
     const out = await call({ action: 'draftParentReportComment', ...key, facts });
     expect(out.status).toBe(200);
-    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'vung', evidence: 1, percent: 100, note: '' }]);
+    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'vung', evidence: 1, percent: 100, note: '', questions: [{ code: 'b1q1', score: 2, max: 2 }] }]);
+    expect(out.body.warnings).toEqual(expect.arrayContaining([expect.stringContaining('ghi chú')]));
+  });
+
+  it('gần hết giờ nên bỏ lượt ghi chú: trả dòng và cảnh báo', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.grade = '10'; h.fail = 'mappingNearDeadline';
+    h.mapReply = '{"yccd":[{"ma":"T10.03","cau":["b1q1"]}]}';
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 2, toiDa: 2, ketQua: 'đúng' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toMatchObject([{ id: 'T10.03', note: '' }]);
+    expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(0);
+    expect(out.body.warnings).toEqual(expect.arrayContaining([expect.stringContaining('thời gian')]));
   });
 
   it('lưu kèm dòng YCCĐ: chỉ giữ mã đúng khối, mức hợp lệ', async () => {
@@ -150,13 +327,40 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     expect((read.body.requirements as { id: string }[]).map(r => r.id)).toEqual(['T10.01', 'T10.02']);
   });
 
+  it('lưu rồi đọc lại giữ danh sách câu căn cứ (để gom theo bài SGK không đếm trùng); câu hỏng bị bỏ', async () => {
+    h.grade = '10';
+    const questions = [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q1', score: 2, max: 2 }, { code: 'x', score: 1, max: 1 }, { code: 'b2', score: 9, max: 4 }];
+    await call({ action: 'saveParentReportNote', ...key, text: 'x', requirements: [{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions }] });
+    const read = await call({ action: 'parentReportNote', ...key });
+    expect(read.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b2', score: 4, max: 4 }] }]);
+  });
+
   it('lưu rồi đọc lại đúng theo học sinh + loại + khoảng; khoảng khác thì trống', async () => {
     expect((await call({ action: 'saveParentReportNote', ...key, text: '  Nhận xét đã sửa  ' })).body.text).toBe('Nhận xét đã sửa');
     expect((await call({ action: 'parentReportNote', ...key })).body.text).toBe('Nhận xét đã sửa');
     expect((await call({ action: 'parentReportNote', ...key, to: '2026-11-15' })).body.text).toBe('');
   });
 
+  it('bản chỉnh tay: lưu + đọc lại; báo cáo đã công bố cập nhật ngay, chưa công bố thì không đụng tới; "tổng hợp từ đầu năm" lưu được', async () => {
+    const publishedId = 'classes/lop/parentReports/hs1__gk1__2026-09-01__2026-10-31';
+    h.store[publishedId] = { inputJson: '{}', studentId: 'hs1' };
+    const saved = await call({ action: 'saveParentReportNote', ...key, text: 'Nhận xét', overrides: { overallSummary: ' Thầy viết ', strengths: ['A'], evil: 1, officialCount: 5 } });
+    expect(saved.body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    expect((await call({ action: 'parentReportNote', ...key })).body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    expect(JSON.parse(String(h.store[publishedId].overridesJson))).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5, teacherComment: 'Nhận xét', requirements: [] });
+    // Chưa công bố kì khác: không tạo tài liệu công bố.
+    await call({ action: 'saveParentReportNote', ...key, to: '2026-11-15', text: 'x', overrides: { officialCount: 1 } });
+    expect(h.store['classes/lop/parentReports/hs1__gk1__2026-09-01__2026-11-15']).toBeUndefined();
+    // Lưu lại mà không gửi `overrides` (soạn hàng loạt) thì giữ nguyên chỗ đã chỉnh.
+    await call({ action: 'saveParentReportNote', ...key, text: 'Nhận xét 2' });
+    expect((await call({ action: 'parentReportNote', ...key })).body.overrides).toEqual({ overallSummary: 'Thầy viết', strengths: ['A'], officialCount: 5 });
+    const all = { studentId: 'hs1', kind: 'all', from: '2026-01-01', to: '2026-12-31' };
+    await call({ action: 'saveParentReportNote', ...all, text: '', overrides: { missingCount: 0 } });
+    expect((await call({ action: 'parentReportNote', ...all })).body.overrides).toEqual({ missingCount: 0 });
+  });
+
   it('từ chối dữ liệu sai hoặc người ngoài lớp; action khác thì bỏ qua', async () => {
+    expect((await call({ action: 'saveParentReportNote', ...key, kind: 'custom' })).status).toBe(200);
     expect((await call({ action: 'saveParentReportNote', ...key, kind: 'quy1' })).status).toBe(422);
     expect((await call({ action: 'saveParentReportNote', ...key, from: '2026-12-01' })).status).toBe(422);
     expect((await call({ action: 'draftParentReportComment', ...key, facts: { x: 'a'.repeat(61000) } })).status).toBe(422);

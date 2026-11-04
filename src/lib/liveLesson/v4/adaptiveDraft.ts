@@ -199,6 +199,9 @@ export function buildBanToanV4AdaptiveLessonDraft(
   const unitId = `${contract.id}-core`;
   const lessonId = `adaptive-v4-${safeIdPart(sourceKey)}-${safeIdPart(teacherId)}`;
   const quickCheck = buildAssessment(contract, 'quick_check', `${contract.id}-quick-check`);
+  // Chương hiển thị: lô Tuần 5–6 (MAIN) giữ nhãn gộp; các tuần tiếp theo (W11, W12...) mang nhãn tuần tương ứng.
+  const week = contract.source?.week;
+  const chapter = (week === 5 || week === 6) ? 'Ban Toán · W5–W6' : (week ? `Ban Toán · W${week}` : 'Ban Toán · W5–W6');
 
   return {
     id: lessonId,
@@ -209,7 +212,7 @@ export function buildBanToanV4AdaptiveLessonDraft(
       programType: 'TDS',
       week: String(contract.source?.week ?? ''),
       period: contract.source?.period,
-      chapter: 'Ban Toán · W5–W6',
+      chapter,
       lessonCode: sourceKey,
     },
     durationMinutes: 40,

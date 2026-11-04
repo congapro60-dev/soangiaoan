@@ -8,6 +8,7 @@
  * Môn, 4 Nội dung, 5 Hạn kiểm tra, 6 Link, 7 Tính lỗi?, 8–10 ô đếm, 11 tiêu đề, học sinh từ dòng 12
  * ở cột B, trạng thái từ cột C.
  */
+import { moTaLoiDichVu } from '../httpErrorText';
 
 /** Đúng từng ký tự, kể cả biểu tượng: công thức đếm và công thức Hạnh kiểm so chuỗi y hệt. */
 export const SHEET_STATUS = {
@@ -645,5 +646,5 @@ export const sheetsErrorMessage = (status: number, detail: string): string => {
   const suffix = detail ? ` (${detail})` : '';
   if (status === 403) return `Tài khoản Google của bạn chưa có quyền sửa file này${suffix}.`;
   if (status === 404) return 'Không tìm thấy file. Kiểm tra lại link Google Sheet.';
-  return `Google Sheets trả lỗi ${status}${suffix}.`;
+  return `${moTaLoiDichVu(status, 'Google Sheets')}${detail ? ` Chi tiết: ${detail}.` : ''}`;
 };

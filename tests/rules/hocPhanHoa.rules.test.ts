@@ -228,19 +228,19 @@ describe('adaptiveLessons · tạo, sửa, xoá', () => {
  *
  * Khi vá xong: ba ca dưới sẽ đỏ. Sửa kỳ vọng và xoá comment này.
  */
-describe('personalizationCache · lỗ hổng đã biết: ai cũng đọc/ghi được', () => {
-  it('11. [LỖ HỔNG] Người chưa đăng nhập đọc cache → hiện tại ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbHS(), 'personalizationCache/cache-1')));
+describe('personalizationCache · chặn truy cập trực tiếp từ client', () => {
+  it('11. Học sinh nặc danh không đọc cache', async () => {
+    await assertFails(getDoc(doc(dbHS(), 'personalizationCache/cache-1')));
   });
 
-  it('12. [LỖ HỔNG] Người chưa đăng nhập GHI ĐÈ cache học sinh sẽ đọc → hiện tại ALLOW', async () => {
-    await assertSucceeds(
+  it('12. Học sinh nặc danh không ghi đè cache', async () => {
+    await assertFails(
       setDoc(doc(dbHS(), 'personalizationCache/cache-1'), { noiDung: 'nội dung do người lạ chèn' }),
     );
   });
 
-  it('13. [LỖ HỔNG] Người chưa đăng nhập xoá cache → hiện tại ALLOW', async () => {
-    await assertSucceeds(deleteDoc(doc(dbHS(), 'personalizationCache/cache-1')));
+  it('13. Học sinh nặc danh không xoá cache', async () => {
+    await assertFails(deleteDoc(doc(dbHS(), 'personalizationCache/cache-1')));
   });
 });
 

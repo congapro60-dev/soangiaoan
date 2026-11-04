@@ -22,7 +22,7 @@ service firebase.storage {
     // Giáo viên và máy chấm không đọc qua đường này mà qua link tải có token của Firebase —
     // link đó nằm trong document bài nộp, vốn đã được firestore.rules canh.
     match /homework/{uid}/{fileName} {
-      allow create: if request.auth != null
+      allow create: if resource == null && request.auth != null
                     && request.auth.uid == uid
                     && request.resource.size < 20 * 1024 * 1024
                     && (request.resource.contentType.matches('image/.*')
@@ -31,7 +31,8 @@ service firebase.storage {
                           'application/msword',
                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                         ]);
-      allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if false;
     }
 
     // File đề giáo viên đính kèm khi giao bài. Học sinh mở bằng link tải có token nằm trong
@@ -41,6 +42,33 @@ service firebase.storage {
                     && request.auth.uid == uid
                     && request.resource.size < 15 * 1024 * 1024;
       allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Signed resumable sessions upload temporary objects; Admin promotes immutable accepted evidence.
+    match /pending-homework/{grantId}/{fileName} { allow read, write: if false; }
+    match /accepted-homework/{classId}/{studentId}/{fileName} { allow read, write: if false; }
+    match /hand-marked-homework/{classId}/{studentId}/{fileName} { allow read, write: if false; }
+
+
+    // Nguồn giáo án giáo viên tải lên cho luồng AI (DOCX/PDF/JSON) và ảnh chụp
+    // kèm yêu cầu sửa bản xem trước. Đường dẫn gắn UID của người ghi.
+    match /lessonGen/{uid}/{rest=**} {
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.size < 25 * 1024 * 1024
+                    && (request.resource.contentType.matches('image/.*')
+                        || request.resource.contentType in [
+                          'application/pdf',
+                          'application/msword',
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                          'application/vnd.ms-excel',
+                          'application/json',
+                          'text/plain',
+                          'text/markdown'
+                        ]);
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if request.auth != null && request.auth.uid == uid;
     }
 
     match /{path=**} {

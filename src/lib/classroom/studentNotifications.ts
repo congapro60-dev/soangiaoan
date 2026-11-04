@@ -1,4 +1,5 @@
 import type { AssignmentDoc, StudentNotificationDoc, SubmissionDoc } from './types';
+import { scoreHiddenFromStudent } from './portalViewModel';
 
 /**
  * Dòng thời gian thông báo của học sinh.
@@ -12,7 +13,8 @@ export type StudentFeedKind =
   | 'graded'
   | 'grade_error'
   | 'teacher_approved'
-  | 'submission_deleted';
+  | 'submission_deleted'
+  | 'feedback_reply';
 
 export interface StudentFeedItem {
   id: string;
@@ -22,6 +24,7 @@ export interface StudentFeedItem {
   /** Mốc thời gian ISO dùng để sắp xếp và so với lần đọc gần nhất. */
   at: string;
   assignmentId?: string;
+  submissionId?: string;
   /** Việc cần em làm tiếp; dùng để làm nổi bật trong bảng thông báo. */
   needsAction?: boolean;
 }
@@ -31,9 +34,11 @@ const asTime = (value: unknown): string => {
   return text && Number.isFinite(Date.parse(text)) ? text : '';
 };
 
+type FeedAssignment = Pick<AssignmentDoc, 'id' | 'title' | 'periodicTest'>;
+
 const tenBai = (
   submission: Pick<SubmissionDoc, 'assignmentId'>,
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[],
+  assignments: readonly FeedAssignment[],
 ): string => {
   const title = assignments.find(item => item.id === submission.assignmentId)?.title?.trim();
   return title || 'bài tự nộp';
@@ -52,22 +57,51 @@ const formatScore = (score: unknown, maxScore: unknown): string => {
  */
 const feedFromSubmission = (
   submission: SubmissionDoc,
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[],
+  assignments: readonly FeedAssignment[],
 ): StudentFeedItem | null => {
   const ten = tenBai(submission, assignments);
+  // Bài kiểm tra định kì: không nêu điểm AI chấm lại (điểm chính thức là điểm thầy cô chấm trên giấy).
+  const periodic = Boolean(assignments.find(item => item.id === submission.assignmentId)?.periodicTest);
   const gradedAt = asTime(submission.grade?.gradedAt);
   const updatedAt = asTime(submission.updatedAt) || asTime(submission.createdAt);
 
+  if (submission.status === 'graded' && submission.grade?.awaitingClarification) {
+    // Điểm tạm bị ẩn tới khi em xác nhận xong các câu máy hỏi lại — không báo "đã có kết quả" lúc chưa có điểm.
+    return {
+      id: `${submission.id}:clarify`,
+      kind: 'graded',
+      title: 'Máy cần em xác nhận vài câu',
+      body: `Bài "${ten}" còn vài câu máy đọc chưa chắc. Em mở trang chủ, trả lời ở khung màu vàng rồi chờ thầy cô duyệt nhé.`,
+      at: gradedAt || updatedAt,
+      assignmentId: submission.assignmentId || undefined,
+      needsAction: true,
+    };
+  }
+
+  // Máy / thầy cô đã chấm nhưng CHƯA duyệt: em không đọc được điểm hay nhận xét — chỉ báo "đã nộp, chờ thầy cô duyệt".
+  if (submission.status === 'graded' && submission.grade && scoreHiddenFromStudent(submission)) {
+    return {
+      id: `${submission.id}:pending-approval`,
+      kind: 'submitted',
+      title: 'Chờ thầy cô duyệt',
+      body: `Bài "${ten}" em đã nộp xong. Điểm và nhận xét sẽ hiện sau khi thầy cô duyệt.`,
+      at: gradedAt || updatedAt,
+      assignmentId: submission.assignmentId || undefined,
+    };
+  }
+
   if (submission.status === 'graded' && submission.grade) {
-    const diem = formatScore(submission.grade.score, submission.grade.maxScore);
+    const diem = periodic ? '' : formatScore(submission.grade.score, submission.grade.maxScore);
     const daDuyet = submission.grade.teacherApproved === true;
     return {
       id: `${submission.id}:${daDuyet ? 'approved' : 'graded'}`,
       kind: daDuyet ? 'teacher_approved' : 'graded',
-      title: daDuyet ? 'Thầy cô đã duyệt điểm' : 'Máy đã chấm xong',
-      body: daDuyet
-        ? `Điểm bài "${ten}" đã được thầy cô duyệt${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`
-        : `Bài "${ten}" đã có kết quả${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`,
+      title: periodic ? 'Đã phân tích bài kiểm tra' : daDuyet ? 'Thầy cô đã duyệt điểm' : 'Máy đã chấm xong',
+      body: periodic
+        ? `Bài "${ten}" đã có phân tích từng câu. Mở ra xem nhận xét nhé.`
+        : daDuyet
+          ? `Điểm bài "${ten}" đã được thầy cô duyệt${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`
+          : `Bài "${ten}" đã có kết quả${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`,
       at: gradedAt || updatedAt,
       assignmentId: submission.assignmentId || undefined,
     };
@@ -118,13 +152,15 @@ const feedFromNotification = (notification: StudentNotificationDoc): StudentFeed
 /** Gộp hai nguồn thành một dòng thời gian, mới nhất lên trước. */
 export const buildStudentFeed = (input: {
   submissions: readonly SubmissionDoc[];
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[];
+  assignments: readonly FeedAssignment[];
   notifications: readonly StudentNotificationDoc[];
 }): StudentFeedItem[] => {
   const items: StudentFeedItem[] = [];
   for (const submission of input.submissions) {
     const item = feedFromSubmission(submission, input.assignments);
     if (item?.at) items.push(item);
+    const replyAt = asTime(submission.feedbackSummary?.lastReplyAt);
+    if (replyAt && !scoreHiddenFromStudent(submission)) items.push({ id: `${submission.id}:feedback:${replyAt}`, kind: 'feedback_reply', title: 'Thầy cô đã trả lời phản hồi', body: `Bài "${tenBai(submission, input.assignments)}" có câu trả lời mới. Mở đúng lượt nộp để đọc.`, at: replyAt, assignmentId: submission.assignmentId || undefined, submissionId: submission.id, needsAction: replyAt > (submission.feedbackReadAt || '') });
   }
   for (const notification of input.notifications) {
     if (asTime(notification.createdAt)) items.push(feedFromNotification(notification));

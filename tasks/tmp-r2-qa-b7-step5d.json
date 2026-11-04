@@ -1,0 +1,195 @@
+{
+ "savedAt": "2026-10-27T03:20:10.919Z",
+ "checks": {
+  "fieldCount": 12,
+  "visibleCount": 12,
+  "totalChars": 2219,
+  "has215": false,
+  "has224": false,
+  "has22": false,
+  "has587": true,
+  "tuTinh": true,
+  "nhanPHT1": false,
+  "nhanPHT2": false,
+  "internet158": true,
+  "internet395": true,
+  "y3_khongNhoHon": false,
+  "y3_152": false,
+  "y3_nhoNhatK": false,
+  "con_73k365": false,
+  "k5": false,
+  "k_15227": false,
+  "casio": false,
+  "luong24": false,
+  "phieu3": false,
+  "ctx_215": [],
+  "ctx_22": [],
+  "ctx_tuTinh": [
+   {
+    "at": 1212,
+    "text": " độ mở rộng. | Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2. | c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.) | Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.) | Vinh danh lỗi sai giấu tên: "
+   },
+   {
+    "at": 1404,
+    "text": " = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.) | Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.) | Vinh danh lỗi sai giấu tên: bạn ghi M_e = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào? | Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6."
+   },
+   {
+    "at": 1882,
+    "text": ") và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.) | Đối chiếu lời giải nguồn: Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 "
+   },
+   {
+    "at": 2194,
+    "text": ") và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+   }
+  ],
+  "ctx_587": [
+   {
+    "at": 1548,
+    "text": "+ 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.) | Vinh danh lỗi sai giấu tên: bạn ghi M_e = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào? | Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6"
+   },
+   {
+    "at": 1877,
+    "text": " = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.) | Đối chiếu lời giải nguồn: Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D m"
+   }
+  ],
+  "ctx_nhanPHT1": [],
+  "ctx_khongNhoHon": [],
+  "ctx_152": [],
+  "fieldLens": [
+   {
+    "label": "Các số đặc trưng đo xu thế trung tâm",
+    "visible": true,
+    "len": 36
+   },
+   {
+    "label": "Các số đặc trưng đo xu thế trung tâm",
+    "visible": true,
+    "len": 2
+   },
+   {
+    "label": "Các số đặc trưng đo xu thế trung tâm",
+    "visible": true,
+    "len": 119
+   },
+   {
+    "label": "Dùng nội dung Standard cho Foundation/Challenge",
+    "visible": true,
+    "len": 377
+   },
+   {
+    "label": "Dùng nội dung Standard cho Foundation/Challenge",
+    "visible": true,
+    "len": 396
+   },
+   {
+    "label": "Dùng nội dung Standard cho Foundation/Challenge",
+    "visible": true,
+    "len": 89
+   },
+   {
+    "label": "Quick Check Thêm câu hỏi",
+    "visible": true,
+    "len": 100
+   },
+   {
+    "label": "Quick Check Thêm câu hỏi",
+    "visible": true,
+    "len": 165
+   },
+   {
+    "label": "Quick Check Thêm câu hỏi",
+    "visible": true,
+    "len": 191
+   },
+   {
+    "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+    "visible": true,
+    "len": 137
+   },
+   {
+    "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+    "visible": true,
+    "len": 285
+   },
+   {
+    "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+    "visible": true,
+    "len": 311
+   }
+  ]
+ },
+ "fields": [
+  {
+   "tag": "INPUT",
+   "visible": true,
+   "label": "Các số đặc trưng đo xu thế trung tâm",
+   "value": "Các số đặc trưng đo xu thế trung tâm"
+  },
+  {
+   "tag": "INPUT",
+   "visible": true,
+   "label": "Các số đặc trưng đo xu thế trung tâm",
+   "value": "30"
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Các số đặc trưng đo xu thế trung tâm",
+   "value": "Tuyến Chuẩn là cửa vào tạm thời theo bằng chứng hiện tại; học sinh có thể đổi tuyến sau khi trao đổi hoặc kiểm tra lại."
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Dùng nội dung Standard cho Foundation/Challenge",
+   "value": "Thời gian sử dụng Internet trong ngày nghỉ cuối tuần của 40 học sinh khối 11 (giờ): nhóm [0;2) có 6 HS, [2;4) có 14 HS, [4;6) có 15 HS, [6;8) có 5 HS. Nhóm [2;4) có 14 bạn nhưng ta không biết chính xác số giờ từng bạn — giá trị nào công bằng nhất để đại diện cho cả 14 bạn này, từ đó ước tính tổng thời gian của nhóm? Xây dựng công thức tính số trung bình x̄ của mẫu ghép nhóm."
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Dùng nội dung Standard cho Foundation/Challenge",
+   "value": "Giá trị đại diện công bằng nhất là trung điểm khoảng: c₂ = (2+4)/2 = 3; nếu cả 14 bạn đều được gán bằng 3 thì tổng nhóm ước tính 14 × 3 = 42 giờ. Làm tương tự cả 4 nhóm: c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; bảng tích m_i·c_i = 6·1 + 14·3 + 15·5 + 5·7 = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ. Công thức tổng quát: x̄ = (Σ m_i c_i)/n với n = Σ m_i — mẫu số là tổng tần số, không phải số nhóm k."
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Dùng nội dung Standard cho Foundation/Challenge",
+   "value": "Không đổi chuẩn đích giữa các tuyến. Tuyến Chuẩn chỉ thay đổi mức scaffold và độ mở rộng."
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Quick Check Thêm câu hỏi",
+   "value": "Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2."
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Quick Check Thêm câu hỏi",
+   "value": "c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Quick Check Thêm câu hỏi",
+   "value": "Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+   "value": "Vinh danh lỗi sai giấu tên: bạn ghi M_e = 4 + ((20 − 6)/15)·2 ≈ 5,87 giờ cho bảng Internet (tần số 6/14/15/5). Bạn đã nhầm đại lượng nào?"
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+   "value": "Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+  },
+  {
+   "tag": "TEXTAREA",
+   "visible": true,
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùng trong Hình thành c",
+   "value": "Đối chiếu lời giải nguồn: Lấy nhầm nhóm chứa trung vị là nhóm [4;6) (a_p = 4, m_p = 15) và giữ nguyên C = 6. Đúng: nhóm chứa trung vị là nhóm đầu tiên có cf ≥ n/2 = 20, tức [2;4): M_e = 2 + ((20 − 6)/14)·2 = 4,0 giờ (đã công khai ở bảng S6). (Nguồn: S6 Bước 3, Gate D mục 3 #12; ≈ 5,87 tự tính để GV đối chiếu.)"
+  }
+ ]
+}

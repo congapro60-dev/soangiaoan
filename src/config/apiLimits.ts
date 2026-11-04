@@ -1,6 +1,6 @@
 import { PROVIDER_CONFIGS } from '../data/models';
 
-export type ApiProvider = 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway';
+export type ApiProvider = 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway' | 'vilao';
 
 export interface ApiModelLimit {
   provider: ApiProvider;

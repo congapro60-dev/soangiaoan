@@ -1,0 +1,12 @@
+{
+  "fiberEls": 2115,
+  "hooksSeen": 616,
+  "stateShapes": [],
+  "lessonPlansHits": [
+    "fiber:V_.lessonPlans len=20",
+    "fiber:VS[0].lessonPlans len=20",
+    "fiber:VS[1][1].lessonPlans len=20",
+    "fiber:VS[1][1].lessonPlans len=20"
+  ],
+  "reactVersion": "root-fiber-found"
+}

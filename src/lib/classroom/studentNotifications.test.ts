@@ -81,10 +81,13 @@ describe('buildStudentFeed', () => {
       notifications: [],
     });
 
-    expect(feed.map(item => item.kind)).toEqual(['teacher_approved', 'graded', 'grade_error', 'submitted']);
-    expect(feed.find(item => item.kind === 'graded')?.body).toContain('8/10');
+    // Bài máy chấm xong nhưng chưa duyệt chỉ báo "chờ thầy cô duyệt" — KHÔNG có điểm.
+    expect(feed.map(item => item.kind)).toEqual(['teacher_approved', 'submitted', 'grade_error', 'submitted']);
+    expect(feed.find(item => item.id === 's-cham:pending-approval')?.body).not.toContain('8/10');
+    expect(feed.find(item => item.id === 's-cham:pending-approval')?.title).toBe('Chờ thầy cô duyệt');
+    expect(feed.find(item => item.kind === 'teacher_approved')?.body).toContain('9/10');
     expect(feed.find(item => item.kind === 'grade_error')?.needsAction).toBe(true);
-    expect(feed.find(item => item.kind === 'submitted')?.needsAction).toBeUndefined();
+    expect(feed.filter(item => item.kind === 'submitted').every(item => item.needsAction === undefined)).toBe(true);
   });
 
   it('một bài chỉ sinh một mục, không chồng nhiều dòng cùng nói về nó', () => {
@@ -98,7 +101,8 @@ describe('buildStudentFeed', () => {
     });
 
     expect(feed).toHaveLength(1);
-    expect(feed[0].kind).toBe('graded');
+    expect(feed[0].kind).toBe('submitted');
+    expect(feed[0].body).not.toContain('7/10');
   });
 
   it('gộp hai nguồn theo thứ tự thời gian, mới nhất lên trước', () => {
@@ -137,4 +141,33 @@ describe('countUnread', () => {
     expect(countUnread(feed, '2026-09-08T11:00:00.000Z')).toBe(1);
     expect(countUnread(feed, '2026-09-08T12:00:00.000Z')).toBe(0);
   });
+});
+
+describe('buildStudentFeed · bài kiểm tra định kì', () => {
+  it('không nêu điểm AI chấm lại, chỉ báo đã có phân tích từng câu', () => {
+    const graded = submission({ status: 'graded', grade: { score: 4, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-09-09T10:00:00.000Z' } });
+    const [item] = buildStudentFeed({ submissions: [graded], assignments: [{ id: 'asg-1', title: 'Kiểm tra giữa kì I', periodicTest: {} }], notifications: [] });
+    expect(item.title).toBe('Đã phân tích bài kiểm tra');
+    expect(item.body).toBe('Bài "Kiểm tra giữa kì I" đã có phân tích từng câu. Mở ra xem nhận xét nhé.');
+    expect(item.body).not.toContain('4/10');
+  });
+});
+
+
+describe('buildStudentFeed · máy hỏi lại học sinh', () => {
+  it('chưa báo "đã có kết quả/điểm" khi bài còn câu chờ em xác nhận', () => {
+    const awaiting = submission({ status: 'graded', grade: { score: 0, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, awaitingClarification: true, gradedAt: '2026-09-09T10:00:00.000Z' } });
+    const [item] = buildStudentFeed({ submissions: [awaiting], assignments, notifications: [] });
+    expect(item.title).toBe('Máy cần em xác nhận vài câu');
+    expect(item.needsAction).toBe(true);
+    expect(item.body).not.toContain('0/10');
+  });
+});
+
+it('phản hồi mới gắn đúng lượt cũ và bài; đọc rồi không còn needsAction', () => {
+  const work = { id: 'older-attempt', assignmentId: 'a', status: 'graded', createdAt: '2026-10-01T00:00:00Z', grade: { teacherApproved: true, score: 8, maxScore: 10 }, feedbackSummary: { pending: 0, replies: 1, lastReplyAt: '2026-10-14T01:00:00Z' } } as SubmissionDoc;
+  const items = buildStudentFeed({ submissions: [work], assignments: [], notifications: [] });
+  const reply = items.find(item => item.kind === 'feedback_reply');
+  expect(reply?.assignmentId).toBe('a'); expect(reply?.submissionId).toBe('older-attempt'); expect(reply?.needsAction).toBe(true);
+  expect(buildStudentFeed({ submissions: [{ ...work, feedbackReadAt: '2026-10-14T01:00:00Z' }], assignments: [], notifications: [] }).find(item => item.kind === 'feedback_reply')?.needsAction).toBe(false);
 });

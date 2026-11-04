@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
   ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked, Image
 } from 'lucide-react';
-import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
+import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML, PHIEU_TO_MAU } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 import { ExamContentBoard } from '../features/testing/ExamContentBoard';
 import { MathOcrUploader } from '../features/testing/MathOcrUploader';
@@ -36,6 +36,8 @@ interface TestingTabProps {
   showToast: (msg: string, type?: any) => void;
   initialContent?: string;
   onConsumeInitialContent?: () => void;
+  initialResult?: string;
+  onConsumeInitialResult?: () => void;
   onSaveExam?: (content: string, title: string) => void;
 }
 
@@ -55,9 +57,14 @@ const LAST_MODE_KEY = 'testing_last_mode';
 const MAX_HISTORY = 20;
 const EXPIRE_DAYS = 7;
 
-const loadHistory = (): HistoryEntry[] => {
+export const normalizeInitialExamResult = (value?: string): string | null =>
+  value?.trim() ? value : null;
+
+const cacheKey = (key: string, uid?: string | null) => `${key}:${uid || 'anonymous'}`;
+
+const loadHistory = (uid?: string | null): HistoryEntry[] => {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
+    const raw = localStorage.getItem(cacheKey(HISTORY_KEY, uid));
     if (!raw) return [];
     const entries: HistoryEntry[] = JSON.parse(raw);
     const cutoff = Date.now() - EXPIRE_DAYS * 24 * 60 * 60 * 1000;
@@ -65,9 +72,9 @@ const loadHistory = (): HistoryEntry[] => {
   } catch { return []; }
 };
 
-const saveHistory = (entries: HistoryEntry[]) => {
+const saveHistory = (entries: HistoryEntry[], uid?: string | null) => {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+    localStorage.setItem(cacheKey(HISTORY_KEY, uid), JSON.stringify(entries.slice(0, MAX_HISTORY)));
   } catch (e) {
     // Đề dài có thể vượt quota localStorage — không được để throw làm crash tab
     console.warn('Không lưu được lịch sử đề thi (localStorage đầy)', e);
@@ -80,21 +87,24 @@ const modeBadge: Record<TestingMode, { label: string; color: string }> = {
   shuffle:{ label: 'Trộn đề', color: 'bg-orange-100 text-orange-700' },
 };
 
-export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent, onSaveExam }: TestingTabProps) => {
+export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent, initialResult, onConsumeInitialResult, onSaveExam }: TestingTabProps) => {
+  const userId = user?.uid || null;
+  const cacheUserRef = useRef(userId);
+  const userChanged = cacheUserRef.current !== userId;
   const [activeMode, setActiveMode] = useState<TestingMode>(
-    () => (localStorage.getItem(LAST_MODE_KEY) as TestingMode) || 'create'
+    () => (localStorage.getItem(cacheKey(LAST_MODE_KEY, userId)) as TestingMode) || 'create'
   );
   const [uploadedFiles, setUploadedFiles] = useState<TemplateFile[]>([]);
   const [matrixFile, setMatrixFile] = useState<TemplateFile | null>(null);
   const [sampleFile, setSampleFile] = useState<TemplateFile | null>(null);
   const [requirement, setRequirement] = useState('');
   const [testResult, setTestResult] = useState<string | null>(
-    () => localStorage.getItem(LAST_RESULT_KEY)
+    () => localStorage.getItem(cacheKey(LAST_RESULT_KEY, userId))
   );
   const [shuffledCount, setShuffledCount] = useState(4);
   const [questionStructure, setQuestionStructure] = useState({ mcq: 28, trueFalse4: 4, shortAnswer: 0, essay: 0 });
   const [processStatus, setProcessStatus] = useState<string>('');
-  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory(userId));
   const [showHistory, setShowHistory] = useState(false);
   const [latexContent, setLatexContent] = useState('');
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
@@ -113,10 +123,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
-    const cleaned = loadHistory();
+    cacheUserRef.current = userId;
+    setActiveMode((localStorage.getItem(cacheKey(LAST_MODE_KEY, userId)) as TestingMode) || 'create');
+    setTestResult(localStorage.getItem(cacheKey(LAST_RESULT_KEY, userId)));
+    const cleaned = loadHistory(userId);
     setHistory(cleaned);
-    saveHistory(cleaned);
-  }, []);
+    saveHistory(cleaned, userId);
+  }, [userId]);
 
   // Pre-fill requirement khi được chuyển từ giáo án, xóa sau khi dùng
   useEffect(() => {
@@ -126,17 +139,27 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     }
   }, [initialContent]);
 
+  // Load a selected library exam into the editor instead of leaving the previous result visible.
+  useEffect(() => {
+    if (initialResult !== undefined) {
+      setTestResult(normalizeInitialExamResult(initialResult));
+      setRequirement('');
+      onConsumeInitialResult?.();
+    }
+  }, [initialResult]);
+
   // Lưu kết quả vào localStorage
   useEffect(() => {
+    if (userChanged) return;
     if (testResult) {
       try {
-        localStorage.setItem(LAST_RESULT_KEY, testResult);
-        localStorage.setItem(LAST_MODE_KEY, activeMode);
+        localStorage.setItem(cacheKey(LAST_RESULT_KEY, userId), testResult);
+        localStorage.setItem(cacheKey(LAST_MODE_KEY, userId), activeMode);
       } catch (e) {
         console.warn('Không lưu được kết quả gần nhất (localStorage đầy)', e);
       }
     }
-  }, [testResult, activeMode]);
+  }, [testResult, activeMode, userId, userChanged]);
 
   const addToHistory = (mode: TestingMode, content: string) => {
     const modeLabel = modeBadge[mode].label;
@@ -150,24 +173,24 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     };
     const updated = [entry, ...history].slice(0, MAX_HISTORY);
     setHistory(updated);
-    saveHistory(updated);
+    saveHistory(updated, userId);
   };
 
   const deleteHistoryEntry = (id: string) => {
     const updated = history.filter(e => e.id !== id);
     setHistory(updated);
-    saveHistory(updated);
+    saveHistory(updated, userId);
   };
 
   const clearHistory = () => {
     setHistory([]);
-    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(cacheKey(HISTORY_KEY, userId));
   };
 
   const clearResult = () => {
     setTestResult(null);
-    localStorage.removeItem(LAST_RESULT_KEY);
-    localStorage.removeItem(LAST_MODE_KEY);
+    localStorage.removeItem(cacheKey(LAST_RESULT_KEY, userId));
+    localStorage.removeItem(cacheKey(LAST_MODE_KEY, userId));
   };
 
   const handleDownloadPDF = async () => {
@@ -901,6 +924,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                   >
                     <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm
                   </button>
+                  {PHIEU_TO_MAU.map(m => (
+                    <a key={m.href} href={m.href} download
+                      className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+                    >
+                      <Download className="w-3.5 h-3.5" /> {m.label} (PDF)
+                    </a>
+                  ))}
                 </div>
               </>
             )}

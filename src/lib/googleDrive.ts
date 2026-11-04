@@ -2,6 +2,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import { GoogleAuthProvider, browserPopupRedirectResolver, getAuth, inMemoryPersistence, initializeAuth, reauthenticateWithPopup, signInWithPopup } from 'firebase/auth';
 import { auth } from './firebase';
 import { getLinkedGoogleEmail } from './adminLink';
+import { moTaLoiDichVu } from './httpErrorText';
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const API_BASE = 'https://www.googleapis.com/drive/v3';
@@ -102,7 +103,7 @@ const driveError = async (res: Response, fallback: string): Promise<Error> => {
     );
   }
   const body = await res.json().catch(() => ({})) as { error?: { message?: string } };
-  return new Error(body.error?.message ?? `${fallback}: ${res.status}`);
+  return new Error(body.error?.message ?? `${fallback}. ${moTaLoiDichVu(res.status, 'Google Drive')}`);
 };
 
 const driveGet = async (path: string, params: Record<string, string>, token: string): Promise<Response> => {

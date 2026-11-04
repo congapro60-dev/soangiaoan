@@ -1,0 +1,488 @@
+{
+ "sessionFile": "tasks/tmp-t10-session.json",
+ "session": "2vuuqC9VtmVhVGihSyD6",
+ "gvOpen": {
+  "stage": "1",
+  "band": null,
+  "plan": "Kế hoạch 0–3′ · tiết 40′",
+  "status": "waiting",
+  "expired": false
+ },
+ "join": "view-stable",
+ "bands": [
+  {
+   "stage": "1",
+   "gvBand": null,
+   "hsBand": "Chặng 0–3 phút",
+   "plan": "Kế hoạch 0–3′ · tiết 40′"
+  },
+  {
+   "stage": "2",
+   "gvBand": null,
+   "hsBand": "Chặng 3–5 phút",
+   "plan": "Kế hoạch 3–5′ · tiết 40′"
+  },
+  {
+   "stage": "3",
+   "gvBand": null,
+   "hsBand": "Chặng 5–8 phút",
+   "plan": "Kế hoạch 5–8′ · tiết 40′"
+  },
+  {
+   "stage": "4",
+   "gvBand": null,
+   "hsBand": "Chặng 8–16 phút",
+   "plan": "Kế hoạch 8–16′ · tiết 40′"
+  },
+  {
+   "stage": "5",
+   "gvBand": null,
+   "hsBand": "Chặng 16–19 phút",
+   "plan": "Kế hoạch 16–19′ · tiết 40′"
+  },
+  {
+   "stage": "6",
+   "gvBand": null,
+   "hsBand": "Chặng 19–20 phút",
+   "plan": "Kế hoạch 19–20′ · tiết 40′"
+  },
+  {
+   "stage": "7",
+   "gvBand": null,
+   "hsBand": "Chặng 20–27 phút",
+   "plan": "Kế hoạch 20–27′ · tiết 40′"
+  },
+  {
+   "stage": "8",
+   "gvBand": null,
+   "hsBand": "Chặng 27–30 phút",
+   "plan": "Kế hoạch 27–30′ · tiết 40′"
+  },
+  {
+   "stage": "9",
+   "gvBand": null,
+   "hsBand": "Chặng 30–35 phút",
+   "plan": "Kế hoạch 30–35′ · tiết 40′"
+  },
+  {
+   "stage": "10",
+   "gvBand": null,
+   "hsBand": "Chặng 35–38 phút",
+   "plan": "Kế hoạch 35–38′ · tiết 40′"
+  },
+  {
+   "stage": "11",
+   "gvBand": null,
+   "hsBand": "Chặng 38–40 phút",
+   "plan": "Kế hoạch 38–40′ · tiết 40′"
+  }
+ ],
+ "s4": {
+  "gvBand": null,
+  "hsBand": "Chặng 16–19 phút",
+  "tvBand": null,
+  "hsHasAiKetLuan": true,
+  "tvHasAiKetLuan": true,
+  "hsHasPhanHoiNhanh": true,
+  "hsHas4Nhan": true,
+  "hsNoProof": true,
+  "tvNoProof": true,
+  "hsButtons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "lập luận",
+   "phép kiểm",
+   "Hiểu sai khái niệm",
+   "Sai biến đổi hoặc tính toán",
+   "Sai lập luận",
+   "Thiếu điều kiện",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "hsExcerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–19 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ v"
+ },
+ "route": {
+  "gvBand": null,
+  "hsBand": "Chặng 19–20 phút",
+  "hasDenLuotSau": false,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Chờ 3s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 19–20 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ vào cột x, tần số nᵢ vào c"
+ },
+ "s6": null,
+ "s7": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 20–27 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ vào cột x, tần số nᵢ vào cột Freq (ví dụ xạ thủ An)\n7 →\n= →\n2 →\n= →\n9 →\n= →\n16 →\n= →\n11 →\n= →\n2 →\n=\nCác phím: 7 → = → 2 → = → 9 → = → 16 → = → 11 → = → 2 → =\n4\nĐọc độ lệch chuẩn quần thể\nOPTN →\n3\nMàn hình phải hiện: σx = 0,89443…\nCác phím: OPTN → 3\nMáy tính là công cụ kiểm tra, tư duy lập bảng của con người mới là gốc rễ.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Hình thành công thức phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm; lập bảng trung gian; kiểm chứng bằng máy tính Casio bằng sản phẩm nhóm.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 7/12\nKế hoạch 20–27′ · tiết 40′\n6:53\nĐANG HỌC\nP0 · 0:57\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "am": false,
+    "can3": false
+   },
+   "tv": {
+    "am": false,
+    "can3": false
+   },
+   "gv": {
+    "am": false,
+    "can3": false
+   }
+  },
+  "casioHS": {
+   "has": true,
+   "sigma": true,
+   "menu": true,
+   "freq": true,
+   "steps4": false
+  },
+  "casioTv": {
+   "has": false,
+   "sigma": false
+  },
+  "numbers": {
+   "x9": true,
+   "an08": false,
+   "binh28": false,
+   "sigmaFull": true
+  }
+ },
+ "s8": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 27–30 phút · theo nhịp thầy cô\nPost-check cá nhân\nHS thực hiện postCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ vào cột x, tần số nᵢ vào cột Freq (ví dụ xạ thủ An)\n7 →\n= →\n2 →\n= →\n9 →\n= →\n16 →\n= →\n11 →\n= →\n2 →\n=\nCác phím: 7 → = → 2 → = → 9 → = → 16 → = → 11 → = → 2 → =\n4\nĐọc độ lệch chuẩn quần thể\nOPTN →\n3\nMàn hình phải hiện: σx = 0,89443…\nCác phím: OPTN → 3\nMáy tính là công cụ kiểm tra, tư duy lập bảng của con người mới là gốc rễ.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Hình thành công thức phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm; lập bảng trung gian; kiểm chứng bằng máy tính Casio và nêu căn cứ.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 8/12\nKế hoạch 27–30′ · tiết 40′\n2:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Hình thành công thức phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm; lập bảng trung gian; kiểm chứng bằng máy tính Casio và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 8/12\nKế hoạch 27–30′ · tiết 40′\n2:53\nĐANG HỌC\nP1 · 1:06\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Hình thành công thức phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm; lập bảng trung gian; kiểm chứng bằng máy tính Casio và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n8/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "am": false,
+    "can3": false
+   },
+   "tv": {
+    "am": false,
+    "can3": false
+   },
+   "gv": {
+    "am": false,
+    "can3": false
+   }
+  }
+ },
+ "exit": {
+  "hsBand": "Chặng 38–40 phút",
+  "emptyBtn": {
+   "exists": false,
+   "disabled": null
+  },
+  "emptyStatus": [],
+  "emptyBlocked": true,
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": true,
+   "tag": "TEXTAREA"
+  },
+  "clickedSend": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "hienKetQua": true,
+  "gvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "tvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "gvHas1HS": true,
+  "tvHas1HS": true
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "band": null,
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "gvBand": null,
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "hsBand": null
+ },
+ "think": {
+  "reads": 62,
+  "validReads": 62,
+  "samples": [
+   {
+    "at": "00:42:29",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:30",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:31",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:31",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:32",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:33",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:34",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:36",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:37",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:38",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:38",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:39",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:40",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:41",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:43",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:44",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:45",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:46",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:46",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:47",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:48",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:51",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:51",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:52",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:53",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:53",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:54",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "00:42:55",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "00:43:03",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "00:43:04",
+    "text": "Chờ 9s",
+    "disabled": true
+   }
+  ],
+  "saw10": true,
+  "minSeen": 6,
+  "lockedAll": true,
+  "windows": [
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 7,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   }
+  ]
+ },
+ "tvButtons": [],
+ "s9": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nLò Mai Phương Chi · 12LoTrinh1\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 30–35 phút · theo nhịp thầy cô\nQuick check\nHS thực hiện quickCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nMÁY TÍNH CỦA EM — BẤM THEO ĐÚNG THỨ TỰ\nCasio fx-580VN X\n1\nVào chế độ thống kê\nMENU →\n6 →\n1\nCác phím: MENU → 6 → 1\n2\nBật cột tần số (nếu máy chưa hiện cột Freq)\nSHIFT →\nMENU →\n▼ →\n3 →\n1\nMàn hình phải hiện: Freq · On\nCác phím: SHIFT → MENU → ▼ → 3 → 1\n3\nNhập giá trị đại diện cᵢ vào cột x, tần số nᵢ vào cột Freq (ví dụ xạ thủ An)\n7 →\n= →\n2 →\n= →\n9 →\n= →\n16 →\n= →\n11 →\n= →\n2 →\n=\nCác phím: 7 → = → 2 → = → 9 → = → 16 → = → 11 → = → 2 → =\n4\nĐọc độ lệch chuẩn quần thể\nOPTN →\n3\nMàn hình phải hiện: σx = 0,89443…\nCác phím: OPTN → 3\nMáy tính là công cụ kiểm tra, tư duy lập bảng của con người mới là gốc rễ.\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nTrả lời nhanh rồi sửa một lỗi nếu phát hiện.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 9/12\nKế hoạch 30–35′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:14\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nTính nhanh \n𝑠\n2\ns\n2\n khi \n𝑛\n=\n10\nn=10, \n∑\n𝑛\n𝑖\n𝑐\n𝑖\n2\n=\n250\n∑n\ni\n\t​\nc\ni\n2\n\t​\n=250, \n𝑥\nˉ\n=\n4\nx\nˉ\n=4.\nMột bài giải ghi \n𝑠\n2\n=\n9\ns\n2\n=9 rồi kết luận \n𝑠\n=\n±\n3\ns=±3. Bài đó sai ở đâu?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nPhương sai và độ lệch chuẩn\nChặng 9/12\nKế hoạch 30–35′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:14\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nTính nhanh \n𝑠\n2\ns\n2\n khi \n𝑛\n=\n10\nn=10, \n∑\n𝑛\n𝑖\n𝑐\n𝑖\n2\n=\n250\n∑n\ni\n\t​\nc\ni\n2\n\t​\n=250, \n𝑥\nˉ\n=\n4\nx\nˉ\n=4.\nMột bài giải ghi \n𝑠\n2\n=\n9\ns\n2\n=9 rồi kết luận \n𝑠\n=\n±\n3\ns=±3. Bài đó sai ở đâu?\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n9/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "am": false,
+    "can3": false
+   },
+   "tv": {
+    "am": true,
+    "can3": false
+   },
+   "gv": {
+    "am": true,
+    "can3": false
+   }
+  }
+ }
+}

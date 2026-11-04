@@ -1,4 +1,5 @@
 import type { StudentSkillState } from '../learning/skillTypes.js';
+import type { ExamVariant } from './examVariants.js';
 
 /**
  * Mô hình dữ liệu lớp học — bộ xương dùng chung cho cả hai cửa vào:
@@ -220,6 +221,21 @@ export interface AssignmentCompetencyTag {
   reason: string;
 }
 
+export interface WorkedSolutionCache {
+  version: string;
+  generatedAt: string;
+  status: 'ready' | 'incomplete';
+  questions: { questionNumber: string; workedSolution: string; status: 'ready' | 'unavailable' }[];
+}
+export interface SubmissionActor { role: 'teacher' | 'student' | 'parent'; uid?: string; studentId: string; at: string }
+export interface SubmissionFeedbackMessage { id: string; role: 'student' | 'teacher'; text: string; at: string }
+export interface SubmissionFeedbackDoc {
+  id: string; submissionId: string; studentId: string; classId: string; teacherId: string;
+  questionNumber?: string; status: 'pending' | 'answered' | 'resolved';
+  messages: SubmissionFeedbackMessage[]; createdAt: string; updatedAt: string;
+}
+export interface SubmissionFeedbackSummary { pending: number; replies: number; lastReplyAt?: string }
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -248,6 +264,7 @@ export interface AssignmentDoc {
    * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
    */
   questionCatalog?: AssignmentQuestionCatalogItem[];
+  questionCatalogByExamCode?: Record<string, AssignmentQuestionCatalogItem[]>;
   /**
    * Năng lực AI gắn cho bài (một lượt cùng lúc đọc questionCatalog). Nền cho hồ sơ năng lực:
    * mỗi bài đã duyệt trở thành bằng chứng cho các năng lực này. Giáo viên duyệt/sửa sau.
@@ -263,6 +280,8 @@ export interface AssignmentDoc {
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
   answerKeyByAi?: boolean;
+  /** Đáp án từng câu thầy cô đã sửa sau khi chấm — đè lên đáp án gốc ở mọi lượt chấm sau. */
+  answerKeyFixes?: AnswerKeyFix[];
   /** Người tạo/cập nhật gần nhất; không thay đổi namespace teacherId legacy. */
   createdBy?: string;
   updatedBy?: string;
@@ -286,6 +305,19 @@ export interface AssignmentDoc {
   exportBundle?: ActivityExportBundle;
   /** Nhóm học sinh đích; vắng field nghĩa là cả lớp. */
   targetStudentIds?: string[];
+  /**
+   * Bài kiểm tra định kì (giữa kì, cuối kì…): giáo viên đã chấm tay, học sinh chụp bài đã chấm nộp lên để
+   * phân tích từng câu. Điểm CHÍNH THỨC là điểm giáo viên nhập trong sổ điểm (Sheet) — bài này không cộng vào
+   * điểm trung bình BTVN, chỉ làm căn cứ cho "Bản đồ theo bài SGK".
+   */
+  periodicTest?: PeriodicTestInfo;
+  /** Các mã đề (đề + đáp án riêng). Có thì máy chủ chấm mỗi bài nộp theo đúng mã AI đọc được trên bài. */
+  examVariants?: ExamVariant[];
+  workedSolutions?: WorkedSolutionCache;
+  workedSolutionsByExamCode?: Record<string, WorkedSolutionCache>;
+  submissionLocked?: boolean;
+  lockedAt?: string;
+  lockedBy?: string;
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
@@ -295,8 +327,8 @@ export interface AssignmentDoc {
 export type StudentAssignmentView = Pick<
   AssignmentDoc,
   'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
-  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
-  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion'
+  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'submissionLocked' | 'lockedAt' | 'createdAt' | 'updatedAt'
+  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion' | 'periodicTest'
 > & {
   hasAnswerKey: boolean;
   exportBundle?: StudentActivityExportBundle;
@@ -311,7 +343,42 @@ export type QuestionResultStatus =
   | 'unreadable'
   | 'not_attempted';
 
+/** Vùng lỗi trên ảnh gốc; URL do máy chủ gắn từ ảnh bài làm thực sự gửi AI. */
+export interface PhotoMark {
+  imageIndex: number;
+  imageUrl?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
+/**
+ * "Bút đỏ" một bước lập luận của câu tự luận: Đ/S + điểm ghi ở lề ngang dòng em viết, lời sửa ngắn cạnh chỗ sai.
+ * Chỉ để GIẢI THÍCH điểm câu — hiện khi tổng điểm các bước khớp đúng điểm câu hiện tại (xem `validPhotoSteps`).
+ */
+export interface PhotoStep {
+  text: string;
+  verdict: 'correct' | 'partial' | 'wrong';
+  score: number;
+  maxScore: number;
+  note?: string;
+  mark?: PhotoMark;
+}
+
 /** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
+/** Phiếu tô mẫu Bộ 2025 đã dò: Phần I (A–D), II (Đúng/Sai 4 ý), III (tô số). confidence ≥ 0,9 = chắc. */
+export interface OmrSheetResult {
+  form: 'k1011' | 'k12';
+  alignment: number;
+  examCode: string | null;
+  studentCode: string | null;
+  mcq: { q: number; answer: string | null; confidence: number }[];
+  trueFalse: { q: number; items: Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S' | null>; confidence: number }[];
+  shortAnswer: { q: number; answer: string | null; confidence: number }[];
+}
+
 export interface QuestionResult {
   /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
   questionNumber: string;
@@ -332,10 +399,73 @@ export interface QuestionResult {
   nextPractice: string;
   /** 0..1; chỉ có khi AI tự đánh giá được độ chắc chắn. */
   confidence?: number;
+  photoMarks?: PhotoMark[];
+  readingRegions?: PhotoMark[];
+  photoSteps?: PhotoStep[];
+  workedSolution?: string;
+  workedSolutionVersion?: string;
+  workedSolutionStatus?: 'ready' | 'unavailable';
+  /** Thầy cô đã bỏ dấu câu này; chấm lại không tự gắn lại. */
+  photoMarksCleared?: boolean;
   /** true khi phần này được bỏ qua có chủ đích theo lệnh riêng của giáo viên. */
   ignoredByTeacherInstruction?: boolean;
   /** true khi giáo viên cần xem lại vì dữ liệu mờ, thiếu hoặc AI không chắc. */
   needsTeacherReview: boolean;
+  /** true khi thầy cô đã soát tay câu này — AI chấm lại không được đè. */
+  teacherEdited?: boolean;
+  /** Máy đọc chưa chắc câu này → hỏi lại học sinh (xem `clarification.ts`). Chỉ có khi lớp bật tính năng. */
+  clarify?: QuestionClarify;
+}
+
+/** Câu này học sinh cần giúp máy làm rõ bằng cách nào: chọn/gõ đáp án (khách quan) hay chụp lại bài làm (tự luận). */
+export type ClarifyKind = 'mcq' | 'true_false' | 'short' | 'photo';
+
+/**
+ * `open` chờ học sinh · `answered` học sinh đã gõ đáp án · `photo_saved` ảnh đã lưu, chờ máy chấm lại ·
+ * `regrading` máy đang chấm lại câu từ ảnh mới · `done` đã xong · `skipped` em chọn để thầy cô xem.
+ */
+export type ClarifyState = 'open' | 'answered' | 'photo_saved' | 'regrading' | 'done' | 'skipped';
+
+export interface QuestionClarify {
+  kind: ClarifyKind;
+  confirmedBy?: SubmissionActor;
+  state: ClarifyState;
+  /** Máy đã đọc ra gì ở lần chấm đầu (hiện cho em đối chiếu). */
+  reading: string;
+  /** Câu Đúng/Sai nhiều ý: các ý cần chọn ("a","b","c","d"). Chỉ có khi `kind==='true_false'`. */
+  parts?: string[];
+  /** Ảnh em chụp lại cho đúng câu này (tự luận). Không bao giờ bị xoá khi em thoát giữa chừng. */
+  photoUrls?: string[];
+  /** Mốc lần đổi trạng thái gần nhất — để nhận ra lượt chấm lại bị treo. */
+  at?: string;
+  /** Số lần em đã chụp lại câu này (tự luận). */
+  tries?: number;
+  /** Lời nhắn cho em sau lượt chấm lại (vì sao máy vẫn chưa đọc rõ / chưa chấm lại được). */
+  message?: string;
+}
+
+/** Bài kiểm tra định kì — xem `AssignmentDoc.periodicTest`. */
+export interface PeriodicTestInfo {
+  /** Tên cột điểm trong sổ điểm của lớp (vd "Giữa học kì I") — để đối chiếu tổng điểm AI với điểm giáo viên. */
+  sheetLabel?: string;
+}
+
+/** Đối chiếu tổng điểm AI chấm lại với điểm giáo viên đã chấm tay (sổ điểm). Lệch nhiều thì không tự duyệt. */
+export interface ExamScoreCheck {
+  sheetLabel: string;
+  sheetScore: number;
+  /** |điểm AI − điểm giáo viên|, cùng thang. */
+  diff: number;
+  mismatch: boolean;
+}
+
+/** Thầy cô sửa đáp án MỘT câu sau khi đã chấm, áp cho cả lớp. */
+export interface AnswerKeyFix {
+  questionNumber: string;
+  expectedAnswer: string;
+  fixedAt: string;
+  /** Bài nhiều mã đề: chỉ áp cho bài nộp của đúng mã này (câu 5 mã 101 khác câu 5 mã 102). */
+  examCode?: string;
 }
 
 export interface GradingRecovery {
@@ -374,11 +504,19 @@ export interface SubmissionGrade {
   editedByTeacher?: boolean;
   /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
   gradingRecovery?: GradingRecovery;
+  /** Bản chiếu cho HỌC SINH khi bài chưa được duyệt: điểm, nhận xét, kết quả từng câu bị ẩn (chỉ còn câu máy hỏi lại em). */
+  scoreHidden?: boolean;
+  /** CHỈ có ở bản chiếu cho học sinh: còn câu chờ em làm rõ → chưa hiện điểm, đáp án, nhận xét. */
+  awaitingClarification?: boolean;
   /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */
   transcription?: string;
+  /** Bài kiểm tra định kì: đối chiếu với điểm giáo viên trong sổ điểm (khi đã có điểm). */
+  examCheck?: ExamScoreCheck;
+  /** Bài kiểm tra định kì: TỔNG điểm giáo viên viết tay trên bài, máy đọc từ ảnh (chưa ai xác nhận). Không dùng để chấm. */
+  paperScore?: { score: number; maxScore: number };
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix' | 'refresh_restore' | 'incident_restore';
 
 /** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
 export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';
@@ -413,6 +551,15 @@ export interface SubmissionDoc {
   /** Revision này bổ sung vào submission trước; bản trước vẫn là lịch sử bất biến. */
   supplementOf?: string;
   /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
+  submittedBy?: SubmissionActor;
+  feedbackSummary?: SubmissionFeedbackSummary;
+  feedbackReadAt?: string;
+  handMarkedEvidence?: HandMarkedEvidence;
+  handMarkedPublished?: boolean;
+  /** Giáo viên nộp bài đã chấm tay: AI quét điểm ghi tay của GV, tự duyệt và tính vào thống kê/báo cáo. */
+  handMarkedPaper?: boolean;
+  /** Ai khai bài đã chấm tay: 'teacher' = GV nộp hộ (điểm GV là điểm chính thức); 'student'/'parent' = em tự nộp (chỉ đọc điểm, GV phải xác nhận). */
+  handMarkedDeclaredBy?: 'teacher' | 'student' | 'parent';
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
   textContent?: string;
@@ -430,6 +577,18 @@ export interface SubmissionDoc {
   lastGradingErrorRaw?: string;
   /** Lỗi đồng bộ minh chứng sau khi duyệt điểm — grade vẫn được duyệt, chỉ sync pending. */
   evidenceSyncError?: string;
+  /** Bài nhiều mã đề: mã của bài này — AI đọc trên ảnh, hoặc giáo viên chọn khi AI không đọc được. Chỉ máy chủ ghi. */
+  examCode?: string;
+  examCodeSource?: 'ai' | 'omr' | 'teacher' | 'student' | 'parent';
+  /** Kết quả máy dò phiếu tô mẫu Bộ 2025 trên máy em lúc nộp (không qua AI). Chỉ máy chủ ghi, sau khi kiểm khuôn. */
+  omrSheet?: OmrSheetResult;
+  /** Máy chưa đọc được mã đề ở lượt đọc đầu: các mã của bài để em chọn mã ghi trên tờ đề. Rỗng = không hỏi. */
+  examCodeAsk?: string[];
+  /**
+   * Lí do lượt đọc đầu chưa xong (status 'error', chưa có điểm): 'photo' = ảnh chưa rõ, em chụp lại;
+   * 'exam_code' = em chọn mã đề; 'system' = lỗi hệ thống, em không cần làm gì. Chỉ máy chủ ghi.
+   */
+  errorReason?: 'photo' | 'exam_code' | 'system';
   createdAt: string;
   updatedAt: string;
 }
@@ -442,6 +601,14 @@ export interface SubmissionAttachment {
   mimeType?: string;
   size?: number;
   kind?: SubmissionAttachmentKind;
+}
+/** Private teacher-marked files are opened through a short-lived authorized read action. */
+export interface HandMarkedEvidence {
+  id: string;
+  files: { id: string; name: string; mimeType: string; size: number; kind: 'image' | 'pdf' }[];
+  note: string;
+  submittedBy: SubmissionActor;
+  createdAt: string;
 }
 
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
@@ -603,4 +770,14 @@ export interface StudentActivityView {
   officialScore: number | null;
   status: StudentActivityStatus;
   nextAction: 'start' | 'resume' | 'view_feedback' | 'wait_teacher' | 'retry' | 'practice_again';
+}
+
+/** Bài chữa là luyện tập riêng, không sửa bằng chứng hoặc điểm của bài đã chấm. */
+export interface CorrectionAssessment { outcome: 'achieved' | 'needs_work' | 'uncertain'; feedback: string }
+export interface CorrectionAttemptDoc {
+  id: string; submissionId: string; studentId: string; classId: string; teacherId: string;
+  attachments: SubmissionAttachment[]; fileUrls: string[]; note: string;
+  submittedBy?: SubmissionActor; reviewedBy?: SubmissionActor;
+  status: 'saved' | 'reviewing' | 'reviewed' | 'error'; assessment?: CorrectionAssessment;
+  createdAt: string; updatedAt: string; reviewedAt?: string; errorMessage?: string;
 }

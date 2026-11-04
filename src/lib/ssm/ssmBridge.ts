@@ -3,17 +3,170 @@
  * App không bao giờ cầm vé đăng nhập SSM: tiện ích tự lấy phiên trong tab SSM, gọi API, chỉ trả JSON.
  */
 
-export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { getLinkedGoogleEmail } from '../adminLink';
+import { ADMIN_EMAILS, isAdminEmail } from '../admin/adminConfig';
 
-const PING_TIMEOUT_MS = 1500;
+export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents' | 'attachLoFile' | 'autofillSsm'
+  | 'evaluationQuarters' | 'subjectClass' | 'criteriaAssessment' | 'classSubjectAssessment' | 'writeLoGrades';
+
+// Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
+const PING_TIMEOUTS_MS = [2000, 8000] as const;
 const REQUEST_TIMEOUT_MS = 20000;
 
 let seq = 0;
 
-export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise<unknown> =>
-  new Promise((resolve, reject) => {
+const NO_EXTENSION_MESSAGE =
+  'Chưa kết nối với SSM. Hãy bấm "Kết nối SSM" để dán mã kết nối, hoặc mở edge://extensions kiểm tra tiện ích.';
+
+export interface StoredSsmSession {
+  token: string;
+  workspace: string;
+  userEmail?: string;
+  userName?: string;
+  savedAt: string;
+}
+
+const SESSION_STORAGE_KEY = (uid?: string) => `smartplan.ssmSession.${uid || auth.currentUser?.uid || 'default'}`;
+
+export const getStoredSsmSession = (): StoredSsmSession | null => {
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed.token === 'string' && parsed.token.trim()
+      ? {
+          token: parsed.token.trim(),
+          workspace: typeof parsed.workspace === 'string' ? parsed.workspace.trim() : '',
+          userEmail: typeof parsed.userEmail === 'string' ? parsed.userEmail : undefined,
+          userName: typeof parsed.userName === 'string' ? parsed.userName : undefined,
+          savedAt: typeof parsed.savedAt === 'string' ? parsed.savedAt : new Date().toISOString(),
+        }
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStoredSsmSession = (session: StoredSsmSession | null): void => {
+  try {
+    if (session) {
+      localStorage.setItem(SESSION_STORAGE_KEY(), JSON.stringify(session));
+    } else {
+      localStorage.removeItem(SESSION_STORAGE_KEY());
+    }
+  } catch {
+    // Bỏ qua khi storage bị chặn
+  }
+};
+
+export const parseSsmConnectionInput = (input: string): { token: string; workspace?: string } | null => {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // Trường hợp 1: JSON { token, workspace } hoặc { access_token, workspace }
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const token = String(parsed.token || parsed.access_token || parsed.accessToken || '').trim();
+      const workspace = String(parsed.workspace || parsed.branch || '').trim();
+      if (token) return { token, ...(workspace ? { workspace } : {}) };
+    } catch {
+      // Bỏ qua nếu parse JSON lỗi
+    }
+  }
+
+  // Trường hợp 2: URL hash chứa #access_token=...&workspace=...
+  if (trimmed.includes('access_token=')) {
+    const queryPart = trimmed.includes('#') ? trimmed.split('#')[1] : trimmed;
+    const params = new URLSearchParams(queryPart);
+    const token = params.get('access_token')?.trim();
+    const workspace = params.get('workspace')?.trim();
+    if (token) return { token, ...(workspace ? { workspace } : {}) };
+  }
+
+  // Trường hợp 3: Token thô (JWT hoặc chuỗi dài)
+  const rawToken = trimmed.replace(/^Bearer\s+/i, '').trim();
+  if (rawToken.length > 20) {
+    return { token: rawToken };
+  }
+
+  return null;
+};
+
+export const testAndSaveSsmConnection = async (
+  input: string,
+  fallbackWorkspace?: string,
+): Promise<{ name: string; email: string; workspace: string }> => {
+  const parsed = parseSsmConnectionInput(input);
+  if (!parsed) throw new Error('Mã kết nối không hợp lệ. Hãy dán mã token hoặc chuỗi kết nối SSM.');
+  const workspace = parsed.workspace || fallbackWorkspace || '';
+  const user = auth.currentUser;
+  const idToken = user && !user.isAnonymous ? await user.getIdToken() : '';
+  const res = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'ssmProxy', op: 'profile', token: parsed.token, workspace, idToken }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json();
+  if (!data.ok) {
+    throw new Error(data.error || 'Không kết nối được SSM. Kiểm tra lại mã token.');
+  }
+  const prof = data.data?.data || data.data || {};
+  const name = String(prof.full_name || prof.name || 'Giáo viên');
+  const email = String(prof.email || '');
+  const realWorkspace = workspace || String(prof.workspace || '');
+
+  saveStoredSsmSession({
+    token: parsed.token,
+    workspace: realWorkspace,
+    userName: name,
+    userEmail: email,
+    savedAt: new Date().toISOString(),
+  });
+
+  return { name, email, workspace: realWorkspace };
+};
+
+export const ssmRequest = async (op: SsmOp, params?: Record<string, unknown>, timeoutOverrideMs?: number): Promise<unknown> => {
+  const session = getStoredSsmSession();
+
+  // CHẾ ĐỘ 1: Server Proxy (Chính — không cần cài extension trình duyệt)
+  if (session) {
+    const user = auth.currentUser;
+    const idToken = user && !user.isAnonymous ? await user.getIdToken() : '';
+    const timeoutMs = timeoutOverrideMs ?? REQUEST_TIMEOUT_MS;
+    const res = await fetch('/api/classroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'ssmProxy',
+        op: op === 'ping' ? 'profile' : op,
+        params,
+        token: session.token,
+        workspace: session.workspace,
+        idToken,
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    const result = await res.json();
+    if (!result.ok) {
+      if (result.status === 401) {
+        throw new Error('Phiên kết nối SSM đã hết hạn. Hãy cập nhật lại mã kết nối SSM.');
+      }
+      throw new Error(result.error || 'SSM trả lỗi không rõ.');
+    }
+    return result.data;
+  }
+
+  // CHẾ ĐỘ 2: Dự phòng Extension (Nếu máy đã có extension)
+  return new Promise((resolve, reject) => {
+    const expectedEmails = [...new Set([auth.currentUser?.email, getLinkedGoogleEmail(), ...(isAdminEmail(auth.currentUser?.email) ? ADMIN_EMAILS : [])].filter((email): email is string => typeof email === 'string' && email.includes('@')).map(email => email.trim().toLowerCase()))];
+    if (op !== 'ping' && (!auth.currentUser || auth.currentUser.isAnonymous || !expectedEmails.length)) { reject(new Error('Đăng nhập tài khoản giáo viên trước khi dùng SSM.')); return; }
     const id = `ssm-${Date.now()}-${++seq}`;
-    const timeoutMs = op === 'ping' ? PING_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
+    const timeoutMs = timeoutOverrideMs ?? REQUEST_TIMEOUT_MS;
 
     const onMessage = (event: MessageEvent) => {
       if (event.source !== window || event.origin !== window.location.origin) return;
@@ -25,9 +178,7 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise
     };
     const timer = window.setTimeout(() => {
       cleanup();
-      reject(new Error(op === 'ping'
-        ? 'Chưa cài tiện ích "SmartPlan ↔ SSM" trên Edge, hoặc cần tải lại trang app.'
-        : 'SSM không phản hồi — thử lại sau.'));
+      reject(new Error(op === 'ping' ? NO_EXTENSION_MESSAGE : 'SSM không phản hồi — thử lại sau.'));
     }, timeoutMs);
     const cleanup = () => {
       window.clearTimeout(timer);
@@ -35,27 +186,163 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise
     };
 
     window.addEventListener('message', onMessage);
-    window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params }, window.location.origin);
+    window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params: { ...params, expectedEmails } }, window.location.origin);
   });
+};
 
-const LINK_KEY = (classId: string) => `ssmClassLink:${classId}`;
+/** Kiểm tra kết nối SSM: ưu tiên Server Proxy (phiên lưu), sau đó thử Extension. */
+export const pingSsmBridge = async (): Promise<void> => {
+  const session = getStoredSsmSession();
+  if (session) {
+    await ssmRequest('ping');
+    return;
+  }
 
-/** Lớp SSM đã ghép với lớp app — lưu trên trình duyệt của từng giáo viên. */
-export const readSsmLink = (classId: string): { id: number; name: string } | null => {
+  let lastError: unknown;
+  for (const timeoutMs of PING_TIMEOUTS_MS) {
+    try {
+      await ssmRequest('ping', undefined, timeoutMs);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+};
+
+const LINK_KEY = (classId: string) => `ssmClassLink:${auth.currentUser?.uid || ''}:${classId}`;
+
+export interface SsmClassLink {
+  id: number;
+  name: string;
+  workspace?: string;
+}
+
+/** Lớp SSM đã ghép với lớp app — đọc từ cache trình duyệt (nhanh, offline). */
+export const readSsmLink = (classId: string): SsmClassLink | null => {
   try {
+    if (!auth.currentUser || auth.currentUser.isAnonymous) return null;
     const raw = localStorage.getItem(LINK_KEY(classId));
     const parsed = raw ? JSON.parse(raw) as { id?: unknown; name?: unknown } : null;
-    return parsed && typeof parsed.id === 'number' && typeof parsed.name === 'string' ? { id: parsed.id, name: parsed.name } : null;
+    return parsed && typeof parsed.id === 'number' && typeof parsed.name === 'string' ? { id: parsed.id, name: parsed.name, ...(typeof (parsed as {workspace?:unknown}).workspace==='string'?{workspace:(parsed as {workspace:string}).workspace}:{}) } : null;
   } catch {
     return null;
   }
 };
 
-export const saveSsmLink = (classId: string, link: { id: number; name: string } | null): void => {
+/** Lưu ghép lớp vào cache trình duyệt. */
+export const saveSsmLink = (classId: string, link: SsmClassLink | null): void => {
   try {
+    if (!auth.currentUser || auth.currentUser.isAnonymous) return;
     if (link) localStorage.setItem(LINK_KEY(classId), JSON.stringify(link));
     else localStorage.removeItem(LINK_KEY(classId));
   } catch {
     // Trình duyệt chặn lưu trữ: lần sau giáo viên chọn lại lớp, không mất dữ liệu gì.
   }
+};
+
+// ── HẠNG MỤC 4: Cloud Sync — lưu ghép lớp lên Firestore để đổi máy không phải ghép lại ──
+
+const cloudLinkDoc = (uid: string, classId: string) => doc(db, 'ssmClassLinks', `${uid}_${classId}`);
+
+/** Đọc ghép lớp từ Firestore (đồng bộ giữa các máy). */
+export const readSsmLinkCloud = async (uid: string, classId: string): Promise<SsmClassLink | null> => {
+  if (!auth.currentUser || auth.currentUser.uid !== uid || auth.currentUser.isAnonymous) throw new Error('Phiên giáo viên đã thay đổi.');
+  try {
+    const snap = await getDoc(cloudLinkDoc(uid, classId));
+    if (!auth.currentUser || auth.currentUser.uid!==uid) throw new Error('Phiên giáo viên đã thay đổi.');
+    if (!snap.exists()) return null;
+    const data = snap.data() as { ssmClassId?: unknown; ssmClassName?: unknown; workspace?: unknown };
+    return typeof data.ssmClassId === 'number' && typeof data.ssmClassName === 'string'
+      ? { id: data.ssmClassId, name: data.ssmClassName, ...(typeof data.workspace==='string'?{workspace:data.workspace}:{}) }
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * HẠNG MỤC 1 (1-Click Excel Relay): gửi file Excel điểm LO đã điền (dạng bytes)
+ * cho tiện ích để tự gắn vào ô input file trên trang SSM đang mở.
+ * Tiện ích chỉ ĐIỀN và TÔ VIỀN — giáo viên tự bấm Lưu trên SSM.
+ */
+/**
+ * Chi nhánh SSM của lớp đã ghép (nếu có): thao tác GHI gửi kèm để tiện ích từ chối khi tài khoản SSM đang ở chi nhánh khác.
+ */
+const writeScope = (classId?: string): { expectedWorkspace?: string } => {
+  const workspace = classId ? readSsmLink(classId)?.workspace : undefined;
+  return workspace ? { expectedWorkspace: workspace } : {};
+};
+
+export const attachLoFileToSsm = async (bytes: Uint8Array, fileName: string, classId?: string): Promise<void> => {
+  // Chuyển bytes thành base64 để gửi qua postMessage.
+  let binary = '';
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  const fileData = btoa(binary);
+  await ssmRequest('attachLoFile', { fileData, fileName, ...writeScope(classId) });
+};
+
+/** Lưu ghép lớp lên Firestore + cache local. */
+export const saveSsmLinkCloud = async (uid: string, classId: string, link: SsmClassLink | null): Promise<void> => {
+  if (!auth.currentUser || auth.currentUser.uid !== uid || auth.currentUser.isAnonymous) throw new Error('Phiên giáo viên đã thay đổi.');
+  if (link) await setDoc(cloudLinkDoc(uid, classId), { userId: uid, classId, ssmClassId: link.id, ssmClassName: link.name, ...(link.workspace?{workspace:link.workspace}:{}), updatedAt: new Date().toISOString() });
+  else await deleteDoc(cloudLinkDoc(uid, classId));
+  if (!auth.currentUser || auth.currentUser.uid!==uid) throw new Error('Phiên giáo viên đã thay đổi.');
+  saveSsmLink(classId, link);
+};
+/** Fill only exact fields or the single editable field GV deliberately focused on SSM. */
+export const autofillSsmFields = (fields: {key:string;value:string}[], target: 'exact' | 'focused' = 'exact', classId?: string) => ssmRequest('autofillSsm', {fields,target,...writeScope(classId)}) as Promise<{filled:number;total:number}>;
+
+// ── Đợt 4: đọc cây điểm LO (TDS V2) — CHỈ ĐỌC. Trả JSON nguyên dạng SSM để app tự damp/ghi cache. ──
+
+/** 4 quý đánh giá của lớp×môn trong năm: đó là nơi tìm assessment_form_id + criteria_id. */
+export const readSsmEvaluationQuarters = (classId: number, subjectId: number, schoolYearId: number) =>
+  ssmRequest('evaluationQuarters', { classId, subjectId, schoolYearId });
+
+/** Các môn học của lớp trong năm (vd 12 = VN TOÁN). */
+export const readSsmSubjects = (classId: number, schoolYearId: number) =>
+  ssmRequest('subjectClass', { classId, schoolYearId });
+
+/** Cây FP → PS → LO + thang điểm của MỘT bài đánh giá (vd F1, IA1). */
+export const readSsmCriteriaAssessment = (assessmentFormId: number) =>
+  ssmRequest('criteriaAssessment', { assessmentFormId });
+
+/** Trạng thái chấm của bài đánh giá cho lớp: quarter_has_branch_id, result_assessment_form_id, is_approved… */
+export const readSsmClassSubjectAssessment = (assessmentFormId: number, criteriaId: number, classId: number) =>
+  ssmRequest('classSubjectAssessment', { assessmentFormId, criteriaId, classId });
+
+/** Payload ghi điểm — app xây sẵn từ thang SSM trả về; tiện ích chỉ POST nguyên trạng. */
+export interface SsmGradeWriteBody {
+  class_id: number;
+  criteria_id: number;
+  quarter_has_branch_id: number;
+  students: Array<{ id: number; name: string; result: SsmGradeResultEntry[] }>;
+}
+
+export interface SsmGradeResultEntry {
+  learning_outcome_id: number;
+  scoring_setting_id: number;
+  is_number: boolean;
+  point: string;
+  /** Chỉ có khi SỬA ô đã chấm trước đó; thiếu = ô mới. */
+  grading_student_id?: number;
+}
+
+/**
+ * Đợt 4 (GHI): gửi điểm LO lên SSM. `resultAssessmentFormId` vắng → endpoint thêm mới;
+ * có → endpoint cập nhật kết quả đã có. ĐỌC LẠI sau khi ghi belongs to caller (verify riêng).
+ */
+export const writeSsmLoGrades = (params: { assessmentFormId: number; resultAssessmentFormId?: number; body: SsmGradeWriteBody }, classId: string) =>
+  ssmRequest('writeLoGrades', { ...params, ...writeScope(classId) });
+export const syncSsmRosterMissing = async (classId: string, students: {id:string;name:string;code:string}[]) => {
+  const user = auth.currentUser;
+  if (!user || user.isAnonymous) throw new Error('Đăng nhập giáo viên trước khi đồng bộ.');
+  const response = await fetch('/api/classroom', { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'syncSsmRosterMissing',classId,students,idToken:await user.getIdToken()}) });
+  const result = await response.json();
+  if (!auth.currentUser || auth.currentUser.uid !== user.uid) throw new Error('Phiên giáo viên đã thay đổi. Tải lại danh sách lớp.');
+  if (!response.ok) throw new Error(result.error || 'Chưa đồng bộ được danh sách.');
+  return result as {students: import('../../types').Student[];added:number};
 };

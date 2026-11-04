@@ -424,6 +424,6 @@ describe('sheetsErrorMessage', () => {
 
   it('404 và lỗi khác có câu riêng', () => {
     expect(sheetsErrorMessage(404, '')).toContain('Không tìm thấy file');
-    expect(sheetsErrorMessage(500, 'Internal error')).toBe('Google Sheets trả lỗi 500 (Internal error).');
+    expect(sheetsErrorMessage(500, 'Internal error')).toBe('Google Sheets báo lỗi: dịch vụ gặp lỗi nội bộ. Thử lại sau ít phút (mã 500). Chi tiết: Internal error.');
   });
 });

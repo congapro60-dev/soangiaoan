@@ -9,6 +9,7 @@ import {
   parseDataUrl,
   remainingQuota,
   reserveQuota,
+  reserveTeacherRefreshQuota,
   rollQuota,
   today,
 } from '../_grading-core.js';
@@ -37,6 +38,13 @@ describe('rollQuota — sang ngày mới là về 0', () => {
 });
 
 describe('hạn mức đường giáo viên', () => {
+  it('maintenance refresh increments the ledger without applying the daily verdict', async () => {
+    const store: Record<string, any> = {};
+    const ref = { get: async () => ({ exists: !!store.quota, data: () => store.quota }), set: async (value: any) => { store.quota = value; } };
+    const db: any = { collection: () => ({ doc: () => ref }), runTransaction: async (fn: any) => fn({ get: () => ref.get(), set: (_ref: any, value: any) => { store.quota = value; } }) };
+    await reserveTeacherRefreshQuota(db, 'teacher');
+    expect(store.quota.teacherCount).toBe(1);
+  });
   it('chưa dùng thì còn đủ hạn mức ngày', () => {
     const v = remainingQuota(emptyQuota(NGAY), 'teacher', '');
     expect(v.allowed).toBe(QUOTA_LIMITS.teacherDaily);

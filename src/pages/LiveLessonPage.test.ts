@@ -90,6 +90,18 @@ describe('LiveLessonPage route helpers', () => {
     expect(getLiveLessonRouteError({ mode: 'student', session: null, publicState: null, definition: getPilotLiveLessonDefinition() })).toBeTruthy();
   });
 
+  it('blocks stale running public views after a listener failure without claiming closure', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const publicState = { cueId: 'P00', tvScreenId: 'S0', status: 'running', showStats: false, updatedAt: 1000 } as const;
+    for (const mode of ['tv', 'student']) {
+      expect(getLiveLessonRouteError({ mode, session: null, publicState, definition })).toBeNull();
+      expect(getLiveLessonRouteError({ mode, session: null, publicState, definition, publicStateError: 'Không thể cập nhật phiên; hãy tải lại.' }))
+        .toBe('Không thể cập nhật phiên; hãy tải lại.');
+      expect(getLiveLessonRouteError({ mode, session: null, publicState: { ...publicState, status: 'closed' }, definition, publicStateError: 'Không thể cập nhật phiên; hãy tải lại.' }))
+        .toBeNull();
+    }
+  });
+
   it('does not let an older or malformed teacher snapshot overwrite newer local state', () => {
     const current = {
       teacherUid: 'teacher-1', updatedAt: 200, status: 'running', currentCueId: 'P02', currentTvScreenId: 'S2',

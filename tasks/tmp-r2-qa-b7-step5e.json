@@ -1,0 +1,157 @@
+{
+ "savedAt": "2026-10-27T03:22:41.161Z",
+ "warnings": "Cảnh báo chất lượng từ pipeline tạo bài (3)\nV4 candidate · source 11-11-76 · fingerprint ff7e800a0298f1a5ae527e3b0e1bd19ed938dba777781dfe7e5d2d3f19717550.\nLesson mode: formation; elective route is a choice, not an ability label.\nGiáo viên cần rà thuật ngữ/bản dịch và xuất bản thủ công trước khi mở phiên live.\nHình ảnh & mô phỏng đã sinh — xem trước khi xuất bản\n0 ảnh khởi động · 0/1 mảnh có học liệu trực quan\nXem trước bài học (như học sinh thấy)\nChưa có hình ảnh/mô phỏng nào. Khi tạo bài hãy bật \"Sinh mô phỏng tương tác\", hoặc kiểm tra cảnh báo chất lượng ở trên.\n1\nBước 1\nThông tin cơ bản\n2\nBước 2\nMục tiêu & Chẩn đoán\n3\nBước 3\nCác mảnh kiến thức\n4\nBước 4\nHoàn tất & Xuất bản\nThông tin nền của bài học\nGiữ ngắn gọn để học sinh nhận diện bài học nhanh trên cổng thích ứng.\nTIÊU ĐỀ BÀI *\nLỚP\n10\n11\n12\nTUẦN\nTIẾT SỐ\nHƯỚNG DẪN CHUẨN BỊ\nTHỜI GIAN CHUẨN BỊ ƯỚC TÍNH (PHÚT)\nẢnh đầu bài học\nUpload hai phiên bản ảnh minh hoạ để dùng trong cổng học sinh.\nLưu\nẢnh REALISTIC/Cinematic\nDùng cho minh hoạ cảm xúc, bối cảnh thật hoặc ảnh mở bài giàu hình ảnh.\nClick chọn ảnh hoặc kéo-thả vào đây\nFile sẽ lưu vào Firebase Storage dưới dạng PNG cố định theo lessonId.\nẢnh TEXTBOOK Style\nDùng cho minh hoạ kiểu sách giáo khoa, sơ đồ hoặc hình học tập rõ ràng.\nClick chọn ảnh hoặc kéo-thả vào đây\nFile sẽ lưu vào Firebase Storage dưới dạng PNG cố định theo lessonId.",
+ "b2": [
+  {
+   "label": "Mục tiêu học tập Thêm mục tiêu",
+   "value": "Nhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay."
+  },
+  {
+   "label": "Mục tiêu học tập Thêm mục tiêu",
+   "value": "70"
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "Vận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay."
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "70"
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "Kiểm chứng kết quả và giải thích kết luận bằng căn cứ."
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "70"
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "Dùng từ khóa Toán học và nêu kết luận có căn cứ."
+  },
+  {
+   "label": "remember understand apply analyze evaluate create",
+   "value": "70"
+  },
+  {
+   "label": "Diagnostic test Thêm câu hỏi",
+   "value": "Bảng thời gian tự học (giờ/ngày) của 40 học sinh (SGK tr. 52): [0;1) có 5 · [1;2) có 12 · [2;3) có 15 · [3;4) có 8. Xác định cỡ mẫu n và tính giá trị đại diện c₁, c₂, c₃, c₄ của bốn nhóm."
+  },
+  {
+   "label": "Diagnostic test Thêm câu hỏi",
+   "value": "n = 5 + 12 + 15 + 8 = 40; c₁ = 0,5; c₂ = 1,5; c₃ = 2,5; c₄ = 3,5. (Đáp án PHT số 1 mức NB — tự tính, không có trong giáo án.)"
+  },
+  {
+   "label": "Diagnostic test Thêm câu hỏi",
+   "value": "Đáp án nguồn để GV đối chiếu: n = 5 + 12 + 15 + 8 = 40; c₁ = 0,5; c₂ = 1,5; c₃ = 2,5; c₄ = 3,5. (Đáp án PHT số 1 mức NB — tự tính, không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Với bảng tự học ở trên, lập bảng tích m_i·c_i và tính số trung bình x̄ của mẫu; nêu ý nghĩa của con số tìm được."
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Σ m_i c_i = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đáp án nguồn để GV đối chiếu: Σ m_i c_i = 5·0,5 + 12·1,5 + 15·2,5 + 8·3,5 = 2,5 + 18 + 37,5 + 28 = 86; x̄ = 86/40 = 2,15 giờ. Ý nghĩa: thời gian tự học trung bình khoảng 2,15 giờ/ngày. (Đáp án PHT số 1 mức TH — tự tính: x̄ = 2,15 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Nếu thêm 1 bạn học 6 giờ/ngày vào mẫu tự học 40 bạn ở trên thì x̄ thay đổi thế nào?"
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "n′ = 41; tổng mới = 86 + 6 = 92; x̄′ = 92/41 ≈ 2,24 giờ — tăng khoảng 0,09 giờ so với 2,15. (Đáp án PHT số 1 mức VD — tự tính: x̄′ = 92/41 ≈ 2,24 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đáp án nguồn để GV đối chiếu: n′ = 41; tổng mới = 86 + 6 = 92; x̄′ = 92/41 ≈ 2,24 giờ — tăng khoảng 0,09 giờ so với 2,15. (Đáp án PHT số 1 mức VD — tự tính: x̄′ = 92/41 ≈ 2,24 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 3 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính M_e của mẫu."
+  },
+  {
+   "label": "Câu 3 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). a_p = 2; m_p = 15; C = 17; h = 1; M_e = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: M_e = 2,2 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 3 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đáp án nguồn để GV đối chiếu: cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). a_p = 2; m_p = 15; C = 17; h = 1; M_e = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: M_e = 2,2 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 4 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện c_i và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và M_e của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo."
+  },
+  {
+   "label": "Câu 4 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; M_e = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+  },
+  {
+   "label": "Câu 4 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đáp án nguồn để GV đối chiếu: a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; M_e = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+  }
+ ],
+ "b4": [
+  {
+   "label": "Exit Ticket Thêm câu hỏi",
+   "value": "Dùng tiếp bảng tự học (5/12/15/8): lập hàng tần số tích lũy, chỉ ra nhóm chứa trung vị và tính M_e của mẫu."
+  },
+  {
+   "label": "Exit Ticket Thêm câu hỏi",
+   "value": "cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). a_p = 2; m_p = 15; C = 17; h = 1; M_e = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: M_e = 2,2 không có trong giáo án.)"
+  },
+  {
+   "label": "Exit Ticket Thêm câu hỏi",
+   "value": "Đáp án nguồn để GV đối chiếu: cf = 5; 17; 32; 40; n/2 = 20 → nhóm đầu tiên có cf ≥ 20 là [2;3). a_p = 2; m_p = 15; C = 17; h = 1; M_e = 2 + ((20 − 17)/15)·1 = 2 + 0,2 = 2,2 giờ. (Đáp án PHT số 2 — tự tính: M_e = 2,2 không có trong giáo án.)"
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Kiểm nhanh (máy thay bảng con): tính x̄ của mẫu ghép nhóm [0;10) có 3 · [10;20) có 5 · [20;30) có 2."
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+  },
+  {
+   "label": "Câu 1 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đối chiếu lời giải nguồn: c = 5; 15; 25; Σ m_i c_i = 15 + 75 + 50 = 140; n = 3 + 5 + 2 = 10; x̄ = 140/10 = 14. (Tự tính — giáo án không có đáp án. Nguồn: S4 ĐGTX ngưỡng 85%, Gate D mục 3 #7.)"
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Phiếu số 3: khảo sát số tiền cước điện thoại hàng tháng (nghìn đồng) của 50 khách hàng — [50;100) có 10 · [100;150) có 15 · [150;200) có 20 · [200;250) có x. a) Tìm x, lập bảng giá trị đại diện c_i và tần số tích lũy, chỉ ra nhóm chứa trung vị. b) Tính x̄ và M_e của mẫu; nêu ý nghĩa thực tiễn của mỗi số đo."
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; M_e = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+  },
+  {
+   "label": "Câu 2 Trắc nghiệm Đúng / Sai Trả lời ngắn Tự luận Chọn mục tiêu Nhận diện dữ kiện và công cụ cần dùn",
+   "value": "Đáp án nguồn để GV đối chiếu: a) 10 + 15 + 20 + x = 50 ⇒ x = 5; c = 75; 125; 175; 225; cf = 10; 25; 45; 50; n/2 = 25 → nhóm [100;150) (cf₂ = 25 ≥ 25). b) x̄ = (10·75 + 15·125 + 20·175 + 5·225)/50 = 7250/50 = 145 nghìn đồng; M_e = 100 + ((25 − 10)/15)·50 = 100 + 50 = 150 nghìn đồng. Ý nghĩa: khách hàng \"giữa\" trả 150 nghìn đồng; x̄ = 145 thấp hơn vì nhóm chi cao chỉ 5/50."
+  },
+  {
+   "label": "Smart Lesson Plan AI :root{--swal2-outline: 0 0 0 3px rgba(100, 150, 200, 0.5);--swal2-container-pad",
+   "value": "Em đã học xong! Thử thách bạn cùng lớp trong Đấu Trường Tri Thức?"
+  }
+ ],
+ "b4Text": "Quay lại danh sách\nLESSON PATH DESIGNER\nThiết kế bài học phân hoá\nTriển khai từ giáo án nguồn đã được AI rà soát: mục tiêu, chẩn đoán, các mảnh kiến thức, tuyến học và xuất bản cổng học sinh.\nMỨC HOÀN THIỆN\n100%\n4 mục tiêu\n1 mảnh\n3 phút\n⚠️ Cảnh báo chất lượng từ pipeline tạo bài (3)\nV4 candidate · source 11-11-76 · fingerprint ff7e800a0298f1a5ae527e3b0e1bd19ed938dba777781dfe7e5d2d3f19717550.\nLesson mode: formation; elective route is a choice, not an ability label.\nGiáo viên cần rà thuật ngữ/bản dịch và xuất bản thủ công trước khi mở phiên live.\nHình ảnh & mô phỏng đã sinh — xem trước khi xuất bản\n0 ảnh khởi động · 0/1 mảnh có học liệu trực quan\nXem trước bài học (như học sinh thấy)\nChưa có hình ảnh/mô phỏng nào. Khi tạo bài hãy bật \"Sinh mô phỏng tương tác\", hoặc kiểm tra cảnh báo chất lượng ở trên.\n1\nBước 1\nThông tin cơ bản\n2\nBước 2\nMục tiêu & Chẩn đoán\n3\nBước 3\nCác mảnh kiến thức\n4\nBước 4\nHoàn tất & Xuất bản\nExit Ticket\nThêm câu hỏi\nCâu 1\nTrắc nghiệm\nĐúng / Sai\nTrả lời ngắn\nTự luận\nChọn mục tiêu\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nVận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nKiểm chứng kết quả và giải thích kết luận bằng căn cứ.\nDùng từ khóa Toán học và nêu kết luận có căn cứ.\nCâu 2\nTrắc nghiệm\nĐúng / Sai\nTrả lời ngắn\nTự luận\nChọn mục tiêu\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nVận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nKiểm chứng kết quả và giải thích kết luận bằng căn cứ.\nDùng từ khóa Toán học và nêu kết luận có căn cứ.\nCâu 3\nTrắc nghiệm\nĐúng / Sai\nTrả lời ngắn\nTự luận\nChọn mục tiêu\nNhận diện dữ kiện và công cụ cần dùng trong Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nVận dụng kiến thức để giải quyết một nhiệm vụ về Hình thành công thức số trung bình và số trung vị của mẫu số liệu ghép nhóm qua giá trị đại diện c_i và tần số tích lũy; nội suy M_e từ nhóm chứa n/2; kiểm chứng bằng máy tính cầm tay.\nKiểm chứng kết quả và giải thích kết luận bằng căn cứ.\nDùng từ khóa Toán học và nêu kết luận có căn cứ.\nCOMPLETION REWARD MESSAGE\nLưu nháp\nXuất bản",
+ "keywordScan": {
+  "has215": true,
+  "has22": true,
+  "has587": false,
+  "nhanPHT": true,
+  "internet395": false,
+  "y3_khongNhoHon": false,
+  "has152": false,
+  "k5": false,
+  "k_15227": false,
+  "con_73k365": false,
+  "casio": false,
+  "luong24": false,
+  "phieu3": false,
+  "tuTinh": true
+ }
+}

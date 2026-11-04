@@ -140,4 +140,19 @@ describe('student progress model', () => {
     expect(summary.activities).toHaveLength(1);
     expect(summary.activities[0]).toEqual(expect.objectContaining({ id: 'upload-1', attemptCount: 2, officialScore: 8 }));
   });
+
+  it('bài kiểm tra định kì: học sinh không thấy điểm AI chấm lại, không tính vào điểm trung bình; vẫn tính là đã nộp', () => {
+    const summary = buildStudentProgressSummary({
+      studentId: 'student-1',
+      assignments: [assignment(), assignment({ id: 'kt-1', title: 'Kiểm tra giữa kì I', periodicTest: {} })],
+      submissions: [upload(), upload({ id: 'submission-kt', assignmentId: 'kt-1', grade: { ...upload().grade!, score: 4 } })],
+      examSubmissions: [],
+      profile: null,
+    });
+    expect(summary.officialAveragePercent).toBe(80);
+    expect(summary.officialActivities.map(activity => activity.id)).toEqual(['upload-1']);
+    expect(summary.timeline.find(item => item.id === 'kt-1')).toMatchObject({ score: null, official: false });
+    expect(summary.completedCount).toBe(2);
+  });
 });
+

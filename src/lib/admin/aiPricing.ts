@@ -35,10 +35,11 @@ interface PriceRule {
 }
 
 export const PRICE_SOURCES = {
-  gemini: 'ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-09-23)',
+  gemini: 'ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-10-15)',
   gateway: 'vercel.com/ai-gateway/models/glm-5.2 (tra 2026-09-24)',
   claude: 'trang giá Anthropic (tra 2026-09-30, xem src/data/providerGuide.ts)',
   openai: 'trang giá OpenAI (tra 2026-09-30, xem src/data/providerGuide.ts)',
+  vilao: 'chợ Vilao — console, model chib/gemini-3.8-flash (24/10/2026)',
 } as const;
 
 /** Claude/OpenAI: các trang giá không nêu giá cache nên tính cache bằng giá đầu vào — không bao giờ tính thấp hơn thực tế. */
@@ -50,7 +51,18 @@ const FLASH_PERIODS: PricePeriod[] = [
 ];
 
 const RULES: PriceRule[] = [
+  {
+    label: 'Gemini 4 Argon',
+    matches: m => m.startsWith('gemini-4-argon'),
+    // ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-10-15): giá khuyến mãi tới 2026-11-30, từ 2026-12-01 gấp đôi; chỉ gói trả phí.
+    periods: [
+      { to: '2026-11-30', price: { input: 2, output: 10, cached: 0.1 } },
+      { from: '2026-12-01', price: { input: 4, output: 20, cached: 0.2 } },
+    ],
+  },
   { label: 'Gemini 3.8 Flash', matches: m => m.startsWith('gemini-3.8-flash'), periods: FLASH_PERIODS },
+  // Lớp dự phòng chấm bài qua gói xKiro (30/10/2026): tính theo giá niêm yết Google, như lớp Gemini gốc.
+  { label: 'Gemini 3.8 Flash (xKiro)', matches: m => m.startsWith('xkiro/google/gemini-3.8-flash'), periods: FLASH_PERIODS },
   { label: 'Gemini 3.7 Flash', matches: m => m.startsWith('gemini-3.7-flash'), periods: FLASH_PERIODS },
   {
     label: 'Gemini 3.1 Pro',
@@ -67,6 +79,14 @@ const RULES: PriceRule[] = [
   { label: 'GPT-6 Luna', matches: m => m.startsWith('gpt-6-luna'), periods: flatPrice(0.1, 0.5) },
   { label: 'GPT-6 Astra', matches: m => m.startsWith('gpt-6-astra'), periods: flatPrice(10, 50) },
   { label: 'GLM 5.2 (Vercel AI Gateway)', matches: m => m === 'zai/glm-5.2', periods: [{ price: { input: 0.5625, output: 1.8, cached: 0.5625 } }] },
+  {
+    label: 'Vilao gemini-3.8-flash (chợ API)',
+    matches: m => m.startsWith('vilao/'),
+    // Chợ Vilao, model chib (console 24/10/2026): 400₫/1M vào · 1.600₫/1M ra · cache đọc 160₫/1M (API trả
+    // `price_per_cached_read_token`), tối thiểu 3₫/request (không mô hình hoá mức tối thiểu).
+    // Quy sang USD bằng chính tỉ giá ghi sổ (26.190₫/USD) nên khi quy ngược ra VNĐ đúng giá niêm yết.
+    periods: [{ price: { input: 400 / 26_190, output: 1_600 / 26_190, cached: 160 / 26_190 } }],
+  },
 ];
 
 const normalizeModel = (model: string): string => String(model || '').trim().toLowerCase().replace(/^models\//, '');
@@ -126,6 +146,9 @@ const IMAGE_RULES: ImagePriceRule[] = [
   { label: 'Imagen 4 Ultra', matches: m => m.startsWith('imagen-4') && m.includes('ultra'), periods: [{ usdPerImage: 0.06 }] },
   { label: 'Imagen 4 Fast', matches: m => m.startsWith('imagen-4') && m.includes('fast'), periods: [{ usdPerImage: 0.02 }] },
   { label: 'Imagen 4', matches: m => m.startsWith('imagen-4') || m.startsWith('imagen'), periods: [{ usdPerImage: 0.04 }] },
+  // Giá ảnh Vilao niêm yết (console 24/10/2026), quy theo tỉ giá ghi sổ 26.190₫/USD: 90₫ & 85₫/ảnh.
+  { label: 'Vilao gpt-image-2 (chợ API)', matches: m => m.startsWith('gpt-image-2'), periods: [{ usdPerImage: 90 / 26_190 }] },
+  { label: 'Vilao gemini-3.1-flash-image (chợ API)', matches: m => m.startsWith('gemini-3.1-flash-image'), periods: [{ usdPerImage: 85 / 26_190 }] },
 ];
 
 /** Nhãn model ảnh (Imagen…) để hiện trong sao kê; trả nguyên model nếu chưa có trong bảng. */

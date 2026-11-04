@@ -1,6 +1,7 @@
 import { signInWithCustomToken, type User } from 'firebase/auth';
 import { auth } from './firebase';
 import { PRIMARY_ADMIN_EMAIL, isAdminEmail } from './admin/adminConfig';
+import { moTaLoiHttp } from './httpErrorText';
 
 /**
  * Chủ dự án có nhiều mail: đăng nhập Google bằng mail phụ thì máy chủ cấp phiên của tài khoản chính
@@ -41,7 +42,7 @@ export const linkAdminSession = async (user: User): Promise<AdminLinkResult> => 
     body: JSON.stringify({ action: 'linkAdminSession', idToken: await user.getIdToken() }),
   });
   const data = await response.json().catch(() => null) as (Partial<AdminLinkResult> & { customToken?: string; error?: string }) | null;
-  if (!response.ok || !data?.customToken) throw new Error(data?.error || `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok || !data?.customToken) throw new Error(data?.error || moTaLoiHttp(response.status));
   await signInWithCustomToken(auth, data.customToken);
   linkedGoogleEmail = data.linkedEmail ?? null;
   return { linkedEmail: data.linkedEmail ?? '', primaryEmail: data.primaryEmail ?? PRIMARY_ADMIN_EMAIL };

@@ -1,3 +1,5 @@
+import type { NativeMediaDescriptor } from '../adaptive/media';
+
 export type DeweyTheme = 'classic' | 'scifi' | 'comic';
 
 export type DeweyQuestionType =
@@ -71,6 +73,7 @@ export interface DeweyKnowledgeUnit {
     srcDoc: string;
     height?: number;
   };
+  media?: NativeMediaDescriptor[];
 }
 
 export interface DeweyOlympiaPack {
@@ -119,6 +122,7 @@ export interface DeweyEngageContent {
     data: string;
     caption: string;
   };
+  media?: NativeMediaDescriptor[];
   interactiveWidget?: {
     type: string;
     title: string;

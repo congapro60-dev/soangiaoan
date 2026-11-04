@@ -1,17 +1,48 @@
 import { useState, useRef, useEffect, useMemo, type ReactNode } from 'react';
 import { Search, History, BookOpen, FileText, GraduationCap, Menu } from 'lucide-react';
 import { AppData } from '../../types';
+import type { TeacherClass } from '../../types';
+import { filterHeaderStudents } from './headerStudentSearch';
 
-type ActiveTab = 'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonSchedule' | 'aiBilling' | 'admin';
+type ActiveTab = 'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonSchedule' | 'aiBilling' | 'admin' | 'lessonUpgrade' | 'duGio';
+
+const HEADER_FEATURES: { id: ActiveTab; label: string }[] = [
+  { id: 'dashboard', label: 'Tổng quan' },
+  { id: 'classes', label: 'Lớp học' },
+  { id: 'lessonSchedule', label: 'Lịch báo giảng' },
+  { id: 'creator', label: 'Soạn giáo án' },
+  { id: 'lessonUpgrade', label: 'Nâng cấp giáo án' },
+  { id: 'testing', label: 'Bảng kiểm tra' },
+  { id: 'exams', label: 'Thi online' },
+  { id: 'grading', label: 'Chấm điểm AI' },
+  { id: 'duGio', label: 'Dự giờ' },
+  { id: 'adaptiveLessons', label: 'Quản lý bài học' },
+  { id: 'aiTools', label: 'Công cụ AI' },
+  { id: 'library', label: 'Thư viện' },
+  { id: 'templates', label: 'Mẫu giáo án' },
+  { id: 'chat', label: 'AI Tutor' },
+  { id: 'aiBilling', label: 'Chi phí AI' },
+  { id: 'admin', label: 'Quản trị' },
+];
+
+export const filterHeaderFeatures = (query: string) => {
+  const normalized = query.trim().toLocaleLowerCase('vi');
+  if (!normalized) return [];
+  return HEADER_FEATURES.filter(feature => feature.label.toLocaleLowerCase('vi').includes(normalized)).slice(0, 6);
+};
 
 interface HeaderProps {
   activeTab: string;
   data: AppData;
+  userId?: string | null;
   setIsSettingsOpen: (val: boolean) => void;
   setActiveTab: (tab: ActiveTab) => void;
   onMenuClick?: () => void;
+  onStudentSearchSelect?: (classId: string, studentId: string) => void;
+  loadStudentSearchClasses?: () => Promise<TeacherClass[]>;
   /** Chip Ví AI (chỉ có khi giáo viên đã đăng nhập). */
   aiChip?: ReactNode;
+  isAdmin?: boolean;
 }
 
 const timeAgo = (ts: number) => {
@@ -23,13 +54,32 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip }: HeaderProps) => {
+export const Header = ({ activeTab, data, userId, setIsSettingsOpen, setActiveTab, onMenuClick, onStudentSearchSelect, loadStudentSearchClasses, aiChip, isAdmin = false }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [featureSearch, setFeatureSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [accessibleClasses, setAccessibleClasses] = useState<TeacherClass[] | null>(null);
+  const searchData = useMemo(() => {
+    if (!accessibleClasses) return data;
+    const accessibleIds = new Set(accessibleClasses.map(cls => cls.id));
+    return { ...data, classes: [...accessibleClasses, ...data.classes.filter(cls => !accessibleIds.has(cls.id))] };
+  }, [accessibleClasses, data]);
+  const studentResults = useMemo(() => filterHeaderStudents(featureSearch, searchData), [featureSearch, searchData]);
+
+  const searchUserId = useRef(userId);
+  searchUserId.current = userId;
+  useEffect(() => { setAccessibleClasses(null); }, [userId]);
+  const loadAccessibleClasses = () => {
+    if (!loadStudentSearchClasses || accessibleClasses) return;
+    const requestedFor = userId;
+    void loadStudentSearchClasses().then(loaded => { if (searchUserId.current === requestedFor) setAccessibleClasses(loaded); }).catch(() => {});
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setShowHistory(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setFeatureSearch('');
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -63,7 +113,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
     });
 
     try {
-      const raw = localStorage.getItem('testing_history');
+      const raw = localStorage.getItem(`testing_history:${userId || 'anonymous'}`);
       if (raw) {
         const entries = JSON.parse(raw) as { id: string; timestamp: number; title: string; mode: string }[];
         entries.slice(0, 5).forEach(e => {
@@ -83,7 +133,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
     } catch {}
 
     return items.sort((a, b) => b.timestamp - a.timestamp).slice(0, 15);
-  }, [data.lessonPlans, data.gradingSessions]);
+  }, [data.lessonPlans, data.gradingSessions, userId]);
 
   const getTitle = () => {
     switch (activeTab) {
@@ -122,13 +172,45 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-6">
-        <div className="hidden lg:flex items-center relative group">
+        <div ref={searchRef} className="hidden lg:flex items-center relative group">
           <Search className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-blue-500" />
           <input
             type="text"
             placeholder="Tìm tính năng..."
+            value={featureSearch}
+            onFocus={loadAccessibleClasses}
+            onChange={e => { setFeatureSearch(e.target.value); loadAccessibleClasses(); }}
             className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-50 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all w-48"
           />
+          {featureSearch.trim() && (
+            <div className="absolute right-0 top-11 w-72 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl z-50">
+              {studentResults.length > 0 && (
+                <div className="mb-1 border-b border-slate-100 pb-1">
+                  <p className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Học sinh</p>
+                  {studentResults.map(result => (
+                    <button key={`${result.classId}-${result.student.id}`} type="button" onClick={() => { onStudentSearchSelect?.(result.classId, result.student.id); setFeatureSearch(''); }} className="w-full rounded-xl px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50">
+                      <span className="block font-semibold">{result.student.name} · Mã HS {result.student.code}</span>
+                      <span className="block text-[10px] text-slate-400">{result.className}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(filterHeaderFeatures(featureSearch).filter(feature => isAdmin || feature.id !== 'admin').length === 0 && studentResults.length === 0) ? (
+                <p className="px-3 py-2 text-xs text-slate-400">Không tìm thấy tính năng</p>
+              ) : (
+                filterHeaderFeatures(featureSearch).filter(feature => isAdmin || feature.id !== 'admin').map(feature => (
+                  <button
+                    key={feature.id}
+                    type="button"
+                    onClick={() => { setActiveTab(feature.id); setFeatureSearch(''); }}
+                    className="w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {feature.label}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3">

@@ -7,6 +7,8 @@
  * Module thuần — máy chủ (api/) và trình duyệt dùng chung.
  */
 import { yccdById, yccdForGrade, type YccdItem, type YccdStrand } from '../curriculum/yccdToan.js';
+import { SGK_STRAND_ORDER, sgkChapterOf, type SgkChapter, type SgkStrand } from '../curriculum/sgkToanKntt.js';
+import { inStage, termsOfSgk, type ReportStage } from './reportStage.js';
 
 export type RequirementLevel = 'vung' | 'dang' | 'chua';
 
@@ -30,6 +32,8 @@ export interface EvidenceQuestion {
   dapAn?: string;
   /** Trích ngắn bài làm của em — để biết câu làm ĐÚNG kiểm tra gì (giải thích của câu đúng thường rất ngắn). */
   baiLam?: string;
+  /** Câu thuộc bài kiểm tra định kì (làm tại lớp), không phải BTVN. */
+  kt?: true;
 }
 
 export interface EvidenceSubmission {
@@ -37,6 +41,16 @@ export interface EvidenceSubmission {
   ten: string;
   ngay: string;
   cau: EvidenceQuestion[];
+}
+
+/** Một câu làm căn cứ của dòng YCCĐ — giữ lại để gom theo bài SGK mà không đếm trùng câu ghép vào nhiều yêu cầu. */
+export interface RequirementQuestionRef {
+  /** Mã câu của lượt soạn báo cáo ("b2q3"); chỉ có nghĩa trong cùng một bản ghi. */
+  code: string;
+  score: number;
+  max: number;
+  /** Câu của bài kiểm tra định kì. */
+  test?: true;
 }
 
 export interface ParentRequirementLine {
@@ -48,7 +62,12 @@ export interface ParentRequirementLine {
   percent: number;
   /** Chỉ ra chính xác em làm tốt/sai ở đâu, bằng thuật ngữ Toán học; không nhắc số câu. */
   note: string;
+  /** Các câu căn cứ. Bản ghi soạn trước 06/10/2026 không có — khi đó số câu theo bài chỉ ước lượng được. */
+  questions?: RequirementQuestionRef[];
 }
+
+/** Một yêu cầu (hoặc một bài SGK) dựa trên ít hơn ngần này câu thì không gắn mức — ghi "Chưa đủ căn cứ". */
+export const MIN_REQUIREMENT_EVIDENCE = 3;
 
 /**
  * Kết quả AI: mỗi YCCĐ một mục, câu căn cứ và ghi chú đi CÙNG nhau — để ghi chú viết đúng theo kết quả chính
@@ -81,8 +100,9 @@ export const mapRequirementQuestions = (
   grade: unknown,
   evidence: readonly EvidenceSubmission[],
   draft: AiRequirementDraft,
+  stage?: ReportStage | null,
 ): { item: YccdItem; questions: EvidenceQuestion[]; note: string }[] => {
-  const list = yccdForGrade(grade);
+  const list = yccdInStage(grade, stage);
   const known = new Set(list.map(item => item.id));
   const questions = new Map<string, EvidenceQuestion>();
   for (const submission of evidence) {
@@ -117,7 +137,8 @@ export const aggregateRequirementLines = (
   grade: unknown,
   evidence: readonly EvidenceSubmission[],
   draft: AiRequirementDraft,
-): ParentRequirementLine[] => mapRequirementQuestions(grade, evidence, draft).map(({ item, questions, note }) => {
+  stage?: ReportStage | null,
+): ParentRequirementLine[] => mapRequirementQuestions(grade, evidence, draft, stage).map(({ item, questions, note }) => {
   let got = 0;
   let max = 0;
   for (const question of questions) {
@@ -125,7 +146,12 @@ export const aggregateRequirementLines = (
     max += question.toiDa;
   }
   const percent = Math.round((got / max) * 1000) / 10;
-  return { id: item.id, level: levelOf(percent), evidence: questions.length, percent, note };
+  return {
+    id: item.id, level: levelOf(percent), evidence: questions.length, percent, note,
+    questions: questions.map(question => ({
+      code: question.ma, score: Math.min(question.diem, question.toiDa), max: question.toiDa, ...(question.kt ? { test: true as const } : {}),
+    })),
+  };
 });
 
 /** Gắn ghi chú AI viết ở bước sau (`{"ghiChu": [{"ma", "ghiChu"}]}`) vào các dòng; mã lạ bị bỏ. */
@@ -150,11 +176,151 @@ export const sanitizeRequirementLines = (grade: unknown, raw: unknown): ParentRe
     if (!order.has(id) || seen.has(id) || !REQUIREMENT_LEVELS.some(item => item.level === level)) continue;
     const evidence = Math.max(0, Math.min(500, Math.round(Number(row.evidence) || 0)));
     const percent = Math.max(0, Math.min(100, Number(row.percent) || 0));
+    const questions = sanitizeQuestionRefs(row.questions);
     seen.add(id);
-    lines.push({ id, level, evidence, percent, note: cleanNote(row.note) });
+    lines.push({ id, level, evidence, percent, note: cleanNote(row.note), ...(questions ? { questions } : {}) });
   }
   return lines.sort((left, right) => order.get(left.id)! - order.get(right.id)!);
 };
+
+const MAX_LINE_QUESTIONS = 120;
+const QUESTION_CODE = /^b\d{1,3}(?:q\d{1,3})?$/;
+
+/** Câu căn cứ đi qua máy chủ: mã đúng dạng, không trùng, điểm trong 0..tối đa. Không còn câu nào hợp lệ → bỏ hẳn trường. */
+const sanitizeQuestionRefs = (raw: unknown): RequirementQuestionRef[] | undefined => {
+  const seen = new Set<string>();
+  const refs: RequirementQuestionRef[] = [];
+  for (const row of asArray(raw)) {
+    const code = String(row.code ?? '');
+    const max = Number(row.max);
+    const score = Number(row.score);
+    if (!QUESTION_CODE.test(code) || seen.has(code) || !Number.isFinite(max) || max <= 0 || max > 1000 || !Number.isFinite(score)) continue;
+    seen.add(code);
+    refs.push({ code, score: Math.max(0, Math.min(max, score)), max, ...(row.test === true ? { test: true as const } : {}) });
+    if (refs.length >= MAX_LINE_QUESTIONS) break;
+  }
+  return refs.length > 0 ? refs : undefined;
+};
+
+/** Một bài SGK trong "Bản đồ theo bài SGK" của báo cáo phụ huynh. */
+export interface LessonSummary {
+  /** Nhãn bài như cột `sgk` của YCCĐ: "Bài 2", "Bài 3–4", "Chương V". */
+  lesson: string;
+  /** Tên chủ đề của bài (theo mục YCCĐ đầu tiên của bài trong Chương trình). */
+  title: string;
+  /** Chương và tập SGK chứa bài; null khi không tra được (lớp hoặc nhãn bài lạ). */
+  chapter: SgkChapter | null;
+  /** null = chưa đủ căn cứ để gắn mức. */
+  level: RequirementLevel | null;
+  /** Tỉ lệ điểm, 0..100. */
+  percent: number;
+  /** Số câu căn cứ, đã bỏ câu trùng; null khi bản ghi cũ không lưu danh sách câu. */
+  questions: number | null;
+  /** Trong đó bao nhiêu câu của bài kiểm tra định kì; null khi không biết danh sách câu. */
+  testQuestions: number | null;
+  /** Ghi chú của dòng YCCĐ tiêu biểu — xem `representativeNote`. */
+  note: string;
+}
+
+const lessonNumbers = (lesson: string): number[] => [...lesson.matchAll(/\d+/g)].map(match => Number(match[0]));
+
+/**
+ * Gom các dòng YCCĐ (đã qua tay giáo viên — dòng nào bị bỏ thì không tính) theo bài SGK.
+ *
+ * Mức của bài TÍNH TỪ ĐIỂM như mức từng dòng: cùng bằng chứng luôn ra cùng mức, khớp chú thích in trên báo cáo.
+ * Có danh sách câu thì cộng điểm trên các câu KHÁC NHAU (một câu ghép vào hai yêu cầu cùng bài chỉ tính một lần).
+ * Bản ghi cũ không có danh sách câu: tỉ lệ = trung bình các dòng theo số câu, còn "đủ căn cứ" xét theo dòng nhiều câu
+ * nhất — con số chắc chắn không vượt số câu thật, để không gắn mức cho bài thực ra mới có một hai câu.
+ * Xếp theo thứ tự bài trong sách; bài gộp ("Bài 1–2") đứng sau bài cuối của nó.
+ */
+export const buildLessonMap = (lines: readonly ParentRequirementLine[]): LessonSummary[] => {
+  const groups = new Map<string, { items: YccdItem[]; lines: ParentRequirementLine[] }>();
+  for (const line of lines) {
+    const item = yccdById(line.id);
+    if (!item) continue;
+    const group = groups.get(item.sgk) ?? { items: [], lines: [] };
+    group.items.push(item);
+    group.lines.push(line);
+    groups.set(item.sgk, group);
+  }
+  const lessons: (LessonSummary & { sortMax: number; sortMin: number })[] = [];
+  for (const [lesson, group] of groups) {
+    const curriculum = yccdForGrade(group.items[0].id);
+    const title = curriculum.find(item => item.sgk === lesson)?.topic ?? group.items[0].topic;
+    let percent: number;
+    let questions: number | null;
+    let testQuestions: number | null = null;
+    if (group.lines.every(line => line.questions && line.questions.length > 0)) {
+      const unique = new Map<string, RequirementQuestionRef>();
+      for (const line of group.lines) for (const ref of line.questions!) unique.set(ref.code, ref);
+      const got = [...unique.values()].reduce((sum, ref) => sum + ref.score, 0);
+      const max = [...unique.values()].reduce((sum, ref) => sum + ref.max, 0);
+      percent = Math.round((got / max) * 1000) / 10;
+      questions = unique.size;
+      testQuestions = [...unique.values()].filter(ref => ref.test).length;
+    } else {
+      const weight = group.lines.reduce((sum, line) => sum + line.evidence, 0);
+      percent = weight > 0
+        ? Math.round((group.lines.reduce((sum, line) => sum + line.percent * line.evidence, 0) / weight) * 10) / 10
+        : Math.round((group.lines.reduce((sum, line) => sum + line.percent, 0) / group.lines.length) * 10) / 10;
+      questions = null;
+    }
+    const enough = (questions ?? Math.max(...group.lines.map(line => line.evidence))) >= MIN_REQUIREMENT_EVIDENCE;
+    const level = enough ? levelOf(percent) : null;
+    const note = representativeNote(group.lines, level);
+    // Bài không mang số ("Chương V") đứng ngay sau bài có số gần nhất phía trước nó trong Chương trình.
+    let numbers = lessonNumbers(lesson);
+    if (numbers.length === 0) {
+      const index = curriculum.findIndex(item => item.sgk === lesson);
+      const before = curriculum.slice(0, Math.max(0, index)).reverse().find(item => lessonNumbers(item.sgk).length > 0);
+      const anchor = before ? Math.max(...lessonNumbers(before.sgk)) + 0.5 : Number.MAX_SAFE_INTEGER;
+      numbers = [anchor];
+    }
+    const grade = Number(group.items[0].id.match(/^T(\d+)\./)?.[1]);
+    lessons.push({ lesson, title, chapter: sgkChapterOf(grade, lesson), level, percent, questions, testQuestions, note, sortMax: Math.max(...numbers), sortMin: Math.min(...numbers) });
+  }
+  return lessons
+    .sort((left, right) => left.sortMax - right.sortMax || right.sortMin - left.sortMin)
+    .map(({ sortMax: _max, sortMin: _min, ...lesson }) => lesson);
+};
+
+/**
+ * Ghi chú in trên thẻ bài. Bài Vững: dòng nhiều câu nhất (ý chính của bài, không phải một ý phụ đạt 100%).
+ * Bài chưa vững: dòng tỉ lệ thấp nhất, ưu tiên dòng đủ căn cứ — để phụ huynh thấy đúng lỗi đang kéo điểm.
+ */
+const representativeNote = (lines: readonly ParentRequirementLine[], level: RequirementLevel | null): string => {
+  const withNotes = lines.filter(line => line.note);
+  if (level === 'vung') {
+    return [...withNotes].sort((left, right) => right.evidence - left.evidence || right.percent - left.percent)[0]?.note ?? '';
+  }
+  const enough = withNotes.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE);
+  return [...(enough.length > 0 ? enough : withNotes)].sort((left, right) => left.percent - right.percent)[0]?.note ?? '';
+};
+
+/** Các bài cùng một chương (và tập) liền nhau, đúng thứ tự trong sách. Bài không tra được chương gom vào nhóm riêng, cuối cùng. */
+export interface ChapterGroup { chapter: SgkChapter | null; lessons: LessonSummary[] }
+
+export const groupLessonsByChapter = (lessons: readonly LessonSummary[]): ChapterGroup[] => {
+  const groups: ChapterGroup[] = [];
+  for (const lesson of lessons) {
+    const last = groups[groups.length - 1];
+    if (last && last.chapter?.tap === lesson.chapter?.tap && last.chapter?.code === lesson.chapter?.code) last.lessons.push(lesson);
+    else groups.push({ chapter: lesson.chapter, lessons: [lesson] });
+  }
+  return [...groups.filter(group => group.chapter), ...groups.filter(group => !group.chapter)];
+};
+
+/** Tổng quan theo mạch (Đại số, Giải tích, Hình học, Thống kê, Xác suất): mỗi mạch là danh sách bài của nó theo thứ tự trong sách. */
+export const groupLessonsByStrand = (lessons: readonly LessonSummary[]): { strand: SgkStrand; lessons: LessonSummary[] }[] =>
+  SGK_STRAND_ORDER
+    .map(strand => ({ strand, lessons: lessons.filter(lesson => lesson.chapter?.strand === strand) }))
+    .filter(group => group.lessons.length > 0);
+
+/** "Ưu tiên ôn trước": các bài Chưa đạt rồi Đang hình thành, tỉ lệ thấp trước; tối đa `limit` bài. */
+export const lessonPriorities = (lessons: readonly LessonSummary[], limit = 3): LessonSummary[] => lessons
+  .filter(lesson => lesson.level === 'chua' || lesson.level === 'dang')
+  .sort((left, right) => (left.level === right.level ? 0 : left.level === 'chua' ? -1 : 1) || left.percent - right.percent)
+  .slice(0, limit);
 
 export interface RequirementGroup {
   strand: YccdStrand;
@@ -183,11 +349,29 @@ export const parentActionsForRequirements = (actions: readonly string[], lines: 
   if (!lines || lines.length === 0) return [...actions];
   const kept = actions.filter(action => !action.includes('“Cần rèn thêm”'));
   if (lines.some(line => line.level !== 'vung')) {
-    kept.splice(1, 0, 'Dành 15–20 phút mỗi tối cho con tự luyện lại đúng những yêu cầu thầy cô đánh dấu “Chưa đạt” hoặc “Đang hình thành” ở mục “Kết quả theo yêu cầu cần đạt”. Phụ huynh không cần dạy, chỉ cần nhắc con làm và tự kiểm tra.');
+    // Nhãn trong ngoặc dùng dấu cách không ngắt (\u00a0): xuống dòng giữa “Chưa / đạt” là khó đọc.
+    kept.splice(1, 0, 'Dành 15–20 phút mỗi tối cho con tự luyện lại đúng những bài thầy cô đánh dấu “Chưa\u00a0đạt” hoặc “Đang\u00a0hình\u00a0thành” ở mục “Bản\u00a0đồ\u00a0theo\u00a0bài\u00a0SGK”. Phụ huynh không cần dạy, chỉ cần nhắc con làm và tự kiểm tra.');
   }
   return kept;
 };
 
 /** Danh sách YCCĐ của khối, định dạng cho prompt: mỗi dòng "id | chủ đề: yêu cầu". */
-export const yccdOptionsForPrompt = (grade: unknown): string =>
-  yccdForGrade(grade).map(item => `${item.id} | ${item.topic}: ${item.text}`).join('\n');
+const gradeNumber = (grade: unknown): number => Number(String(grade ?? '').match(/\d+/)?.[0]);
+
+/** YCCĐ của khối thuộc giai đoạn `stage` (học kì + chương trình); `stage` null = không lọc. Xem `reportStage.ts`. */
+export const yccdInStage = (grade: unknown, stage?: ReportStage | null): readonly YccdItem[] => {
+  const list = yccdForGrade(grade);
+  return stage ? list.filter(item => inStage(termsOfSgk(gradeNumber(grade), item.sgk, stage.program), stage)) : list;
+};
+
+/** Bỏ các dòng yêu cầu cần đạt của giai đoạn khác (vd Hàm số bậc hai trong báo cáo tháng 9 lớp 10). */
+export const requirementsInStage = (lines: readonly ParentRequirementLine[], grade: unknown, stage?: ReportStage | null): ParentRequirementLine[] => {
+  if (!stage) return [...lines];
+  return lines.filter(line => {
+    const item = yccdById(line.id);
+    return !item || inStage(termsOfSgk(gradeNumber(grade), item.sgk, stage.program), stage);
+  });
+};
+
+export const yccdOptionsForPrompt = (grade: unknown, stage?: ReportStage | null): string =>
+  yccdInStage(grade, stage).map(item => `${item.id} | ${item.topic}: ${item.text}`).join('\n');

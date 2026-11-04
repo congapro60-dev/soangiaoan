@@ -110,6 +110,13 @@ describe('trang quản trị', () => {
     expect((await call({ action: 'adminOverview' })).statusCode).toBe(403);
   });
 
+  it('danh sách khoá Gemini: người không phải admin KHÔNG xem/thêm/xoá được (khoá là bí mật)', async () => {
+    h.claims = { ...ADMIN, email: 'someone@gmail.com' };
+    for (const action of ['adminGeminiKeys', 'adminSaveGeminiKey', 'adminDeleteGeminiKey']) {
+      expect((await call({ action, key: 'x', id: 'x' })).statusCode).toBe(403);
+    }
+  });
+
   it('tổng quan: giáo viên chi tiết, học sinh ẩn danh chỉ đếm; lượt AI chia trước/sau bộ đếm', async () => {
     const res = await call({ action: 'adminOverview' });
     expect(res.statusCode).toBe(200);
@@ -119,6 +126,14 @@ describe('trang quản trị', () => {
     expect(res.payload?.aiEventsAfter).toEqual({ 'gv-hanh': 1 });
     const lop = (res.payload?.classes as DocData[]).find(c => c.id === 'lop-1');
     expect(lop).toMatchObject({ assignmentCount: 1, submissionCount: 1, gradedCount: 1 });
+    expect(res.payload?.duplicateJoinCodes).toEqual([]);
+  });
+
+  it('tổng quan báo mã lớp bị dùng chung bởi hai lớp (mỗi link phải có mã riêng)', async () => {
+    h.store.classes['lop-1'].joinCode = 'ABCD23';
+    h.store.classes['lop-2'] = { name: 'Lớp trùng', teacherId: 'gv-hanh', joinCode: ' abcd23' };
+    const res = await call({ action: 'adminOverview' });
+    expect(res.payload?.duplicateJoinCodes).toMatchObject([{ code: 'ABCD23', classes: [{ id: 'lop-1' }, { id: 'lop-2' }] }]);
   });
 
   it('tiền theo giáo viên: lượt học sinh ẩn danh tính cho GV chủ lớp, chỉ trong khoảng ngày', async () => {

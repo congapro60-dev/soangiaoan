@@ -39,6 +39,20 @@ describe('AdaptiveLessonListPage helpers', () => {
         expect(shouldShowLiveLessonAction({ ...draft, status: 'published' })).toBe(true);
       }
     });
+
+    it('never shows live action for a self-study lesson, even when it has a V4 binding', () => {
+      const draft = buildCanonicalDraft('10-5-31', 'teacher-1');
+      expect(shouldShowLiveLessonAction({ ...draft, status: 'published', lessonKind: 'self_study' })).toBe(false);
+    });
+
+    it('shows live action for an interactive lesson that is published', () => {
+      expect(shouldShowLiveLessonAction({ id: 'adaptive-1', status: 'published', lessonKind: 'interactive' })).toBe(true);
+      expect(shouldShowLiveLessonAction({ id: 'adaptive-1', status: 'draft', lessonKind: 'interactive' })).toBe(false);
+    });
+
+    it('hides live action for a differentiated lesson until its runtime exists', () => {
+      expect(shouldShowLiveLessonAction({ id: 'adaptive-2', status: 'published', lessonKind: 'differentiated' })).toBe(false);
+    });
   });
 
   describe('getDeleteLessonConfirmation', () => {

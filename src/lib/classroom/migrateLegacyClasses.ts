@@ -23,6 +23,8 @@ interface MigrateOptions {
   /** Cho phép test bơm mã cố định. */
   joinCodeFactory?: () => string;
   now?: () => string;
+  /** Mã lớp đã có (của các lớp giáo viên đang có) — lớp mới không được lấy trùng. */
+  existingJoinCodes?: readonly string[];
 }
 
 export const planLegacyClassMigration = (
@@ -32,6 +34,15 @@ export const planLegacyClassMigration = (
 ): MigrationPlan => {
   const existing = new Set(options.existingClassIds || []);
   const makeJoinCode = options.joinCodeFactory || createJoinCode;
+  const usedCodes = new Set((options.existingJoinCodes || []).map(code => code.toUpperCase()));
+  /** Mã chưa ai dùng: trong cùng lượt chuyển và trong các lớp sẵn có. (Trùng với lớp của GIÁO VIÊN KHÁC thì client không thấy — máy chủ sẽ chặn khi tra mã.) */
+  const freshJoinCode = (): string => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const code = makeJoinCode().toUpperCase();
+      if (!usedCodes.has(code)) { usedCodes.add(code); return code; }
+    }
+    throw new Error('Không tạo được mã lớp không trùng. Thử lại.');
+  };
   const nowIso = options.now || (() => new Date().toISOString());
 
   const classes: ClassDoc[] = [];
@@ -65,7 +76,7 @@ export const planLegacyClassMigration = (
       name: item.name,
       track: item.track || '',
       grade: item.grade || item.name.match(/\d+/)?.[0] || '',
-      joinCode: makeJoinCode(),
+      joinCode: freshJoinCode(),
       // Đếm lại từ danh sách thật, không tin `studentCount` cũ — trường đó từng lệch
       // vì mọi phép thêm/xoá học sinh đều phải nhớ cập nhật nó bằng tay.
       studentCount: students.length,

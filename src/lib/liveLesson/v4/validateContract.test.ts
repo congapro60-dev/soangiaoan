@@ -224,6 +224,26 @@ describe('validateV4Contract', () => {
     expect(codes(contract)).toContain('DUPLICATE_STEP_ID');
   });
 
+  it('bắt checkpoint trỏ tới stepId không có trong timeline (Gate D đổi id chặng)', () => {
+    const contract = buildValidContract();
+    contract.timeline = contract.timeline.map((b) => (b.id === 'P16' ? { ...b, id: 'P10' } : b));
+    expect(codes(contract)).toContain('STEP_REFERENCE_INVALID');
+  });
+
+  it('bắt aiError trỏ tới stepId không có trong timeline', () => {
+    const contract = buildValidContract();
+    contract.aiError.stepId = 'P16-old';
+    expect(codes(contract)).toContain('STEP_REFERENCE_INVALID');
+  });
+
+  it('evidenceRules nhận cả stepId timeline lẫn checkpoint id (khuôn P31)', () => {
+    const contract = buildValidContract();
+    contract.evidenceRules = [{ id: 'er-cp', sourceStepId: 'cp-ai-error', dimension: 'reasoning', minConfidence: 0.6 }];
+    expect(codes(contract)).not.toContain('STEP_REFERENCE_INVALID');
+    contract.evidenceRules = [{ id: 'er-orphan', sourceStepId: 'P99', dimension: 'reasoning', minConfidence: 0.6 }];
+    expect(codes(contract)).toContain('STEP_REFERENCE_INVALID');
+  });
+
   it('bắt checkpoint không có bằng chứng', () => {
     const contract = buildValidContract();
     contract.checkpoints[0].evidenceSignal = '   ';

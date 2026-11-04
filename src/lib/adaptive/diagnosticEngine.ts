@@ -11,7 +11,7 @@ import {
   StudentAdaptiveProgress,
   TeacherFlag,
   AdaptiveTeacherDashboardData,
-} from './types';
+} from './types.js';
 
 const normalizeAnswer = (value: string) =>
   value

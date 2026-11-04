@@ -2,7 +2,7 @@ import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { stripAnswerKey } from './_exam-core.js';
 import { readClassAccess, type ClassAccess } from './_classroom-access.js';
-import { callGeminiVision, getGradingApiKey, GRADING_MODEL, reserveQuota } from './_grading-core.js';
+import { callGradingVision, reserveQuota } from './_grading-core.js';
 import {
   buildExamContentSnapshot,
   type ExamContentSnapshot,
@@ -21,6 +21,7 @@ import {
   approveOnlineGrade,
   buildAutomaticOnlineGrade,
   applyAiOnlineGradeSuggestion,
+  hideUnofficialOnlineScore,
   projectOnlineGradeForStudent,
   removeOnlineGrade,
   OnlineGradeValidationError,
@@ -37,7 +38,7 @@ import type {
   SubmissionGradeHistoryDoc,
   SubmissionGradeRevisionAction,
 } from '../src/lib/classroom/types.js';
-import { buildHomeworkGradingPrompt, parseHomeworkGradeForCommit } from '../src/lib/classroom/gradingPrompt.js';
+import { buildHomeworkGradingSegments, parseHomeworkGradeForCommit, HomeworkGradeContractError } from '../src/lib/classroom/gradingPrompt.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -347,7 +348,7 @@ const loadAttemptContext = async (
   return { context, attemptRef, attempt: { id: attemptId, ...attempt } as StoredOnlineAttempt };
 };
 
-const attemptProjection = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt): ExamSubmission => safeAttempt(id, {
+const attemptProjection = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt): ExamSubmission => hideUnofficialOnlineScore(safeAttempt(id, {
   ...attempt,
   examId: context.examRef.id,
   examCode: asString(context.exam.code),
@@ -357,7 +358,7 @@ const attemptProjection = (context: StudentOnlineContext, id: string, attempt: S
   studentId: context.link.studentId,
   assignmentId: context.assignmentRef.id,
   maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? 0,
-}, context.exam.allowReview === true);
+}, context.exam.allowReview === true));
 
 const onlineResponse = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt) => ({
   assignment: assignmentProjection(context.assignmentRef.id, context.assignment),
@@ -383,12 +384,12 @@ const readRelevantAttempts = async (
       && attempt.assignmentId === assignmentId);
 };
 
-/** Projection gọn cho dashboard học sinh; không trả answer text hay ghi chú chấm nội bộ. */
+/** Projection gọn cho dashboard học sinh; không trả answer text, ghi chú chấm nội bộ, hay điểm chưa được duyệt. */
 const studentOnlineAttemptProjection = (
   id: string,
   data: FirebaseFirestore.DocumentData,
   link: VerifiedStudentLink,
-): ExamSubmission => ({
+): ExamSubmission => hideUnofficialOnlineScore({
   id,
   examId: asString(data.examId),
   examCode: '',
@@ -929,22 +930,36 @@ const teacherOnlineAiRegrade = async (db: Db, body: Body, res: ResponseLike): Pr
   const reservation = await reserveQuota(db, context.uid, 'teacher', asString(context.attempt.studentId));
   if (reservation.verdict.allowed <= 0) throw new ClassroomOnlineError(429, reservation.verdict.reason);
 
-  const raw = await callGeminiVision(
-    buildHomeworkGradingPrompt({
-      answerKey,
-      rubric: asString(context.assignment.rubric),
-      maxScore,
-      assignmentTitle: asString(context.assignment.title) || asString(context.exam.title),
-      assignmentText: questions.map((question, index) => `Câu ${index + 1}: ${question.content}`).join('\n'),
-      gradingInstructions: asString(context.assignment.gradingInstructions),
-      studentText,
-    }),
+  const segments = buildHomeworkGradingSegments({
+    answerKey,
+    rubric: asString(context.assignment.rubric),
+    maxScore,
+    assignmentTitle: asString(context.assignment.title) || asString(context.exam.title),
+    assignmentText: questions.map((question, index) => `Câu ${index + 1}: ${question.content}`).join('\n'),
+    gradingInstructions: asString(context.assignment.gradingInstructions),
+    studentText,
+  });
+  // Đề + đáp án cố định cho cả đề → cache tiền tố dùng chung khi thầy chấm lại nhiều bài.
+  const segment = { prefix: segments.prefix, suffix: segments.suffix };
+  const chamlai = (): Promise<string> => callGradingVision(
+    `${segments.prefix}\n\n${segments.suffix}`,
     [],
-    getGradingApiKey(),
-    GRADING_MODEL,
-    { maxOutputTokens: 8192, jsonMode: true },
+    { maxOutputTokens: 8192 },
+    segment,
   );
-  const parsed = parseHomeworkGradeForCommit(raw, maxScore, questions.every(question => !asString(question.correctAnswer).trim()), 0);
+  const khongDapAn = questions.every(question => !asString(question.correctAnswer).trim());
+  let parsed: ReturnType<typeof parseHomeworkGradeForCommit>;
+  try {
+    parsed = parseHomeworkGradeForCommit(await chamlai(), maxScore, khongDapAn, 0);
+  } catch (error) {
+    // Vilao không có jsonMode như Gemini cũ: thỉnh thoảng AI trả lời lệch JSON — nhờ chấm lại ĐÚNG MỘT lần rồi mới báo lỗi.
+    if (!(error instanceof HomeworkGradeContractError)) throw error;
+    try {
+      parsed = parseHomeworkGradeForCommit(await chamlai(), maxScore, khongDapAn, 0);
+    } catch {
+      throw new ClassroomOnlineError(502, 'AI chấm lại chưa trả được kết quả đúng chuẩn. Bấm "Chấm lại bằng AI" lần nữa.');
+    }
+  }
   const now = nowIso();
   const update = applyAiOnlineGradeSuggestion({ answers: rawAnswers, maxScore }, questions, {
     score: parsed.grade.score,

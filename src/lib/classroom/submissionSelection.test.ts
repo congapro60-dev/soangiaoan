@@ -170,6 +170,11 @@ describe('hasUncertainRead — nhắc soát khi máy đọc chưa chắc', () =>
   it('đọc rõ, confidence cao thì không cảnh báo', () => {
     expect(hasUncertainRead(grade([qr({ confidence: 0.95 })]))).toBe(false);
   });
+
+  it('thầy đã sửa tay (editedByTeacher) thì máy hết kéo cờ dù câu cũ còn điểm thấp', () => {
+    expect(hasUncertainRead({ ...grade([qr({ confidence: 0.3 })]), editedByTeacher: true } as SubmissionGrade)).toBe(false);
+    expect(hasUncertainRead({ ...grade([qr({ status: 'unreadable' })]), editedByTeacher: true } as SubmissionGrade)).toBe(false);
+  });
 });
 
 describe('classBacklog — việc tồn của cả lớp', () => {
@@ -192,7 +197,7 @@ describe('classBacklog — việc tồn của cả lớp', () => {
     const backlog = classBacklog(list, new Set(['tuan-truoc', 'tuan-nay']));
     expect(backlog.toGrade.map(s => s.id)).toEqual(['a-moi']);
     expect(backlog.errored.map(s => s.id)).toEqual(['f']);
-    expect(backlog.toApprove.map(s => s.id)).toEqual(['b']);
+    expect(backlog.toApprove.map(s => s.id).sort()).toEqual(['b', 'c']);
     expect(backlog.uncertain.map(s => s.id)).toEqual(['c']);
     expect(backlog.assignmentCount).toBe(2);
   });

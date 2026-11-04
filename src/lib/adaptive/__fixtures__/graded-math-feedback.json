@@ -1,0 +1,90 @@
+[
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 1",
+    "text": "Dựa vào bảng xét dấu đạo hàm, ta có:\n\n- Trên khoảng $(-1; 2)$, $f'(x) < 0$ nên hàm số nghịch biến trên khoảng $(-1; 2)$.\n- Trên các khoảng $(-\\infty; -1)$ và $(2; +\\infty)$, $f'(x) > 0$ nên hàm số đồng biến.\n\nDo đó, hàm số nghịch biến trên khoảng $(-1; 2)$.\n\nChọn đáp án B."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 2",
+    "text": "Từ đồ thị hàm số, điểm cực đại của đồ thị là điểm nhô cao nhất trong một lân cận, có tọa độ $(-1; 4)$.\n\n- Điểm cực đại của hàm số là hoành độ $x = -1$.\n- Giá trị cực đại của hàm số là tung độ $y = 4$.\n\nVậy giá trị cực đại của hàm số bằng $4$.\n\nChọn đáp án C."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 3",
+    "text": "Xét hàm số $y = \\frac{2x + 1}{x - 1}$ có tập xác định $D = \\mathbb{R} \\setminus \\{1\\}$.\n\nTa có giới hạn một bên tại điểm $x = 1$:\n$$\\lim_{x \\to 1^+} \\frac{2x + 1}{x - 1} = +\\infty \\quad \\text{và} \\quad \\lim_{x \\to 1^-} \\frac{2x + 1}{x - 1} = -\\infty$$\n\nTheo định nghĩa, đường thẳng $x = 1$ là đường tiệm cận đứng của đồ thị hàm số.\n\nChọn đáp án B."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 4",
+    "text": "Ta viết lại hàm số dưới dạng phân thức:\n$$y = 1 + \\frac{2}{x + 1} = \\frac{x + 3}{x + 1}$$\n\n- Tiệm cận đứng: Vì $\\lim_{x \\to -1^+} y = +\\infty$ nên đường thẳng $x = -1$ là tiệm cận đứng (có $1$ đường).\n- Tiệm cận ngang: Vì $\\lim_{x \\to \\pm\\infty} y = \\lim_{x \\to \\pm\\infty} \\left(1 + \\frac{2}{x + 1}\\right) = 1$ nên đường thẳng $y = 1$ là tiệm cận ngang (có $1$ đường).\n\nTổng số đường tiệm cận đứng và tiệm cận ngang của đồ thị là:\n$$1 + 1 = 2$$\n\nChọn đáp án C."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 5",
+    "text": "Tập xác định $D = \\mathbb{R}$.\n\nTa tính đạo hàm:\n$$f'(x) = 3x^2 - 3$$\n\nGiải phương trình đạo hàm bằng $0$:\n$$f'(x) = 0 \\iff 3x^2 - 3 = 0 \\iff x^2 = 1 \\iff x = 1 \\text{ hoặc } x = -1$$\n\nPhương trình $f'(x) = 0$ có $2$ nghiệm đơn phân biệt và đạo hàm đổi dấu qua hai nghiệm này. Do đó, hàm số có $2$ điểm cực trị.\n\nChọn đáp án B."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 6",
+    "text": "Hàm số $f(x) = x^2 - 4x + 5$ liên tục trên đoạn $[0; 4]$.\n\nTa có:\n$$f'(x) = 2x - 4$$\n$$f'(x) = 0 \\iff 2x - 4 = 0 \\iff x = 2 \\in [0; 4]$$\n\nTính giá trị tại các điểm đầu mút và điểm dừng:\n- $f(0) = 0^2 - 4 \\cdot 0 + 5 = 5$\n- $f(2) = 2^2 - 4 \\cdot 2 + 5 = 1$\n- $f(4) = 4^2 - 4 \\cdot 4 + 5 = 5$\n\nSo sánh các giá trị trên, ta được giá trị nhỏ nhất của hàm số trên đoạn $[0; 4]$ là $\\min_{[0; 4]} f(x) = 1$ (đạt được tại $x = 2$).\n\nChọn đáp án A."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 7",
+    "text": "Xét hàm số $C(x) = x + \\frac{16}{x}$ với điều kiện $x > 0$.\n\nCách 1: Sử dụng đạo hàm\n$$C'(x) = 1 - \\frac{16}{x^2}$$\n$$C'(x) = 0 \\iff 1 - \\frac{16}{x^2} = 0 \\iff x^2 = 16 \\iff x = 4 \\quad (\\text{vì } x > 0)$$\nQua điểm $x = 4$, đạo hàm $C'(x)$ đổi dấu từ âm sang dương nên $C(x)$ đạt giá trị nhỏ nhất tại $x = 4$.\n\nCách 2: Bất đẳng thức Cô-si\nVì $x > 0$ và $\\frac{16}{x} > 0$, áp dụng bất đẳng thức Cô-si ta có:\n$$C(x) = x + \\frac{16}{x} \\ge 2\\sqrt{x \\cdot \\frac{16}{x}} = 2 \\cdot 4 = 8$$\nDấu \"=\" xảy ra khi và chỉ khi:\n$$x = \\frac{16}{x} \\iff x^2 = 16 \\iff x = 4$$\n\nVậy giá trị của $x$ để chi phí nhỏ nhất là $x = 4$.\n\nChọn đáp án B."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 8",
+    "text": "Trong không gian $Oxyz$, tọa độ của vectơ $\\vec{AB}$ được tính bằng tọa độ điểm ngọn trừ tọa độ điểm gốc:\n$$\\vec{AB} = (x_B - x_A; y_B - y_A; z_B - z_A)$$\n\nThay tọa độ $A(1; -2; 3)$ và $B(4; 0; 1)$ vào, ta được:\n$$\\vec{AB} = (4 - 1; 0 - (-2); 1 - 3) = (3; 2; -2)$$\n\nChọn đáp án A."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 9",
+    "text": "Trong không gian $Oxyz$, tọa độ trung điểm $M$ của đoạn thẳng $AB$ là trung bình cộng tọa độ của hai đầu mút $A$ và $B$:\n$$\\begin{aligned}\nx_M &= \\frac{x_A + x_B}{2} = \\frac{2 + (-2)}{2} = 0 \\\\\ny_M &= \\frac{y_A + y_B}{2} = \\frac{-1 + 3}{2} = 1 \\\\\nz_M &= \\frac{z_A + z_B}{2} = \\frac{4 + 0}{2} = 2\n\\end{aligned}$$\n\nVậy tọa độ trung điểm là $M(0; 1; 2)$.\n\nChọn đáp án C."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 10",
+    "text": "Biểu thức tọa độ của tích vô hướng hai vectơ $\\vec{u} = (x_1; y_1; z_1)$ và $\\vec{v} = (x_2; y_2; z_2)$ là:\n$$\\vec{u} \\cdot \\vec{v} = x_1 x_2 + y_1 y_2 + z_1 z_2$$\n\nThay số với $\\vec{u} = (1; 2; -1)$ và $\\vec{v} = (2; -1; 3)$:\n$$\\vec{u} \\cdot \\vec{v} = 1 \\cdot 2 + 2 \\cdot (-1) + (-1) \\cdot 3 = 2 - 2 - 3 = -3$$\n\nChọn đáp án B."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 11",
+    "text": "Hai vectơ $\\vec{u}$ và $\\vec{v}$ vuông góc với nhau khi và chỉ khi tích vô hướng của chúng bằng $0$:\n$$\\vec{u} \\perp \\vec{v} \\iff \\vec{u} \\cdot \\vec{v} = 0$$\n\nTa có:\n$$\\vec{u} \\cdot \\vec{v} = 1 \\cdot 2 + m \\cdot (-1) + 2 \\cdot 1 = 2 - m + 2 = 4 - m$$\n\nPhương trình trở thành:\n$$4 - m = 0 \\iff m = 4$$\n\nChọn đáp án D."
+  },
+  {
+    "label": "Lời giải chi tiết Phần I - Câu 12",
+    "text": "Độ dài đoạn thẳng $AB$ nối hai điểm $A(x_A; y_A; z_A)$ và $B(x_B; y_B; z_B)$ được tính theo công thức:\n$$AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2 + (z_B - z_A)^2}$$\n\nThay tọa độ $A(1; 2; 2)$ và $B(4; 6; 2)$ vào công thức:\n$$AB = \\sqrt{(4 - 1)^2 + (6 - 2)^2 + (2 - 2)^2} = \\sqrt{3^2 + 4^2 + 0^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5$$\n\nChọn đáp án C."
+  },
+  {
+    "label": "Lời giải chi tiết Phần II - Câu 1",
+    "text": "Xét hàm số $f(x) = x^3 - 3x + 2$:\n\na) ĐÚNG. Đạo hàm của hàm số là:\n$$f'(x) = (x^3)' - 3(x)' + (2)' = 3x^2 - 3$$\n\nb) SAI. Giải phương trình $f'(x) = 0 \\iff 3x^2 - 3 = 0 \\iff x = \\pm 1$.\nXét dấu của $f'(x)$:\n- Với $x \\in (-1; 1)$ thì $f'(x) < 0$, do đó hàm số nghịch biến trên khoảng $(-1; 1)$, không phải đồng biến.\n\nc) ĐÚNG. Dựa vào chiều biến thiên, $f'(x)$ đổi dấu từ dương sang âm khi qua $x = -1$, do đó $x = -1$ là điểm cực đại của hàm số.\nGiá trị cực đại tương ứng là:\n$$y_{\\text{CĐ}} = f(-1) = (-1)^3 - 3(-1) + 2 = -1 + 3 + 2 = 4$$\n\nd) SAI. Phương trình $f(x) = 2$ tương đương với:\n$$x^3 - 3x + 2 = 2 \\iff x^3 - 3x = 0 \\iff x(x^2 - 3) = 0 \\iff x \\in \\{-\\sqrt{3}; 0; \\sqrt{3}\\}$$\nPhương trình có đúng $3$ nghiệm thực phân biệt chứ không phải $2$ nghiệm."
+  },
+  {
+    "label": "Lời giải chi tiết Phần II - Câu 2",
+    "text": "Khi cắt ở bốn góc bốn hình vuông cạnh $x\\text{ cm}$ từ tấm bìa hình vuông cạnh $12\\text{ cm}$ rồi gấp thành hộp không nắp:\n\na) ĐÚNG. Đáy hộp là hình vuông có độ dài cạnh là $12 - 2x$. Chiều cao của hộp là $x$.\nĐiều kiện hình học là độ dài các cạnh phải dương:\n$$\\begin{cases} x > 0 \\\\ 12 - 2x > 0 \\end{cases} \\iff 0 < x < 6$$\n\nb) ĐÚNG. Diện tích đáy hộp là $(12 - 2x)^2$ và chiều cao là $x$, do đó thể tích khối hộp là:\n$$V(x) = x(12 - 2x)^2$$\n\nc) ĐÚNG. Khai triển biểu thức thể tích:\n$$V(x) = x(144 - 48x + 4x^2) = 4x^3 - 48x^2 + 144x$$\nLấy đạo hàm theo biến $x$:\n$$V'(x) = 12x^2 - 96x + 144 = 12(x^2 - 8x + 12) = 12(x - 2)(x - 6)$$\n\nd) SAI. Xét phương trình $V'(x) = 0$ trên khoảng $(0; 6)$:\n$$12(x - 2)(x - 6) = 0 \\iff x = 2 \\quad (\\text{nghiệm } x = 6 \\text{ không thuộc khoảng } (0; 6))$$\nBảng biến thiên cho thấy $V'(x) > 0$ trên $(0; 2)$ và $V'(x) < 0$ trên $(2; 6)$, do đó thể tích hộp đạt giá trị lớn nhất khi $x = 2\\text{ cm}$, không phải $x = 3\\text{ cm}$."
+  },
+  {
+    "label": "Lời giải chi tiết Phần II - Câu 3",
+    "text": "Cho tọa độ các điểm $A(1; -1; 2)$, $B(3; 2; 0)$, $C(-1; 1; 4)$:\n\na) ĐÚNG. Tọa độ vectơ $\\vec{AB}$ là:\n$$\\vec{AB} = (3 - 1; 2 - (-1); 0 - 2) = (2; 3; -2)$$\n\nb) ĐÚNG. Tọa độ vectơ $\\vec{AC}$ là:\n$$\\vec{AC} = (-1 - 1; 1 - (-1); 4 - 2) = (-2; 2; 2)$$\n\nc) SAI. Tích vô hướng của $\\vec{AB}$ và $\\vec{AC}$ là:\n$$\\vec{AB} \\cdot \\vec{AC} = 2 \\cdot (-2) + 3 \\cdot 2 + (-2) \\cdot 2 = -4 + 6 - 4 = -2 \\neq 2$$\n\nd) SAI. Ta có công thức tính côsin góc giữa hai vectơ:\n$$\\cos(\\widehat{BAC}) = \\frac{\\vec{AB} \\cdot \\vec{AC}}{|\\vec{AB}| \\cdot |\\vec{AC}|} = \\frac{-2}{\\sqrt{2^2 + 3^2 + (-2)^2} \\cdot \\sqrt{(-2)^2 + 2^2 + 2^2}} = \\frac{-2}{\\sqrt{17} \\cdot \\sqrt{12}} < 0$$\nVì $\\cos(\\widehat{BAC}) < 0$ nên góc $\\widehat{BAC}$ là góc tù, không phải góc nhọn."
+  },
+  {
+    "label": "Lời giải chi tiết Phần II - Câu 4",
+    "text": "Phòng học hình hộp chữ nhật có kích thước dài $8\\text{ m}$ (dọc theo $Ox$), rộng $6\\text{ m}$ (dọc theo $Oy$), cao $3\\text{ m}$ (dọc theo $Oz$):\n\na) ĐÚNG. Điểm $A$ nằm trên tia $Ox$ cách gốc $O$ một khoảng bằng chiều dài $8\\text{ m}$, do đó $A(8; 0; 0)$ nên $\\vec{OA} = (8; 0; 0)$.\n\nb) SAI. Trần phòng là hình chữ nhật $A'B'C'O'$ nằm trên mặt phẳng có cao độ $z = 3$. Tâm $M$ của trần phòng có:\n$$x_M = \\frac{8}{2} = 4, \\quad y_M = \\frac{6}{2} = 3, \\quad z_M = 3$$\nVậy tọa độ chính xác của $M$ là $(4; 3; 3)$, khẳng định $M(4; 3; 0)$ là sai (đó là hình chiếu của $M$ lên sàn nhà).\n\nc) ĐÚNG. Khoảng cách từ gốc $O(0; 0; 0)$ đến $M(4; 3; 3)$ là:\n$$OM = \\sqrt{4^2 + 3^2 + 3^2} = \\sqrt{16 + 9 + 9} = \\sqrt{34}\\text{ m}$$\n\nd) ĐÚNG. Điểm $O'$ là góc trần phía trên $O$, có tọa độ $O'(0; 0; 3)$. Độ dài đoạn $MO'$ là:\n$$MO' = \\sqrt{(4 - 0)^2 + (3 - 0)^2 + (3 - 3)^2} = \\sqrt{4^2 + 3^2 + 0^2} = \\sqrt{25} = 5\\text{ m}$$"
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 1",
+    "text": "Thực hiện phép chia đa thức tử cho mẫu:\n$$\\begin{aligned}\n\\frac{2x^2 - x + 5}{x - 1} &= \\frac{2x(x - 1) + x + 5}{x - 1} \\\\\n&= 2x + \\frac{x - 1 + 6}{x - 1} \\\\\n&= 2x + 1 + \\frac{6}{x - 1}\n\\end{aligned}$$\n\nVì $\\lim_{x \\to \\pm\\infty} \\left[y - (2x + 1)\\right] = \\lim_{x \\to \\pm\\infty} \\frac{6}{x - 1} = 0$, nên đường thẳng $y = 2x + 1$ là tiệm cận xiên của đồ thị hàm số.\n\nĐồng nhất với phương trình tiệm cận xiên $y = ax + b$, ta được:\n$$a = 2, \\quad b = 1$$\n\nDo đó:\n$$a + b = 2 + 1 = 3$$\n\nĐáp số: 3."
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 2",
+    "text": "Vận tốc tức thời của chất điểm là đạo hàm cấp một của quãng đường theo thời gian:\n$$v(t) = s'(t) = (-t^3 + 6t^2)' = -3t^2 + 12t$$\n\nĐể tìm thời điểm vận tốc đạt cực đại, ta có thể xét đỉnh của parabol hoặc dùng đạo hàm:\n$$v(t) = -3(t^2 - 4t) = -3(t - 2)^2 + 12$$\n\nVì $-3(t - 2)^2 \\le 0$ với mọi $t$, nên $v(t) \\le 12$.\n\nDấu bằng xảy ra khi:\n$$t - 2 = 0 \\iff t = 2\\text{ (giây)}$$\n\nVậy vận tốc của chất điểm đạt giá trị lớn nhất tại thời điểm $t = 2\\text{ s}$.\n\nĐáp số: 2."
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 3",
+    "text": "Khu vườn có một cạnh chiều dài tựa vào tường nên chỉ cần rào $3$ cạnh gồm hai cạnh chiều rộng (mỗi cạnh có độ dài $x$) và một cạnh chiều dài (có độ dài $y$).\n\nTổng chiều dài hàng rào là $60\\text{ m}$, ta có hệ thức:\n$$2x + y = 60 \\implies y = 60 - 2x$$\n\nVì kích thước các cạnh phải dương nên $x > 0$ và $60 - 2x > 0 \\iff 0 < x < 30$.\n\nDiện tích khu vườn được biểu diễn theo biến $x$:\n$$S(x) = x \\cdot y = x(60 - 2x) = -2x^2 + 60x$$\n\nBiểu thức $S(x)$ là một tam thức bậc hai có hệ số $a = -2 < 0$, đạt giá trị lớn nhất tại đỉnh của parabol:\n$$x = -\\frac{b}{2a} = -\\frac{60}{2 \\cdot (-2)} = 15\\text{ (thỏa mãn } 0 < x < 30)$$\n\nVậy diện tích khu vườn lớn nhất khi $x = 15\\text{ m}$.\n\nĐáp số: 15."
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 4",
+    "text": "Tứ giác $ABCD$ là hình bình hành khi và chỉ khi hai vectơ đối diện bằng nhau:\n$$\\vec{AD} = \\vec{BC}$$\n\nGọi tọa độ đỉnh $D$ là $(x_D; y_D; z_D)$. Ta có:\n- $\\vec{AD} = (x_D - 1; y_D - 2; z_D - (-1)) = (x_D - 1; y_D - 2; z_D + 1)$\n- $\\vec{BC} = (5 - 3; 1 - 0; 4 - 2) = (2; 1; 2)$\n\nTừ $\\vec{AD} = \\vec{BC}$, suy ra hệ phương trình:\n$$\\begin{cases}\nx_D - 1 = 2 \\\\\ny_D - 2 = 1 \\\\\nz_D + 1 = 2\n\\end{cases} \\iff \\begin{cases}\nx_D = 3 \\\\\ny_D = 3 \\\\\nz_D = 1\n\\end{cases}$$\n\nVậy tọa độ điểm $D$ là $D(3; 3; 1)$.\n\nTổng các tọa độ của điểm $D$ là:\n$$x_D + y_D + z_D = 3 + 3 + 1 = 7$$\n\nĐáp số: 7."
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 5",
+    "text": "Công $A$ sinh ra bởi lực không đổi $\\vec{F}$ khi làm vật dịch chuyển một độ dời $\\vec{d} = \\vec{AB}$ được tính bằng tích vô hướng giữa vectơ lực và vectơ độ dời:\n$$A = \\vec{F} \\cdot \\vec{AB}$$\n\nThay tọa độ $\\vec{F} = (2; 1; 3)$ và $\\vec{AB} = (4; -2; 1)$ vào công thức:\n$$A = 2 \\cdot 4 + 1 \\cdot (-2) + 3 \\cdot 1 = 8 - 2 + 3 = 9\\text{ (J)}$$\n\nĐáp số: 9."
+  },
+  {
+    "label": "Lời giải chi tiết Phần III - Câu 6",
+    "text": "Cho ba điểm $A(1; 0; 0)$, $B(0; 2; 0)$, $C(0; 0; 3)$ và điểm $M(0; 0; t)$ thuộc trục $Oz$.\n\nTính bình phương khoảng cách từ $M$ tới các điểm:\n- $MA^2 = (0 - 1)^2 + (0 - 0)^2 + (t - 0)^2 = t^2 + 1$\n- $MB^2 = (0 - 0)^2 + (0 - 2)^2 + (t - 0)^2 = t^2 + 4$\n- $MC^2 = (0 - 0)^2 + (0 - 0)^2 + (t - 3)^2 = (t - 3)^2 = t^2 - 6t + 9$\n\nBiểu thức $P$ bằng:\n$$\\begin{aligned}\nP &= MA^2 + MB^2 + MC^2 \\\\\n&= (t^2 + 1) + (t^2 + 4) + (t^2 - 6t + 9) \\\\\n&= 3t^2 - 6t + 14 \\\\\n&= 3(t^2 - 2t + 1) + 11 \\\\\n&= 3(t - 1)^2 + 11\n\\end{aligned}$$\n\nVì $3(t - 1)^2 \\ge 0$ với mọi $t$, nên $P \\ge 11$.\n\nGiá trị nhỏ nhất của $P$ bằng $11$, đạt được khi:\n$$t - 1 = 0 \\iff t = 1$$\n\nĐáp số: 1."
+  }
+]

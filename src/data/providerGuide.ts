@@ -57,6 +57,7 @@ export const PROVIDER_GUIDES: Partial<Record<ApiProvider, ProviderGuide>> = {
       { modelId: 'gemini-3.8-flash', role: 'Nên dùng', inUsd: 0.75, outUsd: 3.75, note: 'Giá này đến hết 31/12/2026, từ 01/01/2027 tăng.' },
       { modelId: 'gemini-3.5-flash-lite', role: 'Rẻ nhất', inUsd: 0.3, outUsd: 2.5 },
       { modelId: 'gemini-3.1-pro-preview', role: 'Cao cấp', inUsd: 2, outUsd: 12, note: 'Không có gói miễn phí.' },
+      { modelId: 'gemini-4-argon', role: 'Cao nhất', inUsd: 2, outUsd: 10, note: 'Chỉ gói trả phí. Giá này đến hết 30/11/2026, từ 01/12/2026 gấp đôi ($4 / $20).' },
     ],
     caution: 'Hạn mức miễn phí xem ở Google AI Studio → Rate limits; thanh “đã dùng” trong Cài đặt chỉ là ước tính.',
   },

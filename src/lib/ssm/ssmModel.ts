@@ -4,6 +4,7 @@
  * để chẩn đoán, không làm vỡ màn hình.
  */
 import type { Student } from '../../types';
+import { isAdminEmail } from '../admin/adminConfig';
 
 export interface SsmClass {
   id: number;
@@ -54,6 +55,14 @@ export const parseProfileEmail = (body: unknown): string => {
 
 export const emailsMatch = (a: string | null | undefined, b: string | null | undefined): boolean =>
   !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * Tab SSM có đúng là tài khoản của giáo viên đang dùng app không.
+ * Tài khoản admin của chủ dự án (mail cá nhân + mail trường) là MỘT người sau khi gộp phiên, nên mail SSM là mail
+ * admin nào cũng hợp lệ; `linkedEmail` là mail Google thật đứng sau phiên đã gộp.
+ */
+export const ssmAccountAllowed = (ssmEmail: string | null | undefined, appEmail: string | null | undefined, linkedEmail?: string | null): boolean =>
+  emailsMatch(ssmEmail, appEmail) || emailsMatch(ssmEmail, linkedEmail) || (isAdminEmail(appEmail) && isAdminEmail(ssmEmail));
 
 /** Năm học đang chạy: SSM đánh `status = 2`. */
 export const pickCurrentSchoolYear = (body: unknown): SsmSchoolYear | null => {

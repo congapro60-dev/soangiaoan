@@ -1,0 +1,471 @@
+{
+ "sessionFile": "tasks/tmp-r4-qa-session.json",
+ "session": "T5lfCYGxrpRSg1aikwhj",
+ "gvOpen": {
+  "stage": "1",
+  "band": null,
+  "plan": "Kế hoạch 0–1′ · tiết 40′",
+  "status": "waiting",
+  "expired": false
+ },
+ "join": "view-stable",
+ "bands": [
+  {
+   "stage": "1",
+   "gvBand": null,
+   "hsBand": "Chặng 0–1 phút",
+   "plan": "Kế hoạch 0–1′ · tiết 40′"
+  },
+  {
+   "stage": "2",
+   "gvBand": null,
+   "hsBand": "Chặng 1–5 phút",
+   "plan": "Kế hoạch 1–5′ · tiết 40′"
+  },
+  {
+   "stage": "3",
+   "gvBand": null,
+   "hsBand": "Chặng 5–7 phút",
+   "plan": "Kế hoạch 5–7′ · tiết 40′"
+  },
+  {
+   "stage": "4",
+   "gvBand": null,
+   "hsBand": "Chặng 7–12 phút",
+   "plan": "Kế hoạch 7–12′ · tiết 40′"
+  },
+  {
+   "stage": "5",
+   "gvBand": null,
+   "hsBand": "Chặng 12–15 phút",
+   "plan": "Kế hoạch 12–15′ · tiết 40′"
+  },
+  {
+   "stage": "6",
+   "gvBand": null,
+   "hsBand": "Chặng 15–16 phút",
+   "plan": "Kế hoạch 15–16′ · tiết 40′"
+  },
+  {
+   "stage": "7",
+   "gvBand": null,
+   "hsBand": "Chặng 16–24 phút",
+   "plan": "Kế hoạch 16–24′ · tiết 40′"
+  },
+  {
+   "stage": "8",
+   "gvBand": null,
+   "hsBand": "Chặng 24–29 phút",
+   "plan": "Kế hoạch 24–29′ · tiết 40′"
+  },
+  {
+   "stage": "9",
+   "gvBand": null,
+   "hsBand": "Chặng 29–35 phút",
+   "plan": "Kế hoạch 29–35′ · tiết 40′"
+  },
+  {
+   "stage": "10",
+   "gvBand": null,
+   "hsBand": "Chặng 35–38 phút",
+   "plan": "Kế hoạch 35–38′ · tiết 40′"
+  },
+  {
+   "stage": "11",
+   "gvBand": null,
+   "hsBand": "Chặng 38–40 phút",
+   "plan": "Kế hoạch 38–40′ · tiết 40′"
+  }
+ ],
+ "s4": {
+  "gvBand": null,
+  "hsBand": "Chặng 12–15 phút",
+  "tvBand": null,
+  "hsHasAiKetLuan": true,
+  "tvHasAiKetLuan": true,
+  "hsHasPhanHoiNhanh": true,
+  "hsHas4Nhan": true,
+  "hsNoProof": true,
+  "tvNoProof": true,
+  "hsButtons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "lập luận",
+   "phép kiểm",
+   "Hiểu sai khái niệm",
+   "Sai biến đổi hoặc tính toán",
+   "Sai lập luận",
+   "Thiếu điều kiện",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "hsExcerpt": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 12–15 phút · theo nhịp thầy cô\nAI Error\nDự đoán trước, tìm lỗi, phân loại, sửa và chứng minh vào vở; sau đó trao đổi với bạn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nMÀN HÌNH CHUNG (TRÊN TV)\nTHINK → AI → VERIFY\nLời giải cần kiểm:\nAI trình bày: MN ∥ AB ⊂ (ABCD), PQ ∥ CD ⊂ (ABCD) ⇒ (MNPQ) ∥ (ABCD).\nTìm lỗi · phân loại · sửa · chứng minh.\nPHẢN HỒI NHANH\nTa có MN ∥ AB ⊂ (ABCD), PQ ∥ CD ⊂ (ABCD) ⇒ (MNPQ) ∥ (ABCD). Nhận xét đúng "
+ },
+ "route": {
+  "gvBand": null,
+  "hsBand": "Chặng 15–16 phút",
+  "hasDenLuotSau": false,
+  "buttons": [
+   "Tiếng Việt · Đổi ngôn ngữ",
+   "Tiếng ViệtNgôn ngữ bài học",
+   "EnglishHỗ trợ một phần",
+   "日本語Hỗ trợ một phần",
+   "한국어Hỗ trợ một phần",
+   "中文Hỗ trợ một phần",
+   "1 · Từ khóa",
+   "2 · Khung câu",
+   "3 · Tự diễn đạt",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm",
+   "Chờ 2s",
+   "dữ kiện",
+   "điều kiện",
+   "lập luận",
+   "phép kiểm"
+  ],
+  "clicked": null,
+  "after": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 15–16 phút · theo nhịp thầy cô\nTuyến M/S/C\nHS thực hiện grouping, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nChọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nChọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.\nBắt đầu với hỗ trợ\nCho hình chóp \n\ud835"
+ },
+ "s6": null,
+ "s7": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nCÙNG NHAU KHÁM PHÁ\nNhận nhóm của em\nChọn số nhóm thầy cô đã phân công. Cùng trao đổi, thử cách giải và mỗi em ghi lại điều mình hiểu.\nSố nhóm\nChọn nhóm\nNhóm 1\nNhóm 2\nNhóm 3\nNhóm 4\nNhóm 5\nNhóm 6\nNhóm 7\nNhóm 8\nNhóm 9\nNhóm 10\nNhóm 11\nNhóm 12\nXác nhận nhóm\nTV chỉ hiện số người đã gửi của từng nhóm. Một lượt gửi chưa có nghĩa cả nhóm đã hiểu bài.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 16–24 phút · theo nhịp thầy cô\nSản phẩm nhóm\nHS thực hiện differentiatedPractice, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nCùng giải thích và kiểm chứng Luyện tập kĩ thuật chứng minh hai mặt phẳng song song qua quy trình 3 bước (hai đường thẳng cắt nhau trong một mặt phẳng, từng đường song song với mặt phẳng kia) qua đường trung bình tam giác và hình bình hành; dựng thiết diện qua điểm cho trước song song với một mặt phẳng bên; phản biện kết luận bỏ điều kiện cắt nhau bằng sản phẩm nhóm.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 7/12\nKế hoạch 16–24′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:56\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 7/12\nKế hoạch 16–24′ · tiết 40′\n7:53\nĐANG HỌC\nP0 · 0:56\nPHÂN HÓA\nNHIỆM VỤ CÓ LỰA CHỌN\nCÙNG THỰC HIỆN\nChọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.\nBa cửa vào cùng một đích đến:\nM — Củng cố\nS — Chuẩn\nC — Thử thách\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n7/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "tv": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "gv": {
+    "dS": false,
+    "thangHoa": false
+   }
+  }
+ },
+ "s8": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 24–29 phút · theo nhịp thầy cô\nPost-check cá nhân\nHS thực hiện postCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập kĩ thuật chứng minh hai mặt phẳng song song qua quy trình 3 bước (hai đường thẳng cắt nhau trong một mặt phẳng, từng đường song song với mặt phẳng kia) qua đường trung bình tam giác và hình bình hành; dựng thiết diện qua điểm cho trước song song với một mặt phẳng bên; phản biện kết luận bỏ điều kiện cắt nhau và nêu căn cứ.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nBài em viết được giữ khi thầy cô chuyển hoạt động.\n0/500\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 8/12\nKế hoạch 24–29′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập kĩ thuật chứng minh hai mặt phẳng song song qua quy trình 3 bước (hai đường thẳng cắt nhau trong một mặt phẳng, từng đường song song với mặt phẳng kia) qua đường trung bình tam giác và hình bình hành; dựng thiết diện qua điểm cho trước song song với một mặt phẳng bên; phản biện kết luận bỏ điều kiện cắt nhau và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 8/12\nKế hoạch 24–29′ · tiết 40′\n4:53\nĐANG HỌC\nP1 · 1:05\nĐÁNH GIÁ LẠI\nPOST-CHECK CÁ NHÂN\nCÙNG THỰC HIỆN\nTự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.\nTự làm dữ kiện mới\nVới dữ kiện mới, hãy tự giải một nhiệm vụ ngắn về Luyện tập kĩ thuật chứng minh hai mặt phẳng song song qua quy trình 3 bước (hai đường thẳng cắt nhau trong một mặt phẳng, từng đường song song với mặt phẳng kia) qua đường trung bình tam giác và hình bình hành; dựng thiết diện qua điểm cho trước song song với một mặt phẳng bên; phản biện kết luận bỏ điều kiện cắt nhau và nêu căn cứ.\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n8/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "tv": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "gv": {
+    "dS": false,
+    "thangHoa": false
+   }
+  }
+ },
+ "exit": {
+  "hsBand": "Chặng 38–40 phút",
+  "emptyBtn": {
+   "exists": false,
+   "disabled": null
+  },
+  "emptyStatus": [],
+  "emptyBlocked": true,
+  "clickedRow": "Đã làm được",
+  "clickedInsert": "Chèn tự đánh giá vào exit ticket",
+  "openedTuDienDat": null,
+  "typed": {
+   "ok": true,
+   "tag": "TEXTAREA"
+  },
+  "clickedSend": true,
+  "status": [
+   "Đã gửi.",
+   "Đã xác nhận trên máy chủ."
+  ],
+  "hienKetQua": true,
+  "gvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "tvProgress": "Tiến độ gửi\n1\nhọc sinh đã gửi",
+  "gvHas1HS": true,
+  "tvHas1HS": true
+ },
+ "sau": {
+  "info": {
+   "stage": "12",
+   "band": null,
+   "plan": "Kế hoạch 40–40′ · tiết 40′",
+   "status": "running",
+   "expired": false
+  },
+  "sauBtn": {
+   "exists": true,
+   "disabled": true
+  },
+  "clickSauAttempt": false,
+  "stageAfterClick": "12",
+  "gvBand": null,
+  "plan": "Kế hoạch 40–40′ · tiết 40′",
+  "hsBand": null
+ },
+ "think": {
+  "reads": 63,
+  "validReads": 63,
+  "samples": [
+   {
+    "at": "17:20:39",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:39",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:40",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:41",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:42",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:42",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:43",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:46",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:47",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:47",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:48",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:49",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:49",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:50",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:53",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:54",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:54",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:55",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:56",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:56",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:20:57",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:00",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:01",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:01",
+    "text": "Chờ 9s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:02",
+    "text": "Chờ 8s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:03",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:03",
+    "text": "Chờ 7s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:04",
+    "text": "Chờ 6s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:11",
+    "text": "Chờ 10s",
+    "disabled": true
+   },
+   {
+    "at": "17:21:12",
+    "text": "Chờ 10s",
+    "disabled": true
+   }
+  ],
+  "saw10": true,
+  "minSeen": 6,
+  "lockedAll": true,
+  "windows": [
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 7,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 1,
+    "minSeen": 10,
+    "decreasing": true,
+    "lockedAll": true
+   },
+   {
+    "reads": 6,
+    "minSeen": 6,
+    "decreasing": true,
+    "lockedAll": true
+   }
+  ]
+ },
+ "tvButtons": [],
+ "s9": {
+  "hs": "HỌC SINH · TIẾT TRỰC TIẾP\nHai mặt phẳng song song\nĐặng Tuệ Minh · 11Columbus\nĐANG HỌC\nTiếng Việt · Đổi ngôn ngữ\nEm muốn đọc phần hỗ trợ bằng ngôn ngữ nào?\nTiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.\nTiếng Việt\nNgôn ngữ bài học\nEnglish\nHỗ trợ một phần\n日本語\nHỗ trợ một phần\n한국어\nHỗ trợ một phần\n中文\nHỗ trợ một phần\nTiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.\nSẵn sàng.\nVIỆC EM CẦN LÀM LÚC NÀY\nChặng 29–35 phút · theo nhịp thầy cô\nQuick check\nHS thực hiện quickCheck, nói căn cứ và ghi bằng chứng ngắn.\nTiêu chí để tự đối chiếu bài làm\nĐề bài và nội dung chung\nPHẢN HỒI NHANH\nTrả lời nhanh rồi sửa một lỗi nếu phát hiện.\nSuy nghĩ 3s — chưa bấm gì\nHỗ trợ để em tự diễn đạt\nTừ khóa → Nói thử → Viết → Tự diễn đạt\nA\nB\nC\nD\nChờ 3s\nTHUẬT NGỮ\ndữ kiện\nđiều kiện\nlập luận\nphép kiểm",
+  "tv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 9/12\nKế hoạch 29–35′ · tiết 40′\n5:53\nĐANG HỌC\nP1 · 1:13\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh câu 1 [NB]: Cho hai mặt phẳng phân biệt \n(\n𝑃\n)\n(P) và \n(\n𝑄\n)\n(Q). Điều kiện nào sau đây ĐỦ để kết luận \n(\n𝑃\n)\n∥\n(\n𝑄\n)\n(P)∥(Q)? A. \n(\n𝑃\n)\n(P) và \n(\n𝑄\n)\n(Q) cùng song song với một đường thẳng \n𝑑\nd · B. \n(\n𝑃\n)\n(P) chứa hai đường thẳng cùng song song với \n(\n𝑄\n)\n(Q) · C. \n(\n𝑃\n)\n(P) chứa hai đường thẳng cắt nhau cùng song song với \n(\n𝑄\n)\n(Q) · D. Có vô số đường thẳng nằm trong \n(\n𝑃\n)\n(P) song song với \n(\n𝑄\n)\n(Q).\nKiểm nhanh câu 2 [TH]: Cho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD đáy hình bình hành. Mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(α)∥(ABCD) cắt các cạnh \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\n,\n𝑆\n𝐷\nSA,SB,SC,SD lần lượt tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\n,\n𝐷\n′\nA\n′\n,B\n′\n,C\n′\n,D\n′\n. Tứ giác \n𝐴\n′\n𝐵\n′\n𝐶\n′\n𝐷\n′\nA\n′\nB\n′\nC\n′\nD\n′\n là hình gì? A. Hình thang vuông · B. Hình bình hành · C. Hình thoi · D. Tứ giác không có cạnh song song.\nKiểm nhanh câu 3 [VDC — HS Giỏi]: Cho tứ diện \n𝐴\n𝐵\n𝐶\n𝐷\nABCD. Mặt phẳng \n(\n𝛽\n)\n(β) song song với cả 2 cạnh đối \n𝐴\n𝐵\nAB và \n𝐶\n𝐷\nCD. Thiết diện thu được luôn là hình gì? (trả lời dạng chữ).\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở",
+  "gv": "SMARTPLAN · LỚP HỌC TRỰC TIẾP\nHai mặt phẳng song song\nChặng 9/12\nKế hoạch 29–35′ · tiết 40′\n5:53\nĐANG HỌC\nP1 · 1:13\nKIỂM TRA\nKIỂM TRA NHANH\nCÙNG THỰC HIỆN\nTrả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.\nKiểm tra nhanh\nKiểm nhanh câu 1 [NB]: Cho hai mặt phẳng phân biệt \n(\n𝑃\n)\n(P) và \n(\n𝑄\n)\n(Q). Điều kiện nào sau đây ĐỦ để kết luận \n(\n𝑃\n)\n∥\n(\n𝑄\n)\n(P)∥(Q)? A. \n(\n𝑃\n)\n(P) và \n(\n𝑄\n)\n(Q) cùng song song với một đường thẳng \n𝑑\nd · B. \n(\n𝑃\n)\n(P) chứa hai đường thẳng cùng song song với \n(\n𝑄\n)\n(Q) · C. \n(\n𝑃\n)\n(P) chứa hai đường thẳng cắt nhau cùng song song với \n(\n𝑄\n)\n(Q) · D. Có vô số đường thẳng nằm trong \n(\n𝑃\n)\n(P) song song với \n(\n𝑄\n)\n(Q).\nKiểm nhanh câu 2 [TH]: Cho hình chóp \n𝑆\n.\n𝐴\n𝐵\n𝐶\n𝐷\nS.ABCD đáy hình bình hành. Mặt phẳng \n(\n𝛼\n)\n∥\n(\n𝐴\n𝐵\n𝐶\n𝐷\n)\n(α)∥(ABCD) cắt các cạnh \n𝑆\n𝐴\n,\n𝑆\n𝐵\n,\n𝑆\n𝐶\n,\n𝑆\n𝐷\nSA,SB,SC,SD lần lượt tại \n𝐴\n′\n,\n𝐵\n′\n,\n𝐶\n′\n,\n𝐷\n′\nA\n′\n,B\n′\n,C\n′\n,D\n′\n. Tứ giác \n𝐴\n′\n𝐵\n′\n𝐶\n′\n𝐷\n′\nA\n′\nB\n′\nC\n′\nD\n′\n là hình gì? A. Hình thang vuông · B. Hình bình hành · C. Hình thoi · D. Tứ giác không có cạnh song song.\nKiểm nhanh câu 3 [VDC — HS Giỏi]: Cho tứ diện \n𝐴\n𝐵\n𝐶\n𝐷\nABCD. Mặt phẳng \n(\n𝛽\n)\n(β) song song với cả 2 cạnh đối \n𝐴\n𝐵\nAB và \n𝐶\n𝐷\nCD. Thiết diện thu được luôn là hình gì? (trả lời dạng chữ).\n◌\nCùng suy nghĩ · Kết quả chờ thầy cô mở\n← Trước\n9/12\nTạm dừng\nSau →\nToàn màn hình\nHiện kết quả lớp\nĐóng phiên\n← → chuyển slide · Space chạy/dừng · F toàn màn hình",
+  "spoiler": {
+   "hs": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "tv": {
+    "dS": false,
+    "thangHoa": false
+   },
+   "gv": {
+    "dS": false,
+    "thangHoa": false
+   }
+  }
+ }
+}

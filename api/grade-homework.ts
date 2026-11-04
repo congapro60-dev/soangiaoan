@@ -1,25 +1,41 @@
+import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
+import { runGradingRefreshItem } from './_grading-refresh.js';
+import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
+import { isPublishedSubmission } from './_submission-feedback.js';
+import { publishedHandMarkedImages } from './_hand-marked-work.js';
+import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
+import { generateWorkedSolutions, workedSolutionVersion } from './_worked-solutions.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import {
-  GRADING_MODEL,
   QUOTA_LIMITS,
   bumpQuota,
-  callGeminiVision,
+  callGradingVision,
+  callUtilityVision,
   chayNgam,
   GeminiResponseError,
   getGradingApiKey,
   loadQuotaDoc,
   remainingQuota,
   reserveQuota,
+  reserveTeacherRefreshQuota,
   type GradeKind,
   parseDataUrl,
   type InlineImage,
   type QuotaDoc,
+  benchmarkAdapter,
+  listBenchmarkModels,
+  pingTextModel,
+  runWithGradingChain,
+  withServedTap,
+  callTextModel,
+  type GeminiOptions,
 } from './_grading-core.js';
 import {
-  buildHomeworkGradingPrompt,
+  buildHomeworkGradingSegments,
+  buildPhotoMarksPrompt,
   buildHomeworkGradingRetryPrompt,
   HOMEWORK_GRADING_RECITATION_NOTE,
   buildPracticeGradingPrompt,
@@ -46,6 +62,19 @@ import {
   type HomeworkGradeParseResult,
 } from '../src/lib/classroom/gradingPrompt.js';
 import { JsonRecoveryError } from '../src/utils/jsonRepair.js';
+import {
+  MAX_ANSWER_MATERIAL_CHARS,
+  MAX_EXAM_VARIANTS,
+  buildDetectExamCodePrompt,
+  buildExtractVariantKeysPrompt,
+  examScoreCheck,
+  paperScoreCheck,
+  parseDetectedExamCode,
+  parseExtractedVariantKeys,
+  sanitizeExamVariants,
+  type ExamVariant,
+} from '../src/lib/classroom/examVariants.js';
+import { SCORE_BOOKS_COL, normalizeScoreBook } from '../src/lib/classroom/scoreBook.js';
 import {
   asCompetencyGrade,
   competencyIdSet,
@@ -76,21 +105,31 @@ import {
   type PracticeQuestionKey,
   type PracticeSetDoc,
   RECITATION_RETRY_KIND,
+  type AnswerKeyFix,
   type ProfileTopic,
+  type QuestionResult,
   type SubmissionDoc,
   type SubmissionGrade,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { handleGenerateImage } from './_ai-image-handler.js';
 import { getBearerToken } from './_ai-gateway-core.js';
-import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from './_ai-usage.js';
+import { createAiUsageContext, runWithAiUsage, setAiKeyOwner, tagAiUsageRefs, withUsageTap } from './_ai-usage.js';
+import { isAdminEmail } from '../src/lib/admin/adminConfig.js';
+import { costUsdOfCall } from '../src/lib/admin/aiPricing.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
 
 /** Học sinh không tự xử lý được chuyện khoá của thầy cô — nói nhẹ, không lộ chuyện tiền. */
 const STUDENT_AI_PAUSED_MESSAGE = 'AI chấm của lớp đang tạm dừng. Bài của em đã được lưu, thầy cô sẽ chấm sau.';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
-import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
+import { canTeacherAccessLegacyNamespace, readClassAccess, classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
+import { questionKey, reconcileAiGrade, parseExpectedAnswer } from '../src/lib/classroom/questionRescore.js';
+import { bindQuestionPhotoMarks, projectPhotoMarks, validPhotoSteps } from '../src/lib/classroom/photoMarks.js';
+import { authorizeSubmissionActor, assertActorCurrent, actorStamp, SubmissionAccessError, type DetectedAnswer } from './_submission-actors.js';
+import { applyOmrSheet } from '../src/lib/classroom/omrApply.js';
+import { applyClarification, handleClarifyAction } from './_clarify.js';
+import { buildQuestionRegradePrompt, parseQuestionRegrade } from '../src/lib/classroom/clarifyRegrade.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -137,6 +176,7 @@ const claimSubmissionForGrading = async (
   db: FirebaseFirestore.Firestore,
   submissionId: string,
   allowApproved: boolean,
+  refreshSnapshot?: SubmissionDoc,
 ): Promise<GradingClaim | null> => {
   const ref = db.collection('submissions').doc(submissionId);
   const gradingRunId = newGradingRunId();
@@ -147,14 +187,19 @@ const claimSubmissionForGrading = async (
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) return;
     const current = snapshot.data() as FirebaseFirestore.DocumentData;
+    if (refreshSnapshot && (current.teacherId !== refreshSnapshot.teacherId || current.classId !== refreshSnapshot.classId || current.studentId !== refreshSnapshot.studentId
+      || current.assignmentId !== refreshSnapshot.assignmentId || current.updatedAt !== refreshSnapshot.updatedAt || current.grade?.editedByTeacher
+      || current.grade?.questionResults?.some((row: QuestionResult) => row.teacherEdited))) return;
     // Khoá "grading" còn tươi thì không giành; khoá cũ (worker chết chưa mở khoá) thì cho giành lại.
     const dangKhoaTuoi = current.status === 'grading' && !isStaleGradingTimestamp(current.updatedAt);
-    if (dangKhoaTuoi || (!allowApproved && current.grade?.teacherApproved === true)) return;
+    if (current.deletionRunId || dangKhoaTuoi || (!allowApproved && current.grade?.teacherApproved === true)) return;
     previous = { id: submissionId, ...current } as SubmissionDoc;
     transaction.update(ref, {
       status: 'grading',
       gradingRunId,
       errorMessage: '',
+      errorReason: '',
+      examCodeAsk: [],
       aiBlocked: false,
       updatedAt: claimedAt,
     });
@@ -183,6 +228,7 @@ const MAX_SUBMISSION_FILES = 12;
 const MAX_ASSIGNMENT_SOURCE_IMAGES = 6;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.';
+const UNREADABLE_EXAM_CODE_MESSAGE = 'Máy chưa đọc được mã đề trên ảnh bài làm. Thầy cô chọn mã đề cho bài này rồi chấm lại.';
 const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại, hoặc chờ thầy cô chấm tay.';
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 const SYSTEM_GRADING_ERROR_MESSAGE = 'Chấm bài chưa thành công vì lỗi hệ thống. Bài và ảnh vẫn được giữ nguyên. Thầy/cô chấm lại sau ít phút hoặc sửa điểm bằng tay.';
@@ -272,6 +318,7 @@ const loadAssignmentSourceImages = async (assignment: FirebaseFirestore.Document
 };
 
 interface GradeContext {
+  solutionAssignment?: Parameters<typeof assignmentSolutionInput>[0];
   answerKey: string;
   rubric: string;
   maxScore: number;
@@ -282,6 +329,20 @@ interface GradeContext {
   assignmentImages: InlineImage[];
   /** Ảnh đáp án của giáo viên, gửi TRƯỚC ảnh bài làm. Tải một lần rồi dùng cho cả lô. */
   answerKeyImages: InlineImage[];
+  /** Đáp án từng câu thầy cô đã sửa sau khi chấm — đè đáp án gốc. */
+  answerKeyFixes: AnswerKeyFix[];
+  /** Bài kiểm tra định kì: giáo viên đã chấm tay trên giấy. */
+  teacherMarkedPaper: boolean;
+  /** Giáo viên nộp bài đã chấm tay: lấy điểm ghi tay làm điểm chính thức. */
+  handMarkedPaper?: boolean;
+  /** Bài do GV nộp hộ (không phải HS tự khai) → điểm ghi tay được coi là điểm chính thức. */
+  handMarkedOfficial?: boolean;
+  /** Các mã đề; rỗng = bài một đề như BTVN. */
+  examVariants: ExamVariant[];
+  /** Cột điểm trong sổ điểm để đối chiếu tổng điểm (rỗng = không đối chiếu). */
+  sheetLabel: string;
+  /** Mã đề đã chọn cho lượt chấm này. */
+  examCode?: string;
 }
 
 type GradingRecovery = {
@@ -307,11 +368,9 @@ interface GradeAttemptResult {
  */
 const transcribeStudentWork = async (images: InlineImage[], apiKey: string, timeoutMs: number): Promise<string> => {
   if (images.length === 0) return '';
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildTranscriptionPrompt(),
     images,
-    apiKey,
-    GRADING_MODEL,
     { maxOutputTokens: 4096, jsonMode: true, temperature: 0, timeoutMs },
   );
   return parseTranscription(raw);
@@ -323,10 +382,10 @@ const attemptHomeworkGrade = async (
   studentText: string,
   apiKey: string,
   retryCount: 0 | 1,
-  isStudentActor: boolean,
   transcription: string,
   timeoutMs: number,
   afterRecitation = false,
+  studentImageUrls: readonly string[] = [],
 ): Promise<GradeAttemptResult> => {
   // Tiêm bản chép của pha 1 vào ô "bài làm dạng chữ": pha chấm suy luận trên văn bản sạch,
   // vẫn còn ảnh để đối chiếu khi nghi ngờ. Không có bản chép thì chấm thẳng như một pha.
@@ -341,25 +400,40 @@ const attemptHomeworkGrade = async (
     assignmentText: ctx.assignmentText,
     assignmentImageCount: ctx.assignmentImages.length,
     answerKeyImageCount: ctx.answerKeyImages.length,
+    studentImageCount: images.length,
     gradingInstructions: ctx.gradingInstructions,
     studentText: studentTextForGrading,
+    answerKeyFixes: ctx.answerKeyFixes,
+    teacherMarkedPaper: ctx.teacherMarkedPaper,
+    ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
   };
-  const basePrompt = buildHomeworkGradingPrompt(promptInput);
-  const prompt = retryCount === 0
-    ? basePrompt
-    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
-  const raw = await callGeminiVision(
+  const segments = buildHomeworkGradingSegments(promptInput);
+  const basePrompt = `${segments.prefix}\n\n${segments.suffix}`;
+  // Lượt thử lại nối thêm phần nhắc riêng của em vào CUỐI phần động — phần cố định giữ nguyên
+  // nên cache của cả lớp vẫn ăn được.
+  const suffix = retryCount === 0
+    ? segments.suffix
+    : `${segments.suffix}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
+  const prompt = retryCount === 0 ? basePrompt : `${segments.prefix}\n\n${suffix}`;
+  const raw = await callGradingVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
-    apiKey,
-    GRADING_MODEL,
     // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
     //
     // Trần token: KHÔNG đặt, để model dùng trần tối đa của chính nó. Mức 8192 cũ đã gây lỗi thật
     // trên lớp — bài nhiều câu, mỗi câu 8 field chữ, cộng token "suy nghĩ" cũng tính vào đây, nên
     // câu trả lời bị cắt (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Ở đường chấm bài,
     // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
+    // ponytail: Với đường chấm bài thi/bài tập, đặt thinkingLevel='low' để không bị timeout 240s khi gặp bài toán phức tạp
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, thinkingLevel: 'low', timeoutMs },
+    // Đề + đáp án + luật chấm là phần CỐ ĐỊNH cho cả lớp → đặt trước phần đổi theo em để Gemini
+    // cache tiền tố đó: 39/40 bài chỉ trả giá đọc cache thay vì gửi lại từ đầu.
+    {
+      prefix: segments.prefix,
+      prefixImages: [...ctx.assignmentImages, ...ctx.answerKeyImages],
+      suffix,
+      suffixImages: images,
+    },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -372,20 +446,26 @@ const attemptHomeworkGrade = async (
       }
     : undefined;
 
+  const hasTeacherMarkedScore = Boolean(ctx.teacherMarkedPaper && parsed.grade.teacherMarkedScore);
+  const isHandMarkedSubmission = Boolean(ctx.handMarkedOfficial && hasTeacherMarkedScore);
+  const score = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.score : parsed.grade.score;
+  const maxScore = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.maxScore : parsed.grade.maxScore;
+
   const now = new Date().toISOString();
   const grade = {
-    score: parsed.grade.score,
-    maxScore: parsed.grade.maxScore,
+    score,
+    maxScore,
     feedback: parsed.grade.feedbackForStudent,
     noteForTeacher: parsed.grade.noteForTeacher,
     strengths: parsed.grade.strengths,
     weaknesses: parsed.grade.weaknesses,
-    questionResults: parsed.grade.questionResults,
+    questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+    // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc)
+    ...(hasTeacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
     gradedAt: now,
-    teacherApproved: isStudentActor,
-    approvalSource: isStudentActor ? 'student_ai' as const : 'teacher' as const,
+    teacherApproved: false,
     ...(gradingRecovery ? { gradingRecovery } : {}),
     ...(transcription ? { transcription } : {}),
   };
@@ -398,13 +478,93 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
   || error instanceof JsonRecoveryError
   || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens' || error.kind === 'recitation'));
 
+/** Gemini chỉ giới hạn mỗi phút: đợt chấm nền đợi rồi làm lại đúng bài này, không dừng đợt cũng không bỏ bài. */
+const retryAfterOf = (error: unknown): { retryAfterMs?: number } =>
+  (error instanceof GeminiResponseError && error.retryAfterMs ? { retryAfterMs: error.retryAfterMs } : {});
+
+/** Mã lỗi ngắn (không kèm khoá/chi tiết Google) ghi vào hồ sơ đợt chấm nền. `provider_quota`/`provider_key_invalid` làm đợt dừng. */
+const gradeFailureCode = (error: unknown): string => {
+  if (error instanceof GeminiResponseError) {
+    if (error.retryAfterMs) return 'provider_rate_limit';
+    if (error.keyFailure === 'exhausted') return 'provider_quota';
+    if (error.keyFailure === 'invalid') return 'provider_key_invalid';
+    return `provider_${error.kind}`;
+  }
+  if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return 'unreadable_photo';
+  if (error instanceof Error && error.message === UNCERTAIN_READ_MESSAGE) return 'uncertain_read';
+  if (error instanceof Error && error.message === UNREADABLE_EXAM_CODE_MESSAGE) return 'exam_code';
+  if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return 'contract';
+  if (error instanceof SubmissionAccessError) return `access_${error.statusCode}`;
+  return 'system';
+};
+
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
-  if (error instanceof Error && (error.message === UNREADABLE_HOMEWORK_MESSAGE || error.message === UNCERTAIN_READ_MESSAGE)) return error.message;
+  // Lí do máy chủ tự đặt (vd "Không có ảnh bài làm đọc được") đã là câu cho người đọc, không có chi tiết hệ thống.
+  if (error instanceof SubmissionAccessError) return error.message;
+  if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE].includes(error.message)) return error.message;
   // Nhãn "lỗi định dạng" chỉ đúng khi bộ đọc kết quả AI từ chối; mọi lỗi lạ khác (ghi Firestore,
   // mạng...) mà mang nhãn này là đẩy giáo viên đi tìm sai hướng.
   if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return SAFE_GRADING_ERROR_MESSAGE;
   return SYSTEM_GRADING_ERROR_MESSAGE;
+};
+
+/**
+ * Mã đề của một bài nộp. Giáo viên đã chọn → theo giáo viên; một mã → mã đó; AI đã đọc ở lượt trước → giữ
+ * (chấm lại không đọc lại); còn lại cho AI đọc trên ảnh. Không đọc được → null, KHÔNG đoán.
+ */
+const resolveExamCode = async (
+  submission: SubmissionDoc,
+  variants: readonly ExamVariant[],
+  images: InlineImage[],
+  apiKey: string,
+  timeoutMs: number,
+): Promise<string | null> => {
+  const codes = variants.map(variant => variant.code);
+  if (codes.length === 1) return codes[0];
+  if (submission.examCode && codes.includes(submission.examCode)) return submission.examCode;
+  // Ô "Mã đề" tô trên phiếu, máy dò đọc lúc nộp — chỉ nhận khi trùng một mã có thật của bài.
+  const omrCode = submission.omrSheet?.examCode;
+  if (omrCode && codes.includes(omrCode)) return omrCode;
+  if (images.length === 0 || timeoutMs < MIN_GEMINI_BUDGET_MS) return null;
+  // Mã đề in ở đầu đề / ô "Mã đề" trên phiếu — trang đầu là đủ, gửi thêm trang nữa chỉ tốn token.
+  // Việc đọc mã đề không cần suy luận sâu nên đi lớp rẻ trước (Vilao → xKiro → Gemini rẻ).
+  const raw = await callUtilityVision(buildDetectExamCodePrompt(codes), images.slice(0, 1), apiKey, {
+    maxOutputTokens: 'model-max',
+    jsonMode: true,
+    temperature: 0,
+    timeoutMs,
+  });
+  return parseDetectedExamCode(raw, codes);
+};
+
+/** Ngữ cảnh chấm của đúng một mã: đề + đáp án của mã đó, chỉ các bản sửa đáp án của mã đó. */
+const contextForVariant = (ctx: GradeContext, code: string): GradeContext => {
+  const variant = ctx.examVariants.find(item => item.code === code)!;
+  return {
+    ...ctx,
+    answerKey: variant.answerKey,
+    assignmentText: variant.sourceText,
+    answerKeyFixes: ctx.answerKeyFixes.filter(fix => !fix.examCode || fix.examCode === code),
+    examCode: code,
+  };
+};
+
+/** Điểm giáo viên chấm tay (sổ điểm) để đối chiếu. Lỗi đọc sổ không được làm hỏng lượt chấm. */
+const sheetCheckFor = async (
+  db: FirebaseFirestore.Firestore,
+  submission: SubmissionDoc,
+  grade: SubmissionGrade,
+  sheetLabel: string,
+): Promise<SubmissionGrade['examCheck'] | null> => {
+  try {
+    const snap = await db.collection(SCORE_BOOKS_COL).doc(submission.classId).get();
+    const book = normalizeScoreBook(submission.classId, snap.exists ? snap.data() : null);
+    return examScoreCheck(grade.score, grade.maxScore, sheetLabel, book.exams[submission.studentId]) ?? null;
+  } catch (error) {
+    console.warn('[grade-homework] không đọc được sổ điểm để đối chiếu', error);
+    return null;
+  }
 };
 
 const gradeOneSubmission = async (
@@ -415,13 +575,16 @@ const gradeOneSubmission = async (
   actorUid: string,
   isTeacher: boolean,
   mode: HomeworkGradingMode,
-): Promise<{ success: boolean; gradePreserved?: boolean; syncPending?: boolean; syncError?: string }> => {
+  refreshSnapshot?: SubmissionDoc,
+): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; retryAfterMs?: number; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
-  const claim = await claimSubmissionForGrading(db, submissionId, isTeacher);
+  const claim = await claimSubmissionForGrading(db, submissionId, isTeacher, refreshSnapshot);
   if (!claim) return { success: false };
 
   const previous = claim.previous;
+  // Mọi lượt AI chấm bài này gắn với đúng em/lớp/bài — để em xem chi phí AI của mình ở cổng học sinh.
+  tagAiUsageRefs({ studentId: previous.studentId, classId: previous.classId, assignmentId: previous.assignmentId, submissionId });
   const previousStatus = previous.status;
   const hadPreviousGrade = Boolean(previous.grade);
   const isStudentActor = !isTeacher;
@@ -432,14 +595,32 @@ const gradeOneSubmission = async (
 
   try {
     const urls = (Array.isArray(previous.fileUrls) ? previous.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
-    const images = (await Promise.all(urls.map((u: string) => fetchImage(u).catch(() => null))))
-      .filter((img): img is InlineImage => img !== null);
+    const studentImages = (await Promise.all(urls.map(async url => ({ url, image: await fetchImage(url).catch(() => null) }))))
+      .filter((entry): entry is { url: string; image: InlineImage } => entry.image !== null);
+    const images = studentImages.map(entry => entry.image);
+    const studentImageUrls = studentImages.map(entry => entry.url);
     const studentText = String(previous.textContent || '').trim();
 
     if (images.length === 0 && !studentText) {
       throw new Error(UNREADABLE_HOMEWORK_MESSAGE);
     }
 
+    // Bài nhiều mã đề: chấm theo đúng đề + đáp án của mã ghi trên bài.
+    let gradeCtx = ctx;
+    if (previous.handMarkedPaper) {
+      // GV nộp hộ → điểm ghi tay là điểm chính thức. HS tự khai → chỉ ĐỌC điểm ghi tay
+      // (để thầy xác nhận), không tự chấm điểm.
+      const doGvNopHo = previous.handMarkedDeclaredBy === undefined || previous.handMarkedDeclaredBy === 'teacher';
+      gradeCtx = { ...gradeCtx, teacherMarkedPaper: true, handMarkedPaper: true, handMarkedOfficial: doGvNopHo };
+    }
+    if (gradeCtx.examVariants.length > 0) {
+      const code = await resolveExamCode(previous, gradeCtx.examVariants, images, apiKey, Math.min(20_000, Math.floor(conLaiMs() / 3)));
+      if (!code) throw new Error(UNREADABLE_EXAM_CODE_MESSAGE);
+      if (code !== previous.examCode) await claim.ref.update({ examCode: code, examCodeSource: code === previous.omrSheet?.examCode ? 'omr' : 'ai' });
+      gradeCtx = contextForVariant(gradeCtx, code);
+    }
+
+    const solutionVersionAtGrading = gradeCtx.solutionAssignment ? workedSolutionVersion(assignmentSolutionInput(gradeCtx.solutionAssignment, gradeCtx.examCode || previous.examCode || '')) : undefined;
     // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
     // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
     let transcription = '';
@@ -453,28 +634,107 @@ const gradeOneSubmission = async (
       }
     }
 
-    let attempt: GradeAttemptResult;
-    try {
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription, conLaiMs());
-    } catch (error) {
-      if (!isRetryableGradeAttemptError(error)) throw error;
-      // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
-      // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
-      if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
-      attempt = await attemptHomeworkGrade(
-        ctx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs(),
-        error instanceof GeminiResponseError && error.kind === 'recitation',
-      );
+    const { value: attempt, served } = await withServedTap(async (): Promise<GradeAttemptResult> => {
+      try {
+        return await attemptHomeworkGrade(gradeCtx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, conLaiMs() - 60_000), false, studentImageUrls);
+      } catch (error) {
+        if (!isRetryableGradeAttemptError(error)) throw error;
+        // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
+        // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
+        if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
+        return attemptHomeworkGrade(
+          gradeCtx, images, studentText, apiKey, 1, transcription, conLaiMs(),
+          error instanceof GeminiResponseError && error.kind === 'recitation',
+          studentImageUrls,
+        );
+      }
+    });
+    // Tầng chính (Gemini) hỏng, bài được chấm bằng model dự phòng kém hơn → mọi câu để GV soát, không tự duyệt.
+    const fallbackModel = served.find(entry => entry.lowerQuality)?.name;
+    // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
+    // giữ nguyên câu thầy cô đã soát tay ở lần trước.
+    // Phiếu tô mẫu Bộ: câu tô lấy theo máy dò (tất định), AI chỉ còn chấm tự luận. Không có phiếu → bộ dò cũ.
+    const omrSheetApplied = previous.omrSheet ? applyOmrSheet(attempt.grade, previous.omrSheet) : null;
+    const omrDetected = omrSheetApplied ? undefined : (previous as SubmissionDoc & { detectedAnswers?: DetectedAnswer[] }).detectedAnswers;
+    const omrGrade = omrSheetApplied ? omrSheetApplied.grade : { ...attempt.grade, questionResults: attempt.grade.questionResults?.map(q => {
+      const expected = parseExpectedAnswer(q.expectedAnswer);
+      const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
+      if (expected?.kind !== 'mcq' || !match || q.teacherEdited) return q;
+      const detected = omrDetected?.find(d => d.questionNo === Number(match[1]));
+      return detected?.answer && detected.confidence >= .8
+        ? { ...q, studentAnswer: detected.answer, confidence: detected.confidence }
+        : q;
+    }) };
+    const reconciled = reconcileAiGrade(omrGrade, gradeCtx.answerKeyFixes, previous.grade?.questionResults);
+    if (omrDetected !== undefined) {
+      let uncertain = false;
+      reconciled.questionResults = reconciled.questionResults?.map(q => {
+        const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
+        if (parseExpectedAnswer(q.expectedAnswer)?.kind !== 'mcq' || !match || q.teacherEdited) return q;
+        const detected = omrDetected.find(d => d.questionNo === Number(match[1]));
+        if (detected?.answer && detected.confidence >= .8) return q;
+        uncertain = true;
+        return { ...q, needsTeacherReview: true };
+      });
+      if (uncertain || !omrDetected.length) reconciled.noteForTeacher = [reconciled.noteForTeacher,
+        'Máy dò bóng không chắc — GV kiểm tra lại phần trắc nghiệm.'].filter(Boolean).join('\n');
     }
-    const { grade } = attempt;
+    if (fallbackModel) {
+      reconciled.questionResults = reconciled.questionResults?.map(q => (q.teacherEdited ? q : { ...q, needsTeacherReview: true }));
+      reconciled.noteForTeacher = [reconciled.noteForTeacher,
+        `Máy chấm chính tạm lỗi nên bài này được chấm bằng model dự phòng (${fallbackModel}), độ chính xác thấp hơn — thầy cô soát lại trước khi duyệt.`].filter(Boolean).join('\n');
+    }
+    if (omrSheetApplied?.uncertain) reconciled.noteForTeacher = [reconciled.noteForTeacher,
+      `Máy dò phiếu tô chưa chắc ${omrSheetApplied.uncertain} câu (tô mờ, tô hai ô hoặc nét chấm phủ ô) — thầy cô soát các câu gắn cờ.`].filter(Boolean).join('\n');
+    const clearedMarks = new Set((previous.grade?.questionResults || []).filter(q => q.photoMarksCleared).map(q => questionKey(q.questionNumber)));
+    reconciled.questionResults = (reconciled.questionResults || []).map(q => {
+      const { photoMarks: _old, photoSteps: _steps, ...rest } = q;
+      if (clearedMarks.has(questionKey(q.questionNumber))) return { ...rest, photoMarksCleared: true };
+      const photoMarks = projectPhotoMarks(q, studentImageUrls);
+      // Bước bút đỏ chỉ giữ khi cộng lại đúng điểm câu SAU hậu kiểm; lệch là AI chia sai → bỏ, không sửa điểm theo bước.
+      const photoSteps = validPhotoSteps(q);
+      return { ...rest, ...(photoMarks.length ? { photoMarks } : {}), ...(photoSteps.length ? { photoSteps } : {}) };
+    });
+    // KHÔNG tự gọi thêm lượt vẽ dấu sau khi chấm: lượt đó gửi lại toàn bộ ảnh bài làm (đắt
+    // nhất trong luồng chấm) chỉ để bổ sung vùng cho câu mà lượt chấm chưa định vị được.
+    // Giáo viên bấm "Bổ sung dấu" khi cần (`annotateSubmissionPhotos`) — cùng kết quả, chỉ
+    // không đốt token của cả lớp mỗi lần chấm.
+    const unlocated = missingAnnotationRows(reconciled.questionResults, studentImageUrls);
+    if (unlocated.length) console.info('[grade-homework] còn câu chưa định vị vùng trên ảnh; giáo viên bấm "Bổ sung dấu" khi cần.', { soCau: unlocated.length });
 
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
     // Ném lỗi để nhánh catch giữ nguyên điểm cũ nếu có, hoặc để status='error' khi chưa từng có điểm.
-    if (isReadTooUncertain(grade.questionResults)) {
+    // Lớp bật "hỏi lại học sinh" thì KHÔNG chặn cả bài: từng câu chưa chắc sẽ được hỏi lại em (gõ đáp án / chụp lại câu đó).
+    // Hỏi lại em ở lượt chấm ĐẦU TIÊN của bài, bất kể ai bấm chấm (em khi vừa nộp, thầy cô "Chấm cả lớp", máy tự chấm sau 60 phút):
+    // câu máy đọc chưa chắc thì chỉ em trả lời được. Chấm lại về sau (đã có điểm cũ) do thầy cô quyết định, không hỏi lại.
+    const clarified = await applyClarification(db, previous, reconciled, isStudentActor || !hadPreviousGrade);
+    if (clarified.asked === 0 && isReadTooUncertain(reconciled.questionResults)) {
       throw new Error(UNCERTAIN_READ_MESSAGE);
     }
+    // Bài định kì: so tổng điểm với điểm giáo viên chấm tay — lệch nhiều thì không tự duyệt (xem needsTeacherCheck).
+    // Sổ chưa có điểm của mốc này thì đối chiếu với tổng điểm giáo viên viết trên bài (máy đọc) — lệch thì vẫn không tự duyệt.
+    const examCheck = (ctx.sheetLabel ? await sheetCheckFor(db, previous, clarified.grade, ctx.sheetLabel) : null)
+      ?? paperScoreCheck(clarified.grade.score, clarified.grade.maxScore, clarified.grade.paperScore);
+    // Chỉ GV nộp hộ mới được tự duyệt (điểm ghi tay là điểm chính thức). HS/PH tự khai bài đã
+    // chấm tay → bài CHỜ giáo viên xác nhận, điểm GV ghi tay nằm ở paperScore để thầy dùng.
+    const isTeacherHandMarked = Boolean(previous.handMarkedPaper)
+      && (previous.handMarkedDeclaredBy === undefined || previous.handMarkedDeclaredBy === 'teacher');
+    let grade: SubmissionGrade = examCheck ? { ...clarified.grade, examCheck } : clarified.grade;
+    if (isTeacherHandMarked) {
+      grade = {
+        ...grade,
+        teacherApproved: true,
+        approvalSource: 'teacher',
+      };
+    } else if (previous.handMarkedPaper && clarified.grade.paperScore) {
+      grade = {
+        ...grade,
+        noteForTeacher: `${clarified.grade.noteForTeacher || ''} Em khai bài này thầy cô đã chấm tay: máy đọc được ${clarified.grade.paperScore.score}/${clarified.grade.paperScore.maxScore} điểm thầy ghi. Thầy xác nhận giúp em bằng nút "Dùng điểm GV ghi trên bài".`.trim(),
+      };
+    }
 
+    if (previous.assignmentId) { const source = (await db.collection('assignments').doc(previous.assignmentId).get()).data(); if (source) { grade.questionResults = grade.questionResults?.map(row => row.workedSolution && !row.workedSolutionVersion && solutionVersionAtGrading ? { ...row, workedSolutionVersion: solutionVersionAtGrading, workedSolutionStatus: 'ready' as const } : row); const attached = attachAssignmentSolutions({ ...previous, examCode: gradeCtx.examCode || previous.examCode, grade }, source); grade.questionResults = attached.grade?.questionResults; } }
     const now = grade.gradedAt;
 
     // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.
@@ -489,27 +749,36 @@ const gradeOneSubmission = async (
       grade,
       actorUid,
       now,
+      previous.assignmentId && solutionVersionAtGrading ? { assignmentId: previous.assignmentId, examCode: gradeCtx.examCode || previous.examCode || '', version: solutionVersionAtGrading } : undefined,
     );
     if (!committed.committed) return { success: false };
 
-    // If student self-grade succeeded, sync evidence (auto-approval)
-    if (isStudentActor) {
+    if (isTeacherHandMarked) {
+      await claim.ref.update({ handMarkedPublished: true, handMarkedPublishedAt: now, handMarkedPublishedBy: actorUid }).catch(() => undefined);
       try {
         await syncApprovedGradeEvidence(db, {
           submissionId,
           assignmentId: previous.assignmentId,
           grade,
-          owner: {
-            studentId: previous.studentId,
-            classId: previous.classId,
-            teacherId: previous.teacherId,
-          },
+          owner: { studentId: previous.studentId, classId: previous.classId, teacherId: previous.teacherId },
           now,
           approved: true,
         });
       } catch (syncError) {
-        // Sync failed but grade is committed and approved — record pending marker (best-effort)
-        const errorMessage = syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại';
+        console.warn('[grade-homework] Lỗi syncApprovedGradeEvidence bài chấm tay:', syncError);
+        await claim.ref.update({ evidenceSyncError: syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại' }).catch(() => undefined);
+      }
+    }
+
+    // Lượt chấm mới CHƯA duyệt (cả bài học sinh tự nộp): chưa ghi vào hồ sơ học tập, và nếu bài từng có minh chứng cũ thì gỡ đi.
+    // Minh chứng chỉ được ghi khi thầy cô duyệt (hoặc máy tự duyệt sau 60 phút).
+    if (hadPreviousGrade) {
+      try {
+        await removeSubmissionGradeEvidence(db, previous, now);
+      } catch (cleanupError) {
+        // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
+        // Record actionable marker for teacher (not exposed to students)
+        const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
         try {
           await db.runTransaction(async transaction => {
             const latestSnapshot = await transaction.get(claim.ref);
@@ -518,29 +787,7 @@ const gradeOneSubmission = async (
             }
           });
         } catch {
-          // Best-effort: don't overwrite successful response
-        }
-        return { success: true, syncPending: true, syncError: errorMessage };
-      }
-    } else {
-      // Teacher AI regrade: new grade is NOT approved, remove old evidence if any (best-effort)
-      if (hadPreviousGrade) {
-        try {
-          await removeSubmissionGradeEvidence(db, previous, now);
-        } catch (cleanupError) {
-          // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
-          // Record actionable marker for teacher (not exposed to students)
-          const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
-          try {
-            await db.runTransaction(async transaction => {
-              const latestSnapshot = await transaction.get(claim.ref);
-              if (latestSnapshot.exists) {
-                transaction.update(claim.ref, { evidenceSyncError: errorMessage });
-              }
-            });
-          } catch {
-            // Best-effort: marker write failure must not overwrite successful response
-          }
+          // Best-effort: marker write failure must not overwrite successful response
         }
       }
     }
@@ -569,16 +816,24 @@ const gradeOneSubmission = async (
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
     // khi đã có grade trước đó; chỉ chuyển sang error khi chưa từng có grade.
     const newStatus = hadPreviousGrade ? 'graded' : 'error';
-    const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
+    // Gemini trả 404 = không đọc được ẢNH (file chưa tải xong, link hỏng, file bị xoá) — đây là
+    // lỗi ảnh chứ không phải lỗi hệ thống: nói rõ để thầy/em biết nộp lại là xong.
+    const anhKhongDocDuoc = /\(mã 404\)/u.test(safeMessage) || /không tìm thấy tài nguyên/iu.test(safeMessage);
+    const newErrorMessage = hadPreviousGrade ? '' : (anhKhongDocDuoc ? 'Ảnh bài nộp chưa tải lên xong hoặc link hỏng. Nộp lại bài một lần nữa nhé.' : safeMessage);
     const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
     const newLastGradingErrorRaw = rawMessage;
+    // Lí do lỗi cho cổng học sinh (không lộ lỗi thô): ảnh chưa rõ → em chụp lại; chưa đọc được mã đề → em chọn mã ghi trên đề.
+    const errorReason = safeMessage === UNREADABLE_EXAM_CODE_MESSAGE ? 'exam_code'
+      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE || anhKhongDocDuoc ? 'photo' : 'system';
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
+      ...(hadPreviousGrade ? {} : { errorReason }),
+      ...(!hadPreviousGrade && errorReason === 'exam_code' ? { examCodeAsk: ctx.examVariants.map(variant => variant.code) } : {}),
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return { success: false, gradePreserved: hadPreviousGrade };
+    return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage, ...retryAfterOf(error) };
   }
 };
 
@@ -635,6 +890,10 @@ const recoverStaleGradingSubmissions = async (
   return recovered;
 };
 
+const answerKeyFixesOf = (assignment: FirebaseFirestore.DocumentData): AnswerKeyFix[] => (
+  Array.isArray(assignment.answerKeyFixes) ? assignment.answerKeyFixes as AnswerKeyFix[] : []
+);
+
 /** Ngữ cảnh chấm (đáp án, hướng dẫn, ảnh đề) của một bài giao. */
 const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Promise<GradeContext> => ({
   answerKey: String(assignment.answerKey || ''),
@@ -642,11 +901,137 @@ const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Prom
   maxScore: Number(assignment.maxScore) || 10,
   assignmentTitle: String(assignment.title || ''),
   assignmentText: String(assignment.sourceText || ''),
+  solutionAssignment: assignment,
   // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
   gradingInstructions: String(assignment.gradingInstructions || ''),
   assignmentImages: await loadAssignmentSourceImages(assignment),
   answerKeyImages: await loadAnswerKeyImages(assignment),
+  answerKeyFixes: answerKeyFixesOf(assignment),
+  teacherMarkedPaper: Boolean(assignment.periodicTest),
+  examVariants: assignment.periodicTest ? sanitizeExamVariants(assignment.examVariants) : [],
+  sheetLabel: assignment.periodicTest && typeof assignment.periodicTest.sheetLabel === 'string' ? assignment.periodicTest.sheetLabel : '',
 });
+
+/** Ảnh em chụp lại một câu: chỉ lấy vài ảnh MỚI NHẤT cho gọn và rẻ (ảnh cũ vẫn được giữ trong bài). */
+const MAX_REGRADE_PHOTOS = 6;
+
+/**
+ * Chấm lại MỘT câu tự luận từ ảnh em chụp lại (xem `api/_clarify.ts`). Dùng đúng đề / đáp án / lệnh của bài
+ * như lượt chấm cả bài, nhưng chỉ nhờ AI chấm riêng câu này. Không trừ hạn mức "lượt chấm" của em; số lần chụp
+ * lại mỗi câu đã bị chặn trần ở `startPhotoRegrade`.
+ */
+const regradeClarifiedQuestion = async (
+  db: FirebaseFirestore.Firestore,
+  submission: SubmissionDoc,
+  question: QuestionResult,
+): Promise<QuestionResult> => {
+  setAiKeyOwner(String(submission.teacherId || '') || null);
+  tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+  await ensureGeminiKey(getGradingApiKey());
+
+  let ctx: GradeContext = {
+    answerKey: '', rubric: '', maxScore: 10, assignmentTitle: '', assignmentText: '', gradingInstructions: '',
+    assignmentImages: [], answerKeyImages: [], answerKeyFixes: [], teacherMarkedPaper: false, examVariants: [], sheetLabel: '',
+  };
+  if (submission.assignmentId) {
+    const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
+    if (aSnap.exists) {
+      const a = aSnap.data() as FirebaseFirestore.DocumentData;
+      if (a.teacherId !== submission.teacherId || a.classId !== submission.classId) throw new Error('Bài nộp không khớp với bài đã giao.');
+      ctx = await gradeContextFor(a);
+      if (ctx.examVariants.length > 0 && submission.examCode) ctx = contextForVariant(ctx, submission.examCode);
+    }
+  }
+
+  const urls = (question.clarify?.photoUrls ?? []).slice(-MAX_REGRADE_PHOTOS);
+  const studentImages = (await Promise.all(urls.map(async url => ({ url, image: await fetchImage(url).catch(() => null) }))))
+    .filter((entry): entry is { url: string; image: InlineImage } => entry.image !== null);
+  const photos = studentImages.map(entry => entry.image);
+  if (photos.length === 0) throw new Error('Không đọc được ảnh em chụp lại.');
+
+  const prompt = buildQuestionRegradePrompt({
+    question,
+    answerKey: ctx.answerKey,
+    rubric: ctx.rubric,
+    assignmentTitle: ctx.assignmentTitle,
+    assignmentText: ctx.assignmentText,
+    gradingInstructions: ctx.gradingInstructions,
+    assignmentImageCount: ctx.assignmentImages.length,
+    answerKeyImageCount: ctx.answerKeyImages.length,
+    studentImageCount: photos.length,
+    ...(ctx.examCode ? { examCode: ctx.examCode } : {}),
+  }) + '\n\n' + buildPhotoMarksPrompt(photos.length, ctx.assignmentImages.length + ctx.answerKeyImages.length)
+    + '\nKết quả chỉ có một câu: đặt photoMarks ngay trong object JSON kết quả, không bọc questionResults.';
+  const raw = await callGradingVision(
+    prompt,
+    [...ctx.assignmentImages, ...ctx.answerKeyImages, ...photos],
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
+  );
+  const regraded = parseQuestionRegrade(raw, question);
+  if (!regraded) throw new Error('Máy trả kết quả chấm lại không đọc được.');
+  return bindQuestionPhotoMarks(regraded, studentImages.map(entry => entry.url));
+};
+
+const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const startedAt = Date.now();
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập giáo viên.' });
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  if (!assignmentId || assignmentId.includes('/')) return res.status(422).json({ error: 'Mã bài không hợp lệ.' });
+  const ref = db.collection('assignments').doc(assignmentId), snapshot = await ref.get(), assignment = snapshot.data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  const access = await readClassAccess(db, assignment.classId, uid);
+  if (!access || access.data.teacherId !== assignment.teacherId) return res.status(403).json({ error: 'Không có quyền với bài này.' });
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (assignment.examVariants?.length && !assignment.examVariants.some((v: {code:string}) => v.code === examCode)) return res.status(422).json({ error: 'Chọn đúng mã đề để tạo lời giải.' });
+  const initialInput = assignmentSolutionInput(assignment, examCode);
+  const initialCache = examCode ? assignment.workedSolutionsByExamCode?.[examCode] : assignment.workedSolutions;
+  if (!body.force && initialCache?.version === workedSolutionVersion(initialInput)) return res.status(200).json({ cache: initialCache });
+  const claimKey = examCode || 'default';
+  const claimId = `${uid}:${Date.now()}:${Math.random()}`;
+  const claimed = await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (!fresh || fresh.workedSolutionsClaims?.[claimKey]?.expiresAt > Date.now()) return false; const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data(); const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data(); if (!classData || classData.teacherId !== fresh.teacherId || !deriveClassAccess(classData, memberFromData(member), uid)) throw new SubmissionAccessError(403, 'Quyền giáo viên đã bị thu hồi.'); tx.update(ref, { workedSolutionsClaims: { ...(fresh.workedSolutionsClaims || {}), [claimKey]: { id: claimId, expiresAt: Date.now() + 5 * 60 * 1000 } } }); return true; });
+  if (!claimed) return res.status(409).json({ error: 'Lời giải đang được tạo. Chờ lượt hiện tại kết thúc.' });
+  try {
+  const originalInput = assignmentSolutionInput(assignment, examCode);
+  const sourceVersion = workedSolutionVersion({ ...originalInput, questions: [] });
+  let effectiveAssignment = assignment;
+  setAiKeyOwner(assignment.teacherId);
+  await ensureGeminiKey(getGradingApiKey());
+  if (!originalInput.questions.length) {
+    const variant = assignment.examVariants?.find((value: {code:string}) => value.code === examCode);
+    const catalogBudgetMs = Math.min(120000, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS - 90000);
+    if (catalogBudgetMs < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Chưa đủ thời gian để đọc đề và tạo lời giải. Thầy cô thử lại.' });
+    let catalog: Awaited<ReturnType<typeof readAssignmentQuestionCatalog>>;
+    try { catalog = await readAssignmentQuestionCatalog(db, uid, { ...assignment, solutionCatalogOnly: true, solutionExamCode: examCode, ...(variant ? { sourceText: variant.sourceText, answerKey: variant.answerKey } : {}) }, catalogBudgetMs); }
+    catch (reason) { if (reason instanceof GeminiResponseError && reason.kind === 'provider') return res.status(422).json({ error: 'Máy chưa đọc xong danh sách câu từ ảnh đề. Bài chấm và điểm của học sinh vẫn giữ nguyên; thầy cô thử tạo lời giải lại.' }); throw reason; }
+    if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
+    effectiveAssignment = examCode ? { ...assignment, questionCatalogByExamCode: { ...(assignment.questionCatalogByExamCode || {}), [examCode]: catalog.questionCatalog } } : { ...assignment, questionCatalog: catalog.questionCatalog };
+  }
+  const input = assignmentSolutionInput(effectiveAssignment, examCode);
+  const existing = examCode ? assignment.workedSolutionsByExamCode?.[examCode] : assignment.workedSolutions;
+  const version = workedSolutionVersion(input);
+  if (!body.force && existing?.version === version) return res.status(200).json({ cache: existing });
+  setAiKeyOwner(assignment.teacherId);
+  await ensureGeminiKey(getGradingApiKey());
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const quotaVerdict = remainingQuota(quota, 'teacher', '');
+  if (quotaVerdict.allowed <= 0) return res.status(429).json({ error: quotaVerdict.reason });
+  const images = (await Promise.all((input.sourceUrls || []).map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+  if (FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Đọc đề mất nhiều thời gian. Thử lại để tạo lời giải.' });
+  const cache = await generateWorkedSolutions({ input, existing, force: body.force === true, now: new Date().toISOString(), callModel: prompt => (images.length ? (p: string, o: GeminiOptions) => callGradingVision(p, images, o) : callTextModel)(prompt, { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) }) });
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+  const saved = await db.runTransaction(async tx => {
+    const fresh = (await tx.get(ref)).data();
+    if (!fresh || fresh.workedSolutionsClaims?.[claimKey]?.id !== claimId || workedSolutionVersion(assignmentSolutionInput(fresh, examCode)) !== workedSolutionVersion(originalInput) || workedSolutionVersion({ ...assignmentSolutionInput(fresh, examCode), questions: [] }) !== sourceVersion) return false;
+    const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data();
+    const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data();
+    if (!classData || !deriveClassAccess(classData, memberFromData(member), uid)) return false;
+    tx.update(ref, examCode ? { workedSolutionsByExamCode: { ...(fresh.workedSolutionsByExamCode || {}), [examCode]: cache }, questionCatalogByExamCode: { ...(fresh.questionCatalogByExamCode || {}), [examCode]: effectiveAssignment.questionCatalogByExamCode[examCode] } } : { workedSolutions: cache, questionCatalog: effectiveAssignment.questionCatalog }); return true;
+  });
+  if (!saved) return res.status(409).json({ error: 'Đề, đáp án hoặc quyền đã đổi. Tạo lại lời giải theo bản mới.' });
+  return res.status(200).json({ cache });
+  } finally { await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (fresh?.workedSolutionsClaims?.[claimKey]?.id === claimId) tx.update(ref, { workedSolutionsClaims: { ...(fresh.workedSolutionsClaims || {}), [claimKey]: { id: '', expiresAt: 0 } } }); }); }
+};
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const startedAt = Date.now();
@@ -722,11 +1107,68 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   });
 };
 
-const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
-  const uid = await uidFromIdToken(body.idToken);
-  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+/**
+ * Máy chưa đọc được mã đề trên bài: em chọn mã ghi trên tờ đề của em (chỉ trong các mã của bài), rồi máy đọc tiếp ngay.
+ * Mã em chọn được ghi là "HS chọn" để thầy cô soát; thầy cô vẫn đổi được như cũ.
+ */
+const handleAnswerExamCode = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  try {
+    const auth = await authorizeSubmissionActor(db, body, res);
+    if (!auth) return;
+    const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+    if (!examCode) return res.status(422).json({ error: 'Thiếu mã đề.' });
+    const ref = db.collection('submissions').doc(auth.submissionId);
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref), current = snap.data();
+      if (!current || current.studentId !== auth.actor.studentId || current.classId !== auth.actor.classId || current.teacherId !== auth.actor.teacherId) throw new SubmissionAccessError(403, 'Bài nộp không thuộc tài khoản này.');
+      await assertActorCurrent(db, tx, auth.actor, current.assignmentId, true);
+      const options = Array.isArray(current.examCodeAsk) ? current.examCodeAsk : [];
+      if (current.status !== 'error' || current.grade || !options.includes(examCode)) throw new SubmissionAccessError(409, 'Bài này không còn chờ chọn mã đề.');
+      tx.update(ref, { examCode, examCodeSource: auth.actor.role, examCodeAsk: [], errorReason: '', examCodeConfirmedBy: actorStamp(auth.actor, new Date().toISOString()), updatedAt: new Date().toISOString() });
+    });
+    return handleGradeOne(db, body, res);
+  } catch (reason) { if (reason instanceof SubmissionAccessError) return res.status(reason.statusCode).json({ error: reason.message }); throw reason; }
+};
 
-  const submissionId = typeof body.submissionId === 'string' ? body.submissionId : '';
+const handleReviewCorrection = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => handleReviewCorrectionAttempt(db, body, res, {
+  assess: async (submission, attempt) => {
+    const startedAt = Date.now();
+    setAiKeyOwner(submission.teacherId);
+    tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+    const originalUrls = [...new Set([...submission.fileUrls, ...(submission.grade?.questionResults || []).flatMap(row => row.clarify?.photoUrls || [])])];
+    const originalEntries = (await Promise.all(originalUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+    const correctionEntries = (await Promise.all(attempt.fileUrls.map(async url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+    if (!correctionEntries.length) return JSON.stringify({ outcome: 'uncertain', feedback: 'Chưa đọc được ảnh bài chữa. Em kiểm tra ảnh đã đủ sáng, rõ chữ và có đủ phần em đã chữa rồi thử lại.' });
+    const gradePublished = isPublishedSubmission(submission);
+    let contextSubmission: SubmissionDoc = gradePublished ? submission : { ...submission, grade: undefined };
+    let sourceText = '';
+    let sourceImages: InlineImage[] = [];
+    if (!gradePublished) {
+      const manualUrls = await publishedHandMarkedImages(db, submission);
+      sourceImages = (await Promise.all(manualUrls.map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+      if (!sourceImages.length) return JSON.stringify({ outcome:'uncertain', feedback:'Bài chữa đã được lưu. Bản chấm tay hiện chỉ có PDF hoặc ảnh chưa đọc được; cần thêm ảnh bản chấm tay rõ chữ để đối chiếu. Máy chưa đủ căn cứ nhận xét, không đoán theo điểm hoặc lời chấm chưa công bố.' });
+      sourceText = `BẢN CHẤM TAY GV ĐÃ CÔNG BỐ: ${submission.handMarkedEvidence?.note || ''}. Các ảnh tư liệu cuối là bản chấm tay đã công bố, chỉ dùng căn cứ đối chiếu.`;
+    } else if (submission.assignmentId) {
+      const assignment = (await db.collection('assignments').doc(submission.assignmentId).get()).data();
+      if (assignment?.classId === submission.classId && assignment.teacherId === submission.teacherId) { sourceText = assignment.examVariants?.find((variant: {code:string}) => variant.code === submission.examCode)?.sourceText || assignment.sourceText || ''; sourceImages = await loadAssignmentSourceImages(assignment); contextSubmission = attachAssignmentSolutions(submission, assignment); }
+    }
+    const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+    if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh mất nhiều thời gian. Ảnh vẫn được giữ, em thử đánh giá lại.');
+    await ensureGeminiKey(getGradingApiKey());
+    const reservation = await reserveQuota(db, submission.teacherId, 'self', submission.studentId);
+    if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+    const modelBudget = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+    if (modelBudget < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Chuẩn bị đánh giá mất nhiều thời gian. Ảnh vẫn được giữ, em thử lại.');
+    return callGradingVision(buildCorrectionReviewPrompt(contextSubmission, attempt, originalEntries.length, sourceText, correctionEntries.length, sourceImages.length), [...originalEntries, ...correctionEntries, ...sourceImages],
+      { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(GRADING_BUDGET_MS, modelBudget) });
+  },
+});
+
+const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const authorization = await authorizeSubmissionActor(db, body, res);
+  if (!authorization) return;
+  const uid = authorization.actor.uid || authorization.actor.teacherId;
+  const submissionId = authorization.submissionId;
   const ref = db.collection('submissions').doc(submissionId);
   const snap = await ref.get();
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
@@ -739,18 +1181,17 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (submission.status === 'grading' && !isStaleGradingTimestamp(submission.updatedAt)) {
     return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
   }
-  const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
-  const isOwnerStudent = Boolean(link
-    && link.studentId === submission.studentId
-    && link.classId === submission.classId
-    && link.teacherId === submission.teacherId);
-  const isTeacher = submission.teacherId === uid
-    || await canTeacherAccessLegacyNamespace(db, uid, submission.classId, submission.teacherId);
-  if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
+  const isOwnerStudent = authorization.actor.role !== 'teacher';
+  const isTeacher = authorization.actor.role === 'teacher';
+  await db.runTransaction(tx => assertActorCurrent(db, tx, authorization.actor, submission.assignmentId));
   const mode: HomeworkGradingMode = isTeacher && !isOwnerStudent ? requestedMode : 'quick';
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
+  }
+  // Máy chỉ quét bài MỘT lần ngay khi em nộp. Đã có kết quả thì em không gọi lại được: gọi lại sẽ xoá các câu em đã xác nhận
+  // và cho em dò xem máy chưa chắc câu nào qua mỗi lượt. Muốn đọc lại thì thầy cô bấm chấm lại, hoặc em nộp ảnh bổ sung (lượt mới).
+  if (isOwnerStudent && !isTeacher && submission.grade) {
+    return res.status(403).json({ error: 'Máy đã đọc bài này rồi. Em chờ thầy cô duyệt, hoặc nộp ảnh bổ sung nếu cần.' });
   }
 
   // Khoá AI thuộc giáo viên chủ lớp. Học sinh nộp đúng lúc khoá bị chặn: bài nằm chờ, giáo viên được báo.
@@ -777,6 +1218,10 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     gradingInstructions: '',
     assignmentImages: [],
     answerKeyImages: [],
+    answerKeyFixes: [],
+    teacherMarkedPaper: false,
+    examVariants: [],
+    sheetLabel: '',
   };
   if (submission.assignmentId) {
     const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
@@ -788,25 +1233,19 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
       if (a.teacherId !== submission.teacherId || a.classId !== submission.classId) {
         return res.status(403).json({ error: 'Bài nộp không khớp với bài đã giao. Báo thầy cô kiểm tra lại.' });
       }
-      ctx = {
-        answerKey: String(a.answerKey || ''),
-        rubric: String(a.rubric || ''),
-        maxScore: Number(a.maxScore) || 10,
-        assignmentTitle: String(a.title || ''),
-        assignmentText: String(a.sourceText || ''),
-        // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
-        gradingInstructions: String(a.gradingInstructions || ''),
-        assignmentImages: await loadAssignmentSourceImages(a),
-        answerKeyImages: await loadAnswerKeyImages(a),
-      };
+      // Cùng một hàm với chấm cả lớp — hai đường tự dựng riêng là lệch nhau (vd quên mã đề).
+      ctx = await gradeContextFor(a);
+      if (submission.handMarkedPaper) {
+        ctx.teacherMarkedPaper = true;
+      }
     }
   }
 
   // HỌC SINH tự chấm: trả lời ngay rồi chấm tiếp ở phía máy chủ. Em nộp bằng điện thoại xong
   // tắt máy là chuyện thường; để việc chấm nằm trong request của em thì request đứt là worker
-  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình.
-  // Nền tảng không cho chạy ngầm (chạy local, chạy test) thì tự lùi về chờ xong như cũ.
-  if (!isTeacher) {
+  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình —
+  // TRỪ KHI client (điện thoại) xin chấm nền: lúc đó trả 202 ngay, thầy cứ đóng app.
+  if (!isTeacher || body.background === true) {
     const nen = gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode)
       .catch(error => {
         console.error('[grade-homework] lượt chấm ngầm hỏng', error);
@@ -915,6 +1354,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
+  tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
   const requestedSetId = typeof body.setId === 'string' ? body.setId.trim() : '';
   if (requestedSetId) {
@@ -1020,7 +1460,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   setAiKeyOwner(link.teacherId);
   let raw: string;
   try {
-    raw = await callGeminiVision(
+    raw = await callGradingVision(
       buildPracticePrompt({
         grade: String(classSnap.data()?.grade || ''),
         topics,
@@ -1028,8 +1468,6 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
         avoidQuestions: basis.avoidQuestions,
       }),
       [],
-      getGradingApiKey(),
-      GRADING_MODEL,
       { maxOutputTokens: 16384, jsonMode: true },
     );
   } catch (error) {
@@ -1142,6 +1580,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   setAiKeyOwner(link.teacherId);
+  tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
   const setId = typeof body.setId === 'string' ? body.setId.trim() : '';
   if (!setId) return res.status(400).json({ error: 'Thiếu mã bài luyện.' });
@@ -1255,7 +1694,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
 
   const profileRef = db.collection('studentProfiles').doc(link.studentId);
   try {
-    const raw = await callGeminiVision(
+    const raw = await callGradingVision(
       buildPracticeGradingPrompt({
         topics: Array.isArray(set.topics) ? set.topics : [],
         questions: keyQuestions.map(question => ({
@@ -1267,8 +1706,6 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
         answers,
       }),
       [],
-      getGradingApiKey(),
-      GRADING_MODEL,
       { maxOutputTokens: 4096, jsonMode: true },
     );
     const assessment = parsePracticeAssessment(raw, keyQuestions.map(question => ({
@@ -1394,9 +1831,10 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     examImageCount: examImages.length,
     maxScore: Number(body.maxScore) || 10,
     gradingInstructions: String(body.gradingInstructions || ''),
+    periodic: body.periodic === true,
   });
   // Giải cả một đề, từng câu kèm các bước — dài hơn hẳn chấm một bài, nên trần phải rộng.
-  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callGradingVision(prompt, examImages, {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -1404,6 +1842,47 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
   return res.status(200).json(parseSolvedAnswerKey(raw));
+};
+
+/**
+ * Bài kiểm tra định kì nhiều mã: rút đáp án TỪNG mã từ tư liệu đáp án (bảng đáp án các mã, đáp án sau mỗi đề,
+ * file đáp án riêng) — một lượt cho mọi mã. Kết quả đổ vào bảng xác nhận cho giáo viên soát, không dùng thẳng.
+ */
+const handleExtractExamVariantKeys = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  const classData = classSnap.data() || {};
+  if (!classSnap.exists || !await canTeacherAccessLegacyNamespace(db, uid, classId, classData.teacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  const codes = [...new Set((Array.isArray(body.codes) ? body.codes : [])
+    .map(code => String(code ?? '').trim())
+    .filter(code => /^[0-9A-Za-z]{1,8}$/u.test(code)))].slice(0, MAX_EXAM_VARIANTS);
+  const answerMaterial = String(body.answerMaterial || '').slice(0, MAX_ANSWER_MATERIAL_CHARS);
+  if (codes.length === 0 || !answerMaterial.trim()) {
+    return res.status(400).json({ error: 'Chưa có mã đề hoặc phần đáp án để đọc.' });
+  }
+  const rawHints = body.hints && typeof body.hints === 'object' && !Array.isArray(body.hints) ? body.hints as Record<string, unknown> : {};
+  const hints = Object.fromEntries(codes
+    .map(code => [code, typeof rawHints[code] === 'string' ? (rawHints[code] as string).replace(/\s+/gu, ' ').trim().slice(0, 200) : ''])
+    .filter(([, hint]) => hint));
+
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  // Chỉ chữ đề/đáp án → nhóm chữ (nguồn miễn phí trước).
+  const raw = await callTextModel(buildExtractVariantKeysPrompt(codes, answerMaterial, hints), {
+    maxOutputTokens: 16384,
+    jsonMode: true,
+    temperature: 0,
+  });
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+  return res.status(200).json({ keys: parseExtractedVariantKeys(raw, codes) });
 };
 
 /**
@@ -1429,6 +1908,10 @@ const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body:
   if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
     return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
+
+  // Bài định kì nhiều mã: "Câu 5" mỗi mã một câu khác nhau → không có MỘT danh mục chung, và không gắn nhãn
+  // năng lực (điểm chính thức ở sổ điểm; ghép từng câu vào bài SGK đã có ở báo cáo phụ huynh).
+  if (assignment.periodicTest) return res.status(200).json({ questionCatalog: [], competencyTags: [], cached: true, periodic: true });
 
   // Đã có danh mục thì dùng lại, trừ khi giáo viên chủ động bấm đọc lại.
   const existing = Array.isArray(assignment.questionCatalog) ? assignment.questionCatalog : [];
@@ -1474,6 +1957,9 @@ const handleSetAssignmentCompetencyTags = async (db: FirebaseFirestore.Firestore
     return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
 
+  if (assignment.periodicTest) {
+    return res.status(400).json({ error: 'Bài kiểm tra định kì không gắn nhãn năng lực — điểm chính thức nằm ở sổ điểm.' });
+  }
   const grade = await resolveAssignmentGrade(db, assignment);
   if (!grade) return res.status(400).json({ error: 'Lớp chưa rõ khối 10/11/12 nên chưa gắn được nhãn năng lực.' });
   const allowed = competencyIdSet(grade);
@@ -1506,6 +1992,7 @@ const readAssignmentQuestionCatalog = async (
   db: FirebaseFirestore.Firestore,
   uid: string,
   assignment: FirebaseFirestore.DocumentData,
+  timeoutMs = SINGLE_CALL_BUDGET_MS,
 ): Promise<{ questionCatalog: QuestionCatalogEntry[]; competencyTags: CompetencyTag[] } | { error: string; status: number }> => {
   const examText = String(assignment.sourceText || '');
   const examImages = await loadAssignmentSourceImages(assignment);
@@ -1520,17 +2007,15 @@ const readAssignmentQuestionCatalog = async (
   // Khối của lớp → chỉ đưa AI đúng danh sách năng lực khối đó để gắn nhãn (Toán 10/11/12).
   const grade = await resolveAssignmentGrade(db, assignment);
 
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildQuestionCatalogPrompt({
       examText,
       examImageCount: examImages.length,
       maxScore: Number(assignment.maxScore) || 10,
-      ...(grade ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
-    }),
+      ...(grade && !assignment.solutionCatalogOnly ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
+    }) + (assignment.solutionCatalogOnly ? `\nƯU TIÊN CHO LỜI GIẢI CHUNG: chỉ đọc mã đề ${assignment.solutionExamCode || 'mặc định'}. Nhãn phải khớp từng câu trong đáp án bên dưới (Phần I/II/III + Câu/Bài), không tách câu Đúng/Sai thành 4 câu; giữ nội dung a–d trong content của một câu. Chép expectedAnswer của đúng câu từ đáp án GV, không tự giải hoặc đoán. ĐÁP ÁN GV: ${assignment.answerKey || ''}` : ''),
     examImages,
-    getGradingApiKey(),
-    GRADING_MODEL,
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
@@ -1595,7 +2080,7 @@ const handleSolveAnswerKeyForAssignment = async (db: FirebaseFirestore.Firestore
     maxScore: Number(assignment.maxScore) || 10,
     gradingInstructions,
   });
-  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callGradingVision(prompt, examImages, {
     maxOutputTokens: 16384,
     jsonMode: true,
     temperature: 0,
@@ -1626,11 +2111,8 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGeminiVision(
+  const raw = await callTextModel(
     buildRubricPrompt(answerKey, Number(body.maxScore) || 10, String(body.gradingInstructions || '')),
-    [],
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 8192, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
@@ -1659,7 +2141,7 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const raw = await callGeminiVision(
+  const raw = await callGradingVision(
     buildRewriteFeedbackPrompt({
       teacherNote,
       currentFeedback: String(body.currentFeedback || ''),
@@ -1668,8 +2150,6 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
       weakTopics: Array.isArray(body.weakTopics) ? body.weakTopics.map(String) : [],
     }),
     [],
-    getGradingApiKey(),
-    GRADING_MODEL,
     { maxOutputTokens: 2048, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
@@ -1678,6 +2158,127 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
 };
 
 // ── Tự chấm + tự duyệt sau 60 phút (bộ hẹn giờ GitHub Actions gọi 30 phút/lần) ──────────────
+
+// ── Đo so sánh model chấm (chỉ quản trị) ────────────────────────────────────────────────────────
+// Chấm lại bài ĐÃ có điểm GV bằng một model chỉ định rồi TRẢ kết quả — KHÔNG ghi gì vào bài nộp.
+// Tiền token vẫn vào sổ dùng AI của tài khoản quản trị như mọi lượt gọi khác.
+
+const isAdminToken = async (idToken: unknown): Promise<boolean> => {
+  try {
+    const decoded = await getAuth().verifyIdToken(String(idToken || ''));
+    return decoded.email_verified === true && decoded.firebase?.sign_in_provider !== 'anonymous' && isAdminEmail(String(decoded.email || ''));
+  } catch { return false; }
+};
+
+const handleBenchmarkModels = async (body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  return res.status(200).json(await listBenchmarkModels());
+};
+
+const handleTextPing = async (body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const provider = body.provider === 'opencode' ? 'opencode' : 'pshare';
+  const models = (Array.isArray(body.models) ? body.models : []).map(String).filter(m => /^[\w.:/-]{1,120}$/.test(m)).slice(0, 12);
+  const results = await Promise.all(models.map(async model => ({ model, ...await pingTextModel(provider, model) })));
+  return res.status(200).json({ provider, results });
+};
+
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+
+const handleBenchmarkList = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const ids = (Array.isArray(body.assignmentIds) ? body.assignmentIds : []).map(String).filter(id => SAFE_ID.test(id)).slice(0, 20);
+  const items: Record<string, unknown>[] = [];
+  for (const assignmentId of ids) {
+    const snap = await db.collection('submissions').where('assignmentId', '==', assignmentId).get();
+    for (const doc of snap.docs) {
+      const data = doc.data() as SubmissionDoc;
+      if (!data.grade) continue;
+      items.push({
+        id: doc.id, assignmentId, studentId: data.studentId, examCode: data.examCode || null,
+        score: data.grade.score, maxScore: data.grade.maxScore, approved: data.grade.teacherApproved === true,
+        editedByTeacher: data.grade.editedByTeacher === true, files: Array.isArray(data.fileUrls) ? data.fileUrls.length : 0,
+        rows: (data.grade.questionResults || []).map(q => ({ q: q.questionNumber, score: q.score, maxScore: q.maxScore, teacherEdited: q.teacherEdited === true })),
+      });
+    }
+  }
+  return res.status(200).json({ items });
+};
+
+const handleBenchmarkGrade = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  const submissionId = String(body.submissionId || '');
+  const spec = String(body.model || '');
+  const mode = parseHomeworkGradingMode(body.mode);
+  const adapter = benchmarkAdapter(spec);
+  if (!SAFE_ID.test(submissionId) || !adapter) return res.status(400).json({ error: 'Thiếu bài hoặc model không hợp lệ (dạng vilao/…, xkiro/…, gemini/…).' });
+  const submission = (await db.collection('submissions').doc(submissionId).get()).data() as SubmissionDoc | undefined;
+  if (!submission?.assignmentId) return res.status(404).json({ error: 'Không tìm thấy bài.' });
+  const assignment = (await db.collection('assignments').doc(submission.assignmentId).get()).data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  let ctx = await gradeContextFor(assignment);
+  if (submission.handMarkedPaper) {
+    const official = submission.handMarkedDeclaredBy === undefined || submission.handMarkedDeclaredBy === 'teacher';
+    ctx = { ...ctx, teacherMarkedPaper: true, handMarkedPaper: true, handMarkedOfficial: official };
+  }
+  if (ctx.examVariants.length > 0) {
+    const code = submission.examCode || (ctx.examVariants.length === 1 ? ctx.examVariants[0].code : '');
+    if (!code) return res.status(422).json({ error: 'Bài chưa có mã đề.' });
+    ctx = contextForVariant(ctx, code);
+  }
+  const urls = (Array.isArray(submission.fileUrls) ? submission.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
+  const images = (await Promise.all(urls.map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+  const studentText = String(submission.textContent || '').trim();
+  if (!images.length && !studentText) return res.status(422).json({ error: UNREADABLE_HOMEWORK_MESSAGE });
+  const apiKey = getGradingApiKey();
+  const started = Date.now();
+  const deadlineAt = started + GRADING_BUDGET_MS;
+  try {
+    const { value: grade, calls } = await withUsageTap(() => runWithGradingChain([adapter], async () => {
+      let transcription = '';
+      if (mode === 'thorough' && images.length) {
+        try { transcription = await transcribeStudentWork(images, apiKey, 20_000); } catch { /* như chấm thật: chép lỗi thì chấm thẳng */ }
+      }
+      let attempt: GradeAttemptResult;
+      try {
+        attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, transcription, Math.max(MIN_GEMINI_BUDGET_MS, deadlineAt - Date.now() - 60_000));
+      } catch (error) {
+        if (!isRetryableGradeAttemptError(error) || deadlineAt - Date.now() < MIN_GEMINI_BUDGET_MS) throw error;
+        attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, transcription, deadlineAt - Date.now());
+      }
+      const withOmr = submission.omrSheet ? applyOmrSheet(attempt.grade, submission.omrSheet).grade : attempt.grade;
+      return reconcileAiGrade(withOmr, ctx.answerKeyFixes, undefined);
+    }));
+    const day = new Date().toISOString().slice(0, 10);
+    const usage = calls.map(call => ({
+      model: call.model, inputTokens: call.counts.inputTokens, outputTokens: call.counts.outputTokens,
+      thoughtsTokens: call.counts.thoughtsTokens, costUsd: costUsdOfCall(call.model, day, call.counts),
+    }));
+    const run = {
+      ok: true, model: spec, ms: Date.now() - started, score: grade.score, maxScore: grade.maxScore,
+      rows: (grade.questionResults || []).map(q => ({ q: q.questionNumber, score: q.score, maxScore: q.maxScore, status: q.status, review: q.needsTeacherReview === true || q.status === 'unreadable' })),
+      usage,
+    };
+    // Lưu lại để đóng tab / đổi máy vẫn chạy tiếp được, không tốn tiền chấm lại lượt đã xong.
+    await db.collection('adminBenchmarkRuns').doc(benchmarkRunId(submissionId, spec)).set({ submissionId, run, at: new Date().toISOString() });
+    return res.status(200).json(run);
+  } catch (error) {
+    return res.status(200).json({ ok: false, model: spec, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 300) : 'lỗi không rõ' });
+  }
+};
+
+const benchmarkRunId = (submissionId: string, spec: string) => `${submissionId}__${spec.replace(/[^\w.@:-]/g, '_')}`.slice(0, 600);
+
+const handleBenchmarkRuns = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  if (!await isAdminToken(body.idToken)) return res.status(403).json({ error: 'Chỉ tài khoản quản trị.' });
+  if (body.clear === true) {
+    const all = await db.collection('adminBenchmarkRuns').listDocuments();
+    for (let i = 0; i < all.length; i += 400) { const batch = db.batch(); all.slice(i, i + 400).forEach(ref => batch.delete(ref)); await batch.commit(); }
+    return res.status(200).json({ runs: [] });
+  }
+  const snap = await db.collection('adminBenchmarkRuns').limit(3000).get();
+  return res.status(200).json({ runs: snap.docs.map(doc => ({ submissionId: doc.get('submissionId'), run: doc.get('run') })) });
+};
 
 const AUTO_ACTOR = 'system:auto-60';
 /** Hàm sống tối đa `maxDuration`; một lượt chấm được tiêu tới GRADING_BUDGET_MS → chỉ bắt đầu chấm khi còn đủ giờ. */
@@ -1786,10 +2387,54 @@ const handleAutoGradeSweep = async (req: VercelRequest, res: VercelResponse) => 
   return res.status(200).json({ approved, graded, failed, remaining });
 };
 
+
+/** Gọi AI ĐỊNH VỊ câu trên ảnh (không chấm lại). Dùng cho nút "Bổ sung dấu chấm trên ảnh" và job làm mới. */
+const locateAnnotation = (db: FirebaseFirestore.Firestore, bypassDailyQuota: boolean) => async (submission: SubmissionDoc, targets: QuestionResult[]): Promise<{ raw: string; urls: string[] }> => {
+      const startedAt = Date.now();
+      setAiKeyOwner(submission.teacherId); tagAiUsageRefs({ studentId: submission.studentId, classId: submission.classId, assignmentId: submission.assignmentId, submissionId: submission.id });
+      const entries = (await Promise.all(annotationImageUrls(submission).map(async url => ({ url, image: await fetchImage(url).catch(() => null) })))).filter((entry): entry is {url:string;image:InlineImage} => entry.image !== null);
+      if (!entries.length) throw new SubmissionAccessError(422, 'Không có ảnh bài làm đọc được; điểm vẫn giữ nguyên.');
+      await ensureGeminiKey(getGradingApiKey());
+      if (bypassDailyQuota) await reserveTeacherRefreshQuota(db, submission.teacherId);
+      else {
+        const reservation = await reserveQuota(db, submission.teacherId, 'teacher', submission.studentId);
+        if (reservation.verdict.allowed <= 0) throw new SubmissionAccessError(429, reservation.verdict.reason);
+      }
+      const remaining = FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS;
+      if (remaining < MIN_GEMINI_BUDGET_MS) throw new SubmissionAccessError(409, 'Tải ảnh quá lâu. Thầy cô thử lại, bài chấm vẫn giữ nguyên.');
+      const rubric = submission.assignmentId ? String((await db.collection('assignments').doc(submission.assignmentId).get()).data()?.rubric || '') : '';
+      return { raw: await callGradingVision(buildAnnotationPrompt(submission, targets, entries.length, rubric), entries.map(entry => entry.image), { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.min(120000, remaining) }), urls: entries.map(entry => entry.url) };
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Chỉ nhận POST' });
+  }
+  if (req.query?.cron === 'refresh') {
+    const secret = (process.env.AUTO_GRADE_CRON_SECRET || '').trim();
+    if (!secret || getBearerToken(req.headers.authorization) !== secret) return res.status(401).json({ error: 'Sai khóa.' });
+    try {
+      const db = getAdminDb();
+      // CHỈ định vị câu trên ảnh — KHÔNG chấm lại: điểm, duyệt, nhận xét, sửa tay giữ nguyên.
+      // (Bản 15/10 gọi gradeOneSubmission ở đây → chấm lại toàn bộ 184 bài, đổi điểm 104 bài; xem HANDOFF 17/10.)
+      const result = await runGradingRefreshItem(db, String(readBody(req).jobId || ''), async (submission, _assignment, bypassDailyQuota) => {
+        const usage = createAiUsageContext(null, 'teacherRefresh', { submissionId: submission.id, classId: submission.classId, assignmentId: submission.assignmentId },
+          async () => ({ uid: submission.teacherId, email: null, anonymous: false }));
+        return runWithAiUsage(usage, async () => {
+          setAiKeyOwner(submission.teacherId);
+          try {
+            await annotateSubmission(db, submission.id, null, locateAnnotation(db, bypassDailyQuota));
+            return { success: true };
+          } catch (error) {
+            if (error instanceof SubmissionAccessError && error.statusCode === 429) throw error;
+            if (error instanceof AiKeyRequiredError) throw error;
+            return { success: false, gradePreserved: true, failureCode: gradeFailureCode(error), failureMessage: safeGradeErrorMessage(error), ...retryAfterOf(error) };
+          }
+        });
+      });
+      return res.status(200).json(result);
+    } catch (error) { return res.status(error instanceof SubmissionAccessError ? error.statusCode : 500).json({ error: error instanceof SubmissionAccessError ? error.message : 'Chưa chạy được đợt chấm.' }); }
   }
   if (req.query?.cron === 'auto') {
     try {
@@ -1815,12 +2460,26 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     // (nó tự khởi tạo Admin khi cần), chứ không nuốt vào 500 chung của route chấm bài.
     if (action === 'aiGateway') return await handleAiGateway(req, res);
     const db = getAdminDb();
+    if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
+    if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: locateAnnotation(db, false) });
+    if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
+    if (action === 'adminBenchmarkModels') return await handleBenchmarkModels(body, res);
+    if (action === 'adminTextPing') return await handleTextPing(body, res);
+    if (action === 'adminBenchmarkList') return await handleBenchmarkList(db, body, res);
+    if (action === 'adminBenchmarkGrade') return await handleBenchmarkGrade(db, body, res);
+    if (action === 'adminBenchmarkRuns') return await handleBenchmarkRuns(db, body, res);
+    if (action === 'answerExamCode') return await handleAnswerExamCode(db, body, res);
+    if (await handleClarifyAction(db, body, res, {
+      regradeQuestion: (submission, question) => regradeClarifiedQuestion(db, submission, question),
+      runInBackground: chayNgam,
+    })) return;
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
+    if (action === 'extractExamVariantKeys') return await handleExtractExamVariantKeys(db, body, res);
     if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
     if (action === 'setAssignmentCompetencyTags') return await handleSetAssignmentCompetencyTags(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
@@ -1830,6 +2489,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
   } catch (error) {
     // Khoá AI của giáo viên hết/chưa có và chưa đồng ý dùng khoá chung → client mở hộp chọn.
     if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));
+    if (error instanceof SubmissionAccessError) return res.status(error.statusCode).json({ error: error.message });
     console.error('[grade-homework] lỗi', error);
     return res.status(500).json({
       error: error instanceof Error ? error.message : 'Máy chủ gặp lỗi khi chấm bài.',

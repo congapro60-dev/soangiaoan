@@ -20,6 +20,8 @@ import {
   capReached,
   decideAiKey,
   effectiveAiMode,
+  EXHAUSTED_COOLDOWN_MS,
+  ownKeyUsable,
   looksLikeGeminiKey,
   maskKey,
   usdToVndRounded,
@@ -30,6 +32,7 @@ import {
 import { ADMIN_EMAILS } from '../src/lib/admin/adminConfig.js';
 import { enabledRelayVendors } from './_ai-relay-core.js';
 import { resolveGatewayApiKey } from './_ai-gateway-core.js';
+import { moTaLoiDichVu } from '../src/lib/httpErrorText.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -78,6 +81,100 @@ export const loadAiAccess = async (db: Db): Promise<AiAccessSettings> => {
 const loadKeyDoc = async (db: Db, uid: string): Promise<TeacherKeyDoc | null> => {
   const snap = await db.collection(TEACHER_AI_KEYS_COL).doc(uid).get();
   return snap.exists ? (snap.data() as TeacherKeyDoc) : null;
+};
+
+// ── Khoá riêng của HỌC SINH ──────────────────────────────────────────────────
+// `studentAiKeys/{classId}__{studentId}`: CHỈ máy chủ đọc/ghi (rules mặc định chặn), khoá không trả về trình duyệt.
+// Gắn theo em (lớp + mã HS) chứ không theo phiên ẩn danh — đổi máy đăng nhập lại vẫn dùng được khoá cũ.
+
+export const STUDENT_AI_KEYS_COL = 'studentAiKeys';
+
+interface StudentKeyDoc {
+  geminiKey?: string;
+  last4?: string;
+  keyStatus?: AiKeyStatus;
+  keyStatusAt?: string;
+  keyStatusMessage?: string;
+  classId?: string;
+  studentId?: string;
+  teacherId?: string;
+}
+
+interface StudentLinkInfo { classId: string; studentId: string; teacherId: string }
+
+const studentLinkOf = async (db: Db, uid: string): Promise<StudentLinkInfo | null> => {
+  const snap = await db.collection('studentLinks').doc(uid).get();
+  const data = snap.exists ? snap.data() ?? {} : {};
+  const link = { classId: String(data.classId || ''), studentId: String(data.studentId || ''), teacherId: String(data.teacherId || '') };
+  return link.classId && link.studentId && link.teacherId ? link : null;
+};
+
+const studentKeyDocId = (link: StudentLinkInfo): string => `${link.classId}__${link.studentId}`;
+
+/** Khoá của học sinh đang gọi AI, nếu em có khoá và khoá không đang nghỉ (hết hạn mức → nghỉ 60 phút). */
+const studentKeyChoice = async (db: Db, context: NonNullable<ReturnType<typeof currentAiUsageContext>>): Promise<AiKeyChoice | null> => {
+  const who = await context.identity();
+  if (!who.uid || !who.anonymous) return null;
+  const link = await studentLinkOf(db, who.uid);
+  if (!link) return null;
+  const id = studentKeyDocId(link);
+  const snap = await db.collection(STUDENT_AI_KEYS_COL).doc(id).get();
+  const doc = snap.exists ? (snap.data() as StudentKeyDoc) : null;
+  if (!doc?.geminiKey || !ownKeyUsable({ status: doc.keyStatus ?? 'ok', statusAt: doc.keyStatusAt })) return null;
+  return { key: doc.geminiKey, source: 'own', ownerUid: link.teacherId, billing: null, studentKeyId: id };
+};
+
+const studentKeyStatus = (doc: StudentKeyDoc | null): Record<string, unknown> => {
+  const hasKey = Boolean(doc?.geminiKey);
+  const status = hasKey ? doc?.keyStatus ?? 'ok' : null;
+  const usable = hasKey && ownKeyUsable({ status: status ?? 'ok', statusAt: doc?.keyStatusAt });
+  const at = Date.parse(doc?.keyStatusAt || '');
+  return {
+    hasKey,
+    last4: doc?.last4 ?? '',
+    keyStatus: status,
+    /** Khoá đang dùng được; false = bài của em đang chấm bằng khoá của thầy cô. */
+    usable,
+    /** Khoá hết hạn mức thì thử lại từ lúc này (ISO). */
+    retryAt: hasKey && !usable && status === 'exhausted' && Number.isFinite(at) ? new Date(at + EXHAUSTED_COOLDOWN_MS).toISOString() : null,
+  };
+};
+
+/** Học sinh lưu / xoá / xem khoá Gemini của mình. Phiên lấy từ `studentLinks`, không tin mã HS client gửi. */
+export const handleStudentAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
+  const action = String(body.action || '');
+  if (!['studentAiKeyStatus', 'saveStudentAiKey', 'deleteStudentAiKey'].includes(action)) return false;
+  let uid = '';
+  try {
+    uid = typeof body.idToken === 'string' && body.idToken ? (await getAuth().verifyIdToken(body.idToken)).uid : '';
+  } catch {
+    uid = '';
+  }
+  const link = uid ? await studentLinkOf(db, uid) : null;
+  if (!link) {
+    res.status(401).json({ error: 'Cần đăng nhập cổng học sinh.' });
+    return true;
+  }
+  const ref = db.collection(STUDENT_AI_KEYS_COL).doc(studentKeyDocId(link));
+  const now = new Date().toISOString();
+  if (action === 'saveStudentAiKey') {
+    const key = typeof body.key === 'string' ? body.key.trim() : '';
+    if (!looksLikeGeminiKey(key)) {
+      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".' });
+      return true;
+    }
+    const probe = await probeGeminiKey(key);
+    if (probe.ok === false) {
+      res.status(422).json({ error: probe.message });
+      return true;
+    }
+    await ref.set({ ...link, geminiKey: key, last4: maskKey(key), keyStatus: 'ok', keyStatusAt: now, keyStatusMessage: '', updatedAt: now }, { merge: true });
+  } else if (action === 'deleteStudentAiKey') {
+    await ref.set({ ...link, geminiKey: '', last4: '', keyStatus: 'ok', keyStatusAt: now, updatedAt: now }, { merge: true });
+  }
+  const snap = await ref.get();
+  res.status(200).json(studentKeyStatus(snap.exists ? (snap.data() as StudentKeyDoc) : null));
+  return true;
 };
 
 interface SpendTotals { costUsd: number; calls: number; chargeVnd: number }
@@ -132,6 +229,13 @@ const isExemptUid = async (access: AiAccessSettings, uid: string): Promise<boole
   access.exemptUids.includes(uid) || (await adminUids()).has(uid);
 
 /**
+ * Thuộc nhóm dùng thẳng khoá chung: có trong `sharedUids` hoặc là tài khoản admin. MỌI chỗ quyết định chế độ khoá phải
+ * dùng chung hàm này — trước đây chỉ `ensureGeminiKey` tính admin, nên khoá riêng của admin hỏng thì bị chặn thay vì sang ví.
+ */
+const isSharedUid = async (access: AiAccessSettings, uid: string): Promise<boolean> =>
+  access.sharedUids.includes(uid) || (await adminUids()).has(uid);
+
+/**
  * Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án.
  * Chủ dự án bật `testCharge` (công tắc "Thử trừ ví") thì bị tính như giáo viên thường để tự kiểm thử ví.
  */
@@ -161,12 +265,17 @@ const resolveKeyOwner = async (db: Db): Promise<string | null> => {
  * `vendor`: hãng KHÁC Gemini (Claude/ChatGPT qua relay) — khoá Gemini riêng lưu trên máy chủ không dùng được cho hãng đó, nên
  * coi như không có khoá riêng; còn lại cùng luật nhóm/đồng ý/chế độ/ví/trần.
  */
-export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: boolean } = {}): Promise<AiKeyChoice> => {
+export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: boolean; skipStudentKey?: boolean } = {}): Promise<AiKeyChoice> => {
   const context = currentAiUsageContext();
   if (!context) return { key: fallbackKey, source: 'shared', ownerUid: null };
   if (context.keyChoice) return context.keyChoice;
 
   const db = getAdminDb();
+  // Lượt do HỌC SINH gọi: khoá riêng của em chạy trước; không có / đang nghỉ thì đi tiếp đường của thầy cô như cũ.
+  if (!options.vendor && !options.skipStudentKey) {
+    const student = await studentKeyChoice(db, context).catch(() => null);
+    if (student) return (context.keyChoice = student);
+  }
   const access = await loadAiAccess(db);
   // Người chịu phí cần biết cả khi CHƯA bật kiểm soát: để cộng sổ chi tiêu và giữ trần tự đặt.
   const ownerUid = await resolveKeyOwner(db).catch(() => null);
@@ -183,7 +292,7 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
 
   const decision = decideAiKey({
     gateEnabled: true,
-    isShared: access.sharedUids.includes(ownerUid) || (await adminUids()).has(ownerUid),
+    isShared: await isSharedUid(access, ownerUid),
     ownKey: !options.vendor && keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,
@@ -200,6 +309,17 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
  * hoặc đã đồng ý thì chuyển request này sang khoá chung (trừ ví), còn lại thì chặn.
  */
 export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, detail: string, fallbackKey: string): Promise<AiKeyChoice> => {
+  if (choice.studentKeyId) {
+    // Khoá của học sinh hỏng / hết hạn mức: ghi lại để màn hình em thấy, rồi chấm tiếp bằng khoá của thầy cô ngay lượt này.
+    await getAdminDb().collection(STUDENT_AI_KEYS_COL).doc(choice.studentKeyId).set({
+      keyStatus: status,
+      keyStatusAt: new Date().toISOString(),
+      keyStatusMessage: detail.slice(0, 300),
+    }, { merge: true });
+    const context = currentAiUsageContext();
+    if (context) context.keyChoice = null;
+    return ensureGeminiKey(fallbackKey, { skipStudentKey: true });
+  }
   const uid = choice.ownerUid;
   if (!uid) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', null);
   const db = getAdminDb();
@@ -209,7 +329,7 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
     keyStatusMessage: detail.slice(0, 300),
   }, { merge: true });
   const [keyDoc, access] = await Promise.all([loadKeyDoc(db, uid), loadAiAccess(db)]);
-  const isShared = access.sharedUids.includes(uid);
+  const isShared = await isSharedUid(access, uid);
   // Chỉ chế độ "cả hai" mới được chuyển sang ví khi khoá riêng hỏng; "chỉ khoá riêng" thì chặn dù đã đồng ý tính phí.
   if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
     throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
@@ -232,7 +352,7 @@ export const assertSharedAiAllowed = async (uid: string): Promise<'shared' | 'ow
   const keyDoc = await (access.enabled ? loadKeyDoc(db, uid) : loadKeyDoc(db, uid).catch(() => null));
   let source: 'shared' | 'owner_consent' = 'shared';
   if (access.enabled) {
-    const isShared = access.sharedUids.includes(uid);
+    const isShared = await isSharedUid(access, uid);
     // "Chỉ khoá riêng" (kể cả người trong nhóm đã chọn vậy) thì tính năng chỉ-khoá-chung này không được chạy.
     if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) === 'own') {
       throw new AiKeyRequiredError('consent_required', uid);
@@ -274,7 +394,7 @@ const probeGeminiKey = async (key: string): Promise<{ ok: true } | { ok: false; 
       signal: AbortSignal.timeout(10_000),
     });
     if (res.ok) return { ok: true };
-    return { ok: false, message: `Google từ chối khoá này (mã ${res.status}). Kiểm tra lại khoá trong Google AI Studio.` };
+    return { ok: false, message: `${moTaLoiDichVu(res.status, 'Google')} Kiểm tra lại khoá trong Google AI Studio.` };
   } catch {
     return { ok: false, message: 'Chưa kiểm tra được khoá với Google. Thử lại sau ít phút.' };
   }
@@ -312,7 +432,7 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     usdVnd,
     capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null,
     gateEnabled: access.enabled,
-    shared: access.sharedUids.includes(uid),
+    shared: await isSharedUid(access, uid),
     hasKey: Boolean(keyDoc?.geminiKey),
     last4: keyDoc?.last4 ?? '',
     keyStatus: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : null,
@@ -324,7 +444,7 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     consent: keyDoc?.consent?.accepted === true,
     consentAt: keyDoc?.consent?.acceptedAt ?? null,
     /** Chế độ THỰC SỰ áp dụng (chọn ví mà chưa đồng ý tính phí thì vẫn là 'own'). */
-    mode: effectiveAiMode({ mode: keyDoc?.mode, isShared: access.sharedUids.includes(uid), consent: keyDoc?.consent?.accepted === true }),
+    mode: effectiveAiMode({ mode: keyDoc?.mode, isShared: await isSharedUid(access, uid), consent: keyDoc?.consent?.accepted === true }),
     blockedSubmissionIds: blocked.docs.map(d => d.id).slice(0, 100),
   };
 };
@@ -343,11 +463,11 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
   if (action === 'saveAiKey') {
     const key = typeof body.key === 'string' ? body.key.trim() : '';
     if (!looksLikeGeminiKey(key)) {
-      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza".' });
+      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".' });
       return true;
     }
     const probe = await probeGeminiKey(key);
-    if (!probe.ok) {
+    if (probe.ok === false) {
       res.status(422).json({ error: probe.message });
       return true;
     }
@@ -364,7 +484,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
     await ref.set({ uid: me.uid, email: me.email, monthlyCapVnd: cap > 0 ? cap : null, capUpdatedAt: now, updatedAt: now }, { merge: true });
   } else if (action === 'redeemVoucher') {
     const result = await redeemVoucher(db, me.uid, me.email, String(body.code || ''));
-    if (!result.ok) {
+    if (result.ok === false) {
       res.status(422).json({ error: result.error });
       return true;
     }
@@ -395,7 +515,7 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
     if (mode !== 'own') {
       // Dùng ví = bị trừ tiền → phải đã đồng ý (hoặc thuộc nhóm dùng thẳng khoá chung). Chọn lần đầu thì ghi luôn sự đồng ý.
       const [access, keyDoc] = await Promise.all([loadAiAccess(db), loadKeyDoc(db, me.uid)]);
-      const allowed = access.sharedUids.includes(me.uid) || keyDoc?.consent?.accepted === true;
+      const allowed = await isSharedUid(access, me.uid) || keyDoc?.consent?.accepted === true;
       if (!allowed && body.accepted !== true) {
         res.status(422).json({ error: 'Cần đồng ý tính phí theo mức dùng trước khi dùng ví web.' });
         return true;

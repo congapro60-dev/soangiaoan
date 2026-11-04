@@ -4,6 +4,7 @@ import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
 import { CLASSES_COL, STUDENTS_SUB, type AssignmentDoc, type ClassDoc, type StudentDoc } from './types';
 import { AUTO_GRADE_CLASS_FIELD } from './autoGrade';
+import { moTaLoiHttp } from '../httpErrorText';
 
 const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
   const currentUser = auth.currentUser;
@@ -15,7 +16,7 @@ const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> =
     body: JSON.stringify({ ...payload, idToken }),
   });
   const data = await response.json().catch(() => null) as { error?: unknown } | null;
-  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : moTaLoiHttp(response.status));
   return data as T;
 };
 
@@ -125,8 +126,9 @@ export const migrateLegacyClasses = async (
   teacherId: string,
   legacy: TeacherClass[],
 ): Promise<MigrationOutcome> => {
-  const existingClassIds = await listTeacherClassIds(teacherId);
-  const plan = planLegacyClassMigration(legacy, teacherId, { existingClassIds });
+  const existingClasses = await listTeacherClasses(teacherId);
+  const existingClassIds = existingClasses.map(item => item.id);
+  const plan = planLegacyClassMigration(legacy, teacherId, { existingClassIds, existingJoinCodes: existingClasses.map(item => item.joinCode).filter(Boolean) });
 
   let batch = writeBatch(db);
   let count = 0;

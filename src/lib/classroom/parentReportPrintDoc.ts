@@ -1,54 +1,18 @@
 import type { ParentSafeReport, ParentSafeAssignmentStatus, ParentSafeTrend } from './parentSafeReport';
+import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes';
 import { COMPETENCY_LEVELS, type CompetencyLevel } from './competency/framework';
 import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
-import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
+import type { MonthPoint, PeriodComparison } from './reportPeriod';
+import { groupResultsByWeek, weekTitle } from './reportWeeks';
 import { heroSvg, safeLogoDataUrl, sectionIcon, strandIcon, type SectionIconName } from './parentReportArt';
-import { groupRequirementLines, parentActionsForRequirements, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
+import {
+  buildLessonMap, groupLessonsByChapter, groupLessonsByStrand, groupRequirementLines, lessonPriorities, MIN_REQUIREMENT_EVIDENCE, parentActionsForRequirements, requirementLevelLabel,
+  type LessonSummary, type ParentRequirementLine, type RequirementLevel,
+} from './parentRequirements';
 
-/** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
-export interface ParentCompetencyItem {
-  area: string;
-  topic: string;
-  level: CompetencyLevel;
-}
-
-/** Tóm tắt hồ sơ năng lực an toàn để gửi phụ huynh — chỉ tên năng lực + mức, không đáp án/ghi chú. */
-export interface ParentCompetencySummary {
-  /** Khối lớp của khung năng lực ("10"/"11"/"12"). */
-  grade: string;
-  assessed: number;
-  total: number;
-  items: ParentCompetencyItem[];
-}
-
-export interface ParentReportPrintInput {
-  report: ParentSafeReport;
-  studentName: string;
-  className: string;
-  studentCode?: string;
-  /** Ngày lập báo cáo dạng dd/mm/yyyy; mặc định là hôm nay. */
-  generatedOn?: string;
-  /** Hồ sơ năng lực rút gọn; vắng thì bỏ mục "Năng lực Toán học". */
-  competency?: ParentCompetencySummary | null;
-  /** Điểm thi định kì (MOET + TDS) từ sổ điểm lớp. */
-  exams?: StudentExamScores | null;
-  /** Điểm hệ số 1 giáo viên nhập trên lớp. Vắng cả hai thì bỏ mục điểm kiểm tra/thi. */
-  hs1?: Hs1Mark[] | null;
-  /** Báo cáo theo tháng/kì/năm; vắng = báo cáo chung từ đầu năm như trước. */
-  period?: { title: string; range: string; kind: ReportKind } | null;
-  /** So sánh tháng trước / hai nửa kì / hai học kì. */
-  comparison?: PeriodComparison | null;
-  /** Điểm trung bình theo từng tháng (báo cáo kì/năm). */
-  monthly?: MonthPoint[] | null;
-  /** Nhận xét riêng của giáo viên (AI soạn nháp, giáo viên đã sửa). */
-  teacherComment?: string;
-  /** Kết quả theo yêu cầu cần đạt (giáo viên đã soát). Có thì thay cho danh sách "Điểm mạnh / Cần rèn thêm". */
-  requirements?: ParentRequirementLine[] | null;
-  /** Nhận diện trường/giáo viên ở đầu báo cáo; vắng thì chỉ hiện tiêu đề báo cáo. */
-  branding?: { schoolName?: string; teacherName?: string; /** data URL png/jpeg/webp của logo trường */ logoDataUrl?: string } | null;
-}
+export type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput };
 
 /** `print`: khổ A4 cố định 780px cho PDF/in. `web`: tự co giãn, chữ lớn, cho phụ huynh xem trên điện thoại. */
 export type ParentReportVariant = 'print' | 'web';
@@ -98,17 +62,111 @@ const MAX_TOPIC_ITEMS = 6;
 
 const LEVEL_ORDER: readonly RequirementLevel[] = ['vung', 'dang', 'chua'];
 
+/** Tên mục — dùng chung cho tiêu đề và bảng biểu tượng. Lời nhắc ở mục đồng hành (parentRequirements) gọi đúng tên này. */
+const LESSON_MAP_TITLE = 'Bản đồ theo bài SGK';
+
+/** Mỗi nhãn/chip là MỘT khối không ngắt (`nw`): màn hẹp thì cả khối xuống dòng, không tách "Chưa / đạt". */
+const lessonCard = (lesson: LessonSummary): string => {
+  const tone = lesson.level ?? 'thieu';
+  const label = lesson.level ? requirementLevelLabel(lesson.level) : 'Chưa đủ căn cứ';
+  const meta = lesson.level
+    ? [
+      `Đạt ${Math.round(lesson.percent)}%`,
+      ...(lesson.questions !== null ? [`${lesson.questions}&nbsp;câu làm căn cứ`] : []),
+      // Câu làm tại lớp (bài kiểm tra định kì) đáng tin hơn BTVN — ghi rõ để phụ huynh biết căn cứ đến từ đâu.
+      ...(lesson.testQuestions ? [`trong đó ${lesson.testQuestions}&nbsp;câu bài kiểm tra`] : []),
+    ]
+    : [lesson.questions !== null ? `Mới có ${lesson.questions}&nbsp;câu, chưa đủ để kết luận` : 'Chưa đủ câu để kết luận'];
+  return `<div class="lm-card lm-${tone}">
+  <div class="lm-top"><span class="lm-bai nw">${esc(lesson.lesson)}</span><span class="lm-lv nw">${label}</span></div>
+  <p class="lm-name">${esc(lesson.title)}</p>
+  ${lesson.level ? `<div class="lm-bar"><i style="width:${Math.max(2, Math.min(100, lesson.percent))}%"></i></div>` : ''}
+  ${lesson.note ? `<p class="lm-note">${esc(lesson.note)}</p>` : ''}
+  <div class="lm-meta">${meta.map(text => `<span class="nw">${text}</span>`).join('')}</div>
+</div>`;
+};
+
+/**
+ * "Bản đồ theo bài SGK": mỗi bài một thẻ màu + "Ưu tiên ôn trước" — câu trả lời cho "con hổng bài nào?" nằm ngay
+ * tầng tóm tắt, không phải mở phần chi tiết. Lưới tự xếp: 1 cột trên điện thoại, 2 cột từ khổ iPad và bản in A4.
+ */
+const buildLessonMapSection = (lessons: readonly LessonSummary[], gradeLabel: string): [string, string] => {
+  const priorities = lessonPriorities(lessons);
+  const assessed = lessons.filter(lesson => lesson.level !== null);
+  const priorityBox = priorities.length > 0
+    ? `<div class="lm-pri"><p class="lm-pri-t">Ưu tiên ôn trước</p><ol>${priorities.map(lesson =>
+      `<li><b class="nw">${esc(lesson.lesson)}</b> — ${esc(lesson.title)}</li>`).join('')}</ol></div>`
+    : assessed.length > 0
+      ? '<div class="lm-pri lm-pri-ok"><p class="lm-pri-t">Chưa có bài nào cần ôn gấp</p><p class="lm-pri-p">Các bài đã có đủ căn cứ đều ở mức Vững.</p></div>'
+      : '';
+  const legend = `<ul class="lm-legend">
+  <li><i class="lm-d lm-vung"></i>Vững: đạt từ 80%</li>
+  <li><i class="lm-d lm-dang"></i>Đang hình thành: 50–79%</li>
+  <li><i class="lm-d lm-chua"></i>Chưa đạt: dưới 50%</li>
+  <li><i class="lm-d lm-thieu"></i>Chưa đủ căn cứ: dưới ${MIN_REQUIREMENT_EVIDENCE}&nbsp;câu</li>
+</ul>
+<p class="lm-foot">Mức tính từ tỉ lệ điểm các câu thầy cô đã duyệt. Chi tiết từng yêu cầu cần đạt ở phần <span class="nw">“Chi tiết báo cáo”</span>.</p>`;
+  // Tiêu đề mục đi cùng chương đầu tiên (không trơ trọi cuối trang PDF); các chương sau chảy tự nhiên, thẻ không bị cắt.
+  const blocks = lessonBlocks(lessons);
+  return [
+    `<p class="lm-sub">Con đang vững hay còn hổng ở bài nào${gradeLabel ? ` — <span class="nw">SGK ${esc(gradeLabel)}</span> <span class="nw">Kết nối tri thức</span>` : ''}.</p>
+${priorityBox}
+${strandOverview(lessons)}
+${blocks[0] ?? ''}`,
+    `${blocks.slice(1).join('')}
+${legend}`,
+  ];
+};
+
+/** "x/y bài Vững" của một nhóm bài; chưa bài nào đủ căn cứ thì nói thẳng. */
+const vungText = (lessons: readonly LessonSummary[]): string => {
+  const assessed = lessons.filter(lesson => lesson.level !== null).length;
+  return assessed === 0 ? 'chưa đủ căn cứ' : `${lessons.filter(lesson => lesson.level === 'vung').length}/${assessed}&nbsp;bài vững`;
+};
+
+/** Một thanh chia đoạn: mỗi bài một đoạn, màu theo mức — nhìn một dòng biết mạch nào còn hổng. */
+const levelSegments = (lessons: readonly LessonSummary[]): string =>
+  `<span class="lm-segs">${lessons.map(lesson => `<i class="lm-${lesson.level ?? 'thieu'}" title="${esc(lesson.lesson)}"></i>`).join('')}</span>`;
+
+/** "Theo mạch kiến thức": Đại số / Giải tích / Hình học / Thống kê / Xác suất — chỉ mạch nào có bài. */
+const strandOverview = (lessons: readonly LessonSummary[]): string => {
+  const rows = groupLessonsByStrand(lessons);
+  if (rows.length === 0) return '';
+  return `<div class="lm-st"><p class="lm-st-t">Theo mạch kiến thức</p>${rows.map(row =>
+    `<div class="lm-st-row"><span class="lm-st-n nw">${esc(row.strand)}</span>${levelSegments(row.lessons)}<span class="lm-st-v nw">${vungText(row.lessons)}</span></div>`).join('')}</div>`;
+};
+
+/**
+ * Các chương, mỗi chương một khối: tiêu đề (số chương, tên, mạch, số bài vững) + thẻ các bài. Tiêu đề tập đứng trước chương
+ * đầu của tập. Tiêu đề tập và chương đi cùng hàng thẻ đầu (`lm-keep`) nên không bị bỏ lại cuối trang.
+ */
+const lessonBlocks = (lessons: readonly LessonSummary[]): string[] => {
+  let currentTap = 0;
+  return groupLessonsByChapter(lessons).map(group => {
+    const { chapter } = group;
+    const tapHead = chapter && chapter.tap !== currentTap ? `<p class="lm-tap">Tập ${chapter.tap}</p>` : '';
+    if (chapter) currentTap = chapter.tap;
+    const head = chapter
+      ? `<div class="lm-chap"><span class="lm-chap-code nw">Chương ${chapter.code}</span><span class="lm-chap-name">${esc(chapter.name)}</span><span class="lm-chip nw">${esc(chapter.strand)}</span><span class="lm-chap-sum nw">${vungText(group.lessons)}</span></div>`
+      : '';
+    const [first, rest] = [group.lessons.slice(0, 2), group.lessons.slice(2)];
+    return `<div class="lm-keep">${tapHead}${head}<div class="lm-grid">${first.map(lessonCard).join('')}</div></div>${rest.length > 0 ? `<div class="lm-grid lm-more">${rest.map(lessonCard).join('')}</div>` : ''}`;
+  });
+};
+
 /**
  * Kết quả theo yêu cầu cần đạt, nhóm theo chủ đề. Mỗi nhóm (tên chủ đề + dòng đầu) không bị cắt khi sang trang.
  * Trả về [phần đầu giữ cùng tiêu đề mục, phần còn lại].
  */
 const buildRequirementSection = (lines: readonly ParentRequirementLine[]): [string, string] => {
   const groups = groupRequirementLines(lines);
-  const count = (level: RequirementLevel) => lines.filter(line => line.level === level).length;
-  const summary = `<div class="req-sum">${LEVEL_ORDER.map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}</div>
-<p class="muted" style="margin:6px 0 10px;font-size:11.5px">Đối chiếu Chương trình GDPT 2018 môn Toán. Mức do thầy cô xác nhận, gợi ý từ tỉ lệ điểm các câu đã duyệt trong kì: Vững ≥ 80% · Đang hình thành 50–79% · Chưa đạt &lt; 50%.</p>`;
+  const thin = (line: ParentRequirementLine) => line.evidence < MIN_REQUIREMENT_EVIDENCE;
+  const count = (level: RequirementLevel) => lines.filter(line => !thin(line) && line.level === level).length;
+  const thinCount = lines.filter(thin).length;
+  const summary = `<div class="req-sum">${LEVEL_ORDER.filter(level => level === 'vung' || count(level) > 0).map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}${thinCount > 0 ? `<span class="req-lv lv-thieu">Chưa đủ căn cứ: ${thinCount}</span>` : ''}</div>
+<p class="muted" style="margin:6px 0 10px;font-size:11.5px">Đối chiếu Chương trình GDPT 2018 môn Toán. Mức do thầy cô xác nhận, gợi ý từ tỉ lệ điểm các câu đã duyệt trong kì: <span class="nw">Vững ≥&nbsp;80%</span> · <span class="nw">Đang hình thành 50–79%</span> · <span class="nw">Chưa đạt &lt;&nbsp;50%</span>.</p>`;
   const row = (line: ParentRequirementLine, text: string) => `<div class="req-row">
-  <span class="req-lv lv-${line.level}">${requirementLevelLabel(line.level)}</span>
+  <span class="req-lv lv-${thin(line) ? 'thieu' : line.level}">${thin(line) ? 'Chưa đủ căn cứ' : requirementLevelLabel(line.level)}</span>
   <div class="req-body">${line.note
     ? `<div class="req-main">${esc(line.note)}</div><div class="req-text">Theo chương trình: ${esc(text)}</div>`
     : `<div class="req-main">${esc(text)}</div>`}<div class="req-ev">Căn cứ: ${line.evidence} câu · đạt ${Math.round(line.percent)}%</div></div>
@@ -140,8 +198,8 @@ const buildMeter = (avg: number | null): string => {
 
 /** Đường xu hướng điểm qua các bài đã chấm (SVG). */
 const buildSparkline = (series: readonly number[], trend: TrendMeta): string => {
-  if (series.length < 2) {
-    return `<p class="muted">Cần ít nhất 2 bài đã chấm để vẽ xu hướng.</p><p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
+  if (series.length < MIN_GRADED_FOR_TREND) {
+    return `<p class="muted">Cần ít nhất ${MIN_GRADED_FOR_TREND} bài đã chấm để vẽ xu hướng.</p>`;
   }
   const W = 232, H = 66, pad = 9;
   const stepX = (W - 2 * pad) / (series.length - 1);
@@ -162,6 +220,16 @@ const buildSparkline = (series: readonly number[], trend: TrendMeta): string => 
   <p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
 };
 
+/** Dưới ngần này thì "xu hướng" chưa đáng tin: chỉ 1–2 điểm không vẽ được đường, dễ kết luận sai về con. */
+const MIN_GRADED_FOR_TREND = 3;
+
+/** Chữ cái đầu của họ và tên cuối ("Vũ Việt Cường" → "VC") cho ảnh đại diện ở cuối báo cáo. */
+const initialsOf = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+};
+
 interface Takeaway { tone: 'good' | 'focus' | 'home'; label: string; text: string }
 
 /**
@@ -173,8 +241,8 @@ export const keyTakeaways = (
   requirements?: readonly ParentRequirementLine[] | null,
 ): Takeaway[] => {
   const lines = requirements ?? [];
-  const good = lines.filter(line => line.level === 'vung' && line.note).sort((a, b) => b.percent - a.percent)[0];
-  const focus = lines.filter(line => line.level !== 'vung' && line.note).sort((a, b) => a.percent - b.percent)[0];
+  const good = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level === 'vung' && line.note).sort((a, b) => b.percent - a.percent)[0];
+  const focus = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level !== 'vung' && line.note).sort((a, b) => a.percent - b.percent)[0];
   const out: Takeaway[] = [];
   const goodText = good?.note || report.strengths[0];
   if (goodText) out.push({ tone: 'good', label: 'Điểm mạnh', text: goodText });
@@ -239,7 +307,7 @@ const ddmm = (isoDay: string): string => {
   return d && m && y ? `${d}/${m}/${y}` : isoDay;
 };
 
-/** Mục điểm kiểm tra/thi: MOET (thang 10) + TDS (điểm quý kèm điểm chữ) + hệ số 1 (thang 10, có TB). */
+/** Mục điểm kiểm tra/thi: MOET (thang 10) + TDS (điểm quý kèm điểm chữ) + điểm trên lớp có hệ số (thang 10, có TB). */
 const buildExamSection = (exams: StudentExamScores, hs1: readonly Hs1Mark[]): string => {
   const blocks: string[] = [];
   if (exams.moet.length > 0) {
@@ -253,25 +321,42 @@ const buildExamSection = (exams: StudentExamScores, hs1: readonly Hs1Mark[]): st
     blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm theo quý (hệ TDS)</p>${rows}</div>`);
   }
   if (hs1.length > 0) {
-    const rows = hs1.map(mark => scale10Row(mark.label, mark.score, ddmm(mark.date))).join('');
+    const rows = hs1.map(mark => scale10Row(mark.label, mark.score, `${ddmm(mark.date)} · HS${mark.weight ?? 1}`)).join('');
     const avg = hs1Average(hs1);
-    blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm hệ số 1 trên lớp (thang 10)${avg === null ? '' : ` · TB ${esc(fmtScore(avg))}`}</p>${rows}</div>`);
+    blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm trên lớp (thang 10, có hệ số)${avg === null ? '' : ` · TB ${esc(fmtScore(avg))}`}</p>${rows}</div>`);
   }
   return `<div class="exam-wrap">${blocks.join('')}</div>`;
 };
 
-/** Mỗi bài một hàng theo phong cách phiếu điểm IB: tên đậm trái · điểm phải · thanh mức bên dưới. */
-const buildSubjectRows = (results: ParentSafeReport['results']): string => {
-  if (results.length === 0) return '<p class="muted">Chưa có bài được ghi nhận.</p>';
-  return results.map(r => {
-    const official = r.status === 'official' && r.score !== null && r.maxScore !== null && r.maxScore > 0;
-    if (official) {
-      const pct = Math.round((r.score as number) / (r.maxScore as number) * 100);
-      const band = scoreBand(pct);
-      return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:${band.color}"></span>${esc(r.title)}</div><div class="subj-grade" style="color:${band.color}">${r.score}/${r.maxScore}</div></div><div class="subj-bar"><span style="width:${pct}%;background:${band.color}"></span></div></div>`;
-    }
-    return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:#cbd5e1"></span>${esc(r.title)}</div><div class="subj-status">${esc(STATUS_LABEL[r.status])}</div></div></div>`;
-  }).join('');
+/** Một bài: tên đậm trái · điểm phải · thanh mức bên dưới (phong cách phiếu điểm IB). */
+const subjectRow = (r: ParentSafeReport['results'][number]): string => {
+  const official = r.status === 'official' && r.score !== null && r.maxScore !== null && r.maxScore > 0;
+  if (official) {
+    const pct = Math.round((r.score as number) / (r.maxScore as number) * 100);
+    const band = scoreBand(pct);
+    return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:${band.color}"></span>${esc(r.title)}</div><div class="subj-grade" style="color:${band.color}">${r.score}/${r.maxScore}</div></div><div class="subj-bar"><span style="width:${pct}%;background:${band.color}"></span></div></div>`;
+  }
+  return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:#cbd5e1"></span>${esc(r.title)}</div><div class="subj-status">${esc(STATUS_LABEL[r.status])}</div></div></div>`;
+};
+
+/**
+ * Kết quả từng bài, chia theo TUẦN HỌC (tuần mới nhất trước; số tuần theo Lịch dạy của giáo viên nếu có).
+ * Trả về [phần đầu: tiêu đề tuần + bài đầu — đi cùng tiêu đề mục, phần còn lại]. Tiêu đề mỗi tuần luôn đi cùng bài đầu của tuần.
+ */
+const buildSubjectBlocks = (results: ParentSafeReport['results'], plan: ParentReportPrintInput['weekPlan']): [string, string] => {
+  if (results.length === 0) return ['<p class="muted">Chưa có bài được ghi nhận.</p>', ''];
+  const weeks = groupResultsByWeek(results, plan);
+  const head = (group: (typeof weeks)[number]) => `<div class="wk-head"><span class="wk-t">${esc(weekTitle(group))}</span><span class="wk-n nw">${group.officialCount}/${group.results.length}&nbsp;bài đã có kết quả</span></div>`;
+  // Mọi bài đều không có ngày (bản ghi rất cũ) → không chia tuần.
+  if (weeks.length === 1 && weeks[0].monday === '') {
+    const rows = weeks[0].results.map(subjectRow);
+    return [rows[0], rows.slice(1).join('')];
+  }
+  const blocks = weeks.map(group => {
+    const rows = group.results.map(subjectRow);
+    return { keep: `<div class="wk-keep">${head(group)}${rows[0]}</div>`, rest: rows.slice(1).join('') };
+  });
+  return [blocks[0].keep, blocks[0].rest + blocks.slice(1).map(block => block.keep + block.rest).join('')];
 };
 
 /** Hai cột so sánh điểm trung bình (trước → sau) + câu kết luận tăng/giảm. */
@@ -373,6 +458,9 @@ const printStyle = `
 #${ROOT_ID} .subj-name .dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
 #${ROOT_ID} .subj-grade { font-weight:800; font-size:17px; white-space:nowrap; }
 #${ROOT_ID} .subj-status { font-size:11.5px; font-weight:700; color:#64748b; background:#f1f5f9; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+#${ROOT_ID} .wk-head { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:2px 12px; margin:14px 0 8px; padding-bottom:5px; border-bottom:2px solid #e2e8f0; }
+#${ROOT_ID} .wk-t { font-size:13px; font-weight:800; color:#4338ca; }
+#${ROOT_ID} .wk-n { font-size:11.5px; font-weight:700; color:#64748b; }
 #${ROOT_ID} .subj-bar { margin-top:8px; height:7px; border-radius:4px; background:#eef2f7; overflow:hidden; }
 #${ROOT_ID} .subj-bar > span { display:block; height:100%; }
 #${ROOT_ID} .exam-wrap { display:flex; flex-wrap:wrap; gap:14px; }
@@ -407,6 +495,25 @@ const printStyle = `
 #${ROOT_ID} .cmp-verdict { margin:8px 0 0; font-size:12.5px; font-weight:700; color:#334155; }
 #${ROOT_ID} .req-sum { display:flex; gap:8px; flex-wrap:wrap; }
 #${ROOT_ID} .req-sum .req-lv { width:auto; padding:3px 12px; }
+#${ROOT_ID} .chips { display:flex; flex-wrap:wrap; gap:8px; margin:-4px 0 14px; }
+#${ROOT_ID} .chip { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 13px; font-size:12.5px; font-weight:700; }
+#${ROOT_ID} .chip b { font-size:14px; }
+#${ROOT_ID} .chip-ok { background:#dcfce7; color:#166534; } #${ROOT_ID} .chip-wait { background:#fef3c7; color:#92400e; } #${ROOT_ID} .chip-miss { background:#ffe4e6; color:#9f1239; }
+#${ROOT_ID} .verdict .basis { display:block; margin-top:3px; font-size:11.5px; opacity:.92; font-weight:600; }
+#${ROOT_ID} .more-sum { display:flex; align-items:center; gap:12px; padding:13px 16px; border:1px solid #cfe0ee; background:#f1f7fc; border-radius:12px; margin:24px 0 4px; color:#17375e; list-style:none; cursor:pointer; }
+#${ROOT_ID} .more-sum::-webkit-details-marker { display:none; }
+#${ROOT_ID} .more-sum .ico { display:inline-flex; width:32px; height:32px; border-radius:10px; background:#fff; border:1px solid #cfe0ee; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .more-t b { display:block; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
+#${ROOT_ID} .more-t small { display:block; font-size:12px; color:#475569; font-weight:600; margin-top:2px; }
+#${ROOT_ID} .more-sum .chev { margin-left:auto; font-size:16px; transition:transform .2s; }
+#${ROOT_ID} .more[open] > .more-sum .chev { transform:rotate(180deg); }
+#${ROOT_ID} .lv-thieu { background:#e2e8f0; color:#475569; }
+#${ROOT_ID} .sig-name { margin-top:3px; font-size:13.5px; font-weight:800; color:#17375e; text-align:center; }
+#${ROOT_ID} .teacher-foot { display:flex; align-items:center; gap:14px; margin-top:20px; padding:14px 16px; border:1px solid #cfe0ee; border-radius:14px; background:linear-gradient(135deg,#f1f7fc,#ffffff); }
+#${ROOT_ID} .avatar { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#17375e,#14a3a3); color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .teacher-foot b { display:block; font-size:15px; color:#17375e; }
+#${ROOT_ID} .teacher-foot small { display:block; font-size:12.5px; color:#475569; font-weight:600; }
+#${ROOT_ID} .teacher-foot p { margin:4px 0 0; font-size:13px; color:#334155; }
 #${ROOT_ID} .req-topic { margin:12px 0 4px; font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1px solid #dbe4ec; padding-bottom:3px; }
 #${ROOT_ID} .req-row { display:flex; gap:10px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed #e2e8f0; }
 #${ROOT_ID} .req-lv { flex:none; display:inline-block; width:112px; text-align:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; }
@@ -418,6 +525,48 @@ const printStyle = `
 #${ROOT_ID} .req-main { font-size:13.5px; font-weight:700; color:#0f172a; }
 #${ROOT_ID} .req-ev { margin-top:3px; font-size:11.5px; color:#475569; }
 #${ROOT_ID} .teacher-note { border:1px solid #dbe4ec; border-left:5px solid #7c3aed; border-radius:8px; padding:12px 16px; font-size:13px; color:#1e293b; white-space:normal; }
+#${ROOT_ID} .nw { white-space:nowrap; }
+#${ROOT_ID} .lm-vung { --lm-c:#16a34a; --lm-bg:#dcfce7; --lm-fg:#166534; }
+#${ROOT_ID} .lm-dang { --lm-c:#ca8a04; --lm-bg:#fef3c7; --lm-fg:#92400e; }
+#${ROOT_ID} .lm-chua { --lm-c:#dc2626; --lm-bg:#fee2e2; --lm-fg:#991b1b; }
+#${ROOT_ID} .lm-thieu { --lm-c:#94a3b8; --lm-bg:#e2e8f0; --lm-fg:#475569; }
+#${ROOT_ID} .lm-sub { margin:-4px 0 10px; font-size:12.5px; color:#475569; }
+#${ROOT_ID} .lm-pri { border:1px solid #fed7aa; background:#fff7ed; border-radius:10px; padding:10px 14px; margin-bottom:12px; }
+#${ROOT_ID} .lm-pri-t { margin:0 0 4px; font-size:12px; font-weight:800; color:#9a3412; text-transform:uppercase; letter-spacing:.03em; }
+#${ROOT_ID} .lm-pri ol { margin:0; padding-left:20px; }
+#${ROOT_ID} .lm-pri li { margin:0 0 2px; font-size:13.5px; font-weight:500; color:#1e293b; }
+#${ROOT_ID} .lm-pri li b { color:#9a3412; }
+#${ROOT_ID} .lm-pri-ok { border-color:#bbf7d0; background:#f0fdf4; }
+#${ROOT_ID} .lm-pri-ok .lm-pri-t { color:#166534; }
+#${ROOT_ID} .lm-pri-p { margin:0; font-size:13px; color:#334155; }
+#${ROOT_ID} .lm-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap:10px; }
+#${ROOT_ID} .lm-more { margin-top:10px; }
+#${ROOT_ID} .lm-card { border:1px solid #dbe4ec; border-left:5px solid var(--lm-c); border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
+#${ROOT_ID} .lm-top { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+#${ROOT_ID} .lm-bai { font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--lm-fg); }
+#${ROOT_ID} .lm-lv { font-size:11px; font-weight:800; padding:2px 10px; border-radius:999px; background:var(--lm-bg); color:var(--lm-fg); }
+#${ROOT_ID} .lm-name { margin:0; font-size:14px; font-weight:800; line-height:1.35; color:#0f172a; text-wrap:balance; }
+#${ROOT_ID} .lm-bar { height:6px; border-radius:999px; background:#eef2f7; overflow:hidden; }
+#${ROOT_ID} .lm-bar > i { display:block; height:100%; border-radius:999px; background:var(--lm-c); }
+#${ROOT_ID} .lm-note { margin:0; font-size:12.5px; line-height:1.5; color:#334155; text-wrap:pretty; }
+#${ROOT_ID} .lm-meta { display:flex; flex-wrap:wrap; gap:2px 12px; font-size:11.5px; font-weight:600; color:#64748b; }
+#${ROOT_ID} .lm-st { border:1px solid #dbe4ec; border-radius:10px; padding:10px 14px; margin-bottom:12px; display:flex; flex-direction:column; gap:7px; }
+#${ROOT_ID} .lm-st-t { margin:0; font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:.03em; }
+#${ROOT_ID} .lm-st-row { display:flex; align-items:center; gap:6px 12px; flex-wrap:wrap; }
+#${ROOT_ID} .lm-st-n { flex:0 0 88px; font-size:13px; font-weight:800; color:#0f172a; }
+#${ROOT_ID} .lm-st-v { margin-left:auto; font-size:12px; font-weight:700; color:#475569; }
+#${ROOT_ID} .lm-segs { flex:1 1 120px; display:flex; gap:3px; height:10px; }
+#${ROOT_ID} .lm-segs > i { flex:1 1 0; min-width:6px; border-radius:3px; background:var(--lm-c); }
+#${ROOT_ID} .lm-tap { margin:14px 0 8px; padding:5px 12px; border-radius:8px; background:#1e293b; color:#fff; font-size:12.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+#${ROOT_ID} .lm-chap { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; margin:12px 0 8px; padding-bottom:6px; border-bottom:2px solid #e2e8f0; }
+#${ROOT_ID} .lm-chap-code { font-size:12px; font-weight:800; color:#4338ca; text-transform:uppercase; letter-spacing:.04em; }
+#${ROOT_ID} .lm-chap-name { flex:1 1 180px; font-size:14.5px; font-weight:800; color:#0f172a; text-wrap:balance; }
+#${ROOT_ID} .lm-chip { font-size:11px; font-weight:800; padding:2px 10px; border-radius:999px; background:#e0e7ff; color:#3730a3; }
+#${ROOT_ID} .lm-chap-sum { font-size:12px; font-weight:700; color:#475569; }
+#${ROOT_ID} .lm-legend { list-style:none; margin:12px 0 0; padding:10px 0 0; border-top:1px solid #e2e8f0; display:flex; flex-wrap:wrap; gap:6px 18px; }
+#${ROOT_ID} .lm-legend li { display:flex; align-items:center; gap:7px; margin:0; white-space:nowrap; font-size:11.5px; font-weight:500; color:#334155; }
+#${ROOT_ID} .lm-d { width:10px; height:10px; border-radius:50%; flex:none; background:var(--lm-c); }
+#${ROOT_ID} .lm-foot { margin:6px 0 0; font-size:11.5px; color:#64748b; text-wrap:pretty; }
 `;
 
 /** Bản web (điện thoại): bỏ khổ A4 cố định; chữ to hơn, các cột xếp dọc khi màn hẹp. Dữ liệu và nội dung giữ nguyên. */
@@ -431,7 +580,13 @@ const webStyle = `
 #${ROOT_ID} .req-text { font-size:13px; } #${ROOT_ID} .req-ev, #${ROOT_ID} .legend, #${ROOT_ID} .tile .cap, #${ROOT_ID} .note { font-size:12.5px; }
 #${ROOT_ID} .subj-name, #${ROOT_ID} .card h3 { font-size:15px; } #${ROOT_ID} .comp-list, #${ROOT_ID} .cmp-verdict, #${ROOT_ID} .comp-progress, #${ROOT_ID} li { font-size:14.5px; }
 #${ROOT_ID} .meter-scale > span { font-size:11px; } #${ROOT_ID} .tk b { font-size:12.5px; }
+#${ROOT_ID} .lm-st-n { font-size:14.5px; flex-basis:100px; } #${ROOT_ID} .lm-st-v, #${ROOT_ID} .lm-chap-sum { font-size:13px; } #${ROOT_ID} .lm-chap-name { font-size:16.5px; } #${ROOT_ID} .lm-chap-code, #${ROOT_ID} .lm-chip, #${ROOT_ID} .lm-tap { font-size:12.5px; }
+#${ROOT_ID} .lm-name { font-size:16.5px; } #${ROOT_ID} .lm-note, #${ROOT_ID} .lm-pri li { font-size:15px; } #${ROOT_ID} .lm-pri-p { font-size:14.5px; }
+#${ROOT_ID} .lm-sub, #${ROOT_ID} .lm-meta, #${ROOT_ID} .lm-foot { font-size:13px; } #${ROOT_ID} .lm-legend li { font-size:13.5px; } #${ROOT_ID} .lm-bai, #${ROOT_ID} .lm-lv { font-size:12.5px; }
+#${ROOT_ID} .wk-t { font-size:15px; } #${ROOT_ID} .wk-n { font-size:12.5px; }
+#${ROOT_ID} .lm-card { padding:12px 16px; gap:7px; border-radius:12px; } #${ROOT_ID} .lm-grid { gap:12px; } #${ROOT_ID} .lm-more { margin-top:12px; }
 @media (max-width: 640px) {
+  #${ROOT_ID} .lm-legend { flex-direction:column; gap:6px; }
   #${ROOT_ID} .tiles, #${ROOT_ID} .cards2, #${ROOT_ID} .tk-grid, #${ROOT_ID} .cmp { flex-direction:column; }
   #${ROOT_ID} .verdict { flex-direction:column; align-items:flex-start; gap:10px; } #${ROOT_ID} .verdict .v-r { text-align:left; }
   #${ROOT_ID} .cmp-arrow { transform:rotate(90deg); align-self:center; }
@@ -450,7 +605,7 @@ const styleBlock = (variant: ParentReportVariant): string => (variant === 'web' 
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
 export const buildParentReportPrintDoc = (
-  { report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements, branding }: ParentReportPrintInput,
+  { report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements, branding, weekPlan }: ParentReportPrintInput,
   variant: ParentReportVariant = 'print',
 ): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
@@ -469,7 +624,7 @@ export const buildParentReportPrintDoc = (
   const SECTION_ICON: Record<string, SectionIconName> = {
     'Nhận xét của giáo viên': 'comment', 'Tổng quan bằng số': 'chart', 'So sánh để thấy tiến bộ': 'trend', 'Điểm trung bình theo tháng': 'chart',
     'Điểm kiểm tra &amp; thi định kì': 'exam', 'Điểm thi định kì': 'exam', 'Kết quả theo yêu cầu cần đạt': 'target', 'Điểm mạnh &amp; phần cần rèn': 'star',
-    'Năng lực Toán học': 'medal', 'Kết quả từng bài': 'list', 'Cùng đồng hành với con': 'heart',
+    'Năng lực Toán học': 'medal', 'Kết quả từng bài': 'list', 'Cùng đồng hành với con': 'heart', [LESSON_MAP_TITLE]: 'flag',
   };
   const secHead = (title: string) => `<div class="sec-head"><span class="ico">${sectionIcon(SECTION_ICON[title] ?? 'list', 18)}</span><h2>${title}</h2></div>`;
   // Tiêu đề mục luôn đi cùng nội dung (khối không bị cắt khi sang trang) — không để tiêu đề trơ trọi cuối trang.
@@ -483,41 +638,43 @@ export const buildParentReportPrintDoc = (
   const schoolName = branding?.schoolName?.trim();
   const teacherName = branding?.teacherName?.trim();
   const logo = safeLogoDataUrl(branding?.logoDataUrl);
-  const takeaways = buildTakeaways(keyTakeaways(report, requirements));
+  // Có bản đồ theo bài thì bỏ "Tóm tắt nhanh": thẻ Điểm mạnh / Cần chú ý chép lại đúng ghi chú đã in trên bản đồ.
+  const lessons = hasRequirements ? buildLessonMap(requirements as ParentRequirementLine[]) : [];
+  const gradeLabel = (() => {
+    const grade = (requirements ?? [])[0]?.id.match(/^T(\d+)\./)?.[1];
+    return grade ? `Toán ${grade}` : '';
+  })();
+  const lessonMap = lessons.length > 0 ? section(LESSON_MAP_TITLE, ...buildLessonMapSection(lessons, gradeLabel)) : '';
+  const takeawayItems = lessonMap ? [] : keyTakeaways(report, requirements);
+  const takeaways = buildTakeaways(takeawayItems);
   // Mức thấp không dùng nền đỏ chói: phụ huynh đọc dòng đầu tiên này như một lời phán xét về con.
   const verdictBg = avg !== null && avg < 50 ? '#9a3412' : band.color;
-  // Gọi đúng chỗ muốn đặt trong bản dựng (section() đánh số theo thứ tự gọi).
+
+  // Mức và xu hướng chỉ đáng tin khi đủ bài: ít bài thì nói rõ là tham khảo, không khẳng định.
+  const gradedCount = officialSeries.length;
+  const enoughForTrend = gradedCount >= MIN_GRADED_FOR_TREND;
+  const basis = avg === null ? ''
+    : gradedCount < MIN_GRADED_FOR_TREND ? `Mới có ${gradedCount} bài đã chấm — kết quả chỉ mang tính tham khảo.`
+      : `Dựa trên ${gradedCount} bài đã chấm.`;
+  const chips = ([
+    [report.officialCount, 'bài đã chấm', 'ok'],
+    [report.pendingCount, 'bài chờ thầy cô duyệt', 'wait'],
+    [report.missingCount, 'bài chưa nộp', 'miss'],
+  ] as const).filter(([count]) => count > 0)
+    .map(([count, label, tone]) => `<span class="chip chip-${tone}"><b>${count}</b> ${label}</span>`).join('');
+
+  // Gợi ý đầu đã nằm ở ô "Phụ huynh có thể làm" của Tóm tắt nhanh → mục đồng hành không nhắc lại.
+  const homeActions = parentActionsForRequirements(report.parentActions, requirements);
+  const homeList = takeawayItems.some(item => item.tone === 'home') && homeActions.length > 1 ? homeActions.slice(1) : homeActions;
   const actionsSection = () => section('Cùng đồng hành với con', `<div class="cards2">
-  <div class="card home"><h3>Phụ huynh có thể làm ở nhà</h3>${listItems(parentActionsForRequirements(report.parentActions, requirements), 'Chưa có gợi ý cụ thể.')}</div>
+  <div class="card home"><h3>Phụ huynh có thể làm ở nhà</h3>${listItems(homeList, 'Chưa có gợi ý cụ thể.')}</div>
   <div class="card school"><h3>Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
 </div>`);
 
-  return `<style>${styleBlock(variant)}</style>
-<div class="head-row">${logo ? `<img class="logo" src="${logo}" alt="Logo ${esc(schoolName ?? 'trường')}"/>` : ''}<div class="head-text">
-  <div class="brandbar">${schoolName ? `<span class="school-name">${esc(schoolName)}</span>` : ''}<span class="kicker">Báo cáo gửi phụ huynh</span></div>
-  <h1 style="margin-top:2px">${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1></div></div>
-${heroSvg()}
-<div class="title-wrap" style="padding-top:0">
-  <p class="who"><b>${esc(studentName)}</b> · Lớp ${esc(className)}${studentCode ? ` · Mã HS ${esc(studentCode)}` : ''}</p>
-  <p class="prep">${period ? `Thời gian báo cáo: ${esc(period.range)} · ` : ''}Lập ngày ${esc(ngay)}${teacherName ? ` · Giáo viên: ${esc(teacherName)}` : ''}</p>
-</div>
-
-<div class="verdict" style="background:${verdictBg}">
-  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b></div>
-  <div class="v-r"><small>Xu hướng gần đây</small><b>${trend.arrow} ${esc(trend.label)}</b></div>
-</div>
-
-<div class="lead">${esc(report.overallSummary)}</div>
-
-${takeaways}
-
-${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
-
-${actionsSection()}
-
-${section('Tổng quan bằng số', `<div class="tiles">
+  // ── Tầng chi tiết (phía dưới): số liệu, so sánh, điểm thi, yêu cầu cần đạt, năng lực, từng bài ──
+  const detailBody = `${section('Tổng quan bằng số', `<div class="tiles">
   <div class="tile"><div class="cap">Điểm trung bình</div>${buildMeter(avg)}</div>
-  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
+  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(enoughForTrend ? officialSeries : [], trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
 </div>`)}
 
@@ -539,17 +696,57 @@ ${hasCompetency ? section('Năng lực Toán học', buildCompetencySection(comp
 
 ${(() => {
     // Danh sách bài có thể dài hơn một trang: chỉ giữ tiêu đề đi cùng bài ĐẦU, phần còn lại chảy tự nhiên.
-    const rows = buildSubjectRows(report.results);
-    const cut = rows.indexOf('<div class="subject">', 1);
-    return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
+    const [first, rest] = buildSubjectBlocks(report.results, weekPlan);
+    return section('Kết quả từng bài', first, rest);
   })()}
 
-<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
+<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
 
-${variant === 'print' ? `<div class="signature">
+  const moreHead = `<span class="ico">${sectionIcon('list', 18)}</span><span class="more-t"><b>Chi tiết báo cáo</b><small>Điểm số, so sánh, yêu cầu cần đạt, năng lực, từng bài</small></span>`;
+  // Bản web: tầng chi tiết thu gọn, phụ huynh bấm để mở. Bản in/PDF: in đủ, ngăn cách bằng dải tiêu đề.
+  const detail = variant === 'web'
+    ? `<details class="more"><summary class="more-sum">${moreHead}<span class="chev">▾</span></summary>${detailBody}</details>`
+    : `<div class="more-sum more-banner">${moreHead}</div>${detailBody}`;
+
+  // Tên giáo viên (GV tự nhập một lần) đứng ở CUỐI báo cáo.
+  const footer = variant === 'print'
+    ? `<div class="signature">
   <div><div class="sig-line">Phụ huynh (ký, ghi rõ họ tên)</div></div>
-  <div><div class="sig-line">Giáo viên (ký, ghi rõ họ tên)</div></div>
-</div>` : ''}`;
+  <div><div class="sig-line">${teacherName ? 'Giáo viên' : 'Giáo viên (ký, ghi rõ họ tên)'}</div>${teacherName ? `<div class="sig-name">${esc(teacherName)}</div>` : ''}</div>
+</div>`
+    : teacherName
+      ? `<div class="teacher-foot"><span class="avatar">${esc(initialsOf(teacherName))}</span><div><b>${esc(teacherName)}</b><small>Giáo viên${schoolName ? ` · ${esc(schoolName)}` : ''}</small><p>Cảm ơn quý phụ huynh đã đồng hành cùng con.</p></div></div>`
+      : '';
+
+  return `<style>${styleBlock(variant)}</style>
+<div class="head-row">${logo ? `<img class="logo" src="${logo}" alt="Logo ${esc(schoolName ?? 'trường')}"/>` : ''}<div class="head-text">
+  <div class="brandbar">${schoolName ? `<span class="school-name">${esc(schoolName)}</span>` : ''}<span class="kicker">Báo cáo gửi phụ huynh</span></div>
+  <h1 style="margin-top:2px">${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1></div></div>
+${heroSvg()}
+<div class="title-wrap" style="padding-top:0">
+  <p class="who"><b>${esc(studentName)}</b> · Lớp&nbsp;${esc(className)}${studentCode ? ` · <span class="nw">Mã HS ${esc(studentCode)}</span>` : ''}</p>
+  <p class="prep">${period ? `Thời gian báo cáo: ${esc(period.range)} · ` : ''}Lập ngày ${esc(ngay)}</p>
+</div>
+
+<div class="verdict" style="background:${verdictBg}">
+  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b>${basis ? `<span class="basis">${esc(basis)}</span>` : ''}</div>
+  <div class="v-r"><small>Xu hướng gần đây</small><b>${enoughForTrend ? `${trend.arrow} ${esc(trend.label)}` : 'Cần thêm bài để nhận định'}</b></div>
+</div>
+${chips ? `<div class="chips">${chips}</div>` : ''}
+
+<div class="lead">${esc(report.overallSummary)}</div>
+
+${lessonMap}
+
+${takeaways}
+
+${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
+
+${actionsSection()}
+
+${detail}
+
+${footer}`;
 };
 
 export const parentReportFileName = ({ studentName, className, period }: ParentReportPrintInput): string =>
@@ -573,7 +770,7 @@ export async function exportParentReportToPdf(input: ParentReportPrintInput, out
       output,
       filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row', '.lm-card', '.lm-pri', '.lm-legend', '.lm-keep', '.lm-st', '.wk-keep'],
       // Số trang không được đè nội dung: lề dưới 20mm, số trang cách mép 6mm (chữ cao ~4.5mm, tới 10.5mm),
       // trang chỉ được giãn thêm 8mm (20−12) — nội dung luôn dừng cách mép ≥ 12mm.
       marginMm: [15, 12, PDF_BOTTOM_MARGIN_MM, 12],

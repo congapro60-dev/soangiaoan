@@ -23,6 +23,8 @@ export interface ProviderConfig {
 export const GEMINI_MODELS: ProviderModel[] = [
   // Ba con so gioi han duoi day CHUA XAC MINH cho 3.7/3.8 Flash — tam lay theo 3.6 Flash.
   // Chung chi dung de hien muc da dung trong Cai dat, khong anh huong luc goi API.
+  // Gemini 4 Argon: model flagship (ai.google.dev/gemini-api/docs/models, tra 2026-10-16), chỉ có ở gói trả phí. Giới hạn rpd/tpm/rpm CHƯA XÁC MINH — lấy tạm như 3.1 Pro, chỉ để hiện trong Cài đặt.
+  { id: 'gemini-4-argon', name: 'Gemini 4 Argon', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
@@ -83,6 +85,18 @@ export const NVIDIA_MODELS: ProviderModel[] = [
   { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', contextWindow: 4_096, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['reasoning', 'coding'] },
 ];
 
+// Vilao = chợ API trả theo request (2026-10-22): key riêng của giáo viên/chủ dự án, không có trần cứng.
+// rpm/rpd/tpm dưới đây là mức THAM CHIẾU để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
+//
+// DANH SÁCH NÀY PHẢI LÀ MODEL THẬT ĐÃ MUA TRÊN KEY: `GET /v1/models` của khoá hiện tại chỉ trả
+// gemini-3.8-flash, gpt-image-2, gemini-3.1-flash-image (kiểm 25/10/2026). Mục DeepSeek từng
+// nằm ở đây nhưng Vilao KHÔNG bán model đó cho key này → chọn xong gọi là 400 "chưa dùng được
+// bằng ví web". Bán thêm model nào thì thêm đúng id ở đây VÀ đăng ký vào `RELAY_MODELS`
+// (api/_ai-relay-core.ts) — hai danh sách có test khoá bằng nhau.
+export const VILAO_MODELS: ProviderModel[] = [
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Vilao)', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['reasoning', 'vision', 'fast', '1M-ctx', 'cheap'] },
+];
+
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
   { key: 'gemini', label: 'Google Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', models: GEMINI_MODELS },
   { key: 'claude', label: 'Anthropic Claude', baseUrl: 'https://api.anthropic.com/v1', models: CLAUDE_MODELS },
@@ -90,6 +104,7 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
   { key: 'grok', label: 'xAI Grok', baseUrl: 'https://api.x.ai/v1', models: GROK_MODELS },
   { key: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com', models: DEEPSEEK_MODELS },
   { key: 'nvidia', label: 'NVIDIA NIM', baseUrl: 'https://integrate.api.nvidia.com/v1', models: NVIDIA_MODELS },
+  { key: 'vilao', label: 'Vilao', baseUrl: 'https://api.vilao.ai/v1', models: VILAO_MODELS },
 ];
 
 export const PROVIDER_CONFIG_MAP = Object.fromEntries(PROVIDER_CONFIGS.map(config => [config.key, config])) as Record<ApiProvider, ProviderConfig>;

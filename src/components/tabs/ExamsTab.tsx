@@ -39,9 +39,9 @@ interface TestingHistoryEntry {
   content: string;
 }
 
-const loadTestingHistory = (): TestingHistoryEntry[] => {
+const loadTestingHistory = (uid: string): TestingHistoryEntry[] => {
   try {
-    const raw = localStorage.getItem('testing_history');
+    const raw = localStorage.getItem(`testing_history:${uid}`);
     if (!raw) return [];
     const entries: TestingHistoryEntry[] = JSON.parse(raw);
     return entries.filter(e => e.mode === 'create');
@@ -203,7 +203,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
       // Đồng thời chuyển 'submitted' → 'graded' khi bài đã đủ điểm mọi câu.
       let fixedCount = 0;
       const verified = await Promise.all(subs.map(async sub => {
-        if (sub.status === 'in_progress') return sub;
+        if (sub.status === 'in_progress' || sub.requiresScoreReview) return sub;
 
         const check = verifySubmissionScore(exam.questions, sub.answers, sub.totalScore, exam.tfScoringMode);
         const fullyGraded = exam.questions.every(q => {
@@ -216,18 +216,15 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         if (!check.changed && nextStatus === sub.status) return sub;
         if (check.changed) fixedCount++;
 
-        const patched: ExamSubmission = { ...sub, answers: check.answers, totalScore: check.totalScore, status: nextStatus };
-        try {
-          await updateSubmission(sub.id, { answers: check.answers, totalScore: check.totalScore, status: nextStatus });
-        } catch (err) {
-          console.error('Không ghi lại được điểm đã xác minh', err);
-        }
-        return patched;
+        // Opening the monitoring list is read-only. Persist a regrade only through
+        // an explicit teacher action so a client/server scoring drift cannot alter
+        // an official result by accident.
+        return { ...sub, answers: check.answers, totalScore: check.totalScore, status: nextStatus };
       }));
 
       setSubmissions(verified);
       if (fixedCount > 0) {
-        showToastRef.current(`⚠️ Phát hiện ${fixedCount} bài có điểm không khớp đáp án — đã tính lại từ đáp án gốc.`, 'warning');
+        showToastRef.current(`⚠️ Phát hiện ${fixedCount} bài có điểm không khớp đáp án. Mở Sửa đáp án & tính lại để ghi thay đổi.`, 'warning');
       }
     } finally {
       setLoadingSubs(false);
@@ -240,7 +237,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   }, [selectedExam, reloadSubmissions]);
 
   const handleCreateFromHistory = async () => {
-    const history = loadTestingHistory();
+    const history = loadTestingHistory(user.uid);
     if (history.length === 0) {
       showToast('Chưa có đề nào trong lịch sử "Soạn đề". Hãy vào tab Bảng Kiểm tra để tạo trước.', 'warning');
       return;
@@ -921,7 +918,7 @@ const ExamDetail = ({
                         </span>
                       </td>
                       <td className="px-6 py-3 text-right font-bold text-slate-800">
-                        {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
+                        {s.requiresScoreReview ? 'Cần GV xác minh điểm cũ' : s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-center text-xs font-bold">
                         {(() => {
@@ -1202,7 +1199,7 @@ interface AnswerEditModalProps {
 }
 
 const AnswerEditModal = ({ exam, submissions, data, showToast, onClose, onSaved }: AnswerEditModalProps) => {
-  const completedSubs = submissions.filter(s => s.status !== 'in_progress');
+  const completedSubs = submissions.filter(s => s.status !== 'in_progress' && !s.requiresScoreReview);
   const hasSubmissions = completedSubs.length > 0;
 
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
