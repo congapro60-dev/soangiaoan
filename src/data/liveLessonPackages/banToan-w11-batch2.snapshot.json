@@ -1428,9 +1428,12 @@
       "category": "Lỗi khái niệm",
       "wrongSolution": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40, được 0,125 giờ.",
       "correction": "Tử phải là Σ mᵢ·cᵢ với cᵢ là trung điểm: (6·1 + 14·3 + 15·5 + 5·7)/40 = 158/40 = 3,95 giờ; mẫu số là n = 40 — không \"chia 4 rồi lại chia 40\". Lỗi Bước 4 giáo án nhấn mạnh: \"Mẫu số luôn là tổng tần số n, không phải số nhóm k\" (chiều ngược lại: tử cũng phải nhân tần số).",
-      "proof": "c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; Σ mᵢ cᵢ = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ — nằm giữa [2;4), hợp lý theo phân bố 6/14/15/5. Cách Nam: (2+4+6+8)/4 = 5 là trung bình các MÚT khoảng (không có ý nghĩa giá trị đại diện), lấy 5/40 = 0,125 giờ ≈ 7,5 phút — lệch hoàn toàn với dữ liệu. [Gộp whyAiError: cộng các đầu mút, chia số nhóm rồi lại chia n — bỏ hoàn toàn tần số, đúng lỗi giáo án nhấn mạnh ở Bước 4.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: bảng 4 nhóm Internet (mᵢ = 6/14/15/5) cạnh trung điểm cᵢ = 1/3/5/7 và phép tính sai (2+4+6+8)/4 = 5 rồi ÷40, gạch chân Σ mᵢ cᵢ = 158 — KHÔNG viết thêm phép chia đúng mới lên bảng; số 3,95 đã công khai ở S3, không hé số PHT số 2.]",
-      "teacherPrompt": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40. Bạn sai ở đâu?",
-      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra \"không nhân tần số mᵢ\" hoặc \"chỉ cộng mút khoảng\")."
+      "proof": "c₁ = 1, c₂ = 3, c₃ = 5, c₄ = 7; Σ mᵢ cᵢ = 6 + 42 + 75 + 35 = 158; x̄ = 158/40 = 3,95 giờ — nằm giữa [2;4), hợp lý theo phân bố 6/14/15/5. Cách Nam: (2+4+6+8)/4 = 5 là trung bình các MÚT khoảng (không có ý nghĩa giá trị đại diện), lấy 5/40 = 0,125 giờ ≈ 7,5 phút — lệch hoàn toàn với dữ liệu.",
+      "teacherPrompt": "Bạn Nam tính x̄ = (2 + 4 + 6 + 8)/4 = 5 rồi chia cho 40. Hãy chỉ lỗi và sửa lại phép tính đúng theo tần số và giá trị đại diện.",
+      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra \"không nhân tần số mᵢ\" hoặc \"chỉ cộng mút khoảng\").",
+      "whyAiError": "Mô hình cộng các đầu mút, chia số nhóm rồi lại chia n — bỏ qua hoàn toàn vai trò của tần số và trung điểm.",
+      "boardPrompt": "AI tính (2+4+6+8)/4 = 5 rồi chia 40. Công thức tính số trung bình ghép nhóm cần gì?",
+      "libraryTitle": "Lỗi AI tính trung bình bằng cách cộng đầu mút bỏ qua tần số"
     },
     "11-11-78": {
       "key": "11-11-78",
@@ -1438,9 +1441,12 @@
       "category": "Thiếu điều kiện",
       "wrongSolution": "AI kết luận: nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a ∥ b.",
       "correction": "Hai đường thẳng lần lượt nằm trong hai mặt phẳng song song có thể chéo nhau; muốn kết luận a ∥ b phải chứng minh a và b cùng thuộc một mặt phẳng thứ ba (γ) với (γ) ∩ (α) = a, (γ) ∩ (β) = b — khi đó a, b đồng phẳng và không có điểm chung nên a ∥ b.",
-      "proof": "Phản ví dụ gốc: hai đường thẳng chéo nhau nằm trên trần và sàn nhà (trần ∥ sàn nhưng hai đường không song song). Định lý 1 phải đủ 3 giả thiết: (α) ∥ (β); (γ) ∩ (α) = a; (γ) ∩ (β) = b ⇒ a ∥ b — thiếu dòng giữa là mất định lý. [Gộp whyAiError: AI bỏ điều kiện đồng phẳng — đúng lỗi giáo án nhấn mạnh ở \"Lưu ý quan trọng\" (mặt (γ) bắt buộc) và ở \"căn cứ điều chỉnh từ tiết trước\": 35% HS nhầm \"hai đường thẳng không cắt nhau\" thành \"hai đường thẳng song song\" mà quên chứng minh chúng đồng phẳng.] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: định lý 1 đủ 3 dòng giả thiết (α) ∥ (β); (γ) ∩ (α) = a; (γ) ∩ (β) = b ⇒ a ∥ b đặt cạnh mệnh đề thiếu (γ); phác phản ví dụ trần–sàn — KHÔNG viết lời giải PHT số 1.]",
-      "teacherPrompt": "Nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a có luôn song song với b không?",
-      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra thiếu \"cùng thuộc mặt phẳng thứ ba (γ)\" hoặc nêu phản ví dụ hai đường chéo nhau)."
+      "proof": "Phản ví dụ gốc: hai đường thẳng chéo nhau nằm trên trần và sàn nhà (trần ∥ sàn nhưng hai đường không song song). Định lý 1 phải đủ 3 giả thiết: (α) ∥ (β); (γ) ∩ (α) = a; (γ) ∩ (β) = b ⇒ a ∥ b — thiếu dòng giữa là mất định lý.",
+      "teacherPrompt": "Nếu a ⊂ (α), b ⊂ (β) và (α) ∥ (β) thì a có luôn song song với b không? Hãy chỉ lỗi thiếu điều kiện và sửa lại định lý cho đúng.",
+      "studentProduct": "Thẻ chọn lỗi trên máy + 1 dòng phản biện (chỉ ra thiếu \"cùng thuộc mặt phẳng thứ ba (γ)\" hoặc nêu phản ví dụ hai đường chéo nhau).",
+      "whyAiError": "Mô hình bỏ qua điều kiện đồng phẳng, ngộ nhận hai đường thẳng không cắt nhau trong không gian luôn song song.",
+      "boardPrompt": "AI kết luận a ∥ b khi chỉ có (α) ∥ (β). Định lý giao tuyến cần mặt phẳng thứ ba nào?",
+      "libraryTitle": "Lỗi AI thiếu điều kiện mặt phẳng thứ ba khi suy ra hai đường song song"
     },
     "11-11-79": {
       "key": "11-11-79",
@@ -1448,9 +1454,12 @@
       "category": "Thiếu điều kiện",
       "wrongSolution": "AI trình bày: MN ∥ AB ⊂ (ABCD), PQ ∥ CD ⊂ (ABCD) ⇒ (MNPQ) ∥ (ABCD).",
       "correction": "MN và PQ lần lượt song song với hai đường nằm trong (ABCD) nhưng MN ∥ PQ — hai đường không cắt nhau nên chưa đủ điều kiện; định lí điều kiện phải đủ 4 giả thiết: a ⊂ (P), b ⊂ (P), a ∩ b = {I}, a ∥ (Q), b ∥ (Q) ⇒ (P) ∥ (Q) — thiếu dòng a ∩ b = {I} là mất định lý.",
-      "proof": "Trong hình chóp với M, N, P, Q là các trung điểm: MN ∥ AB và PQ ∥ CD, mà ABCD hình bình hành nên AB ∥ CD, suy ra MN ∥ PQ — hai đường không có điểm chung, không thể là cặp đường thẳng cắt nhau trong một mặt phẳng để áp định lí. [Gộp whyAiError: AI bỏ điều kiện cắt nhau — đúng lỗi giáo án nhấn mạnh ở \"căn cứ điều chỉnh từ tiết trước\": 38% HS khi làm kiểm tra nhanh quên ghi điều kiện \"hai đường thẳng cắt nhau tại một điểm\" (thiết kế bài phản biện bắt lỗi ngụy biện logic ngay ở phần khởi động và hoạt động 1).] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: đóng khung định lí điều kiện đủ 4 giả thiết a ⊂ (P), b ⊂ (P), a ∩ b = {I}, a ∥ (Q), b ∥ (Q) ⇒ (P) ∥ (Q) đặt cạnh bài làm sai; nhấn mạnh \"kiểm tra giao điểm a ∩ b = {I} là bắt buộc\" — KHÔNG viết lời giải PHT số 1/2.]",
-      "teacherPrompt": "Ta có MN ∥ AB ⊂ (ABCD), PQ ∥ CD ⊂ (ABCD) ⇒ (MNPQ) ∥ (ABCD). Nhận xét đúng hay sai? Vì sao?",
-      "studentProduct": "Thẻ chọn ĐÚNG/SAI trên máy + 1 dòng nhận xét (chỉ ra MN ∥ PQ nên không cắt nhau — thiếu a ∩ b = {I} — hoặc nêu điều kiện đủ của định lí)."
+      "proof": "Trong hình chóp với M, N, P, Q là các trung điểm: MN ∥ AB và PQ ∥ CD, mà ABCD hình bình hành nên AB ∥ CD, suy ra MN ∥ PQ — hai đường không có điểm chung, không thể là cặp đường thẳng cắt nhau trong một mặt phẳng để áp định lí.",
+      "teacherPrompt": "Ta có MN ∥ AB ⊂ (ABCD), PQ ∥ CD ⊂ (ABCD) ⇒ (MNPQ) ∥ (ABCD). Hãy chỉ lỗi và sửa lại: vì sao cần hai đường thẳng cắt nhau?",
+      "studentProduct": "Thẻ chọn ĐÚNG/SAI trên máy + 1 dòng nhận xét (chỉ ra MN ∥ PQ nên không cắt nhau — thiếu a ∩ b = {I} — hoặc nêu điều kiện đủ của định lí).",
+      "whyAiError": "Mô hình bỏ điều kiện hai đường thẳng phải cắt nhau, dẫn tới dùng hai đường song song để kết luận hai mặt phẳng song song.",
+      "boardPrompt": "MN ∥ AB và PQ ∥ CD nhưng MN ∥ PQ. Cặp đường trong định lí có được song song nhau không?",
+      "libraryTitle": "Lỗi AI dùng hai đường song song thay vì cắt nhau để chứng minh hai mặt phẳng song song"
     },
     "12-11-77": {
       "key": "12-11-77",
@@ -1458,9 +1467,12 @@
       "category": "Thiếu điều kiện",
       "wrongSolution": "AI trình bày: ∫ (1/x) dx = ln x + C.",
       "correction": "Tập xác định của 1/x là ℝ∖{0} nên nguyên hàm phải là ln|x| + C (x ≠ 0) — biểu thức trong dấu logarit luôn dương trên cả hai nhánh; chỉ viết ln x là mất nguyên hàm trên khoảng (−∞; 0).",
-      "proof": "Đạo hàm của ln|x| là 1/x với mọi x ≠ 0: với x > 0 thì (ln x)′ = 1/x; với x < 0 thì (ln(−x))′ = (−1)/(−x) = 1/x — hai nhánh đều thỏa, trong khi (ln x)′ = 1/x chỉ đúng trên (0; +∞) (Hình 1 gốc: đồ thị f(x) = 1/x và F(x) = ln x + C chỉ vẽ trên (0; +∞)). [Gộp whyAiError: AI quên trị tuyệt đối — đúng lỗi giáo án nhấn mạnh ở mục \"⚠ Lỗi phổ biến cần tránh\" (\"∫ (1/x) dx = ln|x| + C, không được viết ln x + C\") và ở bẫy [PHẢN BIỆN] Bước 2; nhóm Giỏi PHT số 1 yêu cầu \"chỉ rõ tập xác định\".] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: công thức đúng ∫ (1/x) dx = ln|x| + C (x ≠ 0) đặt cạnh bài làm sai; phác 2 nhánh theo Hình 1 gốc — KHÔNG viết lời giải PHT số 1/2.]",
-      "teacherPrompt": "Bạn Nam viết ∫ (1/x) dx = ln x + C. Theo em khẳng định này đúng hoàn toàn chưa? Tại sao?",
-      "studentProduct": "Thẻ chọn ĐÚNG/SAI trên máy + 1 dòng phản biện (chỉ ra thiếu trị tuyệt đối |x| hoặc nêu miền xác định: sai khi x < 0)."
+      "proof": "Đạo hàm của ln|x| là 1/x với mọi x ≠ 0: với x > 0 thì (ln x)′ = 1/x; với x < 0 thì (ln(−x))′ = (−1)/(−x) = 1/x — hai nhánh đều thỏa, trong khi (ln x)′ = 1/x chỉ đúng trên (0; +∞).",
+      "teacherPrompt": "Bạn Nam viết ∫ (1/x) dx = ln x + C. Hãy chỉ lỗi và sửa lại công thức đúng trên toàn tập xác định ℝ∖{0}.",
+      "studentProduct": "Thẻ chọn ĐÚNG/SAI trên máy + 1 dòng phản biện (chỉ ra thiếu trị tuyệt đối |x| hoặc nêu miền xác định: sai khi x < 0).",
+      "whyAiError": "Mô hình quên dấu giá trị tuyệt đối, làm mất nhánh nguyên hàm trên khoảng âm (−∞; 0).",
+      "boardPrompt": "AI viết ∫ (1/x) dx = ln x + C. Trên khoảng x < 0 thì hàm ln x có xác định không?",
+      "libraryTitle": "Lỗi AI quên dấu giá trị tuyệt đối khi tìm nguyên hàm của 1/x"
     },
     "12-11-78": {
       "key": "12-11-78",
@@ -1468,9 +1480,12 @@
       "category": "Lỗi đại số",
       "wrongSolution": "AI kết luận: khoảng biến thiên của mẫu này là R = 35 − 10 = 25 triệu vì lấy mút trái trừ mút phải.",
       "correction": "Khoảng biến thiên của mẫu ghép nhóm là hiệu giữa đầu mút phải của nhóm CUỐI và đầu mút trái của nhóm ĐẦU: hai nhóm dữ kiện là [5; 10) và [35; 40) nên R = 40 − 5 = 35 (triệu đồng) — không phải 35 − 10 = 25 (lấy nhầm mút trái nhóm cao nhất và đảo chiều phép trừ).",
-      "proof": "Theo định nghĩa: mẫu gồm m nhóm [a1; a2), …, [am; a(m+1)) thì R = a(m+1) − a1 — giá trị nhỏ nhất xấp xỉ đầu mút trái nhóm đầu (5) và giá trị lớn nhất xấp xỉ đầu mút phải nhóm cuối (40). Bài làm sai lấy 35 (đầu mút trái nhóm [35; 40) — vẫn có HS nằm trong nhóm đó) rồi trừ 10 (đầu mút phải nhóm [5; 10)) — vừa chọn sai mút vừa trừ ngược chiều. [Gộp whyAiError: AI đảo chiều phép trừ và lấy nhầm mút nhóm — đúng lỗi giáo án nhấn mạnh ở HĐ3 Bước 4: \"Dự kiến khó khăn: HS lấy nhầm tần số trừ nhau hoặc lấy nhầm mút nhóm → GV nhấn mạnh vị trí a(m+1) và a1\".] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: ghi định nghĩa R = a(m+1) − a1 với hai nhóm dữ kiện [5; 10) và [35; 40) đặt cạnh bài làm sai; nhấn mạnh vị trí a1 và a(m+1) — KHÔNG viết lời giải PHT số 1.]",
-      "teacherPrompt": "Một học sinh phát biểu: \"Khoảng biến thiên của mẫu này là R = 35 − 10 = 25 triệu vì lấy mút trái trừ mút phải.\" Em đồng ý không? Bằng chứng nào?",
-      "studentProduct": "Thẻ chọn ĐỒNG Ý/KHÔNG trên máy + 1 dòng phản biện kèm bằng chứng (chỉ ra R = đầu mút phải nhóm cuối trừ đầu mút trái nhóm đầu = 40 − 5 = 35)."
+      "proof": "Theo định nghĩa: mẫu gồm m nhóm [a1; a2), …, [am; a(m+1)) thì R = a(m+1) − a1 — giá trị nhỏ nhất xấp xỉ đầu mút trái nhóm đầu (5) và giá trị lớn nhất xấp xỉ đầu mút phải nhóm cuối (40). Bài làm sai lấy 35 (đầu mút trái nhóm [35; 40) — vẫn có HS nằm trong nhóm đó) rồi trừ 10 (đầu mút phải nhóm [5; 10)) — vừa chọn sai mút vừa trừ ngược chiều.",
+      "teacherPrompt": "Một học sinh phát biểu: \"Khoảng biến thiên của mẫu này là R = 35 − 10 = 25 triệu.\" Hãy chỉ lỗi và sửa lại phép tính R đúng theo hai đầu mút của mẫu.",
+      "studentProduct": "Thẻ chọn ĐỒNG Ý/KHÔNG trên máy + 1 dòng phản biện kèm bằng chứng (chỉ ra R = đầu mút phải nhóm cuối trừ đầu mút trái nhóm đầu = 40 − 5 = 35).",
+      "whyAiError": "Mô hình đảo chiều phép trừ và lấy nhầm mút trái nhóm cuối thay vì mút phải.",
+      "boardPrompt": "AI tính R = 35 − 10 = 25. Định nghĩa khoảng biến thiên ghép nhóm lấy mút nào trừ mút nào?",
+      "libraryTitle": "Lỗi AI đảo chiều phép trừ và chọn sai đầu mút khi tính khoảng biến thiên"
     },
     "12-11-79": {
       "key": "12-11-79",
@@ -1478,9 +1493,12 @@
       "category": "Lỗi đại số",
       "wrongSolution": "AI trình bày: lấy x̄ ≈ 176,7 (làm tròn 1 chữ số) rồi s² ≈ 1235,4.",
       "correction": "Giữ x̄ = 530/3 dưới dạng phân số tối giản: s² = 973750/30 − (530/3)² = 32458,33 − 31211,11 = 1247,22; làm tròn x̄ ≈ 176,7 làm s² = 32458,33 − 31222,89 = 1235,44 — lệch ≈ 11,8 đơn vị (\"lệch gần 10 đơn vị\" theo tinh thần gốc). Kỹ thuật: tính x̄ xong bấm STO → A, dùng (tổng n_ic_i²)/n − A².",
-      "proof": "Sai số làm tròn ε trên x̄ được bình phương khuếch đại: (x̄ ± ε)² = x̄² ± 2ε·x̄ + ε² — với x̄ ≈ 176,67 và ε ≈ 0,033 (176,7 thay 530/3) sai số thêm ≈ 2·0,033·176,7 ≈ 11,7, đúng bằng độ lệch quan sát 1247,22 − 1235,44. Căn cứ điều chỉnh gốc: gần 25% HS mắc lỗi này. [Gộp whyAiError: AI làm tròn số trung bình quá sớm — đúng lỗi gốc \"quên quy tắc vàng: giữ dạng phân số tối giản\" và kĩ năng STO A; khớp cảnh báo Danielson 1f \"Vinh danh lỗi sai giấu tên\".] [Gộp boardPrompt — bảng lớn AI-error, nội dung công khai trên bảng thật: ghi quy tắc vàng \"Không làm tròn x̄ ở bước trung gian — giữ phân số tối giản; Casio: STO A\" đặt cạnh bài làm sai — KHÔNG viết lời giải PHT số 1/2.]",
-      "teacherPrompt": "Quan sát bài làm trên màn hình: bạn lấy x̄ ≈ 176,7 rồi tính s² ≈ 1235,4. Kết quả này lệch bao nhiêu so với cách giữ phân số? Vì sao sai số khuếch đại?",
-      "studentProduct": "Thẻ chọn ĐỒNG Ý/KHÔNG trên máy + 1 dòng chỉ ra sai số (nêu lệch ≈ 11,8 đơn vị hoặc nêu nguyên tắc giữ phân số tối giản / STO A)."
+      "proof": "Sai số làm tròn ε trên x̄ được bình phương khuếch đại: (x̄ ± ε)² = x̄² ± 2ε·x̄ + ε² — với x̄ ≈ 176,67 và ε ≈ 0,033 (176,7 thay 530/3) sai số thêm ≈ 2·0,033·176,7 ≈ 11,7, đúng bằng độ lệch quan sát 1247,22 − 1235,44. Căn cứ điều chỉnh gốc: gần 25% HS mắc lỗi này.",
+      "teacherPrompt": "Bạn lấy x̄ ≈ 176,7 rồi tính s² ≈ 1235,4. Hãy chỉ lỗi làm tròn sớm và sửa lại cách tính giữ phân số tối giản để tránh sai số khuếch đại.",
+      "studentProduct": "Thẻ chọn ĐỒNG Ý/KHÔNG trên máy + 1 dòng chỉ ra sai số (nêu lệch ≈ 11,8 đơn vị hoặc nêu nguyên tắc giữ phân số tối giản / STO A).",
+      "whyAiError": "Mô hình làm tròn x̄ quá sớm ở bước trung gian khiến sai số bình phương khuếch đại lên gấp nhiều lần.",
+      "boardPrompt": "Làm tròn x̄ ≈ 176,7 làm s² lệch gần 12 đơn vị. Quy tắc giữ số khi tính phương sai là gì?",
+      "libraryTitle": "Lỗi AI làm tròn số trung bình quá sớm gây sai số dây chuyền ở phương sai"
     },
     "10-12-88": {
       "key": "10-12-88",

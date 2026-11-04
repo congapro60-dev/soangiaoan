@@ -16434,8 +16434,11 @@
       "wrongSolution": "AI viết: Học sinh dùng Internet 90 phút thuộc nhóm [60; 90) vì 90 nằm ở cuối nhóm này.",
       "correction": "Nhóm [60; 90) lấy dấu < ở mút phải nên không chứa 90; học sinh đó thuộc nhóm [90; 120) vì mút trái lấy dấu ≥.",
       "proof": "Kí hiệu nửa khoảng: [a; b) nghĩa là a ≤ x < b. Với x = 90 và nhóm [60; 90) thì 90 < 90 là sai, nên 90 không thuộc nhóm này.",
-      "teacherPrompt": "Lời giải AI sai ở quy tắc nào? Em dùng kí hiệu nửa khoảng để chứng minh và xếp lại 90 phút vào đúng nhóm.",
-      "studentProduct": "Khoanh dòng sai, ghi “lỗi khái niệm”, viết 90 ≥ 90 nên thuộc [90; 120) làm bằng chứng."
+      "teacherPrompt": "Lời giải AI sai ở quy tắc nào? Hãy chỉ lỗi và sửa lại: xếp 90 phút vào đúng nhóm.",
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi khái niệm”, viết 90 ≥ 90 nên thuộc [90; 120) làm bằng chứng.",
+      "whyAiError": "Mô hình nhầm nửa khoảng [a; b) thành đoạn [a; b] lấy dấu bằng ở cả hai đầu mút.",
+      "boardPrompt": "AI xếp 90 vào [60; 90). Kí hiệu [a; b) quy ước gì ở mút phải?",
+      "libraryTitle": "Lỗi AI nhầm quy ước mút của nửa khoảng ghép nhóm"
     },
     "12-11-80": {
       "key": "12-11-80",
@@ -16444,8 +16447,11 @@
       "wrongSolution": "AI viết: s² = 9 nên độ lệch chuẩn s = ±3.",
       "correction": "s = √(s²) là căn bậc hai số học nên chỉ nhận giá trị không âm: s = 3.",
       "proof": "Theo định nghĩa s = √(s²) và căn bậc hai số học của một số không âm luôn không âm, nên không thể có hai giá trị ±3.",
-      "teacherPrompt": "Bài giải AI sai ở đâu? Em phân loại lỗi và chỉ ra vì sao độ lệch chuẩn không thể âm.",
-      "studentProduct": "Khoanh dòng sai, ghi “lỗi đại số”, sửa thành s = 3 và nêu định nghĩa căn bậc hai số học."
+      "teacherPrompt": "Bài giải AI sai ở đâu? Hãy chỉ lỗi và sửa lại: vì sao độ lệch chuẩn không thể âm?",
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi đại số”, sửa thành s = 3 và nêu định nghĩa căn bậc hai số học.",
+      "whyAiError": "Mô hình nhầm lẫn giữa nghiệm của phương trình đại số x² = 9 (có hai nghiệm ±3) với giá trị căn bậc hai số học s = √9.",
+      "boardPrompt": "AI viết s = ±3. Căn bậc hai số học s = √(s²) nhận giá trị gì?",
+      "libraryTitle": "Lỗi AI viết độ lệch chuẩn nhận hai giá trị âm dương"
     }
   }
 }
