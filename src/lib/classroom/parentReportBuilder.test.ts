@@ -94,4 +94,39 @@ describe('dựng báo cáo phụ huynh theo kì', () => {
     expect(out.printInput.period).toBeNull();
     expect(out.printInput.comparison).toBeNull();
   });
+
+  it('tích hợp examSubmissions vào báo cáo: điểm chính thức, số bài, và danh sách kết quả', () => {
+    const examAsg = asg('exam1', '2026-10-15T02:00:00Z', 'Kiểm tra 15p Trắc nghiệm');
+    const onlineExam = {
+      id: 'online_sub_1',
+      examId: 'e1',
+      examCode: 'CODE1',
+      studentName: 'Nguyễn Văn An',
+      studentId: 'hs',
+      assignmentId: 'exam1',
+      startedAt: '2026-10-15T08:00:00Z',
+      submittedAt: '2026-10-15T08:15:00Z',
+      answers: [],
+      totalScore: 9,
+      maxScore: 10,
+      status: 'graded' as const,
+      gradeState: 'official' as const,
+      teacherApprovedAt: '2026-10-15T09:00:00Z',
+    };
+    const out = buildPeriodParentReport({
+      ...src,
+      assignments: [...src.assignments, examAsg],
+      examSubmissions: [onlineExam],
+    }, { kind: 'month', from: '2026-10-01', to: '2026-10-31' });
+
+    expect(out.report.results.map(r => r.title)).toContain('Kiểm tra 15p Trắc nghiệm');
+    const examResult = out.report.results.find(r => r.title === 'Kiểm tra 15p Trắc nghiệm');
+    expect(examResult).toMatchObject({
+      status: 'official',
+      score: 9,
+      maxScore: 10,
+    });
+    expect(out.report.officialCount).toBe(2); // btvn tháng 10 (8đ) + exam1 (9đ)
+    expect(out.report.officialAveragePercent).toBe(85); // (80% + 90%) / 2 = 85%
+  });
 });

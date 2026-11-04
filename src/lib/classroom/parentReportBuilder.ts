@@ -3,6 +3,7 @@
  * để hai đường luôn ra cùng một nội dung.
  */
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
+import type { ExamSubmission } from '../../types';
 import type { StudentScoreView } from './scoreBook';
 import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport';
 import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements';
@@ -20,6 +21,8 @@ export interface ParentReportSource {
   assignments: readonly AssignmentDoc[];
   /** Bài nộp của CHÍNH học sinh này. */
   submissions: readonly SubmissionDoc[];
+  /** Bài thi online trắc nghiệm nếu có */
+  examSubmissions?: readonly ExamSubmission[];
   profile: StudentProfileDoc | null;
   scoreView: StudentScoreView | null;
 }
@@ -135,25 +138,52 @@ const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap
 
 const round1 = (value: number | null): number | null => (value === null ? null : Math.round(value * 10) / 10);
 
+export const normalizeExamToSubmissionDoc = (exam: ExamSubmission): SubmissionDoc => ({
+  id: exam.id,
+  assignmentId: exam.assignmentId,
+  studentId: exam.studentId || '',
+  classId: exam.classId || '',
+  teacherId: '',
+  fileUrls: [],
+  note: '',
+  status: exam.status === 'graded' ? 'graded' : exam.status === 'in_progress' ? 'grading' : 'submitted',
+  grade: exam.grade || (exam.totalScore !== undefined ? {
+    score: exam.totalScore,
+    maxScore: exam.maxScore,
+    teacherApproved: Boolean(exam.gradeState === 'official' || exam.teacherApprovedAt || exam.approvalMode === 'automatic_policy'),
+    strengths: [],
+    weaknesses: [],
+    weakTopics: [],
+  } : undefined),
+  createdAt: exam.submittedAt || exam.startedAt || '',
+  updatedAt: exam.submittedAt || exam.startedAt || '',
+});
+
 /** `period` null = báo cáo chung từ đầu năm như trước. */
 /** `today` (yyyy-mm-dd, giờ VN) để biết kì đã kết thúc chưa — mặc định hôm nay. */
 export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null, today = vnDay(new Date().toISOString())): PeriodParentReport => {
+  const existingIds = new Set(src.submissions.map(s => s.id));
+  const convertedExams = (src.examSubmissions || [])
+    .filter(e => !existingIds.has(e.id))
+    .map(normalizeExamToSubmissionDoc);
+  const allSubmissions = convertedExams.length > 0 ? [...src.submissions, ...convertedExams] : src.submissions;
+
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
-    ? filterForPeriod(period, { assignments: src.assignments, submissions: src.submissions, hs1: hs1All })
-    : { assignments: [...src.assignments], submissions: [...src.submissions], hs1: hs1All };
+    ? filterForPeriod(period, { assignments: src.assignments, submissions: allSubmissions, hs1: hs1All })
+    : { assignments: [...src.assignments], submissions: [...allSubmissions], hs1: hs1All };
   const report = buildParentSafeReport({ ...base, assignments: scoped.assignments, submissions: scoped.submissions });
 
   let comparison = null;
   let monthly = null;
   if (period) {
-    const full = buildParentSafeReport({ ...base, assignments: src.assignments, submissions: src.submissions });
+    const full = buildParentSafeReport({ ...base, assignments: src.assignments, submissions: allSubmissions });
     comparison = periodComparison(period, full.results);
     monthly = monthlyAverages(report.results);
   }
   // Năng lực là thứ tích luỹ: tính tới hết khoảng báo cáo (không cắt đầu khoảng).
-  const upToEnd = period ? src.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : src.submissions;
+  const upToEnd = period ? allSubmissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : allSubmissions;
   const competency = parentCompetencyFor(src.classGrade, upToEnd, src.assignments);
   const exams = src.scoreView?.exams ?? null;
   const title = period ? reportTitle(period) : 'Báo cáo học tập môn Toán';
