@@ -158,6 +158,42 @@ describe('pendingAssignmentsForStudent', () => {
     expect(photoListReply((await pendingAssignmentsForStudent('c-empty', 's1')).items)).toContain('không có bài nào đang chờ');
     expect(photoListReply([])).toContain('Nhắn 0 để xem lại menu.');
   });
+
+  it('bài có file đính kèm (PDF/Word/Ảnh) → trả về attachments kèm link', async () => {
+    seedClass();
+    h.db.put('assignments/a-pdf', {
+      classId: 'c1', teacherId: 'gv1', title: 'Bài có PDF', maxScore: 10, dueAt: '2026-11-10',
+      attachments: [
+        { name: 'de-thi.pdf', url: 'https://firebasestorage.../de-thi.pdf', type: 'pdf' },
+        { name: 'huong-dan.docx', url: 'https://firebasestorage.../huong-dan.docx', type: 'word' },
+        { name: 'hinh-minh-hoa.jpg', url: 'https://firebasestorage.../hinh.jpg', type: 'image' },
+      ],
+    });
+    const out = await pendingAssignmentsForStudent('c1', 's1');
+    expect(out.items).toHaveLength(2); // a1 + a-pdf
+    const pdfItem = out.items.find(i => i.id === 'a-pdf');
+    expect(pdfItem).toBeDefined();
+    expect(pdfItem!.attachments).toHaveLength(3);
+    expect(pdfItem!.attachments[0].name).toBe('de-thi.pdf');
+    expect(pdfItem!.attachments[0].type).toBe('pdf');
+    expect(pdfItem!.attachments[0].url).toContain('de-thi.pdf');
+  });
+
+  it('photoListReply hiển thị link file đính kèm kèm icon', async () => {
+    const items = [{
+      id: 'a1',
+      title: 'Bài có file',
+      dueAt: '2026-11-10',
+      overdue: false,
+      attachments: [
+        { name: 'de.pdf', url: 'https://example.com/de.pdf', type: 'pdf' },
+        { name: 'anh.jpg', url: 'https://example.com/anh.jpg', type: 'image' },
+      ],
+    }];
+    const reply = photoListReply(items);
+    expect(reply).toContain('📄 de.pdf: https://example.com/de.pdf');
+    expect(reply).toContain('🖼️ anh.jpg: https://example.com/anh.jpg');
+  });
 });
 
 describe('phiên nhận ảnh', () => {
@@ -171,6 +207,23 @@ describe('phiên nhận ảnh', () => {
     expect(session.photos).toEqual([]);
     expect(session.assignmentId).toBe('a1');
     expect(session.studentId).toBe('s1');
+  });
+
+  it('mở phiên với file đính kèm → hiển thị link file kèm icon', async () => {
+    seedClass();
+    const reply = await openPhotoSession(BOT, USER, { studentId: 's1', classId: 'c1', teacherId: 'gv1' }, {
+      id: 'a1',
+      title: 'Bài có PDF',
+      attachments: [
+        { name: 'de-thi.pdf', url: 'https://firebasestorage.../de-thi.pdf', type: 'pdf' },
+        { name: 'anh.jpg', url: 'https://firebasestorage.../anh.jpg', type: 'image' },
+      ],
+    });
+    expect(reply).toContain('Bài có PDF');
+    expect(reply).toContain('📎 File đề bài:');
+    expect(reply).toContain('📄 de-thi.pdf: https://firebasestorage.../de-thi.pdf');
+    expect(reply).toContain('🖼️ anh.jpg: https://firebasestorage.../anh.jpg');
+    expect(reply).toContain('xong');
   });
   it('nhắn 0 hủy phiên: có phiên thì xóa, không phiên thì vô hại', async () => {
     seedClass();

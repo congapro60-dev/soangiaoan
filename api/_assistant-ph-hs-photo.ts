@@ -98,10 +98,19 @@ export const parsePhotoCommand = (raw: string): PhotoCommand | null => {
  * (không cắt 5/10 bài nữa) — sắp: bài còn hạn trước (hạn gần nhất lên đầu), bài KHÔNG hạn kế
  * tiếp, bài QUÁ HẠN xuống cuối (gắn cờ overdue). Chỉ chặn hiển thị khi vượt trần ký tự Zalo.
  */
+/**
+ * Mô tả file đính kèm (PDF/Word/Ảnh) cho đề bài.
+ */
+export interface AssignmentAttachment {
+  name: string;           // Tên file (vd: "de-thi.pdf")
+  url: string;            // Link Firebase Storage (public)
+  type: 'pdf' | 'word' | 'image' | 'other'; // Loại file
+}
+
 export const pendingAssignmentsForStudent = async (
   classId: string,
   studentId: string,
-): Promise<{ teacherId: string; items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean }>; total: number }> => {
+): Promise<{ teacherId: string; items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean; attachments: AssignmentAttachment[] }>; total: number }> => {
   const [classSnap, assignmentsSnap, submissionsSnap] = await Promise.all([
     db().collection('classes').doc(classId).get(),
     db().collection('assignments').where('classId', '==', classId).get(),
@@ -121,7 +130,17 @@ export const pendingAssignmentsForStudent = async (
     const dueAt = item.dueAt ? String(item.dueAt) : '';
     // dueAt dạng ISO (date hoặc datetime) so sánh từ điển với YYYY-MM-DD vẫn đúng thứ tự thời gian.
     const overdue = Boolean(dueAt) && dueAt < today;
-    return { id: item.id, title: String(item.title ?? '').slice(0, 120), dueAt, overdue };
+    // Đọc mảng attachments từ Firestore (nếu có)
+    const rawAttachments = Array.isArray(item.attachments) ? item.attachments : [];
+    const attachments: AssignmentAttachment[] = rawAttachments
+      .filter((a: unknown) => a && typeof a === 'object')
+      .map((a: Record<string, unknown>) => ({
+        name: String(a.name ?? 'file'),
+        url: String(a.url ?? ''),
+        type: (String(a.type ?? 'other').toLowerCase() as 'pdf' | 'word' | 'image' | 'other'),
+      }))
+      .filter(a => a.url);
+    return { id: item.id, title: String(item.title ?? '').slice(0, 120), dueAt, overdue, attachments };
   });
   decorated.sort((a, b) => {
     if (a.overdue !== b.overdue) return a.overdue ? 1 : -1; // bài quá hạn xuống cuối
@@ -132,14 +151,39 @@ export const pendingAssignmentsForStudent = async (
   return { teacherId, items: decorated, total: decorated.length };
 };
 
-export const photoListReply = (items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean }>, total = items.length): string => {
+/**
+ * Icon cho loại file.
+ */
+const fileIcon = (type: string): string => {
+  switch (type.toLowerCase()) {
+    case 'pdf': return '📄';
+    case 'word': return '📝';
+    case 'image': return '🖼️';
+    default: return '📎';
+  }
+};
+
+/**
+ * Hiển thị danh sách bài chờ nộp (kèm file đính kèm nếu có).
+ */
+export const photoListReply = (
+  items: Array<{ id: string; title: string; dueAt?: string; overdue?: boolean; attachments: AssignmentAttachment[] }>,
+  total = items.length,
+): string => {
   if (!items.length) {
     return ['🎉 Hiện không có bài nào đang chờ em nộp.', '👉 Bài đã nộp hoặc đang chờ chấm: nhắn 2 để xem.', '', MENU_HINT].join('\n');
   }
-  const lines = items.map((item, index) => {
-    if (item.overdue) return `${index + 1}. ${item.title} — [quá hạn${item.dueAt ? `: ${item.dueAt.slice(0, 10)}` : ''}]`;
-    const due = item.dueAt ? ` — [hạn: ${item.dueAt.slice(0, 10)}]` : '';
-    return `${index + 1}. ${item.title}${due}`;
+  const lines: string[] = [];
+  items.forEach((item, index) => {
+    const prefix = item.overdue
+      ? `${index + 1}. ${item.title} — [quá hạn${item.dueAt ? `: ${item.dueAt.slice(0, 10)}` : ''}]`
+      : `${index + 1}. ${item.title}${item.dueAt ? ` — [hạn: ${item.dueAt.slice(0, 10)}]` : ''}`;
+    lines.push(prefix);
+    // Thêm file đính kèm (nếu có)
+    if (item.attachments.length > 0) {
+      const fileLines = item.attachments.map(f => `   ${fileIcon(f.type)} ${f.name}: ${f.url}`);
+      lines.push(...fileLines);
+    }
   });
   const body = fitZaloList(
     [`📸 Chọn bài để gửi ảnh chấm (${items.length} bài):`],
@@ -333,12 +377,15 @@ export const pickAssignmentByNumber = async (
   return openPhotoSession(botId, userId, { studentId, classId, teacherId, role: userRole }, target);
 };
 
-/** Mở phiên nhận ảnh cho 1 bài, chỉ thay phiên chưa có ảnh. Nộp hộ thì kèm target. */
+/**
+ * Mở phiên nhận ảnh cho 1 bài, chỉ thay phiên chưa có ảnh. Nộp hộ thì kèm target.
+ * Hiển thị link file đính kèm (nếu có) để HS/PH tải về xem.
+ */
 export const openPhotoSession = async (
   botId: string,
   userId: string,
   ctx: { studentId: string; classId: string; teacherId: string; role?: 'student' | 'parent' },
-  assignment: { id: string; title: string },
+  assignment: { id: string; title: string; attachments?: AssignmentAttachment[] },
   assist?: { targetStudentId: string; targetName: string },
   expected?: PhotoSessionData,
 ): Promise<string> => {
@@ -365,11 +412,21 @@ export const openPhotoSession = async (
     return null;
   });
   if (blocked) return blocked;
-  return [`Bài: ${session.assignmentTitle}${assist ? ` — nộp hộ bạn ${assist.targetName}` : ''}`,
+  const lines = [`Bài: ${session.assignmentTitle}${assist ? ` — nộp hộ bạn ${assist.targetName}` : ''}`];
+  // Thêm link file đính kèm (nếu có)
+  if (assignment.attachments?.length) {
+    lines.push('📎 File đề bài:');
+    assignment.attachments.forEach(f => {
+      lines.push(`   ${fileIcon(f.type)} ${f.name}: ${f.url}`);
+    });
+  }
+  lines.push(
     `Em gửi ảnh bài làm nhé — tối đa ${MAX_PHOTOS} ảnh, trong 10 phút.`,
     'Gửi xong nhắn: xong để máy chấm.',
     'Muốn chọn lại bài: nhắn chấm.',
-    '', MENU_HINT].join('\n');
+    '', MENU_HINT,
+  );
+  return lines.join('\n');
 };
 
 /** Nhắn 0 (xem lại menu) → hủy phiên ảnh đang mở nếu có. Không có phiên thì vô hại. */
