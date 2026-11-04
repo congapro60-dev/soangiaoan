@@ -1406,6 +1406,805 @@
         "4. Lưu ý máy tính cầm tay",
         "   - Chọn σx cho độ lệch chuẩn chia n; sx là chia n−1."
       ]
+    },
+    {
+      "key": "10-12-89",
+      "grade": 10,
+      "week": 12,
+      "period": 89,
+      "title": "Luyện tập các số đặc trưng đo xu thế trung tâm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập thành thạo tính số trung bình, trung vị, tứ phân vị và mốt; phân tích và nhận diện giá trị ngoại lai trong các tình huống thực tế.",
+      "formulas": [
+        "\\bar x = \\dfrac{1}{n}\\sum x_i",
+        "M_e = x_{(n+1)/2} \\; (n \\text{ lẻ}); \\quad M_e = \\dfrac{x_{n/2} + x_{n/2+1}}{2} \\; (n \\text{ chẵn})",
+        "\\Delta_Q = Q_3 - Q_1"
+      ],
+      "boardKnowledge": [
+        "I. 4 số đặc trưng đo xu thế trung tâm: Trung bình, Trung vị, Tứ phân vị, Mốt.",
+        "II. Khi có ngoại lai: trung bình bị kéo lệch, trung vị giữ nguyên tính bền vững.",
+        "III. Quy trình: Sắp xếp -> Tìm Q2 -> Tìm Q1, Q3 -> Tìm Mo."
+      ],
+      "examples": [
+        {
+          "question": "Tìm số trung bình, trung vị và mốt của dãy số điểm kiểm tra: 6, 7, 7, 8, 8, 8, 9, 10.",
+          "solution": "n = 8. Sắp xếp: dãy đã tăng dần. x̄ = (6+7+7+8+8+8+9+10)/8 = 63/8 = 7,875. Me = (8+8)/2 = 8. Mo = 8 (tần số 3)."
+        },
+        {
+          "question": "Tìm các tứ phân vị Q1, Q2, Q3 của dãy: 3, 5, 7, 8, 12, 13, 14, 21, 23.",
+          "solution": "n = 9. Dãy đã sắp xếp. Q2 = x5 = 12. Nửa dưới (3, 5, 7, 8) -> Q1 = (5+7)/2 = 6. Nửa trên (13, 14, 21, 23) -> Q3 = (14+21)/2 = 17,5."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mẫu số liệu 4, 6, 6, 7, 9 có mốt bằng bao nhiêu?",
+          "answer": "Mo = 6 vì xuất hiện 2 lần (nhiều nhất)."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm trung vị của mẫu số liệu đã sắp xếp: 11, 13, 15, 17, 19, 21, 25.",
+          "answer": "n = 7 lẻ nên Me = x4 = 17."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm các tứ phân vị Q1, Q2, Q3 của mẫu: 2, 5, 6, 8, 10, 12.",
+          "answer": "n = 6. Q2 = (6+8)/2 = 7. Nửa dưới (2, 5, 6) -> Q1 = 5. Nửa trên (8, 10, 12) -> Q3 = 10."
+        },
+        {
+          "level": "TH",
+          "question": "Tính số trung bình và trung vị của dãy: 5, 5, 6, 7, 8, 49. Nhận xét số nào đại diện tốt hơn.",
+          "answer": "x̄ = 80/6 ≈ 13,33; Me = (6+7)/2 = 6,5. Me đại diện tốt hơn vì 49 là ngoại lai kéo x̄ lên quá cao."
+        },
+        {
+          "level": "VD",
+          "question": "Một lớp có 40 học sinh điểm trung bình môn Toán là 7,0. Nếu thêm điểm 10 của học sinh chuyển trường vào thì điểm trung bình mới là bao nhiêu?",
+          "answer": "Tổng điểm 40 HS là 40 · 7 = 280. Thêm 10 điểm -> tổng 290. Điểm TB mới = 290/41 ≈ 7,07."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm 5 số nguyên dương đã sắp xếp biết trung vị bằng 6, mốt duy nhất bằng 4 và số trung bình bằng 6.",
+          "answer": "Dãy a, b, c, d, e. Me = c = 6. Mo = 4 duy nhất -> a = b = 4. Tổng = 5 · 6 = 30 -> d + e = 30 - 14 = 16. Vì sắp xếp và Mo = 4 duy nhất nên 6 < d < e và d, e khác nhau: d = 7, e = 9. Dãy là 4, 4, 6, 7, 9."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bạn nói dãy 3, 5, 7, 9 không có mốt. Đúng hay sai?",
+          "solution": "Đúng, vì mỗi giá trị đều chỉ xuất hiện 1 lần, không có giá trị nào xuất hiện nhiều nhất."
+        },
+        {
+          "question": "Khi n = 8 thì trung vị là giá trị đứng ở vị trí nào?",
+          "solution": "Trung vị là trung bình cộng của giá trị thứ 4 và thứ 5 sau khi sắp xếp dãy."
+        }
+      ],
+      "mistakes": [
+        "Không sắp xếp mẫu số liệu trước khi tìm trung vị và tứ phân vị.",
+        "Nhầm mốt là giá trị lớn nhất trong mẫu thay vì giá trị có tần số lớn nhất.",
+        "Nhầm lẫn công thức trung vị giữa n chẵn và n lẻ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-12-90",
+      "grade": 10,
+      "week": 12,
+      "period": 90,
+      "title": "Các số đặc trưng đo mức độ phân tán",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành khái niệm và công thức tính khoảng biến thiên R, khoảng tứ phân vị ΔQ, phương sai s² và độ lệch chuẩn s; xác định giá trị bất thường.",
+      "formulas": [
+        "R = x_{\\max} - x_{\\min}",
+        "\\Delta_Q = Q_3 - Q_1",
+        "s^2 = \\dfrac{1}{n}\\sum (x_i - \\bar x)^2 = \\dfrac{1}{n}\\sum x_i^2 - (\\bar x)^2",
+        "s = \\sqrt{s^2}",
+        "\\text{Ngưỡng ngoại lai: } [Q_1 - 1{,}5\\Delta_Q; Q_3 + 1{,}5\\Delta_Q]"
+      ],
+      "boardKnowledge": [
+        "I. Khoảng biến thiên: R = max - min; Khoảng tứ phân vị: ΔQ = Q3 - Q1.",
+        "II. Phương sai s² và độ lệch chuẩn s = √(s²) ≥ 0.",
+        "III. Giá trị bất thường: x < Q1 - 1,5ΔQ hoặc x > Q3 + 1,5ΔQ."
+      ],
+      "examples": [
+        {
+          "question": "Cho dãy số liệu: 3, 5, 7, 9, 11. Tính khoảng biến thiên R, phương sai s² và độ lệch chuẩn s.",
+          "solution": "R = 11 - 3 = 8. x̄ = (3+5+7+9+11)/5 = 35/5 = 7. s² = [(3-7)² + (5-7)² + (7-7)² + (9-7)² + (11-7)²]/5 = (16+4+0+4+16)/5 = 40/5 = 8. s = √8 ≈ 2,83."
+        },
+        {
+          "question": "Mẫu đã sắp xếp: 2, 4, 6, 8, 10, 12. Tìm khoảng tứ phân vị ΔQ và xác định xem số 25 có phải giá trị bất thường không.",
+          "solution": "n = 6. Q2 = 7. Q1 = 4, Q3 = 10 -> ΔQ = 10 - 4 = 6. Ngưỡng trên: Q3 + 1,5ΔQ = 10 + 1,5·6 = 19. Vì 25 > 19 nên 25 là giá trị bất thường."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mẫu số liệu có giá trị nhỏ nhất là 12, giá trị lớn nhất là 45. Tính khoảng biến thiên R.",
+          "answer": "R = 45 - 12 = 33."
+        },
+        {
+          "level": "NB",
+          "question": "Phương sai của một mẫu số liệu bằng 16. Tính độ lệch chuẩn s.",
+          "answer": "s = √16 = 4."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm khoảng tứ phân vị ΔQ của mẫu: 3, 6, 8, 12, 15, 18, 20.",
+          "answer": "n = 7. Q2 = 12. Q1 = 6, Q3 = 18 -> ΔQ = 18 - 6 = 12."
+        },
+        {
+          "level": "TH",
+          "question": "Tính phương sai s² của mẫu số liệu: 1, 2, 3, 4, 5.",
+          "answer": "x̄ = 3. s² = [(1-3)² + (2-3)² + (3-3)² + (4-3)² + (5-3)²]/5 = (4+1+0+1+4)/5 = 10/5 = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho mẫu số liệu có Q1 = 10, Q3 = 20. Hỏi giá trị x = 38 có phải là giá trị bất thường không?",
+          "answer": "ΔQ = 20 - 10 = 10. Ngưỡng trên: Q3 + 1,5ΔQ = 20 + 1,5·10 = 35. Vì 38 > 35 nên 38 là giá trị bất thường."
+        },
+        {
+          "level": "VD",
+          "question": "Hai xạ thủ An và Bình có cùng điểm trung bình 9 điểm nhưng phương sai lần lượt là sA² = 0,4 và sB² = 1,6. Xạ thủ nào có phong độ thi đấu ổn định hơn?",
+          "answer": "sA = √0,4 ≈ 0,63; sB = √1,6 ≈ 1,26. Vì sA < sB nên xạ thủ An có phong độ ổn định hơn xạ thủ Bình."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể có mẫu số liệu mà phương sai s² < 0 không?",
+          "solution": "Không, phương sai là trung bình của các bình phương nên luôn luôn s² ≥ 0."
+        },
+        {
+          "question": "Nếu tất cả các số liệu trong mẫu bằng nhau thì độ lệch chuẩn bằng bao nhiêu?",
+          "solution": "Khi tất cả số liệu bằng nhau thì xi = x̄ với mọi i, do đó s = 0."
+        }
+      ],
+      "mistakes": [
+        "Tính độ lệch chuẩn viết kết quả nhận hai giá trị ±.",
+        "Quên chia cho n khi tính phương sai s².",
+        "Nhầm khoảng tứ phân vị ΔQ = Q3 - Q1 với Q2."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-12-91",
+      "grade": 10,
+      "week": 12,
+      "period": 91,
+      "title": "Ôn tập chương V",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Hệ thống hóa toàn bộ kiến thức Chương V: số gần đúng, sai số, các số đặc trưng đo xu thế trung tâm và mức độ phân tán; rèn kỹ năng xử lý dữ liệu tổng hợp.",
+      "formulas": [
+        "\\Delta_a = |\\bar a - a| \\le d; \\quad \\delta_a = \\dfrac{\\Delta_a}{|a|}",
+        "\\bar x = \\dfrac{1}{n}\\sum x_i; \\quad M_e = Q_2; \\quad \\Delta_Q = Q_3 - Q_1",
+        "s^2 = \\dfrac{1}{n}\\sum x_i^2 - (\\bar x)^2; \\quad s = \\sqrt{s^2}"
+      ],
+      "boardKnowledge": [
+        "I. Sai số: Δa ≤ d, δa = Δa/|a|; Quy tròn lùi một hàng so với chữ số khác 0 của d.",
+        "II. Đo xu thế trung tâm: Trung bình x̄, Trung vị Me, Tứ phân vị Q1, Q2, Q3, Mốt Mo.",
+        "III. Đo mức độ phân tán: Khoảng biến thiên R, Khoảng tứ phân vị ΔQ, Phương sai s², Độ lệch chuẩn s."
+      ],
+      "examples": [
+        {
+          "question": "Quy tròn số a = 4,2357 với độ chính xác d = 0,03. Ước lượng sai số tương đối.",
+          "solution": "d = 0,03 có chữ số khác 0 ở hàng phần trăm -> quy tròn đến hàng phần mười -> số quy tròn là 4,2. Sai số tuyệt đối Δ ≤ 0,03; sai số tương đối δ ≤ 0,03/4,2 ≈ 0,71%."
+        },
+        {
+          "question": "Cho dãy điểm: 5, 6, 7, 8, 9. Tính số trung bình, khoảng biến thiên và độ lệch chuẩn.",
+          "solution": "x̄ = 35/5 = 7. R = 9 - 5 = 4. s² = [(5-7)² + (6-7)² + (7-7)² + (8-7)² + (9-7)²]/5 = 10/5 = 2 -> s = √2 ≈ 1,41."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Quy tròn số 12,456 đến hàng phần mười.",
+          "answer": "Chữ số sau hàng phần mười là 5 -> quy tròn thành 12,5."
+        },
+        {
+          "level": "NB",
+          "question": "Dãy số liệu 2, 3, 5, 5, 8 có mốt bằng bao nhiêu?",
+          "answer": "Mo = 5 vì có tần số lớn nhất (2 lần)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho dãy: 10, 12, 14, 16, 18, 20. Tìm khoảng tứ phân vị ΔQ.",
+          "answer": "Q2 = 15. Nửa dưới (10, 12, 14) -> Q1 = 12. Nửa trên (16, 18, 20) -> Q3 = 18. ΔQ = 18 - 12 = 6."
+        },
+        {
+          "level": "TH",
+          "question": "Quy tròn số đúng của diện tích S = 124,35 m² với độ chính xác d = 0,2 m².",
+          "answer": "d = 0,2 có chữ số khác 0 ở hàng phần mười -> quy tròn đến hàng đơn vị -> S ≈ 124 m²."
+        },
+        {
+          "level": "VD",
+          "question": "Cho dãy số liệu 2, 4, 6, 8, x có số trung bình bằng 6. Tính phương sai của dãy.",
+          "answer": "Tổng = 5 · 6 = 30 -> x = 30 - (2+4+6+8) = 10. Mẫu: 2, 4, 6, 8, 10. s² = [(2-6)² + (4-6)² + (6-6)² + (8-6)² + (10-6)²]/5 = (16+4+0+4+16)/5 = 40/5 = 8."
+        },
+        {
+          "level": "VD",
+          "question": "Một lớp có 30 học sinh làm bài thi trắc nghiệm. Biết Q1 = 12, Q3 = 18. Điểm thi 2 điểm có phải giá trị bất thường không?",
+          "answer": "ΔQ = 18 - 12 = 6. Ngưỡng dưới: Q1 - 1,5ΔQ = 12 - 1,5·6 = 3. Vì 2 < 3 nên điểm 2 là giá trị bất thường."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu d = 0,001 thì ta quy tròn đến hàng nào?",
+          "solution": "Chữ số khác 0 ở hàng phần nghìn -> quy tròn đến hàng liền trước: hàng phần trăm."
+        },
+        {
+          "question": "Một mẫu số liệu có thể có độ lệch chuẩn âm không?",
+          "solution": "Không, độ lệch chuẩn luôn là số không âm (s ≥ 0)."
+        }
+      ],
+      "mistakes": [
+        "Quy tròn đến chính hàng của chữ số khác 0 trong d thay vì lùi một hàng.",
+        "Nhầm công thức phương sai quên bình phương các độ lệch.",
+        "Nhầm ngưỡng giá trị bất thường: lấy cộng trừ ΔQ thay vì 1,5ΔQ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-12-92",
+      "grade": 10,
+      "week": 12,
+      "period": 92,
+      "title": "Tổng và hiệu của hai vectơ",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập thành thạo các quy tắc cộng, trừ vectơ; quy tắc trung điểm, trọng tâm; tính độ dài vectơ tổng và hiệu trong các hình học quen thuộc.",
+      "formulas": [
+        "\\vec{AB} + \\vec{BC} = \\vec{AC}",
+        "\\vec{OB} - \\vec{OA} = \\vec{AB}",
+        "ABCD \\text{ là HBH} \\implies \\vec{AB} + \\vec{AD} = \\vec{AC}",
+        "M \\text{ là trung điểm } AB \\implies \\vec{OA} + \\vec{OB} = 2\\vec{OM}",
+        "|\\vec a + \\vec b| \\le |\\vec a| + |\\vec b|"
+      ],
+      "boardKnowledge": [
+        "I. Quy tắc ba điểm: Nối đuôi thì cộng; Chung gốc thì trừ (ngọn sau trừ ngọn trước).",
+        "II. Quy tắc hình bình hành: AB + AD = AC (đường chéo xuất phát từ đỉnh chung).",
+        "III. Tính độ dài: Luôn thu gọn thành một vectơ duy nhất trước khi lấy độ dài."
+      ],
+      "examples": [
+        {
+          "question": "Cho tam giác đều ABC cạnh a. Tính độ dài của vectơ u = AB - AC.",
+          "solution": "Theo quy tắc trừ: u = AB - AC = CB. Độ dài |u| = |CB| = a."
+        },
+        {
+          "question": "Cho hình chữ nhật ABCD có AB = 3, AD = 4. Tính độ dài vectơ v = AB + AD.",
+          "solution": "Theo quy tắc hình bình hành: v = AB + AD = AC. Tam giác ABC vuông tại B nên AC = √(AB² + BC²) = √(3² + 4²) = 5. Vậy |v| = 5."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Thu gọn biểu thức vectơ: AB + BC + CD.",
+          "answer": "AB + BC + CD = (AB + BC) + CD = AC + CD = AD."
+        },
+        {
+          "level": "NB",
+          "question": "Cho 3 điểm phân biệt A, B, C. Vectơ CA - CB bằng vectơ nào?",
+          "answer": "CA - CB = BA."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình thoi ABCD tâm O. Tính tổng OA + OB + OC + OD.",
+          "answer": "Vì O là trung điểm AC và BD nên OA + OC = 0 và OB + OD = 0. Tổng = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác vuông ABC tại A có AB = 6, AC = 8. Tính độ dài vectơ AB + AC.",
+          "answer": "Dựng HBH ABDC (hình chữ nhật) -> AB + AC = AD. AD = BC = √(6² + 8²) = 10."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác đều ABC cạnh a, gọi M là trung điểm BC. Tính độ dài vectơ AB + AC.",
+          "answer": "M là trung điểm BC -> AB + AC = 2AM. AM là đường cao tam giác đều cạnh a -> AM = a√3/2. Vậy |AB + AC| = 2 · (a√3/2) = a√3."
+        },
+        {
+          "level": "VD",
+          "question": "Cho 4 điểm A, B, C, D bất kỳ. Chứng minh đẳng thức: AB + CD = AD + CB.",
+          "answer": "VT - VP = (AB - AD) + (CD - CB) = DB + DB? Sửa: VT = AB + CD = (AD + DB) + (CB + BD) = AD + CB + (DB + BD) = AD + CB + 0 = VP (đpcm)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao giờ độ dài vectơ tổng |a + b| nhỏ hơn |a| không?",
+          "solution": "Có thể, ví dụ hai vectơ ngược hướng: a có độ lớn 5, b có độ lớn 3 ngược hướng thì |a + b| = 2 < 5."
+        },
+        {
+          "question": "Quy tắc trừ áp dụng khi hai vectơ có đặc điểm gì?",
+          "solution": "Áp dụng khi hai vectơ có chung điểm gốc: OA - OB = BA."
+        }
+      ],
+      "mistakes": [
+        "Tự ý cộng hai độ dài đại số khi tính độ dài vectơ tổng: |a + b| = |a| + |b|.",
+        "Nhầm thứ tự điểm trong quy tắc trừ: viết AB - AC = BC thay vì CB.",
+        "Quên dấu vectơ mũi tên dẫn đến nhầm lẫn giữa đoạn thẳng và vectơ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-12-93",
+      "grade": 10,
+      "week": 12,
+      "period": 93,
+      "title": "Tích của một vectơ với một số",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa tích vectơ với một số; các tính chất phân phối, kết hợp; điều kiện hai vectơ cùng phương và ứng dụng chứng minh ba điểm thẳng hàng.",
+      "formulas": [
+        "|k\\vec a| = |k| \\cdot |\\vec a|",
+        "k > 0 \\implies k\\vec a \\uparrow\\uparrow \\vec a; \\quad k < 0 \\implies k\\vec a \\uparrow\\downarrow \\vec a",
+        "k(\\vec a + \\vec b) = k\\vec a + k\\vec b; \\quad (k+m)\\vec a = k\\vec a + m\\vec a",
+        "\\vec a \\parallel \\vec b \\iff \\exists k \\in \\mathbb{R}: \\vec a = k\\vec b \\; (\\vec b \\ne \\vec 0)"
+      ],
+      "boardKnowledge": [
+        "I. Định nghĩa: k·a có độ dài |k|·|a|; cùng hướng nếu k > 0, ngược hướng nếu k < 0.",
+        "II. Tính chất: Phân phối đối với phép cộng vectơ và phép cộng số.",
+        "III. Điều kiện cùng phương: a = k·b; Ba điểm A, B, C thẳng hàng <=> AB = k·AC."
+      ],
+      "examples": [
+        {
+          "question": "Cho tam giác ABC có M là trung điểm AB. Biểu diễn vectơ CM theo hai vectơ CA và CB.",
+          "solution": "Theo tính chất trung điểm: CA + CB = 2CM -> CM = (1/2)CA + (1/2)CB."
+        },
+        {
+          "question": "Cho vectơ a có độ dài bằng 6. Xác định hướng và độ dài của vectơ b = -(1/3)a.",
+          "solution": "Vì k = -1/3 < 0 nên b ngược hướng với a. Độ dài: |b| = |-1/3| · |a| = (1/3) · 6 = 2."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho vectơ a khác 0. Vectơ -5a có cùng hướng hay ngược hướng với a?",
+          "answer": "Ngược hướng vì hệ số k = -5 < 0."
+        },
+        {
+          "level": "NB",
+          "question": "Biết |a| = 7. Tính độ dài của vectơ u = -3a.",
+          "answer": "|u| = |-3| · |a| = 3 · 7 = 21."
+        },
+        {
+          "level": "TH",
+          "question": "Cho đoạn thẳng AB có I là trung điểm. Rút gọn biểu thức 2IA + 2IB.",
+          "answer": "2IA + 2IB = 2(IA + IB) = 2 · 0 = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác ABC có G là trọng tâm. Khẳng định GA + GB + GC = 0 đúng hay sai?",
+          "answer": "Đúng, đây là tính chất trọng tâm tam giác."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC. Gọi M trên cạnh BC sao cho BM = 2MC. Biểu diễn vectơ AM theo AB và AC.",
+          "answer": "Ta có BM = 2/3 BC = 2/3 (AC - AB). Do đó AM = AB + BM = AB + 2/3 AC - 2/3 AB = 1/3 AB + 2/3 AC."
+        },
+        {
+          "level": "VD",
+          "question": "Cho 3 điểm A, B, C phân biệt thỏa mãn AB = -3AC. Hỏi ba điểm A, B, C có thẳng hàng không và điểm nào nằm giữa hai điểm còn lại?",
+          "answer": "Vì AB = -3AC nên hai vectơ AB và AC cùng phương -> A, B, C thẳng hàng. Vì k = -3 < 0 nên AB và AC ngược hướng, do đó điểm A nằm giữa B và C."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Vectơ 0 nhân với số 100 bằng bao nhiêu?",
+          "solution": "Bằng vectơ 0 (100 · 0 = 0)."
+        },
+        {
+          "question": "Nếu a = 2b thì hai vectơ a và b có độ dài liên hệ như thế nào?",
+          "solution": "|a| = |2b| = 2|b|, độ dài của a gấp đôi độ dài của b."
+        }
+      ],
+      "mistakes": [
+        "Bỏ quên dấu giá trị tuyệt đối: viết |k·a| = k·|a| dẫn đến độ dài bị âm khi k < 0.",
+        "Nhầm số 0 với vectơ 0 (viết k·a = 0 thay vì vectơ 0).",
+        "Nhầm lẫn hướng: cho rằng số âm thì độ dài giảm đi."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-12-83",
+      "grade": 11,
+      "week": 12,
+      "period": 83,
+      "title": "Luyện tập các số đặc trưng đo xu thế trung tâm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập kỹ năng tính số trung bình, trung vị, tứ phân vị và mốt của mẫu số liệu ghép nhóm; hiểu ý nghĩa thực tế và phân biệt các bẫy công thức nội suy.",
+      "formulas": [
+        "\\bar x = \\dfrac{1}{n}\\sum m_i c_i",
+        "M_e = u_m + \\dfrac{\\frac{n}{2} - C}{m_m} \\cdot h",
+        "Q_1 = u_{q1} + \\dfrac{\\frac{n}{4} - C_{q1}}{m_{q1}} \\cdot h; \\quad Q_3 = u_{q3} + \\dfrac{\\frac{3n}{4} - C_{q3}}{m_{q3}} \\cdot h",
+        "M_o = u_{mo} + \\dfrac{m_{mo} - m_{mo-1}}{(m_{mo} - m_{mo-1}) + (m_{mo} - m_{mo+1})} \\cdot h"
+      ],
+      "boardKnowledge": [
+        "I. Bảng phụ trợ: Giá trị đại diện c_i = (a_i + a_{i+1})/2; Tần số tích lũy cf_i.",
+        "II. Xác định nhóm: n/2 cho Me, n/4 cho Q1, 3n/4 cho Q3; tần số lớn nhất cho Mo.",
+        "III. Công thức nội suy: Chú ý C là tần số tích lũy của nhóm ĐỨNG TRƯỚC."
+      ],
+      "examples": [
+        {
+          "question": "Cho mẫu ghép nhóm: [10; 20) có m1 = 5; [20; 30) có m2 = 15; [30; 40) có m3 = 10. Tính số trung bình.",
+          "solution": "c1 = 15, c2 = 25, c3 = 35. n = 30. x̄ = (5·15 + 15·25 + 10·35)/30 = (75 + 375 + 350)/30 = 800/30 ≈ 26,67."
+        },
+        {
+          "question": "Với bảng trên, tìm nhóm chứa trung vị và tính trung vị Me.",
+          "solution": "n/2 = 15. cf1 = 5 < 15 ≤ cf2 = 20 -> nhóm chứa trung vị là [20; 30). u_m = 20, h = 10, m_m = 15, C = cf1 = 5. Me = 20 + [(15 - 5)/15] · 10 = 20 + 20/3 ≈ 26,67."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho nhóm [40; 60) có tần số 12. Xác định độ dài nhóm h và giá trị đại diện c.",
+          "answer": "h = 60 - 40 = 20; c = (40 + 60)/2 = 50."
+        },
+        {
+          "level": "NB",
+          "question": "Mẫu có n = 80. Khi tìm Q1 và Q3 ta căn cứ vào các giá trị nào của tần số tích lũy?",
+          "answer": "Q1 căn cứ n/4 = 20; Q3 căn cứ 3n/4 = 60."
+        },
+        {
+          "level": "TH",
+          "question": "Cho nhóm chứa mốt là [15; 20), tần số nhóm mốt là 16, nhóm trước là 10, nhóm sau là 12. Tính mốt Mo.",
+          "answer": "u = 15, h = 5. Mo = 15 + [(16-10)/((16-10) + (16-12))] · 5 = 15 + [6/(6+4)] · 5 = 15 + 3 = 18."
+        },
+        {
+          "level": "TH",
+          "question": "Một mẫu ghép nhóm có n = 60, nhóm chứa Q1 là [10; 15), C = 10, tần số nhóm Q1 là 10. Tính Q1.",
+          "answer": "n/4 = 15. u = 10, h = 5. Q1 = 10 + [(15 - 10)/10] · 5 = 10 + 2,5 = 12,5."
+        },
+        {
+          "level": "VD",
+          "question": "Khảo sát điểm thi của 100 học sinh: nhóm [6; 8) có 40 HS, nhóm [8; 10) có 30 HS, các nhóm trước có tổng 30 HS. Tính trung vị Me.",
+          "answer": "n = 100, n/2 = 50. cf trước nhóm [6; 8) là 30 < 50 ≤ 70 -> nhóm [6; 8) chứa Me. u = 6, h = 2, C = 30, m = 40. Me = 6 + [(50 - 30)/40] · 2 = 6 + 1 = 7,0."
+        },
+        {
+          "level": "VD",
+          "question": "Nếu tất cả các tần số trong mẫu ghép nhóm đều được nhân đôi thì số trung bình và trung vị thay đổi như thế nào?",
+          "answer": "Tất cả các số đặc trưng xu thế trung tâm (x̄, Me, Q1, Q3, Mo) đều KHÔNG thay đổi vì tỉ lệ phân bố giữa các nhóm được giữ nguyên."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có khi nào trung vị và mốt của mẫu ghép nhóm trùng nhau không?",
+          "solution": "Có thể, khi dữ liệu phân bố đối xứng hoàn hảo quanh nhóm trung tâm."
+        },
+        {
+          "question": "Nếu nhóm mốt là nhóm cuối cùng thì m_{mo+1} lấy bằng bao nhiêu?",
+          "solution": "Lấy m_{mo+1} = 0 vì không có nhóm nào phía sau."
+        }
+      ],
+      "mistakes": [
+        "Lấy C là tần số tích lũy của chính nhóm chứa trung vị thay vì nhóm đứng trước.",
+        "Nhầm lẫn giữa giá trị đại diện của nhóm mốt với giá trị mốt tính theo công thức nội suy.",
+        "Quên nhân với độ dài nhóm h khi tính nội suy."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-12-84",
+      "grade": 11,
+      "week": 12,
+      "period": 84,
+      "title": "Giới hạn của dãy số",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa giới hạn hữu hạn của dãy số; nắm vững các giới hạn cơ bản lim(1/n^k) = 0, lim(q^n) = 0 (|q| < 1); phân biệt bản chất tiệm cận của giới hạn.",
+      "formulas": [
+        "\\lim u_n = a \\iff \\lim (u_n - a) = 0",
+        "\\lim \\dfrac{1}{n^k} = 0 \\quad (k \\in \\mathbb{Z}^+); \\quad \\lim \\dfrac{1}{\\sqrt{n}} = 0",
+        "\\lim q^n = 0 \\quad (|q| < 1)",
+        "\\lim c = c \\quad (c = \\text{const})"
+      ],
+      "boardKnowledge": [
+        "I. Khái niệm: lim u_n = a nghĩa là khoảng cách |u_n - a| tiến dần về 0 khi n -> +∞.",
+        "II. Giới hạn đặc biệt: 1/n -> 0, 1/n² -> 0, q^n -> 0 (|q| < 1), c -> c.",
+        "III. Lưu ý: q^n chỉ có giới hạn 0 khi giá trị tuyệt đối |q| < 1."
+      ],
+      "examples": [
+        {
+          "question": "Dùng định nghĩa chứng minh rằng lim (2n + 1)/n = 2.",
+          "solution": "Xét u_n - 2 = (2n + 1)/n - 2 = 1/n. Vì lim (1/n) = 0 nên lim (u_n - 2) = 0. Theo định nghĩa, lim u_n = 2."
+        },
+        {
+          "question": "Tính giới hạn của các dãy số sau: (a) u_n = (-0,8)^n; (b) v_n = 4 + 3/n.",
+          "solution": "(a) Vì |-0,8| = 0,8 < 1 nên lim (-0,8)^n = 0. (b) lim (4 + 3/n) = lim 4 + 3·lim(1/n) = 4 + 0 = 4."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính lim (1/n³).",
+          "answer": "lim (1/n³) = 0 theo công thức cơ bản lim(1/n^k) = 0 với k = 3."
+        },
+        {
+          "level": "NB",
+          "question": "Dãy số u_n = (0,99)^n có giới hạn bằng bao nhiêu khi n tiến ra vô cực?",
+          "answer": "Bằng 0 vì |0,99| < 1."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh rằng dãy số u_n = (3n - 1)/(n + 2) có giới hạn bằng 3 khi n -> +∞.",
+          "answer": "u_n - 3 = (3n - 1 - 3n - 6)/(n + 2) = -7/(n + 2). Vì |-7/(n+2)| < 7/n -> 0 nên lim(u_n - 3) = 0 -> lim u_n = 3."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm giới hạn của dãy số u_n = 5 - (1/2)^n + 2/n.",
+          "answer": "lim u_n = lim 5 - lim(1/2)^n + 2·lim(1/n) = 5 - 0 + 0 = 5."
+        },
+        {
+          "level": "VD",
+          "question": "Cho dãy u_n = cos(n) / n. Chứng minh lim u_n = 0.",
+          "answer": "Ta có |cos n| ≤ 1 với mọi n nên 0 ≤ |u_n| ≤ 1/n. Vì lim 0 = lim(1/n) = 0 nên theo định lý kẹp, lim u_n = 0."
+        },
+        {
+          "level": "VD",
+          "question": "Một chất phóng xạ có chu kỳ bán rã 1 ngày. Khối lượng còn lại sau n ngày là m_n = m0 · (1/2)^n. Hỏi khi n -> +∞ thì khối lượng chất phóng xạ tiến về đâu?",
+          "answer": "lim m_n = m0 · lim(1/2)^n = m0 · 0 = 0. Sau thời gian rất dài chất phóng xạ phân rã gần như hoàn toàn."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Dãy số u_n = 2^n có giới hạn bằng 0 không? Vì sao?",
+          "solution": "Không, vì cơ số q = 2 > 1 nên các số hạng tăng vô hạn (2, 4, 8, 16,...), không tiến về 0."
+        },
+        {
+          "question": "Nếu lim u_n = 0 thì lim |u_n| bằng bao nhiêu?",
+          "solution": "Bằng 0 vì ||u_n| - 0| = |u_n| -> 0."
+        }
+      ],
+      "mistakes": [
+        "Cho rằng lim q^n = 0 với mọi q mà quên điều kiện |q| < 1.",
+        "Nhầm lẫn giữa giới hạn bằng 0 với số hạng bằng 0.",
+        "Áp dụng quy tắc cộng giới hạn khi các dãy thành phần chưa có giới hạn hữu hạn."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-12-85",
+      "grade": 11,
+      "week": 12,
+      "period": 85,
+      "title": "Quy tắc tính giới hạn và CSN lùi vô hạn",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Nắm vững các định lý về giới hạn hữu hạn; thành thạo phương pháp chia lũy thừa bậc cao nhất; tính tổng cấp số nhân lùi vô hạn và đổi số thập phân tuần hoàn.",
+      "formulas": [
+        "\\lim (u_n \\pm v_n) = a \\pm b; \\quad \\lim (u_n v_n) = ab; \\quad \\lim \\dfrac{u_n}{v_n} = \\dfrac{a}{b} \\; (b \\ne 0)",
+        "\\lim \\sqrt{u_n} = \\sqrt{a} \\quad (a \\ge 0)",
+        "S = \\dfrac{u_1}{1 - q} \\quad (|q| < 1)",
+        "0{,}(a) = \\dfrac{a}{9}; \\quad 0{,}(ab) = \\dfrac{ab}{99}"
+      ],
+      "boardKnowledge": [
+        "I. Quy tắc: Giới hạn tổng/hiệu/tích/thương bằng tổng/hiệu/tích/thương các giới hạn.",
+        "II. Phân thức hữu tỉ: Chia cả tử và mẫu cho n^k với k là bậc cao nhất của mẫu.",
+        "III. Cấp số nhân lùi vô hạn: Điều kiện bắt buộc |q| < 1; Công thức S = u1 / (1 - q)."
+      ],
+      "examples": [
+        {
+          "question": "Tính giới hạn: lim (6n³ - 2n + 1) / (3n³ + 5n²).",
+          "solution": "Chia cả tử và mẫu cho n³: lim [6 - 2/n² + 1/n³] / [3 + 5/n] = (6 - 0 + 0)/(3 + 0) = 6/3 = 2."
+        },
+        {
+          "question": "Tính tổng của cấp số nhân lùi vô hạn: 1/3, 1/9, 1/27, ..., 1/3^n, ...",
+          "solution": "u1 = 1/3, q = 1/3 (|q| < 1). Tổng: S = u1 / (1 - q) = (1/3) / (1 - 1/3) = (1/3) / (2/3) = 1/2."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính lim (2 + 1/n).",
+          "answer": "lim 2 + lim(1/n) = 2 + 0 = 2."
+        },
+        {
+          "level": "NB",
+          "question": "Cấp số nhân có u1 = 5, q = -0,2 có phải lùi vô hạn không? Vì sao?",
+          "answer": "Có, vì |q| = |-0,2| = 0,2 < 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim (3n² + 1)/(n² - 4).",
+          "answer": "Chia cả tử và mẫu cho n²: lim (3 + 1/n²)/(1 - 4/n²) = 3/1 = 3."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tổng cấp số nhân lùi vô hạn: S = 1 - 1/2 + 1/4 - 1/8 + ...",
+          "answer": "u1 = 1, q = -1/2 (|q| < 1). S = 1 / [1 - (-1/2)] = 1 / (3/2) = 2/3."
+        },
+        {
+          "level": "VD",
+          "question": "Viết số thập phân vô hạn tuần hoàn 0,(15) dưới dạng phân số tối giản.",
+          "answer": "0,(15) = 15/100 + 15/10000 + ... là tổng CSN có u1 = 15/100, q = 1/100. S = (15/100)/(1 - 1/100) = (15/100)/(99/100) = 15/99 = 5/33."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim [√(n² + 2n) - n].",
+          "answer": "Nhân liên hợp: [n² + 2n - n²] / [√(n² + 2n) + n] = 2n / [n(√(1 + 2/n) + 1)] = 2 / [√(1 + 2/n) + 1]. Khi n -> +∞, giới hạn bằng 2/(1 + 1) = 1."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu bậc của tử nhỏ hơn bậc của mẫu thì giới hạn của phân thức bằng bao nhiêu khi n -> +∞?",
+          "solution": "Bằng 0, vì sau khi chia cho lũy thừa cao nhất của mẫu, tử số tiến về 0 còn mẫu tiến về hằng số khác 0."
+        },
+        {
+          "question": "Có thể áp dụng công thức S = u1/(1-q) cho dãy 3, 3, 3, 3,... không?",
+          "solution": "Không, vì q = 1 vi phạm điều kiện |q| < 1."
+        }
+      ],
+      "mistakes": [
+        "Áp dụng công thức tổng CSN lùi vô hạn khi |q| ≥ 1 dẫn đến kết quả vô lý (tổng dương ra âm).",
+        "Chia cho lũy thừa bậc cao nhất của tử thay vì của mẫu dẫn đến xuất hiện dạng 0 ở mẫu.",
+        "Quên điều kiện mẫu khác 0 khi dùng quy tắc giới hạn thương."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-12-86",
+      "grade": 11,
+      "week": 12,
+      "period": 86,
+      "title": "Hình lăng trụ và hình hộp",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa, tính chất của hình lăng trụ và hình hộp; tính chất hai đáy, cạnh bên, mặt bên và các đường chéo đồng quy của hình hộp.",
+      "formulas": [
+        "\\text{Lăng trụ } n\\text{-giác}: 2n \\text{ đỉnh}, 3n \\text{ cạnh}, (n+2) \\text{ mặt}",
+        "(A_1A_2\\dots A_n) \\parallel (A'_1A'_2\\dots A'_n); \\quad A_1A'_1 \\parallel A_2A'_2 \\parallel \\dots \\text{ và bằng nhau}",
+        "\\text{Hình hộp: 6 mặt là hình bình hành}; \\quad AC' \\cap BD' \\cap CA' \\cap DB' = \\{O\\}",
+        "O \\text{ là trung điểm của mỗi đường chéo}"
+      ],
+      "boardKnowledge": [
+        "I. Hình lăng trụ: Hai đáy là đa giác bằng nhau nằm trên 2 mp song song; Các mặt bên là hình bình hành.",
+        "II. Cạnh bên: Song song và bằng nhau.",
+        "III. Hình hộp: Lăng trụ có đáy là hình bình hành; 4 đường chéo cắt nhau tại trung điểm mỗi đường."
+      ],
+      "examples": [
+        {
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Chứng minh rằng mặt phẳng (BDA') song song với mặt phẳng (B'D'C).",
+          "solution": "Ta có BD // B'D' (do BDD'B' là HBH) -> BD // (B'D'C). Lại có BA' // CD' (do ADC'B' là HBH có AB // C'D' và AA' // DD') -> BA' // (B'D'C). Hai đường thẳng cắt nhau BD và BA' cùng song song (B'D'C) nên (BDA') // (B'D'C)."
+        },
+        {
+          "question": "Một hình lăng trụ ngũ giác có bao nhiêu đỉnh, bao nhiêu cạnh và bao nhiêu mặt?",
+          "solution": "n = 5. Số đỉnh: 2 · 5 = 10 đỉnh. Số cạnh: 3 · 5 = 15 cạnh (5 cạnh đáy dưới, 5 cạnh đáy trên, 5 cạnh bên). Số mặt: 5 + 2 = 7 mặt (2 đáy + 5 mặt bên)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Các mặt bên của một hình lăng trụ là hình gì?",
+          "answer": "Là các hình bình hành."
+        },
+        {
+          "level": "NB",
+          "question": "Hình hộp có bao nhiêu đường chéo?",
+          "answer": "Có 4 đường chéo (nối các cặp đỉnh đối diện)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Tìm giao tuyến của hai mặt phẳng (ACC'A') và (BDD'B').",
+          "answer": "Gọi O = AC ∩ BD và O' = A'C' ∩ B'D'. Giao tuyến là đường thẳng OO' (nối tâm hai đáy)."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh rằng trong hình hộp ABCD.A'B'C'D', đoạn thẳng nối trung điểm của AB và C'D' đi qua tâm O của hình hộp.",
+          "answer": "Gọi M, N lần lượt là trung điểm AB và C'D'. Tứ giác AMC'N có AM // C'N (cùng // CD) và AM = C'N = 1/2 CD nên AMC'N là HBH. Hai đường chéo MN và AC' cắt nhau tại trung điểm mỗi đường, mà trung điểm AC' chính là tâm O."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình lăng trụ tam giác ABC.A'B'C'. Gọi M, M' lần lượt là trung điểm của BC và B'C'. Chứng minh rằng mặt phẳng (AMM'A') là một hình bình hành.",
+          "answer": "Ta có MM' // BB' và MM' = BB' (do BCC'B' là HBH). Lại có AA' // BB' và AA' = BB' -> MM' // AA' và MM' = AA'. Do đó AMM'A' là hình bình hành."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Gọi I là tâm hình bình hành ABB'A', K là tâm CDD'C'. Chứng minh IK song song với các đáy của hình hộp.",
+          "answer": "Ta có I là trung điểm A'B và K là trung điểm D'C. Trong tam giác A'BD' và các tứ giác liên quan, IK // AD // BC mà AD nằm trong đáy (ABCD) nên IK // (ABCD) và IK // (A'B'C'D')."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Hình chóp cụt có phải là hình lăng trụ không?",
+          "solution": "Không, vì hình chóp cụt có các cạnh bên kéo dài đồng quy tại đỉnh chóp, không song song với nhau như hình lăng trụ."
+        },
+        {
+          "question": "Hai mặt đáy của hình lăng trụ có thể nằm trên hai mặt phẳng cắt nhau không?",
+          "solution": "Không, hai đáy bắt buộc phải nằm trên hai mặt phẳng song song."
+        }
+      ],
+      "mistakes": [
+        "Cho rằng mọi hình lăng trụ tứ giác đều là hình hộp (quên điều kiện đáy phải là hình bình hành).",
+        "Nhầm đường chéo của mặt bên với đường chéo của hình hộp.",
+        "Nghĩ rằng các cạnh bên của hình lăng trụ có thể có độ dài khác nhau."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-12-87",
+      "grade": 11,
+      "week": 12,
+      "period": 87,
+      "title": "Luyện tập hai mặt phẳng song song",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập tổng hợp chứng minh hai mặt phẳng song song; ứng dụng định lý giao tuyến và định lý Thales trong không gian; kỹ năng dựng thiết diện song song.",
+      "formulas": [
+        "\\begin{cases} a, b \\subset (\\alpha), a \\cap b = \\{I\\} \\\\ a \\parallel (\\beta), b \\parallel (\\beta) \\end{cases} \\implies (\\alpha) \\parallel (\\beta)",
+        "\\begin{cases} (\\alpha) \\parallel (\\beta) \\\\ (\\gamma) \\cap (\\alpha) = a, (\\gamma) \\cap (\\beta) = b \\end{cases} \\implies a \\parallel b",
+        "\\dfrac{A_1B_1}{A_2B_2} = \\dfrac{B_1C_1}{B_2C_2} = \\dfrac{A_1C_1}{A_2C_2} \\quad (\\text{Định lý Thales})"
+      ],
+      "boardKnowledge": [
+        "I. Chứng minh (α) // (β): Tìm 2 đường cắt nhau trong (α) cùng song song với (β).",
+        "II. Tính chất: Cắt bởi mặt thứ ba -> 2 giao tuyến song song; Chắn các cát tuyến -> các đoạn tỉ lệ.",
+        "III. Dựng thiết diện: Kẻ đường thẳng qua điểm cho trước song song với các giao tuyến chuẩn."
+      ],
+      "examples": [
+        {
+          "question": "Cho hình chóp S.ABC. Mặt phẳng (P) song song với đáy (ABC) cắt các cạnh SA, SB, SC lần lượt tại A', B', C'. Chứng minh tam giác A'B'C' đồng dạng với tam giác ABC.",
+          "solution": "Vì (P) // (ABC) nên (SAB) cắt (P) và (ABC) theo A'B' // AB. Tương tự B'C' // BC và A'C' // AC. Do đó các góc tương ứng bằng nhau, tam giác A'B'C' đồng dạng tam giác ABC."
+        },
+        {
+          "question": "Cho hai hình bình hành ABCD và ABEF không cùng nằm trong một mặt phẳng. Chứng minh mặt phẳng (ADF) song song với mặt phẳng (BCE).",
+          "solution": "Ta có AD // BC (ABCD là HBH) -> AD // (BCE). AF // BE (ABEF là HBH) -> AF // (BCE). Lại có AD và AF cắt nhau tại A thuộc (ADF). Vậy (ADF) // (BCE)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho (α) // (β) và d ⊂ (α). Đường thẳng d có song song với (β) không?",
+          "answer": "Có, theo định nghĩa đường thẳng song song với mặt phẳng."
+        },
+        {
+          "level": "NB",
+          "question": "Phát biểu định lý về giao tuyến của hai mặt phẳng song song với mặt phẳng thứ ba.",
+          "answer": "Nếu hai mặt phẳng song song cùng cắt mặt phẳng thứ ba thì hai giao tuyến của chúng song song với nhau."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình chóp S.ABCD có đáy là hình bình hành. Gọi M, N lần lượt là trung điểm của SA và SB. Chứng minh (MND) không thể song song với đáy (ABCD).",
+          "answer": "Vì điểm D vừa thuộc mặt phẳng (MND) vừa thuộc đáy (ABCD), hai mặt phẳng có điểm chung D nên không thể song song."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ diện ABCD. Gọi G1, G2, G3 lần lượt là trọng tâm của các tam giác ABC, ACD, ADB. Chứng minh mặt phẳng (G1G2G3) song song với mặt phẳng (BCD).",
+          "answer": "Gọi M, N, P là trung điểm BC, CD, DB. Ta có AG1/AM = AG2/AN = AG3/AP = 2/3. Theo định lý Thales đảo trong tam giác AMN có G1G2 // MN ⊂ (BCD) -> G1G2 // (BCD). Tương tự G2G3 // (BCD). Do đó (G1G2G3) // (BCD)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Mặt phẳng (P) đi qua C' và song song với mặt phẳng (A'BD). Xác định thiết diện của hình hộp cắt bởi (P).",
+          "answer": "Ta có (A'BD) // (B'D'C). Mặt phẳng (P) đi qua C' và song song (A'BD) chính là mặt phẳng (B'D'C). Thiết diện là tam giác B'D'C."
+        },
+        {
+          "level": "VD",
+          "question": "Ba mặt phẳng đôi một song song cắt cát tuyến d1 tại A, B, C và cắt d2 tại A', B', C'. Biết AB = 4, BC = 6, A'C' = 15. Tính độ dài A'B' và B'C'.",
+          "answer": "Theo định lý Thales: A'B' / AB = B'C' / BC = A'C' / AC. Ta có AC = AB + BC = 10. Tỉ số k = 15/10 = 1,5. Vậy A'B' = 4 · 1,5 = 6; B'C' = 6 · 1,5 = 9."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Hai mặt phẳng cùng song song với một đường thẳng thì có song song với nhau không?",
+          "solution": "Chưa chắc, chúng có thể cắt nhau theo một giao tuyến song song với đường thẳng đó (như hình mái nhà)."
+        },
+        {
+          "question": "Nếu hai mặt phẳng song song thì mọi đường thẳng trong mặt này có song song với mọi đường thẳng trong mặt kia không?",
+          "solution": "Không, chúng có thể chéo nhau (miễn là không cắt nhau)."
+        }
+      ],
+      "mistakes": [
+        "Thiếu điều kiện hai đường thẳng phải cắt nhau khi áp dụng định lý chứng minh hai mp song song.",
+        "Nhầm rằng hai mặt phẳng song song thì mọi đường thẳng nằm trong đó đều song song với nhau.",
+        "Quên kiểm tra tính đồng phẳng khi xác định giao tuyến."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
     }
   ],
   "aiErrors": {
@@ -1595,6 +2394,126 @@
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu AI quên trừ x̄² = 1225; đáp án đúng s² = 72, s ≈ 8,49 phút).",
       "boardPrompt": "AI tính s² = 64850/50 = 1297. Em phát hiện AI bỏ sót số hạng nào trong công thức?",
       "libraryTitle": "Lỗi AI quên trừ x̄² khi tính phương sai mẫu số liệu ghép nhóm"
+    },
+    "10-12-89": {
+      "key": "10-12-89",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Mẫu số liệu 10, 12, 12, 14, 15, 15, 16, 18, 20, 88 có số trung bình 22 giờ nên đa số nhân viên làm thêm khoảng 22 giờ.",
+      "correction": "Số trung bình 22 giờ bị giá trị ngoại lai 88 kéo lệch; thực tế có 9/10 nhân viên làm ≤ 20 giờ. Đại diện đúng cho đa số là trung vị Me = 15 giờ.",
+      "proof": "90% dữ liệu nằm trong đoạn [10; 20]. Khoảng cách từ 22 đến 88 là 66, đã làm tăng tổng số giờ thêm 88 - 15 = 73 giờ, làm sai lệch kết luận về đa số.",
+      "whyAiError": "Mô hình máy móc dùng số trung bình làm đại diện cho mọi tập dữ liệu mà không kiểm tra độ lệch do giá trị ngoại lai.",
+      "teacherPrompt": "AI kết luận đa số nhân viên làm thêm khoảng 22 giờ. Em hãy chỉ lỗi sai và sửa lại: dùng số đặc trưng nào phản ánh đúng số đông?",
+      "studentProduct": "Ghi “Lỗi phương pháp: dùng trung bình khi có ngoại lai”, khoanh số 88 và sửa lại thành trung vị Me = 15 giờ.",
+      "boardPrompt": "AI dùng số trung bình 22 giờ làm đại diện cho dãy có giá trị 88. Số đo nào bền vững trước ngoại lai?",
+      "libraryTitle": "Lỗi AI dùng số trung bình khi mẫu có giá trị ngoại lai"
+    },
+    "10-12-90": {
+      "key": "10-12-90",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Phương sai của mẫu số liệu là s² = 0,16 nên độ lệch chuẩn s = ±0,4.",
+      "correction": "Độ lệch chuẩn là căn bậc hai số học của phương sai nên s ≥ 0. Sửa lại: s = √0,16 = 0,4.",
+      "proof": "Định nghĩa: s = √(s²) lấy dấu căn bậc hai số học (luôn không âm). Khoảng cách và độ phân tán không thể mang giá trị âm.",
+      "whyAiError": "Mô hình nhầm nghiệm đại số của phương trình x² = 0,16 với giá trị của hàm căn bậc hai số học s = √0,16.",
+      "teacherPrompt": "AI tính độ lệch chuẩn s = ±0,4. Em hãy chỉ lỗi sai và sửa lại: độ lệch chuẩn có thể âm được không?",
+      "studentProduct": "Ghi “Lỗi đại số: độ lệch chuẩn phải không âm”, gạch bỏ dấu trừ và sửa thành s = 0,4.",
+      "boardPrompt": "AI viết s = ±0,4 khi s² = 0,16. Độ lệch chuẩn s có quy ước dấu thế nào?",
+      "libraryTitle": "Lỗi AI tính độ lệch chuẩn nhận hai giá trị âm dương"
+    },
+    "10-12-91": {
+      "key": "10-12-91",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Khi quy tròn số theo độ chính xác d = 0,04, ta quy tròn đến hàng phần trăm vì chữ số 4 nằm ở hàng phần trăm.",
+      "correction": "Quy tắc chuẩn: quy tròn đến hàng liền trước hàng của chữ số khác 0 đầu tiên. d = 0,04 có chữ số 4 ở hàng phần trăm nên phải quy tròn đến hàng phần mười.",
+      "proof": "Độ chính xác d = 0,04 có nghĩa là sai số tuyệt đối không vượt quá 0,04. Chữ số hàng phần trăm chưa đáng tin cậy nên phải quy tròn đến hàng phần mười.",
+      "whyAiError": "Mô hình học máy nhầm lẫn khái niệm “độ chính xác đến hàng nào” với “hàng quy tròn cần thực hiện”.",
+      "teacherPrompt": "AI quy tròn đến hàng phần trăm với d = 0,04. Em hãy chỉ lỗi sai và sửa lại quy tắc: phải quy tròn đến hàng nào?",
+      "studentProduct": "Ghi “Lỗi quy tắc: phải lùi một hàng so với d”, sửa thành quy tròn đến hàng phần mười.",
+      "boardPrompt": "AI chọn hàng phần trăm khi d = 0,04. Quy tắc quy tròn yêu cầu lùi mấy hàng so với d?",
+      "libraryTitle": "Lỗi AI quy tròn sai hàng theo độ chính xác d"
+    },
+    "10-12-92": {
+      "key": "10-12-92",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Cho tam giác vuông ABC tại A có AB = 3, AC = 4. Ta có |AB + AC| = |AB| + |AC| = 3 + 4 = 7.",
+      "correction": "Không được cộng trực tiếp độ dài của hai vectơ không cùng hướng. Sửa lại: Dựng điểm D sao cho ABDC là hình chữ nhật, khi đó AB + AC = AD nên |AB + AC| = AD = √(3² + 4²) = 5.",
+      "proof": "Bất đẳng thức tam giác: |u + v| ≤ |u| + |v|. Dấu bằng chỉ xảy ra khi u và v cùng hướng. Ở đây AB vuông góc AC nên |AB + AC| < |AB| + |AC|.",
+      "whyAiError": "Mô hình nhầm phép cộng vectơ với phép cộng số học của các độ dài hình học thông thường.",
+      "teacherPrompt": "AI tính |AB + AC| = 3 + 4 = 7 trong tam giác vuông. Em hãy chỉ lỗi sai và sửa lại: cách tính độ dài vectơ tổng đúng là gì?",
+      "studentProduct": "Ghi “Lỗi khái niệm: cộng độ dài thay vì cộng vectơ”, vẽ hình chữ nhật ABDC và sửa thành |AB + AC| = 5.",
+      "boardPrompt": "AI viết |AB + AC| = |AB| + |AC| = 7. Phép cộng vectơ tuân theo quy tắc hình học nào?",
+      "libraryTitle": "Lỗi AI cộng trực tiếp độ dài khi tính độ dài vectơ tổng"
+    },
+    "10-12-93": {
+      "key": "10-12-93",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Cho vectơ a có độ dài bằng 5. Độ dài của vectơ u = -4a là |u| = -4 · 5 = -20.",
+      "correction": "Độ dài của một vectơ luôn không âm. Công thức đúng: |k·a| = |k| · |a|. Sửa lại: |u| = |-4| · 5 = 4 · 5 = 20.",
+      "proof": "Độ dài vectơ đại diện cho khoảng cách hình học, luôn là số thực không âm. Dấu trừ của k = -4 chỉ xác định hướng ngược lại, không làm độ dài âm.",
+      "whyAiError": "Mô hình nhân số vô hướng với độ dài mà không lấy giá trị tuyệt đối của hệ số k.",
+      "teacherPrompt": "AI tính độ dài |u| = -4 · 5 = -20. Em hãy chỉ lỗi sai và sửa lại: độ dài vectơ có âm được không?",
+      "studentProduct": "Ghi “Lỗi đại số: độ dài phải không âm”, sửa thành |u| = |-4| · 5 = 20.",
+      "boardPrompt": "AI tính độ dài ra số âm -20. Công thức độ dài |k·a| cần dấu gì ở hệ số k?",
+      "libraryTitle": "Lỗi AI tính độ dài vectơ ra số âm khi nhân với số âm"
+    },
+    "11-12-83": {
+      "key": "11-12-83",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Nhóm chứa mốt là [8; 12) có tần số lớn nhất nên mốt của mẫu số liệu ghép nhóm là Mo = (8 + 12)/2 = 10.",
+      "correction": "Giá trị (8 + 12)/2 = 10 chỉ là giá trị đại diện c_i của nhóm. Mốt của mẫu ghép nhóm phải tính theo công thức nội suy: Mo = 8 + [(18-15)/((18-15)+(18-6))] · 4 = 8,8.",
+      "proof": "Định nghĩa SGK: mốt của mẫu ghép nhóm là giá trị xấp xỉ nội suy trong nhóm có tần số lớn nhất có tính đến độ chênh lệch tần số với hai nhóm liền kề, không đồng nhất với trung điểm nhóm.",
+      "whyAiError": "Mô hình nhầm giá trị đại diện của nhóm mốt thành giá trị mốt của mẫu ghép nhóm.",
+      "teacherPrompt": "AI lấy trung điểm nhóm 10 làm mốt. Em hãy chỉ lỗi sai và sửa lại: công thức nội suy mốt ghép nhóm tính ra kết quả bao nhiêu?",
+      "studentProduct": "Ghi “Lỗi phương pháp: nhầm giá trị đại diện với mốt”, viết công thức nội suy và sửa thành Mo = 8,8.",
+      "boardPrompt": "AI tính Mo = (8+12)/2 = 10. Mốt ghép nhóm có bằng trung điểm nhóm không?",
+      "libraryTitle": "Lỗi AI nhầm giá trị đại diện nhóm thành mốt ghép nhóm"
+    },
+    "11-12-84": {
+      "key": "11-12-84",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI viết: Dãy số u_n = (4/3)^n có dạng lũy thừa q^n nên lim (4/3)^n = 0.",
+      "correction": "Công thức lim q^n = 0 chỉ đúng khi |q| < 1. Ở đây q = 4/3 > 1 nên dãy số tăng không bị chặn, không có giới hạn bằng 0 (tiến ra +∞).",
+      "proof": "Ta có 4/3 = 1 + 1/3. Theo bất đẳng thức Bernoulli: (4/3)^n ≥ 1 + n/3 -> +∞ khi n -> +∞, không thể tiến về 0.",
+      "whyAiError": "Mô hình học máy áp dụng công thức q^n một cách máy móc mà bỏ qua điều kiện tiên quyết |q| < 1.",
+      "teacherPrompt": "AI tính lim (4/3)^n = 0. Em hãy chỉ lỗi sai và sửa lại: dãy này có giới hạn bằng 0 không và vì sao?",
+      "studentProduct": "Ghi “Lỗi điều kiện: thiếu |q| < 1”, giải thích q = 4/3 > 1 nên không tiến về 0.",
+      "boardPrompt": "AI áp dụng lim q^n = 0 cho q = 4/3. Điều kiện cần của cơ số q là gì?",
+      "libraryTitle": "Lỗi AI quên điều kiện |q| < 1 khi tính giới hạn q^n"
+    },
+    "11-12-85": {
+      "key": "11-12-85",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI viết: Tính tổng S = 1 + 3 + 9 + 27 + ... Đây là cấp số nhân có u1 = 1, q = 3 nên áp dụng công thức: S = u1 / (1 - q) = 1 / (1 - 3) = -1/2.",
+      "correction": "Tổng các số nguyên dương tăng dần không thể bằng số âm -1/2. Công thức S = u1/(1-q) chỉ áp dụng cho cấp số nhân lùi vô hạn (|q| < 1). Sửa lại: q = 3 > 1 nên dãy phân kỳ, tổng tăng vô hạn (+∞).",
+      "proof": "Điều kiện tiên quyết của định lý tổng CSN lùi vô hạn là |q| < 1 để lim q^n = 0. Với q = 3 thì q^n -> +∞, dãy Sn = (3^n - 1)/2 không có giới hạn hữu hạn.",
+      "whyAiError": "Mô hình ghi nhớ công thức S = u1/(1-q) nhưng không kiểm tra điều kiện kích hoạt định lý |q| < 1.",
+      "teacherPrompt": "AI tính tổng 1 + 3 + 9 + ... ra số âm -1/2. Em hãy chỉ lỗi sai và sửa lại: vì sao công thức không được áp dụng ở đây?",
+      "studentProduct": "Ghi “Lỗi điều kiện: q = 3 > 1 không phải lùi vô hạn”, kết luận tổng tiến ra vô cực.",
+      "boardPrompt": "AI tính tổng các số dương ra -1/2. Điều kiện bắt buộc để áp dụng S = u1/(1-q) là gì?",
+      "libraryTitle": "Lỗi AI tính tổng cấp số nhân phân kỳ bằng công thức lùi vô hạn"
+    },
+    "11-12-86": {
+      "key": "11-12-86",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Cho lăng trụ tứ giác ABCD.A'B'C'D'. Vì là lăng trụ tứ giác nên 4 đường chéo AC', BD', CA', DB' cắt nhau tại trung điểm của mỗi đường.",
+      "correction": "Tính chất 4 đường chéo cắt nhau tại trung điểm mỗi đường chỉ đúng với HÌNH HỘP (khi đáy là hình bình hành). Lăng trụ tứ giác có đáy là hình thang thì các đường chéo không cắt nhau tại trung điểm.",
+      "proof": "Để AC' và BD' cắt nhau tại trung điểm thì tứ giác BDD'B' phải là hình bình hành, điều này đòi hỏi BD // B'D' và BD = B'D', tức là hai đáy phải là hình bình hành. Nếu đáy là tứ giác thường thì điều này không thỏa.",
+      "whyAiError": "Mô hình đánh đồng khái niệm “lăng trụ tứ giác” với “hình hộp”, bỏ qua điều kiện đáy là hình bình hành.",
+      "teacherPrompt": "AI áp dụng tính chất đường chéo hình hộp cho lăng trụ tứ giác bất kỳ. Em hãy chỉ lỗi sai và sửa lại: khi nào thì tính chất này mới đúng?",
+      "studentProduct": "Ghi “Lỗi khái niệm: lăng trụ tứ giác chưa chắc là hình hộp”, bổ sung điều kiện đáy phải là hình bình hành.",
+      "boardPrompt": "AI khẳng định lăng trụ tứ giác có 4 đường chéo cắt nhau tại trung điểm. Khẳng định này đúng cho hình gì?",
+      "libraryTitle": "Lỗi AI đánh đồng lăng trụ tứ giác bất kỳ với hình hộp"
+    },
+    "11-12-87": {
+      "key": "11-12-87",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI viết: Trong mặt phẳng (P) có đường thẳng a // (Q) và đường thẳng b // (Q). Suy ra mặt phẳng (P) song song với mặt phẳng (Q).",
+      "correction": "Định lý yêu cầu hai đường thẳng a và b phải CẮT NHAU. Nếu a và b song song nhau thì (P) vẫn có thể cắt (Q). Sửa lại: Cần bổ sung giả thiết a ∩ b = {I}.",
+      "proof": "Phản ví dụ: Lấy hai mặt phẳng (P) và (Q) cắt nhau theo giao tuyến d. Trong (P) lấy hai đường thẳng phân biệt a và b cùng song song với d. Khi đó a // (Q) và b // (Q) nhưng (P) không song song với (Q).",
+      "whyAiError": "Mô hình ghi nhớ không trọn vẹn định lý, bỏ sót điều kiện sống còn “hai đường thẳng cắt nhau”.",
+      "teacherPrompt": "AI kết luận (P) // (Q) khi chỉ có a // (Q) và b // (Q). Em hãy chỉ lỗi sai và sửa lại: cần bổ sung điều kiện gì cho a và b?",
+      "studentProduct": "Ghi “Lỗi điều kiện: thiếu a cắt b”, vẽ hình hai mặt phẳng mái nhà làm phản ví dụ.",
+      "boardPrompt": "AI quên điều kiện a và b cắt nhau. Nếu a // b thì (P) và (Q) có thể có vị trí gì?",
+      "libraryTitle": "Lỗi AI thiếu điều kiện hai đường thẳng cắt nhau khi chứng minh hai mp song song"
     }
   }
 }
