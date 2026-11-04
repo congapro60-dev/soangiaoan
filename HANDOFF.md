@@ -1,24 +1,24 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 15 CẢ 3 KHỐI: 148/148 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 16 CẢ 3 KHỐI: 171/171 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 148/148 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **48 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `10-15-112`..`119`).
-  - Khối 11: **50 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `11-15-106`..`113`).
-  - Khối 12: **50 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `12-15-106`..`113`).
-- **Tuần 15 đã khép kín 100% cả 3 khối (24/24 bài):**
-  - Khối 10: `10-15-112` (Ôn tập chương IV: Tích vô hướng và góc), `10-15-113` (Ôn tập chương IV: Biểu thức tọa độ và vuông góc), `10-15-114` (Ôn tập chương IV: Hệ thức lượng trong tam giác), `10-15-115` (Ôn tập chương IV: Diện tích tam giác và bài toán thực tế), `10-15-116` (Ôn tập cuối HK1: Mệnh đề, tập hợp và bất phương trình), `10-15-117` (Ôn tập cuối HK1: Vectơ và hệ thức lượng), `10-15-118` (Tự chọn: Kỹ thuật giải trắc nghiệm vectơ và hệ thức lượng), `10-15-119` (Tự chọn: Bài toán thực tế tổng hợp học kỳ 1).
-  - Khối 11: `11-15-106` (Hàm số liên tục trên một khoảng), `11-15-107` (Luyện tập hàm số liên tục và định lý nghiệm), `11-15-108` (Ôn tập chương V: Số trung bình và trung vị mẫu ghép nhóm), `11-15-109` (Ôn tập chương V: Tứ phân vị và mốt mẫu ghép nhóm), `11-15-110` (Lũy thừa với số mũ nguyên và căn bậc n), `11-15-111` (Lũy thừa với số mũ hữu tỉ và số thực), `11-15-112` (Tự chọn: Khảo sát hàm số liên tục trên đoạn và khoảng), `11-15-113` (Tự chọn: Biến đổi biểu thức luỹ thừa chứa căn thức).
-  - Khối 12: `12-15-106` (Luyện tập diện tích hình phẳng nâng cao), `12-15-107` (Luyện tập diện tích hình phẳng có tham số), `12-15-108` (Thể tích vật thể qua diện tích mặt cắt), `12-15-109` (Thể tích khối tròn xoay quanh trục Ox), `12-15-110` (Luyện tập thể tích khối tròn xoay cơ bản), `12-15-111` (Luyện tập thể tích khối tròn xoay nâng cao), `12-15-112` (Ôn tập chương IV: Nguyên hàm và các phương pháp), `12-15-113` (Ôn tập chương IV: Tích phân và ứng dụng hình học).
+- **TOÀN BỘ 171/171 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **56 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8/8 bài `10-16-120`..`127`).
+  - Khối 11: **58 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8/8 bài `11-16-114`..`121`).
+  - Khối 12: **57 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7/7 bài `12-16-114`..`120`).
+- **Tuần 16 đã khép kín 100% cả 3 khối (23/23 bài chuẩn PPCT TDS):**
+  - Khối 10: `10-16-120` (Ôn tập HK1: Mệnh đề và tập hợp), `10-16-121` (Ôn tập HK1: Bất phương trình và hệ bất phương trình), `10-16-122` (Ôn tập HK1: Hàm số bậc hai và đồ thị), `10-16-123` (Ôn tập HK1: Hệ thức lượng trong tam giác), `10-16-124` (Ôn tập HK1: Các phép toán vectơ và tọa độ), `10-16-125` (Ôn tập HK1: Tích vô hướng và ứng dụng thực tế), `10-16-126` (Tự chọn: Kỹ năng giải trắc nghiệm ôn thi HK1 Đại số), `10-16-127` (Tự chọn: Kỹ năng giải trắc nghiệm ôn thi HK1 Hình học).
+  - Khối 11: `11-16-114` (Lũy thừa với số mũ thực: Luyện tập biến đổi), `11-16-115` (Khái niệm lôgarit và tính chất cơ bản), `11-16-116` (Quy tắc tính lôgarit và công thức đổi cơ số), `11-16-117` (Luyện tập biến đổi biểu thức lôgarit), `11-16-118` (Ôn tập HK1: Hàm số và phương trình lượng giác), `11-16-119` (Ôn tập HK1: Dãy số và cấp số cộng cấp số nhân), `11-16-120` (Tự chọn: Phương pháp khử dạng vô định của giới hạn), `11-16-121` (Tự chọn: Bài toán thực tế ứng dụng hàm số mũ và lãi kép).
+  - Khối 12: `12-16-114` (Ôn tập HK1: Khảo sát sự biến thiên và đồ thị hàm số), `12-16-115` (Ôn tập HK1: Cực trị, GTLN GTNN và đường tiệm cận), `12-16-116` (Ôn tập HK1: Vectơ trong không gian và tọa độ Oxyz), `12-16-117` (Ôn tập HK1: Các số đặc trưng đo độ phân tán mẫu ghép nhóm), `12-16-118` (Ôn tập HK1: Nguyên hàm và các phương pháp tìm nguyên hàm), `12-16-119` (Ôn tập HK1: Tích phân và ứng dụng diện tích hình phẳng), `12-16-120` (Ôn tập HK1: Ứng dụng tích phân tính thể tích khối tròn xoay).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 97 bài (tổng cộng 148 bài).
-  - Đăng ký đầy đủ 97 bài trong `W11BATCH2` và 100 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 120 bài (tổng cộng 171 bài).
+  - Đăng ký đầy đủ 120 bài trong `W11BATCH2` và 123 bài trong `INTERACTIVE_SOURCE_KEYS`.
   - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
-  - Kiểm chứng `displayTitleUnique.test.ts`: 148/148 bài có display title duy nhất trong từng khối lớp (K10: 48 bài, K11: 50 bài, K12: 50 bài).
+  - Kiểm chứng `displayTitleUnique.test.ts`: 171/171 bài có display title duy nhất trong từng khối lớp (K10: 56 bài, K11: 58 bài, K12: 57 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **583/583 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **652/652 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
   - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
