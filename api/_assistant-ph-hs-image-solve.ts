@@ -135,8 +135,8 @@ export const solveProblemFromImage = async (
 };
 
 export const IMAGE_SOLVE_REPLIES = {
-  unreadable: `Thầy cô chưa đọc được ảnh này (ảnh mờ, quá lớn hoặc không phải ảnh đề bài). Em chụp lại rõ hơn rồi gửi nhé.\n\n${AI_MENU_HINT}`,
-  busy: `Trợ lý đang bận nên chưa giải được ảnh này. Em thử lại sau ít phút, hoặc gõ đề bằng chữ cũng được nhé.\n\n${AI_MENU_HINT}`,
+  unreadable: `❌ Thầy cô chưa đọc được ảnh này.\n\n📌 HƯỚNG DẪN:\n   • Chụp ẢNH RÕ NÉT đề bài (không mờ, không cắt xén).\n   • Chỉ gửi ảnh đề bài THUẦN (không chụp màn hình, không ảnh khác).\n   • Định dạng ảnh: JPG/PNG/WEBP (không hỗ trợ HEIC/HEIF).\n   • Kích thước ảnh < 8MB.\n\n⚠️ LƯU Ý: Nếu ảnh không rõ, máy sẽ không giải được.\n\n${AI_MENU_HINT}`,
+  busy: `⏳ Trợ lý đang bận nên chưa giải được ảnh này.\n\n📌 HƯỚNG DẪN:\n   • Thử lại sau ít phút.\n   • Hoặc gõ đề bài bằng chữ (nhắn text) để máy giải nhanh hơn.\n\n${AI_MENU_HINT}`,
 } as const;
 
 /**

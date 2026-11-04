@@ -186,9 +186,17 @@ export const photoListReply = (
     }
   });
   const body = fitZaloList(
-    [`📸 Chọn bài để gửi ảnh chấm (${items.length} bài):`],
+    [`📸 BÀI CHỜ NỘP (${items.length} bài):`],
     lines,
-    ['👉 Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài đó.', '👥 Nộp hộ bạn cùng lớp: nhắn "nộp hộ".'],
+    [
+      '📌 HƯỚNG DẪN:',
+      '   • Nhắn SỐ THỨ TỰ bài (ví dụ: 1) để chọn bài nộp.',
+      '   • Nộp hộ bạn cùng lớp: nhắn "nộp hộ".',
+      '⚠️ LƯU Ý:',
+      '   • Bài [quá hạn] vẫn nộp được, nhưng điểm có thể bị trừ.',
+      '   • Mỗi bài tối đa 3 ảnh, trong 10 phút.',
+      '   • Nhấn link file (nếu có) để xem đề bài trước khi làm.',
+    ],
   );
   return body;
 };
@@ -209,7 +217,19 @@ const nameMatches = (fullName: string, input: string): boolean => {
  * cả vai bạn): định danh target qua TÊN do chính bot tra trong danh sách lớp. Chốt chặn cuối
  * vẫn là GV duyệt điểm trên web, nơi badge `assistBy` cho biết ai đã gửi bài này.
  */
-const assistAskName = ['Muốn nộp hộ bạn nào? Gõ tên bạn trong lớp (ví dụ: Minh Anh).', 'Đổi ý: nhắn 0 để hủy.', '', MENU_HINT].join('\n');
+const assistAskName = [
+  '👥 NỘP HỘ BẠN CÙNG LỚP',
+  '📌 HƯỚNG DẪN:',
+  '   • Gõ TÊN ĐẦY ĐỦ của bạn trong lớp (ví dụ: "Nguyễn Văn A" hoặc "Minh Anh").',
+  '   • Chỉ nộp hộ được cho bạn CÙNG LỚP với em.',
+  '⚠️ LƯU Ý:',
+  '   • Bài nộp hộ sẽ tính vào hạn mức của BẠN ĐƯỢC NỘP HỘ (không phải em).',
+  '   • Kết quả sẽ hiện trên tài khoản của bạn ấy.',
+  '   • Em không xem được kết quả bài nộp hộ.',
+  '',
+  '👉 Đổi ý: nhắn 0 để hủy.',
+  '', MENU_HINT,
+].join('\n');
 
 /** Giữ ảnh đã nhận; chỉ thay phiên chưa có ảnh để vẫn hồi phục được luồng nộp hộ. */
 const unfinishedPhotos = (session: PhotoSessionData): string | null =>
@@ -312,7 +332,10 @@ export const assistChooseReply = async (botId: string, userId: string, classId: 
     return ['Không có danh sách tên để chọn. Nhắn nộp hộ để bắt đầu.', '', MENU_HINT].join('\n');
   }
   const target = n >= 1 && n <= candidates.length ? candidates[n - 1] : null;
-  if (!target) return ['Số không khớp danh sách tên.', '', MENU_HINT].join('\n');
+  if (!target) return [`❌ Số không khớp danh sách tên.`,
+    `📌 HƯỚNG DẪN: Nhắn SỐ THỨ TỰ bạn (ví dụ: 1) từ danh sách.`,
+    `⚠️ LƯU Ý: Chỉ chọn bạn CÙNG LỚP với em.`,
+    '', MENU_HINT].join('\n');
   return saveTargetAndList(classId, target, session);
 };
 
@@ -326,10 +349,16 @@ export const assistOpenReply = async (botId: string, userId: string, classId: st
   const { teacherId, items } = await pendingAssignmentsForStudent(classId, assist.targetStudentId);
   if (!items.length) {
     if (!await changePreSession(session, null)) return PHOTO_REPLIES.sessionChanged;
-    return [`Bạn ${assist.targetName} hiện không có bài nào đang chờ nộp.`, '', MENU_HINT].join('\n');
+    return [`❌ Bạn ${assist.targetName} hiện không có bài nào đang chờ nộp.`,
+      `📌 HƯỚNG DẪN: Bạn ấy có thể đã nộp xong hoặc chưa có bài mới.`,
+      `⚠️ LƯU Ý: Chỉ nộp hộ được bài CHƯA NỘP của bạn cùng lớp.`,
+      '', MENU_HINT].join('\n');
   }
   const target = n >= 1 && n <= items.length ? items[n - 1] : null;
-  if (!target) return [`Số không khớp danh sách bài của ${assist.targetName}.`, '', MENU_HINT].join('\n');
+  if (!target) return [`❌ Số không khớp danh sách bài của ${assist.targetName}.`,
+    `📌 HƯỚNG DẪN: Nhắn SỐ THỨ TỰ bài (ví dụ: 1) từ danh sách.`,
+    `⚠️ LƯU Ý: Chỉ chọn bài CHƯA NỘP.`,
+    '', MENU_HINT].join('\n');
   return openPhotoSession(botId, userId, { studentId, classId, teacherId }, target, assist, session.data);
 };
 
@@ -421,9 +450,15 @@ export const openPhotoSession = async (
     });
   }
   lines.push(
-    `Em gửi ảnh bài làm nhé — tối đa ${MAX_PHOTOS} ảnh, trong 10 phút.`,
-    'Gửi xong nhắn: xong để máy chấm.',
-    'Muốn chọn lại bài: nhắn chấm.',
+    `📤 HƯỚNG DẪN NỘP BÀI:`,
+    `   1. Chụp ẢNH RÕ NÉT bài làm (không mờ, không cắt xén).`,
+    `   2. Gửi ảnh vào chat này — tối đa ${MAX_PHOTOS} ảnh/bài, trong 10 phút.`,
+    `   3. Gửi xong nhắn: xong — máy sẽ chấm bài và báo điểm cho em.`,
+    `⚠️ LƯU Ý:`,
+    `   • Ảnh phải là JPG/PNG/WEBP (không hỗ trợ HEIC/HEIF), dưới 10MB.`,
+    `   • Chỉ gửi ảnh BÀI LÀM (không chụp màn hình, không ảnh khác).`,
+    `   • Ảnh mờ/thiếu sẽ không chấm được.`,
+    `   • Muốn chọn lại bài khác: nhắn chấm.`,
     '', MENU_HINT,
   );
   return lines.join('\n');
@@ -502,8 +537,12 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
     if (current.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
     const photos = [...current.photos, { url, name: `zalo-${String(current.photos.length + 1).padStart(2, '0')}.${mimeType.split('/')[1] || 'jpg'}`, mimeType, size: buffer.byteLength }];
     tx.update(ref, { photos, expiresAt: Date.now() + SESSION_MS });
-    return [`Đã nhận ảnh ${photos.length}/${MAX_PHOTOS}.`,
-      photos.length >= MAX_PHOTOS ? 'Nhắn: xong để máy chấm.' : 'Gửi tiếp hoặc nhắn: xong để máy chấm.',
+    const remaining = MAX_PHOTOS - photos.length;
+    return [`✅ Đã nhận ảnh ${photos.length}/${MAX_PHOTOS} (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB).`,
+      remaining > 0
+        ? `📤 Gửi tiếp ${remaining} ảnh nữa hoặc nhắn: xong để máy chấm.`
+        : '📤 Nhắn: xong để máy chấm.',
+      `⚠️ LƯU Ý: Ảnh phải rõ nét, không mờ, không cắt xén.`,
       '', MENU_HINT].join('\n');
   });
 };

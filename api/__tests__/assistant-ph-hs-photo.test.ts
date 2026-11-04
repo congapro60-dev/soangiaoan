@@ -201,7 +201,8 @@ describe('phiên nhận ảnh', () => {
     seedClass();
     const reply = await openPhotoSession(BOT, USER, { studentId: 's1', classId: 'c1', teacherId: 'gv1' }, { id: 'a1', title: 'BTVN tuần 5' });
     expect(reply).toContain('BTVN tuần 5');
-    expect(reply).toContain('xong');
+    expect(reply).toContain('HƯỚNG DẪN NỘP BÀI');
+    expect(reply).toContain('LƯU Ý');
     expect(reply).toContain('Nhắn 0 để xem lại menu.');
     const session = h.db.rows.get(SESSION_PATH);
     expect(session.photos).toEqual([]);
@@ -223,7 +224,7 @@ describe('phiên nhận ảnh', () => {
     expect(reply).toContain('📎 File đề bài:');
     expect(reply).toContain('📄 de-thi.pdf: https://firebasestorage.../de-thi.pdf');
     expect(reply).toContain('🖼️ anh.jpg: https://firebasestorage.../anh.jpg');
-    expect(reply).toContain('xong');
+    expect(reply).toContain('HƯỚNG DẪN NỘP BÀI');
   });
   it('nhắn 0 hủy phiên: có phiên thì xóa, không phiên thì vô hại', async () => {
     seedClass();
@@ -434,7 +435,9 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
   it('nộp hộ → hỏi tên, lưu pre-session chờ tên', async () => {
     seedAssistClass();
     const reply = await assistStartReply(BOT, USER, 'c1', 's1');
-    expect(reply).toContain('Muốn nộp hộ bạn nào');
+    expect(reply).toContain('NỘP HỘ BẠN CÙNG LỚP');
+    expect(reply).toContain('HƯỚNG DẪN');
+    expect(reply).toContain('LƯU Ý');
     expect(reply).toContain('Nhắn 0 để xem lại menu.');
     const session = h.db.rows.get(SESSION_PATH);
     expect(session.assistState).toBe('name');
@@ -561,7 +564,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     seedAssistClass();
     await openSessionForA1();
     const reply = await assistStartReply(BOT, USER, 'c1', 's1');
-    expect(reply).toContain('Muốn nộp hộ bạn nào');
+    expect(reply).toContain('NỘP HỘ BẠN CÙNG LỚP');
     expect(h.db.rows.get(SESSION_PATH).assistState).toBe('name');
   });
 
@@ -570,7 +573,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await assistStartReply(BOT, USER, 'c1', 's1');
     await assistTargetReply(BOT, USER, 'c1', 'cuong dep');
     const reply = await assistStartReply(BOT, USER, 'c1', 's1');
-    expect(reply).toContain('Muốn nộp hộ bạn nào');
+    expect(reply).toContain('NỘP HỘ BẠN CÙNG LỚP');
     const session = h.db.rows.get(SESSION_PATH);
     expect(session.assistState).toBe('name');
     expect(session.assist).toBeUndefined();
