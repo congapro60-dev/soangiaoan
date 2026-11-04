@@ -5866,6 +5866,1776 @@
       ],
       "selfChoice": true,
       "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-112",
+      "grade": 10,
+      "week": 15,
+      "period": 112,
+      "title": "Ôn tập chương IV: Tích vô hướng và góc",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Ôn tập tích vô hướng giữa hai vectơ, công thức tính góc và bình phương vô hướng",
+      "formulas": [
+        "\\vec{a} \\cdot \\vec{b} = |\\vec{a}| |\\vec{b}| \\cos(\\vec{a}, \\vec{b})",
+        "\\cos(\\vec{a},\\vec{b}) = \\frac{\\vec{a}\\cdot\\vec{b}}{|\\vec{a}||\\vec{b}|}"
+      ],
+      "boardKnowledge": "Tích vô hướng: \\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\cos(\\vec{a},\\vec{b}). Vuông góc \\iff \\vec{a}\\cdot\\vec{b}=0.",
+      "examples": [
+        {
+          "question": "Cho tam giác vuông cân ABC tại A có AB = a. Tính \\vec{AB}\\cdot\\vec{BC}.",
+          "solution": "Góc giữa \\vec{AB} và \\vec{BC} là 135°. Tích = a \\cdot (a\\sqrt{2}) \\cdot \\cos 135° = -a^2."
+        },
+        {
+          "question": "Cho |\\vec{u}|=4, |\\vec{v}|=3 và góc bằng 60°. Tính |\\vec{u}-\\vec{v}|.",
+          "solution": "|\\vec{u}-\\vec{v}|^2 = 16 + 9 - 2(4)(3)(0,5) = 13 \\implies \\sqrt{13}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Góc giữa hai vectơ ngược hướng bằng bao nhiêu độ?",
+          "answer": "180°."
+        },
+        {
+          "level": "NB",
+          "question": "Tính \\vec{a}^2 biết |\\vec{a}| = 6.",
+          "answer": "36."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình vuông ABCD cạnh 2. Tính \\vec{AC}\\cdot\\vec{BD}.",
+          "answer": "Hai đường chéo hình vuông vuông góc nên tích bằng 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác đều ABC cạnh a, H là trung điểm BC. Tính \\vec{AH}\\cdot\\vec{BC}.",
+          "answer": "0 (đường cao vuông góc cạnh đáy)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC có AB=4, AC=6, BC=8. Tính \\vec{AB}\\cdot\\vec{AC}.",
+          "answer": "\\vec{AB}\\cdot\\vec{AC} = (AB^2 + AC^2 - BC^2)/2 = (16+36-64)/2 = -6."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm quỹ tích điểm M thoả mãn \\vec{MA}\\cdot\\vec{MB} = k.",
+          "answer": "Dựng I là trung điểm AB, MI^2 - AB^2/4 = k, quỹ tích là đường tròn tâm I."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tích vô hướng của hai vectơ cùng hướng tính thế nào?",
+          "solution": "Bằng tích độ dài: |\\vec{a}||\\vec{b}|."
+        },
+        {
+          "question": "Khi nào \\vec{a}\\cdot\\vec{b} < 0?",
+          "solution": "Khi góc giữa hai vectơ là góc tù (90° < góc <= 180°)."
+        }
+      ],
+      "mistakes": [
+        "Xác định nhầm góc giữa hai vectơ khi chưa đưa về chung gốc.",
+        "Quên dấu âm khi góc tù.",
+        "Bình phương vô hướng quên bình phương độ dài."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-113",
+      "grade": 10,
+      "week": 15,
+      "period": 113,
+      "title": "Ôn tập chương IV: Biểu thức tọa độ và vuông góc",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Biểu thức tọa độ tích vô hướng, điều kiện vuông góc và khoảng cách",
+      "formulas": [
+        "\\vec{a}\\cdot\\vec{b} = a_1 b_1 + a_2 b_2",
+        "\\vec{a}\\perp\\vec{b} \\iff a_1 b_1 + a_2 b_2 = 0"
+      ],
+      "boardKnowledge": "Tọa độ: \\vec{a}=(a_1; a_2), \\vec{b}=(b_1; b_2). Độ dài: |\\vec{a}|=\\sqrt{a_1^2+a_2^2}. Vuông góc: a_1 b_1 + a_2 b_2 = 0.",
+      "examples": [
+        {
+          "question": "Tìm m để \\vec{u}=(m; 2) vuông góc với \\vec{v}=(4; -6).",
+          "solution": "4m + 2(-6) = 0 \\iff 4m = 12 \\iff m = 3."
+        },
+        {
+          "question": "Cho tam giác ABC có A(1; 3), B(4; 2), C(2; -2). Tính cos góc A.",
+          "solution": "\\vec{AB}=(3; -1), \\vec{AC}=(1; -5). Tích = 3+5=8. |AB|=\\sqrt{10}, |AC|=\\sqrt{26}. \\cos A = 8/\\sqrt{260}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính \\vec{a}\\cdot\\vec{b} biết \\vec{a}=(2; 1), \\vec{b}=(3; 5).",
+          "answer": "2(3) + 1(5) = 11."
+        },
+        {
+          "level": "NB",
+          "question": "Hai vectơ \\vec{u}=(1; 2) và \\vec{v}=(-2; 1) có vuông góc không?",
+          "answer": "Có, 1(-2) + 2(1) = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho A(2; 3), B(5; 7). Tính độ dài đoạn AB.",
+          "answer": "AB = \\sqrt{3^2 + 4^2} = 5."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm tọa độ trực tâm H của tam giác ABC với A(0; 2), B(-1; 0), C(2; 0).",
+          "answer": "H(0; 0) (gốc tọa độ)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm tọa độ điểm M trên trục Oy sao cho góc AMB vuông với A(2; 1), B(4; 3).",
+          "answer": "M(0; y). \\vec{MA}=(2; 1-y), \\vec{MB}=(4; 3-y). Tích = 8 + (1-y)(3-y) = 0 vô nghiệm."
+        },
+        {
+          "level": "VD",
+          "question": "Cho 3 điểm A(-2; 1), B(1; 4), C(5; 0). Chứng minh tam giác ABC vuông.",
+          "answer": "\\vec{AB}=(3; 3), \\vec{BC}=(4; -4). \\vec{AB}\\cdot\\vec{BC} = 12 - 12 = 0 \\implies vuông tại B."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tọa độ vectơ \\vec{i} và \\vec{j} là gì?",
+          "solution": "\\vec{i}=(1; 0), \\vec{j}=(0; 1)."
+        },
+        {
+          "question": "Điều kiện cùng phương khác điều kiện vuông góc ở điểm nào?",
+          "solution": "Cùng phương: nhân chéo bằng nhau (a1 b2 - a2 b1 = 0); Vuông góc: tổng tích bằng 0 (a1 b1 + a2 b2 = 0)."
+        }
+      ],
+      "mistakes": [
+        "Nhầm lẫn giữa điều kiện cùng phương và điều kiện vuông góc.",
+        "Quên căn bậc hai khi tính độ dài.",
+        "Tính sai dấu của tọa độ âm."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-114",
+      "grade": 10,
+      "week": 15,
+      "period": 114,
+      "title": "Ôn tập chương IV: Hệ thức lượng trong tam giác",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Định lý côsin, định lý sin và giải tam giác",
+      "formulas": [
+        "a^2 = b^2 + c^2 - 2bc \\cos A",
+        "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C} = 2R"
+      ],
+      "boardKnowledge": "Định lý côsin: a^2 = b^2 + c^2 - 2bc \\cos A. Định lý sin: a/sin A = 2R. Nhận dạng tam giác nhọn, vuông, tù.",
+      "examples": [
+        {
+          "question": "Cho tam giác ABC có b=7, c=5, góc A=60°. Tính cạnh a.",
+          "solution": "a^2 = 49 + 25 - 2(7)(5)(0,5) = 74 - 35 = 39 \\implies a = \\sqrt{39}."
+        },
+        {
+          "question": "Cho tam giác ABC có a=10, góc A=30°. Tính bán kính R của đường tròn ngoại tiếp.",
+          "solution": "2R = a / \\sin A = 10 / 0,5 = 20 \\implies R = 10."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết công thức định lý côsin tính \\cos A.",
+          "answer": "\\cos A = (b^2 + c^2 - a^2)/(2bc)."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu a^2 > b^2 + c^2 thì góc A là góc nhọn hay tù?",
+          "answer": "Góc A là góc tù."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác có 3 cạnh 5, 12, 13. Tính bán kính R.",
+          "answer": "Tam giác vuông cạnh huyền 13 \\implies R = 13/2 = 6,5."
+        },
+        {
+          "level": "TH",
+          "question": "Tính góc B biết a=8, b=8, c=8.",
+          "answer": "Tam giác đều, góc B = 60°."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC có a=6, b=8, c=10. Tính độ dài đường trung tuyến m_a.",
+          "answer": "m_a^2 = (2(64+100) - 36)/4 = (328-36)/4 = 73 \\implies m_a = \\sqrt{73}."
+        },
+        {
+          "level": "VD",
+          "question": "Hai tàu thuỷ xuất phát từ cảng tạo góc 60°, tàu A chạy 20 km/h, tàu B chạy 30 km/h. Sau 2h khoảng cách hai tàu là bao nhiêu?",
+          "answer": "d1=40, d2=60. d^2 = 1600 + 3600 - 2(40)(60)(0,5) = 2800 \\implies d \\approx 52,9 km."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Định lý côsin suy biến thành định lý Pythagore khi nào?",
+          "solution": "Khi góc xen giữa bằng 90° (\\cos 90° = 0)."
+        },
+        {
+          "question": "Có thể tính trực tiếp R từ định lý sin không?",
+          "solution": "Có, R = a / (2 \\sin A)."
+        }
+      ],
+      "mistakes": [
+        "Quên nhân hệ số 2 trong 2bc cos A.",
+        "Nhầm sin và cos trong các định lý.",
+        "Bấm máy tính nhầm giữa đơn vị Degree và Radian."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-115",
+      "grade": 10,
+      "week": 15,
+      "period": 115,
+      "title": "Ôn tập chương IV: Diện tích tam giác và bài toán thực tế",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các công thức tính diện tích tam giác và bài toán đo đạc thực tế",
+      "formulas": [
+        "S = \\frac{1}{2}ab \\sin C = \\frac{abc}{4R} = pr = \\sqrt{p(p-a)(p-b)(p-c)}"
+      ],
+      "boardKnowledge": "Hệ 5 công thức diện tích tam giác: 1. 1/2 a ha; 2. 1/2 ab sin C; 3. abc/(4R); 4. pr; 5. Heron.",
+      "examples": [
+        {
+          "question": "Cho tam giác có a=5, b=6, c=7. Tính diện tích tam giác bằng công thức Heron.",
+          "solution": "p = 9. S = \\sqrt{9(9-5)(9-6)(9-7)} = \\sqrt{9 \\cdot 4 \\cdot 3 \\cdot 2} = 6\\sqrt{6}."
+        },
+        {
+          "question": "Tính bán kính nội tiếp r của tam giác có p=9 và S=6\\sqrt{6}.",
+          "solution": "r = S/p = 6\\sqrt{6}/9 = 2\\sqrt{6}/3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết công thức diện tích tam giác theo hai cạnh và góc xen giữa.",
+          "answer": "S = 1/2 a b \\sin C."
+        },
+        {
+          "level": "NB",
+          "question": "Ký hiệu p trong công thức Heron đại diện cho gì?",
+          "answer": "Nửa chu vi tam giác p = (a+b+c)/2."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác đều cạnh 4. Tính diện tích tam giác.",
+          "answer": "S = 4^2 \\sqrt{3}/4 = 4\\sqrt{3}."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác ABC có a=6, b=8, C=30°. Tính diện tích tam giác.",
+          "answer": "S = 0,5(6)(8)(0,5) = 12."
+        },
+        {
+          "level": "VD",
+          "question": "Đo chiều cao của tháp đứng từ hai điểm A, B cách nhau 20 m có góc nâng lần lượt là 30° và 45°. Tính chiều cao tháp.",
+          "answer": "Giải hệ thức lượng ra chiều cao h \\approx 27,3 m."
+        },
+        {
+          "level": "VD",
+          "question": "Một mảnh đất hình tam giác có hai cạnh 15 m và 20 m, góc giữa chúng 60°. Tính chi phí trồng cỏ với giá 50.000 đ/m^2.",
+          "answer": "S = 0,5(15)(20)\\sin 60° = 75\\sqrt{3} m^2. Chi phí = S * 50.000 đ."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Bán kính r liên hệ với diện tích qua công thức nào?",
+          "solution": "S = pr \\implies r = S/p."
+        },
+        {
+          "question": "Khi nào nên ưu tiên dùng công thức Heron?",
+          "solution": "Khi biết độ dài cả 3 cạnh của tam giác."
+        }
+      ],
+      "mistakes": [
+        "Nhầm nửa chu vi p với cả chu vi 2p.",
+        "Quên chia 2 trong công thức 1/2 ab sin C.",
+        "Tính sai bán kính đường tròn ngoại tiếp R với nội tiếp r."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-116",
+      "grade": 10,
+      "week": 15,
+      "period": 116,
+      "title": "Ôn tập cuối HK1: Mệnh đề, tập hợp và bất phương trình",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Tổng hợp kiến thức nền tảng chương I và chương II",
+      "formulas": [
+        "A \\cap B, A \\cup B, A \\setminus B",
+        "ax + by \\le c"
+      ],
+      "boardKnowledge": "Tập hợp: Phép giao, hợp, hiệu, phần bù. Bất phương trình bậc nhất hai ẩn: Biểu diễn miền nghiệm trên mặt phẳng tọa độ.",
+      "examples": [
+        {
+          "question": "Cho A = [-2; 3] và B = (1; 5). Tìm A giao B và A hợp B.",
+          "solution": "A \\cap B = (1; 3]; A \\cup B = [-2; 5)."
+        },
+        {
+          "question": "Xác định miền nghiệm của 2x + y <= 4 chứa điểm gốc tọa độ O(0; 0) không?",
+          "solution": "2(0) + 0 = 0 <= 4 (đúng) nên miền nghiệm chứa điểm O."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mệnh đề phủ định của \"Mọi x đều thoả P(x)\" là gì?",
+          "answer": "\"Tồn tại x không thoả P(x)\"."
+        },
+        {
+          "level": "NB",
+          "question": "Viết tập hợp các số tự nhiên nhỏ hơn 5.",
+          "answer": "{0, 1, 2, 3, 4}."
+        },
+        {
+          "level": "TH",
+          "question": "Cho A = (-3; 2] và B = [0; 4). Tìm A \\setminus B.",
+          "answer": "(-3; 0)."
+        },
+        {
+          "level": "TH",
+          "question": "Điểm nào sau đây thuộc miền nghiệm 3x - 2y > 1: M(1; 0) hay N(0; 1)?",
+          "answer": "M(1; 0) vì 3(1) - 0 = 3 > 1."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để [-1; 2] là tập con của [m; m+5].",
+          "answer": "m <= -1 và m+5 >= 2 \\implies -3 <= m <= -1."
+        },
+        {
+          "level": "VD",
+          "question": "Bài toán quy hoạch tuyến tính: Tìm giá trị lớn nhất của F = 2x + 3y trên miền đa giác.",
+          "answer": "Thế tọa độ các đỉnh của miền đa giác vào biểu thức F."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Ký hiệu giao là hình chữ U úp hay ngửa?",
+          "solution": "Chữ U úp (\\cap)."
+        },
+        {
+          "question": "Đường biên có thuộc miền nghiệm khi dấu là bất đẳng thức ngặt (<, >) không?",
+          "solution": "Không thuộc (biểu diễn bằng nét đứt)."
+        }
+      ],
+      "mistakes": [
+        "Nhầm ngoặc tròn (khoảng) và ngoặc vuông (đoạn).",
+        "Quên phủ định lượng từ (mọi thành tồn tại).",
+        "Vẽ nét liền cho bất đẳng thức ngặt."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-117",
+      "grade": 10,
+      "week": 15,
+      "period": 117,
+      "title": "Ôn tập cuối HK1: Vectơ và hệ thức lượng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Tổng hợp các phép toán vectơ, hệ trục tọa độ và hệ thức lượng",
+      "formulas": [
+        "\\vec{u} = x\\vec{i} + y\\vec{j}",
+        "\\vec{AB} = (x_B - x_A; y_B - y_A)"
+      ],
+      "boardKnowledge": "Toàn cảnh vectơ HK1: Quy tắc 3 điểm, hình bình hành, trung điểm, trọng tâm, tọa độ và tích vô hướng.",
+      "examples": [
+        {
+          "question": "Cho tam giác ABC có A(1; 2), B(3; 6), C(-1; 4). Tìm tọa độ trọng tâm G.",
+          "solution": "G = ((1+3-1)/3; (2+6+4)/3) = (1; 4)."
+        },
+        {
+          "question": "Tìm tọa độ điểm D để ABCD là hình bình hành với A(1; 1), B(3; 2), C(5; 5).",
+          "solution": "\\vec{AD} = \\vec{BC} \\implies (x_D-1; y_D-1) = (2; 3) \\implies D(3; 4)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Quy tắc 3 điểm cho phép cộng vectơ: \\vec{AB} + \\vec{BC} = ?",
+          "answer": "\\vec{AC}."
+        },
+        {
+          "level": "NB",
+          "question": "Hiệu \\vec{AB} - \\vec{AC} bằng vectơ nào?",
+          "answer": "\\vec{CB}."
+        },
+        {
+          "level": "TH",
+          "question": "Cho A(2; -1), B(4; 5). Tìm tọa độ trung điểm I của AB.",
+          "answer": "I(3; 2)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho \\vec{a}=(3; 2), \\vec{b}=(-1; 4). Tính \\vec{u} = 2\\vec{a} - \\vec{b}.",
+          "answer": "\\vec{u} = (6 - (-1); 4 - 4) = (7; 0)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC. Tìm điểm M thoả mãn \\vec{MA} + 2\\vec{MB} = \\vec{0}.",
+          "answer": "M thuộc đoạn AB sao cho MA = 2 MB và \\vec{MA}, \\vec{MB} ngược hướng."
+        },
+        {
+          "level": "VD",
+          "question": "Tính góc giữa hai đường chéo của tứ giác ABCD biết tọa độ 4 đỉnh.",
+          "answer": "Tính tọa độ \\vec{AC}, \\vec{BD} rồi dùng công thức tính cosin góc."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Vectơ-không có hướng xác định không?",
+          "solution": "Không, hướng tuỳ ý."
+        },
+        {
+          "question": "Hai vectơ đối nhau có tổng bằng gì?",
+          "solution": "Bằng vectơ-không (\\vec{0})."
+        }
+      ],
+      "mistakes": [
+        "Nhầm \\vec{AB} - \\vec{AC} = \\vec{BC} thay vì \\vec{CB}.",
+        "Quên chia 3 khi tính tọa độ trọng tâm.",
+        "Nhầm thứ tự điểm đầu và điểm cuối."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-118",
+      "grade": 10,
+      "week": 15,
+      "period": 118,
+      "title": "Tự chọn: Kỹ thuật giải trắc nghiệm vectơ và hệ thức lượng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các mẹo bấm máy tính Casio, kỹ thuật chuẩn hóa số liệu và loại trừ đáp án",
+      "formulas": [
+        "\\text{Casio: Pol/Rec, Vector mode}"
+      ],
+      "boardKnowledge": "Kỹ năng trắc nghiệm: Gán hệ trục tọa độ cho các hình đặc biệt; dùng chức năng Vector trong máy tính Casio 580/880.",
+      "examples": [
+        {
+          "question": "Cho hình vuông ABCD cạnh 1. Dùng Casio tính tích vô hướng \\vec{AC}\\cdot(\\vec{AB}+\\vec{AD}).",
+          "solution": "Gán A(0;0), B(1;0), D(0;1), C(1;1). Dùng máy tính ra kết quả = 2."
+        },
+        {
+          "question": "Giải nhanh tam giác có a=7, b=8, c=9 tìm góc A.",
+          "solution": "Bấm cos A = (64+81-49)/(2*8*9) = 96/144 = 2/3 \\implies shift cos ra xấp xỉ 48°11'."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Phím gán biến trong máy tính Casio 580 là gì?",
+          "answer": "Phím STO (Store)."
+        },
+        {
+          "level": "NB",
+          "question": "Chuyển đơn vị đo góc từ Radian sang Degree trên Casio như thế nào?",
+          "answer": "Shift -> Menu (Setup) -> 2: Angle Unit -> 1: Degree."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tính nhanh độ dài vectơ \\vec{u}=(7; 24).",
+          "answer": "\\sqrt{7^2 + 24^2} = 25 (hoặc Pol(7, 24))."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nhanh cosin góc giữa hai vectơ qua tích vô hướng trên Casio.",
+          "answer": "Dùng chức năng Dot Product (Tích vô hướng) trong Vector mode."
+        },
+        {
+          "level": "VD",
+          "question": "Loại trừ đáp án nhanh câu hỏi tìm tập hợp điểm M: \\vec{MA}\\cdot\\vec{MB} = 0.",
+          "answer": "Nhận diện ngay là đường tròn đường kính AB, loại ngay các đáp án đường thẳng."
+        },
+        {
+          "level": "VD",
+          "question": "Chuẩn hóa hình học: Cho tam giác ABC tuỳ ý, chuẩn hóa thành tam giác đều hoặc vuông cân để thử nghiệm công thức trắc nghiệm.",
+          "answer": "Chọn tam giác vuông cân cạnh 1 để kiểm tra đẳng thức vectơ."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Chuẩn hóa số liệu có làm mất tính đúng đắn của bài toán tổng quát không?",
+          "solution": "Không, nếu mệnh đề đúng tổng quát thì phải đúng với trường hợp riêng."
+        },
+        {
+          "question": "Khi nào không nên phụ thuộc máy tính Casio?",
+          "solution": "Khi bài toán chứa nhiều tham số chữ m, k."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi chế độ góc sang Degree dẫn đến kết quả sai lệch.",
+        "Nhập sai thứ tự tọa độ trong Vector mode.",
+        "Lạm dụng máy tính ở các bài toán lý thuyết thuần túy."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-15-119",
+      "grade": 10,
+      "week": 15,
+      "period": 119,
+      "title": "Tự chọn: Bài toán thực tế tổng hợp học kỳ 1",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Mô hình hóa toán học các tình huống thực tiễn: Hàng hải, đo đạc trắc địa, tối ưu kinh tế",
+      "formulas": [
+        "\\text{Mô hình hóa: Thực tế } \\to \\text{ Đại số/Hình học } \\to \\text{ Kết luận}"
+      ],
+      "boardKnowledge": "Phương pháp mô hình hóa: Xác định biến số -> Lập hệ bất phương trình/hình tam giác -> Áp dụng công thức -> Kết luận thực tế.",
+      "examples": [
+        {
+          "question": "Một máy bay bay về hướng đông với vận tốc 400 km/h, gió thổi về hướng bắc vận tốc 60 km/h. Tính vận tốc thực của máy bay.",
+          "solution": "Vận tốc thực là đường chéo hình chữ nhật: v = \\sqrt{400^2 + 60^2} \\approx 404,5 km/h, chếch bắc một góc arctan(60/400) \\approx 8,5°."
+        },
+        {
+          "question": "Lập kế hoạch sản xuất hai loại sản phẩm A và B để lợi nhuận cao nhất trong giới hạn nguyên liệu.",
+          "solution": "Mô hình hóa thành bài toán quy hoạch tuyến tính với miền đa giác nghiệm."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Đại lượng nào trong thực tế thường được mô hình bằng vectơ?",
+          "answer": "Vận tốc, lực, gia tốc, độ dịch chuyển."
+        },
+        {
+          "level": "NB",
+          "question": "Bài toán tìm điểm đặt trạm biến áp cách đều 3 khu dân cư tương ứng với điểm nào trong tam giác?",
+          "answer": "Tâm đường tròn ngoại tiếp tam giác."
+        },
+        {
+          "level": "TH",
+          "question": "Hai lực F1 = 30 N và F2 = 40 N tác dụng vào một điểm tạo góc 90°. Tính độ lớn hợp lực.",
+          "answer": "F = \\sqrt{30^2 + 40^2} = 50 N."
+        },
+        {
+          "level": "TH",
+          "question": "Một người đứng trên bờ sông ngắm ngọn hải đăng cách bờ 500 m. Góc quan sát thay đổi khi người đó di chuyển.",
+          "answer": "Áp dụng lượng giác tam giác vuông."
+        },
+        {
+          "level": "VD",
+          "question": "Một hải đăng phát tín hiệu xa 10 km. Một con tàu chạy theo đường thẳng cách hải đăng gần nhất 6 km. Tàu nằm trong vùng phát sóng bao lâu nếu chạy 15 km/h?",
+          "answer": "Đoạn đường trong tầm quét là 2\\sqrt{10^2-6^2} = 16 km. Thời gian = 16/15 h = 64 phút."
+        },
+        {
+          "level": "VD",
+          "question": "Tối ưu hóa diện tích mảnh đất hình chữ nhật có chu vi không đổi 40 m.",
+          "answer": "Hình vuông cạnh 10 m, diện tích cực đại 100 m^2."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Quy tắc hình bình hành ứng dụng trong bài toán nào của vật lý?",
+          "solution": "Tổng hợp lực và tổng hợp vận tốc."
+        },
+        {
+          "question": "Tại sao cần đối chiếu kết quả toán học với điều kiện thực tế?",
+          "solution": "Vì biến số thực tế phải dương và có giới hạn vật lý."
+        }
+      ],
+      "mistakes": [
+        "Không đặt điều kiện thực tế cho các ẩn số (như chiều dài, số lượng phải dương).",
+        "Tính toán ra số lẻ làm tròn sai quy tắc.",
+        "Nhầm lẫn giữa phương hướng địa lý (Đông Tây Nam Bắc)."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-106",
+      "grade": 11,
+      "week": 15,
+      "period": 106,
+      "title": "Hàm số liên tục trên một khoảng",
+      "kind": "formation",
+      "lessonType": "concept",
+      "focus": "Định nghĩa hàm số liên tục trên khoảng, đoạn và các tính chất cơ bản",
+      "formulas": [
+        "f \\text{ liên tục trên } (a; b) \\iff f \\text{ liên tục tại mọi } x_0 \\in (a; b)",
+        "f \\text{ liên tục trên } [a; b]"
+      ],
+      "boardKnowledge": "Liên tục trên [a; b]: Liên tục trên (a; b) và \\lim_{x \\to a^+} f(x) = f(a), \\lim_{x \\to b^-} f(x) = f(b).",
+      "examples": [
+        {
+          "question": "Chứng minh hàm số f(x) = \\sqrt{4 - x^2} liên tục trên đoạn [-2; 2].",
+          "solution": "Với x0 thuộc (-2; 2), \\lim f(x) = f(x0). Tại 2 đầu mút: \\lim_{x \\to -2^+} f(x) = 0 = f(-2), \\lim_{x \\to 2^-} f(x) = 0 = f(2). Vậy f liên tục trên [-2; 2]."
+        },
+        {
+          "question": "Xét tính liên tục của f(x) = 1/(x - 3) trên khoảng (0; 5).",
+          "solution": "Tại x = 3 thuộc (0; 5) hàm số không xác định nên không liên tục trên (0; 5)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hàm đa thức có liên tục trên toàn bộ trục số R không?",
+          "answer": "Có, liên tục trên R."
+        },
+        {
+          "level": "NB",
+          "question": "Hàm phân thức liên tục trên những tập hợp nào?",
+          "answer": "Liên tục trên từng khoảng xác định của nó."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm các khoảng liên tục của hàm số f(x) = \\frac{2x}{x^2 - 1}.",
+          "answer": "(-\\infty; -1), (-1; 1) và (1; +\\infty)."
+        },
+        {
+          "level": "TH",
+          "question": "Hàm số f(x) = \\tan x liên tục trên khoảng nào sau đây: (0; \\pi) hay (0; \\pi/2)?",
+          "answer": "(0; \\pi/2) vì tại \\pi/2 hàm tan không xác định."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để hàm số f(x) = \\sqrt{x - m} liên tục trên nửa khoảng [2; +\\infty).",
+          "answer": "Điều kiện xác định x >= m. Để liên tục trên [2; +\\infty) thì m <= 2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho f, g liên tục trên đoạn [a; b]. Chứng minh h(x) = \\max(f(x), g(x)) liên tục trên [a; b].",
+          "answer": "Sử dụng công thức \\max(f, g) = (f + g + |f - g|)/2."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Đồ thị của hàm số liên tục trên một đoạn có đặc điểm gì?",
+          "solution": "Là một đường liền nét nối hai đầu mút."
+        },
+        {
+          "question": "Tổng, hiệu, tích của hai hàm số liên tục có liên tục không?",
+          "solution": "Có, luôn liên tục."
+        }
+      ],
+      "mistakes": [
+        "Quên kiểm tra giới hạn một bên tại hai đầu mút của đoạn.",
+        "Kết luận hàm phân thức liên tục trên hợp của các khoảng.",
+        "Bỏ qua điều kiện xác định dưới dấu căn."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-107",
+      "grade": 11,
+      "week": 15,
+      "period": 107,
+      "title": "Luyện tập hàm số liên tục và định lý nghiệm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ năng vận dụng định lý giá trị trung gian chứng minh phương trình có nghiệm",
+      "formulas": [
+        "f(a) \\cdot f(b) < 0 \\implies \\exists c \\in (a; b): f(c) = 0"
+      ],
+      "boardKnowledge": "Định lý Bolzano-Cauchy: Nếu f liên tục trên [a; b] và f(a)f(b) < 0 thì phương trình f(x) = 0 có ít nhất một nghiệm c thuộc (a; b).",
+      "examples": [
+        {
+          "question": "Chứng minh phương trình 2x^3 - 6x + 1 = 0 có ít nhất 3 nghiệm phân biệt.",
+          "solution": "f liên tục trên R. f(-2)=-3 < 0, f(0)=1 > 0, f(1)=-3 < 0, f(2)=5 > 0. Do đó có 3 nghiệm trên (-2; 0), (0; 1), (1; 2)."
+        },
+        {
+          "question": "Chứng minh phương trình x^4 - 3x^2 + x - 1 = 0 có nghiệm trong (1; 2).",
+          "solution": "f(1) = -2 < 0, f(2) = 5 > 0. Vì f(1)f(2) < 0 và f liên tục nên có nghiệm."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nêu điều kiện để phương trình f(x) = 0 có ít nhất một nghiệm trong khoảng (a; b).",
+          "answer": "f liên tục trên đoạn [a; b] và f(a)f(b) < 0."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu f(a) và f(b) cùng dấu thì phương trình có thể có nghiệm trong (a; b) không?",
+          "answer": "Có thể có nghiệm (định lý là điều kiện đủ, không phải điều kiện cần)."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh phương trình x^3 + 2x - 5 = 0 có nghiệm thuộc (1; 2).",
+          "answer": "f(1) = -2 < 0, f(2) = 7 > 0 \\implies đổi dấu nên có nghiệm."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh phương trình \\cos x = x có nghiệm trong khoảng (0; \\pi/2).",
+          "answer": "Xét f(x) = \\cos x - x. f(0)=1 > 0, f(\\pi/2) = -\\pi/2 < 0."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh phương trình x^5 + x - 1 = 0 có đúng 1 nghiệm thực.",
+          "answer": "f liên tục, f(0)=-1, f(1)=1 nên có nghiệm. f'(x) = 5x^4 + 1 > 0 nên hàm đồng biến, nghiệm là duy nhất."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh với mọi tham số m, phương trình (m^2 + 1)x^3 - 2m^2 x^2 - 4x + m^2 + 1 = 0 luôn có nghiệm.",
+          "answer": "Tính f(0) = m^2 + 1 > 0, f(1) = -2 < 0 với mọi m."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Định lý giá trị trung gian có cho biết chính xác giá trị nghiệm không?",
+          "solution": "Không, chỉ khẳng định sự tồn tại của nghiệm trong khoảng."
+        },
+        {
+          "question": "Phương pháp chia đôi tìm nghiệm dựa trên định lý nào?",
+          "solution": "Định lý giá trị trung gian của hàm liên tục."
+        }
+      ],
+      "mistakes": [
+        "Không kiểm tra tính liên tục của hàm số trước khi nhân tích f(a)f(b).",
+        "Nhầm khoảng mở (a; b) với đoạn đóng [a; b].",
+        "Chọn nhầm các điểm thử khiến tích không đổi dấu."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-108",
+      "grade": 11,
+      "week": 15,
+      "period": 108,
+      "title": "Ôn tập chương V: Số trung bình và trung vị mẫu ghép nhóm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ năng tính số trung bình, tìm nhóm chứa trung vị và tính trung vị mẫu số liệu ghép nhóm",
+      "formulas": [
+        "\\bar{x} = \\frac{1}{n}\\sum m_i c_i",
+        "M_e = u_m + \\frac{n/2 - C}{n_m}(u_{m+1} - u_m)"
+      ],
+      "boardKnowledge": "Số trung bình: Tổng (tần số * giá trị đại diện) chia cỡ mẫu n. Trung vị: Nhóm chứa vị trí n/2, nội suy theo công thức chuẩn.",
+      "examples": [
+        {
+          "question": "Cho mẫu ghép nhóm với n = 40. Xác định nhóm chứa trung vị biết tần số tích lũy: [0; 10): 8, [10; 20): 15 (tổng 23), [20; 30): 12.",
+          "solution": "Vị trí n/2 = 20. Vì CF_1 = 8 < 20 <= CF_2 = 23 nên nhóm chứa trung vị là [10; 20)."
+        },
+        {
+          "question": "Tính trung vị cho nhóm [10; 20) với u_m=10, n=40, C=8, n_m=15, độ dài khoảng d=10.",
+          "solution": "M_e = 10 + ((20 - 8)/15) * 10 = 10 + 8 = 18."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giá trị đại diện của nhóm [a; b) tính thế nào?",
+          "answer": "c = (a + b)/2."
+        },
+        {
+          "level": "NB",
+          "question": "Trung vị chia mẫu số liệu thành mấy phần bằng nhau về số lượng quan sát?",
+          "answer": "2 phần bằng nhau (mỗi phần 50%)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính số trung bình của 2 nhóm: [0; 4) có 6 học sinh và [4; 8) có 14 học sinh.",
+          "answer": "c1=2, c2=6. x̄ = (6*2 + 14*6)/20 = (12 + 84)/20 = 4,8."
+        },
+        {
+          "level": "TH",
+          "question": "Một mẫu số liệu có n = 100. Vị trí xác định nhóm chứa trung vị là bao nhiêu?",
+          "answer": "Vị trí thứ 50 (n/2 = 50)."
+        },
+        {
+          "level": "VD",
+          "question": "So sánh ý nghĩa của số trung bình và trung vị khi mẫu số liệu có giá trị ngoại lai lớn bất thường.",
+          "answer": "Số trung bình bị kéo lệch mạnh bởi ngoại lai, trung vị ổn định hơn và phản ánh đúng xu thế trung tâm."
+        },
+        {
+          "level": "VD",
+          "question": "Tính trung vị của mẫu số liệu thời gian chạy 100m của học sinh khối 11.",
+          "answer": "Áp dụng công thức nội suy trung vị trên nhóm chứa n/2."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào số trung bình và trung vị xấp xỉ bằng nhau?",
+          "solution": "Khi mẫu số liệu có phân bố đối xứng."
+        },
+        {
+          "question": "Giá trị đại diện có nhất thiết phải là số nguyên không?",
+          "solution": "Không, có thể là số thập phân (ví dụ [0; 5) có c = 2,5)."
+        }
+      ],
+      "mistakes": [
+        "Nhầm giá trị đại diện là hiệu hai đầu mút thay vì trung điểm.",
+        "Lấy nhầm tần số tích lũy của chính nhóm đó thay vì nhóm đứng trước.",
+        "Nhầm cỡ mẫu n với số lượng nhóm k."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-109",
+      "grade": 11,
+      "week": 15,
+      "period": 109,
+      "title": "Ôn tập chương V: Tứ phân vị và mốt mẫu ghép nhóm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ thuật xác định nhóm chứa tứ phân vị Q1, Q3, nhóm chứa mốt và công thức nội suy",
+      "formulas": [
+        "Q_1: n/4; Q_3: 3n/4",
+        "M_o = u_m + \\frac{n_m - n_{m-1}}{(n_m - n_{m-1}) + (n_m - n_{m+1})}(u_{m+1} - u_m)"
+      ],
+      "boardKnowledge": "Tứ phân vị: Q1 ở vị trí n/4, Q3 ở vị trí 3n/4. Mốt: Nhóm có tần số lớn nhất, nội suy theo chênh lệch tần số lân cận.",
+      "examples": [
+        {
+          "question": "Mẫu có n = 60. Xác định vị trí tìm nhóm chứa Q1 và Q3.",
+          "solution": "Q1 tìm ở vị trí 60/4 = 15; Q3 tìm ở vị trí 3*60/4 = 45."
+        },
+        {
+          "question": "Nhóm [20; 30) có tần số lớn nhất nm=25, nhóm trước nm-1=15, nhóm sau nm+1=10. Tính mốt Mo.",
+          "solution": "Mo = 20 + ((25-15) / ((25-15) + (25-10))) * 10 = 20 + (10/25)*10 = 24."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nhóm chứa mốt là nhóm như thế nào?",
+          "answer": "Là nhóm có tần số lớn nhất trong bảng số liệu ghép nhóm."
+        },
+        {
+          "level": "NB",
+          "question": "Khoảng tứ phân vị Delta_Q được tính bằng gì?",
+          "answer": "\\Delta_Q = Q_3 - Q_1."
+        },
+        {
+          "level": "TH",
+          "question": "Cho n = 80. Nhóm nào chứa Q1 biết tần số tích lũy: [0; 10): 12, [10; 20): 18 (tổng 30)?",
+          "answer": "Vị trí 80/4 = 20 thuộc nhóm [10; 20)."
+        },
+        {
+          "level": "TH",
+          "question": "Một mẫu số liệu có thể có nhiều hơn một mốt không?",
+          "answer": "Có thể (mẫu đa mốt nếu có nhiều nhóm cùng đạt tần số cực đại)."
+        },
+        {
+          "level": "VD",
+          "question": "Tính khoảng tứ phân vị cho mẫu số liệu điểm kiểm tra toán của lớp 11A.",
+          "answer": "Tính Q1, Q3 qua công thức nội suy rồi lấy hiệu Q3 - Q1."
+        },
+        {
+          "level": "VD",
+          "question": "Xác định các giá trị nghi ngờ ngoại lai dựa vào ngưỡng Q1 - 1,5 Delta_Q và Q3 + 1,5 Delta_Q.",
+          "answer": "Tính ngưỡng trên và ngưỡng dưới rồi so sánh với các giá trị quan sát."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Mốt có nhất thiết phải nằm trong nhóm có tần số lớn nhất không?",
+          "solution": "Có, mốt luôn thuộc nhóm có tần số cao nhất."
+        },
+        {
+          "question": "Ý nghĩa của tứ phân vị là gì?",
+          "solution": "Chia mẫu số liệu thành 4 phần bằng nhau, mỗi phần chứa 25% số liệu."
+        }
+      ],
+      "mistakes": [
+        "Nhầm công thức Q1 vị trí n/4 với n/2.",
+        "Quên dấu ngoặc trong mẫu số công thức mốt.",
+        "Nhầm lẫn giữa tần số nhóm và tần số tích lũy."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-110",
+      "grade": 11,
+      "week": 15,
+      "period": 110,
+      "title": "Lũy thừa với số mũ nguyên và căn bậc n",
+      "kind": "formation",
+      "lessonType": "concept",
+      "focus": "Khái niệm luỹ thừa số mũ nguyên, căn bậc n và các tính chất đại số",
+      "formulas": [
+        "a^{-n} = \\frac{1}{a^n} (a \\ne 0, n \\in \\mathbb{N}^*)",
+        "a^0 = 1 (a \\ne 0)",
+        "\\sqrt[n]{a^n} = a \\text{ (n lẻ)}, |a| \\text{ (n chẵn)}"
+      ],
+      "boardKnowledge": "Luỹ thừa nguyên: a^0 = 1 (a khác 0), a^-n = 1/a^n. Căn bậc n: Với n chẵn a >= 0; với n lẻ a thuộc R.",
+      "examples": [
+        {
+          "question": "Tính giá trị biểu thức: A = 2^{-3} + (1/3)^{-2} - 2026^0.",
+          "solution": "A = 1/8 + 9 - 1 = 8 + 1/8 = 65/8."
+        },
+        {
+          "question": "Rút gọn: \\sqrt[4]{(-3)^4} + \\sqrt[3]{(-2)^3}.",
+          "solution": "\\sqrt[4]{(-3)^4} = |-3| = 3; \\sqrt[3]{(-2)^3} = -2. Tổng = 3 + (-2) = 1."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu thức 0^0 có nghĩa không?",
+          "answer": "Không có nghĩa (chưa xác định)."
+        },
+        {
+          "level": "NB",
+          "question": "Tính (-5)^0.",
+          "answer": "Bằng 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính (1/2)^{-4}.",
+          "answer": "2^4 = 16."
+        },
+        {
+          "level": "TH",
+          "question": "Rút gọn biểu thức B = \\sqrt[3]{a^6} với a là số thực tuỳ ý.",
+          "answer": "a^{6/3} = a^2."
+        },
+        {
+          "level": "VD",
+          "question": "Rút gọn biểu thức P = \\frac{a^3 \\cdot a^{-2} \\cdot \\sqrt{a}}{a^{1/2}} với a > 0.",
+          "answer": "P = a^{3 - 2 + 1/2 - 1/2} = a^1 = a."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm điều kiện để căn thức \\sqrt[4]{2x - 6} có nghĩa.",
+          "answer": "Vì chỉ số căn chẵn (n=4) nên 2x - 6 >= 0 \\iff x >= 3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Căn bậc lẻ của số âm có tồn tại không?",
+          "solution": "Có tồn tại, ví dụ \\sqrt[3]{-8} = -2."
+        },
+        {
+          "question": "Quy tắc nhân hai luỹ thừa cùng cơ số là gì?",
+          "solution": "Giữ nguyên cơ số, cộng các số mũ: a^m * a^n = a^{m+n}."
+        }
+      ],
+      "mistakes": [
+        "Cho rằng 0^0 = 1.",
+        "Quên dấu giá trị tuyệt đối khi khai căn bậc chẵn: \\sqrt[n]{a^n} = a thay vì |a|.",
+        "Áp dụng luỹ thừa số mũ âm cho cơ số bằng 0."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-111",
+      "grade": 11,
+      "week": 15,
+      "period": 111,
+      "title": "Lũy thừa với số mũ hữu tỉ và số thực",
+      "kind": "formation",
+      "lessonType": "concept",
+      "focus": "Định nghĩa luỹ thừa số mũ hữu tỉ, số mũ thực và các quy tắc tính toán",
+      "formulas": [
+        "a^{m/n} = \\sqrt[n]{a^m} (a > 0, m \\in \\mathbb{Z}, n \\in \\mathbb{N}, n \\ge 2)",
+        "a^\\alpha a^\\beta = a^{\\alpha+\\beta}",
+        "(a^\\alpha)^\\beta = a^{\\alpha\\beta}"
+      ],
+      "boardKnowledge": "Điều kiện cơ số: Luỹ thừa với số mũ hữu tỉ hoặc số thực bắt buộc cơ số a > 0. Các tính chất luỹ thừa nguyên vẫn đúng cho số mũ thực.",
+      "examples": [
+        {
+          "question": "Tính giá trị: A = 16^{3/4} + 27^{-2/3}.",
+          "solution": "16^{3/4} = (2^4)^{3/4} = 2^3 = 8. 27^{-2/3} = (3^3)^{-2/3} = 3^{-2} = 1/9. A = 8 + 1/9 = 73/9."
+        },
+        {
+          "question": "Rút gọn: P = \\frac{a^{\\sqrt{3}+1} \\cdot a^{2-\\sqrt{3}}}{(a^{\\sqrt{2}})^{\\sqrt{2}}} với a > 0.",
+          "solution": "Tử = a^{\\sqrt{3}+1 + 2-\\sqrt{3}} = a^3. Mẫu = a^{\\sqrt{2}\\cdot\\sqrt{2}} = a^2. P = a^3/a^2 = a."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu diễn \\sqrt[3]{a^2} (a > 0) dưới dạng luỹ thừa số mũ hữu tỉ.",
+          "answer": "a^{2/3}."
+        },
+        {
+          "level": "NB",
+          "question": "Cơ số a cần thoả mãn điều kiện gì để luỹ thừa a^\\alpha (\\alpha vô tỉ) có nghĩa?",
+          "answer": "a > 0."
+        },
+        {
+          "level": "TH",
+          "question": "Tính 8^{2/3}.",
+          "answer": "(2^3)^{2/3} = 2^2 = 4."
+        },
+        {
+          "level": "TH",
+          "question": "Rút gọn: a^{1/2} \\cdot a^{1/3} \\cdot a^{1/6} (a > 0).",
+          "answer": "a^{1/2 + 1/3 + 1/6} = a^1 = a."
+        },
+        {
+          "level": "VD",
+          "question": "So sánh hai số: 2^{\\sqrt{3}} và 2^{\\sqrt{2}}.",
+          "answer": "Vì cơ số 2 > 1 và \\sqrt{3} > \\sqrt{2} nên 2^{\\sqrt{3}} > 2^{\\sqrt{2}}."
+        },
+        {
+          "level": "VD",
+          "question": "Rút gọn biểu thức chứa căn lồng nhau: Q = \\sqrt{a\\sqrt{a\\sqrt{a}}} (a > 0).",
+          "answer": "Q = a^{1/2} \\cdot a^{1/4} \\cdot a^{1/8} = a^{7/8}."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu 0 < a < 1 và \\alpha < \\beta thì a^\\alpha so với a^\\beta thế nào?",
+          "solution": "a^\\alpha > a^\\beta (đổi chiều bất đẳng thức)."
+        },
+        {
+          "question": "Số mũ hữu tỉ có áp dụng được cho cơ số âm không?",
+          "solution": "Trong chương trình phổ thông chuẩn, quy ước không định nghĩa cho cơ số âm."
+        }
+      ],
+      "mistakes": [
+        "Áp dụng luỹ thừa số mũ hữu tỉ cho cơ số âm (ví dụ (-8)^{1/3}).",
+        "Cộng số mũ khi thực hiện luỹ thừa của luỹ thừa (a^\\alpha)^\\beta.",
+        "Quên đổi chiều khi so sánh luỹ thừa với cơ số nằm giữa 0 và 1."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-112",
+      "grade": 11,
+      "week": 15,
+      "period": 112,
+      "title": "Tự chọn: Khảo sát hàm số liên tục trên đoạn và khoảng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các bài toán thực tế và nâng cao về định lý Weierstrass và định lý nghiệm",
+      "formulas": [
+        "f \\in C[a; b] \\implies \\exists \\min f, \\max f"
+      ],
+      "boardKnowledge": "Định lý Weierstrass: Hàm số liên tục trên một đoạn đóng [a; b] thì bị chặn và đạt giá trị lớn nhất, nhỏ nhất trên đoạn đó.",
+      "examples": [
+        {
+          "question": "Cho f(x) = x^2 - 2x + 3 liên tục trên [0; 3]. Tìm giá trị lớn nhất và nhỏ nhất của f.",
+          "solution": "Đỉnh x = 1 thuộc [0; 3]. f(0)=3, f(1)=2, f(3)=6. Min = 2, Max = 6."
+        },
+        {
+          "question": "Một đoàn tàu chuyển động liên tục từ ga A đến ga B mất 2 giờ. Chứng minh có thời điểm vận tốc bằng vận tốc trung bình.",
+          "solution": "Hệ quả định lý giá trị trung gian đối với hàm vận tốc liên tục."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hàm số liên tục trên khoảng mở (a; b) có chắc chắn đạt giá trị lớn nhất không?",
+          "answer": "Chưa chắc (ví dụ f(x) = x trên (0; 1) không đạt max, min)."
+        },
+        {
+          "level": "NB",
+          "question": "Hàm số f(x) = 1/x trên (0; 1] có bị chặn trên không?",
+          "answer": "Không bị chặn trên vì khi x tiến về 0+ thì 1/x tiến ra +\\infty."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm max, min của f(x) = \\sin x trên [0; \\pi].",
+          "answer": "Max = 1 (tại \\pi/2), Min = 0 (tại 0 và \\pi)."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh phương trình x^3 + x + 1 = 0 có nghiệm duy nhất.",
+          "answer": "Hàm liên tục, đổi dấu trên [-1; 0], đạo hàm luôn dương nên nghiệm duy nhất."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh một hàm số liên tục f: [0; 1] -> [0; 1] luôn có ít nhất một điểm bất động c: f(c) = c.",
+          "answer": "Xét g(x) = f(x) - x trên [0; 1]. g(0) = f(0) >= 0, g(1) = f(1) - 1 <= 0."
+        },
+        {
+          "level": "VD",
+          "question": "Nhiệt độ trên xích đạo là một hàm liên tục. Chứng minh luôn tồn tại hai điểm đối xứng qua tâm Trái Đất có cùng nhiệt độ.",
+          "answer": "Dùng định lý giá trị trung gian cho hiệu nhiệt độ f(\\theta) - f(\\theta + \\pi)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Điều kiện nào bắt buộc để hàm số đạt min, max theo Weierstrass?",
+          "solution": "Liên tục và xét trên một đoạn đóng hữu hạn [a; b]."
+        },
+        {
+          "question": "Điểm bất động là gì?",
+          "solution": "Là điểm c thoả mãn f(c) = c."
+        }
+      ],
+      "mistakes": [
+        "Áp dụng định lý Weierstrass cho khoảng mở hoặc nửa khoảng.",
+        "Nhầm lẫn giữa giá trị cực trị địa phương và giá trị lớn nhất toàn cục.",
+        "Quên tính giá trị tại các đầu mút của đoạn."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-15-113",
+      "grade": 11,
+      "week": 15,
+      "period": 113,
+      "title": "Tự chọn: Biến đổi biểu thức luỹ thừa chứa căn thức",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ thuật rút gọn biểu thức luỹ thừa phức tạp, căn lồng nhau và đặt ẩn phụ",
+      "formulas": [
+        "\\sqrt[m]{\\sqrt[n]{a}} = \\sqrt[mn]{a}",
+        "a^{m/n} = (a^{1/n})^m"
+      ],
+      "boardKnowledge": "Kỹ thuật: Đưa tất cả các căn thức về luỹ thừa với số mũ hữu tỉ để thực hiện các phép tính cộng trừ số mũ đại số.",
+      "examples": [
+        {
+          "question": "Rút gọn biểu thức P = \\frac{a^{1/3}\\sqrt{b} + b^{1/3}\\sqrt{a}}{\\sqrt[6]{a} + \\sqrt[6]{b}} với a, b > 0.",
+          "solution": "Đặt x = a^{1/6}, y = b^{1/6}. Tử = x^2 y^3 + y^2 x^3 = x^2 y^2 (x + y). Mẫu = x + y. Rút gọn P = x^2 y^2 = (ab)^{1/3}."
+        },
+        {
+          "question": "Tính giá trị: A = \\sqrt{2 \\cdot \\sqrt[3]{4 \\cdot \\sqrt[4]{8}}}.",
+          "solution": "Đưa về cơ số 2: 2^{1/2} * 2^{2/6} * 2^{3/24} = 2^{1/2 + 1/3 + 1/8} = 2^{23/24}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu diễn \\sqrt[3]{\\sqrt{x}} dưới dạng một căn thức duy nhất.",
+          "answer": "\\sqrt[6]{x}."
+        },
+        {
+          "level": "NB",
+          "question": "Quy tắc nhân luỹ thừa khác cơ số cùng số mũ là gì?",
+          "answer": "a^m * b^m = (ab)^m."
+        },
+        {
+          "level": "TH",
+          "question": "Rút gọn: \\frac{x^{4/3} - x^{1/3}}{x^{1/3}} (x > 0).",
+          "answer": "x - 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giá trị biểu thức: B = (2^{\\sqrt{2}})^{\\sqrt{2}}.",
+          "answer": "2^{\\sqrt{2} \\cdot \\sqrt{2}} = 2^2 = 4."
+        },
+        {
+          "level": "VD",
+          "question": "Cho x > 0 thoả mãn x^{1/2} + x^{-1/2} = 3. Tính P = x + x^{-1}.",
+          "answer": "Bình phương hai vế: x + 2 + x^{-1} = 9 \\implies P = 7."
+        },
+        {
+          "level": "VD",
+          "question": "Cho a, b > 0. Rút gọn: S = \\frac{a - b}{a^{1/2} - b^{1/2}} - \\frac{a^{3/2} - b^{3/2}}{a - b}.",
+          "answer": "(a^{1/2} + b^{1/2}) - \\frac{a + \\sqrt{ab} + b}{a^{1/2} + b^{1/2}}... quy đồng rút gọn."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào nên đặt ẩn phụ trong bài toán rút gọn luỹ thừa?",
+          "solution": "Khi biểu thức chứa các số mũ là bội số của một phân số tối giản chung."
+        },
+        {
+          "question": "Biểu thức chứa căn thức có nên bấm máy tính kiểm tra lại không?",
+          "solution": "Nên gán các giá trị cụ thể (a=2, b=3) để kiểm tra tính chính xác của kết quả rút gọn."
+        }
+      ],
+      "mistakes": [
+        "Khai triển sai hằng đẳng thức với số mũ phân số.",
+        "Nhầm lẫn giữa luỹ thừa của một tổng với tổng các luỹ thừa.",
+        "Quên điều kiện a, b > 0 để biểu thức có nghĩa."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-106",
+      "grade": 12,
+      "week": 15,
+      "period": 106,
+      "title": "Luyện tập diện tích hình phẳng nâng cao",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ năng tính diện tích hình phẳng có nhiều hơn 2 đường biên và phương pháp chia cắt miền",
+      "formulas": [
+        "S = \\int_a^b |f_1(x) - g_1(x)|dx + \\int_b^c |f_2(x) - g_2(x)|dx"
+      ],
+      "boardKnowledge": "Chiến thuật: Vẽ phác thảo đồ thị, tìm tất cả giao điểm, chia miền phẳng thành các phần con chỉ giới hạn bởi 2 hàm số.",
+      "examples": [
+        {
+          "question": "Tính diện tích hình phẳng giới hạn bởi y = x^2, y = 2 - x và y = 0.",
+          "solution": "Giao điểm: x^2 = 0 \\implies x=0; 2-x=0 \\implies x=2; x^2 = 2-x \\implies x=1. S = \\int_0^1 x^2 dx + \\int_1^2 (2-x)dx = 1/3 + 1/2 = 5/6."
+        },
+        {
+          "question": "Tính diện tích hình phẳng giới hạn bởi y = \\sqrt{x}, y = 2 - x và trục Ox.",
+          "solution": "Chia tại x = 1: S = \\int_0^1 \\sqrt{x} dx + \\int_1^2 (2-x)dx = 2/3 + 1/2 = 7/6 (hoặc tích phân theo dy: \\int_0^1 (2-y - y^2)dy = 7/6)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Khi hình phẳng bị giới hạn bởi 3 đồ thị trở lên thì cần làm gì đầu tiên?",
+          "answer": "Vẽ phác thảo hình và tìm các hoành độ giao điểm để chia nhỏ miền."
+        },
+        {
+          "level": "NB",
+          "question": "Có thể tính diện tích bằng cách lấy tích phân theo biến y không?",
+          "answer": "Có, đôi khi tích phân theo dy không phải chia nhỏ miền."
+        },
+        {
+          "level": "TH",
+          "question": "Tính diện tích tam giác giới hạn bởi y = x, y = 2x và x = 2.",
+          "answer": "S = \\int_0^2 (2x - x)dx = [x^2/2]_0^2 = 2."
+        },
+        {
+          "level": "TH",
+          "question": "Tính diện tích hình phẳng giới hạn bởi y = e^x, y = e^{-x} và x = 1.",
+          "answer": "S = \\int_0^1 (e^x - e^{-x})dx = (e - 1) - (-e^{-1} + 1) = e + 1/e - 2."
+        },
+        {
+          "level": "VD",
+          "question": "Tính diện tích hình phẳng giới hạn bởi parabol y = -x^2 + 4x, tiếp tuyến tại (1; 3) và trục Oy.",
+          "answer": "Tiếp tuyến: y = 2x + 1. S = \\int_0^1 [(2x + 1) - (-x^2 + 4x)]dx = \\int_0^1 (x-1)^2 dx = 1/3."
+        },
+        {
+          "level": "VD",
+          "question": "Tính diện tích hình phẳng giới hạn bởi đường tròn x^2 + y^2 = 4 và parabol y = x^2/\\sqrt{3}.",
+          "answer": "Giao điểm x = \\pm \\sqrt{3}. Kết hợp diện tích hình quạt tròn và tích phân parabol."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao đôi khi đổi biến lấy tích phân theo dy lại ngắn hơn?",
+          "solution": "Vì theo biến y miền phẳng chỉ giới hạn bởi một hàm trái và một hàm phải, không cần chia nhỏ."
+        },
+        {
+          "question": "Diện tích tam giác cong có công thức tổng quát không?",
+          "solution": "Phải tách thành tổng các tích phân trên các đoạn tương ứng."
+        }
+      ],
+      "mistakes": [
+        "Không nhận ra miền bị giới hạn bởi 3 đường mà chỉ lấy hiệu 2 hàm số.",
+        "Lấy cận tích phân từ giao điểm của 2 đường không giáp nhau.",
+        "Quên cộng diện tích các phần chia nhỏ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-107",
+      "grade": 12,
+      "week": 15,
+      "period": 107,
+      "title": "Luyện tập diện tích hình phẳng có tham số",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các bài toán tìm tham số m để diện tích thoả mãn điều kiện cho trước hoặc đạt cực trị",
+      "formulas": [
+        "S(m) = k \\implies \\text{giải phương trình tìm m}",
+        "S(m) \\to \\min, \\max"
+      ],
+      "boardKnowledge": "Phương pháp: 1. Biểu diễn diện tích S thành hàm số của tham số m; 2. Giải phương trình S(m) = k hoặc dùng đạo hàm tìm min/max.",
+      "examples": [
+        {
+          "question": "Tìm m > 0 để diện tích giới hạn bởi y = mx^2 và y = 4 bằng 32/3.",
+          "solution": "Giao điểm x = \\pm 2/\\sqrt{m}. S = 2\\int_0^{2/\\sqrt{m}} (4 - mx^2)dx = 32/(3\\sqrt{m}) = 32/3 \\implies m = 1."
+        },
+        {
+          "question": "Đường thẳng y = k chia hình phẳng giới hạn bởi y = x^2 và y = 4 thành 2 phần diện tích bằng nhau. Tìm k.",
+          "solution": "Tổng S = 32/3. Phần dưới S_duoi = 4/3 k^{3/2} = 16/3 \\implies k^{3/2} = 4 \\implies k = \\sqrt[3]{16}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu thức diện tích phụ thuộc tham số m ký hiệu là gì?",
+          "answer": "S(m)."
+        },
+        {
+          "level": "NB",
+          "question": "Điều kiện m > 0 trong bài toán chia diện tích có ý nghĩa gì?",
+          "answer": "Đảm bảo parabol có bề lõm hướng lên và có giao điểm thực tế."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm m > 0 để diện tích giới hạn bởi y = x^2 và y = mx bằng 4/3.",
+          "answer": "S = m^3/6 = 4/3 \\implies m^3 = 8 \\implies m = 2."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm m để diện tích giới hạn bởi y = 3x^2, Ox, x = 0, x = m bằng 8.",
+          "answer": "m^3 = 8 \\implies m = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để đường thẳng y = m chia diện tích parabol y = 4 - x^2 với Ox thành 2 phần có tỉ số 1:7.",
+          "answer": "Lập phương trình tỉ số diện tích theo công thức S(m) rồi giải tìm m."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm giá trị của m để diện tích hình phẳng giới hạn bởi y = x^2 - 2mx và y = 0 nhỏ nhất trên đoạn [1; 3].",
+          "answer": "S(m) = 4/3 m^3 (với m > 0), hàm đồng biến nên S nhỏ nhất khi m = 1."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào diện tích là hàm bậc 3 của tham số m?",
+          "solution": "Khi giao điểm giữa parabol và đường thẳng có độ lệch tỉ lệ với m."
+        },
+        {
+          "question": "Có cần xét trường hợp m âm không?",
+          "solution": "Có, nếu đề bài không nói rõ m dương thì phải xét giá trị tuyệt đối |m|."
+        }
+      ],
+      "mistakes": [
+        "Quên trị tuyệt đối |m| khi giải m^3 trong diện tích.",
+        "Không đối chiếu điều kiện tồn tại giao điểm của 2 đồ thị.",
+        "Nhầm lẫn giữa diện tích phần trên và diện tích phần dưới."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-108",
+      "grade": 12,
+      "week": 15,
+      "period": 108,
+      "title": "Thể tích vật thể qua diện tích mặt cắt",
+      "kind": "formation",
+      "lessonType": "concept",
+      "focus": "Công thức tính thể tích vật thể bất kỳ khi biết diện tích mặt cắt vuông góc với trục Ox",
+      "formulas": [
+        "V = \\int_a^b S(x) dx"
+      ],
+      "boardKnowledge": "Định lý Cavalieri / Tích phân thể tích: Cắt vật thể bởi mặt phẳng vuông góc Ox tại điểm x có hoành độ x \\in [a; b], diện tích thiết diện là S(x). Thể tích: V = \\int_a^b S(x) dx.",
+      "examples": [
+        {
+          "question": "Tính thể tích vật thể nằm giữa x = 0 và x = 2, biết thiết diện vuông góc Ox là hình vuông cạnh \\sqrt{x+1}.",
+          "solution": "Diện tích thiết diện S(x) = (\\sqrt{x+1})^2 = x + 1. V = \\int_0^2 (x + 1)dx = [x^2/2 + x]_0^2 = 2 + 2 = 4."
+        },
+        {
+          "question": "Thiết diện vuông góc Ox là tam giác đều cạnh 2\\sqrt{x} với x thuộc [0; 3]. Tính V.",
+          "solution": "S(x) = (2\\sqrt{x})^2 \\sqrt{3}/4 = x\\sqrt{3}. V = \\int_0^3 x\\sqrt{3}dx = 4,5\\sqrt{3}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết công thức tính thể tích vật thể khi biết diện tích thiết diện S(x).",
+          "answer": "V = \\int_a^b S(x) dx."
+        },
+        {
+          "level": "NB",
+          "question": "Thiết diện hình tròn bán kính R(x) có diện tích S(x) bằng gì?",
+          "answer": "S(x) = \\pi [R(x)]^2."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích vật thể có S(x) = 2x + 1 trên đoạn [1; 3].",
+          "answer": "V = \\int_1^3 (2x + 1)dx = [x^2 + x]_1^3 = 12 - 2 = 10."
+        },
+        {
+          "level": "TH",
+          "question": "Thiết diện là hình vuông cạnh x trên [0; 3]. Tính V.",
+          "answer": "V = \\int_0^3 x^2 dx = 9."
+        },
+        {
+          "level": "VD",
+          "question": "Đáy của vật thể là hình elip x^2/9 + y^2/4 <= 1. Thiết diện vuông góc Ox là hình vuông. Tính V.",
+          "answer": "Cạnh hình vuông là 2y = 4\\sqrt{1 - x^2/9}. S(x) = 16(1 - x^2/9). V = \\int_{-3}^3 16(1 - x^2/9)dx = 64."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh công thức thể tích hình chóp chiều cao h, đáy diện tích B: V = 1/3 B h bằng tích phân.",
+          "answer": "S(x) = B (x/h)^2 với x thuộc [0; h]. V = \\int_0^h B x^2/h^2 dx = 1/3 B h."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Công thức này có cần nhân thêm số \\pi không?",
+          "solution": "Không có số \\pi ở công thức tổng quát, \\pi chỉ xuất hiện nếu thiết diện là hình tròn."
+        },
+        {
+          "question": "S(x) có thể âm không?",
+          "solution": "Không, S(x) là diện tích thiết diện nên luôn không âm."
+        }
+      ],
+      "mistakes": [
+        "Tự ý thêm số \\pi vào công thức thể tích thiết diện bất kỳ.",
+        "Tính sai diện tích thiết diện hình học (tam giác đều, hình vuông).",
+        "Xác định sai cận tích phân a, b của vật thể."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-109",
+      "grade": 12,
+      "week": 15,
+      "period": 109,
+      "title": "Thể tích khối tròn xoay quanh trục Ox",
+      "kind": "formation",
+      "lessonType": "concept",
+      "focus": "Công thức tính thể tích khối tròn xoay khi quay hình phẳng quanh trục hoành Ox",
+      "formulas": [
+        "V = \\pi \\int_a^b [f(x)]^2 dx",
+        "V = \\pi \\int_a^b |[f(x)]^2 - [g(x)]^2| dx"
+      ],
+      "boardKnowledge": "Khối tròn xoay Ox: Khi quay hình thang cong giới hạn bởi y = f(x), Ox, x=a, x=b quanh Ox: Thiết diện là hình tròn bán kính r = |f(x)|, diện tích S(x) = \\pi [f(x)]^2. Thể tích V = \\pi \\int_a^b [f(x)]^2 dx.",
+      "examples": [
+        {
+          "question": "Tính thể tích khối tròn xoay tạo thành khi quay hình phẳng giới hạn bởi y = \\sqrt{x}, Ox, x = 0, x = 4 quanh Ox.",
+          "solution": "V = \\pi \\int_0^4 (\\sqrt{x})^2 dx = \\pi \\int_0^4 x dx = \\pi [x^2/2]_0^4 = 8\\pi."
+        },
+        {
+          "question": "Tính thể tích khối tròn xoay khi quay y = e^x, Ox từ x = 0 đến x = 1 quanh Ox.",
+          "solution": "V = \\pi \\int_0^1 (e^x)^2 dx = \\pi \\int_0^1 e^{2x} dx = \\pi [e^{2x}/2]_0^1 = \\frac{\\pi(e^2 - 1)}{2}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết công thức thể tích khối tròn xoay khi quay y = f(x) quanh Ox từ a đến b.",
+          "answer": "V = \\pi \\int_a^b [f(x)]^2 dx."
+        },
+        {
+          "level": "NB",
+          "question": "Thiết diện của khối tròn xoay quay quanh Ox cắt bởi mp vuông góc Ox có dạng hình gì?",
+          "answer": "Hình tròn (hoặc hình vành khăn)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối tròn xoay khi quay y = x^2, Ox, x = 0, x = 2 quanh Ox.",
+          "answer": "V = \\pi \\int_0^2 x^4 dx = 32\\pi / 5."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối nón tạo thành khi quay đường thẳng y = 2x quanh Ox trên [0; 3].",
+          "answer": "V = \\pi \\int_0^3 4x^2 dx = 36\\pi."
+        },
+        {
+          "level": "VD",
+          "question": "Tính thể tích khối tròn xoay giới hạn bởi y = \\sin x, Ox từ x = 0 đến x = \\pi quanh Ox.",
+          "answer": "V = \\pi \\int_0^\\pi \\sin^2 x dx = \\pi \\int_0^\\pi \\frac{1-\\cos 2x}{2}dx = \\pi^2 / 2."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh công thức thể tích khối cầu bán kính R: V = 4/3 \\pi R^3 bằng cách quay nửa đường tròn y = \\sqrt{R^2 - x^2} quanh Ox.",
+          "answer": "V = \\pi \\int_{-R}^R (R^2 - x^2)dx = 4/3 \\pi R^3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao công thức khối tròn xoay quanh Ox luôn có nhân tử \\pi?",
+          "solution": "Vì thiết diện mặt cắt luôn là hình tròn có diện tích \\pi r^2."
+        },
+        {
+          "question": "Hàm số f(x) có cần dương để tính thể tích tròn xoay không?",
+          "solution": "Không cần, vì f(x) được bình phương nên luôn không âm."
+        }
+      ],
+      "mistakes": [
+        "Quên nhân hệ số \\pi ở trước dấu tích phân.",
+        "Quên bình phương hàm số f(x): viết \\int f(x)dx thay vì \\int [f(x)]^2 dx.",
+        "Nhầm lẫn thể tích tròn xoay với diện tích hình phẳng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-110",
+      "grade": 12,
+      "week": 15,
+      "period": 110,
+      "title": "Luyện tập thể tích khối tròn xoay cơ bản",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ năng tính thể tích tròn xoay của các hàm đa thức, phân thức, lượng giác và mũ",
+      "formulas": [
+        "V = \\pi \\int_a^b y^2 dx"
+      ],
+      "boardKnowledge": "Kỹ thuật tính tích phân: Dùng hạ bậc lượng giác (\\sin^2 x, \\cos^2 x), khai triển bình phương đa thức, đổi biến cơ bản.",
+      "examples": [
+        {
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = \\frac{1}{x}, Ox từ x = 1 đến x = 2 quanh Ox.",
+          "solution": "V = \\pi \\int_1^2 \\frac{1}{x^2}dx = \\pi [-1/x]_1^2 = \\pi (-1/2 + 1) = \\pi / 2."
+        },
+        {
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = 2x - x^2 và trục Ox quanh Ox.",
+          "solution": "Nghiệm x = 0, x = 2. V = \\pi \\int_0^2 (2x - x^2)^2 dx = \\pi \\int_0^2 (4x^2 - 4x^3 + x^4)dx = 16\\pi / 15."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Bình phương của f(x) = \\sqrt{2x + 1} là gì?",
+          "answer": "2x + 1."
+        },
+        {
+          "level": "NB",
+          "question": "Giải phương trình x^2 - x = 0 để tìm cận của khối tròn xoay.",
+          "answer": "x = 0 và x = 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = \\sqrt{x - 1}, Ox, x = 1, x = 5 quanh Ox.",
+          "answer": "V = \\pi \\int_1^5 (x - 1)dx = \\pi [x^2/2 - x]_1^5 = 8\\pi."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = \\cos x, Ox từ 0 đến \\pi/2 quanh Ox.",
+          "answer": "V = \\pi \\int_0^{\\pi/2} \\cos^2 x dx = \\pi^2 / 4."
+        },
+        {
+          "level": "VD",
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = x e^x, Ox, x = 0, x = 1 quanh Ox.",
+          "answer": "V = \\pi \\int_0^1 x^2 e^{2x} dx. Dùng từng phần 2 lần ra \\pi(e^2 - 1)/4."
+        },
+        {
+          "level": "VD",
+          "question": "Tính thể tích khối tròn xoay tạo bởi parabol y = 4 - x^2 và trục Ox quanh Ox.",
+          "answer": "Cận -2 đến 2. V = \\pi \\int_{-2}^2 (4 - x^2)^2 dx = 512\\pi / 15."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tích phân tính thể tích có thể âm không?",
+          "solution": "Không, thể tích luôn là số thực dương (V > 0)."
+        },
+        {
+          "question": "Công thức hạ bậc \\cos^2 x là gì?",
+          "solution": "\\cos^2 x = (1 + \\cos 2x)/2."
+        }
+      ],
+      "mistakes": [
+        "Quên bình phương khi hàm số có sẵn căn thức.",
+        "Nhầm công thức hạ bậc \\sin^2 x và \\cos^2 x.",
+        "Tính sai nguyên hàm từng phần có nhân tử e^{2x}."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-111",
+      "grade": 12,
+      "week": 15,
+      "period": 111,
+      "title": "Luyện tập thể tích khối tròn xoay nâng cao",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Thể tích khối tròn xoay giới hạn bởi hai đường cong và bài toán vật thể rỗng (hình vành khăn)",
+      "formulas": [
+        "V = \\pi \\int_a^b |f^2(x) - g^2(x)| dx"
+      ],
+      "boardKnowledge": "Khối tròn xoay giới hạn bởi hai đồ thị: Khi quay hình phẳng giới hạn bởi y = f(x) và y = g(x) quanh Ox: V = \\pi \\int_a^b |f^2(x) - g^2(x)| dx. Chú ý: Bình phương từng hàm rồi trừ nhau, KHÔNG PHẢI (f - g)^2.",
+      "examples": [
+        {
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = x^2 và y = x quanh trục Ox.",
+          "solution": "Giao điểm x = 0, x = 1. Trên [0; 1] có x >= x^2. V = \\pi \\int_0^1 (x^2 - x^4)dx = \\pi [x^3/3 - x^5/5]_0^1 = 2\\pi / 15."
+        },
+        {
+          "question": "Tính thể tích khối tròn xoay giới hạn bởi y = \\sqrt{x} và y = x/2 quanh Ox.",
+          "solution": "Giao điểm x = 0, x = 4. V = \\pi \\int_0^4 [(\\sqrt{x})^2 - (x/2)^2]dx = \\pi \\int_0^4 (x - x^2/4)dx = 8\\pi / 3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu thức đúng của thể tích giữa hai hàm số là f^2 - g^2 hay (f - g)^2?",
+          "answer": "Là f^2 - g^2 (hiệu hai bình phương)."
+        },
+        {
+          "level": "NB",
+          "question": "Tìm giao điểm của y = x^2 và y = 2x để xác định cận.",
+          "answer": "x = 0 và x = 2."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = x^2 và y = 2x quanh Ox.",
+          "answer": "V = \\pi \\int_0^2 (4x^2 - x^4)dx = \\pi [4x^3/3 - x^5/5]_0^2 = 64\\pi / 15."
+        },
+        {
+          "level": "TH",
+          "question": "Tính thể tích khối tròn xoay tạo bởi y = x^3 và y = x (với x >= 0) quanh Ox.",
+          "answer": "V = \\pi \\int_0^1 (x^2 - x^6)dx = \\pi (1/3 - 1/7) = 4\\pi / 21."
+        },
+        {
+          "level": "VD",
+          "question": "Tính thể tích cái phao bơi tạo thành khi quay hình tròn x^2 + (y - 3)^2 <= 1 quanh Ox.",
+          "answer": "Định lý Guldin / Tích phân vành khăn: V = 2\\pi * chu vi trọng tâm * diện tích = 2\\pi (3) * (\\pi * 1^2) = 6\\pi^2."
+        },
+        {
+          "level": "VD",
+          "question": "Một bồn chứa nước hình chỏm cầu quay quanh trục Ox. Tính thể tích nước chứa trong bồn khi mực nước cao h.",
+          "answer": "V = \\pi \\int_{R-h}^R (R^2 - x^2)dx = \\pi h^2 (R - h/3)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao V không bằng \\pi \\int (f - g)^2 dx?",
+          "solution": "Vì (f - g)^2 là bình phương khoảng cách, không tạo ra diện tích hình vành khăn \\pi(R^2 - r^2)."
+        },
+        {
+          "question": "Hình vành khăn có bán kính ngoài R và bán kính trong r có diện tích gì?",
+          "solution": "S = \\pi (R^2 - r^2)."
+        }
+      ],
+      "mistakes": [
+        "Viết nhầm công thức thành \\pi \\int (f(x) - g(x))^2 dx.",
+        "Lấy nhầm hàm số nằm ngoài trừ hàm số nằm trong dẫn đến kết quả âm.",
+        "Quên chia khoảng khi hai đồ thị cắt nhau tại nhiều hơn hai điểm."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-112",
+      "grade": 12,
+      "week": 15,
+      "period": 112,
+      "title": "Ôn tập chương IV: Nguyên hàm và các phương pháp",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Hệ thống hóa bảng nguyên hàm cơ bản, phương pháp đổi biến số và nguyên hàm từng phần",
+      "formulas": [
+        "\\int u'(x) f(u(x)) dx = \\int f(u) du",
+        "\\int u dv = uv - \\int v du"
+      ],
+      "boardKnowledge": "Toàn cảnh nguyên hàm: 1. Bảng nguyên hàm sơ cấp; 2. Đổi biến số loại 1 (đặt u = g(x)); 3. Từng phần (nhất lô, nhì đa, tam lượng, tứ mũ).",
+      "examples": [
+        {
+          "question": "Tính: \\int \\frac{2x}{x^2 + 1} dx.",
+          "solution": "Đặt u = x^2 + 1 \\implies du = 2x dx. Nguyên hàm = \\int \\frac{du}{u} = \\ln(x^2 + 1) + C."
+        },
+        {
+          "question": "Tính: \\int x \\cos x dx.",
+          "solution": "Đặt u = x, dv = \\cos x dx \\implies du = dx, v = \\sin x. Kết quả = x \\sin x - \\int \\sin x dx = x \\sin x + \\cos x + C."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Viết nguyên hàm của hàm số f(x) = x^n (n khác -1).",
+          "answer": "\\frac{x^{n+1}}{n+1} + C."
+        },
+        {
+          "level": "NB",
+          "question": "Thứ tự ưu tiên đặt u trong nguyên hàm từng phần là gì?",
+          "answer": "Nhất lô (logarit), nhì đa (đa thức), tam lượng (lượng giác), tứ mũ (hàm số mũ)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính \\int e^{3x - 1} dx.",
+          "answer": "\\frac{1}{3} e^{3x - 1} + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tính \\int \\frac{1}{2x + 5} dx.",
+          "answer": "\\frac{1}{2} \\ln|2x + 5| + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm một nguyên hàm F(x) của f(x) = 2x - 3 thoả mãn F(1) = 2.",
+          "answer": "F(x) = x^2 - 3x + C. F(1) = 1 - 3 + C = 2 \\implies C = 4 \\implies F(x) = x^2 - 3x + 4."
+        },
+        {
+          "level": "VD",
+          "question": "Tính \\int \\frac{\\ln x}{x^2} dx.",
+          "answer": "Từng phần u = \\ln x, dv = 1/x^2 dx \\implies -\\frac{\\ln x}{x} - \\frac{1}{x} + C."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nguyên hàm của hàm số 1/x là \\ln x hay \\ln|x|?",
+          "solution": "Là \\ln|x| + C (có dấu giá trị tuyệt đối)."
+        },
+        {
+          "question": "Hằng số C có vai trò gì trong nguyên hàm?",
+          "solution": "Đại diện cho cả họ các nguyên hàm sai khác nhau một hằng số cộng."
+        }
+      ],
+      "mistakes": [
+        "Quên hằng số + C sau khi tính nguyên hàm.",
+        "Quên hệ số 1/a khi lấy nguyên hàm f(ax + b).",
+        "Quên dấu giá trị tuyệt đối trong \\ln|x|."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-15-113",
+      "grade": 12,
+      "week": 15,
+      "period": 113,
+      "title": "Ôn tập chương IV: Tích phân và ứng dụng hình học",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Tổng hợp các tính chất tích phân xác định, diện tích hình phẳng và thể tích khối tròn xoay",
+      "formulas": [
+        "\\int_a^b f(x)dx = F(b) - F(a)",
+        "S = \\int_a^b |f(x)|dx",
+        "V = \\pi \\int_a^b f^2(x)dx"
+      ],
+      "boardKnowledge": "Trọng tâm chương IV: Định lý Newton-Leibniz, đổi cận khi đổi biến, ứng dụng diện tích S và thể tích V tròn xoay.",
+      "examples": [
+        {
+          "question": "Cho \\int_0^3 f(x)dx = 6. Tính I = \\int_0^1 f(3x)dx.",
+          "solution": "Đặt t = 3x \\implies dt = 3dx. Đổi cận: x=0 -> t=0; x=1 -> t=3. I = 1/3 \\int_0^3 f(t)dt = 6/3 = 2."
+        },
+        {
+          "question": "Tính diện tích và thể tích tròn xoay khi quay miền y = x^2, Ox, x=0, x=1 quanh Ox.",
+          "solution": "S = \\int_0^1 x^2 dx = 1/3. V = \\pi \\int_0^1 x^4 dx = \\pi / 5."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Phát biểu công thức Newton - Leibniz.",
+          "answer": "\\int_a^b f(x)dx = F(b) - F(a)."
+        },
+        {
+          "level": "NB",
+          "question": "Tính \\int_2^2 (x^3 + 5x)dx.",
+          "answer": "0 (hai cận bằng nhau)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho \\int_0^2 f(x)dx = 3 và \\int_0^2 g(x)dx = 7. Tính \\int_0^2 [2f(x) - g(x)]dx.",
+          "answer": "2(3) - 7 = -1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính \\int_0^1 e^x dx.",
+          "answer": "e - 1."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hàm số chẵn f(x) liên tục trên [-2; 2] có \\int_0^2 f(x)dx = 4. Tính \\int_{-2}^2 f(x)dx.",
+          "answer": "Vì f(x) chẵn nên \\int_{-2}^2 f(x)dx = 2 \\int_0^2 f(x)dx = 8."
+        },
+        {
+          "level": "VD",
+          "question": "Tính diện tích hình phẳng giới hạn bởi parabol y = x^2 - 4x + 3 và trục hoành.",
+          "answer": "Giao điểm 1 và 3. S = |\\int_1^3 (x^2 - 4x + 3)dx| = 4/3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu hàm f(x) lẻ và liên tục trên [-a; a] thì \\int_{-a}^a f(x)dx bằng bao nhiêu?",
+          "solution": "Bằng 0."
+        },
+        {
+          "question": "Đổi cận có làm đổi dấu tích phân không?",
+          "solution": "Có, \\int_a^b f(x)dx = -\\int_b^a f(x)dx."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi cận khi đổi biến số trong tích phân.",
+        "Nhầm tính chất hàm chẵn tích phân bằng 0 (hàm lẻ mới bằng 0).",
+        "Lẫn lộn giữa công thức diện tích (không có pi) và thể tích (có pi và bình phương)."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
     }
   ],
   "aiErrors": {
@@ -6751,6 +8521,294 @@
       "studentProduct": "Ghi “Lỗi đại số: nhầm độ dài trục với bán trục”, sửa thành 15π m².",
       "boardPrompt": "Trong công thức diện tích elip S = pi.a.b, các đại lượng a và b đại diện cho kích thước nào?",
       "libraryTitle": "Lỗi AI nhầm lẫn giữa bán trục và độ dài toàn bộ trục trong công thức diện tích elip"
+    },
+    "10-15-112": {
+      "key": "10-15-112",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI tính tích vô hướng của hai vectơ ngược hướng \\vec{a} và \\vec{b} (độ dài 3 và 4): AI cho rằng tích vô hướng bằng 3 * 4 = 12 vì hai vectơ thẳng hàng.",
+      "correction": "Hai vectơ ngược hướng có góc bằng 180°, \\cos 180° = -1 nên tích vô hướng phải bằng -|\\vec{a}||\\vec{b}| = -12, không thể bằng +12.",
+      "proof": "Định nghĩa tích vô hướng: \\vec{a}\\cdot\\vec{b} = |\\vec{a}||\\vec{b}|\\cos(\\vec{a},\\vec{b}). Khi ngược hướng thì góc là 180° và cos mang dấu âm.",
+      "whyAiError": "Mô hình nhầm lẫn giữa hai vectơ cùng hướng và hai vectơ ngược hướng khi cùng phương.",
+      "teacherPrompt": "AI tính tích vô hướng hai vectơ ngược hướng ra dương 12. Em hãy chỉ ra lỗi khái niệm về góc và sửa lại kết quả kèm dấu đúng.",
+      "studentProduct": "Ghi “Lỗi khái niệm: góc ngược hướng là 180°”, sửa thành -12.",
+      "boardPrompt": "Góc giữa hai vectơ ngược hướng bằng bao nhiêu và cos của nó mang dấu gì?",
+      "libraryTitle": "Lỗi AI nhầm dấu tích vô hướng của hai vectơ ngược hướng"
+    },
+    "10-15-113": {
+      "key": "10-15-113",
+      "category": "Lỗi logic",
+      "wrongSolution": "Để tìm tọa độ điểm M sao cho tam giác ABM vuông tại M, AI giải phương trình \\vec{AM}\\cdot\\vec{BM} = 1.",
+      "correction": "Điều kiện vuông góc tại M là \\vec{AM} \\perp \\vec{BM} \\iff \\vec{AM}\\cdot\\vec{BM} = 0, không phải bằng 1.",
+      "proof": "Hai vectơ vuông góc thì góc giữa chúng là 90°, \\cos 90° = 0 dẫn đến tích vô hướng bằng 0.",
+      "whyAiError": "Mô hình gán nhầm giá trị tích vô hướng của hai vectơ vuông góc thành 1 thay vì 0.",
+      "teacherPrompt": "AI cho tích vô hướng bằng 1 để suy ra vuông góc. Em hãy phản biện lỗi logic và sửa lại phương trình điều kiện đúng.",
+      "studentProduct": "Ghi “Lỗi logic: điều kiện vuông góc là tích vô hướng bằng 0”, sửa thành AM.BM = 0.",
+      "boardPrompt": "Điều kiện tương đương về tích vô hướng để hai vectơ vuông góc là gì?",
+      "libraryTitle": "Lỗi AI nhầm điều kiện tích vô hướng vuông góc bằng 1 thay vì 0"
+    },
+    "10-15-114": {
+      "key": "10-15-114",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tính cạnh a của tam giác ABC có b=3, c=4, A=60°: a^2 = 3^2 + 4^2 - 3 \\cdot 4 \\cdot \\cos 60° = 9 + 16 - 6 = 19 \\implies a = \\sqrt{19}.",
+      "correction": "Định lý côsin có hệ số 2: a^2 = b^2 + c^2 - 2bc \\cos A = 9 + 16 - 2(3)(4)(0,5) = 25 - 12 = 13 \\implies a = \\sqrt{13}. AI đã bỏ quên số 2.",
+      "proof": "Công thức chính xác theo định lý côsin trong tam giác: a^2 = b^2 + c^2 - 2bc \\cos A.",
+      "whyAiError": "Mô hình quên hệ số 2 trong số hạng tích -2bc cos A.",
+      "teacherPrompt": "AI tính ra a^2 = 19 do thiếu hệ số 2. Em hãy chỉ ra lỗi đại số trong định lý côsin và sửa lại độ dài đúng của cạnh a.",
+      "studentProduct": "Ghi “Lỗi đại số: quên hệ số 2 trong định lý côsin”, sửa thành a = √13.",
+      "boardPrompt": "Công thức định lý côsin tính cạnh a có số hạng trừ đi lượng nào?",
+      "libraryTitle": "Lỗi AI quên hệ số 2 trong định lý côsin"
+    },
+    "10-15-115": {
+      "key": "10-15-115",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính diện tích tam giác có a=4, b=6, góc C=30°: AI tính S = 4 \\cdot 6 \\cdot \\sin 30° = 24 \\cdot 0,5 = 12.",
+      "correction": "Công thức diện tích tam giác là S = 1/2 a b \\sin C = 1/2 \\cdot 4 \\cdot 6 \\cdot 0,5 = 6. AI quên nhân hệ số 1/2.",
+      "proof": "Diện tích tam giác bằng một nửa tích hai cạnh với sin góc xen giữa. Quên hệ số 1/2 cho ra diện tích hình bình hành tương ứng.",
+      "whyAiError": "Mô hình nhầm công thức diện tích tam giác với công thức diện tích hình bình hành.",
+      "teacherPrompt": "AI tính diện tích tam giác ra 12 do quên chia 2. Em hãy chỉ ra lỗi đại số và sửa lại diện tích chính xác.",
+      "studentProduct": "Ghi “Lỗi đại số: quên hệ số 1/2 trong công thức diện tích tam giác”, sửa thành S = 6.",
+      "boardPrompt": "Công thức diện tích tam giác theo hai cạnh và góc xen giữa có nhân tố nào ở đầu?",
+      "libraryTitle": "Lỗi AI quên hệ số 1/2 trong công thức diện tích tam giác"
+    },
+    "10-15-116": {
+      "key": "10-15-116",
+      "category": "Lỗi logic",
+      "wrongSolution": "Mệnh đề \"Mọi học sinh lớp 10 đều thích học Toán\", AI phủ định thành: \"Mọi học sinh lớp 10 đều không thích học Toán\".",
+      "correction": "Phủ định của mệnh đề với lượng từ \"mọi\" (\\forall) là lượng từ \"tồn tại\" (\\exists): \"Tồn tại ít nhất một học sinh lớp 10 không thích học Toán\".",
+      "proof": "Quy tắc logic vị từ: \\neg(\\forall x \\in X, P(x)) \\iff \\exists x \\in X, \\neg P(x). Phủ định toàn thể không phải là phủ định thuộc tính của toàn thể.",
+      "whyAiError": "Mô hình giữ nguyên lượng từ \"mọi\" và chỉ phủ định vị từ.",
+      "teacherPrompt": "AI phủ định \"mọi\" thành \"mọi không\". Em hãy chỉ ra sai lầm quy tắc logic và sửa lại mệnh đề phủ định chuẩn.",
+      "studentProduct": "Ghi “Lỗi logic: phủ định của ∀ là ∃”, sửa thành “Tồn tại ít nhất một học sinh...”.",
+      "boardPrompt": "Quy tắc phủ định mệnh đề chứa lượng từ “với mọi” là gì?",
+      "libraryTitle": "Lỗi AI phủ định sai lượng từ với mọi trong mệnh đề toán học"
+    },
+    "10-15-117": {
+      "key": "10-15-117",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Cho A(1; 2), B(5; 6). AI tính tọa độ trung điểm I của đoạn thẳng AB: I = (5 - 1; 6 - 2) = (4; 4).",
+      "correction": "Tọa độ trung điểm bằng nửa tổng các tọa độ: I = ((1+5)/2; (2+6)/2) = (3; 4). AI đã lấy hiệu các tọa độ thay vì trung bình cộng.",
+      "proof": "Công thức tọa độ trung điểm: x_I = (x_A + x_B)/2, y_I = (y_A + y_B)/2. AI nhầm với công thức tọa độ vectơ \\vec{AB}.",
+      "whyAiError": "Mô hình nhầm công thức trung điểm đoạn thẳng với công thức hiệu tọa độ của vectơ.",
+      "teacherPrompt": "AI lấy hiệu tọa độ để tìm trung điểm. Em hãy chỉ rõ sự nhầm lẫn và sửa lại tọa độ trung điểm I đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: nhầm trung điểm với hiệu tọa độ vectơ”, sửa thành I(3; 4).",
+      "boardPrompt": "Công thức chuẩn xác để tìm tọa độ trung điểm của đoạn thẳng nối hai điểm là gì?",
+      "libraryTitle": "Lỗi AI nhầm công thức trung điểm đoạn thẳng với tọa độ vectơ"
+    },
+    "10-15-118": {
+      "key": "10-15-118",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Bấm máy tính Casio tính góc A của tam giác có \\cos A = 0,5: Máy để chế độ Radian hiện 1,047, AI kết luận góc A = 1,047°.",
+      "correction": "Giá trị 1,047 là số đo bằng Radian (\\pi/3). Đơn vị góc hình học tam giác là 60°, không thể kết luận góc A là 1,047°.",
+      "proof": "1 rad \\approx 57,3°. Giá trị 1,047 rad = 1,047 * 180° / \\pi = 60°. Ghi nhầm ký hiệu độ làm sai lệch hoàn toàn góc tam giác.",
+      "whyAiError": "Mô hình đọc kết quả màn hình máy tính mà không kiểm tra đơn vị đo góc đang thiết lập.",
+      "teacherPrompt": "AI lấy số đo radian gán nhãn độ ra 1,047°. Em hãy giải thích lỗi đơn vị đo và sửa lại số đo góc A đúng bằng độ.",
+      "studentProduct": "Ghi “Lỗi khái niệm: nhầm đơn vị Radian sang Độ”, sửa thành góc A = 60°.",
+      "boardPrompt": "Tại sao cần kiểm tra cài đặt đơn vị đo góc (Deg/Rad) trên máy tính cầm tay trước khi giải toán hình học?",
+      "libraryTitle": "Lỗi AI đọc nhầm số đo Radian thành Độ khi dùng máy tính cầm tay"
+    },
+    "10-15-119": {
+      "key": "10-15-119",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Trong bài toán quy hoạch tuyến tính tìm số lượng sản phẩm x, y để cực đại hóa lợi nhuận, AI chỉ đặt x >= 0, y >= 0 mà không có điều kiện x, y nguyên.",
+      "correction": "Sản phẩm là vật thể rời rạc (xe đạp, áo quần...) nên biến số bắt buộc phải thuộc tập số nguyên (x, y \\in \\mathbb{N}). Thiếu điều kiện nguyên có thể dẫn đến nghiệm số thập phân không khả thi.",
+      "proof": "Trong bài toán thực tế, không thể sản xuất 3,7 chiếc xe. Phải có điều kiện số nguyên để xét các điểm nguyên lân cận trong miền nghiệm.",
+      "whyAiError": "Mô hình bỏ quên ràng buộc nguyên của biến thực tế.",
+      "teacherPrompt": "AI cho phép số lượng sản phẩm là số thực tuỳ ý. Em hãy chỉ ra điều kiện thiếu và sửa lại hệ ràng buộc đầy đủ cho bài toán thực tiễn.",
+      "studentProduct": "Ghi “Thiếu điều kiện: biến số phải nguyên (x, y ∈ ℕ)”, sửa lại miền nghiệm nguyên.",
+      "boardPrompt": "Tại sao các bài toán mô hình hóa thực tế cần đặc biệt chú ý điều kiện nguyên của biến số?",
+      "libraryTitle": "Lỗi AI thiếu ràng buộc biến nguyên trong bài toán quy hoạch thực tế"
+    },
+    "11-15-106": {
+      "key": "11-15-106",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận hàm số f(x) = 1/x liên tục trên tập hợp D = (-\\infty; 0) \\cup (0; +\\infty).",
+      "correction": "Định nghĩa: Hàm số liên tục trên từng khoảng riêng biệt (-\\infty; 0) và (0; +\\infty), không được dùng ký hiệu hợp (\\cup) để kết luận liên tục trên một tập hợp rời.",
+      "proof": "Tính liên tục là khái niệm cục bộ trên từng khoảng liên thông. Đồ thị hàm số gồm hai nhánh rời nhau, không thể xem là liên tục trên toàn bộ hợp của hai khoảng.",
+      "whyAiError": "Mô hình dùng ký hiệu tập xác định để thay thế cho phát biểu về các khoảng liên tục.",
+      "teacherPrompt": "AI kết luận hàm liên tục trên hợp hai khoảng. Em hãy chỉ ra lỗi khái niệm và sửa lại cách phát biểu chính xác theo SGK.",
+      "studentProduct": "Ghi “Lỗi khái niệm: liên tục trên từng khoảng, không dùng ký hiệu hợp”, sửa thành liên tục trên mỗi khoảng.",
+      "boardPrompt": "Quy ước chuẩn mực khi phát biểu tính liên tục của hàm số phân thức là gì?",
+      "libraryTitle": "Lỗi AI dùng ký hiệu hợp hai khoảng khi phát biểu tính liên tục của hàm số"
+    },
+    "11-15-107": {
+      "key": "11-15-107",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Phương trình f(x) = 0 có f(1) = -2, f(3) = 4, f(1)f(3) < 0 nên AI khẳng định ngay phương trình có nghiệm trong (1; 3) mà không cần điều kiện gì của f.",
+      "correction": "Định lý giá trị trung gian bắt buộc hàm số f(x) phải liên tục trên đoạn [1; 3]. Nếu f(x) bị gián đoạn (ví dụ f(x) = 1/(x-2)) thì phương trình có thể vô nghiệm.",
+      "proof": "Tính liên tục đảm bảo đồ thị là một đường liền nét cắt trục hoành. Hàm gián đoạn có thể nhảy từ âm sang dương mà không đi qua điểm 0.",
+      "whyAiError": "Mô hình nhớ điều kiện tích đổi dấu mà quên điều kiện tiên quyết là tính liên tục.",
+      "teacherPrompt": "AI bỏ qua kiểm tra tính liên tục của hàm số. Em hãy chỉ ra điều kiện thiếu và sửa lại các bước chứng minh chuẩn xác.",
+      "studentProduct": "Ghi “Thiếu điều kiện: hàm số phải liên tục trên [a; b]”, sửa lại lời giải đầy đủ.",
+      "boardPrompt": "Điều kiện nền tảng để áp dụng định lý Bolzano-Cauchy về nghiệm của phương trình là gì?",
+      "libraryTitle": "Lỗi AI quên kiểm tra tính liên tục trước khi dùng định lý nghiệm"
+    },
+    "11-15-108": {
+      "key": "11-15-108",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính giá trị đại diện của nhóm [10; 20): AI tính c = 20 - 10 = 10.",
+      "correction": "Giá trị đại diện của nhóm [a; b) là trung điểm của hai đầu mút: c = (a + b)/2 = (10 + 20)/2 = 15. Giá trị 10 là độ dài của nhóm, không phải giá trị đại diện.",
+      "proof": "Quy ước thống kê ghép nhóm: c_i = (u_i + u_{i+1})/2. Lấy hiệu thay vì trung bình cộng là sai bản chất đại diện nhóm.",
+      "whyAiError": "Mô hình nhầm lẫn giữa độ dài nhóm khoảng với giá trị đại diện của nhóm.",
+      "teacherPrompt": "AI lấy hiệu hai đầu mút làm giá trị đại diện. Em hãy chỉ ra lỗi nhầm lẫn và sửa lại giá trị đại diện đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: nhầm giá trị đại diện với độ dài nhóm”, sửa thành c = 15.",
+      "boardPrompt": "Công thức tính giá trị đại diện cho một nhóm số liệu ghép nhóm là gì?",
+      "libraryTitle": "Lỗi AI nhầm độ dài nhóm với giá trị đại diện của nhóm ghép nhóm"
+    },
+    "11-15-109": {
+      "key": "11-15-109",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính mốt cho nhóm [10; 20) có n_m=12, nhóm trước n_{m-1}=8, nhóm sau n_{m+1}=4: AI tính Mo = 10 + (12 - 8)/(12 - 4) * 10 = 10 + 4/8 * 10 = 15.",
+      "correction": "Mẫu số công thức mốt là tổng hai độ lệch tần số: (n_m - n_{m-1}) + (n_m - n_{m+1}) = 4 + 8 = 12. Do đó Mo = 10 + (4/12)*10 = 10 + 3,33 = 13,33.",
+      "proof": "Công thức chuẩn: M_o = u_m + \\frac{n_m - n_{m-1}}{(n_m - n_{m-1}) + (n_m - n_{m+1})} \\cdot d. AI thay mẫu số thành hiệu.",
+      "whyAiError": "Mô hình ghi nhớ sai cấu trúc mẫu số của công thức nội suy mốt.",
+      "teacherPrompt": "AI tính sai mẫu số công thức mốt ra 15. Em hãy chỉ ra công thức chuẩn và sửa lại giá trị mốt đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: sai mẫu số công thức nội suy mốt”, sửa thành Mo ≈ 13,33.",
+      "boardPrompt": "Mẫu số trong công thức tính mốt của mẫu số liệu ghép nhóm biểu thị đại lượng gì?",
+      "libraryTitle": "Lỗi AI viết sai mẫu số trong công thức nội suy mốt của mẫu ghép nhóm"
+    },
+    "11-15-110": {
+      "key": "11-15-110",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tính (-2)^{-2} = - (2^{-2}) = -1/4.",
+      "correction": "Lũy thừa số mũ âm của số âm: (-2)^{-2} = 1 / (-2)^2 = 1 / 4. Dấu bình phương làm số âm thành số dương, không thể mang dấu âm.",
+      "proof": "Quy tắc luỹ thừa: a^{-n} = 1/a^n. Với a = -2 và n = 2 thì (-2)^2 = 4 \\implies (-2)^{-2} = 1/4.",
+      "whyAiError": "Mô hình tách dấu trừ ra ngoài dấu ngoặc tuỳ tiện.",
+      "teacherPrompt": "AI tính ra -1/4 do để dấu trừ ra ngoài ngoặc. Em hãy sửa lại phép tính luỹ thừa số mũ âm của số âm chuẩn xác.",
+      "studentProduct": "Ghi “Lỗi đại số: (-a)^2 = a^2 là số dương”, sửa thành 1/4.",
+      "boardPrompt": "Lũy thừa bậc chẵn của một số thực âm luôn mang dấu gì?",
+      "libraryTitle": "Lỗi AI sai dấu khi tính luỹ thừa số mũ nguyên âm của số âm"
+    },
+    "11-15-111": {
+      "key": "11-15-111",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI viết (-8)^{1/3} = \\sqrt[3]{-8} = -2 và áp dụng công thức a^{m/n} = \\sqrt[n]{a^m} cho mọi cơ số a.",
+      "correction": "Trong chương trình THPT chuẩn, luỹ thừa với số mũ hữu tỉ a^{m/n} CHỈ được định nghĩa khi cơ số a > 0. Biểu thức (-8)^{1/3} không được định nghĩa, dù căn bậc ba \\sqrt[3]{-8} có nghĩa.",
+      "proof": "Nếu định nghĩa số mũ hữu tỉ cho cơ số âm sẽ dẫn đến mâu thuẫn: (-8)^{1/3} = (-8)^{2/6} = \\sqrt[6]{(-8)^2} = \\sqrt[6]{64} = 2 \\ne -2. Vì vậy toán học bắt buộc quy ước a > 0.",
+      "whyAiError": "Mô hình đồng nhất khái niệm căn bậc n với luỹ thừa số mũ hữu tỉ mà bỏ qua điều kiện cơ số dương.",
+      "teacherPrompt": "AI tính (-8)^(1/3) mà không xét điều kiện cơ số. Em hãy giải thích lý do tại sao cơ số phải dương và sửa lại quy ước chuẩn.",
+      "studentProduct": "Ghi “Thiếu điều kiện: luỹ thừa số mũ hữu tỉ chỉ định nghĩa cho cơ số a > 0”, sửa lại nhận định.",
+      "boardPrompt": "Tại sao luỹ thừa với số mũ hữu tỉ bắt buộc phải có cơ số dương?",
+      "libraryTitle": "Lỗi AI áp dụng luỹ thừa số mũ hữu tỉ cho cơ số âm"
+    },
+    "11-15-112": {
+      "key": "11-15-112",
+      "category": "Lỗi logic",
+      "wrongSolution": "Cho hàm số f(x) = 1/x trên khoảng (0; 1). AI khẳng định hàm số có giá trị nhỏ nhất và lớn nhất vì liên tục trên (0; 1).",
+      "correction": "Định lý Weierstrass chỉ áp dụng cho đoạn đóng [a; b]. Trên khoảng mở (0; 1), khi x tiến về 0+ thì f(x) tiến ra +\\infty (không có max); khi x tiến về 1- thì f(x) tiến về 1 nhưng không đạt giá trị 1 (không có min).",
+      "proof": "Tính liên tục trên khoảng mở không đảm bảo tính bị chặn và sự tồn tại của giá trị cực trị toàn cục.",
+      "whyAiError": "Mô hình nhầm lẫn giữa đoạn đóng [a; b] với khoảng mở (a; b) khi áp dụng định lý Weierstrass.",
+      "teacherPrompt": "AI áp dụng định lý đạt max, min cho khoảng mở (0; 1). Em hãy chỉ rõ sai lầm logic và sửa lại kết luận về cực trị.",
+      "studentProduct": "Ghi “Lỗi logic: định lý Weierstrass chỉ đúng trên đoạn đóng [a; b]”, sửa thành không có max, min.",
+      "boardPrompt": "Điều kiện nào về tập xác định để một hàm số liên tục chắc chắn đạt giá trị lớn nhất và nhỏ nhất?",
+      "libraryTitle": "Lỗi AI áp dụng định lý giá trị lớn nhất nhỏ nhất cho khoảng mở"
+    },
+    "11-15-113": {
+      "key": "11-15-113",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Rút gọn biểu thức (x^{1/2} + y^{1/2})^2, AI viết thành x + y.",
+      "correction": "Khai triển đúng hằng đẳng thức bậc hai: (x^{1/2} + y^{1/2})^2 = (x^{1/2})^2 + 2x^{1/2}y^{1/2} + (y^{1/2})^2 = x + 2\\sqrt{xy} + y. AI đã bỏ mất số hạng 2ab.",
+      "proof": "Hằng đẳng thức (a + b)^2 = a^2 + 2ab + b^2 luôn có số hạng tích kép 2ab.",
+      "whyAiError": "Mô hình bình phương từng số hạng trong tổng thay vì khai triển hằng đẳng thức.",
+      "teacherPrompt": "AI bình phương một tổng thành tổng hai bình phương. Em hãy chỉ ra lỗi hằng đẳng thức và sửa lại kết quả khai triển đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: quên số hạng tích kép 2√xy”, sửa thành x + 2√xy + y.",
+      "boardPrompt": "Khai triển chuẩn hằng đẳng thức bình phương của một tổng hai căn thức là gì?",
+      "libraryTitle": "Lỗi AI bỏ quên số hạng tích kép khi bình phương tổng chứa số mũ hữu tỉ"
+    },
+    "12-15-106": {
+      "key": "12-15-106",
+      "category": "Lỗi logic",
+      "wrongSolution": "Hình phẳng giới hạn bởi y = x^2, y = 2 - x và trục Ox. AI lấy luôn cận từ 0 đến 2 và tính S = \\int_0^2 |x^2 - (2-x)| dx = 10/3.",
+      "correction": "Miền phẳng bị giới hạn bởi 3 đường nên không thể dùng 1 tích phân duy nhất. Phải chia tại giao điểm x = 1: S = \\int_0^1 x^2 dx + \\int_1^2 (2-x)dx = 1/3 + 1/2 = 5/6.",
+      "proof": "Từ x=0 đến 1 đường biên dưới là Ox và biên trên là parabol. Từ x=1 đến 2 biên trên là đường thẳng 2-x. Lấy hiệu trực tiếp tính dư diện tích ngoài miền.",
+      "whyAiError": "Mô hình không vẽ phác đồ thị và không nhận diện miền bị bao bởi 3 đường cong.",
+      "teacherPrompt": "AI lấy một tích phân duy nhất cho miền 3 đường biên ra diện tích sai 10/3. Em hãy chia nhỏ miền và sửa lại kết quả đúng 5/6.",
+      "studentProduct": "Ghi “Lỗi logic: miền 3 đường biên cần chia đôi tại giao điểm”, sửa thành 5/6.",
+      "boardPrompt": "Khi hình phẳng bị giới hạn bởi từ 3 đường trở lên, thuật toán xử lý phân chia miền tích phân như thế nào?",
+      "libraryTitle": "Lỗi AI không chia nhỏ miền tích phân khi có nhiều hơn 2 đường biên"
+    },
+    "12-15-107": {
+      "key": "12-15-107",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Tìm m để diện tích hình phẳng giới hạn bởi y = mx^2 và y = m bằng 4: AI giải ra m = 3 mà không xét điều kiện m > 0.",
+      "correction": "Nếu m <= 0 thì parabol và đường thẳng không tạo thành hình phẳng khép kín (hoặc giao điểm suy biến). Bắt buộc phải có điều kiện m > 0 trước khi giải.",
+      "proof": "Hình phẳng khép kín chỉ tồn tại khi đường thẳng cắt parabol tại 2 điểm phân biệt, đòi hỏi mx^2 = m \\iff x^2 = 1 (khi m khác 0) và khoảng cách hai đồ thị dương.",
+      "whyAiError": "Mô hình giải phương trình đại số thuần túy mà bỏ qua điều kiện hình học để tạo thành hình phẳng khép kín.",
+      "teacherPrompt": "AI tìm m mà không đặt điều kiện để đồ thị tạo thành miền khép kín. Em hãy bổ sung điều kiện và sửa lại lời giải hoàn chỉnh.",
+      "studentProduct": "Ghi “Thiếu điều kiện: m > 0 để hai đồ thị tạo miền khép kín”, sửa lại điều kiện bài toán.",
+      "boardPrompt": "Điều kiện nào để phương trình chứa tham số thực sự xác định một miền phẳng có diện tích hữu hạn?",
+      "libraryTitle": "Lỗi AI bỏ qua điều kiện hình học tạo miền phẳng khép kín khi chứa tham số"
+    },
+    "12-15-108": {
+      "key": "12-15-108",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Vật thể có thiết diện vuông góc Ox là hình vuông cạnh x. AI tính thể tích bằng công thức: V = \\pi \\int_0^2 x^2 dx = 8\\pi / 3.",
+      "correction": "Công thức thể tích vật thể theo diện tích mặt cắt S(x) là V = \\int_a^b S(x) dx, KHÔNG CÓ nhân tử \\pi. Thể tích đúng là V = \\int_0^2 x^2 dx = 8/3.",
+      "proof": "Số \\pi chỉ xuất hiện khi thiết diện là hình tròn (\\pi r^2) trong khối tròn xoay. Ở đây thiết diện là hình vuông nên diện tích là cạnh bình phương, không nhân \\pi.",
+      "whyAiError": "Mô hình nhầm công thức thể tích thiết diện tổng quát với công thức khối tròn xoay.",
+      "teacherPrompt": "AI nhân thêm số pi vào thể tích thiết diện hình vuông. Em hãy giải thích lỗi khái niệm và sửa lại thể tích đúng.",
+      "studentProduct": "Ghi “Lỗi khái niệm: thiết diện không phải hình tròn thì không có nhân tử π”, sửa thành 8/3.",
+      "boardPrompt": "Khi nào công thức tính thể tích vật thể bằng tích phân có thừa số pi và khi nào không?",
+      "libraryTitle": "Lỗi AI tự ý thêm nhân tử pi vào công thức thể tích thiết diện bất kỳ"
+    },
+    "12-15-109": {
+      "key": "12-15-109",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính thể tích khối tròn xoay khi quay y = \\sqrt{x} quanh Ox từ x=0 đến x=4: AI tính V = \\pi \\int_0^4 \\sqrt{x} dx = \\pi [2/3 x^{3/2}]_0^4 = 16\\pi / 3.",
+      "correction": "Công thức thể tích tròn xoay yêu cầu bình phương hàm số: V = \\pi \\int_0^4 (\\sqrt{x})^2 dx = \\pi \\int_0^4 x dx = \\pi [x^2/2]_0^4 = 8\\pi. AI quên bình phương hàm số.",
+      "proof": "V = \\pi \\int_a^b y^2 dx. Bình phương của \\sqrt{x} là x, tích phân của x là x^2/2.",
+      "whyAiError": "Mô hình quên thao tác bình phương hàm số trong công thức khối tròn xoay.",
+      "teacherPrompt": "AI quên bình phương hàm căn x tính ra 16pi/3. Em hãy chỉ ra lỗi đại số trong công thức tròn xoay và sửa lại thể tích đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: quên bình phương hàm số f(x) trong công thức tròn xoay”, sửa thành 8π.",
+      "boardPrompt": "Đại lượng dưới dấu tích phân trong công thức tính thể tích khối tròn xoay quay quanh Ox là gì?",
+      "libraryTitle": "Lỗi AI quên bình phương hàm số khi tính thể tích khối tròn xoay"
+    },
+    "12-15-110": {
+      "key": "12-15-110",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính thể tích tròn xoay khi quay y = \\sin x quanh Ox từ 0 đến \\pi: AI viết V = \\pi \\int_0^\\pi \\sin^2 x dx = \\pi [-\\cos^2 x]_0^\\pi = 0.",
+      "correction": "Nguyên hàm của \\sin^2 x phải dùng công thức hạ bậc: \\sin^2 x = (1 - \\cos 2x)/2. Tích phân = \\pi [x/2 - \\sin(2x)/4]_0^\\pi = \\pi^2 / 2. Thể tích không thể bằng 0.",
+      "proof": "Một khối vật thể thực tế luôn có thể tích dương. Tích phân của hàm số không âm khác không trên một đoạn luôn là số dương.",
+      "whyAiError": "Mô hình lấy sai nguyên hàm của hàm lượng giác bình phương.",
+      "teacherPrompt": "AI tính thể tích khối tròn xoay ra bằng 0. Em hãy chỉ ra lỗi lấy nguyên hàm và sửa lại bằng công thức hạ bậc đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: lấy sai nguyên hàm sin²x, cần dùng công thức hạ bậc”, sửa thành π²/2.",
+      "boardPrompt": "Phương pháp chuẩn để tìm nguyên hàm của hàm lượng giác bậc hai sin²x hoặc cos²x là gì?",
+      "libraryTitle": "Lỗi AI lấy sai nguyên hàm hàm lượng giác bình phương trong thể tích tròn xoay"
+    },
+    "12-15-111": {
+      "key": "12-15-111",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Quay hình phẳng giới hạn bởi y = x và y = x^2 quanh Ox, AI áp dụng công thức: V = \\pi \\int_0^1 (x - x^2)^2 dx = \\pi \\int_0^1 (x^2 - 2x^3 + x^4)dx = \\pi / 30.",
+      "correction": "Công thức thể tích khối tròn xoay giữa hai đường cong là hiệu hai bình phương: V = \\pi \\int_0^1 (x^2 - x^4)dx = 2\\pi / 15. Công thức (f - g)^2 là hoàn toàn sai khái niệm.",
+      "proof": "Thiết diện mặt cắt là hình vành khăn có diện tích S(x) = \\pi R^2 - \\pi r^2 = \\pi (f^2 - g^2). Biểu thức \\pi (f - g)^2 tính sai thể tích của một vật thể khác.",
+      "whyAiError": "Mô hình nhầm lẫn giữa hiệu hai bình phương (R^2 - r^2) với bình phương của một hiệu (R - r)^2.",
+      "teacherPrompt": "AI dùng bình phương của hiệu (f - g)^2 ra pi/30. Em hãy giải thích lỗi khái niệm hình vành khăn và sửa lại công thức đúng 2pi/15.",
+      "studentProduct": "Ghi “Lỗi khái niệm: thể tích vành khăn là π(f² - g²), không phải π(f - g)²”, sửa thành 2π/15.",
+      "boardPrompt": "Công thức diện tích hình vành khăn dẫn đến biểu thức thể tích tròn xoay giữa hai đường cong như thế nào?",
+      "libraryTitle": "Lỗi AI dùng bình phương của hiệu thay vì hiệu hai bình phương trong thể tích tròn xoay"
+    },
+    "12-15-112": {
+      "key": "12-15-112",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tìm nguyên hàm: \\int \\frac{1}{2x + 1} dx = \\ln|2x + 1| + C.",
+      "correction": "Nguyên hàm của hàm hợp bậc nhất f(ax + b) phải có nhân tử 1/a: \\int \\frac{1}{2x + 1} dx = \\frac{1}{2} \\ln|2x + 1| + C. AI quên hệ số 1/2.",
+      "proof": "Đạo hàm kiểm tra: (\\ln|2x + 1|)' = \\frac{2}{2x + 1} = 2 \\cdot \\frac{1}{2x + 1} \\ne \\frac{1}{2x + 1}. Do đó bắt buộc có nhân tử 1/2.",
+      "whyAiError": "Mô hình quên chia cho hệ số a của biến x khi lấy nguyên hàm hàm số hợp f(ax + b).",
+      "teacherPrompt": "AI quên hệ số 1/2 khi lấy nguyên hàm hàm 1/(2x+1). Em hãy chỉ ra lỗi vi phân và sửa lại họ nguyên hàm chuẩn xác.",
+      "studentProduct": "Ghi “Lỗi đại số: quên hệ số 1/a trong nguyên hàm hàm hợp bậc nhất”, sửa thành 1/2 ln|2x + 1| + C.",
+      "boardPrompt": "Quy tắc lấy nguyên hàm của hàm số hợp dạng f(ax + b) có hệ số nào ở trước?",
+      "libraryTitle": "Lỗi AI quên nhân hệ số 1/a khi tìm nguyên hàm hàm hợp bậc nhất"
+    },
+    "12-15-113": {
+      "key": "12-15-113",
+      "category": "Lỗi logic",
+      "wrongSolution": "Cho f(x) là hàm số lẻ trên [-1; 1], AI tính diện tích hình phẳng giới hạn bởi đồ thị y = f(x) và Ox: S = \\int_{-1}^1 f(x) dx = 0.",
+      "correction": "Tích phân đại số của hàm lẻ trên đoạn đối xứng bằng 0, nhưng DIỆN TÍCH hình phẳng là đại lượng hình học luôn dương: S = \\int_{-1}^1 |f(x)|dx = 2\\int_0^1 |f(x)|dx > 0.",
+      "proof": "Đồ thị hàm lẻ gồm hai miền đối xứng qua gốc O có diện tích bằng nhau. Diện tích toàn phần là tổng độ lớn của hai miền, không thể bằng 0.",
+      "whyAiError": "Mô hình đồng nhất giá trị tích phân đại số với số đo diện tích hình học.",
+      "teacherPrompt": "AI kết luận diện tích bằng 0 vì hàm lẻ. Em hãy phản biện lỗi logic giữa tích phân và diện tích rồi sửa lại công thức đúng.",
+      "studentProduct": "Ghi “Lỗi logic: nhầm tích phân đại số của hàm lẻ (=0) với diện tích hình học (>0)”, sửa thành 2∫|f|dx.",
+      "boardPrompt": "Tại sao diện tích hình phẳng giới hạn bởi hàm lẻ luôn khác 0 dù tích phân đại số của nó bằng 0?",
+      "libraryTitle": "Lỗi AI nhầm lẫn tích phân hàm lẻ bằng 0 với diện tích hình phẳng bằng 0"
     }
   }
 }

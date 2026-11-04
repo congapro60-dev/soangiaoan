@@ -1,24 +1,24 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 14 CẢ 3 KHỐI: 124/124 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 15 CẢ 3 KHỐI: 148/148 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 124/124 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **40 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `10-14-104`..`111`).
-  - Khối 11: **42 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `11-14-98`..`105`).
-  - Khối 12: **42 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `12-14-98`..`105`).
-- **Tuần 14 đã khép kín 100% cả 3 khối (24/24 bài):**
-  - Khối 10: `10-14-104` (Luyện tập tọa độ vectơ và độ dài), `10-14-105` (Góc giữa hai vectơ và tích vô hướng), `10-14-106` (Luyện tập góc và tích vô hướng), `10-14-107` (Biểu thức tọa độ của tích vô hướng), `10-14-108` (Luyện tập biểu thức tọa độ tích vô hướng), `10-14-109` (Luyện tập tổng hợp tích vô hướng), `10-14-110` (Tự chọn: Chứng minh vuông góc bằng tích vô hướng), `10-14-111` (Tự chọn: Bài toán thực tế công sinh bởi lực).
-  - Khối 11: `11-14-98` (Giới hạn của hàm số tại vô cực), `11-14-99` (Giới hạn vô cực của hàm số tại một điểm), `11-14-100` (Luyện tập giới hạn hàm số), `11-14-101` (Hàm số liên tục tại một điểm), `11-14-102` (Ôn tập chương IV: Dãy số và giới hạn), `11-14-103` (Ôn tập chương IV: Hàm số liên tục), `11-14-104` (Tự chọn: Phương pháp khử dạng vô định vô cực trừ vô cực), `11-14-105` (Tự chọn: Khảo sát hàm số liên tục có tham số).
-  - Khối 12: `12-14-98` (Luyện tập tính chất và kỹ thuật tích phân), `12-14-99` (Ứng dụng tích phân tính diện tích hình phẳng), `12-14-100` (Luyện tập diện tích hình phẳng một đồ thị), `12-14-101` (Kỹ thuật tách cận tính diện tích hình phẳng), `12-14-102` (Luyện tập tổng hợp diện tích một đường cong), `12-14-103` (Diện tích hình phẳng giới hạn bởi hai đồ thị), `12-14-104` (Luyện tập diện tích giới hạn bởi hai đồ thị), `12-14-105` (Tự chọn: Ứng dụng tích phân tính diện tích thực tế).
+- **TOÀN BỘ 148/148 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **48 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `10-15-112`..`119`).
+  - Khối 11: **50 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `11-15-106`..`113`).
+  - Khối 12: **50 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8/8 bài `12-15-106`..`113`).
+- **Tuần 15 đã khép kín 100% cả 3 khối (24/24 bài):**
+  - Khối 10: `10-15-112` (Ôn tập chương IV: Tích vô hướng và góc), `10-15-113` (Ôn tập chương IV: Biểu thức tọa độ và vuông góc), `10-15-114` (Ôn tập chương IV: Hệ thức lượng trong tam giác), `10-15-115` (Ôn tập chương IV: Diện tích tam giác và bài toán thực tế), `10-15-116` (Ôn tập cuối HK1: Mệnh đề, tập hợp và bất phương trình), `10-15-117` (Ôn tập cuối HK1: Vectơ và hệ thức lượng), `10-15-118` (Tự chọn: Kỹ thuật giải trắc nghiệm vectơ và hệ thức lượng), `10-15-119` (Tự chọn: Bài toán thực tế tổng hợp học kỳ 1).
+  - Khối 11: `11-15-106` (Hàm số liên tục trên một khoảng), `11-15-107` (Luyện tập hàm số liên tục và định lý nghiệm), `11-15-108` (Ôn tập chương V: Số trung bình và trung vị mẫu ghép nhóm), `11-15-109` (Ôn tập chương V: Tứ phân vị và mốt mẫu ghép nhóm), `11-15-110` (Lũy thừa với số mũ nguyên và căn bậc n), `11-15-111` (Lũy thừa với số mũ hữu tỉ và số thực), `11-15-112` (Tự chọn: Khảo sát hàm số liên tục trên đoạn và khoảng), `11-15-113` (Tự chọn: Biến đổi biểu thức luỹ thừa chứa căn thức).
+  - Khối 12: `12-15-106` (Luyện tập diện tích hình phẳng nâng cao), `12-15-107` (Luyện tập diện tích hình phẳng có tham số), `12-15-108` (Thể tích vật thể qua diện tích mặt cắt), `12-15-109` (Thể tích khối tròn xoay quanh trục Ox), `12-15-110` (Luyện tập thể tích khối tròn xoay cơ bản), `12-15-111` (Luyện tập thể tích khối tròn xoay nâng cao), `12-15-112` (Ôn tập chương IV: Nguyên hàm và các phương pháp), `12-15-113` (Ôn tập chương IV: Tích phân và ứng dụng hình học).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 73 bài (tổng cộng 124 bài).
-  - Đăng ký đầy đủ 73 bài trong `W11BATCH2` và 76 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 97 bài (tổng cộng 148 bài).
+  - Đăng ký đầy đủ 97 bài trong `W11BATCH2` và 100 bài trong `INTERACTIVE_SOURCE_KEYS`.
   - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
-  - Kiểm chứng `displayTitleUnique.test.ts`: 124/124 bài có display title duy nhất trong từng khối lớp (K10: 40 bài, K11: 42 bài, K12: 42 bài).
+  - Kiểm chứng `displayTitleUnique.test.ts`: 148/148 bài có display title duy nhất trong từng khối lớp (K10: 48 bài, K11: 50 bài, K12: 50 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **511/511 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **583/583 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
   - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
